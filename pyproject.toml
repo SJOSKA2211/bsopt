@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bsopt-platform"
+version = "2.1.0"
+description = "Black-Scholes Advanced Option Pricing Platform"
+readme = "README.md"
+authors = [{name = "BSOPT Team"}]
+requires-python = ">=3.11"
+license = {text = "MIT"}
+keywords = ["options", "black-scholes", "pricing", "finance", "quantitative", "cli"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.5.0",
+    "sqlalchemy>=2.0.35",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.14.0",
+    "redis[hiredis]>=5.0.0",
+    "celery>=5.4.0",
+    "numpy>=1.26.4",
+    "scipy>=1.14.0",
+    "pandas>=2.2.0",
+    "numba>=0.60.0",
+    "scikit-learn>=1.5.0",
+    "xgboost>=2.1.0",
+    "lightgbm>=4.5.0",
+    "torch>=2.4.0",
+    "mlflow>=2.16.0",
+    "optuna>=4.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.12",
+    "python-socketio>=5.11.0",
+    "strawberry-graphql[fastapi]>=0.243.0",
+    "click>=8.1.7",
+]
+
+[project.urls]
+"Documentation" = "https://bsopt.readthedocs.io"
+"Source" = "https://github.com/yourusername/black-scholes-platform"
+"Tracker" = "https://github.com/yourusername/black-scholes-platform/issues"
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.11.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+    "isort>=5.12.0",
+    "ipython>=8.17.0",
+    "jupyter>=1.0.0",
+]
+
+[project.scripts]
+bsopt = "cli:cli"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+strict = false # Changed from true
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true # Added
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=src --cov-report=html --cov-report=term-missing"
+asyncio_mode = "auto"

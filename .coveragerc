@@ -1,0 +1,136 @@
+# Coverage.py configuration for Black-Scholes Option Pricing Platform
+
+[run]
+# Measure branch coverage in addition to statement coverage
+branch = True
+
+# Source code to measure
+source = src
+
+# Files to omit from coverage
+omit =
+    # Test files
+    */tests/*
+    */test_*.py
+    */*_test.py
+    # Virtual environments
+    */venv/*
+    */env/*
+    */.venv/*
+    */virtualenv/*
+    # Python cache
+    */__pycache__/*
+    */.pytest_cache/*
+    # Configuration files
+    */conftest.py
+    # Main entry points (usually simple and hard to test)
+    */src/api/main.py
+    # CLI scripts
+    */cli.py
+
+# Plugins to load
+plugins =
+    # No additional plugins needed for now
+
+# Parallel mode (if running tests in parallel)
+parallel = False
+
+# Data file location
+data_file = .coverage
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+
+    # Debug-only code
+    def __repr__
+    def __str__
+
+    # Defensive programming
+    raise AssertionError
+    raise NotImplementedError
+    raise ValueError\(".*"\)
+
+    # Non-runnable code
+    if __name__ == .__main__.:
+
+    # Type checking
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+
+    # Abstract methods
+    @abstractmethod
+    @abc.abstractmethod
+
+    # Protocol methods
+    @protocol
+    \.\.\.
+
+    # Pass statements
+    ^\s*pass\s*$
+
+    # Ellipsis
+    ^\s*\.\.\.\s*$
+
+    # Overload decorators
+    @overload
+
+    # TODO/FIXME comments (temporary code)
+    # TODO:
+    # FIXME:
+
+# Ignore errors for missing source files
+ignore_errors = False
+
+# Number of decimal places for coverage percentage
+precision = 2
+
+# Show line numbers of missing coverage
+show_missing = True
+
+# Skip covered files in report
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+# Sort report by different criteria
+# Options: Name, Stmts, Miss, Branch, BrPart, Cover
+sort = Cover
+
+[html]
+# Directory for HTML report
+directory = htmlcov
+
+# Title for HTML report
+title = Black-Scholes Option Pricing Platform - Coverage Report
+
+# Show contexts in HTML report
+show_contexts = False
+
+[xml]
+# XML output file
+output = coverage.xml
+
+[json]
+# JSON output file
+output = coverage.json
+
+# Pretty-print JSON
+pretty_print = True
+
+# Show contexts in JSON
+show_contexts = False
+
+[paths]
+# Map different paths to the same source (useful for CI/CD)
+source =
+    src/
+    */site-packages/
+
+[coverage:paths]
+source =
+    src
+    */site-packages/src

@@ -1,0 +1,444 @@
+# ==============================================================================
+# Patroni Configuration for Black-Scholes Option Pricing Platform
+# ==============================================================================
+# This configuration file is for a Patroni-managed PostgreSQL cluster with
+# TimescaleDB extension, optimized for high availability and performance.
+#
+# Deploy one instance per database node with node-specific overrides:
+# - Node 1 (Primary): PATRONI_NAME=pg-primary
+# - Node 2 (Standby-1): PATRONI_NAME=pg-standby-1
+# - Node 3 (Standby-2): PATRONI_NAME=pg-standby-2
+#
+# Usage:
+#   patroni /etc/patroni/patroni.yml
+# ==============================================================================
+
+scope: options-cluster
+namespace: /db/
+name: ${PATRONI_NAME}  # Set via environment variable (pg-primary, pg-standby-1, pg-standby-2)
+
+# ==============================================================================
+# REST API Configuration
+# ==============================================================================
+# Patroni exposes a REST API for health checks and management operations
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: ${PATRONI_HOST}:8008
+  # Optional authentication
+  # authentication:
+  #   username: patroni
+  #   password: ${PATRONI_API_PASSWORD}
+
+# ==============================================================================
+# etcd Configuration (Distributed Consensus Store)
+# ==============================================================================
+# Patroni uses etcd for leader election and cluster state management
+# Minimum 3 nodes for production (quorum-based consensus)
+etcd3:
+  hosts:
+    - etcd-1.internal.example.com:2379
+    - etcd-2.internal.example.com:2379
+    - etcd-3.internal.example.com:2379
+
+  # Optional TLS configuration
+  # protocol: https
+  # cacert: /etc/etcd/ca.crt
+  # cert: /etc/etcd/client.crt
+  # key: /etc/etcd/client.key
+
+# ==============================================================================
+# Bootstrap Configuration (Initial Cluster Setup)
+# ==============================================================================
+# This section is only used when initializing a new cluster
+bootstrap:
+  dcs:
+    # Time to live for leader lock (seconds)
+    ttl: 30
+
+    # Loop wait time between Patroni iterations (seconds)
+    loop_wait: 10
+
+    # Number of retries for DCS operations
+    retry_timeout: 30
+
+    # Maximum lag on follower before it's removed from load balancer
+    maximum_lag_on_failover: 1048576  # 1MB
+
+    # Synchronous replication configuration
+    synchronous_mode: true
+    synchronous_mode_strict: false  # Allow async if sync replica is down
+    synchronous_node_count: 1       # Require 1 synchronous replica
+
+    # Replication slots (prevent WAL deletion if replica is down)
+    use_slots: true
+
+    # PostgreSQL configuration applied to all nodes
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+
+      parameters:
+        # ==============================================================================
+        # Connection Settings
+        # ==============================================================================
+        max_connections: 500
+        superuser_reserved_connections: 5
+
+        # ==============================================================================
+        # Memory Settings (optimized for 64GB RAM)
+        # ==============================================================================
+        # Total memory = 64GB, PostgreSQL gets 48GB (75%)
+        shared_buffers: 16GB              # 25% of RAM
+        effective_cache_size: 48GB        # 75% of RAM
+        maintenance_work_mem: 2GB         # For VACUUM, CREATE INDEX
+        work_mem: 32MB                    # Per query operation (16GB / 500 connections)
+
+        # ==============================================================================
+        # WAL Settings (Write-Ahead Logging)
+        # ==============================================================================
+        wal_level: replica
+        wal_log_hints: on
+        wal_buffers: 16MB
+        min_wal_size: 2GB
+        max_wal_size: 8GB
+        wal_keep_size: 1GB                # Keep at least 1GB of WAL
+        wal_compression: on               # Compress archived WAL files
+
+        # ==============================================================================
+        # Checkpoint Settings (balance between performance and recovery time)
+        # ==============================================================================
+        checkpoint_timeout: 15min
+        checkpoint_completion_target: 0.9
+        checkpoint_flush_after: 256kB
+
+        # ==============================================================================
+        # Replication Settings
+        # ==============================================================================
+        max_wal_senders: 10
+        max_replication_slots: 10
+        hot_standby: on
+        hot_standby_feedback: on          # Prevent query cancellations on standby
+        wal_receiver_timeout: 60s
+        wal_sender_timeout: 60s
+
+        # ==============================================================================
+        # Query Planner Settings
+        # ==============================================================================
+        random_page_cost: 1.1             # SSD storage (default is 4.0 for HDD)
+        effective_io_concurrency: 200     # Number of concurrent I/O operations
+        default_statistics_target: 100    # Query planning accuracy
+
+        # ==============================================================================
+        # Parallel Query Settings
+        # ==============================================================================
+        max_parallel_workers_per_gather: 4
+        max_parallel_maintenance_workers: 4
+        max_parallel_workers: 16
+        parallel_setup_cost: 1000
+        parallel_tuple_cost: 0.1
+
+        # ==============================================================================
+        # Logging and Monitoring
+        # ==============================================================================
+        log_destination: csvlog
+        logging_collector: on
+        log_directory: /var/log/postgresql
+        log_filename: postgresql-%Y-%m-%d_%H%M%S.log
+        log_rotation_age: 1d
+        log_rotation_size: 100MB
+        log_truncate_on_rotation: on
+        log_line_prefix: '%m [%p] %q%u@%d '
+        log_timezone: UTC
+
+        # Log slow queries (>500ms)
+        log_min_duration_statement: 500
+        log_checkpoints: on
+        log_connections: on
+        log_disconnections: on
+        log_lock_waits: on
+        log_temp_files: 0
+        log_autovacuum_min_duration: 0
+
+        # ==============================================================================
+        # Autovacuum Settings (critical for TimescaleDB)
+        # ==============================================================================
+        autovacuum: on
+        autovacuum_max_workers: 4
+        autovacuum_naptime: 15s           # Check for autovacuum every 15 seconds
+        autovacuum_vacuum_threshold: 50
+        autovacuum_vacuum_scale_factor: 0.05
+        autovacuum_analyze_threshold: 50
+        autovacuum_analyze_scale_factor: 0.05
+        autovacuum_vacuum_cost_delay: 2ms
+        autovacuum_vacuum_cost_limit: 1000
+
+        # ==============================================================================
+        # Lock Management
+        # ==============================================================================
+        deadlock_timeout: 1s
+        max_locks_per_transaction: 256
+        max_pred_locks_per_transaction: 256
+
+        # ==============================================================================
+        # TimescaleDB Settings
+        # ==============================================================================
+        shared_preload_libraries: timescaledb,pg_stat_statements
+        timescaledb.max_background_workers: 8
+
+        # ==============================================================================
+        # pg_stat_statements (Query Performance Monitoring)
+        # ==============================================================================
+        pg_stat_statements.max: 10000
+        pg_stat_statements.track: all
+        track_activity_query_size: 2048
+        track_io_timing: on
+
+        # ==============================================================================
+        # Security Settings
+        # ==============================================================================
+        ssl: on
+        ssl_cert_file: /etc/postgresql/ssl/server.crt
+        ssl_key_file: /etc/postgresql/ssl/server.key
+        ssl_ca_file: /etc/postgresql/ssl/ca.crt
+        ssl_ciphers: HIGH:!aNULL:!MD5
+        ssl_prefer_server_ciphers: on
+        ssl_min_protocol_version: TLSv1.2
+
+        # ==============================================================================
+        # Locale and Formatting
+        # ==============================================================================
+        datestyle: iso, mdy
+        timezone: UTC
+        lc_messages: en_US.UTF-8
+        lc_monetary: en_US.UTF-8
+        lc_numeric: en_US.UTF-8
+        lc_time: en_US.UTF-8
+        default_text_search_config: pg_catalog.english
+
+  # ==============================================================================
+  # Initialization Configuration (First Time Setup)
+  # ==============================================================================
+  initdb:
+    - encoding: UTF8
+    - data-checksums  # Enable data checksums for corruption detection
+    - locale: en_US.UTF-8
+
+  # ==============================================================================
+  # Post-Bootstrap Scripts
+  # ==============================================================================
+  # These scripts run after initial cluster creation
+  post_bootstrap: |
+    #!/bin/bash
+    set -e
+
+    # Create extensions
+    psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
+    psql -U postgres -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements;"
+
+    # Create database
+    psql -U postgres -c "CREATE DATABASE options_platform OWNER postgres;"
+
+    # Apply schema
+    if [ -f /opt/schema/schema.sql ]; then
+      psql -U postgres -d options_platform -f /opt/schema/schema.sql
+    fi
+
+  # ==============================================================================
+  # Database Users Configuration
+  # ==============================================================================
+  users:
+    # Replication user
+    replicator:
+      password: ${REPLICATION_PASSWORD}
+      options:
+        - replication
+
+    # Application user
+    app_user:
+      password: ${APP_USER_PASSWORD}
+      options:
+        - LOGIN
+
+    # Read-only user (for analytics)
+    readonly_user:
+      password: ${READONLY_PASSWORD}
+      options:
+        - LOGIN
+
+  # ==============================================================================
+  # pg_hba.conf Configuration (Client Authentication)
+  # ==============================================================================
+  pg_hba:
+    - host replication replicator 0.0.0.0/0 md5
+    - host all all 0.0.0.0/0 md5
+    - local all all peer
+    - host all all 127.0.0.1/32 md5
+    - host all all ::1/128 md5
+
+# ==============================================================================
+# PostgreSQL Configuration
+# ==============================================================================
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: ${PATRONI_HOST}:5432
+
+  # Data directory
+  data_dir: /var/lib/postgresql/16/main
+
+  # Binary paths
+  bin_dir: /usr/lib/postgresql/16/bin
+
+  # Configuration file (generated by Patroni)
+  # config_dir: /etc/postgresql/16/main
+
+  # Authentication
+  authentication:
+    replication:
+      username: replicator
+      password: ${REPLICATION_PASSWORD}
+
+    superuser:
+      username: postgres
+      password: ${POSTGRES_PASSWORD}
+
+    rewind:
+      username: replicator
+      password: ${REPLICATION_PASSWORD}
+
+  # ==============================================================================
+  # Custom Scripts (Callbacks)
+  # ==============================================================================
+  callbacks:
+    on_start: |
+      #!/bin/bash
+      echo "$(date): PostgreSQL started on ${PATRONI_NAME}" >> /var/log/patroni/callbacks.log
+
+    on_stop: |
+      #!/bin/bash
+      echo "$(date): PostgreSQL stopped on ${PATRONI_NAME}" >> /var/log/patroni/callbacks.log
+
+    on_reload: |
+      #!/bin/bash
+      echo "$(date): PostgreSQL reloaded on ${PATRONI_NAME}" >> /var/log/patroni/callbacks.log
+
+    on_role_change: |
+      #!/bin/bash
+      echo "$(date): Role changed to $1 on ${PATRONI_NAME}" >> /var/log/patroni/callbacks.log
+
+      # Update HAProxy weight based on role
+      if [ "$1" = "master" ]; then
+        # Notify monitoring system
+        curl -X POST http://monitoring.internal/api/alerts \
+          -d "{\"event\": \"failover\", \"node\": \"${PATRONI_NAME}\"}"
+      fi
+
+  # ==============================================================================
+  # Replica Configuration
+  # ==============================================================================
+  replica:
+    # Enable hot standby for read-only queries
+    hot_standby: on
+
+    # Parameters specific to replica nodes
+    parameters:
+      hot_standby_feedback: on
+      max_standby_archive_delay: 30s
+      max_standby_streaming_delay: 30s
+
+  # ==============================================================================
+  # pg_rewind Configuration (for failed primary rejoin)
+  # ==============================================================================
+  use_pg_rewind: true
+
+  # ==============================================================================
+  # Remove Data Directory on Reinitialize
+  # ==============================================================================
+  remove_data_directory_on_rewind_failure: true
+  remove_data_directory_on_diverged_timelines: true
+
+  # ==============================================================================
+  # Custom Bootstrap Commands
+  # ==============================================================================
+  create_replica_methods:
+    - basebackup
+
+  basebackup:
+    max-rate: 100M  # Throttle replication to avoid network saturation
+    checkpoint: fast
+    waldir: /var/lib/postgresql/16/main/pg_wal
+
+# ==============================================================================
+# Tags (for Patroni Node Selection)
+# ==============================================================================
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false
+
+  # Custom tags for HAProxy routing
+  role: replica  # Override to 'primary' via environment variable
+
+# ==============================================================================
+# Watchdog Configuration (Optional - Prevents Split-Brain)
+# ==============================================================================
+# Uncomment if using hardware watchdog
+# watchdog:
+#   mode: required
+#   device: /dev/watchdog
+#   safety_margin: 5
+
+# ==============================================================================
+# Logging Configuration
+# ==============================================================================
+log:
+  level: INFO
+  format: '%(asctime)s %(levelname)s: %(message)s'
+  dateformat: '%Y-%m-%d %H:%M:%S'
+
+  # Log to file
+  # file:
+  #   enabled: true
+  #   filename: /var/log/patroni/patroni.log
+  #   max_bytes: 104857600  # 100MB
+  #   backup_count: 5
+
+# ==============================================================================
+# Environment-Specific Overrides
+# ==============================================================================
+# Set these via environment variables:
+#
+# export PATRONI_NAME=pg-primary
+# export PATRONI_HOST=10.0.1.10
+# export POSTGRES_PASSWORD=<secure-password>
+# export REPLICATION_PASSWORD=<secure-password>
+# export APP_USER_PASSWORD=<secure-password>
+# export READONLY_PASSWORD=<secure-password>
+# ==============================================================================
+
+# ==============================================================================
+# Production Deployment Notes
+# ==============================================================================
+# 1. TLS/SSL Certificates:
+#    - Generate certificates: openssl req -new -x509 -days 365 -nodes -text \
+#                              -out server.crt -keyout server.key
+#    - Set permissions: chmod 600 server.key; chown postgres:postgres server.*
+#
+# 2. Firewall Rules:
+#    - PostgreSQL: 5432 (internal only)
+#    - Patroni API: 8008 (internal + HAProxy)
+#    - etcd: 2379-2380 (internal only)
+#
+# 3. Monitoring Integration:
+#    - Expose Patroni metrics: http://<node>:8008/metrics
+#    - PostgreSQL metrics: postgres_exporter (port 9187)
+#
+# 4. Backup Integration:
+#    - Configure pgBackRest WAL archiving
+#    - Test restore procedures monthly
+#
+# 5. Failover Testing:
+#    - Simulate primary failure: systemctl stop patroni
+#    - Verify automatic promotion: patronictl list
+#    - Test switchback: patronictl switchover
+# ==============================================================================

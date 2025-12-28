@@ -1,0 +1,1 @@
+{"metrics": {"r2": 0.9917887734032788}, "serving": {"port": 5001, "endpoint": "/predict", "timeout": 60, "max_batch_size": 32, "max_workers": 4, "memory_limit": "2GB", "cpu_limit": 2}}

@@ -1,0 +1,1 @@
+{"metrics": {"r2": 0.9917887734032788}, "schema": {"version": "1.0.0", "project": "BlackScholesPlatform", "logging_format": "JSON", "required_fields": ["timestamp", "run_id", "experiment", "status"]}}

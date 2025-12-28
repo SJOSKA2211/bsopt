@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MLflowEnterpriseLogSchema",
+  "type": "object",
+  "properties": {
+    "timestamp": {"type": "string", "format": "date-time"},
+    "project_name": {"type": "string", "maxLength": 50},
+    "model_type": {"type": "string", "maxLength": 50},
+    "run_name": {"type": "string", "maxLength": 40},
+    "experiment_name": {"type": "string", "maxLength": 250},
+    "commit_hash": {"type": "string", "maxLength": 40},
+    "parameters": {
+      "type": "object",
+      "maxProperties": 100,
+      "additionalProperties": {"type": "string", "maxLength": 250}
+    },
+    "metrics": {
+      "type": "object",
+      "maxProperties": 100,
+      "additionalProperties": {"type": "number", "maximum": 1e9}
+    },
+    "status": {"type": "string", "enum": ["SUCCESS", "FAILURE", "RUNNING"]},
+    "serving_config": {
+      "type": "object",
+      "properties": {
+        "port": {"type": "integer", "default": 5001},
+        "endpoint": {"type": "string", "default": "/predict"},
+        "timeout": {"type": "integer", "default": 60},
+        "max_batch_size": {"type": "integer", "default": 32}
+      }
+    }
+  },
+  "required": ["timestamp", "project_name", "model_type", "run_name", "status"]
+}

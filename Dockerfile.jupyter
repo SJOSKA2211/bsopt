@@ -1,0 +1,36 @@
+# Jupyter Notebook with scientific Python stack
+FROM jupyter/scipy-notebook:python-3.11
+
+USER root
+
+# Install additional system packages
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements while still as root to /home/jovyan/
+COPY requirements.txt /home/jovyan/
+RUN chown jovyan:users /home/jovyan/requirements.txt
+
+USER jovyan
+
+# Install Python packages
+RUN pip install --no-cache-dir -r /home/jovyan/requirements.txt --timeout 300
+
+# Install additional data science packages
+RUN pip install --no-cache-dir \
+    seaborn \
+    plotly \
+    yfinance \
+    alpha_vantage \
+    jupyter-book \
+    nbconvert
+
+# Set working directory
+WORKDIR /home/jovyan/work
+
+# Expose Jupyter port
+EXPOSE 8888
+
+# Start Jupyter Lab by default
+CMD ["start-notebook.sh"]

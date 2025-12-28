@@ -1,0 +1,168 @@
+# =====================================================================
+# OPTIMIZED REACT/VITE FRONTEND DOCKERFILE - PRODUCTION READY
+# =====================================================================
+# Base Image: Alpine Linux for both build and runtime
+# Security: Non-root user, static file serving via nginx
+# Performance: Multi-stage build, nginx static serving, gzip compression
+# Target Size: <50MB for nginx + static assets (vs 1GB+ with Node runtime)
+# Build Time: ~2-4min with cold cache, ~30s with warm cache
+# =====================================================================
+# Architecture: Build React app, serve static files with nginx
+# No Node.js in production = 90% size reduction + better security
+# =====================================================================
+
+# =====================================================================
+# Stage 1: Dependencies - Install npm packages
+# =====================================================================
+FROM node:20-alpine3.19 AS deps
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files for dependency installation
+# These change less frequently than source code, enabling better caching
+COPY package.json package-lock.json* ./
+
+# Install dependencies with clean cache and production focus
+# --prefer-offline uses cache when possible
+# --frozen-lockfile ensures reproducible builds
+# --production=false needed because we need devDependencies for build
+RUN npm ci --prefer-offline --frozen-lockfile --production=false
+
+# =====================================================================
+# Stage 2: Builder - Build production React application
+# =====================================================================
+FROM node:20-alpine3.19 AS builder
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code and configuration files
+COPY . .
+
+# Set build-time environment variables
+# These are embedded in the build, not runtime
+ARG REACT_APP_API_URL=/api
+ARG REACT_APP_WS_URL=/ws
+ENV REACT_APP_API_URL=${REACT_APP_API_URL}
+ENV REACT_APP_WS_URL=${REACT_APP_WS_URL}
+ENV NODE_ENV=production
+
+# Build the application
+# Vite outputs to dist/ by default
+# TypeScript compilation happens during build
+RUN npm run build
+
+# Remove source maps for production (comment out to keep for debugging)
+RUN find /app/dist -name "*.map" -type f -delete
+
+# =====================================================================
+# Stage 3: Runtime - Nginx serving static files
+# =====================================================================
+FROM nginx:1.25-alpine3.19 AS runtime
+
+# Install only necessary runtime packages
+# curl for health checks, ca-certificates for HTTPS
+RUN apk add --no-cache \
+    curl \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Copy custom nginx configuration
+COPY --chown=nginx:nginx nginx.conf /etc/nginx/nginx.conf
+
+# Copy built static files from builder
+COPY --from=builder --chown=nginx:nginx /app/dist /usr/share/nginx/html
+
+# Create non-root nginx user (already exists, just configure)
+# Remove default nginx user's shell for security
+RUN sed -i 's/nginx:x:101:101:nginx:\/var\/cache\/nginx:\/bin\/sh/nginx:x:101:101:nginx:\/var\/cache\/nginx:\/sbin\/nologin/' /etc/passwd
+
+# Create necessary directories with correct permissions
+RUN mkdir -p /var/cache/nginx /var/log/nginx /var/run && \
+    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run && \
+    chmod -R 755 /var/cache/nginx /var/log/nginx
+
+# Configure nginx to run as non-root
+# This is set in nginx.conf but we ensure permissions here
+RUN touch /var/run/nginx.pid && \
+    chown nginx:nginx /var/run/nginx.pid
+
+# Switch to non-root user
+USER nginx
+
+# Expose port 3000 (configured in nginx.conf)
+EXPOSE 3000
+
+# Health check for nginx
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
+
+# Start nginx in foreground mode
+# -g "daemon off;" keeps nginx in foreground for Docker
+CMD ["nginx", "-g", "daemon off;"]
+
+# =====================================================================
+# Build Instructions:
+# =====================================================================
+# Standard build:
+#   docker build -f frontend/Dockerfile -t bsopt-frontend:latest ./frontend
+#
+# With BuildKit and build args:
+#   DOCKER_BUILDKIT=1 docker build \
+#     --build-arg REACT_APP_API_URL=https://api.example.com \
+#     --build-arg REACT_APP_WS_URL=wss://api.example.com \
+#     -f frontend/Dockerfile -t bsopt-frontend:latest ./frontend
+#
+# Multi-platform:
+#   docker buildx build --platform linux/amd64,linux/arm64 \
+#     -f frontend/Dockerfile -t bsopt-frontend:latest ./frontend
+# =====================================================================
+
+# =====================================================================
+# Security Features:
+# =====================================================================
+# - Non-root user (nginx user, UID 101)
+# - No Node.js runtime in production (reduces attack surface)
+# - Minimal Alpine base (~5MB)
+# - No shell access for nginx user
+# - Static file serving only (no code execution)
+# - Source maps removed (optional, for production)
+# - HTTPS-ready nginx configuration
+# =====================================================================
+
+# =====================================================================
+# Performance Features:
+# =====================================================================
+# - Multi-stage build (3 stages for optimal caching)
+# - Dependencies cached separately from source
+# - Production build optimizations (minification, tree-shaking)
+# - Nginx static file serving (faster than Node.js)
+# - Gzip compression enabled in nginx.conf
+# - Browser caching headers configured
+# - Asset optimization via Vite build
+# =====================================================================
+
+# =====================================================================
+# Expected Metrics:
+# =====================================================================
+# Image Size: 35-50MB (vs 1GB+ with node:20)
+# Build Time (cold): ~3-4 minutes
+# Build Time (warm): ~20-30 seconds
+# Startup Time: <1 second
+# Memory Usage: ~10-20MB
+# Request Latency: <5ms for static files
+# =====================================================================
+
+# =====================================================================
+# Production Optimizations:
+# =====================================================================
+# - Asset compression (gzip, brotli in nginx.conf)
+# - Cache headers for static assets
+# - Content Security Policy headers
+# - X-Frame-Options, X-Content-Type-Options headers
+# - SPA routing support (try_files fallback)
+# - Health check endpoint
+# =====================================================================

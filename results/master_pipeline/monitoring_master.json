@@ -1,0 +1,6 @@
+{
+  "drift_detection": "enabled",
+  "alert_threshold": 0.05,
+  "metrics_endpoint": "/api/v1/metrics/ml",
+  "dashboard_url": "http://grafana:3000/d/ml-model-performance"
+}

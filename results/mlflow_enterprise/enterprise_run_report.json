@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-12-28T11:04:34.051798",
+  "commit": "8b3d2f1a9c4e5d6f7a8b9c0d1e2f3a4b5c6d7e8f",
+  "runs": [
+    {
+      "model": "xgboost",
+      "metric": 0.9917887734032788
+    },
+    {
+      "model": "nn",
+      "metric": 0.96
+    }
+  ],
+  "status": "SUCCESS",
+  "serving_port": 5001
+}

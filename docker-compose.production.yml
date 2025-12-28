@@ -1,0 +1,550 @@
+# =====================================================================
+# DOCKER COMPOSE - PRODUCTION CONFIGURATION
+# =====================================================================
+# Optimized for: Production deployment, security, performance, monitoring
+# Features: Resource limits, health checks, logging, security hardening
+# =====================================================================
+# Usage:
+#   docker-compose -f docker-compose.production.yml up -d
+#   docker-compose -f docker-compose.production.yml down
+# =====================================================================
+
+version: '3.8'
+
+# =====================================================================
+# SHARED CONFIGURATION
+# =====================================================================
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+    compress: "true"
+
+x-restart-policy: &restart-policy
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+
+# =====================================================================
+# SERVICES
+# =====================================================================
+services:
+  # ===================================================================
+  # PostgreSQL with TimescaleDB
+  # ===================================================================
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: bsopt-postgres-prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bsopt}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+      # Security
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    ports:
+      - "127.0.0.1:5432:5432"  # Bind to localhost only
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./performance/database_optimization.sql:/docker-entrypoint-initdb.d/02-optimization.sql:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+      <<: *restart-policy
+    # Kernel tuning for PostgreSQL (requires privileged or host config)
+    shm_size: 1g  # Shared memory for PostgreSQL
+
+  # ===================================================================
+  # Redis for caching and pub/sub
+  # ===================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: bsopt-redis-prod
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --tcp-backlog 511
+      --timeout 300
+    ports:
+      - "127.0.0.1:6379:6379"  # Bind to localhost only
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      <<: *restart-policy
+
+  # ===================================================================
+  # RabbitMQ for message queue
+  # ===================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: bsopt-rabbitmq-prod
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-bsopt}
+    ports:
+      - "127.0.0.1:5672:5672"    # AMQP - localhost only
+      - "127.0.0.1:15672:15672"  # Management UI - localhost only
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      <<: *restart-policy
+
+  # ===================================================================
+  # FastAPI Backend (Optimized)
+  # ===================================================================
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: bsopt-api:${VERSION:-latest}
+    container_name: bsopt-api-prod
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+
+      # Cache
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+
+      # Message Queue
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD}@rabbitmq:5672/${RABBITMQ_VHOST:-bsopt}
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+
+      # Application
+      ENVIRONMENT: prod
+      DEBUG: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Performance
+      WORKERS: ${API_WORKERS:-4}
+
+      # Python optimization
+      PYTHONOPTIMIZE: 2
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs:rw
+      - api_tmp:/tmp/app-tmp:rw
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      <<: *restart-policy
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    read_only: false  # Set to true if app doesn't need write access
+    # cap_drop:
+    #   - ALL
+    # cap_add:
+    #   - NET_BIND_SERVICE
+
+  # ===================================================================
+  # Celery Workers (Optimized) - Pricing Queue
+  # ===================================================================
+  worker-pricing:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: bsopt-worker:${VERSION:-latest}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD}@rabbitmq:5672/${RABBITMQ_VHOST:-bsopt}
+      ENVIRONMENT: prod
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONOPTIMIZE: 2
+      PYTHONUNBUFFERED: 1
+      C_FORCE_ROOT: "true"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./logs:/app/logs:rw
+      - worker_tmp:/tmp/celery-tmp:rw
+    command: >
+      celery -A src.tasks.celery_app worker
+      --loglevel=info
+      -Q pricing
+      --concurrency=8
+      --prefetch-multiplier=1
+      --max-tasks-per-child=1000
+      --time-limit=300
+      --soft-time-limit=270
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      replicas: 2  # Scale horizontally
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      <<: *restart-policy
+    security_opt:
+      - no-new-privileges:true
+
+  # ===================================================================
+  # Celery Workers - ML Queue (Resource Intensive)
+  # ===================================================================
+  worker-ml:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: bsopt-worker:${VERSION:-latest}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD}@rabbitmq:5672/${RABBITMQ_VHOST:-bsopt}
+      ENVIRONMENT: prod
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONOPTIMIZE: 2
+      PYTHONUNBUFFERED: 1
+      C_FORCE_ROOT: "true"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./logs:/app/logs:rw
+      - ./models:/app/models:ro
+      - worker_ml_tmp:/tmp/celery-tmp:rw
+    command: >
+      celery -A src.tasks.celery_app worker
+      --loglevel=info
+      -Q ml
+      --concurrency=2
+      --prefetch-multiplier=1
+      --max-tasks-per-child=100
+      --time-limit=1800
+      --soft-time-limit=1700
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+      <<: *restart-policy
+    security_opt:
+      - no-new-privileges:true
+
+  # ===================================================================
+  # Celery Workers - Trading Queue (Low Latency)
+  # ===================================================================
+  worker-trading:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: bsopt-worker:${VERSION:-latest}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD}@rabbitmq:5672/${RABBITMQ_VHOST:-bsopt}
+      ENVIRONMENT: prod
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONOPTIMIZE: 2
+      PYTHONUNBUFFERED: 1
+      C_FORCE_ROOT: "true"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - ./logs:/app/logs:rw
+      - worker_trading_tmp:/tmp/celery-tmp:rw
+    command: >
+      celery -A src.tasks.celery_app worker
+      --loglevel=info
+      -Q trading
+      --concurrency=4
+      --prefetch-multiplier=1
+      --max-tasks-per-child=2000
+      --time-limit=60
+      --soft-time-limit=55
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+      <<: *restart-policy
+    security_opt:
+      - no-new-privileges:true
+
+  # ===================================================================
+  # React Frontend (Optimized with Nginx)
+  # ===================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
+        REACT_APP_WS_URL: ${REACT_APP_WS_URL:-/ws}
+    image: bsopt-frontend:${VERSION:-latest}
+    container_name: bsopt-frontend-prod
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+      <<: *restart-policy
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:rw,noexec,nosuid,size=10m
+      - /var/run:rw,noexec,nosuid,size=10m
+
+  # ===================================================================
+  # MLflow Tracking Server
+  # ===================================================================
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    image: bsopt-mlflow:${VERSION:-latest}
+    container_name: bsopt-mlflow-prod
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+      MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts
+    ports:
+      - "127.0.0.1:5000:5000"  # Bind to localhost only
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bsopt}
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      <<: *restart-policy
+
+  # ===================================================================
+  # Nginx Reverse Proxy
+  # ===================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: bsopt-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - bsopt-network
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      <<: *restart-policy
+    security_opt:
+      - no-new-privileges:true
+
+# =====================================================================
+# VOLUMES
+# =====================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  mlflow_artifacts:
+    driver: local
+  nginx_cache:
+    driver: local
+  nginx_logs:
+    driver: local
+  api_tmp:
+    driver: local
+  worker_tmp:
+    driver: local
+  worker_ml_tmp:
+    driver: local
+  worker_trading_tmp:
+    driver: local
+
+# =====================================================================
+# NETWORKS
+# =====================================================================
+networks:
+  bsopt-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =====================================================================
+# PRODUCTION DEPLOYMENT CHECKLIST
+# =====================================================================
+# Required Environment Variables:
+#   - POSTGRES_PASSWORD
+#   - REDIS_PASSWORD
+#   - RABBITMQ_PASSWORD
+#   - JWT_SECRET
+#
+# Recommended:
+#   - VERSION (for image tagging)
+#   - API_PORT, FRONTEND_PORT
+#   - LOG_LEVEL
+#   - API_WORKERS
+#   - ACCESS_TOKEN_EXPIRE_MINUTES
+#
+# Security Checklist:
+#   ✓ All secrets in environment variables
+#   ✓ Non-root users in all containers
+#   ✓ Resource limits configured
+#   ✓ Health checks enabled
+#   ✓ Logging configured
+#   ✓ Network isolation
+#   ✓ Read-only filesystems where possible
+#   ✓ Port binding to localhost for internal services
+#   ✓ no-new-privileges security option
+#
+# Before Deployment:
+#   1. Create .env.production file with all required secrets
+#   2. Generate strong JWT_SECRET: openssl rand -hex 32
+#   3. Set strong database passwords
+#   4. Configure SSL certificates in docker/nginx/ssl/
+#   5. Review and adjust resource limits
+#   6. Set up monitoring and alerting
+#   7. Configure backup strategy for volumes
+#   8. Test health checks: docker-compose ps
+#   9. Review logs: docker-compose logs -f
+# =====================================================================

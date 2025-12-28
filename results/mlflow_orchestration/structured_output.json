@@ -1,0 +1,19 @@
+{
+  "pipeline_version": "2.1.0",
+  "execution_time": "2025-12-27T21:45:13.024576",
+  "runs": [
+    {
+      "model": "XGBoost",
+      "metric_name": "R2",
+      "metric_value": 0.9938406668069979,
+      "run_id": "3070a6fc12724292835bd544b9a78117"
+    },
+    {
+      "model": "NeuralNet",
+      "metric_name": "Accuracy",
+      "metric_value": 0.98,
+      "run_id": "a45136ae03e548f49c6dcc22f6665dc0"
+    }
+  ],
+  "ci_cd_status": "SUCCESS"
+}

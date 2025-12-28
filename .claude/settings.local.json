@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker-compose:*)",
+      "Bash(mkdir:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(DOCKER_BUILDKIT=1 docker compose build:*)",
+      "Bash(tee:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(DOCKER_BUILDKIT=1 docker compose:*)"
+    ]
+  }
+}
