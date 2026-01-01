@@ -8,7 +8,7 @@ This module defines all database models with:
 - Type hints for IDE support
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone # Added timezone
 from decimal import Decimal
 from typing import List, Optional
 from uuid import uuid4
@@ -73,6 +73,9 @@ class User(Base):
         back_populates="created_by_user", cascade="all, delete-orphan", lazy="selectin"
     )
 
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
+
 
 # =============================================================================
 # OPTIONS PRICES MODEL (TimescaleDB Hypertable)
@@ -110,17 +113,18 @@ class OptionPrice(Base):
 
     __table_args__ = (
         CheckConstraint("option_type IN ('call', 'put')", name="check_option_type"),
-        Index("idx_options_prices_symbol_time", "symbol", "time"),
-        Index("idx_options_prices_expiry_time", "expiry", "time"),
-        Index("idx_options_prices_chain", "symbol", "expiry", "option_type", "strike", "time"),
+        Index("idx_options_prices_symbol_time", "symbol", "time"), # time is second, okay for symbol-specific time queries
+        Index("idx_options_prices_expiry_time", "expiry", "time"), # time is second, okay for expiry-specific time queries
+        Index("idx_options_prices_chain", "time", "symbol", "expiry", "option_type", "strike"), # Time first for hypertable
     )
 
     @property
     def mid_price(self) -> Optional[Decimal]:
-        """Calculate mid price from bid/ask."""
-        if self.bid and self.ask:
+        """Calculate mid price from bid/ask. Returns None if bid or ask is missing."""
+        if self.bid is not None and self.ask is not None:
             return (self.bid + self.ask) / 2
-        return self.last
+        # If bid/ask is not available, return None, not self.last, as last might be stale
+        return None
 
     def __repr__(self) -> str:
         return f"<OptionPrice({self.symbol} {self.strike} {self.option_type} @ {self.time})>"
@@ -237,7 +241,7 @@ class Position(Base):
     def close(self, exit_price: Decimal, exit_date: Optional[datetime] = None) -> None:
         """Close the position and calculate realized P&L."""
         self.exit_price = exit_price
-        self.exit_date = exit_date or datetime.now()
+        self.exit_date = exit_date or datetime.now(timezone.utc) # Use timezone-aware datetime
         self.status = "closed"
         self.realized_pnl = (exit_price - self.entry_price) * self.quantity
 
