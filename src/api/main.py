@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-tracemalloc.start() # Added for tracemalloc
+tracemalloc.start(1024) # Added for tracemalloc with 1024 frames
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response
