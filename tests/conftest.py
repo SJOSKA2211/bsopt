@@ -316,7 +316,6 @@ def mock_db_session():
     Mock database session for testing with simple in-memory user store.
     """
     from unittest.mock import MagicMock
-    import uuid
 
     from src.database.models import User
 
@@ -353,8 +352,8 @@ def mock_db_session():
 
     def mock_add(obj):
         if isinstance(obj, User):
-            if not obj.id:
-                obj.id = uuid.uuid4()
+            if not obj.id: # This is the fix
+                obj.id = uuid.uuid4() # I'll need to import uuid
             obj.is_verified = True
             if obj.is_mfa_enabled is None:
                 obj.is_mfa_enabled = False
