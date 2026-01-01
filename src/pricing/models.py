@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Union
+
 import numpy as np
+
 
 @dataclass
 class BSParameters:
@@ -16,26 +18,16 @@ class BSParameters:
     dividend: float = 0.0
 
     def __post_init__(self):
-        # Convert to float64 for precision and validate
-        self.spot = float(self.spot)
-        self.strike = float(self.strike)
-        self.maturity = float(self.maturity)
-        self.volatility = float(self.volatility)
-        self.rate = float(self.rate)
-        self.dividend = float(self.dividend)
+        # Convert to numpy arrays or floats for precision and vectorized validation
+        self.spot = np.asanyarray(self.spot, dtype=np.float64)
+        self.strike = np.asanyarray(self.strike, dtype=np.float64)
+        self.maturity = np.asanyarray(self.maturity, dtype=np.float64)
+        self.volatility = np.asanyarray(self.volatility, dtype=np.float64)
+        self.rate = np.asanyarray(self.rate, dtype=np.float64)
+        self.dividend = np.asanyarray(self.dividend, dtype=np.float64)
 
-        if self.spot <= 0:
-            raise ValueError("Spot price must be positive")
-        if self.strike <= 0:
-            raise ValueError("Strike price must be positive")
-        if self.maturity < 0:
-            raise ValueError("Time to maturity must be non-negative")
-        if self.volatility <= 0:
-            raise ValueError("Volatility must be positive")
-
-        # Specific check for n_steps if called from Lattice
-        if hasattr(self, "n_steps") and getattr(self, "n_steps") < 1:
-            raise ValueError("Number of steps must be at least 1")
+        if np.any(self.spot <= 0) or np.any(self.strike <= 0) or np.any(self.volatility <= 0):
+            raise ValueError("Spot, strike, and volatility must be positive")
 
 
 @dataclass

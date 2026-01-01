@@ -8,7 +8,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 1. Core Authentication Logic
 
-#### `/home/kamau/comparison/src/api/auth.py`
+#### `src/api/auth.py`
 **Purpose:** Core authentication functions and security logic
 
 **Key Functions:**
@@ -33,7 +33,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 2. Authentication Routes
 
-#### `/home/kamau/comparison/src/api/routes/auth.py`
+#### `src/api/routes/auth.py`
 **Purpose:** REST API endpoints for authentication
 
 **Endpoints:**
@@ -60,7 +60,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 3. Rate Limiting Middleware
 
-#### `/home/kamau/comparison/src/api/middleware/rate_limit.py`
+#### `src/api/middleware/rate_limit.py`
 **Purpose:** Redis-based tiered rate limiting
 
 **Implementation:**
@@ -94,7 +94,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 4. Request/Response Schemas
 
-#### `/home/kamau/comparison/src/api/schemas/auth.py`
+#### `src/api/schemas/auth.py`
 **Purpose:** Pydantic models for request validation and response serialization
 
 **Schemas:**
@@ -123,7 +123,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 5. Database Configuration
 
-#### `/home/kamau/comparison/src/database/__init__.py`
+#### `src/database/__init__.py`
 **Purpose:** Database connection and session management
 
 **Components:**
@@ -143,7 +143,7 @@ A production-ready JWT authentication system has been successfully implemented f
 
 ### 6. Configuration Updates
 
-#### `/home/kamau/comparison/src/config.py` (Updated)
+#### `src/config.py` (Updated)
 **Purpose:** Enhanced application configuration
 
 **New Settings:**
@@ -175,7 +175,7 @@ RATE_LIMIT_ENTERPRISE: int = 0
 
 ### 7. Application Integration
 
-#### `/home/kamau/comparison/src/api/main.py` (Updated)
+#### `src/api/main.py` (Updated)
 **Purpose:** Integrated authentication into FastAPI application
 
 **Changes:**
@@ -197,7 +197,7 @@ RATE_LIMIT_ENTERPRISE: int = 0
 
 ### 8. Documentation
 
-#### `/home/kamau/comparison/AUTH_SETUP.md`
+#### `AUTH_SETUP.md`
 **Purpose:** Comprehensive setup and usage guide
 
 **Contents:**
@@ -215,7 +215,7 @@ RATE_LIMIT_ENTERPRISE: int = 0
 
 ### 9. Testing
 
-#### `/home/kamau/comparison/test_auth.py`
+#### `test_auth.py`
 **Purpose:** Automated test script for authentication system
 
 **Tests:**
@@ -242,7 +242,7 @@ python test_auth.py
 
 ### 10. Setup Automation
 
-#### `/home/kamau/comparison/setup_auth.sh`
+#### `setup_auth.sh`
 **Purpose:** Automated setup script
 
 **Features:**
@@ -263,7 +263,7 @@ chmod +x setup_auth.sh
 
 ### 11. Dependencies
 
-#### `/home/kamau/comparison/requirements-auth.txt`
+#### `requirements-auth.txt`
 **Purpose:** Python package dependencies
 
 **Key Dependencies:**
@@ -432,7 +432,7 @@ http://localhost:8000/docs
 ## File Locations
 
 ```
-/home/kamau/comparison/
+
 ├── src/
 │   ├── api/
 │   │   ├── auth.py                    # Core authentication logic

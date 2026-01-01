@@ -56,7 +56,7 @@ class VectorizedBlackScholesEngine:
         option_type: Union[str, np.ndarray] = "call",
         dtype=np.float64,
     ) -> Dict[str, np.ndarray]:
-        res = BlackScholesEngine.calculate_greeks(
+        res = BlackScholesEngine.calculate_greeks_batch(
             spot=spot,
             strike=strike,
             maturity=maturity,

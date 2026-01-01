@@ -13,20 +13,16 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 try:
     import numpy as np
-    from src.pricing.finite_difference import CrankNicolsonSolver
+
     from src.pricing.black_scholes import BSParameters
+    from src.pricing.finite_difference import CrankNicolsonSolver
 
     print("Testing Crank-Nicolson Finite Difference Solver")
     print("=" * 60)
 
     # Test case: ATM European call
     params = BSParameters(
-        spot=100.0,
-        strike=100.0,
-        maturity=1.0,
-        volatility=0.2,
-        rate=0.05,
-        dividend=0.02
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
     )
     solver = CrankNicolsonSolver(
         n_spots=100,
@@ -59,13 +55,7 @@ try:
     print("\nTest 4: Edge cases")
 
     # Zero maturity
-    params_zero = BSParameters(
-        spot=105.0,
-        strike=100.0,
-        maturity=0.0,
-        volatility=0.2,
-        rate=0.05
-    )
+    params_zero = BSParameters(spot=105.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
     solver_zero = CrankNicolsonSolver(
         n_spots=50,
         n_time=50,
@@ -78,12 +68,7 @@ try:
 
     # Deep ITM put
     params_itm = BSParameters(
-        spot=80.0,
-        strike=100.0,
-        maturity=0.5,
-        volatility=0.2,
-        rate=0.05,
-        dividend=0.0
+        spot=80.0, strike=100.0, maturity=0.5, volatility=0.2, rate=0.05, dividend=0.0
     )
     solver_itm = CrankNicolsonSolver(
         n_spots=100,
@@ -132,5 +117,6 @@ except ImportError as e:
 except Exception as e:
     print(f"Error during testing: {e}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

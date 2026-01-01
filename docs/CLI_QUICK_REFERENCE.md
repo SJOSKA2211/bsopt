@@ -263,7 +263,7 @@ bsopt price call --spot 100 --strike 100 --maturity 1.0 --vol 0.2 --rate 0.05
 
 | File | Location |
 |------|----------|
-| CLI | `/home/kamau/comparison/cli_complete.py` |
+| CLI | `cli_complete.py` |
 | Config | `~/.config/bsopt/config.yml` |
 | Credentials | `~/.config/bsopt/credentials.enc` |
 | Portfolio | `~/.config/bsopt/portfolio.json` |

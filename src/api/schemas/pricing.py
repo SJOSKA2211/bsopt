@@ -243,3 +243,49 @@ class ImpliedVolatilityResponse(BaseModel):
                 "converged": True,
             }
         }
+
+
+class ExoticPriceRequest(BaseModel):
+    """Exotic option pricing request."""
+
+    spot: float = Field(..., gt=0)
+    strike: float = Field(..., gt=0)
+    time_to_expiry: float = Field(..., gt=0)
+    rate: float = Field(..., ge=0)
+    volatility: float = Field(..., gt=0)
+    option_type: Literal["call", "put"] = "call"
+    dividend_yield: float = 0
+    exotic_type: Literal["asian", "barrier", "lookback", "digital"]
+    
+    # Specific params for different exotics
+    barrier: Optional[float] = None
+    rebate: Optional[float] = 0.0
+    barrier_type: Optional[str] = None # down-and-out, etc.
+    asian_type: Optional[str] = "geometric"
+    strike_type: Optional[str] = "fixed" # fixed or floating for lookback/asian
+    n_observations: int = 252
+    payout: float = 1.0 # for digital
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "spot": 100.0,
+                "strike": 100.0,
+                "time_to_expiry": 1.0,
+                "rate": 0.05,
+                "volatility": 0.2,
+                "exotic_type": "barrier",
+                "barrier": 90.0,
+                "barrier_type": "down-and-out"
+            }
+        }
+
+
+class ExoticPriceResponse(BaseModel):
+    """Exotic option pricing response."""
+
+    price: float
+    confidence_interval: Optional[List[float]] = None
+    exotic_type: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+

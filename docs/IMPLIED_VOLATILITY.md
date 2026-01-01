@@ -6,7 +6,7 @@ Production-ready implied volatility calculator implementing both Newton-Raphson 
 
 ## File Location
 
-`/home/kamau/comparison/src/pricing/implied_vol.py`
+`src/pricing/implied_vol.py`
 
 ## Mathematical Foundation
 
@@ -264,7 +264,7 @@ iv = implied_volatility(45.0, 100, 100, 10.0, 0.05, 0.02, 'call')
 
 ### Convergence Speed
 
-Based on benchmarks (see `/home/kamau/comparison/benchmarks/benchmark_implied_vol.py`):
+Based on benchmarks (see `benchmarks/benchmark_implied_vol.py`):
 
 | Method | Typical Iterations | Time (ms) | Success Rate |
 |--------|-------------------|-----------|--------------|
@@ -486,7 +486,7 @@ print(f"Vega: {greeks.vega:.4f}")  # Sensitivity to volatility
 
 ### FastAPI Integration
 
-Already integrated in `/home/kamau/comparison/src/api/routes/pricing.py`:
+Already integrated in `src/api/routes/pricing.py`:
 
 ```python
 from src.pricing.implied_vol import implied_volatility

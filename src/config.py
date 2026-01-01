@@ -42,6 +42,10 @@ class Settings(BaseSettings):
         default="redis://localhost:6379/0",
         description="Redis connection string for caching and session management",
     )
+    REDIS_HOST: str = Field(default="localhost", description="Redis host")
+    REDIS_PORT: int = Field(default=6379, description="Redis port")
+    REDIS_DB: int = Field(default=0, description="Redis database index")
+    REDIS_PASSWORD: Optional[str] = Field(default=None, description="Redis password")
 
     # RabbitMQ Configuration
     RABBITMQ_URL: str = Field(
@@ -88,6 +92,12 @@ class Settings(BaseSettings):
     )
     BCRYPT_ROUNDS: int = Field(
         default=12, description="Number of bcrypt hashing rounds (higher = more secure but slower)"
+    )
+
+    # ML Serving Configuration
+    ML_SERVICE_URL: str = Field(
+        default="http://localhost:8080",
+        description="URL of the machine learning serving microservice",
     )
 
     # CORS Configuration

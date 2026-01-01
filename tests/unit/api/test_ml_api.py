@@ -56,3 +56,37 @@ def test_proxy_predict_error_response(valid_ml_payload):
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 422
         assert "Invalid input" in response.json()["message"]
+
+def test_proxy_predict_ml_service_503(valid_ml_payload):
+    mock_response = {
+        "success": False,
+        "message": "ML service temporary unavailable"
+    }
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_post.return_value = MagicMock(
+            status_code=503,
+            json=lambda: mock_response
+        )
+        response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+        assert response.status_code == 503
+        assert "ML service temporary unavailable" in response.json()["message"]
+
+def test_proxy_predict_ml_service_generic_error(valid_ml_payload):
+    mock_response = {
+        "success": False,
+        "message": "Something unexpected happened in ML service"
+    }
+    with patch("httpx.AsyncClient.post") as mock_post:
+        mock_post.return_value = MagicMock(
+            status_code=500, # Generic error
+            json=lambda: mock_response
+        )
+        response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+        assert response.status_code == 500
+        assert "Something unexpected happened in ML service" in response.json()["message"]
+
+def test_proxy_predict_unexpected_error(valid_ml_payload):
+    with patch("httpx.AsyncClient.post", side_effect=Exception("Unhandled error")):
+        response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
+        assert response.status_code == 500
+        assert "Internal error during ML prediction" in response.json()["message"]

@@ -122,7 +122,7 @@ async def update_current_user_profile(
         )
 
     updated_fields = []
-    if update_data.full_name is not None:
+    if update_data.full_name is not None and update_data.full_name != db_user.full_name:
         db_user.full_name = sanitize_string(update_data.full_name)
         updated_fields.append("full_name")
 

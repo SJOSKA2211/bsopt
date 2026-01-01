@@ -6,6 +6,7 @@ finance calculations, including fast initial guesses and JIT-compiled math.
 """
 
 import math
+from typing import Tuple
 
 import numpy as np
 from numba import njit, prange
@@ -67,7 +68,9 @@ def corrado_miller_initial_guess(
 
 
 @njit(cache=True)
-def calculate_d1_d2_jit(S, K, T, sigma, r, q):
+def calculate_d1_d2_jit(
+    S: float, K: float, T: float, sigma: float, r: float, q: float
+) -> Tuple[float, float]:
     """JIT compiled Black-Scholes d1 and d2."""
     sqrt_T = math.sqrt(T)
     d1 = (math.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt_T)
@@ -76,7 +79,15 @@ def calculate_d1_d2_jit(S, K, T, sigma, r, q):
 
 
 @njit(parallel=True, cache=True)
-def batch_bs_price_jit(S, K, T, sigma, r, q, is_call):
+def batch_bs_price_jit(
+    S: np.ndarray,
+    K: np.ndarray,
+    T: np.ndarray,
+    sigma: np.ndarray,
+    r: np.ndarray,
+    q: np.ndarray,
+    is_call: np.ndarray,
+) -> np.ndarray:
     """JIT compiled batch pricing for options."""
     n = len(S)
     prices = np.empty(n, dtype=np.float64)
@@ -105,7 +116,15 @@ def batch_bs_price_jit(S, K, T, sigma, r, q, is_call):
 
 
 @njit(parallel=True, cache=True)
-def batch_greeks_jit(S, K, T, sigma, r, q, is_call):
+def batch_greeks_jit(
+    S: np.ndarray,
+    K: np.ndarray,
+    T: np.ndarray,
+    sigma: np.ndarray,
+    r: np.ndarray,
+    q: np.ndarray,
+    is_call: np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """JIT compiled batch greeks calculation."""
     n = len(S)
     delta = np.empty(n, dtype=np.float64)

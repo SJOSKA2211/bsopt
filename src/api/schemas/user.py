@@ -7,6 +7,7 @@ Pydantic models for user management endpoints.
 
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -16,8 +17,8 @@ from .common import PaginationMeta
 class UserResponse(BaseModel):
     """User profile response."""
 
-    id: str = Field(..., description="User ID")
-    email: str = Field(..., description="User email")
+    id: UUID = Field(..., description="User ID")
+    email: EmailStr = Field(..., description="User email")
     full_name: Optional[str] = Field(None, description="User's full name")
     tier: str = Field(..., description="Subscription tier")
     is_active: bool = Field(..., description="Account active status")

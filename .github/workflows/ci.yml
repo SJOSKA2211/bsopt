@@ -32,3 +32,6 @@ jobs:
     - name: Run tests
       run: |
         PYTHONPATH=. pytest
+    - name: Run Functional Test Suite
+      run: |
+        PYTHONPATH=. pytest tests/functional_test_suite.py -v -s

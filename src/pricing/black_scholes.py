@@ -11,8 +11,8 @@ from typing import Dict, Optional, Tuple, Union, cast
 import numpy as np
 
 from .base import PricingStrategy
-from .quant_utils import batch_bs_price_jit, batch_greeks_jit
 from .models import BSParameters, OptionGreeks
+from .quant_utils import batch_bs_price_jit, batch_greeks_jit
 
 
 class BlackScholesEngine(PricingStrategy):
@@ -27,47 +27,63 @@ class BlackScholesEngine(PricingStrategy):
             return self.price_call(params)
         return self.price_put(params)
 
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    @classmethod
+    def calculate_greeks(cls, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> OptionGreeks:
         """
         Implementation of PricingStrategy interface.
+        Supports both (params, option_type) and keyword arguments.
         """
-        data = asdict(params)
-        data["option_type"] = option_type
+        if isinstance(params, BSParameters):
+            data = asdict(params)
+        else:
+            data = kwargs
+        
+        if "option_type" not in data:
+            data["option_type"] = option_type
 
-        S, K, T, sigma, r, q, is_call = self._prepare_batch(
+        S, K, T, sigma, r, q, is_call = cls._prepare_batch(
             data.get("spot"),
             data.get("strike"),
             data.get("maturity"),
             data.get("volatility"),
             data.get("rate"),
-            data.get("dividend", 0.0),
+            data.get("dividend"),
             data.get("option_type", "call"),
         )
 
         delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
 
-        return OptionGreeks(delta[0], gamma[0], vega[0], theta[0], rho[0])
+        return OptionGreeks(float(delta[0]), float(gamma[0]), float(vega[0]), float(theta[0]), float(rho[0]))
 
     @staticmethod
     def calculate_d1_d2(params: BSParameters) -> Tuple[float, float]:
         """
         Calculate d1 and d2 parameters for Black-Scholes formula.
         """
+        # Handle array inputs by taking first element or converting
+        # Use .item() for scalars or first element for arrays
+        spot = float(params.spot.item() if params.spot.size == 1 else params.spot[0])
+        strike = float(params.strike.item() if params.strike.size == 1 else params.strike[0])
+        maturity = float(params.maturity.item() if params.maturity.size == 1 else params.maturity[0])
+        volatility = float(params.volatility.item() if params.volatility.size == 1 else params.volatility[0])
+        rate = float(params.rate.item() if params.rate.size == 1 else params.rate[0])
+        dividend = float(params.dividend.item() if params.dividend.size == 1 else params.dividend[0])
+
         # Handle zero maturity edge case
-        if params.maturity <= 1e-12:
-            if params.spot > params.strike:
+        if maturity <= 1e-12:
+            if spot > strike:
                 return 100.0, 100.0
-            elif params.spot < params.strike:
+            elif spot < strike:
                 return -100.0, -100.0
             else:
                 return 0.0, 0.0
 
         d1 = (
-            np.log(params.spot / params.strike)
-            + (params.rate - params.dividend + 0.5 * params.volatility**2) * params.maturity
-        ) / (params.volatility * np.sqrt(params.maturity))
+            np.log(spot / strike)
+            + (rate - dividend + 0.5 * volatility**2) * maturity
+        ) / (volatility * np.sqrt(maturity))
 
-        d2 = d1 - params.volatility * np.sqrt(params.maturity)
+        d2 = d1 - volatility * np.sqrt(maturity)
 
         return float(d1), float(d2)
 
@@ -84,36 +100,54 @@ class BlackScholesEngine(PricingStrategy):
             if option_type.lower() not in ["call", "put"]:
                 raise ValueError("option_type must be 'call' or 'put'")
             is_call = np.full(len(S), option_type.lower() == "call", dtype=bool)
-        else:
+        elif isinstance(option_type, (list, np.ndarray)):
             types = np.asarray(option_type)
-            is_call = np.array([t.lower() == "call" for t in types], dtype=bool)
+            is_call = np.array([str(t).lower() == "call" for t in types], dtype=bool)
+        else:
+            is_call = np.atleast_1d(np.asarray(option_type, dtype=bool))
 
         return np.broadcast_arrays(S, K, T, sigma, r, q, is_call)
 
     @classmethod
-    def price_options(cls, **kwargs) -> Union[float, np.ndarray]:
+    def price_options(cls, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
         """
         Generic pricing method for one or many options.
         """
+        if isinstance(params, BSParameters):
+            data = asdict(params)
+            data["option_type"] = option_type
+        else:
+            data = kwargs
+            if "option_type" not in data:
+                data["option_type"] = option_type
+
         S, K, T, sigma, r, q, is_call = cls._prepare_batch(
-            kwargs.get("spot"),
-            kwargs.get("strike"),
-            kwargs.get("maturity"),
-            kwargs.get("volatility"),
-            kwargs.get("rate"),
-            kwargs.get("dividend", 0.0),
-            kwargs.get("option_type", "call"),
+            data.get("spot"),
+            data.get("strike"),
+            data.get("maturity"),
+            data.get("volatility"),
+            data.get("rate"),
+            data.get("dividend"),
+            data.get("option_type"),
         )
         prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
 
         # Determine if we should return a scalar or array
-        is_single = not isinstance(kwargs.get("spot"), (np.ndarray, list)) and not isinstance(
-            kwargs.get("strike"), (np.ndarray, list)
-        )
+        # Check if the result has size 1 and if original spot/strike in kwargs or params were not sequences
+        # BSParameters converts them to at least 1d or 0d arrays.
+        
+        is_single = True
+        spot_val = data.get("spot")
+        strike_val = data.get("strike")
+        
+        if isinstance(spot_val, (list, np.ndarray)) and np.asanyarray(spot_val).size > 1:
+            is_single = False
+        if isinstance(strike_val, (list, np.ndarray)) and np.asanyarray(strike_val).size > 1:
+            is_single = False
 
-        return cast(
-            Union[float, np.ndarray], prices[0] if is_single and prices.size == 1 else prices
-        )
+        if is_single and prices.size == 1:
+            return float(prices.item())
+        return prices
 
     @classmethod
     def calculate_greeks_batch(
@@ -141,7 +175,7 @@ class BlackScholesEngine(PricingStrategy):
             data.get("maturity"),
             data.get("volatility"),
             data.get("rate"),
-            data.get("dividend", 0.0),
+            data.get("dividend"),
             data.get("option_type", "call"),
         )
 

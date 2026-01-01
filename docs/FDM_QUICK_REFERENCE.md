@@ -254,6 +254,6 @@ error_estimate = abs(V_fine - V_coarse) / 3
 
 ## File Locations
 
-- **Implementation:** `/home/kamau/comparison/src/pricing/finite_difference.py`
-- **Documentation:** `/home/kamau/comparison/CRANK_NICOLSON_DOCUMENTATION.md`
-- **Test script:** `/home/kamau/comparison/test_fdm_minimal.py`
+- **Implementation:** `src/pricing/finite_difference.py`
+- **Documentation:** `CRANK_NICOLSON_DOCUMENTATION.md`
+- **Test script:** `test_fdm_minimal.py`

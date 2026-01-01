@@ -7,7 +7,7 @@ Successfully implemented a production-ready Monte Carlo simulation engine for op
 ## Files Created
 
 ### 1. Core Implementation
-**File:** `/home/kamau/comparison/src/pricing/monte_carlo.py`
+**File:** `src/pricing/monte_carlo.py`
 
 **Key Components:**
 
@@ -57,7 +57,7 @@ Main pricing engine with methods:
 - JIT-compiled helper function
 
 ### 2. Black-Scholes Support Module
-**File:** `/home/kamau/comparison/src/pricing/black_scholes.py`
+**File:** `src/pricing/black_scholes.py`
 
 Created supporting dataclasses:
 - `BSParameters`: Option parameters (spot, strike, maturity, volatility, rate, dividend)
@@ -65,7 +65,7 @@ Created supporting dataclasses:
 - `BlackScholesEngine`: Analytical pricing for validation
 
 ### 3. Comprehensive Test Suite
-**File:** `/home/kamau/comparison/tests/test_monte_carlo.py`
+**File:** `tests/test_monte_carlo.py`
 
 Test classes covering:
 - `TestMCConfig`: Configuration validation
@@ -79,7 +79,7 @@ Test classes covering:
 Total: 30+ comprehensive unit tests
 
 ### 4. Documentation
-**File:** `/home/kamau/comparison/docs/monte_carlo_pricing.md`
+**File:** `docs/monte_carlo_pricing.md`
 
 Complete mathematical documentation including:
 - GBM dynamics and discretization

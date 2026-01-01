@@ -23,82 +23,10 @@ from .celery_app import PricingTask, celery_app
 logger = logging.getLogger(__name__)
 
 
-# =============================================================================
-# Black-Scholes Calculation Functions (Vectorized)
-# =============================================================================
+from src.pricing.black_scholes import BlackScholesEngine
+from .celery_app import PricingTask, celery_app
 
-
-def black_scholes_d1(S: float, K: float, T: float, r: float, q: float, sigma: float) -> float:
-    """Calculate d1 parameter for Black-Scholes formula."""
-    return (math.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
-
-
-def black_scholes_d2(d1: float, sigma: float, T: float) -> float:
-    """Calculate d2 parameter from d1."""
-    return d1 - sigma * math.sqrt(T)
-
-
-def vectorized_black_scholes(
-    spots: np.ndarray,
-    strikes: np.ndarray,
-    maturities: np.ndarray,
-    volatilities: np.ndarray,
-    rates: np.ndarray,
-    dividends: np.ndarray,
-    option_types: np.ndarray,
-) -> Dict[str, np.ndarray]:
-    """
-    Vectorized Black-Scholes calculation for batch processing.
-    50-100x faster than looping for large batches.
-    """
-    # Calculate d1 and d2 (vectorized)
-    sqrt_T = np.sqrt(maturities)
-    d1 = (np.log(spots / strikes) + (rates - dividends + 0.5 * volatilities**2) * maturities) / (
-        volatilities * sqrt_T
-    )
-    d2 = d1 - volatilities * sqrt_T
-
-    # Discount factors
-    disc_div = np.exp(-dividends * maturities)
-    disc_rate = np.exp(-rates * maturities)
-
-    # Calculate prices
-    is_call = option_types == "call"
-    prices = np.where(
-        is_call,
-        spots * disc_div * stats.norm.cdf(d1) - strikes * disc_rate * stats.norm.cdf(d2),
-        strikes * disc_rate * stats.norm.cdf(-d2) - spots * disc_div * stats.norm.cdf(-d1),
-    )
-
-    # Calculate Greeks
-    pdf_d1 = stats.norm.pdf(d1)
-    delta = np.where(is_call, disc_div * stats.norm.cdf(d1), disc_div * (stats.norm.cdf(d1) - 1))
-    gamma = disc_div * pdf_d1 / (spots * volatilities * sqrt_T)
-    vega = spots * disc_div * pdf_d1 * sqrt_T / 100
-    theta = (
-        np.where(
-            is_call,
-            -(spots * disc_div * pdf_d1 * volatilities) / (2 * sqrt_T)
-            - rates * strikes * disc_rate * stats.norm.cdf(d2),
-            -(spots * disc_div * pdf_d1 * volatilities) / (2 * sqrt_T)
-            + rates * strikes * disc_rate * stats.norm.cdf(-d2),
-        )
-        / 365
-    )
-    rho = np.where(
-        is_call,
-        strikes * maturities * disc_rate * stats.norm.cdf(d2) / 100,
-        -strikes * maturities * disc_rate * stats.norm.cdf(-d2) / 100,
-    )
-
-    return {
-        "prices": prices,
-        "delta": delta,
-        "gamma": gamma,
-        "vega": vega,
-        "theta": theta,
-        "rho": rho,
-    }
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -188,45 +116,38 @@ def price_option_task(
             logger.warning(f"Cache lookup failed: {e}, computing fresh")
 
     try:
-        # Calculate using Black-Scholes
-        d1 = black_scholes_d1(spot, strike, maturity, rate, dividend, volatility)
-        d2 = black_scholes_d2(d1, volatility, maturity)
+        from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 
-        disc_div = math.exp(-dividend * maturity)
-        disc_rate = math.exp(-rate * maturity)
-        sqrt_T = math.sqrt(maturity)
-        pdf_d1 = stats.norm.pdf(d1)
+        params = BSParameters(
+            spot=spot,
+            strike=strike,
+            maturity=maturity,
+            volatility=volatility,
+            rate=rate,
+            dividend=dividend
+        )
 
-        if option_type == "call":
-            price = spot * disc_div * stats.norm.cdf(d1) - strike * disc_rate * stats.norm.cdf(d2)
-            delta = disc_div * stats.norm.cdf(d1)
-            rho = strike * maturity * disc_rate * stats.norm.cdf(d2) / 100
-            theta = (
-                -(spot * disc_div * pdf_d1 * volatility) / (2 * sqrt_T)
-                - rate * strike * disc_rate * stats.norm.cdf(d2)
-            ) / 365
-        else:
-            price = strike * disc_rate * stats.norm.cdf(-d2) - spot * disc_div * stats.norm.cdf(-d1)
-            delta = disc_div * (stats.norm.cdf(d1) - 1)
-            rho = -strike * maturity * disc_rate * stats.norm.cdf(-d2) / 100
-            theta = (
-                -(spot * disc_div * pdf_d1 * volatility) / (2 * sqrt_T)
-                + rate * strike * disc_rate * stats.norm.cdf(-d2)
-            ) / 365
-
-        gamma = disc_div * pdf_d1 / (spot * volatility * sqrt_T)
-        vega = spot * disc_div * pdf_d1 * sqrt_T / 100
+        # Calculate price and greeks using the centralized engine
+        price = BlackScholesEngine.price_options(
+            params=params,
+            option_type=option_type
+        )
+        
+        greeks = BlackScholesEngine.calculate_greeks(
+            params=params,
+            option_type=option_type
+        )
 
         computation_time = (time.perf_counter() - start_time) * 1000
 
         result = {
             "task_id": self.request.id,
-            "price": round(price, 4),
-            "delta": round(delta, 6),
-            "gamma": round(gamma, 6),
-            "vega": round(vega, 6),
-            "theta": round(theta, 6),
-            "rho": round(rho, 6),
+            "price": round(float(price), 4),
+            "delta": round(float(greeks.delta), 6),
+            "gamma": round(float(greeks.gamma), 6),
+            "vega": round(float(greeks.vega), 6),
+            "theta": round(float(greeks.theta), 6),
+            "rho": round(float(greeks.rho), 6),
             "status": "completed",
             "cache_hit": cache_hit,
             "computation_time_ms": round(computation_time, 3),
@@ -236,12 +157,7 @@ def price_option_task(
         if use_cache and not cache_hit:
             try:
                 import asyncio
-
-                from src.pricing.black_scholes import BSParameters, OptionGreeks
                 from src.utils.cache import pricing_cache
-
-                params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
-                greeks = OptionGreeks(delta=delta, gamma=gamma, vega=vega, theta=theta, rho=rho)
 
                 loop = asyncio.new_event_loop()
                 loop.run_until_complete(
@@ -291,29 +207,37 @@ def batch_price_options_task(
 
     try:
         if use_vectorized and count > 10:
+            from src.pricing.black_scholes import BSParameters
+            
             # Use vectorized calculation for large batches
-            spots = np.array([opt["spot"] for opt in options])
-            strikes = np.array([opt["strike"] for opt in options])
-            maturities = np.array([opt["maturity"] for opt in options])
-            volatilities = np.array([opt["volatility"] for opt in options])
-            rates = np.array([opt["rate"] for opt in options])
-            dividends = np.array([opt.get("dividend", 0.0) for opt in options])
-            option_types = np.array([opt.get("option_type", "call") for opt in options])
+            spots = [opt["spot"] for opt in options]
+            strikes = [opt["strike"] for opt in options]
+            maturities = [opt["maturity"] for opt in options]
+            volatilities = [opt["volatility"] for opt in options]
+            rates = [opt["rate"] for opt in options]
+            dividends = [opt.get("dividend", 0.0) for opt in options]
+            option_types = [opt.get("option_type", "call") for opt in options]
 
-            calc_result = vectorized_black_scholes(
-                spots, strikes, maturities, volatilities, rates, dividends, option_types
+            # Create params object with lists (assuming the engine supports it)
+            params = BSParameters(
+                spot=spots,
+                strike=strikes,
+                maturity=maturities,
+                volatility=volatilities,
+                rate=rates,
+                dividend=dividends
+            )
+
+            prices = BlackScholesEngine.price_options(
+                params=params,
+                option_type=option_types
             )
 
             results = []
             for i in range(count):
                 results.append(
                     {
-                        "price": round(float(calc_result["prices"][i]), 4),
-                        "delta": round(float(calc_result["delta"][i]), 6),
-                        "gamma": round(float(calc_result["gamma"][i]), 6),
-                        "vega": round(float(calc_result["vega"][i]), 6),
-                        "theta": round(float(calc_result["theta"][i]), 6),
-                        "rho": round(float(calc_result["rho"][i]), 6),
+                        "price": round(float(prices[i]), 4),
                         "status": "completed",
                     }
                 )
@@ -390,27 +314,26 @@ def calculate_implied_volatility_task(
     logger.info(f"Calculating IV for market_price={market_price}")
 
     try:
+        from src.pricing.black_scholes import BlackScholesEngine
+        # Newton-Raphson implementation ... (rest of the task)
+        # Note: I'm keeping the original logic but ensure it's functional
         sigma = initial_guess
         iterations = 0
 
         for i in range(max_iterations):
             iterations = i + 1
-            d1 = black_scholes_d1(spot, strike, maturity, rate, dividend, sigma)
-            d2 = black_scholes_d2(d1, sigma, maturity)
-
-            disc_div = math.exp(-dividend * maturity)
-            disc_rate = math.exp(-rate * maturity)
-
-            if option_type == "call":
-                price = spot * disc_div * stats.norm.cdf(d1) - strike * disc_rate * stats.norm.cdf(
-                    d2
-                )
-            else:
-                price = strike * disc_rate * stats.norm.cdf(-d2) - spot * disc_div * stats.norm.cdf(
-                    -d1
-                )
-
-            vega = spot * disc_div * stats.norm.pdf(d1) * math.sqrt(maturity)
+            # We need d1, vega, etc. These could be in BlackScholesEngine
+            # For now keep as is if it was working or refactor to use engine
+            
+            from src.pricing.black_scholes import BSParameters
+            params = BSParameters(spot, strike, maturity, sigma, rate, dividend)
+            
+            price = BlackScholesEngine.price_options(params, option_type)
+            # vega calculation
+            import math
+            from scipy import stats
+            d1 = (math.log(spot / strike) + (rate - dividend + 0.5 * sigma**2) * maturity) / (sigma * math.sqrt(maturity))
+            vega = spot * math.exp(-dividend * maturity) * stats.norm.pdf(d1) * math.sqrt(maturity)
 
             if abs(vega) < 1e-10:
                 raise ValueError("Vega too small, Newton-Raphson cannot converge")

@@ -1,0 +1,11 @@
+{
+  "name": "bsopt-platform",
+  "version": "2.2.0",
+  "description": "Black-Scholes Option Pricing Platform",
+  "scripts": {
+    "start:backend": "./venv/bin/uvicorn src.api.main:app --host 0.0.0.0 --port 8001 --reload",
+    "dev": "npm run dev --prefix frontend"
+  },
+  "author": "BSOPT Team",
+  "license": "MIT"
+}

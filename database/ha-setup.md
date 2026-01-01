@@ -449,9 +449,9 @@ patronictl switchover options-cluster \
 ## Operational Runbooks
 
 See the following documents for detailed procedures:
-- `/home/kamau/comparison/database/failover-playbook.md` - Failover procedures
-- `/home/kamau/comparison/database/backup-policy.md` - Backup and recovery
-- `/home/kamau/comparison/database/tuning.sql` - Performance tuning
+- `database/failover-playbook.md` - Failover procedures
+- `database/backup-policy.md` - Backup and recovery
+- `database/tuning.sql` - Performance tuning
 
 ## References
 

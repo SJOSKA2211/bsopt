@@ -8,7 +8,7 @@ All SQLAlchemy ORM models have been successfully implemented and are production-
 
 ## Files Created
 
-### 1. `/home/kamau/comparison/src/database/models.py` (808 lines)
+### 1. `src/database/models.py` (808 lines)
 
 **Purpose**: Core SQLAlchemy ORM model definitions
 
@@ -33,7 +33,7 @@ All SQLAlchemy ORM models have been successfully implemented and are production-
 
 ---
 
-### 2. `/home/kamau/comparison/src/database/__init__.py` (260 lines)
+### 2. `src/database/__init__.py` (260 lines)
 
 **Purpose**: Database engine and session management
 
@@ -55,7 +55,7 @@ All SQLAlchemy ORM models have been successfully implemented and are production-
 
 ---
 
-### 3. `/home/kamau/comparison/src/database/crud.py` (600+ lines)
+### 3. `src/database/crud.py` (600+ lines)
 
 **Purpose**: CRUD operations following repository pattern
 
@@ -96,7 +96,7 @@ All SQLAlchemy ORM models have been successfully implemented and are production-
 
 ---
 
-### 4. `/home/kamau/comparison/src/database/README.md` (500+ lines)
+### 4. `src/database/README.md` (500+ lines)
 
 **Purpose**: Comprehensive documentation
 
@@ -113,7 +113,7 @@ All SQLAlchemy ORM models have been successfully implemented and are production-
 
 ---
 
-### 5. `/home/kamau/comparison/src/database/test_models.py` (300+ lines)
+### 5. `src/database/test_models.py` (300+ lines)
 
 **Purpose**: Model validation and testing
 
@@ -490,11 +490,11 @@ SQLAlchemy 2.0.23 and psycopg2-binary have compatibility issues with Python 3.13
 
 ## Support Files
 
-- `/home/kamau/comparison/src/database/schema.sql` - PostgreSQL schema
-- `/home/kamau/comparison/src/database/README.md` - Full documentation
-- `/home/kamau/comparison/src/database/test_models.py` - Model tests
-- `/home/kamau/comparison/src/config.py` - Configuration
-- `/home/kamau/comparison/src/api/auth.py` - Authentication integration
+- `src/database/schema.sql` - PostgreSQL schema
+- `src/database/README.md` - Full documentation
+- `src/database/test_models.py` - Model tests
+- `src/config.py` - Configuration
+- `src/api/auth.py` - Authentication integration
 
 ---
 

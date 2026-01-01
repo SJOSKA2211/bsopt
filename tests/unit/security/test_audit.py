@@ -1,0 +1,29 @@
+import pytest
+from unittest.mock import MagicMock, patch
+from src.security.audit import log_audit, AuditEvent
+from src.database.models import User
+
+@patch("src.security.audit.get_session")
+def test_log_audit_basic(mock_get_session):
+    mock_session = MagicMock()
+    mock_get_session.return_value = mock_session
+    
+    user = User(id="test-uid", email="test@example.com")
+    log_audit(AuditEvent.USER_LOGIN_SUCCESS, user=user, persist_to_db=True)
+    
+    assert mock_session.add.called
+    assert mock_session.commit.called
+
+def test_log_audit_with_request():
+    mock_request = MagicMock()
+    mock_request.client.host = "127.0.0.1"
+    mock_request.headers = {"user-agent": "test-agent"}
+    mock_request.url.path = "/api/v1/auth/login"
+    mock_request.method = "POST"
+    
+    with patch("src.security.audit.audit_logger") as mock_logger:
+        log_audit(AuditEvent.SUSPICIOUS_ACTIVITY, request=mock_request, persist_to_db=False)
+        assert mock_logger.info.called
+        log_data = mock_logger.info.call_args[0][0]
+        assert log_data["source_ip"] == "127.0.0.1"
+        assert log_data["event_type"] == "SUSPICIOUS_ACTIVITY"

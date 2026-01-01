@@ -34,15 +34,29 @@ def send_transactional_email(self, to_email: str, subject: str, template_name: s
     # but here we just run the coroutine.
     try:
         loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If we are in a running loop (like during tests or certain environments),
+            # we can't use run_until_complete easily for a new loop.
+            # In Celery, we usually expect a fresh loop per task if it's not worker-global.
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                rl_result = executor.submit(
+                    lambda: asyncio.run(rate_limiter.check_rate_limit(
+                        user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+                    ))
+                ).result()
+        else:
+            rl_result = loop.run_until_complete(
+                rate_limiter.check_rate_limit(
+                    user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+                )
+            )
     except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    rl_result = loop.run_until_complete(
-        rate_limiter.check_rate_limit(
-            user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+        rl_result = asyncio.run(
+            rate_limiter.check_rate_limit(
+                user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+            )
         )
-    )
 
     if not rl_result:  # Rate limit reached
         logger.warning("Email rate limit reached. Retrying in 60s...")

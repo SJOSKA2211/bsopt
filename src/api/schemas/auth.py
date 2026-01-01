@@ -251,8 +251,7 @@ class MFASetupResponse(BaseModel):
             "example": {
                 "secret": "JBSWY3DPEHPK3PXP",
                 "qr_code_uri": (
-                    "otpauth://totp/BSOPT:user@example.com?"
-                    "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
+                    "otpauth://totp/BSOPT:user@example.com?" "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
                 ),
                 "backup_codes": ["12345678", "23456789", "34567890"],
             }

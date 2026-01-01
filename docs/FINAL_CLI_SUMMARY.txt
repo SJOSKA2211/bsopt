@@ -136,27 +136,27 @@ FILE LOCATIONS
 ================================================================================
 
 Main CLI:
-  /home/kamau/comparison/cli_complete.py ⭐ PRIMARY ENTRY POINT
+  cli_complete.py ⭐ PRIMARY ENTRY POINT
 
 Modules:
-  /home/kamau/comparison/src/cli/auth.py
-  /home/kamau/comparison/src/cli/config.py
-  /home/kamau/comparison/src/cli/portfolio.py
+  src/cli/auth.py
+  src/cli/config.py
+  src/cli/portfolio.py
 
 Setup:
-  /home/kamau/comparison/setup.py
-  /home/kamau/comparison/setup_cli.py
-  /home/kamau/comparison/requirements_cli.txt
+  setup.py
+  setup_cli.py
+  requirements_cli.txt
 
 Documentation:
-  /home/kamau/comparison/CLI_README.md
-  /home/kamau/comparison/CLI_DOCUMENTATION.md
-  /home/kamau/comparison/CLI_QUICKSTART.md
-  /home/kamau/comparison/CLI_IMPLEMENTATION_SUMMARY.md
-  /home/kamau/comparison/CLI_FILES_INDEX.md
+  CLI_README.md
+  CLI_DOCUMENTATION.md
+  CLI_QUICKSTART.md
+  CLI_IMPLEMENTATION_SUMMARY.md
+  CLI_FILES_INDEX.md
 
 Testing:
-  /home/kamau/comparison/test_cli.sh
+  test_cli.sh
 
 ================================================================================
 INSTALLATION
@@ -206,7 +206,7 @@ TESTING
 ================================================================================
 
 Run test suite:
-  bash /home/kamau/comparison/test_cli.sh
+  bash test_cli.sh
 
 Expected: 25+ tests, all passing ✓
 
@@ -362,7 +362,7 @@ additional enhancements. The implementation is production-ready with:
 - Configuration management
 - Error handling
 
-All files are located in /home/kamau/comparison/
+All files are located in 
 
 The primary entry point is: cli_complete.py
 

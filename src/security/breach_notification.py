@@ -21,7 +21,7 @@ class BreachNotificationService:
     DPA_EMAIL = "your-dpa@example.com"  # Replace with actual DPA
     DPA_CONTACT_PERSON = "Data Protection Officer"
 
-    async def report_breach_to_dpa(self, incident: SecurityIncident):
+    async def report_breach_to_dpa(self, incident: SecurityIncident) -> None:
         """
         Report to Data Protection Authority within 72 hours.
         This is a placeholder implementation.
@@ -54,7 +54,7 @@ class BreachNotificationService:
         # Incident Response Plan (IRP).
         pass
 
-    async def notify_affected_users(self, incident: SecurityIncident, user_ids: list):
+    async def notify_affected_users(self, incident: SecurityIncident, user_ids: list) -> None:
         """
         Notify data subjects if there is a high risk to their rights and freedoms.
         Placeholder implementation.

@@ -83,7 +83,7 @@ def get_active_users_by_tier(db: Session, tier: str, limit: int = 100) -> Sequen
     return (
         db.execute(
             select(User)
-            .where(and_(User.tier == tier, User.is_active .is_(True)))
+            .where(and_(User.tier == tier, User.is_active.is_(True)))
             .order_by(User.created_at.desc())
             .limit(limit)
         )
@@ -440,7 +440,7 @@ def get_production_model(db: Session, name: str) -> Optional[MLModel]:
     Uses idx_ml_models_production index.
     """
     return db.execute(
-        select(MLModel).where(and_(MLModel.name == name, MLModel.is_production .is_(True)))
+        select(MLModel).where(and_(MLModel.name == name, MLModel.is_production.is_(True)))
     ).scalar_one_or_none()
 
 
@@ -493,7 +493,7 @@ def set_production_model(db: Session, model_id: UUID) -> bool:
     # Unset previous production model
     db.execute(
         update(MLModel)
-        .where(and_(MLModel.name == model.name, MLModel.is_production .is_(True)))
+        .where(and_(MLModel.name == model.name, MLModel.is_production.is_(True)))
         .values(is_production=False)
     )
 
@@ -574,21 +574,26 @@ def get_portfolio_summary(db: Session, portfolio_id: UUID) -> dict:
     Get aggregated portfolio statistics.
     Consider using materialized view for better performance.
     """
-    result = cast(Any, db.execute(
-        select(
-            func.count(Position.id).filter(Position.status == "open").label("open_positions"),
-            func.count(Position.id).filter(Position.status == "closed").label("closed_positions"),
-            func.coalesce(
-                func.sum(Position.realized_pnl).filter(Position.status == "closed"), 0
-            ).label("total_realized_pnl"),
-            func.coalesce(
-                func.sum(Position.quantity * Position.entry_price).filter(
-                    Position.status == "open"
-                ),
-                0,
-            ).label("open_position_value"),
-        ).where(Position.portfolio_id == portfolio_id)
-    ).first())
+    result = cast(
+        Any,
+        db.execute(
+            select(
+                func.count(Position.id).filter(Position.status == "open").label("open_positions"),
+                func.count(Position.id)
+                .filter(Position.status == "closed")
+                .label("closed_positions"),
+                func.coalesce(
+                    func.sum(Position.realized_pnl).filter(Position.status == "closed"), 0
+                ).label("total_realized_pnl"),
+                func.coalesce(
+                    func.sum(Position.quantity * Position.entry_price).filter(
+                        Position.status == "open"
+                    ),
+                    0,
+                ).label("open_position_value"),
+            ).where(Position.portfolio_id == portfolio_id)
+        ).first(),
+    )
 
     portfolio = get_portfolio_by_id(db, portfolio_id)
 
@@ -600,22 +605,29 @@ def get_portfolio_summary(db: Session, portfolio_id: UUID) -> dict:
         "closed_positions": result.closed_positions if result else 0,
         "total_realized_pnl": float(result.total_realized_pnl or 0) if result else 0.0,
         "open_position_value": float(result.open_position_value or 0) if result else 0.0,
-        "total_value": float(
-            (portfolio.cash_balance if portfolio else 0) + (result.open_position_value or 0)
-        ) if result else float(portfolio.cash_balance) if portfolio else 0.0,
+        "total_value": (
+            float((portfolio.cash_balance if portfolio else 0) + (result.open_position_value or 0))
+            if result
+            else float(portfolio.cash_balance) if portfolio else 0.0
+        ),
     }
 
 
 def get_user_trading_stats(db: Session, user_id: UUID) -> dict:
     """Get trading statistics for a user."""
-    orders_result = cast(Any, db.execute(
-        select(
-            func.count(Order.id).label("total_orders"),
-            func.count(Order.id).filter(Order.status == "filled").label("filled_orders"),
-            func.count(Order.id).filter(Order.status == "cancelled").label("cancelled_orders"),
-            func.avg(Order.filled_price).filter(Order.status == "filled").label("avg_fill_price"),
-        ).where(Order.user_id == user_id)
-    ).first())
+    orders_result = cast(
+        Any,
+        db.execute(
+            select(
+                func.count(Order.id).label("total_orders"),
+                func.count(Order.id).filter(Order.status == "filled").label("filled_orders"),
+                func.count(Order.id).filter(Order.status == "cancelled").label("cancelled_orders"),
+                func.avg(Order.filled_price)
+                .filter(Order.status == "filled")
+                .label("avg_fill_price"),
+            ).where(Order.user_id == user_id)
+        ).first(),
+    )
 
     if not orders_result:
         return {

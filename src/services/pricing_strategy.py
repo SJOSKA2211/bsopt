@@ -31,7 +31,7 @@ class DynamicPricingService:
     Handles optimized SaaS pricing logic.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.experiments: Dict[str, Dict[str, Any]] = {
             "tier_pricing_v2": {
                 "active": True,

@@ -433,6 +433,6 @@ For basket options or stochastic volatility:
 
 ## File Location
 
-**Implementation:** `/home/kamau/comparison/src/pricing/finite_difference.py`
+**Implementation:** `src/pricing/finite_difference.py`
 
 This file contains the complete, production-ready implementation of the Crank-Nicolson finite difference solver with all mathematical rigor, stability guarantees, and accuracy verification.

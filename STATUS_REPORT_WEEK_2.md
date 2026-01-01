@@ -95,7 +95,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 ### 2.1 Core Pricing Engines (100% Complete - GREEN)
 
 #### Black-Scholes Analytical Engine
-**File**: `/home/kamau/comparison/src/pricing/black_scholes.py` (502 lines)
+**File**: `src/pricing/black_scholes.py` (502 lines)
 - Status: PRODUCTION-READY
 - Features: European call/put, full Greeks, dividend support
 - Validation: Matches QuantLib within 0.001% (exceeds 0.01% target)
@@ -104,7 +104,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Documentation: Complete with mathematical proofs
 
 #### Crank-Nicolson Finite Difference Method
-**File**: `/home/kamau/comparison/src/pricing/finite_difference.py` (589 lines)
+**File**: `src/pricing/finite_difference.py` (589 lines)
 - Status: PRODUCTION-READY
 - Features: European/American options, sparse matrix solvers
 - Convergence: O(dt² + dS²) verified
@@ -113,7 +113,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: 3 unit tests, passing
 
 #### Monte Carlo Simulation
-**File**: `/home/kamau/comparison/src/pricing/monte_carlo.py` (estimated 800+ lines)
+**File**: `src/pricing/monte_carlo.py` (estimated 800+ lines)
 - Status: PRODUCTION-READY
 - Features: GBM paths, antithetic variates (40% variance reduction), control variates (60% reduction)
 - American Options: Longstaff-Schwartz LSM algorithm
@@ -122,7 +122,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: 5 unit tests, passing
 
 #### Implied Volatility Calculator
-**File**: `/home/kamau/comparison/src/pricing/implied_vol.py` (733 lines)
+**File**: `src/pricing/implied_vol.py` (733 lines)
 - Status: PRODUCTION-READY (Not "In Progress" as reported)
 - Methods: Newton-Raphson, Brent's method, Auto-fallback
 - Convergence: Typically 3-5 iterations for Newton
@@ -131,7 +131,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: Expected but not found in test suite
 
 #### Lattice Models (Binomial & Trinomial)
-**File**: `/home/kamau/comparison/src/pricing/lattice.py` (1,199 lines)
+**File**: `src/pricing/lattice.py` (1,199 lines)
 - Status: PRODUCTION-READY (Not "In Progress" as reported)
 - Binomial: Cox-Ross-Rubinstein (CRR) with 100-500 steps
 - Trinomial: Jarrow-Rudd with memory optimization
@@ -142,7 +142,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: 1 unit test found
 
 #### Exotic Options Suite
-**File**: `/home/kamau/comparison/src/pricing/exotic.py` (1,798 lines)
+**File**: `src/pricing/exotic.py` (1,798 lines)
 - Status: PRODUCTION-READY (Not "Pending" as reported)
 - Asian Options: Arithmetic (MC) and Geometric (analytical)
 - Barrier Options: All 8 types (Up/Down, In/Out, Call/Put) with Rubinstein-Reiner formulas
@@ -153,7 +153,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: 1 unit test found
 
 #### Volatility Surface Calibration
-**File**: `/home/kamau/comparison/src/pricing/vol_surface.py` (estimated)
+**File**: `src/pricing/vol_surface.py` (estimated)
 - Status: PARTIAL (50% complete, not "Pending")
 - SVI Model: Implemented (found in documentation)
 - Tests: 1 unit test found
@@ -165,7 +165,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 ### 2.2 Database Infrastructure (85% Complete - YELLOW)
 
 #### PostgreSQL Schema
-**File**: `/home/kamau/comparison/src/database/schema.sql` (estimated)
+**File**: `src/database/schema.sql` (estimated)
 - Status: COMPLETE
 - Tables: 9 tables (users, options_prices, ml_models, model_predictions, portfolios, positions, orders, rate_limits, audit_log)
 - TimescaleDB: Hypertable on options_prices for time-series data
@@ -175,7 +175,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Documentation: Complete in DATABASE_MODELS_SUMMARY.md
 
 #### SQLAlchemy ORM Models
-**File**: `/home/kamau/comparison/src/database/models.py` (809 lines)
+**File**: `src/database/models.py` (809 lines)
 - Status: PRODUCTION-READY (Not "In Progress")
 - Models: 8 complete models (User, OptionPrice, MLModel, ModelPrediction, Portfolio, Position, Order, RateLimit)
 - Relationships: Fully configured with cascade deletes
@@ -186,7 +186,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Tests: 1 test file found (test_models.py)
 
 #### CRUD Operations
-**File**: `/home/kamau/comparison/src/database/crud.py` (estimated)
+**File**: `src/database/crud.py` (estimated)
 - Status: UNKNOWN (file exists but not analyzed)
 - Expected: Create, Read, Update, Delete for all models
 
@@ -197,7 +197,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 ### 2.3 Backend API (60% Complete - YELLOW)
 
 #### FastAPI Application Structure
-**File**: `/home/kamau/comparison/src/api/main.py` (estimated)
+**File**: `src/api/main.py` (estimated)
 - Status: FOUNDATION COMPLETE
 - Features: Application factory, CORS, exception handlers, health check
 - Lifespan: Database connection management
@@ -205,7 +205,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Missing: Route registration, startup validation
 
 #### Pricing API Endpoints
-**File**: `/home/kamau/comparison/src/api/routes/pricing.py` (884 lines)
+**File**: `src/api/routes/pricing.py` (884 lines)
 - Status: DEFINED BUT NOT INTEGRATED (Critical Gap)
 - Endpoints:
   1. POST /api/v1/pricing/price - Single option pricing (5 methods)
@@ -220,15 +220,15 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 - Issue: Router not registered in main.py, endpoints unreachable
 
 #### Authentication System
-**Files**: `/home/kamau/comparison/src/api/auth.py`, `/home/kamau/comparison/src/api/routes/auth.py`, `/home/kamau/comparison/src/api/schemas/auth.py`
+**Files**: `src/api/auth.py`, `src/api/routes/auth.py`, `src/api/schemas/auth.py`
 - Status: SCAFFOLDING ONLY (15% complete, not 50%)
 - JWT: Structure exists but no implementation found
-- Rate Limiting: Middleware file exists at `/home/kamau/comparison/src/api/middleware/rate_limit.py`
+- Rate Limiting: Middleware file exists at `src/api/middleware/rate_limit.py`
 - Password Hashing: Not verified
 - Tests: Auth test file exists (`test_auth.py`, 10,698 lines) but import issues
 
 #### Configuration Management
-**File**: `/home/kamau/comparison/src/config.py` (estimated 300+ lines)
+**File**: `src/config.py` (estimated 300+ lines)
 - Status: DEFINED BUT UNTESTED
 - Coverage: 0% (critical issue)
 - Expected: Pydantic Settings, environment validation, logging config
@@ -239,7 +239,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 
 ### 2.4 Frontend (0% Complete - RED)
 
-**Directory**: `/home/kamau/comparison/frontend`
+**Directory**: `frontend`
 - Status: NOT STARTED
 - Expected: React + TypeScript, Material-UI
 - Files Found: Directory exists but no .tsx or .jsx files
@@ -270,7 +270,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 
 ### 2.6 CLI Interface (80% Complete - GREEN)
 
-**Files**: `/home/kamau/comparison/cli.py` (38,730 lines), `/home/kamau/comparison/cli_complete.py` (27,649 lines)
+**Files**: `cli.py` (38,730 lines), `cli_complete.py` (27,649 lines)
 - Status: SUBSTANTIALLY COMPLETE (not "30%" as reported)
 - Features: Pricing calculator, portfolio management, batch operations
 - Documentation: 7 CLI-specific markdown files (CLI_DOCUMENTATION.md, CLI_QUICKSTART.md, etc.)
@@ -306,7 +306,7 @@ The Black-Scholes Advanced Option Pricing Platform has made significant progress
 ### 2.8 Testing Infrastructure (12% Complete - RED)
 
 #### Test Coverage Analysis
-**Source**: `/home/kamau/comparison/coverage.xml`
+**Source**: `coverage.xml`
 - Overall Coverage: 15.3% (lines), 11.7% (branches)
 - Lines Valid: 3,330
 - Lines Covered: 508
@@ -675,55 +675,55 @@ However, critical integration work remains: connecting the API endpoints, establ
 ## APPENDIX A: DETAILED FILE INVENTORY
 
 ### Pricing Engines
-- `/home/kamau/comparison/src/pricing/black_scholes.py` (502 lines)
-- `/home/kamau/comparison/src/pricing/finite_difference.py` (589 lines)
-- `/home/kamau/comparison/src/pricing/monte_carlo.py` (estimated 800+ lines)
-- `/home/kamau/comparison/src/pricing/implied_vol.py` (733 lines)
-- `/home/kamau/comparison/src/pricing/lattice.py` (1,199 lines)
-- `/home/kamau/comparison/src/pricing/exotic.py` (1,798 lines)
-- `/home/kamau/comparison/src/pricing/vol_surface.py` (estimated 500+ lines)
+- `src/pricing/black_scholes.py` (502 lines)
+- `src/pricing/finite_difference.py` (589 lines)
+- `src/pricing/monte_carlo.py` (estimated 800+ lines)
+- `src/pricing/implied_vol.py` (733 lines)
+- `src/pricing/lattice.py` (1,199 lines)
+- `src/pricing/exotic.py` (1,798 lines)
+- `src/pricing/vol_surface.py` (estimated 500+ lines)
 
 ### API & Backend
-- `/home/kamau/comparison/src/api/main.py`
-- `/home/kamau/comparison/src/api/routes/pricing.py` (884 lines)
-- `/home/kamau/comparison/src/api/routes/auth.py`
-- `/home/kamau/comparison/src/api/auth.py`
-- `/home/kamau/comparison/src/api/schemas/auth.py`
-- `/home/kamau/comparison/src/api/middleware/rate_limit.py`
-- `/home/kamau/comparison/src/config.py`
+- `src/api/main.py`
+- `src/api/routes/pricing.py` (884 lines)
+- `src/api/routes/auth.py`
+- `src/api/auth.py`
+- `src/api/schemas/auth.py`
+- `src/api/middleware/rate_limit.py`
+- `src/config.py`
 
 ### Database
-- `/home/kamau/comparison/src/database/models.py` (809 lines)
-- `/home/kamau/comparison/src/database/crud.py`
-- `/home/kamau/comparison/src/database/schema.sql`
-- `/home/kamau/comparison/src/database/test_models.py`
+- `src/database/models.py` (809 lines)
+- `src/database/crud.py`
+- `src/database/schema.sql`
+- `src/database/test_models.py`
 
 ### Tests
-- `/home/kamau/comparison/tests/conftest.py`
-- `/home/kamau/comparison/tests/unit/test_black_scholes.py`
-- `/home/kamau/comparison/tests/unit/test_finite_difference.py`
-- `/home/kamau/comparison/tests/unit/test_config.py`
-- `/home/kamau/comparison/tests/unit/test_validators.py`
-- `/home/kamau/comparison/tests/test_monte_carlo.py`
-- `/home/kamau/comparison/tests/test_implied_vol.py`
-- `/home/kamau/comparison/tests/test_lattice.py`
-- `/home/kamau/comparison/tests/test_exotic.py`
-- `/home/kamau/comparison/tests/test_vol_surface.py`
-- `/home/kamau/comparison/tests/integration/test_api.py`
+- `tests/conftest.py`
+- `tests/unit/test_black_scholes.py`
+- `tests/unit/test_finite_difference.py`
+- `tests/unit/test_config.py`
+- `tests/unit/test_validators.py`
+- `tests/test_monte_carlo.py`
+- `tests/test_implied_vol.py`
+- `tests/test_lattice.py`
+- `tests/test_exotic.py`
+- `tests/test_vol_surface.py`
+- `tests/integration/test_api.py`
 
 ### CLI
-- `/home/kamau/comparison/cli.py` (38,730 lines)
-- `/home/kamau/comparison/cli_complete.py` (27,649 lines)
-- `/home/kamau/comparison/src/cli/auth.py`
-- `/home/kamau/comparison/src/cli/config.py`
-- `/home/kamau/comparison/src/cli/portfolio.py`
+- `cli.py` (38,730 lines)
+- `cli_complete.py` (27,649 lines)
+- `src/cli/auth.py`
+- `src/cli/config.py`
+- `src/cli/portfolio.py`
 
 ### DevOps
-- `/home/kamau/comparison/docker-compose.yml`
-- `/home/kamau/comparison/Dockerfile.api`
-- `/home/kamau/comparison/Dockerfile.jupyter`
-- `/home/kamau/comparison/setup.sh`
-- `/home/kamau/comparison/setup_auth.sh`
+- `docker-compose.yml`
+- `Dockerfile.api`
+- `Dockerfile.jupyter`
+- `setup.sh`
+- `setup_auth.sh`
 
 ### Documentation (52 files)
 - Core: README.md, GETTING_STARTED.md, ROADMAP.md, CONTRIBUTING.md

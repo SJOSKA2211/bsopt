@@ -14,6 +14,7 @@ from fastapi import Request
 
 from src.database import get_session
 from src.database.models import AuditLog, User
+from src.utils.sanitization import mask_email
 
 # Use a dedicated logger for audit trails
 audit_logger = logging.getLogger("audit")
@@ -76,7 +77,7 @@ def log_audit(
     log_data: Dict[str, Any] = {
         "event_type": event.value,
         "user_id": str(user.id) if user else None,
-        "user_email": user.email if user else None,
+        "user_email": mask_email(user.email) if user else None,
     }
 
     source_ip = None

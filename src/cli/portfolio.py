@@ -32,12 +32,12 @@ class Position:
 class PortfolioManager:
     """Manages a collection of option positions."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.portfolio_file = Path.home() / ".bsopt" / "portfolio.json"
         self._ensure_portfolio_dir()
         self.positions: List[Position] = self._load()
 
-    def _ensure_portfolio_dir(self):
+    def _ensure_portfolio_dir(self) -> None:
         """Ensure the portfolio directory exists."""
         self.portfolio_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -53,12 +53,12 @@ class PortfolioManager:
         except Exception:
             return []
 
-    def _save(self):
+    def _save(self) -> None:
         """Save current positions to file."""
         with open(self.portfolio_file, "w") as f:
             json.dump([asdict(pos) for pos in self.positions], f, indent=2)
 
-    def add_position(self, position: Position):
+    def add_position(self, position: Position) -> None:
         """Add a new position to the portfolio."""
         self.positions.append(position)
         self._save()

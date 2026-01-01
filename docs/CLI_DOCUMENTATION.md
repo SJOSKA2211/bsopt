@@ -674,7 +674,7 @@ bsopt config set cache.enabled true
 
 ## Support
 
-- Documentation: `/home/kamau/comparison/docs/`
+- Documentation: `docs/`
 - Issues: Create an issue in the repository
 - API Docs: Run `bsopt serve` and visit http://localhost:8000/docs
 

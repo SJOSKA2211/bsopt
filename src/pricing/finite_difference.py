@@ -230,27 +230,44 @@ class CrankNicolsonSolver(PricingStrategy):
         eps_vol = 0.01
 
         params_up = BSParameters(
-            self.spot, self.strike, self.maturity, self.volatility + eps_vol,
-            self.rate, self.dividend
+            self.spot,
+            self.strike,
+            self.maturity,
+            self.volatility + eps_vol,
+            self.rate,
+            self.dividend,
         )
         params_down = BSParameters(
-            self.spot, self.strike, self.maturity, self.volatility - eps_vol,
-            self.rate, self.dividend
+            self.spot,
+            self.strike,
+            self.maturity,
+            self.volatility - eps_vol,
+            self.rate,
+            self.dividend,
         )
 
-        vega = (self.price(params_up, self.option_type) -
-                self.price(params_down, self.option_type)) / (2 * eps_vol) * 0.01
+        vega = (
+            (self.price(params_up, self.option_type) - self.price(params_down, self.option_type))
+            / (2 * eps_vol)
+            * 0.01
+        )
 
         # 3. Theta (1 day decay)
         dt_day = 1.0 / 365.0
         if self.maturity > dt_day:
             params_t = BSParameters(
-                self.spot, self.strike, self.maturity - dt_day, self.volatility,
-                self.rate, self.dividend
+                self.spot,
+                self.strike,
+                self.maturity - dt_day,
+                self.volatility,
+                self.rate,
+                self.dividend,
             )
             theta = self.price(params_t, self.option_type) - self.price(
-                BSParameters(self.spot, self.strike, self.maturity, self.volatility,
-                             self.rate, self.dividend), self.option_type
+                BSParameters(
+                    self.spot, self.strike, self.maturity, self.volatility, self.rate, self.dividend
+                ),
+                self.option_type,
             )
         else:
             theta = 0.0
@@ -258,16 +275,30 @@ class CrankNicolsonSolver(PricingStrategy):
         # 4. Rho (bump rate by 1%)
         eps_rate = 0.01
         params_r_up = BSParameters(
-            self.spot, self.strike, self.maturity, self.volatility, self.rate + eps_rate,
-            self.dividend
+            self.spot,
+            self.strike,
+            self.maturity,
+            self.volatility,
+            self.rate + eps_rate,
+            self.dividend,
         )
         params_r_down = BSParameters(
-            self.spot, self.strike, self.maturity, self.volatility, self.rate - eps_rate,
-            self.dividend
+            self.spot,
+            self.strike,
+            self.maturity,
+            self.volatility,
+            self.rate - eps_rate,
+            self.dividend,
         )
 
-        rho = (self.price(params_r_up, self.option_type) -
-               self.price(params_r_down, self.option_type)) / (2 * eps_rate) * 0.01
+        rho = (
+            (
+                self.price(params_r_up, self.option_type)
+                - self.price(params_r_down, self.option_type)
+            )
+            / (2 * eps_rate)
+            * 0.01
+        )
 
         return OptionGreeks(delta, gamma, vega, theta, rho)
 

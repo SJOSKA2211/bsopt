@@ -163,9 +163,7 @@ class BinomialTreePricer(PricingStrategy):
     """
 
     def __init__(
-        self,
-        n_steps: int = 100,
-        exercise_type: Literal["european", "american"] = "european"
+        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
     ):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
@@ -192,14 +190,26 @@ class BinomialTreePricer(PricingStrategy):
         eps_s = max(params.spot * 0.001, 0.01)
 
         p_up = self.price(
-            BSParameters(params.spot + eps_s, params.strike, params.maturity,
-                         params.volatility, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot + eps_s,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         p_down = self.price(
-            BSParameters(params.spot - eps_s, params.strike, params.maturity,
-                         params.volatility, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot - eps_s,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
 
         delta = (p_up - p_down) / (2 * eps_s)
@@ -207,23 +217,41 @@ class BinomialTreePricer(PricingStrategy):
 
         eps_v = 0.001
         p_v_up = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility + eps_v, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility + eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         p_v_down = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility - eps_v, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility - eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         vega = (p_v_up - p_v_down) / (2 * eps_v) * 0.01
 
         dt_t = 1.0 / 365.0
         if params.maturity > dt_t:
             p_t = self.price(
-                BSParameters(params.spot, params.strike, params.maturity - dt_t,
-                             params.volatility, params.rate, params.dividend),
-                option_type
+                BSParameters(
+                    params.spot,
+                    params.strike,
+                    params.maturity - dt_t,
+                    params.volatility,
+                    params.rate,
+                    params.dividend,
+                ),
+                option_type,
             )
             theta = p_t - p0
         else:
@@ -231,14 +259,26 @@ class BinomialTreePricer(PricingStrategy):
 
         eps_r = 0.0001
         p_r_up = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility, params.rate + eps_r, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate + eps_r,
+                params.dividend,
+            ),
+            option_type,
         )
         p_r_down = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility, params.rate - eps_r, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate - eps_r,
+                params.dividend,
+            ),
+            option_type,
         )
         rho = (p_r_up - p_r_down) / (2 * eps_r) * 0.01
 
@@ -260,9 +300,7 @@ class TrinomialTreePricer(PricingStrategy):
     """Standard Trinomial Tree Pricer."""
 
     def __init__(
-        self,
-        n_steps: int = 100,
-        exercise_type: Literal["european", "american"] = "european"
+        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
     ):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
@@ -289,14 +327,26 @@ class TrinomialTreePricer(PricingStrategy):
         eps_s = max(params.spot * 0.001, 0.01)
 
         p_up = self.price(
-            BSParameters(params.spot + eps_s, params.strike, params.maturity,
-                         params.volatility, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot + eps_s,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         p_down = self.price(
-            BSParameters(params.spot - eps_s, params.strike, params.maturity,
-                         params.volatility, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot - eps_s,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
 
         delta = (p_up - p_down) / (2 * eps_s)
@@ -304,23 +354,41 @@ class TrinomialTreePricer(PricingStrategy):
 
         eps_v = 0.001
         p_v_up = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility + eps_v, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility + eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         p_v_down = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility - eps_v, params.rate, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility - eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
         )
         vega = (p_v_up - p_v_down) / (2 * eps_v) * 0.01
 
         dt_t = 1.0 / 365.0
         if params.maturity > dt_t:
             p_t = self.price(
-                BSParameters(params.spot, params.strike, params.maturity - dt_t,
-                             params.volatility, params.rate, params.dividend),
-                option_type
+                BSParameters(
+                    params.spot,
+                    params.strike,
+                    params.maturity - dt_t,
+                    params.volatility,
+                    params.rate,
+                    params.dividend,
+                ),
+                option_type,
             )
             theta = p_t - p0
         else:
@@ -328,14 +396,26 @@ class TrinomialTreePricer(PricingStrategy):
 
         eps_r = 0.0001
         p_r_up = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility, params.rate + eps_r, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate + eps_r,
+                params.dividend,
+            ),
+            option_type,
         )
         p_r_down = self.price(
-            BSParameters(params.spot, params.strike, params.maturity,
-                         params.volatility, params.rate - eps_r, params.dividend),
-            option_type
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate - eps_r,
+                params.dividend,
+            ),
+            option_type,
         )
         rho = (p_r_up - p_r_down) / (2 * eps_r) * 0.01
 

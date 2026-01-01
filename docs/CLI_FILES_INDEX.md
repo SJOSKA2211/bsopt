@@ -8,8 +8,8 @@ Complete index of all CLI-related files in the project.
 
 | File | Location | Lines | Purpose |
 |------|----------|-------|---------|
-| `cli.py` | `/home/kamau/comparison/cli.py` | 1,035 | Original CLI with basic commands |
-| `cli_complete.py` | `/home/kamau/comparison/cli_complete.py` | 900+ | Complete CLI with all features |
+| `cli.py` | `cli.py` | 1,035 | Original CLI with basic commands |
+| `cli_complete.py` | `cli_complete.py` | 900+ | Complete CLI with all features |
 
 **Recommendation**: Use `cli_complete.py` as the primary CLI entry point.
 
@@ -17,35 +17,35 @@ Complete index of all CLI-related files in the project.
 
 | File | Location | Lines | Purpose |
 |------|----------|-------|---------|
-| `src/cli/__init__.py` | `/home/kamau/comparison/src/cli/__init__.py` | 10 | Package initialization |
-| `src/cli/auth.py` | `/home/kamau/comparison/src/cli/auth.py` | 350+ | Authentication manager |
-| `src/cli/config.py` | `/home/kamau/comparison/src/cli/config.py` | 300+ | Configuration manager |
-| `src/cli/portfolio.py` | `/home/kamau/comparison/src/cli/portfolio.py` | 350+ | Portfolio manager |
+| `src/cli/__init__.py` | `src/cli/__init__.py` | 10 | Package initialization |
+| `src/cli/auth.py` | `src/cli/auth.py` | 350+ | Authentication manager |
+| `src/cli/config.py` | `src/cli/config.py` | 300+ | Configuration manager |
+| `src/cli/portfolio.py` | `src/cli/portfolio.py` | 350+ | Portfolio manager |
 
 ## Setup & Installation
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `setup.py` | `/home/kamau/comparison/setup.py` | Package setup for pip install |
-| `setup_cli.py` | `/home/kamau/comparison/setup_cli.py` | Interactive setup script |
-| `requirements_cli.txt` | `/home/kamau/comparison/requirements_cli.txt` | CLI-specific dependencies |
-| `requirements.txt` | `/home/kamau/comparison/requirements.txt` | All project dependencies |
+| `setup.py` | `setup.py` | Package setup for pip install |
+| `setup_cli.py` | `setup_cli.py` | Interactive setup script |
+| `requirements_cli.txt` | `requirements_cli.txt` | CLI-specific dependencies |
+| `requirements.txt` | `requirements.txt` | All project dependencies |
 
 ## Documentation
 
 | File | Location | Pages | Content |
 |------|----------|-------|---------|
-| `CLI_README.md` | `/home/kamau/comparison/CLI_README.md` | ~12 | Main CLI documentation |
-| `CLI_DOCUMENTATION.md` | `/home/kamau/comparison/CLI_DOCUMENTATION.md` | ~20 | Complete command reference |
-| `CLI_QUICKSTART.md` | `/home/kamau/comparison/CLI_QUICKSTART.md` | ~6 | 5-minute getting started |
-| `CLI_IMPLEMENTATION_SUMMARY.md` | `/home/kamau/comparison/CLI_IMPLEMENTATION_SUMMARY.md` | ~15 | Implementation details |
-| `CLI_FILES_INDEX.md` | `/home/kamau/comparison/CLI_FILES_INDEX.md` | 1 | This file |
+| `CLI_README.md` | `CLI_README.md` | ~12 | Main CLI documentation |
+| `CLI_DOCUMENTATION.md` | `CLI_DOCUMENTATION.md` | ~20 | Complete command reference |
+| `CLI_QUICKSTART.md` | `CLI_QUICKSTART.md` | ~6 | 5-minute getting started |
+| `CLI_IMPLEMENTATION_SUMMARY.md` | `CLI_IMPLEMENTATION_SUMMARY.md` | ~15 | Implementation details |
+| `CLI_FILES_INDEX.md` | `CLI_FILES_INDEX.md` | 1 | This file |
 
 ## Testing
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `test_cli.sh` | `/home/kamau/comparison/test_cli.sh` | Automated test suite |
+| `test_cli.sh` | `test_cli.sh` | Automated test suite |
 
 ## Supporting Files
 
@@ -53,21 +53,21 @@ Complete index of all CLI-related files in the project.
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `src/pricing/black_scholes.py` | `/home/kamau/comparison/src/pricing/black_scholes.py` | Black-Scholes analytical |
-| `src/pricing/finite_difference.py` | `/home/kamau/comparison/src/pricing/finite_difference.py` | Crank-Nicolson FDM |
-| `src/pricing/monte_carlo.py` | `/home/kamau/comparison/src/pricing/monte_carlo.py` | Monte Carlo simulator |
+| `src/pricing/black_scholes.py` | `src/pricing/black_scholes.py` | Black-Scholes analytical |
+| `src/pricing/finite_difference.py` | `src/pricing/finite_difference.py` | Crank-Nicolson FDM |
+| `src/pricing/monte_carlo.py` | `src/pricing/monte_carlo.py` | Monte Carlo simulator |
 
 ### API & Configuration
 
 | File | Location | Purpose |
 |------|----------|---------|
-| `src/api/main.py` | `/home/kamau/comparison/src/api/main.py` | FastAPI server |
-| `src/config.py` | `/home/kamau/comparison/src/config.py` | Application config |
+| `src/api/main.py` | `src/api/main.py` | FastAPI server |
+| `src/config.py` | `src/config.py` | Application config |
 
 ## File Tree Structure
 
 ```
-/home/kamau/comparison/
+
 │
 ├── CLI Entry Points
 │   ├── cli.py                          # Basic CLI (1,035 lines)
@@ -248,7 +248,7 @@ output:
 
 ### Project Configuration
 
-Location: `/home/kamau/comparison/.bsopt.yml`
+Location: `.bsopt.yml`
 
 ```yaml
 pricing:

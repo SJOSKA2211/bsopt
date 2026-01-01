@@ -1,3 +1,4 @@
+import pyotp
 """
 Authentication Routes
 =====================
@@ -540,8 +541,6 @@ async def setup_mfa(
     Begin Multi-Factor Authentication setup. 
     Returns a secret and a QR code URI for use with authenticator apps.
     """
-    import pyotp
-
     # Generate secret
     secret = pyotp.random_base32()
 
@@ -662,8 +661,7 @@ async def disable_mfa(
 
 def _verify_mfa_code(user: User, code: str) -> bool:
     """Verify TOTP code."""
-    import pyotp
-
+    # pyotp is now imported at the top of the module
     if not user.mfa_secret:
         return False
 

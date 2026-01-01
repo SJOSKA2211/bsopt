@@ -150,12 +150,28 @@ class MonteCarloEngine(PricingStrategy):
         eps = max(params.spot * 0.01, 0.01)
 
         # Delta
-        p_plus = self.price(BSParameters(
-            params.spot + eps, params.strike, params.maturity, params.volatility,
-            params.rate, params.dividend), option_type)
-        p_minus = self.price(BSParameters(
-            params.spot - eps, params.strike, params.maturity, params.volatility,
-            params.rate, params.dividend), option_type)
+        p_plus = self.price(
+            BSParameters(
+                params.spot + eps,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
+        )
+        p_minus = self.price(
+            BSParameters(
+                params.spot - eps,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
+        )
         delta = (p_plus - p_minus) / (2 * eps)
 
         # Gamma
@@ -164,32 +180,72 @@ class MonteCarloEngine(PricingStrategy):
 
         # Vega
         eps_v = 0.01
-        p_v_plus = self.price(BSParameters(
-            params.spot, params.strike, params.maturity, params.volatility + eps_v,
-            params.rate, params.dividend), option_type)
-        p_v_minus = self.price(BSParameters(
-            params.spot, params.strike, params.maturity, params.volatility - eps_v,
-            params.rate, params.dividend), option_type)
+        p_v_plus = self.price(
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility + eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
+        )
+        p_v_minus = self.price(
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility - eps_v,
+                params.rate,
+                params.dividend,
+            ),
+            option_type,
+        )
         vega = (p_v_plus - p_v_minus) / (2 * eps_v) * 0.01
 
         # Theta
         dt = 1.0 / 365.0
         if params.maturity > dt:
-            p_t = self.price(BSParameters(
-                params.spot, params.strike, params.maturity - dt, params.volatility,
-                params.rate, params.dividend), option_type)
+            p_t = self.price(
+                BSParameters(
+                    params.spot,
+                    params.strike,
+                    params.maturity - dt,
+                    params.volatility,
+                    params.rate,
+                    params.dividend,
+                ),
+                option_type,
+            )
             theta = p_t - p_mid
         else:
             theta = 0.0
 
         # Rho
         eps_r = 0.0001
-        p_r_plus = self.price(BSParameters(
-            params.spot, params.strike, params.maturity, params.volatility,
-            params.rate + eps_r, params.dividend), option_type)
-        p_r_minus = self.price(BSParameters(
-            params.spot, params.strike, params.maturity, params.volatility,
-            params.rate - eps_r, params.dividend), option_type)
+        p_r_plus = self.price(
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate + eps_r,
+                params.dividend,
+            ),
+            option_type,
+        )
+        p_r_minus = self.price(
+            BSParameters(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.volatility,
+                params.rate - eps_r,
+                params.dividend,
+            ),
+            option_type,
+        )
         rho = (p_r_plus - p_r_minus) / (2 * eps_r) * 0.01
 
         return OptionGreeks(delta, gamma, vega, theta, rho)

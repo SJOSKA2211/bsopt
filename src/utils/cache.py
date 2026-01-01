@@ -117,7 +117,7 @@ class PricingCache:
         self, params: BSParameters, option_type: str, method: str
     ) -> Optional[float]:
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return None
         key = generate_cache_key(f"{method}:{option_type}", **asdict(params))
         try:
@@ -125,7 +125,7 @@ class PricingCache:
             if val:
                 return float(json.loads(val))
             return None
-        except (aioredis.RedisError, ValueError, json.JSONDecodeError) as e:
+        except (AttributeError, aioredis.RedisError, ValueError, json.JSONDecodeError) as e:
             logger.error(f"Failed to get option price from cache: {e}")
             return None
 
@@ -133,20 +133,20 @@ class PricingCache:
         self, params: BSParameters, option_type: str, method: str, price: float, ttl: int = 3600
     ):
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return False
         key = generate_cache_key(f"{method}:{option_type}", **asdict(params))
         try:
             await redis.setex(key, ttl, json.dumps(float(price)))
             return True
-        except (aioredis.RedisError, TypeError) as e:
+        except (AttributeError, aioredis.RedisError, TypeError) as e:
             logger.error(f"Failed to set option price in cache: {e}")
             return False
 
     async def get_greeks(self, params: BSParameters, option_type: str) -> Optional[OptionGreeks]:
         """Retrieve cached Greeks."""
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return None
         key = generate_cache_key(f"greeks:{option_type}", **asdict(params))
         try:
@@ -164,7 +164,7 @@ class PricingCache:
     ):
         """Cache Greeks."""
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return False
         key = generate_cache_key(f"greeks:{option_type}", **asdict(params))
         try:
@@ -183,7 +183,7 @@ class RateLimiter:
         self, user_id: str, endpoint: str, tier: RateLimitTier = RateLimitTier.FREE
     ) -> bool:
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return True
         config = RATE_LIMIT_CONFIGS[tier]
         limit = (
@@ -201,7 +201,7 @@ class RateLimiter:
             pipe.expire(full_key, 120)
             results = await pipe.execute()
             return bool(results[0] <= (limit + config.burst_size))
-        except aioredis.RedisError as e:
+        except Exception as e:
             logger.error(f"Rate limiter failed: {e}")
             return True
 
@@ -239,30 +239,50 @@ async def warm_cache():
     logger.info("Cache warming complete.")
 
 
+class IdempotencyManager:
+    PREFIX = "idem:"
+
+    async def check_and_set(self, key: str, ttl: int = 3600) -> bool:
+        """
+        Check if key exists. If not, set it and return True.
+        If it exists, return False.
+        """
+        redis = get_redis()
+        if redis is None:
+            return True # Fail open if redis is down
+        
+        full_key = f"{self.PREFIX}{key}"
+        # set with nx=True only sets if it doesn't exist
+        result = await redis.set(full_key, "1", ex=ttl, nx=True)
+        return bool(result)
+
+idempotency_manager = IdempotencyManager()
+
+
 class DatabaseQueryCache:
     PREFIX = "db:"
 
     async def get_user(self, user_id: str) -> Optional[Dict]:
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return None
         try:
             val = await redis.get(f"{self.PREFIX}user:{user_id}")
             return json.loads(val) if val else None
-        except (aioredis.RedisError, json.JSONDecodeError) as e:
+        except Exception as e:
             logger.error(f"Failed to get user from database cache: {e}")
             return None
 
     async def set_user(self, user_id: str, user_data: Dict, ttl: int = 300):
         redis = get_redis()
-        if not redis:
+        if redis is None:
             return False
         try:
             await redis.setex(
                 f"{self.PREFIX}user:{user_id}", ttl, json.dumps(user_data, default=str)
             )
             return True
-        except aioredis.RedisError as e:
+        except Exception as e:
             logger.error(f"Failed to set user in database cache: {e}")
             return False
 
@@ -277,7 +297,7 @@ redis_channel_updates: str = "pricing_updates"
 async def publish_to_redis(channel: str, message: Dict[str, Any]):
     """Publish a message to a Redis channel."""
     redis = get_redis()
-    if redis:
+    if redis is not None:
         try:
             encoded_message = json.dumps(message)
             await redis.publish(channel, encoded_message)

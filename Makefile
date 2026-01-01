@@ -83,6 +83,8 @@ clean: ## Remove temporary files
 	rm -rf htmlcov
 	rm -rf .coverage
 
+check-all: format lint test ## Run formatters, linters, and tests
+
 clean-all: clean down ## Remove all temporary files and stop services
 	docker compose down -v
 	rm -rf logs/*

@@ -208,6 +208,14 @@ def test_calculate_exotic_price_barrier_missing_type():
     assert response.status_code == 422
     assert "barrier_type required" in response.json()["message"]
 
+def test_calculate_exotic_price_invalid_barrier_type():
+    payload = {
+        "exotic_type": "barrier", "spot": 100.0, "strike": 100.0, "time_to_expiry": 1.0, "rate": 0.05, "volatility": 0.2, "option_type": "call", "barrier_type": "invalid_type"
+    }
+    response = client.post("/api/v1/pricing/exotic", json=payload)
+    assert response.status_code == 422
+    assert "Invalid barrier_type: invalid_type" in response.json()["message"]
+
 def test_calculate_price_cache_hit():
     with patch("src.api.routes.pricing.pricing_cache.get_option_price", new_callable=AsyncMock) as mock_get:
         mock_get.return_value = 12.34

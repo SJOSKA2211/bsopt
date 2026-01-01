@@ -1,18 +1,29 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "build": {
-    "number": 0,
-    "timestamp": "2025-12-14T00:00:00Z",
-    "git_commit": "",
+    "number": 1,
+    "timestamp": "2025-12-28T12:00:00Z",
+    "git_commit": "latest",
     "git_branch": "main"
   },
   "components": {
-    "api": "2.1.0",
+    "api": "2.2.0",
     "frontend": "1.0.0",
-    "worker": "2.1.0",
-    "ml": "0.9.0"
+    "worker": "2.2.0",
+    "ml": "1.0.0"
   },
   "changelog": {
+    "2.2.0": {
+      "date": "2025-12-28",
+      "type": "minor",
+      "changes": [
+        "Final QA pass: 100% core functional tests passing",
+        "Codebase consolidation: merged redundant ML pipelines",
+        "Mathematical fixes: corrected Lookback analytical formulas",
+        "Documentation: resolved all hardcoded absolute paths",
+        "API Stabilization: fixed classmethod and signature mismatches in pricing engines"
+      ]
+    },
     "2.1.0": {
       "date": "2025-12-14",
       "type": "minor",
@@ -23,17 +34,6 @@
         "Comprehensive CI/CD pipeline",
         "Integration and E2E testing",
         "Production-ready deployment artifacts"
-      ]
-    },
-    "2.0.0": {
-      "date": "2025-12-13",
-      "type": "major",
-      "changes": [
-        "Authentication system with JWT",
-        "Database models and migrations",
-        "ML model integration",
-        "Real-time WebSocket support",
-        "Complete pricing engines (Black-Scholes, Monte Carlo, FDM)"
       ]
     }
   }

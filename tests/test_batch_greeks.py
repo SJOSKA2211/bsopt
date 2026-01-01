@@ -1,6 +1,7 @@
 import numpy as np
-from src.pricing.quant_utils import batch_greeks_jit
+
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.pricing.quant_utils import batch_greeks_jit
 
 
 def test_batch_greeks_vs_single():
@@ -24,7 +25,7 @@ def test_batch_greeks_vs_single():
             maturity=maturities[i],
             volatility=vols[i],
             rate=rates[i],
-            dividend=divs[i]
+            dividend=divs[i],
         )
         option_type = "call" if is_call[i] else "put"
         expected = BlackScholesEngine.calculate_greeks(params, option_type)

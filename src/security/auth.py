@@ -63,7 +63,7 @@ class TokenBlacklist:
     In production, use Redis for distributed blacklist.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._blacklist: set = set()
         self._redis = None
 
@@ -129,7 +129,7 @@ class AuthService:
     def algorithm(self):
         return settings.JWT_ALGORITHM
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.access_token_expire = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         self.refresh_token_expire = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 

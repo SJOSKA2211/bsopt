@@ -10,9 +10,10 @@ from typing import Dict, Type
 
 from src.pricing.base import PricingStrategy
 from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.monte_carlo import MonteCarloEngine
-from src.pricing.lattice import BinomialTreePricer
 from src.pricing.finite_difference import CrankNicolsonSolver
+from src.pricing.lattice import BinomialTreePricer
+from src.pricing.monte_carlo import MonteCarloEngine
+from src.utils.circuit_breaker import pricing_circuit
 
 
 class PricingEngineFactory:
@@ -26,6 +27,7 @@ class PricingEngineFactory:
     }
 
     @classmethod
+    @pricing_circuit
     def get_strategy(cls, model_type: str) -> PricingStrategy:
         """
         Get a pricing strategy instance for the given model type.

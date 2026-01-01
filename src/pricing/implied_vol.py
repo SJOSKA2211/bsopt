@@ -86,7 +86,7 @@ def _newton_raphson_iv(
 
     sigma = initial_guess
     for _ in range(max_iterations):
-        results = BlackScholesEngine.calculate_greeks(
+        results = BlackScholesEngine.calculate_greeks_batch(
             spot=np.array([spot]),
             strike=np.array([strike]),
             maturity=np.array([maturity]),
@@ -231,7 +231,7 @@ def vectorized_implied_volatility(
 
         # Price and Greeks for currently active ones
         # For simplicity in indexing, we compute for all but update only active
-        results = BlackScholesEngine.calculate_greeks(
+        results = BlackScholesEngine.calculate_greeks_batch(
             spot=spots,
             strike=strikes,
             maturity=maturities,

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch, AsyncMock, ANY
 from fastapi.testclient import TestClient
 from src.api.main import app
 from src.database.models import User
@@ -54,7 +54,8 @@ def test_get_me_unauthorized():
     assert response.status_code == 401
     app.dependency_overrides = {}
 
-def test_update_me_success(mock_user):
+@patch("src.api.routes.users.publish_to_redis", new_callable=AsyncMock)
+def test_update_me_success(mock_publish_to_redis, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
@@ -62,12 +63,39 @@ def test_update_me_success(mock_user):
     response = client.patch("/api/v1/users/me", json={"full_name": "Updated Name"})
     assert response.status_code == 200
     assert response.json()["data"]["full_name"] == "Updated Name"
+    mock_publish_to_redis.assert_called_once() # Assert Redis publish
+    app.dependency_overrides = {}
+
+@patch("src.api.routes.users.publish_to_redis", new_callable=AsyncMock)
+def test_update_me_success_email(mock_publish_to_redis, mock_user):
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db.query.return_value.filter.return_value.first.side_effect = [mock_user, None] # First call finds user, second finds no conflict
+    response = client.patch("/api/v1/users/me", json={"email": "new_email@example.com"})
+    assert response.status_code == 200
+    assert response.json()["data"]["email"] == "new_email@example.com"
+    mock_publish_to_redis.assert_called_once() # Assert Redis publish
+    app.dependency_overrides = {}
+
+def test_update_me_no_changes(mock_user):
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_user
+    # Send request with current email and full_name, expecting no changes
+    response = client.patch("/api/v1/users/me", json={"email": mock_user.email, "full_name": mock_user.full_name})
+    assert response.status_code == 200
+    assert response.json()["data"]["full_name"] == mock_user.full_name
+    # Ensure commit was NOT called as no changes were made
+    mock_db.commit.assert_not_called()
     app.dependency_overrides = {}
 
 def test_update_me_email_conflict(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
+    # First call to filter.first returns mock_user (current user), second returns existing user (conflict)
     mock_db.query.return_value.filter.return_value.first.side_effect = [mock_user, MagicMock()]
     response = client.patch("/api/v1/users/me", json={"email": "taken@example.com"})
     assert response.status_code == 409
@@ -83,13 +111,27 @@ def test_update_me_persistence_error(mock_user):
     assert response.status_code == 500
     app.dependency_overrides = {}
 
-def test_delete_me_success(mock_user):
+@patch("src.api.routes.users.publish_to_redis", new_callable=AsyncMock)
+def test_delete_me_success(mock_publish_to_redis, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.delete("/api/v1/users/me")
     assert response.status_code == 200
+    mock_user.is_active = False # Verify soft delete
+    mock_db.commit.assert_called_once()
+    mock_publish_to_redis.assert_called_once() # Assert Redis publish
+    app.dependency_overrides = {}
+
+def test_delete_me_not_found(mock_user):
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
+    mock_db.query.return_value.filter.return_value.first.return_value = None # User not found
+    response = client.delete("/api/v1/users/me")
+    assert response.status_code == 404
+    mock_db.commit.assert_not_called()
     app.dependency_overrides = {}
 
 def test_delete_me_persistence_error(mock_user):
@@ -177,4 +219,48 @@ def test_list_users_with_tier_filter(enterprise_user, mock_user):
     assert response.status_code == 200
     assert len(response.json()["items"]) == 1
     assert response.json()["items"][0]["tier"] == "free"
+    app.dependency_overrides = {}
+
+def test_list_users_with_is_active_filter(enterprise_user):
+    app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
+    
+    active_user = User(
+        id=uuid.uuid4(),
+        email="active@example.com",
+        full_name="Active User",
+        tier="free",
+        is_active=True,
+        is_verified=True,
+        is_mfa_enabled=False,
+        created_at=datetime.now(timezone.utc)
+    )
+    inactive_user = User(
+        id=uuid.uuid4(),
+        email="inactive@example.com",
+        full_name="Inactive User",
+        tier="free",
+        is_active=False,
+        is_verified=True,
+        is_mfa_enabled=False,
+        created_at=datetime.now(timezone.utc)
+    )
+
+    # Test filtering for active users
+    mock_db.query.return_value.filter.return_value.count.return_value = 1
+    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [active_user]
+    response = client.get("/api/v1/users?is_active=true")
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 1
+    assert response.json()["items"][0]["is_active"] is True
+
+    # Test filtering for inactive users
+    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [inactive_user]
+    mock_db.query.return_value.filter.return_value.count.return_value = 1
+    response = client.get("/api/v1/users?is_active=false")
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 1
+    assert response.json()["items"][0]["is_active"] is False
+
     app.dependency_overrides = {}

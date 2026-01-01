@@ -231,8 +231,8 @@ After each agent completes, verify:
 
 ### Documentation
 - **Implementation Plan**: `/home/kamau/.claude/plans/proud-dazzling-patterson.md`
-- **Status Report**: `/home/kamau/comparison/STATUS.md`
-- **Executive Summary**: `/home/kamau/comparison/EXECUTIVE_SUMMARY.md`
+- **Status Report**: `STATUS.md`
+- **Executive Summary**: `EXECUTIVE_SUMMARY.md`
 - **Scrum Master Report**: Agent a41f595 output
 
 ### Agent Output Locations

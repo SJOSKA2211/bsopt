@@ -832,7 +832,7 @@ async def create_portfolio(...):
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-12-13
+**Document Version**: 2.2.0
+**Last Updated**: 2025-12-28
 **Maintainer**: Technical Architecture Team
 **Review Cycle**: Quarterly

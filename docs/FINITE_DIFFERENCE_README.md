@@ -16,7 +16,7 @@ This implementation provides a production-ready, mathematically rigorous Crank-N
 ## File Structure
 
 ```
-/home/kamau/comparison/
+
 ├── src/pricing/
 │   └── finite_difference.py           # Main implementation (782 lines)
 │

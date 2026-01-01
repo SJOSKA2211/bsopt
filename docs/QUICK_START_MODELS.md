@@ -3,14 +3,14 @@
 ## Files Created (97K total)
 
 ```
-/home/kamau/comparison/src/database/
+src/database/
 ├── models.py           (29K) - 8 ORM models
 ├── crud.py             (19K) - CRUD operations
 ├── __init__.py         (6.5K) - Database setup
 ├── README.md           (16K) - Full documentation
 └── test_models.py      (13K) - Model tests
 
-/home/kamau/comparison/
+
 └── DATABASE_MODELS_SUMMARY.md (14K) - Implementation summary
 ```
 
@@ -172,9 +172,9 @@ pytest src/database/test_models.py -v
 
 ## Documentation
 
-- **Full docs**: `/home/kamau/comparison/src/database/README.md`
-- **Summary**: `/home/kamau/comparison/DATABASE_MODELS_SUMMARY.md`
-- **Code**: `/home/kamau/comparison/src/database/models.py`
+- **Full docs**: `src/database/README.md`
+- **Summary**: `DATABASE_MODELS_SUMMARY.md`
+- **Code**: `src/database/models.py`
 
 ## Key Features
 

@@ -250,9 +250,7 @@ class TestBarrierOptions:
     def test_barrier_validation_down(self, base_params):
         """Test that down-barrier must be below spot."""
         # Invalid: barrier above spot
-        invalid_params = ExoticParameters(
-            base_params=base_params, barrier=110.0
-        )
+        invalid_params = ExoticParameters(base_params=base_params, barrier=110.0)
 
         with pytest.raises(ValueError, match="below spot"):
             BarrierOptionPricer.price_barrier_analytical(
@@ -373,14 +371,18 @@ class TestBarrierOptions:
             BarrierOptionPricer.price_barrier_analytical(up_params, "call", BarrierType.UP_AND_IN),
             BarrierOptionPricer.price_barrier_analytical(up_params, "put", BarrierType.UP_AND_OUT),
             BarrierOptionPricer.price_barrier_analytical(up_params, "put", BarrierType.UP_AND_IN),
-            BarrierOptionPricer.price_barrier_analytical(down_params, "call",
-                                                         BarrierType.DOWN_AND_OUT),
-            BarrierOptionPricer.price_barrier_analytical(down_params, "call",
-                                                         BarrierType.DOWN_AND_IN),
-            BarrierOptionPricer.price_barrier_analytical(down_params, "put",
-                                                         BarrierType.DOWN_AND_OUT),
-            BarrierOptionPricer.price_barrier_analytical(down_params, "put",
-                                                         BarrierType.DOWN_AND_IN),
+            BarrierOptionPricer.price_barrier_analytical(
+                down_params, "call", BarrierType.DOWN_AND_OUT
+            ),
+            BarrierOptionPricer.price_barrier_analytical(
+                down_params, "call", BarrierType.DOWN_AND_IN
+            ),
+            BarrierOptionPricer.price_barrier_analytical(
+                down_params, "put", BarrierType.DOWN_AND_OUT
+            ),
+            BarrierOptionPricer.price_barrier_analytical(
+                down_params, "put", BarrierType.DOWN_AND_IN
+            ),
         ]
 
         for p in results:
@@ -406,7 +408,12 @@ class TestBarrierOptions:
         """
         params_deep_itm = ExoticParameters(
             base_params=BSParameters(
-                spot=150.0, strike=100.0, maturity=1.0, volatility=0.25, rate=0.05, dividend=0.02,
+                spot=150.0,
+                strike=100.0,
+                maturity=1.0,
+                volatility=0.25,
+                rate=0.05,
+                dividend=0.02,
             ),
             barrier=80.0,
         )
@@ -422,7 +429,12 @@ class TestBarrierOptions:
         """
         params_deep_otm = ExoticParameters(
             base_params=BSParameters(
-                spot=50.0, strike=100.0, maturity=1.0, volatility=0.25, rate=0.05, dividend=0.02,
+                spot=50.0,
+                strike=100.0,
+                maturity=1.0,
+                volatility=0.25,
+                rate=0.05,
+                dividend=0.02,
             ),
             barrier=120.0,
         )
@@ -482,10 +494,13 @@ class TestLookbackOptions:
 
     def test_lookback_running_extrema_correctness(self, lookback_params):
         """Test running extrema computation."""
-        paths = np.array([
-            [100.0, 110.0, 105.0, 115.0, 100.0],
-            [100.0, 90.0, 95.0, 85.0, 100.0],
-        ], dtype=np.float64)
+        paths = np.array(
+            [
+                [100.0, 110.0, 105.0, 115.0, 100.0],
+                [100.0, 90.0, 95.0, 85.0, 100.0],
+            ],
+            dtype=np.float64,
+        )
         observation_indices = np.arange(paths.shape[1], dtype=np.int64)
         maxima = LookbackOptionPricer._compute_running_extrema(paths, observation_indices, "max")
         assert_equal(maxima[0], 115.0)
@@ -535,16 +550,23 @@ class TestUnifiedInterface:
     def test_unified_asian_geometric(self, asian_params):
         """Test unified geometric Asian."""
         price, ci = price_exotic_option(
-            "asian", asian_params, "call", asian_type=AsianType.GEOMETRIC,
-            strike_type=StrikeType.FIXED
+            "asian",
+            asian_params,
+            "call",
+            asian_type=AsianType.GEOMETRIC,
+            strike_type=StrikeType.FIXED,
         )
         assert price > 0 and ci is None
 
     def test_unified_asian_arithmetic(self, asian_params):
         """Test unified arithmetic Asian."""
         price, ci = price_exotic_option(
-            "asian", asian_params, "call", asian_type=AsianType.ARITHMETIC,
-            strike_type=StrikeType.FIXED, n_paths=10000
+            "asian",
+            asian_params,
+            "call",
+            asian_type=AsianType.ARITHMETIC,
+            strike_type=StrikeType.FIXED,
+            n_paths=10000,
         )
         assert price > 0 and ci > 0
 

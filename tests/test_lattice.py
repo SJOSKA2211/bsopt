@@ -60,8 +60,9 @@ class TestBinomialTreePricer:
 
     def test_european_call_vs_black_scholes(self):
         """Test that European call converges to Black-Scholes."""
-        params = BSParameters(spot=100.0, strike=100.0, maturity=1.0,
-                              volatility=0.2, rate=0.05, dividend=0.02)
+        params = BSParameters(
+            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+        )
         bs_price = BlackScholesEngine.price_call(params)
 
         pricer = BinomialTreePricer(n_steps=500, exercise_type="european")

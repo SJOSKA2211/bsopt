@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides the complete mathematical specification for the Black-Scholes-Merton pricing engine implementation located in `/home/kamau/comparison/src/pricing/black_scholes.py`.
+This document provides the complete mathematical specification for the Black-Scholes-Merton pricing engine implementation located in `src/pricing/black_scholes.py`.
 
 ## Mathematical Foundation
 
@@ -373,9 +373,9 @@ These error bounds are negligible compared to model risk and parameter estimatio
 
 ## File Locations
 
-- **Main Implementation**: `/home/kamau/comparison/src/pricing/black_scholes.py`
-- **Verification Tests**: `/home/kamau/comparison/test_black_scholes_verification.py`
-- **Documentation**: `/home/kamau/comparison/BLACK_SCHOLES_MATHEMATICAL_SPECIFICATION.md`
+- **Main Implementation**: `src/pricing/black_scholes.py`
+- **Verification Tests**: `test_black_scholes_verification.py`
+- **Documentation**: `BLACK_SCHOLES_MATHEMATICAL_SPECIFICATION.md`
 
 ---
 

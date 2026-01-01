@@ -7,26 +7,26 @@ A production-ready, mathematically rigorous implementation of the Crank-Nicolson
 ## Files Created
 
 ### 1. Core Implementation
-**File:** `/home/kamau/comparison/src/pricing/finite_difference.py`
+**File:** `src/pricing/finite_difference.py`
 - **Lines of code:** 782
 - **Dependencies:** numpy, scipy.sparse, scipy.sparse.linalg
 
 ### 2. Comprehensive Documentation
-**File:** `/home/kamau/comparison/CRANK_NICOLSON_DOCUMENTATION.md`
+**File:** `CRANK_NICOLSON_DOCUMENTATION.md`
 - Complete mathematical derivation
 - Stability analysis
 - Convergence proofs
 - Performance characteristics
 
 ### 3. Quick Reference Guide
-**File:** `/home/kamau/comparison/FDM_QUICK_REFERENCE.md`
+**File:** `FDM_QUICK_REFERENCE.md`
 - Usage examples
 - Key formulas
 - Parameter selection guidelines
 - Common pitfalls and solutions
 
 ### 4. Test Script
-**File:** `/home/kamau/comparison/test_fdm_minimal.py`
+**File:** `test_fdm_minimal.py`
 - Validation tests
 - Convergence verification
 - Edge case handling

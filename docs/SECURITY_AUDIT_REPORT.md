@@ -35,7 +35,7 @@ This comprehensive security audit evaluated the Black-Scholes Option Pricing Pla
 
 ### 1.1 JWT Implementation Analysis
 
-**File:** `/home/kamau/comparison/src/api/auth.py`
+**File:** `src/api/auth.py`
 
 #### Findings:
 
@@ -47,7 +47,7 @@ This comprehensive security audit evaluated the Black-Scholes Option Pricing Pla
 
 ##### ⚠️ CRITICAL - Hardcoded JWT Secret in .env
 **Severity:** CRITICAL
-**File:** `/home/kamau/comparison/.env` line 13
+**File:** `.env` line 13
 **Issue:** JWT_SECRET is a weak, hardcoded value visible in version control
 ```
 JWT_SECRET=<PLACEHOLDER_JWT_SECRET>
@@ -100,8 +100,8 @@ REFRESH_TOKEN_EXPIRE_DAYS=7     # Keep but implement rotation
 ##### ⚠️ HIGH - Missing Token Blacklist
 **Severity:** HIGH
 **Files:**
-- `/home/kamau/comparison/src/api/routes/auth.py` lines 367, 466
-- `/home/kamau/comparison/src/api/routes/auth.py` line 549
+- `src/api/routes/auth.py` lines 367, 466
+- `src/api/routes/auth.py` line 549
 
 **Issue:** JWT tokens remain valid until expiration even after:
 - User logout
@@ -150,7 +150,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 ##### ⚠️ MEDIUM - Weak Password Requirements
 **Severity:** MEDIUM
-**File:** `/home/kamau/comparison/src/config.py` lines 57-76
+**File:** `src/config.py` lines 57-76
 
 **Current Requirements:**
 - Minimum 8 characters
@@ -172,7 +172,7 @@ PASSWORD_HISTORY_COUNT=5  # Prevent reuse of last 5 passwords
 
 ##### ⚠️ MEDIUM - Missing Account Lockout
 **Severity:** MEDIUM
-**File:** `/home/kamau/comparison/src/api/routes/auth.py` login endpoint
+**File:** `src/api/routes/auth.py` login endpoint
 
 **Issue:** No protection against brute force password attacks
 - Unlimited login attempts allowed
@@ -279,7 +279,7 @@ def verify_mfa(user: User, mfa_code: str) -> bool:
 
 ### 2.1 Input Validation
 
-**File:** `/home/kamau/comparison/src/api/routes/pricing.py`
+**File:** `src/api/routes/pricing.py`
 
 ##### ✅ SECURE - Pydantic Validation
 - All endpoints use Pydantic models for request validation
@@ -299,7 +299,7 @@ class OptionRequest(BaseModel):
 ### 2.2 SQL Injection Protection
 
 ##### ✅ SECURE - Parameterized Queries
-**File:** `/home/kamau/comparison/src/database/crud.py`, `/home/kamau/comparison/src/database/models.py`
+**File:** `src/database/crud.py`, `src/database/models.py`
 
 **Analysis:**
 - All database queries use SQLAlchemy ORM
@@ -309,7 +309,7 @@ class OptionRequest(BaseModel):
 
 ### 2.3 Rate Limiting
 
-**File:** `/home/kamau/comparison/src/api/middleware/rate_limit.py`
+**File:** `src/api/middleware/rate_limit.py`
 
 ##### ✅ SECURE - Comprehensive Rate Limiting
 **Implementation:**
@@ -326,7 +326,7 @@ class OptionRequest(BaseModel):
 
 ##### ⚠️ MEDIUM - Rate Limit Bypass on Auth Endpoints
 **Severity:** MEDIUM
-**File:** `/home/kamau/comparison/src/api/main.py` line 271
+**File:** `src/api/main.py` line 271
 
 **Issue:**
 ```python
@@ -373,7 +373,7 @@ async def auth_rate_limit_dependency(request: Request):
 
 ### 2.4 CORS Configuration
 
-**File:** `/home/kamau/comparison/src/api/main.py` lines 101-109
+**File:** `src/api/main.py` lines 101-109
 
 ##### ⚠️ HIGH - Overly Permissive CORS
 **Severity:** HIGH
@@ -435,7 +435,7 @@ app.add_middleware(
 
 ### 2.5 Error Handling and Information Disclosure
 
-**File:** `/home/kamau/comparison/src/api/main.py` lines 187-216
+**File:** `src/api/main.py` lines 187-216
 
 ##### ⚠️ MEDIUM - Information Disclosure in Debug Mode
 **Severity:** MEDIUM
@@ -490,7 +490,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 ### 2.6 API Documentation Exposure
 
-**File:** `/home/kamau/comparison/src/api/main.py` lines 95-96
+**File:** `src/api/main.py` lines 95-96
 
 ##### ⚠️ LOW - Swagger UI in Production
 **Severity:** LOW
@@ -525,7 +525,7 @@ async def custom_docs(credentials: HTTPBasicCredentials = Depends(security)):
 ##### ⚠️ CRITICAL - Secrets in Version Control
 **Severity:** CRITICAL
 **Files:**
-- `/home/kamau/comparison/.env` (lines 1-61)
+- `.env` (lines 1-61)
 - Committed to git (high risk)
 
 **Hardcoded Secrets Found:**
@@ -604,7 +604,7 @@ $ grep -r "217ed404c578960f76f1caaf5322151325b152a678fe722d18fac4f98fdfb56d" .
 
 ##### ⚠️ HIGH - No Database Encryption
 **Severity:** HIGH
-**File:** `/home/kamau/comparison/src/database/models.py`
+**File:** `src/database/models.py`
 
 **Issue:**
 - Passwords are hashed (✅ good)
@@ -658,8 +658,8 @@ email = Column(EncryptedString(settings.ENCRYPTION_KEY))
 ##### ⚠️ HIGH - No TLS Enforcement
 **Severity:** HIGH
 **Files:**
-- `/home/kamau/comparison/docker-compose.yml` (HTTP only)
-- `/home/kamau/comparison/src/api/main.py` (no HTTPS redirect)
+- `docker-compose.yml` (HTTP only)
+- `src/api/main.py` (no HTTPS redirect)
 
 **Current Configuration:**
 ```yaml
@@ -795,7 +795,7 @@ class SanitizingFormatter(logging.Formatter):
 
 ### 4.1 Docker Container Security
 
-**File:** `/home/kamau/comparison/Dockerfile.api.optimized`
+**File:** `Dockerfile.api.optimized`
 
 ##### ✅ SECURE - Non-Root User
 **Lines:** 73-90
@@ -846,7 +846,7 @@ jobs:
 
 ### 4.2 Docker Compose Security
 
-**File:** `/home/kamau/comparison/docker-compose.yml`
+**File:** `docker-compose.yml`
 
 ##### ⚠️ HIGH - Weak Default Passwords
 **Severity:** HIGH
@@ -910,7 +910,7 @@ jupyter:
 
 ### 4.3 Database Security
 
-**File:** `/home/kamau/comparison/src/database/schema.sql`
+**File:** `src/database/schema.sql`
 
 ##### ✅ SECURE - Proper Constraints
 - CHECK constraints on enums and ranges
@@ -919,7 +919,7 @@ jupyter:
 
 ##### ⚠️ MEDIUM - Missing Row-Level Security (RLS)
 **Severity:** MEDIUM
-**File:** `/home/kamau/comparison/src/database/schema.sql`
+**File:** `src/database/schema.sql`
 
 **Issue:** No row-level security policies implemented
 - Users could potentially access other users' data
@@ -966,7 +966,7 @@ async def get_db(current_user: User = Depends(get_current_user)):
 
 ### 4.4 Redis Security
 
-**File:** `/home/kamau/comparison/docker-compose.yml` line 30
+**File:** `docker-compose.yml` line 30
 
 ##### ⚠️ MEDIUM - Redis Password in Command Line
 **Severity:** MEDIUM
@@ -1012,7 +1012,7 @@ maxmemory-policy allkeys-lru
 
 ##### ⚠️ MEDIUM - No CSRF Protection
 **Severity:** MEDIUM
-**File:** `/home/kamau/comparison/src/api/main.py`
+**File:** `src/api/main.py`
 
 **Issue:**
 - State-changing operations (POST, PUT, DELETE) lack CSRF protection
@@ -1060,7 +1060,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
 ##### ⚠️ LOW - Missing X-Frame-Options
 **Severity:** LOW
-**File:** `/home/kamau/comparison/src/api/main.py`
+**File:** `src/api/main.py`
 
 **Recommendation:**
 ```python
@@ -1123,8 +1123,8 @@ def validate_external_url(url: str) -> bool:
 ### 6.1 Python Dependencies
 
 **Files:**
-- `/home/kamau/comparison/requirements.txt`
-- `/home/kamau/comparison/requirements-auth.txt`
+- `requirements.txt`
+- `requirements-auth.txt`
 
 ##### ⚠️ HIGH - Outdated Dependencies
 **Severity:** HIGH

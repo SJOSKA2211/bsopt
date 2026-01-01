@@ -34,7 +34,7 @@ The implementation demonstrates exceptional mathematical rigor, numerical precis
 
 ### 1.1 Black-Scholes Analytical Pricing
 
-**File:** `/home/kamau/comparison/src/pricing/black_scholes.py`
+**File:** `src/pricing/black_scholes.py`
 
 #### Mathematical Accuracy: VALIDATED ✓
 
@@ -159,7 +159,7 @@ rho_call = K · T · e^(-rT) · N(d₂) · 0.01
 
 ### 1.3 Finite Difference Methods (Crank-Nicolson)
 
-**File:** `/home/kamau/comparison/src/pricing/finite_difference.py`
+**File:** `src/pricing/finite_difference.py`
 
 #### Numerical Scheme: VALIDATED ✓
 
@@ -208,7 +208,7 @@ rho_call = K · T · e^(-rT) · N(d₂) · 0.01
 
 ### 1.4 Monte Carlo Simulations
 
-**File:** `/home/kamau/comparison/src/pricing/monte_carlo.py`
+**File:** `src/pricing/monte_carlo.py`
 
 #### Simulation Framework: VALIDATED ✓
 
@@ -267,7 +267,7 @@ S_{t+Δt} = S_t · exp((r - q - 0.5σ²)Δt + σ√Δt · Z)
 
 ### 1.5 Implied Volatility
 
-**File:** `/home/kamau/comparison/src/pricing/implied_vol.py`
+**File:** `src/pricing/implied_vol.py`
 
 #### Root-Finding Methods: VALIDATED ✓
 
@@ -312,7 +312,7 @@ S_{t+Δt} = S_t · exp((r - q - 0.5σ²)Δt + σ√Δt · Z)
 
 ### 1.6 Lattice Models (Binomial and Trinomial Trees)
 
-**File:** `/home/kamau/comparison/src/pricing/lattice.py`
+**File:** `src/pricing/lattice.py`
 
 #### Cox-Ross-Rubinstein (CRR) Binomial Model:
 
@@ -367,7 +367,7 @@ p_d = 0.5(σ²Δt + ν²Δt²)/dx² - 0.5νΔt/dx
 
 ### 1.7 Exotic Options
 
-**File:** `/home/kamau/comparison/src/pricing/exotic.py`
+**File:** `src/pricing/exotic.py`
 
 #### Barrier Options (Rubinstein-Reiner Formulas):
 
@@ -501,7 +501,7 @@ p_d = 0.5(σ²Δt + ν²Δt²)/dx² - 0.5νΔt/dx
 **Level 2**: Observable inputs (implied volatility, interest rates)
 - **Implementation**: ✓ IMPLIED VOLATILITY MODULE AVAILABLE
 - **Compliance**: Can back out implied volatility from market prices
-- **Evidence**: `/home/kamau/comparison/src/pricing/implied_vol.py`
+- **Evidence**: `src/pricing/implied_vol.py`
 
 **Level 3**: Unobservable inputs (models)
 - **Implementation**: ✓ ALL PRICING MODELS AVAILABLE
@@ -1134,7 +1134,7 @@ Rho_call = K·T·e^(-rT)·N(d₂)·0.01
 
 ### Appendix B: Validation Test Results
 
-**File Location**: `/home/kamau/comparison/tests/unit/test_black_scholes.py`
+**File Location**: `tests/unit/test_black_scholes.py`
 
 **Test Coverage**:
 - 27 test cases for Black-Scholes engine

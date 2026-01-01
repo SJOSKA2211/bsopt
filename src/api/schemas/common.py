@@ -61,6 +61,15 @@ class SuccessResponse(BaseModel):
         }
 
 
+class DataResponse(BaseModel, Generic[T]):
+    """Standard response wrapper with data field."""
+
+    success: bool = True
+    data: T
+    message: Optional[str] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
 class PaginationMeta(BaseModel):
     """Pagination metadata."""
 
@@ -108,7 +117,7 @@ class HealthResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "status": "healthy",
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "timestamp": "2024-01-15T10:30:00Z",
                 "checks": {
                     "database": {"status": "healthy", "latency_ms": 5},

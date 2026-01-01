@@ -19,6 +19,11 @@ pipeline {
                 sh "source venv/bin/activate && pip install -r requirements_cli.txt"
             }
         }
+        stage('Functional Tests') {
+            steps {
+                sh "source venv/bin/activate && PYTHONPATH=. pytest tests/functional/ -v -s --junitxml=jenkins-report.xml"
+            }
+        }
         stage('Run MLflow Pipeline') {
             steps {
                 script {

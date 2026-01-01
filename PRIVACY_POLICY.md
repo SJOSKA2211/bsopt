@@ -1,9 +1,9 @@
 # PRIVACY POLICY
 ## Black-Scholes Option Pricing Platform
 
-**Effective Date:** December 13, 2025
-**Last Updated:** December 13, 2025
-**Version:** 1.0
+**Effective Date:** December 28, 2025
+**Last Updated:** December 28, 2025
+**Version:** 1.1
 
 ---
 

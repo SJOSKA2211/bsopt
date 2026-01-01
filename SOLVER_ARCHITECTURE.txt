@@ -283,5 +283,5 @@
 
 ═════════════════════════════════════════════════════════════════════════════════
 
-Implementation: /home/kamau/comparison/src/pricing/finite_difference.py
-Documentation: /home/kamau/comparison/CRANK_NICOLSON_DOCUMENTATION.md
+Implementation: src/pricing/finite_difference.py
+Documentation: CRANK_NICOLSON_DOCUMENTATION.md
