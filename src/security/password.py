@@ -158,10 +158,11 @@ class PasswordService:
     """
 
     def __init__(self, rounds: Optional[int] = None):
+        # Use bcrypt as specified by settings.BCRYPT_ROUNDS
         self.pwd_context = CryptContext(
-            schemes=["pbkdf2_sha256"],
+            schemes=["bcrypt"],
             deprecated="auto",
-            pbkdf2_sha256__rounds=100000,
+            bcrypt__rounds=rounds or settings.BCRYPT_ROUNDS,
         )
         self.validator = PasswordValidator()
 

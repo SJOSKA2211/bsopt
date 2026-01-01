@@ -102,27 +102,20 @@ def log_audit(
     # Log to file
     audit_logger.info(log_data)
 
-    # Persist to database
+    # Persist to database asynchronously via Celery task
     if persist_to_db:
         try:
-            session = get_session()
-            try:
-                audit_log = AuditLog(
-                    event_type=event.value,
-                    user_id=user.id if user else None,
-                    user_email=user.email if user else None,
-                    source_ip=source_ip,
-                    user_agent=user_agent[:500] if user_agent else None,
-                    request_path=request_path[:500] if request_path else None,
-                    request_method=request_method,
-                    details=details,
-                )
-                session.add(audit_log)
-                session.commit()
-            except Exception as e:
-                session.rollback()
-                audit_logger.error(f"Failed to persist audit log to database: {e}")
-            finally:
-                session.close()
+            from src.tasks.audit_tasks import persist_audit_log # Import here to avoid circular dependency
+            persist_audit_log.delay(
+                event_type=event.value,
+                user_id=str(user.id) if user else None,
+                user_email=mask_email(user.email) if user else None,
+                source_ip=source_ip,
+                user_agent=user_agent[:500] if user_agent else None,
+                request_path=request_path[:500] if request_path else None,
+                request_method=request_method,
+                details=details,
+            )
         except Exception as e:
-            audit_logger.error(f"Failed to get database session for audit log: {e}")
+            # Log this error, but don't re-raise as the main request should not be blocked
+            audit_logger.error(f"Failed to dispatch audit log to Celery task: {e}")

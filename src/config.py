@@ -102,6 +102,11 @@ class Settings(BaseSettings):
         default=["http://localhost:3000", "http://localhost:80"], description="Allowed CORS origins"
     )
 
+    # Breach Notification Configuration
+    DPA_EMAIL: str = Field(
+        default="your-dpa@example.com", description="Email address of the Data Protection Authority"
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )

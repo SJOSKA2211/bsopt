@@ -18,16 +18,18 @@ class BreachNotificationService:
     Service for handling data breach notifications.
     """
 
-    DPA_EMAIL = "your-dpa@example.com"  # Replace with actual DPA
-    DPA_CONTACT_PERSON = "Data Protection Officer"
+    DPA_EMAIL = settings.DPA_EMAIL
+    DPA_CONTACT_PERSON = "Data Protection Officer" # Keep as it's a generic title
 
     async def report_breach_to_dpa(self, incident: SecurityIncident) -> None:
         """
         Report to Data Protection Authority within 72 hours.
         This is a placeholder implementation.
         """
+        # Ensure consistent timezone-aware comparison (preferably UTC)
+        # Assuming incident.detected_at is stored in UTC or can be converted to UTC
         if (
-            datetime.utcnow() - incident.detected_at.replace(tzinfo=None)
+            datetime.now(timezone.utc) - incident.detected_at.astimezone(timezone.utc)
         ).total_seconds() > 72 * 3600:
             logger.critical("GDPR VIOLATION: 72-hour notification deadline missed")
 
