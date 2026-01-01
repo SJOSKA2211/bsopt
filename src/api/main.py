@@ -1,3 +1,4 @@
+import tracemalloc # Added for tracemalloc
 import asyncio
 import json
 import logging
@@ -5,6 +6,8 @@ import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
+
+tracemalloc.start() # Added for tracemalloc
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response
@@ -14,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.api.routes import auth_router, ml_router, pricing_router, users_router
+from src.api.routes import auth_router, ml_router, pricing_router, users_router, debug_router # Added debug_router
 from src.api.schemas.common import ErrorDetail, ErrorResponse, HealthResponse
 from src.config import settings
 from src.pricing.black_scholes import BlackScholesEngine
