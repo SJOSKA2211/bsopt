@@ -9,7 +9,6 @@ from typing import Any, Dict
 
 tracemalloc.start(1024) # Added for tracemalloc with 1024 frames
 
-import numpy as np
 from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -190,8 +189,19 @@ async def startup_event():
     if redis_client:
         await token_blacklist.initialize(redis_client)
         logger.info("Token blacklist initialized with Redis.")
+        
+        # Start Redis Pub/Sub listener
+        redis_pubsub_task = asyncio.create_task(redis_pubsub_listener())
+        shutdown_manager.register_cleanup(redis_pubsub_task.cancel)
+        logger.info("Redis pub/sub listener started.")
+
+        # Start simulated pricing publisher
+        simulated_pricing_task = asyncio.create_task(simulated_pricing_publisher())
+        shutdown_manager.register_cleanup(simulated_pricing_task.cancel)
+        logger.info("Simulated pricing publisher started.")
+
     else:
-        logger.warning("Redis not available. Token blacklist is in-memory.")
+        logger.warning("Redis not available. Token blacklist is in-memory, and Redis-dependent tasks will not start.")
 
 
 @app.on_event("shutdown")
@@ -249,6 +259,7 @@ async def redis_pubsub_listener():
 # Simulated pricing data publisher task
 async def simulated_pricing_publisher():
     """Periodically simulates pricing data changes and publishes them to Redis."""
+    import numpy as np # Moved import here
     publish_interval_seconds = 5
 
     while True:

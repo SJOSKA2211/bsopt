@@ -51,6 +51,7 @@ from src.security.auth import (
 from src.security.password import password_service
 from src.utils.sanitization import sanitize_string
 from src.utils.cache import idempotency_manager
+from src.tasks.email_tasks import send_transactional_email # Moved import here
 
 logger = logging.getLogger(__name__)
 
@@ -671,8 +672,6 @@ def _verify_mfa_code(user: User, code: str) -> bool:
 
 async def _send_verification_email(email: str, token: str) -> None:
     """Send verification email via Celery."""
-    from src.tasks.email_tasks import send_transactional_email
-
     send_transactional_email.delay(
         to_email=email,
         subject="Verify your BSOPT account",
@@ -683,8 +682,6 @@ async def _send_verification_email(email: str, token: str) -> None:
 
 async def _send_password_reset_email(email: str, token: str) -> None:
     """Send password reset email via Celery."""
-    from src.tasks.email_tasks import send_transactional_email
-
     send_transactional_email.delay(
         to_email=email,
         subject="Reset your BSOPT password",

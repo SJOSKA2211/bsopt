@@ -59,9 +59,6 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENTERPRISE: int = 10000
 
     # JWT Authentication
-    JWT_SECRET: str = Field(
-        default="changeme_secret_for_hmac_signing", description="Secret key for HMAC"
-    )
     JWT_ALGORITHM: str = Field(default="RS256", description="JWT signing algorithm")
     JWT_PRIVATE_KEY_PATH: str = Field(
         default="certs/jwt-private.pem", description="Path to the JWT private key file"
