@@ -13,10 +13,15 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request, status
 from sqlalchemy.orm import Session
 
-from src.api.schemas.common import SuccessResponse
+from src.api.exceptions import (
+    ConflictException,
+    InternalServerException,
+    NotFoundException,
+)
+from src.api.schemas.common import DataResponse, ErrorResponse, PaginatedResponse, PaginationMeta, SuccessResponse
 from src.api.schemas.user import (
     UserResponse,
     UserStatsResponse,
@@ -31,10 +36,14 @@ from src.security.auth import (
     require_tier,
 )
 from src.utils.cache import publish_to_redis, redis_channel_updates
+from src.utils.sanitization import sanitize_string
+from typing import Optional
+import math
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
 
 # --- Mocking/Simulation for User Stats Update ---
 # In a real application, these stats would be updated by actual request
@@ -60,27 +69,41 @@ def _get_mock_user_stats(user: User) -> UserStatsResponse:
 # =============================================================================
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get(
+    "/me",
+    response_model=DataResponse[UserResponse],
+    responses={401: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
+)
 async def get_current_user_profile(
     user: User = Depends(get_current_active_user),
 ):
     """
-    Get current user's profile information.
+    Retrieve the profile information of the currently authenticated user.
     """
-    return UserResponse(
-        id=str(user.id),
-        email=user.email,
-        full_name=user.full_name,
-        tier=user.tier,
-        is_active=user.is_active,
-        is_verified=user.is_verified,
-        is_mfa_enabled=user.is_mfa_enabled,
-        created_at=user.created_at,
-        last_login=user.last_login,
+    return DataResponse(
+        data=UserResponse(
+            id=str(user.id),
+            email=user.email,
+            full_name=user.full_name,
+            tier=user.tier,
+            is_active=user.is_active,
+            is_verified=user.is_verified,
+            is_mfa_enabled=user.is_mfa_enabled,
+            created_at=user.created_at,
+            last_login=user.last_login,
+        )
     )
 
 
-@router.patch("/me", response_model=UserResponse)
+@router.patch(
+    "/me",
+    response_model=DataResponse[UserResponse],
+    responses={
+        401: {"model": ErrorResponse},
+        404: {"model": ErrorResponse},
+        409: {"model": ErrorResponse},
+    },
+)
 async def update_current_user_profile(
     request: Request,
     update_data: UserUpdateRequest,
@@ -88,30 +111,43 @@ async def update_current_user_profile(
     db: Session = Depends(get_db),
 ):
     """
-    Update current user's profile.
+    Update the profile details of the currently authenticated user.
+
+    Updating the **email** will require re-verification.
     """
     db_user = db.query(User).filter(User.id == user.id).first()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(
+            message="User account not found in database",
+        )
 
     updated_fields = []
     if update_data.full_name is not None:
-        db_user.full_name = update_data.full_name
+        db_user.full_name = sanitize_string(update_data.full_name)
         updated_fields.append("full_name")
 
     if update_data.email is not None and update_data.email != db_user.email:
         existing = db.query(User).filter(User.email == update_data.email).first()
         if existing:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Email already in use",
+            raise ConflictException(
+                message="The requested email is already in use by another account",
             )
         db_user.email = update_data.email
         db_user.is_verified = False  # Require re-verification
         updated_fields.append("email")
 
-    db.commit()
-    db.refresh(db_user)
+    if not updated_fields:
+        return DataResponse(data=UserResponse.from_orm(db_user))
+
+    try:
+        db.commit()
+        db.refresh(db_user)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating user profile: {e}")
+        raise InternalServerException(
+            message="Failed to persist profile updates",
+        )
 
     log_audit(
         AuditEvent.USER_UPDATE,
@@ -127,41 +163,53 @@ async def update_current_user_profile(
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     asyncio.create_task(publish_to_redis(redis_channel_updates, user_profile_update))
-    logger.info(f"Broadcasted user profile update for user ID: {db_user.id}")
 
-    return UserResponse.from_orm(db_user)
+    return DataResponse(data=UserResponse.from_orm(db_user))
 
 
-@router.get("/me/stats", response_model=UserStatsResponse)
+@router.get(
+    "/me/stats",
+    response_model=DataResponse[UserStatsResponse],
+    responses={401: {"model": ErrorResponse}},
+)
 async def get_user_stats(
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db),
 ):
     """
-    Get usage statistics and rate limit information for the current user.
+    Get detailed usage statistics and remaining rate limits for the current user.
     """
-    # In production, this would fetch real metrics from Prometheus/Redis or DB.
-    # For demonstration, we return simulated stats based on user tier.
-    return _get_mock_user_stats(user)
+    return DataResponse(data=_get_mock_user_stats(user))
 
 
-@router.delete("/me", response_model=SuccessResponse)
+@router.delete(
+    "/me",
+    response_model=SuccessResponse,
+    responses={401: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
+)
 async def delete_current_user_account(
     request: Request,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """
-    Delete current user's account.
+    Deactivate the current user's account.
 
-    This is a soft delete - marks account as inactive.
+    This performs a **soft delete**, marking the account as inactive. 
+    Authenticated requests will no longer be possible once completed.
     """
     db_user = db.query(User).filter(User.id == user.id).first()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise NotFoundException(message="User not found")
 
-    db_user.is_active = False
-    db.commit()
+    try:
+        db_user.is_active = False
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deactivating user: {e}")
+        raise InternalServerException(
+            message="Failed to deactivate account",
+        )
 
     log_audit(
         AuditEvent.USER_DELETE,
@@ -180,39 +228,87 @@ async def delete_current_user_account(
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     asyncio.create_task(publish_to_redis(redis_channel_updates, user_status_update))
-    logger.info(f"Broadcasted user status update for user ID: {db_user.id}")
 
     return SuccessResponse(
         success=True,
-        message="Account has been deactivated. Contact support to permanently delete your data.",
-        data={},
+        message="Account has been deactivated successfully.",
+        data={"user_id": str(db_user.id)},
     )
 
 
-# =============================================================================
-# Admin Endpoints (Enterprise tier only)
-# =============================================================================
-
-
 @router.get(
-    "/{user_id}", response_model=UserResponse, dependencies=[Depends(require_tier(["enterprise"]))]
+    "/{user_id}",
+    response_model=DataResponse[UserResponse],
+    responses={401: {"model": ErrorResponse}, 403: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
+    dependencies=[Depends(require_tier(["enterprise"]))],
 )
 async def get_user_by_id(
     user_id: str,
     db: Session = Depends(get_db),
 ):
     """
-    Get user by ID (admin only).
+    Retrieve user information by user ID. 
+
+    **Restricted to Enterprise/Admin users only.**
     """
     user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+        raise NotFoundException(
+            message=f"User with ID {user_id} not found",
         )
 
-    return UserResponse.from_orm(user)
+    return DataResponse(data=UserResponse.from_orm(user))
+
+
+@router.get(
+    "",
+    response_model=PaginatedResponse[UserResponse],
+    responses={401: {"model": ErrorResponse}, 403: {"model": ErrorResponse}},
+    dependencies=[Depends(require_tier(["enterprise"]))],
+)
+async def list_users(
+    db: Session = Depends(get_db),
+    page: int = 1,
+    page_size: int = 20,
+    search: Optional[str] = None,
+    tier: Optional[str] = None,
+    is_active: Optional[bool] = None,
+):
+    """
+    List all users with pagination and filtering.
+
+    **Restricted to Enterprise/Admin users only.**
+    """
+    query = db.query(User)
+
+    if search:
+        query = query.filter(
+            (User.email.ilike(f"%{search}%")) | (User.full_name.ilike(f"%{search}%"))
+        )
+
+    if tier:
+        query = query.filter(User.tier == tier)
+
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+
+    total = query.count()
+    total_pages = math.ceil(total / page_size) if total > 0 else 1
+
+    users = query.offset((page - 1) * page_size).limit(page_size).all()
+
+    return PaginatedResponse(
+        items=[UserResponse.from_orm(u) for u in users],
+        pagination=PaginationMeta(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            has_next=page < total_pages,
+            has_prev=page > 1,
+        ),
+    )
 
 
 # ... (rest of the main.py code including lifespan, other routers, etc.)

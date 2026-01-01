@@ -8,6 +8,7 @@ This module provides:
 - Common test utilities
 """
 
+import uuid
 from typing import Any, Dict
 
 import numpy as np
@@ -256,15 +257,22 @@ def mc_engine_accurate(mc_config_accurate: MCConfig) -> MonteCarloEngine:
 @pytest.fixture(autouse=True)
 def mock_redis_and_celery(monkeypatch):
     """Mock Redis and Celery to avoid connection errors in tests."""
-    from unittest.mock import MagicMock
+    from unittest.mock import MagicMock, AsyncMock
 
     # Mock redis.asyncio
     mock_redis = MagicMock()
-    # Set up some async methods
-    mock_redis.get.return_value = None
-    mock_redis.setex.return_value = True
-    mock_redis.publish.return_value = 1
-    mock_redis.ping.return_value = True
+    # Set up async methods using AsyncMock
+    mock_redis.get = AsyncMock(return_value=None)
+    mock_redis.setex = AsyncMock(return_value=True)
+    mock_redis.set = AsyncMock(return_value=True)
+    mock_redis.publish = AsyncMock(return_value=1)
+    mock_redis.ping = AsyncMock(return_value=True)
+    
+    mock_pipeline = MagicMock()
+    mock_pipeline.incr = MagicMock()
+    mock_pipeline.expire = MagicMock()
+    mock_pipeline.execute = AsyncMock(return_value=[1])
+    mock_redis.pipeline = MagicMock(return_value=mock_pipeline)
 
     # Mock ConnectionPool
     mock_pool = MagicMock()
@@ -308,6 +316,7 @@ def mock_db_session():
     Mock database session for testing with simple in-memory user store.
     """
     from unittest.mock import MagicMock
+    import uuid
 
     from src.database.models import User
 
@@ -344,6 +353,8 @@ def mock_db_session():
 
     def mock_add(obj):
         if isinstance(obj, User):
+            if not obj.id:
+                obj.id = uuid.uuid4()
             obj.is_verified = True
             if obj.is_mfa_enabled is None:
                 obj.is_mfa_enabled = False

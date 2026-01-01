@@ -14,9 +14,16 @@ import logging
 import secrets
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 from sqlalchemy.orm import Session
 
+from src.api.exceptions import (
+    AuthenticationException,
+    ConflictException,
+    InternalServerException,
+    PermissionDeniedException,
+    ValidationException,
+)
 from src.api.schemas.auth import (
     EmailVerificationRequest,
     LoginRequest,
@@ -31,7 +38,7 @@ from src.api.schemas.auth import (
     RegisterResponse,
     TokenResponse,
 )
-from src.api.schemas.common import ErrorResponse, SuccessResponse
+from src.api.schemas.common import DataResponse, ErrorResponse, SuccessResponse
 from src.database import get_db
 from src.database.models import User
 from src.security.audit import AuditEvent, log_audit
@@ -41,6 +48,8 @@ from src.security.auth import (
     get_current_user,
 )
 from src.security.password import password_service
+from src.utils.sanitization import sanitize_string
+from src.utils.cache import idempotency_manager
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +63,11 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post(
     "/login",
-    response_model=LoginResponse,
+    response_model=DataResponse[LoginResponse],
     responses={
         401: {"model": ErrorResponse, "description": "Invalid credentials"},
         403: {"model": ErrorResponse, "description": "Account disabled or unverified"},
+        422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
 async def login(
@@ -66,12 +76,11 @@ async def login(
     db: Session = Depends(get_db),
 ):
     """
-    Authenticate user and return JWT tokens.
+    Authenticate a user and return a JWT access and refresh token pair.
 
-    - **email**: User's email address
-    - **password**: User's password
-    - **remember_me**: If true, extends token expiration
-    - **mfa_code**: Required if MFA is enabled
+    - **email**: Registered email address
+    - **password**: User password
+    - **mfa_code**: Required if Multi-Factor Authentication is enabled for the account
     """
     # Authenticate user
     user = auth_service.authenticate_user(
@@ -82,44 +91,53 @@ async def login(
     )
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationException(
+            message="The email or password provided is incorrect",
         )
 
     # Check if email is verified
     if not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email not verified. Please check your email for verification link.",
+        raise PermissionDeniedException(
+            message="Email address not verified. Please check your inbox for the verification link.",
+        )
+
+    # Check if account is active
+    if not user.is_active:
+        raise PermissionDeniedException(
+            message="This account has been deactivated. Please contact support.",
         )
 
     # Check MFA if enabled
     if user.is_mfa_enabled:
         if not login_data.mfa_code:
-            return LoginResponse(
-                access_token="",
-                refresh_token="",
-                expires_in=0,
-                user_id=str(user.id),
-                email=user.email,
-                tier=user.tier,
-                requires_mfa=True,
+            return DataResponse(
+                data=LoginResponse(
+                    access_token="",
+                    refresh_token="",
+                    expires_in=0,
+                    user_id=str(user.id),
+                    email=user.email,
+                    tier=user.tier,
+                    requires_mfa=True,
+                ),
+                message="MFA required"
             )
 
         # Verify MFA code
         if not _verify_mfa_code(user, login_data.mfa_code):
             log_audit(AuditEvent.MFA_LOGIN_FAILURE, user=user, request=request)
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid MFA code",
+            raise AuthenticationException(
+                message="Invalid Multi-Factor Authentication code",
             )
         log_audit(AuditEvent.MFA_LOGIN_SUCCESS, user=user, request=request)
 
     # Update last login
-    user.last_login = datetime.now(timezone.utc)
-    db.commit()
+    try:
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Failed to update last login for user {user.id}: {e}")
+        db.rollback()
 
     # Create tokens
     token_pair = auth_service.create_token_pair(
@@ -128,28 +146,33 @@ async def login(
         tier=user.tier,
     )
 
-    return LoginResponse(
-        access_token=token_pair.access_token,
-        refresh_token=token_pair.refresh_token,
-        token_type=token_pair.token_type,
-        expires_in=token_pair.expires_in,
-        user_id=str(user.id),
-        email=user.email,
-        tier=user.tier,
-        requires_mfa=False,
+    return DataResponse(
+        data=LoginResponse(
+            access_token=token_pair.access_token,
+            refresh_token=token_pair.refresh_token,
+            token_type=token_pair.token_type,
+            expires_in=token_pair.expires_in,
+            user_id=str(user.id),
+            email=user.email,
+            tier=user.tier,
+            requires_mfa=False,
+        ),
+        message="Login successful"
     )
 
 
-@router.post("/logout", response_model=SuccessResponse)
+@router.post(
+    "/logout",
+    response_model=SuccessResponse,
+    responses={401: {"model": ErrorResponse}},
+)
 async def logout(
     request: Request,
-    token: str = Depends(auth_service.validate_token),
     user: User = Depends(get_current_user),
 ):
     """
-    Logout user by invalidating their tokens.
+    Invalidate the current session's tokens and log the user out.
     """
-    # Get token from header
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
         token = auth_header[7:]
@@ -157,7 +180,7 @@ async def logout(
 
     log_audit(AuditEvent.USER_LOGOUT, user=user, request=request)
 
-    return SuccessResponse(message="Successfully logged out")
+    return SuccessResponse(message="Successfully logged out and session invalidated")
 
 
 # =============================================================================
@@ -167,11 +190,12 @@ async def logout(
 
 @router.post(
     "/register",
-    response_model=RegisterResponse,
+    response_model=DataResponse[RegisterResponse],
     status_code=status.HTTP_201_CREATED,
     responses={
-        400: {"model": ErrorResponse, "description": "Validation error"},
+        400: {"model": ErrorResponse, "description": "Validation/Password error"},
         409: {"model": ErrorResponse, "description": "Email already registered"},
+        422: {"model": ErrorResponse, "description": "Schema validation error"},
     },
 )
 async def register(
@@ -181,44 +205,61 @@ async def register(
     db: Session = Depends(get_db),
 ):
     """
-    Register a new user account.
+    Create a new user account.
 
-    - Validates password strength
-    - Sends verification email
-    - Returns user ID on success
+    - Validates email uniqueness
+    - Enforces strong password requirements
+    - Triggers an asynchronous email verification flow
+    - Supports idempotency via **Idempotency-Key** header
     """
+    # Idempotency check
+    idem_key = request.headers.get("Idempotency-Key")
+    if idem_key:
+        is_new = await idempotency_manager.check_and_set(f"reg:{idem_key}")
+        if not is_new:
+            # In a real app, we'd ideally return the original response.
+            # Here we just block the duplicate.
+            raise ConflictException(
+                message="Duplicate registration request detected"
+            )
+
     # Check if email already exists
     existing_user = db.query(User).filter(User.email == register_data.email).first()
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="An account with this email already exists",
+        raise ConflictException(
+            message="An account with this email address already exists",
         )
 
     # Validate password
     validation = password_service.validate_password(register_data.password, register_data.email)
     if not validation.is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="; ".join(validation.errors),
+        raise ValidationException(
+            message=f"Password policy violation: {'; '.join(validation.errors)}",
         )
 
     # Create user
     verification_token = secrets.token_urlsafe(32)
 
-    user = User(
-        email=register_data.email,
-        hashed_password=password_service.hash_password(register_data.password),
-        full_name=register_data.full_name,
-        tier="free",
-        is_active=True,
-        is_verified=False,
-        verification_token=verification_token,
-    )
+    try:
+        user = User(
+            email=register_data.email,
+            hashed_password=password_service.hash_password(register_data.password),
+            full_name=sanitize_string(register_data.full_name) if register_data.full_name else None,
+            tier="free",
+            is_active=True,
+            is_verified=False,
+            verification_token=verification_token,
+        )
 
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error during user registration: {e}")
+        raise InternalServerException(
+            message="Failed to create user account",
+        )
 
     # Log registration
     log_audit(AuditEvent.USER_REGISTER, user=user, request=request)
@@ -230,36 +271,49 @@ async def register(
         verification_token,
     )
 
-    return RegisterResponse(
-        user_id=str(user.id),
-        email=user.email,
-        message="Registration successful. Please check your email to verify your account.",
-        verification_required=True,
+    return DataResponse(
+        data=RegisterResponse(
+            user_id=str(user.id),
+            email=user.email,
+            message="Registration successful. A verification link has been sent to your email.",
+            verification_required=True,
+        ),
+        message="User registered successfully"
     )
 
 
-@router.post("/verify-email", response_model=SuccessResponse)
+@router.post(
+    "/verify-email",
+    response_model=SuccessResponse,
+    responses={400: {"model": ErrorResponse}},
+)
 async def verify_email(
     request: Request,
     verification: EmailVerificationRequest,
     db: Session = Depends(get_db),
 ):
     """
-    Verify user email with token from email link.
+    Complete the registration process by verifying the user's email address using a token.
     """
     user = db.query(User).filter(User.verification_token == verification.token).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification token",
+        raise ValidationException(
+            message="The verification token is invalid or has already been used",
         )
 
-    user.is_verified = True
-    user.verification_token = None
-    db.commit()
+    try:
+        user.is_verified = True
+        user.verification_token = None
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update verification status for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Internal error during email verification",
+        )
 
-    return SuccessResponse(message="Email verified successfully. You can now log in.")
+    return SuccessResponse(message="Email verified successfully. You may now log in to your account.")
 
 
 # =============================================================================
@@ -267,30 +321,33 @@ async def verify_email(
 # =============================================================================
 
 
-@router.post("/refresh", response_model=TokenResponse)
+@router.post(
+    "/refresh",
+    response_model=DataResponse[TokenResponse],
+    responses={401: {"model": ErrorResponse}},
+)
 async def refresh_token(
     request: Request,
     refresh_data: RefreshTokenRequest,
     db: Session = Depends(get_db),
 ):
     """
-    Refresh access token using refresh token.
+    Rotate the current refresh token to obtain a fresh access token.
+    The provided refresh token will be invalidated upon use.
     """
     try:
         token_data = await auth_service.validate_token(refresh_data.refresh_token)
 
         if token_data.token_type != "refresh":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type",
+            raise AuthenticationException(
+                message="Invalid token type provided for refresh operation",
             )
 
         # Get user
         user = db.query(User).filter(User.id == token_data.user_id).first()
         if not user or not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found or inactive",
+            raise AuthenticationException(
+                message="User account associated with this token is either inactive or no longer exists",
             )
 
         # Invalidate old refresh token
@@ -305,20 +362,22 @@ async def refresh_token(
 
         log_audit(AuditEvent.TOKEN_REFRESH, user=user, request=request)
 
-        return TokenResponse(
-            access_token=token_pair.access_token,
-            refresh_token=token_pair.refresh_token,
-            token_type=token_pair.token_type,
-            expires_in=token_pair.expires_in,
+        return DataResponse(
+            data=TokenResponse(
+                access_token=token_pair.access_token,
+                refresh_token=token_pair.refresh_token,
+                token_type=token_pair.token_type,
+                expires_in=token_pair.expires_in,
+            ),
+            message="Token refreshed successfully"
         )
 
-    except HTTPException:
+    except (AuthenticationException, PermissionDeniedException):
         raise
     except Exception as e:
         logger.error(f"Token refresh failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not refresh token",
+        raise AuthenticationException(
+            message="Session could not be refreshed. Please log in again.",
         )
 
 
@@ -327,7 +386,11 @@ async def refresh_token(
 # =============================================================================
 
 
-@router.post("/password-reset", response_model=SuccessResponse)
+@router.post(
+    "/password-reset",
+    response_model=SuccessResponse,
+    responses={422: {"model": ErrorResponse}},
+)
 async def request_password_reset(
     request: Request,
     reset_data: PasswordResetRequest,
@@ -335,9 +398,9 @@ async def request_password_reset(
     db: Session = Depends(get_db),
 ):
     """
-    Request password reset email.
+    Initiate the password recovery process.
 
-    Always returns success to prevent email enumeration.
+    Always returns a success message even if the email is not registered to prevent account enumeration.
     """
     user = db.query(User).filter(User.email == reset_data.email).first()
 
@@ -345,10 +408,13 @@ async def request_password_reset(
         # Generate reset token
         reset_token = secrets.token_urlsafe(32)
 
-        # Store token (in production, store in Redis with TTL)
-        # For now, we'll use a simple approach
-        user.verification_token = f"reset:{reset_token}"
-        db.commit()
+        try:
+            user.verification_token = f"reset:{reset_token}"
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error saving reset token for user {user.id}: {e}")
+            # We still return success to the user
 
         log_audit(AuditEvent.PASSWORD_RESET_REQUEST, user=user, request=request)
 
@@ -365,45 +431,58 @@ async def request_password_reset(
     )
 
 
-@router.post("/password-reset/confirm", response_model=SuccessResponse)
+@router.post(
+    "/password-reset/confirm",
+    response_model=SuccessResponse,
+    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
 async def confirm_password_reset(
     request: Request,
     reset_data: PasswordResetConfirm,
     db: Session = Depends(get_db),
 ):
     """
-    Confirm password reset with token and new password.
+    Finalize password recovery using the token received via email.
     """
     # Find user by reset token
     user = db.query(User).filter(User.verification_token == f"reset:{reset_data.token}").first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired reset token",
+        raise ValidationException(
+            message="The reset token provided is invalid or has expired",
         )
 
     # Validate new password
     validation = password_service.validate_password(reset_data.new_password, user.email)
     if not validation.is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="; ".join(validation.errors),
+        raise ValidationException(
+            message=f"New password is not secure enough: {'; '.join(validation.errors)}",
         )
 
     # Update password
-    user.hashed_password = password_service.hash_password(reset_data.new_password)
-    user.verification_token = None
-    db.commit()
+    try:
+        user.hashed_password = password_service.hash_password(reset_data.new_password)
+        user.verification_token = None
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating password after reset for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Failed to update account password",
+        )
 
     log_audit(AuditEvent.PASSWORD_RESET_SUCCESS, user=user, request=request)
 
     return SuccessResponse(
-        message="Password has been reset successfully. You can now log in with your new password."
+        message="Your password has been successfully reset. You may now log in with your new credentials."
     )
 
 
-@router.post("/password-change", response_model=SuccessResponse)
+@router.post(
+    "/password-change",
+    response_model=SuccessResponse,
+    responses={401: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+)
 async def change_password(
     request: Request,
     change_data: PasswordChangeRequest,
@@ -411,30 +490,35 @@ async def change_password(
     db: Session = Depends(get_db),
 ):
     """
-    Change password for authenticated user.
+    Update the password for the currently logged-in user.
     """
     # Verify current password
     if not password_service.verify_password(change_data.current_password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Current password is incorrect",
+        raise AuthenticationException(
+            message="The current password provided is incorrect",
         )
 
     # Validate new password
     validation = password_service.validate_password(change_data.new_password, user.email)
     if not validation.is_valid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="; ".join(validation.errors),
+        raise ValidationException(
+            message=f"New password does not meet requirements: {'; '.join(validation.errors)}",
         )
 
     # Update password
-    user.hashed_password = password_service.hash_password(change_data.new_password)
-    db.commit()
+    try:
+        user.hashed_password = password_service.hash_password(change_data.new_password)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error changing password for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Internal error updating password",
+        )
 
     log_audit(AuditEvent.PASSWORD_CHANGED, user=user, request=request)
 
-    return SuccessResponse(message="Password changed successfully")
+    return SuccessResponse(message="Your password has been changed successfully")
 
 
 # =============================================================================
@@ -442,15 +526,19 @@ async def change_password(
 # =============================================================================
 
 
-@router.post("/mfa/setup", response_model=MFASetupResponse)
+@router.post(
+    "/mfa/setup",
+    response_model=DataResponse[MFASetupResponse],
+    responses={401: {"model": ErrorResponse}},
+)
 async def setup_mfa(
     request: Request,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
     """
-    Setup MFA for the authenticated user.
-    Returns secret and QR code URI.
+    Begin Multi-Factor Authentication setup. 
+    Returns a secret and a QR code URI for use with authenticator apps.
     """
     import pyotp
 
@@ -465,17 +553,31 @@ async def setup_mfa(
     backup_codes = [secrets.token_hex(4) for _ in range(8)]
 
     # Store secret temporarily (user must verify before enabling)
-    user.mfa_secret = secret
-    db.commit()
+    try:
+        user.mfa_secret = secret
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error saving MFA secret for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Failed to initiate MFA setup",
+        )
 
-    return MFASetupResponse(
-        secret=secret,
-        qr_code_uri=qr_uri,
-        backup_codes=backup_codes,
+    return DataResponse(
+        data=MFASetupResponse(
+            secret=secret,
+            qr_code_uri=qr_uri,
+            backup_codes=backup_codes,
+        ),
+        message="MFA setup initiated"
     )
 
 
-@router.post("/mfa/verify", response_model=SuccessResponse)
+@router.post(
+    "/mfa/verify",
+    response_model=SuccessResponse,
+    responses={401: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+)
 async def verify_mfa(
     request: Request,
     verify_data: MFAVerifyRequest,
@@ -483,30 +585,39 @@ async def verify_mfa(
     db: Session = Depends(get_db),
 ):
     """
-    Verify MFA code to enable MFA.
+    Verify the MFA code to complete activation of Multi-Factor Authentication.
     """
     if not user.mfa_secret:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA setup not initiated",
+        raise ValidationException(
+            message="MFA setup has not been initiated for this account",
         )
 
     if not _verify_mfa_code(user, verify_data.code):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid MFA code",
+        raise AuthenticationException(
+            message="The Multi-Factor Authentication code provided is invalid",
         )
 
     # Enable MFA
-    user.is_mfa_enabled = True
-    db.commit()
+    try:
+        user.is_mfa_enabled = True
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error activating MFA for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Internal error enabling Multi-Factor Authentication",
+        )
 
     log_audit(AuditEvent.MFA_ENABLED, user=user, request=request)
 
-    return SuccessResponse(message="MFA enabled successfully")
+    return SuccessResponse(message="Multi-Factor Authentication has been enabled successfully")
 
 
-@router.post("/mfa/disable", response_model=SuccessResponse)
+@router.post(
+    "/mfa/disable",
+    response_model=SuccessResponse,
+    responses={401: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+)
 async def disable_mfa(
     request: Request,
     verify_data: MFAVerifyRequest,
@@ -514,29 +625,34 @@ async def disable_mfa(
     db: Session = Depends(get_db),
 ):
     """
-    Disable MFA for the authenticated user.
-    Requires current MFA code for security.
+    Deactivate Multi-Factor Authentication. 
+    Requires a valid MFA code for confirmation.
     """
     if not user.is_mfa_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA is not enabled",
+        raise ValidationException(
+            message="Multi-Factor Authentication is already disabled for this account",
         )
 
     if not _verify_mfa_code(user, verify_data.code):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid MFA code",
+        raise AuthenticationException(
+            message="Invalid confirmation code provided",
         )
 
     # Disable MFA
-    user.is_mfa_enabled = False
-    user.mfa_secret = None
-    db.commit()
+    try:
+        user.is_mfa_enabled = False
+        user.mfa_secret = None
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error disabling MFA for user {user.id}: {e}")
+        raise InternalServerException(
+            message="Internal error deactivating Multi-Factor Authentication",
+        )
 
     log_audit(AuditEvent.MFA_DISABLED, user=user, request=request)
 
-    return SuccessResponse(message="MFA disabled successfully")
+    return SuccessResponse(message="Multi-Factor Authentication has been disabled successfully")
 
 
 # =============================================================================

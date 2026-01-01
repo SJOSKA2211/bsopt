@@ -7,10 +7,18 @@ RESTful API endpoints for options pricing and Greeks calculation.
 
 import logging
 import time
-from typing import cast
+from typing import Union, cast
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
+from src.security.rate_limit import rate_limit
 
+from src.api.exceptions import (
+    InternalServerException,
+    ServiceUnavailableException,
+    ValidationException,
+)
+from src.api.schemas.common import DataResponse, ErrorResponse
+from src.utils.cache import pricing_cache
 from src.api.schemas.pricing import (
     BatchPriceRequest,
     BatchPriceResponse,
@@ -20,37 +28,91 @@ from src.api.schemas.pricing import (
     ImpliedVolatilityResponse,
     PriceRequest,
     PriceResponse,
+    ExoticPriceRequest,
+    ExoticPriceResponse,
 )
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
+from src.pricing.exotic import (
+    ExoticParameters,
+    BarrierType,
+    AsianType,
+    StrikeType,
+    price_exotic_option
+)
 
-router = APIRouter(prefix="/pricing", tags=["pricing"])
+router = APIRouter(prefix="/pricing", tags=["pricing"], dependencies=[Depends(rate_limit)])
 logger = logging.getLogger(__name__)
 
 
-@router.post("/price", response_model=PriceResponse)
+def _get_bs_params(request: Union[PriceRequest, GreeksRequest]) -> BSParameters:
+    """Helper to convert API request to internal BSParameters."""
+    return BSParameters(
+        spot=request.spot,
+        strike=request.strike,
+        maturity=request.time_to_expiry,
+        volatility=request.volatility,
+        rate=request.rate,
+        dividend=request.dividend_yield,
+    )
+
+
+@router.post(
+    "/price",
+    response_model=DataResponse[PriceResponse],
+    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
+)
 async def calculate_price(request: PriceRequest):
     """
-    Calculate the price of a single option.
+    Calculate the theoretical price of a single option.
+
+    Supports multiple models:
+    - **black_scholes**: Standard analytical model
+    - **monte_carlo**: Stochastic simulation
+    - **binomial**: Cox-Ross-Rubinstein lattice model
     """
     start_time = time.perf_counter()
-    try:
-        params = BSParameters(
-            spot=request.spot,
-            strike=request.strike,
-            maturity=request.time_to_expiry,
-            volatility=request.volatility,
-            rate=request.rate,
-            dividend=request.dividend_yield,
+    params = _get_bs_params(request)
+
+    # Try cache first
+    cached_price = await pricing_cache.get_option_price(params, request.option_type, request.model)
+    if cached_price is not None:
+        return DataResponse(
+            data=PriceResponse(
+                price=cached_price,
+                spot=request.spot,
+                strike=request.strike,
+                time_to_expiry=request.time_to_expiry,
+                rate=request.rate,
+                volatility=request.volatility,
+                option_type=request.option_type,
+                model=request.model,
+                cached=True,
+                computation_time_ms=(time.perf_counter() - start_time) * 1000,
+            ),
+            message="Result retrieved from cache"
         )
 
+    try:
         strategy = PricingEngineFactory.get_strategy(request.model)
         price = strategy.price(params, request.option_type)
+        
+        # Save to cache
+        await pricing_cache.set_option_price(params, request.option_type, request.model, price)
+        
+    except ValueError as e:
+        raise ValidationException(message=f"Invalid parameters for {request.model}: {str(e)}")
+    except Exception as e:
+        if "Circuit Breaker" in str(e):
+            raise ServiceUnavailableException(message=str(e))
+        logger.error(f"Unexpected error calculating price: {e}")
+        raise InternalServerException(message="Internal error during price calculation")
 
-        computation_time = (time.perf_counter() - start_time) * 1000
+    computation_time = (time.perf_counter() - start_time) * 1000
 
-        return PriceResponse(
+    return DataResponse(
+        data=PriceResponse(
             price=price,
             spot=request.spot,
             strike=request.strike,
@@ -62,32 +124,37 @@ async def calculate_price(request: PriceRequest):
             cached=False,
             computation_time_ms=computation_time,
         )
-    except Exception as e:
-        logger.error(f"Error calculating price with {request.model}: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+    )
 
 
-@router.post("/batch", response_model=BatchPriceResponse)
+@router.post(
+    "/batch",
+    response_model=DataResponse[BatchPriceResponse],
+    responses={400: {"model": ErrorResponse}},
+)
 async def calculate_batch_prices(request: BatchPriceRequest):
     """
-    Calculate prices for multiple options in a single request.
+    Calculate prices for multiple options in a single batch request.
+
+    Useful for portfolio-wide valuations. Maximum 1000 options per request.
+    Individual failures in the batch are skipped and logged.
     """
     start_time = time.perf_counter()
     results = []
+    cached_count = 0
 
     for opt_req in request.options:
         try:
-            params = BSParameters(
-                spot=opt_req.spot,
-                strike=opt_req.strike,
-                maturity=opt_req.time_to_expiry,
-                volatility=opt_req.volatility,
-                rate=opt_req.rate,
-                dividend=opt_req.dividend_yield,
-            )
-
-            strategy = PricingEngineFactory.get_strategy(opt_req.model)
-            price = strategy.price(params, opt_req.option_type)
+            params = _get_bs_params(opt_req)
+            
+            # Try cache
+            price = await pricing_cache.get_option_price(params, opt_req.option_type, opt_req.model)
+            if price is not None:
+                cached_count += 1
+            else:
+                strategy = PricingEngineFactory.get_strategy(opt_req.model)
+                price = strategy.price(params, opt_req.option_type)
+                await pricing_cache.set_option_price(params, opt_req.option_type, opt_req.model, price)
 
             results.append(
                 PriceResponse(
@@ -100,48 +167,58 @@ async def calculate_batch_prices(request: BatchPriceRequest):
                     option_type=opt_req.option_type,
                     model=opt_req.model,
                     cached=False,
-                    computation_time_ms=0.0,  # Individual time not tracked in loop for brevity
+                    computation_time_ms=0.0,
                 )
             )
         except Exception as e:
-            logger.warning(f"Error in batch calculation for one option: {e}")
-            # We could choose to fail the whole batch or return an error indicator
-            # For now, let's just skip it or raise error if critical
+            logger.warning(f"Error in batch calculation for option {opt_req}: {e}")
             continue
 
     computation_time = (time.perf_counter() - start_time) * 1000
 
-    return BatchPriceResponse(
-        results=results,
-        total_count=len(results),
-        computation_time_ms=computation_time,
-        cached_count=0,
+    return DataResponse(
+        data=BatchPriceResponse(
+            results=results,
+            total_count=len(results),
+            computation_time_ms=computation_time,
+            cached_count=cached_count,
+        )
     )
 
 
-@router.post("/greeks", response_model=GreeksResponse)
+@router.post(
+    "/greeks",
+    response_model=DataResponse[GreeksResponse],
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
 async def calculate_greeks(request: GreeksRequest):
     """
-    Calculate option Greeks (Delta, Gamma, Theta, Vega, Rho).
+    Calculate all standard option Greeks (Delta, Gamma, Theta, Vega, Rho).
+
+    Currently uses the Black-Scholes analytical model for Greeks.
     """
+    params = _get_bs_params(request)
+
+    # Try cache
+    cached_greeks = await pricing_cache.get_greeks(params, request.option_type)
+    
     try:
-        params = BSParameters(
-            spot=request.spot,
-            strike=request.strike,
-            maturity=request.time_to_expiry,
-            volatility=request.volatility,
-            rate=request.rate,
-            dividend=request.dividend_yield,
-        )
-
-        # We don't have a model field in GreeksRequest yet, defaulting to black_scholes
         strategy = PricingEngineFactory.get_strategy("black_scholes")
-        greeks_res = strategy.calculate_greeks(params, request.option_type)
-        greeks = cast(OptionGreeks, greeks_res)
-
+        
+        if cached_greeks:
+            greeks = cached_greeks
+        else:
+            greeks_res = strategy.calculate_greeks(params, request.option_type)
+            greeks = cast(OptionGreeks, greeks_res)
+            await pricing_cache.set_greeks(params, request.option_type, greeks)
+            
         price = strategy.price(params, request.option_type)
+    except Exception as e:
+        logger.error(f"Error calculating Greeks: {e}")
+        raise ValidationException(message=f"Greeks calculation failed: {str(e)}")
 
-        return GreeksResponse(
+    return DataResponse(
+        data=GreeksResponse(
             delta=float(greeks.delta),
             gamma=float(greeks.gamma),
             theta=float(greeks.theta),
@@ -154,15 +231,19 @@ async def calculate_greeks(request: GreeksRequest):
             volatility=request.volatility,
             option_type=request.option_type,
         )
-    except Exception as e:
-        logger.error(f"Error calculating Greeks: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+    )
 
 
-@router.post("/implied-volatility", response_model=ImpliedVolatilityResponse)
+@router.post(
+    "/implied-volatility",
+    response_model=DataResponse[ImpliedVolatilityResponse],
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
 async def calculate_iv(request: ImpliedVolatilityRequest):
     """
-    Calculate implied volatility from a market price.
+    Calculate the implied volatility from a given market price.
+
+    Uses the Newton-Raphson numerical method.
     """
     try:
         iv = implied_volatility(
@@ -174,15 +255,86 @@ async def calculate_iv(request: ImpliedVolatilityRequest):
             dividend=request.dividend_yield,
             option_type=request.option_type,
         )
+    except ValueError as e:
+        raise ValidationException(message=f"IV calculation failed: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error in IV calculation: {e}")
+        raise InternalServerException(message="Internal error during IV calculation")
 
-        return ImpliedVolatilityResponse(
+    return DataResponse(
+        data=ImpliedVolatilityResponse(
             implied_volatility=iv,
             option_price=request.option_price,
             spot=request.spot,
             strike=request.strike,
-            iterations=0,  # Not currently returned by implementation
+            iterations=0,
             converged=True,
         )
+    )
+
+
+@router.post(
+    "/exotic",
+    response_model=DataResponse[ExoticPriceResponse],
+    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
+)
+async def calculate_exotic_price(request: ExoticPriceRequest):
+    """
+    Price exotic options:
+    - **asian**: Geometric (analytical) or Arithmetic (Monte Carlo)
+    - **barrier**: Knock-in/out (analytical)
+    - **lookback**: Floating/Fixed strike (analytical/MC)
+    - **digital**: Cash-or-nothing (analytical)
+    """
+    base_params = BSParameters(
+        spot=request.spot,
+        strike=request.strike,
+        maturity=request.time_to_expiry,
+        volatility=request.volatility,
+        rate=request.rate,
+        dividend=request.dividend_yield,
+    )
+    
+    exotic_params = ExoticParameters(
+        base_params=base_params,
+        n_observations=request.n_observations,
+        barrier=request.barrier or 0.0,
+        rebate=request.rebate or 0.0
+    )
+
+    kwargs = {}
+    if request.exotic_type == "barrier":
+        if not request.barrier_type:
+            raise ValidationException(message="barrier_type required for barrier options")
+        try:
+            kwargs["barrier_type"] = BarrierType[request.barrier_type.upper().replace("-", "_")]
+        except KeyError:
+            raise ValidationException(message=f"Invalid barrier_type: {request.barrier_type}")
+            
+    if request.exotic_type == "asian":
+        kwargs["asian_type"] = AsianType[request.asian_type.upper()] if request.asian_type else AsianType.GEOMETRIC
+        
+    if request.exotic_type in ["asian", "lookback"]:
+        kwargs["strike_type"] = StrikeType[request.strike_type.upper()] if request.strike_type else StrikeType.FIXED
+
+    if request.exotic_type == "digital":
+        kwargs["payout"] = request.payout
+
+    try:
+        price, ci = price_exotic_option(
+            request.exotic_type, 
+            exotic_params, 
+            request.option_type, 
+            **kwargs
+        )
     except Exception as e:
-        logger.error(f"Error calculating Implied Volatility: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.error(f"Exotic pricing error: {e}")
+        raise ValidationException(message=f"Pricing failed: {str(e)}")
+
+    return DataResponse(
+        data=ExoticPriceResponse(
+            price=price,
+            confidence_interval=ci,
+            exotic_type=request.exotic_type
+        )
+    )

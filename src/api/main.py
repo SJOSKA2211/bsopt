@@ -2,14 +2,20 @@ import asyncio
 import json
 import logging
 import time
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
 import numpy as np
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.api.routes import auth_router, pricing_router, users_router
+from src.api.routes import auth_router, ml_router, pricing_router, users_router
+from src.api.schemas.common import ErrorDetail, ErrorResponse, HealthResponse
 from src.config import settings
 from src.pricing.black_scholes import BlackScholesEngine
 from src.security.auth import token_blacklist
@@ -19,6 +25,7 @@ from src.utils.cache import (
     publish_to_redis,
     redis_channel_updates,
 )
+from src.tasks.graceful_shutdown import shutdown_manager
 
 # Global state
 active_connections: Dict[str, WebSocket] = {}
@@ -27,21 +34,149 @@ redis_pubsub: Any = None
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="BSOPT API", version="2.1.0")
+app = FastAPI(
+    title="BSOPT API",
+    version="2.2.0",
+    description="Advanced Black-Scholes Option Pricing API",
+)
+
+# Instrument Prometheus
+Instrumentator().instrument(app).expose(app)
+
+from src.api.exceptions import BaseAPIException, InternalServerException, ValidationException
+
+# --- Exception Handlers ---
+
+
+@app.exception_handler(BaseAPIException)
+async def api_exception_handler(request: Request, exc: BaseAPIException):
+    """Handle custom API exceptions."""
+    request_id = getattr(request.state, "request_id", None)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=jsonable_encoder(
+            ErrorResponse(
+                error=exc.error_code,
+                message=exc.message,
+                details=exc.details,
+                request_id=request_id,
+            )
+        ),
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle standard HTTP exceptions."""
+    request_id = getattr(request.state, "request_id", None)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=jsonable_encoder(
+            ErrorResponse(
+                error="HTTPError",
+                message=str(exc.detail),
+                request_id=request_id,
+            )
+        ),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle Pydantic validation errors."""
+    request_id = getattr(request.state, "request_id", None)
+    details = [
+        ErrorDetail(
+            field=" -> ".join(map(str, error["loc"])),
+            message=error["msg"],
+            code=error["type"],
+        )
+        for error in exc.errors()
+    ]
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder(
+            ErrorResponse(
+                error="ValidationError",
+                message="Request validation failed",
+                details=details,
+                request_id=request_id,
+            )
+        ),
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """Handle unhandled exceptions."""
+    request_id = getattr(request.state, "request_id", None)
+    logger.exception(f"Unhandled exception [RID: {request_id}]: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=jsonable_encoder(
+            ErrorResponse(
+                error="InternalServerError",
+                message="An unexpected error occurred",
+                request_id=request_id,
+            )
+        ),
+    )
+
 
 # Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Assign a unique ID to every request."""
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    request.state.request_id = request_id
+    response: Response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all incoming requests and their outcomes."""
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = (time.perf_counter() - start_time) * 1000
+    
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.info(
+        f"RID: {request_id} Method: {request.method} Path: {request.url.path} "
+        f"Status: {response.status_code} Duration: {process_time:.2f}ms"
+    )
+    return response
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add standard security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
+
+
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
+    # Install signal handlers for graceful shutdown
+    shutdown_manager.install_signal_handlers()
+    shutdown_manager.register_cleanup(close_redis_cache)
+    
     # Initialize Redis
     redis_client = await init_redis_cache(
         host=settings.REDIS_HOST,
@@ -169,9 +304,39 @@ async def simulated_pricing_publisher():
 # Routes
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(ml_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
 
 
-@app.get("/health")
+@app.get("/api/v1/health", response_model=HealthResponse)
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc), "version": "2.1.0"}
+    """
+    Detailed health check including database and cache status.
+    """
+    checks = {
+        "database": {"status": "healthy"},
+        "redis": {"status": "healthy" if redis_client else "unhealthy"},
+    }
+    
+    # Simple DB check
+    from src.database import engine
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as e:
+        checks["database"] = {"status": "unhealthy", "error": str(e)}
+
+    overall_status = "healthy" if all(c["status"] == "healthy" for c in checks.values()) else "degraded"
+    
+    return HealthResponse(
+        status=overall_status,
+        version="2.2.0",
+        checks=checks
+    )
+
+
+@app.get("/health")
+async def root_health():
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc), "version": "2.2.0"}
+

@@ -41,7 +41,7 @@ def test_register(api_client, auth_data):
     # 201 Created or 409 Conflict
     assert response.status_code in [201, 409]
     if response.status_code == 201:
-        user = response.json()
+        user = response.json()["data"]
         assert_equal(user["email"], TEST_EMAIL)
 
 
@@ -57,7 +57,7 @@ def test_login(api_client, auth_data):
         pytest.skip("User needs verification, skipping login test")
 
     assert_equal(response.status_code, 200)
-    tokens = response.json()
+    tokens = response.json()["data"]
     assert "access_token" in tokens
     assert "refresh_token" in tokens
 
@@ -72,7 +72,7 @@ def logged_in_client(api_client, auth_data):
     if response.status_code != 200:
         pytest.skip(f"Login failed during fixture setup: {response.text}")
 
-    tokens = response.json()
+    tokens = response.json()["data"]
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     return api_client, tokens
 
@@ -83,7 +83,7 @@ def test_get_me(logged_in_client):
     response = client.get("/api/v1/users/me")
 
     assert_equal(response.status_code, 200)
-    user = response.json()
+    user = response.json()["data"]
     assert_equal(user["email"], TEST_EMAIL)
 
 
@@ -93,7 +93,7 @@ def test_refresh_token(logged_in_client):
     response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
 
     assert_equal(response.status_code, 200)
-    new_tokens = response.json()
+    new_tokens = response.json()["data"]
     assert "access_token" in new_tokens
 
 
