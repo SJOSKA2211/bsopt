@@ -107,6 +107,11 @@ class Settings(BaseSettings):
         default="your-dpa@example.com", description="Email address of the Data Protection Authority"
     )
 
+    # Database Configuration
+    SLOW_QUERY_THRESHOLD_MS: int = Field(
+        default=100, description="Threshold in milliseconds for logging slow database queries"
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )

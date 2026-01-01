@@ -72,7 +72,7 @@ SessionLocal = sessionmaker(
 # =============================================================================
 
 # Threshold for slow query logging (milliseconds)
-SLOW_QUERY_THRESHOLD_MS = 100
+SLOW_QUERY_THRESHOLD_MS = settings.SLOW_QUERY_THRESHOLD_MS
 
 
 @event.listens_for(Engine, "before_cursor_execute")
@@ -150,7 +150,10 @@ def get_db_context() -> Generator[Session, None, None]:
 
 def get_session() -> Session:
     """
-    Get a new session directly (caller must manage lifecycle).
+    Get a new session directly (caller MUST manage lifecycle, including closing the session).
+    
+    WARNING: This function bypasses FastAPI's dependency injection session management.
+    Mismanagement (e.g., forgetting to call session.close()) can lead to connection leaks.
 
     Usage:
         session = get_session()
@@ -222,16 +225,22 @@ def create_tables():
     Create all tables defined in models.
     Only use for development/testing - use Alembic for production.
     """
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created")
+    if settings.ENVIRONMENT in ["dev", "test"]:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created")
+    else:
+        logger.warning(f"Attempted to create tables in {settings.ENVIRONMENT} environment. Operation blocked.")
 
 
 def drop_tables():
     """
     Drop all tables. USE WITH EXTREME CAUTION.
     """
-    Base.metadata.drop_all(bind=engine)
-    logger.warning("All database tables dropped!")
+    if settings.ENVIRONMENT in ["dev", "test"]:
+        Base.metadata.drop_all(bind=engine)
+        logger.warning("All database tables dropped!")
+    else:
+        logger.warning(f"Attempted to drop tables in {settings.ENVIRONMENT} environment. Operation blocked.")
 
 
 # =============================================================================
