@@ -23,15 +23,18 @@ async def get_tracemalloc_snapshot():
         raise InternalServerException(message="Tracemalloc is not active.")
 
     snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('lineno')
+    top_stats = snapshot.statistics('traceback') # Changed to 'traceback'
 
     report = []
-    for stat in top_stats[:10]: # Top 10 by default
+    # Display more comprehensive traceback information
+    for stat in top_stats[:20]: # Display top 20 items
         report.append({
-            "file": stat.traceback[0].filename,
-            "line": stat.traceback[0].lineno,
             "size_kb": stat.size / 1024,
-            "count": stat.count
+            "count": stat.count,
+            "traceback": [
+                {"file": frame.filename, "line": frame.lineno}
+                for frame in stat.traceback # Iterate over all frames in the traceback
+            ]
         })
     
     return DataResponse(
