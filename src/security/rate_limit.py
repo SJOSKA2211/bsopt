@@ -1,59 +1,70 @@
 import time
-from typing import Dict, Optional, Tuple
-from fastapi import HTTPException, Request, status
+from typing import Optional, Tuple
+from fastapi import Depends, HTTPException, Request, status
 from src.config import settings
+from src.api.main import get_redis_client # Import the new dependency
+import redis.asyncio as redis # Import redis.asyncio for type hinting
 
-class RateLimiter:
+async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
     """
-    Simple in-memory rate limiter.
-    In production, this should use Redis for distributed rate limiting.
+    Rate limiting dependency using Redis for distributed rate limiting.
     """
-    def __init__(self):
-        # bucket: {ip/user_id: [timestamps]}
-        self.buckets: Dict[str, list] = {}
+    if not redis_client:
+        # Fallback if Redis is not available, or raise an exception
+        # For now, we'll allow all requests but log a warning
+        request.state.rate_limit_remaining = 999999 # Unlimited
+        request.state.rate_limit_limit = 999999
+        request.state.rate_limit_reset = int(time.time() + 60)
+        return
 
-    def is_allowed(self, identifier: str, limit: int, window: int = 60) -> Tuple[bool, int]:
-        """
-        Check if request is allowed under rate limit.
-        Returns (is_allowed, remaining_requests).
-        """
-        if limit == 0:  # 0 means unlimited
-            return True, 999999
-            
-        now = time.time()
-        if identifier not in self.buckets:
-            self.buckets[identifier] = []
-            
-        # Clean up old timestamps
-        self.buckets[identifier] = [t for d, t in enumerate(self.buckets[identifier]) if t > now - window]
-        
-        if len(self.buckets[identifier]) < limit:
-            self.buckets[identifier].append(now)
-            return True, limit - len(self.buckets[identifier])
-            
-        return False, 0
-
-limiter = RateLimiter()
-
-async def rate_limit(request: Request):
-    """
-    Rate limiting dependency.
-    """
     # Prefer user_id if authenticated, otherwise use IP
     user = getattr(request.state, "user", None)
     identifier = str(user.id) if user else request.client.host
     tier = getattr(user, "tier", "free") if user else "free"
     
     limit = settings.rate_limit_tiers.get(tier, 100)
+    window = 60 # seconds, could also be configurable per tier or globally
+
+    if limit == 0:  # 0 means unlimited
+        request.state.rate_limit_remaining = 999999
+        request.state.rate_limit_limit = 999999
+        request.state.rate_limit_reset = int(time.time() + 60)
+        return
+
+    # Use a fixed window counter approach
+    current_time = int(time.time())
     
-    allowed, remaining = limiter.is_allowed(identifier, limit)
+    # Key for the current window. e.g., "rate_limit:user_id:1678886400"
+    key = f"rate_limit:{identifier}:{current_time // window}"
     
-    if not allowed:
+    # Use Redis pipeline for atomic operations
+    pipe = redis_client.pipeline()
+    pipe.incr(key)
+    pipe.expire(key, window) # Ensure key expires after the window
+
+    count, _ = await pipe.execute()
+    
+    remaining = max(0, limit - count)
+    retry_after = 0
+    if count > limit:
+        # Get the time left until the current window ends
+        ttl = await redis_client.ttl(key)
+        if ttl > 0:
+            retry_after = ttl
+        else:
+            # Fallback if TTL somehow isn't set, assume end of current window
+            retry_after = window - (current_time % window)
+
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded. Upgrade your tier for higher limits.",
-            headers={"Retry-After": "60"}
+            headers={"X-RateLimit-Limit": str(limit),
+                     "X-RateLimit-Remaining": str(remaining),
+                     "X-RateLimit-Reset": str(current_time + retry_after), # Approximate reset time
+                     "Retry-After": str(retry_after)}
         )
     
-    # We could add X-RateLimit-Remaining header here if we want
-    return remaining
+    # Store rate limit info in request state for response headers if desired by middleware
+    request.state.rate_limit_limit = limit
+    request.state.rate_limit_remaining = remaining
+    request.state.rate_limit_reset = int(time.time()) + window # Approximate next window start

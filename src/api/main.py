@@ -186,6 +186,8 @@ async def startup_event():
         db=settings.REDIS_DB,
         password=settings.REDIS_PASSWORD,
     )
+    app.state.redis_client = redis_client # Store redis_client on app.state
+
     if redis_client:
         await token_blacklist.initialize(redis_client)
         logger.info("Token blacklist initialized with Redis.")
@@ -210,6 +212,12 @@ async def shutdown_event():
     await close_redis_cache()
     logger.info("Redis cache connection closed.")
 
+
+# Dependency to get Redis client
+async def get_redis_client() -> Any:
+    if not app.state.redis_client:
+        raise HTTPException(status_code=500, detail="Redis client not initialized")
+    return app.state.redis_client
 
 # Function to broadcast messages to all connected clients
 async def broadcast_message(message: Dict[str, Any]):
