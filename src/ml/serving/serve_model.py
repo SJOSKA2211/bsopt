@@ -7,7 +7,7 @@ import mlflow
 logger = logging.getLogger(__name__)
 
 # Basic MLflow setup for client operations
-mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000"))
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
 
 
 @click.command()
