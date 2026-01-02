@@ -9,12 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_data_hash(filepath: str) -> str:
-    """Calculate MD5 hash of a data file for versioning."""
-    hash_md5 = hashlib.md5()
+    """Calculate SHA256 hash of a data file for versioning."""
+    hash_sha256 = hashlib.sha256()
     with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
+            hash_sha256.update(chunk)
+    return hash_sha256.hexdigest()
 
 
 def tag_dataset(data_dir: str, version_name: Optional[str] = None):
