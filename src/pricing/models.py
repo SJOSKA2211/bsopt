@@ -18,16 +18,21 @@ class BSParameters:
     dividend: float = 0.0
 
     def __post_init__(self):
-        # Convert to numpy arrays or floats for precision and vectorized validation
-        self.spot = np.asanyarray(self.spot, dtype=np.float64)
-        self.strike = np.asanyarray(self.strike, dtype=np.float64)
-        self.maturity = np.asanyarray(self.maturity, dtype=np.float64)
-        self.volatility = np.asanyarray(self.volatility, dtype=np.float64)
-        self.rate = np.asanyarray(self.rate, dtype=np.float64)
-        self.dividend = np.asanyarray(self.dividend, dtype=np.float64)
+        # Validate parameters. Keep them as floats.
+        # Temporarily convert to numpy arrays for vectorized validation if needed.
+        _spot_arr = np.asanyarray(self.spot, dtype=np.float64)
+        _strike_arr = np.asanyarray(self.strike, dtype=np.float64)
+        _volatility_arr = np.asanyarray(self.volatility, dtype=np.float64)
+        _maturity_arr = np.asanyarray(self.maturity, dtype=np.float64)
+        _rate_arr = np.asanyarray(self.rate, dtype=np.float64)
+        _dividend_arr = np.asanyarray(self.dividend, dtype=np.float64)
 
-        if np.any(self.spot <= 0) or np.any(self.strike <= 0) or np.any(self.volatility <= 0):
+        if np.any(_spot_arr <= 0) or np.any(_strike_arr <= 0) or np.any(_volatility_arr <= 0):
             raise ValueError("Spot, strike, and volatility must be positive")
+        if np.any(_maturity_arr < 0):
+            raise ValueError("Maturity cannot be negative")
+        if np.any(_rate_arr < 0) or np.any(_dividend_arr < 0):
+            raise ValueError("Rate and dividend cannot be negative")
 
 
 @dataclass
