@@ -170,3 +170,6 @@ watch-logs: ## Watch logs with automatic refresh
 	watch -n 1 'docker compose logs --tail=50'
 
 .DEFAULT_GOAL := help
+
+train: ## Train ML models
+	docker compose exec api python src/ml/pipelines/orchestrator.py train --model xgboost
