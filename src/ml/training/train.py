@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def generate_synthetic_data(n_samples: int = 10000) -> Tuple[np.ndarray, np.ndarray, List[str]]:
     """Generate synthetic training data using Black-Scholes engine."""
     logger.info(f"Generating {n_samples} synthetic samples...")
-    np.random.seed(42)
+    np.random.seed(settings.ML_TRAINING_RANDOM_STATE) # Use setting for random state
 
     S = np.random.uniform(50, 150, n_samples)
     K = np.random.uniform(50, 150, n_samples)
@@ -31,14 +31,16 @@ def generate_synthetic_data(n_samples: int = 10000) -> Tuple[np.ndarray, np.ndar
     sigma = np.random.uniform(0.1, 0.5, n_samples)
     is_call = np.random.choice([0, 1], n_samples)
 
-    prices = np.zeros(n_samples)
-    for i in range(n_samples):
-        params = BSParameters(S[i], K[i], T[i], sigma[i], r[i], 0.0)
-        prices[i] = (
-            BlackScholesEngine.price_call(params)
-            if is_call[i]
-            else BlackScholesEngine.price_put(params)
-        )
+    # Vectorize Black-Scholes calculations
+    prices = BlackScholesEngine.price_options(
+        spot=S,
+        strike=K,
+        maturity=T,
+        volatility=sigma,
+        rate=r,
+        dividend=np.zeros(n_samples), # All dividends are 0.0
+        option_type=np.where(is_call == 1, "call", "put") # Convert boolean to "call" or "put" strings
+    )
 
     X = np.column_stack([S, K, T, is_call, S / K, np.log(S / K), np.sqrt(T), T * 365, sigma])
 
@@ -66,11 +68,11 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
         "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3),
         "subsample": trial.suggest_float("subsample", 0.6, 1.0),
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
-        "random_state": 42,
+        "random_state": settings.ML_TRAINING_RANDOM_STATE, # Use setting for random state
         "n_jobs": -1,
     }
 
-    kf = KFold(n_splits=n_folds, shuffle=True, random_state=42)
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state=settings.ML_TRAINING_RANDOM_STATE) # Use setting for random state
     scores = []
     for train_idx, val_idx in kf.split(X):
         X_t, X_v = X[train_idx], X[val_idx]
@@ -82,14 +84,14 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
 
 
 def run_hyperparameter_optimization(
-    use_real_data: bool = True, n_samples: int = 10000, n_trials: int = 50
+    use_real_data: bool = True, n_samples: int = 10000, n_trials: int = settings.ML_TRAINING_OPTUNA_TRIALS
 ) -> Dict[str, Any]:
     """Run HPO using Optuna."""
     X, y, _, _ = load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     study = optuna.create_study(direction="maximize")
-    study.optimize(lambda t: objective(trial=t, X=X_scaled, y=y), n_trials=n_trials)
+    study.optimize(lambda t: objective(trial=t, X=X_scaled, y=y, n_folds=settings.ML_TRAINING_KFOLD_SPLITS), n_trials=n_trials)
     return {"best_params": study.best_params, "best_r2": study.best_value}
 
 
@@ -109,19 +111,19 @@ async def collect_real_data(
     return pipeline.load_latest_data()
 
 
-def load_or_collect_data(
+async def load_or_collect_data( # Changed to async
     use_real_data: bool = True, n_samples: int = 10000
 ) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
     """Load data with synthetic fallback."""
     if use_real_data:
         try:
-            return asyncio.run(collect_real_data(min_samples=n_samples))
+            return await collect_real_data(min_samples=n_samples) # Changed to await
         except Exception as e:
             logger.warning(f"Data collection failed: {e}. Using synthetic.")
     return (*generate_synthetic_data(n_samples), {"data_source": "synthetic"})
 
 
-def train(
+async def train( # Changed to async
     use_real_data: bool = True,
     n_samples: int = 10000,
     params: Optional[Dict[str, Any]] = None,
@@ -132,19 +134,17 @@ def train(
     mlflow.set_tracking_uri(tracking_uri)
     os.makedirs("mlruns", exist_ok=True)
     mlflow.set_experiment("Option_Pricing_XGBoost")
-    X, y, features, _ = load_or_collect_data(use_real_data, n_samples)
+    X, y, features, _ = await load_or_collect_data(use_real_data, n_samples) # Changed to await
     X_scaled = StandardScaler().fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=settings.ML_TRAINING_TEST_SIZE, random_state=settings.ML_TRAINING_RANDOM_STATE)
 
     params = params or {"max_depth": 6, "learning_rate": 0.1, "n_estimators": 100, "n_jobs": -1}
     with mlflow.start_run():
         model = xgb.XGBRegressor(**params)
         model.fit(X_train, y_train)
 
-        # Workaround for MLflow/XGBoost compatibility issue
-        if not hasattr(model, "_estimator_type"):
-            model._estimator_type = "regressor"
-
+        # MLflow should infer the model type from xgb.XGBRegressor directly.
+        # If issues arise, a model_signature should be explicitly defined during logging.
         r2 = r2_score(y_test, model.predict(X_test))
         mlflow.log_params(params)
         mlflow.log_metric("test_r2", r2)
@@ -153,7 +153,7 @@ def train(
         )
 
         promoted = False
-        if r2 >= promote_threshold:
+        if r2 >= settings.ML_TRAINING_PROMOTE_THRESHOLD_R2: # Use setting for promotion threshold
             MlflowClient().transition_model_version_stage(
                 name="XGBoostOptionPricer",
                 version=model_info.registered_model_version,
@@ -164,4 +164,4 @@ def train(
 
 
 if __name__ == "__main__":
-    train()
+    asyncio.run(train()) # Run async train function

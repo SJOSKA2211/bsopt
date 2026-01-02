@@ -60,11 +60,11 @@ class MLOrchestrator:
         model_type: str = "xgboost",
         use_real_data: bool = False,
         n_samples: int = 10000,
-        test_size: float = 0.2,
-        random_state: int = 42,
+        test_size: float = settings.ML_TRAINING_TEST_SIZE, # Use setting
+        random_state: int = settings.ML_TRAINING_RANDOM_STATE, # Use setting
         xgb_params: Optional[Dict[str, Any]] = None,
         nn_params: Optional[Dict[str, Any]] = None,
-        promotion_threshold_r2: float = 0.98,
+        promotion_threshold_r2: float = settings.ML_TRAINING_PROMOTE_THRESHOLD_R2, # Use setting
         promote_to_production: bool = False,
     ) -> Dict[str, Any]:
         """
@@ -113,8 +113,8 @@ class MLOrchestrator:
 
             elif model_type == "nn":
                 nn_train_params = nn_params or {
-                    "lr": 0.001,
-                    "epochs": 10,
+                    "lr": settings.ML_TRAINING_NN_LR, # Use setting
+                    "epochs": settings.ML_TRAINING_NN_EPOCHS, # Use setting
                     "hidden_dims": [128, 64, 32],
                 }
                 mlflow.log_params(nn_train_params)

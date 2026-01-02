@@ -59,24 +59,23 @@ class BlackScholesEngine(PricingStrategy):
     def calculate_d1_d2(params: BSParameters) -> Tuple[float, float]:
         """
         Calculate d1 and d2 parameters for Black-Scholes formula.
+        Assumes BSParameters contains scalar (float) values.
         """
-        # Handle array inputs by taking first element or converting
-        # Use .item() for scalars or first element for arrays
-        spot = float(params.spot.item() if params.spot.size == 1 else params.spot[0])
-        strike = float(params.strike.item() if params.strike.size == 1 else params.strike[0])
-        maturity = float(params.maturity.item() if params.maturity.size == 1 else params.maturity[0])
-        volatility = float(params.volatility.item() if params.volatility.size == 1 else params.volatility[0])
-        rate = float(params.rate.item() if params.rate.size == 1 else params.rate[0])
-        dividend = float(params.dividend.item() if params.dividend.size == 1 else params.dividend[0])
+        spot = params.spot
+        strike = params.strike
+        maturity = params.maturity
+        volatility = params.volatility
+        rate = params.rate
+        dividend = params.dividend
 
         # Handle zero maturity edge case
         if maturity <= 1e-12:
             if spot > strike:
-                return 100.0, 100.0
+                return 100.0, 100.0  # Approximations for in-the-money
             elif spot < strike:
-                return -100.0, -100.0
+                return -100.0, -100.0  # Approximations for out-of-the-money
             else:
-                return 0.0, 0.0
+                return 0.0, 0.0  # At-the-money
 
         d1 = (
             np.log(spot / strike)
@@ -109,10 +108,19 @@ class BlackScholesEngine(PricingStrategy):
         return np.broadcast_arrays(S, K, T, sigma, r, q, is_call)
 
     @classmethod
-    def price_options(cls, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
+    def price_options(cls, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> np.ndarray: # Always returns np.ndarray
         """
         Generic pricing method for one or many options.
         """
+        # Determine if the original input was a single scalar for post-processing
+        is_original_single_input = False
+        if params is not None:
+            # If params object is given, assume it holds scalar (float) values as per BSParameters definition
+            is_original_single_input = True
+        elif 'spot' in kwargs and np.isscalar(kwargs.get('spot')):
+            # If keyword arguments are given, check if spot is scalar (assuming other params follow)
+            is_original_single_input = True
+
         if isinstance(params, BSParameters):
             data = asdict(params)
             data["option_type"] = option_type
@@ -131,22 +139,10 @@ class BlackScholesEngine(PricingStrategy):
             data.get("option_type"),
         )
         prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
-
-        # Determine if we should return a scalar or array
-        # Check if the result has size 1 and if original spot/strike in kwargs or params were not sequences
-        # BSParameters converts them to at least 1d or 0d arrays.
         
-        is_single = True
-        spot_val = data.get("spot")
-        strike_val = data.get("strike")
-        
-        if isinstance(spot_val, (list, np.ndarray)) and np.asanyarray(spot_val).size > 1:
-            is_single = False
-        if isinstance(strike_val, (list, np.ndarray)) and np.asanyarray(strike_val).size > 1:
-            is_single = False
-
-        if is_single and prices.size == 1:
-            return float(prices.item())
+        # If original input was a single scalar, return a scalar for convenience
+        if is_original_single_input and prices.size == 1:
+            return prices.item()
         return prices
 
     @classmethod
@@ -160,11 +156,20 @@ class BlackScholesEngine(PricingStrategy):
         Generic Greek calculation for one or many options.
         Supports both (params, option_type) and keyword arguments.
         """
+        # Determine if the original input was a single scalar for post-processing
+        is_original_single_input = False
+        if isinstance(params, BSParameters):
+            is_original_single_input = True
+        elif params is not None and np.isscalar(params):
+            is_original_single_input = True
+        elif 'spot' in kwargs and np.isscalar(kwargs.get('spot')):
+            is_original_single_input = True
+
         if isinstance(params, BSParameters):
             data = asdict(params)
             data["option_type"] = option_type
         elif params is not None:
-            data = {"spot": params, "option_type": option_type}
+            data = {"spot": params, "option_type": option_type} # Here params is a scalar spot
             data.update(kwargs)
         else:
             data = kwargs
@@ -181,12 +186,8 @@ class BlackScholesEngine(PricingStrategy):
 
         delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
 
-        is_single = not isinstance(data.get("spot"), (np.ndarray, list)) and not isinstance(
-            data.get("strike"), (np.ndarray, list)
-        )
-
-        if is_single and delta.size == 1:
-            return OptionGreeks(delta[0], gamma[0], vega[0], theta[0], rho[0])
+        if is_original_single_input and delta.size == 1:
+            return OptionGreeks(float(delta[0]), float(gamma[0]), float(vega[0]), float(theta[0]), float(rho[0]))
 
         return {"delta": delta, "gamma": gamma, "vega": vega, "theta": theta, "rho": rho}
 

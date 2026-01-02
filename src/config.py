@@ -112,6 +112,16 @@ class Settings(BaseSettings):
         default=100, description="Threshold in milliseconds for logging slow database queries"
     )
 
+    # ML Training Configuration
+    ML_TRAINING_TEST_SIZE: float = Field(default=0.2, description="Proportion of dataset to include in the test split for ML training")
+    ML_TRAINING_RANDOM_STATE: int = Field(default=42, description="Random state for reproducibility in ML training")
+    ML_TRAINING_KFOLD_SPLITS: int = Field(default=3, description="Number of folds for K-fold cross-validation in HPO")
+    ML_TRAINING_OPTUNA_TRIALS: int = Field(default=50, description="Number of trials for Optuna hyperparameter optimization")
+    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = Field(default=0.98, description="R2 score threshold for promoting ML models to production")
+    ML_TRAINING_NN_EPOCHS: int = Field(default=10, description="Number of epochs for Neural Network training")
+    ML_TRAINING_NN_LR: float = Field(default=0.001, description="Learning rate for Neural Network training")
+
+
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
