@@ -307,13 +307,15 @@ def close_position(
     db: Session, position_id: UUID, exit_price: Decimal, exit_date: Optional[datetime] = None
 ) -> Optional[Position]:
     """Close a position and calculate realized P&L."""
+    # Ensure timezone is imported for datetime.now(timezone.utc)
+    from datetime import timezone
     position = get_position_by_id(db, position_id)
 
     if not position or position.status == "closed":
         return None
 
     position.exit_price = exit_price
-    position.exit_date = exit_date or datetime.utcnow()
+    position.exit_date = exit_date or datetime.now(timezone.utc) # Use timezone-aware datetime
     position.status = "closed"
     position.realized_pnl = (exit_price - position.entry_price) * position.quantity
 
@@ -558,8 +560,32 @@ def bulk_insert_option_prices(db: Session, prices_data: List[dict]) -> int:
     if not prices_data:
         return 0
 
-    # This is a simplified version - in production, use proper upsert
-    db.execute(insert(OptionPrice), prices_data)
+    # Define the upsert statement
+    insert_stmt = postgresql_insert(OptionPrice).values(prices_data)
+    
+    # Define the columns to update on conflict (all price and Greek columns)
+    on_conflict_stmt = insert_stmt.on_conflict_do_update(
+        index_elements=[OptionPrice.time, OptionPrice.symbol, OptionPrice.strike, OptionPrice.expiry, OptionPrice.option_type],
+        set_=dict(
+            bid=insert_stmt.excluded.bid,
+            ask=insert_stmt.excluded.ask,
+            last=insert_stmt.excluded.last,
+            volume=insert_stmt.excluded.volume,
+            open_interest=insert_stmt.excluded.open_interest,
+            implied_volatility=insert_stmt.excluded.implied_volatility,
+            delta=insert_stmt.excluded.delta,
+            gamma=insert_stmt.excluded.gamma,
+            vega=insert_stmt.excluded.vega,
+            theta=insert_stmt.excluded.theta,
+            rho=insert_stmt.excluded.rho,
+        ),
+        # Using a WHERE clause in on_conflict_do_update is generally for conditional updates.
+        # For TimescaleDB, we might not need a WHERE clause if the primary key
+        # (time, symbol, strike, expiry, option_type) is the only conflict target.
+        # I'll remove the example WHERE clause for clarity.
+    )
+
+    db.execute(on_conflict_stmt)
     db.commit()
     return len(prices_data)
 

@@ -1,5 +1,6 @@
 import os
 import subprocess
+from urllib.parse import urlparse # Import for parsing DATABASE_URL
 
 from dotenv import load_dotenv
 
@@ -17,14 +18,33 @@ def verify_postgres_connection():
     # 3. Set PGPASSWORD env var (Exporting for this process and its children)
     os.environ["PGPASSWORD"] = db_password
 
-    # Connection details (based on docker-compose.yml mappings)
-    db_user = "admin"
-    db_host = "127.0.0.1"
-    db_port = "5434"
-    db_name = "bsopt"
+    from urllib.parse import urlparse # Import for parsing DATABASE_URL
 
-    # 4. Execute psql -c '\l'
-    cmd = ["psql", "-h", db_host, "-p", db_port, "-U", db_user, "-d", db_name, "-c", "\\l"]
+    # 4. Get DATABASE_URL from .env
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        print("Error: DATABASE_URL not found in .env")
+        return
+        
+    # Parse DATABASE_URL
+    url = urlparse(database_url)
+    db_user = url.username
+    db_password_url = url.password # Use this if PGPASSWORD is not set globally
+    db_host = url.hostname
+    db_port = url.port if url.port else "5432" # Default PostgreSQL port
+    db_name = url.path[1:] # Remove leading '/'
+
+    # Set PGPASSWORD from parsed URL or existing DB_PASSWORD
+    if db_password_url:
+        os.environ["PGPASSWORD"] = db_password_url
+    elif db_password: # Fallback to DB_PASSWORD from .env
+        os.environ["PGPASSWORD"] = db_password
+    else:
+        print("Error: PostgreSQL password not found in DATABASE_URL or DB_PASSWORD.")
+        return
+
+    # 5. Execute psql -c '\l'
+    cmd = ["psql", "-h", db_host, "-p", str(db_port), "-U", db_user, "-d", db_name, "-c", "\\l"]
 
     print(f"Running: PGPASSWORD=[HIDDEN] {' '.join(cmd)}")
     try:

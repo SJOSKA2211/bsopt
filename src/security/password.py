@@ -306,6 +306,16 @@ class PasswordService:
         """
         return secrets.token_urlsafe(32)
 
+    @staticmethod
+    def generate_verification_token() -> str:
+        """
+        Generate a secure email verification token.
+
+        Returns:
+            URL-safe verification token
+        """
+        return secrets.token_urlsafe(32)
+
 
 # Global instance
 password_service = PasswordService()
