@@ -45,6 +45,7 @@ class OptionPricingNN(nn.Module):
         """Apply static quantization to the model."""
         self.qconfig = torch.quantization.get_default_qconfig("fbgemm")
         torch.quantization.prepare(self, inplace=True)
-        # Note: In a real scenario, we need a calibration pass here.
-        # torch.quantization.convert(self, inplace=True)
+        # Note: In a real scenario, we need a calibration pass here before conversion.
+        # For demonstration, we convert directly after preparation.
+        torch.quantization.convert(self, inplace=True)
         return self
