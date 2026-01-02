@@ -50,7 +50,6 @@ class AsianOptionPricer:
     def price_geometric_asian(
         params: ExoticParameters,
         option_type: str,
-        strike_type: StrikeType = StrikeType.FIXED,
     ) -> float:
         S, K, T, r, q, sigma = (
             params.base_params.spot,
@@ -64,7 +63,7 @@ class AsianOptionPricer:
         N = params.n_observations
         sigma_a = sigma * np.sqrt((2 * N + 1) / (6 * (N + 1)))
         b = r - q
-        b_a = 0.5 * (b - 0.5 * sigma**2 + sigma_a**2)
+        b_a = b - 0.5 * sigma**2 # Corrected b_a calculation
 
         if T <= 1e-12:
             return float(max(S - K, 0.0) if option_type == "call" else max(K - S, 0.0))
@@ -407,28 +406,35 @@ class DigitalOptionPricer:
 
 
 def price_exotic_option(exotic_type: str, params: ExoticParameters, option_type: str, **kwargs):
+    """
+    Prices various exotic option types. Handles parameter parsing and dispatching.
+    """
     if exotic_type == "asian":
-        at = kwargs.pop("asian_type", AsianType.GEOMETRIC)
-        if at == AsianType.GEOMETRIC:
-            return AsianOptionPricer.price_geometric_asian(params, option_type, **kwargs), None
-        return AsianOptionPricer.price_arithmetic_asian_mc(params, option_type, **kwargs)
+        asian_type_val = kwargs.get("asian_type", AsianType.GEOMETRIC)
+        # Removed unused strike_type parameter for geometric asian
+        if asian_type_val == AsianType.GEOMETRIC:
+            return AsianOptionPricer.price_geometric_asian(params, option_type), None
+        else: # Arithmetic Asian uses Monte Carlo
+            return AsianOptionPricer.price_arithmetic_asian_mc(params, option_type, **kwargs)
+    
     if exotic_type == "barrier":
-        return (
-            BarrierOptionPricer.price_barrier_analytical(
-                params, option_type, kwargs["barrier_type"]
-            ),
-            None,
-        )
+        barrier_type_str = kwargs.get("barrier_type")
+        if not barrier_type_str:
+            raise ValueError("Barrier type is required for barrier options.")
+        barrier_type = BarrierType(barrier_type_str) # Convert string to enum
+
+        return BarrierOptionPricer.price_barrier_analytical(params, option_type, barrier_type), None
+    
     if exotic_type == "lookback":
-        st_type = kwargs.pop("strike_type", StrikeType.FLOATING)
-        if st_type == StrikeType.FLOATING and not kwargs.pop("use_mc", True):
-            return (
-                LookbackOptionPricer.price_floating_strike_analytical(
-                    params.base_params, option_type
-                ),
-                None,
-            )
-        return LookbackOptionPricer.price_lookback_mc(params, option_type, st_type, **kwargs)
+        strike_type_val = kwargs.get("strike_type", StrikeType.FLOATING)
+        use_mc = kwargs.get("use_mc", True) # Default to Monte Carlo for lookback
+        
+        if strike_type_val == StrikeType.FLOATING and not use_mc:
+            return LookbackOptionPricer.price_floating_strike_analytical(params.base_params, option_type), None
+        else:
+            # Pass strike_type_val explicitly, remove unused 'st_type' pop
+            return LookbackOptionPricer.price_lookback_mc(params, option_type, strike_type_val, **kwargs), None
+            
     if exotic_type == "digital":
         return (
             DigitalOptionPricer.price_cash_or_nothing(
@@ -436,4 +442,5 @@ def price_exotic_option(exotic_type: str, params: ExoticParameters, option_type:
             ),
             None,
         )
-    raise ValueError(f"Unknown option_class: {exotic_type}")
+        
+    raise ValueError(f"Unknown exotic option type: {exotic_type}")

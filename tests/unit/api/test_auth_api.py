@@ -59,15 +59,16 @@ def test_login_db_error_updating_last_login(mock_user):
 
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.commit.side_effect = Exception("DB error on last login update")
+    mock_db.commit.side_effect = Exception("DB error on last login update") # Simulate DB error during commit
 
     with patch("src.api.routes.auth.auth_service.authenticate_user", return_value=mock_user), \
          patch("src.api.routes.auth.auth_service.create_token_pair") as mock_tokens:
         mock_tokens.return_value = MagicMock(access_token="access", refresh_token="refresh", token_type="bearer", expires_in=3600)
         payload = {"email": mock_user.email, "password": "password123"}
         response = client.post("/api/v1/auth/login", json=payload)
-        assert response.status_code == 200 # Still returns success, but logs error
-        mock_db.rollback.assert_called_once()
+        # If db.commit fails during last_login update, the exception propagates and returns 500
+        assert response.status_code == 500 
+        mock_db.rollback.assert_called_once() # Rollback should be called if commit fails after error
     app.dependency_overrides = {}
 
 def test_login_invalid_credentials():

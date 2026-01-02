@@ -240,7 +240,8 @@ async def register(
         )
 
     # Create user
-    verification_token = secrets.token_urlsafe(32)
+    # Use a distinct verification token for email verification
+    verification_token = password_service.generate_verification_token()
 
     try:
         user = User(
@@ -250,7 +251,7 @@ async def register(
             tier="free",
             is_active=True,
             is_verified=False,
-            verification_token=verification_token,
+            verification_token=f"verify:{verification_token}", # Store prefixed verification token
         )
 
         db.add(user)
@@ -270,7 +271,7 @@ async def register(
     background_tasks.add_task(
         _send_verification_email,
         user.email,
-        verification_token,
+        verification_token, # Pass the raw token
     )
 
     return DataResponse(
@@ -297,8 +298,8 @@ async def verify_email(
     """
     Complete the registration process by verifying the user's email address using a token.
     """
-    user = db.query(User).filter(User.verification_token == verification.token).first()
-
+    # Look up user by the prefixed verification token
+    user = db.query(User).filter(User.verification_token == f"verify:{verification.token}").first()
     if not user:
         raise ValidationException(
             message="The verification token is invalid or has already been used",
@@ -306,7 +307,7 @@ async def verify_email(
 
     try:
         user.is_verified = True
-        user.verification_token = None
+        user.verification_token = None # Clear token after use
         db.commit()
     except Exception as e:
         db.rollback()
@@ -316,6 +317,7 @@ async def verify_email(
         )
 
     return SuccessResponse(message="Email verified successfully. You may now log in to your account.")
+
 
 
 # =============================================================================
@@ -407,78 +409,77 @@ async def request_password_reset(
     user = db.query(User).filter(User.email == reset_data.email).first()
 
     if user:
-        # Generate reset token
-        reset_token = secrets.token_urlsafe(32)
-
-        try:
-            user.verification_token = f"reset:{reset_token}"
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            logger.error(f"Error saving reset token for user {user.id}: {e}")
-            # We still return success to the user
-
-        log_audit(AuditEvent.PASSWORD_RESET_REQUEST, user=user, request=request)
-
-        # Queue reset email
-        background_tasks.add_task(
-            _send_password_reset_email,
-            user.email,
-            reset_token,
+            # Generate reset token
+            reset_token = secrets.token_urlsafe(32)
+        
+            try:
+                user.verification_token = f"reset:{reset_token}" # Store reset token with prefix
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Error saving reset token for user {user.id}: {e}")
+                # We still return success to the user
+        
+            log_audit(AuditEvent.PASSWORD_RESET_REQUEST, user=user, request=request)
+        
+            # Queue reset email
+            background_tasks.add_task(
+                _send_password_reset_email,
+                user.email,
+                reset_token,
+            )
+        
+            # Always return success to prevent email enumeration
+            return SuccessResponse(
+                message="If an account with this email exists, a password reset link has been sent."
+            )
+        
+        
+        @router.post(
+            "/password-reset/confirm",
+            response_model=SuccessResponse,
+            responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
         )
-
-    # Always return success to prevent email enumeration
-    return SuccessResponse(
-        message="If an account with this email exists, a password reset link has been sent."
-    )
-
-
-@router.post(
-    "/password-reset/confirm",
-    response_model=SuccessResponse,
-    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
-)
-async def confirm_password_reset(
-    request: Request,
-    reset_data: PasswordResetConfirm,
-    db: Session = Depends(get_db),
-):
-    """
-    Finalize password recovery using the token received via email.
-    """
-    # Find user by reset token
-    user = db.query(User).filter(User.verification_token == f"reset:{reset_data.token}").first()
-
-    if not user:
-        raise ValidationException(
-            message="The reset token provided is invalid or has expired",
-        )
-
-    # Validate new password
-    validation = password_service.validate_password(reset_data.new_password, user.email)
-    if not validation.is_valid:
-        raise ValidationException(
-            message=f"New password is not secure enough: {'; '.join(validation.errors)}",
-        )
-
-    # Update password
-    try:
-        user.hashed_password = password_service.hash_password(reset_data.new_password)
-        user.verification_token = None
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error updating password after reset for user {user.id}: {e}")
-        raise InternalServerException(
-            message="Failed to update account password",
-        )
-
-    log_audit(AuditEvent.PASSWORD_RESET_SUCCESS, user=user, request=request)
-
-    return SuccessResponse(
-        message="Your password has been successfully reset. You may now log in with your new credentials."
-    )
-
+        async def confirm_password_reset(
+            request: Request,
+            reset_data: PasswordResetConfirm,
+            db: Session = Depends(get_db),
+        ):
+            """
+            Finalize password recovery using the token received via email.
+            """
+            # Find user by reset token (correctly checks for prefix)
+            user = db.query(User).filter(User.verification_token == f"reset:{reset_data.token}").first()
+        
+            if not user:
+                raise ValidationException(
+                    message="The reset token provided is invalid or has expired",
+                )
+        
+            # Validate new password
+            validation = password_service.validate_password(reset_data.new_password, user.email)
+            if not validation.is_valid:
+                raise ValidationException(
+                    message=f"New password is not secure enough: {'; '.join(validation.errors)}",
+                )
+        
+            # Update password
+            try:
+                user.hashed_password = password_service.hash_password(reset_data.new_password)
+                user.verification_token = None # Clear token after use
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Error updating password after reset for user {user.id}: {e}")
+                raise InternalServerException(
+                    message="Failed to update account password",
+                )
+        
+            log_audit(AuditEvent.PASSWORD_RESET_SUCCESS, user=user, request=request)
+        
+            return SuccessResponse(
+                message="Your password has been successfully reset. You may now log in with your new credentials."
+            )
 
 @router.post(
     "/password-change",
