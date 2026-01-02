@@ -2,7 +2,11 @@ import time
 import logging
 from enum import Enum
 from functools import wraps
-from typing import Callable, Any
+from typing import Callable, Any, Optional
+
+import redis.asyncio as redis
+from src.config import settings
+from src.api.main import get_redis_client # Dependency to get client
 
 logger = logging.getLogger(__name__)
 
@@ -11,9 +15,10 @@ class CircuitState(Enum):
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
 
-class CircuitBreaker:
+class InMemoryCircuitBreaker:
     """
-    Implementation of the Circuit Breaker pattern to increase fault tolerance.
+    In-memory implementation of the Circuit Breaker pattern.
+    Suitable for single-process applications or testing.
     """
     def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 30):
         self.failure_threshold = failure_threshold
@@ -52,6 +57,86 @@ class CircuitBreaker:
                 raise e
         return wrapper
 
-# Global instances for different services
-pricing_circuit = CircuitBreaker(failure_threshold=10, recovery_timeout=60)
-db_circuit = CircuitBreaker(failure_threshold=5, recovery_timeout=30)
+
+class DistributedCircuitBreaker:
+    """
+    Distributed Circuit Breaker using Redis for state management.
+    Suitable for multi-process/multi-instance applications.
+    """
+    REDIS_KEY_STATE = "{name}:cb_state"
+    REDIS_KEY_FAILURES = "{name}:cb_failures"
+    REDIS_KEY_LAST_FAILURE = "{name}:cb_last_failure"
+
+    def __init__(self, name: str, redis_client: redis.Redis, failure_threshold: int = 5, recovery_timeout: int = 30):
+        self.name = name
+        self.redis_client = redis_client
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+
+    async def _get_state(self) -> CircuitState:
+        state_str = await self.redis_client.get(self.REDIS_KEY_STATE.format(name=self.name))
+        return CircuitState(state_str.decode() if state_str else CircuitState.CLOSED.value)
+
+    async def _set_state(self, state: CircuitState, expiry: Optional[int] = None) -> None:
+        await self.redis_client.set(self.REDIS_KEY_STATE.format(name=self.name), state.value, ex=expiry)
+
+    async def _get_failures(self) -> int:
+        failures = await self.redis_client.get(self.REDIS_KEY_FAILURES.format(name=self.name))
+        return int(failures) if failures else 0
+
+    async def _increment_failures(self) -> int:
+        return await self.redis_client.incr(self.REDIS_KEY_FAILURES.format(name=self.name))
+
+    async def _reset_failures(self) -> None:
+        await self.redis_client.delete(self.REDIS_KEY_FAILURES.format(name=self.name))
+
+    async def _get_last_failure_time(self) -> int:
+        last_failure = await self.redis_client.get(self.REDIS_KEY_LAST_FAILURE.format(name=self.name))
+        return int(last_failure) if last_failure else 0
+
+    async def _set_last_failure_time(self, timestamp: int, expiry: Optional[int] = None) -> None:
+        await self.redis_client.set(self.REDIS_KEY_LAST_FAILURE.format(name=self.name), timestamp, ex=expiry)
+
+    def __call__(self, func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            current_state = await self._get_state()
+            current_time = int(time.time())
+
+            if current_state == CircuitState.OPEN:
+                last_failure = await self._get_last_failure_time()
+                if current_time - last_failure > self.recovery_timeout:
+                    await self._set_state(CircuitState.HALF_OPEN)
+                    logger.info(f"Circuit Breaker '{self.name}': State changed to HALF_OPEN")
+                    current_state = CircuitState.HALF_OPEN
+                else:
+                    raise Exception(f"Circuit Breaker '{self.name}' is OPEN. Request rejected.")
+
+            try:
+                # Execute the original function (it must be awaitable if it's async)
+                if asyncio.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    result = func(*args, **kwargs) # type: ignore
+                
+                if current_state == CircuitState.HALF_OPEN:
+                    await self._set_state(CircuitState.CLOSED)
+                    await self._reset_failures()
+                    logger.info(f"Circuit Breaker '{self.name}': State changed to CLOSED")
+                
+                return result
+            except Exception as e:
+                failures = await self._increment_failures()
+                await self._set_last_failure_time(current_time)
+                
+                if failures >= self.failure_threshold:
+                    await self._set_state(CircuitState.OPEN, expiry=self.recovery_timeout) # Open for recovery_timeout
+                    logger.error(f"Circuit Breaker '{self.name}': State changed to OPEN due to {failures} failures. Last error: {e}")
+                
+                raise e
+        return wrapper
+
+# Global instances for different services (now InMemory by default if not specified)
+# Users would typically explicitly initialize DistributedCircuitBreaker where needed.
+pricing_circuit = InMemoryCircuitBreaker(failure_threshold=10, recovery_timeout=60)
+db_circuit = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)

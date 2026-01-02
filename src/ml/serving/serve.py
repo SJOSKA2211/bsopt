@@ -2,7 +2,7 @@ import logging
 import os
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone # Added timezone
 from typing import Any, Dict, Optional
 
 import mlflow
@@ -17,7 +17,8 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, ge
 
 from src.api.schemas.common import DataResponse, ErrorDetail, ErrorResponse
 from src.api.schemas.ml import InferenceRequest, InferenceResponse
-from src.utils.circuit_breaker import CircuitBreaker
+from src.utils.circuit_breaker import InMemoryCircuitBreaker, DistributedCircuitBreaker # Import both
+from src.api.main import get_redis_client # Import for DistributedCircuitBreaker initialization
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ MODEL_LOAD_STATUS = Gauge(
 )
 
 # Circuit Breakers
-ml_circuit = CircuitBreaker(failure_threshold=5, recovery_timeout=30)
+ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30) # Default to in-memory
 
 # Global model state
 state: Dict[str, Any] = {"xgb_model": None, "nn_ort_session": None, "current_model": "xgb"}
@@ -49,6 +50,21 @@ state: Dict[str, Any] = {"xgb_model": None, "nn_ort_session": None, "current_mod
 @app.on_event("startup")
 async def startup():
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
+    
+    # Attempt to initialize DistributedCircuitBreaker if Redis is available
+    global ml_circuit
+    try:
+        redis_client = await get_redis_client()
+        ml_circuit = DistributedCircuitBreaker(
+            name="ml_inference",
+            redis_client=redis_client,
+            failure_threshold=5,
+            recovery_timeout=30
+        )
+        logger.info("Distributed Circuit Breaker initialized for ML inference.")
+    except HTTPException:
+        logger.warning("Redis client not available, falling back to in-memory circuit breaker for ML inference.")
+
     await load_xgb_model()
     await load_onnx_model()
 
@@ -66,7 +82,11 @@ async def load_xgb_model():
 
 async def load_onnx_model():
     try:
-        onnx_path = os.getenv("NN_MODEL_PATH", "models/nn_option_pricer.onnx")
+        # Construct absolute path relative to the current file
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        default_onnx_path = os.path.join(base_dir, "models", "nn_option_pricer.onnx")
+        onnx_path = os.getenv("NN_MODEL_PATH", default_onnx_path)
+        
         if os.path.exists(onnx_path):
             state["nn_ort_session"] = ort.InferenceSession(onnx_path)
             logger.info(f"ONNX session initialized from {onnx_path}.")
@@ -177,7 +197,7 @@ async def health():
             "xgb": state["xgb_model"] is not None,
             "nn": state["nn_ort_session"] is not None,
         },
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat() # Use timezone-aware datetime
     }
 
 
