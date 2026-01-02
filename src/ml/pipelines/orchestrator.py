@@ -21,6 +21,7 @@ import mlflow
 import mlflow.data
 import mlflow.pytorch
 import mlflow.xgboost
+from mlflow.tracking import MlflowClient # Added for model promotion
 import torch
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error, r2_score
@@ -51,26 +52,33 @@ class MLOrchestrator:
         os.makedirs("mlruns", exist_ok=True)
 
     def _get_experiment_name(self, model_type: str) -> str:
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        return f"{PROJECT_NAME}/{model_type.upper()}/{date_str}"
+        # Use a more stable experiment name, adding date as a tag to runs
+        return f"{PROJECT_NAME}/{model_type.upper()}_Training"
 
     async def run_training_pipeline(
         self,
         model_type: str = "xgboost",
         use_real_data: bool = False,
         n_samples: int = 10000,
-        params: Optional[Dict[str, Any]] = None,
-        promote: bool = False,
+        test_size: float = 0.2,
+        random_state: int = 42,
+        xgb_params: Optional[Dict[str, Any]] = None,
+        nn_params: Optional[Dict[str, Any]] = None,
+        promotion_threshold_r2: float = 0.98,
+        promote_to_production: bool = False,
     ) -> Dict[str, Any]:
         """
         Execute a full training and evaluation pipeline.
         """
         exp_name = self._get_experiment_name(model_type)
         mlflow.set_experiment(exp_name)
+        
+        # MLflow client for model registry operations
+        client = MlflowClient()
 
         # 1. Data Preparation
         X, y, features, metadata = load_or_collect_data(use_real_data, n_samples)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -78,41 +86,54 @@ class MLOrchestrator:
 
         # 2. Training
         with mlflow.start_run(run_name=f"{model_type}_training"):
-            mlflow.log_params(params or {})
-            mlflow.log_param("model_type", model_type)
-            mlflow.log_param("data_source", metadata.get("data_source", "unknown"))
+            mlflow.set_tag("data_source", metadata.get("data_source", "unknown"))
+            mlflow.set_tag("model_type", model_type)
+            mlflow.set_tag("run_date", datetime.now().strftime("%Y-%m-%d")) # Add run date as a tag
+            
+            # Log training parameters
+            mlflow.log_param("n_samples", n_samples)
+            mlflow.log_param("test_size", test_size)
+            mlflow.log_param("random_state", random_state)
+            
+            registered_model_name = f"OptionPricer_{model_type.upper()}"
 
             if model_type == "xgboost":
-                train_params = params or {
+                train_params = xgb_params or {
                     "max_depth": 6,
                     "learning_rate": 0.1,
                     "n_estimators": 100,
                     "n_jobs": -1,
+                    "objective": "reg:squarederror", # Explicitly set objective
                 }
+                mlflow.log_params(train_params)
                 model = xgb.XGBRegressor(**train_params)
                 model.fit(X_train_scaled, y_train)
-                model._estimator_type = "regressor"
-                mlflow.xgboost.log_model(model, "model", registered_model_name="OptionPricer_XGB")
+                # No need for model._estimator_type = "regressor", MLflow should infer from XGBRegressor
+                model_info = mlflow.xgboost.log_model(model, "model", registered_model_name=registered_model_name)
 
             elif model_type == "nn":
-                model = OptionPricingNN(input_dim=X.shape[1])
-                # Simple training loop for brevity in orchestrator
-                optimizer = torch.optim.Adam(
-                    model.parameters(), lr=params.get("lr", 0.001) if params else 0.001
-                )
+                nn_train_params = nn_params or {
+                    "lr": 0.001,
+                    "epochs": 10,
+                    "hidden_dims": [128, 64, 32],
+                }
+                mlflow.log_params(nn_train_params)
+                
+                model = OptionPricingNN(input_dim=X.shape[1], hidden_dims=nn_train_params.get("hidden_dims"))
+                optimizer = torch.optim.Adam(model.parameters(), lr=nn_train_params["lr"])
                 criterion = torch.nn.MSELoss()
 
                 model.train()
-                epochs = params.get("epochs", 10) if params else 10
+                epochs = nn_train_params["epochs"]
                 for epoch in range(epochs):
                     optimizer.zero_grad()
-                    output = model(torch.FloatTensor(X_train_scaled))
-                    loss = criterion(output, torch.FloatTensor(y_train).view(-1, 1))
+                    output = model(torch.from_numpy(X_train_scaled).float()) # Use from_numpy
+                    loss = criterion(output, torch.from_numpy(y_train).float().view(-1, 1)) # Use from_numpy
                     loss.backward()
                     optimizer.step()
                     mlflow.log_metric("loss", float(loss.item()), step=epoch)
 
-                mlflow.pytorch.log_model(model, "model", registered_model_name="OptionPricer_NN")
+                model_info = mlflow.pytorch.log_model(model, "model", registered_model_name=registered_model_name)
 
             else:
                 raise ValueError(f"Unsupported model type: {model_type}")
@@ -123,7 +144,7 @@ class MLOrchestrator:
             else:
                 model.eval()
                 with torch.no_grad():
-                    y_pred = model(torch.FloatTensor(X_test_scaled)).numpy().flatten()
+                    y_pred = model(torch.from_numpy(X_test_scaled).float()).numpy().flatten() # Use from_numpy
 
             r2 = r2_score(y_test, y_pred)
             mse = mean_squared_error(y_test, y_pred)
@@ -138,10 +159,29 @@ class MLOrchestrator:
             }
 
             # 4. Model Promotion
-            if promote and r2 > 0.98:
-                logger.info(f"Promoting model {model_type} to Production...")
-                # Implementation depends on MLflow registry setup
-                pass
+            if promote_to_production and r2 > promotion_threshold_r2:
+                logger.info(f"Model {registered_model_name} (Run ID: {result['run_id']}) "
+                            f"achieved R2 of {r2:.4f}, which is above threshold {promotion_threshold_r2:.4f}.")
+                # Get the latest version of the registered model
+                latest_versions = client.search_model_versions(f"name='{registered_model_name}'")
+                latest_version = max([int(mv.version) for mv in latest_versions]) if latest_versions else 1
+                
+                # Transition new model version to Production stage
+                # Need to find the ModelVersion object corresponding to the current run
+                run_id = mlflow.active_run().info.run_id
+                model_versions = client.search_model_versions(f"run_id='{run_id}'")
+                if model_versions:
+                    current_model_version = model_versions[0].version
+                    client.transition_model_version_stage(
+                        name=registered_model_name,
+                        version=current_model_version,
+                        stage="Production"
+                    )
+                    logger.info(f"Model '{registered_model_name}' version {current_model_version} "
+                                f"transitioned to Production stage.")
+                    mlflow.set_tag("model_stage", "Production")
+                else:
+                    logger.warning(f"Could not find model version for run {run_id} to promote.")
 
             return result
 
