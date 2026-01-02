@@ -39,9 +39,9 @@ def apply_quantization(model: torch.nn.Module):
     model.qconfig = torch.quantization.get_default_qconfig("fbgemm")
     torch.quantization.prepare(model, inplace=True)
 
-    # Real quantization requires a calibration pass with data
-    # For now we just prepare it
-    # torch.quantization.convert(model, inplace=True)
+    # Note: In a real scenario, we need a calibration pass here before conversion.
+    # For demonstration, we convert directly after preparation.
+    torch.quantization.convert(model, inplace=True)
 
-    logger.info("Quantization prepared.")
+    logger.info("Quantization complete.")
     return model
