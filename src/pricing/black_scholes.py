@@ -15,7 +15,7 @@ from .models import BSParameters, OptionGreeks
 from .quant_utils import batch_bs_price_jit, batch_greeks_jit
 
 
-class BlackScholesEngine(PricingStrategy):
+class BlackScholesEngine(PricingStrategy, VectorizedPricingStrategy): # Added VectorizedPricingStrategy
     """
     Unified pricing engine for European options.
     Supports both single option pricing and high-performance batch pricing.
@@ -220,6 +220,25 @@ class BlackScholesEngine(PricingStrategy):
                 option_type="put",
             )
         )
+
+    # Implement price_single for VectorizedPricingStrategy interface
+    def price_single(self, params: BSParameters, option_type: str = "call") -> float:
+        """Calculate the price of a single option using the vectorized engine."""
+        return float(self.price_options(params=params, option_type=option_type))
+
+    # Implement price_batch for VectorizedPricingStrategy interface
+    def price_batch(
+        self,
+        S: np.ndarray,
+        K: np.ndarray,
+        T: np.ndarray,
+        sigma: np.ndarray,
+        r: np.ndarray,
+        q: np.ndarray,
+        is_call: np.ndarray,
+    ) -> np.ndarray:
+        """Batch calculation of option prices."""
+        return batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
 
 
 def verify_put_call_parity(params: BSParameters, tolerance: float = 1e-10) -> bool:

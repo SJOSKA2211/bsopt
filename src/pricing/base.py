@@ -45,6 +45,11 @@ class VectorizedPricingStrategy(ABC):
         """Batch calculation of option prices."""
         pass
 
+    @abstractmethod
+    def price_single(self, params: BSParameters, option_type: str = "call") -> float:
+        """Calculate the price of a single option."""
+        pass
+
 
 class PricingEngine:
     """
@@ -59,15 +64,8 @@ class PricingEngine:
         """Unified entry point for single option pricing."""
         if isinstance(self.strategy, PricingStrategy):
             return self.strategy.price(params, option_type)
+        elif isinstance(self.strategy, VectorizedPricingStrategy):
+            # If strategy is VectorizedPricingStrategy, use its price_single method
+            return self.strategy.price_single(params, option_type)
         else:
-            # Fallback to vectorized for single if needed
-            res = self.strategy.price_batch(
-                np.array([params.spot]),
-                np.array([params.strike]),
-                np.array([params.maturity]),
-                np.array([params.volatility]),
-                np.array([params.rate]),
-                np.array([params.dividend]),
-                np.array([option_type.lower() == "call"]),
-            )
-            return float(res[0])
+            raise TypeError("Unsupported pricing strategy type")
