@@ -4,7 +4,7 @@
 - [x] Task: Project structure and environment setup d4fc64b
     - [ ] Write Tests: Verify project structure and basic dependency loading
     - [ ] Implement: Initialize project directories (`src/ml`, `src/shared`, `tests/ml`) and `pyproject.toml`
-- [ ] Task: Resilient Data Scraper Implementation
+- [x] Task: Resilient Data Scraper Implementation 9b32997
     - [ ] Write Tests: Mock API responses and verify scraper parsing and error handling
     - [ ] Implement: Create scraper for market data (e.g., Yahoo/Polygon) with retry logic
 - [ ] Task: TimescaleDB Integration for Market Data
