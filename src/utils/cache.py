@@ -109,7 +109,7 @@ def generate_cache_key(prefix: str, **kwargs) -> str:
 
     sorted_params = {k: kwargs[k] for k in sorted(kwargs.keys())}
     param_json = json.dumps(sorted_params, sort_keys=True, default=json_serializer)
-    return f"{prefix}:{hashlib.md5(param_json.encode()).hexdigest()}"
+    return f"{prefix}:{hashlib.sha256(param_json.encode()).hexdigest()}"
 
 
 class PricingCache:
@@ -304,3 +304,12 @@ async def publish_to_redis(channel: str, message: Dict[str, Any]):
             logger.debug(f"Published to Redis channel '{channel}'")
         except Exception as e:
             logger.error(f"Failed to publish to Redis channel '{channel}': {e}")
+
+
+async def get_redis_client() -> Redis:
+    """FastAPI dependency to get the Redis client."""
+    redis = get_redis()
+    if redis is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Redis client not initialized")
+    return redis

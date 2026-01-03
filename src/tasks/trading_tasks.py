@@ -45,10 +45,10 @@ def execute_trade_task(self, order: dict):
             }
 
         # 3. Simulated Broker Routing
-        time.sleep(random.uniform(0.5, 2.0))
+        time.sleep(random.uniform(0.5, 2.0)) # nosec B311
 
         # 4. Simulated Execution
-        fill_price = order.get("limit_price", 100.0) * random.uniform(0.999, 1.001)
+        fill_price = order.get("limit_price", 100.0) * random.uniform(0.999, 1.001) # nosec B311
 
         result = {
             "task_id": self.request.id,
@@ -80,7 +80,7 @@ def backtest_strategy_task(
 
     try:
         # Simulate computation time
-        time.sleep(random.uniform(2.0, 5.0))
+        time.sleep(random.uniform(2.0, 5.0)) # nosec B311
 
         # Simulated metrics based on strategy name
         performance_seed = hash(strategy) % 100 / 100.0
@@ -94,7 +94,7 @@ def backtest_strategy_task(
                 "max_drawdown": round(-0.05 - performance_seed * 0.1, 4),
                 "win_rate": round(0.5 + performance_seed * 0.1, 2),
             },
-            "trades_count": random.randint(50, 500),
+            "trades_count": random.randint(50, 500), # nosec B311
             "status": "completed",
         }
 

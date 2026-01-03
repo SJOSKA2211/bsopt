@@ -592,7 +592,7 @@ class TestUnifiedInterface:
 
     def test_unified_invalid_option_class(self, asian_params):
         """Test invalid option class."""
-        with pytest.raises(ValueError, match="Unknown option_class"):
+        with pytest.raises(ValueError, match="Unknown exotic option type"):
             price_exotic_option("invalid_class", asian_params, "call")
 
 

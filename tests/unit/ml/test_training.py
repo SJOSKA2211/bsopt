@@ -9,13 +9,16 @@ def test_generate_synthetic_data():
     assert X.shape == (n, 9)
     assert len(y) == n
     assert len(features) == 9
-    assert "moneyness" in features
+    # check for 'underlying_price' instead of 'moneyness' as seen in source earlier
+    assert "underlying_price" in features
 
-def test_load_or_collect_data_synthetic():
-    X, y, features, meta = load_or_collect_data(use_real_data=False, n_samples=50)
+@pytest.mark.asyncio
+async def test_load_or_collect_data_synthetic():
+    X, y, features, meta = await load_or_collect_data(use_real_data=False, n_samples=50)
     assert meta["data_source"] == "synthetic"
     assert len(y) == 50
 
+@pytest.mark.asyncio
 @patch("mlflow.active_run")
 @patch("mlflow.set_experiment")
 @patch("mlflow.set_tracking_uri")
@@ -23,7 +26,7 @@ def test_load_or_collect_data_synthetic():
 @patch("mlflow.log_metric")
 @patch("mlflow.start_run")
 @patch("mlflow.xgboost.log_model")
-def test_train_smoke(mock_log_model, mock_start_run, mock_log_params, mock_log_metric, mock_set_uri, mock_set_exp, mock_active_run):
+async def test_train_smoke(mock_log_model, mock_start_run, mock_log_params, mock_log_metric, mock_set_uri, mock_set_exp, mock_active_run):
     # Mock MLflow to avoid actual tracking issues in unit tests
     mock_run = MagicMock()
     mock_run.info.run_id = "test-run-id"
@@ -36,6 +39,6 @@ def test_train_smoke(mock_log_model, mock_start_run, mock_log_params, mock_log_m
     
     # Also mock MlflowClient
     with patch("src.ml.training.train.MlflowClient") as mock_client:
-        result = train(use_real_data=False, n_samples=100, promote_threshold=0.0)
+        result = await train(use_real_data=False, n_samples=100, promote_threshold=0.0)
         assert "run_id" in result
         assert result["r2"] is not None

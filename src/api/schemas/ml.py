@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 
 class InferenceRequest(BaseModel):
     """ML inference request."""
@@ -14,8 +14,8 @@ class InferenceRequest(BaseModel):
     days_to_expiry: float = Field(..., gt=0)
     implied_volatility: float = Field(..., ge=0)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "underlying_price": 100.0,
                 "strike": 100.0,
@@ -28,10 +28,11 @@ class InferenceRequest(BaseModel):
                 "implied_volatility": 0.2
             }
         }
+    )
 
 class InferenceResponse(BaseModel):
     """ML inference response."""
     price: float = Field(..., description="Predicted option price")
     model_type: str = Field(..., description="Model used for prediction")
     latency_ms: float = Field(..., description="Inference latency in milliseconds")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

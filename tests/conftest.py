@@ -271,8 +271,17 @@ def mock_redis_and_celery(monkeypatch):
     mock_pipeline = MagicMock()
     mock_pipeline.incr = MagicMock()
     mock_pipeline.expire = MagicMock()
-    mock_pipeline.execute = AsyncMock(return_value=[1])
+    # Mock execute to return [1, True] representing [count, success]
+    mock_pipeline.execute = AsyncMock(return_value=[1, True])
     mock_redis.pipeline = MagicMock(return_value=mock_pipeline)
+    
+    # Mock pipeline as a context manager
+    mock_pipeline.__aenter__ = AsyncMock(return_value=mock_pipeline)
+    mock_pipeline.__aexit__ = AsyncMock(return_value=None)
+    
+    # Mock pipeline as a context manager if needed (though not used in rate_limit.py currently)
+    mock_redis.pipeline.return_value.__aenter__ = AsyncMock(return_value=mock_pipeline)
+    mock_redis.pipeline.return_value.__aexit__ = AsyncMock(return_value=None)
 
     # Mock ConnectionPool
     mock_pool = MagicMock()
@@ -317,32 +326,46 @@ def mock_db_session():
     """
     from unittest.mock import MagicMock
 
-    from src.database.models import User
+    from src.database.models import User, APIKey
 
     mock_session = MagicMock()
     users_by_email = {}
     users_by_id = {}
+    api_keys_by_hash = {}
 
     class MockQuery:
         def __init__(self, model):
             self.model = model
             self.filter_val = None
 
-        def filter(self, condition):
-            # Basic extraction of value from SQLAlchemy BinaryExpression
-            try:
-                self.filter_val = condition.right.value
-            except AttributeError:
-                pass
+        def filter(self, *args, **kwargs):
+            for arg in args:
+                # Recursively look for values in the expression tree
+                self._extract_filter_val(arg)
             return self
+
+        def _extract_filter_val(self, expr):
+            # Handle standard BinaryExpression (model.attr == value)
+            if hasattr(expr, 'right') and hasattr(expr.right, 'value'):
+                val = expr.right.value
+                # Prioritize 64-char strings (SHA256 hashes) for API keys
+                if isinstance(val, str) and len(val) == 64:
+                    self.filter_val = val
+                elif self.filter_val is None:
+                    self.filter_val = val
+            # Handle and_ / or_ clauses
+            elif hasattr(expr, 'clauses'):
+                for clause in expr.clauses:
+                    self._extract_filter_val(clause)
 
         def first(self):
             if self.model == User:
-                # Try finding by email then by ID
                 user = users_by_email.get(self.filter_val)
                 if not user:
                     user = users_by_id.get(self.filter_val)
                 return user
+            if self.model == APIKey:
+                return api_keys_by_hash.get(self.filter_val)
             return None
 
     def mock_query(model):
@@ -352,18 +375,21 @@ def mock_db_session():
 
     def mock_add(obj):
         if isinstance(obj, User):
-            if not obj.id: # This is the fix
-                obj.id = uuid.uuid4() # I'll need to import uuid
+            if not obj.id:
+                obj.id = uuid.uuid4()
             obj.is_verified = True
             if obj.is_mfa_enabled is None:
                 obj.is_mfa_enabled = False
             if obj.created_at is None:
                 from datetime import datetime, timezone
-
                 obj.created_at = datetime.now(timezone.utc)
             users_by_email[obj.email] = obj
             users_by_id[str(obj.id)] = obj
             users_by_id[obj.id] = obj
+        elif isinstance(obj, APIKey):
+            if not obj.id:
+                obj.id = uuid.uuid4()
+            api_keys_by_hash[obj.key_hash] = obj
 
     mock_session.add = MagicMock(side_effect=mock_add)
     mock_session.commit = MagicMock()

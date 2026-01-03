@@ -549,7 +549,9 @@ def serve(host: str, port: int, reload: bool, workers: int):
             port=port,
             reload=reload,
             workers=workers if not reload else 1,
-            log_level=settings.LOG_LEVEL.lower()
+            log_level=settings.LOG_LEVEL.lower(),
+            # Stream logs to stdout for easier debugging
+            log_config=None, # Disable default uvicorn log config to use root logger
         )
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped by user[/yellow]")

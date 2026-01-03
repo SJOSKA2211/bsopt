@@ -17,7 +17,8 @@ from typing import Any, Dict, List, Optional, Union, cast
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
+import hashlib
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -29,8 +30,9 @@ from .password import password_service
 
 logger = logging.getLogger(__name__)
 
-# Security scheme for FastAPI docs
+# Security schemes for FastAPI docs
 security_scheme = HTTPBearer(auto_error=False)
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 @dataclass
@@ -317,6 +319,7 @@ auth_service = AuthService()
 
 
 async def get_current_user(
+    request: Request,
     token: Optional[str] = Depends(get_token_from_header),
     db: Session = Depends(get_db),
 ) -> User:
@@ -336,9 +339,11 @@ async def get_current_user(
 
         cached_user_data = await db_cache.get_user(user_id)
         if cached_user_data:
-            return User(**cached_user_data)
-    except Exception:
-        pass
+            user = User(**cached_user_data)
+            request.state.user = user
+            return user
+    except Exception as e:
+        logger.warning(f"Failed to get user from cache: {e}")
 
     user = db.query(User).filter(User.id == user_id).first()
 
@@ -354,9 +359,10 @@ async def get_current_user(
 
         user_data_dict = {c.name: getattr(user, c.name) for c in user.__table__.columns}
         await db_cache.set_user(user_id, user_data_dict)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Failed to set user in cache: {e}")
 
+    request.state.user = user
     return user
 
 
@@ -404,3 +410,61 @@ def require_tier(allowed_tiers: List[str]):
 def require_admin():
     """Dependency for admin-only endpoints."""
     return require_tier(["enterprise"])
+
+
+async def get_api_key(
+    request: Request,
+    api_key: Optional[str] = Depends(api_key_header),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """Validate API key and return associated user."""
+    if not api_key:
+        return None
+    
+    # Hash the key to check against DB
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    
+    from sqlalchemy import and_
+    from src.database.models import APIKey
+    key_record = db.query(APIKey).filter(
+        and_(APIKey.key_hash == key_hash, APIKey.is_active == True)
+    ).first()
+    
+    if not key_record:
+        logger.warning(f"Invalid API Key attempt with prefix: {api_key[:8]}")
+        return None
+        
+    # Update last used
+    key_record.last_used_at = datetime.now(timezone.utc)
+    try:
+        db.commit()
+    except Exception as e:
+        logger.error(f"Failed to update API key last_used_at: {e}")
+    
+    user = key_record.user
+    request.state.user = user
+    return user
+
+
+async def get_current_user_flexible(
+    token: Optional[str] = Depends(get_token_from_header),
+    api_key_user: Optional[User] = Depends(get_api_key),
+    db: Session = Depends(get_db),
+) -> User:
+    """Authentication via either JWT or API Key."""
+    if api_key_user:
+        if not api_key_user.is_active:
+             raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account associated with API key is disabled",
+            )
+        return api_key_user
+        
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated. Provide Bearer token or X-API-Key header.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    return await get_current_user(token, db)

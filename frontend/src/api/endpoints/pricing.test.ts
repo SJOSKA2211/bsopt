@@ -10,34 +10,40 @@ const handlers = [
   http.post('/api/v1/pricing/price', async ({ request }) => {
     const body = await request.json() as PriceRequest;
     return HttpResponse.json({
-      price: 5.67,
-      spot: body.spot,
-      strike: body.strike,
-      time_to_expiry: body.time_to_expiry,
-      rate: body.rate,
-      volatility: body.volatility,
-      option_type: body.option_type,
-      model: body.model || 'black_scholes',
-      timestamp: new Date().toISOString(),
-      computation_time_ms: 1.2
+      success: true,
+      data: {
+        price: 5.67,
+        spot: body.spot,
+        strike: body.strike,
+        time_to_expiry: body.time_to_expiry,
+        rate: body.rate,
+        volatility: body.volatility,
+        option_type: body.option_type,
+        model: body.model || 'black_scholes',
+        timestamp: new Date().toISOString(),
+        computation_time_ms: 1.2
+      }
     });
   }),
   
   http.post('/api/v1/pricing/greeks', async ({ request }) => {
     const body = await request.json() as GreeksRequest;
     return HttpResponse.json({
-      delta: 0.52,
-      gamma: 0.04,
-      theta: -0.01,
-      vega: 0.18,
-      rho: 0.02,
-      option_price: 5.67,
-      spot: body.spot,
-      strike: body.strike,
-      time_to_expiry: body.time_to_expiry,
-      volatility: body.volatility,
-      option_type: body.option_type,
-      timestamp: new Date().toISOString()
+      success: true,
+      data: {
+        delta: 0.52,
+        gamma: 0.04,
+        theta: -0.01,
+        vega: 0.18,
+        rho: 0.02,
+        option_price: 5.67,
+        spot: body.spot,
+        strike: body.strike,
+        time_to_expiry: body.time_to_expiry,
+        volatility: body.volatility,
+        option_type: body.option_type,
+        timestamp: new Date().toISOString()
+      }
     });
   }),
 ];

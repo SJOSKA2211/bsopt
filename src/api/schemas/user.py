@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from .common import PaginationMeta
 
@@ -27,9 +27,9 @@ class UserResponse(BaseModel):
     created_at: datetime = Field(..., description="Account creation date")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
 
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "user@example.com",
@@ -42,6 +42,7 @@ class UserResponse(BaseModel):
                 "last_login": "2024-01-15T10:30:00Z",
             }
         }
+    )
 
 
 class UserUpdateRequest(BaseModel):
@@ -50,8 +51,9 @@ class UserUpdateRequest(BaseModel):
     full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
     email: Optional[EmailStr] = Field(None, description="New email address")
 
-    class Config:
-        json_schema_extra = {"example": {"full_name": "John Smith"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"full_name": "John Smith"}}
+    )
 
 
 class UserListResponse(BaseModel):
@@ -70,8 +72,8 @@ class UserStatsResponse(BaseModel):
     rate_limit_remaining: int = Field(..., description="Remaining requests in current window")
     rate_limit_reset: datetime = Field(..., description="When rate limit resets")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "total_requests": 15000,
                 "requests_today": 250,
@@ -80,6 +82,22 @@ class UserStatsResponse(BaseModel):
                 "rate_limit_reset": "2024-01-15T11:00:00Z",
             }
         }
+    )
+
+
+class APIKeyCreateRequest(BaseModel):
+    """Request to create a new API key."""
+    name: str = Field(..., min_length=1, max_length=100, description="Friendly name for the key")
+
+
+class APIKeyResponse(BaseModel):
+    """Response containing API key metadata."""
+    id: str
+    name: str
+    prefix: str
+    created_at: datetime
+    last_used_at: Optional[datetime] = None
+    raw_key: Optional[str] = None # Only populated on creation
 
 
 class TierUpgradeRequest(BaseModel):
@@ -88,5 +106,6 @@ class TierUpgradeRequest(BaseModel):
     target_tier: str = Field(..., description="Target subscription tier")
     payment_method_id: Optional[str] = Field(None, description="Payment method ID")
 
-    class Config:
-        json_schema_extra = {"example": {"target_tier": "pro", "payment_method_id": "pm_123456789"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"target_tier": "pro", "payment_method_id": "pm_123456789"}}
+    )

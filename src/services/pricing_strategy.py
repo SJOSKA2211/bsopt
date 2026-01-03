@@ -48,13 +48,14 @@ class DynamicPricingService:
 
     def get_user_variant(self, user_id: str, experiment_name: str) -> str:
         """Deterministically assign a user to an A/B test variant."""
-        random.seed(user_id)
         config = self.experiments.get(experiment_name)
         if not config or not config["active"]:
             return "control"
 
-        r = random.random()
-        cumulative = 0
+        # Use a local random instance seeded with user_id for determinism without affecting global state
+        rng = random.Random(user_id)
+        r = rng.random()
+        cumulative = 0.0
         for variant, allocation in config["allocations"].items():
             cumulative += allocation
             if r <= cumulative:

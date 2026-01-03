@@ -66,8 +66,10 @@ def test_login_db_error_updating_last_login(mock_user):
         mock_tokens.return_value = MagicMock(access_token="access", refresh_token="refresh", token_type="bearer", expires_in=3600)
         payload = {"email": mock_user.email, "password": "password123"}
         response = client.post("/api/v1/auth/login", json=payload)
-        # If db.commit fails during last_login update, the exception propagates and returns 500
-        assert response.status_code == 500 
+        # If db.commit fails during last_login update, the exception is caught and logged, login proceeds
+        assert response.status_code == 200
+        assert response.json()["data"]["access_token"] == "access"
+         
         mock_db.rollback.assert_called_once() # Rollback should be called if commit fails after error
     app.dependency_overrides = {}
 

@@ -11,26 +11,32 @@ const handlers = [
     const body = await request.json() as LoginRequest;
     if (body.email === 'user@example.com' && body.password === 'password') {
       return HttpResponse.json({
-        access_token: 'fake_access_token',
-        refresh_token: 'fake_refresh_token',
-        token_type: 'bearer',
-        expires_in: 1800,
-        user_id: '1',
-        email: body.email,
-        tier: 'free',
-        requires_mfa: false
+        success: true,
+        data: {
+          access_token: 'fake_access_token',
+          refresh_token: 'fake_refresh_token',
+          token_type: 'bearer',
+          expires_in: 1800,
+          user_id: '1',
+          email: body.email,
+          tier: 'free',
+          requires_mfa: false
+        }
       });
     }
-    return new HttpResponse(JSON.stringify({ detail: 'Invalid credentials' }), { status: 401 });
+    return new HttpResponse(JSON.stringify({ error: 'AuthenticationError', message: 'Invalid credentials' }), { status: 401 });
   }),
   
   http.post('/api/v1/auth/register', async ({ request }) => {
     const body = await request.json() as RegisterRequest;
     return HttpResponse.json({
-      user_id: '2',
-      email: body.email,
-      message: 'Registration successful',
-      verification_required: true
+      success: true,
+      data: {
+        user_id: '2',
+        email: body.email,
+        message: 'Registration successful',
+        verification_required: true
+      }
     });
   }),
 ];

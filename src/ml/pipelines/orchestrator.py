@@ -14,7 +14,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast, List
 
 import click
 import mlflow
@@ -27,6 +27,8 @@ import xgboost as xgb
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+
+from src.config import settings
 
 from src.ml.architectures.neural_network import OptionPricingNN
 from src.ml.training.train import load_or_collect_data, run_hyperparameter_optimization
@@ -77,7 +79,7 @@ class MLOrchestrator:
         client = MlflowClient()
 
         # 1. Data Preparation
-        X, y, features, metadata = load_or_collect_data(use_real_data, n_samples)
+        X, y, features, metadata = await load_or_collect_data(use_real_data, n_samples)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
         scaler = StandardScaler()
@@ -119,7 +121,8 @@ class MLOrchestrator:
                 }
                 mlflow.log_params(nn_train_params)
                 
-                model = OptionPricingNN(input_dim=X.shape[1], hidden_dims=nn_train_params.get("hidden_dims"))
+                hidden_dims = cast(list[int], nn_train_params.get("hidden_dims", [128, 64, 32]))
+                model = OptionPricingNN(input_dim=X.shape[1], hidden_dims=hidden_dims)
                 optimizer = torch.optim.Adam(model.parameters(), lr=nn_train_params["lr"])
                 criterion = torch.nn.MSELoss()
 
@@ -151,8 +154,11 @@ class MLOrchestrator:
             mlflow.log_metric("r2_score", r2)
             mlflow.log_metric("mse", mse)
 
+            active_run = mlflow.active_run()
+            run_id = active_run.info.run_id if active_run else "unknown"
+
             result = {
-                "run_id": mlflow.active_run().info.run_id,
+                "run_id": run_id,
                 "r2": r2,
                 "mse": mse,
                 "model_type": model_type,
@@ -168,20 +174,22 @@ class MLOrchestrator:
                 
                 # Transition new model version to Production stage
                 # Need to find the ModelVersion object corresponding to the current run
-                run_id = mlflow.active_run().info.run_id
-                model_versions = client.search_model_versions(f"run_id='{run_id}'")
-                if model_versions:
-                    current_model_version = model_versions[0].version
-                    client.transition_model_version_stage(
-                        name=registered_model_name,
-                        version=current_model_version,
-                        stage="Production"
-                    )
-                    logger.info(f"Model '{registered_model_name}' version {current_model_version} "
-                                f"transitioned to Production stage.")
-                    mlflow.set_tag("model_stage", "Production")
+                if active_run:
+                    model_versions = client.search_model_versions(f"run_id='{run_id}'")
+                    if model_versions:
+                        current_model_version = model_versions[0].version
+                        client.transition_model_version_stage(
+                            name=registered_model_name,
+                            version=current_model_version,
+                            stage="Production"
+                        )
+                        logger.info(f"Model '{registered_model_name}' version {current_model_version} "
+                                    f"transitioned to Production stage.")
+                        mlflow.set_tag("model_stage", "Production")
+                    else:
+                        logger.warning(f"Could not find model version for run {run_id} to promote.")
                 else:
-                    logger.warning(f"Could not find model version for run {run_id} to promote.")
+                    logger.warning("No active MLflow run found for promotion.")
 
             return result
 
@@ -212,9 +220,9 @@ def train(model, samples, real_data):
 @click.option("--trials", type=int, default=20)
 def optimize(samples, trials):
     """Run hyperparameter optimization."""
-    result = run_hyperparameter_optimization(
+    result = asyncio.run(run_hyperparameter_optimization(
         use_real_data=False, n_samples=samples, n_trials=trials
-    )
+    ))
     click.echo(f"Optimization completed: {json.dumps(result, indent=2)}")
 
 

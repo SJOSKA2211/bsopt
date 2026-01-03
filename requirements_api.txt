@@ -1,43 +1,21 @@
-# Core Framework
-fastapi>=0.115.0
-uvicorn[standard]>=0.30.0
-pydantic>=2.9.0
-pydantic-settings>=2.5.0
+# requirements_api.txt
 
-# Database
-sqlalchemy>=2.0.35
-psycopg2-binary>=2.9.9
-alembic>=1.14.0
-
-# Caching & Queue
-redis>=4.6.0
-celery[redis]>=5.3.4
-python-socketio>=5.10.0
-
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart>=0.0.12
-pwnedpasswords==3.1.0
-
-# API
-strawberry-graphql[fastapi]>=0.214.0
-
-# CLI
-click>=8.1.7
-rich>=13.7.0
-
-# Scientific Computing (for option pricing)
-numpy>=1.26.4
-scipy>=1.14.0
-numba>=0.60.0
-pandas>=2.2.0
-
-# Utilities
-python-dotenv>=1.0.1
-httpx>=0.26.0
-pyinstrument>=4.6.0
-email-validator==2.1.0.post1
-psutil>=5.9.0
-prometheus-client==0.23.1
-grpcio-tools==1.60.0
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic[email]
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+tenacity
+httpx
+redis
+aioredis
+celery
+asyncio-throttle
+sqlalchemy-timescaledb
+psycopg2-binary
+rich
+prometheus-client
+# prometheus-fastapi-instrumentator

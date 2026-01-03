@@ -2,11 +2,11 @@ import time
 import logging
 from enum import Enum
 from functools import wraps
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, cast
+import asyncio
 
 import redis.asyncio as redis
 from src.config import settings
-from src.api.main import get_redis_client # Dependency to get client
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,10 @@ class InMemoryCircuitBreaker:
         return wrapper
 
 
+# Alias for backward compatibility
+CircuitBreaker = InMemoryCircuitBreaker
+
+
 class DistributedCircuitBreaker:
     """
     Distributed Circuit Breaker using Redis for state management.
@@ -85,7 +89,7 @@ class DistributedCircuitBreaker:
         return int(failures) if failures else 0
 
     async def _increment_failures(self) -> int:
-        return await self.redis_client.incr(self.REDIS_KEY_FAILURES.format(name=self.name))
+        return cast(int, await self.redis_client.incr(self.REDIS_KEY_FAILURES.format(name=self.name)))
 
     async def _reset_failures(self) -> None:
         await self.redis_client.delete(self.REDIS_KEY_FAILURES.format(name=self.name))

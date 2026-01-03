@@ -6,8 +6,9 @@ Service for handling data breach notifications as required by GDPR.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
+from src.config import settings
 from src.database.models import SecurityIncident
 
 logger = logging.getLogger(__name__)

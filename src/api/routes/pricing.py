@@ -7,9 +7,10 @@ RESTful API endpoints for options pricing and Greeks calculation.
 
 import logging
 import time
-from typing import Union, cast
+from typing import Any, Dict, Union, cast
 
 from fastapi import APIRouter, Depends
+from src.security.auth import get_current_user_flexible
 from src.security.rate_limit import rate_limit
 
 from src.api.exceptions import (
@@ -42,7 +43,9 @@ from src.pricing.exotic import (
     price_exotic_option
 )
 
-router = APIRouter(prefix="/pricing", tags=["pricing"], dependencies=[Depends(rate_limit)])
+from src.utils.circuit_breaker import pricing_circuit
+
+router = APIRouter(prefix="/pricing", tags=["pricing"])
 logger = logging.getLogger(__name__)
 
 
@@ -63,7 +66,12 @@ def _get_bs_params(request: Union[PriceRequest, GreeksRequest]) -> BSParameters:
     response_model=DataResponse[PriceResponse],
     responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
 )
-async def calculate_price(request: PriceRequest):
+@pricing_circuit
+async def calculate_price(
+    request: PriceRequest,
+    user: Any = Depends(get_current_user_flexible),
+    _: Any = Depends(rate_limit)
+):
     """
     Calculate the theoretical price of a single option.
 
@@ -191,7 +199,12 @@ async def calculate_batch_prices(request: BatchPriceRequest):
     response_model=DataResponse[GreeksResponse],
     responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
 )
-async def calculate_greeks(request: GreeksRequest):
+@pricing_circuit
+async def calculate_greeks(
+    request: GreeksRequest,
+    user: Any = Depends(get_current_user_flexible),
+    _: Any = Depends(rate_limit)
+):
     """
     Calculate all standard option Greeks (Delta, Gamma, Theta, Vega, Rho).
 
@@ -302,7 +315,7 @@ async def calculate_exotic_price(request: ExoticPriceRequest):
         rebate=request.rebate or 0.0
     )
 
-    kwargs = {}
+    kwargs: Dict[str, Any] = {}
     if request.exotic_type == "barrier":
         if not request.barrier_type:
             raise ValidationException(message="barrier_type required for barrier options")

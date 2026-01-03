@@ -6,10 +6,15 @@ const BASE_URL = '/api/v1'; // Assuming API base URL
 // Create an Axios instance
 const apiClient = axios.create({
   baseURL: BASE_URL,
+  timeout: 10000, // 10s timeout
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Basic retry mechanism for GET requests
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; // 1s
 
 // Function to get tokens from local storage
 const getTokens = () => {
@@ -64,46 +69,53 @@ apiClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
-
-    // If the error is 401 (Unauthorized) and it's not a token refresh request itself
+    
+    // Handle Token Refresh (401)
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Mark this request as retried to prevent infinite loops
-
+      originalRequest._retry = true;
       try {
         const { refreshToken } = getTokens();
         if (refreshToken) {
-          // Make a request to the refresh token endpoint
           const refreshResponse = await axios.post(`${BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken,
           });
-
-          const { access_token, refresh_token: newRefreshToken } = refreshResponse.data;
+          const { access_token, refresh_token: newRefreshToken } = refreshResponse.data.data;
           setTokens(access_token, newRefreshToken);
-
-          // Retry the original request with the new access token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return axios(originalRequest); // Retry the request
-        } else {
-          // No refresh token available, redirect to login
-          console.error('No refresh token available, redirecting to login.');
-          // For programmatic navigation, we'd need access to the navigate function.
-          // This is a placeholder; actual navigation would happen where apiClient is used or via a global listener.
-          // redirectToLogin(navigate); // This would require passing navigate or using a global router instance
-          // For now, just clear tokens and log. A real app would redirect.
-          clearTokens();
-          console.warn('User needs to re-authenticate.');
+          return axios(originalRequest);
         }
-      } catch (refreshError: unknown) { // Changed to unknown
-        console.error('Token refresh failed:', refreshError);
-        clearTokens(); // Clear tokens on refresh failure
-        // Redirect to login page or handle accordingly
-        // redirectToLogin(navigate); // Placeholder for navigation
-        console.warn('User needs to re-authenticate.');
+      } catch (refreshError) {
+        clearTokens();
+        return Promise.reject(refreshError);
       }
     }
+
+    // Handle 429 (Rate Limit)
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      error.response.data = {
+        ...error.response.data,
+        retryAfter: retryAfter ? parseInt(retryAfter, 10) : 60
+      };
+      console.warn(`Rate limit exceeded. Retry after ${error.response.data.retryAfter}s`);
+    }
+
+    // Handle 503 (Circuit Breaker)
+    if (error.response?.status === 503) {
+      console.error('Service temporarily unavailable (Circuit Breaker OPEN). Please try again later.');
+    }
+
+    // Handle Network/Timeout Retries for GET requests
+    if (
+      originalRequest.method === 'get' &&
+      (error.code === 'ECONNABORTED' || !error.response) &&
+      (!originalRequest._retryCount || originalRequest._retryCount < MAX_RETRIES)
+    ) {
+      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * originalRequest._retryCount));
+      return apiClient(originalRequest);
+    }
     
-    // Handle other errors (e.g., 400, 403, 404, 500)
-    // You might want to display user-friendly messages based on error.response.data.detail
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }

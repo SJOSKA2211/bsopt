@@ -1,7 +1,14 @@
 import pytest
 import numpy as np
 import math
-from src.pricing.quant_utils import fast_normal_cdf, fast_normal_pdf, corrado_miller_initial_guess
+from src.pricing.quant_utils import (
+    fast_normal_cdf, 
+    fast_normal_pdf, 
+    corrado_miller_initial_guess,
+    calculate_d1_d2_jit,
+    batch_bs_price_jit,
+    batch_greeks_jit
+)
 
 def test_fast_normal_cdf():
     assert pytest.approx(fast_normal_cdf(0), abs=1e-7) == 0.5
@@ -25,3 +32,42 @@ def test_corrado_miller_guess():
     )
     assert sigma_guess[0] > 0
     assert pytest.approx(sigma_guess[0], abs=0.05) == 0.2
+
+def test_calculate_d1_d2_jit():
+    d1, d2 = calculate_d1_d2_jit(100.0, 100.0, 1.0, 0.2, 0.05, 0.0)
+    # d1 = (ln(1) + (0.05 + 0.5*0.04)*1) / (0.2 * 1) = 0.07 / 0.2 = 0.35
+    # d2 = 0.35 - 0.2 = 0.15
+    assert pytest.approx(d1, abs=1e-7) == 0.35
+    assert pytest.approx(d2, abs=1e-7) == 0.15
+
+def test_batch_bs_price_jit():
+    S = np.array([100.0, 100.0])
+    K = np.array([100.0, 100.0])
+    T = np.array([1.0, 1.0])
+    sigma = np.array([0.2, 0.2])
+    r = np.array([0.05, 0.05])
+    q = np.array([0.0, 0.0])
+    is_call = np.array([True, False])
+    
+    prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
+    assert len(prices) == 2
+    assert prices[0] > 0
+    assert prices[1] > 0
+    # Put-Call Parity: C - P = S - K*exp(-rT) = 100 - 100*exp(-0.05) = 100 * (1 - 0.951229) = 4.877
+    assert pytest.approx(prices[0] - prices[1], abs=1e-7) == 100 * (1 - math.exp(-0.05))
+
+def test_batch_greeks_jit():
+    S = np.array([100.0])
+    K = np.array([100.0])
+    T = np.array([1.0])
+    sigma = np.array([0.2])
+    r = np.array([0.05])
+    q = np.array([0.0])
+    is_call = np.array([True])
+    
+    delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
+    assert delta[0] > 0
+    assert gamma[0] > 0
+    assert vega[0] > 0
+    assert theta[0] < 0
+    assert rho[0] > 0

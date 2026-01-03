@@ -10,7 +10,7 @@ from typing import Dict, Optional, Tuple, Union, cast
 
 import numpy as np
 
-from .base import PricingStrategy
+from .base import PricingStrategy, VectorizedPricingStrategy
 from .models import BSParameters, OptionGreeks
 from .quant_utils import batch_bs_price_jit, batch_greeks_jit
 
@@ -108,7 +108,7 @@ class BlackScholesEngine(PricingStrategy, VectorizedPricingStrategy): # Added Ve
         return np.broadcast_arrays(S, K, T, sigma, r, q, is_call)
 
     @classmethod
-    def price_options(cls, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> np.ndarray: # Always returns np.ndarray
+    def price_options(cls, params: Optional[BSParameters] = None, option_type: Union[str, np.ndarray, list] = "call", **kwargs) -> Union[float, np.ndarray]: # Can return float or np.ndarray
         """
         Generic pricing method for one or many options.
         """
@@ -142,8 +142,8 @@ class BlackScholesEngine(PricingStrategy, VectorizedPricingStrategy): # Added Ve
         
         # If original input was a single scalar, return a scalar for convenience
         if is_original_single_input and prices.size == 1:
-            return prices.item()
-        return prices
+            return cast(float, prices.item())
+        return cast(np.ndarray, prices)
 
     @classmethod
     def calculate_greeks_batch(
@@ -238,7 +238,7 @@ class BlackScholesEngine(PricingStrategy, VectorizedPricingStrategy): # Added Ve
         is_call: np.ndarray,
     ) -> np.ndarray:
         """Batch calculation of option prices."""
-        return batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
+        return cast(np.ndarray, batch_bs_price_jit(S, K, T, sigma, r, q, is_call))
 
 
 def verify_put_call_parity(params: BSParameters, tolerance: float = 1e-10) -> bool:

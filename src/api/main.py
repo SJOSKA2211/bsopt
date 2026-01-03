@@ -7,16 +7,16 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-tracemalloc.start(1024) # Added for tracemalloc with 1024 frames
+# tracemalloc.start(1024) # Added for tracemalloc with 1024 frames
 
-from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response
+from fastapi import FastAPI, HTTPException, Request, WebSocket, status, Response, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
-from src.api.routes import auth_router, ml_router, pricing_router, users_router, debug_router # Added debug_router
+from src.api.routes import auth_router, ml_router, pricing_router, users_router, debug_router, system_router # Added debug_router
 from src.api.schemas.common import ErrorDetail, ErrorResponse, HealthResponse
 from src.config import settings
 from src.pricing.black_scholes import BlackScholesEngine
@@ -26,6 +26,7 @@ from src.utils.cache import (
     init_redis_cache,
     publish_to_redis,
     redis_channel_updates,
+    get_redis_client,
 )
 from src.tasks.graceful_shutdown import shutdown_manager
 
@@ -36,11 +37,36 @@ redis_pubsub: Any = None
 
 logger = logging.getLogger(__name__)
 
+from src.security.rate_limit import rate_limit
+
 app = FastAPI(
     title="BSOPT API",
     version="2.2.0",
-    description="Advanced Black-Scholes Option Pricing API",
+    description="""
+    Advanced Black-Scholes Option Pricing API.
+    
+    ## Features
+    * **Analytical Pricing**: European options with full Greeks.
+    * **Numerical Methods**: Monte Carlo, Lattice (Binomial), and Finite Difference.
+    * **Machine Learning**: Real-time price prediction and volatility forecasting.
+    * **Secure Auth**: JWT based authentication with MFA support.
+    * **API Keys**: Programmatic access for high-frequency trading.
+    
+    ## Integration
+    All endpoints are versioned under `/api/v1`.
+    Standard response wrapper: `{"success": true, "data": {...}, "message": null}`
+    """,
+    contact={
+        "name": "BSOPT Support",
+        "url": "https://bsopt.com/support",
+        "email": "support@bsopt.com",
+    },
 )
+
+# Apply global rate limiting
+# app.dependencies.append(Depends(rate_limit)) 
+# Wait, applying it globally might break health checks if they don't have user context.
+# I'll apply it to the routers instead.
 
 # Instrument Prometheus
 Instrumentator().instrument(app).expose(app)
@@ -77,6 +103,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             ErrorResponse(
                 error="HTTPError",
                 message=str(exc.detail),
+                details=None,
                 request_id=request_id,
             )
         ),
@@ -119,6 +146,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
             ErrorResponse(
                 error="InternalServerError",
                 message="An unexpected error occurred",
+                details=None,
                 request_id=request_id,
             )
         ),
@@ -157,6 +185,26 @@ async def log_requests(request: Request, call_next):
         f"RID: {request_id} Method: {request.method} Path: {request.url.path} "
         f"Status: {response.status_code} Duration: {process_time:.2f}ms"
     )
+    return response
+
+
+@app.middleware("http")
+async def add_rate_limit_headers(request: Request, call_next):
+    """Add rate limit information to response headers."""
+    response = await call_next(request)
+    
+    # Check if rate limit info was set in request state
+    limit = getattr(request.state, "rate_limit_limit", None)
+    remaining = getattr(request.state, "rate_limit_remaining", None)
+    reset = getattr(request.state, "rate_limit_reset", None)
+    
+    if limit is not None:
+        response.headers["X-RateLimit-Limit"] = str(limit)
+    if remaining is not None:
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+    if reset is not None:
+        response.headers["X-RateLimit-Reset"] = str(reset)
+        
     return response
 
 
@@ -212,12 +260,6 @@ async def shutdown_event():
     await close_redis_cache()
     logger.info("Redis cache connection closed.")
 
-
-# Dependency to get Redis client
-async def get_redis_client() -> Any:
-    if not app.state.redis_client:
-        raise HTTPException(status_code=500, detail="Redis client not initialized")
-    return app.state.redis_client
 
 # Function to broadcast messages to all connected clients
 async def broadcast_message(message: Dict[str, Any]):
@@ -324,10 +366,11 @@ async def simulated_pricing_publisher():
 
 
 # Routes
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(ml_router, prefix="/api/v1")
-app.include_router(pricing_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1", dependencies=[Depends(rate_limit)])
+app.include_router(users_router, prefix="/api/v1", dependencies=[Depends(rate_limit)])
+app.include_router(ml_router, prefix="/api/v1", dependencies=[Depends(rate_limit)])
+app.include_router(pricing_router, prefix="/api/v1") # pricing_router already handles internal dependencies
+app.include_router(system_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health", response_model=HealthResponse)
@@ -358,7 +401,33 @@ async def health_check():
     )
 
 
-@app.get("/health")
-async def root_health():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc), "version": "2.2.0"}
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="BSOPT API",
+        version="2.2.0",
+        description=app.description,
+        routes=app.routes,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        },
+        "APIKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+        }
+    }
+    # Default to both for documentation purposes
+    openapi_schema["security"] = [{"BearerAuth": []}, {"APIKeyAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
 

@@ -118,6 +118,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
             ErrorResponse(
                 error="InternalServerError",
                 message="An unexpected error occurred during inference",
+                details=None,
                 request_id=request_id,
             )
         ),
@@ -204,4 +205,5 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    from src.config import settings
+    uvicorn.run(app, host=settings.ML_SERVICE_HOST, port=settings.ML_SERVICE_PORT)

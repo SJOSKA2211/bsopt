@@ -2,7 +2,7 @@ import time
 from typing import Optional, Tuple
 from fastapi import Depends, HTTPException, Request, status
 from src.config import settings
-from src.api.main import get_redis_client # Import the new dependency
+from src.utils.cache import get_redis_client
 import redis.asyncio as redis # Import redis.asyncio for type hinting
 
 async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
@@ -19,7 +19,7 @@ async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_r
 
     # Prefer user_id if authenticated, otherwise use IP
     user = getattr(request.state, "user", None)
-    identifier = str(user.id) if user else request.client.host
+    identifier = str(user.id) if user else (request.client.host if request.client else "unknown")
     tier = getattr(user, "tier", "free") if user else "free"
     
     limit = settings.rate_limit_tiers.get(tier, 100)

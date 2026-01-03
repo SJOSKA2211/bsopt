@@ -1,86 +1,53 @@
 import pytest
 from unittest.mock import MagicMock, patch
+from src.tasks.trading_tasks import execute_trade_task, backtest_strategy_task, check_risk_limits
 
-# Helper for a mock task self
-class MockCeleryTaskSelf:
-    def __init__(self, request_id="mock-id"):
-        self.request = MagicMock(id=request_id)
-        self.request.id = request_id # Ensure request.id is set for the mock task self
+def test_check_risk_limits():
+    assert check_risk_limits({"quantity": 10, "limit_price": 100}) is True
+    assert check_risk_limits({"quantity": 1000, "limit_price": 200}) is False
 
-# Mock implementation of the task's run method
-def mock_task_run_implementation(self_instance, order: dict):
-    # This function will entirely replace the execute_trade_task.run method's logic for the test.
-    # It takes exactly the arguments that the original task's run method takes.
-
-    try:
-        if not order.get("symbol") or not order.get("quantity"):
-            raise ValueError("Invalid order parameters")
-
-        estimated_value = order.get("quantity", 0) * order.get("limit_price", 0)
-        if estimated_value > 100000:
-            return {
-                "task_id": self_instance.request.id,
-                "status": "rejected",
-                "reason": "risk_limit_exceeded",
-            }
-        
-        fill_price = order.get("limit_price", 100.0) * 1.0 # no random for tests
-
-        return {
-            "task_id": self_instance.request.id,
-            "order_id": f"ORD-{self_instance.request.id[:8]}",
-            "status": "filled",
-            "fill_price": round(fill_price, 2),
-            "quantity": order.get("quantity"),
-            "side": order.get("side", "buy"),
-            "symbol": order.get("symbol"),
-            "timestamp": 12345.0, # fixed timestamp
-        }
-
-    except Exception as e:
-        return {"task_id": self_instance.request.id, "status": "failed", "error": str(e)}
-
-
-# Tests will patch the execute_trade_task (the Task object itself)
-# to have a run method that calls our mock_task_run_implementation.
-@patch("src.tasks.trading_tasks.execute_trade_task")
-def test_execute_trade_task_success(mock_celery_task_object):
-    # Configure the mock Celery task object
-    mock_celery_task_object.run = MagicMock(side_effect=mock_task_run_implementation)
-
-    mock_self_instance = MockCeleryTaskSelf(request_id="test-order-id-12345678")
-    order = {
-        "symbol": "AAPL", "quantity": 10, "limit_price": 150.0, "side": "buy"
-    }
+@patch("src.tasks.trading_tasks.celery_app.Task.request")
+def test_execute_trade_task_success(mock_request):
+    order = {"symbol": "AAPL", "quantity": 10, "limit_price": 150.0, "side": "buy"}
+    mock_request.id = "test-id-12345678"
     
-    with patch("time.sleep"):
-        # Now, call the run method of the mocked Celery task object
-        result = mock_celery_task_object.run(mock_self_instance, order)
+    with patch("time.sleep"), patch("random.uniform", return_value=1.0):
+        result = execute_trade_task.apply(args=[order], task_id=mock_request.id).get()
         assert result["status"] == "filled"
         assert result["symbol"] == "AAPL"
 
-@patch("src.tasks.trading_tasks.execute_trade_task")
-def test_execute_trade_task_risk_reject(mock_celery_task_object):
-    mock_celery_task_object.run = MagicMock(side_effect=mock_task_run_implementation)
-
-    mock_self_instance = MockCeleryTaskSelf(request_id="test-order-id")
-    order = {
-        "symbol": "AAPL", "quantity": 1000, "limit_price": 200.0, "side": "buy"
-    }
+@patch("src.tasks.trading_tasks.celery_app.Task.request")
+def test_execute_trade_task_risk_reject(mock_request):
+    order = {"symbol": "AAPL", "quantity": 1000, "limit_price": 200.0}
+    mock_request.id = "test-id"
     
-    with patch("time.sleep"):
-        result = mock_celery_task_object.run(mock_self_instance, order)
-        assert result["status"] == "rejected"
-        assert result["reason"] == "risk_limit_exceeded"
+    result = execute_trade_task.apply(args=[order], task_id=mock_request.id).get()
+    assert result["status"] == "rejected"
+    assert result["reason"] == "risk_limit_exceeded"
 
-@patch("src.tasks.trading_tasks.execute_trade_task")
-def test_execute_trade_task_invalid(mock_celery_task_object):
-    mock_celery_task_object.run = MagicMock(side_effect=mock_task_run_implementation)
-
-    mock_self_instance = MockCeleryTaskSelf(request_id="test-order-id")
+@patch("src.tasks.trading_tasks.celery_app.Task.request")
+def test_execute_trade_task_invalid(mock_request):
     order = {} # Missing params
+    mock_request.id = "test-id"
     
-    with patch("time.sleep"):
-        result = mock_celery_task_object.run(mock_self_instance, order)
+    result = execute_trade_task.apply(args=[order], task_id=mock_request.id).get()
+    assert result["status"] == "failed"
+    assert "Invalid order parameters" in result["error"]
+
+@patch("src.tasks.trading_tasks.celery_app.Task.request")
+def test_backtest_strategy_task_success(mock_request):
+    strategy = "Mean Reversion"
+    mock_request.id = "backtest-id"
+    
+    with patch("time.sleep"), patch("random.uniform", return_value=1.0), patch("random.randint", return_value=100):
+        result = backtest_strategy_task.apply(args=[strategy, "2023-01-01", "2023-12-31"], task_id=mock_request.id).get()
+        assert result["status"] == "completed"
+        assert result["strategy"] == strategy
+
+@patch("src.tasks.trading_tasks.celery_app.Task.request")
+def test_backtest_strategy_task_error(mock_request):
+    mock_request.id = "backtest-id"
+    with patch("time.sleep", side_effect=Exception("Simulated error")):
+        result = backtest_strategy_task.apply(args=["strategy", "2023-01-01", "2023-12-31"], task_id=mock_request.id).get()
         assert result["status"] == "failed"
-        assert "Invalid" in result["error"]
+        assert result["error"] == "Simulated error"

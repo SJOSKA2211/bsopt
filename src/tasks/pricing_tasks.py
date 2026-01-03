@@ -13,7 +13,7 @@ Optimized for:
 import logging
 import math
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 import numpy as np
 from scipy import stats
@@ -161,7 +161,7 @@ def price_option_task(
 
                 loop = asyncio.new_event_loop()
                 loop.run_until_complete(
-                    pricing_cache.set_option_price(params, option_type, "black_scholes", price)
+                    pricing_cache.set_option_price(params, option_type, "black_scholes", float(price))
                 )
                 loop.run_until_complete(pricing_cache.set_greeks(params, option_type, greeks))
                 loop.close()
@@ -207,8 +207,6 @@ def batch_price_options_task(
 
     try:
         if use_vectorized and count > 10:
-            from src.pricing.black_scholes import BSParameters
-            
             # Use vectorized calculation for large batches
             spots = [opt["spot"] for opt in options]
             strikes = [opt["strike"] for opt in options]
@@ -218,26 +216,24 @@ def batch_price_options_task(
             dividends = [opt.get("dividend", 0.0) for opt in options]
             option_types = [opt.get("option_type", "call") for opt in options]
 
-            # Create params object with lists (assuming the engine supports it)
-            params = BSParameters(
+            prices = BlackScholesEngine.price_options(
                 spot=spots,
                 strike=strikes,
                 maturity=maturities,
                 volatility=volatilities,
                 rate=rates,
-                dividend=dividends
-            )
-
-            prices = BlackScholesEngine.price_options(
-                params=params,
+                dividend=dividends,
                 option_type=option_types
             )
+
+            # Ensure prices is an ndarray for indexing
+            prices_arr = np.atleast_1d(prices)
 
             results = []
             for i in range(count):
                 results.append(
                     {
-                        "price": round(float(prices[i]), 4),
+                        "price": round(float(prices_arr[i]), 4),
                         "status": "completed",
                     }
                 )
@@ -328,7 +324,7 @@ def calculate_implied_volatility_task(
             from src.pricing.black_scholes import BSParameters
             params = BSParameters(spot, strike, maturity, sigma, rate, dividend)
             
-            price = BlackScholesEngine.price_options(params, option_type)
+            price = cast(float, BlackScholesEngine.price_options(params, option_type))
             # vega calculation
             import math
             from scipy import stats
@@ -338,7 +334,7 @@ def calculate_implied_volatility_task(
             if abs(vega) < 1e-10:
                 raise ValueError("Vega too small, Newton-Raphson cannot converge")
 
-            error = price - market_price
+            error = float(price - market_price)
             if abs(error) < tolerance:
                 break
 

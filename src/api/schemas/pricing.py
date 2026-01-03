@@ -5,10 +5,10 @@ Pricing Schemas
 Pydantic models for options pricing endpoints.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class PriceRequest(BaseModel):
@@ -34,8 +34,8 @@ class PriceRequest(BaseModel):
             raise ValueError("Time to expiry must be positive")
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "spot": 100.0,
                 "strike": 105.0,
@@ -47,6 +47,7 @@ class PriceRequest(BaseModel):
                 "model": "black_scholes",
             }
         }
+    )
 
 
 class PriceResponse(BaseModel):
@@ -60,14 +61,14 @@ class PriceResponse(BaseModel):
     volatility: float = Field(..., description="Volatility used")
     option_type: str = Field(..., description="Option type")
     model: str = Field(..., description="Pricing model used")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     cached: bool = Field(False, description="Whether result was cached")
     computation_time_ms: Optional[float] = Field(
         None, description="Computation time in milliseconds"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "price": 5.67,
                 "spot": 100.0,
@@ -82,6 +83,7 @@ class PriceResponse(BaseModel):
                 "computation_time_ms": 1.5,
             }
         }
+    )
 
 
 class BatchPriceRequest(BaseModel):
@@ -91,8 +93,8 @@ class BatchPriceRequest(BaseModel):
         ..., min_length=1, max_length=1000, description="List of options to price"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "options": [
                     {
@@ -114,6 +116,7 @@ class BatchPriceRequest(BaseModel):
                 ]
             }
         }
+    )
 
 
 class BatchPriceResponse(BaseModel):
@@ -124,8 +127,8 @@ class BatchPriceResponse(BaseModel):
     computation_time_ms: float = Field(..., description="Total computation time")
     cached_count: int = Field(0, description="Number of cached results")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "results": [
                     {"price": 5.67, "spot": 100.0, "strike": 105.0, "option_type": "call"},
@@ -136,6 +139,7 @@ class BatchPriceResponse(BaseModel):
                 "cached_count": 0,
             }
         }
+    )
 
 
 class GreeksRequest(BaseModel):
@@ -149,8 +153,8 @@ class GreeksRequest(BaseModel):
     option_type: Literal["call", "put"] = Field("call", description="Option type")
     dividend_yield: float = Field(0, ge=0, le=1, description="Dividend yield")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "spot": 100.0,
                 "strike": 105.0,
@@ -161,6 +165,7 @@ class GreeksRequest(BaseModel):
                 "dividend_yield": 0.02,
             }
         }
+    )
 
 
 class GreeksResponse(BaseModel):
@@ -177,10 +182,10 @@ class GreeksResponse(BaseModel):
     time_to_expiry: float = Field(..., description="Time to expiry")
     volatility: float = Field(..., description="Volatility used")
     option_type: str = Field(..., description="Option type")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "delta": 0.5234,
                 "gamma": 0.0421,
@@ -196,6 +201,7 @@ class GreeksResponse(BaseModel):
                 "timestamp": "2024-01-15T10:30:00Z",
             }
         }
+    )
 
 
 class ImpliedVolatilityRequest(BaseModel):
@@ -209,8 +215,8 @@ class ImpliedVolatilityRequest(BaseModel):
     option_type: Literal["call", "put"] = Field("call", description="Option type")
     dividend_yield: float = Field(0, ge=0, description="Dividend yield")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "spot": 100.0,
                 "strike": 105.0,
@@ -220,6 +226,7 @@ class ImpliedVolatilityRequest(BaseModel):
                 "option_type": "call",
             }
         }
+    )
 
 
 class ImpliedVolatilityResponse(BaseModel):
@@ -232,8 +239,8 @@ class ImpliedVolatilityResponse(BaseModel):
     iterations: int = Field(..., description="Newton-Raphson iterations used")
     converged: bool = Field(..., description="Whether calculation converged")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "implied_volatility": 0.2034,
                 "option_price": 5.67,
@@ -243,6 +250,7 @@ class ImpliedVolatilityResponse(BaseModel):
                 "converged": True,
             }
         }
+    )
 
 
 class ExoticPriceRequest(BaseModel):
@@ -266,8 +274,8 @@ class ExoticPriceRequest(BaseModel):
     n_observations: int = 252
     payout: float = 1.0 # for digital
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "spot": 100.0,
                 "strike": 100.0,
@@ -279,6 +287,7 @@ class ExoticPriceRequest(BaseModel):
                 "barrier_type": "down-and-out"
             }
         }
+    )
 
 
 class ExoticPriceResponse(BaseModel):
@@ -287,5 +296,4 @@ class ExoticPriceResponse(BaseModel):
     price: float
     confidence_interval: Optional[List[float]] = None
     exotic_type: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

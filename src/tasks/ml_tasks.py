@@ -32,8 +32,9 @@ def train_model_task(
         if not os.getenv("MLFLOW_TRACKING_URI"):
             os.environ["MLFLOW_TRACKING_URI"] = "http://mlflow:5000"
 
+        import asyncio
         # Call the actual training function
-        result_meta = train(use_real_data=True, params=hyperparams, promote_threshold=0.95)
+        result_meta = asyncio.run(train(use_real_data=True, params=hyperparams, promote_threshold=0.95))
 
         result = {
             "task_id": self.request.id,
@@ -60,7 +61,8 @@ def hyperparameter_search_task(self, model_type: str, n_trials: int = 20):
     logger.info(f"Starting hyperparameter search for {model_type} with {n_trials} trials")
 
     try:
-        optimization_result = run_hyperparameter_optimization(use_real_data=True, n_trials=n_trials)
+        import asyncio
+        optimization_result = asyncio.run(run_hyperparameter_optimization(use_real_data=True, n_trials=n_trials))
 
         return {
             "task_id": self.request.id,

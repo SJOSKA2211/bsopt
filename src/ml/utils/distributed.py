@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Optional, Tuple
 
 import xgboost as xgb
+import xgboost.dask
 from dask.distributed import Client, LocalCluster
 
 from src.config import settings # Import settings

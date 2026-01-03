@@ -114,8 +114,8 @@ async def login(
         if not login_data.mfa_code:
             return DataResponse(
                 data=LoginResponse(
-                    access_token="",
-                    refresh_token="",
+                    access_token="", # nosec B106
+                    refresh_token="", # nosec B106
                     expires_in=0,
                     user_id=str(user.id),
                     email=user.email,
@@ -409,38 +409,38 @@ async def request_password_reset(
     user = db.query(User).filter(User.email == reset_data.email).first()
 
     if user:
-            # Generate reset token
-            reset_token = secrets.token_urlsafe(32)
-        
-            try:
-                user.verification_token = f"reset:{reset_token}" # Store reset token with prefix
-                db.commit()
-            except Exception as e:
-                db.rollback()
-                logger.error(f"Error saving reset token for user {user.id}: {e}")
-                # We still return success to the user
-        
-            log_audit(AuditEvent.PASSWORD_RESET_REQUEST, user=user, request=request)
-        
-            # Queue reset email
-            background_tasks.add_task(
-                _send_password_reset_email,
-                user.email,
-                reset_token,
-            )
-        
-            # Always return success to prevent email enumeration
-            return SuccessResponse(
-                message="If an account with this email exists, a password reset link has been sent."
-            )
-        
-        
-        @router.post(
-            "/password-reset/confirm",
-            response_model=SuccessResponse,
-            responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+        # Generate reset token
+        reset_token = secrets.token_urlsafe(32)
+
+        try:
+            user.verification_token = f"reset:{reset_token}"  # Store reset token with prefix
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error saving reset token for user {user.id}: {e}")
+            # We still return success to the user
+
+        log_audit(AuditEvent.PASSWORD_RESET_REQUEST, user=user, request=request)
+
+        # Queue reset email
+        background_tasks.add_task(
+            _send_password_reset_email,
+            user.email,
+            reset_token,
         )
-        async def confirm_password_reset(
+
+    # Always return success to prevent email enumeration
+    return SuccessResponse(
+        message="If an account with this email exists, a password reset link has been sent."
+    )
+
+
+@router.post(
+    "/password-reset/confirm",
+    response_model=SuccessResponse,
+    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
+async def confirm_password_reset(
             request: Request,
             reset_data: PasswordResetConfirm,
             db: Session = Depends(get_db),

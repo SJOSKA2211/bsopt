@@ -72,9 +72,46 @@ class User(Base):
     ml_models: Mapped[List["MLModel"]] = relationship(
         back_populates="created_by_user", cascade="all, delete-orphan", lazy="selectin"
     )
+    api_keys: Mapped[List["APIKey"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", lazy="selectin"
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
+
+
+# =============================================================================
+# API KEY MODEL
+# =============================================================================
+
+
+class APIKey(Base):
+    """Secure API keys for programmatic access."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    prefix: Mapped[str] = mapped_column(String(8), nullable=False) # e.g., bs_...
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="api_keys")
+
+    __table_args__ = (
+        Index("idx_api_keys_user_id", "user_id"),
+        Index("idx_api_keys_key_hash", "key_hash"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<APIKey(name={self.name}, prefix={self.prefix}...)>"
 
 
 # =============================================================================

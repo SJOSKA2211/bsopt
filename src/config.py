@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENTERPRISE: int = 10000
 
     # JWT Authentication
+    JWT_SECRET: str = Field(default="change-me-in-production", description="Secret key for secondary JWT/HMAC operations")
     JWT_ALGORITHM: str = Field(default="RS256", description="JWT signing algorithm")
     JWT_PRIVATE_KEY_PATH: str = Field(
         default="certs/jwt-private.pem", description="Path to the JWT private key file"
@@ -96,6 +97,8 @@ class Settings(BaseSettings):
         default="http://localhost:8080",
         description="URL of the machine learning serving microservice",
     )
+    ML_SERVICE_HOST: str = Field(default="127.0.0.1", description="Host to bind ML serving to")
+    ML_SERVICE_PORT: int = Field(default=8080, description="Port to bind ML serving to")
 
     # CORS Configuration
     CORS_ORIGINS: Union[str, List[str]] = Field(

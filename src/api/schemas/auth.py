@@ -8,7 +8,7 @@ Pydantic models for authentication endpoints.
 import re
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings
 
@@ -21,14 +21,15 @@ class LoginRequest(BaseModel):
     remember_me: bool = Field(False, description="Extend token expiration")
     mfa_code: Optional[str] = Field(None, description="MFA code if enabled")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "SecurePassword123!",
                 "remember_me": False,
             }
         }
+    )
 
 
 class LoginResponse(BaseModel):
@@ -43,8 +44,8 @@ class LoginResponse(BaseModel):
     tier: str = Field(..., description="User subscription tier")
     requires_mfa: bool = False
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIs...",
                 "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -56,6 +57,7 @@ class LoginResponse(BaseModel):
                 "requires_mfa": False,
             }
         }
+    )
 
 
 class RegisterRequest(BaseModel):
@@ -109,8 +111,8 @@ class RegisterRequest(BaseModel):
             raise ValueError("You must accept the terms and conditions")
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "newuser@example.com",
                 "password": "SecurePassword123!",
@@ -119,6 +121,7 @@ class RegisterRequest(BaseModel):
                 "accept_terms": True,
             }
         }
+    )
 
 
 class RegisterResponse(BaseModel):
@@ -129,8 +132,8 @@ class RegisterResponse(BaseModel):
     message: str = Field(..., description="Success message")
     verification_required: bool = Field(True, description="Email verification required")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "newuser@example.com",
@@ -138,6 +141,7 @@ class RegisterResponse(BaseModel):
                 "verification_required": True,
             }
         }
+    )
 
 
 class TokenResponse(BaseModel):
@@ -154,8 +158,9 @@ class RefreshTokenRequest(BaseModel):
 
     refresh_token: str = Field(..., description="Current refresh token")
 
-    class Config:
-        json_schema_extra = {"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}
+    )
 
 
 class PasswordResetRequest(BaseModel):
@@ -163,8 +168,9 @@ class PasswordResetRequest(BaseModel):
 
     email: EmailStr = Field(..., description="Email address for password reset")
 
-    class Config:
-        json_schema_extra = {"example": {"email": "user@example.com"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"email": "user@example.com"}}
+    )
 
 
 class PasswordResetConfirm(BaseModel):
@@ -205,14 +211,15 @@ class PasswordResetConfirm(BaseModel):
             raise ValueError("Passwords do not match")
         return v
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "token": "abc123def456",
                 "new_password": "NewSecurePassword123!",
                 "new_password_confirm": "NewSecurePassword123!",
             }
         }
+    )
 
 
 class PasswordChangeRequest(BaseModel):
@@ -246,8 +253,8 @@ class MFASetupResponse(BaseModel):
     qr_code_uri: str = Field(..., description="URI for QR code generation")
     backup_codes: list[str] = Field(..., description="Backup recovery codes")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "secret": "JBSWY3DPEHPK3PXP",
                 "qr_code_uri": (
@@ -256,6 +263,7 @@ class MFASetupResponse(BaseModel):
                 "backup_codes": ["12345678", "23456789", "34567890"],
             }
         }
+    )
 
 
 class MFAVerifyRequest(BaseModel):
@@ -273,8 +281,9 @@ class MFAVerifyRequest(BaseModel):
             raise ValueError("Code must contain only digits")
         return clean_code
 
-    class Config:
-        json_schema_extra = {"example": {"code": "123456"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"code": "123456"}}
+    )
 
 
 class EmailVerificationRequest(BaseModel):
@@ -282,5 +291,6 @@ class EmailVerificationRequest(BaseModel):
 
     token: str = Field(..., description="Verification token from email")
 
-    class Config:
-        json_schema_extra = {"example": {"token": "abc123def456"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"token": "abc123def456"}}
+    )

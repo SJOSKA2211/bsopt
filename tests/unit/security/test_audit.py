@@ -3,16 +3,15 @@ from unittest.mock import MagicMock, patch
 from src.security.audit import log_audit, AuditEvent
 from src.database.models import User
 
-@patch("src.security.audit.get_session")
-def test_log_audit_basic(mock_get_session):
-    mock_session = MagicMock()
-    mock_get_session.return_value = mock_session
-    
+@patch("src.tasks.audit_tasks.persist_audit_log.delay")
+def test_log_audit_basic(mock_delay):
     user = User(id="test-uid", email="test@example.com")
     log_audit(AuditEvent.USER_LOGIN_SUCCESS, user=user, persist_to_db=True)
     
-    assert mock_session.add.called
-    assert mock_session.commit.called
+    assert mock_delay.called
+    args, kwargs = mock_delay.call_args
+    assert kwargs["event_type"] == AuditEvent.USER_LOGIN_SUCCESS.value
+    assert kwargs["user_id"] == "test-uid"
 
 def test_log_audit_with_request():
     mock_request = MagicMock()

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import mlflow
 import mlflow.xgboost
@@ -13,6 +13,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.preprocessing import StandardScaler
 
+from src.config import settings
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 
 logging.basicConfig(level=logging.INFO)
@@ -32,7 +33,7 @@ def generate_synthetic_data(n_samples: int = 10000) -> Tuple[np.ndarray, np.ndar
     is_call = np.random.choice([0, 1], n_samples)
 
     # Vectorize Black-Scholes calculations
-    prices = BlackScholesEngine.price_options(
+    prices = cast(np.ndarray, BlackScholesEngine.price_options(
         spot=S,
         strike=K,
         maturity=T,
@@ -40,7 +41,7 @@ def generate_synthetic_data(n_samples: int = 10000) -> Tuple[np.ndarray, np.ndar
         rate=r,
         dividend=np.zeros(n_samples), # All dividends are 0.0
         option_type=np.where(is_call == 1, "call", "put") # Convert boolean to "call" or "put" strings
-    )
+    ))
 
     X = np.column_stack([S, K, T, is_call, S / K, np.log(S / K), np.sqrt(T), T * 365, sigma])
 
@@ -83,11 +84,11 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
     return float(np.mean(scores))
 
 
-def run_hyperparameter_optimization(
+async def run_hyperparameter_optimization(
     use_real_data: bool = True, n_samples: int = 10000, n_trials: int = settings.ML_TRAINING_OPTUNA_TRIALS
 ) -> Dict[str, Any]:
     """Run HPO using Optuna."""
-    X, y, _, _ = load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
+    X, y, _, _ = await load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     study = optuna.create_study(direction="maximize")
@@ -160,7 +161,10 @@ async def train( # Changed to async
                 stage="Production",
             )
             promoted = True
-        return {"run_id": mlflow.active_run().info.run_id, "r2": r2, "promoted": promoted}
+        
+        active_run = mlflow.active_run()
+        run_id = active_run.info.run_id if active_run else "unknown"
+        return {"run_id": run_id, "r2": r2, "promoted": promoted}
 
 
 if __name__ == "__main__":

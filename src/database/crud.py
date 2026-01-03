@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 from uuid import UUID
 
 from sqlalchemy import and_, func, insert, select, update
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.orm import Session, selectinload
 
 from src.security.password import password_service

@@ -26,6 +26,12 @@ export default defineConfig({
       '@/utils': path.resolve(__dirname, './src/utils'),
     },
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    css: true,
+  },
   server: {
     port: 3000,
     proxy: {

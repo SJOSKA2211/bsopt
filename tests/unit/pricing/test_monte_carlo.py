@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig
+from src.pricing.monte_carlo import MonteCarloEngine, MCConfig, _laguerre_basis, geometric_asian_price
 from src.pricing.black_scholes import BSParameters
 
 def test_mc_config_validation():
@@ -51,3 +51,25 @@ def test_sobol_generation():
     engine = MonteCarloEngine(config)
     normals = engine._generate_random_normals(1024, 10)
     assert normals.shape == (1024, 10)
+
+def test_laguerre_basis():
+    x = np.array([1.0, 2.0])
+    basis = _laguerre_basis(x, degree=3)
+    assert basis.shape == (2, 4)
+    # L0 = 1, L1 = x, L2 = x^2-1, L3 = x^3-3x
+    assert basis[0, 0] == 1.0
+    assert basis[0, 1] == 1.0
+    assert basis[0, 2] == 0.0
+    assert basis[0, 3] == -2.0
+
+def test_geometric_asian_price():
+    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
+    price = geometric_asian_price(params, "call", 252)
+    assert price > 0
+    assert price < 15.0 # Vanilla call is ~10.45, Asian should be cheaper
+
+def test_mc_invalid_option_type():
+    engine = MonteCarloEngine()
+    params = BSParameters(100, 100, 1, 0.2, 0.05)
+    with pytest.raises(ValueError, match="option_type must be 'call' or 'put'"):
+        engine.price_european(params, "invalid")

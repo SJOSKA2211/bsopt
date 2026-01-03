@@ -5,10 +5,10 @@ Common API Schemas
 Shared schemas for API responses and pagination.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")
 
@@ -28,10 +28,10 @@ class ErrorResponse(BaseModel):
     message: str = Field(..., description="Human-readable error message")
     details: Optional[List[ErrorDetail]] = Field(None, description="Detailed error information")
     request_id: Optional[str] = Field(None, description="Request ID for support reference")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "error": "ValidationError",
                 "message": "Request validation failed",
@@ -42,6 +42,7 @@ class ErrorResponse(BaseModel):
                 "timestamp": "2024-01-15T10:30:00Z",
             }
         }
+    )
 
 
 class SuccessResponse(BaseModel):
@@ -51,14 +52,15 @@ class SuccessResponse(BaseModel):
     message: str = Field(..., description="Success message")
     data: Optional[Dict[str, Any]] = None
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "success": True,
                 "message": "Operation completed successfully",
                 "data": {"id": "123"},
             }
         }
+    )
 
 
 class DataResponse(BaseModel, Generic[T]):
@@ -67,7 +69,7 @@ class DataResponse(BaseModel, Generic[T]):
     success: bool = True
     data: T
     message: Optional[str] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PaginationMeta(BaseModel):
@@ -87,8 +89,8 @@ class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T] = Field(..., description="List of items")
     pagination: PaginationMeta = Field(..., description="Pagination metadata")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "items": [],
                 "pagination": {
@@ -101,6 +103,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
                 },
             }
         }
+    )
 
 
 class HealthResponse(BaseModel):
@@ -108,13 +111,13 @@ class HealthResponse(BaseModel):
 
     status: str = Field(..., description="Overall health status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     checks: Dict[str, Dict[str, Any]] = Field(
         default_factory=dict, description="Individual component health checks"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "healthy",
                 "version": "2.2.0",
@@ -126,6 +129,7 @@ class HealthResponse(BaseModel):
                 },
             }
         }
+    )
 
 
 class RateLimitInfo(BaseModel):

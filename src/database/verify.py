@@ -44,7 +44,7 @@ def verify_postgres_connection():
         return
 
     # 5. Execute psql -c '\l'
-    cmd = ["psql", "-h", db_host, "-p", str(db_port), "-U", db_user, "-d", db_name, "-c", "\\l"]
+    cmd = ["psql", "-h", str(db_host), "-p", str(db_port), "-U", str(db_user), "-d", str(db_name), "-c", "\\l"]
 
     print(f"Running: PGPASSWORD=[HIDDEN] {' '.join(cmd)}")
     try:

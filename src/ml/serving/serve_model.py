@@ -20,7 +20,7 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
     "--model-version", type=str, default="latest", help='Model version (e.g., "1" or "latest")'
 )
 @click.option("--port", type=int, default=5001, help="Port to serve the model on")
-@click.option("--host", type=str, default="0.0.0.0", help="Host to bind the serving process to")
+@click.option("--host", type=str, default="127.0.0.1", help="Host to bind the serving process to")
 @click.option("--workers", type=int, default=1, help="Number of worker processes")
 def serve_model(model_name: str, model_version: str, port: int, host: str, workers: int):
     """

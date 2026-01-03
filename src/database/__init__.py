@@ -20,6 +20,8 @@ from sqlalchemy.pool import QueuePool
 
 from src.config import settings
 
+from src.config import settings
+
 from .models import Base
 
 logger = logging.getLogger(__name__)

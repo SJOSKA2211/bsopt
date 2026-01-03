@@ -45,7 +45,7 @@ async def proxy_predict(request: InferenceRequest, model_type: str = "xgb"):
                 try:
                     error_data = response.json()
                 except Exception:
-                    pass
+                    logger.warning("Could not parse error response from ML service as JSON")
                 
                 detail = error_data.get("message", "ML service error")
                 

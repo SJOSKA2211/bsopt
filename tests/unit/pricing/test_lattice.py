@@ -49,3 +49,30 @@ def test_validate_convergence():
     results = validate_convergence(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, "call", [10, 20])
     assert "binomial_errors" in results
     assert len(results["binomial_errors"]) == 2
+
+def test_binomial_zero_maturity():
+    params = BSParameters(spot=100.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
+    pricer = BinomialTreePricer(n_steps=10)
+    assert pricer.price(params, "call") == 0.0
+    
+    params_itm = BSParameters(spot=110.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
+    assert pricer.price(params_itm, "call") == 10.0
+
+def test_trinomial_zero_maturity():
+    params = BSParameters(spot=100.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
+    pricer = TrinomialTreePricer(n_steps=10)
+    assert pricer.price(params, "call") == 0.0
+
+def test_binomial_high_volatility():
+    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=2.0, rate=0.05)
+    pricer = BinomialTreePricer(n_steps=100)
+    price = pricer.price(params, "call")
+    assert price > 0
+    assert price < 100.0
+
+def test_build_tree():
+    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
+    pricer = BinomialTreePricer(n_steps=2)
+    tree = pricer.build_tree(params)
+    assert tree.shape == (3, 3)
+    assert tree[0, 0] == 100.0
