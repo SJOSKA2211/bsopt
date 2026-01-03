@@ -7,7 +7,7 @@
 - [x] Task: Resilient Data Scraper Implementation 9b32997
     - [ ] Write Tests: Mock API responses and verify scraper parsing and error handling
     - [ ] Implement: Create scraper for market data (e.g., Yahoo/Polygon) with retry logic
-- [ ] Task: TimescaleDB Integration for Market Data
+- [x] Task: TimescaleDB Integration for Market Data b46b76a
     - [ ] Write Tests: Verify DB connection and CRUD operations for market data
     - [ ] Implement: Setup SQLAlchemy models and persistence layer for TimescaleDB
 - [ ] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md)
