@@ -37,3 +37,24 @@ def test_db_connection(mock_sessionmaker, mock_create_engine):
     
     mock_create_engine.assert_called_with("postgresql://user:pass@localhost/db")
     mock_sessionmaker.assert_called_once()
+
+@patch('src.shared.db.Minio')
+def test_minio_storage(mock_minio):
+    """Verify that MinIO storage can be initialized and used."""
+    from src.shared.db import MinioStorage
+    
+    mock_client = MagicMock()
+    mock_minio.return_value = mock_client
+    
+    storage = MinioStorage(endpoint="localhost:9000", access_key="user", secret_key="pass")
+    
+    # Test bucket creation
+    mock_client.bucket_exists.return_value = False
+    storage.ensure_bucket("test-bucket")
+    mock_client.make_bucket.assert_called_with("test-bucket")
+    
+    # Test data upload
+    import io
+    data = io.BytesIO(b"test data")
+    storage.upload_file("test-bucket", "test.txt", data, len(b"test data"))
+    mock_client.put_object.assert_called()

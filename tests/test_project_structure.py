@@ -24,5 +24,6 @@ def test_dependencies_loadable():
         import mlflow
         import prometheus_client
         import structlog
+        import minio
     except ImportError as e:
         pytest.fail(f"Failed to import core dependency: {e}")
