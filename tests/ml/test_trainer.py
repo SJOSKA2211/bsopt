@@ -100,3 +100,24 @@ def test_trainer_frameworks(sample_data):
     params_torch = {"epochs": 2, "lr": 0.01, "framework": "pytorch"}
     acc_torch = trainer.train_and_evaluate(X, y, params_torch)
     assert acc_torch >= 0
+
+def test_trainer_optuna_integration(sample_data):
+    """Verify that Optuna correctly optimizes hyperparameters."""
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="optuna_test")
+    
+    def objective(trial):
+        # Create a simple dependency on n_estimators to see if Optuna moves towards it
+        n_estimators = trial.suggest_int("n_estimators", 10, 50)
+        params = {
+            "n_estimators": n_estimators,
+            "max_depth": 3,
+            "framework": "xgboost"
+        }
+        return trainer.train_and_evaluate(X, y, params)
+    
+    study = trainer.optimize(objective, n_trials=5)
+    
+    assert len(study.trials) == 5
+    assert "n_estimators" in study.best_params
+    assert study.best_value >= 0
