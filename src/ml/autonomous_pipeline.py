@@ -6,7 +6,7 @@ from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
 from src.ml.drift import calculate_ks_test, PerformanceDriftMonitor
 from src.ml.trainer import InstrumentedTrainer
-from src.shared.observability import setup_logging
+from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS
 from sqlalchemy import create_engine
 
 # Initialize structured logger
@@ -44,7 +44,13 @@ class AutonomousMLPipeline:
         try:
             # 1. Scrape Data
             # Note: Dates are hardcoded for demo, would be dynamic in production
-            df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+            try:
+                with SCRAPE_DURATION.labels(api="alpha_vantage").time():
+                    df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+            except Exception as e:
+                SCRAPE_ERRORS.labels(api="alpha_vantage", status_code="error").inc()
+                raise e
+
             logger.info("data_scraped", rows=len(df))
             
             # 2. Persist to DB
