@@ -14,11 +14,11 @@
 - [x] Task: Implement drift metrics (PSI) in `src/ml/autonomous_pipeline.py` (8a7a1c5)
 - [x] Task: Conductor - User Manual Verification 'Phase 2: ML Pipeline Instrumentation' (Protocol in workflow.md) (3f435e4)
 
-## Phase 3: API & Docker Optimization
+## Phase 3: API & Docker Optimization [checkpoint: 2c49b78]
 - [x] Task: Write unit tests for API metrics endpoint and instrumentation (1ce914a)
 - [x] Task: Implement Prometheus instrumentation in the FastAPI API layer (5382401)
 - [x] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, distroless-style build (386eceb)
-- [~] Task: Conductor - User Manual Verification 'Phase 3: API & Docker Optimization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: API & Docker Optimization' (Protocol in workflow.md) (2c49b78)
 
 ## Phase 4: Final Integration & Dashboards
 - [ ] Task: Verify end-to-end log flow from ML Pipeline to Loki/Grafana
