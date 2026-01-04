@@ -40,7 +40,7 @@
 - [x] Task: End-to-End Autonomous Pipeline Integration 16e9466
     - [x] Write Tests: Full integration test simulating the entire flow from scraping to model registry.
     - [x] Implement: Create `autonomous_pipeline.py` script to orchestrate Phase 1-3.
-- [~] Task: Celery Grid Readiness and Final Audit
-    - [ ] Write Tests: Verify the pipeline can be executed as a distributed Celery task.
-    - [ ] Implement: Refactor for Celery worker execution and perform final coverage/quality gate checks.
-- [ ] Task: Conductor - User Manual Verification 'Pipeline Orchestration and Refinement' (Protocol in workflow.md)
+- [x] Task: Celery Grid Readiness and Final Audit 10463cc
+    - [x] Write Tests: Verify the pipeline can be executed as a distributed Celery task.
+    - [x] Implement: Refactor for Celery worker execution and perform final coverage/quality gate checks.
+- [~] Task: Conductor - User Manual Verification 'Pipeline Orchestration and Refinement' (Protocol in workflow.md)
