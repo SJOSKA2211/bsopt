@@ -123,7 +123,7 @@ def test_trainer_optuna_integration(sample_data):
     assert study.best_value >= 0
 
 def test_base_trainer_abstract_methods():
-    """Verify that BaseTrainer raises NotImplementedError."""
+    """Verify that BaseTrainer raises NotImplementedError or returns default values."""
     from src.ml.trainer import BaseTrainer
     
     trainer = BaseTrainer()
@@ -133,3 +133,36 @@ def test_base_trainer_abstract_methods():
         
     with pytest.raises(NotImplementedError):
         trainer.predict(None, None)
+    
+    # These should not raise but just pass/return None
+    trainer.log_model(None, "test")
+    assert trainer.get_feature_importance(None, []) is None
+
+@patch("mlflow.log_artifact")
+@patch("mlflow.sklearn.log_model")
+def test_trainer_mlflow_artifacts(mock_log_model, mock_log_artifact, sample_data):
+    """Verify that models and artifacts are logged to MLflow."""
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="artifact_test")
+    
+    params = {"n_estimators": 5, "framework": "sklearn"}
+    trainer.train_and_evaluate(X, y, params)
+    
+    # Verify model was logged
+    assert mock_log_model.called
+    # Verify artifact (e.g., feature importance plot) was logged
+    # We will implement this in the trainer
+    assert mock_log_artifact.called
+
+@patch("mlflow.set_tags")
+def test_trainer_dataset_lineage(mock_set_tags, sample_data):
+    """Verify that dataset metadata is logged as tags."""
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="lineage_test")
+    
+    params = {"n_estimators": 5, "framework": "xgboost"}
+    metadata = {"dataset_version": "v1.0", "source": "test_source"}
+    
+    trainer.train_and_evaluate(X, y, params, dataset_metadata=metadata)
+    
+    mock_set_tags.assert_called_with(metadata)
