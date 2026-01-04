@@ -25,7 +25,7 @@
 - [x] Task: MLflow Tracking Integration 0df6ff7
     - [ ] Write Tests: Verify logging of parameters and metrics to a mock MLflow server
     - [ ] Implement: Integrate MLflow for experiment tracking and artifact storage
-- [ ] Task: Prometheus Instrumentation and Structured Logging
+- [x] Task: Prometheus Instrumentation and Structured Logging fe98a26
     - [ ] Write Tests: Verify Prometheus metric emission and JSON log structure
     - [ ] Implement: Add `prometheus-client` and `structlog` instrumentation to the pipeline
 - [ ] Task: Conductor - User Manual Verification 'Observability and MLflow Integration' (Protocol in workflow.md)
