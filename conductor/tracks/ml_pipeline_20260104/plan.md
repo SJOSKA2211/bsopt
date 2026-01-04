@@ -25,10 +25,10 @@
 - [x] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md) 7be2a22
 
 ## Phase 3: Tracking and Observability Integration
-- [~] Task: MLflow Experiment Tracking
-    - [ ] Write Tests: Verify logging of parameters, metrics, and model artifacts to MLflow.
-    - [ ] Implement: Detailed MLflow instrumentation including model lineage and feature importance plots.
-- [ ] Task: Prometheus Metrics and Structured Logging
+- [x] Task: MLflow Experiment Tracking 725d837
+    - [x] Write Tests: Verify logging of parameters, metrics, and model artifacts to MLflow.
+    - [x] Implement: Detailed MLflow instrumentation including model lineage and feature importance plots.
+- [~] Task: Prometheus Metrics and Structured Logging
     - [ ] Write Tests: Verify metric emission format and JSON log structure for Loki compliance.
     - [ ] Implement: `structlog` and `prometheus-client` integration throughout the pipeline.
 - [ ] Task: Alerting Rules and Dashboard JSON
