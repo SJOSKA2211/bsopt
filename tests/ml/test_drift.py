@@ -99,6 +99,23 @@ def test_performance_drift_monitor():
     # Improvement should not trigger drift
     assert monitor.detect_drift(0.95) is False
 
+@patch("src.ml.drift.PERFORMANCE_DRIFT_ALERT")
+def test_performance_drift_alert_instrumentation(mock_alert):
+    """Verify that PerformanceDriftMonitor updates the Prometheus alert gauge."""
+    from src.ml.drift import PerformanceDriftMonitor
+    
+    monitor = PerformanceDriftMonitor(window_size=2, threshold=0.1)
+    monitor.add_metric(0.9)
+    monitor.add_metric(0.9)
+    
+    # Trigger drift
+    monitor.detect_drift(0.5)
+    mock_alert.set.assert_called_with(1)
+    
+    # No drift
+    monitor.detect_drift(0.9)
+    mock_alert.set.assert_called_with(0)
+
 def test_performance_drift_insufficient_history():
     """Verify that drift detection is skipped when history is insufficient."""
     from src.ml.drift import PerformanceDriftMonitor
