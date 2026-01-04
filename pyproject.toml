@@ -4,7 +4,18 @@ version = "0.1.0"
 description = "Black-Scholes Optimization & ML Platform"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "optuna>=4.6.0",
+    "xgboost>=3.1.2",
+    "mlflow>=3.8.1",
+    "prometheus-client>=0.23.1",
+    "structlog>=25.5.0",
+    "scikit-learn>=1.8.0",
+    "pandas>=2.3.3",
+    "numpy>=2.4.0",
+    "requests>=2.32.5",
+    "SQLAlchemy>=2.0.45",
+]
 
 [build-system]
 requires = ["hatchling"]
