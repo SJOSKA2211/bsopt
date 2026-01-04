@@ -2,7 +2,7 @@
 
 ## Phase 1: Observability Infrastructure Setup
 - [x] Task: Create monitoring configuration directories (`monitoring/prometheus`, `monitoring/loki`, `monitoring/promtail`, `monitoring/grafana`) (2d76e0f)
-- [ ] Task: Create `monitoring/prometheus/prometheus.yml` with service scrape configs
+- [x] Task: Create `monitoring/prometheus/prometheus.yml` with service scrape configs (45f9d3b)
 - [ ] Task: Create `monitoring/promtail/promtail-config.yaml` for Docker log shipping
 - [ ] Task: Update `docker-compose.yml` with Prometheus, Loki, Promtail, Grafana, and cAdvisor services
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Observability Infrastructure Setup' (Protocol in workflow.md)
