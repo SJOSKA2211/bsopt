@@ -16,8 +16,8 @@
 
 ## Phase 3: API & Docker Optimization
 - [x] Task: Write unit tests for API metrics endpoint and instrumentation (1ce914a)
-- [~] Task: Implement Prometheus instrumentation in the FastAPI API layer
-- [ ] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, distroless-style build
+- [x] Task: Implement Prometheus instrumentation in the FastAPI API layer (5382401)
+- [~] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, distroless-style build
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: API & Docker Optimization' (Protocol in workflow.md)
 
 ## Phase 4: Final Integration & Dashboards
