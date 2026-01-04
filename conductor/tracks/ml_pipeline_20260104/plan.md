@@ -30,7 +30,7 @@
     - [ ] Implement: Add `prometheus-client` and `structlog` instrumentation to the pipeline
 - [x] Task: Conductor - User Manual Verification 'Observability and MLflow Integration' (Protocol in workflow.md) e86e9fe
 
-## Phase 4: Integration and Final Verification
+## Phase 4: Integration and Final Verification [checkpoint: 0b8986b]
 - [x] Task: End-to-End Pipeline Integration ed8897a
     - [ ] Write Tests: Full integration test from scraping to model logging
     - [ ] Implement: Wire all components together into the `autonomous_pipeline.py` script
