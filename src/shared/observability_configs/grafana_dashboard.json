@@ -1,0 +1,33 @@
+{
+  "title": "BS-Opt ML Pipeline Dashboard",
+  "panels": [
+    {
+      "title": "Model Accuracy",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ml_model_accuracy_score" }
+      ]
+    },
+    {
+      "title": "Scrape Duration",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "market_scrape_duration_seconds_sum / market_scrape_duration_seconds_count" }
+      ]
+    },
+    {
+      "title": "Data Drift Score (PSI)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ml_data_drift_score" }
+      ]
+    },
+    {
+      "title": "KS Test P-Value",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "ml_ks_test_p_value" }
+      ]
+    }
+  ]
+}
