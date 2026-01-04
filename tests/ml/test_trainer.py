@@ -46,3 +46,24 @@ def test_trainer_prometheus_metrics(sample_data):
     trainer = InstrumentedTrainer(study_name="test_study")
     assert hasattr(trainer, "training_duration_metric")
     assert hasattr(trainer, "model_accuracy_metric")
+
+@patch("mlflow.set_tracking_uri")
+def test_trainer_mlflow_uri(mock_set_uri):
+    trainer = InstrumentedTrainer(study_name="test_study", tracking_uri="http://localhost:5000")
+    mock_set_uri.assert_called_once_with("http://localhost:5000")
+
+@patch("mlflow.start_run")
+@patch("mlflow.log_params")
+@patch("mlflow.log_metric")
+def test_mlflow_logging_content(mock_log_metric, mock_log_params, mock_start_run, sample_data):
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="test_study")
+    params = {"max_depth": 3, "learning_rate": 0.1}
+    
+    trainer.train_and_evaluate(X, y, params)
+    
+    mock_log_params.assert_called_with(params)
+    # Check if accuracy was logged
+    metric_names = [call.args[0] for call in mock_log_metric.call_args_list]
+    assert "accuracy" in metric_names
+    assert "duration" in metric_names

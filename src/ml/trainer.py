@@ -21,11 +21,13 @@ class InstrumentedTrainer:
     training_duration_metric = Summary('training_duration_seconds', 'Time spent in training')
     model_accuracy_metric = Gauge('model_accuracy_score', 'Accuracy score of the latest model')
 
-    def __init__(self, study_name: str, storage: str = None):
+    def __init__(self, study_name: str, storage: str = None, tracking_uri: str = None):
         self.study_name = study_name
         self.storage = storage
         self.model = None
         self.best_params = {}
+        if tracking_uri:
+            mlflow.set_tracking_uri(tracking_uri)
 
     def train_and_evaluate(self, X: Any, y: Any, params: Dict[str, Any]) -> float:
         """
