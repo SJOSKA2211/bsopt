@@ -1,6 +1,20 @@
 import numpy as np
 import pytest
+from unittest.mock import patch, MagicMock
 from src.ml.drift import calculate_psi
+
+@patch("src.ml.drift.logger")
+@patch("src.ml.drift.DATA_DRIFT_SCORE")
+def test_drift_instrumentation(mock_gauge, mock_logger):
+    expected = np.array([0.1, 0.2, 0.3, 0.4])
+    actual = np.array([0.1, 0.2, 0.3, 0.4])
+    
+    calculate_psi(expected, actual, buckets=4)
+    
+    # Verify logger was called
+    assert mock_logger.info.called
+    # Verify prometheus gauge was updated
+    mock_gauge.set.assert_called_once()
 
 def test_calculate_psi_no_drift():
     """Verify that PSI is 0 when distributions are identical."""

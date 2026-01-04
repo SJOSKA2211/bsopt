@@ -40,12 +40,29 @@ def test_trainer_train_xgboost(mock_log_metric, mock_log_params, mock_start_run,
     assert mock_log_params.called
     assert mock_log_metric.called
 
-def test_trainer_prometheus_metrics(sample_data):
-    # This might require checking if prometheus metrics are registered
-    # For now, let's just ensure the trainer has the metrics defined
+@patch("src.ml.trainer.logger")
+def test_trainer_logging(mock_logger, sample_data):
+    X, y = sample_data
     trainer = InstrumentedTrainer(study_name="test_study")
-    assert hasattr(trainer, "training_duration_metric")
-    assert hasattr(trainer, "model_accuracy_metric")
+    params = {"max_depth": 3, "learning_rate": 0.1}
+    
+    trainer.train_and_evaluate(X, y, params)
+    
+    assert mock_logger.info.called
+
+def test_trainer_prometheus_metrics_usage(sample_data):
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="test_study")
+    
+    # Mock the metrics to verify they are called
+    trainer.training_duration_metric = MagicMock()
+    trainer.model_accuracy_metric = MagicMock()
+    
+    params = {"max_depth": 3, "learning_rate": 0.1}
+    trainer.train_and_evaluate(X, y, params)
+    
+    trainer.training_duration_metric.observe.assert_called_once()
+    trainer.model_accuracy_metric.set.assert_called_once()
 
 @patch("mlflow.set_tracking_uri")
 def test_trainer_mlflow_uri(mock_set_uri):
