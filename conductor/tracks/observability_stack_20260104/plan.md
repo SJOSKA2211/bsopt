@@ -1,7 +1,7 @@
 # Implementation Plan: Observability Stack (LGTM)
 
 ## Phase 1: Observability Infrastructure Setup
-- [ ] Task: Create monitoring configuration directories (`monitoring/prometheus`, `monitoring/loki`, `monitoring/promtail`, `monitoring/grafana`)
+- [x] Task: Create monitoring configuration directories (`monitoring/prometheus`, `monitoring/loki`, `monitoring/promtail`, `monitoring/grafana`) (2d76e0f)
 - [ ] Task: Create `monitoring/prometheus/prometheus.yml` with service scrape configs
 - [ ] Task: Create `monitoring/promtail/promtail-config.yaml` for Docker log shipping
 - [ ] Task: Update `docker-compose.yml` with Prometheus, Loki, Promtail, Grafana, and cAdvisor services
