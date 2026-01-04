@@ -18,6 +18,8 @@ dependencies = [
     "minio>=7.2.9",
     "torch>=2.5.1",
     "matplotlib>=3.10.0",
+    "celery>=5.4.0",
+    "redis>=5.2.0",
 ]
 
 [build-system]
