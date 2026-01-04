@@ -21,7 +21,7 @@
     - [ ] Implement: Create `InstrumentedTrainer` with Optuna optimization loop
 - [x] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md) fc79877
 
-## Phase 3: Observability and MLflow Integration
+## Phase 3: Observability and MLflow Integration [checkpoint: b7f1631]
 - [x] Task: MLflow Tracking Integration 0df6ff7
     - [ ] Write Tests: Verify logging of parameters and metrics to a mock MLflow server
     - [ ] Implement: Integrate MLflow for experiment tracking and artifact storage
