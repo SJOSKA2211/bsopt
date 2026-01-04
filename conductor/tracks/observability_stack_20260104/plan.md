@@ -11,8 +11,8 @@
 - [x] Task: Write unit tests for `InstrumentedTrainer` metrics logic and `structlog` configuration (2da0d1c)
 - [x] Task: Implement `structlog` configuration and Prometheus metrics in `src/ml/autonomous_pipeline.py` (04e9ff2)
 - [x] Task: Write unit tests for `ResilientDataPipeline` drift detection metrics (a72d9b6)
-- [~] Task: Implement drift metrics (PSI) in `src/ml/autonomous_pipeline.py`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: ML Pipeline Instrumentation' (Protocol in workflow.md)
+- [x] Task: Implement drift metrics (PSI) in `src/ml/autonomous_pipeline.py` (8a7a1c5)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: ML Pipeline Instrumentation' (Protocol in workflow.md)
 
 ## Phase 3: API & Docker Optimization
 - [ ] Task: Write unit tests for API metrics endpoint and instrumentation
