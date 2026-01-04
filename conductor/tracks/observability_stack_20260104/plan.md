@@ -8,8 +8,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Observability Infrastructure Setup' (Protocol in workflow.md) (15fdbc9)
 
 ## Phase 2: ML Pipeline Instrumentation (TDD)
-- [ ] Task: Write unit tests for `InstrumentedTrainer` metrics logic and `structlog` configuration
-- [ ] Task: Implement `structlog` configuration and Prometheus metrics in `src/ml/autonomous_pipeline.py`
+- [x] Task: Write unit tests for `InstrumentedTrainer` metrics logic and `structlog` configuration (2da0d1c)
+- [~] Task: Implement `structlog` configuration and Prometheus metrics in `src/ml/autonomous_pipeline.py`
 - [ ] Task: Write unit tests for `ResilientDataPipeline` drift detection metrics
 - [ ] Task: Implement drift metrics (PSI) in `src/ml/autonomous_pipeline.py`
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: ML Pipeline Instrumentation' (Protocol in workflow.md)
