@@ -12,7 +12,7 @@
     - [x] Implement: Setup SQLAlchemy models for "hot" data and MinIO client for "cold" storage.
 - [x] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md) b7b96e6
 
-## Phase 2: Core ML Pipeline and Optimization
+## Phase 2: Core ML Pipeline and Optimization [checkpoint: 7be2a22]
 - [x] Task: Multi-Framework Training Loop Scaffolding c331ec4
     - [x] Write Tests: Verify XGBoost, PyTorch, and Scikit-learn model initialization and basic fit.
     - [x] Implement: Create modular training classes for supported frameworks.
@@ -22,10 +22,10 @@
 - [x] Task: Model Performance Drift Detection 38b98df
     - [x] Write Tests: Verify drift detection triggers when performance metrics degrade.
     - [x] Implement: Logic to track and compare current RMSE/MAE against rolling historical baselines.
-- [~] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md) 7be2a22
 
 ## Phase 3: Tracking and Observability Integration
-- [ ] Task: MLflow Experiment Tracking
+- [~] Task: MLflow Experiment Tracking
     - [ ] Write Tests: Verify logging of parameters, metrics, and model artifacts to MLflow.
     - [ ] Implement: Detailed MLflow instrumentation including model lineage and feature importance plots.
 - [ ] Task: Prometheus Metrics and Structured Logging
