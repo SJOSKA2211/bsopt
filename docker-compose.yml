@@ -1,0 +1,226 @@
+version: '3.9'
+
+x-logging: &logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    tag: "{{.Name}}"
+
+services:
+  # ============================================================================
+  # OBSERVABILITY STACK (Loki / Prometheus / Grafana / Promtail)
+  # ============================================================================
+  
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: bsopt-prometheus
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor-net
+    restart: always
+
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: bsopt-loki
+    volumes:
+      - ./monitoring/loki:/etc/loki
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - monitor-net
+    restart: always
+
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: bsopt-promtail
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./monitoring/promtail:/etc/promtail
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - monitor-net
+    restart: always
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: bsopt-grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - monitor-net
+    restart: always
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: bsopt-cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - monitor-net
+    restart: unless-stopped
+
+  # ============================================================================
+  # CORE INFRASTRUCTURE
+  # ============================================================================
+
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: bsopt-postgres
+    shm_size: 1g
+    environment:
+      POSTGRES_DB: bsopt
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: mlflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d bsopt"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2'
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: bsopt-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    environment:
+      - REDIS_ADDR=redis://:${REDIS_PASSWORD}@redis:6379
+    networks:
+      - monitor-net
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: bsopt-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+
+  # ============================================================================
+  # APPLICATION LAYER
+  # ============================================================================
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bsopt-api
+    logging: *logging
+    environment:
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@postgres:5432/bsopt
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/bsopt
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bsopt-net
+      - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: always
+
+  ml-pipeline:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ml
+    container_name: bsopt-ml-pipeline
+    logging: *logging
+    environment:
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@postgres:5432/bsopt
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      PUSHGATEWAY_URL: pushgateway:9091
+    volumes:
+      - model_artifacts:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
+  model_artifacts:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  bsopt-net:
+    driver: bridge
+  monitor-net:
+    driver: bridge
