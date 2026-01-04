@@ -4,9 +4,9 @@
 - [x] Task: Project structure and environment setup e428b2a
     - [x] Write Tests: Verify base directories and basic dependency loading.
     - [x] Implement: Create `src/ml`, `src/shared` and configure base Python environment.
-- [ ] Task: Resilient Data Scraper Implementation
-    - [ ] Write Tests: Mock API responses and verify scraper retry logic and error handling.
-    - [ ] Implement: Create `MarketDataScraper` supporting Polygon and Yahoo Finance APIs.
+- [x] Task: Resilient Data Scraper Implementation 9b32997
+    - [x] Write Tests: Mock API responses and verify scraper retry logic and error handling.
+    - [x] Implement: Create `MarketDataScraper` supporting Polygon and Yahoo Finance APIs.
 - [ ] Task: Hybrid Storage Implementation (TimescaleDB & MinIO)
     - [ ] Write Tests: Verify CRUD operations for TimescaleDB and Parquet file handling for MinIO.
     - [ ] Implement: Setup SQLAlchemy models for "hot" data and MinIO client for "cold" storage.
