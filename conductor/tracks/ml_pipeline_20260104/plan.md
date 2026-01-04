@@ -7,10 +7,10 @@
 - [x] Task: Resilient Data Scraper Implementation 9b32997
     - [x] Write Tests: Mock API responses and verify scraper retry logic and error handling.
     - [x] Implement: Create `MarketDataScraper` supporting Polygon and Yahoo Finance APIs.
-- [ ] Task: Hybrid Storage Implementation (TimescaleDB & MinIO)
-    - [ ] Write Tests: Verify CRUD operations for TimescaleDB and Parquet file handling for MinIO.
-    - [ ] Implement: Setup SQLAlchemy models for "hot" data and MinIO client for "cold" storage.
-- [ ] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md)
+- [x] Task: Hybrid Storage Implementation (TimescaleDB & MinIO) b507604
+    - [x] Write Tests: Verify CRUD operations for TimescaleDB and Parquet file handling for MinIO.
+    - [x] Implement: Setup SQLAlchemy models for "hot" data and MinIO client for "cold" storage.
+- [~] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md)
 
 ## Phase 2: Core ML Pipeline and Optimization
 - [ ] Task: Multi-Framework Training Loop Scaffolding
