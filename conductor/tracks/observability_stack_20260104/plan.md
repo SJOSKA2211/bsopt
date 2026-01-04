@@ -23,5 +23,5 @@
 ## Phase 4: Final Integration & Dashboards
 - [x] Task: Verify end-to-end log flow from ML Pipeline to Loki/Grafana (3f435e4)
 - [x] Task: Verify end-to-end metrics flow from Pushgateway to Prometheus/Grafana (2d4a9c3)
-- [~] Task: Import basic "Node Exporter Full" and custom BS-Opt metrics dashboards into Grafana
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Dashboards' (Protocol in workflow.md)
+- [x] Task: Import basic "Node Exporter Full" and custom BS-Opt metrics dashboards into Grafana (4940413)
+- [~] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Dashboards' (Protocol in workflow.md)
