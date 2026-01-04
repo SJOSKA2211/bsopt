@@ -12,7 +12,7 @@
     - [ ] Implement: Setup SQLAlchemy models and persistence layer for TimescaleDB
 - [ ] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md)
 
-## Phase 2: Core ML Pipeline and Optimization
+## Phase 2: Core ML Pipeline and Optimization [checkpoint: 4da25e2]
 - [x] Task: Data Pipeline and Drift Detection 77510e3
     - [ ] Write Tests: Verify PSI (Population Stability Index) calculation logic
     - [ ] Implement: Build data processing pipeline with PSI-based drift detection
