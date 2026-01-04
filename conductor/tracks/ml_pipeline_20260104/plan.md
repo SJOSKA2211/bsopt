@@ -16,10 +16,10 @@
 - [x] Task: Multi-Framework Training Loop Scaffolding c331ec4
     - [x] Write Tests: Verify XGBoost, PyTorch, and Scikit-learn model initialization and basic fit.
     - [x] Implement: Create modular training classes for supported frameworks.
-- [~] Task: Optuna Integration for Hyperparameter Tuning
-    - [ ] Write Tests: Verify Optuna study creation and successful trial completion.
-    - [ ] Implement: Integrate `InstrumentedTrainer` with Optuna optimization loops.
-- [ ] Task: Model Performance Drift Detection
+- [x] Task: Optuna Integration for Hyperparameter Tuning 0e61696
+    - [x] Write Tests: Verify Optuna study creation and successful trial completion.
+    - [x] Implement: Integrate `InstrumentedTrainer` with Optuna optimization loops.
+- [~] Task: Model Performance Drift Detection
     - [ ] Write Tests: Verify drift detection triggers when performance metrics degrade.
     - [ ] Implement: Logic to track and compare current RMSE/MAE against rolling historical baselines.
 - [ ] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md)
