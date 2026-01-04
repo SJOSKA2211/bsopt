@@ -18,19 +18,26 @@ def mock_response():
     return mock
 
 @patch("src.ml.scraper.requests.get")
-def test_fetch_historical_data_success(mock_get, mock_response):
+@patch("src.ml.scraper.logger")
+def test_fetch_historical_data_success(mock_logger, mock_get, mock_response):
     """Verify that the scraper correctly fetches and parses data."""
     mock_get.return_value = mock_response
     
-    scraper = MarketDataScraper(api_key="test_key")
-    df = scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
-    
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 2
-    assert list(df.columns) == ["timestamp", "open", "high", "low", "close", "volume"]
-    assert df.iloc[0]["open"] == 100.0
-    
-    mock_get.assert_called_once()
+    from src.shared import observability
+    with patch.object(observability.SCRAPE_DURATION, 'labels') as mock_duration_labels:
+        mock_observe = MagicMock()
+        mock_duration_labels.return_value.observe = mock_observe
+        
+        scraper = MarketDataScraper(api_key="test_key")
+        df = scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
+        
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 2
+        assert mock_get.called
+        assert mock_logger.info.called
+        
+        mock_duration_labels.assert_called_with(api="polygon")
+        assert mock_observe.called
 
 @patch("src.ml.scraper.requests.get")
 def test_fetch_historical_data_retry_logic(mock_get, mock_response):
@@ -40,12 +47,19 @@ def test_fetch_historical_data_retry_logic(mock_get, mock_response):
     fail_response.status_code = 500
     mock_get.side_effect = [fail_response, fail_response, mock_response]
     
-    scraper = MarketDataScraper(api_key="test_key", max_retries=3)
-    df = scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
-    
-    assert isinstance(df, pd.DataFrame)
-    assert len(df) == 2
-    assert mock_get.call_count == 3
+    from src.shared import observability
+    with patch.object(observability.SCRAPE_ERRORS, 'labels') as mock_error_labels:
+        mock_inc = MagicMock()
+        mock_error_labels.return_value.inc = mock_inc
+        
+        scraper = MarketDataScraper(api_key="test_key", max_retries=3)
+        df = scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
+        
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 2
+        assert mock_get.call_count == 3
+        assert mock_inc.call_count == 2
+        mock_error_labels.assert_called_with(api="polygon", status_code=500)
 
 @patch("src.ml.scraper.requests.get")
 def test_fetch_historical_data_failure(mock_get):

@@ -53,18 +53,29 @@ def test_trainer_logging(mock_logger, sample_data):
     assert mock_logger.info.called
 
 def test_trainer_prometheus_metrics_usage(sample_data):
+    """Verify that Prometheus metrics are updated during training."""
+    from src.shared import observability
     X, y = sample_data
     trainer = InstrumentedTrainer(study_name="test_study")
     
     # Mock the metrics to verify they are called
-    trainer.training_duration_metric = MagicMock()
-    trainer.model_accuracy_metric = MagicMock()
-    
-    params = {"max_depth": 3, "learning_rate": 0.1}
-    trainer.train_and_evaluate(X, y, params)
-    
-    trainer.training_duration_metric.observe.assert_called_once()
-    trainer.model_accuracy_metric.set.assert_called_once()
+    with patch.object(observability.TRAINING_DURATION, 'labels') as mock_duration_labels, \
+         patch.object(observability.MODEL_ACCURACY, 'labels') as mock_accuracy_labels:
+        
+        mock_duration_observe = MagicMock()
+        mock_duration_labels.return_value.observe = mock_duration_observe
+        
+        mock_accuracy_set = MagicMock()
+        mock_accuracy_labels.return_value.set = mock_accuracy_set
+        
+        params = {"max_depth": 3, "learning_rate": 0.1, "framework": "xgboost"}
+        trainer.train_and_evaluate(X, y, params)
+        
+        mock_duration_labels.assert_called_with(framework="xgboost")
+        mock_duration_observe.assert_called_once()
+        
+        mock_accuracy_labels.assert_called_with(framework="xgboost")
+        mock_accuracy_set.assert_called_once()
 
 def test_trainer_mlflow_uri():
     with patch("mlflow.set_tracking_uri") as mock_set_uri:

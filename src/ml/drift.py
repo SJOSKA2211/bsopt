@@ -4,14 +4,10 @@ from prometheus_client import Gauge
 from typing import List, Union, Tuple, Optional
 from scipy.stats import ks_2samp
 from collections import deque
+from src.shared.observability import DATA_DRIFT_SCORE, KS_TEST_SCORE, PERFORMANCE_DRIFT_ALERT
 
 # Initialize structured logger
 logger = structlog.get_logger()
-
-# Prometheus metrics
-DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
-KS_TEST_SCORE = Gauge('ml_ks_test_p_value', 'P-value from Kolmogorov-Smirnov test')
-PERFORMANCE_DRIFT_ALERT = Gauge('ml_performance_drift_alert', 'Binary alert for performance drift (1 if drift detected, 0 otherwise)')
 
 class PerformanceDriftMonitor:
     """

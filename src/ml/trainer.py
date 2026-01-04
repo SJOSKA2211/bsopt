@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from typing import Dict, Any, Callable, Optional, List
+from src.shared.observability import TRAINING_DURATION, MODEL_ACCURACY
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -128,10 +129,6 @@ class InstrumentedTrainer:
     experiment tracking (MLflow), and observability (Prometheus).
     """
     
-    # Prometheus metrics
-    training_duration_metric = Summary('training_duration_seconds', 'Time spent in training')
-    model_accuracy_metric = Gauge('model_accuracy_score', 'Accuracy score of the latest model')
-
     def __init__(self, study_name: str, storage: str = None, tracking_uri: str = None):
         self.study_name = study_name
         self.storage = storage
@@ -201,8 +198,8 @@ class InstrumentedTrainer:
                 os.remove(plot_path)
                 os.rmdir(os.path.dirname(plot_path))
             
-            self.training_duration_metric.observe(duration)
-            self.model_accuracy_metric.set(accuracy)
+            TRAINING_DURATION.labels(framework=framework).observe(duration)
+            MODEL_ACCURACY.labels(framework=framework).set(accuracy)
             
             self.model = model
             logger.info("model_trained", framework=framework, accuracy=accuracy, duration=duration, params=params)
