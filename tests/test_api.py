@@ -19,3 +19,10 @@ def test_metrics_endpoint():
     assert response.status_code == 200
     assert "api_requests_total" in response.text
     assert 'endpoint="/"' in response.text
+    assert 'http_status="200"' in response.text
+    assert "api_request_latency_seconds" in response.text
+
+def test_health_endpoint():
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "healthy"}
