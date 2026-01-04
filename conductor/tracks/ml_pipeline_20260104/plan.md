@@ -13,10 +13,10 @@
 - [x] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md) b7b96e6
 
 ## Phase 2: Core ML Pipeline and Optimization
-- [~] Task: Multi-Framework Training Loop Scaffolding
-    - [ ] Write Tests: Verify XGBoost, PyTorch, and Scikit-learn model initialization and basic fit.
-    - [ ] Implement: Create modular training classes for supported frameworks.
-- [ ] Task: Optuna Integration for Hyperparameter Tuning
+- [x] Task: Multi-Framework Training Loop Scaffolding c331ec4
+    - [x] Write Tests: Verify XGBoost, PyTorch, and Scikit-learn model initialization and basic fit.
+    - [x] Implement: Create modular training classes for supported frameworks.
+- [~] Task: Optuna Integration for Hyperparameter Tuning
     - [ ] Write Tests: Verify Optuna study creation and successful trial completion.
     - [ ] Implement: Integrate `InstrumentedTrainer` with Optuna optimization loops.
 - [ ] Task: Model Performance Drift Detection
