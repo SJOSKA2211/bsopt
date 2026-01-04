@@ -28,10 +28,10 @@
 - [x] Task: MLflow Experiment Tracking 725d837
     - [x] Write Tests: Verify logging of parameters, metrics, and model artifacts to MLflow.
     - [x] Implement: Detailed MLflow instrumentation including model lineage and feature importance plots.
-- [~] Task: Prometheus Metrics and Structured Logging
-    - [ ] Write Tests: Verify metric emission format and JSON log structure for Loki compliance.
-    - [ ] Implement: `structlog` and `prometheus-client` integration throughout the pipeline.
-- [ ] Task: Alerting Rules and Dashboard JSON
+- [x] Task: Prometheus Metrics and Structured Logging 5650bac
+    - [x] Write Tests: Verify metric emission format and JSON log structure for Loki compliance.
+    - [x] Implement: `structlog` and `prometheus-client` integration throughout the pipeline.
+- [~] Task: Alerting Rules and Dashboard JSON
     - [ ] Write Tests: Verify alerting rule logic and dashboard schema validity.
     - [ ] Implement: Generate Grafana dashboard JSON and AlertManager configuration for pipeline health.
 - [ ] Task: Conductor - User Manual Verification 'Tracking and Observability Integration' (Protocol in workflow.md)
