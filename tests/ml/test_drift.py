@@ -98,3 +98,13 @@ def test_performance_drift_monitor():
     
     # Improvement should not trigger drift
     assert monitor.detect_drift(0.95) is False
+
+def test_performance_drift_insufficient_history():
+    """Verify that drift detection is skipped when history is insufficient."""
+    from src.ml.drift import PerformanceDriftMonitor
+    
+    monitor = PerformanceDriftMonitor(window_size=5)
+    monitor.add_metric(0.8)
+    
+    # History size is 1, window size is 5 -> should return False
+    assert monitor.detect_drift(0.7) is False

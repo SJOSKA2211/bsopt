@@ -121,3 +121,15 @@ def test_trainer_optuna_integration(sample_data):
     assert len(study.trials) == 5
     assert "n_estimators" in study.best_params
     assert study.best_value >= 0
+
+def test_base_trainer_abstract_methods():
+    """Verify that BaseTrainer raises NotImplementedError."""
+    from src.ml.trainer import BaseTrainer
+    
+    trainer = BaseTrainer()
+    
+    with pytest.raises(NotImplementedError):
+        trainer.train(None, None, None, None, {})
+        
+    with pytest.raises(NotImplementedError):
+        trainer.predict(None, None)
