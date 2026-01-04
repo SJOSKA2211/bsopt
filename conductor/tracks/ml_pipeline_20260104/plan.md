@@ -31,10 +31,10 @@
 - [x] Task: Prometheus Metrics and Structured Logging 5650bac
     - [x] Write Tests: Verify metric emission format and JSON log structure for Loki compliance.
     - [x] Implement: `structlog` and `prometheus-client` integration throughout the pipeline.
-- [~] Task: Alerting Rules and Dashboard JSON
-    - [ ] Write Tests: Verify alerting rule logic and dashboard schema validity.
-    - [ ] Implement: Generate Grafana dashboard JSON and AlertManager configuration for pipeline health.
-- [ ] Task: Conductor - User Manual Verification 'Tracking and Observability Integration' (Protocol in workflow.md)
+- [x] Task: Alerting Rules and Dashboard JSON 57b6a8e
+    - [x] Write Tests: Verify alerting rule logic and dashboard schema validity.
+    - [x] Implement: Generate Grafana dashboard JSON and AlertManager configuration for pipeline health.
+- [~] Task: Conductor - User Manual Verification 'Tracking and Observability Integration' (Protocol in workflow.md)
 
 ## Phase 4: Pipeline Orchestration and Refinement
 - [ ] Task: End-to-End Autonomous Pipeline Integration
