@@ -18,8 +18,9 @@ def test_ks_test_instrumentation(mock_gauge, mock_logger):
 
 def test_calculate_ks_test_no_drift():
     """Verify that KS test returns high p-value when distributions are identical."""
-    expected = np.random.normal(0, 1, 1000)
-    actual = np.random.normal(0, 1, 1000)
+    np.random.seed(42)
+    expected = np.random.normal(0, 1, 2000)
+    actual = np.random.normal(0, 1, 2000)
     
     statistic, p_value = calculate_ks_test(expected, actual)
     # p-value should be high (usually > 0.05 means no significant difference)
@@ -27,6 +28,7 @@ def test_calculate_ks_test_no_drift():
 
 def test_calculate_ks_test_significant_drift():
     """Verify that KS test returns low p-value when distributions are different."""
+    np.random.seed(42)
     expected = np.random.normal(0, 1, 1000)
     actual = np.random.normal(5, 1, 1000)
     
@@ -75,3 +77,24 @@ def test_calculate_psi_zero_bin_handling():
     # It should not raise ZeroDivisionError or return NaN
     assert not np.isnan(psi_score)
     assert psi_score > 0
+
+def test_performance_drift_monitor():
+    """Verify that performance drift is correctly detected."""
+    from src.ml.drift import PerformanceDriftMonitor
+    
+    # Initialize monitor with a window size of 3
+    monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1)
+    
+    # Add initial metrics (baseline)
+    monitor.add_metric(0.85) # Run 1
+    monitor.add_metric(0.86) # Run 2
+    monitor.add_metric(0.84) # Run 3
+    
+    # No drift yet
+    assert monitor.detect_drift(0.84) is False
+    
+    # Significant degradation (baseline average is 0.85, 0.70 is > 0.1 lower)
+    assert monitor.detect_drift(0.70) is True
+    
+    # Improvement should not trigger drift
+    assert monitor.detect_drift(0.95) is False

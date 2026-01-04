@@ -1,8 +1,9 @@
 import numpy as np
 import structlog
 from prometheus_client import Gauge
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 from scipy.stats import ks_2samp
+from collections import deque
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -10,6 +11,47 @@ logger = structlog.get_logger()
 # Prometheus metrics
 DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
 KS_TEST_SCORE = Gauge('ml_ks_test_p_value', 'P-value from Kolmogorov-Smirnov test')
+PERFORMANCE_DRIFT_ALERT = Gauge('ml_performance_drift_alert', 'Binary alert for performance drift (1 if drift detected, 0 otherwise)')
+
+class PerformanceDriftMonitor:
+    """
+    Monitors model performance (e.g., accuracy, RMSE) for degradation over time.
+    Uses a rolling window of historical performance as a baseline.
+    """
+    def __init__(self, window_size: int = 5, threshold: float = 0.05):
+        self.history = deque(maxlen=window_size)
+        self.threshold = threshold
+        self.window_size = window_size
+
+    def add_metric(self, value: float):
+        """Adds a new performance metric to the historical baseline."""
+        self.history.append(value)
+
+    def detect_drift(self, current_value: float) -> bool:
+        """
+        Detects if the current performance value has drifted (degraded)
+        significantly from the historical baseline.
+        """
+        if len(self.history) < self.window_size:
+            logger.debug("drift_detection_skipped", reason="insufficient_history")
+            return False
+        
+        baseline = sum(self.history) / len(self.history)
+        
+        # We consider drift if current_value is LOWER than (baseline - threshold)
+        # Assuming higher is better (like accuracy). 
+        # For RMSE, logic would be inverted, but we'll stick to 'higher is better' for now
+        # and document that RMSE should be passed as -RMSE or similar if needed.
+        is_drifted = current_value < (baseline - self.threshold)
+        
+        PERFORMANCE_DRIFT_ALERT.set(1 if is_drifted else 0)
+        
+        if is_drifted:
+            logger.warning("performance_drift_detected", baseline=baseline, current=current_value, threshold=self.threshold)
+        else:
+            logger.info("performance_check_passed", baseline=baseline, current=current_value)
+            
+        return bool(is_drifted)
 
 def calculate_ks_test(expected: np.ndarray, actual: Union[np.ndarray, List]) -> Tuple[float, float]:
     """
