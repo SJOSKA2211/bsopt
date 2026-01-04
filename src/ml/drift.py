@@ -1,5 +1,13 @@
 import numpy as np
+import structlog
+from prometheus_client import Gauge
 from typing import List, Union
+
+# Initialize structured logger
+logger = structlog.get_logger()
+
+# Prometheus metrics
+DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
 
 def calculate_psi(expected: np.ndarray, actual: Union[np.ndarray, List], buckets: int = 10) -> float:
     """
@@ -15,6 +23,8 @@ def calculate_psi(expected: np.ndarray, actual: Union[np.ndarray, List], buckets
     Returns:
         float: The PSI score.
     """
+    logger.info("psi_calculation_started", buckets=buckets)
+    
     expected = np.array(expected)
     actual = np.array(actual)
 
@@ -44,5 +54,10 @@ def calculate_psi(expected: np.ndarray, actual: Union[np.ndarray, List], buckets
     # Calculate PSI
     psi_values = (actual_percents - expected_percents) * np.log(actual_percents / expected_percents)
     psi_score = np.sum(psi_values)
+
+    # Emit Prometheus metric
+    DATA_DRIFT_SCORE.set(psi_score)
+    
+    logger.info("psi_calculation_completed", psi_score=psi_score)
 
     return float(psi_score)
