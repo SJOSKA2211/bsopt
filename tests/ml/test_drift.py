@@ -1,7 +1,38 @@
 import numpy as np
 import pytest
 from unittest.mock import patch, MagicMock
-from src.ml.drift import calculate_psi
+from src.ml.drift import calculate_psi, calculate_ks_test
+
+@patch("src.ml.drift.logger")
+@patch("src.ml.drift.KS_TEST_SCORE")
+def test_ks_test_instrumentation(mock_gauge, mock_logger):
+    expected = np.random.normal(0, 1, 100)
+    actual = np.random.normal(0, 1, 100)
+    
+    calculate_ks_test(expected, actual)
+    
+    # Verify logger was called
+    assert mock_logger.info.called
+    # Verify prometheus gauge was updated
+    mock_gauge.set.assert_called_once()
+
+def test_calculate_ks_test_no_drift():
+    """Verify that KS test returns high p-value when distributions are identical."""
+    expected = np.random.normal(0, 1, 1000)
+    actual = np.random.normal(0, 1, 1000)
+    
+    statistic, p_value = calculate_ks_test(expected, actual)
+    # p-value should be high (usually > 0.05 means no significant difference)
+    assert p_value > 0.05
+
+def test_calculate_ks_test_significant_drift():
+    """Verify that KS test returns low p-value when distributions are different."""
+    expected = np.random.normal(0, 1, 1000)
+    actual = np.random.normal(5, 1, 1000)
+    
+    statistic, p_value = calculate_ks_test(expected, actual)
+    # p-value should be very low
+    assert p_value < 0.01
 
 @patch("src.ml.drift.logger")
 @patch("src.ml.drift.DATA_DRIFT_SCORE")

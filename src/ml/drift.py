@@ -1,13 +1,40 @@
 import numpy as np
 import structlog
 from prometheus_client import Gauge
-from typing import List, Union
+from typing import List, Union, Tuple
+from scipy.stats import ks_2samp
 
 # Initialize structured logger
 logger = structlog.get_logger()
 
 # Prometheus metrics
 DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
+KS_TEST_SCORE = Gauge('ml_ks_test_p_value', 'P-value from Kolmogorov-Smirnov test')
+
+def calculate_ks_test(expected: np.ndarray, actual: Union[np.ndarray, List]) -> Tuple[float, float]:
+    """
+    Calculates the Kolmogorov-Smirnov (KS) test between two distributions.
+    
+    Args:
+        expected: Reference dataset (e.g., training data).
+        actual: Current dataset (e.g., production data).
+        
+    Returns:
+        Tuple[float, float]: The KS statistic and the p-value.
+    """
+    logger.info("ks_test_calculation_started")
+    
+    expected = np.array(expected)
+    actual = np.array(actual)
+    
+    statistic, p_value = ks_2samp(expected, actual)
+    
+    # Emit Prometheus metric
+    KS_TEST_SCORE.set(p_value)
+    
+    logger.info("ks_test_calculation_completed", statistic=statistic, p_value=p_value)
+    
+    return float(statistic), float(p_value)
 
 def calculate_psi(expected: np.ndarray, actual: Union[np.ndarray, List], buckets: int = 10) -> float:
     """
