@@ -9,8 +9,8 @@
 
 ## Phase 2: ML Pipeline Instrumentation (TDD)
 - [x] Task: Write unit tests for `InstrumentedTrainer` metrics logic and `structlog` configuration (2da0d1c)
-- [~] Task: Implement `structlog` configuration and Prometheus metrics in `src/ml/autonomous_pipeline.py`
-- [ ] Task: Write unit tests for `ResilientDataPipeline` drift detection metrics
+- [x] Task: Implement `structlog` configuration and Prometheus metrics in `src/ml/autonomous_pipeline.py` (04e9ff2)
+- [~] Task: Write unit tests for `ResilientDataPipeline` drift detection metrics
 - [ ] Task: Implement drift metrics (PSI) in `src/ml/autonomous_pipeline.py`
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: ML Pipeline Instrumentation' (Protocol in workflow.md)
 
