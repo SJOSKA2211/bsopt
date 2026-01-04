@@ -12,7 +12,7 @@
     - [ ] Implement: Setup SQLAlchemy models and persistence layer for TimescaleDB
 - [x] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md) df4693c
 
-## Phase 2: Core ML Pipeline and Optimization
+## Phase 2: Core ML Pipeline and Optimization [checkpoint: 0ee1da3]
 - [x] Task: Data Pipeline and Drift Detection 7287197
     - [ ] Write Tests: Verify KS Test (Kolmogorov-Smirnov) calculation logic
     - [ ] Implement: Build data processing pipeline with KS-based drift detection
