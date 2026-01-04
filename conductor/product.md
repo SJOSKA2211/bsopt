@@ -636,7 +636,7 @@ To provide a production-hardened, industrial-grade platform for Black-Scholes al
 ## Target Users
 - **Quant Analysts & Data Scientists:** For model development, training, and optimization.
 - **Financial Traders / Portfolio Managers:** For real-time option pricing and execution.
-- **DevOps / Platform Engineers:** For monitoring system health, latency, and pipeline resilience.
+- **DevOps / MLOps Engineers:** For monitoring system health, managing the compute grid, and ensuring pipeline resilience.
 
 ## Primary Goals
 - **Industrial-Grade Resilience:** Sidecar monitoring and optimized Docker configurations.
@@ -645,15 +645,15 @@ To provide a production-hardened, industrial-grade platform for Black-Scholes al
 
 ## Core Features
 - **Pricing Engine:** Real-time Black-Scholes calculations using QuantLib.
-- **AutoML Pipeline:** Autonomous XGBoost/Torch training with Optuna optimization.
+- **AutoML Pipeline:** Autonomous multi-framework (XGBoost, PyTorch, Scikit-learn) training with Optuna optimization and Celery orchestration.
 - **Observability Stack:** Real-time dashboards for Greeks drift and training metrics.
 
 ## Functional Requirements
 - **Data Ingestion:** Resilient scrapers for market data (Polygon/Yahoo).
-- **Messaging & State:** Distributed processing via RabbitMQ and Redis Cluster.
+- **Messaging & State:** Distributed task execution via Celery, with RabbitMQ/Redis backends.
 - **Persistence:** TimescaleDB for market data, MinIO for artifacts, and MLflow for registry.
 
 ## Success Metrics
 - **System Uptime:** Target 99.9% availability for trading and pricing services.
-- **Model Health:** Minimal Root Mean Squared Error (RMSE) and Population Stability Index (PSI) drift.
+- **Model Health:** Minimal Root Mean Squared Error (RMSE) and Kolmogorov-Smirnov (KS) test drift detection.
 - **Latency:** Sub-millisecond pricing calculations and responsive API gateway.
