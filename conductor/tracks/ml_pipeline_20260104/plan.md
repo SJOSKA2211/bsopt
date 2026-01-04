@@ -1,6 +1,6 @@
 # Track Plan: Build the Autonomous ML Pipeline
 
-## Phase 1: Foundation and Data Ingestion
+## Phase 1: Foundation and Data Ingestion [checkpoint: b7b96e6]
 - [x] Task: Project structure and environment setup e428b2a
     - [x] Write Tests: Verify base directories and basic dependency loading.
     - [x] Implement: Create `src/ml`, `src/shared` and configure base Python environment.
@@ -10,10 +10,10 @@
 - [x] Task: Hybrid Storage Implementation (TimescaleDB & MinIO) b507604
     - [x] Write Tests: Verify CRUD operations for TimescaleDB and Parquet file handling for MinIO.
     - [x] Implement: Setup SQLAlchemy models for "hot" data and MinIO client for "cold" storage.
-- [~] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Foundation and Data Ingestion' (Protocol in workflow.md) b7b96e6
 
 ## Phase 2: Core ML Pipeline and Optimization
-- [ ] Task: Multi-Framework Training Loop Scaffolding
+- [~] Task: Multi-Framework Training Loop Scaffolding
     - [ ] Write Tests: Verify XGBoost, PyTorch, and Scikit-learn model initialization and basic fit.
     - [ ] Implement: Create modular training classes for supported frameworks.
 - [ ] Task: Optuna Integration for Hyperparameter Tuning
