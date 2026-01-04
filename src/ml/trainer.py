@@ -3,13 +3,91 @@ import optuna
 import xgboost as xgb
 import mlflow
 import structlog
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
 from prometheus_client import Summary, Gauge
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from typing import Dict, Any, Callable
+from sklearn.ensemble import RandomForestClassifier
+from typing import Dict, Any, Callable, Optional
 
 # Initialize structured logger
 logger = structlog.get_logger()
+
+class BaseTrainer:
+    """Base class for all trainers."""
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
+        raise NotImplementedError
+
+    def predict(self, model: Any, X: Any) -> Any:
+        raise NotImplementedError
+
+class XGBoostTrainer(BaseTrainer):
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
+        dtrain = xgb.DMatrix(X_train, label=y_train)
+        xgb_params = params.copy()
+        n_estimators = xgb_params.pop("n_estimators", 100)
+        # Remove framework key if present to avoid XGBoost warning
+        xgb_params.pop("framework", None)
+        return xgb.train(xgb_params, dtrain, num_boost_round=n_estimators)
+
+    def predict(self, model: Any, X: Any) -> Any:
+        dtest = xgb.DMatrix(X)
+        y_pred_prob = model.predict(dtest)
+        return (y_pred_prob > 0.5).astype(int)
+
+class SklearnTrainer(BaseTrainer):
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
+        sk_params = params.copy()
+        sk_params.pop("framework", None)
+        model = RandomForestClassifier(**sk_params)
+        model.fit(X_train, y_train)
+        return model
+
+    def predict(self, model: Any, X: Any) -> Any:
+        return model.predict(X)
+
+class PyTorchTrainer(BaseTrainer):
+    class SimpleNet(nn.Module):
+        def __init__(self, input_dim: int):
+            super().__init__()
+            self.fc = nn.Sequential(
+                nn.Linear(input_dim, 16),
+                nn.ReLU(),
+                nn.Linear(16, 1),
+                nn.Sigmoid()
+            )
+        def forward(self, x):
+            return self.fc(x)
+
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
+        epochs = params.get("epochs", 10)
+        lr = params.get("lr", 0.01)
+        
+        X_train_t = torch.FloatTensor(X_train)
+        y_train_t = torch.FloatTensor(y_train).view(-1, 1)
+        
+        model = self.SimpleNet(X_train.shape[1])
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+        criterion = nn.BCELoss()
+        
+        model.train()
+        for epoch in range(epochs):
+            optimizer.zero_grad()
+            outputs = model(X_train_t)
+            loss = criterion(outputs, y_train_t)
+            loss.backward()
+            optimizer.step()
+        return model
+
+    def predict(self, model: Any, X: Any) -> Any:
+        model.eval()
+        with torch.no_grad():
+            X_t = torch.FloatTensor(X)
+            outputs = model(X_t)
+            return (outputs.numpy() > 0.5).astype(int).flatten()
 
 class InstrumentedTrainer:
     """
@@ -28,54 +106,43 @@ class InstrumentedTrainer:
         self.best_params = {}
         if tracking_uri:
             mlflow.set_tracking_uri(tracking_uri)
+        
+        self.trainers = {
+            "xgboost": XGBoostTrainer(),
+            "sklearn": SklearnTrainer(),
+            "pytorch": PyTorchTrainer()
+        }
 
     def train_and_evaluate(self, X: Any, y: Any, params: Dict[str, Any]) -> float:
         """
-        Trains an XGBoost model and evaluates its performance.
+        Trains a model and evaluates its performance.
         Logs metrics and parameters to MLflow.
         """
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
+        framework = params.get("framework", "xgboost")
+        trainer = self.trainers.get(framework, self.trainers["xgboost"])
+        
         with mlflow.start_run(nested=True):
-            # Log parameters
             mlflow.log_params(params)
             
-            # Start timer for Prometheus
             start_time = time.time()
+            model = trainer.train(X_train, y_train, X_test, y_test, params)
+            y_pred = trainer.predict(model, X_test)
             
-            # Train model
-            dtrain = xgb.DMatrix(X_train, label=y_train)
-            dtest = xgb.DMatrix(X_test, label=y_test)
-            
-            # XGBoost params (adding some defaults if not in params)
-            xgb_params = params.copy()
-            n_estimators = xgb_params.pop("n_estimators", 100)
-            
-            model = xgb.train(xgb_params, dtrain, num_boost_round=n_estimators)
-            
-            # Predict and evaluate
-            y_pred_prob = model.predict(dtest)
-            y_pred = (y_pred_prob > 0.5).astype(int)
             accuracy = accuracy_score(y_test, y_pred)
-            
-            # Calculate duration
             duration = time.time() - start_time
             
-            # Log metrics to MLflow
             mlflow.log_metric("accuracy", accuracy)
             mlflow.log_metric("duration", duration)
             
-            # Emit Prometheus metrics
             self.training_duration_metric.observe(duration)
             self.model_accuracy_metric.set(accuracy)
             
-            # Update best model if accuracy is better (internal tracking for this session)
-            # In a real scenario, you'd probably handle this differently
             self.model = model
+            logger.info("model_trained", framework=framework, accuracy=accuracy, duration=duration, params=params)
             
-            logger.info("model_trained", accuracy=accuracy, duration=duration, params=params)
-            
-            return accuracy
+            return float(accuracy)
 
     def optimize(self, objective: Callable, n_trials: int = 20) -> optuna.study.Study:
         """
