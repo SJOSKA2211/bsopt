@@ -115,9 +115,10 @@ def test_pipeline_scrape_metrics():
         mock_errors.labels.assert_called_with(api="alpha_vantage", status_code="error")
         assert mock_errors_labels.inc.called
 
-    # Test Success Path (Duration)
+    # Test Success Path (Duration and Drift)
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
          patch("src.ml.autonomous_pipeline.SCRAPE_DURATION") as mock_duration, \
+         patch("src.ml.autonomous_pipeline.calculate_psi") as mock_psi, \
          patch("src.ml.autonomous_pipeline.get_db_session"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
          patch("src.ml.autonomous_pipeline.Base.metadata.create_all"), \
@@ -132,6 +133,7 @@ def test_pipeline_scrape_metrics():
         
         mock_duration_labels = MagicMock()
         mock_duration.labels.return_value = mock_duration_labels
+        mock_psi.return_value = 0.05
         
         pipeline = AutonomousMLPipeline(config)
         
@@ -142,3 +144,4 @@ def test_pipeline_scrape_metrics():
              
         mock_duration.labels.assert_called_with(api="alpha_vantage")
         assert mock_duration_labels.time.called
+        assert mock_psi.called

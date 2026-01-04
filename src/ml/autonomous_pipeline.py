@@ -4,7 +4,7 @@ import numpy as np
 from typing import Dict, Any
 from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
-from src.ml.drift import calculate_ks_test, PerformanceDriftMonitor
+from src.ml.drift import calculate_ks_test, calculate_psi, PerformanceDriftMonitor
 from src.ml.trainer import InstrumentedTrainer
 from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS
 from sqlalchemy import create_engine
@@ -72,8 +72,14 @@ class AutonomousMLPipeline:
             historical_prices = df["close"].values
             # Mocking "current" data for demo (e.g., last 100 points)
             current_prices = historical_prices[-100:] if len(historical_prices) > 100 else historical_prices
+            
             statistic, p_value = calculate_ks_test(historical_prices, current_prices)
-            logger.info("data_drift_checked", ks_statistic=statistic, p_value=p_value)
+            psi_score = calculate_psi(historical_prices, current_prices)
+            
+            logger.info("data_drift_checked", 
+                        ks_statistic=statistic, 
+                        p_value=p_value,
+                        psi_score=psi_score)
             
             # 4. Autonomous Training
             trainer = InstrumentedTrainer(study_name=self.study_name)
