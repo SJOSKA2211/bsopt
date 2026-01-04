@@ -24,7 +24,7 @@
     - [x] Implement: Logic to track and compare current RMSE/MAE against rolling historical baselines.
 - [x] Task: Conductor - User Manual Verification 'Core ML Pipeline and Optimization' (Protocol in workflow.md) 7be2a22
 
-## Phase 3: Tracking and Observability Integration
+## Phase 3: Tracking and Observability Integration [checkpoint: d79c464]
 - [x] Task: MLflow Experiment Tracking 725d837
     - [x] Write Tests: Verify logging of parameters, metrics, and model artifacts to MLflow.
     - [x] Implement: Detailed MLflow instrumentation including model lineage and feature importance plots.
@@ -34,10 +34,10 @@
 - [x] Task: Alerting Rules and Dashboard JSON 57b6a8e
     - [x] Write Tests: Verify alerting rule logic and dashboard schema validity.
     - [x] Implement: Generate Grafana dashboard JSON and AlertManager configuration for pipeline health.
-- [~] Task: Conductor - User Manual Verification 'Tracking and Observability Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Tracking and Observability Integration' (Protocol in workflow.md) d79c464
 
 ## Phase 4: Pipeline Orchestration and Refinement
-- [ ] Task: End-to-End Autonomous Pipeline Integration
+- [~] Task: End-to-End Autonomous Pipeline Integration
     - [ ] Write Tests: Full integration test simulating the entire flow from scraping to model registry.
     - [ ] Implement: Create `autonomous_pipeline.py` script to orchestrate Phase 1-3.
 - [ ] Task: Celery Grid Readiness and Final Audit
