@@ -15,7 +15,13 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from typing import Dict, Any, Callable, Optional, List
-from src.shared.observability import TRAINING_DURATION, MODEL_ACCURACY
+from src.shared.observability import (
+    TRAINING_DURATION, 
+    TRAINING_DURATION_HISTOGRAM,
+    MODEL_ACCURACY, 
+    MODEL_RMSE,
+    TRAINING_ERRORS
+)
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -163,48 +169,59 @@ class InstrumentedTrainer:
         Trains a model and evaluates its performance.
         Logs metrics, parameters, and artifacts to MLflow.
         """
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        if feature_names is None:
-            feature_names = [f"feature_{i}" for i in range(X.shape[1])]
-            
         framework = params.get("framework", "xgboost")
-        trainer = self.trainers.get(framework, self.trainers["xgboost"])
-        
-        with mlflow.start_run(nested=True):
-            mlflow.log_params(params)
+        try:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             
-            if dataset_metadata:
-                mlflow.set_tags(dataset_metadata)
+            if feature_names is None:
+                feature_names = [f"feature_{i}" for i in range(X.shape[1])]
+                
+            trainer = self.trainers.get(framework, self.trainers["xgboost"])
             
-            start_time = time.time()
-            model = trainer.train(X_train, y_train, X_test, y_test, params)
-            y_pred = trainer.predict(model, X_test)
-            
-            accuracy = accuracy_score(y_test, y_pred)
-            duration = time.time() - start_time
-            
-            mlflow.log_metric("accuracy", accuracy)
-            mlflow.log_metric("duration", duration)
-            
-            # Log model and artifacts
-            trainer.log_model(model, "model")
-            
-            importance = trainer.get_feature_importance(model, feature_names)
-            if importance:
-                plot_path = self._plot_feature_importance(importance, framework)
-                mlflow.log_artifact(plot_path)
-                # Cleanup temp plot
-                os.remove(plot_path)
-                os.rmdir(os.path.dirname(plot_path))
-            
-            TRAINING_DURATION.labels(framework=framework).observe(duration)
-            MODEL_ACCURACY.labels(framework=framework).set(accuracy)
-            
-            self.model = model
-            logger.info("model_trained", framework=framework, accuracy=accuracy, duration=duration, params=params)
-            
-            return float(accuracy)
+            with mlflow.start_run(nested=True):
+                mlflow.log_params(params)
+                
+                if dataset_metadata:
+                    mlflow.set_tags(dataset_metadata)
+                
+                start_time = time.time()
+                model = trainer.train(X_train, y_train, X_test, y_test, params)
+                y_pred = trainer.predict(model, X_test)
+                
+                accuracy = accuracy_score(y_test, y_pred)
+                duration = time.time() - start_time
+                
+                # Dummy RMSE for classification (1.0 - accuracy) for demo purposes
+                rmse = 1.0 - accuracy
+                
+                mlflow.log_metric("accuracy", accuracy)
+                mlflow.log_metric("rmse", rmse)
+                mlflow.log_metric("duration", duration)
+                
+                # Log model and artifacts
+                trainer.log_model(model, "model")
+                
+                importance = trainer.get_feature_importance(model, feature_names)
+                if importance:
+                    plot_path = self._plot_feature_importance(importance, framework)
+                    mlflow.log_artifact(plot_path)
+                    # Cleanup temp plot
+                    os.remove(plot_path)
+                    os.rmdir(os.path.dirname(plot_path))
+                
+                TRAINING_DURATION.labels(framework=framework).observe(duration)
+                TRAINING_DURATION_HISTOGRAM.labels(framework=framework).observe(duration)
+                MODEL_ACCURACY.labels(framework=framework).set(accuracy)
+                MODEL_RMSE.labels(model_type=framework, dataset="validation").set(rmse)
+                
+                self.model = model
+                logger.info("model_trained", framework=framework, accuracy=accuracy, rmse=rmse, duration=duration, params=params)
+                
+                return float(accuracy)
+        except Exception as e:
+            TRAINING_ERRORS.labels(framework=framework).inc()
+            logger.error("training_failed", framework=framework, error=str(e))
+            raise
 
     def optimize(self, objective: Callable, n_trials: int = 20) -> optuna.study.Study:
         """
