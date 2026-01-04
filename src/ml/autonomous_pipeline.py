@@ -3,7 +3,7 @@ import pandas as pd
 from typing import Dict, Any
 from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
-from src.ml.drift import calculate_psi
+from src.ml.drift import calculate_ks_test
 from src.ml.trainer import InstrumentedTrainer
 from sqlalchemy import create_engine
 
@@ -60,8 +60,8 @@ class AutonomousMLPipeline:
             # Here we just demo the call
             historical_prices = df["close"].values
             current_prices = df["close"].values * 1.05 # Mocked "current" data
-            psi_score = calculate_psi(historical_prices, current_prices)
-            logger.info("drift_checked", psi_score=psi_score)
+            statistic, p_value = calculate_ks_test(historical_prices, current_prices)
+            logger.info("drift_checked", ks_statistic=statistic, p_value=p_value)
             
             # 4. Autonomous Training
             trainer = InstrumentedTrainer(study_name=self.study_name)

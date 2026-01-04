@@ -17,8 +17,8 @@ def mock_config():
 @patch("src.ml.autonomous_pipeline.MarketDataScraper")
 @patch("src.ml.autonomous_pipeline.get_db_session")
 @patch("src.ml.autonomous_pipeline.InstrumentedTrainer")
-@patch("src.ml.autonomous_pipeline.calculate_psi")
-def test_pipeline_run(mock_psi, mock_trainer_class, mock_get_db, mock_scraper_class, mock_config):
+@patch("src.ml.autonomous_pipeline.calculate_ks_test")
+def test_pipeline_run(mock_ks, mock_trainer_class, mock_get_db, mock_scraper_class, mock_config):
     # Mock Scraper
     mock_scraper = mock_scraper_class.return_value
     mock_scraper.fetch_historical_data.return_value = pd.DataFrame({
@@ -37,8 +37,8 @@ def test_pipeline_run(mock_psi, mock_trainer_class, mock_get_db, mock_scraper_cl
     mock_trainer = mock_trainer_class.return_value
     mock_trainer.optimize.return_value = MagicMock(best_params={"max_depth": 3})
     
-    # Mock PSI
-    mock_psi.return_value = 0.05
+    # Mock KS
+    mock_ks.return_value = (0.1, 0.9)
     
     pipeline = AutonomousMLPipeline(mock_config)
     pipeline.run()
@@ -46,4 +46,4 @@ def test_pipeline_run(mock_psi, mock_trainer_class, mock_get_db, mock_scraper_cl
     assert mock_scraper.fetch_historical_data.called
     assert mock_session.add.called
     assert mock_trainer.optimize.called
-    assert mock_psi.called
+    assert mock_ks.called
