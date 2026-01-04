@@ -6,7 +6,7 @@ from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
 from src.ml.drift import calculate_ks_test, calculate_psi, PerformanceDriftMonitor
 from src.ml.trainer import InstrumentedTrainer
-from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS
+from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS, push_metrics
 from sqlalchemy import create_engine
 
 # Initialize structured logger
@@ -137,10 +137,12 @@ class AutonomousMLPipeline:
                         best_accuracy=best_accuracy, 
                         performance_drift=is_drifted)
             
+            push_metrics(job_name="autonomous_pipeline")
             return study
 
         except Exception as e:
             logger.critical("pipeline_failed", error=str(e))
+            push_metrics(job_name="autonomous_pipeline")
             raise
         finally:
             session.close()

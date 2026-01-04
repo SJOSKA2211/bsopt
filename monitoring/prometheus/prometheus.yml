@@ -4,8 +4,13 @@ global:
 scrape_configs:
   - job_name: 'bsopt-services'
     static_configs:
-      - targets: ['api:8000', 'worker-ml:8000', 'worker-pricing:8000']
+      - targets: ['api:8000', 'ml-pipeline:8000']
   
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets: ['pushgateway:9091']
+
   - job_name: 'redis'
     static_configs:
       - targets: ['redis-exporter:9121']

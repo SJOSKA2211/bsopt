@@ -1,5 +1,6 @@
 import structlog
-from prometheus_client import Summary, Counter, Gauge, Histogram
+import os
+from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
 
 def setup_logging():
     """Configures structlog for JSON logging (Loki compliant)."""
@@ -26,3 +27,15 @@ DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
 KS_TEST_SCORE = Gauge('ml_ks_test_p_value', 'P-value from Kolmogorov-Smirnov test')
 PERFORMANCE_DRIFT_ALERT = Gauge('ml_performance_drift_alert', 'Binary alert for performance drift')
 TRAINING_ERRORS = Counter('ml_training_errors_total', 'Total training failures', ['framework'])
+
+def push_metrics(job_name: str):
+    """Pushes all metrics from the global REGISTRY to the Prometheus Pushgateway."""
+    gateway_url = os.environ.get("PUSHGATEWAY_URL")
+    if gateway_url:
+        try:
+            push_to_gateway(gateway_url, job=job_name, registry=REGISTRY)
+            structlog.get_logger().info("metrics_pushed", job=job_name, gateway=gateway_url)
+        except Exception as e:
+            structlog.get_logger().error("metrics_push_failed", error=str(e))
+    else:
+        structlog.get_logger().debug("metrics_push_skipped", reason="no_gateway_url")
