@@ -13,10 +13,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Producer' (Protocol in workflow.md) e1912f3
 
 ## Phase 3: Consumer Infrastructure & Batch Processing
-- [ ] Task: Write TDD Tests for `MarketDataConsumer` (Consumer Groups & Batch handling)
-- [ ] Task: Implement `MarketDataConsumer` with parallel processing and error handling (DLQ)
-- [ ] Task: Verify Consumer lag and end-to-end latency metrics
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Consumer' (Protocol in workflow.md)
+- [x] Task: Write TDD Tests for `MarketDataConsumer` (Consumer Groups & Batch handling) 28dddec
+- [x] Task: Implement `MarketDataConsumer` with parallel processing and error handling (DLQ) 28dddec
+- [x] Task: Verify Consumer lag and end-to-end latency metrics 28dddec
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Consumer' (Protocol in workflow.md) 28dddec
 
 ## Phase 4: Streaming Analytics & ksqlDB Integration
 - [ ] Task: Write TDD Tests for `VolatilityAggregationStream` (Tumbling window calculations)
