@@ -20,8 +20,8 @@
 - [x] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, distroless-style build (386eceb)
 - [x] Task: Conductor - User Manual Verification 'Phase 3: API & Docker Optimization' (Protocol in workflow.md) (2c49b78)
 
-## Phase 4: Final Integration & Dashboards
+## Phase 4: Final Integration & Dashboards [checkpoint: 495729d]
 - [x] Task: Verify end-to-end log flow from ML Pipeline to Loki/Grafana (3f435e4)
 - [x] Task: Verify end-to-end metrics flow from Pushgateway to Prometheus/Grafana (2d4a9c3)
 - [x] Task: Import basic "Node Exporter Full" and custom BS-Opt metrics dashboards into Grafana (4940413)
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Dashboards' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Integration & Dashboards' (Protocol in workflow.md) (495729d)
