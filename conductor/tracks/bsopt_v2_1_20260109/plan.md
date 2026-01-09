@@ -1,12 +1,12 @@
 # Implementation Plan: Black-Scholes Optimization Platform v2.1
 
-## Phase 1: Infrastructure & Security Hardening
-- [ ] Task: Move hardcoded secrets to `.env` and configure Docker Compose to use environment variables
-- [ ] Task: Implement `redis-exporter` service in `docker-compose.yml` and verify metrics exposition
-- [ ] Task: Apply `no-new-privileges` security options and `read_only` root filesystems to core services
-- [ ] Task: Configure custom bridge networks (`bsopt-net`, `monitor-net`) for service isolation
-- [ ] Task: Verify all services start with healthy status and enforced resource limits
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Security Hardening' (Protocol in workflow.md)
+## Phase 1: Infrastructure & Security Hardening [checkpoint: 7041813]
+- [x] Task: Move hardcoded secrets to `.env` and configure Docker Compose to use environment variables
+- [x] Task: Implement `redis-exporter` service in `docker-compose.yml` and verify metrics exposition
+- [x] Task: Apply `no-new-privileges` security options and `read_only` root filesystems to core services
+- [x] Task: Configure custom bridge networks (`bsopt-net`, `monitor-net`) for service isolation
+- [x] Task: Verify all services start with healthy status and enforced resource limits
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Security Hardening' (Protocol in workflow.md) (7041813)
 
 ## Phase 2: Observability Stack (LGTM) Configuration
 - [ ] Task: Create `monitoring/prometheus/prometheus.yml` with scrape configs for all exporters and services
