@@ -2,7 +2,7 @@
 
 ## Phase 1: Infrastructure & Cluster Foundation
 - [x] Task: Configure Kafka Cluster in `docker-compose.yml` (3 Brokers, Zookeeper, Schema Registry, ksqlDB) cc49b3a
-- [ ] Task: Implement Cluster Health Verification Script (Check connectivity and broker status)
+- [x] Task: Implement Cluster Health Verification Script (Check connectivity and broker status) 8dd9809
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Schema Definition & Producer Implementation
