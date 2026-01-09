@@ -44,12 +44,7 @@ class AutonomousMLPipeline:
         try:
             # 1. Scrape Data
             # Note: Dates are hardcoded for demo, would be dynamic in production
-            try:
-                with SCRAPE_DURATION.labels(api="alpha_vantage").time():
-                    df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
-            except Exception as e:
-                SCRAPE_ERRORS.labels(api="alpha_vantage", status_code="error").inc()
-                raise e
+            df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
 
             logger.info("data_scraped", rows=len(df))
             
@@ -148,14 +143,15 @@ class AutonomousMLPipeline:
             session.close()
 
 if __name__ == "__main__":
+    import os
     # Example usage
     config = {
-        "api_key": "DEMO_KEY",
-        "db_url": "sqlite:///bsopt.db",
-        "ticker": "AAPL",
-        "study_name": "aapl_opt_v1",
-        "n_trials": 5,
-        "framework": "xgboost"
+        "api_key": os.getenv("ALPHA_VANTAGE_API_KEY", os.getenv("POLYGON_API_KEY", "DEMO_KEY")),
+        "db_url": os.getenv("DATABASE_URL", "sqlite:///bsopt.db"),
+        "ticker": os.getenv("TICKER", "AAPL"),
+        "study_name": os.getenv("STUDY_NAME", "aapl_opt_v1"),
+        "n_trials": int(os.getenv("N_TRIALS", "5")),
+        "framework": os.getenv("FRAMEWORK", "xgboost")
     }
     pipeline = AutonomousMLPipeline(config)
     pipeline.run()

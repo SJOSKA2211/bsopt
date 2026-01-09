@@ -83,8 +83,8 @@ def test_structlog_configuration():
     assert any("JSONRenderer" in str(t) for t in renderer_types)
     assert any("TimeStamper" in str(t) for t in renderer_types)
 
-def test_pipeline_scrape_metrics():
-    """Verify that scrape duration and errors are tracked in the pipeline."""
+def test_pipeline_scrape_execution():
+    """Verify that scraper is called correctly in the pipeline."""
     config = {
         "api_key": "TEST",
         "db_url": "sqlite:///:memory:",
@@ -94,7 +94,6 @@ def test_pipeline_scrape_metrics():
     
     # Test Error Path
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
-         patch("src.ml.autonomous_pipeline.SCRAPE_ERRORS") as mock_errors, \
          patch("src.ml.autonomous_pipeline.get_db_session"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
          patch("src.ml.autonomous_pipeline.Base.metadata.create_all"), \
@@ -103,21 +102,16 @@ def test_pipeline_scrape_metrics():
         mock_scraper = mock_scraper_cls.return_value
         mock_scraper.fetch_historical_data.side_effect = Exception("API Fail")
         
-        mock_errors_labels = MagicMock()
-        mock_errors.labels.return_value = mock_errors_labels
-        
         pipeline = AutonomousMLPipeline(config)
         
-        # We expect a critical failure log but also the counter increment
+        # We expect a critical failure log but NO metrics increment in pipeline (handled by scraper)
         with pytest.raises(Exception, match="API Fail"):
             pipeline.run()
             
-        mock_errors.labels.assert_called_with(api="alpha_vantage", status_code="error")
-        assert mock_errors_labels.inc.called
+        assert mock_scraper.fetch_historical_data.called
 
-    # Test Success Path (Duration and Drift)
+    # Test Success Path
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
-         patch("src.ml.autonomous_pipeline.SCRAPE_DURATION") as mock_duration, \
          patch("src.ml.autonomous_pipeline.calculate_psi") as mock_psi, \
          patch("src.ml.autonomous_pipeline.get_db_session"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
@@ -131,8 +125,6 @@ def test_pipeline_scrape_metrics():
              "timestamp": ["2023-01-01"], "open": [100], "high": [105], "low": [99], "close": [101], "volume": [1000]
         })
         
-        mock_duration_labels = MagicMock()
-        mock_duration.labels.return_value = mock_duration_labels
         mock_psi.return_value = 0.05
         
         pipeline = AutonomousMLPipeline(config)
@@ -142,6 +134,5 @@ def test_pipeline_scrape_metrics():
         except:
              pass 
              
-        mock_duration.labels.assert_called_with(api="alpha_vantage")
-        assert mock_duration_labels.time.called
+        assert mock_scraper.fetch_historical_data.called
         assert mock_psi.called

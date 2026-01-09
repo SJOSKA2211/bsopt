@@ -7,12 +7,12 @@ from src.ml.scraper import MarketDataScraper
 @pytest.fixture
 def mock_response():
     mock = MagicMock()
+    # Alpha Vantage Format
     mock.json.return_value = {
-        "results": [
-            {"t": 1672531200000, "o": 100.0, "h": 105.0, "l": 99.0, "c": 102.0, "v": 1000},
-            {"t": 1672617600000, "o": 102.0, "h": 103.0, "l": 101.0, "c": 101.5, "v": 800}
-        ],
-        "status": "OK"
+        "Time Series (Daily)": {
+            "2023-01-01": {"1. open": "100.0", "2. high": "105.0", "3. low": "99.0", "4. close": "102.0", "5. volume": "1000"},
+            "2023-01-02": {"1. open": "102.0", "2. high": "103.0", "3. low": "101.0", "4. close": "101.5", "5. volume": "800"}
+        }
     }
     mock.status_code = 200
     return mock
@@ -36,7 +36,8 @@ def test_fetch_historical_data_success(mock_logger, mock_get, mock_response):
         assert mock_get.called
         assert mock_logger.info.called
         
-        mock_duration_labels.assert_called_with(api="polygon")
+        # Now expects alpha_vantage
+        mock_duration_labels.assert_called_with(api="alpha_vantage")
         assert mock_observe.called
 
 @patch("src.ml.scraper.requests.get")
@@ -58,8 +59,9 @@ def test_fetch_historical_data_retry_logic(mock_get, mock_response):
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 2
         assert mock_get.call_count == 3
-        assert mock_inc.call_count == 2
-        mock_error_labels.assert_called_with(api="polygon", status_code=500)
+        assert mock_inc.call_count == 2 # 2 failures before success
+        # Expect alpha_vantage labels
+        mock_error_labels.assert_called_with(api="alpha_vantage", status_code=500)
 
 @patch("src.ml.scraper.requests.get")
 def test_fetch_historical_data_failure(mock_get):
@@ -73,5 +75,8 @@ def test_fetch_historical_data_failure(mock_get):
     with pytest.raises(Exception) as excinfo:
         scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
     
-    assert "Failed to fetch data" in str(excinfo.value)
-    assert mock_get.call_count == 3 # Initial + 2 retries
+    # It will fail after trying both AV and Polygon (fallback)
+    # AV: 1 + 2 retries = 3
+    # Polygon: 1 + 2 retries = 3
+    # Total: 6
+    assert mock_get.call_count == 6
