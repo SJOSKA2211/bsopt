@@ -27,7 +27,7 @@
 
 ## Phase 4: CI/CD/CT Pipeline Implementation
 - [x] Task: Create `.github/workflows/mlops-pipeline.yml` with Trivy security scan and Ruff linting jobs 7144da2
-- [ ] Task: Configure integration test job with Postgres service container
+- [x] Task: Configure integration test job with Postgres service container 18bebf2
 - [ ] Task: Implement the Continuous Training (CT) job with mocked GPU steps and runner setup documentation
 - [ ] Task: Implement the GitOps deployment step (build and mock push)
 - [ ] Task: Verify the full GitHub Actions pipeline execution (success/failure triggers)
