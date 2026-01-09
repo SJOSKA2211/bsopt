@@ -1,0 +1,8 @@
+{
+  "track_id": "bsopt_v2_1_20260109",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-09T09:15:00Z",
+  "updated_at": "2026-01-09T09:15:00Z",
+  "description": "Implement BS-Opt v2.1: Observability, Security Hardening, and CI/CD/CT Pipeline."
+}

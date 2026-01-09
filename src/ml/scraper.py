@@ -13,11 +13,17 @@ class MarketDataScraper:
     Includes retry logic and error handling.
     """
     
-    def __init__(self, api_key: str, base_url: str = "https://api.polygon.io", max_retries: int = 3):
+    def __init__(self, api_key: str, base_url: str = "https://api.polygon.io", max_retries: int = 3, provider: str = "auto"):
         self.api_key = api_key
         self.base_url = base_url
         self.max_retries = max_retries
-        self.api_name = "polygon" if "polygon" in base_url else "unknown"
+        self.provider = provider
+        if provider == "auto":
+             if "polygon" in base_url:
+                 self.provider = "polygon"
+             else:
+                 self.provider = "alpha_vantage"
+        self.api_name = self.provider
 
     def fetch_historical_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
         """
@@ -35,9 +41,9 @@ class MarketDataScraper:
             Exception: If data cannot be fetched after max retries.
         """
         # MOCK MODE FOR DEMO/TESTING
-        # Use mock if key is DEMO_KEY, empty, or None.
-        if not self.api_key or self.api_key.strip() == "DEMO_KEY":
-            logger.info("scrape_mock_mode", ticker=ticker, reason="Using DEMO_KEY or empty key")
+        # Use mock if key is DEMO_KEY, empty, or None, or provider is mock.
+        if not self.api_key or self.api_key.strip() == "DEMO_KEY" or self.provider == "mock":
+            logger.info("scrape_mock_mode", ticker=ticker, reason="Using DEMO_KEY or mock provider")
             # Generate mock data using pandas date_range
             dates = pd.date_range(start=start_date, end=end_date, freq="B") # Business days
             # Create synthetic price movement
@@ -68,24 +74,10 @@ class MarketDataScraper:
             
             return df[["timestamp", "open", "high", "low", "close", "volume"]]
 
-        # Determine API provider (simple heuristic: if base_url is default, assume Polygon, else check config or fallback)
-        # However, for this fix, we will try Alpha Vantage if the key is not specifically Polygon-like or if requested.
-        # Since we just updated the pipeline to pass ALPHA_VANTAGE_API_KEY, let's assume we use Alpha Vantage if the URL is not explicitly set to Polygon
-        # OR if we want to support both. 
-        # For simplicity in this specific "fix", we'll check if we should use Alpha Vantage.
+        # Determine API provider based on self.provider set in __init__
         
         # Alpha Vantage Implementation
-        # We'll use Alpha Vantage if base_url is NOT polygon (which defaults to polygon) OR if we decide to switch default.
-        # But to be safe and support the user's request:
-        use_alpha_vantage = True 
-        if "polygon.io" in self.base_url and "ALPHA_VANTAGE" not in self.api_key: # Rough check, but effective given the context
-             # If strictly configured for Polygon, use it. But here we assume user wants AV.
-             # Actually, let's just use Alpha Vantage logic if the URL is NOT explicitly Polygon's, 
-             # OR if we want to force it. The cleanest way is to just add the logic.
-             pass
-
-        # Use Alpha Vantage if we are not explicitly bound to Polygon
-        if use_alpha_vantage:
+        if self.provider == "alpha_vantage":
              url = "https://www.alphavantage.co/query"
              params = {
                  "function": "TIME_SERIES_DAILY",

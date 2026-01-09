@@ -7,6 +7,10 @@ x-logging: &logging
     max-file: "3"
     tag: "{{.Name}}"
 
+x-security: &security
+  security_opt:
+    - no-new-privileges:true
+
 services:
   # ============================================================================
   # OBSERVABILITY STACK (Loki / Prometheus / Grafana / Promtail)
@@ -21,8 +25,12 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=15d'
-    network_mode: host
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor-net
     restart: always
+    <<: *security
 
   loki:
     image: grafana/loki:2.9.2
@@ -31,8 +39,12 @@ services:
       - ./monitoring/loki:/etc/loki
       - loki_data:/loki
     command: -config.file=/etc/loki/loki-config.yaml
-    network_mode: host
+    ports:
+      - "3100:3100"
+    networks:
+      - monitor-net
     restart: always
+    <<: *security
 
   promtail:
     image: grafana/promtail:2.9.2
@@ -42,8 +54,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./monitoring/promtail:/etc/promtail
     command: -config.file=/etc/promtail/promtail-config.yaml
-    network_mode: host
+    networks:
+      - monitor-net
     restart: always
+    <<: *security
 
   grafana:
     image: grafana/grafana:10.2.0
@@ -56,11 +70,16 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LIVE_ALLOWED_ORIGINS=*
+    ports:
+      - "3001:3000"
     depends_on:
       - prometheus
       - loki
-    network_mode: host
+    networks:
+      - monitor-net
     restart: always
+    <<: *security
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.47.2
@@ -70,14 +89,22 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    network_mode: host
+    ports:
+      - "8080:8080"
+    networks:
+      - monitor-net
     restart: unless-stopped
+    <<: *security
 
   pushgateway:
     image: prom/pushgateway:v1.6.0
     container_name: bsopt-pushgateway
-    network_mode: host
+    ports:
+      - "9091:9091"
+    networks:
+      - monitor-net
     restart: always
+    <<: *security
 
   # ============================================================================
   # CORE INFRASTRUCTURE
@@ -105,8 +132,11 @@ services:
         limits:
           memory: 4G
           cpus: '2'
-    network_mode: host
+    networks:
+      - bsopt-net
+      - monitor-net
     restart: always
+    <<: *security
 
   redis:
     image: redis:7-alpine
@@ -117,14 +147,23 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
-    network_mode: host
+    networks:
+      - bsopt-net
+      - monitor-net
     restart: always
+    <<: *security
 
   redis-exporter:
-    image: oliver006/redis_exporter
+    image: oliver006/redis_exporter:v1.55.0-alpine
+    container_name: bsopt-redis-exporter
     environment:
-      - REDIS_ADDR=redis://:${REDIS_PASSWORD}@localhost:6379
-    network_mode: host
+      - REDIS_ADDR=redis://:${REDIS_PASSWORD}@redis:6379
+    depends_on:
+      - redis
+    networks:
+      - monitor-net
+    restart: always
+    <<: *security
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
@@ -132,10 +171,16 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    network_mode: host
+    networks:
+      - bsopt-net
+      - monitor-net
     restart: always
+    <<: *security
 
   mlflow:
     build:
@@ -143,16 +188,19 @@ services:
       dockerfile: docker/Dockerfile.api
     container_name: bsopt-mlflow
     environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${DB_PASSWORD}@localhost:5432/mlflow
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${DB_PASSWORD}@postgres:5432/mlflow
       - MLFLOW_ARTIFACT_ROOT=/mlartifacts
     volumes:
       - model_artifacts:/mlartifacts
-    command: mlflow server --backend-store-uri postgresql://admin:${DB_PASSWORD}@localhost:5432/mlflow --default-artifact-root /mlartifacts --host 0.0.0.0 --port 5000
+    command: mlflow server --backend-store-uri postgresql://admin:${DB_PASSWORD}@postgres:5432/mlflow --default-artifact-root /mlartifacts --host 0.0.0.0 --port 5000
     depends_on:
       postgres:
         condition: service_healthy
-    network_mode: host
+    networks:
+      - bsopt-net
+      - monitor-net
     restart: always
+    <<: *security
 
   # ============================================================================
   # APPLICATION LAYER
@@ -165,23 +213,28 @@ services:
     container_name: bsopt-api
     logging: *logging
     environment:
-      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@localhost:5432/bsopt
-      REDIS_URL: redis://:${REDIS_PASSWORD}@localhost:6379/0
-      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@localhost:5672/bsopt
-      MLFLOW_TRACKING_URI: http://localhost:5000
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@postgres:5432/bsopt
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      RABBITMQ_URL: amqp://admin:${RABBITMQ_PASSWORD}@rabbitmq:5672/bsopt
+      MLFLOW_TRACKING_URI: http://mlflow:5000
       PROMETHEUS_MULTIPROC_DIR: /tmp/metrics
+    ports:
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    network_mode: host
+    networks:
+      - bsopt-net
+      - monitor-net
     deploy:
       resources:
         limits:
           cpus: '1.0'
           memory: 1G
     restart: always
+    <<: *security
 
   ml-pipeline:
     build:
@@ -190,15 +243,28 @@ services:
     container_name: bsopt-ml-pipeline
     logging: *logging
     environment:
-      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@localhost:5432/bsopt
-      MLFLOW_TRACKING_URI: http://localhost:5000
-      PUSHGATEWAY_URL: localhost:9091
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@postgres:5432/bsopt
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      PUSHGATEWAY_URL: pushgateway:9091
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-DEMO_KEY}
       POLYGON_API_KEY: ${POLYGON_API_KEY:-DEMO_KEY}
+      MPLCONFIGDIR: /tmp/matplotlib
+      PYTHONPATH: /app
     volumes:
       - model_artifacts:/app/models
-    network_mode: host
+      - ./src:/app/src
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    networks:
+      - bsopt-net
+      - monitor-net
     restart: on-failure
+    <<: *security
 
 volumes:
   postgres_data:
@@ -209,3 +275,9 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+
+networks:
+  bsopt-net:
+    driver: bridge
+  monitor-net:
+    driver: bridge

@@ -21,7 +21,10 @@ class AutonomousMLPipeline:
     def __init__(self, config: Dict[str, Any]):
         setup_logging()
         self.config = config
-        self.scraper = MarketDataScraper(api_key=config["api_key"])
+        self.scraper = MarketDataScraper(
+            api_key=config["api_key"], 
+            provider=config.get("provider", "auto")
+        )
         self.db_url = config["db_url"]
         self.ticker = config["ticker"]
         self.study_name = config["study_name"]
@@ -44,7 +47,13 @@ class AutonomousMLPipeline:
         try:
             # 1. Scrape Data
             # Note: Dates are hardcoded for demo, would be dynamic in production
-            df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+            try:
+                df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+            except Exception as e:
+                logger.warning("scrape_failed_retrying_mock", error=str(e), provider=self.scraper.provider)
+                # Fallback to mock/demo mode
+                self.scraper = MarketDataScraper(api_key="DEMO_KEY", provider="mock")
+                df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
 
             logger.info("data_scraped", rows=len(df))
             
@@ -144,9 +153,26 @@ class AutonomousMLPipeline:
 
 if __name__ == "__main__":
     import os
+    
+    # Determine API Key and Provider
+    # Prioritize Polygon if available, as AV was reporting 401
+    av_key = os.getenv("ALPHA_VANTAGE_API_KEY")
+    poly_key = os.getenv("POLYGON_API_KEY")
+    
+    if poly_key and poly_key.strip() != "DEMO_KEY":
+        api_key = poly_key
+        provider = "polygon"
+    elif av_key and av_key.strip() != "DEMO_KEY":
+        api_key = av_key
+        provider = "alpha_vantage"
+    else:
+        api_key = "DEMO_KEY"
+        provider = "mock"
+
     # Example usage
     config = {
-        "api_key": os.getenv("ALPHA_VANTAGE_API_KEY", os.getenv("POLYGON_API_KEY", "DEMO_KEY")),
+        "api_key": api_key,
+        "provider": provider,
         "db_url": os.getenv("DATABASE_URL", "sqlite:///bsopt.db"),
         "ticker": os.getenv("TICKER", "AAPL"),
         "study_name": os.getenv("STUDY_NAME", "aapl_opt_v1"),
