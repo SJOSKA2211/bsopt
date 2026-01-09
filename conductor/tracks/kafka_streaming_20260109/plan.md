@@ -19,11 +19,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Consumer' (Protocol in workflow.md) 28dddec
 
 ## Phase 4: Streaming Analytics & ksqlDB Integration
-- [ ] Task: Write TDD Tests for `VolatilityAggregationStream` (Tumbling window calculations)
-- [ ] Task: Implement `VolatilityAggregationStream` using Faust (1-min annualized volatility)
-- [ ] Task: Setup ksqlDB Stream and `high_iv_options` persistent query
-- [ ] Task: Verify analytics accuracy against simulated data
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Analytics' (Protocol in workflow.md)
+- [x] Task: Write TDD Tests for `VolatilityAggregationStream` (Tumbling window calculations) 233099d
+- [x] Task: Implement `VolatilityAggregationStream` using Faust (1-min annualized volatility) 233099d
+- [x] Task: Setup ksqlDB Stream and `high_iv_options` persistent query 4c882c6
+- [x] Task: Verify analytics accuracy against simulated data 4c882c6
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Analytics' (Protocol in workflow.md) 4c882c6
 
 ## Phase 5: Observability & Final Integration
 - [ ] Task: Setup Prometheus Kafka Exporter and Grafana Dashboard (Throughput, Lag, Health)
