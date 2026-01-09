@@ -22,8 +22,8 @@
 - [x] Task: Write unit tests for Prometheus metrics (RMSE, PSI, Duration) logic
 - [x] Task: Implement `prometheus_client` instrumentation and Pushgateway integration in `InstrumentedTrainer`
 - [x] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, non-root build 45678cc
-- [ ] Task: Verify metrics appear in Prometheus after a manual pipeline execution
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: ML Pipeline Instrumentation (TDD)' (Protocol in workflow.md)
+- [x] Task: Verify metrics appear in Prometheus after a manual pipeline execution 59636af
+- [x] Task: Conductor - User Manual Verification 'Phase 3: ML Pipeline Instrumentation (TDD)' (Protocol in workflow.md) 59636af
 
 ## Phase 4: CI/CD/CT Pipeline Implementation
 - [ ] Task: Create `.github/workflows/mlops-pipeline.yml` with Trivy security scan and Ruff linting jobs
