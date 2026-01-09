@@ -8,13 +8,13 @@
 - [x] Task: Verify all services start with healthy status and enforced resource limits
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Security Hardening' (Protocol in workflow.md) (7041813)
 
-## Phase 2: Observability Stack (LGTM) Configuration
-- [ ] Task: Create `monitoring/prometheus/prometheus.yml` with scrape configs for all exporters and services
-- [ ] Task: Create `monitoring/promtail/promtail-config.yaml` and verify Docker log collection
-- [ ] Task: Configure Loki and Grafana provisioning (Datasources and basic Dashboards)
-- [ ] Task: Verify end-to-end metrics flow from services to Grafana dashboards
-- [ ] Task: Verify end-to-end log flow from Docker containers to Loki/Grafana
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Observability Stack (LGTM) Configuration' (Protocol in workflow.md)
+## Phase 2: Observability Stack (LGTM) Configuration [checkpoint: 06324c9]
+- [x] Task: Create `monitoring/prometheus/prometheus.yml` with scrape configs for all exporters and services
+- [x] Task: Create `monitoring/promtail/promtail-config.yaml` and verify Docker log collection
+- [x] Task: Configure Loki and Grafana provisioning (Datasources and basic Dashboards)
+- [x] Task: Verify end-to-end metrics flow from services to Grafana dashboards
+- [x] Task: Verify end-to-end log flow from Docker containers to Loki/Grafana
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Observability Stack (LGTM) Configuration' (Protocol in workflow.md) (06324c9)
 
 ## Phase 3: ML Pipeline Instrumentation (TDD)
 - [ ] Task: Write unit tests for `structlog` JSON formatting in `src/ml/autonomous_pipeline.py`
