@@ -401,6 +401,25 @@ services:
     restart: always
     <<: *security
 
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    container_name: bsopt-kafka-exporter
+    command:
+      - --kafka.server=kafka-1:9092
+      - --kafka.server=kafka-2:9092
+      - --kafka.server=kafka-3:9092
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
 volumes:
   postgres_data:
   redis_data:
