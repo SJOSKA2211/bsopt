@@ -93,3 +93,45 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage.xml
           fail_ci_if_error: false
+
+  continuous-training:
+    name: Continuous Training (CT)
+    # This would ideally run on a self-hosted GPU runner
+    # runs-on: [self-hosted, gpu]
+    runs-on: ubuntu-latest # Fallback to standard runner for now
+    needs: [security-scan, linting]
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[run-ct]')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install ML dependencies
+        run: |
+          pip install -r requirements-ml.txt || echo "requirements-ml.txt not found, installing base"
+          pip install xgboost torch optuna mlflow prometheus-client structlog pandas numpy scikit-learn
+
+      - name: Verify GPU Availability
+        id: gpu-check
+        run: |
+          python -c "import torch; print(f'GPU available: {torch.cuda.is_available()}')"
+          if python -c "import torch; exit(0 if torch.cuda.is_available() else 1)"; then
+            echo "gpu_active=true" >> $GITHUB_OUTPUT
+          else
+            echo "gpu_active=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Model Training (GPU)
+        if: steps.gpu-check.outputs.gpu_active == 'true'
+        run: |
+          python src/ml/trainer.py --framework pytorch --use-gpu
+
+      - name: Run Model Training (Mocked/CPU Fallback)
+        if: steps.gpu-check.outputs.gpu_active == 'false'
+        run: |
+          echo "WARNING: GPU not available. Running mocked training on CPU."
+          python src/ml/trainer.py --framework sklearn --n-estimators 10
