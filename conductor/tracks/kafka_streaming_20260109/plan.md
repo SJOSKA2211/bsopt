@@ -6,7 +6,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure' (Protocol in workflow.md) 6f7225f
 
 ## Phase 2: Schema Definition & Producer Implementation
-- [ ] Task: Define Avro Schema for `MarketData` and register with Schema Registry
+- [x] Task: Define Avro Schema for `MarketData` and register with Schema Registry 3d2cca7
 - [ ] Task: Write TDD Tests for `MarketDataProducer` (Mocking Kafka client)
 - [ ] Task: Implement `MarketDataProducer` with Avro serialization, LZ4 compression, and Idempotence
 - [ ] Task: Verify Producer throughput and schema enforcement
