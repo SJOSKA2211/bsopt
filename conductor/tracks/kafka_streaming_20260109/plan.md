@@ -7,8 +7,8 @@
 
 ## Phase 2: Schema Definition & Producer Implementation
 - [x] Task: Define Avro Schema for `MarketData` and register with Schema Registry 3d2cca7
-- [ ] Task: Write TDD Tests for `MarketDataProducer` (Mocking Kafka client)
-- [ ] Task: Implement `MarketDataProducer` with Avro serialization, LZ4 compression, and Idempotence
+- [x] Task: Write TDD Tests for `MarketDataProducer` (Mocking Kafka client) 9792116
+- [x] Task: Implement `MarketDataProducer` with Avro serialization, LZ4 compression, and Idempotence 9792116
 - [ ] Task: Verify Producer throughput and schema enforcement
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Producer' (Protocol in workflow.md)
 
