@@ -17,11 +17,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Observability Stack (LGTM) Configuration' (Protocol in workflow.md) (06324c9)
 
 ## Phase 3: ML Pipeline Instrumentation (TDD)
-- [ ] Task: Write unit tests for `structlog` JSON formatting in `src/ml/autonomous_pipeline.py`
-- [ ] Task: Implement `structlog` configuration in the ML pipeline
-- [ ] Task: Write unit tests for Prometheus metrics (RMSE, PSI, Duration) logic
-- [ ] Task: Implement `prometheus_client` instrumentation and Pushgateway integration in `InstrumentedTrainer`
-- [ ] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, non-root build
+- [x] Task: Write unit tests for `structlog` JSON formatting in `src/ml/autonomous_pipeline.py`
+- [x] Task: Implement `structlog` configuration in the ML pipeline
+- [x] Task: Write unit tests for Prometheus metrics (RMSE, PSI, Duration) logic
+- [x] Task: Implement `prometheus_client` instrumentation and Pushgateway integration in `InstrumentedTrainer`
+- [x] Task: Refactor `docker/Dockerfile.api` to use a multi-stage, non-root build 45678cc
 - [ ] Task: Verify metrics appear in Prometheus after a manual pipeline execution
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: ML Pipeline Instrumentation (TDD)' (Protocol in workflow.md)
 
