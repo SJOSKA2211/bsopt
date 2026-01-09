@@ -61,12 +61,12 @@ class AutonomousMLPipeline:
             for _, row in df.iterrows():
                 market_data = MarketData(
                     ticker=self.ticker,
-                    timestamp=row["timestamp"],
-                    open=row["open"],
-                    high=row["high"],
-                    low=row["low"],
-                    close=row["close"],
-                    volume=row["volume"]
+                    timestamp=int(row["timestamp"]),
+                    open=float(row["open"]),
+                    high=float(row["high"]),
+                    low=float(row["low"]),
+                    close=float(row["close"]),
+                    volume=int(row["volume"])
                 )
                 session.add(market_data)
             session.commit()

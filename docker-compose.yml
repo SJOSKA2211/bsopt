@@ -243,9 +243,9 @@ services:
     container_name: bsopt-ml-pipeline
     logging: *logging
     environment:
-      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@postgres:5432/bsopt
-      MLFLOW_TRACKING_URI: http://mlflow:5000
-      PUSHGATEWAY_URL: pushgateway:9091
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@localhost:5432/bsopt
+      MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+      PUSHGATEWAY_URL: localhost:9091
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-DEMO_KEY}
       POLYGON_API_KEY: ${POLYGON_API_KEY:-DEMO_KEY}
       MPLCONFIGDIR: /tmp/matplotlib
@@ -253,18 +253,10 @@ services:
     volumes:
       - model_artifacts:/app/models
       - ./src:/app/src
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-    networks:
-      - bsopt-net
-      - monitor-net
+    network_mode: host
     restart: on-failure
-    <<: *security
+    depends_on:
+      - mlflow
 
 volumes:
   postgres_data:
