@@ -26,6 +26,6 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Analytics' (Protocol in workflow.md) 4c882c6
 
 ## Phase 5: Observability & Final Integration
-- [ ] Task: Setup Prometheus Kafka Exporter and Grafana Dashboard (Throughput, Lag, Health)
-- [ ] Task: Implement End-to-End Integration Test (Producer -> Faust -> ksqlDB -> Consumer)
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Integration' (Protocol in workflow.md)
+- [x] Task: Setup Prometheus Kafka Exporter and Grafana Dashboard (Throughput, Lag, Health) 71d25d3
+- [x] Task: Implement End-to-End Integration Test (Producer -> Faust -> ksqlDB -> Consumer) 6e971b5
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Final Integration' (Protocol in workflow.md) 6e971b5
