@@ -132,6 +132,8 @@ services:
         limits:
           memory: 4G
           cpus: '2'
+    ports:
+      - "5432:5432"
     networks:
       - bsopt-net
       - monitor-net
@@ -196,6 +198,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    ports:
+      - "5000:5000"
     networks:
       - bsopt-net
       - monitor-net
@@ -243,9 +247,9 @@ services:
     container_name: bsopt-ml-pipeline
     logging: *logging
     environment:
-      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@localhost:5432/bsopt
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@127.0.0.1:5432/bsopt
       MLFLOW_TRACKING_URI: http://127.0.0.1:5000
-      PUSHGATEWAY_URL: localhost:9091
+      PUSHGATEWAY_URL: 127.0.0.1:9091
       ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-DEMO_KEY}
       POLYGON_API_KEY: ${POLYGON_API_KEY:-DEMO_KEY}
       MPLCONFIGDIR: /tmp/matplotlib
@@ -253,10 +257,149 @@ services:
     volumes:
       - model_artifacts:/app/models
       - ./src:/app/src
+      - model_artifacts:/mlartifacts
+    user: root
     network_mode: host
     restart: on-failure
     depends_on:
       - mlflow
+
+  # ============================================================================
+  # STREAMING INFRASTRUCTURE (Kafka Cluster)
+  # ============================================================================
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: bsopt-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - kafka-net
+    restart: always
+    <<: *security
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bsopt-kafka-1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_COMPRESSION_TYPE: lz4
+      KAFKA_NUM_PARTITIONS: 8
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bsopt-kafka-2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: bsopt-kafka-3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka3_data:/var/lib/kafka/data
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: bsopt-schema-registry
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    ports:
+      - "8081:8081"
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  ksqldb-server:
+    image: confluentinc/ksqldb-server:0.29.0
+    container_name: bsopt-ksqldb
+    depends_on:
+      - kafka-1
+      - schema-registry
+    environment:
+      KSQL_BOOTSTRAP_SERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+    ports:
+      - "8088:8088"
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: bsopt-kafka-ui
+    depends_on:
+      - kafka-1
+    environment:
+      KAFKA_CLUSTERS_0_NAME: bsopt-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+      KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb-server:8088
+    ports:
+      - "8080:8080"
+    networks:
+      - kafka-net
+      - monitor-net
+    restart: always
+    <<: *security
 
 volumes:
   postgres_data:
@@ -267,9 +410,15 @@ volumes:
   prometheus_data:
   grafana_data:
   loki_data:
+  zookeeper_data:
+  kafka1_data:
+  kafka2_data:
+  kafka3_data:
 
 networks:
   bsopt-net:
     driver: bridge
   monitor-net:
+    driver: bridge
+  kafka-net:
     driver: bridge
