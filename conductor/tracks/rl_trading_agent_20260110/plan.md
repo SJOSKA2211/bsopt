@@ -9,8 +9,8 @@
 
 ## Phase 2: Distributed Training Infrastructure
 - [x] Task: Configure Ray/RLLib cluster in `docker-compose.yml` (Head and Worker nodes) d963f88
-- [ ] Task: Create `src/ml/reinforcement_learning/train.py` script for TD3 agent training
-- [ ] Task: Implement MLflow logging for RL metrics (Reward, Q-values, Policy loss)
+- [x] Task: Create `src/ml/reinforcement_learning/train.py` script for TD3 agent training e94c726
+- [~] Task: Implement MLflow logging for RL metrics (Reward, Q-values, Policy loss)
 - [ ] Task: Verify cluster scaling and training execution on simulated data
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Training Infrastructure' (Protocol in workflow.md)
 
