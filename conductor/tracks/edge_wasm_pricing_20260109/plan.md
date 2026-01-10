@@ -2,8 +2,8 @@
 
 ## Phase 1: Rust Engine Core & Unit Testing (TDD)
 - [x] Task: Initialize Rust project structure (`src/wasm`) and configure `Cargo.toml` for WASM 08b61c5
-- [ ] Task: Write TDD tests for Black-Scholes pricing and Greeks in Rust
-- [ ] Task: Implement core Black-Scholes and single-pass Greeks logic in Rust
+- [x] Task: Write TDD tests for Black-Scholes pricing and Greeks in Rust 67a9012
+- [x] Task: Implement core Black-Scholes and single-pass Greeks logic in Rust 0a09fc0
 - [ ] Task: Verify numerical precision against reference values (QuantLib parity)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Rust Engine Core' (Protocol in workflow.md)
 
