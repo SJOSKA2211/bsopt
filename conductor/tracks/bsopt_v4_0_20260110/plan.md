@@ -20,7 +20,7 @@
 - [ ] Task: Develop and integrate a React component (`src/frontend/components/OptionsChain.tsx`) using WASM pricing
 
 ### Sub-Phase 1.3: GraphQL Federation
-- [ ] Task: Define federated GraphQL schema for `Option`, `Portfolio`, `MarketData` types
+- [x] Task: Define federated GraphQL schema for `Option`, `Portfolio`, `MarketData` types 9ae58cc
 - [ ] Task: Implement `Query`, `Mutation`, and `Subscription` resolvers for core entities
 - [ ] Task: Setup Apollo Gateway configuration in `src/gateway/index.js`
 - [ ] Task: Integrate FastAPI with Strawberry GraphQL and Apollo Federation in `src/api/main.py`
