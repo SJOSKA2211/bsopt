@@ -8,7 +8,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md) 65c0fbc
 
 ## Phase 2: ML-Driven Anomaly Detection (TDD)
-- [ ] Task: Write TDD tests for `IsolationForestDetector` (univariate outlier detection)
+- [~] Task: Write TDD tests for `IsolationForestDetector` (univariate outlier detection)
 - [ ] Task: Implement `IsolationForestDetector` using `scikit-learn` for latency/resource metrics
 - [ ] Task: Write TDD tests for `AutoencoderDetector` (multivariate anomaly detection)
 - [ ] Task: Implement `AutoencoderDetector` using `PyTorch` for system-wide health signals
