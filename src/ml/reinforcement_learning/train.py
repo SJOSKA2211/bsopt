@@ -5,9 +5,16 @@ import gymnasium as gym
 from stable_baselines3 import TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
+import tempfile
 import mlflow
 import structlog
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+
+try:
+    import ray
+    RAY_AVAILABLE = True
+except ImportError:
+    RAY_AVAILABLE = False
 
 logger = structlog.get_logger()
 
@@ -19,8 +26,8 @@ class MLflowMetricsCallback(BaseCallback):
         super().__init__(verbose)
 
     def _on_step(self) -> bool:
-        # Retrieve metrics from the logger
-        metrics = self.logger.get_log_dict()
+        # Retrieve metrics from the logger directly
+        metrics = self.logger.name_to_value
         if metrics:
             # Filter out metrics that are not suitable for MLflow (e.g., strings)
             mlflow_metrics = {k: v for k, v in metrics.items() if isinstance(v, (int, float, np.float32, np.float64))}
@@ -30,7 +37,7 @@ class MLflowMetricsCallback(BaseCallback):
 
 def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_trading_agent"):
     """
-    Train a TD3 agent on the custom TradingEnvironment.
+    Train a TD3 agent on the custom TradingEnvironment using Stable-Baselines3.
     """
     # Create environment
     env = TradingEnvironment()
@@ -49,7 +56,7 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
         # Log parameters
         mlflow.log_params({
             "algorithm": "TD3",
-            "policy": "MlpPolicy",
+            "framework": "stable-baselines3",
             "total_timesteps": total_timesteps,
             "action_noise_sigma": 0.1
         })
@@ -83,27 +90,64 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
         model.learn(total_timesteps=total_timesteps, callback=callback)
         
         # Save the model
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        model.save(model_path)
+        if model_path:
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            model.save(model_path)
+            log_model_path = model_path
+        else:
+            # Save to a temporary path when model_path is None (e.g., during Ray distributed calls)
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_model_path = os.path.join(tmpdir, "td3_trading_agent_temp")
+                model.save(tmp_model_path)
+                log_model_path = tmp_model_path
         
         # Log model to MLflow
         mlflow.pytorch.log_model(model.policy, "model")
         
-        logger.info("training_completed", run_id=run.info.run_id, model_path=model_path)
-        
-    return model
+        logger.info("training_completed", run_id=run.info.run_id, model_path=log_model_path)
+
+@ray.remote
+def train_td3_remote(total_timesteps: int = 10000, model_path: str = None):
+    """Ray remote function for distributed training."""
+    return train_td3(total_timesteps=total_timesteps, model_path=model_path)
+
+def train_distributed(num_instances: int = 2, total_timesteps: int = 10000, ray_address: str = "auto"):
+    """
+    Run multiple training instances in parallel using Ray.
+    """
+    if not RAY_AVAILABLE:
+        logger.error("ray_not_available", message="Ray not installed. Cannot run distributed training.")
+        return None
+
+    # Connect to Ray cluster
+    ray.init(address=ray_address, ignore_reinit_error=True)
+    
+    logger.info("distributed_training_started", num_instances=num_instances, total_timesteps=total_timesteps)
+    
+    # Launch parallel training tasks
+    futures = [train_td3_remote.remote(total_timesteps=total_timesteps) for _ in range(num_instances)]
+    results = ray.get(futures)
+    
+    logger.info("distributed_training_completed", num_instances=num_instances)
+    return results
 
 def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Agent")
     parser.add_argument("--timesteps", type=int, default=10000, help="Total training timesteps")
     parser.add_argument("--output", type=str, default="models/td3_trading_agent", help="Path to save the model")
+    parser.add_argument("--distributed", action="store_true", help="Use Ray for parallel training instances")
+    parser.add_argument("--instances", type=int, default=2, help="Number of parallel instances")
+    parser.add_argument("--ray-address", type=str, default="auto", help="Ray cluster address")
     
     args = parser.parse_args()
     
     # Ensure logs directory exists
     os.makedirs("logs", exist_ok=True)
     
-    train_td3(total_timesteps=args.timesteps, model_path=args.output)
+    if args.distributed:
+        train_distributed(num_instances=args.instances, total_timesteps=args.timesteps, ray_address=args.ray_address)
+    else:
+        train_td3(total_timesteps=args.timesteps, model_path=args.output)
 
 if __name__ == "__main__":
     main()
