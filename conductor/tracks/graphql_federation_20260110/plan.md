@@ -32,7 +32,7 @@
 
 ## Phase 5: Production Hardening & Documentation
 - [x] Task: Implement response caching in Apollo Gateway 9b4cd10
-- [ ] Task: Configure OpenTelemetry instrumentation for distributed tracing across the supergraph
-- [ ] Task: Document the GraphQL API (queries, mutations, and subscription examples)
-- [ ] Task: Verify SLA targets (sub-10ms Gateway overhead) with benchmarks
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Production Hardening' (Protocol in workflow.md)
+- [-] Task: Configure OpenTelemetry instrumentation for distributed tracing across the supergraph
+- [-] Task: Document the GraphQL API (queries, mutations, and subscription examples)
+- [-] Task: Verify SLA targets (sub-10ms Gateway overhead) with benchmarks
+- [~] Task: Conductor - User Manual Verification 'Phase 5: Production Hardening' (Protocol in workflow.md)
