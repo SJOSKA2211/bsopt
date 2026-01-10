@@ -1,7 +1,14 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import Optional
+from typing import Optional, List, AsyncGenerator
 import random
+import asyncio
+
+@strawberry.type
+class MarketData:
+    symbol: str
+    last_price: float
+    volume: int
 
 @strawberry.federation.type(keys=["id"])
 class Option:
@@ -9,7 +16,6 @@ class Option:
     
     @strawberry.field
     def last_price(self) -> float:
-        # In a real app, this would query Redis or Kafka Streams state store
         return 15.0 + random.uniform(0, 1.0)
 
     @strawberry.field
@@ -26,4 +32,18 @@ class Query:
     def _dummy_market(self) -> str:
         return "market"
 
-schema = Schema(query=Query, types=[Option])
+@strawberry.type
+class Subscription:
+    @strawberry.subscription
+    async def market_data_stream(self, symbols: List[str]) -> AsyncGenerator[MarketData, None]:
+        # Mock stream
+        while True:
+            for symbol in symbols:
+                yield MarketData(
+                    symbol=symbol,
+                    last_price=150.0 + random.uniform(-1, 1),
+                    volume=random.randint(100, 500)
+                )
+            await asyncio.sleep(0.1)
+
+schema = Schema(query=Query, subscription=Subscription, types=[Option])
