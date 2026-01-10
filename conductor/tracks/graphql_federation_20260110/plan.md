@@ -24,7 +24,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Apollo Gateway & Infrastructure' (Protocol in workflow.md) 35e8b04
 
 ## Phase 4: Real-Time Subscriptions (TDD)
-- [ ] Task: Implement WebSocket support in `MarketData` subgraph for tick data
+- [x] Task: Implement WebSocket support in `MarketData` subgraph for tick data 8e18a1e
 - [ ] Task: Implement WebSocket support in `Portfolio` subgraph for P&L updates
 - [ ] Task: Configure Apollo Gateway to support federated subscriptions
 - [ ] Task: Verify end-to-end subscription streaming from Kafka to GraphQL client
