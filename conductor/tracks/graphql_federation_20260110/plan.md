@@ -27,7 +27,7 @@
 - [x] Task: Implement WebSocket support in `MarketData` subgraph for tick data 8e18a1e
 - [x] Task: Implement WebSocket support in `Portfolio` subgraph for P&L updates 1b4d8a7
 - [x] Task: Configure Apollo Gateway to support federated subscriptions ba7b644
-- [ ] Task: Verify end-to-end subscription streaming from Kafka to GraphQL client
+- [x] Task: Verify end-to-end subscription streaming from Kafka to GraphQL client 17848d3
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Subscriptions' (Protocol in workflow.md)
 
 ## Phase 5: Production Hardening & Documentation
