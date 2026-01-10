@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "MarketData",
+  "fields": [
+    {"name": "symbol", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "bid", "type": "double"},
+    {"name": "ask", "type": "double"},
+    {"name": "last", "type": "double"},
+    {"name": "volume", "type": "long"},
+    {"name": "open_interest", "type": "long"},
+    {"name": "implied_volatility", "type": "double"},
+    {"name": "delta", "type": "double"},
+    {"name": "gamma", "type": "double"},
+    {"name": "vega", "type": "double"},
+    {"name": "theta", "type": "double"}
+  ]
+}
