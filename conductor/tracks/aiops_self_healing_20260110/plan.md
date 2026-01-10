@@ -16,7 +16,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: ML Detection' (Protocol in workflow.md) 30455c6
 
 ## Phase 3: Automated Remediation Engine (TDD)
-- [ ] Task: Write TDD tests for `DockerRemediator` (simulating service restarts)
+- [~] Task: Write TDD tests for `DockerRemediator` (simulating service restarts)
 - [ ] Task: Implement `DockerRemediator` using the Docker SDK to restart unhealthy containers
 - [ ] Task: Write TDD tests for `MLPipelineTrigger` (triggering retraining)
 - [ ] Task: Implement `MLPipelineTrigger` to invoke `AutonomousMLPipeline` upon drift detection
