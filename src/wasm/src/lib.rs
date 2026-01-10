@@ -112,4 +112,23 @@ mod tests {
         // Ref values for Rho: ~0.53232
         assert!((greeks.rho - 0.53232).abs() < 1e-3);
     }
+
+    #[test]
+    fn test_edge_cases() {
+        let bs = BlackScholesWASM::new();
+        
+        // T = 0 (Expiry)
+        assert_eq!(bs.price_call(100.0, 90.0, 0.0, 0.2, 0.05, 0.0), 10.0);
+        assert_eq!(bs.price_call(100.0, 110.0, 0.0, 0.2, 0.05, 0.0), 0.0);
+        assert_eq!(bs.price_put(100.0, 110.0, 0.0, 0.2, 0.05, 0.0), 10.0);
+        assert_eq!(bs.price_put(100.0, 90.0, 0.0, 0.2, 0.05, 0.0), 0.0);
+
+        // Very high volatility
+        let price_high_vol = bs.price_call(100.0, 100.0, 1.0, 5.0, 0.05, 0.0);
+        assert!(price_high_vol > 90.0); // Should be close to spot as vol -> infinity
+
+        // Deep in the money
+        let price_itm = bs.price_call(100.0, 10.0, 1.0, 0.2, 0.05, 0.0);
+        assert!((price_itm - (100.0 - 10.0 * (-0.05 * 1.0f64).exp())).abs() < 1e-2);
+    }
 }
