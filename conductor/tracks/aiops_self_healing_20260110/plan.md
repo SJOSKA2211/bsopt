@@ -12,7 +12,7 @@
 - [x] Task: Implement `IsolationForestDetector` using `scikit-learn` for latency/resource metrics be60db7
 - [x] Task: Write TDD tests for `AutoencoderDetector` (multivariate anomaly detection) d34de9d
 - [x] Task: Implement `AutoencoderDetector` using `PyTorch` for system-wide health signals d34de9d
-- [~] Task: Implement detection logic for "ML Data Drift" (integrating PSI/KS scores from ML pipeline)
+- [x] Task: Implement detection logic for "ML Data Drift" (integrating PSI/KS scores from ML pipeline) 4060457
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: ML Detection' (Protocol in workflow.md)
 
 ## Phase 3: Automated Remediation Engine (TDD)
