@@ -18,8 +18,8 @@
 ## Phase 3: Automated Remediation Engine (TDD)
 - [x] Task: Write TDD tests for `DockerRemediator` (simulating service restarts) 71c85da
 - [x] Task: Implement `DockerRemediator` using the Docker SDK to restart unhealthy containers 71c85da
-- [~] Task: Write TDD tests for `MLPipelineTrigger` (triggering retraining)
-- [ ] Task: Implement `MLPipelineTrigger` to invoke `AutonomousMLPipeline` upon drift detection
+- [x] Task: Write TDD tests for `MLPipelineTrigger` (triggering retraining) a5abf71
+- [x] Task: Implement `MLPipelineTrigger` to invoke `AutonomousMLPipeline` upon drift detection a5abf71
 - [ ] Task: Implement `RedisRemediator` for automated cache purges
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Remediation Engine' (Protocol in workflow.md)
 
