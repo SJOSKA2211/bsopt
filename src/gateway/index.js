@@ -7,6 +7,7 @@ const { useServer } = require('graphql-ws/lib/use/ws');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const responseCachePlugin = require('@apollo/server-plugin-response-cache').default;
 
 class AuthenticatedDataSource extends RemoteGraphQLDataSource {
   willSendRequest({ request, context }) {
@@ -39,6 +40,7 @@ gateway.load().then(async () => {
   const server = new ApolloServer({
     gateway,
     plugins: [
+      responseCachePlugin(),
       {
         async serverWillStart() {
           return {
