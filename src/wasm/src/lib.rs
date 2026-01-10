@@ -12,6 +12,23 @@ pub struct Greeks {
     pub rho: f64,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct OptionParams {
+    pub spot: f64,
+    pub strike: f64,
+    pub time: f64,
+    pub vol: f64,
+    pub rate: f64,
+    pub div: f64,
+    pub is_call: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct OptionResult {
+    pub price: f64,
+    pub greeks: Greeks,
+}
+
 #[wasm_bindgen]
 pub struct BlackScholesWASM {
     normal: Normal,
@@ -106,6 +123,32 @@ impl BlackScholesWASM {
         spot * exp_qt * nd1 * time.sqrt()
     }
 
+    pub fn batch_calculate(&self, params: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
+        let options: Vec<OptionParams> = serde_wasm_bindgen::from_value(params)?;
+        let results = self.batch_calculate_internal(options);
+        Ok(serde_wasm_bindgen::to_value(&results)?)
+    }
+
+    fn batch_calculate_internal(&self, options: Vec<OptionParams>) -> Vec<OptionResult> {
+        let mut results = Vec::with_capacity(options.len());
+
+        for opt in options {
+            let price = if opt.is_call {
+                self.price_call(opt.spot, opt.strike, opt.time, opt.vol, opt.rate, opt.div)
+            } else {
+                self.price_put(opt.spot, opt.strike, opt.time, opt.vol, opt.rate, opt.div)
+            };
+            
+            let greeks = self.calculate_greeks(opt.spot, opt.strike, opt.time, opt.vol, opt.rate, opt.div);
+            
+            results.push(OptionResult {
+                price,
+                greeks,
+            });
+        }
+        results
+    }
+
     fn calculate_d1_d2(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> (f64, f64) {
         let d1 = ((spot / strike).ln() + (rate - div + 0.5 * vol.powi(2)) * time) / (vol * time.sqrt());
         let d2 = d1 - vol * time.sqrt();
@@ -184,5 +227,20 @@ mod tests {
         let solved_vol = bs.solve_iv(price, spot, strike, time, rate, div, true);
         
         assert!((solved_vol - target_vol).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_batch_calculate() {
+        let bs = BlackScholesWASM::new();
+        let options = vec![
+            OptionParams { spot: 100.0, strike: 100.0, time: 1.0, vol: 0.2, rate: 0.05, div: 0.0, is_call: true },
+            OptionParams { spot: 100.0, strike: 100.0, time: 1.0, vol: 0.2, rate: 0.05, div: 0.0, is_call: false },
+        ];
+        
+        let results = bs.batch_calculate_internal(options);
+        
+        assert_eq!(results.len(), 2);
+        assert!((results[0].price - 10.45058).abs() < 1e-4);
+        assert!((results[1].price - 5.57352).abs() < 1e-4);
     }
 }
