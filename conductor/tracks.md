@@ -14,5 +14,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: GraphQL Federation for Unified API Gateway
-*Link: [./conductor/tracks/graphql_federation_20260110/](./conductor/tracks/graphql_federation_20260110/)*
+## [~] Track: Real-Time Reinforcement Learning Trading Agent (TD3 Baseline)
+*Link: [./conductor/tracks/rl_trading_agent_20260110/](./conductor/tracks/rl_trading_agent_20260110/)*
+---
+
+## [~] Track: AIOps & Self-Healing (Anomaly Detection and Automated Remediation)
+*Link: [./conductor/tracks/aiops_self_healing_20260110/](./conductor/tracks/aiops_self_healing_20260110/)*

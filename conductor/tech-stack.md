@@ -3,6 +3,7 @@
 ## Core Languages & Runtimes
 *   **Python (>=3.11):** Primary programming language for API, pricing engine, and ML pipelines.
 *   **Rust:** Language for high-performance WebAssembly modules.
+*   **Node.js (>=18):** Runtime for the Apollo GraphQL Gateway.
 
 ## Machine Learning & Data Science
 *   **Optuna:** Hyperparameter optimization.

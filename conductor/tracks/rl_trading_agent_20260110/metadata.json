@@ -1,0 +1,8 @@
+{
+  "track_id": "rl_trading_agent_20260110",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-10T14:00:00Z",
+  "updated_at": "2026-01-10T14:00:00Z",
+  "description": "Real-Time Reinforcement Learning Trading Agent (TD3 Baseline)"
+}

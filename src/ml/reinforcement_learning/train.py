@@ -105,6 +105,7 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
         mlflow.pytorch.log_model(model.policy, "model")
         
         logger.info("training_completed", run_id=run.info.run_id, model_path=log_model_path)
+        return model
 
 @ray.remote
 def train_td3_remote(total_timesteps: int = 10000, model_path: str = None):

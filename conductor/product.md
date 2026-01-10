@@ -17,4 +17,5 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **AutoML Pipelines:** Automated training and hyperparameter optimization using Optuna and XGBoost/Torch, managed via MLflow.
 *   **Resilient Infrastructure:** Production-hardened Docker architecture with non-root service execution and strict network isolation.
 *   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
+*   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.
