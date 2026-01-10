@@ -23,7 +23,7 @@
 - [x] Task: Define federated GraphQL schema for `Option`, `Portfolio`, `MarketData` types 9ae58cc
 - [x] Task: Implement `Query`, `Mutation`, and `Subscription` resolvers for core entities 81afc67
 - [~] Task: Setup Apollo Gateway configuration in `src/gateway/index.js`
-- [ ] Task: Integrate FastAPI with Strawberry GraphQL and Apollo Federation in `src/api/main.py`
+- [x] Task: Integrate FastAPI with Strawberry GraphQL and Apollo Federation in `src/api/main.py` edce673
 
 ### Sub-Phase 1.4: Basic AIOps Foundation
 - [ ] Task: Create `src/aiops` service structure and configure Prometheus connectivity
