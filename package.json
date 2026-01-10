@@ -1,0 +1,19 @@
+{
+  "name": "bsopt",
+  "version": "1.0.0",
+  "description": "Black-Scholes Optimization & ML Platform",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "wasm:build": "cd src/wasm && npx wasm-pack build --target web --out-dir ../../pkg",
+    "wasm:test": "cd src/wasm && npx wasm-pack test --node"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
