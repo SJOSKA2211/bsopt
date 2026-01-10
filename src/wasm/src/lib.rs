@@ -149,6 +149,39 @@ impl BlackScholesWASM {
         results
     }
 
+    pub fn batch_calculate_compact(&self, params: &[f64]) -> Vec<f64> {
+        let stride = 7; // spot, strike, time, vol, rate, div, is_call
+        let num_options = params.len() / stride;
+        let mut results = Vec::with_capacity(num_options * 6); // price + 5 greeks
+
+        for i in 0..num_options {
+            let offset = i * stride;
+            let spot = params[offset];
+            let strike = params[offset + 1];
+            let time = params[offset + 2];
+            let vol = params[offset + 3];
+            let rate = params[offset + 4];
+            let div = params[offset + 5];
+            let is_call = params[offset + 6] > 0.5;
+
+            let price = if is_call {
+                self.price_call(spot, strike, time, vol, rate, div)
+            } else {
+                self.price_put(spot, strike, time, vol, rate, div)
+            };
+            
+            let greeks = self.calculate_greeks(spot, strike, time, vol, rate, div);
+            
+            results.push(price);
+            results.push(greeks.delta);
+            results.push(greeks.gamma);
+            results.push(greeks.vega);
+            results.push(greeks.theta);
+            results.push(greeks.rho);
+        }
+        results
+    }
+
     fn calculate_d1_d2(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> (f64, f64) {
         let d1 = ((spot / strike).ln() + (rate - div + 0.5 * vol.powi(2)) * time) / (vol * time.sqrt());
         let d2 = d1 - vol * time.sqrt();
@@ -242,5 +275,20 @@ mod tests {
         assert_eq!(results.len(), 2);
         assert!((results[0].price - 10.45058).abs() < 1e-4);
         assert!((results[1].price - 5.57352).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_batch_calculate_compact() {
+        let bs = BlackScholesWASM::new();
+        let params = vec![
+            100.0, 100.0, 1.0, 0.2, 0.05, 0.0, 1.0, // Call
+            100.0, 100.0, 1.0, 0.2, 0.05, 0.0, 0.0, // Put
+        ];
+        
+        let results = bs.batch_calculate_compact(&params);
+        
+        assert_eq!(results.len(), 12); // 2 options * 6 values each
+        assert!((results[0] - 10.45058).abs() < 1e-4); // Call Price
+        assert!((results[6] - 5.57352).abs() < 1e-4);  // Put Price
     }
 }
