@@ -16,12 +16,12 @@
 - [x] Task: Verify entity resolution across subgraphs using a local composer
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Schema Federation' (Protocol in workflow.md) f33341d
 
-## Phase 3: Apollo Gateway & Infrastructure
+## Phase 3: Apollo Gateway & Infrastructure [checkpoint: 35e8b04]
 - [x] Task: Implement Apollo Gateway using Node.js and `@apollo/gateway` f98d893
-- [x] Task: Configure Docker Compose for all subgraphs and the Gateway 1957259
-- [x] Task: Implement JWT propagation from Gateway to all subgraphs 617754c
-- [~] Task: Verify unified schema composition and query plan execution
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Apollo Gateway & Infrastructure' (Protocol in workflow.md)
+- [x] Task: Configure Docker Compose for all subgraphs and the Gateway 65164be
+- [x] Task: Implement JWT propagation from Gateway to all subgraphs 5494787
+- [x] Task: Verify unified schema composition and query plan execution
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Apollo Gateway & Infrastructure' (Protocol in workflow.md) 35e8b04
 
 ## Phase 4: Real-Time Subscriptions (TDD)
 - [ ] Task: Implement WebSocket support in `MarketData` subgraph for tick data
