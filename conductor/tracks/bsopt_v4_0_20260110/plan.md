@@ -28,7 +28,7 @@
 ### Sub-Phase 1.4: Basic AIOps Foundation
 - [~] Task: Create `src/aiops` service structure and configure Prometheus connectivity
 - [x] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics) eea386a
-- [ ] Task: Implement `PrometheusClient` with robust error handling and logging to Loki
+- [~] Task: Implement `PrometheusClient` with robust error handling and logging to Loki
 - [ ] Task: Configure Grafana "Self-Healing" dashboard with initial empty state
 
 ## Phase 2: Advanced Development (Weeks 5-8)
