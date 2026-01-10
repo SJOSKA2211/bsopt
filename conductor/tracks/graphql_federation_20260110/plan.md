@@ -5,7 +5,7 @@
 - [x] Task: Create `Pricing` subgraph (wrapping existing pricing logic) f326f60
 - [x] Task: Create `ML` subgraph (wrapping `src/ml` inference logic) d7e3fd6
 - [x] Task: Implement `Portfolio` subgraph (New service for user positions) 3317d60
-- [ ] Task: Implement `MarketData` subgraph (Kafka consumer integration)
+- [x] Task: Implement `MarketData` subgraph (Kafka consumer integration) caacc23
 - [ ] Task: Verify all subgraphs expose `/graphql` and valid SDL
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Subgraph Core Implementation' (Protocol in workflow.md)
 
