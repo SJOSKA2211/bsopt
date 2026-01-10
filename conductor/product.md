@@ -13,7 +13,8 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 
 ## Key Features
 *   **Observability Stack (LGTM):** Full integration of Loki (logs), Grafana (visualization), Tempo (traces), and Prometheus (metrics) for deep system visibility.
+*   **Real-time Event Streaming:** High-throughput Kafka-based architecture for sub-100ms market data processing and volatility calculations.
 *   **AutoML Pipelines:** Automated training and hyperparameter optimization using Optuna and XGBoost/Torch, managed via MLflow.
-*   **Resilient Infrastructure:** Docker-based microservices architecture with resource limits, health checks, and sidecar monitoring.
-*   **Continuous Training (CT):** Automated retraining pipelines triggered by data drift or schedules.
+*   **Resilient Infrastructure:** Production-hardened Docker architecture with non-root service execution and strict network isolation.
+*   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
 *   **Black-Scholes Pricing Engine:** High-performance pricing calculations using QuantLib.

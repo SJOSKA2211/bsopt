@@ -15,6 +15,10 @@
 *   **Redis (7):** Caching and Celery result backend.
 *   **MinIO:** S3-compatible object storage for model artifacts and large datasets.
 *   **RabbitMQ:** Primary message broker for the asynchronous task queue.
+*   **Apache Kafka (3.5+):** Real-time event streaming platform for market data.
+*   **ksqlDB:** Streaming SQL engine for real-time data filtering and transformation.
+*   **Confluent Schema Registry:** Avro schema management and enforcement.
+*   **Faust-streaming:** Python library for building streaming applications.
 
 ## Application Frameworks
 *   **FastAPI:** High-performance web framework for the API layer.
@@ -30,3 +34,6 @@
 ## Infrastructure & DevOps
 *   **Docker & Docker Compose:** Containerization and local orchestration.
 *   **GitHub Actions:** CI/CD/CT pipelines.
+*   **Trivy:** Container and filesystem security scanning.
+*   **Ruff:** High-performance Python linting and formatting.
+*   **Uvloop:** High-performance event loop for the FastAPI layer.

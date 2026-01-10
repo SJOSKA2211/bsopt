@@ -21,7 +21,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Build Pipeline' (Protocol in workflow.md) 8b73441
 
 ## Phase 4: React Integration & Service Layer (TDD)
-- [ ] Task: Write TDD tests for `WASMPricingService` initialization and async state
+- [~] Task: Write TDD tests for `WASMPricingService` initialization and async state
 - [ ] Task: Implement `WASMPricingService.ts` to manage WASM lifecycle and error boundaries
 - [ ] Task: Implement custom React hooks (`useWASMPricer`) for component-level integration
 - [ ] Task: Verify type-safe communication between TS and WASM layer

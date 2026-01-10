@@ -1,0 +1,13 @@
+{
+  "ui": {
+    "showModelInfoInChat": true,
+    "footer": {
+      "hideContextPercentage": false
+    },
+    "hideFooter": true,
+    "showMemoryUsage": true
+  },
+  "general": {
+    "previewFeatures": true
+  }
+}

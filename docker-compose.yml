@@ -187,7 +187,7 @@ services:
   mlflow:
     build:
       context: .
-      dockerfile: docker/Dockerfile.api
+      dockerfile: docker/Dockerfile.mlflow
     container_name: bsopt-mlflow
     environment:
       - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${DB_PASSWORD}@postgres:5432/mlflow

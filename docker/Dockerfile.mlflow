@@ -1,0 +1,16 @@
+# docker/Dockerfile.mlflow
+
+FROM python:3.13-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir mlflow[extras]==3.8.1 psycopg2-binary
+
+# Create artifacts directory and set permissions
+RUN mkdir -p /mlartifacts && chmod 777 /mlartifacts
+
+EXPOSE 5000
+
+# mlflow server command is usually in docker-compose.yml

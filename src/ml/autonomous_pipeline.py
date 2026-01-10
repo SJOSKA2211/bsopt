@@ -6,7 +6,15 @@ from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
 from src.ml.drift import calculate_ks_test, calculate_psi, PerformanceDriftMonitor
 from src.ml.trainer import InstrumentedTrainer
-from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS, push_metrics
+from src.shared.observability import (
+    setup_logging, 
+    SCRAPE_DURATION, 
+    SCRAPE_ERRORS, 
+    push_metrics,
+    DATA_DRIFT_SCORE,
+    KS_TEST_SCORE,
+    TRAINING_ERRORS
+)
 from sqlalchemy import create_engine
 
 # Initialize structured logger
@@ -79,6 +87,10 @@ class AutonomousMLPipeline:
             
             statistic, p_value = calculate_ks_test(historical_prices, current_prices)
             psi_score = calculate_psi(historical_prices, current_prices)
+            
+            # Update Prometheus Gauges
+            DATA_DRIFT_SCORE.set(psi_score)
+            KS_TEST_SCORE.set(p_value)
             
             logger.info("data_drift_checked", 
                         ks_statistic=statistic, 

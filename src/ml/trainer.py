@@ -17,10 +17,10 @@ from sklearn.ensemble import RandomForestClassifier
 from typing import Dict, Any, Callable, Optional, List
 from src.shared.observability import (
     TRAINING_DURATION, 
-    TRAINING_DURATION_HISTOGRAM,
     MODEL_ACCURACY, 
     MODEL_RMSE,
-    TRAINING_ERRORS
+    TRAINING_ERRORS,
+    push_metrics
 )
 
 # Initialize structured logger
@@ -149,6 +149,10 @@ class InstrumentedTrainer:
             "pytorch": PyTorchTrainer()
         }
 
+    def push_metrics(self):
+        """Push metrics to Prometheus Gateway."""
+        push_metrics(job_name=self.study_name)
+
     def _plot_feature_importance(self, importance: Dict[str, float], framework: str) -> str:
         """Creates a feature importance plot and returns the path to the saved image."""
         plt.figure(figsize=(10, 6))
@@ -210,7 +214,6 @@ class InstrumentedTrainer:
                     os.rmdir(os.path.dirname(plot_path))
                 
                 TRAINING_DURATION.labels(framework=framework).observe(duration)
-                TRAINING_DURATION_HISTOGRAM.labels(framework=framework).observe(duration)
                 MODEL_ACCURACY.labels(framework=framework).set(accuracy)
                 MODEL_RMSE.labels(model_type=framework, dataset="validation").set(rmse)
                 
@@ -222,6 +225,8 @@ class InstrumentedTrainer:
             TRAINING_ERRORS.labels(framework=framework).inc()
             logger.error("training_failed", framework=framework, error=str(e))
             raise
+        finally:
+            self.push_metrics()
 
     def optimize(self, objective: Callable, n_trials: int = 20) -> optuna.study.Study:
         """

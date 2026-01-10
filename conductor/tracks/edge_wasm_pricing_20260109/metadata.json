@@ -1,0 +1,8 @@
+{
+  "track_id": "edge_wasm_pricing_20260109",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-09T12:00:00Z",
+  "updated_at": "2026-01-09T12:00:00Z",
+  "description": "Edge Computing with WebAssembly (Sub-millisecond Financial Calculations)"
+}

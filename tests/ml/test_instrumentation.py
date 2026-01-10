@@ -29,7 +29,7 @@ def test_trainer_new_prometheus_metrics(sample_data):
     trainer = InstrumentedTrainer(study_name="metrics_test")
     
     # Patch where they are used (src.ml.trainer)
-    with patch("src.ml.trainer.TRAINING_DURATION_HISTOGRAM") as mock_hist, \
+    with patch("src.ml.trainer.TRAINING_DURATION") as mock_hist, \
          patch("src.ml.trainer.MODEL_RMSE") as mock_rmse:
         
         mock_hist_labels = MagicMock()
@@ -122,7 +122,7 @@ def test_pipeline_scrape_execution():
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd
         mock_scraper.fetch_historical_data.return_value = pd.DataFrame({
-             "timestamp": ["2023-01-01"], "open": [100], "high": [105], "low": [99], "close": [101], "volume": [1000]
+             "timestamp": [1672531200000], "open": [100], "high": [105], "low": [99], "close": [101], "volume": [1000]
         })
         
         mock_psi.return_value = 0.05

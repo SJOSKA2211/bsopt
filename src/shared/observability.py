@@ -19,8 +19,7 @@ def setup_logging():
 # Common Metrics
 SCRAPE_DURATION = Summary('market_scrape_duration_seconds', 'Time spent scraping market data', ['api'])
 SCRAPE_ERRORS = Counter('market_scrape_errors_total', 'Total number of scrape errors', ['api', 'status_code'])
-TRAINING_DURATION = Summary('ml_training_duration_seconds', 'Time spent in training', ['framework'])
-TRAINING_DURATION_HISTOGRAM = Histogram('ml_training_duration_hist_seconds', 'Time spent training model', ['framework'])
+TRAINING_DURATION = Histogram('ml_training_duration_seconds', 'Time spent in training', ['framework'])
 MODEL_ACCURACY = Gauge('ml_model_accuracy_score', 'Accuracy score of the latest model', ['framework'])
 MODEL_RMSE = Gauge('ml_model_rmse', 'Root Mean Squared Error of model', ['model_type', 'dataset'])
 DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
