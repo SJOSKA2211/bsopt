@@ -4,7 +4,7 @@
 - [x] Task: Create `src/aiops` service structure and configure Prometheus connectivity 62528d7
 - [x] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics) b425093
 - [x] Task: Implement `PrometheusClient` with robust error handling and logging to Loki 7425565
-- [ ] Task: Configure Grafana "Self-Healing" dashboard with initial empty state
+- [x] Task: Configure Grafana "Self-Healing" dashboard with initial empty state fc94187
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md)
 
 ## Phase 2: ML-Driven Anomaly Detection (TDD)
