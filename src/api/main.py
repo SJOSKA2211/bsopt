@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from prometheus_client import make_asgi_app, Counter, Histogram
 import os
 import time
+from strawberry.fastapi import GraphQLRouter
+from src.api.graphql.options import schema
 
 # Multiproc directory for Prometheus
 PROMETHEUS_MULTIPROC_DIR = os.environ.get("PROMETHEUS_MULTIPROC_DIR", "/tmp/metrics")
@@ -13,6 +15,9 @@ app = FastAPI(title="BS-Opt API")
 # Add prometheus asgi middleware to expose /metrics
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
+graphql_app = GraphQLRouter(schema)
+app.include_router(graphql_app, prefix="/graphql")
 
 REQUEST_COUNT = Counter("api_requests_total", "Total count of requests", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("api_request_latency_seconds", "Request latency in seconds", ["method", "endpoint"])
