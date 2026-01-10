@@ -15,7 +15,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: IV Solver & Batching' (Protocol in workflow.md) 4a47681
 
 ## Phase 3: WASM Toolchain & Build Automation
-- [ ] Task: Configure `wasm-pack` and implement build scripts in `package.json`
+- [x] Task: Configure `wasm-pack` and implement build scripts in `package.json` 1b7d863
 - [ ] Task: Implement `wasm-bindgen` attribute mapping for type-safe JS/TS exports
 - [ ] Task: Verify successful compilation and binary size optimization (Release build)
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Build Pipeline' (Protocol in workflow.md)
