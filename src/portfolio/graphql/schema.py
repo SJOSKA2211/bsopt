@@ -1,6 +1,8 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import List, Optional
+from typing import List, Optional, AsyncGenerator
+import asyncio
+import random
 
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
@@ -45,4 +47,18 @@ class Query:
             )
         return None
 
-schema = Schema(query=Query)
+@strawberry.type
+class Subscription:
+    @strawberry.subscription
+    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio, None]:
+        while True:
+            # Mock P&L update simulation
+            yield Portfolio(
+                id=portfolio_id,
+                user_id="user_123",
+                cash_balance=10000.0 + random.uniform(-100, 100),
+                positions=[]
+            )
+            await asyncio.sleep(0.1)
+
+schema = Schema(query=Query, subscription=Subscription)
