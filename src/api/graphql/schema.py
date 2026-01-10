@@ -248,6 +248,4 @@ class Subscription:
 schema = FederatedSchema(
     query=Query,
     mutation=Mutation,
-    subscription=Subscription,
-    enable_federation_2=True
-)
+    subscription=Subscription)
