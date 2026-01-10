@@ -70,7 +70,7 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
         
     return model
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Agent")
     parser.add_argument("--timesteps", type=int, default=10000, help="Total training timesteps")
     parser.add_argument("--output", type=str, default="models/td3_trading_agent", help="Path to save the model")
@@ -81,3 +81,6 @@ if __name__ == "__main__":
     os.makedirs("logs", exist_ok=True)
     
     train_td3(total_timesteps=args.timesteps, model_path=args.output)
+
+if __name__ == "__main__":
+    main()
