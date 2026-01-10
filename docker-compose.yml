@@ -420,7 +420,92 @@ services:
     restart: always
     <<: *security
 
-volumes:
+  # ============================================================================
+  # GRAPHQL FEDERATION (Gateway & Subgraphs)
+  # ============================================================================
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    container_name: bsopt-gateway
+    environment:
+      OPTIONS_URL: http://api:8000/graphql
+      PRICING_URL: http://pricing-service:8001/graphql
+      ML_URL: http://ml-service:8002/graphql
+      PORTFOLIO_URL: http://portfolio-service:8003/graphql
+      MARKETDATA_URL: http://marketdata-service:8004/graphql
+      PORT: 4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - api
+      - pricing-service
+      - ml-service
+      - portfolio-service
+      - marketdata-service
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  pricing-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bsopt-pricing-service
+    command: uvicorn src.pricing.main:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bsopt-ml-service
+    command: uvicorn src.ml.main:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  portfolio-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bsopt-portfolio-service
+    command: uvicorn src.portfolio.main:app --host 0.0.0.0 --port 8003
+    ports:
+      - "8003:8003"
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+    <<: *security
+
+  marketdata-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: bsopt-marketdata-service
+    command: uvicorn src.streaming.main:app --host 0.0.0.0 --port 8004
+    ports:
+      - "8004:8004"
+    networks:
+      - bsopt-net
+      - monitor-net
+    restart: always
+    <<: *security
+
   postgres_data:
   redis_data:
   rabbitmq_data:
