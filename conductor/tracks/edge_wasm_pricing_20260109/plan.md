@@ -1,11 +1,11 @@
 # Plan: Edge Computing with WebAssembly (Track: edge_wasm_pricing_20260109)
 
-## Phase 1: Rust Engine Core & Unit Testing (TDD)
+## Phase 1: Rust Engine Core & Unit Testing (TDD) [checkpoint: d205df3]
 - [x] Task: Initialize Rust project structure (`src/wasm`) and configure `Cargo.toml` for WASM 08b61c5
 - [x] Task: Write TDD tests for Black-Scholes pricing and Greeks in Rust 67a9012
 - [x] Task: Implement core Black-Scholes and single-pass Greeks logic in Rust 0a09fc0
 - [x] Task: Verify numerical precision against reference values (QuantLib parity) 314b7d7
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Rust Engine Core' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Rust Engine Core' (Protocol in workflow.md) d205df3
 
 ## Phase 2: IV Solver & Batch Optimization (TDD)
 - [ ] Task: Write TDD tests for Newton-Raphson Implied Volatility solver
