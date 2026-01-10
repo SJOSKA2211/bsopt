@@ -13,7 +13,7 @@
 - [x] Task: Write TDD tests for `AutoencoderDetector` (multivariate anomaly detection) d34de9d
 - [x] Task: Implement `AutoencoderDetector` using `PyTorch` for system-wide health signals d34de9d
 - [x] Task: Implement detection logic for "ML Data Drift" (integrating PSI/KS scores from ML pipeline) 4060457
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: ML Detection' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: ML Detection' (Protocol in workflow.md) 30455c6
 
 ## Phase 3: Automated Remediation Engine (TDD)
 - [ ] Task: Write TDD tests for `DockerRemediator` (simulating service restarts)
