@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & Observability Loop (TDD)
 - [x] Task: Create `src/aiops` service structure and configure Prometheus connectivity 62528d7
-- [ ] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics)
+- [x] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics) b425093
 - [ ] Task: Implement `PrometheusClient` with robust error handling and logging to Loki
 - [ ] Task: Configure Grafana "Self-Healing" dashboard with initial empty state
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md)
