@@ -23,12 +23,12 @@
 - [x] Task: Verify unified schema composition and query plan execution
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Apollo Gateway & Infrastructure' (Protocol in workflow.md) 35e8b04
 
-## Phase 4: Real-Time Subscriptions (TDD)
+## Phase 4: Real-Time Subscriptions (TDD) [checkpoint: 7f550d8]
 - [x] Task: Implement WebSocket support in `MarketData` subgraph for tick data 8e18a1e
 - [x] Task: Implement WebSocket support in `Portfolio` subgraph for P&L updates 1b4d8a7
 - [x] Task: Configure Apollo Gateway to support federated subscriptions ba7b644
 - [x] Task: Verify end-to-end subscription streaming from Kafka to GraphQL client 17848d3
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Subscriptions' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Subscriptions' (Protocol in workflow.md) 7f550d8
 
 ## Phase 5: Production Hardening & Documentation
 - [ ] Task: Implement response caching in Apollo Gateway
