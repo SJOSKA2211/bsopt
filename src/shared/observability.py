@@ -1,6 +1,10 @@
 import structlog
 import os
 from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
+from typing import List
+import httpx
+from datetime import datetime
+
 
 def setup_logging():
     """Configures structlog for JSON logging (Loki compliant)."""
@@ -38,3 +42,43 @@ def push_metrics(job_name: str):
             structlog.get_logger().error("metrics_push_failed", error=str(e))
     else:
         structlog.get_logger().debug("metrics_push_skipped", reason="no_gateway_url")
+
+import httpx
+from datetime import datetime
+
+def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
+    """
+    Posts an annotation to Grafana.
+    """
+    grafana_url = os.environ.get("GRAFANA_URL")
+    if not grafana_url:
+        structlog.get_logger().debug("grafana_annotation_skipped", reason="GRAFANA_URL not set")
+        return False
+
+    if tags is None:
+        tags = []
+
+    # Grafana expects time in milliseconds Unix epoch
+    timestamp_ms = int(datetime.utcnow().timestamp() * 1000)
+
+    payload = {
+        "time": timestamp_ms,
+        "text": message,
+        "tags": tags
+    }
+
+    try:
+        # Assuming Grafana API endpoint is /api/annotations
+        response = httpx.post(f"{grafana_url}/api/annotations", headers={"Content-Type": "application/json"}, json=payload, timeout=5)
+        response.raise_for_status() # Raise an exception for bad status codes
+        structlog.get_logger().info("grafana_annotation_posted", status_code=response.status_code, response=response.json())
+        return True
+    except httpx.HTTPStatusError as e:
+        structlog.get_logger().error("grafana_annotation_failed", reason="HTTPStatusError", error=str(e), response_text=e.response.text)
+        return False
+    except httpx.RequestError as e:
+        structlog.get_logger().error("grafana_annotation_failed", reason="RequestError", error=str(e))
+        return False
+    except Exception as e:
+        structlog.get_logger().error("grafana_annotation_failed", reason="UnknownError", error=str(e))
+        return False
