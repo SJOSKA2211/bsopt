@@ -14,11 +14,11 @@
 - [x] Task: Optimize Rust data structures for efficient WASM memory transfer 0b53be3
 - [x] Task: Conductor - User Manual Verification 'Phase 2: IV Solver & Batching' (Protocol in workflow.md) 4a47681
 
-## Phase 3: WASM Toolchain & Build Automation
+## Phase 3: WASM Toolchain & Build Automation [checkpoint: 8b73441]
 - [x] Task: Configure `wasm-pack` and implement build scripts in `package.json` 1b7d863
 - [x] Task: Implement `wasm-bindgen` attribute mapping for type-safe JS/TS exports 0c40aa0
-- [x] Task: Verify successful compilation and binary size optimization (Release build) 1b7d863
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Build Pipeline' (Protocol in workflow.md)
+- [x] Task: Verify successful compilation and binary size optimization (Release build) 99bd23e
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Build Pipeline' (Protocol in workflow.md) 8b73441
 
 ## Phase 4: React Integration & Service Layer (TDD)
 - [ ] Task: Write TDD tests for `WASMPricingService` initialization and async state
