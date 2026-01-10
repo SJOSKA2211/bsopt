@@ -506,6 +506,51 @@ services:
     restart: always
     <<: *security
 
+  # ============================================================================
+  # RL TRAINING CLUSTER (Ray / RLLib)
+  # ============================================================================
+
+  ray-head:
+    image: rayproject/ray:2.9.0-py310
+    container_name: bsopt-ray-head
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+    ports:
+      - "8265:8265" # Ray Dashboard
+      - "6380:6379" # Ray Redis (Internal port 6379 mapped to 6380 to avoid conflict with bsopt-redis)
+    volumes:
+      - ./src:/home/ray/src
+      - ray_logs:/tmp/ray
+    networks:
+      - ray-net
+      - bsopt-net
+      - monitor-net
+    environment:
+      - RAY_address=127.0.0.1:6379
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    restart: always
+
+  ray-worker:
+    image: rayproject/ray:2.9.0-py310
+    depends_on:
+      - ray-head
+    command: ray start --address=ray-head:6379 --block
+    volumes:
+      - ./src:/home/ray/src
+    networks:
+      - ray-net
+      - bsopt-net
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+    restart: always
+
 volumes:
   postgres_data:
   redis_data:
@@ -519,6 +564,8 @@ volumes:
   kafka1_data:
   kafka2_data:
   kafka3_data:
+  ray_logs:
+  ray_models:
 
 networks:
   bsopt-net:
@@ -526,4 +573,6 @@ networks:
   monitor-net:
     driver: bridge
   kafka-net:
+    driver: bridge
+  ray-net:
     driver: bridge
