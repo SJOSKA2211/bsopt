@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch, ANY, PropertyMock
 import numpy as np
 from src.ml.reinforcement_learning.train import train_td3
 
@@ -68,3 +68,32 @@ def test_main_function():
             from src.ml.reinforcement_learning.train import main
             main()
             mock_train.assert_called_once_with(total_timesteps=1000, model_path="test_model")
+
+@patch("src.ml.reinforcement_learning.train.mlflow")
+def test_mlflow_callback(mock_mlflow_cb):
+    """Test the custom MLflow callback directly."""
+    from src.ml.reinforcement_learning.train import MLflowMetricsCallback
+    callback = MLflowMetricsCallback()
+    
+    # Mock the logger
+    mock_logger = MagicMock()
+    mock_logger.get_log_dict.return_value = {
+        "train/actor_loss": 0.5,
+        "train/critic_loss": 0.1,
+        "rollout/ep_rew_mean": 10.0
+    }
+    
+    # In SB3, logger is often set via init_callback or directly in the object
+    with patch.object(MLflowMetricsCallback, 'logger', new_callable=PropertyMock) as mock_logger_prop:
+        mock_logger_prop.return_value = mock_logger
+        
+        # Simulate a step
+        callback.num_timesteps = 100
+        callback._on_step()
+        
+        # Verify metrics were logged
+        mock_mlflow_cb.log_metrics.assert_called_once()
+        metrics = mock_mlflow_cb.log_metrics.call_args[0][0]
+        assert metrics["train/actor_loss"] == 0.5
+        assert metrics["rollout/ep_rew_mean"] == 10.0
+        assert mock_mlflow_cb.log_metrics.call_args[1]["step"] == 100

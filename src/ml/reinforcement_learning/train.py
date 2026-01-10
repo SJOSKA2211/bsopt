@@ -4,12 +4,29 @@ import numpy as np
 import gymnasium as gym
 from stable_baselines3 import TD3
 from stable_baselines3.common.noise import NormalActionNoise
-from stable_baselines3.common.callbacks import EvalCallback
+from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
 import mlflow
 import structlog
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
 logger = structlog.get_logger()
+
+class MLflowMetricsCallback(BaseCallback):
+    """
+    Custom callback for logging RL metrics to MLflow.
+    """
+    def __init__(self, verbose=0):
+        super().__init__(verbose)
+
+    def _on_step(self) -> bool:
+        # Retrieve metrics from the logger
+        metrics = self.logger.get_log_dict()
+        if metrics:
+            # Filter out metrics that are not suitable for MLflow (e.g., strings)
+            mlflow_metrics = {k: v for k, v in metrics.items() if isinstance(v, (int, float, np.float32, np.float64))}
+            if mlflow_metrics:
+                mlflow.log_metrics(mlflow_metrics, step=self.num_timesteps)
+        return True
 
 def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_trading_agent"):
     """
@@ -56,8 +73,14 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
             render=False
         )
         
+        # MLflow metrics callback
+        mlflow_callback = MLflowMetricsCallback()
+        
+        # Combine callbacks
+        callback = CallbackList([eval_callback, mlflow_callback])
+        
         # Train the agent
-        model.learn(total_timesteps=total_timesteps, callback=eval_callback)
+        model.learn(total_timesteps=total_timesteps, callback=callback)
         
         # Save the model
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
