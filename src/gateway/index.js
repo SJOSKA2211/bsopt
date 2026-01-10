@@ -1,6 +1,12 @@
 const { ApolloServer } = require('@apollo/server');
-const { startStandaloneServer } = require('@apollo/server/standalone');
+const { expressMiddleware } = require('@apollo/server/express4');
 const { ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource } = require('@apollo/gateway');
+const { createServer } = require('http');
+const { WebSocketServer } = require('ws');
+const { useServer } = require('graphql-ws/lib/use/ws');
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
 class AuthenticatedDataSource extends RemoteGraphQLDataSource {
   willSendRequest({ request, context }) {
@@ -25,19 +31,47 @@ const gateway = new ApolloGateway({
   },
 });
 
-const server = new ApolloServer({
-  gateway,
+const app = express();
+const httpServer = createServer(app);
+
+// Gateway startup
+gateway.load().then(async () => {
+  const server = new ApolloServer({
+    gateway,
+    plugins: [
+      {
+        async serverWillStart() {
+          return {
+            async drainServer() {
+              await serverCleanup.dispose();
+            },
+          };
+        },
+      },
+    ],
+  });
+
+  await server.start();
+
+  app.use(
+    '/',
+    cors(),
+    bodyParser.json(),
+    expressMiddleware(server, {
+      context: async ({ req }) => ({ headers: req.headers }),
+    }),
+  );
+
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/',
+  });
+
+  const serverCleanup = useServer({ schema: gateway.schema }, wsServer);
+
+  const port = process.env.PORT || 4000;
+  httpServer.listen(port, () => {
+    console.log(`🚀 Gateway ready at http://localhost:${port}/`);
+  });
 });
 
-const port = process.env.PORT || 4000;
-
-startStandaloneServer(server, {
-  listen: { port: Number(port) },
-  context: async ({ req }) => {
-    return { headers: req.headers };
-  },
-}).then(({ url }) => {
-  console.log(`🚀  Gateway ready at ${url}`);
-}).catch(err => {
-  console.error(err);
-});

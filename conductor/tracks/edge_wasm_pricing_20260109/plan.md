@@ -29,6 +29,6 @@
 
 ## Phase 5: Verification & Performance Benchmarking
 - [x] Task: Implement `OptionsChain` demo component for real-time visualization 833245
-- [~] Task: Perform client-side latency benchmarks (Individual vs Batch vs Mock API)
-- [ ] Task: Verify UI responsiveness during heavy 1000+ option batch calculations
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Performance & Verification' (Protocol in workflow.md)
+- [x] Task: Perform client-side latency benchmarks (Individual vs Batch vs Mock API) 834611
+- [x] Task: Verify UI responsiveness during heavy 1000+ option batch calculations 834611
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Performance & Verification' (Protocol in workflow.md) 834611
