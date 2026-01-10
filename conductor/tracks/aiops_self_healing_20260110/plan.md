@@ -7,7 +7,7 @@
 - [x] Task: Configure Grafana "Self-Healing" dashboard with initial empty state fc94187
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md) 65c0fbc
 
-## Phase 2: ML-Driven Anomaly Detection (TDD)
+## Phase 2: ML-Driven Anomaly Detection (TDD) [checkpoint: d012261]
 - [x] Task: Write TDD tests for `IsolationForestDetector` (univariate outlier detection) be60db7
 - [x] Task: Implement `IsolationForestDetector` using `scikit-learn` for latency/resource metrics be60db7
 - [x] Task: Write TDD tests for `AutoencoderDetector` (multivariate anomaly detection) d34de9d
