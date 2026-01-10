@@ -21,7 +21,7 @@
 
 ### Sub-Phase 1.3: GraphQL Federation
 - [x] Task: Define federated GraphQL schema for `Option`, `Portfolio`, `MarketData` types 9ae58cc
-- [x] Task: Implement `Query`, `Mutation`, and `Subscription` resolvers for core entities 81afc67
+- [x] Task: Implement `Query`, `Mutation`, and `Subscription` resolvers for core entities 704d4fe
 - [~] Task: Setup Apollo Gateway configuration in `src/gateway/index.js`
 - [x] Task: Integrate FastAPI with Strawberry GraphQL and Apollo Federation in `src/api/main.py` edce673
 
