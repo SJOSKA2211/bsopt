@@ -20,7 +20,7 @@
 - [x] Task: Implement Apollo Gateway using Node.js and `@apollo/gateway` f98d893
 - [x] Task: Configure Docker Compose for all subgraphs and the Gateway 1957259
 - [x] Task: Implement JWT propagation from Gateway to all subgraphs 617754c
-- [ ] Task: Verify unified schema composition and query plan execution
+- [~] Task: Verify unified schema composition and query plan execution
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Apollo Gateway & Infrastructure' (Protocol in workflow.md)
 
 ## Phase 4: Real-Time Subscriptions (TDD)

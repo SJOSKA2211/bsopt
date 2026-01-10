@@ -77,6 +77,26 @@ export class WASMPricingService {
       params.div
     );
   }
+
+  async priceOptionsBatch(options: OptionParams[]): Promise<Float64Array> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    const stride = 7;
+    const input = new Float64Array(options.length * stride);
+    for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
+      const offset = i * stride;
+      input[offset] = opt.spot;
+      input[offset + 1] = opt.strike;
+      input[offset + 2] = opt.time;
+      input[offset + 3] = opt.vol;
+      input[offset + 4] = opt.rate;
+      input[offset + 5] = opt.div;
+      input[offset + 6] = 1.0; // is_call = true for now in this batch helper
+    }
+    return this.bs!.batch_calculate_compact(input);
+  }
 }
 
 export const wasmPricing = new WASMPricingService();

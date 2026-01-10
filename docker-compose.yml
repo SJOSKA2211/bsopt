@@ -506,6 +506,7 @@ services:
     restart: always
     <<: *security
 
+volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
