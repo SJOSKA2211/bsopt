@@ -9,12 +9,12 @@
 - [x] Task: Verify all subgraphs expose `/graphql` and valid SDL 8168763
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Subgraph Core Implementation' (Protocol in workflow.md) 8bbcc34
 
-## Phase 2: Schema Federation & Entity Mapping
+## Phase 2: Schema Federation & Entity Mapping [checkpoint: f33341d]
 - [x] Task: Define the `Option` federated entity with shared keys (`id`, `symbol`)
 - [x] Task: Implement cross-service field resolvers (e.g., ML subgraph resolving predicted price for an Option)
 - [x] Task: Implement `Portfolio` -> `Option` entity relationship
 - [x] Task: Verify entity resolution across subgraphs using a local composer
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Schema Federation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Schema Federation' (Protocol in workflow.md) f33341d
 
 ## Phase 3: Apollo Gateway & Infrastructure
 - [ ] Task: Implement Apollo Gateway using Node.js and `@apollo/gateway`
