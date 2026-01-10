@@ -15,7 +15,7 @@
 - [x] Task: Implement detection logic for "ML Data Drift" (integrating PSI/KS scores from ML pipeline) 4060457
 - [x] Task: Conductor - User Manual Verification 'Phase 2: ML Detection' (Protocol in workflow.md) 30455c6
 
-## Phase 3: Automated Remediation Engine (TDD)
+## Phase 3: Automated Remediation Engine (TDD) [checkpoint: a883dc4]
 - [x] Task: Write TDD tests for `DockerRemediator` (simulating service restarts) 71c85da
 - [x] Task: Implement `DockerRemediator` using the Docker SDK to restart unhealthy containers 71c85da
 - [x] Task: Write TDD tests for `MLPipelineTrigger` (triggering retraining) a5abf71
