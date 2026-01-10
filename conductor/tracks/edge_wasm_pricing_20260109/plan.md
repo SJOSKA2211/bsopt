@@ -8,8 +8,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Rust Engine Core' (Protocol in workflow.md) d205df3
 
 ## Phase 2: IV Solver & Batch Optimization (TDD)
-- [ ] Task: Write TDD tests for Newton-Raphson Implied Volatility solver
-- [ ] Task: Implement numerical IV solver with high convergence stability
+- [x] Task: Write TDD tests for Newton-Raphson Implied Volatility solver 314b7d7
+- [x] Task: Implement numerical IV solver with high convergence stability 55f9972
 - [ ] Task: Implement batch processing functions for high-throughput calculation arrays
 - [ ] Task: Optimize Rust data structures for efficient WASM memory transfer
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: IV Solver & Batching' (Protocol in workflow.md)
