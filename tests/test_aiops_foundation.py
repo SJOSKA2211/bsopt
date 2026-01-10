@@ -80,3 +80,25 @@ def test_fetch_p95_latency_fail(mocker):
     latency = client.get_p95_latency(service="api")
     
     assert latency == 0.0
+
+def test_fetch_p95_latency_empty(mocker):
+    """Test fetching p95 latency with empty result."""
+    mock_prom = mocker.patch("src.aiops.prometheus_client.PrometheusConnect")
+    mock_prom.return_value.custom_query.return_value = []
+    
+    client = PrometheusClient(url="http://localhost:9090")
+    latency = client.get_p95_latency(service="api")
+    
+    assert latency == 0.0
+
+def test_fetch_5xx_errors_invalid_service():
+    """Test fetching 5xx error rate with invalid service name."""
+    client = PrometheusClient(url="http://localhost:9090")
+    with pytest.raises(ValueError, match="Service name cannot be empty"):
+        client.get_5xx_error_rate(service="")
+
+def test_fetch_p95_latency_invalid_service():
+    """Test fetching p95 latency with invalid service name."""
+    client = PrometheusClient(url="http://localhost:9090")
+    with pytest.raises(ValueError, match="Service name cannot be empty"):
+        client.get_p95_latency(service="")
