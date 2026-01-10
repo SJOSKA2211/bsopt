@@ -1,6 +1,14 @@
 const { ApolloServer } = require('@apollo/server');
 const { startStandaloneServer } = require('@apollo/server/standalone');
-const { ApolloGateway, IntrospectAndCompose } = require('@apollo/gateway');
+const { ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource } = require('@apollo/gateway');
+
+class AuthenticatedDataSource extends RemoteGraphQLDataSource {
+  willSendRequest({ request, context }) {
+    if (context.headers && context.headers['authorization']) {
+      request.http.headers.set('authorization', context.headers['authorization']);
+    }
+  }
+}
 
 const gateway = new ApolloGateway({
   supergraphSdl: new IntrospectAndCompose({
@@ -12,6 +20,9 @@ const gateway = new ApolloGateway({
       { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
     ],
   }),
+  buildService({ name, url }) {
+    return new AuthenticatedDataSource({ url });
+  },
 });
 
 const server = new ApolloServer({
@@ -22,6 +33,9 @@ const port = process.env.PORT || 4000;
 
 startStandaloneServer(server, {
   listen: { port: Number(port) },
+  context: async ({ req }) => {
+    return { headers: req.headers };
+  },
 }).then(({ url }) => {
   console.log(`🚀  Gateway ready at ${url}`);
 }).catch(err => {
