@@ -9,7 +9,7 @@
 - [x] Task: Write TDD Tests for `MarketDataProducer` (Mocking Kafka client) 361274b
 - [x] Task: Implement `MarketDataProducer` with Avro serialization, LZ4 compression, and Idempotence 361274b
 - [x] Task: Write TDD Tests for `MarketDataConsumer` (Consumer Groups & Batch handling) 9f02448
-- [ ] Task: Implement `MarketDataConsumer` with parallel processing and error handling (DLQ)
+- [x] Task: Implement `MarketDataConsumer` with parallel processing and error handling (DLQ) 9f02448
 - [ ] Task: Write TDD Tests for `VolatilityAggregationStream` (Tumbling window calculations)
 - [ ] Task: Implement `VolatilityAggregationStream` using Faust (1-min annualized volatility)
 - [ ] Task: Setup Prometheus Kafka Exporter and Grafana Dashboard (Throughput, Lag, Health)
