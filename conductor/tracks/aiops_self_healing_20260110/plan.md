@@ -1,6 +1,6 @@
 # Plan: AIOps & Self-Healing (Track: aiops_self_healing_20260110)
 
-## Phase 1: Foundation & Observability Loop (TDD)
+## Phase 1: Foundation & Observability Loop (TDD) [checkpoint: 46f596a]
 - [x] Task: Create `src/aiops` service structure and configure Prometheus connectivity 62528d7
 - [x] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics) b425093
 - [x] Task: Implement `PrometheusClient` with robust error handling and logging to Loki 7425565
