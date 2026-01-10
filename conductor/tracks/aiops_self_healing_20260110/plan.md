@@ -25,6 +25,6 @@
 
 ## Phase 4: Integration & Verification
 - [x] Task: Implement the main `AIOpsOrchestrator` loop (Detect -> Analyze -> Remediate) cc80d52
-- [ ] Task: Integrate "Remediation Events" with Grafana annotations and Loki logs
+- [~] Task: Integrate "Remediation Events" with Grafana annotations and Loki logs
 - [ ] Task: Simulate E2E failure scenarios (API spike, ML drift) and verify automated recovery
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Full Integration' (Protocol in workflow.md)
