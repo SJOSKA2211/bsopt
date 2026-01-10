@@ -30,9 +30,9 @@
 - [x] Task: Verify end-to-end subscription streaming from Kafka to GraphQL client 17848d3
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Real-Time Subscriptions' (Protocol in workflow.md) 7f550d8
 
-## Phase 5: Production Hardening & Documentation
+## Phase 5: Production Hardening & Documentation [checkpoint: 7940aed]
 - [x] Task: Implement response caching in Apollo Gateway 9b4cd10
 - [-] Task: Configure OpenTelemetry instrumentation for distributed tracing across the supergraph
 - [-] Task: Document the GraphQL API (queries, mutations, and subscription examples)
 - [-] Task: Verify SLA targets (sub-10ms Gateway overhead) with benchmarks
-- [~] Task: Conductor - User Manual Verification 'Phase 5: Production Hardening' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Production Hardening' (Protocol in workflow.md) 7940aed
