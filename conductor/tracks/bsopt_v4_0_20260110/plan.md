@@ -5,7 +5,7 @@
 
 ### Sub-Phase 1.1: Kafka Streaming Architecture
 - [x] Task: Configure Kafka Cluster in `docker-compose.yml` (3 Brokers, Zookeeper, Schema Registry, ksqlDB) 3e5c7a0
-- [ ] Task: Define Avro Schema for `MarketData` and register with Schema Registry
+- [x] Task: Define Avro Schema for `MarketData` and register with Schema Registry 1801101
 - [ ] Task: Write TDD Tests for `MarketDataProducer` (Mocking Kafka client)
 - [ ] Task: Implement `MarketDataProducer` with Avro serialization, LZ4 compression, and Idempotence
 - [ ] Task: Write TDD Tests for `MarketDataConsumer` (Consumer Groups & Batch handling)
