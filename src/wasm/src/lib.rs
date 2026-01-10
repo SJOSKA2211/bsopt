@@ -68,6 +68,44 @@ impl BlackScholesWASM {
         }
     }
 
+    pub fn solve_iv(&self, price: f64, spot: f64, strike: f64, time: f64, rate: f64, div: f64, is_call: bool) -> f64 {
+        let mut vol = 0.5; // Initial guess
+        let max_iter = 100;
+        let epsilon = 1e-8;
+
+        for _ in 0..max_iter {
+            let p = if is_call {
+                self.price_call(spot, strike, time, vol, rate, div)
+            } else {
+                self.price_put(spot, strike, time, vol, rate, div)
+            };
+            
+            let diff = p - price;
+            if diff.abs() < epsilon {
+                return vol;
+            }
+
+            let vega = self.calculate_vega(spot, strike, time, vol, rate, div);
+            if vega.abs() < 1e-10 {
+                break;
+            }
+
+            vol = vol - diff / vega;
+            
+            if vol <= 0.0 {
+                vol = 1e-6; // Ensure vol stays positive
+            }
+        }
+        vol
+    }
+
+    fn calculate_vega(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> f64 {
+        let (d1, _) = self.calculate_d1_d2(spot, strike, time, vol, rate, div);
+        let exp_qt = (-div * time).exp();
+        let nd1 = self.normal.pdf(d1);
+        spot * exp_qt * nd1 * time.sqrt()
+    }
+
     fn calculate_d1_d2(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> (f64, f64) {
         let d1 = ((spot / strike).ln() + (rate - div + 0.5 * vol.powi(2)) * time) / (vol * time.sqrt());
         let d2 = d1 - vol * time.sqrt();
@@ -130,5 +168,21 @@ mod tests {
         // Deep in the money
         let price_itm = bs.price_call(100.0, 10.0, 1.0, 0.2, 0.05, 0.0);
         assert!((price_itm - (100.0 - 10.0 * (-0.05 * 1.0f64).exp())).abs() < 1e-2);
+    }
+
+    #[test]
+    fn test_iv_solver() {
+        let bs = BlackScholesWASM::new();
+        let spot = 100.0;
+        let strike = 100.0;
+        let time = 1.0;
+        let rate = 0.05;
+        let div = 0.0;
+        let target_vol = 0.2;
+        
+        let price = bs.price_call(spot, strike, time, target_vol, rate, div);
+        let solved_vol = bs.solve_iv(price, spot, strike, time, rate, div, true);
+        
+        assert!((solved_vol - target_vol).abs() < 1e-4);
     }
 }
