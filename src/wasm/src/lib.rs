@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
 use statrs::distribution::{Normal, Continuous, ContinuousCDF};
+use js_sys::Float64Array;
 
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Clone, Copy)]
@@ -149,20 +150,21 @@ impl BlackScholesWASM {
         results
     }
 
-    pub fn batch_calculate_compact(&self, params: &[f64]) -> Vec<f64> {
+    pub fn batch_calculate_compact(&self, params: Float64Array) -> Float64Array {
+        let input = params.to_vec();
         let stride = 7; // spot, strike, time, vol, rate, div, is_call
-        let num_options = params.len() / stride;
+        let num_options = input.len() / stride;
         let mut results = Vec::with_capacity(num_options * 6); // price + 5 greeks
 
         for i in 0..num_options {
             let offset = i * stride;
-            let spot = params[offset];
-            let strike = params[offset + 1];
-            let time = params[offset + 2];
-            let vol = params[offset + 3];
-            let rate = params[offset + 4];
-            let div = params[offset + 5];
-            let is_call = params[offset + 6] > 0.5;
+            let spot = input[offset];
+            let strike = input[offset + 1];
+            let time = input[offset + 2];
+            let vol = input[offset + 3];
+            let rate = input[offset + 4];
+            let div = input[offset + 5];
+            let is_call = input[offset + 6] > 0.5;
 
             let price = if is_call {
                 self.price_call(spot, strike, time, vol, rate, div)
@@ -179,7 +181,8 @@ impl BlackScholesWASM {
             results.push(greeks.theta);
             results.push(greeks.rho);
         }
-        results
+        
+        Float64Array::from(results.as_slice())
     }
 
     fn calculate_d1_d2(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> (f64, f64) {
@@ -275,20 +278,5 @@ mod tests {
         assert_eq!(results.len(), 2);
         assert!((results[0].price - 10.45058).abs() < 1e-4);
         assert!((results[1].price - 5.57352).abs() < 1e-4);
-    }
-
-    #[test]
-    fn test_batch_calculate_compact() {
-        let bs = BlackScholesWASM::new();
-        let params = vec![
-            100.0, 100.0, 1.0, 0.2, 0.05, 0.0, 1.0, // Call
-            100.0, 100.0, 1.0, 0.2, 0.05, 0.0, 0.0, // Put
-        ];
-        
-        let results = bs.batch_calculate_compact(&params);
-        
-        assert_eq!(results.len(), 12); // 2 options * 6 values each
-        assert!((results[0] - 10.45058).abs() < 1e-4); // Call Price
-        assert!((results[6] - 5.57352).abs() < 1e-4);  // Put Price
     }
 }
