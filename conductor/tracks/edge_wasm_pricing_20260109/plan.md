@@ -7,12 +7,12 @@
 - [x] Task: Verify numerical precision against reference values (QuantLib parity) 314b7d7
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Rust Engine Core' (Protocol in workflow.md) d205df3
 
-## Phase 2: IV Solver & Batch Optimization (TDD)
+## Phase 2: IV Solver & Batch Optimization (TDD) [checkpoint: 4a47681]
 - [x] Task: Write TDD tests for Newton-Raphson Implied Volatility solver 314b7d7
 - [x] Task: Implement numerical IV solver with high convergence stability 55f9972
 - [x] Task: Implement batch processing functions for high-throughput calculation arrays 6818112
 - [x] Task: Optimize Rust data structures for efficient WASM memory transfer 0b53be3
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: IV Solver & Batching' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: IV Solver & Batching' (Protocol in workflow.md) 4a47681
 
 ## Phase 3: WASM Toolchain & Build Automation
 - [ ] Task: Configure `wasm-pack` and implement build scripts in `package.json`
