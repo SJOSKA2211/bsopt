@@ -2,7 +2,7 @@
 
 ## Phase 1: Subgraph Core Implementation (TDD)
 - [x] Task: Create `Options` subgraph with `strawberry` and `FastAPI` (wrapping `src/api`) 435fbc9
-- [ ] Task: Create `Pricing` subgraph (wrapping existing pricing logic)
+- [x] Task: Create `Pricing` subgraph (wrapping existing pricing logic) f326f60
 - [ ] Task: Create `ML` subgraph (wrapping `src/ml` inference logic)
 - [ ] Task: Implement `Portfolio` subgraph (New service for user positions)
 - [ ] Task: Implement `MarketData` subgraph (Kafka consumer integration)
