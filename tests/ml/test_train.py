@@ -76,55 +76,81 @@ def test_main_function():
             mock_train.assert_called_once_with(total_timesteps=1000, model_path="test_model")
 
 @patch("src.ml.reinforcement_learning.train.mlflow")
-
 def test_mlflow_callback(mock_mlflow_cb):
-
     """Test the custom MLflow callback directly."""
-
     from src.ml.reinforcement_learning.train import MLflowMetricsCallback
-
     callback = MLflowMetricsCallback()
-
     
-
     # Mock the logger
-
     mock_logger = MagicMock()
-
     mock_logger.name_to_value = {
-
         "train/actor_loss": 0.5,
-
         "train/critic_loss": 0.1,
-
         "rollout/ep_rew_mean": 10.0
-
     }
-
     
-
     # In SB3, logger is often set via init_callback or directly in the object
-
     with patch.object(MLflowMetricsCallback, 'logger', new_callable=PropertyMock) as mock_logger_prop:
-
         mock_logger_prop.return_value = mock_logger
-
         
-
         # Simulate a step
-
         callback.num_timesteps = 100
-
         callback._on_step()
-
         
-
         # Verify metrics were logged
-
         mock_mlflow_cb.log_metrics.assert_called_once()
-
         metrics = mock_mlflow_cb.log_metrics.call_args[0][0]
-
         assert metrics["train/actor_loss"] == 0.5
-
         assert metrics["rollout/ep_rew_mean"] == 10.0
+
+@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", False)
+def test_train_distributed_ray_not_available():
+    """Test train_distributed when Ray is not available."""
+    from src.ml.reinforcement_learning.train import train_distributed
+    with patch("src.ml.reinforcement_learning.train.logger.error") as mock_logger_error:
+        result = train_distributed(num_instances=1, total_timesteps=1)
+        assert result is None
+        mock_logger_error.assert_called_once_with(
+            "ray_not_available", message="Ray not installed. Cannot run distributed training."
+        )
+
+@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
+@patch("src.ml.reinforcement_learning.train.ray.init")
+@patch("src.ml.reinforcement_learning.train.ray.get")
+@patch("src.ml.reinforcement_learning.train.train_td3_remote.remote")
+def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ray_init):
+    """Test the train_distributed function."""
+    mock_train_td3_remote.return_value = "future_object"
+    mock_ray_get.return_value = ["result1", "result2"]
+    
+    from src.ml.reinforcement_learning.train import train_distributed
+    
+    num_instances = 2
+    total_timesteps = 50
+    ray_address = "localhost:6379"
+    
+    results = train_distributed(num_instances=num_instances, total_timesteps=total_timesteps, ray_address=ray_address)
+    
+    mock_ray_init.assert_called_once_with(address=ray_address, ignore_reinit_error=True)
+    assert mock_train_td3_remote.call_count == num_instances
+    mock_ray_get.assert_called_once_with(["future_object", "future_object"])
+    assert results == ["result1", "result2"]
+
+@patch("src.ml.reinforcement_learning.train.train_td3")
+@patch("src.ml.reinforcement_learning.train.train_distributed")
+@patch("argparse.ArgumentParser.parse_args")
+def test_main_function_distributed(mock_args, mock_train_distributed, mock_train_td3):
+    """Test the main function for distributed training."""
+    mock_args.return_value = MagicMock(
+        timesteps=1000, 
+        output="test_model", 
+        distributed=True,
+        instances=3,
+        ray_address="auto"
+    )
+    from src.ml.reinforcement_learning.train import main
+    main()
+    mock_train_distributed.assert_called_once_with(
+        num_instances=3, total_timesteps=1000, ray_address="auto"
+    )
+    mock_train_td3.assert_not_called()
