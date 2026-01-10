@@ -14,10 +14,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Edge Computing with WebAssembly (Sub-millisecond Financial Calculations)
-*Link: [./conductor/tracks/edge_wasm_pricing_20260109/](./conductor/tracks/edge_wasm_pricing_20260109/)*
-
----
-
 ## [~] Track: GraphQL Federation for Unified API Gateway
 *Link: [./conductor/tracks/graphql_federation_20260110/](./conductor/tracks/graphql_federation_20260110/)*

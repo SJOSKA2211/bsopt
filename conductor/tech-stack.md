@@ -2,6 +2,7 @@
 
 ## Core Languages & Runtimes
 *   **Python (>=3.11):** Primary programming language for API, pricing engine, and ML pipelines.
+*   **Rust:** Language for high-performance WebAssembly modules.
 
 ## Machine Learning & Data Science
 *   **Optuna:** Hyperparameter optimization.
@@ -22,6 +23,7 @@
 
 ## Application Frameworks
 *   **FastAPI:** High-performance web framework for the API layer.
+*   **React (>=19) & Vite:** Modern frontend framework and build tool for the platform UI.
 *   **Celery:** Distributed task queue for long-running compute jobs (Pricing, AutoML).
 
 ## Observability & Monitoring (LGTM Stack)
@@ -34,6 +36,7 @@
 ## Infrastructure & DevOps
 *   **Docker & Docker Compose:** Containerization and local orchestration.
 *   **GitHub Actions:** CI/CD/CT pipelines.
+*   **Wasm-pack:** Toolchain for building and packaging Rust-generated WebAssembly.
 *   **Trivy:** Container and filesystem security scanning.
 *   **Ruff:** High-performance Python linting and formatting.
 *   **Uvloop:** High-performance event loop for the FastAPI layer.
