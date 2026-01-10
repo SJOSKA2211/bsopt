@@ -5,7 +5,7 @@
 - [x] Task: Write TDD tests for `PrometheusClient` wrapper (fetching 5xx and latency metrics) b425093
 - [x] Task: Implement `PrometheusClient` with robust error handling and logging to Loki 7425565
 - [x] Task: Configure Grafana "Self-Healing" dashboard with initial empty state fc94187
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation' (Protocol in workflow.md) 65c0fbc
 
 ## Phase 2: ML-Driven Anomaly Detection (TDD)
 - [ ] Task: Write TDD tests for `IsolationForestDetector` (univariate outlier detection)
