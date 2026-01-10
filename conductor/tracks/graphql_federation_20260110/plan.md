@@ -1,13 +1,13 @@
 # Plan: GraphQL Federation for Unified API Gateway (Track: graphql_federation_20260110)
 
-## Phase 1: Subgraph Core Implementation (TDD)
+## Phase 1: Subgraph Core Implementation (TDD) [checkpoint: 8bbcc34]
 - [x] Task: Create `Options` subgraph with `strawberry` and `FastAPI` (wrapping `src/api`) 435fbc9
 - [x] Task: Create `Pricing` subgraph (wrapping existing pricing logic) f326f60
 - [x] Task: Create `ML` subgraph (wrapping `src/ml` inference logic) d7e3fd6
 - [x] Task: Implement `Portfolio` subgraph (New service for user positions) 3317d60
 - [x] Task: Implement `MarketData` subgraph (Kafka consumer integration) caacc23
 - [x] Task: Verify all subgraphs expose `/graphql` and valid SDL 8168763
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Subgraph Core Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Subgraph Core Implementation' (Protocol in workflow.md) 8bbcc34
 
 ## Phase 2: Schema Federation & Entity Mapping
 - [ ] Task: Define the `Option` federated entity with shared keys (`id`, `symbol`)
