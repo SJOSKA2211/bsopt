@@ -99,4 +99,62 @@ class TestQuantumOptimizer:
         
         assert optimized_qc.size() < initial_size
         # For this specific case, it should ideally be 0 or much smaller
-        assert optimized_qc.size() == 0
+        assert optimized_qc.size() == 0 
+
+class TestHybridPricer:
+    def test_hybrid_pricer_routing_classical(self, mocker):
+        """Verify that the hybrid pricer routes to classical for low-dimensional, low-accuracy requests."""
+        from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
+        pricer = HybridQuantumClassicalPricer()
+        
+        mock_classical = mocker.patch.object(pricer.classical_pricer, "price_european", return_value={"price": 10.0})
+        mock_quantum = mocker.patch.object(pricer.quantum_pricer, "price_european_call_quantum", return_value={"price": 10.0})
+        
+        params = {
+            "S0": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2,
+            "num_underlyings": 1,
+            "accuracy": 0.05
+        }
+        
+        pricer.price_option_adaptive(**params)
+        
+        assert mock_classical.called
+        assert not mock_quantum.called
+
+    def test_hybrid_pricer_routing_quantum_high_dim(self, mocker):
+        """Verify that the hybrid pricer routes to quantum for high-dimensional requests."""
+        from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
+        pricer = HybridQuantumClassicalPricer()
+        
+        mock_classical = mocker.patch.object(pricer.classical_pricer, "price_european", return_value={"price": 10.0})
+        mock_quantum = mocker.patch.object(pricer.quantum_pricer, "price_european_call_quantum", return_value={"price": 10.0})
+        
+        params = {
+            "S0": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2,
+            "num_underlyings": 4, # > 3
+            "accuracy": 0.05
+        }
+        
+        pricer.price_option_adaptive(**params)
+        
+        assert mock_quantum.called
+        assert not mock_classical.called
+
+    def test_hybrid_pricer_routing_quantum_high_accuracy(self, mocker):
+        """Verify that the hybrid pricer routes to quantum for high-accuracy requests."""
+        from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
+        pricer = HybridQuantumClassicalPricer()
+        
+        mock_classical = mocker.patch.object(pricer.classical_pricer, "price_european", return_value={"price": 10.0})
+        mock_quantum = mocker.patch.object(pricer.quantum_pricer, "price_european_call_quantum", return_value={"price": 10.0})
+        
+        params = {
+            "S0": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2,
+            "num_underlyings": 1,
+            "accuracy": 0.005 # < 1%
+        }
+        
+        pricer.price_option_adaptive(**params)
+        
+        assert mock_quantum.called
+        assert not mock_classical.called
