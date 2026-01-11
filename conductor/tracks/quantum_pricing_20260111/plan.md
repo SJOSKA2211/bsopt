@@ -4,7 +4,7 @@
 - [x] Task: Install `qiskit`, `qiskit-aer`, and `qiskit-ibm-provider` dependencies 6a01684
 - [x] Task: Write TDD tests for `create_stock_price_distribution` (validating amplitude normalization) 2730dfc
 - [x] Task: Implement `create_stock_price_distribution` using Quantum Amplitude Encoding 78e4182
-- [ ] Task: Write TDD tests for Payoff Operator (controlled rotation logic)
+- [x] Task: Write TDD tests for Payoff Operator (controlled rotation logic) f7fd071
 - [ ] Task: Implement Payoff Operator to mark states where $S_T > K$
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md)
 
