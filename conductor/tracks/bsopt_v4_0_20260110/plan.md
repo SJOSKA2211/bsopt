@@ -3,7 +3,7 @@
 ## Phase 1: Core Infrastructure & Streaming (TDD)
 - [~] Task: Set up Kafka cluster with Zookeeper, Schema Registry, and ksqlDB
 - [x] Task: Implement MarketDataProducer with Avro serialization [ac0519a]
-- [ ] Task: Implement MarketDataConsumer for real-time processing
+- [x] Task: Implement MarketDataConsumer for real-time processing [e7d77a4]
 - [ ] Task: Implement VolatilityAggregationStream using Faust
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Infrastructure' (Protocol in workflow.md)
 
