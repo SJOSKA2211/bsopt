@@ -8,8 +8,14 @@ RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/li
 
 RUN pip install --no-cache-dir mlflow[extras]==3.8.1 psycopg2-binary
 
+# Create a non-root user
+RUN useradd -m -u 1000 mlflowuser
+
 # Create artifacts directory and set permissions
-RUN mkdir -p /mlartifacts && chmod 777 /mlartifacts
+RUN mkdir -p /mlartifacts && \
+    chown -R mlflowuser:mlflowuser /mlartifacts /app
+
+USER mlflowuser
 
 EXPOSE 5000
 

@@ -26,20 +26,21 @@ WORKDIR /app
 # Create a non-root user
 RUN useradd -m -u 1000 appuser || true
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Copy installed packages from builder to the appuser's home directory
+COPY --from=builder /root/.local /home/appuser/.local
+ENV PATH=/home/appuser/.local/bin:$PATH
 
 # Copy source code
 COPY src /app/src
 
 # Create artifacts directory and set permissions
-USER root
-RUN mkdir -p /mlartifacts && chown -R 1000:1000 /mlartifacts
-USER 1000
+RUN mkdir -p /mlartifacts && \
+    chown -R appuser:appuser /mlartifacts /app
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+
+USER appuser
 
 CMD ["python", "src/ml/autonomous_pipeline.py"]

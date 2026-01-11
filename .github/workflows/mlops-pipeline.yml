@@ -153,18 +153,40 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.api
-          push: false # Set to true and add registry auth for real push
-          tags: bsopt-api:latest,bsopt-api:${{ github.sha }}
+          push: false
+          load: true
+          tags: bsopt-api:latest
+
+      - name: Scan API Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'bsopt-api:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Build ML Image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: docker/Dockerfile.ml
-          push: false # Set to true and add registry auth for real push
-          tags: bsopt-ml:latest,bsopt-ml:${{ github.sha }}
+          push: false
+          load: true
+          tags: bsopt-ml:latest
+
+      - name: Scan ML Image (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'bsopt-ml:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       - name: Finalize Deployment
         run: |
-          echo "Successfully built and verified images for GitOps deployment."
+          echo "Successfully built, scanned, and verified images for GitOps deployment."
           echo "Release Tag: release-${{ github.run_id }}"

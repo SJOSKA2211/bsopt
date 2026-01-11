@@ -29,6 +29,11 @@ services:
       - "9090:9090"
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -43,6 +48,11 @@ services:
       - "3100:3100"
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -56,6 +66,11 @@ services:
     command: -config.file=/etc/promtail/promtail-config.yaml
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: always
     <<: *security
 
@@ -78,6 +93,11 @@ services:
       - loki
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: always
     <<: *security
 
@@ -93,6 +113,11 @@ services:
       - "8080:8080"
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: unless-stopped
     <<: *security
 
@@ -103,6 +128,11 @@ services:
       - "9091:9091"
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     restart: always
     <<: *security
 
@@ -152,6 +182,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -164,6 +199,11 @@ services:
       - redis
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
     restart: always
     <<: *security
 
@@ -181,6 +221,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -203,6 +248,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -261,6 +311,11 @@ services:
     user: root
     network_mode: host
     restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
     depends_on:
       - mlflow
 
@@ -278,6 +333,11 @@ services:
       - zookeeper_data:/var/lib/zookeeper/data
     networks:
       - kafka-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: always
     <<: *security
 
@@ -302,6 +362,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -322,6 +387,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -342,6 +412,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -361,6 +436,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -381,6 +461,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
     restart: always
     <<: *security
 
@@ -399,6 +484,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
     restart: always
     <<: *security
 
@@ -418,6 +508,11 @@ services:
     networks:
       - kafka-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
     restart: always
     <<: *security
 
@@ -448,6 +543,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -462,6 +562,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -476,6 +581,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -490,6 +600,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -504,6 +619,11 @@ services:
     networks:
       - bsopt-net
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
     restart: always
     <<: *security
 
@@ -512,7 +632,10 @@ services:
   # ============================================================================
 
   ray-head:
-    image: rayproject/ray:2.9.0-py310
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ray
+    image: bsopt-ray:latest
     container_name: bsopt-ray-head
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
     ports:
@@ -532,7 +655,7 @@ services:
     restart: always
 
   ray-worker:
-    image: rayproject/ray:2.9.0-py310
+    image: bsopt-ray:latest
     depends_on:
       - ray-head
     command: ray start --address=ray-head:6379 --block

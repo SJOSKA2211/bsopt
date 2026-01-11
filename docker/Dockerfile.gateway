@@ -7,4 +7,7 @@ RUN npm install --production
 
 COPY src/gateway .
 
+# Use non-root user provided by the base image
+USER node
+
 CMD ["node", "index.js"]
