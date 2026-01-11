@@ -8,12 +8,12 @@
 - [x] Task: Implement Payoff Operator to mark states where $S_T > K$ af306cc
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md) 418311a
 
-## Phase 2: Quantum Amplitude Estimation Engine (TDD)
+## Phase 2: Quantum Amplitude Estimation Engine (TDD) [checkpoint: 1f2f221]
 - [x] Task: Write TDD tests for `QuantumOptionPricer` (verifying convergence on analytical BS solution) 7431b23
 - [x] Task: Implement `price_european_call_quantum` using `IterativeAmplitudeEstimation` bddbd9a
 - [x] Task: Implement Confidence Interval and Speedup Factor calculations 3a97e57
 - [x] Task: Integrate MLflow logging for circuit metadata and pricing metrics 5b5c05e
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Pricing Engine' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Pricing Engine' (Protocol in workflow.md) 1f2f221
 
 ## Phase 3: Circuit Optimization & Hybrid Logic (TDD)
 - [ ] Task: Write TDD tests for `QuantumCircuitOptimizer` (measuring gate count reduction)
