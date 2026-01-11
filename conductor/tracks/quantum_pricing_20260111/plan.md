@@ -25,5 +25,5 @@
 ## Phase 4: Hardware Integration & E2E Verification
 - [x] Task: Write TDD tests for remote backend connectivity (`IBMProvider`) [checkpoint: l3m4n5o]
 - [x] Task: Implement backend configuration logic (Environment variables for API tokens) 95a66c7
-- [x] Task: Perform E2E benchmarking (Simulator vs. Classical Monte Carlo vs. Analytical) [checkpoint: n5o6p7q]
+- [x] Task: Perform E2E benchmarking (Simulator vs. Classical Monte Carlo vs. Analytical) 145db30
 - [~] Task: Conductor - User Manual Verification 'Phase 4: Full Integration' (Protocol in workflow.md)
