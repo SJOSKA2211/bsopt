@@ -18,7 +18,7 @@
 ## Phase 3: Circuit Optimization & Hybrid Logic (TDD)
 - [x] Task: Write TDD tests for `QuantumCircuitOptimizer` (measuring gate count reduction) 0387871
 - [x] Task: Implement `QuantumCircuitOptimizer` using Qiskit `PassManager` fca2e01
-- [ ] Task: Write TDD tests for `HybridQuantumClassicalPricer` (verifying routing decisions)
+- [x] Task: Write TDD tests for `HybridQuantumClassicalPricer` (verifying routing decisions) 7216c00
 - [ ] Task: Implement `HybridQuantumClassicalPricer` adaptive logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Optimization & Hybrid Logic' (Protocol in workflow.md)
 
