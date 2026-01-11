@@ -12,7 +12,7 @@
 - [x] Task: Write TDD tests for `QuantumOptionPricer` (verifying convergence on analytical BS solution) 7431b23
 - [x] Task: Implement `price_european_call_quantum` using `IterativeAmplitudeEstimation` bddbd9a
 - [x] Task: Implement Confidence Interval and Speedup Factor calculations 3a97e57
-- [ ] Task: Integrate MLflow logging for circuit metadata and pricing metrics
+- [x] Task: Integrate MLflow logging for circuit metadata and pricing metrics 5b5c05e
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Pricing Engine' (Protocol in workflow.md)
 
 ## Phase 3: Circuit Optimization & Hybrid Logic (TDD)
