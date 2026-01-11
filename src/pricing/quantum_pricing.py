@@ -234,10 +234,22 @@ class QuantumOptionPricer:
                 "estimation": result.estimation
             })
             
+            # 5. Calculate Speedup Factor
+            # For Monte Carlo, error scales as 1/sqrt(M).
+            # To achieve error epsilon, we need M = (1/epsilon)^2 samples.
+            # QAE achieves this with O(1/epsilon) queries.
+            # Speedup = Classical Samples Needed / Quantum Queries Used
+            epsilon = 0.01 # Target precision
+            classical_samples = int(1 / epsilon**2)
+            speedup_factor = classical_samples / result.num_oracle_queries if result.num_oracle_queries > 0 else 1.0
+            
+            mlflow.log_metric("speedup_factor", float(speedup_factor))
+
             return {
                 "price": float(option_price),
                 "confidence_interval": conf_interval,
                 "num_queries": result.num_oracle_queries,
+                "speedup_factor": float(speedup_factor),
                 "estimation": result.estimation
             }
 
