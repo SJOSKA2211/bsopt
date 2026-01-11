@@ -23,7 +23,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Optimization & Hybrid Logic' (Protocol in workflow.md) f8f1190
 
 ## Phase 4: Hardware Integration & E2E Verification
-- [ ] Task: Write TDD tests for remote backend connectivity (`IBMProvider`)
+- [x] Task: Write TDD tests for remote backend connectivity (`IBMProvider`) 773cdc0
 - [ ] Task: Implement backend configuration logic (Environment variables for API tokens)
 - [ ] Task: Perform E2E benchmarking (Simulator vs. Classical Monte Carlo vs. Analytical)
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Full Integration' (Protocol in workflow.md)
