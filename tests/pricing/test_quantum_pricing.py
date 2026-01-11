@@ -88,3 +88,30 @@ class TestQuantumPricing:
         
         assert any(reg.name == 'payoff' for reg in qc.qregs)
 
+    def test_price_european_call_quantum_convergence(self):
+        """Verify that the quantum pricer converges towards the analytical Black-Scholes price."""
+        pricer = QuantumOptionPricer()
+        
+        # Test parameters
+        S0 = 100.0
+        K = 100.0
+        T = 1.0
+        r = 0.05
+        sigma = 0.2
+        num_qubits = 5 # Higher precision for convergence check
+        
+        # Calculate analytical BS price for reference
+        from src.pricing.black_scholes import black_scholes
+        bs_price = black_scholes(S0, K, T, r, sigma)["price"]
+        
+        # Call quantum pricing (expect this to fail as method not implemented)
+        result = pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits)
+        
+        assert "price" in result
+        assert "confidence_interval" in result
+        
+        # Check if quantum price is within 5% of BS price (5 qubits is still a coarse discretization)
+        # Convergence depends on discretization and QAE precision.
+        assert np.isclose(result["price"], bs_price, rtol=0.05)
+
+
