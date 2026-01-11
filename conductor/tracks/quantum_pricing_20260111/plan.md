@@ -1,12 +1,12 @@
 # Plan: Quantum-Ready Option Pricing (Track: quantum_pricing_20260111)
 
-## Phase 1: Foundation & Circuit Engineering (TDD)
+## Phase 1: Foundation & Circuit Engineering (TDD) [checkpoint: 418311a]
 - [x] Task: Install `qiskit`, `qiskit-aer`, and `qiskit-ibm-provider` dependencies 6a01684
 - [x] Task: Write TDD tests for `create_stock_price_distribution` (validating amplitude normalization) 2730dfc
 - [x] Task: Implement `create_stock_price_distribution` using Quantum Amplitude Encoding 78e4182
 - [x] Task: Write TDD tests for Payoff Operator (controlled rotation logic) f7fd071
 - [x] Task: Implement Payoff Operator to mark states where $S_T > K$ af306cc
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md) 418311a
 
 ## Phase 2: Quantum Amplitude Estimation Engine (TDD)
 - [ ] Task: Write TDD tests for `QuantumOptionPricer` (verifying convergence on analytical BS solution)
