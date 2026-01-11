@@ -1,7 +1,7 @@
 # Plan: FINAL PRODUCTION-GRADE PRD v4.0 (Track: bsopt_v4_0_20260110)
 
-## Phase 1: Core Infrastructure & Streaming (TDD)
-- [~] Task: Set up Kafka cluster with Zookeeper, Schema Registry, and ksqlDB
+## Phase 1: Core Infrastructure & Streaming (TDD) [checkpoint: 6540bb3]
+- [x] Task: Set up Kafka cluster with Zookeeper, Schema Registry, and ksqlDB
 - [x] Task: Implement MarketDataProducer with Avro serialization [ac0519a]
 - [x] Task: Implement MarketDataConsumer for real-time processing [e7d77a4]
 - [x] Task: Implement VolatilityAggregationStream using Faust [4884a7d]
