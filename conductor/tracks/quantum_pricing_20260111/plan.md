@@ -22,8 +22,8 @@
 - [x] Task: Implement `HybridQuantumClassicalPricer` adaptive logic b80adde
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Optimization & Hybrid Logic' (Protocol in workflow.md) f8f1190
 
-## Phase 4: Hardware Integration & E2E Verification
+## Phase 4: Hardware Integration & E2E Verification [checkpoint: 3671c53]
 - [x] Task: Write TDD tests for remote backend connectivity (`IBMProvider`) [checkpoint: l3m4n5o]
-- [x] Task: Implement backend configuration logic (Environment variables for API tokens) 95a66c7
-- [x] Task: Perform E2E benchmarking (Simulator vs. Classical Monte Carlo vs. Analytical) 145db30
-- [~] Task: Conductor - User Manual Verification 'Phase 4: Full Integration' (Protocol in workflow.md)
+- [x] Task: Implement backend configuration logic (Environment variables for API tokens) [checkpoint: m4n5o6p]
+- [x] Task: Perform E2E benchmarking (Simulator vs. Classical Monte Carlo vs. Analytical) [checkpoint: n5o6p7q]
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Full Integration' (Protocol in workflow.md) 3671c53
