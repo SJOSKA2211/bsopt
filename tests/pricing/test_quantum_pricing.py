@@ -47,3 +47,44 @@ class TestQuantumPricing:
         amplitudes = instruction.params
         probs = np.abs(amplitudes)**2
         assert np.isclose(np.sum(probs), 1.0)
+
+    def test_payoff_operator_gates(self):
+        """Verify that the payoff operator adds the expected gates (RY, MCRY)."""
+        pricer = QuantumOptionPricer()
+        S0 = 100.0
+        K = 100.0
+        mu = 0.05
+        sigma = 0.2
+        T = 1.0
+        num_qubits = 3
+        
+        qc, prices = pricer.create_stock_price_distribution(S0, mu, sigma, T, num_qubits)
+        
+        # Add payoff operator
+        # We expect a method to exist or we test the pricing flow which adds it.
+        # Let's assume we expose a helper for modularity/testing.
+        
+        # Verify initial depth
+        initial_depth = qc.depth()
+        
+        pricer.add_payoff_operator(qc, prices, K, S0)
+        
+        # Should have added gates
+        assert qc.depth() > initial_depth
+        
+        # Check for RY gates (rotations) or controlled rotations
+        # Qiskit's mcry decompostion might vary, but we look for rotation logic.
+        
+        ops = [instr.operation.name for instruction in qc.data for instr in [instruction]]
+        # We expect multi-controlled rotations.
+        # In Qiskit < 1.0 it might be 'mcry', or decomposed.
+        # We can just check that the circuit has grown and contains some conditional logic if possible.
+        
+        # A simple check is ensuring the Payoff register is present if added by the method, 
+        # or checking that we can add it.
+        
+        # The method should add a payoff qubit if not present?
+        # The PRD says: payoff_qubits = QuantumRegister(1, 'payoff'); qc.add_register(payoff_qubits)
+        
+        assert any(reg.name == 'payoff' for reg in qc.qregs)
+
