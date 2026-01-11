@@ -22,10 +22,22 @@ class QuantumOptionPricer:
             # Lazy import to avoid error if dependencies or tokens are missing in dev
             try:
                 from qiskit_ibm_provider import IBMProvider
-                provider = IBMProvider()
-                self.backend = provider.get_backend('ibmq_qasm_simulator')
+                import os
+                
+                api_token = os.getenv("QISKIT_IBM_TOKEN")
+                if not api_token:
+                    print("Warning: QISKIT_IBM_TOKEN not set. Using simulator.")
+                    self.backend = AerSimulator()
+                else:
+                    # Initialize provider with token if provided
+                    # Note: IBMProvider.save_account(token=api_token, overwrite=True) is an option
+                    # but here we just use it directly if possible or assume already logged in.
+                    provider = IBMProvider(token=api_token)
+                    backend_name = os.getenv("QUANTUM_BACKEND", "ibmq_qasm_simulator")
+                    self.backend = provider.get_backend(backend_name)
+                    print(f"✅ Using IBM Quantum backend: {backend_name}")
             except ImportError:
-                print("Warning: qiskit-ibm-provider not found or configured. Falling back to simulator.")
+                print("Warning: qiskit-ibm-provider not found. Falling back to simulator.")
                 self.backend = AerSimulator()
             except Exception as e:
                 print(f"Warning: Failed to initialize IBMProvider: {e}. Falling back to simulator.")
