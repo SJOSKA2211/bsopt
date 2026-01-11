@@ -96,3 +96,40 @@ def test_producer_delivery_callback():
         with patch('streaming.producer.logger') as mock_logger:
             producer._delivery_callback("Kafka Error", mock_msg)
             mock_logger.error.assert_called_with("kafka_delivery_failed", error="Kafka Error")
+
+def test_producer_flush():
+    with patch('streaming.producer.Producer') as mock_kafka_producer, \
+         patch('streaming.producer.SchemaRegistryClient'), \
+         patch('streaming.producer.AvroSerializer'):
+        
+        from streaming.producer import MarketDataProducer
+        
+        mock_instance = MagicMock()
+        mock_kafka_producer.return_value = mock_instance
+        
+        producer = MarketDataProducer()
+        producer.flush(timeout=5.0)
+        
+        mock_instance.flush.assert_called_once_with(5.0)
+
+@pytest.mark.asyncio
+async def test_produce_exception():
+    with patch('streaming.producer.Producer') as mock_kafka_producer, \
+         patch('streaming.producer.SchemaRegistryClient'), \
+         patch('streaming.producer.AvroSerializer') as mock_avro_serializer:
+        
+        from streaming.producer import MarketDataProducer
+        
+        mock_instance = MagicMock()
+        mock_instance.produce.side_effect = Exception("Kafka connection failed")
+        mock_kafka_producer.return_value = mock_instance
+        
+        mock_avro_serializer.return_value = lambda x, y: b"data"
+        
+        producer = MarketDataProducer()
+        
+        with patch('streaming.producer.logger') as mock_logger:
+            with pytest.raises(Exception, match="Kafka connection failed"):
+                await producer.produce_market_data("topic", {"data": "test"})
+            
+            mock_logger.error.assert_called()
