@@ -13,7 +13,7 @@ def test_volatility_calculation_logic():
     from streaming.analytics import VolatilityAggregationStream
     
     # We can test the internal _update_volatility method without a running Faust app
-    with patch('streaming.analytics.faust.App'):
+    with patch('streaming.analytics.App'):
         stream_proc = VolatilityAggregationStream()
         
         # Mock initial state
@@ -37,7 +37,7 @@ def test_volatility_calculation_logic():
 
 @pytest.mark.asyncio
 async def test_stream_processing_flow():
-    with patch('streaming.analytics.faust.App') as mock_faust_app:
+    with patch('streaming.analytics.App') as mock_faust_app:
         from streaming.analytics import VolatilityAggregationStream
         
         # Mock Faust components
@@ -70,3 +70,35 @@ async def test_stream_processing_flow():
             assert vol == 0.25
             assert stream_proc.volatility_table["AAPL"] == 0.25
             assert stream_proc.price_history["AAPL"] == 151.5
+
+@pytest.mark.asyncio
+async def test_calculate_realized_volatility_loop():
+    with patch('streaming.analytics.App'):
+        from streaming.analytics import VolatilityAggregationStream
+        
+        stream_proc = VolatilityAggregationStream()
+        stream_proc.volatility_table = {}
+        stream_proc.price_history = {}
+        
+        # Mock stream
+        class MockStream:
+            async def group_by(self, key_func):
+                events = [
+                    {"symbol": "AAPL", "last": 150.0, "timestamp": 1},
+                    {"symbol": "AAPL", "last": 151.5, "timestamp": 2} # Log return calculated here
+                ]
+                for event in events:
+                    yield event
+        
+        mock_stream = MockStream()
+        
+        # We need to mock _update_volatility or let it run
+        # Letting it run is better for integration testing logic
+        
+        await stream_proc.calculate_realized_volatility(mock_stream)
+        
+        assert "AAPL" in stream_proc.price_history
+        assert stream_proc.price_history["AAPL"] == 151.5
+        assert "AAPL" in stream_proc.volatility_table
+        # Volatility should be non-zero after second event
+        assert stream_proc.volatility_table["AAPL"] > 0
