@@ -274,3 +274,37 @@ class QuantumCircuitOptimizer:
         optimized_qc = self.pass_manager.run(qc)
         return optimized_qc
 
+class HybridQuantumClassicalPricer:
+    """
+    Combine quantum and classical methods for optimal performance.
+    Strategy:
+    - Use quantum for high-dimensional problems (many underlyings)
+    - Use classical for low-dimensional problems
+    - Automatically select best method based on problem size
+    """
+    
+    def __init__(self):
+        self.quantum_pricer = QuantumOptionPricer(use_real_quantum=False)
+        from src.pricing.monte_carlo import MonteCarloEngine
+        self.classical_pricer = MonteCarloEngine()
+        
+    def price_option_adaptive(self, **params) -> Dict:
+        """
+        Automatically choose quantum or classical pricing.
+        Decision criteria:
+        - Dimension > 3: Use quantum (exponential advantage)
+        - Dimension <= 3: Use classical (overhead not worth it)
+        - Accuracy required < 1%: Use quantum
+        """
+        num_underlyings = params.get('num_underlyings', 1)
+        accuracy_required = params.get('accuracy', 0.01)
+        
+        if num_underlyings > 3 or accuracy_required < 0.01:
+            # Prepare params for quantum (remove num_underlyings and accuracy)
+            q_params = params.copy()
+            q_params.pop('num_underlyings', None)
+            q_params.pop('accuracy', None)
+            return self.quantum_pricer.price_european_call_quantum(**q_params)
+        else:
+            return self.classical_pricer.price_european(**params)
+
