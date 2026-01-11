@@ -256,3 +256,21 @@ class QuantumOptionPricer:
                 "estimation": result.estimation
             }
 
+class QuantumCircuitOptimizer:
+    """Optimize quantum circuits for option pricing"""
+    
+    def __init__(self):
+        from qiskit.transpiler import PassManager
+        from qiskit.transpiler.passes import Optimize1qGatesDecomposition, CommutativeCancellation
+        
+        # Initialize PassManager with basic optimization passes
+        self.pass_manager = PassManager([
+            Optimize1qGatesDecomposition(),
+            CommutativeCancellation()
+        ])
+        
+    def optimize_circuit(self, qc: QuantumCircuit) -> QuantumCircuit:
+        """Optimize quantum circuit depth and gate count"""
+        optimized_qc = self.pass_manager.run(qc)
+        return optimized_qc
+
