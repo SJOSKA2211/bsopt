@@ -12,10 +12,12 @@
 - [x] Task: Implement alerting rules for high error rates and latency [checkpoint: f6g7h8i]
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Observability' (Protocol in workflow.md) 69190b0
 
-## Phase 3: AIOps & Self-Healing
-- [~] Task: Implement anomaly detection service using Isolation Forest
+## Phase 3: AIOps & Self-Healing [checkpoint: 991d86c]
+- [x] Task: Implement anomaly detection service using Isolation Forest [checkpoint: g7h8i9j]
+- [x] Task: Create remediation script to restart unhealthy containers [checkpoint: h8i9j0k]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Self-Healing' (Protocol in workflow.md) 991d86c
 
 ## Phase 4: Final Integration & Load Testing
-- [ ] Task: Verify GraphQL Federation across all subgraphs
+- [~] Task: Verify GraphQL Federation across all subgraphs
 - [ ] Task: Run load tests (Locust) to verify 1000 req/sec target
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Release' (Protocol in workflow.md)
