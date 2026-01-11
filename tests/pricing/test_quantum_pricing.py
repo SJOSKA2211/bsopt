@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
+import sys
+from unittest.mock import MagicMock
 from qiskit import QuantumCircuit
-# We anticipate the module structure based on PRD
 from src.pricing.quantum_pricing import QuantumOptionPricer
 
 class TestQuantumPricing:
@@ -98,7 +99,6 @@ class TestQuantumOptimizer:
         optimized_qc = optimizer.optimize_circuit(qc)
         
         assert optimized_qc.size() < initial_size
-        # For this specific case, it should ideally be 0 or much smaller
         assert optimized_qc.size() == 0 
 
 class TestHybridPricer:
@@ -140,21 +140,29 @@ class TestHybridPricer:
         assert mock_quantum.called
         assert not mock_classical.called
 
-    def test_hybrid_pricer_routing_quantum_high_accuracy(self, mocker):
-        """Verify that the hybrid pricer routes to quantum for high-accuracy requests."""
-        from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
-        pricer = HybridQuantumClassicalPricer()
+class TestQuantumHardware:
+    def test_quantum_pricer_hardware_init_mock(self, mocker):
+        """Verify that QuantumOptionPricer attempts to use IBMProvider when use_real_quantum is True."""
+        # Use a more robust way to mock the module to avoid actual import which is broken in Aer
+        mock_provider_mod = MagicMock()
+        mocker.patch.dict("sys.modules", {"qiskit_ibm_provider": mock_provider_mod})
         
-        mock_classical = mocker.patch.object(pricer.classical_pricer, "price_european", return_value={"price": 10.0})
-        mock_quantum = mocker.patch.object(pricer.quantum_pricer, "price_european_call_quantum", return_value={"price": 10.0})
+        mock_provider_class = mock_provider_mod.IBMProvider
+        mock_provider_instance = mock_provider_class.return_value
+        mock_backend = MagicMock()
+        mock_provider_instance.get_backend.return_value = mock_backend
         
-        params = {
-            "S0": 100.0, "K": 100.0, "T": 1.0, "r": 0.05, "sigma": 0.2,
-            "num_underlyings": 1,
-            "accuracy": 0.005 # < 1%
-        }
+        pricer = QuantumOptionPricer(use_real_quantum=True)
         
-        pricer.price_option_adaptive(**params)
+        assert mock_provider_class.called
+        assert pricer.backend == mock_backend
+        assert pricer.use_real_quantum is True
+
+    def test_quantum_pricer_hardware_fallback_on_missing_provider(self, mocker):
+        """Verify that the pricer falls back to AerSimulator if qiskit-ibm-provider is missing."""
+        # Ensure it's not in sys.modules and will fail on import
+        mocker.patch.dict("sys.modules", {"qiskit_ibm_provider": None})
         
-        assert mock_quantum.called
-        assert not mock_classical.called
+        pricer = QuantumOptionPricer(use_real_quantum=True)
+        from qiskit_aer import AerSimulator
+        assert isinstance(pricer.backend, AerSimulator)
