@@ -231,7 +231,10 @@ class QuantumOptionPricer:
             mlflow.log_metrics({
                 "option_price": float(option_price),
                 "num_oracle_queries": result.num_oracle_queries,
-                "estimation": result.estimation
+                "estimation": result.estimation,
+                "circuit_depth": qc.depth(),
+                "circuit_width": qc.width(),
+                "circuit_size": qc.size()
             })
             
             # 5. Calculate Speedup Factor
