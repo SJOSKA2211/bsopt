@@ -1,7 +1,9 @@
 import structlog
 import os
+import time
 from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
-from typing import List
+from typing import List, Callable
+from fastapi import Request, Response
 import httpx
 from datetime import datetime
 
@@ -19,6 +21,24 @@ def setup_logging():
         wrapper_class=structlog.BoundLogger,
         cache_logger_on_first_use=True,
     )
+
+async def logging_middleware(request: Request, call_next: Callable) -> Response:
+    """FastAPI middleware for structured logging of every request."""
+    logger = structlog.get_logger("api_request")
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    duration = time.time() - start_time
+    logger.info(
+        "request_processed",
+        method=request.method,
+        path=request.url.path,
+        status_code=response.status_code,
+        duration_ms=round(duration * 1000, 2),
+        client_ip=request.client.host if request.client else "unknown"
+    )
+    return response
 
 # Common Metrics
 SCRAPE_DURATION = Summary('market_scrape_duration_seconds', 'Time spent scraping market data', ['api'])
