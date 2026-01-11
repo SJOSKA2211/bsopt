@@ -15,12 +15,12 @@
 - [x] Task: Integrate MLflow logging for circuit metadata and pricing metrics 5b5c05e
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Pricing Engine' (Protocol in workflow.md) 1f2f221
 
-## Phase 3: Circuit Optimization & Hybrid Logic (TDD)
+## Phase 3: Circuit Optimization & Hybrid Logic (TDD) [checkpoint: f8f1190]
 - [x] Task: Write TDD tests for `QuantumCircuitOptimizer` (measuring gate count reduction) 0387871
 - [x] Task: Implement `QuantumCircuitOptimizer` using Qiskit `PassManager` fca2e01
 - [x] Task: Write TDD tests for `HybridQuantumClassicalPricer` (verifying routing decisions) 7216c00
 - [x] Task: Implement `HybridQuantumClassicalPricer` adaptive logic b80adde
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Optimization & Hybrid Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Optimization & Hybrid Logic' (Protocol in workflow.md) f8f1190
 
 ## Phase 4: Hardware Integration & E2E Verification
 - [ ] Task: Write TDD tests for remote backend connectivity (`IBMProvider`)
