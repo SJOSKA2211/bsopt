@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & Circuit Engineering (TDD)
 - [x] Task: Install `qiskit`, `qiskit-aer`, and `qiskit-ibm-provider` dependencies 6a01684
-- [ ] Task: Write TDD tests for `create_stock_price_distribution` (validating amplitude normalization)
+- [x] Task: Write TDD tests for `create_stock_price_distribution` (validating amplitude normalization) 2730dfc
 - [ ] Task: Implement `create_stock_price_distribution` using Quantum Amplitude Encoding
 - [ ] Task: Write TDD tests for Payoff Operator (controlled rotation logic)
 - [ ] Task: Implement Payoff Operator to mark states where $S_T > K$
