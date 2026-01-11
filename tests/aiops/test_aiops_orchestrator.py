@@ -7,7 +7,7 @@ import numpy as np
 
 # Assuming all these components are in src.aiops
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator # Assuming this path
-from src.aiops.prometheus_client import PrometheusClient
+from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.isolation_forest_detector import IsolationForestDetector
 from src.aiops.autoencoder_detector import AutoencoderDetector
 from src.aiops.data_drift_detector import DataDriftDetector

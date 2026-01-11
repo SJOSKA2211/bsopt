@@ -37,7 +37,7 @@ def test_register_market_data_schema_script_interaction(mock_schema_registry_cli
     """
     mock_client_instance = MagicMock()
     mock_schema_registry_client.return_value = mock_client_instance
-    mock_client_instance.register.return_value = 1 # Simulate a successful registration
+    mock_client_instance.register_schema.return_value = 1 # Simulate a successful registration
 
     with open(SCHEMA_PATH, 'r') as f:
         expected_schema_str = f.read()

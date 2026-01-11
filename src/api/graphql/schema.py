@@ -1,5 +1,5 @@
 import strawberry
-from strawberry.federation import FederatedSchema
+from strawberry.federation import Schema
 from typing import List, Optional
 from datetime import datetime
 import asyncio
@@ -94,6 +94,27 @@ class MarketData:
         """Get full options chain for underlying"""
         # Fetch from database or cache
         pass
+
+@strawberry.type
+class VolatilityPoint:
+    """Represents a point on the implied volatility surface"""
+    strike: float
+    expiry: datetime
+    implied_volatility: float
+
+@strawberry.type
+class Order:
+    """Represents a trading order"""
+    id: strawberry.ID
+    portfolio_id: strawberry.ID
+    contract_symbol: str
+    side: str # BUY/SELL
+    quantity: int
+    order_type: str # LIMIT/MARKET
+    status: str # PENDING/FILLED/CANCELLED
+    limit_price: Optional[float] = None
+    created_at: datetime
+    updated_at: datetime
 
 # ============================================================================
 # QUERIES
@@ -245,7 +266,7 @@ class Subscription:
 # ============================================================================
 # APOLLO FEDERATION - Subgraph Schema
 # ============================================================================
-schema = FederatedSchema(
+schema = Schema(
     query=Query,
     mutation=Mutation,
     subscription=Subscription)

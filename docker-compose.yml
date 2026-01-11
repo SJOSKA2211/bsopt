@@ -1,4 +1,4 @@
-version: '3.9'
+
 
 x-logging: &logging
   driver: "json-file"
@@ -297,7 +297,6 @@ services:
       KAFKA_COMPRESSION_TYPE: lz4
       KAFKA_NUM_PARTITIONS: 8
       KAFKA_LOG_SEGMENT_BYTES: 1073741824
-      KAFKA_COMPRESSION_TYPE: lz4
     volumes:
       - kafka1_data:/var/lib/kafka/data
     networks:
@@ -396,7 +395,7 @@ services:
       KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
       KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb-server:8088
     ports:
-      - "8080:8080"
+      - "8085:8080"
     networks:
       - kafka-net
       - monitor-net
@@ -521,13 +520,10 @@ services:
       - "6380:6379" # Ray Redis (Internal port 6379 mapped to 6380 to avoid conflict with bsopt-redis)
     volumes:
       - ./src:/home/ray/src
-      - ray_logs:/tmp/ray
     networks:
       - ray-net
       - bsopt-net
       - monitor-net
-    environment:
-      - RAY_address=127.0.0.1:6379
     deploy:
       resources:
         limits:

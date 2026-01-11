@@ -65,9 +65,12 @@ class VolatilityAggregationStream:
         alpha = 0.94  # Decay factor (RiskMetrics)
         current_vol = self.volatility_table.get(symbol, 0.0)
 
-        # Update variance estimate
-        variance = alpha * current_vol**2 + (1 - alpha) * log_return**2
+        annualization_factor_sqrt = np.sqrt(252 * 6.5 * 60)
+        current_variance_unannualized = (current_vol / annualization_factor_sqrt)**2 if current_vol > 0 else 0.0
+
+        # Update variance estimate (using unannualized variance)
+        variance = alpha * current_variance_unannualized + (1 - alpha) * log_return**2
 
         # Annualize
-        annualized_vol = np.sqrt(variance * 252 * 6.5 * 60)
+        annualized_vol = annualization_factor_sqrt * np.sqrt(variance)
         return annualized_vol

@@ -1,14 +1,15 @@
 import time
+import os
 import structlog
 from typing import Dict, Any, List
-from src.aiops.prometheus_client import PrometheusClient
+from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.isolation_forest_detector import IsolationForestDetector
 from src.aiops.autoencoder_detector import AutoencoderDetector
 from src.aiops.data_drift_detector import DataDriftDetector
 from src.aiops.docker_remediator import DockerRemediator
 from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
 from src.aiops.redis_remediator import RedisRemediator
-from src.shared.observability import setup_logging, push_metrics
+from src.shared.observability import setup_logging, push_metrics, post_grafana_annotation
 
 logger = structlog.get_logger()
 
@@ -136,16 +137,22 @@ class AIOpsOrchestrator:
 
     def _remediate_anomalies(self, anomalies: Dict[str, Any]):
         if anomalies.get("high_error_rate") or anomalies.get("high_latency"):
-            logger.info("remediation_action", action="restart_service", service=self.api_service_name)
+            message = f"Remediation: Restarting '{self.api_service_name}' due to {'high error rate' if anomalies.get('high_error_rate') else 'high latency'}."
+            logger.info("remediation_action", action="restart_service", service=self.api_service_name, message=message)
             self.docker_remediator.restart_service(self.api_service_name)
+            post_grafana_annotation(message, ["remediation", "api_spike", self.api_service_name])
         
         if anomalies.get("data_drift"):
-            logger.info("remediation_action", action="trigger_ml_retraining")
+            message = "Remediation: Triggering ML pipeline retraining due to data drift."
+            logger.info("remediation_action", action="trigger_ml_retraining", message=message)
             self.ml_pipeline_trigger.trigger_retraining()
+            post_grafana_annotation(message, ["remediation", "data_drift"]) # Add relevant tags for ML drift
 
         if anomalies.get("univariate_anomaly") or anomalies.get("multivariate_anomaly"):
-            logger.info("remediation_action", action="purge_redis_cache", pattern=self.redis_cache_pattern)
+            message = f"Remediation: Purging Redis cache due to {'univariate' if anomalies.get('univariate_anomaly') else 'multivariate'} anomaly."
+            logger.info("remediation_action", action="purge_redis_cache", pattern=self.redis_cache_pattern, message=message)
             self.redis_remediator.purge_cache(self.redis_cache_pattern)
+            post_grafana_annotation(message, ["remediation", "anomaly", "redis_cache"]) # Add relevant tags for anomaly
 
     def run(self, iterations: int = -1):
         iteration_count = 0

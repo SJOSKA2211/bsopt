@@ -16,7 +16,12 @@ app = FastAPI(title="BS-Opt API")
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
-graphql_app = GraphQLRouter(schema, graphiql=True, context_getter=lambda request: {"request": request})
+def get_context(request: Request):
+    if os.environ.get("TESTING") == "true":
+        return {}  # Return empty context for tests
+    return {"request": request}
+
+graphql_app = GraphQLRouter(schema, graphiql=True, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
 REQUEST_COUNT = Counter("api_requests_total", "Total count of requests", ["method", "endpoint", "http_status"])
