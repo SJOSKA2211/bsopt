@@ -11,7 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "bsopt-wasm": "file:../../pkg",
+    "bsopt-wasm": "file:../wasm/pkg",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

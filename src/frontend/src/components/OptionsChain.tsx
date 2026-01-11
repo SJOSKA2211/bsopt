@@ -61,7 +61,7 @@ export const OptionsChain: React.FC = () => {
     <div className="options-chain" style={{ padding: '20px', fontFamily: 'monospace' }}>
       <h2>Options Chain (Powered by WebAssembly ⚡)</h2>
       <div style={{ marginBottom: '10px', fontSize: '0.9em', color: '#666' }}>
-        Rendered {options.len} options in <strong>{benchTime.toFixed(4)}ms</strong>
+        Rendered {options.length} options in <strong>{benchTime.toFixed(4)}ms</strong>
       </div>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
