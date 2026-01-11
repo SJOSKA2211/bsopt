@@ -5,7 +5,7 @@
 - [x] Task: Write TDD tests for `create_stock_price_distribution` (validating amplitude normalization) 2730dfc
 - [x] Task: Implement `create_stock_price_distribution` using Quantum Amplitude Encoding 78e4182
 - [x] Task: Write TDD tests for Payoff Operator (controlled rotation logic) f7fd071
-- [ ] Task: Implement Payoff Operator to mark states where $S_T > K$
+- [x] Task: Implement Payoff Operator to mark states where $S_T > K$ af306cc
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Quantum Amplitude Estimation Engine (TDD)
