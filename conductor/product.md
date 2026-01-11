@@ -21,3 +21,4 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
 *   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.
+*   **Quantum-Ready Pricing:** Hybrid quantum-classical engine using IBM Qiskit and Amplitude Estimation for quadratic speedup in Monte Carlo simulations.
