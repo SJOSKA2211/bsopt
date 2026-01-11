@@ -1,0 +1,8 @@
+{
+  "track_id": "quantum_pricing_20260111",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-11T14:35:00Z",
+  "updated_at": "2026-01-11T14:35:00Z",
+  "description": "Quantum-Ready Option Pricing (IBM Qiskit Integration)"
+}

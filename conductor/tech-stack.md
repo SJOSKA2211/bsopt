@@ -8,6 +8,9 @@
 ## Machine Learning & Data Science
 *   **Optuna:** Hyperparameter optimization.
 *   **XGBoost & PyTorch:** Primary ML frameworks for model training.
+*   **Ray & RLLib:** Distributed training and scaling for reinforcement learning.
+*   **Gymnasium:** Standardized environment interface for RL agents.
+*   **Stable-Baselines3:** Reliable implementation of TD3 and other RL algorithms.
 *   **Scikit-learn:** General-purpose ML utilities and metrics.
 *   **MLflow:** Model tracking, versioning, and registry.
 *   **Pandas & Numpy:** Data manipulation and numerical computation.
@@ -31,13 +34,16 @@
 *   **Prometheus:** Metrics collection and alerting.
 *   **Loki:** Log aggregation.
 *   **Promtail:** Log shipping from Docker containers.
+*   **Tempo:** Distributed tracing for microservices.
 *   **Grafana:** Unified visualization and dashboarding.
 *   **Structlog:** Structured JSON logging for machine readability.
 
 ## Infrastructure & DevOps
 *   **Docker & Docker Compose:** Containerization and local orchestration.
+*   **Docker SDK (Python):** Programmatic container management for self-healing workflows.
 *   **GitHub Actions:** CI/CD/CT pipelines.
 *   **Wasm-pack:** Toolchain for building and packaging Rust-generated WebAssembly.
 *   **Trivy:** Container and filesystem security scanning.
+*   **Locust:** High-performance load testing and benchmarking.
 *   **Ruff:** High-performance Python linting and formatting.
 *   **Uvloop:** High-performance event loop for the FastAPI layer.

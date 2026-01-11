@@ -1,5 +1,5 @@
 # Initial Concept
-A production-hardened Black-Scholes Optimization & ML Platform (BS-Opt) featuring a complete Observability Stack (LGTM), high-performance CI/CD MLOps Pipelines, and industrial-grade resilience.
+A production-grade Enterprise Platform (BS-Opt v4.0) featuring a complete Observability Stack (LGTM), high-performance CI/CD/CT MLOps Pipelines, and autonomous AI-driven resilience.
 
 # Product Guide: BS-Opt
 
@@ -16,6 +16,8 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **Real-time Event Streaming:** High-throughput Kafka-based architecture for sub-100ms market data processing and volatility calculations.
 *   **AutoML Pipelines:** Automated training and hyperparameter optimization using Optuna and XGBoost/Torch, managed via MLflow.
 *   **Resilient Infrastructure:** Production-hardened Docker architecture with non-root service execution and strict network isolation.
+*   **AIOps & Self-Healing:** Autonomous anomaly detection (Isolation Forest, Autoencoders) and automated remediation (container restarts, cache purging) for 99.9% availability.
+*   **Adaptive RL Trading Agent:** Intelligent position sizing and risk management using Reinforcement Learning (TD3 algorithm) with real-time Kafka integration.
 *   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
 *   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.

@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import sys
+import os
 from unittest.mock import MagicMock
 from qiskit import QuantumCircuit
 from src.pricing.quantum_pricing import QuantumOptionPricer
@@ -142,8 +143,11 @@ class TestHybridPricer:
 
 class TestQuantumHardware:
     def test_quantum_pricer_hardware_init_mock(self, mocker):
-        """Verify that QuantumOptionPricer attempts to use IBMProvider when use_real_quantum is True."""
-        # Use a more robust way to mock the module to avoid actual import which is broken in Aer
+        """Verify that QuantumOptionPricer attempts to use IBMProvider when use_real_quantum is True and token is set."""
+        # Mock environment variable
+        mocker.patch.dict(os.environ, {"QISKIT_IBM_TOKEN": "mock_token"})
+        
+        # Mock the module to avoid actual import which is broken in Aer
         mock_provider_mod = MagicMock()
         mocker.patch.dict("sys.modules", {"qiskit_ibm_provider": mock_provider_mod})
         
