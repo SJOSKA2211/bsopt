@@ -80,3 +80,23 @@ class TestQuantumPricing:
         # Check if quantum price is within 10% of BS price
         assert np.isclose(result["price"], bs_price, rtol=0.1)
         assert result["speedup_factor"] > 0
+
+class TestQuantumOptimizer:
+    def test_optimizer_reduces_gate_count(self):
+        """Verify that the optimizer actually reduces the number of gates in a redundant circuit."""
+        from src.pricing.quantum_pricing import QuantumCircuitOptimizer
+        optimizer = QuantumCircuitOptimizer()
+        
+        # Create a highly redundant circuit
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        qc.h(0) # Should be identity
+        qc.x(0)
+        qc.x(0) # Should be identity
+        
+        initial_size = qc.size()
+        optimized_qc = optimizer.optimize_circuit(qc)
+        
+        assert optimized_qc.size() < initial_size
+        # For this specific case, it should ideally be 0 or much smaller
+        assert optimized_qc.size() == 0
