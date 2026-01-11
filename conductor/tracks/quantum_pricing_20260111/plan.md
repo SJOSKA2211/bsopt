@@ -9,7 +9,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Circuit Foundation' (Protocol in workflow.md) 418311a
 
 ## Phase 2: Quantum Amplitude Estimation Engine (TDD)
-- [ ] Task: Write TDD tests for `QuantumOptionPricer` (verifying convergence on analytical BS solution)
+- [x] Task: Write TDD tests for `QuantumOptionPricer` (verifying convergence on analytical BS solution) 7431b23
 - [ ] Task: Implement `price_european_call_quantum` using `IterativeAmplitudeEstimation`
 - [ ] Task: Implement Confidence Interval and Speedup Factor calculations
 - [ ] Task: Integrate MLflow logging for circuit metadata and pricing metrics
