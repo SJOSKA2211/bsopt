@@ -16,7 +16,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Pricing Engine' (Protocol in workflow.md) 1f2f221
 
 ## Phase 3: Circuit Optimization & Hybrid Logic (TDD)
-- [ ] Task: Write TDD tests for `QuantumCircuitOptimizer` (measuring gate count reduction)
+- [x] Task: Write TDD tests for `QuantumCircuitOptimizer` (measuring gate count reduction) 0387871
 - [ ] Task: Implement `QuantumCircuitOptimizer` using Qiskit `PassManager`
 - [ ] Task: Write TDD tests for `HybridQuantumClassicalPricer` (verifying routing decisions)
 - [ ] Task: Implement `HybridQuantumClassicalPricer` adaptive logic
