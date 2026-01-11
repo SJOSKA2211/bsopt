@@ -1,7 +1,10 @@
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import StatePreparation
 from qiskit_aer import AerSimulator
+from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
 import numpy as np
 from typing import Tuple, Dict
+import mlflow
 
 class QuantumOptionPricer:
     """
@@ -70,8 +73,11 @@ class QuantumOptionPricer:
         # Amplitudes are sqrt of probabilities
         amplitudes = np.sqrt(probabilities)
         
-        # Initialize quantum state with amplitudes
-        qc.initialize(amplitudes, qr)
+        # Use StatePreparation and ensure real floats
+        state_prep = StatePreparation(amplitudes.real.astype(float))
+        
+        # Compose the state preparation into the circuit
+        qc.compose(state_prep, qr, inplace=True)
         
         return qc, prices
 
@@ -122,29 +128,13 @@ class QuantumOptionPricer:
                 payoff = price - K
                 # Normalize payoff to [0, 1] range for rotation
                 # Denominator S0 * 2 covers reasonable range (up to 200% return)
-                # If payoff > S0*2, we clip or max out rotation
                 normalized_payoff = min(payoff / (S0 * 2.0), 1.0)
                 
-                # Angle for RY rotation
-                # We want amplitude of |1> to be sqrt(payoff)
-                # RY(theta) state is cos(theta/2)|0> + sin(theta/2)|1>
-                # So sin(theta/2) = sqrt(normalized_payoff)
-                # theta/2 = arcsin(sqrt(normalized_payoff))
-                # theta = 2 * arcsin(sqrt(normalized_payoff))
+                # Angle for RY rotation: theta = 2 * arcsin(sqrt(normalized_payoff))
                 angle = 2 * np.arcsin(np.sqrt(normalized_payoff))
                 
                 # Construct control state logic
-                # Iterate through bits of index i
                 binary_state = format(i, f'0{num_qubits}b')
-                
-                # Apply X gates to 0-bits to trigger on state |i>
-                # Note: Qiskit uses little-endian (q0 is LSB)
-                # reversed(binary_state) maps string MSB..LSB to qN-1..q0
-                # Wait, enumerate(reversed(binary_state)) gives:
-                # 0 -> LSB (q0), 1 -> q1, etc.
-                # Example: i=1 ('001'). reversed is '100'. 
-                # idx 0 (bit '1') -> q0. idx 1 (bit '0') -> q1.
-                # So if bit is '0', we flip corresponding qubit.
                 
                 x_indices = []
                 for bit_idx, bit in enumerate(reversed(binary_state)):
@@ -161,4 +151,93 @@ class QuantumOptionPricer:
                 # Apply post-X (uncompute)
                 if x_indices:
                     qc.x([price_qubits[idx] for idx in x_indices])
+
+    def price_european_call_quantum(
+        self, S0: float, K: float, T: float, r: float, sigma: float, num_qubits: int = 5
+    ) -> Dict[str, any]:
+        """
+        Price European call option using Quantum Amplitude Estimation.
+        
+        Args:
+            S0: Initial spot price
+            K: Strike price
+            T: Time to maturity
+            r: Risk-free rate (mu)
+            sigma: Volatility
+            num_qubits: Register precision
+            
+        Returns:
+            Dict: Contains 'price', 'confidence_interval', and execution metrics.
+        """
+        with mlflow.start_run(nested=True, run_name="quantum_option_pricing"):
+            mlflow.log_params({
+                "S0": S0, "K": K, "T": T, "r": r, "sigma": sigma,
+                "num_qubits": num_qubits,
+                "backend": str(self.backend)
+            })
+
+            # 1. Create quantum circuit for price distribution
+            qc, prices = self.create_stock_price_distribution(S0, r, sigma, T, num_qubits)
+            
+            # 2. Apply payoff operator
+            self.add_payoff_operator(qc, prices, K, S0)
+            
+            # Identify the payoff qubit index (usually the last qubit added)
+            # Find the payoff register
+            payoff_qubit = None
+            for i, qubit in enumerate(qc.qubits):
+                if any(qubit in reg for reg in qc.qregs if reg.name == 'payoff'):
+                    payoff_qubit = i
+                    break
+            
+            if payoff_qubit is None:
+                raise ValueError("Payoff qubit not found in circuit")
+
+            # 3. Setup Estimation Problem
+            # Objective: measure the probability of the payoff qubit being in state |1>
+            problem = EstimationProblem(
+                state_preparation=qc,
+                objective_qubits=[payoff_qubit]
+            )
+            
+            # 4. Execute Iterative Amplitude Estimation
+            from qiskit.primitives import StatevectorSampler
+            sampler = StatevectorSampler()
+
+            iae = IterativeAmplitudeEstimation(
+                epsilon_target=0.01,
+                alpha=0.05,
+                sampler=sampler
+            )
+
+            result = iae.estimate(problem)
+
+
+            
+            # The estimation result is 'a' (probability of |1>).
+            # Our payoff was scaled by S0 * 2.0.
+            # Expected Payoff = a * (S0 * 2.0)
+            expected_payoff = result.estimation * (S0 * 2.0)
+            
+            # Discount to present value: Price = exp(-r * T) * Expected Payoff
+            option_price = np.exp(-r * T) * expected_payoff
+            
+            # Scaled confidence interval
+            conf_interval = [
+                np.exp(-r * T) * val * (S0 * 2.0) 
+                for val in result.confidence_interval
+            ]
+            
+            mlflow.log_metrics({
+                "option_price": float(option_price),
+                "num_oracle_queries": result.num_oracle_queries,
+                "estimation": result.estimation
+            })
+            
+            return {
+                "price": float(option_price),
+                "confidence_interval": conf_interval,
+                "num_queries": result.num_oracle_queries,
+                "estimation": result.estimation
+            }
 
