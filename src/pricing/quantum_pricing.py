@@ -1,10 +1,21 @@
+import os
+import structlog
+import mlflow
+import warnings
+import numpy as np
+from typing import Tuple, Dict, Any
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import StatePreparation
-from qiskit_aer import AerSimulator
 from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
-import numpy as np
-from typing import Tuple, Dict
-import mlflow
+from qiskit.primitives import StatevectorSampler
+
+from src.pricing.quantum_backend import QuantumBackendManager
+
+# Filter deprecation warnings from Qiskit and Qiskit Algorithms that are beyond our control
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit.*")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit_algorithms.*")
+
+logger = structlog.get_logger()
 
 class QuantumOptionPricer:
     """
@@ -12,37 +23,28 @@ class QuantumOptionPricer:
     Provides exponential speedup for Monte Carlo simulations.
     """
     
-    def __init__(self, use_real_quantum: bool = False):
+    def __init__(self, use_real_quantum: bool = False, backend_name: str = "aer_simulator"):
         """
         Args:
             use_real_quantum: If True, use IBM Quantum hardware. If False, use local simulator.
+            backend_name: Specific backend to use (e.g., 'ibmq_qasm_simulator').
         """
         self.use_real_quantum = use_real_quantum
-        if use_real_quantum:
-            # Lazy import to avoid error if dependencies or tokens are missing in dev
-            try:
-                from qiskit_ibm_provider import IBMProvider
-                import os
-                
-                api_token = os.getenv("QISKIT_IBM_TOKEN")
-                if not api_token:
-                    print("Warning: QISKIT_IBM_TOKEN not set. Using simulator.")
-                    self.backend = AerSimulator()
-                else:
-                    # Initialize provider with token if provided
-                    # Note: IBMProvider.save_account(token=api_token, overwrite=True) is an option
-                    # but here we just use it directly if possible or assume already logged in.
-                    provider = IBMProvider(token=api_token)
+        self.backend_manager = QuantumBackendManager()
+        
+        try:
+            if use_real_quantum:
+                # If backend_name is aer_simulator but use_real_quantum is True, 
+                # use a default remote simulator instead
+                if backend_name == "aer_simulator":
                     backend_name = os.getenv("QUANTUM_BACKEND", "ibmq_qasm_simulator")
-                    self.backend = provider.get_backend(backend_name)
-                    print(f"✅ Using IBM Quantum backend: {backend_name}")
-            except ImportError:
-                print("Warning: qiskit-ibm-provider not found. Falling back to simulator.")
-                self.backend = AerSimulator()
-            except Exception as e:
-                print(f"Warning: Failed to initialize IBMProvider: {e}. Falling back to simulator.")
-                self.backend = AerSimulator()
-        else:
+                
+                self.backend = self.backend_manager.get_backend(backend_name)
+            else:
+                self.backend = self.backend_manager.get_backend("aer_simulator")
+        except Exception as e:
+            logger.warning("backend_init_fallback", error=str(e), fallback="aer_simulator")
+            from qiskit_aer import AerSimulator
             self.backend = AerSimulator()
 
     def create_stock_price_distribution(
@@ -50,18 +52,6 @@ class QuantumOptionPricer:
     ) -> Tuple[QuantumCircuit, np.ndarray]:
         """
         Create quantum circuit representing log-normal stock price distribution.
-        Uses quantum amplitude encoding to represent the probability distribution 
-        of future stock prices under geometric Brownian motion.
-        
-        Args:
-            S0: Initial stock price
-            mu: Expected return (drift)
-            sigma: Volatility
-            T: Time to maturity
-            num_qubits: Precision (number of qubits for price register)
-            
-        Returns:
-            Tuple[QuantumCircuit, np.ndarray]: The initialized circuit and the array of possible prices.
         """
         qr = QuantumRegister(num_qubits, 'price')
         qc = QuantumCircuit(qr)
@@ -69,26 +59,19 @@ class QuantumOptionPricer:
         # Number of discrete price levels
         N = 2**num_qubits
         
-        # Generate log-normal distribution
-        # Range centered around S0
+        # Generate log-normal distribution range centered around S0
         prices = np.linspace(S0 * 0.5, S0 * 1.5, N)
         log_returns = np.log(prices / S0)
         
         # PDF of log-normal distribution
-        # Note: This is a simplified discretization
         pdf = (1 / (sigma * np.sqrt(2 * np.pi * T))) * \
               np.exp(-0.5 * ((log_returns - (mu - 0.5*sigma**2)*T) / (sigma * np.sqrt(T)))**2)
         
-        # Normalize probabilities so they sum to 1
+        # Normalize and create amplitudes
         probabilities = pdf / pdf.sum()
-        
-        # Amplitudes are sqrt of probabilities
         amplitudes = np.sqrt(probabilities)
         
-        # Use StatePreparation and ensure real floats
         state_prep = StatePreparation(amplitudes.real.astype(float))
-        
-        # Compose the state preparation into the circuit
         qc.compose(state_prep, qr, inplace=True)
         
         return qc, prices
@@ -98,15 +81,8 @@ class QuantumOptionPricer:
     ) -> None:
         """
         Apply controlled rotation based on payoff.
-        Marks states where S_T > K by rotating an ancillary payoff qubit.
-        
-        Args:
-            qc: QuantumCircuit with a 'price' register
-            prices: Array of prices corresponding to basis states
-            K: Strike price
-            S0: Initial spot price (used for normalization)
         """
-        # Locate or add payoff register
+        # Ensure payoff register exists
         payoff_qubits = None
         for reg in qc.qregs:
             if reg.name == 'payoff':
@@ -125,8 +101,6 @@ class QuantumOptionPricer:
                 break
         
         if price_qubits is None:
-            # Fallback: assume the first register is the price register if not named 'price'
-            # But strictly we should enforce structure
             if len(qc.qregs) > 0 and qc.qregs[0].name != 'payoff':
                 price_qubits = qc.qregs[0]
             else:
@@ -138,48 +112,26 @@ class QuantumOptionPricer:
         for i, price in enumerate(prices):
             if price > K:
                 payoff = price - K
-                # Normalize payoff to [0, 1] range for rotation
-                # Denominator S0 * 2 covers reasonable range (up to 200% return)
                 normalized_payoff = min(payoff / (S0 * 2.0), 1.0)
-                
-                # Angle for RY rotation: theta = 2 * arcsin(sqrt(normalized_payoff))
                 angle = 2 * np.arcsin(np.sqrt(normalized_payoff))
                 
-                # Construct control state logic
                 binary_state = format(i, f'0{num_qubits}b')
-                
-                x_indices = []
-                for bit_idx, bit in enumerate(reversed(binary_state)):
-                    if bit == '0':
-                        x_indices.append(bit_idx)
+                x_indices = [j for j, bit in enumerate(reversed(binary_state)) if bit == '0']
                         
-                # Apply pre-X
                 if x_indices:
                     qc.x([price_qubits[idx] for idx in x_indices])
                 
-                # Apply Multi-Controlled RY
+                # Apply Multi-Controlled RY (marks state and rotates ancillary qubit)
                 qc.mcry(angle, price_qubits, payoff_qubits[0])
                 
-                # Apply post-X (uncompute)
                 if x_indices:
                     qc.x([price_qubits[idx] for idx in x_indices])
 
     def price_european_call_quantum(
         self, S0: float, K: float, T: float, r: float, sigma: float, num_qubits: int = 5
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Price European call option using Quantum Amplitude Estimation.
-        
-        Args:
-            S0: Initial spot price
-            K: Strike price
-            T: Time to maturity
-            r: Risk-free rate (mu)
-            sigma: Volatility
-            num_qubits: Register precision
-            
-        Returns:
-            Dict: Contains 'price', 'confidence_interval', and execution metrics.
         """
         with mlflow.start_run(nested=True, run_name="quantum_option_pricing"):
             mlflow.log_params({
@@ -188,14 +140,19 @@ class QuantumOptionPricer:
                 "backend": str(self.backend)
             })
 
-            # 1. Create quantum circuit for price distribution
+            # 1. Create quantum circuit
             qc, prices = self.create_stock_price_distribution(S0, r, sigma, T, num_qubits)
-            
-            # 2. Apply payoff operator
             self.add_payoff_operator(qc, prices, K, S0)
             
-            # Identify the payoff qubit index (usually the last qubit added)
-            # Find the payoff register
+            # 2. Optimize circuit
+            optimizer = QuantumCircuitOptimizer()
+            initial_depth = qc.depth()
+            qc = optimizer.optimize_circuit(qc)
+            optimized_depth = qc.depth()
+            
+            logger.info("circuit_optimized", initial_depth=initial_depth, optimized_depth=optimized_depth)
+
+            # 3. Identify payoff qubit
             payoff_qubit = None
             for i, qubit in enumerate(qc.qubits):
                 if any(qubit in reg for reg in qc.qregs if reg.name == 'payoff'):
@@ -205,17 +162,13 @@ class QuantumOptionPricer:
             if payoff_qubit is None:
                 raise ValueError("Payoff qubit not found in circuit")
 
-            # 3. Setup Estimation Problem
-            # Objective: measure the probability of the payoff qubit being in state |1>
+            # 4. Execute Iterative Amplitude Estimation
             problem = EstimationProblem(
                 state_preparation=qc,
                 objective_qubits=[payoff_qubit]
             )
             
-            # 4. Execute Iterative Amplitude Estimation
-            from qiskit.primitives import StatevectorSampler
             sampler = StatevectorSampler()
-
             iae = IterativeAmplitudeEstimation(
                 epsilon_target=0.01,
                 alpha=0.05,
@@ -223,49 +176,32 @@ class QuantumOptionPricer:
             )
 
             result = iae.estimate(problem)
-
-
             
-            # The estimation result is 'a' (probability of |1>).
-            # Our payoff was scaled by S0 * 2.0.
-            # Expected Payoff = a * (S0 * 2.0)
+            # 5. Post-process results
             expected_payoff = result.estimation * (S0 * 2.0)
-            
-            # Discount to present value: Price = exp(-r * T) * Expected Payoff
             option_price = np.exp(-r * T) * expected_payoff
+            conf_interval = [np.exp(-r * T) * val * (S0 * 2.0) for val in result.confidence_interval]
             
-            # Scaled confidence interval
-            conf_interval = [
-                np.exp(-r * T) * val * (S0 * 2.0) 
-                for val in result.confidence_interval
-            ]
+            # Speedup calculation
+            epsilon = 0.01 
+            classical_samples = int(1 / epsilon**2)
+            speedup_factor = classical_samples / result.num_oracle_queries if result.num_oracle_queries > 0 else 1.0
             
             mlflow.log_metrics({
                 "option_price": float(option_price),
                 "num_oracle_queries": result.num_oracle_queries,
-                "estimation": result.estimation,
+                "speedup_factor": float(speedup_factor),
                 "circuit_depth": qc.depth(),
-                "circuit_width": qc.width(),
-                "circuit_size": qc.size()
+                "optimized_reduction": 1.0 - (optimized_depth / max(1, initial_depth))
             })
-            
-            # 5. Calculate Speedup Factor
-            # For Monte Carlo, error scales as 1/sqrt(M).
-            # To achieve error epsilon, we need M = (1/epsilon)^2 samples.
-            # QAE achieves this with O(1/epsilon) queries.
-            # Speedup = Classical Samples Needed / Quantum Queries Used
-            epsilon = 0.01 # Target precision
-            classical_samples = int(1 / epsilon**2)
-            speedup_factor = classical_samples / result.num_oracle_queries if result.num_oracle_queries > 0 else 1.0
-            
-            mlflow.log_metric("speedup_factor", float(speedup_factor))
 
             return {
                 "price": float(option_price),
                 "confidence_interval": conf_interval,
                 "num_queries": result.num_oracle_queries,
                 "speedup_factor": float(speedup_factor),
-                "estimation": result.estimation
+                "estimation": result.estimation,
+                "optimized_depth": optimized_depth
             }
 
 class QuantumCircuitOptimizer:
@@ -275,24 +211,17 @@ class QuantumCircuitOptimizer:
         from qiskit.transpiler import PassManager
         from qiskit.transpiler.passes import Optimize1qGatesDecomposition, CommutativeCancellation
         
-        # Initialize PassManager with basic optimization passes
         self.pass_manager = PassManager([
             Optimize1qGatesDecomposition(),
             CommutativeCancellation()
         ])
         
     def optimize_circuit(self, qc: QuantumCircuit) -> QuantumCircuit:
-        """Optimize quantum circuit depth and gate count"""
-        optimized_qc = self.pass_manager.run(qc)
-        return optimized_qc
+        return self.pass_manager.run(qc)
 
 class HybridQuantumClassicalPricer:
     """
     Combine quantum and classical methods for optimal performance.
-    Strategy:
-    - Use quantum for high-dimensional problems (many underlyings)
-    - Use classical for low-dimensional problems
-    - Automatically select best method based on problem size
     """
     
     def __init__(self):
@@ -300,23 +229,24 @@ class HybridQuantumClassicalPricer:
         from src.pricing.monte_carlo import MonteCarloEngine
         self.classical_pricer = MonteCarloEngine()
         
-    def price_option_adaptive(self, **params) -> Dict:
+    def price_option_adaptive(self, **params) -> Dict[str, Any]:
         """
-        Automatically choose quantum or classical pricing.
-        Decision criteria:
-        - Dimension > 3: Use quantum (exponential advantage)
-        - Dimension <= 3: Use classical (overhead not worth it)
-        - Accuracy required < 1%: Use quantum
+        Decision criteria: Dimension > 3 OR Accuracy < 1% -> Use Quantum
         """
         num_underlyings = params.get('num_underlyings', 1)
         accuracy_required = params.get('accuracy', 0.01)
         
+        # Prepare params for both engines
+        clean_params = params.copy()
+        clean_params.pop('num_underlyings', None)
+        clean_params.pop('accuracy', None)
+        
         if num_underlyings > 3 or accuracy_required < 0.01:
-            # Prepare params for quantum (remove num_underlyings and accuracy)
-            q_params = params.copy()
-            q_params.pop('num_underlyings', None)
-            q_params.pop('accuracy', None)
-            return self.quantum_pricer.price_european_call_quantum(**q_params)
+            logger.info("routing_to_quantum", num_underlyings=num_underlyings, accuracy=accuracy_required)
+            return self.quantum_pricer.price_european_call_quantum(**clean_params)
         else:
-            return self.classical_pricer.price_european(**params)
+            logger.info("routing_to_classical", num_underlyings=num_underlyings, accuracy=accuracy_required)
+            # MonteCarloEngine uses num_simulations instead of num_qubits
+            clean_params.pop('num_qubits', None)
+            return self.classical_pricer.price_european(**clean_params)
 

@@ -143,29 +143,28 @@ class TestHybridPricer:
 
 class TestQuantumHardware:
     def test_quantum_pricer_hardware_init_mock(self, mocker):
-        """Verify that QuantumOptionPricer attempts to use IBMProvider when use_real_quantum is True and token is set."""
-        # Mock environment variable
-        mocker.patch.dict(os.environ, {"QISKIT_IBM_TOKEN": "mock_token"})
-        
-        # Mock the module to avoid actual import which is broken in Aer
-        mock_provider_mod = MagicMock()
-        mocker.patch.dict("sys.modules", {"qiskit_ibm_provider": mock_provider_mod})
-        
-        mock_provider_class = mock_provider_mod.IBMProvider
-        mock_provider_instance = mock_provider_class.return_value
+        """Verify that QuantumOptionPricer attempts to use QuantumBackendManager when use_real_quantum is True."""
+        # Mock QuantumBackendManager
+        mock_manager_class = mocker.patch("src.pricing.quantum_pricing.QuantumBackendManager")
+        mock_manager_instance = mock_manager_class.return_value
         mock_backend = MagicMock()
-        mock_provider_instance.get_backend.return_value = mock_backend
+        mock_manager_instance.get_backend.return_value = mock_backend
         
-        pricer = QuantumOptionPricer(use_real_quantum=True)
+        # Patch environment variable
+        mocker.patch.dict(os.environ, {"QUANTUM_BACKEND": "mock_backend"})
         
-        assert mock_provider_class.called
+        pricer = QuantumOptionPricer(use_real_quantum=True, backend_name="mock_backend")
+        
+        assert mock_manager_class.called
+        mock_manager_instance.get_backend.assert_called_with("mock_backend")
         assert pricer.backend == mock_backend
         assert pricer.use_real_quantum is True
 
-    def test_quantum_pricer_hardware_fallback_on_missing_provider(self, mocker):
-        """Verify that the pricer falls back to AerSimulator if qiskit-ibm-provider is missing."""
-        # Ensure it's not in sys.modules and will fail on import
-        mocker.patch.dict("sys.modules", {"qiskit_ibm_provider": None})
+    def test_quantum_pricer_hardware_fallback_on_error(self, mocker):
+        """Verify that the pricer falls back to AerSimulator if backend retrieval fails."""
+        mock_manager_class = mocker.patch("src.pricing.quantum_pricing.QuantumBackendManager")
+        mock_manager_instance = mock_manager_class.return_value
+        mock_manager_instance.get_backend.side_effect = Exception("Backend Error")
         
         pricer = QuantumOptionPricer(use_real_quantum=True)
         from qiskit_aer import AerSimulator

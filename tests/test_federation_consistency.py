@@ -1,20 +1,43 @@
-from strawberry.printer import print_schema
-from src.api.graphql.options import schema as options_schema
-from src.pricing.graphql.schema import schema as pricing_schema
-from src.ml.graphql.schema import schema as ml_schema
-from src.streaming.graphql.schema import schema as streaming_schema
+import pytest
+from strawberry.federation import Schema
+import strawberry
 
-def test_option_keys():
-    """Verify that Option entity has 'id' key in all subgraphs."""
-    
-    schemas = [options_schema, pricing_schema, ml_schema, streaming_schema]
-    
-    for schema in schemas:
-        type_def = schema.get_type_by_name("Option")
-        assert type_def is not None
-        
-        sdl = print_schema(schema)
-        # Note: print_schema might not output federation directives by default unless configured or using a specific printer
-        # However, typically it does if they are part of the type definition.
-        # Let's check for "type Option" first.
-        assert "type Option" in sdl
+def test_options_subgraph():
+    from src.api.graphql.schema import schema
+    assert isinstance(schema, Schema)
+    sdl = schema.as_str()
+    assert 'type Option @key(fields: "id")' in sdl
+    assert 'option(contractSymbol: String!): Option' in sdl
+
+def test_pricing_subgraph():
+    from src.pricing.graphql.schema import schema
+    assert isinstance(schema, Schema)
+    sdl = schema.as_str()
+    # It should extend Option and add price/delta/gamma
+    assert 'type Option @key(fields: "id")' in sdl
+    assert 'price(accuracy: Float! = 0.01, numUnderlyings: Int! = 1): Float!' in sdl
+
+def test_ml_subgraph():
+    from src.ml.graphql.schema import schema
+    assert isinstance(schema, Schema)
+    sdl = schema.as_str()
+    assert 'type Option @key(fields: "id")' in sdl
+    assert 'fairValue: Float!' in sdl
+    assert 'recommendation: String!' in sdl
+
+def test_portfolio_subgraph():
+    from src.portfolio.graphql.schema import schema
+    assert isinstance(schema, Schema)
+    sdl = schema.as_str()
+    assert 'extend type Option @key(fields: "id")' in sdl
+    assert 'type Portfolio' in sdl
+    assert 'type Order' in sdl
+    assert 'createOrder' in sdl
+
+def test_marketdata_subgraph():
+    from src.streaming.graphql.schema import schema
+    assert isinstance(schema, Schema)
+    sdl = schema.as_str()
+    assert 'type Option @key(fields: "id")' in sdl
+    assert 'lastPrice: Float!' in sdl
+    assert 'marketDataStream' in sdl

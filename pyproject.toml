@@ -50,7 +50,8 @@ pythonpath = ["src"]
 asyncio_mode = "auto"
 
 filterwarnings = [
-
+    "ignore::DeprecationWarning:qiskit.*",
+    "ignore::DeprecationWarning:qiskit_algorithms.*",
     "ignore::DeprecationWarning:mode.*",
-
+    "ignore::DeprecationWarning:.*GroverOperator.*",
 ]

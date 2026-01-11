@@ -1,8 +1,9 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import Optional
+from typing import Optional, Any, Dict
 from datetime import datetime
 from src.pricing.black_scholes import black_scholes
+from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
 
 @strawberry.federation.type(keys=["id"])
 class Option:
@@ -13,46 +14,46 @@ class Option:
     option_type: str = strawberry.federation.field(shareable=True)
     
     @strawberry.field
-    def price(self) -> float:
-        # Mocking spot price and vol for now
-        # In real world, we would fetch these from Market Data service or context
-        S = 155.0 # Spot price
+    def price(self, accuracy: float = 0.01, num_underlyings: int = 1) -> float:
+        # In a production system, these would be fetched from a Market Data service
+        S0 = 155.0 
         r = 0.05
         sigma = 0.2
         
-        # Calculate Time to Maturity
         T = (self.expiry - datetime.now()).days / 365.0
         if T <= 0: T = 0.001
         
-        result = black_scholes(S, self.strike, T, r, sigma, self.option_type)
+        pricer = HybridQuantumClassicalPricer()
+        result = pricer.price_option_adaptive(
+            S0=S0, K=self.strike, T=T, r=r, sigma=sigma,
+            accuracy=accuracy, num_underlyings=num_underlyings
+        )
         return result["price"]
 
     @strawberry.field
     def delta(self) -> float:
-        S = 155.0
+        S0 = 155.0
         r = 0.05
         sigma = 0.2
         T = (self.expiry - datetime.now()).days / 365.0
         if T <= 0: T = 0.001
         
-        result = black_scholes(S, self.strike, T, r, sigma, self.option_type)
+        result = black_scholes(S0, self.strike, T, r, sigma, self.option_type)
         return result["delta"]
 
     @strawberry.field
     def gamma(self) -> float:
-        S = 155.0
+        S0 = 155.0
         r = 0.05
         sigma = 0.2
         T = (self.expiry - datetime.now()).days / 365.0
         if T <= 0: T = 0.001
         
-        result = black_scholes(S, self.strike, T, r, sigma, self.option_type)
+        result = black_scholes(S0, self.strike, T, r, sigma, self.option_type)
         return result["gamma"]
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID, strike: float, underlyingSymbol: str, expiry: str, optionType: str):
-        # When the gateway resolves this entity, it passes the keys and any other fields defined in the representation
-        # Expiry comes as string, need to parse
         if isinstance(expiry, str):
             expiry_dt = datetime.fromisoformat(expiry)
         else:
