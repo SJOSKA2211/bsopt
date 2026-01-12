@@ -1,6 +1,6 @@
 # Plan: Front-End Architecture v4.0 - Black-Scholes Platform UI/UX
 
-## Phase 1: Core Framework & Theming (TDD)
+## Phase 1: Core Framework & Theming (TDD) [checkpoint: b3c7d6c]
 - [x] Task: Set up base project with React, Vite, TypeScript, pnpm. [d456ecd]
     - [x] Sub-task: Write failing tests for base setup.
     - [x] Sub-task: Implement base project structure.
