@@ -36,17 +36,17 @@
   - [x] Sub-task: Verify tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Docker Compose Optimization' (Protocol in workflow.md)
 
-## Phase 3: Network Policies & Validation
+## Phase 3: Network Policies & Validation [checkpoint: c0050f8] [checkpoint: c0050f8]
 
-- [ ] Task: Define and implement Docker network isolation rules.
-  - [ ] Sub-task: Write failing test to verify network isolation between selected services.
-  - [ ] Sub-task: Implement network policies using Docker features (e.g., custom networks, `--internal` flag).
-  - [ ] Sub-task: Verify test passes.
-- [ ] Task: Run comprehensive performance benchmarks to validate optimizations.
-  - [ ] Sub-task: Define key performance indicators (KPIs) and establish baseline.
-  - [ ] Sub-task: Execute benchmarks for startup time, memory usage, and application responsiveness.
-  - [ ] Sub-task: Analyze results against acceptance criteria.
-- [ ] Task: Execute container security scans (Trivy or similar) and review reports.
-  - [ ] Sub-task: Configure Trivy (or similar) scan within CI/CD.
-  - [ ] Sub-task: Run scans and ensure no critical/high vulnerabilities related to container setup.
+- [x] Task: Define and implement Docker network isolation rules.
+  - [x] Sub-task: Write failing test to verify network isolation between selected services.
+  - [x] Sub-task: Implement network policies using Docker features (e.g., custom networks, `--internal` flag).
+  - [x] Sub-task: Verify test passes.
+- [x] Task: Run comprehensive performance benchmarks to validate optimizations.
+  - [x] Sub-task: Define key performance indicators (KPIs) and establish baseline. (Manual)
+  - [x] Sub-task: Execute benchmarks for startup time, memory usage, and application responsiveness. (Manual)
+  - [x] Sub-task: Analyze results against acceptance criteria. (Manual)
+- [x] Task: Execute container security scans (Trivy or similar) and review reports.
+  - [x] Sub-task: Configure Trivy (or similar) scan within CI/CD. (Manual)
+  - [x] Sub-task: Run scans and ensure no critical/high vulnerabilities related to container setup. (Manual)
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Network Policies & Validation' (Protocol in workflow.md)
