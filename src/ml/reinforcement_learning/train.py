@@ -1,7 +1,6 @@
 import os
 import argparse
 import numpy as np
-import gymnasium as gym
 from stable_baselines3 import TD3
 from stable_baselines3.common.noise import NormalActionNoise
 from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
@@ -75,7 +74,7 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
             eval_env, 
             best_model_save_path="./models/best_td3/",
             log_path="./logs/results/", 
-            eval_freq=5000,
+            eval_freq=max(1, total_timesteps // 10),
             deterministic=True, 
             render=False
         )
@@ -89,32 +88,40 @@ def train_td3(total_timesteps: int = 100000, model_path: str = "models/td3_tradi
         # Train the agent
         model.learn(total_timesteps=total_timesteps, callback=callback)
         
+        # Final evaluation result
+        final_reward = float(np.mean(eval_callback.last_mean_reward)) if hasattr(eval_callback, 'last_mean_reward') else 0.0
+        
         # Save the model
-        if model_path:
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            model.save(model_path)
-            log_model_path = model_path
-        else:
-            # Save to a temporary path when model_path is None (e.g., during Ray distributed calls)
-            with tempfile.TemporaryDirectory() as tmpdir:
-                tmp_model_path = os.path.join(tmpdir, "td3_trading_agent_temp")
-                model.save(tmp_model_path)
-                log_model_path = tmp_model_path
+        actual_model_path = model_path
+        if not actual_model_path:
+            # Generate a unique temp path if none provided
+            tmp_dir = tempfile.mkdtemp()
+            actual_model_path = os.path.join(tmp_dir, "model.zip")
+            
+        os.makedirs(os.path.dirname(actual_model_path), exist_ok=True)
+        model.save(actual_model_path)
         
         # Log model to MLflow
         mlflow.pytorch.log_model(model.policy, "model")
         
-        logger.info("training_completed", run_id=run.info.run_id, model_path=log_model_path)
-        return model
+        logger.info("training_completed", run_id=run.info.run_id, model_path=actual_model_path, reward=final_reward)
+        
+        # Return only picklable metadata
+        return {
+            "run_id": run.info.run_id,
+            "model_path": actual_model_path,
+            "mean_reward": final_reward
+        }
 
 @ray.remote
 def train_td3_remote(total_timesteps: int = 10000, model_path: str = None):
     """Ray remote function for distributed training."""
+    # Ensure each remote task has its own temp model path if not specified
     return train_td3(total_timesteps=total_timesteps, model_path=model_path)
 
 def train_distributed(num_instances: int = 2, total_timesteps: int = 10000, ray_address: str = "auto"):
     """
-    Run multiple training instances in parallel using Ray.
+    Run multiple training instances in parallel using Ray and select the best one.
     """
     if not RAY_AVAILABLE:
         logger.error("ray_not_available", message="Ray not installed. Cannot run distributed training.")
@@ -129,8 +136,15 @@ def train_distributed(num_instances: int = 2, total_timesteps: int = 10000, ray_
     futures = [train_td3_remote.remote(total_timesteps=total_timesteps) for _ in range(num_instances)]
     results = ray.get(futures)
     
-    logger.info("distributed_training_completed", num_instances=num_instances)
-    return results
+    # Find the best result based on mean_reward
+    best_result = max(results, key=lambda x: x["mean_reward"])
+    
+    logger.info("distributed_training_completed", 
+                num_instances=num_instances, 
+                best_reward=best_result["mean_reward"],
+                best_model=best_result["model_path"])
+                
+    return results, best_result
 
 def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Agent")

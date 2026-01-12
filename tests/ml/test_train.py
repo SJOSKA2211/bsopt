@@ -1,7 +1,5 @@
-import os
 import pytest
 from unittest.mock import MagicMock, patch, ANY, PropertyMock
-import numpy as np
 from src.ml.reinforcement_learning.train import train_td3
 
 @pytest.fixture
@@ -22,7 +20,13 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     timesteps = 100
     model_path = "tmp/test_model"
     
-    model = train_td3(total_timesteps=timesteps, model_path=model_path)
+    # Mock eval_callback to avoid AttributeError if implementation expects results from it
+    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+        mock_eval_instance = MagicMock()
+        mock_eval_instance.last_mean_reward = [10.0]
+        mock_eval.return_value = mock_eval_instance
+        
+        result = train_td3(total_timesteps=timesteps, model_path=model_path)
     
     # Verify MLflow experiment and run
     mock_mlflow.set_experiment.assert_called_with("RL_Trading_Agent")
@@ -43,11 +47,42 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     # Verify model saving
     mock_td3.return_value.save.assert_called_with(model_path)
     
-    assert model == mock_td3.return_value
+    # New return signature: dict of metadata
+    assert isinstance(result, dict)
+    assert result["mean_reward"] == 10.0
+    assert result["model_path"] == model_path
+
+@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
+@patch("src.ml.reinforcement_learning.train.ray.init")
+@patch("src.ml.reinforcement_learning.train.ray.get")
+@patch("src.ml.reinforcement_learning.train.train_td3_remote.remote")
+def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ray_init):
+    """Test the train_distributed function."""
+    mock_train_td3_remote.return_value = "future_object"
+    # New return includes both results and best_result
+    mock_results = [{"mean_reward": 10.0, "model_path": "path1"}, {"mean_reward": 20.0, "model_path": "path2"}]
+    mock_ray_get.return_value = mock_results
+    
+    from src.ml.reinforcement_learning.train import train_distributed
+    
+    num_instances = 2
+    total_timesteps = 50
+    ray_address = "localhost:6379"
+    
+    results, best_result = train_distributed(num_instances=num_instances, total_timesteps=total_timesteps, ray_address=ray_address)
+    
+    mock_ray_init.assert_called_once_with(address=ray_address, ignore_reinit_error=True)
+    assert mock_train_td3_remote.call_count == num_instances
+    mock_ray_get.assert_called_once_with(["future_object", "future_object"])
+    assert results == mock_results
+    assert best_result == mock_results[1]
 
 def test_train_td3_logs_params(mock_mlflow, mock_td3):
     """Test that train_td3 logs parameters to MLflow."""
-    train_td3(total_timesteps=100)
+    # Mock eval_callback
+    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+        mock_eval.return_value.last_mean_reward = [10.0]
+        train_td3(total_timesteps=100)
     
     mock_mlflow.log_params.assert_called_once()
     params = mock_mlflow.log_params.call_args[0][0]
@@ -56,7 +91,10 @@ def test_train_td3_logs_params(mock_mlflow, mock_td3):
 
 def test_train_td3_logs_model(mock_mlflow, mock_td3):
     """Test that train_td3 logs model to MLflow."""
-    train_td3(total_timesteps=100)
+    # Mock eval_callback
+    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+        mock_eval.return_value.last_mean_reward = [10.0]
+        train_td3(total_timesteps=100)
     
     mock_mlflow.pytorch.log_model.assert_called_once()
 
@@ -113,28 +151,6 @@ def test_train_distributed_ray_not_available():
         mock_logger_error.assert_called_once_with(
             "ray_not_available", message="Ray not installed. Cannot run distributed training."
         )
-
-@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
-@patch("src.ml.reinforcement_learning.train.ray.init")
-@patch("src.ml.reinforcement_learning.train.ray.get")
-@patch("src.ml.reinforcement_learning.train.train_td3_remote.remote")
-def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ray_init):
-    """Test the train_distributed function."""
-    mock_train_td3_remote.return_value = "future_object"
-    mock_ray_get.return_value = ["result1", "result2"]
-    
-    from src.ml.reinforcement_learning.train import train_distributed
-    
-    num_instances = 2
-    total_timesteps = 50
-    ray_address = "localhost:6379"
-    
-    results = train_distributed(num_instances=num_instances, total_timesteps=total_timesteps, ray_address=ray_address)
-    
-    mock_ray_init.assert_called_once_with(address=ray_address, ignore_reinit_error=True)
-    assert mock_train_td3_remote.call_count == num_instances
-    mock_ray_get.assert_called_once_with(["future_object", "future_object"])
-    assert results == ["result1", "result2"]
 
 @patch("src.ml.reinforcement_learning.train.train_td3")
 @patch("src.ml.reinforcement_learning.train.train_distributed")
