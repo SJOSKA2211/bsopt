@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## [~] Track: Front-End Architecture v4.0 - Black-Scholes Platform UI/UX
-*Link: [./conductor/tracks/frontend_architecture_v4_0_20260112_121124/](./conductor/tracks/frontend_architecture_v4_0_20260112_121124/)*
+## [ ] Track: Docker Containerization for Production Hardening
+*Link: [./conductor/tracks/docker_hardening_20260112/](./conductor/tracks/docker_hardening_20260112/)*
