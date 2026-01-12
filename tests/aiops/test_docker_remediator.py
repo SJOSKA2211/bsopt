@@ -2,8 +2,10 @@ import pytest
 from unittest.mock import MagicMock, patch
 from src.aiops.docker_remediator import DockerRemediator # Assuming this path
 
-def test_docker_remediator_init():
+@patch("src.aiops.docker_remediator.docker.from_env")
+def test_docker_remediator_init(mock_from_env):
     """Test initialization of DockerRemediator."""
+    mock_from_env.return_value = MagicMock()
     remediator = DockerRemediator()
     assert remediator.client is not None
 
@@ -78,8 +80,10 @@ def test_docker_remediator_restart_action_failure(mock_logger, mock_from_env):
     assert not result
     mock_logger.error.assert_called_once()
 
-def test_docker_remediator_restart_service_empty_name_raises_error():
+@patch("src.aiops.docker_remediator.docker.from_env")
+def test_docker_remediator_restart_service_empty_name_raises_error(mock_from_env):
     """Test service restart with empty service name."""
+    mock_from_env.return_value = MagicMock()
     remediator = DockerRemediator()
     with pytest.raises(ValueError, match="Service name cannot be empty."):
         remediator.restart_service("")
