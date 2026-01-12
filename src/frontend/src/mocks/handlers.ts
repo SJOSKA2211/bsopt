@@ -32,4 +32,10 @@ export const handlers = [
 
     return HttpResponse.json(filteredData, { status: 200 });
   }),
+
+  http.post('/api/v1/trades/execute', async ({ request }) => {
+    const data = await request.json();
+    console.log('Mock trade execution request:', data);
+    return HttpResponse.json({ success: true, message: 'Trade executed successfully', tradeId: 'TRD-' + Date.now() }, { status: 200 });
+  }),
 ];

@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OptionsChain } from '../src/features/options/components/OptionsChain';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from '../src/theme/index';
+import React from 'react';
 
 // Mock Server Setup
 const handlers = [
@@ -34,7 +37,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 
-// Test component wrapper with QueryClientProvider
+// Test component wrapper with QueryClientProvider and ThemeProvider
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -44,9 +47,11 @@ const createWrapper = () => {
     },
   });
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 
@@ -58,7 +63,7 @@ test('OptionsChain fetches and displays data', async () => {
 
   // Wait for the mock data to appear
   await waitFor(() => {
-    expect(screen.getByText('Options Chain for AAPL')).toBeInTheDocument();
+    expect(screen.getByText('Options Chain - AAPL')).toBeInTheDocument();
     expect(screen.getByText('$1.50')).toBeInTheDocument(); // call_bid
     expect(screen.getByText('100')).toBeInTheDocument(); // strike
   }, { timeout: 2000 });

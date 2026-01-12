@@ -32,7 +32,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Custom components
 // import { GreeksTooltip } from './GreeksTooltip'; // Will be created later
 // import { OptionDetailModal } from './OptionDetailModal'; // Will be created later
-// import { QuickTradeButton } from './QuickTradeButton'; // Will be created later
+import { QuickTradeButton } from './QuickTradeButton';
 
 // Types
 interface OptionChainRow {
@@ -212,12 +212,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       width: 100,
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => (
-        // <QuickTradeButton
-        //   option={params.row}
-        //   type="call"
-        //   action="buy"
-        // />
-        <Button size="small" variant="buy">Buy</Button>
+        <QuickTradeButton
+          option={params.row}
+          type="call"
+          action="buy"
+        />
       ),
     },
     
@@ -275,12 +274,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       width: 100,
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => (
-        // <QuickTradeButton
-        //   option={params.row}
-        //   type="put"
-        //   action="buy"
-        // />
-        <Button size="small" variant="buy">Buy</Button>
+        <QuickTradeButton
+          option={params.row}
+          type="put"
+          action="buy"
+        />
       ),
     },
     {
