@@ -41,7 +41,7 @@ const gateway = new ApolloGateway({
       { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
     ],
   }),
-  buildService({ name, url }) {
+  buildService({ url }) {
     return new AuthenticatedDataSource({ url });
   },
 });
