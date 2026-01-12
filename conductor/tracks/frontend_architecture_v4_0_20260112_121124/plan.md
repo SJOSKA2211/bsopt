@@ -13,9 +13,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Framework & Theming' (Protocol in workflow.md)
 
 ## Phase 2: Real-Time Data & Options Chain (TDD)
-- [ ] Task: Integrate WebSockets for real-time market data.
-    - [ ] Sub-task: Write failing tests for WebSocket connection and data reception.
-    - [ ] Sub-task: Implement `useWebSocket` hook and data parsing.
+- [x] Task: Integrate WebSockets for real-time market data. [9d08597]
+    - [x] Sub-task: Write failing tests for WebSocket connection and data reception.
+    - [x] Sub-task: Implement `useWebSocket` hook and data parsing.
 - [ ] Task: Develop Real-Time Options Chain component.
     - [ ] Sub-task: Write failing tests for options chain data fetching and display.
     - [ ] Sub-task: Implement `OptionsChain` component with filtering and sorting.
