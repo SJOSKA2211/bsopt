@@ -1,0 +1,25 @@
+# STAGE 1: Rust Builder
+FROM rust:1.75-slim-bookworm as wasm-builder
+
+WORKDIR /usr/src/app
+COPY . .
+
+# Install wasm-pack
+RUN apt-get update && apt-get install -y curl pkg-config libssl-dev && \
+    curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+# Compile Rust to WASM (optimized for release size)
+RUN wasm-pack build --target web --release --out-dir ./pkg
+
+# STAGE 2: Nginx Edge Server
+FROM nginxinc/nginx-unprivileged:alpine
+
+# Copy WASM artifacts and frontend static files
+COPY --from=wasm-builder /usr/src/app/pkg /usr/share/nginx/html/wasm
+COPY --from=wasm-builder /usr/src/app/frontend/dist /usr/share/nginx/html
+
+# Custom Nginx config for WASM MIME types
+COPY docker/nginx/wasm.conf /etc/nginx/conf.d/default.conf
+
+# Security: Runs on port 8080 as non-root by default
+EXPOSE 8080

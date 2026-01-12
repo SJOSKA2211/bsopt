@@ -2,22 +2,22 @@
 
 ## Phase 1: Core Dockerfile Hardening & Optimization
 
-- [ ] Task: Update `docker/Dockerfile.ml` to multi-stage build with non-root user and shared memory configuration.
-  - [ ] Sub-task: Write failing test for `Dockerfile.ml` to verify non-root user and stripped image size.
-  - [ ] Sub-task: Implement changes in `docker/Dockerfile.ml` as per spec.
-  - [ ] Sub-task: Verify test passes and image size is reduced.
-- [ ] Task: Update `docker/Dockerfile.wasm` to multi-stage build with non-root user and Nginx configuration.
-  - [ ] Sub-task: Write failing test for `Dockerfile.wasm` to verify non-root user and stripped image size.
-  - [ ] Sub-task: Implement changes in `docker/Dockerfile.wasm` and `docker/nginx/wasm.conf` as per spec.
-  - [ ] Sub-task: Verify test passes and image size is reduced.
-- [ ] Task: Review and apply multi-stage and hardening to `docker/Dockerfile.api`.
-  - [ ] Sub-task: Write failing test for `Dockerfile.api` to verify non-root user and stripped image size.
-  - [ ] Sub-task: Implement changes in `docker/Dockerfile.api`.
-  - [ ] Sub-task: Verify test passes and image size is reduced.
-- [ ] Task: Review and apply multi-stage and hardening to `docker/Dockerfile.gateway`.
-  - [ ] Sub-task: Write failing test for `Dockerfile.gateway` to verify non-root user and stripped image size.
-  - [ ] Sub-task: Implement changes in `docker/Dockerfile.gateway`.
-  - [ ] Sub-task: Verify test passes and image size is reduced.
+- [x] Task: Update `docker/Dockerfile.ml` to multi-stage build with non-root user and shared memory configuration.
+  - [x] Sub-task: Write failing test for `Dockerfile.ml` to verify non-root user and stripped image size. (Verification skipped by user instruction)
+  - [x] Sub-task: Implement changes in `docker/Dockerfile.ml` as per spec.
+  - [x] Sub-task: Verify test passes and image size is reduced. (Verification skipped by user instruction)
+- [x] Task: Update `docker/Dockerfile.wasm` to multi-stage build with non-root user and Nginx configuration.
+  - [x] Sub-task: Write failing test for `Dockerfile.wasm` to verify non-root user and stripped image size. (Verification skipped by user instruction)
+  - [x] Sub-task: Implement changes in `docker/Dockerfile.wasm` and `docker/nginx/wasm.conf` as per spec.
+  - [x] Sub-task: Verify test passes and image size is reduced. (Verification skipped by user instruction)
+- [x] Task: Review and apply multi-stage and hardening to `docker/Dockerfile.api`.
+  - [x] Sub-task: Write failing test for `Dockerfile.api` to verify non-root user and stripped image size. (Verification skipped by user instruction)
+  - [x] Sub-task: Implement changes in `docker/Dockerfile.api`.
+  - [x] Sub-task: Verify test passes and image size is reduced. (Verification skipped by user instruction)
+- [x] Task: Review and apply multi-stage and hardening to `docker/Dockerfile.gateway`.
+  - [x] Sub-task: Write failing test for `Dockerfile.gateway` to verify non-root user and stripped image size. (Verification skipped by user instruction)
+  - [x] Sub-task: Implement changes in `docker/Dockerfile.gateway`.
+  - [x] Sub-task: Verify test passes and image size is reduced. (Verification skipped by user instruction)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Dockerfile Hardening' (Protocol in workflow.md)
 
 ## Phase 2: Docker Compose & Infrastructure Optimization

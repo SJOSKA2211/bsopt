@@ -1,13 +1,25 @@
-FROM node:18-alpine
+# STAGE 1: Builder
+FROM node:18-alpine as builder
 
 WORKDIR /app
 
-COPY src/gateway/package*.json ./
-RUN npm install --production
+# Install dependencies
+COPY src/gateway/package.json src/gateway/package-lock.json ./
+RUN npm install --prefix src/gateway
 
-COPY src/gateway .
+# STAGE 2: Runtime
+FROM node:18-alpine as runtime
 
-# Use non-root user provided by the base image
-USER node
+# Create non-root user
+RUN addgroup -S gateway && adduser -S gateway -G gateway
 
-CMD ["node", "index.js"]
+# Copy only necessary files
+WORKDIR /app
+COPY --from=builder /app/src/gateway/node_modules src/gateway/node_modules
+COPY --from=builder /app/src/gateway src/gateway
+
+# Hardening
+USER gateway
+ENV NODE_ENV=production
+
+CMD ["node", "src/gateway/index.js"]
