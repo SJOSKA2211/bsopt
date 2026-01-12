@@ -11,13 +11,13 @@
 - [x] Task: Implement BlackScholesWASM in Rust and compile to WASM [f022690]
 - [x] Task: Integrate WASM module into Frontend (React) [9be11d1]
 - [x] Task: Set up Apollo GraphQL Gateway and Federation [b1b1a96]
-- [ ] Task: Implement Subgraphs for Options, Pricing, ML, and Portfolio
+- [x] Task: Implement Subgraphs for Options, Pricing, ML, and Portfolio [348dac2]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Edge & Gateway' (Protocol in workflow.md)
 
 ## Phase 3: AI/ML Platform & Quantum Pricing (TDD)
-- [ ] Task: Implement QuantumOptionPricer with IBM Qiskit
-- [ ] Task: Implement HybridQuantumClassicalPricer
-- [ ] Task: Implement Reinforcement Learning Environment (Gym)
+- [x] Task: Implement QuantumOptionPricer with IBM Qiskit [348dac2]
+- [x] Task: Implement HybridQuantumClassicalPricer [348dac2]
+- [x] Task: Implement Reinforcement Learning Environment (Gym) [575c75f]
 - [ ] Task: Implement DistributedRLTrainer using Ray
 - [ ] Task: Implement FederatedLearningCoordinator with Flower
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: AI/ML & Quantum' (Protocol in workflow.md)
