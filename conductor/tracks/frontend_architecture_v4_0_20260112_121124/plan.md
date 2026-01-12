@@ -1,0 +1,64 @@
+# Plan: Front-End Architecture v4.0 - Black-Scholes Platform UI/UX
+
+## Phase 1: Core Framework & Theming (TDD)
+- [ ] Task: Set up base project with React, Vite, TypeScript, pnpm.
+    - [ ] Sub-task: Write failing tests for base setup.
+    - [ ] Sub-task: Implement base project structure.
+- [ ] Task: Implement Material UI theme configuration.
+    - [ ] Sub-task: Write failing tests for theme application.
+    - [ ] Sub-task: Implement palette, typography, and component overrides.
+- [ ] Task: Implement PWA and Offline Capabilities.
+    - [ ] Sub-task: Write failing tests for service worker registration.
+    - [ ] Sub-task: Implement service worker and manifest.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Framework & Theming' (Protocol in workflow.md)
+
+## Phase 2: Real-Time Data & Options Chain (TDD)
+- [ ] Task: Integrate WebSockets for real-time market data.
+    - [ ] Sub-task: Write failing tests for WebSocket connection and data reception.
+    - [ ] Sub-task: Implement `useWebSocket` hook and data parsing.
+- [ ] Task: Develop Real-Time Options Chain component.
+    - [ ] Sub-task: Write failing tests for options chain data fetching and display.
+    - [ ] Sub-task: Implement `OptionsChain` component with filtering and sorting.
+- [ ] Task: Implement Quick Trade functionality.
+    - [ ] Sub-task: Write failing tests for trade execution logic.
+    - [ ] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
+
+## Phase 3: Dashboard Core & Portfolio (TDD)
+- [ ] Task: Create base Trading Dashboard layout.
+    - [ ] Sub-task: Write failing tests for dashboard rendering.
+    - [ ] Sub-task: Implement `TradingDashboard` component structure.
+- [ ] Task: Integrate TanStack Query for portfolio data.
+    - [ ] Sub-task: Write failing tests for portfolio data fetching.
+    - [ ] Sub-task: Implement `useQuery` for portfolio summary.
+- [ ] Task: Develop Portfolio Summary & P&L display.
+    - [ ] Sub-task: Write failing tests for P&L calculation and display.
+    - [ ] Sub-task: Implement `PositionsSummary` component.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md)
+
+## Phase 4: Advanced Visualizations & ML Integration (TDD)
+- [ ] Task: Implement Real-Time Price Chart (TradingView-style).
+    - [ ] Sub-task: Write failing tests for chart data integration.
+    - [ ] Sub-task: Implement `LivePriceChart` component.
+- [ ] Task: Develop Greeks Heatmap.
+    - [ ] Sub-task: Write failing tests for heatmap data and rendering.
+    - [ ] Sub-task: Implement `GreeksHeatmap` component.
+- [ ] Task: Develop 3D Volatility Surface.
+    - [ ] Sub-task: Write failing tests for 3D rendering and data mapping.
+    - [ ] Sub-task: Implement `VolatilitySurface3D` component.
+- [ ] Task: Integrate ML Predictions Widget.
+    - [ ] Sub-task: Write failing tests for prediction data display.
+    - [ ] Sub-task: Implement `MLPredictions` component.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md)
+
+## Phase 5: Performance & Accessibility Optimization (TDD)
+- [ ] Task: Implement Code Splitting and Lazy Loading.
+    - [ ] Sub-task: Write failing performance tests for bundle size.
+    - [ ] Sub-task: Implement route-based and component-level code splitting.
+- [ ] Task: Optimize rendering with Memoization and Virtual Scrolling.
+    - [ ] Sub-task: Write failing performance tests for re-renders.
+    - [ ] Sub-task: Implement `React.memo`, `useMemo`, `useCallback` and virtualized lists.
+- [ ] Task: Ensure WCAG 2.1 AA Accessibility.
+    - [ ] Sub-task: Write failing accessibility tests (e.g., with Playwright).
+    - [ ] Sub-task: Implement keyboard navigation, ARIA attributes, and color contrast adherence.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Performance & Accessibility Optimization' (Protocol in workflow.md)

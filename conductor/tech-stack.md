@@ -20,6 +20,8 @@
 *   **Pandas & Numpy:** Data manipulation and numerical computation.
 
 ## Data Storage & Message Broking
+*   **Web3.py:** Ethereum/Polygon blockchain integration and smart contract interaction.
+*   **Open Policy Agent (OPA):** Policy-based authorization for Zero Trust security.
 *   **TimescaleDB (PostgreSQL 15):** Time-series database for market data and application state.
 *   **Redis (7):** Caching and Celery result backend.
 *   **MinIO:** S3-compatible object storage for model artifacts and large datasets.

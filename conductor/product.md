@@ -22,3 +22,6 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.
 *   **Quantum-Ready Pricing:** Hybrid quantum-classical engine using IBM Qiskit and Amplitude Estimation for quadratic speedup in Monte Carlo simulations.
+*   **Federated Learning:** Privacy-preserving multi-institutional model training using the Flower framework.
+*   **Blockchain & DeFi:** Integration with Ethereum/Polygon and decentralized options protocols (Opyn, Lyra) using Web3.py.
+*   **Zero Trust Security:** Fine-grained, policy-based authorization using Open Policy Agent (OPA) and mTLS.
