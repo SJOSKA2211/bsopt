@@ -18,7 +18,7 @@
 - [x] Task: Implement QuantumOptionPricer with IBM Qiskit [348dac2]
 - [x] Task: Implement HybridQuantumClassicalPricer [348dac2]
 - [x] Task: Implement Reinforcement Learning Environment (Gym) [575c75f]
-- [ ] Task: Implement DistributedRLTrainer using Ray
+- [x] Task: Implement DistributedRLTrainer using Ray [15cf027]
 - [ ] Task: Implement FederatedLearningCoordinator with Flower
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: AI/ML & Quantum' (Protocol in workflow.md)
 
