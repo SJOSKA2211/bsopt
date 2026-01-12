@@ -5,13 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   test: {
+    globals: true,
     environment: 'jsdom',
-    globals: true, // This enables globals like describe, it, expect
-    setupFiles: ['./tests/setupTests.ts'],
-    css: {
-      modules: {
-        classNameStrategy: 'non-scoped'
-      }
-    }
+    setupFiles: './tests/setupTests.ts',
   },
 })
