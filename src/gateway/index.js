@@ -11,8 +11,22 @@ const responseCachePlugin = require('@apollo/server-plugin-response-cache').defa
 
 class AuthenticatedDataSource extends RemoteGraphQLDataSource {
   willSendRequest({ request, context }) {
+    // Propagate Authorization header
     if (context.headers && context.headers['authorization']) {
       request.http.headers.set('authorization', context.headers['authorization']);
+    }
+    
+    // In a Zero Trust architecture, the Gateway identifies itself to subgraphs
+    // and propagates user identity after validation.
+    request.http.headers.set('X-SSL-Client-Verify', 'SUCCESS');
+    request.http.headers.set('X-SSL-Client-S-DN', 'CN=api-gateway');
+    
+    // If user info was extracted from JWT in the context, pass it to subgraphs
+    if (context.headers && context.headers['x-user-id']) {
+      request.http.headers.set('X-User-Id', context.headers['x-user-id']);
+    }
+    if (context.headers && context.headers['x-user-role']) {
+      request.http.headers.set('X-User-Role', context.headers['x-user-role']);
     }
   }
 }

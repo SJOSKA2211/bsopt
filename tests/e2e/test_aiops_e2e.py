@@ -53,8 +53,8 @@ def mock_e2e_dependencies():
         
         mock_redis_remediator_instance = MockRedisRemediator.return_value
         mock_redis_remediator_instance.purge_cache.return_value = True
-        
-        yield {{
+
+        yield {
             "PrometheusClient": MockPrometheusClient,
             "IsolationForestDetector": MockIsolationForestDetector,
             "AutoencoderDetector": MockAutoencoderDetector,
@@ -66,14 +66,13 @@ def mock_e2e_dependencies():
             "OrchestratorLogger": MockOrchestratorLogger,
             "PostGrafanaAnnotation": MockPostGrafanaAnnotation,
             "PushMetrics": MockPushMetrics,
-        }}
-        
+        }
 def test_e2e_api_spike_remediation(mock_e2e_dependencies):
     """
     Simulate an API spike (high 5xx error rate) and verify automated recovery
     (Docker service restart, Grafana annotation, Loki logs).
     """
-    config = {{
+    config = {
         "check_interval_seconds": 0.01,
         "prometheus_url": "http://localhost:9090",
         "api_service_name": "api_service_to_restart",
@@ -81,9 +80,9 @@ def test_e2e_api_spike_remediation(mock_e2e_dependencies):
         "latency_threshold": 0.5,
         "anomaly_detection_enabled": False, # Disable other detections for isolation
         "data_drift_detection_enabled": False,
-        "ml_pipeline_config": {{ "ticker": "AAPL", "framework": "xgboost" }},
+        "ml_pipeline_config": { "ticker": "AAPL", "framework": "xgboost" },
         "redis_cache_pattern": "test_cache:*"
-    }}
+    }
 
     # Simulate high 5xx error rate
     mock_e2e_dependencies["PrometheusClient"].return_value.get_5xx_error_rate.return_value = 0.1
@@ -123,18 +122,18 @@ def test_e2e_ml_drift_remediation(mock_e2e_dependencies):
     Simulate ML data drift and verify automated recovery
     (ML pipeline retraining, Grafana annotation, Loki logs).
     """
-    config = {{
+    config = {
         "check_interval_seconds": 0.01,
         "prometheus_url": "http://localhost:9090",
         "api_service_name": "api_service_no_drift",
         "anomaly_detection_enabled": False,
         "data_drift_detection_enabled": True, # Enable data drift detection
-        "ml_pipeline_config": {{ "ticker": "MSFT", "framework": "sklearn" }},
+        "ml_pipeline_config": { "ticker": "MSFT", "framework": "sklearn" },
         "redis_cache_pattern": "test_cache:*"
-    }}
+    }
 
     # Simulate data drift detected
-    mock_e2e_dependencies["DataDriftDetector"].return_value.detect_drift.return_value = (True, {{ "drift_types": ["PSI_Drift"]}})
+    mock_e2e_dependencies["DataDriftDetector"].return_value.detect_drift.return_value = (True, { "drift_types": ["PSI_Drift"]})
     orchestrator = AIOpsOrchestrator(config)
     
     with patch('time.sleep'):
