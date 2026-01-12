@@ -19,9 +19,9 @@
 - [x] Task: Develop Real-Time Options Chain component. [09068b3]
     - [x] Sub-task: Write failing tests for options chain data fetching and display.
     - [x] Sub-task: Implement `OptionsChain` component with filtering and sorting.
-- [ ] Task: Implement Quick Trade functionality.
-    - [ ] Sub-task: Write failing tests for trade execution logic.
-    - [ ] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
+- [x] Task: Implement Quick Trade functionality. [33af44b]
+    - [x] Sub-task: Write failing tests for trade execution logic.
+    - [x] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
 
 ## Phase 3: Dashboard Core & Portfolio (TDD)
