@@ -12,7 +12,7 @@
     - [x] Sub-task: Implement service worker and manifest.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Framework & Theming' (Protocol in workflow.md)
 
-## Phase 2: Real-Time Data & Options Chain (TDD)
+## Phase 2: Real-Time Data & Options Chain (TDD) [checkpoint: 1672978]
 - [x] Task: Integrate WebSockets for real-time market data. [9d08597]
     - [x] Sub-task: Write failing tests for WebSocket connection and data reception.
     - [x] Sub-task: Implement `useWebSocket` hook and data parsing.
@@ -22,7 +22,7 @@
 - [x] Task: Implement Quick Trade functionality. [33af44b]
     - [x] Sub-task: Write failing tests for trade execution logic.
     - [x] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
 
 ## Phase 3: Dashboard Core & Portfolio (TDD)
 - [ ] Task: Create base Trading Dashboard layout.
