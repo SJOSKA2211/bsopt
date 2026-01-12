@@ -22,7 +22,7 @@
 - [x] Task: Implement FederatedLearningCoordinator with Flower [71dc434]
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: AI/ML & Quantum' (Protocol in workflow.md)
 
-## Phase 4: Blockchain, AIOps & Security (TDD)
+## Phase 4: Blockchain, AIOps & Security (TDD) [checkpoint: 8d8e497]
 - [x] Task: Implement DeFiOptionsProtocol with Web3.py [92e5293]
 - [x] Task: Implement AIOps TimeSeriesAnomalyDetector [2583148]
 - [x] Task: Implement SelfHealingOrchestrator [f022bec]
