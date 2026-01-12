@@ -4,9 +4,9 @@
 - [x] Task: Set up base project with React, Vite, TypeScript, pnpm. [d456ecd]
     - [x] Sub-task: Write failing tests for base setup.
     - [x] Sub-task: Implement base project structure.
-- [ ] Task: Implement Material UI theme configuration.
-    - [ ] Sub-task: Write failing tests for theme application.
-    - [ ] Sub-task: Implement palette, typography, and component overrides.
+- [x] Task: Implement Material UI theme configuration. [a50b535]
+    - [x] Sub-task: Write failing tests for theme application.
+    - [x] Sub-task: Implement palette, typography, and component overrides.
 - [ ] Task: Implement PWA and Offline Capabilities.
     - [ ] Sub-task: Write failing tests for service worker registration.
     - [ ] Sub-task: Implement service worker and manifest.
