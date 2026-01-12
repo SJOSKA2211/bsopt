@@ -20,20 +20,20 @@
   - [x] Sub-task: Verify test passes and image size is reduced. (Verification skipped by user instruction)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Dockerfile Hardening' (Protocol in workflow.md)
 
-## Phase 2: Docker Compose & Infrastructure Optimization
+## Phase 2: Docker Compose & Infrastructure Optimization [checkpoint: cde9bd7]
 
-- [ ] Task: Update `docker-compose.prod.yml` with Ray shared memory (shm_size) settings.
-  - [ ] Sub-task: Write failing test to confirm Ray shared memory is configured correctly.
-  - [ ] Sub-task: Implement `shm_size` in `docker-compose.prod.yml` for Ray services.
-  - [ ] Sub-task: Verify test passes.
-- [ ] Task: Implement Kafka KRaft mode configuration in `docker-compose.prod.yml`.
-  - [ ] Sub-task: Write failing test to verify Kafka cluster starts in KRaft mode and Zookeeper is removed.
-  - [ ] Sub-task: Implement Kafka KRaft configuration in `docker-compose.prod.yml`.
-  - [ ] Sub-task: Verify test passes.
-- [ ] Task: Incorporate Geth and Quantum Simulator configurations into `docker-compose.prod.yml`.
-  - [ ] Sub-task: Write failing tests for Geth and Quantum Simulator configurations.
-  - [ ] Sub-task: Implement Geth and Quantum Simulator services in `docker-compose.prod.yml`.
-  - [ ] Sub-task: Verify tests pass.
+- [x] Task: Update `docker-compose.prod.yml` with Ray shared memory (shm_size) settings.
+  - [x] Sub-task: Write failing test to confirm Ray shared memory is configured correctly.
+  - [x] Sub-task: Implement `shm_size` in `docker-compose.prod.yml` for Ray services.
+  - [x] Sub-task: Verify test passes.
+- [x] Task: Implement Kafka KRaft mode configuration in `docker-compose.prod.yml`.
+  - [x] Sub-task: Write failing test to verify Kafka cluster starts in KRaft mode and Zookeeper is removed.
+  - [x] Sub-task: Implement Kafka KRaft configuration in `docker-compose.prod.yml`.
+  - [x] Sub-task: Verify test passes.
+- [x] Task: Incorporate Geth and Quantum Simulator configurations into `docker-compose.prod.yml`.
+  - [x] Sub-task: Write failing tests for Geth and Quantum Simulator configurations.
+  - [x] Sub-task: Implement Geth and Quantum Simulator services in `docker-compose.prod.yml`.
+  - [x] Sub-task: Verify tests pass.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Docker Compose Optimization' (Protocol in workflow.md)
 
 ## Phase 3: Network Policies & Validation
