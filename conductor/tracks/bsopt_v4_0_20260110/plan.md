@@ -14,7 +14,7 @@
 - [x] Task: Implement Subgraphs for Options, Pricing, ML, and Portfolio [348dac2]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Edge & Gateway' (Protocol in workflow.md)
 
-## Phase 3: AI/ML Platform & Quantum Pricing (TDD)
+## Phase 3: AI/ML Platform & Quantum Pricing (TDD) [checkpoint: 88ca1a0]
 - [x] Task: Implement QuantumOptionPricer with IBM Qiskit [348dac2]
 - [x] Task: Implement HybridQuantumClassicalPricer [348dac2]
 - [x] Task: Implement Reinforcement Learning Environment (Gym) [575c75f]
