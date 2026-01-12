@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
-from typing import Dict, List, Optional
+from typing import Dict, List
 import structlog
 
 logger = structlog.get_logger()

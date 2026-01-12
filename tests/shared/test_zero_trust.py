@@ -1,8 +1,7 @@
-import pytest
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends
 from fastapi.testclient import TestClient
 from src.shared.security import verify_mtls, opa_authorize
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 app = FastAPI()
 

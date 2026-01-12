@@ -1,7 +1,6 @@
 from web3 import Web3
-from typing import Optional, Dict
+from typing import Optional
 import structlog
-import os
 
 logger = structlog.get_logger()
 

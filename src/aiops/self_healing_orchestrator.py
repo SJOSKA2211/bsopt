@@ -1,9 +1,7 @@
 import time
 import structlog
-from typing import Dict, Any, List
+from typing import Any, List
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
-from src.aiops.docker_remediator import DockerRemediator
-from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
 
 logger = structlog.get_logger()
 

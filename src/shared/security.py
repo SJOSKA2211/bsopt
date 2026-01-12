@@ -1,7 +1,7 @@
 import requests
 import structlog
 from typing import Dict, Any, Optional
-from fastapi import Request, HTTPException, Depends, status
+from fastapi import Request, HTTPException, status
 
 logger = structlog.get_logger()
 
