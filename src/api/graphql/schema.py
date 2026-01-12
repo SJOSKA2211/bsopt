@@ -24,6 +24,12 @@ class Option:
         from src.api.services.option_service import get_option
         return await get_option(str(id))
 
+@strawberry.type
+class Portfolio:
+    id: strawberry.ID
+    name: str
+    cash_balance: float
+
 # ============================================================================
 # QUERIES
 # ============================================================================
@@ -56,6 +62,16 @@ class Query:
         )
 
 # ============================================================================
+# MUTATIONS
+# ============================================================================
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
+        from src.api.services.portfolio_service import create_portfolio as create_portfolio_svc
+        return await create_portfolio_svc(user_id=strawberry.ID(user_id), name=name, initial_cash=initial_cash)
+
+# ============================================================================
 # APOLLO FEDERATION - Subgraph Schema
 # ============================================================================
-schema = Schema(query=Query, types=[Option])
+schema = Schema(query=Query, mutation=Mutation, types=[Option, Portfolio])

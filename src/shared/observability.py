@@ -5,7 +5,7 @@ from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gatewa
 from typing import List, Callable
 from fastapi import Request, Response
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def setup_logging():
@@ -30,13 +30,23 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     response = await call_next(request)
     
     duration = time.time() - start_time
+    
+    # Mask client IP to protect PII
+    client_ip = request.client.host if request.client else "unknown"
+    if client_ip != "unknown":
+        parts = client_ip.split('.')
+        if len(parts) == 4:
+            client_ip = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
+        else:
+            client_ip = "masked"
+
     logger.info(
         "request_processed",
         method=request.method,
         path=request.url.path,
         status_code=response.status_code,
         duration_ms=round(duration * 1000, 2),
-        client_ip=request.client.host if request.client else "unknown"
+        client_ip=client_ip
     )
     return response
 
@@ -77,7 +87,7 @@ def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
         tags = []
 
     # Grafana expects time in milliseconds Unix epoch
-    timestamp_ms = int(datetime.utcnow().timestamp() * 1000)
+    timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
 
     payload = {
         "time": timestamp_ms,
