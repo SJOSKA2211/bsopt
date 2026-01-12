@@ -1,7 +1,7 @@
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple
 import structlog
 
 logger = structlog.get_logger()
@@ -97,19 +97,23 @@ class TradingEnvironment(gym.Env):
         """
         Execute one step in the environment.
         """
+        # 0. Clip action to valid range
+        action = np.clip(action, self.action_space.low, self.action_space.high)
+        
         # 1. Execute trades (rebalance to target positions)
         trades = action - self.positions
         
-        # 2. Calculate transaction costs
+        # 2. Calculate costs
         current_prices = self.market_data.get('prices', np.zeros(10))
         if len(current_prices) != 10:
             current_prices = np.pad(current_prices, (0, 10 - len(current_prices)))[:10]
             
         transaction_costs = np.sum(np.abs(trades) * current_prices * self.transaction_cost)
+        asset_costs = np.sum(trades * current_prices)
         
         # 3. Update state
         self.positions = action
-        self.balance -= transaction_costs
+        self.balance -= (transaction_costs + asset_costs)
         
         # 4. Advance time
         self.current_step += 1
@@ -151,18 +155,28 @@ class TradingEnvironment(gym.Env):
 
     def _calculate_reward(self, current_portfolio_value: float) -> float:
         """
-        Multi-objective reward function.
+        Multi-objective reward function incorporating risk-adjusted returns.
         """
-        # Simple percentage return for now
+        # 1. Percentage return
         prev_value = self.portfolio_values[-2]
         ret = (current_portfolio_value - prev_value) / prev_value
         
-        # Sharpe ratio component (simplified for step-wise reward)
-        reward = ret
+        # 2. Volatility penalty (risk adjustment)
+        # Use recent portfolio returns to calculate volatility
+        if len(self.portfolio_values) > 5:
+            recent_values = np.array(self.portfolio_values[-5:])
+            recent_returns = np.diff(recent_values) / recent_values[:-1]
+            volatility = np.std(recent_returns)
+            # Penalty proportional to volatility
+            vol_penalty = 0.1 * volatility
+        else:
+            vol_penalty = 0
+            
+        reward = ret - vol_penalty
         
-        # Penalty for high drawdown
+        # 3. Drawdown penalty
         if current_portfolio_value < self.initial_balance * 0.8:
-            reward -= 0.01
+            reward -= 0.01 * (1.0 - current_portfolio_value / (self.initial_balance * 0.8))
             
         return float(reward)
 
