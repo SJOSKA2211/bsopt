@@ -16,9 +16,9 @@
 - [x] Task: Integrate WebSockets for real-time market data. [9d08597]
     - [x] Sub-task: Write failing tests for WebSocket connection and data reception.
     - [x] Sub-task: Implement `useWebSocket` hook and data parsing.
-- [ ] Task: Develop Real-Time Options Chain component.
-    - [ ] Sub-task: Write failing tests for options chain data fetching and display.
-    - [ ] Sub-task: Implement `OptionsChain` component with filtering and sorting.
+- [x] Task: Develop Real-Time Options Chain component. [09068b3]
+    - [x] Sub-task: Write failing tests for options chain data fetching and display.
+    - [x] Sub-task: Implement `OptionsChain` component with filtering and sorting.
 - [ ] Task: Implement Quick Trade functionality.
     - [ ] Sub-task: Write failing tests for trade execution logic.
     - [ ] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
