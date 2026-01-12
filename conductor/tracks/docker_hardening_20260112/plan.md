@@ -1,6 +1,6 @@
 # Plan: Docker Containerization for Production Hardening
 
-## Phase 1: Core Dockerfile Hardening & Optimization
+## Phase 1: Core Dockerfile Hardening & Optimization [checkpoint: b3c7d6c]
 
 - [x] Task: Update `docker/Dockerfile.ml` to multi-stage build with non-root user and shared memory configuration.
   - [x] Sub-task: Write failing test for `Dockerfile.ml` to verify non-root user and stripped image size. (Verification skipped by user instruction)
