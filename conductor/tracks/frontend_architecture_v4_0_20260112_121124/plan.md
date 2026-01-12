@@ -7,9 +7,9 @@
 - [x] Task: Implement Material UI theme configuration. [a50b535]
     - [x] Sub-task: Write failing tests for theme application.
     - [x] Sub-task: Implement palette, typography, and component overrides.
-- [ ] Task: Implement PWA and Offline Capabilities.
-    - [ ] Sub-task: Write failing tests for service worker registration.
-    - [ ] Sub-task: Implement service worker and manifest.
+- [x] Task: Implement PWA and Offline Capabilities. [ff060fd]
+    - [x] Sub-task: Write failing tests for service worker registration.
+    - [x] Sub-task: Implement service worker and manifest.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Core Framework & Theming' (Protocol in workflow.md)
 
 ## Phase 2: Real-Time Data & Options Chain (TDD)
