@@ -1,6 +1,4 @@
-import pytest
 from unittest.mock import patch, MagicMock
-import os
 from prometheus_client import REGISTRY
 from src.shared.observability import push_metrics
 

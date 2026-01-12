@@ -63,8 +63,6 @@ def push_metrics(job_name: str):
     else:
         structlog.get_logger().debug("metrics_push_skipped", reason="no_gateway_url")
 
-import httpx
-from datetime import datetime
 
 def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
     """

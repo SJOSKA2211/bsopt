@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.ml.drift import calculate_psi, calculate_ks_test
 
 @patch("src.ml.drift.logger")

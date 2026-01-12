@@ -29,7 +29,7 @@ def test_redis_remediator_purge_cache_success(mock_redis_class):
     
     mock_client_instance.keys.assert_called_once_with(cache_key_pattern)
     mock_client_instance.delete.assert_called_once_with(b"my_cache:1", b"my_cache:2")
-    assert result == True
+    assert result
 
 @patch("src.aiops.redis_remediator.redis.Redis")
 def test_redis_remediator_purge_cache_no_keys_found(mock_redis_class):
@@ -46,7 +46,7 @@ def test_redis_remediator_purge_cache_no_keys_found(mock_redis_class):
     
     mock_client_instance.keys.assert_called_once_with(cache_key_pattern)
     mock_client_instance.delete.assert_not_called() # Delete should not be called
-    assert result == True # No keys found, so nothing to purge, still a "success" state
+    assert result # No keys found, so nothing to purge, still a "success" state
 
 @patch("src.aiops.redis_remediator.redis.Redis")
 def test_redis_remediator_purge_cache_failure(mock_redis_class):
@@ -64,7 +64,7 @@ def test_redis_remediator_purge_cache_failure(mock_redis_class):
     
     mock_client_instance.keys.assert_called_once_with(cache_key_pattern)
     mock_client_instance.delete.assert_called_once_with(b"failing_cache:1")
-    assert result == False
+    assert not result
 
 @patch("src.aiops.redis_remediator.redis.Redis")
 def test_redis_remediator_purge_cache_empty_pattern_raises_error(mock_redis_class):

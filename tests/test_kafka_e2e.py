@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
 import os
 import sys
 import itertools
@@ -27,7 +27,7 @@ async def test_streaming_e2e_flow():
          patch('streaming.analytics.faust.App'):
         
         # 1. Initialize components
-        producer = MarketDataProducer()
+        MarketDataProducer()
         consumer = MarketDataConsumer(batch_size=1)
         analytics = VolatilityAggregationStream()
         

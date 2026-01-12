@@ -1,5 +1,4 @@
 import pytest
-import os
 from src.aiops.prometheus_adapter import PrometheusClient
 
 def test_prometheus_client_init():

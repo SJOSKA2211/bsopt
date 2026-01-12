@@ -1,6 +1,6 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import Optional, List, AsyncGenerator
+from typing import List, AsyncGenerator
 import random
 import asyncio
 

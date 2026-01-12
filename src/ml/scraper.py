@@ -1,103 +1,58 @@
-import time
 import requests
 import pandas as pd
+import time
 import structlog
-import numpy as np
-from typing import Optional
+import re
 from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS
 
 logger = structlog.get_logger()
 
 class MarketDataScraper:
-    """
-    Scraper for fetching market data from external APIs (e.g., Polygon.io, Alpha Vantage).
-    Includes retry logic and error handling.
-    """
-    
-    def __init__(self, api_key: str, base_url: str = "https://api.polygon.io", max_retries: int = 3, provider: str = "auto"):
+    def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3):
         self.api_key = api_key
-        self.base_url = base_url
-        self.max_retries = max_retries
         self.provider = provider
-        if provider == "auto":
-             if "polygon" in base_url and base_url != "https://api.polygon.io":
-                 self.provider = "polygon"
-             # else stay auto
-        self.api_name = self.provider
+        self.max_retries = max_retries
+        self.base_url = "https://www.alphavantage.co/query" if provider == "alpha_vantage" else "https://api.polygon.io"
+
+    def _validate_inputs(self, ticker: str, start_date: str, end_date: str):
+        """Validates ticker and date formats to prevent injection/traversal."""
+        if not re.match(r"^[A-Z0-9.-]{1,20}$", ticker):
+            raise ValueError(f"Invalid ticker symbol: {ticker}")
+        date_pattern = r"^\d{4}-\d{2}-\d{2}$"
+        if not re.match(date_pattern, start_date) or not re.match(date_pattern, end_date):
+            raise ValueError("Invalid date format. Use YYYY-MM-DD.")
+
+    def _redact_message(self, message: str) -> str:
+        """Redacts the API key from strings (e.g., URLs in exceptions)."""
+        if not self.api_key or self.api_key == "DEMO_KEY":
+            return message
+        return message.replace(self.api_key, "[REDACTED]")
 
     def fetch_historical_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
-        """
-        Fetches historical data for a given ticker.
-        
-        Args:
-            ticker: The stock symbol (e.g., 'AAPL').
-            start_date: Start date in YYYY-MM-DD format.
-            end_date: End date in YYYY-MM-DD format.
-            
-        Returns:
-            pd.DataFrame: DataFrame containing timestamp, open, high, low, close, volume.
-            
-        Raises:
-            Exception: If data cannot be fetched after max retries.
-        """
-        # MOCK MODE FOR DEMO/TESTING
-        # Use mock if key is DEMO_KEY, empty, or None, or provider is mock.
-        if not self.api_key or self.api_key.strip() == "DEMO_KEY" or self.provider == "mock":
-            logger.info("scrape_mock_mode", ticker=ticker, reason="Using DEMO_KEY or mock provider")
-            # Generate mock data using pandas date_range
-            dates = pd.date_range(start=start_date, end=end_date, freq="B") # Business days
-            # Create synthetic price movement
-            base_price = 150.0
-            data = []
-            
-            for i, _ in enumerate(dates):
-                # Simple random walk
-                change = np.random.uniform(-2, 2)
-                base_price += change
-                
-                row = {
-                    "timestamp": int(dates[i].timestamp() * 1000), # Polygon uses millis
-                    "open": base_price,
-                    "high": base_price + np.random.uniform(0, 5),
-                    "low": base_price - np.random.uniform(0, 5),
-                    "close": base_price + np.random.uniform(-1, 1),
-                    "volume": int(np.random.uniform(100000, 5000000))
-                }
-                data.append(row)
-                
-            df = pd.DataFrame(data)
-            
-            duration = 0.1
-            SCRAPE_DURATION.labels(api="mock").observe(duration)
-            logger.info("scrape_success", ticker=ticker, duration=duration, rows=len(df), mode="mock")
-            
-            return df[["timestamp", "open", "high", "low", "close", "volume"]]
-
+        """Fetch historical daily data for a given ticker and date range."""
+        self._validate_inputs(ticker, start_date, end_date)
         last_response = None
-
+        
         # Alpha Vantage Implementation
         if self.provider == "alpha_vantage" or self.provider == "auto":
-             url = "https://www.alphavantage.co/query"
-             params = {
-                 "function": "TIME_SERIES_DAILY",
-                 "symbol": ticker,
-                 "apikey": self.api_key,
-                 "outputsize": "full",
-                 "datatype": "json"
-             }
-             
-             start_time = time.time()
-             for attempt in range(self.max_retries + 1):
+            params = {
+                "function": "TIME_SERIES_DAILY",
+                "symbol": ticker,
+                "outputsize": "full",
+                "apikey": self.api_key
+            }
+            
+            start_time = time.time()
+            for attempt in range(self.max_retries + 1):
                 try:
-                    response = requests.get(url, params=params)
+                    response = requests.get(self.base_url, params=params)
                     last_response = response
                     if response.status_code == 200:
                         data = response.json()
                         if "Time Series (Daily)" in data:
-                            ts_data = data["Time Series (Daily)"]
+                            time_series = data["Time Series (Daily)"]
                             records = []
-                            for date_str, values in ts_data.items():
-                                # Filter by date range
+                            for date_str, values in time_series.items():
                                 if start_date <= date_str <= end_date:
                                     records.append({
                                         "timestamp": pd.Timestamp(date_str).value // 10**6, # ms
@@ -117,26 +72,28 @@ class MarketDataScraper:
                                 return df[["timestamp", "open", "high", "low", "close", "volume"]]
                             else:
                                 logger.warning("scrape_empty", ticker=ticker, reason="No data in range")
-                                if self.provider == "auto": break
+                                if self.provider == "auto":
+                                    break
                                 return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
-                        
                         elif "Error Message" in data:
-                             logger.error("scrape_error", ticker=ticker, error=data["Error Message"])
-                             if self.provider == "auto": break
-                             raise Exception(f"Alpha Vantage Error: {data['Error Message']}")
+                            logger.error("scrape_error", ticker=ticker, error=data["Error Message"])
+                            if self.provider == "auto":
+                                break
+                            raise Exception(f"Alpha Vantage Error: {data['Error Message']}")
                         elif "Note" in data: # Rate limit
-                             logger.warning("scrape_rate_limit", ticker=ticker, note=data["Note"])
-                             if attempt < self.max_retries:
-                                 time.sleep(0.1)
-                                 continue
-                             else:
-                                 if self.provider == "auto": break
-                                 raise Exception("Alpha Vantage rate limit reached.")
-                    
+                            logger.warning("scrape_rate_limit", ticker=ticker, note=data["Note"])
+                            if attempt < self.max_retries:
+                                time.sleep(0.1)
+                                continue
+                            else:
+                                if self.provider == "auto":
+                                    break
+                                raise Exception("Alpha Vantage rate limit reached.")
                     elif response.status_code == 401:
-                         SCRAPE_ERRORS.labels(api="alpha_vantage", status_code=401).inc()
-                         if self.provider == "auto": break
-                         raise Exception("401 Unauthorized: Invalid Alpha Vantage API Key.")
+                        SCRAPE_ERRORS.labels(api="alpha_vantage", status_code=401).inc()
+                        if self.provider == "auto":
+                            break
+                        raise Exception("401 Unauthorized: Invalid Alpha Vantage API Key.")
                     else:
                         SCRAPE_ERRORS.labels(api="alpha_vantage", status_code=response.status_code).inc()
                         logger.warning("scrape_http_error", ticker=ticker, status_code=response.status_code, attempt=attempt)
@@ -147,10 +104,11 @@ class MarketDataScraper:
 
                 except Exception as e:
                     SCRAPE_ERRORS.labels(api="alpha_vantage", status_code="exception").inc()
-                    logger.error("scrape_exception", ticker=ticker, error=str(e))
+                    logger.error("scrape_exception", ticker=ticker, error=self._redact_message(str(e)))
                     if attempt < self.max_retries:
                         continue
-                    if self.provider == "auto": break
+                    if self.provider == "auto":
+                        break
                     raise
 
         # Polygon.io Implementation
@@ -187,7 +145,7 @@ class MarketDataScraper:
                     
                 except requests.RequestException as e:
                     SCRAPE_ERRORS.labels(api="polygon", status_code="exception").inc()
-                    logger.error("scrape_exception", ticker=ticker, error=str(e), attempt=attempt)
+                    logger.error("scrape_exception", ticker=ticker, error=self._redact_message(str(e)), attempt=attempt)
                     if attempt < self.max_retries:
                         time.sleep(0.1)
                         continue

@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from src.aiops.data_drift_detector import DataDriftDetector # Assuming this path
-from src.ml.drift import calculate_psi, calculate_ks_test # Import actual calculation functions
 
 # Mock for simplicity if DataDriftDetector doesn't directly use these or needs a wrapper
 # For this Red Phase, we just need to test the detector's logic around these scores.
@@ -26,7 +25,7 @@ def test_data_drift_detector_no_drift():
     assert not drift_detected
     assert len(drift_info["feature_drifts"]) == 0 # No feature drifts should be detected
     # We can't directly check 'PSI' in drift_info for multivariate, but can check overall status
-    assert drift_info["overall_drift_detected"] == False
+    assert not drift_info["overall_drift_detected"]
 
 def test_data_drift_detector_psi_drift_detected():
     """Test with data showing significant PSI drift."""

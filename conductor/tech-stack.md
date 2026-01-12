@@ -11,6 +11,7 @@
 *   **Ray & RLLib:** Distributed training and scaling for reinforcement learning.
 *   **Gymnasium:** Standardized environment interface for RL agents.
 *   **Stable-Baselines3:** Reliable implementation of TD3 and other RL algorithms.
+*   **Flower (flwr):** Framework for federated learning and distributed model aggregation.
 *   **IBM Qiskit:** Primary framework for quantum circuit construction and simulation.
 *   **Qiskit-Aer:** High-performance local quantum simulators.
 *   **Qiskit-Algorithms:** Implementation of Amplitude Estimation and other quantum algorithms.

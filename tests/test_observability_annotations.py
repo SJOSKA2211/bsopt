@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock, ANY
 import httpx
 
@@ -16,7 +15,7 @@ def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):
     tags = ["remediation", "service_restart"]
 
     result = post_grafana_annotation(message, tags)
-    assert result == True
+    assert result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once_with(
         "http://localhost:3000/api/annotations",
@@ -39,7 +38,7 @@ def test_post_grafana_annotation_no_grafana_url(mock_environ_get, mock_httpx_pos
     tags = ["test"]
 
     result = post_grafana_annotation(message, tags)
-    assert result == False
+    assert not result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_not_called()
 
@@ -60,7 +59,7 @@ def test_post_grafana_annotation_api_failure(mock_environ_get, mock_httpx_post):
     tags = ["test"]
 
     result = post_grafana_annotation(message, tags)
-    assert result == False
+    assert not result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once()
 
@@ -74,7 +73,7 @@ def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_p
     tags = ["test"]
 
     result = post_grafana_annotation(message, tags)
-    assert result == False
+    assert not result
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once()
 

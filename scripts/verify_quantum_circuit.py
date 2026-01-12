@@ -1,5 +1,4 @@
 from src.pricing.quantum_pricing import QuantumOptionPricer
-import numpy as np
 
 def verify_circuit():
     print("Initializing QuantumOptionPricer...")

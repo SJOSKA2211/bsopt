@@ -1,6 +1,5 @@
 import pytest
 from strawberry.types import ExecutionResult
-import strawberry
 from src.api.graphql.options import schema
 
 @pytest.mark.asyncio

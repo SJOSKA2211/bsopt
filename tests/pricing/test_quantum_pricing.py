@@ -1,6 +1,4 @@
-import pytest
 import numpy as np
-import sys
 import os
 from unittest.mock import MagicMock
 from qiskit import QuantumCircuit

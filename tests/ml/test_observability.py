@@ -1,5 +1,4 @@
 import json
-import io
 import structlog
 import pytest
 from src.shared.observability import setup_logging, SCRAPE_DURATION, SCRAPE_ERRORS

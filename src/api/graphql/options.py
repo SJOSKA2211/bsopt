@@ -1,7 +1,7 @@
 import strawberry
 from strawberry.federation import Schema
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 
 @strawberry.federation.type(keys=["id"])
 class Option:

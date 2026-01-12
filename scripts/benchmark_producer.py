@@ -47,7 +47,7 @@ async def run_benchmark(num_messages=1000):
     duration = end_time - start_time
     throughput = num_messages / duration
     
-    print(f"\nBenchmark Complete!")
+    print("\nBenchmark Complete!")
     print(f"Total time: {duration:.2f} seconds")
     print(f"Throughput: {throughput:.2f} messages/second")
 

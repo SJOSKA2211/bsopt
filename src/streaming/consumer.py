@@ -1,9 +1,8 @@
 from confluent_kafka import Consumer, KafkaError
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
-import json
 import asyncio
-from typing import Dict, List, Callable, List, Optional
+from typing import Dict, Callable, List
 import structlog
 import time
 
@@ -116,5 +115,5 @@ class MarketDataConsumer:
         self.running = False
         try:
             self.consumer.close()
-        except:
+        except Exception:
             pass

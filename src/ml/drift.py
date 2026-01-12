@@ -1,7 +1,6 @@
 import numpy as np
 import structlog
-from prometheus_client import Gauge
-from typing import List, Union, Tuple, Optional
+from typing import List, Union, Tuple
 from scipy.stats import ks_2samp
 from collections import deque
 from src.shared.observability import DATA_DRIFT_SCORE, KS_TEST_SCORE, PERFORMANCE_DRIFT_ALERT

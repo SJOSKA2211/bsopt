@@ -1,5 +1,4 @@
 from locust import HttpUser, task, between, events
-import random
 import logging
 
 class BSOPTUser(HttpUser):

@@ -1,6 +1,6 @@
 import numpy as np
 import structlog
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, Any
 import json
 
 try:

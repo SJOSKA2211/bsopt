@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, patch
 import os
 import sys
 import time
@@ -13,8 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src'
 
 def test_consumer_initialization():
     with patch('streaming.consumer.Consumer') as mock_kafka_consumer, \
-         patch('streaming.consumer.SchemaRegistryClient') as mock_sr_client, \
-         patch('streaming.consumer.AvroDeserializer') as mock_avro_deserializer:
+         patch('streaming.consumer.SchemaRegistryClient'), \
+         patch('streaming.consumer.AvroDeserializer'):
         
         from streaming.consumer import MarketDataConsumer
         

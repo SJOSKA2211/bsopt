@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-import pandas as pd
 from unittest.mock import MagicMock, patch
 from src.ml.trainer import InstrumentedTrainer
 
@@ -79,7 +78,7 @@ def test_trainer_prometheus_metrics_usage(sample_data):
 
 def test_trainer_mlflow_uri():
     with patch("mlflow.set_tracking_uri") as mock_set_uri:
-        trainer = InstrumentedTrainer(study_name="test_study", tracking_uri="http://localhost:5000")
+        InstrumentedTrainer(study_name="test_study", tracking_uri="http://localhost:5000")
         mock_set_uri.assert_called_once_with("http://localhost:5000")
 
 @patch("mlflow.log_params")

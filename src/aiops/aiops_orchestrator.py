@@ -1,7 +1,7 @@
 import time
 import os
 import structlog
-from typing import Dict, Any, List
+from typing import Dict, Any
 from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.isolation_forest_detector import IsolationForestDetector
 from src.aiops.autoencoder_detector import AutoencoderDetector

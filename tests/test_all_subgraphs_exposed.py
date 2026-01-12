@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-import pytest
 
 def test_pricing_subgraph_exposed():
     from src.pricing.main import app

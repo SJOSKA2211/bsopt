@@ -1,6 +1,6 @@
 import redis
 import structlog
-from typing import Union, List
+from typing import List
 
 logger = structlog.get_logger()
 

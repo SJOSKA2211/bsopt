@@ -4,7 +4,7 @@ import os
 import json
 
 def run_ksql_query(url, ksql_text):
-    print(f"Executing ksqlDB query...")
+    print("Executing ksqlDB query...")
     print(f"Query: {ksql_text}")
     
     payload = {

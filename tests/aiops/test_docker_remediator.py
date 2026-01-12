@@ -23,7 +23,7 @@ def test_docker_remediator_restart_service_success(mock_from_env):
     
     mock_client.containers.get.assert_called_once_with(service_name)
     mock_container.restart.assert_called_once()
-    assert result == True
+    assert result
 
 @patch("src.aiops.docker_remediator.docker.from_env")
 def test_docker_remediator_restart_service_not_found(mock_from_env):
@@ -39,7 +39,7 @@ def test_docker_remediator_restart_service_not_found(mock_from_env):
     result = remediator.restart_service(service_name)
     
     mock_client.containers.get.assert_called_once_with(service_name)
-    assert result == False
+    assert not result
 
 @patch("src.aiops.docker_remediator.docker.from_env")
 def test_docker_remediator_restart_service_failure(mock_from_env):
@@ -55,7 +55,7 @@ def test_docker_remediator_restart_service_failure(mock_from_env):
     result = remediator.restart_service(service_name)
     
     mock_client.containers.get.assert_called_once_with(service_name)
-    assert result == False
+    assert not result
 
 @patch("src.aiops.docker_remediator.docker.from_env")
 @patch("src.aiops.docker_remediator.logger")
@@ -75,7 +75,7 @@ def test_docker_remediator_restart_action_failure(mock_logger, mock_from_env):
     
     mock_client.containers.get.assert_called_once_with(service_name)
     mock_container.restart.assert_called_once()
-    assert result == False
+    assert not result
     mock_logger.error.assert_called_once()
 
 def test_docker_remediator_restart_service_empty_name_raises_error():

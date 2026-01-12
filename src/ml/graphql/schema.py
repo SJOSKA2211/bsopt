@@ -1,6 +1,5 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import Optional
 import random
 
 @strawberry.federation.type(keys=["id"])

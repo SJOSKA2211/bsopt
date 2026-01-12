@@ -1,7 +1,5 @@
 import pytest
 import numpy as np
-import torch
-import torch.nn as nn
 from src.aiops.autoencoder_detector import AutoencoderDetector, Autoencoder # Import actual Autoencoder
 
 def test_autoencoder_detector_init():

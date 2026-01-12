@@ -1,5 +1,4 @@
 import sys
-import time
 import requests
 from confluent_kafka.admin import AdminClient
 

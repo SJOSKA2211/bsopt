@@ -1,6 +1,4 @@
 import structlog
-import pandas as pd
-import numpy as np
 from typing import Dict, Any
 from src.ml.scraper import MarketDataScraper
 from src.shared.db import get_db_session, MarketData, Base
@@ -8,12 +6,9 @@ from src.ml.drift import calculate_ks_test, calculate_psi, PerformanceDriftMonit
 from src.ml.trainer import InstrumentedTrainer
 from src.shared.observability import (
     setup_logging, 
-    SCRAPE_DURATION, 
-    SCRAPE_ERRORS, 
     push_metrics,
     DATA_DRIFT_SCORE,
-    KS_TEST_SCORE,
-    TRAINING_ERRORS
+    KS_TEST_SCORE
 )
 from sqlalchemy import create_engine
 

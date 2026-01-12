@@ -1,5 +1,3 @@
-import pytest
-import os
 
 def test_ray_import():
     """Test that ray is installed and can be imported."""
@@ -19,7 +17,6 @@ def test_gymnasium_import():
 def test_ray_distributed_execution():
     """Test that Ray can execute a remote function and return results."""
     import ray
-    import time
 
     if ray.is_initialized():
         ray.shutdown()

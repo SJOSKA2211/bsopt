@@ -1,6 +1,5 @@
 import pytest
 from src.portfolio.graphql.schema import schema
-import asyncio
 
 @pytest.mark.asyncio
 async def test_portfolio_subscription():

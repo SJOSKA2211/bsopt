@@ -6,11 +6,9 @@ import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
 import matplotlib.pyplot as plt
 import os
 import tempfile
-from prometheus_client import Summary, Gauge
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier

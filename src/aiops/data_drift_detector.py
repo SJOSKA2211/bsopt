@@ -1,6 +1,6 @@
 import numpy as np
 import structlog
-from typing import Tuple, Dict, List
+from typing import Tuple, Dict, List, Union
 from src.ml.drift import calculate_psi, calculate_ks_test
 from prometheus_client import Gauge # Assuming Prometheus client is available
 

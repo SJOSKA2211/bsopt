@@ -1,8 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.shared.db import Base, MarketData
+from src.shared.db import MarketData
 
 @pytest.fixture
 def mock_engine():
@@ -33,7 +31,7 @@ def test_db_connection(mock_sessionmaker, mock_create_engine):
     mock_create_engine.return_value = MagicMock()
     mock_sessionmaker.return_value = MagicMock()
     
-    session = get_db_session("postgresql://user:pass@localhost/db")
+    get_db_session("postgresql://user:pass@localhost/db")
     
     mock_create_engine.assert_called_with("postgresql://user:pass@localhost/db")
     mock_sessionmaker.assert_called_once()

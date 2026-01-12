@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 from unittest.mock import MagicMock, patch
 from src.ml.trainer import InstrumentedTrainer
-from src.shared import observability
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 @pytest.fixture
@@ -131,7 +130,7 @@ def test_pipeline_scrape_execution():
         
         try:
              pipeline.run()
-        except:
+        except Exception:
              pass 
              
         assert mock_scraper.fetch_historical_data.called

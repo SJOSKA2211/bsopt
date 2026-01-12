@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 import pytest
 import pandas as pd
-import requests
 from src.ml.scraper import MarketDataScraper
 
 @pytest.fixture
@@ -70,9 +69,9 @@ def test_fetch_historical_data_failure(mock_get):
     fail_response.status_code = 500
     mock_get.return_value = fail_response
     
-    scraper = MarketDataScraper(api_key="test_key", max_retries=2)
+    scraper = MarketDataScraper(api_key="test_key", provider="auto", max_retries=2)
     
-    with pytest.raises(Exception) as excinfo:
+    with pytest.raises(Exception):
         scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
     
     # It will fail after trying both AV and Polygon (fallback)

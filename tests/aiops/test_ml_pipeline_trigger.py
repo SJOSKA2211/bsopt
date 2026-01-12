@@ -22,7 +22,7 @@ def test_ml_pipeline_trigger_success(mock_pipeline_class):
     
     mock_pipeline_class.assert_called_once_with(config)
     mock_pipeline_instance.run.assert_called_once()
-    assert result == True
+    assert result
 
 @patch("src.aiops.ml_pipeline_trigger.AutonomousMLPipeline")
 def test_ml_pipeline_trigger_failure(mock_pipeline_class):
@@ -38,7 +38,7 @@ def test_ml_pipeline_trigger_failure(mock_pipeline_class):
     
     mock_pipeline_class.assert_called_once_with(config)
     mock_pipeline_instance.run.assert_called_once()
-    assert result == False
+    assert not result
 
 def test_ml_pipeline_trigger_missing_config_raises_error():
     """Test that missing config parameters raise an error."""

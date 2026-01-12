@@ -1,7 +1,6 @@
 from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
 from src.pricing.black_scholes import black_scholes
 import time
-import numpy as np
 import pandas as pd
 
 def run_benchmarks():

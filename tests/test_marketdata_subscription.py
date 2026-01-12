@@ -1,7 +1,5 @@
 import pytest
-from strawberry.types import ExecutionResult
 from src.streaming.graphql.schema import schema
-import asyncio
 
 @pytest.mark.asyncio
 async def test_market_data_subscription():

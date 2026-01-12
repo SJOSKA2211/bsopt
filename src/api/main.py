@@ -30,7 +30,10 @@ def get_context(request: Request):
         return {}  # Return empty context for tests
     return {"request": request}
 
-graphql_app = GraphQLRouter(schema, graphiql=True, context_getter=get_context)
+# Enable GraphiQL only in debug or testing environments
+ENABLE_GRAPHIQL = os.environ.get("DEBUG", "false").lower() == "true" or os.environ.get("TESTING") == "true"
+
+graphql_app = GraphQLRouter(schema, graphiql=ENABLE_GRAPHIQL, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
 REQUEST_COUNT = Counter("api_requests_total", "Total count of requests", ["method", "endpoint", "http_status"])

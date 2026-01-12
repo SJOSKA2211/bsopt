@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from unittest.mock import MagicMock, patch
-import os
 
 # We anticipate the module path but it doesn't exist yet
 try:

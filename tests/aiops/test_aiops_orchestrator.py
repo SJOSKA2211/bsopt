@@ -1,19 +1,10 @@
 import pytest
-from unittest.mock import MagicMock, patch, call
-import time
-import os
+from unittest.mock import patch
 
 import numpy as np
 
 # Assuming all these components are in src.aiops
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator # Assuming this path
-from src.aiops.prometheus_adapter import PrometheusClient
-from src.aiops.isolation_forest_detector import IsolationForestDetector
-from src.aiops.autoencoder_detector import AutoencoderDetector
-from src.aiops.data_drift_detector import DataDriftDetector
-from src.aiops.docker_remediator import DockerRemediator
-from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
-from src.aiops.redis_remediator import RedisRemediator
 
 
 # Mocking all dependencies for the orchestrator

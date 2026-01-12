@@ -1,7 +1,6 @@
 import os
 import pytest
 from unittest.mock import MagicMock, patch
-import asyncio
 import numpy as np 
 
 # Assuming VolatilityAggregationStream will be importable from src.streaming.analytics

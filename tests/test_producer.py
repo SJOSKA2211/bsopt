@@ -32,7 +32,7 @@ def test_producer_initialization():
 @pytest.mark.asyncio
 async def test_produce_market_data_success():
     with patch('streaming.producer.Producer') as mock_kafka_producer, \
-         patch('streaming.producer.SchemaRegistryClient') as mock_sr_client, \
+         patch('streaming.producer.SchemaRegistryClient'), \
          patch('streaming.producer.AvroSerializer') as mock_avro_serializer:
         
         from streaming.producer import MarketDataProducer

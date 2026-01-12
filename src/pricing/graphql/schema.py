@@ -1,6 +1,5 @@
 import strawberry
 from strawberry.federation import Schema
-from typing import Optional, Any, Dict
 from datetime import datetime
 from src.pricing.black_scholes import black_scholes
 from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
@@ -15,13 +14,12 @@ class Option:
     
     @strawberry.field
     def price(self, accuracy: float = 0.01, num_underlyings: int = 1) -> float:
-        # In a production system, these would be fetched from a Market Data service
-        S0 = 155.0 
+        S0 = 155.0
         r = 0.05
         sigma = 0.2
-        
         T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0: T = 0.001
+        if T <= 0:
+            T = 0.001
         
         pricer = HybridQuantumClassicalPricer()
         result = pricer.price_option_adaptive(
@@ -36,7 +34,8 @@ class Option:
         r = 0.05
         sigma = 0.2
         T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0: T = 0.001
+        if T <= 0:
+            T = 0.001
         
         result = black_scholes(S0, self.strike, T, r, sigma, self.option_type)
         return result["delta"]
@@ -47,7 +46,8 @@ class Option:
         r = 0.05
         sigma = 0.2
         T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0: T = 0.001
+        if T <= 0:
+            T = 0.001
         
         result = black_scholes(S0, self.strike, T, r, sigma, self.option_type)
         return result["gamma"]

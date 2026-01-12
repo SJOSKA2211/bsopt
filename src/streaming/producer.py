@@ -1,7 +1,6 @@
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
-import json
 from typing import Dict, Optional
 import structlog
 import os

@@ -11,7 +11,7 @@ from ml.trainer import InstrumentedTrainer
 
 def verify_pushgateway(job_name):
     """Verify that metrics exist in Pushgateway."""
-    url = f"http://localhost:9091/metrics"
+    url = "http://localhost:9091/metrics"
     try:
         response = requests.get(url)
         if response.status_code == 200:

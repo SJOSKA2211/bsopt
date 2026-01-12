@@ -12,7 +12,7 @@ describe('OptionsChain', () => {
   });
 
   it('renders loading state initially', () => {
-    (useWASMPricer as any).mockReturnValue({
+    vi.mocked(useWASMPricer).mockReturnValue({
       isInitialized: false,
       error: null,
       calculateGreeks: vi.fn(),
@@ -33,7 +33,7 @@ describe('OptionsChain', () => {
       rho: 0.01
     });
 
-    (useWASMPricer as any).mockReturnValue({
+    vi.mocked(useWASMPricer).mockReturnValue({
       isInitialized: true,
       error: null,
       calculateGreeks: mockCalculateGreeks,

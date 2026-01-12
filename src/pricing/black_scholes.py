@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.stats import norm
-from datetime import datetime
 
 def black_scholes(S, K, T, r, sigma, type='call'):
     """

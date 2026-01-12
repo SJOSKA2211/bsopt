@@ -1,6 +1,5 @@
 import structlog
-from faust import App, Stream, Table
-from datetime import timedelta
+from faust import App
 import numpy as np
 
 logger = structlog.get_logger()

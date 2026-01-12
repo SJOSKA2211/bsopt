@@ -1,7 +1,6 @@
-import pytest
 import numpy as np
 import gymnasium as gym
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import sys
 import os
 

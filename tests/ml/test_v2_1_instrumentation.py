@@ -1,7 +1,6 @@
-import pytest
 import numpy as np
 from unittest.mock import MagicMock, patch
-from prometheus_client import Histogram, Gauge, Counter
+from prometheus_client import Histogram
 from src.shared import observability
 from src.ml.trainer import InstrumentedTrainer
 
@@ -84,7 +83,7 @@ def test_pipeline_updates_drift_score():
         
         try:
             pipeline.run()
-        except:
+        except Exception:
             pass # We care about the drift score update
             
         assert mock_drift_gauge.set.called

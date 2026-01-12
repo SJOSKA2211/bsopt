@@ -1,6 +1,4 @@
 import numpy as np
-import pytest
-from unittest.mock import MagicMock
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
 def test_reward_function_risk_awareness():

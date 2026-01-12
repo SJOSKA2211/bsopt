@@ -1,5 +1,4 @@
 from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
-import numpy as np
 
 def verify_hybrid_pricer():
     print("Initializing HybridQuantumClassicalPricer...")
