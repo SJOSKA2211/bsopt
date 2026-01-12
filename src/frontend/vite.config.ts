@@ -7,5 +7,11 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true, // This enables globals like describe, it, expect
+    setupFiles: ['./tests/setupTests.ts'],
+    css: {
+      modules: {
+        classNameStrategy: 'non-scoped'
+      }
+    }
   },
 })
