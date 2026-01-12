@@ -29,7 +29,7 @@ class Option:
 async def get_option(contract_symbol: str) -> Optional[Option]:
     """Dummy resolver for fetching a single option."""
     print(f"Dummy get_option called for {contract_symbol}")
-    return Option(id="1", contract_symbol=contract_symbol, underlying_symbol="SPY", strike=400.0, expiry=datetime.now(), option_type="CALL")
+    return Option(id=contract_symbol, contract_symbol=contract_symbol, underlying_symbol="SPY", strike=400.0, expiry=datetime.now(), option_type="CALL")
 
 async def search_options(
     underlying: Optional[str] = None,

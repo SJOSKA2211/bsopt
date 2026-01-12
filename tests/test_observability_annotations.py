@@ -1,5 +1,6 @@
 from unittest.mock import patch, MagicMock, ANY
 import httpx
+from datetime import timezone
 
 from src.shared.observability import post_grafana_annotation # Assuming new function
 
@@ -77,7 +78,6 @@ def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_p
     mock_environ_get.assert_called_once_with("GRAFANA_URL")
     mock_httpx_post.assert_called_once()
 
-# Need to patch datetime to control the 'time' field in the annotation payload
 @patch('src.shared.observability.datetime')
 @patch('src.shared.observability.httpx.post')
 @patch('src.shared.observability.os.environ.get')
@@ -87,10 +87,10 @@ def test_post_grafana_annotation_payload_time(mock_environ_get, mock_httpx_post,
     mock_httpx_post.return_value.status_code = 200
     mock_httpx_post.return_value.json.return_value = {"message": "Annotation added"}
 
-    # Mock datetime.utcnow() and timestamp()
+    # Mock datetime.now(timezone.utc) and timestamp()
     mock_now = MagicMock()
-    mock_now.timestamp.return_value = 1672531200.0 # Example Unix timestamp for Jan 1, 2023 00:00:00 UTC
-    mock_datetime.utcnow.return_value = mock_now
+    mock_now.timestamp.return_value = 1672531200.0 # Example Unix timestamp
+    mock_datetime.now.return_value = mock_now
 
     message = "Test message"
     tags = ["test"]
@@ -102,3 +102,4 @@ def test_post_grafana_annotation_payload_time(mock_environ_get, mock_httpx_post,
     mock_httpx_post.assert_called_once()
     args, kwargs = mock_httpx_post.call_args
     assert kwargs['json']['time'] == expected_payload_time
+    mock_datetime.now.assert_called_once_with(timezone.utc)

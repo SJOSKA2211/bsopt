@@ -56,14 +56,17 @@ class MarketDataConsumer:
         try:
             while self.running:
                 # Poll for messages
-                msg = self.consumer.poll(timeout=1.0)
+                msg = self.consumer.poll(timeout=0.1)
+                
+                await asyncio.sleep(0) # Yield to event loop
+                
                 if msg is None:
                     continue
                 if msg.error():
                     if msg.error().code() == KafkaError._PARTITION_EOF:
                         logger.info("kafka_partition_eof", partition=msg.partition())
                     else:
-                        logger.error("kafka_consumer_error", error=msg.error())
+                        logger.error("kafka_consumer_error", error=str(msg.error()))
                     continue
 
                 # Deserialize message
@@ -90,6 +93,9 @@ class MarketDataConsumer:
             tasks = [callback(msg) for msg in batch]
             await asyncio.gather(*tasks)
             duration = time.time() - start_time
+            if duration <= 0:
+                duration = 0.001
+
             logger.info(
                 "batch_processed",
                 batch_size=len(batch),

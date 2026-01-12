@@ -101,11 +101,14 @@ class MarketDataConsumer:
             await asyncio.gather(*tasks)
             
             duration = time.time() - start_time
+            if duration <= 0:
+                duration = 0.001
+                
             logger.info(
                 "batch_processed", 
                 batch_size=len(batch), 
                 duration_ms=duration * 1000,
-                throughput=len(batch) / (duration if duration > 0 else 0.001)
+                throughput=len(batch) / duration
             )
         except Exception as e:
             logger.error("batch_processing_error", error=str(e))

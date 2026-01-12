@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import asyncio
 
 # Assuming MarketDataConsumer will be importable from src.streaming.kafka_consumer
@@ -78,16 +78,20 @@ async def test_consume_messages_success(mock_consumer):
     mock_msg.value.return_value = TEST_MESSAGE_VALUE.encode('utf-8')
 
     # Make poll return one message then None to stop the loop
-    mock_consumer_instance.poll.side_effect = [mock_msg, None, None, None]
+    def poll_side_effect(timeout):
+        yield mock_msg
+        while True:
+            yield None
+    mock_consumer_instance.poll.side_effect = poll_side_effect(0.1)
 
-    mock_callback = MagicMock()
+    mock_callback = AsyncMock()
     consumer = MarketDataConsumer(TEST_BOOTSTRAP_SERVERS, TEST_GROUP_ID, TEST_TOPICS)
 
     # Start consume_messages as a task
     consume_task = asyncio.create_task(consumer.consume_messages(mock_callback, batch_size=1))
 
     # Give the consumer a chance to run and process the message
-    await asyncio.sleep(1.5) # Give some time for consume_messages to run
+    await asyncio.sleep(0.1) # Give some time for consume_messages to run
 
     # Signal the consumer to stop
     consumer.stop()
@@ -114,14 +118,18 @@ async def test_consume_messages_kafka_error(mock_consumer):
     mock_msg.error.return_value.code.return_value = -1 # Non-EOF error
     mock_msg.error.return_value.__str__.return_value = "Test Kafka Error"
 
-    mock_consumer_instance.poll.side_effect = [mock_msg, None, None, None]
+    def poll_side_effect(timeout):
+        yield mock_msg
+        while True:
+            yield None
+    mock_consumer_instance.poll.side_effect = poll_side_effect(0.1)
 
-    mock_callback = MagicMock()
+    mock_callback = AsyncMock()
     consumer = MarketDataConsumer(TEST_BOOTSTRAP_SERVERS, TEST_GROUP_ID, TEST_TOPICS)
 
     with patch('streaming.kafka_consumer.logger') as mock_logger:
         consume_task = asyncio.create_task(consumer.consume_messages(mock_callback, batch_size=1))
-        await asyncio.sleep(1.5) # Give some time for consume_messages to run
+        await asyncio.sleep(0.1) # Give some time for consume_messages to run
         consumer.stop()
         await consume_task
 
@@ -144,8 +152,8 @@ async def test_stop_consumer(mock_consumer):
     consumer = MarketDataConsumer(TEST_BOOTSTRAP_SERVERS, TEST_GROUP_ID, TEST_TOPICS)
     
     # Start the consumer loop in a task
-    consume_task = asyncio.create_task(consumer.consume_messages(MagicMock()))
-    await asyncio.sleep(1.5) # Give some time for consume_messages to run # Let it run for a bit
+    consume_task = asyncio.create_task(consumer.consume_messages(AsyncMock()))
+    await asyncio.sleep(0.1) # Give some time for consume_messages to run # Let it run for a bit
 
     consumer.stop()
     await consume_task # Await its completion after stop is called

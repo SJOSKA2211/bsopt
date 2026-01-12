@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import sys
 import itertools
@@ -8,9 +8,9 @@ import itertools
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from streaming.producer import MarketDataProducer
-from streaming.consumer import MarketDataConsumer
-from streaming.analytics import VolatilityAggregationStream
+from src.streaming.producer import MarketDataProducer
+from src.streaming.consumer import MarketDataConsumer
+from src.streaming.analytics import VolatilityAggregationStream
 
 @pytest.mark.asyncio
 async def test_streaming_e2e_flow():
@@ -18,14 +18,13 @@ async def test_streaming_e2e_flow():
     Test the full flow from Producer to Analytics to Consumer.
     We mock the underlying Kafka library to simulate message passing.
     """
-    with patch('streaming.producer.Producer'), \
-         patch('streaming.producer.SchemaRegistryClient'), \
-         patch('streaming.producer.AvroSerializer'), \
-         patch('streaming.consumer.Consumer') as mock_kafka_consumer, \
-         patch('streaming.consumer.SchemaRegistryClient'), \
-         patch('streaming.consumer.AvroDeserializer'), \
-         patch('streaming.analytics.faust.App'):
-        
+    with patch('src.streaming.producer.Producer'), \
+         patch('src.streaming.producer.SchemaRegistryClient'), \
+         patch('src.streaming.producer.AvroSerializer'), \
+         patch('src.streaming.consumer.Consumer') as mock_kafka_consumer, \
+         patch('src.streaming.consumer.SchemaRegistryClient'), \
+         patch('src.streaming.consumer.AvroDeserializer'), \
+         patch('src.streaming.analytics.App'):        
         # 1. Initialize components
         MarketDataProducer()
         consumer = MarketDataConsumer(batch_size=1)
@@ -74,27 +73,34 @@ async def test_streaming_e2e_flow():
         mock_msg = MagicMock()
         mock_msg.error.return_value = None
         mock_msg.value.return_value = b"serialized_data"
+
+        def poll_side_effect(timeout):
+            yield mock_msg
+            while True:
+                yield None
         
-        mock_consumer_instance.poll.side_effect = itertools.chain([mock_msg], itertools.repeat(None))
-        
+        mock_consumer_instance.poll.side_effect = poll_side_effect(0.1)
+
         processed_messages = []
         async def consumer_callback(data):
             processed_messages.append(data)
-            
+
+        mock_callback = AsyncMock(side_effect=consumer_callback)
+
         # We need to mock the instance attribute of the already created consumer
         mock_deser_instance = MagicMock()
         mock_deser_instance.return_value = market_data
         consumer.avro_deserializer = mock_deser_instance
-        
+
         # Start consumer
         consumer.running = True
-        consume_task = asyncio.create_task(consumer.consume_messages(consumer_callback))
-        
+        consume_task = asyncio.create_task(consumer.consume_messages(mock_callback))
+
         # Wait for processing
         await asyncio.sleep(0.2)
         consumer.stop()
         await consume_task
-            
+
         # 6. Verify final consumption
         assert len(processed_messages) == 1
         assert processed_messages[0]["symbol"] == "AAPL"
