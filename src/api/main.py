@@ -46,8 +46,6 @@ ENABLE_IDE = os.environ.get("DEBUG", "false").lower() == "true" or os.environ.ge
 # 1. verify_mtls ensures the request came from a trusted service (mTLS)
 # 2. opa_authorize ensures the user has permission to access the options resource
 security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "options"))]
-if os.environ.get("TESTING") == "true":
-    security_deps = [] # Skip security in tests unless specifically testing security
 
 graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)

@@ -49,6 +49,7 @@ def test_graphql_endpoint():
     """Verify that the /graphql endpoint is mounted and working in the FastAPI app."""
     from src.api.main import app
     from fastapi.testclient import TestClient
+    from unittest.mock import patch
     
     client = TestClient(app)
     
@@ -60,7 +61,15 @@ def test_graphql_endpoint():
         }
     """
     
-    response = client.post("/graphql", json={"query": query})
+    headers = {
+        "X-SSL-Client-Verify": "SUCCESS",
+        "X-SSL-Client-S-DN": "CN=test-client",
+        "X-User-Id": "test_user",
+        "X-User-Role": "admin"
+    }
+    
+    with patch('src.shared.security.OPAEnforcer.is_authorized', return_value=True):
+        response = client.post("/graphql", headers=headers, json={"query": query})
     
     assert response.status_code == 200
     data = response.json()
