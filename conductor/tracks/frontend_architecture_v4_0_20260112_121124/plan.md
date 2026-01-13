@@ -40,9 +40,9 @@
 - [x] Task: Implement Real-Time Price Chart (TradingView-style). [646f712]
     - [x] Sub-task: Write failing tests for chart data integration.
     - [x] Sub-task: Implement `LivePriceChart` component.
-- [ ] Task: Develop Greeks Heatmap.
-    - [ ] Sub-task: Write failing tests for heatmap data and rendering.
-    - [ ] Sub-task: Implement `GreeksHeatmap` component.
+- [x] Task: Develop Greeks Heatmap. [3cd6810]
+    - [x] Sub-task: Write failing tests for heatmap data and rendering.
+    - [x] Sub-task: Implement `GreeksHeatmap` component.
 - [ ] Task: Develop 3D Volatility Surface.
     - [ ] Sub-task: Write failing tests for 3D rendering and data mapping.
     - [ ] Sub-task: Implement `VolatilitySurface3D` component.
