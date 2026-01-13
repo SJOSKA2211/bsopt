@@ -28,7 +28,8 @@ import {
 import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
 import { LivePriceChart } from '../../charts/components/LivePriceChart';
-import { GreeksHeatmap } from '../../options/components/GreeksHeatmap';
+import { GreeksHeatmap } from '../../analytics/components/GreeksHeatmap';
+import { VolatilitySurface3D } from '../../analytics/components/VolatilitySurface3D';
 
 const drawerWidth = 240;
 
@@ -166,6 +167,26 @@ export const TradingDashboard: React.FC = () => {
                 </Typography>
                 <Box sx={{ flex: 1, overflow: 'hidden' }}>
                   <GreeksHeatmap symbol="AAPL" greek="delta" />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* 3D Volatility Surface */}
+            <Grid item xs={12} lg={12}>
+              <Paper
+                data-testid="volatility-surface-paper"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 500,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  Implied Volatility Surface
+                </Typography>
+                <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                  <VolatilitySurface3D symbol="AAPL" />
                 </Box>
               </Paper>
             </Grid>

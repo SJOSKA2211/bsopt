@@ -52,6 +52,7 @@ test('TradingDashboard renders layout components', async () => {
   expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
   expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
   expect(screen.getByTestId('greeks-heatmap-paper')).toBeInTheDocument();
+  expect(screen.getByTestId('volatility-surface-paper')).toBeInTheDocument();
   
   // Wait for portfolio summary to load
   expect(await screen.findByText(/Portfolio Overview/i)).toBeInTheDocument();
