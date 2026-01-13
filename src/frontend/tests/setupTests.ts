@@ -24,13 +24,12 @@ vi.mock('lightweight-charts', () => ({
   CrosshairMode: { Normal: 0 },
 }));
 
-// Mock ResizeObserver which is used by lightweight-charts but not present in jsdom
-class ResizeObserverMock {
+// Mock ResizeObserver which is used by lightweight-charts and echarts but not present in jsdom
+global.ResizeObserver = class {
   observe() {}
   unobserve() {}
   disconnect() {}
-}
-global.ResizeObserver = ResizeObserverMock;
+};
 
 // Mock matchMedia which is used by some MUI components
 Object.defineProperty(window, 'matchMedia', {
