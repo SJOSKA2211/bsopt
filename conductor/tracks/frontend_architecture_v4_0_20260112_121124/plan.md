@@ -31,9 +31,9 @@
 - [x] Task: Integrate TanStack Query for portfolio data. [0d63d60]
     - [x] Sub-task: Write failing tests for portfolio data fetching.
     - [x] Sub-task: Implement `useQuery` for portfolio summary.
-- [ ] Task: Develop Portfolio Summary & P&L display.
-    - [ ] Sub-task: Write failing tests for P&L calculation and display.
-    - [ ] Sub-task: Implement `PositionsSummary` component.
+- [x] Task: Develop Portfolio Summary & P&L display. [04fbbd8]
+    - [x] Sub-task: Write failing tests for P&L calculation and display.
+    - [x] Sub-task: Implement `PositionsSummary` component.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md)
 
 ## Phase 4: Advanced Visualizations & ML Integration (TDD)
