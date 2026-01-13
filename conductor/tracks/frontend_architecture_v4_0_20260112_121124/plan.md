@@ -28,9 +28,9 @@
 - [x] Task: Create base Trading Dashboard layout. [270bb79]
     - [x] Sub-task: Write failing tests for dashboard rendering.
     - [x] Sub-task: Implement `TradingDashboard` component structure.
-- [ ] Task: Integrate TanStack Query for portfolio data.
-    - [ ] Sub-task: Write failing tests for portfolio data fetching.
-    - [ ] Sub-task: Implement `useQuery` for portfolio summary.
+- [x] Task: Integrate TanStack Query for portfolio data. [0d63d60]
+    - [x] Sub-task: Write failing tests for portfolio data fetching.
+    - [x] Sub-task: Implement `useQuery` for portfolio summary.
 - [ ] Task: Develop Portfolio Summary & P&L display.
     - [ ] Sub-task: Write failing tests for P&L calculation and display.
     - [ ] Sub-task: Implement `PositionsSummary` component.
