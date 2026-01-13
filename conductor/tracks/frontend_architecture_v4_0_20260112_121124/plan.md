@@ -46,9 +46,9 @@
 - [x] Task: Develop 3D Volatility Surface. [01d9937]
     - [x] Sub-task: Write failing tests for 3D rendering and data mapping.
     - [x] Sub-task: Implement `VolatilitySurface3D` component.
-- [ ] Task: Integrate ML Predictions Widget.
-    - [ ] Sub-task: Write failing tests for prediction data display.
-    - [ ] Sub-task: Implement `MLPredictions` component.
+- [x] Task: Integrate ML Predictions Widget. [679f7f7]
+    - [x] Sub-task: Write failing tests for prediction data display.
+    - [x] Sub-task: Implement `MLPredictions` component.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md)
 
 ## Phase 5: Performance & Accessibility Optimization (TDD)
