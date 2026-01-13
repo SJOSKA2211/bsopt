@@ -28,7 +28,7 @@ import {
 import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
 import { LivePriceChart } from '../../charts/components/LivePriceChart';
-import { GreeksHeatmap } from '../../analytics/components/GreeksHeatmap';
+import { GreeksHeatmap } from '../../options/components/GreeksHeatmap';
 
 const drawerWidth = 240;
 
