@@ -1,0 +1,48 @@
+import { render, screen, waitFor } from '@testing-library/react';
+import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
+import { MLPredictions } from '../src/features/ml/components/MLPredictions';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from '../src/theme/index';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import React from 'react';
+
+// Mock Server Setup
+const handlers = [
+  http.get('/api/v1/ml/predictions', () => {
+    return HttpResponse.json({
+      symbol: 'AAPL',
+      predictedPrice: 155.20,
+      confidenceInterval: [153.50, 157.00],
+      drift: 0.02,
+      modelName: 'XGBoost-V4-Optimized',
+      lastUpdated: new Date().toISOString(),
+    });
+  }),
+];
+
+const server = setupServer(...handlers);
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+const createWrapper = () => {
+  const queryClient = new QueryClient();
+  return ({ children }: { children: React.ReactNode }) => (
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
+
+test('MLPredictions renders prediction data correctly', async () => {
+  render(<MLPredictions symbol="AAPL" />, { wrapper: createWrapper() });
+
+  expect(await screen.findByText(/155\.20/)).toBeInTheDocument();
+  expect(screen.getByText(/XGBoost-V4-Optimized/i)).toBeInTheDocument();
+  expect(screen.getByText(/\+2\.00%/)).toBeInTheDocument(); // 0.02 drift
+});

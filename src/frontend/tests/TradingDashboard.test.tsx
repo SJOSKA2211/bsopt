@@ -24,6 +24,16 @@ const handlers = [
   http.get('/api/v1/options/chain', () => {
     return HttpResponse.json([]);
   }),
+  http.get('/api/v1/ml/predictions', () => {
+    return HttpResponse.json({
+      symbol: 'AAPL',
+      predictedPrice: 155.20,
+      confidenceInterval: [153.50, 157.00],
+      drift: 0.02,
+      modelName: 'XGBoost-V4-Optimized',
+      lastUpdated: new Date().toISOString(),
+    });
+  }),
 ];
 
 const server = setupServer(...handlers);
@@ -52,6 +62,7 @@ test('TradingDashboard renders layout components', async () => {
   expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
   expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
   expect(screen.getByTestId('greeks-heatmap-paper')).toBeInTheDocument();
+  expect(screen.getByTestId('ml-predictions-paper')).toBeInTheDocument();
   expect(screen.getByTestId('volatility-surface-paper')).toBeInTheDocument();
   
   // Wait for portfolio summary to load

@@ -14,6 +14,7 @@ import {
   Grid,
   Paper,
   Container,
+  Stack,
   alpha,
   useTheme,
 } from '@mui/material';
@@ -28,8 +29,9 @@ import {
 import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
 import { LivePriceChart } from '../../charts/components/LivePriceChart';
-import { GreeksHeatmap } from '../../analytics/components/GreeksHeatmap';
-import { VolatilitySurface3D } from '../../analytics/components/VolatilitySurface3D';
+import { GreeksHeatmap } from '../../options/components/GreeksHeatmap';
+import { VolatilitySurface3D } from '../../options/components/VolatilitySurface3D';
+import { MLPredictions } from '../../options/components/MLPredictions';
 
 const drawerWidth = 240;
 
@@ -106,7 +108,7 @@ export const TradingDashboard: React.FC = () => {
               { text: 'Portfolio', icon: <PortfolioIcon /> },
               { text: 'Settings', icon: <SettingsIcon /> },
             ].map((item) => (
-              <ListItem button key={item.text}>
+              <ListItem key={item.text} sx={{ px: 2 }}>
                 <ListItemIcon sx={{ color: 'primary.main', minWidth: 0, mr: drawerOpen ? 3 : 'auto', justifyContent: 'center' }}>
                   {item.icon}
                 </ListItemIcon>
@@ -151,43 +153,19 @@ export const TradingDashboard: React.FC = () => {
               </Paper>
             </Grid>
 
-            {/* Greeks Heatmap Summary */}
+            {/* ML Predictions Widget */}
             <Grid item xs={12} lg={4}>
               <Paper
-                data-testid="greeks-heatmap-paper"
+                data-testid="ml-predictions-paper"
                 sx={{
-                  p: 2,
+                  p: 0,
                   display: 'flex',
                   flexDirection: 'column',
                   height: 450,
+                  overflow: 'hidden',
                 }}
               >
-                <Typography variant="h6" gutterBottom>
-                  Greeks Analysis (Delta)
-                </Typography>
-                <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                  <GreeksHeatmap symbol="AAPL" greek="delta" />
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* 3D Volatility Surface */}
-            <Grid item xs={12} lg={12}>
-              <Paper
-                data-testid="volatility-surface-paper"
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 500,
-                }}
-              >
-                <Typography variant="h6" gutterBottom>
-                  Implied Volatility Surface
-                </Typography>
-                <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                  <VolatilitySurface3D symbol="AAPL" />
-                </Box>
+                <MLPredictions symbol="AAPL" />
               </Paper>
             </Grid>
 
@@ -220,6 +198,46 @@ export const TradingDashboard: React.FC = () => {
                 }}
               >
                 <PortfolioSummary />
+              </Paper>
+            </Grid>
+
+            {/* Greeks Heatmap Summary */}
+            <Grid item xs={12} lg={4}>
+              <Paper
+                data-testid="greeks-heatmap-paper"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 450,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  Greeks Analysis (Delta)
+                </Typography>
+                <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                  <GreeksHeatmap symbol="AAPL" greek="delta" />
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* 3D Volatility Surface */}
+            <Grid item xs={12} lg={8}>
+              <Paper
+                data-testid="volatility-surface-paper"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 450,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  Implied Volatility Surface
+                </Typography>
+                <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                  <VolatilitySurface3D symbol="AAPL" />
+                </Box>
               </Paper>
             </Grid>
           </Grid>

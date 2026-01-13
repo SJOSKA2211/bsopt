@@ -36,11 +36,9 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
   const chartOptions = useMemo(() => {
     if (!optionsData || optionsData.length === 0) return null;
 
-    // Extract unique strikes and expiries for axes
     const strikes = Array.from(new Set(optionsData.map((d: OptionData) => d.strike))).sort((a, b) => a - b);
     const expiries = Array.from(new Set(optionsData.map((d: OptionData) => d.expiry))).sort();
 
-    // Map data to [strikeIndex, expiryIndex, value]
     const data = optionsData.map((d: OptionData) => {
       const strikeIdx = strikes.indexOf(d.strike);
       const expiryIdx = expiries.indexOf(d.expiry);
@@ -49,7 +47,6 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
       if (greek === 'delta') value = d.call_delta;
       else if (greek === 'gamma') value = d.call_gamma;
       else if (greek === 'iv') value = d.call_iv;
-      // ... others
 
       return [strikeIdx, expiryIdx, value];
     });
@@ -81,7 +78,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
       },
       visualMap: {
         min: 0,
-        max: greek === 'iv' ? 1 : 1, // Scaled based on greek
+        max: 1,
         calculable: true,
         orient: 'horizontal',
         left: 'center',
@@ -99,9 +96,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
         name: `${greek.toUpperCase()} Heatmap`,
         type: 'heatmap',
         data: data,
-        label: {
-          show: false
-        },
+        label: { show: false },
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
