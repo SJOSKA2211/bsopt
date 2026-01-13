@@ -36,7 +36,7 @@
     - [x] Sub-task: Implement `PositionsSummary` component.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md) [c828fb3]
 
-## Phase 4: Advanced Visualizations & ML Integration (TDD)
+## Phase 4: Advanced Visualizations & ML Integration (TDD) [checkpoint: ef20fe9]
 - [x] Task: Implement Real-Time Price Chart (TradingView-style). [646f712]
     - [x] Sub-task: Write failing tests for chart data integration.
     - [x] Sub-task: Implement `LivePriceChart` component.
@@ -49,7 +49,7 @@
 - [x] Task: Integrate ML Predictions Widget. [679f7f7]
     - [x] Sub-task: Write failing tests for prediction data display.
     - [x] Sub-task: Implement `MLPredictions` component.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md)
 
 ## Phase 5: Performance & Accessibility Optimization (TDD)
 - [ ] Task: Implement Code Splitting and Lazy Loading.
