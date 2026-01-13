@@ -29,9 +29,9 @@ import {
 import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
 import { LivePriceChart } from '../../charts/components/LivePriceChart';
-import { GreeksHeatmap } from '../../options/components/GreeksHeatmap';
-import { VolatilitySurface3D } from '../../options/components/VolatilitySurface3D';
-import { MLPredictions } from '../../options/components/MLPredictions';
+import { GreeksHeatmap } from '../../analytics/components/GreeksHeatmap';
+import { VolatilitySurface3D } from '../../analytics/components/VolatilitySurface3D';
+import { MLPredictions } from '../../ml/components/MLPredictions';
 
 const drawerWidth = 240;
 
