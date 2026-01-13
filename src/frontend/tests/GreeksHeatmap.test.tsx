@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { expect, test, vi, beforeAll, afterEach, afterAll } from 'vitest';
-import { GreeksHeatmap } from '../src/features/analytics/components/GreeksHeatmap';
+import { GreeksHeatmap } from '../src/features/options/components/GreeksHeatmap';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
-import { MLPredictions } from '../src/features/ml/components/MLPredictions';
+import { MLPredictions } from '../src/features/options/components/MLPredictions';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
