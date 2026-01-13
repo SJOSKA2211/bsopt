@@ -24,7 +24,7 @@
     - [x] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
 
-## Phase 3: Dashboard Core & Portfolio (TDD)
+## Phase 3: Dashboard Core & Portfolio (TDD) [checkpoint: 9224f56]
 - [x] Task: Create base Trading Dashboard layout. [270bb79]
     - [x] Sub-task: Write failing tests for dashboard rendering.
     - [x] Sub-task: Implement `TradingDashboard` component structure.
@@ -34,7 +34,7 @@
 - [x] Task: Develop Portfolio Summary & P&L display. [04fbbd8]
     - [x] Sub-task: Write failing tests for P&L calculation and display.
     - [x] Sub-task: Implement `PositionsSummary` component.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md)
 
 ## Phase 4: Advanced Visualizations & ML Integration (TDD)
 - [ ] Task: Implement Real-Time Price Chart (TradingView-style).
