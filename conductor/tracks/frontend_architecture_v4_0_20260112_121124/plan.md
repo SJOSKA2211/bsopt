@@ -24,22 +24,22 @@
     - [x] Sub-task: Implement `QuickTradeButton` and trade confirmation flow.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
 
-## Phase 3: Dashboard Core & Portfolio (TDD) [checkpoint: 9224f56]
+## Phase 3: Dashboard Core & Portfolio (TDD) [checkpoint: c828fb3]
 - [x] Task: Create base Trading Dashboard layout. [270bb79]
     - [x] Sub-task: Write failing tests for dashboard rendering.
     - [x] Sub-task: Implement `TradingDashboard` component structure.
-- [x] Task: Integrate TanStack Query for portfolio data. [0d63d60]
+- [x] Task: Integrate TanStack Query for portfolio data. [c828fb3]
     - [x] Sub-task: Write failing tests for portfolio data fetching.
     - [x] Sub-task: Implement `useQuery` for portfolio summary.
-- [x] Task: Develop Portfolio Summary & P&L display. [04fbbd8]
+- [x] Task: Develop Portfolio Summary & P&L display. [c828fb3]
     - [x] Sub-task: Write failing tests for P&L calculation and display.
     - [x] Sub-task: Implement `PositionsSummary` component.
-- [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md) [c828fb3]
 
 ## Phase 4: Advanced Visualizations & ML Integration (TDD)
-- [ ] Task: Implement Real-Time Price Chart (TradingView-style).
-    - [ ] Sub-task: Write failing tests for chart data integration.
-    - [ ] Sub-task: Implement `LivePriceChart` component.
+- [x] Task: Implement Real-Time Price Chart (TradingView-style). [646f712]
+    - [x] Sub-task: Write failing tests for chart data integration.
+    - [x] Sub-task: Implement `LivePriceChart` component.
 - [ ] Task: Develop Greeks Heatmap.
     - [ ] Sub-task: Write failing tests for heatmap data and rendering.
     - [ ] Sub-task: Implement `GreeksHeatmap` component.
