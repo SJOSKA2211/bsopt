@@ -1,0 +1,46 @@
+# Plan: Optimized PostgreSQL/TimescaleDB Architecture for BS-Opt v4.0
+
+## Phase 1: Infrastructure & Migration Setup (TDD)
+- [ ] Task: Configure Docker Compose for Optimized PostgreSQL.
+    - [ ] Sub-task: Write tests to verify PostgreSQL container starts with target extensions (TimescaleDB, pgvector).
+    - [ ] Sub-task: Implement `command` overrides in `docker-compose.yml` for performance tuning.
+- [ ] Task: Initialize Alembic for Migration Management.
+    - [ ] Sub-task: Set up Alembic environment and connection string.
+    - [ ] Sub-task: Create initial migration script to enable required extensions.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Migration Setup' (Protocol in workflow.md)
+
+## Phase 2: Market Data Module (TDD)
+- [ ] Task: Implement `market_ticks` Hypertable.
+    - [ ] Sub-task: Write failing tests for tick data insertion and retrieval.
+    - [ ] Sub-task: Create Alembic migration for `market_ticks` table and convert to hypertable.
+- [ ] Task: Configure Compression and Continuous Aggregates.
+    - [ ] Sub-task: Write tests to verify OHLCV aggregation via `market_candles_1m`.
+    - [ ] Sub-task: Create Alembic migration for compression policy and continuous aggregate view.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md)
+
+## Phase 3: Options Chain & Pricing Module (TDD)
+- [ ] Task: Implement Options Metadata and Indexing.
+    - [ ] Sub-task: Write failing tests for searching options by underlying/expiry/strike.
+    - [ ] Sub-task: Create Alembic migration for `option_contracts` with optimized indices.
+- [ ] Task: Implement `option_greeks` Hypertable.
+    - [ ] Sub-task: Write failing tests for high-frequency pricing data ingest.
+    - [ ] Sub-task: Create Alembic migration for `option_greeks` hypertable.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md)
+
+## Phase 4: AI/ML Model Store (pgvector) (TDD)
+- [ ] Task: Implement Vector Embedding Store.
+    - [ ] Sub-task: Write failing tests for vector similarity search (L2 distance).
+    - [ ] Sub-task: Create Alembic migration for `model_embeddings` with HNSW index.
+- [ ] Task: Implement RL Episode Tracking.
+    - [ ] Sub-task: Write tests for storing and retrieving RL agent hyperparameters and performance metrics.
+    - [ ] Sub-task: Create Alembic migration for `rl_episodes` table.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: AI/ML Model Store (pgvector)' (Protocol in workflow.md)
+
+## Phase 5: Portfolio & Trading Module (RLS) (TDD)
+- [ ] Task: Implement Transactional Core.
+    - [ ] Sub-task: Write failing tests for portfolio and position management.
+    - [ ] Sub-task: Create Alembic migration for `users`, `portfolios`, and `positions` tables.
+- [ ] Task: Enforce Row Level Security (RLS).
+    - [ ] Sub-task: Write failing tests to verify that User A cannot see User B's portfolio data.
+    - [ ] Sub-task: Create Alembic migration to enable RLS and define security policies.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Portfolio & Trading Module (RLS)' (Protocol in workflow.md)

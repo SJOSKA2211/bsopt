@@ -9,10 +9,14 @@ import React from 'react';
 const handlers = [
   http.get('/api/v1/portfolio/summary', () => {
     return HttpResponse.json({
+      balance: 100000,
+      frozen_capital: 25000,
+      risk_score: 0.15,
       totalValue: 125000.50,
       dailyPnL: 1200.25,
       dailyPnLPercent: 0.97,
       positionsCount: 12,
+      positions: [],
     });
   }),
 ];
@@ -38,9 +42,13 @@ test('usePortfolio fetches portfolio summary', async () => {
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
   expect(result.current.data).toEqual({
+    balance: 100000,
+    frozen_capital: 25000,
+    risk_score: 0.15,
     totalValue: 125000.50,
     dailyPnL: 1200.25,
     dailyPnLPercent: 0.97,
     positionsCount: 12,
+    positions: [],
   });
 });
