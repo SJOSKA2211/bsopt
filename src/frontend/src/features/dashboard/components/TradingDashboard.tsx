@@ -26,6 +26,7 @@ import {
   AccountCircle,
 } from '@mui/icons-material';
 import { OptionsChain } from '../../options/components/OptionsChain';
+import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
 
 const drawerWidth = 240;
 
@@ -143,25 +144,19 @@ export const TradingDashboard: React.FC = () => {
               </Paper>
             </Grid>
 
-            {/* Portfolio Summary Section (Placeholder) */}
+            {/* Portfolio Summary Section */}
             <Grid item xs={12} lg={4}>
               <Paper
                 data-testid="portfolio-summary-container"
                 sx={{
-                  p: 2,
+                  p: 0,
                   display: 'flex',
                   flexDirection: 'column',
                   height: 600,
+                  overflow: 'hidden',
                 }}
               >
-                <Typography variant="h6" gutterBottom>
-                  Portfolio Summary
-                </Typography>
-                <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography color="text.secondary">
-                    Portfolio Data Integration Coming Soon
-                  </Typography>
-                </Box>
+                <PortfolioSummary />
               </Paper>
             </Grid>
           </Grid>

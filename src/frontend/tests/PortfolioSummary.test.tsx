@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
-import { TradingDashboard } from '../src/features/dashboard/components/TradingDashboard';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PortfolioSummary } from '../src/features/portfolio/components/PortfolioSummary';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import React from 'react';
@@ -16,9 +16,6 @@ const handlers = [
       dailyPnLPercent: 0.97,
       positionsCount: 12,
     });
-  }),
-  http.get('/api/v1/options/chain', () => {
-    return HttpResponse.json([]);
   }),
 ];
 
@@ -39,14 +36,11 @@ const createWrapper = () => {
   );
 };
 
-test('TradingDashboard renders layout components', async () => {
-  render(<TradingDashboard />, { wrapper: createWrapper() });
+test('PortfolioSummary displays values correctly', async () => {
+  render(<PortfolioSummary />, { wrapper: createWrapper() });
 
-  expect(screen.getByText(/BS-Opt Trading Dashboard/i)).toBeInTheDocument();
-  expect(screen.getByRole('navigation')).toBeInTheDocument();
-  expect(screen.getByTestId('options-chain-container')).toBeInTheDocument();
-  expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
-  
-  // Wait for portfolio summary to load
-  expect(await screen.findByText(/Portfolio Overview/i)).toBeInTheDocument();
+  expect(await screen.findByText(/125,000\.50/)).toBeInTheDocument();
+  expect(await screen.findByText(/1,200\.25/)).toBeInTheDocument();
+  expect(await screen.findByText(/0\.97%/)).toBeInTheDocument();
+  expect(await screen.findByText(/12 Positions/)).toBeInTheDocument();
 });
