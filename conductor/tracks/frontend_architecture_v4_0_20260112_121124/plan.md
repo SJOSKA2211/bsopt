@@ -25,9 +25,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Data & Options Chain' (Protocol in workflow.md)
 
 ## Phase 3: Dashboard Core & Portfolio (TDD)
-- [ ] Task: Create base Trading Dashboard layout.
-    - [ ] Sub-task: Write failing tests for dashboard rendering.
-    - [ ] Sub-task: Implement `TradingDashboard` component structure.
+- [x] Task: Create base Trading Dashboard layout. [270bb79]
+    - [x] Sub-task: Write failing tests for dashboard rendering.
+    - [x] Sub-task: Implement `TradingDashboard` component structure.
 - [ ] Task: Integrate TanStack Query for portfolio data.
     - [ ] Sub-task: Write failing tests for portfolio data fetching.
     - [ ] Sub-task: Implement `useQuery` for portfolio summary.
