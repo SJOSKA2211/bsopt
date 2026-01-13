@@ -43,9 +43,9 @@
 - [x] Task: Develop Greeks Heatmap. [3cd6810]
     - [x] Sub-task: Write failing tests for heatmap data and rendering.
     - [x] Sub-task: Implement `GreeksHeatmap` component.
-- [ ] Task: Develop 3D Volatility Surface.
-    - [ ] Sub-task: Write failing tests for 3D rendering and data mapping.
-    - [ ] Sub-task: Implement `VolatilitySurface3D` component.
+- [x] Task: Develop 3D Volatility Surface. [01d9937]
+    - [x] Sub-task: Write failing tests for 3D rendering and data mapping.
+    - [x] Sub-task: Implement `VolatilitySurface3D` component.
 - [ ] Task: Integrate ML Predictions Widget.
     - [ ] Sub-task: Write failing tests for prediction data display.
     - [ ] Sub-task: Implement `MLPredictions` component.
