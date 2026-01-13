@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
-import { VolatilitySurface3D } from '../src/features/analytics/components/VolatilitySurface3D';
+import { VolatilitySurface3D } from '../src/features/options/components/VolatilitySurface3D';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

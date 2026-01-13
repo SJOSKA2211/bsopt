@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import App from '../src/App';
+import React from 'react';
 
-test('App renders Vite + React title', () => {
+test('App renders Trading Dashboard', async () => {
   render(<App />);
-  expect(screen.getByText('Vite + React')).toBeDefined();
+  expect(await screen.findByText(/BS-Opt Trading Dashboard/i)).toBeDefined();
 });

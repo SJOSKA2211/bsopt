@@ -31,11 +31,9 @@ afterAll(() => server.close());
 const createWrapper = () => {
   const queryClient = new QueryClient();
   return ({ children }: { children: React.ReactNode }) => (
-    <ThemeProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import {
   Box,
   CssBaseline,
@@ -8,6 +8,7 @@ import {
   Drawer,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   IconButton,
@@ -17,6 +18,7 @@ import {
   Stack,
   alpha,
   useTheme,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -26,14 +28,22 @@ import {
   Settings as SettingsIcon,
   AccountCircle,
 } from '@mui/icons-material';
-import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
-import { LivePriceChart } from '../../charts/components/LivePriceChart';
-import { GreeksHeatmap } from '../../analytics/components/GreeksHeatmap';
-import { VolatilitySurface3D } from '../../analytics/components/VolatilitySurface3D';
-import { MLPredictions } from '../../ml/components/MLPredictions';
+import { MLPredictions } from '../../options/components/MLPredictions';
+
+// Lazy loaded heavy components
+const OptionsChain = lazy(() => import('../../options/components/OptionsChain').then(m => ({ default: m.OptionsChain })));
+const LivePriceChart = lazy(() => import('../../charts/components/LivePriceChart').then(m => ({ default: m.LivePriceChart })));
+const GreeksHeatmap = lazy(() => import('../../options/components/GreeksHeatmap').then(m => ({ default: m.GreeksHeatmap })));
+const VolatilitySurface3D = lazy(() => import('../../options/components/VolatilitySurface3D').then(m => ({ default: m.VolatilitySurface3D })));
 
 const drawerWidth = 240;
+
+const LoadingFallback: React.FC = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+    <CircularProgress size={40} />
+  </Box>
+);
 
 export const TradingDashboard: React.FC = () => {
   const theme = useTheme();
@@ -108,11 +118,26 @@ export const TradingDashboard: React.FC = () => {
               { text: 'Portfolio', icon: <PortfolioIcon /> },
               { text: 'Settings', icon: <SettingsIcon /> },
             ].map((item) => (
-              <ListItem key={item.text} sx={{ px: 2 }}>
-                <ListItemIcon sx={{ color: 'primary.main', minWidth: 0, mr: drawerOpen ? 3 : 'auto', justifyContent: 'center' }}>
-                  {item.icon}
-                </ListItemIcon>
-                {drawerOpen && <ListItemText primary={item.text} />}
+              <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+                <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: drawerOpen ? 'initial' : 'center',
+                    px: 2.5,
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: drawerOpen ? 3 : 'auto',
+                      justifyContent: 'center',
+                      color: 'primary.main',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} sx={{ opacity: drawerOpen ? 1 : 0 }} />
+                </ListItemButton>
               </ListItem>
             ))}
           </List>
@@ -134,7 +159,7 @@ export const TradingDashboard: React.FC = () => {
         <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
           <Grid container spacing={3}>
             {/* Real-Time Price Chart */}
-            <Grid item xs={12} lg={8}>
+            <Grid size={{ xs: 12, lg: 8 }}>
               <Paper
                 data-testid="live-price-chart-paper"
                 sx={{
@@ -148,13 +173,15 @@ export const TradingDashboard: React.FC = () => {
                   Real-Time Price Chart - AAPL
                 </Typography>
                 <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                  <LivePriceChart symbol="AAPL" />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <LivePriceChart symbol="AAPL" />
+                  </Suspense>
                 </Box>
               </Paper>
             </Grid>
 
             {/* ML Predictions Widget */}
-            <Grid item xs={12} lg={4}>
+            <Grid size={{ xs: 12, lg: 4 }}>
               <Paper
                 data-testid="ml-predictions-paper"
                 sx={{
@@ -170,7 +197,7 @@ export const TradingDashboard: React.FC = () => {
             </Grid>
 
             {/* Options Chain Section */}
-            <Grid item xs={12} lg={8}>
+            <Grid size={{ xs: 12, lg: 8 }}>
               <Paper
                 data-testid="options-chain-container"
                 sx={{
@@ -181,12 +208,14 @@ export const TradingDashboard: React.FC = () => {
                   overflow: 'hidden',
                 }}
               >
-                <OptionsChain symbol="AAPL" />
+                <Suspense fallback={<LoadingFallback />}>
+                  <OptionsChain symbol="AAPL" />
+                </Suspense>
               </Paper>
             </Grid>
 
             {/* Portfolio Summary Section */}
-            <Grid item xs={12} lg={4}>
+            <Grid size={{ xs: 12, lg: 4 }}>
               <Paper
                 data-testid="portfolio-summary-container"
                 sx={{
@@ -202,7 +231,7 @@ export const TradingDashboard: React.FC = () => {
             </Grid>
 
             {/* Greeks Heatmap Summary */}
-            <Grid item xs={12} lg={4}>
+            <Grid size={{ xs: 12, lg: 4 }}>
               <Paper
                 data-testid="greeks-heatmap-paper"
                 sx={{
@@ -216,13 +245,15 @@ export const TradingDashboard: React.FC = () => {
                   Greeks Analysis (Delta)
                 </Typography>
                 <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                  <GreeksHeatmap symbol="AAPL" greek="delta" />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <GreeksHeatmap symbol="AAPL" greek="delta" />
+                  </Suspense>
                 </Box>
               </Paper>
             </Grid>
 
             {/* 3D Volatility Surface */}
-            <Grid item xs={12} lg={8}>
+            <Grid size={{ xs: 12, lg: 8 }}>
               <Paper
                 data-testid="volatility-surface-paper"
                 sx={{
@@ -236,7 +267,9 @@ export const TradingDashboard: React.FC = () => {
                   Implied Volatility Surface
                 </Typography>
                 <Box sx={{ flex: 1, overflow: 'hidden' }}>
-                  <VolatilitySurface3D symbol="AAPL" />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <VolatilitySurface3D symbol="AAPL" />
+                  </Suspense>
                 </Box>
               </Paper>
             </Grid>
