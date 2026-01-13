@@ -1,14 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-
-export interface PortfolioSummary {
-  totalValue: number;
-  dailyPnL: number;
-  dailyPnLPercent: number;
-  positionsCount: number;
-}
+import { PortfolioData } from '../types';
 
 export const usePortfolio = () => {
-  return useQuery<PortfolioSummary>({
+  return useQuery<PortfolioData>({
     queryKey: ['portfolio-summary'],
     queryFn: async () => {
       const response = await fetch('/api/v1/portfolio/summary');
