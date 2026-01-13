@@ -50,6 +50,7 @@ test('TradingDashboard renders layout components', async () => {
   expect(screen.getByRole('navigation')).toBeInTheDocument();
   expect(screen.getByTestId('options-chain-container')).toBeInTheDocument();
   expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
+  expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
   
   // Wait for portfolio summary to load
   expect(await screen.findByText(/Portfolio Overview/i)).toBeInTheDocument();

@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { OptionsChain } from '../../options/components/OptionsChain';
 import { PortfolioSummary } from '../../portfolio/components/PortfolioSummary';
+import { LivePriceChart } from '../../charts/components/LivePriceChart';
 
 const drawerWidth = 240;
 
@@ -128,6 +129,26 @@ export const TradingDashboard: React.FC = () => {
       >
         <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
           <Grid container spacing={3}>
+            {/* Real-Time Price Chart */}
+            <Grid item xs={12} lg={12}>
+              <Paper
+                data-testid="live-price-chart-paper"
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 450,
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  Real-Time Price Chart - AAPL
+                </Typography>
+                <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                  <LivePriceChart symbol="AAPL" />
+                </Box>
+              </Paper>
+            </Grid>
+
             {/* Options Chain Section */}
             <Grid item xs={12} lg={8}>
               <Paper
