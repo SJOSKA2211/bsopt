@@ -19,10 +19,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md) 40f3e5e
 
 ## Phase 3: Options Chain & Pricing Module (TDD)
-- [ ] Task: Implement Options Metadata and Indexing.
+- [x] Task: Implement Options Metadata and Indexing. a9484af
     - [ ] Sub-task: Write failing tests for searching options by underlying/expiry/strike.
     - [ ] Sub-task: Create Alembic migration for `option_contracts` with optimized indices.
-- [ ] Task: Implement `option_greeks` Hypertable.
+- [~] Task: Implement `option_greeks` Hypertable.
     - [ ] Sub-task: Write failing tests for high-frequency pricing data ingest.
     - [ ] Sub-task: Create Alembic migration for `option_greeks` hypertable.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md)
