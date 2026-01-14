@@ -13,7 +13,7 @@
 - [x] Task: Implement `market_ticks` Hypertable. 9ea6c2f
     - [ ] Sub-task: Write failing tests for tick data insertion and retrieval.
     - [ ] Sub-task: Create Alembic migration for `market_ticks` table and convert to hypertable.
-- [~] Task: Configure Compression and Continuous Aggregates.
+- [x] Task: Configure Compression and Continuous Aggregates. a4846bf
     - [ ] Sub-task: Write tests to verify OHLCV aggregation via `market_candles_1m`.
     - [ ] Sub-task: Create Alembic migration for compression policy and continuous aggregate view.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md)
