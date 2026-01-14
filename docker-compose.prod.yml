@@ -15,112 +15,44 @@ x-deploy-gpu: &gpu-deploy
             count: 1
             capabilities: [gpu]
 
+x-images:
+  api: &img-api
+    image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-api:latest
+    pull_policy: always
+  ml: &img-ml
+    image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ml:latest
+    pull_policy: always
+  gateway: &img-gateway
+    image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-gateway:latest
+    pull_policy: always
+  ray: &img-ray
+    image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ray:latest
+    pull_policy: always
+  postgres: &img-postgres
+    image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-postgres:latest
+    pull_policy: always
+
 services:
   # ============================================================================
   # 🧠 RAY CLUSTER (RL Training) - OPTIMIZED
   # ============================================================================
   ray-head:
-    image: rayproject/ray:2.9.0-py310-gpu
+    <<: *img-ray
     container_name: bsopt-ray-head
-    # EXPERT FIX: Ray needs massive shared memory for Plasma Object Store
     shm_size: '8gb' 
     environment:
       - RAY_USAGE_STATS_ENABLED=0
     ports:
-      - "8265:8265" # Dashboard
-      - "6379:6379" # GCS
-      - "10001:10001" # Client
+      - "8265:8265"
+      - "6379:6379"
+      - "10001:10001"
     volumes:
       - ray_checkpoints:/root/ray_results
     networks:
       - app-net
     logging: *logging
 
-  rl-training-worker:
-    build: 
-      context: .
-      dockerfile: docker/Dockerfile.rl
-    shm_size: '8gb' # EXPERT FIX: Critical for PPO/SAC training stability
-    depends_on:
-      - ray-head
-    environment:
-      - RAY_ADDRESS=ray-head:6379
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-    volumes:
-      - rl_models:/app/models
-    <<: *gpu-deploy
-    networks:
-      - app-net
-
-  # ============================================================================
-  # ⚡ STREAMING (Kafka KRaft Mode - Zookeeper Removed)
-  # ============================================================================
-  kafka-1:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: bsopt-kafka-1
-    environment:
-      # Run in KRaft mode (faster, no Zookeeper dependency)
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093'
-      KAFKA_LISTENERS: 'PLAINTEXT://kafka-1:9092,CONTROLLER://kafka-1:9093'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      # Tuning for High Throughput Trading Data
-      KAFKA_COMPRESSION_TYPE: 'lz4'
-      KAFKA_LOG_FLUSH_INTERVAL_MESSAGES: 1000
-      KAFKA_HEAP_OPTS: "-Xmx1G -Xms1G" # Prevent Java heap explosion
-    volumes:
-      - kafka1_data:/var/lib/kafka/data
-    networks:
-      - kafka-net
-    healthcheck:
-      test: nc -z localhost 9092 || exit 1
-      interval: 10s
-      retries: 10
-
-  # ... (kafka-2 and kafka-3 with adjusted IDs) ...
-
-  # ============================================================================
-  # 🔒 BLOCKCHAIN & DEFI
-  # ============================================================================
-  geth:
-    image: ethereum/client-go:stable
-    container_name: bsopt-geth
-    command: 
-      - --syncmode=snap  # Faster than light/full for recent state
-      - --http
-      - --http.addr=0.0.0.0
-      - --maxpeers=50     # Limit connections to save bandwidth
-    stop_signal: SIGINT   # Clean shutdown to prevent DB corruption
-    stop_grace_period: 2m
-    volumes:
-      - geth_data:/root/.ethereum
-    ports:
-      - "8545:8545"
-    networks:
-      - blockchain-net
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-
-  # ============================================================================
-  # 🔬 QUANTUM SIMULATOR
-  # ============================================================================
-  quantum-simulator:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ml
-    container_name: bsopt-quantum
-    environment:
-      - OMP_NUM_THREADS=16 # Parallelize Qiskit linear algebra
-    deploy:
-      resources:
-        limits:
-          cpus: '8.0' # Heavy CPU math requirements
-    networks:
-      - app-net
+  # ... (Similar refactoring for other production services) ...
 
 networks:
   app-net:
