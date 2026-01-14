@@ -18,11 +18,11 @@
 - [x] Task: Enable Docker Buildx and GHA cache backend (`type=gha`) in the workflow to speed up CI builds. [793acfb]
 - [x] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md) [9dcf7c1]
 
-## Phase 4: Docker Compose & Local Workflow Integration
+## Phase 4: Docker Compose & Local Workflow Integration [checkpoint: f94a5c4]
 - [x] Task: Refactor `docker-compose.yml` and `docker-compose.prod.yml` to use YAML anchors (`x-images`) for GHCR image paths. [25f474c]
 - [x] Task: Implement `pull_policy: always` and `cache_from` configurations in Compose files to prefer cloud artifacts. [25f474c]
 - [x] Task: Add a shell script `scripts/dev-setup.sh` to automate the `docker-compose pull` and environment initialization. [25f474c]
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Docker Compose & Local Workflow Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Docker Compose & Local Workflow Integration' (Protocol in workflow.md) [f94a5c4]
 
 ## Phase 5: Final Verification & Benchmarking
 - [ ] Task: Perform a "Clean Start" test: Remove all local images and run the new pull-based workflow.
