@@ -37,10 +37,10 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: AI/ML Model Store (pgvector)' (Protocol in workflow.md)
 
 ## Phase 5: Portfolio & Trading Module (RLS) (TDD)
-- [ ] Task: Implement Transactional Core.
+- [x] Task: Implement Transactional Core. 43816dd
     - [ ] Sub-task: Write failing tests for portfolio and position management.
     - [ ] Sub-task: Create Alembic migration for `users`, `portfolios`, and `positions` tables.
-- [ ] Task: Enforce Row Level Security (RLS).
+- [x] Task: Enforce Row Level Security (RLS). 25378ab
     - [ ] Sub-task: Write failing tests to verify that User A cannot see User B's portfolio data.
     - [ ] Sub-task: Create Alembic migration to enable RLS and define security policies.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Portfolio & Trading Module (RLS)' (Protocol in workflow.md)
