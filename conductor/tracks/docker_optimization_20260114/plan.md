@@ -12,11 +12,11 @@
 - [x] Task: Verify local build performance improvements and layer reuse using `docker build --progress=plain`. [a06e013]
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md) [8634145]
 
-## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)
+## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR) [checkpoint: 9dcf7c1]
 - [x] Task: Create `.github/workflows/build-and-push.yml` with matrix strategy for all services (`api`, `ml`, `scraper`, `gateway`, `mlflow`, `ray`, `wasm`). [793acfb]
 - [x] Task: Configure GitHub Actions to authenticate with GHCR and use short Commit SHA for image tagging. [793acfb]
 - [x] Task: Enable Docker Buildx and GHA cache backend (`type=gha`) in the workflow to speed up CI builds. [793acfb]
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md) [9dcf7c1]
 
 ## Phase 4: Docker Compose & Local Workflow Integration
 - [ ] Task: Refactor `docker-compose.yml` and `docker-compose.prod.yml` to use YAML anchors (`x-images`) for GHCR image paths.
