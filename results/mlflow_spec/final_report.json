@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-12-28T09:35:35.396145",
+  "commit": "6126a39e",
+  "runs": [
+    {
+      "model": "xgboost",
+      "r2": 0.9917887734032788
+    },
+    {
+      "model": "nn",
+      "accuracy": 0.96
+    }
+  ],
+  "schema": {
+    "version": "1.0.0",
+    "project": "BlackScholesPlatform",
+    "logging_format": "JSON",
+    "required_fields": [
+      "timestamp",
+      "run_id",
+      "experiment",
+      "status"
+    ]
+  }
+}

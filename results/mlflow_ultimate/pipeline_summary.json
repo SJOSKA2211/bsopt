@@ -1,0 +1,44 @@
+{
+  "timestamp": "2025-12-28T09:25:13.014760",
+  "commit": "053a399e",
+  "runs": [
+    {
+      "model": "xgboost",
+      "metric": 0.9917887734032788
+    },
+    {
+      "model": "nn",
+      "metric": 0.97
+    }
+  ],
+  "schema_reference": {
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "project": {
+        "type": "string"
+      },
+      "run_id": {
+        "type": "string"
+      },
+      "model_type": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string"
+      },
+      "metrics": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "timestamp",
+      "project",
+      "run_id",
+      "status"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+# requirements_api.txt
+
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pydantic[email]
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+tenacity
+httpx
+redis
+aioredis
+celery
+asyncio-throttle
+sqlalchemy-timescaledb
+psycopg2-binary
+rich
+prometheus-client
+# prometheus-fastapi-instrumentator

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-12-28T10:18:50.634968",
+  "project": "BlackScholesPlatform",
+  "commit": "8b3d2f1a",
+  "results": [
+    {
+      "model": "xgboost",
+      "metric": 0.9917887734032788
+    },
+    {
+      "model": "nn",
+      "metric": 0.96
+    }
+  ],
+  "status": "SUCCESS"
+}

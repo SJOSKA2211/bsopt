@@ -1,0 +1,43 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MLFlowRunLog",
+    "type": "object",
+    "properties": {
+      "run_id": {
+        "type": "string"
+      },
+      "experiment": {
+        "type": "string"
+      },
+      "model_type": {
+        "type": "string"
+      },
+      "data_version": {
+        "type": "string"
+      },
+      "metrics": {
+        "type": "object"
+      }
+    }
+  },
+  "runs": [
+    {
+      "run_id": "150efca5a3ab4595a2821f36a162bc84",
+      "experiment": "BlackScholesPlatform/XGBoost_Pricing/2025-12-27",
+      "model_type": "xgboost",
+      "metrics": {
+        "r2": 0.9917887734032788
+      }
+    },
+    {
+      "run_id": "6cdc494f70994698be76f5215b816e56",
+      "experiment": "BlackScholesPlatform/NN_Classification/2025-12-27",
+      "model_type": "neural_network",
+      "metrics": {
+        "accuracy": 0.96
+      }
+    }
+  ],
+  "automation_status": "READY_FOR_DEPLOYMENT"
+}

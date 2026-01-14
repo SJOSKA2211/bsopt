@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-12-27T21:30:33.678424",
+  "xgboost": {
+    "r2": 0.9952128187867646,
+    "mse": 2.434917311229574
+  },
+  "neural_network": {
+    "accuracy": 0.974,
+    "precision": 0.9857142857142858
+  },
+  "mlflow_tracking_uri": "file:///home/josephkamaumaina/comparison/mlruns",
+  "status": "success"
+}

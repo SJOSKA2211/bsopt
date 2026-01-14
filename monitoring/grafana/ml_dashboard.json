@@ -1,0 +1,29 @@
+{
+  "dashboard": {
+    "title": "MLOps Performance Dashboard",
+    "panels": [
+      {
+        "title": "Model Error Metrics (RMSE/MAE)",
+        "type": "timeseries",
+        "targets": [
+          { "expr": "ml_model_error_metrics{metric_type='rmse'}", "legendFormat": "RMSE" },
+          { "expr": "ml_model_error_metrics{metric_type='mae'}", "legendFormat": "MAE" }
+        ]
+      },
+      {
+        "title": "Model Prediction Throughput",
+        "type": "timeseries",
+        "targets": [
+          { "expr": "rate(ml_model_predictions_total[5m])", "legendFormat": "{{model_name}}" }
+        ]
+      },
+      {
+        "title": "Training Duration",
+        "type": "histogram",
+        "targets": [
+          { "expr": "ml_model_training_duration_seconds_bucket", "legendFormat": "{{le}}" }
+        ]
+      }
+    ]
+  }
+}

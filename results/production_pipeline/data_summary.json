@@ -1,0 +1,15 @@
+{
+  "n_samples": 10000,
+  "features": [
+    "underlying_price",
+    "strike",
+    "time_to_expiry",
+    "is_call",
+    "moneyness",
+    "log_moneyness",
+    "sqrt_time_to_expiry",
+    "days_to_expiry",
+    "implied_volatility"
+  ],
+  "class_distribution": 0.5053
+}

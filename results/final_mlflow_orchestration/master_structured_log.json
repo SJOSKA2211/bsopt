@@ -1,0 +1,45 @@
+{
+  "version": "2.2.0",
+  "results": [
+    {
+      "model": "xgboost",
+      "r2": 0.9939227167620973
+    },
+    {
+      "model": "nn",
+      "accuracy": 0.95
+    }
+  ],
+  "schema": {
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "event": {
+        "type": "string"
+      },
+      "level": {
+        "type": "string"
+      },
+      "run_id": {
+        "type": "string"
+      },
+      "experiment": {
+        "type": "string"
+      },
+      "model_type": {
+        "type": "string"
+      },
+      "metrics": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "timestamp",
+      "event",
+      "level"
+    ]
+  }
+}

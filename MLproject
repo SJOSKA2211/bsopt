@@ -1,0 +1,9 @@
+name: BlackScholesPlatform
+
+python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      model_type: {type: string, default: "all"}
+    command: "./venv/bin/python3 mlflow_specification_orchestrator.py --model-type {model_type}"
