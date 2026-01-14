@@ -19,9 +19,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md) [9dcf7c1]
 
 ## Phase 4: Docker Compose & Local Workflow Integration
-- [ ] Task: Refactor `docker-compose.yml` and `docker-compose.prod.yml` to use YAML anchors (`x-images`) for GHCR image paths.
-- [ ] Task: Implement `pull_policy: always` and `cache_from` configurations in Compose files to prefer cloud artifacts.
-- [ ] Task: Add a shell script `scripts/dev-setup.sh` to automate the `docker-compose pull` and environment initialization.
+- [x] Task: Refactor `docker-compose.yml` and `docker-compose.prod.yml` to use YAML anchors (`x-images`) for GHCR image paths. [25f474c]
+- [x] Task: Implement `pull_policy: always` and `cache_from` configurations in Compose files to prefer cloud artifacts. [25f474c]
+- [x] Task: Add a shell script `scripts/dev-setup.sh` to automate the `docker-compose pull` and environment initialization. [25f474c]
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Docker Compose & Local Workflow Integration' (Protocol in workflow.md)
 
 ## Phase 5: Final Verification & Benchmarking
