@@ -53,6 +53,7 @@
 *   **Docker & Docker Compose:** Containerization and local orchestration.
 *   **Docker SDK (Python):** Programmatic container management for self-healing workflows.
 *   **GitHub Actions:** CI/CD/CT pipelines.
+*   **GitHub Container Registry (GHCR):** Cloud-native artifact storage for Docker images.
 *   **Wasm-pack:** Toolchain for building and packaging Rust-generated WebAssembly.
 *   **Trivy:** Container and filesystem security scanning.
 *   **Locust:** High-performance load testing and benchmarking.

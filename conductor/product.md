@@ -18,7 +18,7 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **Resilient Infrastructure:** Production-hardened Docker architecture with non-root service execution and strict network isolation.
 *   **AIOps & Self-Healing:** Autonomous anomaly detection (Isolation Forest, Autoencoders) and automated remediation (container restarts, cache purging) for 99.9% availability.
 *   **Adaptive RL Trading Agent:** Intelligent position sizing and risk management using Reinforcement Learning (TD3 algorithm) with real-time Kafka integration.
-*   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
+*   **CI/CD/CT Pipeline:** Cloud-native build pipeline (GitHub Actions + GHCR) ensuring zero-load local updates, automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
 *   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
 *   **Next-Gen Frontend Experience:** High-performance, offline-capable React dashboard featuring real-time options chains, interactive 3D volatility surfaces, and live Greeks heatmaps.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.
