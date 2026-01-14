@@ -14,3 +14,10 @@ def test_anti_freeze_content():
     assert "COMPOSE_PARALLEL_LIMIT" in content
     assert "remote-builder" in content
     assert "limit" in content.lower()
+
+def test_readme_links_anti_freeze():
+    """Verify that README.md links to the Anti-Freeze guide."""
+    with open("README.md", "r") as f:
+        content = f.read()
+    
+    assert "docs/mlops/anti-freeze.md" in content, "README.md does not link to Anti-Freeze guide"
