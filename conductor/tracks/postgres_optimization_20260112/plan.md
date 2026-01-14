@@ -1,7 +1,7 @@
 # Plan: Optimized PostgreSQL/TimescaleDB Architecture for BS-Opt v4.0
 
 ## Phase 1: Infrastructure & Migration Setup (TDD)
-- [~] Task: Configure Docker Compose for Optimized PostgreSQL.
+- [x] Task: Configure Docker Compose for Optimized PostgreSQL. 3e1358b
     - [ ] Sub-task: Write tests to verify PostgreSQL container starts with target extensions (TimescaleDB, pgvector).
     - [ ] Sub-task: Implement `command` overrides in `docker-compose.yml` for performance tuning.
 - [ ] Task: Initialize Alembic for Migration Management.
