@@ -6,10 +6,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Immediate Mitigation & Documentation' (Protocol in workflow.md) [fbf4149]
 
 ## Phase 2: Dockerfile Optimization (Layer Caching)
-- [ ] Task: Refactor `docker/Dockerfile.ml` to implement multi-stage builds and separate dependency installation (pip install) from source code copy.
-- [ ] Task: Refactor `docker/Dockerfile.api`, `docker/Dockerfile.scraper`, and `docker/Dockerfile.gateway` with similar caching optimizations.
-- [ ] Task: Refactor `docker/Dockerfile.mlflow`, `docker/Dockerfile.ray`, and `docker/Dockerfile.wasm` for consistency and caching.
-- [ ] Task: Verify local build performance improvements and layer reuse using `docker build --progress=plain`.
+- [x] Task: Refactor `docker/Dockerfile.ml` to implement multi-stage builds and separate dependency installation (pip install) from source code copy. [a06e013]
+- [x] Task: Refactor `docker/Dockerfile.api`, `docker/Dockerfile.scraper`, and `docker/Dockerfile.gateway` with similar caching optimizations. [a06e013]
+- [x] Task: Refactor `docker/Dockerfile.mlflow`, `docker/Dockerfile.ray`, and `docker/Dockerfile.wasm` for consistency and caching. [a06e013]
+- [x] Task: Verify local build performance improvements and layer reuse using `docker build --progress=plain`. [a06e013]
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md)
 
 ## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)
