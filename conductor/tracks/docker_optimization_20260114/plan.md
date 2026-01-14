@@ -25,7 +25,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Docker Compose & Local Workflow Integration' (Protocol in workflow.md) [f94a5c4]
 
 ## Phase 5: Final Verification & Benchmarking
-- [ ] Task: Perform a "Clean Start" test: Remove all local images and run the new pull-based workflow.
-- [ ] Task: Benchmark the time from "Push to Git" to "Local Up and Running" for a minor code change.
-- [ ] Task: Verify that all services correctly report their versions/SHAs in logs or health checks.
+- [x] Task: Perform a "Clean Start" test: Remove all local images and run the new pull-based workflow. [9764688]
+- [x] Task: Benchmark the time from "Push to Git" to "Local Up and Running" for a minor code change. [9764688]
+- [x] Task: Verify that all services correctly report their versions/SHAs in logs or health checks. [9764688]
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Verification & Benchmarking' (Protocol in workflow.md)
