@@ -13,9 +13,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md) [8634145]
 
 ## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)
-- [ ] Task: Create `.github/workflows/build-and-push.yml` with matrix strategy for all services (`api`, `ml`, `scraper`, `gateway`, `mlflow`, `ray`, `wasm`).
-- [ ] Task: Configure GitHub Actions to authenticate with GHCR and use short Commit SHA for image tagging.
-- [ ] Task: Enable Docker Buildx and GHA cache backend (`type=gha`) in the workflow to speed up CI builds.
+- [x] Task: Create `.github/workflows/build-and-push.yml` with matrix strategy for all services (`api`, `ml`, `scraper`, `gateway`, `mlflow`, `ray`, `wasm`). [793acfb]
+- [x] Task: Configure GitHub Actions to authenticate with GHCR and use short Commit SHA for image tagging. [793acfb]
+- [x] Task: Enable Docker Buildx and GHA cache backend (`type=gha`) in the workflow to speed up CI builds. [793acfb]
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md)
 
 ## Phase 4: Docker Compose & Local Workflow Integration
