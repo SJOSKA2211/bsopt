@@ -7,7 +7,7 @@ const OptionsChain = lazy(() => import('../../features/options/components/Option
 
 const LoadingFallback: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-    <CircularProgress />
+    <CircularProgress aria-label="Loading component" />
   </Box>
 );
 

@@ -31,7 +31,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 4 }}>
-        <CircularProgress />
+        <CircularProgress aria-label="Loading active positions" />
       </Box>
     );
   }

@@ -87,7 +87,7 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = React.memo(({ o
         <DialogActions>
           <Button onClick={handleClose} disabled={loading}>Cancel</Button>
           <Button onClick={handleConfirm} autoFocus disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : 'Confirm'}
+            {loading ? <CircularProgress size={24} aria-label="Executing trade" /> : 'Confirm'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -21,7 +21,7 @@ export const PortfolioSummary: React.FC = React.memo(() => {
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress size={40} />
+        <CircularProgress size={40} aria-label="Loading portfolio summary" />
       </Box>
     );
   }

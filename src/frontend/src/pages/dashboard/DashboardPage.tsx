@@ -18,7 +18,7 @@ const VolatilitySurface3D = lazy(() => import('../../features/options/components
 
 const LoadingFallback: React.FC = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-    <CircularProgress size={40} />
+    <CircularProgress size={40} aria-label="Loading component" />
   </Box>
 );
 
