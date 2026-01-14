@@ -34,9 +34,9 @@
   - [x] Sub-task: Write failing tests for Geth and Quantum Simulator configurations.
   - [x] Sub-task: Implement Geth and Quantum Simulator services in `docker-compose.prod.yml`.
   - [x] Sub-task: Verify tests pass.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Docker Compose Optimization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Docker Compose Optimization' (Protocol in workflow.md)
 
-## Phase 3: Network Policies & Validation [checkpoint: c0050f8] [checkpoint: c0050f8]
+## Phase 3: Network Policies & Validation [checkpoint: c0050f8] [checkpoint: ebaa71d]
 
 - [x] Task: Define and implement Docker network isolation rules.
   - [x] Sub-task: Write failing test to verify network isolation between selected services.
@@ -49,4 +49,4 @@
 - [x] Task: Execute container security scans (Trivy or similar) and review reports.
   - [x] Sub-task: Configure Trivy (or similar) scan within CI/CD. (Manual)
   - [x] Sub-task: Run scans and ensure no critical/high vulnerabilities related to container setup. (Manual)
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Network Policies & Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Network Policies & Validation' (Protocol in workflow.md)
