@@ -58,7 +58,7 @@
 - [x] Task: Optimize rendering with Memoization and Virtual Scrolling. [a5a393f]
     - [x] Sub-task: Write failing performance tests for re-renders.
     - [x] Sub-task: Implement `React.memo`, `useMemo`, `useCallback` and virtualized lists.
-- [ ] Task: Ensure WCAG 2.1 AA Accessibility.
-    - [ ] Sub-task: Write failing accessibility tests (e.g., with Playwright).
-    - [ ] Sub-task: Implement keyboard navigation, ARIA attributes, and color contrast adherence.
+- [x] Task: Ensure WCAG 2.1 AA Accessibility. [33c1d84]
+    - [x] Sub-task: Write failing accessibility tests (e.g., with Playwright).
+    - [x] Sub-task: Implement keyboard navigation, ARIA attributes, and color contrast adherence.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Performance & Accessibility Optimization' (Protocol in workflow.md)
