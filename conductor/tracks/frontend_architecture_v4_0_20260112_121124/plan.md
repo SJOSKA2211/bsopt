@@ -55,9 +55,9 @@
 - [x] Task: Implement Code Splitting and Lazy Loading. [4e28494]
     - [x] Sub-task: Write failing performance tests for bundle size.
     - [x] Sub-task: Implement route-based and component-level code splitting.
-- [ ] Task: Optimize rendering with Memoization and Virtual Scrolling.
-    - [ ] Sub-task: Write failing performance tests for re-renders.
-    - [ ] Sub-task: Implement `React.memo`, `useMemo`, `useCallback` and virtualized lists.
+- [x] Task: Optimize rendering with Memoization and Virtual Scrolling. [a5a393f]
+    - [x] Sub-task: Write failing performance tests for re-renders.
+    - [x] Sub-task: Implement `React.memo`, `useMemo`, `useCallback` and virtualized lists.
 - [ ] Task: Ensure WCAG 2.1 AA Accessibility.
     - [ ] Sub-task: Write failing accessibility tests (e.g., with Playwright).
     - [ ] Sub-task: Implement keyboard navigation, ARIA attributes, and color contrast adherence.
