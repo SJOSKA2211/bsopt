@@ -5,12 +5,12 @@
 - [x] Task: Update main `README.md` to point to the new Anti-Freeze guide. [5ce7ae0]
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Immediate Mitigation & Documentation' (Protocol in workflow.md) [fbf4149]
 
-## Phase 2: Dockerfile Optimization (Layer Caching)
+## Phase 2: Dockerfile Optimization (Layer Caching) [checkpoint: 8634145]
 - [x] Task: Refactor `docker/Dockerfile.ml` to implement multi-stage builds and separate dependency installation (pip install) from source code copy. [a06e013]
 - [x] Task: Refactor `docker/Dockerfile.api`, `docker/Dockerfile.scraper`, and `docker/Dockerfile.gateway` with similar caching optimizations. [a06e013]
 - [x] Task: Refactor `docker/Dockerfile.mlflow`, `docker/Dockerfile.ray`, and `docker/Dockerfile.wasm` for consistency and caching. [a06e013]
 - [x] Task: Verify local build performance improvements and layer reuse using `docker build --progress=plain`. [a06e013]
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md) [8634145]
 
 ## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)
 - [ ] Task: Create `.github/workflows/build-and-push.yml` with matrix strategy for all services (`api`, `ml`, `scraper`, `gateway`, `mlflow`, `ray`, `wasm`).
