@@ -9,14 +9,14 @@
     - [ ] Sub-task: Create initial migration script to enable required extensions.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Infrastructure & Migration Setup' (Protocol in workflow.md) 33c1d84
 
-## Phase 2: Market Data Module (TDD)
+## Phase 2: Market Data Module (TDD) [checkpoint: 40f3e5e]
 - [x] Task: Implement `market_ticks` Hypertable. 9ea6c2f
     - [ ] Sub-task: Write failing tests for tick data insertion and retrieval.
     - [ ] Sub-task: Create Alembic migration for `market_ticks` table and convert to hypertable.
 - [x] Task: Configure Compression and Continuous Aggregates. a4846bf
     - [ ] Sub-task: Write tests to verify OHLCV aggregation via `market_candles_1m`.
     - [ ] Sub-task: Create Alembic migration for compression policy and continuous aggregate view.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md) 40f3e5e
 
 ## Phase 3: Options Chain & Pricing Module (TDD)
 - [ ] Task: Implement Options Metadata and Indexing.
