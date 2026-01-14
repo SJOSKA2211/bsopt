@@ -1,12 +1,17 @@
-# docker/Dockerfile.mlflow
-
+# syntax=docker/dockerfile:1
 FROM python:3.13-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir mlflow[extras]==3.8.1 psycopg2-binary
+# Use BuildKit cache mount for pip
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir mlflow[extras]==3.8.1 psycopg2-binary
 
 # Create a non-root user
 RUN useradd -m -u 1000 mlflowuser
@@ -18,5 +23,3 @@ RUN mkdir -p /mlartifacts && \
 USER mlflowuser
 
 EXPOSE 5000
-
-# mlflow server command is usually in docker-compose.yml

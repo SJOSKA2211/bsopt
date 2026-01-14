@@ -1,15 +1,16 @@
+# syntax=docker/dockerfile:1
 FROM rayproject/ray:2.9.0-py310
 
 USER root
-# Install basic build tools just in case
-RUN apt-get update && apt-get install -y build-essential \
+# Install basic build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 USER ray
 
+# Optimize pip caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Source code is mounted via volume in compose, but good to have it here too for production
-# COPY src /home/ray/src
-
+RUN --mount=type=cache,target=/home/ray/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt

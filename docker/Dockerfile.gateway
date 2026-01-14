@@ -1,11 +1,13 @@
+# syntax=docker/dockerfile:1
 # STAGE 1: Builder
 FROM node:18-alpine as builder
 
-WORKDIR /app
+WORKDIR /build
 
-# Install dependencies
-COPY src/gateway/package.json src/gateway/package-lock.json ./
-RUN npm install --prefix src/gateway
+# Optimize npm caching by copying only package files first
+COPY src/gateway/package*.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production
 
 # STAGE 2: Runtime
 FROM node:18-alpine as runtime
@@ -13,13 +15,14 @@ FROM node:18-alpine as runtime
 # Create non-root user
 RUN addgroup -S gateway && adduser -S gateway -G gateway
 
-# Copy only necessary files
 WORKDIR /app
-COPY --from=builder /app/src/gateway/node_modules src/gateway/node_modules
-COPY --from=builder /app/src/gateway src/gateway
+
+# Copy only necessary files
+COPY --from=builder /build/node_modules ./node_modules
+COPY src/gateway/ ./
 
 # Hardening
 USER gateway
 ENV NODE_ENV=production
 
-CMD ["node", "src/gateway/index.js"]
+CMD ["node", "index.js"]
