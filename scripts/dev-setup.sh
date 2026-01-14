@@ -18,10 +18,10 @@ echo "✅ Build concurrency limited to 1 (Anti-Freeze enabled)"
 
 # 3. Pull latest images from GHCR
 echo "📦 Pulling latest pre-built images from GHCR..."
-docker-compose pull || echo "⚠️ Some images could not be pulled, will attempt to build locally."
+docker compose pull || echo "⚠️ Some images could not be pulled, will attempt to build locally."
 
 # 4. Initialize network and volumes
 echo "🌐 Initializing infrastructure..."
-docker-compose up -d postgres redis rabbitmq zookeeper kafka-1
+docker compose up -d postgres redis rabbitmq zookeeper kafka-1
 
-echo "✨ Setup complete. Run 'docker-compose up' to start the full stack."
+echo "✨ Setup complete. Run 'docker compose up' to start the full stack."
