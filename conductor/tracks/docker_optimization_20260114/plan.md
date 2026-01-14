@@ -1,0 +1,31 @@
+# Plan: Cloud-Native Build Pipeline & Docker Optimization
+
+## Phase 1: Immediate Mitigation & Documentation
+- [x] Task: Document "Anti-Freeze" solutions in `docs/mlops/anti-freeze.md`. Include `COMPOSE_PARALLEL_LIMIT`, Docker resource limits, and `remote-builder` setup. [5375d2e]
+- [x] Task: Update main `README.md` to point to the new Anti-Freeze guide. [5ce7ae0]
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Immediate Mitigation & Documentation' (Protocol in workflow.md)
+
+## Phase 2: Dockerfile Optimization (Layer Caching)
+- [ ] Task: Refactor `docker/Dockerfile.ml` to implement multi-stage builds and separate dependency installation (pip install) from source code copy.
+- [ ] Task: Refactor `docker/Dockerfile.api`, `docker/Dockerfile.scraper`, and `docker/Dockerfile.gateway` with similar caching optimizations.
+- [ ] Task: Refactor `docker/Dockerfile.mlflow`, `docker/Dockerfile.ray`, and `docker/Dockerfile.wasm` for consistency and caching.
+- [ ] Task: Verify local build performance improvements and layer reuse using `docker build --progress=plain`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Dockerfile Optimization (Layer Caching)' (Protocol in workflow.md)
+
+## Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)
+- [ ] Task: Create `.github/workflows/build-and-push.yml` with matrix strategy for all services (`api`, `ml`, `scraper`, `gateway`, `mlflow`, `ray`, `wasm`).
+- [ ] Task: Configure GitHub Actions to authenticate with GHCR and use short Commit SHA for image tagging.
+- [ ] Task: Enable Docker Buildx and GHA cache backend (`type=gha`) in the workflow to speed up CI builds.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: CI/CD Pipeline Implementation (GHA + GHCR)' (Protocol in workflow.md)
+
+## Phase 4: Docker Compose & Local Workflow Integration
+- [ ] Task: Refactor `docker-compose.yml` and `docker-compose.prod.yml` to use YAML anchors (`x-images`) for GHCR image paths.
+- [ ] Task: Implement `pull_policy: always` and `cache_from` configurations in Compose files to prefer cloud artifacts.
+- [ ] Task: Add a shell script `scripts/dev-setup.sh` to automate the `docker-compose pull` and environment initialization.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Docker Compose & Local Workflow Integration' (Protocol in workflow.md)
+
+## Phase 5: Final Verification & Benchmarking
+- [ ] Task: Perform a "Clean Start" test: Remove all local images and run the new pull-based workflow.
+- [ ] Task: Benchmark the time from "Push to Git" to "Local Up and Running" for a minor code change.
+- [ ] Task: Verify that all services correctly report their versions/SHAs in logs or health checks.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Verification & Benchmarking' (Protocol in workflow.md)
