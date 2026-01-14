@@ -18,43 +18,50 @@ x-images:
     build:
       context: .
       dockerfile: docker/Dockerfile.api
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-api:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-api:latest
   ml: &img-ml
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ml:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.ml
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ml:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ml:latest
   gateway: &img-gateway
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-gateway:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.gateway
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-gateway:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-gateway:latest
   mlflow: &img-mlflow
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-mlflow:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.mlflow
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-mlflow:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-mlflow:latest
   ray: &img-ray
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ray:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.ray
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ray:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-ray:latest
   postgres: &img-postgres
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-postgres:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.postgres
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-postgres:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-postgres:latest
   wasm: &img-wasm
     image: ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-wasm:latest
     build:
       context: .
       dockerfile: docker/Dockerfile.wasm
-      cache_from: [ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-wasm:latest]
+      cache_from:
+        - ghcr.io/${GITHUB_REPOSITORY:-yourusername/bsopt}-wasm:latest
 
 services:
   # ============================================================================
