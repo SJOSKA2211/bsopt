@@ -51,7 +51,7 @@
     - [x] Sub-task: Implement `MLPredictions` component.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md) [eca9f63]
 
-## Phase 5: Performance & Accessibility Optimization (TDD)
+## Phase 5: Performance & Accessibility Optimization (TDD) [checkpoint: 9cace7b]
 - [x] Task: Implement Code Splitting and Lazy Loading. [4e28494]
     - [x] Sub-task: Write failing performance tests for bundle size.
     - [x] Sub-task: Implement route-based and component-level code splitting.
