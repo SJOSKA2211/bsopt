@@ -22,7 +22,7 @@
 - [x] Task: Implement Options Metadata and Indexing. a9484af
     - [ ] Sub-task: Write failing tests for searching options by underlying/expiry/strike.
     - [ ] Sub-task: Create Alembic migration for `option_contracts` with optimized indices.
-- [~] Task: Implement `option_greeks` Hypertable.
+- [x] Task: Implement `option_greeks` Hypertable. e90f81d
     - [ ] Sub-task: Write failing tests for high-frequency pricing data ingest.
     - [ ] Sub-task: Create Alembic migration for `option_greeks` hypertable.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md)
