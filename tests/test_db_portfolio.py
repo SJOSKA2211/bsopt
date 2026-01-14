@@ -65,3 +65,48 @@ def test_portfolio_relationships(db_engine):
         assert row is not None
         assert row.email == "test@example.com"
         assert row.symbol == "AAPL"
+
+def test_rls_enforcement(db_engine):
+    """Test that RLS prevents unauthorized access."""
+    with db_engine.connect() as conn:
+        # Create two users
+        user_a = str(uuid4())
+        user_b = str(uuid4())
+        
+        try:
+            conn.execute(text("TRUNCATE users CASCADE;"))
+            conn.commit()
+        except Exception:
+            conn.rollback()
+
+        conn.execute(text("""
+            INSERT INTO users (id, email, role) VALUES (:id, 'a@test.com', 'trader')
+        """), {"id": user_a})
+        
+        conn.execute(text("""
+            INSERT INTO users (id, email, role) VALUES (:id, 'b@test.com', 'trader')
+        """), {"id": user_b})
+        
+        conn.execute(text("""
+            INSERT INTO portfolios (id, user_id, name) VALUES (:id, :uid, 'A Portfolio')
+        """), {"id": str(uuid4()), "uid": user_a})
+        
+        conn.commit()
+        
+        # Simulate User B session
+        # Note: In real app we set current_user_id in session variable or role
+        # For testing RLS, we need to SET ROLE or SET app.current_user_id
+        # We assume the policy uses `current_setting('app.current_user_id')`
+        
+        conn.execute(text(f"SET app.current_user_id = '{user_b}';"))
+        
+        # User B should NOT see User A's portfolio
+        result = conn.execute(text("SELECT * FROM portfolios"))
+        rows = result.fetchall()
+        assert len(rows) == 0, "RLS failed: User B saw User A's portfolio"
+        
+        # Simulate User A
+        conn.execute(text(f"SET app.current_user_id = '{user_a}';"))
+        result = conn.execute(text("SELECT * FROM portfolios"))
+        rows = result.fetchall()
+        assert len(rows) == 1, "RLS failed: User A could not see their own portfolio"
