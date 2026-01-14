@@ -20,6 +20,7 @@ BS-Opt bridges the gap between theoretical financial modeling and production-gra
 *   **Adaptive RL Trading Agent:** Intelligent position sizing and risk management using Reinforcement Learning (TD3 algorithm) with real-time Kafka integration.
 *   **CI/CD/CT Pipeline:** Automated security scanning, quality gates, and Continuous Training workflows for model sustainability.
 *   **Unified API Gateway (Federation):** A scalable Apollo GraphQL Federation architecture providing a single access point for REST, gRPC, and real-time WebSocket streams across all microservices.
+*   **Next-Gen Frontend Experience:** High-performance, offline-capable React dashboard featuring real-time options chains, interactive 3D volatility surfaces, and live Greeks heatmaps.
 *   **Edge Computing (WASM):** High-performance client-side pricing and Greeks calculations using Rust compiled to WebAssembly for sub-millisecond latency.
 *   **Quantum-Ready Pricing:** Hybrid quantum-classical engine using IBM Qiskit and Amplitude Estimation for quadratic speedup in Monte Carlo simulations.
 *   **Federated Learning:** Privacy-preserving multi-institutional model training using the Flower framework.

@@ -34,6 +34,11 @@
 ## Application Frameworks
 *   **FastAPI:** High-performance web framework for the API layer.
 *   **React (>=19), Vite & React Router:** Modern frontend framework, build tool, and routing for the platform UI.
+*   **Material UI (MUI):** React component library for the comprehensive design system.
+*   **TanStack Query:** Powerful asynchronous state management for data fetching.
+*   **Lightweight Charts:** High-performance financial charting library.
+*   **Apache ECharts:** Powerful, interactive charting and visualization library.
+*   **Three.js & React Three Fiber:** 3D graphics rendering for volatility surfaces.
 *   **Celery:** Distributed task queue for long-running compute jobs (Pricing, AutoML).
 
 ## Observability & Monitoring (LGTM Stack)
