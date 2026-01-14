@@ -14,7 +14,7 @@ import {
 } from '@mui/icons-material';
 import { usePortfolio } from '../hooks/usePortfolio';
 
-export const PortfolioSummary: React.FC = () => {
+export const PortfolioSummary: React.FC = React.memo(() => {
   const theme = useTheme();
   const { data, isLoading, isError } = usePortfolio();
 
@@ -106,4 +106,4 @@ export const PortfolioSummary: React.FC = () => {
       </Stack>
     </Box>
   );
-};
+});

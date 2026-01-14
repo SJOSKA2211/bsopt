@@ -36,7 +36,7 @@ interface OptionData {
   put_iv: number;
 }
 
-export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) => {
+export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }) => {
   const theme = useTheme();
 
   const { data: optionsData, isLoading, error } = useQuery<OptionData[]>({
@@ -145,6 +145,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
     <Box data-testid="greeks-heatmap-container" sx={{ width: '100%', height: '100%', minHeight: 400 }}>
       {chartOptions && (
         <ReactECharts 
+          echarts={echarts}
           option={chartOptions} 
           style={{ height: '100%', width: '100%' }}
           theme={theme.palette.mode === 'dark' ? 'dark' : undefined}
@@ -152,4 +153,4 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
       )}
     </Box>
   );
-};
+});

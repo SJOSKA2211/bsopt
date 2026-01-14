@@ -24,7 +24,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 // Mock echarts-for-react
-vi.mock('echarts-for-react', () => ({
+vi.mock('echarts-for-react/lib/core', () => ({
   default: () => <div data-testid="echarts-mock" />
 }));
 

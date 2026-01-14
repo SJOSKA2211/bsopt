@@ -58,7 +58,7 @@ interface OptionsChainProps {
   onOptionSelect?: (option: any) => void;
 }
 
-export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSelect }) => {
+export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
@@ -90,6 +90,18 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
     
     return filtered;
   }, [optionsData, searchTerm]);
+
+  const handleSearchChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleExpiryChange = React.useCallback((_: any, value: string) => {
+    if (value) setExpiryFilter(value);
+  }, []);
+
+  const handleRowClick = React.useCallback((params: any) => {
+    onOptionSelect?.(params.row);
+  }, [onOptionSelect]);
   
   // Column definitions
   const columns: GridColDef[] = useMemo(() => [
@@ -382,7 +394,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
           size="small"
           placeholder="Search strike..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -396,7 +408,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
         <ToggleButtonGroup
           value={expiryFilter}
           exclusive
-          onChange={(_, value) => value && setExpiryFilter(value)}
+          onChange={handleExpiryChange}
           size="small"
         >
           <ToggleButton value="all">All</ToggleButton>
@@ -413,9 +425,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
           columns={columns}
           loading={isLoading}
           disableRowSelectionOnClick
-          onRowClick={(params) => {
-            onOptionSelect?.(params.row);
-          }}
+          onRowClick={handleRowClick}
           sx={{
             border: 'none',
             
@@ -451,4 +461,4 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       </Box>
     </Box>
   );
-};
+});

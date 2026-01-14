@@ -22,7 +22,7 @@ interface QuickTradeButtonProps {
   action: 'buy' | 'sell';
 }
 
-export const QuickTradeButton: React.FC<QuickTradeButtonProps> = ({ option, type, action }) => {
+export const QuickTradeButton: React.FC<QuickTradeButtonProps> = React.memo(({ option, type, action }) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -31,19 +31,19 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = ({ option, type
     severity: 'success',
   });
 
-  const handleClickOpen = () => {
+  const handleClickOpen = React.useCallback(() => {
     setOpen(true);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     setOpen(false);
-  };
+  }, []);
 
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  const handleSnackbarClose = React.useCallback(() => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  }, []);
 
-  const handleConfirm = () => {
+  const handleConfirm = React.useCallback(() => {
     setLoading(true);
     fetch('/api/v1/trades/execute', {
       method: 'POST',
@@ -64,7 +64,7 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = ({ option, type
       .finally(() => {
         setLoading(false);
       });
-  };
+  }, [option.id, type, action]);
 
   return (
     <>
@@ -99,4 +99,4 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = ({ option, type
       </Snackbar>
     </>
   );
-};
+});

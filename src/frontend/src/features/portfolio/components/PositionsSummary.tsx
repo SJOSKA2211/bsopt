@@ -24,7 +24,7 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export const PositionsSummary: React.FC = () => {
+export const PositionsSummary: React.FC = React.memo(() => {
   const theme = useTheme();
   const { data, isLoading, error } = usePortfolio();
 
@@ -122,4 +122,4 @@ export const PositionsSummary: React.FC = () => {
       </TableContainer>
     </Box>
   );
-};
+});
