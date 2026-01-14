@@ -18,14 +18,14 @@
     - [ ] Sub-task: Create Alembic migration for compression policy and continuous aggregate view.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Market Data Module' (Protocol in workflow.md) 40f3e5e
 
-## Phase 3: Options Chain & Pricing Module (TDD)
+## Phase 3: Options Chain & Pricing Module (TDD) [checkpoint: ee0b8de]
 - [x] Task: Implement Options Metadata and Indexing. a9484af
     - [ ] Sub-task: Write failing tests for searching options by underlying/expiry/strike.
     - [ ] Sub-task: Create Alembic migration for `option_contracts` with optimized indices.
 - [x] Task: Implement `option_greeks` Hypertable. e90f81d
     - [ ] Sub-task: Write failing tests for high-frequency pricing data ingest.
     - [ ] Sub-task: Create Alembic migration for `option_greeks` hypertable.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md) ee0b8de
 
 ## Phase 4: AI/ML Model Store (pgvector) (TDD)
 - [ ] Task: Implement Vector Embedding Store.
