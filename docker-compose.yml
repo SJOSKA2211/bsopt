@@ -141,7 +141,9 @@ services:
   # ============================================================================
 
   postgres:
-    image: timescale/timescaledb:latest-pg15
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.postgres
     container_name: bsopt-postgres
     shm_size: 1g
     environment:
@@ -152,6 +154,20 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=1GB"
+      - "-c"
+      - "work_mem=32MB"
+      - "-c"
+      - "effective_cache_size=3GB"
+      - "-c"
+      - "maintenance_work_mem=256MB"
+      - "-c"
+      - "timescaledb.max_background_workers=8"
+      - "-c"
+      - "max_worker_processes=16"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d bsopt"]
       interval: 5s
