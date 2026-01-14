@@ -27,20 +27,20 @@
     - [ ] Sub-task: Create Alembic migration for `option_greeks` hypertable.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md) ee0b8de
 
-## Phase 4: AI/ML Model Store (pgvector) (TDD)
+## Phase 4: AI/ML Model Store (pgvector) (TDD) [checkpoint: aa58cf7]
 - [x] Task: Implement Vector Embedding Store. 2e44d39
     - [ ] Sub-task: Write failing tests for vector similarity search (L2 distance).
     - [ ] Sub-task: Create Alembic migration for `model_embeddings` with HNSW index.
 - [x] Task: Implement RL Episode Tracking. 2250511
     - [ ] Sub-task: Write tests for storing and retrieving RL agent hyperparameters and performance metrics.
     - [ ] Sub-task: Create Alembic migration for `rl_episodes` table.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: AI/ML Model Store (pgvector)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: AI/ML Model Store (pgvector)' (Protocol in workflow.md) aa58cf7
 
-## Phase 5: Portfolio & Trading Module (RLS) (TDD)
+## Phase 5: Portfolio & Trading Module (RLS) (TDD) [checkpoint: aa58cf7]
 - [x] Task: Implement Transactional Core. 43816dd
     - [ ] Sub-task: Write failing tests for portfolio and position management.
     - [ ] Sub-task: Create Alembic migration for `users`, `portfolios`, and `positions` tables.
 - [x] Task: Enforce Row Level Security (RLS). 25378ab
     - [ ] Sub-task: Write failing tests to verify that User A cannot see User B's portfolio data.
     - [ ] Sub-task: Create Alembic migration to enable RLS and define security policies.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Portfolio & Trading Module (RLS)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Portfolio & Trading Module (RLS)' (Protocol in workflow.md) aa58cf7
