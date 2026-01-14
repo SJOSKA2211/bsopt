@@ -15,7 +15,6 @@ import {
   Update,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 
 interface MLPredictionsProps {
   symbol: string;
@@ -74,22 +73,16 @@ export const MLPredictions: React.FC<MLPredictionsProps> = ({ symbol }) => {
       </Stack>
 
       <Stack spacing={2}>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <AutoGraph sx={{ fontSize: 14 }} /> Target Price (24h)
-          </Typography>
-          <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <Typography variant="h4" fontWeight="bold" color="primary.main">
-              ${predictedPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Typography>
-          </motion.div>
-        </Box>
-
-        <Stack direction="row" spacing={1} alignItems="center">
+                          <Box>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <AutoGraph sx={{ fontSize: 14 }} /> Target Price (24h)
+                            </Typography>
+                            <Box>
+                              <Typography variant="h4" fontWeight="bold" color="primary.main">
+                                ${predictedPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                              </Typography>
+                            </Box>
+                          </Box>        <Stack direction="row" spacing={1} alignItems="center">
           <Chip
             label={`${isPositive ? '+' : ''}${(drift * 100).toFixed(2)}% Predicted Drift`}
             size="small"

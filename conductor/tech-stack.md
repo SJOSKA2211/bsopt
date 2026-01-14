@@ -22,7 +22,7 @@
 ## Data Storage & Message Broking
 *   **Web3.py:** Ethereum/Polygon blockchain integration and smart contract interaction.
 *   **Open Policy Agent (OPA):** Policy-based authorization for Zero Trust security.
-*   **TimescaleDB (PostgreSQL 15):** Time-series database for market data and application state.
+*   **TimescaleDB (PostgreSQL 15):** Time-series database with **pgvector** extension for market data, embeddings, and application state.
 *   **Redis (7):** Caching and Celery result backend.
 *   **MinIO:** S3-compatible object storage for model artifacts and large datasets.
 *   **RabbitMQ:** Primary message broker for the asynchronous task queue.
@@ -33,7 +33,7 @@
 
 ## Application Frameworks
 *   **FastAPI:** High-performance web framework for the API layer.
-*   **React (>=19) & Vite:** Modern frontend framework and build tool for the platform UI.
+*   **React (>=19), Vite & React Router:** Modern frontend framework, build tool, and routing for the platform UI.
 *   **Celery:** Distributed task queue for long-running compute jobs (Pricing, AutoML).
 
 ## Observability & Monitoring (LGTM Stack)

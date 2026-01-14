@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, useTheme, alpha } from '@mui/material';
-import { createChart, ColorType, CrosshairMode, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
+import type { IChartApi, ISeriesApi } from 'lightweight-charts';
 import { useWebSocket } from '../../../hooks/useWebSocket';
 
 interface LivePriceChartProps {
@@ -21,7 +22,11 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
     high: number;
     low: number;
     close: number;
-  }>('ws://localhost:1234/marketdata'); // Placeholder URL
+  }>({
+    url: 'ws://localhost:1234/marketdata',
+    symbols: [symbol],
+    enabled: true
+  }); // Placeholder URL
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -50,7 +55,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
       },
     });
 
-    const candleSeries = chart.addCandlestickSeries({
+    const candleSeries = (chart as any).addCandlestickSeries({
       upColor: theme.palette.success.main,
       downColor: theme.palette.error.main,
       borderVisible: false,

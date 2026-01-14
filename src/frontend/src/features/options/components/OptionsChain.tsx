@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -15,23 +15,18 @@ import {
 } from '@mui/material';
 import {
   DataGrid,
+} from '@mui/x-data-grid';
+import type {
   GridColDef,
   GridRenderCellParams,
-  GridValueFormatterParams,
 } from '@mui/x-data-grid';
 import {
   Search,
-  FilterList,
-  TrendingUp,
-  TrendingDown,
   ShowChart,
 } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // Custom components
-// import { GreeksTooltip } from './GreeksTooltip'; // Will be created later
-// import { OptionDetailModal } from './OptionDetailModal'; // Will be created later
 import { QuickTradeButton } from './QuickTradeButton';
 
 // Types
@@ -67,8 +62,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
-  const [selectedOption, setSelectedOption] = useState<OptionChainRow | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   
   // Fetch options chain data
   const { data: optionsData, isLoading } = useQuery({
@@ -161,16 +154,16 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       headerName: 'Vol',
       width: 80,
       headerClassName: 'call-header',
-      valueFormatter: (params: GridValueFormatterParams) =>
-        params.value?.toLocaleString(),
+      valueFormatter: (value: number) =>
+        value?.toLocaleString(),
     },
     {
       field: 'call_oi',
       headerName: 'OI',
       width: 80,
       headerClassName: 'call-header',
-      valueFormatter: (params: GridValueFormatterParams) =>
-        params.value?.toLocaleString(),
+      valueFormatter: (value: number) =>
+        value?.toLocaleString(),
     },
     {
       field: 'call_iv',
@@ -190,19 +183,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       headerName: 'Greeks',
       width: 100,
       headerClassName: 'call-header',
-      renderCell: (params: GridRenderCellParams) => {
-        const row = params.row as OptionChainRow;
+      renderCell: () => {
         return (
-          // <GreeksTooltip
-          //   delta={row.call_delta}
-          //   gamma={row.call_gamma}
-          //   vega={0}
-          //   theta={0}
-          // >
             <IconButton size="small">
               <ShowChart fontSize="small" />
             </IconButton>
-          // </GreeksTooltip>
         );
       },
     },
@@ -286,19 +271,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       headerName: 'Greeks',
       width: 100,
       headerClassName: 'put-header',
-      renderCell: (params: GridRenderCellParams) => {
-        const row = params.row as OptionChainRow;
+      renderCell: () => {
         return (
-          // <GreeksTooltip
-          //   delta={row.put_delta}
-          //   gamma={row.put_gamma}
-          //   vega={0}
-          //   theta={0}
-          // >
             <IconButton size="small">
               <ShowChart fontSize="small" />
             </IconButton>
-          // </GreeksTooltip>
         );
       },
     },
@@ -320,16 +297,16 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
       headerName: 'OI',
       width: 80,
       headerClassName: 'put-header',
-      valueFormatter: (params: GridValueFormatterParams) =>
-        params.value?.toLocaleString(),
+      valueFormatter: (value: number) =>
+        value?.toLocaleString(),
     },
     {
       field: 'put_volume',
       headerName: 'Vol',
       width: 80,
       headerClassName: 'put-header',
-      valueFormatter: (params: GridValueFormatterParams) =>
-        params.value?.toLocaleString(),
+      valueFormatter: (value: number) =>
+        value?.toLocaleString(),
     },
     {
       field: 'put_last',
@@ -437,8 +414,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
           loading={isLoading}
           disableRowSelectionOnClick
           onRowClick={(params) => {
-            setSelectedOption(params.row as OptionChainRow);
-            setModalOpen(true);
             onOptionSelect?.(params.row);
           }}
           sx={{
@@ -474,13 +449,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = ({ symbol, onOptionSele
           pageSizeOptions={[20, 50, 100]}
         />
       </Box>
-      
-      {/* Option Detail Modal */}
-      {/* <OptionDetailModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        option={selectedOption}
-      /> */}
     </Box>
   );
 };

@@ -1,7 +1,24 @@
 import React, { useMemo } from 'react';
-import ReactECharts from 'echarts-for-react';
+import ReactECharts from 'echarts-for-react/lib/core';
+import * as echarts from 'echarts/core';
+import { HeatmapChart } from 'echarts/charts';
+import {
+  TooltipComponent,
+  GridComponent,
+  VisualMapComponent
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+
+// Register the required components
+echarts.use([
+  HeatmapChart,
+  TooltipComponent,
+  GridComponent,
+  VisualMapComponent,
+  CanvasRenderer
+]);
 
 interface GreeksHeatmapProps {
   symbol: string;
@@ -22,7 +39,7 @@ interface OptionData {
 export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) => {
   const theme = useTheme();
 
-  const { data: optionsData, isLoading, error } = useQuery({
+  const { data: optionsData, isLoading, error } = useQuery<OptionData[]>({
     queryKey: ['options-chain', symbol, 'all'],
     queryFn: async () => {
       const response = await fetch(`/api/v1/options/chain?symbol=${symbol}&expiry=all`);
@@ -36,7 +53,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = ({ symbol, greek }) =
   const chartOptions = useMemo(() => {
     if (!optionsData || optionsData.length === 0) return null;
 
-    const strikes = Array.from(new Set(optionsData.map((d: OptionData) => d.strike))).sort((a, b) => a - b);
+    const strikes = Array.from(new Set(optionsData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
     const expiries = Array.from(new Set(optionsData.map((d: OptionData) => d.expiry))).sort();
 
     const data = optionsData.map((d: OptionData) => {

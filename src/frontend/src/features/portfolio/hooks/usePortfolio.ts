@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { PortfolioData } from '../types';
+import type { PortfolioData } from '../types';
 
 export const usePortfolio = () => {
   return useQuery<PortfolioData>({

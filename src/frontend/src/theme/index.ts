@@ -1,6 +1,8 @@
 // src/theme/index.ts
 
-import { createTheme, alpha, Shadows } from '@mui/material/styles';
+import { createTheme, alpha } from '@mui/material/styles';
+import type { Shadows } from '@mui/material/styles';
+import './types.d';
 
 // ============================================================================
 // COLOR PALETTE - Dark Mode Financial Theme
@@ -427,7 +429,7 @@ const spacing = 8; // 8px grid system
 export const theme = createTheme({
   palette,
   typography,
-  components,
+  components: components as any,
   shadows,
   shape,
   spacing,
