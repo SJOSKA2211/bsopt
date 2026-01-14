@@ -28,10 +28,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Options Chain & Pricing Module' (Protocol in workflow.md) ee0b8de
 
 ## Phase 4: AI/ML Model Store (pgvector) (TDD)
-- [ ] Task: Implement Vector Embedding Store.
+- [x] Task: Implement Vector Embedding Store. 2e44d39
     - [ ] Sub-task: Write failing tests for vector similarity search (L2 distance).
     - [ ] Sub-task: Create Alembic migration for `model_embeddings` with HNSW index.
-- [ ] Task: Implement RL Episode Tracking.
+- [x] Task: Implement RL Episode Tracking. 2250511
     - [ ] Sub-task: Write tests for storing and retrieving RL agent hyperparameters and performance metrics.
     - [ ] Sub-task: Create Alembic migration for `rl_episodes` table.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: AI/ML Model Store (pgvector)' (Protocol in workflow.md)
