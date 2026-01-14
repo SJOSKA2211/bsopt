@@ -1,7 +1,6 @@
 // src/theme/index.ts
 
 import { createTheme, alpha, Shadows } from '@mui/material/styles';
-import type { ThemeOptions } from '@mui/material/styles';
 
 // ============================================================================
 // COLOR PALETTE - Dark Mode Financial Theme
@@ -432,4 +431,4 @@ export const theme = createTheme({
   shadows,
   shape,
   spacing,
-} as ThemeOptions);
+});

@@ -36,20 +36,20 @@
     - [x] Sub-task: Implement `PositionsSummary` component.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard Core & Portfolio' (Protocol in workflow.md) [c828fb3]
 
-## Phase 4: Advanced Visualizations & ML Integration (TDD) [checkpoint: ef20fe9]
-- [x] Task: Implement Real-Time Price Chart (TradingView-style). [646f712]
+## Phase 4: Advanced Visualizations & ML Integration (TDD) [checkpoint: eca9f63]
+- [x] Task: Implement Real-Time Price Chart (TradingView-style). [2f71728]
     - [x] Sub-task: Write failing tests for chart data integration.
     - [x] Sub-task: Implement `LivePriceChart` component.
-- [x] Task: Develop Greeks Heatmap. [3cd6810]
+- [x] Task: Develop Greeks Heatmap. [2f71728]
     - [x] Sub-task: Write failing tests for heatmap data and rendering.
     - [x] Sub-task: Implement `GreeksHeatmap` component.
-- [x] Task: Develop 3D Volatility Surface. [01d9937]
+- [x] Task: Develop 3D Volatility Surface. [2f71728]
     - [x] Sub-task: Write failing tests for 3D rendering and data mapping.
     - [x] Sub-task: Implement `VolatilitySurface3D` component.
-- [x] Task: Integrate ML Predictions Widget. [679f7f7]
+- [x] Task: Integrate ML Predictions Widget. [2f71728]
     - [x] Sub-task: Write failing tests for prediction data display.
     - [x] Sub-task: Implement `MLPredictions` component.
-- [x] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Advanced Visualizations & ML Integration' (Protocol in workflow.md) [eca9f63]
 
 ## Phase 5: Performance & Accessibility Optimization (TDD)
 - [ ] Task: Implement Code Splitting and Lazy Loading.

@@ -8,5 +8,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Link**: [View Track](./tracks/frontend_architecture_v4_0_20260112_121124)
 ---
 
-## [ ] Track: Optimized PostgreSQL/TimescaleDB Architecture
+## [~] Track: Optimized PostgreSQL/TimescaleDB Architecture
 *Link: [./conductor/tracks/postgres_optimization_20260112/](./conductor/tracks/postgres_optimization_20260112/)*
+
+---
+## [~] Track: Docker Containerization for Production Hardening
+- **Goal**: Transform the existing "Happy Path" prototype into a production-hardened platform.
+- **Link**: [View Track](./tracks/docker_hardening_20260112)

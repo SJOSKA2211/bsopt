@@ -49,7 +49,7 @@ export const PositionsSummary: React.FC = () => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ p: 2 }}>
         <Grid container spacing={2}>
-          <Grid item xs={4}>
+          <Grid size={{ xs: 4 }}>
             <Card sx={{ bgcolor: alpha(theme.palette.primary.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Total Balance</Typography>
@@ -59,7 +59,7 @@ export const PositionsSummary: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={{ xs: 4 }}>
             <Card sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Frozen Capital</Typography>
@@ -69,7 +69,7 @@ export const PositionsSummary: React.FC = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={4}>
+          <Grid size={{ xs: 4 }}>
             <Card sx={{ bgcolor: alpha(theme.palette.warning.main, 0.05), boxShadow: 'none' }}>
               <CardContent sx={{ p: '16px !important' }}>
                 <Typography variant="overline" color="text.secondary">Risk Score</Typography>
