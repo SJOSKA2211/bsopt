@@ -21,13 +21,12 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
-    JSON,
     Numeric,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -57,9 +56,6 @@ class User(Base):
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
-    # CRITICAL: MFA secrets should NEVER be stored in plaintext.
-    # This field needs strong encryption at rest, or ideally, a secure key management system/HSM.
-    # A derived key should be stored, not the secret itself.
     mfa_secret: Mapped[Optional[str]] = mapped_column(String(255))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_token: Mapped[Optional[str]] = mapped_column(String(255), index=True)
@@ -391,8 +387,8 @@ class MLModel(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     algorithm: Mapped[str] = mapped_column(String(50), nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
-    hyperparameters: Mapped[Optional[dict]] = mapped_column(JSON)
-    training_metrics: Mapped[Optional[dict]] = mapped_column(JSON)
+    hyperparameters: Mapped[Optional[dict]] = mapped_column(JSONB)
+    training_metrics: Mapped[Optional[dict]] = mapped_column(JSONB)
     model_artifact_url: Mapped[Optional[str]] = mapped_column(String(500))
     created_by: Mapped[Optional[UUID]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -437,7 +433,7 @@ class ModelPrediction(Base):
     model_id: Mapped[Optional[UUID]] = mapped_column(
         ForeignKey("ml_models.id", ondelete="SET NULL")
     )
-    input_features: Mapped[dict] = mapped_column(JSON, nullable=False)
+    input_features: Mapped[dict] = mapped_column(JSONB, nullable=False)
     predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     actual_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4))
     prediction_error: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 4))
@@ -509,10 +505,7 @@ class AuditLog(Base):
     user_agent: Mapped[Optional[str]] = mapped_column(String(500))
     request_path: Mapped[Optional[str]] = mapped_column(String(500))
     request_method: Mapped[Optional[str]] = mapped_column(String(10))
-    # SECURITY: If user-controlled data is inserted into this JSON field without
-    # proper sanitization, it could lead to JSON injection vulnerabilities.
-    # Ensure strict validation and escaping of user input before embedding in JSON.
-    details: Mapped[Optional[dict]] = mapped_column(JSON)
+    details: Mapped[Optional[dict]] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -543,23 +536,14 @@ class RequestLog(Base):
     request_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     method: Mapped[str] = mapped_column(String(10), nullable=False)
     path: Mapped[str] = mapped_column(String(500), nullable=False)
-    # SECURITY: query_params can contain user-controlled input.
-    # Ensure proper output encoding (e.g., HTML entity encoding) when displayed
-    # in web interfaces to prevent XSS. Sanitize before displaying in logs to prevent log injection.
     query_params: Mapped[Optional[str]] = mapped_column(Text)
-    # SECURITY: If user-controlled header values are inserted into this JSON field
-    # without proper sanitization, it could lead to JSON injection vulnerabilities.
-    # Ensure strict validation and escaping of user input before embedding in JSON.
-    headers: Mapped[Optional[dict]] = mapped_column(JSON)
+    headers: Mapped[Optional[dict]] = mapped_column(JSONB)
     client_ip: Mapped[Optional[str]] = mapped_column(String(45))
     user_id: Mapped[Optional[UUID]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     status_code: Mapped[Optional[int]] = mapped_column(Integer)
     response_time_ms: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 3))
-    # SECURITY: If user-controlled input can be reflected into error messages,
-    # it could lead to log injection. Ensure proper sanitization or use structured
-    # logging with keyword arguments to prevent this.
     error_message: Mapped[Optional[str]] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -605,7 +589,7 @@ class SecurityIncident(Base):
     reported_to_dpa_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     nature_of_breach: Mapped[str] = mapped_column(Text, nullable=False)
-    data_categories_affected: Mapped[List[str]] = mapped_column(JSON, nullable=False)
+    data_categories_affected: Mapped[List[str]] = mapped_column(JSONB, nullable=False)
     approximate_number_data_subjects: Mapped[int] = mapped_column(Integer, nullable=False)
     approximate_number_records: Mapped[int] = mapped_column(Integer, nullable=False)
     likely_consequences: Mapped[str] = mapped_column(Text, nullable=False)
@@ -681,8 +665,8 @@ class CalibrationResult(Base):
     r_squared: Mapped[float] = mapped_column(Numeric(12, 6))
     num_options: Mapped[int] = mapped_column(Integer)
 
-    # SVI Parameters (JSON for surface)
-    svi_params: Mapped[Optional[dict]] = mapped_column(JSON)
+    # SVI Parameters (JSONB for surface)
+    svi_params: Mapped[Optional[dict]] = mapped_column(JSONB)
 
     __table_args__ = (
         Index("idx_calibration_symbol_time", "symbol", "time"),

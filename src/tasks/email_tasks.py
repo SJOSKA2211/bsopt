@@ -17,6 +17,7 @@ email_service = TransactionalEmailService(
 
 
 @celery_app.task(
+    bind=True,
     max_retries=5,
     default_retry_delay=60,
     autoretry_for=(Exception,),

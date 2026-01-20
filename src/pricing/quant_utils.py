@@ -99,11 +99,6 @@ def batch_bs_price_jit(
             else:
                 prices[i] = max(K[i] - S[i], 0.0)
             continue
-        
-        # Stability checks for boundary tests
-        if sigma[i] < 1e-7 or sigma[i] > 5.0 or r[i] < 0 or r[i] > 0.5:
-            prices[i] = np.nan
-            continue
 
         d1, d2 = calculate_d1_d2_jit(S[i], K[i], T[i], sigma[i], r[i], q[i])
 

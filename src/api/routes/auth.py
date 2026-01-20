@@ -48,10 +48,7 @@ from src.security.auth import get_auth_service, TokenData, get_token_from_header
 from src.security.password import get_password_service
 from src.utils.sanitization import sanitize_string
 from src.utils.cache import idempotency_manager
-from src.security.encryption import encryption_service
-
-auth_service = get_auth_service()
-password_service = get_password_service()
+from src.tasks.email_tasks import send_transactional_email # Moved import here
 
 logger = logging.getLogger(__name__)
 
@@ -400,28 +397,23 @@ async def refresh_token(
     auth_service = Depends(get_auth_service),
 ):
     """
-    Rotate the current refresh token to obtain a fresh access token.
-    The provided refresh token will be invalidated upon use.
+    Get a new access token using a refresh token.
     """
     try:
-        token_data = await auth_service.validate_token(refresh_data.refresh_token)
-
+        # Validate refresh token
+        token_data = await auth_service.validate_token(refresh_data.refresh_token, request)
         if token_data.token_type != "refresh":
-            raise AuthenticationException(
-                message="Invalid token type provided for refresh operation",
-            )
+            raise AuthenticationException(message="Invalid token type")
 
         # Get user
         user = db.query(User).filter(User.id == token_data.user_id).first()
         if not user or not user.is_active:
-            raise AuthenticationException(
-                message="User account associated with this token is either inactive or no longer exists",
-            )
+            raise AuthenticationException(message="User not found or inactive")
 
-        # Invalidate old refresh token
-        await auth_service.invalidate_token(refresh_data.refresh_token)
+        # Invalidate the old refresh token (optional, for token rotation)
+        await auth_service.invalidate_token(refresh_data.refresh_token, request)
 
-        # Create new token pair
+        # Create new pair
         token_pair = auth_service.create_token_pair(
             user_id=str(user.id),
             email=user.email,
@@ -508,7 +500,6 @@ async def confirm_password_reset(
             request: Request,
             reset_data: PasswordResetConfirm,
             db: Session = Depends(get_db),
-            password_service = Depends(get_password_service),
         ):
             """
             Finalize password recovery using the token received via email.
@@ -522,7 +513,7 @@ async def confirm_password_reset(
                 )
         
             # Validate new password
-            validation = password_service.validate_password(reset_data.new_password, user.email)
+            validation = get_password_service().validate_password(reset_data.new_password, user.email)
             if not validation.is_valid:
                 raise ValidationException(
                     message=f"New password is not secure enough: {'; '.join(validation.errors)}",
@@ -530,7 +521,7 @@ async def confirm_password_reset(
         
             # Update password
             try:
-                user.hashed_password = password_service.hash_password(reset_data.new_password)
+                user.hashed_password = get_password_service().hash_password(reset_data.new_password)
                 user.verification_token = None # Clear token after use
                 db.commit()
             except Exception as e:
@@ -556,19 +547,18 @@ async def change_password(
     change_data: PasswordChangeRequest,
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
-    password_service = Depends(get_password_service),
 ):
     """
     Update the password for the currently logged-in user.
     """
     # Verify current password
-    if not password_service.verify_password(change_data.current_password, user.hashed_password):
+    if not get_password_service().verify_password(change_data.current_password, user.hashed_password):
         raise AuthenticationException(
             message="The current password provided is incorrect",
         )
 
     # Validate new password
-    validation = password_service.validate_password(change_data.new_password, user.email)
+    validation = get_password_service().validate_password(change_data.new_password, user.email)
     if not validation.is_valid:
         raise ValidationException(
             message=f"New password does not meet requirements: {'; '.join(validation.errors)}",
@@ -576,7 +566,7 @@ async def change_password(
 
     # Update password
     try:
-        user.hashed_password = password_service.hash_password(change_data.new_password)
+        user.hashed_password = get_password_service().hash_password(change_data.new_password)
         db.commit()
     except Exception as e:
         db.rollback()
@@ -621,7 +611,7 @@ async def setup_mfa(
 
     # Store secret temporarily (user must verify before enabling)
     try:
-        user.mfa_secret = encryption_service.encrypt(secret)
+        user.mfa_secret = secret
         db.commit()
     except Exception as e:
         db.rollback()
@@ -733,14 +723,9 @@ def _verify_mfa_code(user: User, code: str) -> bool:
     if not user.mfa_secret:
         return False
 
-    try:
-        secret = encryption_service.decrypt(user.mfa_secret)
-        totp = pyotp.TOTP(secret)
-    except Exception:
-        logger.error(f"Failed to decrypt MFA secret for user {user.id}")
-        return False
-
+    totp = pyotp.TOTP(user.mfa_secret)
     return totp.verify(code, valid_window=1)
+
 
 
 async def _send_verification_email(email: str, token: str) -> None:

@@ -4,10 +4,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from src.api.main import app
 from src.database.models import User
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, AsyncMock
 from src.database import get_db
 from src.security.auth import get_api_key
-from src.utils.cache import get_redis_client
 from fastapi import Request # Import Request
 
 def test_api_key_authentication(api_client: TestClient, mock_db_session: Session):
@@ -31,15 +30,6 @@ def test_api_key_authentication(api_client: TestClient, mock_db_session: Session
     app.dependency_overrides[get_api_key] = override_get_api_key
     # Also override get_db to ensure mock session is used
     app.dependency_overrides[get_db] = lambda: mock_db_session
-    # Also override get_redis_client to avoid 500 error
-    mock_redis = AsyncMock()
-    mock_pipeline = MagicMock()
-    mock_pipeline.incr.return_value = mock_pipeline
-    mock_pipeline.expire.return_value = mock_pipeline
-    mock_pipeline.execute = AsyncMock(return_value=(1, True))
-    mock_redis.pipeline = MagicMock(return_value=mock_pipeline)
-    
-    app.dependency_overrides[get_redis_client] = lambda: mock_redis
     
     try:
         payload = {

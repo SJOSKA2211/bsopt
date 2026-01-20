@@ -48,14 +48,10 @@ from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
 from src.utils.circuit_breaker import pricing_circuit
 
 import structlog
-import re # Import regex for symbol validation
 
 router = APIRouter(prefix="/pricing", tags=["pricing"])
 logger = structlog.get_logger()
 
-# --- SECURITY: Symbol validation constants ---
-_MAX_SYMBOL_LENGTH = 10 # Example max length for a stock symbol
-_ALLOWED_SYMBOL_PATTERN = re.compile(r"^[A-Z0-9.\-]+$") # Alphanumeric, periods, hyphens
 
 def _get_bs_params(request: Union[PriceRequest, GreeksRequest]) -> BSParameters:
     """Helper to convert API request to internal BSParameters."""
@@ -74,6 +70,7 @@ def _get_bs_params(request: Union[PriceRequest, GreeksRequest]) -> BSParameters:
     response_model=DataResponse[PriceResponse],
     responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
 )
+@pricing_circuit
 async def calculate_price(
     request: PriceRequest,
     response: Response,
@@ -98,12 +95,6 @@ async def calculate_price(
         if not request.symbol:
             raise ValidationException(message="Symbol is required for Heston model")
         
-        # --- SECURITY: Validate and sanitize symbol to prevent Cache Key Injection/DoS ---
-        if len(request.symbol) > _MAX_SYMBOL_LENGTH:
-            raise ValidationException(message=f"Symbol too long. Max {_MAX_SYMBOL_LENGTH} characters.")
-        if not _ALLOWED_SYMBOL_PATTERN.match(request.symbol):
-            raise ValidationException(message="Invalid symbol format. Only alphanumeric, periods, and hyphens are allowed.")
-
         cache_key = f"heston_params:{request.symbol}"
         cached_data = await redis_client.get(cache_key)
         
@@ -272,6 +263,7 @@ async def calculate_batch_prices(request: BatchPriceRequest):
     response_model=DataResponse[GreeksResponse],
     responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
 )
+@pricing_circuit
 async def calculate_greeks(
     request: GreeksRequest,
     user: Any = Depends(get_current_user_flexible),

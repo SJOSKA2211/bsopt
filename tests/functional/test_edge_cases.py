@@ -22,7 +22,7 @@ async def test_register_empty_strings(client, user_payload):
     assert response.status_code in [201, 422]
 
 @pytest.mark.asyncio
-async def test_pricing_large_inputs(client, mock_auth_dependency):
+async def test_pricing_large_inputs(client):
     """57. Test Edge Cases: Test large inputs within schema limits."""
     # Using 1,000,000 as a large but likely valid value
     payload = {
@@ -36,7 +36,7 @@ async def test_pricing_large_inputs(client, mock_auth_dependency):
     assert response.status_code in [200, 422]
 
 @pytest.mark.asyncio
-async def test_pricing_empty_payload(client, mock_auth_dependency):
+async def test_pricing_empty_payload(client):
     """73. Test Edge Cases: Test empty payloads."""
     response = await client.post("/api/v1/pricing/price", json={})
     assert response.status_code == 422
@@ -55,7 +55,7 @@ async def test_register_duplicate_entries(client, user_payload):
     assert response.status_code == 409
 
 @pytest.mark.asyncio
-async def test_pricing_maximum_values(client, mock_auth_dependency):
+async def test_pricing_maximum_values(client):
     """97. Test Edge Cases: Test maximum values within schema limits."""
     payload = {
         "spot": 100.0, "strike": 100.0, "time_to_expiry": 5.0,
@@ -76,7 +76,7 @@ async def test_register_special_characters(client, user_payload):
     assert response.status_code in [201, 422]
 
 @pytest.mark.asyncio
-async def test_pricing_out_of_bounds_rejection(client, mock_auth_dependency):
+async def test_pricing_out_of_bounds_rejection(client):
     """48. Test Error Codes: Verify out-of-bounds rejection."""
     payload = {
         "spot": -1.0, # Definitely invalid

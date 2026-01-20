@@ -14,10 +14,12 @@ def test_blockchain_quantum_configured():
     
     assert 'services' in compose_config, "docker-compose.prod.yml must define services"
     
-    geth_service = compose_config['services'].get('ray-head')
-    assert geth_service, "Ray head service not found in docker-compose.prod.yml"
-    
-    quantum_simulator_service = compose_config['services'].get('scraper-service')
-    assert quantum_simulator_service, "Scraper service not found in docker-compose.prod.yml"
-    assert 'build' in quantum_simulator_service, "Scraper build context not specified"
-    assert 'networks' in quantum_simulator_service and 'app-net' in quantum_simulator_service['networks'], "Scraper network not correctly specified"
+    geth_service = compose_config['services'].get('geth')
+    assert geth_service, "Geth service not found in docker-compose.prod.yml"
+    assert 'image' in geth_service and 'ethereum/client-go' in geth_service['image'], "Geth image not correctly specified"
+    assert 'networks' in geth_service and 'blockchain-net' in geth_service['networks'], "Geth network not correctly specified"
+
+    quantum_simulator_service = compose_config['services'].get('quantum-simulator')
+    assert quantum_simulator_service, "Quantum Simulator service not found in docker-compose.prod.yml"
+    assert 'build' in quantum_simulator_service, "Quantum Simulator build context not specified"
+    assert 'networks' in quantum_simulator_service and 'app-net' in quantum_simulator_service['networks'], "Quantum Simulator network not correctly specified"

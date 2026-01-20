@@ -2,25 +2,22 @@ import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 import numpy as np
 
-# Removed top-level import to allow proper mocking
-# from src.streaming.analytics import VolatilityAggregationStream
+# Assuming src.streaming.analytics.py is correctly in the path
+from src.streaming.analytics import VolatilityAggregationStream
 
 @pytest.fixture
-def mock_faust_app(monkeypatch):
+def mock_faust_app():
     """Mocks the faust.App for isolated testing."""
-    import src.streaming.analytics
-    mock_app_instance = MagicMock()
-    mock_app_instance.topic.return_value = MagicMock()
-    mock_app_instance.Table.return_value = MagicMock()
-    mock_app_instance.agent.return_value = lambda x: x
-    
-    monkeypatch.setattr(src.streaming.analytics, "App", MagicMock(return_value=mock_app_instance))
-    yield mock_app_instance
+    with patch('src.streaming.analytics.App', autospec=True) as MockApp:
+        mock_app_instance = MockApp.return_value
+        mock_app_instance.topic = MagicMock(return_value=MagicMock())
+        mock_app_instance.Table = MagicMock(return_value=MagicMock())
+        mock_app_instance.agent = MagicMock(return_value=lambda x: x) # Return agent function itself
+        yield mock_app_instance
 
 @pytest.fixture
 def volatility_stream_instance(mock_faust_app):
     """Provides an instance of VolatilityAggregationStream with mocked Faust app."""
-    from src.streaming.analytics import VolatilityAggregationStream
     return VolatilityAggregationStream(bootstrap_servers='kafka://mock-kafka:9092')
 
 def test_volatility_stream_init(volatility_stream_instance, mock_faust_app):
@@ -48,8 +45,6 @@ async def test_calculate_realized_volatility_updates_table(volatility_stream_ins
     mock_group_by_result.__aiter__.return_value = [event1, event2]
     mock_stream.group_by.return_value = mock_group_by_result
     
-    # Mock volatility_table
-    volatility_stream_instance.volatility_table = MagicMock()
     # Ensure initial volatility is 0 for the symbol
     volatility_stream_instance.volatility_table.get.return_value = 0.0
 
@@ -71,8 +66,6 @@ def test_update_volatility_calculation(volatility_stream_instance):
     log_return = np.log(101.0 / 100.0) # ~0.00995
     timestamp = 1672531260
 
-    # Mock volatility_table
-    volatility_stream_instance.volatility_table = MagicMock()
     # Simulate initial volatility in the table for the symbol
     volatility_stream_instance.volatility_table.get.return_value = 0.0 # Starting from zero
 

@@ -2,16 +2,10 @@ import pytest
 from unittest.mock import patch, MagicMock
 import sys
 import os
-import importlib
-import scripts.validate_imports
+import importlib.util
+from scripts.validate_imports import _find_lazy_loaded_modules, validate_lazy_imports
 
 class TestImportValidationInternal:
-    @pytest.fixture(autouse=True)
-    def cleanup_lazy_import(self):
-        yield
-        if 'src.utils.lazy_import' in sys.modules:
-            del sys.modules['src.utils.lazy_import']
-
     @pytest.fixture
     def mock_structure(self, tmp_path):
         # Point to the REAL src directory to ensure coverage is recorded
@@ -19,50 +13,60 @@ class TestImportValidationInternal:
         return os.path.join(project_root, "src")
 
     def test_find_lazy_loaded_modules(self, mock_structure):
-        modules = scripts.validate_imports._find_lazy_loaded_modules(str(mock_structure))
-        assert isinstance(modules, dict)
+        modules = _find_lazy_loaded_modules(str(mock_structure))
+        assert 'src.ml' in modules or 'ml' in modules
 
-    def test_validate_lazy_imports_success(self, mock_structure, mocker):
-        fake_mod_name = "fake_success_module"
-        fake_mod = MagicMock()
-        fake_mod.some_attr = "exists"
+    def test_validate_lazy_imports_success(self, mock_structure, mocker): # Added mocker
+        # This will actually run against the real src/ but we mock import_module
+        # to avoid triggering the heavy loads during the validation loop logic test.
+        mock_import = mocker.patch('importlib.import_module') # Changed to mocker.patch and removed 'with' statement
+        mock_utils = MagicMock()
+        class MockLazyImportError(Exception): pass
+        class MockCircularImportError(Exception): pass
+        mock_utils.LazyImportError = MockLazyImportError
+        mock_utils.CircularImportError = MockCircularImportError
         
-        # Patch importlib.import_module which is used by lazy_import
-        mocker.patch('importlib.import_module', return_value=fake_mod)
-        mocker.patch.object(scripts.validate_imports, '_find_lazy_loaded_modules', 
-                            return_value={fake_mod_name: {'some_attr': 'some/path'}})
+        mock_parent = MagicMock()
+        # Just return the mock parent for any module requested
+        mock_import.side_effect = lambda name, package=None: mock_utils if 'lazy_import' in name else mock_parent # Added package parameter
         
-        scripts.validate_imports.validate_lazy_imports(str(mock_structure))
+        # validate_lazy_imports will call getattr(parent, attr)
+        # Since mock_parent is a MagicMock, getattr(mock_parent, attr) returns another Mock (truthy)
+        
+        validate_lazy_imports(str(mock_structure))
 
-    def test_validate_lazy_imports_failure(self, mock_structure, mocker):
-        fake_mod_name = "fake_attr_error_module"
+    def test_validate_lazy_imports_failure(self, mock_structure, mocker): # Added mocker
+        mock_import = mocker.patch('importlib.import_module') # Changed to mocker.patch and removed 'with' statement
+        mock_utils = MagicMock()
+        class MockLazyImportError(Exception): pass
+        class MockCircularImportError(Exception): pass
+        mock_utils.LazyImportError = MockLazyImportError
+        mock_utils.CircularImportError = MockCircularImportError
         
-        class EmptyModule:
-            pass
+        class FailingModule:
+            def __getattr__(self, name):
+                raise AttributeError(f"Missing {name}")
         
-        fake_mod = EmptyModule()
-        # Mock import_module to return a module that will raise AttributeError on access
-        mocker.patch('importlib.import_module', return_value=fake_mod)
-        mocker.patch.object(scripts.validate_imports, '_find_lazy_loaded_modules', 
-                            return_value={fake_mod_name: {'missing_attr': 'some/path'}})
+        mock_parent = FailingModule()
+        mock_import.side_effect = lambda name, package=None: mock_utils if 'lazy_import' in name else mock_parent # Added package parameter
         
         with pytest.raises(SystemExit) as cm:
-            scripts.validate_imports.validate_lazy_imports(str(mock_structure))
+            validate_lazy_imports(str(mock_structure))
         assert cm.value.code == 1
 
-    def test_no_modules_found(self, tmp_path, mocker):
+    def test_no_modules_found(self, tmp_path):
         empty_dir = tmp_path / "empty"
         empty_dir.mkdir()
-        mocker.patch.object(scripts.validate_imports, '_find_lazy_loaded_modules', return_value={})
-        scripts.validate_imports.validate_lazy_imports(str(empty_dir))
+        validate_lazy_imports(str(empty_dir))
 
-    def test_module_import_error(self, mock_structure, mocker):
-        fake_mod_name = "non_existent_module_xyz"
-        
-        mocker.patch('importlib.import_module', side_effect=ImportError("Failed"))
-        mocker.patch.object(scripts.validate_imports, '_find_lazy_loaded_modules', 
-                            return_value={fake_mod_name: {'attr': 'path'}})
+    def test_module_import_error(self, mock_structure, mocker): # Added mocker
+        def failing_side_effect(name, package=None): # Added package parameter
+            if 'lazy_import' in name:
+                return MagicMock() # Return a mock for lazy_import utils
+            raise ImportError("Failed")
+            
+        mocker.patch('importlib.import_module', side_effect=failing_side_effect) # Changed to mocker.patch and removed 'with' statement
             
         with pytest.raises(SystemExit) as cm:
-            scripts.validate_imports.validate_lazy_imports(str(mock_structure))
+            validate_lazy_imports(str(mock_structure))
         assert cm.value.code == 1

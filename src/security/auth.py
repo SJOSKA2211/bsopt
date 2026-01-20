@@ -451,70 +451,24 @@ async def get_api_key(
 
 
 async def get_current_user_flexible(
-
-
-    request: Request,
-
-
     token: Optional[str] = Depends(get_token_from_header),
-
-
     api_key_user: Optional[User] = Depends(get_api_key),
-
-
     db: Session = Depends(get_db),
-
-
 ) -> User:
-
-
     """Authentication via either JWT or API Key."""
-
-
     if api_key_user:
-
-
         if not api_key_user.is_active:
-
-
              raise HTTPException(
-
-
                 status_code=status.HTTP_403_FORBIDDEN,
-
-
                 detail="Account associated with API key is disabled",
-
-
             )
-
-
         return api_key_user
-
-
         
-
-
     if not token:
-
-
         raise HTTPException(
-
-
             status_code=status.HTTP_401_UNAUTHORIZED,
-
-
             detail="Not authenticated. Provide Bearer token or X-API-Key header.",
-
-
             headers={"WWW-Authenticate": "Bearer"},
-
-
         )
-
-
         
-
-
-    return await get_current_user(request, token, db)
-
+    return await get_current_user(token, db)

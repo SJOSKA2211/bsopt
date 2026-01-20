@@ -4,7 +4,6 @@ from enum import Enum
 from functools import wraps
 from typing import Callable, Any, Optional, cast
 import asyncio
-import inspect
 
 import redis.asyncio as redis
 from src.config import settings
@@ -28,74 +27,40 @@ class InMemoryCircuitBreaker:
         self.last_failure_time = 0
         self.state = CircuitState.CLOSED
 
-    def reset(self):
-        """Reset the circuit breaker to CLOSED state."""
-        self.failure_count = 0
-        self.last_failure_time = 0
-        self.state = CircuitState.CLOSED
-
     def __call__(self, func: Callable):
-        sig = inspect.signature(func)
-        if asyncio.iscoroutinefunction(func):
-            @wraps(func)
-            async def async_wrapper(*args, **kwargs):
-                if self.state == CircuitState.OPEN:
-                    if time.time() - self.last_failure_time > self.recovery_timeout:
-                        self.state = CircuitState.HALF_OPEN
-                        logger.info("Circuit Breaker: State changed to HALF_OPEN")
-                    else:
-                        raise Exception("Circuit Breaker is OPEN. Request rejected.")
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if self.state == CircuitState.OPEN:
+                if time.time() - self.last_failure_time > self.recovery_timeout:
+                    self.state = CircuitState.HALF_OPEN
+                    logger.info("Circuit Breaker: State changed to HALF_OPEN")
+                else:
+                    raise Exception("Circuit Breaker is OPEN. Request rejected.")
 
-                try:
-                    result = await func(*args, **kwargs)
-                    if self.state == CircuitState.HALF_OPEN:
-                        self.state = CircuitState.CLOSED
-                        self.failure_count = 0
-                        logger.info("Circuit Breaker: State changed to CLOSED")
-                    return result
-                except Exception as e:
-                    self._handle_failure(e)
-                    raise e
-            async_wrapper.__signature__ = sig  # type: ignore
-            return async_wrapper
-        else:
-            @wraps(func)
-            def sync_wrapper(*args, **kwargs):
-                if self.state == CircuitState.OPEN:
-                    if time.time() - self.last_failure_time > self.recovery_timeout:
-                        self.state = CircuitState.HALF_OPEN
-                        logger.info("Circuit Breaker: State changed to HALF_OPEN")
-                    else:
-                        raise Exception("Circuit Breaker is OPEN. Request rejected.")
-
-                try:
-                    result = func(*args, **kwargs)
-                    if self.state == CircuitState.HALF_OPEN:
-                        self.state = CircuitState.CLOSED
-                        self.failure_count = 0
-                        logger.info("Circuit Breaker: State changed to CLOSED")
-                    return result
-                except Exception as e:
-                    self._handle_failure(e)
-                    raise e
-            sync_wrapper.__signature__ = sig  # type: ignore
-            return sync_wrapper
-
-    def _handle_failure(self, e: Exception):
-        self.failure_count += 1
-        self.last_failure_time = time.time()
-        if self.failure_count >= self.failure_threshold:
-            self.state = CircuitState.OPEN
-            logger.error("circuit_breaker_state_changed_to_open", name="InMemoryCircuitBreaker", failures=self.failure_count, error=str(e), exc_info=True)
+            try:
+                result = func(*args, **kwargs)
+                
+                if self.state == CircuitState.HALF_OPEN:
+                    self.state = CircuitState.CLOSED
+                    self.failure_count = 0
+                    logger.info("Circuit Breaker: State changed to CLOSED")
+                
+                return result
+            except Exception as e:
+                self.failure_count += 1
+                self.last_failure_time = time.time()
+                
+                if self.failure_count >= self.failure_threshold:
+                    self.state = CircuitState.OPEN
+                    logger.error(f"Circuit Breaker: State changed to OPEN due to {self.failure_count} failures. Last error: {e}")
+                
+                raise e
+        return wrapper
 
 
 # Alias for backward compatibility
 CircuitBreaker = InMemoryCircuitBreaker
 
-
-import re # Import regex module
-
-# ... (previous code) ...
 
 class DistributedCircuitBreaker:
     """
@@ -106,18 +71,11 @@ class DistributedCircuitBreaker:
     REDIS_KEY_FAILURES = "{name}:cb_failures"
     REDIS_KEY_LAST_FAILURE = "{name}:cb_last_failure"
 
-    def _sanitize_name(self, name: str) -> str:
-        """Sanitizes the name to prevent Redis Key Injection."""
-        # Allow alphanumeric, hyphens, and underscores. Replace others with underscore.
-        return re.sub(r'[^\w-]', '_', name)
-
     def __init__(self, name: str, redis_client: redis.Redis, failure_threshold: int = 5, recovery_timeout: int = 30):
-        # --- SECURITY: Sanitize name to prevent Redis Key Injection ---
-        self.name = self._sanitize_name(name)
+        self.name = name
         self.redis_client = redis_client
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
-
 
     async def _get_state(self) -> CircuitState:
         state_str = await self.redis_client.get(self.REDIS_KEY_STATE.format(name=self.name))
@@ -144,7 +102,6 @@ class DistributedCircuitBreaker:
         await self.redis_client.set(self.REDIS_KEY_LAST_FAILURE.format(name=self.name), timestamp, ex=expiry)
 
     def __call__(self, func: Callable):
-        sig = inspect.signature(func)
         @wraps(func)
         async def wrapper(*args, **kwargs):
             current_state = await self._get_state()
@@ -154,7 +111,7 @@ class DistributedCircuitBreaker:
                 last_failure = await self._get_last_failure_time()
                 if current_time - last_failure > self.recovery_timeout:
                     await self._set_state(CircuitState.HALF_OPEN)
-                    logger.info("circuit_breaker_state_changed_to_half_open", name=self.name)
+                    logger.info(f"Circuit Breaker '{self.name}': State changed to HALF_OPEN")
                     current_state = CircuitState.HALF_OPEN
                 else:
                     raise Exception(f"Circuit Breaker '{self.name}' is OPEN. Request rejected.")
@@ -169,7 +126,7 @@ class DistributedCircuitBreaker:
                 if current_state == CircuitState.HALF_OPEN:
                     await self._set_state(CircuitState.CLOSED)
                     await self._reset_failures()
-                    logger.info("circuit_breaker_state_changed_to_closed", name=self.name)
+                    logger.info(f"Circuit Breaker '{self.name}': State changed to CLOSED")
                 
                 return result
             except Exception as e:
@@ -178,10 +135,9 @@ class DistributedCircuitBreaker:
                 
                 if failures >= self.failure_threshold:
                     await self._set_state(CircuitState.OPEN, expiry=self.recovery_timeout) # Open for recovery_timeout
-                    logger.error("circuit_breaker_state_changed_to_open", name=self.name, failures=failures, error=str(e), exc_info=True)
+                    logger.error(f"Circuit Breaker '{self.name}': State changed to OPEN due to {failures} failures. Last error: {e}")
                 
                 raise e
-        wrapper.__signature__ = sig # type: ignore
         return wrapper
 
 # Global instances for different services (now InMemory by default if not specified)

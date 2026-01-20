@@ -37,19 +37,8 @@ async def test_train_smoke(mock_log_model, mock_start_run, mock_log_params, mock
     mock_model_info.registered_model_version = "1"
     mock_log_model.return_value = mock_model_info
     
-    # Also mock MlflowClient and settings
-    with patch("src.ml.training.train.MlflowClient") as mock_client, \
-         patch("src.ml.training.train.settings") as mock_settings:
-        
-        # Setup settings
-        mock_settings.ML_TRAINING_TEST_SIZE = 0.2
-        mock_settings.ML_TRAINING_RANDOM_STATE = 42
-        mock_settings.ML_TRAINING_KFOLD_SPLITS = 3
-        mock_settings.ML_TRAINING_OPTUNA_TRIALS = 1
-        mock_settings.ML_TRAINING_PROMOTE_THRESHOLD_R2 = 0.98
-        mock_settings.ML_TRAINING_NN_EPOCHS = 1
-        mock_settings.ML_TRAINING_NN_LR = 0.01
-        
+    # Also mock MlflowClient
+    with patch("src.ml.training.train.MlflowClient") as mock_client:
         result = await train(use_real_data=False, n_samples=100, promote_threshold=0.0)
         assert "run_id" in result
         assert result["r2"] is not None

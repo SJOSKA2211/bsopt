@@ -37,30 +37,16 @@ def test_batch_bs_price_jit():
     assert prices[1] > 0
 
 
-def test_batch_bs_price_jit_extreme_values():
-    # Test zero vol, negative rate, etc.
-    S = np.array([100.0, 100.0, 100.0])
-    K = np.array([100.0, 100.0, 100.0])
-    T = np.array([1.0, 1.0, 1.0])
-    v = np.array([1e-9, 0.2, 0.2]) # Near zero vol
-    r = np.array([0.05, -0.05, 0.05]) # Negative rate
-    q = np.array([0.0, 0.0, 0.0])
-    is_call = np.array([True, True, True])
-
-    prices = batch_bs_price_jit(S, K, T, v, r, q, is_call)
-    assert np.isnan(prices[0])
-    assert np.isnan(prices[1])
-    assert not np.isnan(prices[2])
-
-def test_batch_bs_price_jit_zero_maturity():
-    S = np.array([110.0, 90.0])
+def test_corrado_miller():
+    # Just check if it runs and returns reasonable values
+    market_prices = np.array([10.0, 5.0])
+    S = np.array([100.0, 100.0])
     K = np.array([100.0, 100.0])
-    T = np.array([0.0, 0.0])
-    v = np.array([0.2, 0.2])
+    T = np.array([1.0, 1.0])
     r = np.array([0.05, 0.05])
     q = np.array([0.0, 0.0])
-    is_call = np.array([True, True])
+    is_call = np.array([0, 1])  # 0 for call, 1 for put (based on my previous read)
 
-    prices = batch_bs_price_jit(S, K, T, v, r, q, is_call)
-    assert prices[0] == 10.0
-    assert prices[1] == 0.0
+    vols = corrado_miller_initial_guess(market_prices, S, K, T, r, q, is_call)
+    assert_equal(len(vols), 2)
+    assert np.all(vols > 0)

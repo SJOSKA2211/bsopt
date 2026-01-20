@@ -25,4 +25,8 @@ def test_ray_shm_size_configured():
     ray_head_service = compose_config['services'].get('ray-head')
     assert ray_head_service, "Ray head service not found in docker-compose.prod.yml"
     assert 'shm_size' in ray_head_service, "shm_size not configured for ray-head service"
+    
+    rl_training_worker_service = compose_config['services'].get('rl-training-worker')
+    assert rl_training_worker_service, "RL training worker service not found in docker-compose.prod.yml"
+    assert 'shm_size' in rl_training_worker_service, "shm_size not configured for rl-training-worker service"
 

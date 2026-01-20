@@ -35,20 +35,16 @@ class SentimentExtractor:
         if self.model is None or self.tokenizer is None:
             return 0.0
 
-        try:
-            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                
-            # FinBERT labels: 0: positive, 1: negative, 2: neutral
-            probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+        with torch.no_grad():
+            outputs = self.model(**inputs)
             
-            # Pos - Neg = Score
-            score = probs[0] - probs[1]
-            return float(score)
-        except Exception as e:
-            logger.error("sentiment_extraction_failed", error=str(e))
-            return 0.0
+        # FinBERT labels: 0: positive, 1: negative, 2: neutral
+        probs = torch.nn.functional.softmax(outputs.logits, dim=-1).numpy()[0]
+        
+        # Pos - Neg = Score
+        score = probs[0] - probs[1]
+        return float(score)
 
     def get_sentiment_scores_batch(self, texts: List[str]) -> List[float]:
         """
@@ -69,11 +65,6 @@ class SentimentExtractor:
     async def analyze_complex_news(self, text: str):
         """
         Placeholder for complex LLM-based sentiment analysis.
-        CRITICAL LLM SAFETY: When implementing this function with an LLM:
-        - Implement robust input sanitization to prevent Prompt Injection.
-        - Use strict output validation/filtering to prevent unintended actions.
-        - Consider model guardrails and human-in-the-loop for sensitive applications.
-        - Avoid directly exposing raw LLM output to users or sensitive downstream systems.
         """
         raise NotImplementedError("LLM integration not yet implemented")
 
@@ -111,14 +102,6 @@ class AugmentedRLAgent:
         """
         # Ensure price_state is a numpy array
         price_state = np.array(price_state)
-        
-        # Truncate or pad price_state to match configuration
-        if len(price_state) > self.price_state_dim:
-            price_state = price_state[:self.price_state_dim]
-        elif len(price_state) < self.price_state_dim:
-            padding = np.zeros(self.price_state_dim - len(price_state))
-            price_state = np.concatenate([price_state, padding])
-            
         # Create sentiment array (can be more complex if sentiment_state_dim > 1)
         sentiment_state = np.array([sentiment_score])
         

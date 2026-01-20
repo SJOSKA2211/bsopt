@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from src.api.main import app
 from src.database import get_db
-from src.security.auth import get_auth_service
+from src.security.auth import get_auth_service, get_current_active_user, get_token_from_header, get_current_user
 from src.security.password import get_password_service
 from src.database.models import User
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -113,3 +113,60 @@ def test_refresh_token_success(mock_auth_service, mock_db):
         
         assert response.status_code == 200
         assert response.json()["data"]["access_token"] == "new_at"
+
+def test_login_failure_invalid_credentials(mock_auth_service, mock_db):
+    mock_auth_service.authenticate_user.return_value = None
+    payload = {"email": "wrong@ex.com", "password": "wrong"}
+    response = client.post("/api/v1/auth/login", json=payload)
+    assert response.status_code == 401
+
+def test_mfa_setup_success(mock_auth_service, mock_db):
+    mock_user = MagicMock(spec=User)
+    mock_user.email = "test@ex.com"
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    
+    mock_auth_service.generate_mfa_secret.return_value = ("MYSUPERSECRET", "otpauth://...")
+    
+    response = client.post("/api/v1/auth/mfa/setup")
+    assert response.status_code == 200
+    assert "initiated" in response.json()["message"].lower()
+
+    
+    app.dependency_overrides.pop(get_current_active_user, None)
+
+def test_mfa_verify_success(mock_auth_service, mock_db):
+    mock_user = MagicMock(spec=User)
+    mock_user.mfa_secret = "secret"
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    
+    with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
+        payload = {"code": "123456"}
+        response = client.post("/api/v1/auth/mfa/verify", json=payload)
+        assert response.status_code == 200
+        assert "success" in response.json()["message"].lower()
+    
+    app.dependency_overrides.pop(get_current_active_user, None)
+
+def test_password_reset_request_success(mock_password_service, mock_db):
+    mock_user = MagicMock(spec=User)
+    # The path is /password-reset, not /password-reset/request
+    with patch.object(mock_db.query.return_value.filter.return_value, "first", return_value=mock_user):
+        mock_password_service.generate_reset_token.return_value = "reset_token"
+        
+        payload = {"email": "test@ex.com"}
+        with patch("src.api.routes.auth._send_password_reset_email"):
+            response = client.post("/api/v1/auth/password-reset", json=payload)
+            assert response.status_code == 200
+
+def test_logout_success(mock_auth_service):
+    app.dependency_overrides[get_token_from_header] = lambda: "valid_token"
+    mock_user = MagicMock(spec=User)
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    
+    mock_auth_service.invalidate_token = AsyncMock()
+    
+    response = client.post("/api/v1/auth/logout")
+    assert response.status_code == 200
+    
+    app.dependency_overrides.pop(get_token_from_header, None)
+    app.dependency_overrides.pop(get_current_user, None)

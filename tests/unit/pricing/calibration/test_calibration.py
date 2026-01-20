@@ -28,30 +28,13 @@ class TestHestonCalibrator:
                     volume=100, open_interest=500, option_type='call'
                 ))
         
-        from unittest.mock import patch, MagicMock
+        # Calibrate
+        # Using popsize=5 and maxiter=10 for fast test, normally much higher
+        calibrated_params, metrics = calibrator.calibrate(market_data, maxiter=10, popsize=5)
         
-        # Mock optimization results
-        mock_de_res = MagicMock()
-        mock_de_res.x = [2.0, 0.04, 0.3, -0.7, 0.04] # kappa, theta, sigma, rho, v0
-        
-        mock_slsqp_res = MagicMock()
-        mock_slsqp_res.x = [2.0, 0.04, 0.3, -0.7, 0.04]
-        mock_slsqp_res.fun = 0.001
-        mock_slsqp_res.success = True
-
-        with patch("src.pricing.calibration.engine.differential_evolution", return_value=mock_de_res) as mock_de, \
-             patch("src.pricing.calibration.engine.minimize", return_value=mock_slsqp_res) as mock_min:
-            
-            # Calibrate
-            calibrated_params, metrics = calibrator.calibrate(market_data, maxiter=10, popsize=5)
-            
-            # Verify calls
-            assert mock_de.called
-            assert mock_min.called
-            
-            assert metrics['success']
-            assert metrics['rmse'] < 0.1
-            assert metrics['r_squared'] > 0.9
+        assert metrics['success']
+        assert metrics['rmse'] < 0.1 # Loose threshold for fast/coarse optimization
+        assert metrics['r_squared'] > 0.9
 
     def test_insufficient_data(self):
         calibrator = HestonCalibrator()

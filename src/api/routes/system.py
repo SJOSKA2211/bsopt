@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from src.utils.circuit_breaker import pricing_circuit, db_circuit
-from src.security.auth import require_admin
 
-router = APIRouter(prefix="/system", tags=["System"], dependencies=[Depends(require_admin())])
+router = APIRouter(prefix="/system", tags=["System"])
 
 @router.get("/status")
 async def get_system_status():

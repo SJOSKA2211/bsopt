@@ -1,211 +1,250 @@
-from dataclasses import dataclass
-from typing import Union, Dict, Any, Optional
 import numpy as np
 from scipy.stats import norm
+from typing import Union, Optional, Dict
+from src.pricing.models import BSParameters, OptionGreeks
+from .base import PricingStrategy
 
-@dataclass
-class BSParameters:
-    spot: Union[float, np.ndarray]
-    strike: Union[float, np.ndarray]
-    maturity: Union[float, np.ndarray]
-    volatility: Union[float, np.ndarray]
-    rate: Union[float, np.ndarray]
-    dividend: Union[float, np.ndarray] = 0.0
-
-@dataclass
-class OptionGreeks:
-    delta: Union[float, np.ndarray]
-    gamma: Union[float, np.ndarray]
-    vega: Union[float, np.ndarray]
-    theta: Union[float, np.ndarray]
-    rho: Union[float, np.ndarray]
-
-class BlackScholesEngine:
+class BlackScholesEngine(PricingStrategy):
     @staticmethod
-    def _price_options_static(params: BSParameters, option_type: Union[str, np.ndarray]) -> Union[float, np.ndarray]:
-        S = np.array(params.spot, dtype=float)
-        K = np.array(params.strike, dtype=float)
-        T = np.array(params.maturity, dtype=float)
-        r = np.array(params.rate, dtype=float)
-        q = np.array(params.dividend, dtype=float)
-        sigma = np.array(params.volatility, dtype=float)
-        
-        # Avoid division by zero warnings
-        sigma_sqrt_T = sigma * np.sqrt(T)
-        
-        d1 = np.zeros_like(S)
-        d2 = np.zeros_like(S)
-        
-        # Only compute where possible
-        mask = (T > 0) & (sigma > 0)
-        
-        if np.any(mask):
-            with np.errstate(divide='ignore', invalid='ignore'):
-                 d1[mask] = (np.log(S[mask] / K[mask]) + (r[mask] - q[mask] + 0.5 * sigma[mask]**2) * T[mask]) / sigma_sqrt_T[mask]
-                 d2[mask] = d1[mask] - sigma_sqrt_T[mask]
-            
-        exp_mqT = np.exp(-q * T)
-        exp_mrT = np.exp(-r * T)
-        
-        is_call = (option_type == "call") if isinstance(option_type, str) else (np.array(option_type) == "call")
-        
-        # Calculate for Call
-        price_call = S * exp_mqT * norm.cdf(d1) - K * exp_mrT * norm.cdf(d2)
-        
-        # Calculate for Put
-        price_put = K * exp_mrT * norm.cdf(-d2) - S * exp_mqT * norm.cdf(-d1)
-        
-        if isinstance(option_type, str):
-            res = price_call if option_type == "call" else price_put
+    def calculate_d1_d2(params: BSParameters):
+        S = params.spot
+        K = params.strike
+        T = params.maturity
+        r = params.rate
+        sigma = params.volatility
+        dividend = params.dividend
+
+        if T <= 0:
+            return 0.0, 0.0
+
+        d1 = (np.log(S / K) + (r - dividend + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+        d2 = d1 - sigma * np.sqrt(T)
+        return d1, d2
+
+    def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
+        """Instance method for PricingStrategy interface."""
+        if params is None:
+            params = BSParameters(**kwargs)
+        return self.calculate(params, option_type)['price']
+
+
+
+
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+        """Implementation of PricingStrategy.calculate_greeks."""
+        return self.calculate_greeks_static(params, option_type)
+
+    def calculate(self, params: BSParameters, type: str = 'call'):
+        S = params.spot
+        K = params.strike
+        T = params.maturity
+        r = params.rate
+        sigma = params.volatility
+        dividend = params.dividend
+
+        if np.any(T <= 0):
+            prices = np.where(T <= 0, 
+                              np.where(type == 'call', np.maximum(S - K, 0.0), np.maximum(K - S, 0.0)),
+                              0.0)
+            if np.all(T <= 0):
+                return {"price": prices, "delta": np.zeros_like(S), "gamma": np.zeros_like(S)}
+
+
+        d1, d2 = self.calculate_d1_d2(params)
+
+        if type == 'call':
+            price = S * np.exp(-dividend * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+            delta = np.exp(-dividend * T) * norm.cdf(d1)
         else:
-             res = np.where(is_call, price_call, price_put)
+            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-dividend * T) * norm.cdf(-d1)
+            delta = np.exp(-dividend * T) * (norm.cdf(d1) - 1)
 
-        # Handle intrinsic value for T=0 or sigma=0
-        if np.any(~mask):
-            intrinsic_call = np.maximum(S - K, 0.0)
-            intrinsic_put = np.maximum(K - S, 0.0)
+        gamma = np.exp(-dividend * T) * norm.pdf(d1) / (S * sigma * np.sqrt(T))
+        
+        return {
+            "price": price,
+            "delta": delta,
+            "gamma": gamma
+        }
+
+
+    @staticmethod
+    def price_call(params: BSParameters) -> float:
+        engine = BlackScholesEngine()
+        return engine.calculate(params, 'call')['price']
+
+    @staticmethod
+    def price_put(params: BSParameters) -> float:
+        engine = BlackScholesEngine()
+        return engine.calculate(params, 'put')['price']
+
+    @staticmethod
+    def _calculate_greeks_internal(params: BSParameters, option_type: str = "call") -> OptionGreeks:
+        engine = BlackScholesEngine()
+        res = engine.calculate(params, option_type)
+        S = params.spot
+        K = params.strike
+        T = params.maturity
+        r = params.rate
+        sigma = params.volatility
+        dividend = params.dividend
+        
+        d1, _ = BlackScholesEngine.calculate_d1_d2(params)
+        
+        if T > 0:
+            vega = S * np.exp(-dividend * T) * norm.pdf(d1) * np.sqrt(T)
             
-            if isinstance(option_type, str):
-                 res[~mask] = intrinsic_call[~mask] if option_type == "call" else intrinsic_put[~mask]
+            if option_type == 'call':
+                theta = -(S * sigma * np.exp(-dividend * T) * norm.pdf(d1)) / (2 * np.sqrt(T)) - \
+                        r * K * np.exp(-r * T) * norm.cdf(d1 - sigma * np.sqrt(T)) + \
+                        dividend * S * np.exp(-dividend * T) * norm.cdf(d1)
+                rho = K * T * np.exp(-r * T) * norm.cdf(d1 - sigma * np.sqrt(T))
             else:
-                 res[~mask] = np.where(is_call[~mask], intrinsic_call[~mask], intrinsic_put[~mask])
+                theta = -(S * sigma * np.exp(-dividend * T) * norm.pdf(d1)) / (2 * np.sqrt(T)) + \
+                        r * K * np.exp(-r * T) * norm.cdf(-(d1 - sigma * np.sqrt(T))) - \
+                        dividend * S * np.exp(-dividend * T) * norm.cdf(-d1)
+                rho = -K * T * np.exp(-r * T) * norm.cdf(-(d1 - sigma * np.sqrt(T)))
+        else:
+            vega = 0.0
+            theta = 0.0
+            rho = 0.0
 
-        if S.ndim == 0:
-            return float(res)
-        return res
+        return OptionGreeks(
+            delta=res['delta'],
+            gamma=res['gamma'],
+            vega=float(vega),
+            theta=float(theta),
+            rho=float(rho)
+        )
+
+    # Maintain calculate_greeks as static for existing callers
+    @staticmethod
+    def calculate_greeks_static(params: BSParameters, option_type: str = "call") -> OptionGreeks:
+        return BlackScholesEngine._calculate_greeks_internal(params, option_type)
 
     @staticmethod
     def price_options(
-        params: Optional[BSParameters] = None,
-        spot: Union[float, np.ndarray] = None,
-        strike: Union[float, np.ndarray] = None,
-        maturity: Union[float, np.ndarray] = None,
-        volatility: Union[float, np.ndarray] = None,
-        rate: Union[float, np.ndarray] = None,
+        spot: Union[float, np.ndarray, None] = None,
+        strike: Union[float, np.ndarray, None] = None,
+        maturity: Union[float, np.ndarray, None] = None,
+        volatility: Union[float, np.ndarray, None] = None,
+        rate: Union[float, np.ndarray, None] = None,
         dividend: Union[float, np.ndarray] = 0.0,
         option_type: Union[str, np.ndarray] = "call",
+        params: Optional[BSParameters] = None,
         **kwargs
     ) -> Union[float, np.ndarray]:
-        if params is None:
-             # If any of the required fields are missing in args, check kwargs
-             # But here we rely on the fact that numpy/float conversion will fail later if None
-             # or we can construct safely.
-             
-             # Fallback to kwargs if explicit args are None
-             spot = spot if spot is not None else kwargs.get("spot")
-             strike = strike if strike is not None else kwargs.get("strike")
-             maturity = maturity if maturity is not None else kwargs.get("maturity")
-             volatility = volatility if volatility is not None else kwargs.get("volatility")
-             rate = rate if rate is not None else kwargs.get("rate")
-             dividend = dividend if dividend is not None else kwargs.get("dividend", 0.0)
-             
-             params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
+        """Highly optimized vectorized option pricing."""
+        from .quant_utils import batch_bs_price_jit
         
-        return BlackScholesEngine._price_options_static(params, option_type)
+        if params is not None:
+            spot = params.spot
+            strike = params.strike
+            maturity = params.maturity
+            volatility = params.volatility
+            rate = params.rate
+            dividend = params.dividend
 
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        # Instance method
-        return self._calculate_greeks_static(params, option_type)
+        if any(x is None for x in [spot, strike, maturity, volatility, rate]):
+             raise TypeError("Missing required pricing parameters")
         
-    def calculate_greeks_batch(self, 
-        spot: Union[float, np.ndarray] = None,
-        strike: Union[float, np.ndarray] = None,
-        maturity: Union[float, np.ndarray] = None,
-        volatility: Union[float, np.ndarray] = None,
-        rate: Union[float, np.ndarray] = None,
+        # Broadcast all inputs to the same shape
+        S, K, T, sigma, r, q = np.broadcast_arrays(
+            np.atleast_1d(spot).astype(np.float64),
+            np.atleast_1d(strike).astype(np.float64),
+            np.atleast_1d(maturity).astype(np.float64),
+            np.atleast_1d(volatility).astype(np.float64),
+            np.atleast_1d(rate).astype(np.float64),
+            np.atleast_1d(dividend).astype(np.float64)
+        )
+        
+        if isinstance(option_type, (str, np.str_)):
+            is_call = np.full(S.shape, str(option_type).lower() == "call", dtype=bool)
+        else:
+            is_call = np.array([str(t).lower() == "call" for t in option_type], dtype=bool)
+            
+        prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
+        
+        if np.isscalar(spot) and np.isscalar(strike) and np.isscalar(maturity) and \
+           np.isscalar(volatility) and np.isscalar(rate) and np.isscalar(dividend) and \
+           isinstance(option_type, str):
+            return float(prices[0])
+        return prices
+
+    @staticmethod
+    def calculate_greeks_batch(
+        spot: Union[float, np.ndarray, None] = None,
+        strike: Union[float, np.ndarray, None] = None,
+        maturity: Union[float, np.ndarray, None] = None,
+        volatility: Union[float, np.ndarray, None] = None,
+        rate: Union[float, np.ndarray, None] = None,
         dividend: Union[float, np.ndarray] = 0.0,
         option_type: Union[str, np.ndarray] = "call",
         params: Optional[BSParameters] = None,
         **kwargs
-    ) -> OptionGreeks:
-        if params is None:
-             params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
-        return self._calculate_greeks_static(params, option_type)
-
-    @staticmethod
-    def _calculate_greeks_static(params: BSParameters, option_type: Union[str, np.ndarray]) -> OptionGreeks:
-        S = np.array(params.spot, dtype=float)
-        K = np.array(params.strike, dtype=float)
-        T = np.array(params.maturity, dtype=float)
-        r = np.array(params.rate, dtype=float)
-        q = np.array(params.dividend, dtype=float)
-        sigma = np.array(params.volatility, dtype=float)
-
-        sigma_sqrt_T = sigma * np.sqrt(T)
+    ) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
+        """Highly optimized vectorized greeks calculation."""
+        from .quant_utils import batch_greeks_jit
         
-        d1 = np.zeros_like(S)
-        d2 = np.zeros_like(S)
+        if params is not None:
+            spot = params.spot
+            strike = params.strike
+            maturity = params.maturity
+            volatility = params.volatility
+            rate = params.rate
+            dividend = params.dividend
+
+        if any(x is None for x in [spot, strike, maturity, volatility, rate]):
+             raise TypeError("Missing required pricing parameters")
         
-        mask = (T > 0) & (sigma > 0)
+        # Broadcast all inputs to the same shape
+        S, K, T, sigma, r, q = np.broadcast_arrays(
+            np.atleast_1d(spot).astype(np.float64),
+            np.atleast_1d(strike).astype(np.float64),
+            np.atleast_1d(maturity).astype(np.float64),
+            np.atleast_1d(volatility).astype(np.float64),
+            np.atleast_1d(rate).astype(np.float64),
+            np.atleast_1d(dividend).astype(np.float64)
+        )
         
-        if np.any(mask):
-            with np.errstate(divide='ignore', invalid='ignore'):
-                 d1[mask] = (np.log(S[mask] / K[mask]) + (r[mask] - q[mask] + 0.5 * sigma[mask]**2) * T[mask]) / sigma_sqrt_T[mask]
-                 d2[mask] = d1[mask] - sigma_sqrt_T[mask]
-
-        exp_mqT = np.exp(-q * T)
-        exp_mrT = np.exp(-r * T)
-        pdf_d1 = norm.pdf(d1)
-        cdf_d1 = norm.cdf(d1)
-        cdf_d2 = norm.cdf(d2)
-        cdf_neg_d1 = norm.cdf(-d1)
-        cdf_neg_d2 = norm.cdf(-d2)
+        if isinstance(option_type, (str, np.str_)):
+            is_call = np.full(S.shape, str(option_type).lower() == "call", dtype=bool)
+        else:
+            is_call = np.array([str(t).lower() == "call" for t in option_type], dtype=bool)
+            
+        delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
         
-        is_call = (option_type == "call") if isinstance(option_type, str) else (np.array(option_type) == "call")
-
-        # Initial greeks arrays
-        delta = np.zeros_like(S)
-        gamma = np.zeros_like(S)
-        vega = np.zeros_like(S)
-        theta = np.zeros_like(S)
-        rho = np.zeros_like(S)
-        
-        if np.any(mask):
-             # Delta
-             if isinstance(option_type, str):
-                 if option_type == "call":
-                     delta[mask] = exp_mqT[mask] * cdf_d1[mask]
-                 else:
-                     delta[mask] = -exp_mqT[mask] * cdf_neg_d1[mask]
-             else:
-                 delta[mask] = np.where(is_call[mask], exp_mqT[mask] * cdf_d1[mask], -exp_mqT[mask] * cdf_neg_d1[mask])
-
-             # Gamma (same)
-             gamma[mask] = (exp_mqT[mask] * pdf_d1[mask]) / (S[mask] * sigma_sqrt_T[mask])
-             
-             # Vega (same)
-             vega[mask] = S[mask] * exp_mqT[mask] * pdf_d1[mask] * np.sqrt(T[mask])
-             
-             # Theta
-             term1 = -(S[mask] * sigma[mask] * exp_mqT[mask] * pdf_d1[mask]) / (2 * np.sqrt(T[mask]))
-             
-             if isinstance(option_type, str):
-                 if option_type == "call":
-                      theta[mask] = term1 - r[mask] * K[mask] * exp_mrT[mask] * cdf_d2[mask] + q[mask] * S[mask] * exp_mqT[mask] * cdf_d1[mask]
-                 else:
-                      theta[mask] = term1 + r[mask] * K[mask] * exp_mrT[mask] * cdf_neg_d2[mask] - q[mask] * S[mask] * exp_mqT[mask] * cdf_neg_d1[mask]
-             else:
-                  theta_call = term1 - r[mask] * K[mask] * exp_mrT[mask] * cdf_d2[mask] + q[mask] * S[mask] * exp_mqT[mask] * cdf_d1[mask]
-                  theta_put = term1 + r[mask] * K[mask] * exp_mrT[mask] * cdf_neg_d2[mask] - q[mask] * S[mask] * exp_mqT[mask] * cdf_neg_d1[mask]
-                  theta[mask] = np.where(is_call[mask], theta_call, theta_put)
-
-             # Rho
-             if isinstance(option_type, str):
-                 if option_type == "call":
-                      rho[mask] = K[mask] * T[mask] * exp_mrT[mask] * cdf_d2[mask]
-                 else:
-                      rho[mask] = -K[mask] * T[mask] * exp_mrT[mask] * cdf_neg_d2[mask]
-             else:
-                 rho[mask] = np.where(is_call[mask], K[mask] * T[mask] * exp_mrT[mask] * cdf_d2[mask], -K[mask] * T[mask] * exp_mrT[mask] * cdf_neg_d2[mask])
-
-        # Handle scalar return
-        if S.ndim == 0:
+        if np.isscalar(spot) and isinstance(option_type, str):
             return OptionGreeks(
-                delta=float(delta),
-                gamma=float(gamma),
-                vega=float(vega),
-                theta=float(theta),
-                rho=float(rho)
+                delta=float(delta[0]),
+                gamma=float(gamma[0]),
+                vega=float(vega[0]),
+                theta=float(theta[0]),
+                rho=float(rho[0])
             )
-        
-        return OptionGreeks(delta, gamma, vega, theta, rho)
+            
+        return {
+            "delta": delta,
+            "gamma": gamma,
+            "vega": vega,
+            "theta": theta,
+            "rho": rho
+        }
+
+def verify_put_call_parity(params: BSParameters, tolerance: float = 1e-4) -> bool:
+    """Verify put-call parity for European options."""
+    call_price = BlackScholesEngine.price_call(params)
+    put_price = BlackScholesEngine.price_put(params)
+    
+    # C - P = S*e^(-qT) - K*e^(-rT)
+    lhs = call_price - put_price
+    rhs = params.spot * np.exp(-params.dividend * params.maturity) - \
+          params.strike * np.exp(-params.rate * params.maturity)
+          
+    return bool(abs(lhs - rhs) < tolerance)
+
+def black_scholes(S, K, T, sigma, r, type='call', q=0.0):
+    """Compatibility wrapper for black_scholes."""
+    params = BSParameters(spot=S, strike=K, maturity=T, volatility=sigma, rate=r, dividend=q)
+    engine = BlackScholesEngine()
+    return engine.calculate(params, type)

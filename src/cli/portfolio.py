@@ -9,27 +9,12 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, cast
-from datetime import date
-from pydantic import BaseModel, Field, ValidationError
 
-class PositionData(BaseModel):
-    """Pydantic model for validating loaded Position data."""
-    id: str
-    symbol: str
-    option_type: str
-    quantity: int
-    strike: float
-    maturity: float # Should be float for calculation, maybe validate as date later
-    volatility: float
-    rate: float
-    dividend: float
-    entry_price: float
-    entry_date: str # Consider validating as datetime or date
-    spot: float
 
 @dataclass
 class Position:
     """Represents an option position in the portfolio."""
+
     id: str
     symbol: str
     option_type: str
@@ -42,6 +27,7 @@ class Position:
     entry_price: float
     entry_date: str
     spot: float
+
 
 class PortfolioManager:
     """Manages a collection of option positions."""
@@ -56,35 +42,15 @@ class PortfolioManager:
         self.portfolio_file.parent.mkdir(parents=True, exist_ok=True)
 
     def _load(self) -> List[Position]:
-        """Load portfolio from file with validation."""
+        """Load portfolio from file."""
         if not self.portfolio_file.exists():
             return []
 
         try:
             with open(self.portfolio_file, "r") as f:
-                raw_data = json.load(f)
-                
-            # Ensure raw_data is a list
-            if not isinstance(raw_data, list):
-                raise ValueError("Portfolio data is not a list.")
-
-            validated_positions = []
-            for item in raw_data:
-                try:
-                    # Validate each item using Pydantic model
-                    position_data = PositionData(**item)
-                    # Convert validated data back to dataclass instance
-                    validated_positions.append(Position(**position_data.dict()))
-                except ValidationError as e:
-                    # Log validation errors but continue processing other valid positions
-                    print(f"WARNING: Invalid position data found in portfolio.json: {e}")
-                    continue
-            return validated_positions
-        except (json.JSONDecodeError, ValueError) as e:
-            print(f"ERROR: Failed to load or parse portfolio.json due to: {e}")
-            return []
-        except Exception as e:
-            print(f"An unexpected error occurred while loading portfolio.json: {e}")
+                data = json.load(f)
+                return [Position(**pos) for pos in data]
+        except Exception:
             return []
 
     def _save(self) -> None:
@@ -175,7 +141,7 @@ class PortfolioManager:
                 rate=pos.rate,
                 dividend=pos.dividend,
             )
-            greeks_res = BlackScholesEngine().calculate_greeks(params, pos.option_type)
+            greeks_res = BlackScholesEngine.calculate_greeks(params, pos.option_type)
             greeks = cast(OptionGreeks, greeks_res)
             total_delta += float(greeks.delta) * pos.quantity * 100
 

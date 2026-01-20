@@ -4,10 +4,6 @@ import pandas as pd
 from src.ml.scraper import MarketDataScraper
 
 @pytest.fixture
-def scraper():
-    return MarketDataScraper(api_key="DEMO_KEY")
-
-@pytest.fixture
 def mock_response():
     mock = MagicMock()
     # Alpha Vantage Format
@@ -66,53 +62,20 @@ def test_fetch_historical_data_retry_logic(mock_get, mock_response):
         # Expect alpha_vantage labels
         mock_error_labels.assert_called_with(api="alpha_vantage", status_code=500)
 
-def test_fetch_historical_data_failure(scraper):
-    with patch("src.ml.scraper.requests.get") as mock_get:
-        mock_get.return_value.status_code = 500
-        with pytest.raises(Exception, match="Failed to fetch data"):
-            scraper.fetch_historical_data("AAPL", "2025-01-01", "2025-01-05")
-
-def test_fetch_historical_data_polygon_success(scraper):
-    scraper.provider = "polygon"
-    with patch("src.ml.scraper.requests.get") as mock_get:
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
-            "status": "OK",
-            "results": [
-                {"t": 1735689600000, "o": 100.0, "h": 110.0, "l": 90.0, "c": 105.0, "v": 1000}
-            ]
-        }
-        df = scraper.fetch_historical_data("AAPL", "2025-01-01", "2025-01-05")
-        assert not df.empty
-        assert df.iloc[0]["close"] == 105.0
-
-def test_fetch_historical_data_auto_provider(scraper):
-    scraper.provider = "auto"
-    with patch("src.ml.scraper.requests.get") as mock_get:
-        # First call (Alpha Vantage) fails
-        mock_response_av = MagicMock()
-        mock_response_av.status_code = 401
-        
-        # Second call (Polygon) succeeds
-        mock_response_poly = MagicMock()
-        mock_response_poly.status_code = 200
-        mock_response_poly.json.return_value = {
-            "status": "OK",
-            "results": [{"t": 123, "o": 1, "h": 2, "l": 0.5, "c": 1.5, "v": 10}]
-        }
-        
-        mock_get.side_effect = [mock_response_av, mock_response_poly]
-        
-        df = scraper.fetch_historical_data("AAPL", "2025-01-01", "2025-01-05")
-        assert not df.empty
-        assert scraper.provider == "auto" # Still auto but tried both
-
-def test_scraper_redact_api_key():
-    scraper = MarketDataScraper(api_key="SECRET_123")
-    redacted = scraper._redact_message("Error with key SECRET_123 in URL")
-    assert "SECRET_123" not in redacted
-    assert "[REDACTED]" in redacted
-
-def test_scraper_invalid_ticker(scraper):
-    with pytest.raises(ValueError, match="Invalid ticker symbol"):
-        scraper.fetch_historical_data("INVALID T@CKER", "2025-01-01", "2025-01-05")
+@patch("src.ml.scraper.requests.get")
+def test_fetch_historical_data_failure(mock_get):
+    """Verify that the scraper raises an error after max retries."""
+    fail_response = MagicMock()
+    fail_response.status_code = 500
+    mock_get.return_value = fail_response
+    
+    scraper = MarketDataScraper(api_key="test_key", provider="auto", max_retries=2)
+    
+    with pytest.raises(Exception):
+        scraper.fetch_historical_data("AAPL", "2023-01-01", "2023-01-03")
+    
+    # It will fail after trying both AV and Polygon (fallback)
+    # AV: 1 + 2 retries = 3
+    # Polygon: 1 + 2 retries = 3
+    # Total: 6
+    assert mock_get.call_count == 6

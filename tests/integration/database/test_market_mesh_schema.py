@@ -2,11 +2,6 @@ import pytest
 import psycopg2
 import os
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("DATABASE_URL"),
-    reason="DATABASE_URL environment variable not set, skipping integration tests."
-)
-
 @pytest.fixture
 def db_connection():
     db_url = os.environ.get("DATABASE_URL", "postgresql://admin:admin@localhost:5432/bsopt")
@@ -14,7 +9,6 @@ def db_connection():
     yield conn
     conn.close()
 
-@pytest.mark.integration
 def test_market_data_mesh_table_exists(db_connection):
     cur = db_connection.cursor()
     cur.execute("""
@@ -25,7 +19,6 @@ def test_market_data_mesh_table_exists(db_connection):
     """)
     assert cur.fetchone()[0] is True
 
-@pytest.mark.integration
 def test_market_data_mesh_columns(db_connection):
     cur = db_connection.cursor()
     cur.execute("""

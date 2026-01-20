@@ -1,7 +1,7 @@
+import asyncio
+import logging
+import os
 from typing import Any, Dict, List, Optional, Tuple, cast
-import urllib.parse
-import re
-import logging # Add this line
 
 import mlflow
 import mlflow.xgboost
@@ -19,50 +19,6 @@ from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def _validate_mlflow_tracking_uri(uri: str) -> str:
-    """
-    Validates the MLFLOW_TRACKING_URI to prevent SSRF and LFI.
-    Allowed schemes: 'file' (only for specific local paths), 'http', 'https', 'databricks'.
-    Allowed hosts for 'http/https': specific MLflow server URLs.
-    Allowed local paths for 'file': within the project's 'mlruns' directory.
-    """
-    if not uri:
-        raise ValueError("MLFLOW_TRACKING_URI cannot be empty.")
-
-    parsed_uri = urllib.parse.urlparse(uri)
-
-    # Allowlist of schemes
-    allowed_schemes = ["http", "https", "databricks", "file"]
-    if parsed_uri.scheme not in allowed_schemes:
-        raise ValueError(f"MLFLOW_TRACKING_URI scheme '{parsed_uri.scheme}' not allowed. Must be one of {allowed_schemes}.")
-
-    if parsed_uri.scheme in ["http", "https"]:
-        # For production, replace with your actual MLflow server hostnames
-        allowed_mlflow_hosts = [
-            "localhost",
-            "127.0.0.1",
-            "mlflow-server.internal.com", # Example internal MLflow server
-            "mlflow.example.com",         # Example external MLflow server
-        ]
-        if parsed_uri.hostname not in allowed_mlflow_hosts:
-            raise ValueError(f"MLFLOW_TRACKING_URI host '{parsed_uri.hostname}' not allowed for scheme '{parsed_uri.scheme}'.")
-        # Basic port validation
-        if parsed_uri.port and not (1 <= parsed_uri.port <= 65535):
-            raise ValueError(f"Invalid port in MLFLOW_TRACKING_URI: {parsed_uri.port}")
-            
-    elif parsed_uri.scheme == "file":
-        # Only allow file URIs within the designated 'mlruns' directory
-        abs_path = os.path.abspath(parsed_uri.path)
-        mlruns_dir = os.path.abspath("mlruns")
-        if not abs_path.startswith(mlruns_dir):
-            raise ValueError(f"File URI '{uri}' is not allowed outside the '{mlruns_dir}' directory.")
-        # Ensure it points to a directory, not an arbitrary file
-        if not (os.path.isdir(abs_path) or not os.path.exists(abs_path)): # Allow creating new directories within mlruns
-            raise ValueError(f"File URI '{uri}' must point to a directory within '{mlruns_dir}'.")
-            
-    # For 'databricks' scheme, additional validation might be needed based on specific Databricks integration
-    
-    return uri
 
 def generate_synthetic_data(n_samples: int = 10000) -> Tuple[np.ndarray, np.ndarray, List[str]]:
     """Generate synthetic training data using Black-Scholes engine."""
@@ -129,11 +85,9 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
 
 
 async def run_hyperparameter_optimization(
-    use_real_data: bool = True, n_samples: int = 10000, n_trials: Optional[int] = None
+    use_real_data: bool = True, n_samples: int = 10000, n_trials: int = settings.ML_TRAINING_OPTUNA_TRIALS
 ) -> Dict[str, Any]:
     """Run HPO using Optuna."""
-    if n_trials is None:
-        n_trials = settings.ML_TRAINING_OPTUNA_TRIALS
     X, y, _, _ = await load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -142,28 +96,14 @@ async def run_hyperparameter_optimization(
     return {"best_params": study.best_params, "best_r2": study.best_value}
 
 
-_ALLOWED_SYMBOLS = ["SPY", "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META"] # Example allowlist
-_MAX_SYMBOLS = 10 # Example limit
-
 async def collect_real_data(
     symbols: Optional[List[str]] = None, min_samples: int = 10000
 ) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
     """Collect options data from market APIs."""
     from src.data.pipeline import DataPipeline, PipelineConfig
 
-    # --- SECURITY: Symbol Validation and Limiting ---
-    if symbols:
-        if len(symbols) > _MAX_SYMBOLS:
-            raise ValueError(f"Too many symbols requested. Maximum allowed is {_MAX_SYMBOLS}.")
-        
-        for symbol in symbols:
-            if symbol not in _ALLOWED_SYMBOLS:
-                raise ValueError(f"Symbol '{symbol}' is not in the allowed list.")
-    else:
-        symbols = ["SPY", "AAPL", "MSFT"] # Default if none provided and no allowlist check is done yet
-
     cfg = PipelineConfig(
-        symbols=symbols,
+        symbols=symbols or ["SPY", "AAPL", "MSFT"],
         min_samples=min_samples,
         output_dir="data/training",
     )
@@ -191,14 +131,7 @@ async def train( # Changed to async
     promote_threshold: float = 0.99,
 ) -> Dict[str, Any]:
     """Execute training pipeline with MLflow tracking."""
-    raw_tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "file://" + os.path.abspath("mlruns"))
-    try:
-        tracking_uri = _validate_mlflow_tracking_uri(raw_tracking_uri)
-    except ValueError as e:
-        logger.critical(f"SSRF/LFI Prevention: Invalid MLFLOW_TRACKING_URI configured. Shutting down. Error: {e}")
-        # In a real application, you might want to log this and exit
-        raise
-
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "file://" + os.path.abspath("mlruns"))
     mlflow.set_tracking_uri(tracking_uri)
     os.makedirs("mlruns", exist_ok=True)
     mlflow.set_experiment("Option_Pricing_XGBoost")

@@ -16,7 +16,7 @@ def test_api_container_user():
         # Mock whoami call
         mock_whoami = MagicMock(returncode=0, stdout="appuser\n")
         
-        mock_run.side_effect = [mock_id, mock_whoami]
+        mock_run.side_effect = [MagicMock(returncode=0), mock_id, mock_whoami]
 
         # In a real test we'd import the function or logic being tested
         # but here the test *is* the logic.

@@ -1,12 +1,11 @@
 import tracemalloc
 import json
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from src.api.schemas.common import DataResponse, ErrorResponse
-from src.api.exceptions import InternalServerException
-from src.security.auth import require_admin
+from src.api.exceptions import InternalServerException # Imported directly as it's a specific exception
 
-router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"], dependencies=[Depends(require_admin())])
+router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
 
 @router.get(
     "/tracemalloc_snapshot",
@@ -24,7 +23,7 @@ async def get_tracemalloc_snapshot():
         raise InternalServerException(message="Tracemalloc is not active.")
 
     snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('traceback')
+    top_stats = snapshot.statistics('traceback') # Changed to 'traceback'
 
     report = []
     # Display more comprehensive traceback information
@@ -34,7 +33,7 @@ async def get_tracemalloc_snapshot():
             "count": stat.count,
             "traceback": [
                 {"file": frame.filename, "line": frame.lineno}
-                for frame in stat.traceback
+                for frame in stat.traceback # Iterate over all frames in the traceback
             ]
         })
     

@@ -7,6 +7,9 @@ Validates all configuration parameters at startup to fail fast on misconfigurati
 
 import logging
 import sys
+import os
+from enum import Enum
+
 from typing import Any, List, Optional, Union, cast
 
 from pydantic import Field, ValidationError, field_validator
@@ -67,8 +70,8 @@ class Settings(BaseSettings):
     JWT_PUBLIC_KEY_PATH: str = Field(
         default="certs/jwt-public.pem", description="Path to the JWT public key file"
     )
-    JWT_PRIVATE_KEY: str = Field(default="", description="JWT private key content")
-    JWT_PUBLIC_KEY: str = Field(default="", description="JWT public key content")
+    JWT_PRIVATE_KEY: str = ""
+    JWT_PUBLIC_KEY: str = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
         default=30, description="JWT access token expiration time in minutes"
     )
@@ -90,10 +93,6 @@ class Settings(BaseSettings):
     )
     BCRYPT_ROUNDS: int = Field(
         default=12, description="Number of bcrypt hashing rounds (higher = more secure but slower)"
-    )
-    FIELD_ENCRYPTION_KEY: str = Field(
-        default="ctfDta1AmfREgidYUVnQS0jgTVONmIgYENQ5Pw4G6jA=",
-        description="Fernet key for encrypting sensitive database fields (MFA secrets, etc.)"
     )
 
     # ML Serving Configuration
@@ -118,10 +117,6 @@ class Settings(BaseSettings):
     SLOW_QUERY_THRESHOLD_MS: int = Field(
         default=100, description="Threshold in milliseconds for logging slow database queries"
     )
-
-    # Email Configuration
-    SENDGRID_API_KEY: str = Field(default="SG.placeholder", description="SendGrid API Key")
-    DEFAULT_FROM_EMAIL: str = Field(default="noreply@bs-opt.com", description="Default sender email")
 
     # ML Training Configuration
     ML_TRAINING_TEST_SIZE: float = Field(default=0.2, description="Proportion of dataset to include in the test split for ML training")
@@ -204,29 +199,12 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             # Split by comma, strip whitespace, and filter out empty strings
             origins = [origin.strip() for origin in v.split(",") if origin.strip()]
+            return origins
         elif isinstance(v, list):
             # If it's already a list, ensure all elements are strings and stripped
-            origins = [str(item).strip() for item in v if str(item).strip()]
-        else:
-            # If input is invalid or empty, return an empty list to avoid errors
-            origins = []
-
-        # --- SECURITY: Validate CORS Origins ---
-        import re
-        # Allow localhost and bs-opt.com subdomains (http/https)
-        # Regex: ^https?://(localhost|127\.0\.0\.1|([a-z0-9-]+\.)?bs-opt\.com)(:\d+)?$
-        allowed_pattern = re.compile(r"^https?://(localhost|127\.0\.0\.1|([a-z0-9-]+\.)?bs-opt\.com)(:\d+)?$")
-        
-        validated_origins = []
-        for origin in origins:
-            if allowed_pattern.match(origin):
-                validated_origins.append(origin)
-            else:
-                # Log warning but don't crash, just exclude the unsafe origin
-                # In strict mode, this should raise ValueError
-                logger.warning(f"CORS Misconfiguration: Ignoring invalid/unsafe origin '{origin}'")
-        
-        return validated_origins
+            return [str(item).strip() for item in v if str(item).strip()]
+        # If input is invalid or empty, return an empty list to avoid errors
+        return []
 
     @property
     def is_production(self) -> bool:
@@ -314,19 +292,15 @@ def configure_logging(settings: Settings) -> None:
 
 # Global settings instance
 _settings: Optional[Settings] = None
+settings: Settings = cast(Settings, None)  # Exported name
 
-try:
-    if "pytest" in sys.modules or os.environ.get("BSOPT_TEST_MODE"):
-        # In test mode, use default settings if not already set
-        settings = Settings()
-    else:
+# Only initialize settings and exit if not running under pytest
+if "pytest" not in sys.modules and not os.environ.get("BSOPT_TEST_MODE"): # pragma: no cover
+    try:
         _settings = get_settings()
         settings = _settings
         configure_logging(_settings)
-except (ValidationError, FileNotFoundError, Exception) as e:
-    if "pytest" in sys.modules or os.environ.get("BSOPT_TEST_MODE"):
-        settings = Settings()
-    else:
+    except (ValidationError, FileNotFoundError) as e:
         # Handle critical configuration errors at import time
         logging.error(f"Failed to load or configure settings: {e}")
         sys.exit(1)

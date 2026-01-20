@@ -43,5 +43,8 @@ class TestBlockchainLazyLoading:
         import src.blockchain
         exports = dir(src.blockchain)
         assert 'DeFiOptionsProtocol' in exports
+        assert 'ChainlinkOracle' in exports
+        assert 'IPFSStorage' in exports
+        assert 'OptionsContractDeployer' in exports
         # Should not include private members
         assert '_import_map' not in exports

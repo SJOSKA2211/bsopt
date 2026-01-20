@@ -4,7 +4,6 @@ from src.streaming.graphql.schema import schema
 from src.shared.observability import logging_middleware
 import asyncio
 import json
-import time
 
 
 app = FastAPI(title="BS-Opt Market Data Service")
@@ -32,11 +31,11 @@ async def websocket_marketdata(websocket: WebSocket):
             # Send mock market data
             mock_data = {
                 "symbol": "AAPL",
-                "time": int(time.time()),
-                "open": 150 + (time.time() % 10),
-                "high": 160 + (time.time() % 10),
-                "low": 140 + (time.time() % 10),
-                "close": 150 + (time.time() % 10)
+                "time": int(asyncio.time()),
+                "open": 150 + (asyncio.time() % 10),
+                "high": 160 + (asyncio.time() % 10),
+                "low": 140 + (asyncio.time() % 10),
+                "close": 150 + (asyncio.time() % 10)
             }
             await websocket.send_text(json.dumps(mock_data))
             await asyncio.sleep(1)  # Send data every second

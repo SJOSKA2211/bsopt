@@ -26,9 +26,6 @@ def load_yaml_data():
 async def test_register_from_csv(client, user_data):
     """62. Test Data: Use CSV files."""
     user_data["email"] = f"csv_{uuid.uuid4().hex[:6]}_{user_data['email']}"
-    # Ensure password meets requirements (settings might require special char)
-    if "!" not in user_data["password"]:
-        user_data["password"] += "!"
     user_data["password_confirm"] = user_data["password"]
     user_data["accept_terms"] = True
     response = await client.post("/api/v1/auth/register", json=user_data)
@@ -39,8 +36,6 @@ async def test_register_from_csv(client, user_data):
 async def test_register_from_json(client, user_data):
     """70. Test Data: Use JSON files."""
     user_data["email"] = f"json_{uuid.uuid4().hex[:6]}_{user_data['email']}"
-    if "!" not in user_data["password"]:
-        user_data["password"] += "!"
     user_data["password_confirm"] = user_data["password"]
     user_data["accept_terms"] = True
     response = await client.post("/api/v1/auth/register", json=user_data)
@@ -51,8 +46,6 @@ async def test_register_from_json(client, user_data):
 async def test_register_from_yaml(client, user_data):
     """78. Test Data: Use YAML files."""
     user_data["email"] = f"yaml_{uuid.uuid4().hex[:6]}_{user_data['email']}"
-    if "!" not in user_data["password"]:
-        user_data["password"] += "!"
     user_data["password_confirm"] = user_data["password"]
     user_data["accept_terms"] = True
     response = await client.post("/api/v1/auth/register", json=user_data)

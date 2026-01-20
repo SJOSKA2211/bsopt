@@ -100,17 +100,11 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
 
                 # 4. Cache successful result
-                # We only cache JSON responses to be safe and avoid buffering large streams
-                content_type = response.headers.get("content-type", "")
-                is_json = "application/json" in content_type
-                
-                if response.status_code < 500 and is_json:
-                    # Consume body manually because BaseHTTPMiddleware returns a StreamingResponse wrapper
-                    # which might not have .read() method
-                    body_chunks = []
-                    async for chunk in response.body_iterator:
-                        body_chunks.append(chunk)
-                    body_content = b"".join(body_chunks)
+                # We don't cache 5xx or streaming responses for simplicity
+                is_streaming = isinstance(response, StreamingResponse) or hasattr(response, "body_iterator")
+                if response.status_code < 500 and not is_streaming:
+                    # Consume body to cache it
+                    body_content = await response.read()
                     
                     # Re-create response because body_iterator was consumed
                     full_response = Response(
@@ -128,7 +122,6 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     await self.redis.set(cache_key, json.dumps(cache_data), ex=self.expiry)
                     IDEMPOTENCY_REQUESTS_TOTAL.labels(status='cached').inc()
                     return full_response
-
                 
                 IDEMPOTENCY_REQUESTS_TOTAL.labels(status='uncached').inc()
                 return response

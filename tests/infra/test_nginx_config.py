@@ -33,5 +33,5 @@ def test_websocket_optimizations():
     # Check websocket block
     assert "location /ws/ {" in content
     assert "proxy_buffering off;" in content
-    assert "proxy_read_timeout 86400;" in content
+    assert "proxy_read_timeout 3600s;" in content
     assert 'proxy_set_header Connection "Upgrade";' in content

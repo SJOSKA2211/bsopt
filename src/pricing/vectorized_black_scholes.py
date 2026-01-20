@@ -8,7 +8,7 @@ from typing import Dict, Union
 
 import numpy as np
 
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.pricing.black_scholes import BlackScholesEngine
 
 warnings.warn(
     "vectorized_black_scholes is deprecated. "
@@ -34,11 +34,6 @@ class VectorizedBlackScholesEngine:
         option_type: Union[str, np.ndarray] = "call",
         dtype=np.float64,
     ) -> np.ndarray:
-        warnings.warn(
-            "vectorized_black_scholes is deprecated. Use src.pricing.black_scholes.BlackScholesEngine instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         res = BlackScholesEngine.price_options(
             spot=spot,
             strike=strike,
@@ -61,11 +56,6 @@ class VectorizedBlackScholesEngine:
         option_type: Union[str, np.ndarray] = "call",
         dtype=np.float64,
     ) -> Dict[str, np.ndarray]:
-        warnings.warn(
-            "vectorized_black_scholes is deprecated. Use src.pricing.black_scholes.BlackScholesEngine instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         res = BlackScholesEngine.calculate_greeks_batch(
             spot=spot,
             strike=strike,

@@ -26,9 +26,9 @@ class BSParameters:
         if np.any(_spot_arr < 0) or np.any(_strike_arr < 0) or np.any(_volatility_arr < 0):
             raise ValueError("Spot, strike, and volatility must be non-negative")
         if np.any(_maturity_arr < 0):
-            raise ValueError("Maturity must be non-negative")
+            raise ValueError("Maturity cannot be negative")
         if np.any(_rate_arr < 0) or np.any(_dividend_arr < 0):
-            raise ValueError("Rate and dividend must be non-negative")
+            raise ValueError("Rate and dividend cannot be negative")
 
 @dataclass
 class OptionGreeks:
@@ -43,4 +43,9 @@ class OptionGreeks:
     phi: Optional[Union[float, np.ndarray]] = None
 
     def __getitem__(self, item):
-        return getattr(self, item)
+        if isinstance(item, str):
+            return getattr(self, item)
+        raise TypeError(f"OptionGreeks indices must be strings, not {type(item).__name__}")
+
+    def __contains__(self, item):
+        return hasattr(self, item)

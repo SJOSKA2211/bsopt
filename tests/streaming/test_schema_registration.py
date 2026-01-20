@@ -29,9 +29,8 @@ def test_market_data_schema_is_valid_json():
     except json.JSONDecodeError as e:
         pytest.fail(f"Schema file {SCHEMA_PATH} is not valid JSON: {e}")
 
-@patch('register_market_data_schema.Schema')
 @patch('register_market_data_schema.SchemaRegistryClient')
-def test_register_market_data_schema_script_interaction(mock_schema_registry_client, mock_schema_class):
+def test_register_market_data_schema_script_interaction(mock_schema_registry_client):
     """
     Test that the register_schema function correctly interacts with a mocked
     SchemaRegistryClient to register the schema.
@@ -48,10 +47,11 @@ def test_register_market_data_schema_script_interaction(mock_schema_registry_cli
     # Assert that SchemaRegistryClient was instantiated with the correct URL
     mock_schema_registry_client.assert_called_once_with({'url': TEST_SCHEMA_REGISTRY_URL})
 
-    # Assert that Schema was instantiated with the correct string
-    mock_schema_class.assert_called_once_with(expected_schema_str, 'AVRO')
-
     # Assert that the register method was called on the client instance
-    args, kwargs = mock_client_instance.register_schema.call_args
-    assert args[0] == TEST_SUBJECT_NAME
-    assert args[1] == mock_schema_class.return_value
+    args, kwargs = mock_client_instance.register.call_args
+    registered_subject_name = args[0]
+    registered_schema_obj = args[1]
+
+    assert registered_subject_name == TEST_SUBJECT_NAME
+    assert isinstance(registered_schema_obj, Schema)
+    assert registered_schema_obj.schema_str == expected_schema_str

@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, status
 from src.api.schemas.ml import InferenceRequest, InferenceResponse
 from src.api.schemas.common import DataResponse, ErrorResponse
 from src.security.rate_limit import rate_limit
-from src.security.auth import get_current_user_flexible
 from src.config import settings
 from src.api.exceptions import (
     ServiceUnavailableException,
@@ -13,10 +12,10 @@ from src.api.exceptions import (
     BaseAPIException
 )
 
-router = APIRouter(prefix="/ml", tags=["Machine Learning"], dependencies=[Depends(rate_limit), Depends(get_current_user_flexible)])
+router = APIRouter(prefix="/ml", tags=["Machine Learning"], dependencies=[Depends(rate_limit)])
 logger = logging.getLogger(__name__)
 
-ML_SERVICE_URL = settings.ML_SERVICE_URL
+ML_SERVICE_URL = settings.ML_SERVICE_URL # Ensure this is in settings
 
 @router.post(
     "/predict",

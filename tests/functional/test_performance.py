@@ -7,7 +7,7 @@ import pytest
 import time
 
 @pytest.mark.asyncio
-async def test_pricing_latency(client, mock_auth_dependency):
+async def test_pricing_latency(client):
     """33. Performance: Measure latency."""
     payload = {
         "spot": 100.0, "strike": 100.0, "time_to_expiry": 1.0,
@@ -23,7 +23,7 @@ async def test_pricing_latency(client, mock_auth_dependency):
     assert latency < 1000 # Requirement: < 1s
 
 @pytest.mark.asyncio
-async def test_pricing_throughput(client, mock_auth_dependency):
+async def test_pricing_throughput(client):
     """51. Test Performance: Measure throughput."""
     payload = {
         "spot": 100.0, "strike": 100.0, "time_to_expiry": 1.0,

@@ -21,69 +21,15 @@ from celery import Celery, Task, signals
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
-import structlog
-import urllib.parse
-from typing import List
-
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Environment Configuration
 # =============================================================================
 
-def _validate_internal_url(url: str, allowed_schemes: List[str], allowed_hosts: List[str]) -> str:
-    """
-    Validates a URL against a list of allowed schemes and hosts to prevent SSRF.
-    CRITICAL: This is a placeholder. A robust implementation requires
-    comprehensive URL parsing, IP-address resolution to prevent DNS rebinding,
-    and matching against a strict allowlist of internal/trusted endpoints.
-    """
-    if not url:
-        return url
-
-    parsed_url = urllib.parse.urlparse(url)
-
-    if parsed_url.scheme not in allowed_schemes:
-        raise ValueError(f"URL scheme '{parsed_url.scheme}' not allowed for URL: {url}")
-    
-    # Simple host validation. For production, consider resolving IP and checking against private ranges.
-    if parsed_url.hostname not in allowed_hosts:
-        raise ValueError(f"URL host '{parsed_url.hostname}' not allowed for URL: {url}")
-
-    return url
-
-# Define allowed hosts for internal services (e.g., Kafka, Redis, RabbitMQ)
-# In a real environment, these would be specific internal IPs or DNS names.
-_ALLOWED_BROKER_HOSTS = [
-    "localhost",
-    "rabbitmq", # Example service name in Docker/Kubernetes
-]
-
-_ALLOWED_BACKEND_HOSTS = [
-    "localhost",
-    "redis", # Example service name in Docker/Kubernetes
-]
-
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL")
-if RABBITMQ_URL:
-    try:
-        RABBITMQ_URL = _validate_internal_url(RABBITMQ_URL, ["amqp", "amqps"], _ALLOWED_BROKER_HOSTS)
-    except ValueError as e:
-        logger.critical(f"SSRF Prevention: Invalid RABBITMQ_URL configured. Shutting down. Error: {e}")
-        # In a real application, you might want to log this and exit
-        # For now, we'll just re-raise and let the app fail loudly
-        raise
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-if REDIS_URL:
-    try:
-        REDIS_URL = _validate_internal_url(REDIS_URL, ["redis"], _ALLOWED_BACKEND_HOSTS)
-    except ValueError as e:
-        logger.critical(f"SSRF Prevention: Invalid REDIS_URL configured. Shutting down. Error: {e}")
-        # For now, we'll just re-raise and let the app fail loudly
-        raise
-if os.environ.get("TESTING") == "true":
-    REDIS_URL = "rpc://"
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 
@@ -322,19 +268,19 @@ celery_app.conf.update(
 @signals.task_prerun.connect
 def task_prerun_handler(task_id, task, args, kwargs, **kw):
     """Log task start for monitoring."""
-    logger.info("task_starting", task_name=task.name, task_id=task_id, args=args, kwargs=kwargs)
+    logger.info(f"Task starting: {task.name}[{task_id}]")
 
 
 @signals.task_postrun.connect
 def task_postrun_handler(task_id, task, args, kwargs, retval, state, **kw):
     """Log task completion for monitoring."""
-    logger.info("task_completed", task_name=task.name, task_id=task_id, state=state, retval=retval)
+    logger.info(f"Task completed: {task.name}[{task_id}] - {state}")
 
 
 @signals.task_failure.connect
 def task_failure_handler(task_id, exception, args, kwargs, traceback, einfo, **kw):
     """Log task failures for alerting."""
-    logger.error("task_failed", task_id=task_id, exception=str(exception), args=args, kwargs=kwargs, traceback=traceback)
+    logger.error(f"Task failed: {task_id} - {exception}")
 
 
 @signals.worker_ready.connect

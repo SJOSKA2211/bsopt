@@ -14,10 +14,12 @@ def test_kafka_kraft_configured():
     
     assert 'services' in compose_config, "docker-compose.prod.yml must define services"
     
-    scraper_service = compose_config['services'].get('scraper-service')
-    assert scraper_service, "Scraper service not found in docker-compose.prod.yml"
+    kafka_service = compose_config['services'].get('kafka-1')
+    assert kafka_service, "Kafka service 'kafka-1' not found in docker-compose.prod.yml"
     
-    environment = scraper_service.get('environment', {})
-    assert 'KAFKA_BOOTSTRAP_SERVERS' in environment, "KAFKA_BOOTSTRAP_SERVERS not configured for Scraper"
-    assert 'kafka-1:9092' in environment['KAFKA_BOOTSTRAP_SERVERS'], "Kafka server 'kafka-1' not found in bootstrap servers"
+    environment = kafka_service.get('environment', {})
+    assert 'KAFKA_PROCESS_ROLES' in environment, "KAFKA_PROCESS_ROLES not configured for Kafka"
+    assert 'broker,controller' in environment['KAFKA_PROCESS_ROLES'], "KAFKA_PROCESS_ROLES not set to 'broker,controller' for KRaft mode"
+    assert 'KAFKA_NODE_ID' in environment, "KAFKA_NODE_ID not configured for Kafka"
+    assert 'KAFKA_CONTROLLER_QUORUM_VOTERS' in environment, "KAFKA_CONTROLLER_QUORUM_VOTERS not configured for Kafka"
 

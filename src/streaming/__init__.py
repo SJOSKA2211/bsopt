@@ -7,22 +7,17 @@ from src.utils.lazy_import import lazy_import, preload_modules
 # ============================================================================
 __all__ = [
     # Kafka
-    "MarketDataProducer", "MarketDataConsumer", "KafkaHealthCheck",
-    "VolatilityAggregationStream",
+    "MarketDataProducer", "MarketDataConsumer",
 ]
 
 # These imports are only for type checking and will not be executed at runtime
 if TYPE_CHECKING:
     from .kafka_producer import MarketDataProducer
     from .kafka_consumer import MarketDataConsumer
-    from .health import KafkaHealthCheck
-    from .analytics import VolatilityAggregationStream
 
 _import_map = {
     "MarketDataProducer": ".kafka_producer",
     "MarketDataConsumer": ".kafka_consumer",
-    "KafkaHealthCheck": ".health",
-    "VolatilityAggregationStream": ".analytics",
 }
 
 def __getattr__(name: str):

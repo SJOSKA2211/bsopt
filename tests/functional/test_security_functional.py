@@ -39,13 +39,10 @@ async def test_security_cors_configuration(client):
         headers={
             "Origin": "http://localhost:3000",
             "Access-Control-Request-Method": "POST",
-            "Access-Control-Request-Headers": "Content-Type",
         }
     )
     assert response.status_code == 200
-    # Case-insensitive header check
-    headers = {k.lower(): v for k, v in response.headers.items()}
-    assert headers.get("access-control-allow-origin") == "http://localhost:3000"
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
 
 @pytest.mark.asyncio
 async def test_security_rate_limiting(client, user_payload):

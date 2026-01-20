@@ -6,7 +6,7 @@ Pricing Engine Functional Tests (Refined Plan)
 import pytest
 
 @pytest.mark.asyncio
-async def test_pricing_valid_request(client, mock_auth_dependency):
+async def test_pricing_valid_request(client):
     """5. Pricing Endpoint: Valid payload."""
     payload = {
         "spot": 100.0, "strike": 100.0, "time_to_expiry": 1.0,
@@ -18,7 +18,7 @@ async def test_pricing_valid_request(client, mock_auth_dependency):
     assert "price" in response.json()["data"]
 
 @pytest.mark.asyncio
-async def test_pricing_invalid_payload(client, mock_auth_dependency):
+async def test_pricing_invalid_payload(client):
     """7. Pricing Endpoint: Invalid payload (Schema violation)."""
     response = await client.post("/api/v1/pricing/price", json={})
     assert response.status_code == 422

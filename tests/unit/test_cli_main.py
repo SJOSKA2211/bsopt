@@ -40,12 +40,14 @@ def test_cli_compare(runner):
 
 def test_cli_price_invalid_params(runner):
     # Pass an invalid value that BSParameters or Click will fail on
+    # spot=0 should trigger ValueError in BSParameters which calls sys.exit(1)
     result = runner.invoke(cli, [
         "price",
-        "--spot", "invalid_number",
+        "--spot", "0", 
         "--strike", "100",
         "--maturity", "1.0",
         "--volatility", "0.2",
         "--rate", "0.05"
     ])
     assert result.exit_code != 0
+    assert "Error" in result.output

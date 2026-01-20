@@ -154,7 +154,7 @@ class TestLazyImports:
             "from src.utils.lazy_import import lazy_import, preload_modules\n"
             "_import_map = {'C1': '.c1', 'C2': '.c2'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
-            "def preload(): preload_modules(__name__, _import_map, list(_import_map.keys()))"
+            "def preload(): preload_modules(__name__, _import_map)"
         )
         (pkg_dir / "c1.py").write_text("class C1: pass")
         (pkg_dir / "c2.py").write_text("class C2: pass")

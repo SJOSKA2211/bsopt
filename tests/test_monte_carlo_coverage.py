@@ -79,21 +79,19 @@ def test_price_european_zero_variance():
     assert price == pytest.approx(expected, rel=1e-5)
     assert price > 0
 
-    def test_laguerre_basis_branches():
-        x = np.array([1.0, 2.0])
-        # Test n=0 to hit n>=1 False branch
-        basis = _laguerre_basis(x, degree=0)
-        assert basis.shape == (2, 1)
+def test_laguerre_basis_branches():
+    x = np.array([1.0, 2.0])
+    # Test n=0 to hit n>=1 False branch
+    basis = _laguerre_basis(x, n=0)
+    assert basis.shape == (2, 1)
     
-        # Test n=1 to hit n>=2 False branch
-        basis = _laguerre_basis(x, degree=1)
-        assert basis.shape == (2, 2)
+    # Test n=1 to hit n>=2 False branch
+    basis = _laguerre_basis(x, n=1)
+    assert basis.shape == (2, 2)
     
-        # Test n=2 to hit n>=3 False branch
-        basis = _laguerre_basis(x, degree=2)
-        assert basis.shape == (2, 3)
-
-    test_laguerre_basis_branches()
+    # Test n=2 to hit n>=3 False branch
+    basis = _laguerre_basis(x, n=2)
+    assert basis.shape == (2, 3)
 
 def test_mc_price_instance_method():
     engine = MonteCarloEngine()

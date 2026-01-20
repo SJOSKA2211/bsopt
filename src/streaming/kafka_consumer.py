@@ -1,10 +1,8 @@
 from confluent_kafka import Consumer, KafkaError
-from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.schema_registry.avro import AvroDeserializer
 import asyncio
 import json
 import structlog
-from typing import Dict, Callable, List
+from typing import Dict, List, Callable
 import time
 
 logger = structlog.get_logger()
@@ -18,9 +16,9 @@ class MarketDataConsumer:
     - Error handling and retry
     """
     def __init__(
-        self, 
-        bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092", 
-        group_id: str = "market-data-consumers", 
+        self,
+        bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092",
+        group_id: str = "market-data-consumers",
         topics: List[str] = ["market-data"]
     ):
         self.config = {
@@ -40,11 +38,6 @@ class MarketDataConsumer:
         }
         self.consumer = Consumer(self.config)
         self.consumer.subscribe(topics)
-        
-        # Schema Registry for Avro deserialization
-        self.schema_registry = SchemaRegistryClient({'url': "http://localhost:8081"})
-        self.avro_deserializer = AvroDeserializer(self.schema_registry)
-        
         self.running = False
 
     async def consume_messages(

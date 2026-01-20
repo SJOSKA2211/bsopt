@@ -4,7 +4,7 @@ import os
 import time
 import structlog
 from strawberry.fastapi import GraphQLRouter
-# from src.api.graphql.schema import schema
+from src.api.graphql.schema import schema
 from src.shared.observability import setup_logging, logging_middleware
 from src.shared.security import verify_mtls, opa_authorize
 from src.auth.security import verify_token, RoleChecker
@@ -38,16 +38,6 @@ async def lifespan(app: FastAPI):
     )
     
     kafka_servers = os.environ.get("KAFKA_SERVERS", "localhost:9092")
-    
-    # --- SECURITY: SSRF Prevention for Kafka ---
-    allowed_kafka_hosts = ["localhost", "127.0.0.1", "kafka", "kafka-1", "kafka-2", "kafka-3"]
-    for server in kafka_servers.split(','):
-        host = server.strip().split(':')[0]
-        if host not in allowed_kafka_hosts:
-            logger.critical(f"SSRF Prevention: Invalid KAFKA_SERVERS host '{host}'. Shutting down.")
-            # In production, this should raise an exception to prevent startup with unsafe config
-            # raise ValueError(f"Invalid KAFKA_SERVERS host: {host}")
-            
     logger.info("api_startup", version="1.0.0", kafka_servers=kafka_servers)
     yield
     # Shutdown logic: Flush pending audit logs
@@ -64,25 +54,11 @@ from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
 from src.api.routes.ml import router as ml_router
 from src.api.routes.websocket import router as websocket_router
-from src.api.routes.system import router as system_router
-from src.api.routes.debug import router as debug_router
-
-from fastapi.middleware.cors import CORSMiddleware
-from src.api.middleware.security import SecurityHeadersMiddleware
-from src.config import settings
 
 app = FastAPI(title="BS-Opt API", lifespan=lifespan)
 
 # Add middleware
 app.add_middleware(AuditMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-app.add_middleware(SecurityHeadersMiddleware)
 app.middleware("http")(logging_middleware)
 
 # Include routers
@@ -90,8 +66,6 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(ml_router, prefix="/api/v1")
-app.include_router(system_router, prefix="/api/v1")
-app.include_router(debug_router, prefix="/api/v1")
 app.include_router(websocket_router)
 
 # Add prometheus asgi middleware to expose /metrics
@@ -118,8 +92,8 @@ security_deps = [
 if os.environ.get("TESTING") == "true":
     security_deps = []
 
-# graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
-# app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
+graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
+app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 REQUEST_COUNT = Counter("api_requests_total", "Total count of requests", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("api_request_latency_seconds", "Request latency in seconds", ["method", "endpoint"])
@@ -137,14 +111,6 @@ async def instrument_requests(request: Request, call_next):
     REQUEST_COUNT.labels(method=method, endpoint=endpoint, http_status=status_code).inc()
     REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(latency)
     
-    # Add rate limit headers if present in state
-    if hasattr(request.state, "rate_limit_limit"):
-        response.headers["X-RateLimit-Limit"] = str(request.state.rate_limit_limit)
-    if hasattr(request.state, "rate_limit_remaining"):
-        response.headers["X-RateLimit-Remaining"] = str(request.state.rate_limit_remaining)
-    if hasattr(request.state, "rate_limit_reset"):
-        response.headers["X-RateLimit-Reset"] = str(request.state.rate_limit_reset)
-        
     return response
 
 @app.get("/")

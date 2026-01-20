@@ -19,19 +19,16 @@ def is_db_available():
 
 @pytest.fixture(scope="module")
 def db_conn():
-    from unittest.mock import MagicMock
-    conn = MagicMock()
-    # Ensure cursor context manager works
-    cursor_mock = MagicMock()
-    conn.cursor.return_value.__enter__.return_value = cursor_mock
+    if not is_db_available():
+        pytest.skip("TimescaleDB not available at " + DATABASE_URL)
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
     yield conn
     conn.close()
 
 
 def test_hypertables_exist(db_conn):
     with db_conn.cursor() as cur:
-        # Mock for hypertables
-        cur.fetchall.return_value = [("options_prices",), ("model_predictions",)]
         cur.execute("SELECT hypertable_name FROM timescaledb_information.hypertables;")
         hypertables = [row[0] for row in cur.fetchall()]
         assert "options_prices" in hypertables
@@ -40,8 +37,6 @@ def test_hypertables_exist(db_conn):
 
 def test_continuous_aggregates_exist(db_conn):
     with db_conn.cursor() as cur:
-        # Mock for aggregates
-        cur.fetchall.return_value = [("options_daily_ohlc",), ("options_hourly_greeks",), ("model_daily_performance",)]
         cur.execute("SELECT view_name FROM timescaledb_information.continuous_aggregates;")
         views = [row[0] for row in cur.fetchall()]
         assert "options_daily_ohlc" in views
@@ -122,14 +117,6 @@ def test_insert_and_aggregate(db_conn):
         """
         cur.executemany(query, test_data)
 
-        # Mock return values for fetchone
-        # 1. Count query
-        # 2. OHLC query
-        cur.fetchone.side_effect = [
-            (3,),
-            ("TEST_AAPL", 10.2, 12.2, 10.2, 12.2, 600)
-        ]
-
         # Verify insertion
         cur.execute("SELECT count(*) FROM options_prices WHERE symbol = 'TEST_AAPL';")
         assert_equal(cur.fetchone()[0], 3)
@@ -156,16 +143,6 @@ def test_insert_and_aggregate(db_conn):
 
 def test_model_predictions_aggregate(db_conn):
     with db_conn.cursor() as cur:
-        # Mock return values
-        # 1. user_id
-        # 2. model_id
-        # 3. perf stats
-        cur.fetchone.side_effect = [
-            (1,),
-            (1,),
-            (1, 3.5, 3.8078865)
-        ]
-
         # Create a dummy model
         cur.execute(
             "INSERT INTO users (email, hashed_password) "

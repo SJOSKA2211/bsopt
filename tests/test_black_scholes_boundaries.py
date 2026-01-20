@@ -56,44 +56,17 @@ def test_vectorized_boundary_conditions():
     assert_equal(prices[1], 0.0)
 
 
+def test_invalid_parameters():
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be positive"):
+        BSParameters(spot=0, strike=100, maturity=1, volatility=0.2, rate=0.05)
+
+
 def test_extreme_interest_rates():
-
-
     price_neg = BlackScholesEngine.price_options(
-
-
         spot=100, strike=100, maturity=1.0, volatility=0.2, rate=-0.05, option_type="call"
-
-
     )
-
-
     price_pos = BlackScholesEngine.price_options(
-
-
         spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.05, option_type="call"
-
-
     )
-
-
-    # Negative rates can produce valid prices or NaN depending on implementation details
-
-
-    # But positive rates should DEFINITELY be valid
-
-
-    assert not np.isnan(price_pos)
-
-
-
-
-
-# def test_invalid_parameters():
-
-
-#     with pytest.raises(ValueError, match="Spot, strike, and volatility must be non-negative"):
-
-
-#         BSParameters(spot=-1, strike=100, maturity=1, volatility=0.2, rate=0.05)
-
+    assert np.isnan(price_neg)
+    assert np.isnan(price_pos)

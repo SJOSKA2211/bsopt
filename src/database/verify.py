@@ -37,8 +37,11 @@ def verify_postgres_connection():
     # Set PGPASSWORD from parsed URL or existing DB_PASSWORD
     if db_password_url:
         os.environ["PGPASSWORD"] = db_password_url
-    else: # Fallback to DB_PASSWORD from .env (already verified not None)
+    elif db_password: # Fallback to DB_PASSWORD from .env
         os.environ["PGPASSWORD"] = db_password
+    else:
+        print("Error: PostgreSQL password not found in DATABASE_URL or DB_PASSWORD.")
+        return
 
     # 5. Execute psql -c '\l'
     cmd = ["psql", "-h", str(db_host), "-p", str(db_port), "-U", str(db_user), "-d", str(db_name), "-c", "\\l"]

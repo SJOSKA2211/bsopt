@@ -9,21 +9,13 @@ class DeFiOptionsProtocol:
     Interface for interacting with decentralized options protocols (e.g., Opyn, Lyra) 
     on Ethereum/Polygon using Web3.py.
     """
-    def __init__(self, rpc_url: str = "https://polygon-rpc.com", private_key: str = None, w3=None):
-        """
-        Initialize the protocol interface.
-        
-        Args:
-            rpc_url: RPC endpoint for the blockchain (Polygon PoS)
-            private_key: Optional private key for signing transactions.
-                         CRITICAL: This should come from a secure secret management system, not directly as a string.
-            w3: Optional Web3 instance for testing
-        """
+    def __init__(
+        self, 
+        rpc_url: str = "https://polygon-rpc.com",
+        private_key: Optional[str] = None
+    ):
         self.rpc_url = rpc_url
-        if w3 is not None:
-            self.w3 = w3
-        else:
-            self.w3 = Web3(Web3.HTTPProvider(rpc_url))
+        self.w3 = Web3(Web3.HTTPProvider(rpc_url))
         self.private_key = private_key
         
         if private_key:

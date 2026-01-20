@@ -8,9 +8,6 @@ def test_pricing_does_not_load_heavy_deps_on_import():
     """
     Verify that importing src.pricing does not load Qiskit.
     """
-    if 'qiskit' in sys.modules:
-        pytest.skip("qiskit already loaded")
-
     # Ensure it's not already loaded
     assert 'qiskit' not in sys.modules
     

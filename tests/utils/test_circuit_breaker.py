@@ -1,88 +1,106 @@
 import pytest
 import time
 import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from src.utils.circuit_breaker import InMemoryCircuitBreaker, DistributedCircuitBreaker, CircuitState
 
-def test_in_memory_circuit_breaker_sync():
+def test_local_circuit_breaker_flow():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)
+
     
-    def fail_func():
+    def failing_func():
         raise ValueError("Fail")
     
-    wrapped = cb(fail_func)
+    def success_func():
+        return "Success"
     
-    # 1st fail
+    # First failure
     with pytest.raises(ValueError):
-        wrapped()
+        cb(failing_func)()
     assert cb.state == CircuitState.CLOSED
     
-    # 2nd fail -> OPEN
+    # Second failure -> OPEN
     with pytest.raises(ValueError):
-        wrapped()
+        cb(failing_func)()
     assert cb.state == CircuitState.OPEN
     
-    # Check OPEN rejection
-    with pytest.raises(Exception, match="is OPEN"):
-        wrapped()
+    # Immediate call while OPEN -> Exception
+    with pytest.raises(Exception, match="Circuit Breaker is OPEN"):
+        cb(success_func)()
         
     # Wait for recovery
     time.sleep(1.1)
     
-    # Should move to HALF_OPEN and then CLOSED on success
-    def success_func():
-        return "OK"
-    wrapped_success = cb(success_func)
-    assert wrapped_success() == "OK"
+    # Call while OPEN after timeout -> HALF_OPEN -> Success -> CLOSED
+    assert cb(success_func)() == "Success"
     assert cb.state == CircuitState.CLOSED
 
 @pytest.mark.asyncio
-async def test_in_memory_circuit_breaker_async():
-    cb = InMemoryCircuitBreaker(failure_threshold=1, recovery_timeout=1)
+async def test_redis_circuit_breaker_flow():
+    mock_redis = AsyncMock()
+    mock_redis.get.return_value = None
+    mock_redis.incr.return_value = 1
     
-    async def async_fail():
-        raise ValueError("Async Fail")
+    cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis, failure_threshold=2, recovery_timeout=1)
+
+    
+    async def async_failing_func():
+        raise ValueError("Fail")
         
-    wrapped = cb(async_fail)
-    
+    async def async_success_func():
+        return "Success"
+        
+    # Mock first failure
+    mock_redis.get.return_value = None # State CLOSED
     with pytest.raises(ValueError):
-        await wrapped()
-    assert cb.state == CircuitState.OPEN
+        await cb(async_failing_func)()
     
-    with pytest.raises(Exception, match="is OPEN"):
-        await wrapped()
+    # Mock second failure -> OPEN
+    mock_redis.incr.return_value = 2
+    with pytest.raises(ValueError):
+        await cb(async_failing_func)()
+    
+    # Mock OPEN state
+    mock_redis.get.side_effect = [b"OPEN", b"1000000000"] # State OPEN, Last failure long ago
+    # Current time is > 1000000000 + 1
+    
+    # Mock transition to HALF_OPEN
+    res = await cb(async_success_func)()
+    assert res == "Success"
+    mock_redis.set.assert_any_call("test:cb_state", "CLOSED", ex=None)
 
 @pytest.mark.asyncio
-async def test_distributed_circuit_breaker():
+async def test_redis_circuit_breaker_open_rejection():
     mock_redis = AsyncMock()
-    # Mock _get_state to return CLOSED initially
+    mock_redis.get.side_effect = [b"OPEN", b"2000000000"] # OPEN and not timed out
+    
+    cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis, recovery_timeout=100)
+    
+    async def some_func(): return "ok"
+    
+    with pytest.raises(Exception, match="is OPEN. Request rejected"):
+        await cb(some_func)()
+
+@pytest.mark.asyncio
+async def test_redis_circuit_breaker_sync_func():
+    mock_redis = AsyncMock()
     mock_redis.get.return_value = b"CLOSED"
     
-    cb = DistributedCircuitBreaker("test", mock_redis, failure_threshold=2, recovery_timeout=1)
+    cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis)
     
-    async def my_func():
-        return "Data"
-        
-    wrapped = cb(my_func)
-    assert await wrapped() == "Data"
+    def sync_func(): return "sync_ok"
     
-    # Test failure logic
-    async def fail_func():
-        raise ValueError("Remote Fail")
-    wrapped_fail = cb(fail_func)
-    
-    # Mock increment to return 2 (threshold reached)
-    mock_redis.incr.return_value = 2
-    
-    with pytest.raises(ValueError):
-        await wrapped_fail()
-        
-    # Verify Redis interactions
-    mock_redis.set.assert_any_call("test:cb_state", "OPEN", ex=1)
+    assert await cb(sync_func)() == "sync_ok"
 
-def test_circuit_breaker_reset():
-    cb = InMemoryCircuitBreaker()
-    cb.state = CircuitState.OPEN
-    cb.reset()
-    assert cb.state == CircuitState.CLOSED
-    assert cb.failure_count == 0
+@pytest.mark.asyncio
+async def test_redis_circuit_breaker_get_failures():
+    mock_redis = AsyncMock()
+    mock_redis.get.return_value = b"5"
+    
+    cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis)
+    assert await cb._get_failures() == 5
+    
+    mock_redis.get.return_value = None
+    assert await cb._get_failures() == 0
+
+

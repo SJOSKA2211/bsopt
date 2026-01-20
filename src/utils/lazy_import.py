@@ -15,6 +15,7 @@ import time
 import sys
 from typing import Any, Dict, List, Optional, Tuple, Callable, Iterable
 import structlog
+from importlib import import_module
 from contextlib import contextmanager
 import structlog
 
@@ -25,137 +26,6 @@ _import_locks: Dict[str, threading.RLock] = {}
 _import_times: Dict[str, float] = {}
 _import_stack: threading.local = threading.local()
 _failed_imports: Dict[str, Exception] = {}
-
-# Allowlist for modules that can be lazy-imported.
-# This prevents arbitrary module loading if an attacker can control module_path or package_name.
-_module_allowlist = {
-    "src.ml": [
-        "src.ml.rl.augmented_agent",
-        "src.ml.training.train",
-        "src.ml.pipelines.orchestrator",
-        "src.ml.evaluation.compare_models",
-        "src.ml.data_loader",
-        "src.ml.drift",
-        "src.ml.scraper",
-        "src.ml.serving.serve_model",
-        "src.ml.serving.serve",
-        "src.ml.serving.quantization",
-        "src.ml.reinforcement_learning.train",
-        "src.ml.reinforcement_learning.online_agent",
-        "src.ml.federated_learning.coordinator",
-        "src.ml.pipelines.retraining",
-        "src.ml.pipelines.sentiment_ingest",
-        "src.ml.utils.inference",
-        "src.ml.utils.optimization",
-        "src.ml.utils.rollback",
-        "src.ml.utils.versioning",
-        "src.ml.utils.distributed",
-    ],
-    "src.pricing": [
-        "src.pricing.black_scholes",
-        "src.pricing.factory",
-        "src.pricing.implied_vol",
-        "src.pricing.exotic",
-        "src.pricing.models.heston_fft",
-        "src.pricing.quant_utils",
-        "src.pricing.vectorized_black_scholes",
-        "src.pricing.quantum_backend",
-        "src.pricing.quantum_pricing",
-    ],
-    "src.data": [
-        "src.data.pipeline",
-        "src.data.router",
-    ],
-    "src.utils": [
-        "src.utils.cache",
-        "src.utils.circuit_breaker",
-        "src.utils.lazy_import",
-        "src.utils.sanitization",
-        "src.utils.errors",
-        "src.utils.dashboard",
-    ],
-    "src.tasks": [
-        "src.tasks.pricing_tasks",
-        "src.tasks.ml_tasks",
-        "src.tasks.trading_tasks",
-        "src.tasks.data_tasks",
-        "src.tasks.email_tasks",
-        "src.tasks.audit_tasks",
-        "src.tasks.celery_app",
-        "src.tasks.graceful_shutdown",
-    ],
-    "src.security": [
-        "src.security.auth",
-        "src.security.password",
-        "src.security.audit",
-        "src.security.breach_notification",
-        "src.security.rate_limit",
-        "src.security.opa",
-        "src.security.mtls",
-    ],
-    "src.database": [
-        "src.database.models",
-        "src.database.crud",
-        "src.database.verify",
-    ],
-    "src.streaming": [
-        "src.streaming.mesh_producer",
-        "src.streaming.health",
-        "src.streaming.kafka_consumer",
-        "src.streaming.kafka_producer",
-        "src.streaming.consumer",
-        "src.streaming.producer",
-        "src.streaming.analytics",
-    ],
-    "src.api": [
-        "src.api.routes.auth",
-        "src.api.routes.pricing",
-        "src.api.routes.users",
-        "src.api.routes.ml",
-        "src.api.routes.websocket",
-        "src.api.routes.system",
-        "src.api.routes.debug",
-        "src.api.middleware.security",
-        "src.api.middleware.logging",
-        "src.api.middleware.idempotency",
-        "src.api.middleware.profiling",
-        "src.api.graphql.schema",
-        "src.api.schemas.auth",
-        "src.api.schemas.common",
-        "src.api.schemas.pricing",
-        "src.api.schemas.user",
-        "src.api.schemas.ml",
-        "src.api.schemas.streaming",
-        "src.api.schemas.system",
-        "src.api.exceptions",
-    ],
-    "src.cli": [
-        "src.cli.portfolio",
-        "src.cli.main",
-        "src.cli.auth",
-        "src.cli.config",
-        "src.cli.data",
-        "src.cli.pricing",
-        "src.cli.ml",
-        "src.cli.reporting",
-    ],
-    "src.aiops": [
-        "src.aiops.aiops_orchestrator",
-        "src.aiops.autoencoder_detector",
-        "src.aiops.data_drift_detector",
-        "src.aiops.docker_remediator",
-        "src.aiops.ml_pipeline_trigger",
-        "src.aiops.prometheus_adapter",
-        "src.aiops.redis_remediator",
-        "src.aiops.self_healing_orchestrator",
-        "src.aiops.timeseries_anomaly_detector",
-    ],
-    "src.shared": [
-        "src.shared.observability",
-        "src.shared.security",
-    ],
-}
-
 
 class LazyImportError(ImportError):
     """Raised when a lazy import fails with additional context."""
@@ -220,20 +90,6 @@ def lazy_import(
     else:
         full_module_path = module_path
 
-    # --- SECURITY: Module Allowlisting ---
-    # Ensure that both the package and the specific module are in the allowlist
-    if package_name not in _module_allowlist or full_module_path not in _module_allowlist[package_name]:
-        logger.error(
-            "lazy_import_denied",
-            package=package_name,
-            attribute=attr_name,
-            module=full_module_path,
-            reason="Module not in allowlist"
-        )
-        raise LazyImportError(
-            f"Attempted to lazy import unauthorized module: {full_module_path}"
-        )
-
     # Thread-safe import
     with _get_import_lock(full_module_path):
         # Double-check if already imported by another thread
@@ -251,7 +107,7 @@ def lazy_import(
                 )
                 
                 # Perform the import
-                module = importlib.import_module(module_path, package=package_name)
+                module = import_module(module_path, package=package_name)
                 attr = getattr(module, attr_name)
                 
                 # Cache in the parent module
@@ -260,7 +116,6 @@ def lazy_import(
                 # Record timing
                 elapsed = time.perf_counter() - start_time
                 _import_times[cache_key] = elapsed
-                print(f"DEBUG: Updated _import_times for {cache_key}. Size: {len(_import_times)}")
                 
                 logger.info(
                     "lazy_import_success",
