@@ -30,8 +30,10 @@ from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
 import json
+from src.utils.filesystem import sanitize_path
 
 import click
+from click import Option
 import pandas as pd
 import numpy as np
 from rich.console import Console
@@ -399,14 +401,18 @@ from src.utils.filesystem import sanitize_path
 
 # ... (rest of the file)
 
-@app.command("batch")
+@cli.command("batch")
+@click.option('--symbols', required=True, help="Comma-separated list of stock symbols")
+@click.option('--start-date', required=True, help="Start date (YYYY-MM-DD)")
+@click.option('--end-date', required=True, help="End date (YYYY-MM-DD)")
+@click.option('--output-file', default="batch_results.csv", type=click.Path(), help="Output CSV file for results")
 def batch_command(
-    symbols: List[str] = Option(..., "--symbols", "-s", help="Comma-separated list of stock symbols"),
-    start_date: str = Option(..., "--start-date", "-sd", help="Start date (YYYY-MM-DD)"),
-    end_date: str = Option(..., "--end-date", "-ed", help="End date (YYYY-MM-DD)"),
-    output_file: Path = Option(
-        "batch_results.csv", "--output", "-o", help="Output CSV file for results"
-    ),
+    symbols: str,
+    start_date: str,
+    end_date: str,
+    output_file: Path,
+):
+
 
     """
     Batch price options from CSV file.
@@ -427,7 +433,8 @@ def batch_command(
 
         # Load input CSV
         console.print(f"[cyan]Loading:[/cyan] {input_file}")
-        df = pd.read_csv(input_file)
+        safe_input_file = sanitize_path(Path.cwd(), input_file)
+        df = pd.read_csv(safe_input_file)
 
         # Validate required columns
         required_cols = ['symbol', 'spot', 'strike', 'maturity', 'volatility',
@@ -697,7 +704,7 @@ def fetch_data(symbol: str, days: int, provider: str, output: Optional[str], use
 
         if output:
             safe_output = sanitize_path(Path.cwd(), output)
-    df.to_csv(safe_output, index=False)
+            df.to_csv(safe_output, index=False)
             console.print(f"[cyan]Data saved to:[/cyan] {output}\n")
 
     except Exception as e:
@@ -793,8 +800,8 @@ def train_model(algorithm: str, data: str, output: str, test_split: float):
         console.print(metrics_table)
         console.print()
 
-    safe_output_path = sanitize_path(Path.cwd(), output)
-    safe_output_path.mkdir(parents=True, exist_ok=True)
+        safe_output_path = sanitize_path(Path.cwd(), output)
+        safe_output_path.mkdir(parents=True, exist_ok=True)
         console.print(f"[cyan]Model saved to:[/cyan] {output}\n")
 
     except Exception as e:
@@ -999,7 +1006,7 @@ def vol_surface(symbol: str, date: Optional[str], output: Optional[str]):
 
         if output:
             safe_output = sanitize_path(Path.cwd(), output)
-    console.print(f"[cyan]Plot saved to:[/cyan] {safe_output}\n")
+            console.print(f"[cyan]Plot saved to:[/cyan] {safe_output}\n")
         else:
             console.print("[dim]Opening interactive plot...[/dim]\n")
 
