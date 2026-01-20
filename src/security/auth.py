@@ -131,9 +131,16 @@ class AuthService:
     def algorithm(self):
         return settings.JWT_ALGORITHM
 
+    @property
+    def access_token_expire(self):
+        return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    @property
+    def refresh_token_expire(self):
+        return timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
     def __init__(self) -> None:
-        self.access_token_expire = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-        self.refresh_token_expire = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        pass
 
     def create_access_token(
         self,
@@ -159,7 +166,9 @@ class AuthService:
         if additional_claims:
             payload.update(additional_claims)
 
-        return cast(str, jwt.encode(payload, self.private_key, algorithm=self.algorithm))
+        token = cast(str, jwt.encode(payload, self.private_key, algorithm=self.algorithm))
+        print(f"GENERATED TOKEN: {token[:20]}...")
+        return token
 
     def create_refresh_token(
         self,
@@ -326,6 +335,7 @@ async def get_current_user(
     request: Request,
     token: Optional[str] = Depends(get_token_from_header),
     db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> User:
     """FastAPI dependency to get current authenticated user."""
     if not token:
@@ -385,6 +395,7 @@ async def get_current_active_user(
 async def get_optional_user(
     token: Optional[str] = Depends(get_token_from_header),
     db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> Optional[User]:
     """Get current user if authenticated, None otherwise."""
     if not token:
@@ -451,9 +462,11 @@ async def get_api_key(
 
 
 async def get_current_user_flexible(
+    request: Request,
     token: Optional[str] = Depends(get_token_from_header),
     api_key_user: Optional[User] = Depends(get_api_key),
     db: Session = Depends(get_db),
+    auth_service: AuthService = Depends(get_auth_service),
 ) -> User:
     """Authentication via either JWT or API Key."""
     if api_key_user:
@@ -471,4 +484,4 @@ async def get_current_user_flexible(
             headers={"WWW-Authenticate": "Bearer"},
         )
         
-    return await get_current_user(token, db)
+    return await get_current_user(request, token, db, auth_service)

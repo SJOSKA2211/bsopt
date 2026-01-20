@@ -11,6 +11,7 @@ from src.api.middleware.security import (
 import hmac
 import hashlib
 import time
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 def create_app_with_middleware(middleware_class, **kwargs):
@@ -97,12 +98,51 @@ def test_ip_block_middleware():
     
     # Blocked IP
     response = client.get("/", headers={"X-Real-IP": "1.2.3.4"})
-    if response.status_code != 403:
-        # If it bubbles up as exception
-        with pytest.raises(HTTPException):
-             app.middleware_stack(MagicMock(), MagicMock(), MagicMock())
-    else:
-        assert response.status_code == 403
+    assert response.status_code == 403
+    assert response.json() == {"detail": "Access denied"}
+
+def test_ip_block_middleware_x_forwarded_for():
+    app = create_app_with_middleware(IPBlockMiddleware, blocked_ips={"10.0.0.1"})
+    client = TestClient(app)
+    
+    # Test X-Forwarded-For
+    response = client.get("/", headers={"X-Forwarded-For": "10.0.0.1, 192.168.1.1"})
+    assert response.status_code == 403
+
+def test_csrf_middleware_failures():
+    app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
+    client = TestClient(app)
+    
+    # 1. Invalid Origin
+    response = client.post("/post", headers={"Origin": "http://evil.com"})
+    assert response.status_code == 403
+    assert "Origin validation failed" in response.json()["detail"]
+    
+    # 2. Missing Token
+    # (Already tested in test_csrf_middleware_post_fail_no_token but checking json response now)
+    response = client.post("/post", headers={"Origin": "http://testserver"})
+    assert response.status_code == 403
+    assert "CSRF token missing" in response.json()["detail"]
+    
+    # 3. Invalid Token (Cookie)
+    response = client.post("/post", 
+        cookies={"csrf_token": "invalid"},
+        headers={"Origin": "http://testserver", "X-CSRF-Token": "invalid"}
+    )
+    assert response.status_code == 403
+    assert "Invalid CSRF token" in response.json()["detail"]
+
+    # 4. Token Mismatch
+    # Get valid token first
+    resp = client.get("/")
+    valid_token = resp.cookies["csrf_token"]
+    
+    response = client.post("/post", 
+        cookies={"csrf_token": valid_token},
+        headers={"Origin": "http://testserver", "X-CSRF-Token": "mismatch"}
+    )
+    assert response.status_code == 403
+    assert "CSRF token mismatch" in response.json()["detail"]
 
 def test_ip_block_temp_block():
     middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=2, block_duration_minutes=1)
@@ -116,6 +156,107 @@ def test_ip_block_temp_block():
     
     middleware.clear_failed_attempts(ip)
     assert middleware._is_blocked(ip)
+
+def test_security_headers_custom_policy():
+    custom_policy = {"camera": ["https://example.com"]}
+    app = create_app_with_middleware(SecurityHeadersMiddleware, permissions_policy=custom_policy)
+    client = TestClient(app)
+    response = client.get("/")
+    assert 'camera=("https://example.com")' in response.headers["Permissions-Policy"]
+
+def test_ip_block_temp_block_expiration():
+    # Use very short duration for test
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=1, block_duration_minutes=0)
+    ip = "9.9.9.9"
+    
+    # Force a block
+    middleware.record_failed_attempt(ip)
+    # The duration is 0 minutes, so it expires immediately? 
+    # Wait, timedelta(minutes=0) is 0. 
+    # But code uses datetime.now() < block_until. 
+    # block_until = now + 0.
+    # So now < now is False. Block expired immediately.
+    
+    # We need to simulate time passing.
+    # Let's mock datetime
+    with patch("src.api.middleware.security.datetime") as mock_datetime:
+        mock_now = datetime.now(timezone.utc)
+        mock_datetime.now.return_value = mock_now
+        
+        # Set block duration to 10 mins
+        middleware.block_duration = timedelta(minutes=10)
+        
+        # Block
+        middleware.record_failed_attempt(ip)
+        assert middleware._is_blocked(ip)
+        
+        # Advance time by 11 mins
+        mock_datetime.now.return_value = mock_now + timedelta(minutes=11)
+        assert not middleware._is_blocked(ip)
+        # Should have cleared the block
+        assert ip not in middleware._temporary_blocks
+
+def test_ip_block_clean_old_attempts():
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=5, block_duration_minutes=10)
+    ip = "8.8.8.8"
+    
+    with patch("src.api.middleware.security.datetime") as mock_datetime:
+        base_time = datetime.now(timezone.utc)
+        mock_datetime.now.return_value = base_time
+        
+        # Record attempt 20 mins ago (should be cleaned)
+        middleware._failed_attempts[ip] = [base_time - timedelta(minutes=20)]
+        
+        # Record new attempt
+        middleware.record_failed_attempt(ip)
+        
+        # Should only have 1 attempt (the new one)
+        assert len(middleware._failed_attempts[ip]) == 1
+        assert middleware._failed_attempts[ip][0] == base_time
+
+    # Should only have 1 attempt (the new one)
+    assert len(middleware._failed_attempts[ip]) == 1
+    assert middleware._failed_attempts[ip][0] == base_time
+
+def test_csrf_wildcard_exempt():
+    # Subclass to add wildcard exempt path for testing
+    class CustomCSRFMiddleware(CSRFMiddleware):
+        EXEMPT_PATHS = {"/api/v1/public/*"}
+
+    app = create_app_with_middleware(CustomCSRFMiddleware, secret_key="test")
+    client = TestClient(app)
+    
+    # Should succeed without token
+    response = client.post("/api/v1/public/something")
+    # Our create_app doesn't have this route, so it returns 404, but NOT 403 (CSRF blocked)
+    # If it was blocked, it would be 403.
+    # Since endpoint doesn't exist, 404.
+    assert response.status_code == 404
+
+def test_csrf_no_origin_referer():
+    app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
+    client = TestClient(app)
+    
+    # Get token
+    resp = client.get("/")
+    token = resp.cookies["csrf_token"]
+    
+    # Request without Origin/Referer should work (if token valid)
+    response = client.post("/post", 
+        cookies={"csrf_token": token},
+        headers={"X-CSRF-Token": token}
+        # No Origin header
+    )
+    assert response.status_code == 200
+
+def test_csrf_invalid_origin_format():
+    app = create_app_with_middleware(CSRFMiddleware, secret_key="test")
+    client = TestClient(app)
+    
+    # Invalid URL in Origin
+    response = client.post("/post", headers={"Origin": "not-a-url"})
+    assert response.status_code == 403
+    assert "Origin validation failed" in response.json()["detail"]
 
 def test_input_sanitization_middleware():
     app = create_app_with_middleware(InputSanitizationMiddleware)

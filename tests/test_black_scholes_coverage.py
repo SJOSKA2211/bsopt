@@ -151,3 +151,77 @@ def test_calculate_greeks_static():
     # Call the static method directly
     greeks = BlackScholesEngine.calculate_greeks_static(params, "call")
     assert greeks.delta > 0
+
+def test_price_options_with_params():
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=0.05
+    )
+    price = BlackScholesEngine.price_options(params=params)
+    assert price > 0
+
+def test_price_options_missing_args():
+    with pytest.raises(TypeError, match="Missing required pricing parameters"):
+        BlackScholesEngine.price_options(spot=100.0)
+
+def test_calculate_greeks_batch_with_params():
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=0.05
+    )
+    greeks = BlackScholesEngine.calculate_greeks_batch(params=params)
+    assert isinstance(greeks, OptionGreeks)
+
+def test_calculate_greeks_batch_missing_args():
+    with pytest.raises(TypeError, match="Missing required pricing parameters"):
+        BlackScholesEngine.calculate_greeks_batch(spot=100.0)
+
+def test_verify_put_call_parity():
+    from src.pricing.black_scholes import verify_put_call_parity
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=0.05, dividend=0.0
+    )
+    assert verify_put_call_parity(params)
+
+    # Broken parity test (high dividend vs none in parity check context? No, just modify price manually if possible, 
+    # but here we test the function logic. If parameters are consistent, it should be true.)
+    
+def test_calculate_vector_expired():
+    # Test calculate with vector of expired options
+    S = np.array([100.0, 90.0])
+    K = np.array([90.0, 100.0])
+    T = np.array([0.0, 0.0]) # All expired
+    sigma = np.array([0.2, 0.2])
+    r = np.array([0.05, 0.05])
+    q = np.array([0.0, 0.0])
+    
+    params = BSParameters(spot=S, strike=K, maturity=T, volatility=sigma, rate=r, dividend=q)
+    engine = BlackScholesEngine()
+    
+    # Call
+    res_call = engine.calculate(params, "call")
+    # 100-90 = 10 (ITM), 90-100 = 0 (OTM)
+    np.testing.assert_array_almost_equal(res_call["price"], np.array([10.0, 0.0]))
+    
+    # Put
+    res_put = engine.calculate(params, "put")
+    # 90-100 = 0 (OTM), 100-90 = 10 (ITM)
+    np.testing.assert_array_almost_equal(res_put["price"], np.array([0.0, 10.0]))
+
+def test_price_instance_method_kwargs():
+    engine = BlackScholesEngine()
+    # Test passing kwargs instead of params object
+    price = engine.price(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=0.05, dividend=0.0,
+        option_type="call"
+    )
+    assert price > 0
+
+def test_calculate_greeks_put_coverage():
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=0.05, dividend=0.02
+    )
+    # Use instance method or static wrapper that calls _calculate_greeks_internal
+    greeks = BlackScholesEngine().calculate_greeks(params, "put")
+    assert greeks.delta < 0 # Put delta is negative
+    assert greeks.theta != 0
+
+    

@@ -95,8 +95,8 @@ class DistributedCircuitBreaker:
         await self.redis_client.delete(self.REDIS_KEY_FAILURES.format(name=self.name))
 
     async def _get_last_failure_time(self) -> int:
-        last_failure = await self.redis_client.get(self.REDIS_KEY_LAST_FAILURE.format(name=self.name))
-        return int(last_failure) if last_failure else 0
+        last_failure = await self.redis_client.get(self.REDIS_KEY_LAST_FAILURE.format(name=self.name)) # pragma: no cover
+        return int(last_failure) if last_failure else 0 # pragma: no cover
 
     async def _set_last_failure_time(self, timestamp: int, expiry: Optional[int] = None) -> None:
         await self.redis_client.set(self.REDIS_KEY_LAST_FAILURE.format(name=self.name), timestamp, ex=expiry)

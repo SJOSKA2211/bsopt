@@ -48,22 +48,25 @@ class PasswordValidator:
         require_digit: Optional[bool] = None,
         require_special: Optional[bool] = None,
     ):
-        self.min_length = min_length or settings.PASSWORD_MIN_LENGTH
+        # Handle cases where settings might be None (e.g. during test initialization)
+        s = settings if settings else None
+        
+        self.min_length = min_length or getattr(s, "PASSWORD_MIN_LENGTH", 8)
         self.require_uppercase = (
             require_uppercase
             if require_uppercase is not None
-            else settings.PASSWORD_REQUIRE_UPPERCASE
+            else getattr(s, "PASSWORD_REQUIRE_UPPERCASE", True)
         )
         self.require_lowercase = (
             require_lowercase
             if require_lowercase is not None
-            else settings.PASSWORD_REQUIRE_LOWERCASE
+            else getattr(s, "PASSWORD_REQUIRE_LOWERCASE", True)
         )
         self.require_digit = (
-            require_digit if require_digit is not None else settings.PASSWORD_REQUIRE_DIGIT
+            require_digit if require_digit is not None else getattr(s, "PASSWORD_REQUIRE_DIGIT", True)
         )
         self.require_special = (
-            require_special if require_special is not None else settings.PASSWORD_REQUIRE_SPECIAL
+            require_special if require_special is not None else getattr(s, "PASSWORD_REQUIRE_SPECIAL", False)
         )
 
     def validate(self, password: str, email: Optional[str] = None) -> PasswordValidationResult:
@@ -176,8 +179,7 @@ class PasswordService:
         Returns:
             Hashed password string
         """
-        # Truncate to 72 bytes for bcrypt compatibility
-        return cast(str, self.pwd_context.hash(password.encode('utf-8')[:72]))
+        return cast(str, self.pwd_context.hash(password))
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """
@@ -191,8 +193,7 @@ class PasswordService:
             True if password matches, False otherwise
         """
         try:
-            # Truncate to 72 bytes for bcrypt compatibility
-            return bool(self.pwd_context.verify(plain_password.encode('utf-8')[:72], hashed_password))
+            return bool(self.pwd_context.verify(plain_password, hashed_password))
         except Exception as e:
             logger.error(f"Password verification error: {e}")
             return False
@@ -325,8 +326,12 @@ _password_service_instance: Optional[PasswordService] = None
 def get_password_service() -> PasswordService:
     global _password_service_instance
     if _password_service_instance is None:
-        # Pass settings.BCRYPT_ROUNDS explicitly
-        _password_service_instance = PasswordService(rounds=settings.BCRYPT_ROUNDS)
+        # Handle cases where settings might be None (e.g. during early test initialization)
+        try:
+            rounds = settings.BCRYPT_ROUNDS if settings else 12
+        except AttributeError:
+            rounds = 12
+        _password_service_instance = PasswordService(rounds=rounds)
     return _password_service_instance
 
 # For backward compatibility or direct usage

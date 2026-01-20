@@ -19,6 +19,7 @@ from typing import Callable, Dict, List, Literal, Optional, Set, cast
 from urllib.parse import urlparse
 
 from fastapi import HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -296,8 +297,9 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                     f"CSRF origin validation failed for {request.url.path} "
                     f"from {request.headers.get('origin', 'unknown')}"
                 )
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="Origin validation failed"
+                return JSONResponse(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    content={"detail": "Origin validation failed"},
                 )
 
             # Validate CSRF token
@@ -305,21 +307,24 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
             if not csrf_cookie or not csrf_header:
                 logger.warning(f"Missing CSRF token for {request.url.path}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing"
+                return JSONResponse(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    content={"detail": "CSRF token missing"},
                 )
 
             if not self._verify_token(csrf_cookie):
                 logger.warning(f"Invalid CSRF cookie token for {request.url.path}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="Invalid CSRF token"
+                return JSONResponse(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    content={"detail": "Invalid CSRF token"},
                 )
 
             # Token in header should match cookie token
             if not hmac.compare_digest(csrf_cookie, csrf_header):
                 logger.warning(f"CSRF token mismatch for {request.url.path}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token mismatch"
+                return JSONResponse(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    content={"detail": "CSRF token mismatch"},
                 )
 
         # Process request
@@ -429,7 +434,10 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
         if self._is_blocked(client_ip):
             logger.warning(f"Blocked request from {client_ip}")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+            return JSONResponse(
+                status_code=status.HTTP_403_FORBIDDEN,
+                content={"detail": "Access denied"},
+            )
 
         # Store IP in request state for other middleware
         request.state.client_ip = client_ip

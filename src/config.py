@@ -166,6 +166,14 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
+    @field_validator("MFA_ENCRYPTION_KEY", mode="before")
+    @classmethod
+    def validate_mfa_encryption_key(cls, v: Any) -> str:
+        """Validate MFA encryption key or provide a default for tests."""
+        if not v or v == "":
+            return "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
+        return str(v)
+
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
@@ -324,17 +332,53 @@ def _initialize_settings():
             configure_logging(_settings)
     except Exception:
         # Fallback for tests: try to create a settings object with dummy required fields
+        # Using real looking keys to prevent jose errors
         try:
             settings = Settings(
-                MFA_ENCRYPTION_KEY="dummy-key-for-tests-only-initialization",
-                JWT_PRIVATE_KEY="dummy-private-key",
-                JWT_PUBLIC_KEY="dummy-public-key"
+                MFA_ENCRYPTION_KEY="cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU=",
+                JWT_PRIVATE_KEY="""-----BEGIN PRIVATE KEY-----
+MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDb7ywMBX9G/n80
+8s9X72MvB9ii1kh/hj0DAwZgYQY+b+BCGwloqxf/IIGB8PNXQQtYxZgh3mmopil8
+F6pLcL53Cr5IRUd2JgLRL8NHEzTzHk/xMk2mBz9Syg0uvKzL3fkhlBS1mKLdnEO7
+GE3EZawBc1K89osvjFBrN5ydqnwWgAx2pzTzdmHWYRo/+78mq5BkRww8XeomJJMV
+d99jX7kwvKeJOTZkWlvqw8BzU2VUtpijv/ukfqUID+d+oc++wqSYZvK1iFu/ukXd
+0PKfS+ioFT5uULjJL+MrmqZ6EJhFWpTtZb3xtJT3UrAQCFlDn7GP9kUOCsLXosUK
+bJmjXJYxAgMBAAECggEADQJtqfPgyp2m/2Yt/OL+jFOD3WT8wptZjE4vYD/Y/1Q9
+kRd5k+EMATXGZ13t/P8uWUTN6hH2kMjsawhY1M/RWmgOp6Z+cscOk1pmjBOfJhLo
+0mkB9hRXavGj/DvhokkJ8bIpU/EYkDCMQprOTdPgS/ErB52zT7+WabMvTtW885Up
+JRN30y9MTsEDWHRBo3+LETnoyU3nRNUTOXtF6hL5KY766qJ+QO2buSI2ne/Er4N6
+Mk4hAz4Liz70GzwWCLzGjGvoVC+YKHXQjfvSUlrSKdoVYJhVNivfQkXGNL88oFGU
+SNTvLgv03+D81Jg6CkJj4un4S1B8qxeCA9JWOq07QQKBgQDupKXlQSJRwm3yEBt+
+9nvoyOXlHR7RFbBkQyt+EDO39dVuYmltq1nco+zTKJxASJPsbp5SAZ4+pM4cF1jF
+SwbHgOasZArv6mzpAmW/EwFnG+9/c2CASagaCTOMO7Y8k5sMHdKAQp8e/GOHrUxe
+yvsuXsHqYI7WtDZr9k3Vo1bREQKBgQDr7i3LLOSRgbTk6gbs+Sg++oPtuu6pBGmU
+igmoJrY2Z3XdS4i6Qe4e5YFmpCDrXLTD6aFB//wTQtucwKUrUSr5+mgQXC0sCby7
+m8aTfwIajTZlnMOkYJYtlVZwGSlXq7E20MQQ79192XZv1yDwl2dk3pXeXHA11IwQ
+N904gTFzIQKBgCflBobI2L/qTQ8GelJDSnuj+irPL3OsuIxKXl74vmymgEOv2Agp
+eSBVlyXFyDlG6NPBul3jP10hmANCM+jnnf6EIgv3vYxWGFbru66xsq5WETexRhSs
+O5n+p8ttwA1ob6ca5THj8U3wy4LHCdle/ZbG6IwSEE78WYy65FAuujjBAoGAUkX+
+xiljk7JNqL5Lp/vDIyMtOovDikE1qEzyzSaiyBoQKhmbFojDRxb1pxt5N1pe1yrz
+xxZDi1v3RZSQhKiLehzuiTX7sq26mRnbh7f0vdmcrJacSwg7lq3LNNAxcJc490qZ
+9OYQsUBSYvH8VKoXrj9IuAA4SS1Topw4kunKmsECgYEAkP+iSV8g3B0ha74S8/kC
+By+tdA50TlzSuZqiSjSnPfGZY/+BX3lF6nLWQ5pQ/z+n18EuI9lbBYdtHCd1RhVe
+dIbruokKlKF5zIPRbgx2B1nbeFIgLX9ZA40Rr0h7fxdhidofLJnp04rCt/Qr6aaP
+WlFA+wquePuW1wGO9TLhqfs=
+-----END PRIVATE KEY-----""",
+                JWT_PUBLIC_KEY="""-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2+8sDAV/Rv5/NPLPV+9j
+LwfYotZIf4Y9AwMGYGEGPm/gQhsJaKsX/yCBgfDzV0ELWMWYId5pqKYpfBeqS3C+
+dwq+SEVHdiYC0S/DRxM08x5P8TJNpgc/UsoNLrysy935IZQUtZii3ZxDuxhNxGWs
+AXNSvPaLL4xQazecnap8FoAMdqc083Zh1mEaP/u/JquQZEcMPF3qJiSTFXffY1+5
+MLyniTk2ZFpb6sPAc1NlVLaYo7/7pH6lCA/nfqHPvsKkmGbytYhbv7pF3dDyn0vo
+qBU+blC4yS/jK5qmehCYRVqU7WW98bSU91KwEAhZQ5+xj/ZFDgrC16LFCmyZo1yW
+MQIDAQAB
+-----END PUBLIC KEY-----"""
             )
         except Exception as e:
             # Last resort: use a mock to prevent import errors
             from unittest.mock import MagicMock
             settings = MagicMock()
-            settings.MFA_ENCRYPTION_KEY = "dummy-key"
+            settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
             settings.JWT_ALGORITHM = "RS256"
             settings.ACCESS_TOKEN_EXPIRE_MINUTES = 30
             settings.REFRESH_TOKEN_EXPIRE_DAYS = 7

@@ -1,24 +1,30 @@
 import pytest
 import json
-import os
+from unittest.mock import mock_open, patch
 from src.utils.dashboard import generate_html_dashboard
 
-def test_generate_html_dashboard(tmp_path):
-    summary_path = tmp_path / "summary.json"
-    output_path = tmp_path / "dashboard.html"
-    
-    summary = {
-        "timestamp": "2025-01-01",
-        "status": "healthy",
+def test_generate_html_dashboard():
+    summary_data = {
+        "timestamp": "2023-01-01 12:00:00",
+        "status": "success",
         "xgboost": {"r2": 0.95, "mse": 0.01},
-        "neural_network": {"accuracy": 0.9, "precision": 0.88},
-        "mlflow_tracking_uri": "http://localhost:5000"
+        "neural_network": {"accuracy": 0.98, "precision": 0.97},
+        "mlflow_tracking_uri": "http://mlflow"
     }
     
-    summary_path.write_text(json.dumps(summary))
-    generate_html_dashboard(str(summary_path), str(output_path))
+    mock_file = mock_open(read_data=json.dumps(summary_data))
     
-    assert output_path.exists()
-    content = output_path.read_text()
-    assert "ML Performance Dashboard" in content
-    assert "0.9500" in content
+    with patch("builtins.open", mock_file):
+        generate_html_dashboard("summary.json", "output.html")
+    
+    # Check if files were opened correctly
+    assert mock_file.call_count == 2
+    mock_file.assert_any_call("summary.json", "r")
+    mock_file.assert_any_call("output.html", "w")
+    
+    # Check if write was called with HTML content
+    handle = mock_file()
+    handle.write.assert_called()
+    args = handle.write.call_args[0][0]
+    assert "<!DOCTYPE html>" in args
+    assert "0.9500" in args

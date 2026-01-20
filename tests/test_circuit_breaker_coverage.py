@@ -99,14 +99,95 @@ async def test_distributed_circuit_breaker_fail():
     assert mock_redis.set.called
 
 def test_pricing_circuit_global():
+
     # Use the global instance
-    def fail(): raise Exception("fail")
-    wrapped = pricing_circuit(fail)
+
+    # Reset it first since it's global
+
+    pricing_circuit.state = CircuitState.CLOSED
+
+    pricing_circuit.failure_count = 0
+
     
+
+    def fail(): raise Exception("fail")
+
+    wrapped = pricing_circuit(fail)
+
+    
+
     # pricing_circuit has threshold 10
+
     for _ in range(10):
-        try: wrapped()
-        except: pass
+
+        with pytest.raises(Exception, match="fail"):
+
+            wrapped()
+
         
+
     with pytest.raises(Exception, match="Circuit Breaker is OPEN"):
+
         wrapped()
+
+
+        
+    
+        
+    @pytest.mark.asyncio
+        
+    async def test_distributed_circuit_breaker_helpers():
+        
+        mock_redis = AsyncMock()
+        
+        cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis)
+        
+        
+        
+        # _set_state
+        
+        await cb._set_state(CircuitState.OPEN, expiry=10)
+        
+        mock_redis.set.assert_called_with("test:cb_state", "OPEN", ex=10)
+        
+        
+        
+        # _get_failures (none)
+        
+        mock_redis.get.return_value = None
+        
+        assert await cb._get_failures() == 0
+        
+        
+        
+        # _get_failures (exists)
+        
+        mock_redis.get.return_value = b"5"
+        
+        assert await cb._get_failures() == 5
+        
+        
+        
+        # _get_last_failure_time (none)
+        
+        mock_redis.get.return_value = None
+        
+        assert await cb._get_last_failure_time() == 0
+        
+        
+        
+        # _get_last_failure_time (exists)
+        
+        mock_redis.get.return_value = b"123456"
+        
+        assert await cb._get_last_failure_time() == 123456
+        
+        
+        
+        # _set_last_failure_time
+        
+        await cb._set_last_failure_time(999, expiry=5)
+        
+        mock_redis.set.assert_called_with("test:cb_last_failure", 999, ex=5)
+        
+    

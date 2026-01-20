@@ -15,3 +15,4 @@ def test_mask_email():
     assert mask_email("ab@example.com") == "a***@example.com"
     assert mask_email("a@example.com") == "a***@example.com"
     assert mask_email("invalid-email") == "invalid-email"
+    assert mask_email("user@sub@domain.com") == "****@****"

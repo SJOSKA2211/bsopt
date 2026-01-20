@@ -154,7 +154,7 @@ class TestLazyImports:
             "from src.utils.lazy_import import lazy_import, preload_modules\n"
             "_import_map = {'C1': '.c1', 'C2': '.c2'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
-            "def preload(): preload_modules(__name__, _import_map)"
+            "def preload(): preload_modules(__name__, _import_map, _import_map.keys())"
         )
         (pkg_dir / "c1.py").write_text("class C1: pass")
         (pkg_dir / "c2.py").write_text("class C2: pass")
@@ -174,3 +174,40 @@ class TestLazyImports:
         # And cached in the module
         assert 'C1' in mock_package_preload.__dict__
         assert 'C2' in mock_package_preload.__dict__
+
+    def test_absolute_import(self, tmp_path, monkeypatch):
+        """Verify absolute import path (non-dotted)."""
+        pkg_dir = tmp_path / "mock_package_abs"
+        pkg_dir.mkdir()
+        (pkg_dir / "__init__.py").write_text(
+            "import sys\n"
+            "from src.utils.lazy_import import lazy_import\n"
+            "_import_map = {'dumps': 'json'}\n"
+            "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
+        )
+        monkeypatch.syspath_prepend(str(tmp_path))
+        import mock_package_abs
+        import json
+        assert mock_package_abs.dumps is json.dumps
+
+    def test_preload_modules_failure(self, tmp_path, monkeypatch):
+        """Verify preloading handles failures gracefully."""
+        pkg_dir = tmp_path / "mock_package_preload_fail"
+        pkg_dir.mkdir()
+        (pkg_dir / "__init__.py").write_text(
+            "import sys\n"
+            "from src.utils.lazy_import import lazy_import, preload_modules\n"
+            "_import_map = {'Broken': '.nonexistent', 'Working': '.fine'}\n"
+            "def preload(): preload_modules(__name__, _import_map, _import_map.keys())"
+        )
+        (pkg_dir / "fine.py").write_text("class Working: pass")
+        
+        monkeypatch.syspath_prepend(str(tmp_path))
+        import mock_package_preload_fail
+        
+        # This should not raise an exception
+        mock_package_preload_fail.preload()
+        
+        assert 'mock_package_preload_fail.fine' in sys.modules
+        stats = get_import_stats()
+        assert stats['failed_imports'] == 1

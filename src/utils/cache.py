@@ -19,10 +19,15 @@ import numpy as np
 try:
     import redis.asyncio as aioredis
     from redis.asyncio import ConnectionPool, Redis
-except ImportError:
+    if hasattr(aioredis, "RedisError") and isinstance(aioredis.RedisError, type):
+        RedisError = aioredis.RedisError
+    else:
+        class RedisError(Exception): pass
+except ImportError:  # pragma: no cover
     aioredis = None  # type: ignore
     Redis = None  # type: ignore
     ConnectionPool = None  # type: ignore
+    class RedisError(Exception): pass
 
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 
@@ -125,7 +130,7 @@ class PricingCache:
             if val:
                 return float(json.loads(val))
             return None
-        except (AttributeError, aioredis.RedisError, ValueError, json.JSONDecodeError) as e:
+        except (AttributeError, RedisError, ValueError, json.JSONDecodeError) as e:
             logger.error(f"Failed to get option price from cache: {e}")
             return None
 
@@ -139,7 +144,7 @@ class PricingCache:
         try:
             await redis.setex(key, ttl, json.dumps(float(price)))
             return True
-        except (AttributeError, aioredis.RedisError, TypeError) as e:
+        except (AttributeError, RedisError, TypeError) as e:
             logger.error(f"Failed to set option price in cache: {e}")
             return False
 
