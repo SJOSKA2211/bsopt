@@ -8,7 +8,7 @@ from typing import Dict, Union
 
 import numpy as np
 
-from src.pricing.black_scholes import BlackScholesEngine
+from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 
 warnings.warn(
     "vectorized_black_scholes is deprecated. "

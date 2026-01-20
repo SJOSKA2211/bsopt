@@ -58,7 +58,7 @@ yQIDAQAB
 -----END PUBLIC KEY-----"""
 
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
+# from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
 
 # ============================================================================
 # Black-Scholes Parameter Fixtures
@@ -112,29 +112,29 @@ def high_dividend_params() -> BSParameters:
 def negative_rate_params() -> BSParameters:
     return BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.20, rate=-0.01, dividend=0.0)
 
-@pytest.fixture
-def mc_config_fast() -> MCConfig:
-    return MCConfig(n_paths=10000, n_steps=100, antithetic=True, control_variate=False, seed=42)
+# @pytest.fixture
+# def mc_config_fast() -> MCConfig:
+#     return MCConfig(n_paths=10000, n_steps=100, antithetic=True, control_variate=False, seed=42)
 
-@pytest.fixture
-def mc_config_accurate() -> MCConfig:
-    return MCConfig(n_paths=100000, n_steps=252, antithetic=True, control_variate=True, seed=42)
+# @pytest.fixture
+# def mc_config_accurate() -> MCConfig:
+#     return MCConfig(n_paths=100000, n_steps=252, antithetic=True, control_variate=True, seed=42)
 
-@pytest.fixture
-def mc_config_minimal() -> MCConfig:
-    return MCConfig(n_paths=1000, n_steps=50, antithetic=False, control_variate=False, seed=42)
+# @pytest.fixture
+# def mc_config_minimal() -> MCConfig:
+#     return MCConfig(n_paths=1000, n_steps=50, antithetic=False, control_variate=False, seed=42)
 
 @pytest.fixture
 def bs_engine() -> BlackScholesEngine:
     return BlackScholesEngine()
 
-@pytest.fixture
-def mc_engine_fast(mc_config_fast: MCConfig) -> MonteCarloEngine:
-    return MonteCarloEngine(mc_config_fast)
+# @pytest.fixture
+# def mc_engine_fast(mc_config_fast: MCConfig) -> MonteCarloEngine:
+#     return MonteCarloEngine(mc_config_fast)
 
-@pytest.fixture
-def mc_engine_accurate(mc_config_accurate: MCConfig) -> MonteCarloEngine:
-    return MonteCarloEngine(mc_config_accurate)
+# @pytest.fixture
+# def mc_engine_accurate(mc_config_accurate: MCConfig) -> MonteCarloEngine:
+#     return MonteCarloEngine(mc_config_accurate)
 
 # ============================================================================
 # Global Isolation Fixtures

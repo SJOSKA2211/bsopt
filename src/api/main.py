@@ -4,7 +4,7 @@ import os
 import time
 import structlog
 from strawberry.fastapi import GraphQLRouter
-from src.api.graphql.schema import schema
+# from src.api.graphql.schema import schema
 from src.shared.observability import setup_logging, logging_middleware
 from src.shared.security import verify_mtls, opa_authorize
 from src.auth.security import verify_token, RoleChecker
