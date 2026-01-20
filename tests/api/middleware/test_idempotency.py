@@ -1,85 +1,66 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
-from src.api.middleware.idempotency import _generate_fingerprint
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+from src.api.middleware.idempotency import IdempotencyMiddleware
+from unittest.mock import AsyncMock, patch
+import json
+
+app = FastAPI()
+
+@app.post("/test")
+async def test_endpoint(request: Request):
+    return {"message": "Success"}
+
+mock_redis_client = AsyncMock()
+
+app.add_middleware(
+    IdempotencyMiddleware, 
+    redis_client=mock_redis_client,
+    expiry=10, 
+    lock_timeout=1
+)
+
+client = TestClient(app)
+
+def test_idempotency_skipped_for_get():
+    mock_redis_client.get.reset_mock()
+    response = client.get("/")
+    mock_redis_client.get.assert_not_called()
 
 @pytest.mark.asyncio
-async def test_fingerprint_consistency():
-    # Mock FastAPI request
-    request = MagicMock()
-    request.method = "POST"
-    request.url.path = "/api/v1/trade"
-    request.headers = {"X-Idempotency-Key": "unique-key", "Content-Type": "application/json"}
+async def test_idempotency_cache_hit():
+    cached_content = json.dumps({"message": "Cached"})
+    cached_response = {
+        "content": cached_content,
+        "status_code": 200,
+        "headers": {}
+    }
+    mock_redis_client.get.return_value = json.dumps(cached_response).encode()
     
-    body = b'{"symbol": "AAPL", "quantity": 10}'
-    request.body = AsyncMock(return_value=body)
+    response = client.post("/test")
     
-    fp1 = await _generate_fingerprint(request)
-    
-    # Second request with identical data
-    request2 = MagicMock()
-    request2.method = "POST"
-    request2.url.path = "/api/v1/trade"
-    request2.headers = {"X-Idempotency-Key": "unique-key", "Content-Type": "application/json"}
-    request2.body = AsyncMock(return_value=body)
-    
-    fp2 = await _generate_fingerprint(request2)
-    
-    assert fp1 == fp2
-    assert len(fp1) == 64 # SHA-256 hex length
+    assert response.status_code == 200
+    assert "HIT" in response.headers["X-Idempotency-Cache"]
+    assert response.json() == {"message": "Cached"}
 
 @pytest.mark.asyncio
-async def test_fingerprint_differs_on_body():
-    request1 = MagicMock()
-    request1.method = "POST"
-    request1.url.path = "/api/v1/trade"
-    request1.headers = {"X-Idempotency-Key": "key"}
-    request1.body = AsyncMock(return_value=b'{"q": 10}')
+async def test_idempotency_cache_miss_and_set():
+    mock_redis_client.get.return_value = None
+    mock_redis_client.setnx.return_value = True
+    mock_redis_client.setex.return_value = True
     
-    request2 = MagicMock()
-    request2.method = "POST"
-    request2.url.path = "/api/v1/trade"
-    request2.headers = {"X-Idempotency-Key": "key"}
-    request2.body = AsyncMock(return_value=b'{"q": 20}')
+    response = client.post("/test")
     
-    fp1 = await _generate_fingerprint(request1)
-    fp2 = await _generate_fingerprint(request2)
-    
-    assert fp1 != fp2
+    assert response.status_code == 200
+    assert response.json() == {"message": "Success"}
+    mock_redis_client.setex.assert_called()
 
 @pytest.mark.asyncio
-async def test_fingerprint_differs_on_path():
-    request1 = MagicMock()
-    request1.method = "POST"
-    request1.url.path = "/path1"
-    request1.headers = {"X-Idempotency-Key": "key"}
-    request1.body = AsyncMock(return_value=b'{}')
+async def test_idempotency_lock_conflict():
+    mock_redis_client.get.return_value = None
+    mock_redis_client.setnx.return_value = False
     
-    request2 = MagicMock()
-    request2.method = "POST"
-    request2.url.path = "/path2"
-    request2.headers = {"X-Idempotency-Key": "key"}
-    request2.body = AsyncMock(return_value=b'{}')
+    response = client.post("/test")
     
-    fp1 = await _generate_fingerprint(request1)
-    fp2 = await _generate_fingerprint(request2)
-    
-    assert fp1 != fp2
-
-@pytest.mark.asyncio
-async def test_fingerprint_header_insensitivity():
-    request1 = MagicMock()
-    request1.headers = {"X-IDEMPOTENCY-KEY": "key"}
-    request1.method = "POST"
-    request1.url.path = "/test"
-    request1.body = AsyncMock(return_value=b'{}')
-    
-    request2 = MagicMock()
-    request2.headers = {"x-idempotency-key": "key"}
-    request2.method = "POST"
-    request2.url.path = "/test"
-    request2.body = AsyncMock(return_value=b'{}')
-    
-    fp1 = await _generate_fingerprint(request1)
-    fp2 = await _generate_fingerprint(request2)
-    
-    assert fp1 == fp2
+    assert response.status_code == 409
+    assert "Request already in progress" in response.text

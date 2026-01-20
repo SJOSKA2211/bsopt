@@ -6,7 +6,6 @@ from src.utils.circuit_breaker import InMemoryCircuitBreaker, DistributedCircuit
 
 def test_local_circuit_breaker_flow():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)
-
     
     def failing_func():
         raise ValueError("Fail")
@@ -42,7 +41,6 @@ async def test_redis_circuit_breaker_flow():
     mock_redis.incr.return_value = 1
     
     cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis, failure_threshold=2, recovery_timeout=1)
-
     
     async def async_failing_func():
         raise ValueError("Fail")
@@ -102,5 +100,3 @@ async def test_redis_circuit_breaker_get_failures():
     
     mock_redis.get.return_value = None
     assert await cb._get_failures() == 0
-
-
