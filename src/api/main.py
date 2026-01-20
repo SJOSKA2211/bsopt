@@ -118,8 +118,8 @@ security_deps = [
 if os.environ.get("TESTING") == "true":
     security_deps = []
 
-graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
-app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
+# graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
+# app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 REQUEST_COUNT = Counter("api_requests_total", "Total count of requests", ["method", "endpoint", "http_status"])
 REQUEST_LATENCY = Histogram("api_request_latency_seconds", "Request latency in seconds", ["method", "endpoint"])

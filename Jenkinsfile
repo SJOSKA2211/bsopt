@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MLFLOW_TRACKING_URI = "http://localhost:5000"
+        MLFLOW_TRACKING_URI = "https://localhost:5000"
         PYTHON_ENV_PATH = "venv/bin/python3"
     }
 
