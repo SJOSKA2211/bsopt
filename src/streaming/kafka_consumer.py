@@ -4,6 +4,18 @@ import json
 import structlog
 from typing import Dict, List, Callable
 import time
+from pydantic import BaseModel, ValidationError
+from datetime import datetime
+
+class MarketDataSchema(BaseModel):
+    symbol: str
+    price: float
+    timestamp: datetime
+
+class MarketDataSchema(BaseModel):
+    symbol: str
+    price: float
+    timestamp: datetime
 
 logger = structlog.get_logger()
 
@@ -69,16 +81,24 @@ class MarketDataConsumer:
                         logger.error("kafka_consumer_error", error=str(msg.error()))
                     continue
 
-                # Deserialize message
+                # Deserialize and validate message
                 try:
-                    data = json.loads(msg.value().decode('utf-8'))
-                    batch.append(data)
+                    raw_data = msg.value().decode('utf-8')
+                    # Optional: Add size limit check before json.loads for very large messages
+                    # if len(raw_data) > MAX_MESSAGE_SIZE:
+                    #     raise ValueError("Message size exceeds limit")
+                    
+                    data = json.loads(raw_data)
+                    validated_data = MarketDataSchema(**data) # Validate with Pydantic
+                    batch.append(validated_data.dict()) # Append validated data as dict
                     # Process batch when full
                     if len(batch) >= batch_size:
                         await self._process_batch(batch, callback)
                         batch = []
+                except (json.JSONDecodeError, ValidationError, ValueError) as e:
+                    logger.error("message_processing_error", error=str(e), raw_message=raw_data[:200])
                 except Exception as e:
-                    logger.error("message_processing_error", error=str(e))
+                    logger.error("unexpected_message_processing_error", error=str(e))
             # Process remaining messages if batch:
             if batch:
                 await self._process_batch(batch, callback)

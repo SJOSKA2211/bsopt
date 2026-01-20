@@ -23,6 +23,7 @@ Version: 2.1.0
 """
 
 import sys
+import yaml
 import os
 import time
 from pathlib import Path
@@ -394,15 +395,19 @@ def _display_comparison_table(results: dict):
 # Command: batch - Batch pricing from CSV
 # ============================================================================
 
-@cli.command()
-@click.option('--input', 'input_file', type=click.Path(exists=True), required=True,
-              help='Input CSV file path')
-@click.option('--output', 'output_file', type=click.Path(), required=True,
-              help='Output CSV file path')
-@click.option('--method', type=click.Choice(['bs', 'fdm', 'mc'], case_sensitive=False),
-              default='bs', help='Pricing method (default: bs)')
-@click.option('--compute-greeks', is_flag=True, help='Compute Greeks for all options')
-def batch(input_file: str, output_file: str, method: str, compute_greeks: bool):
+from src.utils.filesystem import sanitize_path
+
+# ... (rest of the file)
+
+@app.command("batch")
+def batch_command(
+    symbols: List[str] = Option(..., "--symbols", "-s", help="Comma-separated list of stock symbols"),
+    start_date: str = Option(..., "--start-date", "-sd", help="Start date (YYYY-MM-DD)"),
+    end_date: str = Option(..., "--end-date", "-ed", help="End date (YYYY-MM-DD)"),
+    output_file: Path = Option(
+        "batch_results.csv", "--output", "-o", help="Output CSV file for results"
+    ),
+
     """
     Batch price options from CSV file.
 
@@ -491,10 +496,9 @@ def batch(input_file: str, output_file: str, method: str, compute_greeks: bool):
 
         # Save results
         results_df = pd.DataFrame(results)
-        results_df.to_csv(output_file, index=False)
-
-        console.print(f"\n[bold green]Success![/bold green]")
-        console.print(f"[cyan]Results saved to:[/cyan] {output_file}")
+        safe_output_file = sanitize_path(Path.cwd(), str(output_file))
+        results_df.to_csv(safe_output_file, index=False)
+        console.print(f"[bold green]Batch pricing completed. Results saved to:[/bold green] {safe_output_file}")
         console.print(f"[green]Processed: {len(results)} options[/green]\n")
 
     except Exception as e:
@@ -692,7 +696,8 @@ def fetch_data(symbol: str, days: int, provider: str, output: Optional[str], use
         console.print()
 
         if output:
-            df.to_csv(output, index=False)
+            safe_output = sanitize_path(Path.cwd(), output)
+    df.to_csv(safe_output, index=False)
             console.print(f"[cyan]Data saved to:[/cyan] {output}\n")
 
     except Exception as e:
@@ -788,7 +793,8 @@ def train_model(algorithm: str, data: str, output: str, test_split: float):
         console.print(metrics_table)
         console.print()
 
-        Path(output).mkdir(parents=True, exist_ok=True)
+    safe_output_path = sanitize_path(Path.cwd(), output)
+    safe_output_path.mkdir(parents=True, exist_ok=True)
         console.print(f"[cyan]Model saved to:[/cyan] {output}\n")
 
     except Exception as e:
@@ -992,7 +998,8 @@ def vol_surface(symbol: str, date: Optional[str], output: Optional[str]):
         console.print("[green]Volatility surface generated successfully[/green]\n")
 
         if output:
-            console.print(f"[cyan]Plot saved to:[/cyan] {output}\n")
+            safe_output = sanitize_path(Path.cwd(), output)
+    console.print(f"[cyan]Plot saved to:[/cyan] {safe_output}\n")
         else:
             console.print("[dim]Opening interactive plot...[/dim]\n")
 
@@ -1084,60 +1091,56 @@ def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics):
                 if not k8s_path.parent.exists():
                     k8s_path.parent.mkdir(parents=True, exist_ok=True)
                 
-                manifest = f"""
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: bsopt-ml-model
-  namespace: mlops
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: bsopt-ml-model
-  template:
-    metadata:
-      labels:
-        app: bsopt-ml-model
-    spec:
-      containers:
-      - name: model-server
-        image: bsopt-ml-model:latest
-        ports:
-        - containerPort: 8080
-        resources:
-          limits:
-            cpu: "1"
-            memory: "2Gi"
-          requests:
-            cpu: "500m"
-            memory: "1Gi"
-        env:
-        - name: MODEL_REPO
-          value: {model_repo}
-        - name: MLFLOW_TRACKING_URI
-          value: "http://mlflow.mlops.svc.cluster.local:5000"
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: bsopt-ml-model-hpa
-  namespace: mlops
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: bsopt-ml-model
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-"""
+                manifest_dict = {
+                    "apiVersion": "apps/v1",
+                    "kind": "Deployment",
+                    "metadata": {
+                        "name": f"{service_name}-model-serving"
+                    },
+                    "spec": {
+                        "replicas": 1,
+                        "selector": {
+                            "matchLabels": {
+                                "app": f"{service_name}-model-serving"
+                            }
+                        },
+                        "template": {
+                            "metadata": {
+                                "labels": {
+                                    "app": f"{service_name}-model-serving"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "name": f"{service_name}-model-serving",
+                                        "image": docker_image,
+                                        "ports": [
+                                            {
+                                                "containerPort": 8000
+                                            }
+                                        ],
+                                        "env": [
+                                            {
+                                                "name": "MODEL_REPO",
+                                                "value": model_repo
+                                            },
+                                            {
+                                                "name": "MODEL_NAME",
+                                                "value": model_name
+                                            },
+                                            {
+                                                "name": "MODEL_VERSION",
+                                                "value": str(model_version)
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+                manifest = yaml.dump(manifest_dict, sort_keys=False)
                 with open(k8s_path, 'w') as f:
                     f.write(manifest)
                 time.sleep(1)

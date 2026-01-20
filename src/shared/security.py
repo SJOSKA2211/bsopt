@@ -54,6 +54,13 @@ class MTLSVerifier:
         """
         Verify the client certificate from the request headers.
         Commonly passed by a reverse proxy like Nginx or Envoy.
+
+        CRITICAL SECURITY NOTE:
+        The headers 'X-SSL-Client-Verify' and 'X-SSL-Client-S-DN' MUST be
+        set by a trusted upstream component (e.g., API Gateway, TLS terminator)
+        and MUST NOT be directly exposed to or modifiable by external clients.
+        Failure to enforce this at the infrastructure layer will lead to
+        mTLS bypass and unauthorized access.
         """
         # In a real mTLS setup, these headers are populated by the TLS terminator
         verify_status = request.headers.get("X-SSL-Client-Verify")
@@ -84,9 +91,12 @@ async def verify_mtls(request: Request):
 def opa_authorize(action: str, resource: str):
     """Dependency to enforce OPA authorization."""
     async def _authorize(request: Request):
-        # Extract user from JWT (assuming it was already validated)
-        # For simplicity in this implementation, we look for a X-User-Role header
-        # which would be populated by the API Gateway after JWT validation.
+        # CRITICAL SECURITY NOTE:
+        # The headers 'X-User-Id' and 'X-User-Role' MUST be populated by a
+        # trusted upstream component (e.g., API Gateway) AFTER JWT validation
+        # and MUST NOT be directly exposed to or modifiable by external clients.
+        # Failure to enforce this at the infrastructure layer will lead to
+        # authorization bypass by header forgery.
         user_id = request.headers.get("X-User-Id", "anonymous")
         user_role = request.headers.get("X-User-Role", "guest")
         user = {"id": user_id, "role": user_role}
