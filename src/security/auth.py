@@ -166,9 +166,7 @@ class AuthService:
         if additional_claims:
             payload.update(additional_claims)
 
-        token = cast(str, jwt.encode(payload, self.private_key, algorithm=self.algorithm))
-        print(f"GENERATED TOKEN: {token[:20]}...")
-        return token
+        return cast(str, jwt.encode(payload, self.private_key, algorithm=self.algorithm))
 
     def create_refresh_token(
         self,
