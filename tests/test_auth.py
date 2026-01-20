@@ -6,7 +6,12 @@ Fixed field names and formats to match RegisterRequest schema.
 """
 
 import pytest
+from cryptography.fernet import Fernet
 
+from src.config import get_settings
+from src.database.models import User
+from src.api.main import app
+from src.database import get_db
 from tests.test_utils import assert_equal
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"
@@ -64,15 +69,14 @@ def test_login(api_client, auth_data):
 
 @pytest.fixture
 def logged_in_client(api_client, auth_data):
+    # Register and login to get real tokens
     api_client.post("/api/v1/auth/register", json=auth_data)
-
     response = api_client.post(
         "/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
     )
-    if response.status_code != 200:
-        pytest.skip(f"Login failed during fixture setup: {response.text}")
-
+    assert response.status_code == 200
     tokens = response.json()["data"]
+    
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     return api_client, tokens
 
@@ -93,10 +97,15 @@ def test_get_me(logged_in_client):
     assert_equal(user["email"], TEST_EMAIL)
 
 
-def test_refresh_token(logged_in_client):
+def test_refresh_token(api_client, auth_data):
     """Test token refresh."""
-    client, tokens = logged_in_client
-    response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+    # Register and Login to get real tokens
+    api_client.post("/api/v1/auth/register", json=auth_data)
+    login_res = api_client.post("/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    assert login_res.status_code == 200
+    tokens = login_res.json()["data"]
+    
+    response = api_client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
 
     assert_equal(response.status_code, 200)
     new_tokens = response.json()["data"]
@@ -118,8 +127,38 @@ def test_invalid_token(api_client):
     assert response.status_code in [401, 403]
 
 
-def test_logout(logged_in_client):
+def test_logout(api_client, auth_data):
     """Test logout."""
-    client, _ = logged_in_client
-    response = client.post("/api/v1/auth/logout")
+    # Register and Login to get real tokens
+    api_client.post("/api/v1/auth/register", json=auth_data)
+    login_res = api_client.post("/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    assert login_res.status_code == 200
+    tokens = login_res.json()["data"]
+    
+    api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
+    response = api_client.post("/api/v1/auth/logout")
     assert_equal(response.status_code, 200)
+
+def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
+    """Test that the MFA secret is encrypted in the database."""
+    client, _ = logged_in_client
+
+    # 1. Setup MFA
+    response = client.post("/api/v1/auth/mfa/setup")
+    assert response.status_code == 200
+    mfa_setup_data = response.json()["data"]
+    original_secret = mfa_setup_data["secret"]
+
+    # 2. Get user from mock DB using the session fixture
+    user = mock_db_session.query(User).filter(User.email == TEST_EMAIL).first()
+
+    # 3. Assert secret is stored and is not the original secret
+    assert user.mfa_secret is not None
+    assert user.mfa_secret != original_secret
+
+    # 4. Assert the secret is correctly encrypted
+    from src.config import get_settings
+    settings = get_settings()
+    fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
+    decrypted_secret = fernet.decrypt(user.mfa_secret.encode()).decode()
+    assert decrypted_secret == original_secret

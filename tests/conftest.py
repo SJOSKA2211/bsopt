@@ -1,3 +1,7 @@
+from jose import JWTError
+
+_mock_jwt_payload_store = {} # Added globally
+
 """
 Pytest configuration and shared fixtures for the Black-Scholes Option Pricing Platform.
 
@@ -18,9 +22,9 @@ from fastapi.testclient import TestClient
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
 
-# ============================================================================
+# ============================================================================ 
 # Black-Scholes Parameter Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -158,9 +162,9 @@ def negative_rate_params() -> BSParameters:
     )
 
 
-# ============================================================================
+# ============================================================================ 
 # Known Values for Validation (from literature)
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -193,9 +197,9 @@ def known_values() -> Dict[str, Any]:
     }
 
 
-# ============================================================================
+# ============================================================================ 
 # Monte Carlo Configuration Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -226,9 +230,9 @@ def mc_config_minimal() -> MCConfig:
     return MCConfig(n_paths=1000, n_steps=50, antithetic=False, control_variate=False, seed=42)
 
 
-# ============================================================================
+# ============================================================================ 
 # Engine Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -249,15 +253,18 @@ def mc_engine_accurate(mc_config_accurate: MCConfig) -> MonteCarloEngine:
     return MonteCarloEngine(mc_config_accurate)
 
 
-# ============================================================================
+# ============================================================================ 
 # API Testing Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture(autouse=True)
 def mock_redis_and_celery(monkeypatch):
     """Mock Redis and Celery to avoid connection errors in tests."""
-    from unittest.mock import MagicMock, AsyncMock
+    from unittest.mock import MagicMock, AsyncMock, patch
+    # Import actual settings to get paths BEFORE src.config is mocked
+    from src.config import settings as app_settings_real 
+    from datetime import datetime, timedelta, timezone # Added for JWT mock
 
     # Mock redis.asyncio
     mock_redis = MagicMock()
@@ -292,11 +299,57 @@ def mock_redis_and_celery(monkeypatch):
 
     # Mock src.utils.cache functions
     monkeypatch.setattr("src.utils.cache.get_redis", lambda: mock_redis)
-    # The rest of the settings mocking is handled by pytest_configure hook.
-    # Celery task mocking is also handled globally in pytest_configure.
+
+
+
+    def mock_jose_jwt_encode(payload, key, algorithm):
+        jti = payload.get("jti", str(uuid.uuid4()))
+        token_type = payload.get("type", "access")
+        fake_token_string = f"fake_token_for_{token_type}_{jti}"
+        _mock_jwt_payload_store[fake_token_string] = payload
+        return fake_token_string
+
+    def mock_jose_jwt_decode(token, key, algorithms):
+        payload = _mock_jwt_payload_store.get(token)
+        if payload:
+            return payload
+        raise JWTError("Invalid token or not found in mock store")
+
+    monkeypatch.setattr("jose.jwt.encode", MagicMock(side_effect=mock_jose_jwt_encode))
+    monkeypatch.setattr("jose.jwt.decode", MagicMock(side_effect=mock_jose_jwt_decode))
+
+    # Mock file reading for JWT keys (keep existing functionality)
+    original_open = open
+    def mock_open_jwt_keys(file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True, opener=None):
+        if file in [app_settings_real.JWT_PRIVATE_KEY_PATH, app_settings_real.JWT_PUBLIC_KEY_PATH, "dummy_path"]:
+            mock_file = MagicMock()
+            if "private" in str(file):
+                 mock_file.read.return_value = app_settings_real.JWT_PRIVATE_KEY
+            else:
+                 mock_file.read.return_value = app_settings_real.JWT_PUBLIC_KEY
+            
+            # Setup context manager support
+            mock_file.__enter__.return_value = mock_file
+            return mock_file
+        return original_open(file, mode, buffering, encoding, errors, newline, closefd, opener)
+
+    monkeypatch.setattr("builtins.open", mock_open_jwt_keys)
+
+    # Mock TokenBlacklist methods (moved from test_auth.py to conftest.py)
+    from src.security.auth import token_blacklist
+    monkeypatch.setattr(token_blacklist, "contains", AsyncMock(return_value=False))
+    monkeypatch.setattr(token_blacklist, "add", AsyncMock(return_value=None)) # Mock add to do nothing
+
+# ============================================================================ 
+# Pytest Configuration Hook
+# ============================================================================ 
+
 
 import sys
-from unittest.mock import MagicMock, AsyncMock
+import os
+from unittest.mock import MagicMock, AsyncMock, patch
+import pytest
+from jose import JWTError
 
 def pytest_configure(config):
     """
@@ -304,10 +357,19 @@ def pytest_configure(config):
     This is where we can inject mocks for module-level imports.
     """
     import os
+    import sys
+    import sys
     os.environ["TESTING"] = "true"
     
-    # Create a mock settings object early
+    from unittest.mock import MagicMock
+    from _pytest.monkeypatch import MonkeyPatch # Import MonkeyPatch class
+
+    # Create a MonkeyPatch instance for early patching
+    mpatch = MonkeyPatch()
+
+    # Create a mock settings object early and patch src.config.Settings
     mock_settings = MagicMock()
+    # Populate mock_settings with all required values
     mock_settings.DATABASE_URL = "sqlite:///:memory:"
     mock_settings.DEBUG = False
     mock_settings.SLOW_QUERY_THRESHOLD_MS = 100
@@ -323,10 +385,10 @@ def pytest_configure(config):
     mock_settings.DASK_ARRAY_DEFAULT_CHUNKS_FRACTION = 4
     mock_settings.ACCESS_TOKEN_EXPIRE_MINUTES = 30
     mock_settings.REFRESH_TOKEN_EXPIRE_DAYS = 7
-    mock_settings.JWT_PRIVATE_KEY_PATH = "dummy_path"
-    mock_settings.JWT_PUBLIC_KEY_PATH = "dummy_path"
-    mock_settings.JWT_PRIVATE_KEY = "dummy_private_key"
-    mock_settings.JWT_PUBLIC_KEY = "dummy_public_key"
+    mock_settings.JWT_PRIVATE_KEY_PATH = None # Set to None to skip file reading
+    mock_settings.JWT_PUBLIC_KEY_PATH = None # Set to None to skip file reading
+    mock_settings.JWT_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC5L/Ra/v7tnihy\n2ISWqOW6qDW//uSZGAG46PgmNU3QKZOANFbopT8aGpZsjzbleM+dh5YyXefTN69h\nHyo+oO8ndZ7vHmEPzsvV2YvVkzp7Z0DhMXIolYDSvGQmZh+mFdtn2wUb6jSiHXaq\nEHr4BMs3W1wWg1jEAaTZIYyjyQg6ngkmZpEuMnHdgJ4RTow8M0uisYveZ3e3rPtY\n6i8V+Jm13NtoYw0DyXdVilrHpoaDIbJDXvMaSiDzuREOU2DPDSTo0hb2LnwG5i1Z\nc82Ked+1CIVuuRy0k1td6B5d9pWyuy+uU8httwj9ohd/u34nNZjBKwK13SOU4eSr\n7gYKFVWdAgMBAAECggEALOHB88HkcBuKSxdNvyPtFZmJ+V/h8HbAiBuydLQriT1i\nWcqVm6ndCssR1Pq6v8/RZakETm2y716KG1xNxUME40fe/q4asRWaEli4ysj1fg4O\ny+VLeSmOwMRW83WByyN1+ww6h0Lyga3pYhs/alfjFqYGQhCQVWTemp9GcjWZUHct\nyuUWw+D25nBH36VfvFMLpBh6YWXA0Jgukoy5lFfZRhpJfsv6U9P6GFaPf9rZwx/e\nwSzLtx5dftXLDM2vRSexbCZ3RtFS1uqACi3gx3LdixrkC/7u6MNmTf8hQQ9neNz/\nbseV7wmVV/w+WhT7z7S74mvfcUp856pCpgxDcyAW0wKBgQDwWvYv3cNG+ANiHkPQ\nDs4hSsjjY8seLaxb16Px4eO2f7iC8NpkUg4rK9ATXj1iMlSgRs3hl1cc4HyJUIUA\nqI/B/mfr+V8LP3RrZf3oVV1M1PSEeFGsDOkBj7qp4UOhhxhFZKV312UsA3zFgmeh\n6Mi15DBJA9istN7tO6297+qLkwKBgQDFPbqjZVfCu0ZhvNn1MoQWTJevVsFqj7tx\n1z1S+AV8S38ZzzJQ+HMd9zBuCdIzcTHewcDuP4ViQwDuG/fP5xGPXq/mnPeDiStj\n1LGebk9NoKhMDhreN7F1HB9EiPAHrRuKbvXGlJId7+CryDtKiCdILKSxcM7ISAWz\nkka4d1U4DwKBgFSRfLucyH+o9e/I/E0xWF+oY4R2cVo98b4i4oFR3IAy8iXIPt87\na9bOxJh7+Rca5GG8Z+YvDKyRY+Agn5t6s5IrRD9n74QSoJDFQxBDMN++sgYGG55w\nsG8nNiNdqiEkWmrYHcxL0kIpO/Z2iqYSNMSi9EZMfylNPn60F86Toq/XAoGAaW+T\nCm9NF4p2mB6UwG7tjuIIn7EXmXgV8kflvylX/VZ6LfjFY+U73EPb/qZ/WAJlbzdR\ng8ou6hT5NU98DAXwLByomPVFlmnH6Qi1ngVHnS6JaIaNtEY/NWQADunIrcHKnBiu\nhyW6aghlqE5T64aWwQ0kSLoNv6BIc/J4nXkk898CgYAfhWlkH+Sf/BKImOy/1TNF\nYCN2AK07UgiCB9t0JNT0+ir7cK9X3FjlyFLFqdD2QG7ARWhobesZTMsVhyHwIFQF\nwToSX83WKyftQ5jUvyPXilfBtg+glMXecvcaiNHZ257jtL7jgK+iEWWoso9XoCyy\nfoff69nqRl7Q7Z+BX4OAzA==\n-----END PRIVATE KEY-----"
+    mock_settings.JWT_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuS/0Wv7+7Z4octiElqjl\nuqg1v/7kmRgBuOj4JjVN0CmTgDRU6KU/GhqWbI825XjPnYeWMl3n0zevYR8qPqDv\nJ3We7x5hD87L1dmL1ZM6e2dA4TFyKJWA0rxkJmYfphXbZ9sFG+o0oh12qhB6+ATL\nN1tcFoNYxAGk2SGMo8kIOp4JJmaRLjJx3YCeEU6MPDNLorGL3md3t6z7WOovFfiZ\ntdzbaGMNA8l3VYpax6aGgyGyQ17zGkog87kRDlNgzw0k6NIW9i58BuYtWXPNinnf\ntQiFbrkctJNbXegeXfaVsrsvrlPIbbcI/aIXf7t+JzWYwSsCtd0jlOHkq+4GChVV\nnQIDAQAB\n-----END PUBLIC KEY-----"
     mock_settings.JWT_ALGORITHM = "RS256"
     mock_settings.REDIS_HOST = "localhost"
     mock_settings.REDIS_PORT = 6379
@@ -337,23 +399,25 @@ def pytest_configure(config):
     mock_settings.REFRESH_TOKEN_EXPIRE_DAYS = 7
     mock_settings.BCRYPT_ROUNDS = 12 # Explicitly set to an integer
     mock_settings.PASSWORD_MIN_LENGTH = 8
+    # Add valid base64-encoded key for Fernet
+    mock_settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
     mock_settings.ML_SERVICE_URL = "http://ml-service"
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
-    
-    # Patch src.config.settings directly in sys.modules
-    # This ensures that any module importing src.config gets this mocked object
-    if "src.config" in sys.modules:
-        sys.modules["src.config"].settings = mock_settings
-        sys.modules["src.config"]._settings = mock_settings
-        sys.modules["src.config"].get_settings = lambda: mock_settings
-    else:
-        # If src.config not yet imported, import it and then patch
-        # This branch might be tricky depending on import order, but generally
-        # pytest_configure runs early enough.
-        import src.config
-        src.config.settings = mock_settings
-        src.config._settings = mock_settings
-        src.config.get_settings = lambda: mock_settings
+
+    # Patch src.config.Settings to return our mock_settings
+    mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))
+    mpatch.setattr("src.config.get_settings", MagicMock(return_value=mock_settings))
+
+    # Import src.config AFTER patching to ensure our mock is used
+    import src.config
+    src.config.settings = mock_settings
+    src.config._settings = mock_settings
+
+    # Mock src.database internals
+    mock_db_engine = MagicMock()
+    mpatch.setattr("src.database._engine", mock_db_engine)
+    mpatch.setattr("src.database._SessionLocal", MagicMock())
+    mpatch.setattr("src.database._initialize_db_components", MagicMock())
 
     # Mock Celery delay method globally
     from celery.app.task import Task
@@ -373,6 +437,8 @@ def pytest_configure(config):
     sys.modules["confluent_kafka.schema_registry.avro"] = MagicMock()
     
     # Mock redis (sync and async)
+    class MockRedisError(Exception): pass
+    
     mock_redis_mod = MagicMock()
     class MockRedis:
         def __init__(self, *args, **kwargs): pass
@@ -380,11 +446,17 @@ def pytest_configure(config):
         def pipeline(self): return MagicMock()
     mock_redis_mod.Redis = MockRedis
     mock_redis_mod.StrictRedis = MockRedis
+    mock_redis_mod.RedisError = MockRedisError
     sys.modules["redis"] = mock_redis_mod
     
     mock_async_redis_mod = MagicMock()
     mock_async_redis_mod.Redis = MagicMock() # Ensure it's a MagicMock
+    mock_async_redis_mod.RedisError = MockRedisError
     sys.modules["redis.asyncio"] = mock_async_redis_mod
+
+    # Mock sqlalchemy.create_engine
+    mock_engine = MagicMock()
+    mpatch.setattr("sqlalchemy.create_engine", MagicMock(return_value=mock_engine))
 
 
 @pytest.fixture
@@ -520,9 +592,9 @@ def mock_db_session():
     return mock_session
 
 
-# ============================================================================
+# ============================================================================ 
 # Numerical Tolerance Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -549,9 +621,9 @@ def percentage_tolerance() -> float:
     return 0.01  # 1%
 
 
-# ============================================================================
+# ============================================================================ 
 # Parametrized Test Data
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -610,9 +682,9 @@ def maturity_scenarios():
     ]
 
 
-# ============================================================================
+# ============================================================================ 
 # Helper Functions
-# ============================================================================
+# ============================================================================ 
 
 
 def assert_close(actual: float, expected: float, tolerance: float, message: str = "") -> None:
@@ -690,9 +762,9 @@ def is_close_helper():
     return is_close
 
 
-# ============================================================================
+# ============================================================================ 
 # Performance Benchmarking Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -703,9 +775,9 @@ def benchmark_params() -> BSParameters:
     )
 
 
-# ============================================================================
+# ============================================================================ 
 # Random Seed Control
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture(autouse=True)
