@@ -1,0 +1,204 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /home/kamau/bsopt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/kamau/bsopt
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.12.0, asyncio-1.3.0, mock-3.15.1, docker-3.2.5, Faker-40.1.2, timeout-2.4.0, benchmark-5.2.3, locust-2.43.1, xdist-3.8.0, cov-7.0.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 15 items
+
+tests/unit/security/test_audit.py::test_log_audit_basic PASSED           [  6%]
+tests/unit/security/test_audit.py::test_log_audit_with_request PASSED    [ 13%]
+tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa PASSED [ 20%]
+tests/unit/security/test_breach_notification.py::test_notify_affected_users PASSED [ 26%]
+tests/unit/security/test_mfa.py::test_mfa_secret_generation PASSED       [ 33%]
+tests/unit/security/test_mfa.py::test_mfa_provisioning_uri PASSED        [ 40%]
+tests/unit/security/test_mfa.py::test_mfa_verification PASSED            [ 46%]
+tests/unit/security/test_password.py::test_hash_and_verify_password PASSED [ 53%]
+tests/unit/security/test_password.py::test_password_validator PASSED     [ 60%]
+tests/unit/security/test_password.py::test_generate_password PASSED      [ 66%]
+tests/unit/security/test_password.py::test_password_history PASSED       [ 73%]
+tests/unit/security/test_security_auth.py::test_token_creation_and_decoding PASSED [ 80%]
+tests/unit/security/test_security_auth.py::test_refresh_token PASSED     [ 86%]
+tests/unit/security/test_security_auth.py::test_token_blacklist PASSED   [ 93%]
+tests/unit/security/test_security_auth.py::test_decode_invalid_token PASSED [100%]
+ERROR: Coverage failure: total of 72 is less than fail-under=90
+
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.13.11-final-0 _______________
+
+Name                                            Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------------------
+src/__init__.py                                     1      0   100%
+src/aiops/__init__.py                               0      0   100%
+src/aiops/aiops_orchestrator.py                   113      3    97%   179-205
+src/aiops/autoencoder_detector.py                  63      0   100%
+src/aiops/data_drift_detector.py                   68      0   100%
+src/aiops/docker_remediator.py                     26      0   100%
+src/aiops/isolation_forest_detector.py             21      0   100%
+src/aiops/ml_pipeline_trigger.py                   19      0   100%
+src/aiops/prometheus_adapter.py                    38      0   100%
+src/aiops/redis_remediator.py                      30      0   100%
+src/aiops/self_healing_orchestrator.py             34      0   100%
+src/aiops/timeseries_anomaly_detector.py           33      0   100%
+src/api/__init__.py                                 0      0   100%
+src/api/exceptions/__init__.py                      1      0   100%
+src/api/exceptions/exceptions.py                   41      0   100%
+src/api/graphql/schema.py                          38      4    89%   24-25, 55-56
+src/api/main.py                                   111      0   100%
+src/api/middleware/__init__.py                      4      0   100%
+src/api/middleware/idempotency.py                  76      0   100%
+src/api/middleware/logging.py                     177     29    84%   129, 133, 208-209, 212-213, 262, 264-265, 271, 288-322
+src/api/middleware/profiling.py                    24      0   100%
+src/api/middleware/request_id.py                   21     11    48%   37-39, 43-57, 62
+src/api/middleware/security.py                    221     39    82%   109, 119-120, 165, 167, 236, 244-245, 258, 274-285, 295-299, 313-314, 320-321, 375, 393-398, 404-419, 425, 494, 508
+src/api/providers/__init__.py                       1      0   100%
+src/api/providers/market_data.py                   15      0   100%
+src/api/routes/__init__.py                          7      0   100%
+src/api/routes/auth.py                            213      9    96%   298, 517, 570, 730-734, 739, 749
+src/api/routes/debug.py                            17      0   100%
+src/api/routes/ml.py                               37      0   100%
+src/api/routes/pricing.py                         134      0   100%
+src/api/routes/system.py                            6      0   100%
+src/api/routes/users.py                            99      0   100%
+src/api/routes/websocket.py                        22      0   100%
+src/api/schemas/__init__.py                         5      0   100%
+src/api/schemas/auth.py                           133     17    87%   79, 82, 85, 88, 91, 94, 103, 111, 190, 193, 196, 199, 202, 211, 237, 245, 281
+src/api/schemas/common.py                          47      0   100%
+src/api/schemas/ml.py                              19      0   100%
+src/api/schemas/pricing.py                        105      1    99%   35
+src/api/schemas/user.py                            43      0   100%
+src/api/services/option_service.py                 36      7    81%   50-68
+src/api/services/portfolio_service.py              26     10    62%   7-12, 23-24, 28-29
+src/api/websockets/codec.py                        33      0   100%
+src/api/websockets/manager.py                      77      0   100%
+src/audit/__init__.py                               0      0   100%
+src/audit/middleware.py                            29      6    79%   28, 46-53
+src/auth/__init__.py                                0      0   100%
+src/auth/security.py                               48     22    54%   24-30, 33-67
+src/blockchain/__init__.py                          9      9     0%   5-25
+src/blockchain/defi_options.py                     38     38     0%   1-95
+src/cli/__init__.py                                 0      0   100%
+src/cli/auth.py                                    75     75     0%   9-117
+src/cli/config.py                                  53     53     0%   8-89
+src/cli/portfolio.py                               75     75     0%   8-148
+src/config.py                                     151     41    73%   148, 152, 161, 169, 177, 185, 193, 202-203, 208, 218, 248-268, 278-291, 302-311
+src/data/__init__.py                                0      0   100%
+src/data/pipeline.py                               33      9    73%   30-31, 37-48, 55-58
+src/data/router.py                                 57     40    30%   25-56, 60-69, 73-84
+src/data/validation.py                             16     16     0%   1-23
+src/database/__init__.py                          110     56    49%   89, 95-96, 124, 143-154, 172-175, 180-183, 198-202, 220-229, 237-240, 253-260, 267-274
+src/database/crud.py                              167    167     0%   11-668
+src/database/models.py                            282     31    89%   81, 115, 158-160, 163, 189, 230, 234-235, 238, 289, 293, 296-299, 302, 374, 420, 454-457, 460, 483, 523, 567, 610, 638, 677
+src/database/verify.py                             40     40     0%   1-61
+src/ml/__init__.py                                 17      3    82%   65, 82, 89
+src/ml/architectures/neural_network.py             26     18    31%   16-27, 30, 34-35, 46-51
+src/ml/autonomous_pipeline.py                      85     15    82%   121, 162-190
+src/ml/celery_app.py                               21      0   100%
+src/ml/data_loader.py                              26     18    31%   18-36, 43-55
+src/ml/drift.py                                    55      0   100%
+src/ml/federated_learning/coordinator.py           21      4    81%   25-26, 47-48
+src/ml/forecasting/__init__.py                      0      0   100%
+src/ml/forecasting/tft_model.py                    53      1    98%   81
+src/ml/main.py                                     12     12     0%   1-16
+src/ml/pipelines/dag_neural_greeks.py              13      2    85%   18, 22
+src/ml/pipelines/orchestrator.py                  119     76    36%   53-54, 58, 75-194, 200, 209-215, 223-226, 230
+src/ml/pipelines/retraining.py                     18     10    44%   14-15, 21-33
+src/ml/pipelines/sentiment_ingest.py               69     41    41%   16-31, 37-64, 70-94, 140-145
+src/ml/registry/__init__.py                         0      0   100%
+src/ml/registry/promote.py                         21      6    71%   37-43
+src/ml/reinforcement_learning/__init__.py           0      0   100%
+src/ml/reinforcement_learning/online_agent.py     131     23    82%   8-9, 13-15, 45-46, 75-76, 122, 147-149, 159, 174, 179, 189-190, 197, 200, 218-219, 227
+src/ml/reinforcement_learning/trading_env.py       88      2    98%   92, 142
+src/ml/reinforcement_learning/train.py             78      6    92%   15-16, 98-99, 120, 168
+src/ml/rl/__init__.py                               0      0   100%
+src/ml/rl/augmented_agent.py                       64      7    89%   49-51, 73, 112, 114-115
+src/ml/scraper.py                                 118     44    63%   23, 28, 74-91, 96, 105-112, 134-152
+src/ml/trainer.py                                 160      0   100%
+src/ml/training/train.py                           88     64    27%   25-59, 64-84, 91-98, 105-114, 121-126, 136-169, 173
+src/pricing/__init__.py                            15      2    87%   50, 64
+src/pricing/base.py                                27     10    63%   23, 28, 46, 51, 61, 65-71
+src/pricing/black_scholes.py                      126      5    96%   18, 44, 101-103
+src/pricing/calibration/__init__.py                 0      0   100%
+src/pricing/calibration/engine.py                 102     69    32%   25, 29, 33, 46-47, 51-57, 61-94, 98-139, 143-179
+src/pricing/calibration/svi_surface.py             38     24    37%   17, 22-31, 36-49, 53-55
+src/pricing/exotic.py                             178    111    38%   48-73, 82-137, 162, 164, 187-189, 196-198, 202-219, 225-258, 264-275, 279-290, 299-318, 326-331, 336, 338, 344-363
+src/pricing/factory.py                             16      1    94%   46
+src/pricing/finite_difference.py                  147      4    97%   67, 200, 222, 224
+src/pricing/implied_vol.py                         91     49    46%   31, 47, 49, 51, 53, 55, 59, 64, 81, 83, 85, 116, 121, 135-153, 171, 175, 193-199, 216-275
+src/pricing/lattice.py                            154     61    60%   37-82, 90-134, 145, 258, 395
+src/pricing/main.py                                12     12     0%   1-16
+src/pricing/models/__init__.py                     34      2    94%   31, 46
+src/pricing/models/heston_fft.py                  108     44    59%   22, 25, 28, 52, 54, 68-69, 87-88, 91-93, 100, 104, 115, 117-119, 127, 134, 138-139, 142-145, 149-172
+src/pricing/monte_carlo.py                        135      2    99%   80, 176
+src/pricing/quant_utils.py                         87     71    18%   20, 28, 44-67, 75-78, 92-120, 134-187
+src/pricing/quantum_backend.py                     37      8    78%   8, 38, 48-50, 56-58
+src/pricing/quantum_pricing.py                    125      6    95%   90-91, 105-108, 164
+src/pricing/vectorized_black_scholes.py            18     18     0%   6-81
+src/pricing/vol_surface.py                        201    201     0%   8-376
+src/protos/__init__.py                              1      0   100%
+src/protos/market_data_pb2.py                      42     29    31%   34-62
+src/protos/market_data_pb2_grpc.py                 12     12     0%   3-18
+src/scrapers/__init__.py                            0      0   100%
+src/scrapers/engine.py                             48     31    35%   27-30, 33-65, 69-72, 76-83
+src/security/__init__.py                            3      0   100%
+src/security/audit.py                              54      2    96%   119-121
+src/security/auth.py                              202     54    73%   74, 80-82, 89, 160, 220, 238, 246, 258-259, 288-294, 346-350, 355, 366-367, 378, 390-397, 416, 425-450, 474-519
+src/security/breach_notification.py                36      5    86%   40, 67, 77, 104-105
+src/security/mfa.py                                21      5    76%   29-33
+src/security/password.py                          123     15    88%   94-95, 101-102, 114-118, 126-127, 138-139, 212, 290, 309
+src/security/rate_limit.py                         39     13    67%   15-18, 29-32, 51-58
+src/services/email_service.py                      52     11    79%   64-70, 84, 104-106
+src/shared/__init__.py                              0      0   100%
+src/shared/db.py                                   29      1    97%   60
+src/shared/observability.py                        68     24    65%   77-78, 87-118
+src/shared/security.py                             52     36    31%   14, 20-43, 51, 59-71, 77-79, 90-96, 103-105
+src/streaming/__init__.py                          11      1    91%   36
+src/streaming/analytics.py                         29      0   100%
+src/streaming/consumer.py                          62     10    84%   68-71, 77, 105, 113-114, 121-122
+src/streaming/graphql/schema.py                    36      8    78%   19, 23, 27, 33, 40-47
+src/streaming/health.py                            36     36     0%   4-49
+src/streaming/kafka_consumer.py                    51      4    92%   80-81, 84, 97
+src/streaming/kafka_producer.py                    27      0   100%
+src/streaming/main.py                              26      2    92%   44, 46
+src/streaming/mesh_producer.py                     33      0   100%
+src/streaming/producer.py                          30      0   100%
+src/tasks/__init__.py                               2      0   100%
+src/tasks/audit_tasks.py                           21     13    38%   24-46
+src/tasks/celery_app.py                            94     20    79%   291, 297, 311-313, 327-333, 342-353, 426, 442
+src/tasks/data_tasks.py                           105      8    92%   179, 234, 259-261, 304-305, 355
+src/tasks/email_tasks.py                           35     23    34%   35-71, 79-85
+src/tasks/graceful_shutdown.py                     34      2    94%   42-43
+src/tasks/ml_tasks.py                              30      0   100%
+src/tasks/pricing_tasks.py                        136      1    99%   205
+src/tasks/trading_tasks.py                         40      0   100%
+src/utils/__init__.py                               0      0   100%
+src/utils/cache.py                                196     23    88%   22-25, 65, 77-82, 105, 157, 252, 268, 272-274, 279, 285-287, 305-306, 315
+src/utils/circuit_breaker.py                      132     19    86%   40-60
+src/utils/dashboard.py                             15      5    67%   110-115
+src/utils/errors.py                                23      0   100%
+src/utils/lazy_import.py                           84      0   100%
+src/utils/sanitization.py                          22      0   100%
+src/utils/schemas_pb2.py                           17     17     0%   7-33
+src/workers/__init__.py                             0      0   100%
+src/workers/math_worker.py                         94     94     0%   1-183
+src/workers/webhook_worker.py                      40     40     0%   1-69
+-----------------------------------------------------------------------------
+TOTAL                                            8595   2424    72%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+FAIL Required test coverage of 90% not reached. Total coverage: 71.80%
+============================= slowest 10 durations =============================
+9.80s call     tests/unit/security/test_password.py::test_password_validator
+1.86s call     tests/unit/security/test_password.py::test_password_history
+1.43s setup    tests/unit/security/test_audit.py::test_log_audit_basic
+0.98s call     tests/unit/security/test_password.py::test_hash_and_verify_password
+0.07s call     tests/unit/security/test_security_auth.py::test_token_creation_and_decoding
+0.07s call     tests/unit/security/test_audit.py::test_log_audit_basic
+0.06s call     tests/unit/security/test_security_auth.py::test_refresh_token
+0.01s setup    tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa
+
+(2 durations < 0.005s hidden.  Use -vv to show these durations.)
+============================= 15 passed in 19.81s ==============================

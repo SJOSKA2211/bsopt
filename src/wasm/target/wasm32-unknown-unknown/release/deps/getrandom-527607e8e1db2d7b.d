@@ -1,0 +1,11 @@
+/home/kamau/bsopt/src/wasm/target/wasm32-unknown-unknown/release/deps/getrandom-527607e8e1db2d7b.d: /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error_impls.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/js.rs
+
+/home/kamau/bsopt/src/wasm/target/wasm32-unknown-unknown/release/deps/libgetrandom-527607e8e1db2d7b.rlib: /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error_impls.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/js.rs
+
+/home/kamau/bsopt/src/wasm/target/wasm32-unknown-unknown/release/deps/libgetrandom-527607e8e1db2d7b.rmeta: /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error_impls.rs /home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/js.rs
+
+/home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/lib.rs:
+/home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error.rs:
+/home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/util.rs:
+/home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/error_impls.rs:
+/home/kamau/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.2.16/src/js.rs:

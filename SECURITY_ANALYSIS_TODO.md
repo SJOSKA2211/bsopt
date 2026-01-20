@@ -1,0 +1,4 @@
+- [ ] Define the audit scope.
+- [ ] Conduct a two-pass SAST analysis on all files within scope.
+- [ ] Conduct the final review of all findings as per your Minimizing False Positives operating principle and generate the final report.
+- [ ] Report the final report back to GitHub Pull Request as a comment

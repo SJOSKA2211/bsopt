@@ -1,0 +1,37 @@
+# Black-Scholes CLI Requirements
+# ================================
+
+# Core dependencies
+click>=8.1.7
+rich>=13.7.0
+pandas>=2.2.1
+numpy>=1.26.4
+scipy>=1.11.0
+
+# Authentication
+keyring>=24.3.0
+cryptography>=42.0.0
+
+# Configuration
+pyyaml>=6.0.1
+
+# HTTP requests
+requests>=2.31.0
+
+# FastAPI (for serve command)
+fastapi>=0.109.1
+uvicorn[standard]>=0.29.0
+
+# Numba for performance
+numba>=0.58.0
+
+# Pydantic for validation
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# Optional: Data fetching
+yfinance>=0.2.31
+
+# Optional: Visualization
+matplotlib>=3.8.0
+plotly>=5.17.0

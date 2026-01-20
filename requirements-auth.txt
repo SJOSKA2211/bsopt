@@ -1,0 +1,38 @@
+# Authentication & Security Dependencies
+# Production-ready JWT authentication system for FastAPI
+
+# Core Framework
+# fastapi==0.109.0
+# uvicorn[standard]==0.27.0
+# python-multipart==0.0.6  # For OAuth2PasswordRequestForm
+
+# Database
+# sqlalchemy==2.0.25
+# psycopg2-binary==2.9.9  # PostgreSQL adapter
+# alembic==1.13.1  # Database migrations (optional)
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0  # JWT token handling
+passlib[bcrypt]==1.7.4  # Password hashing with bcrypt
+bcrypt==4.1.2  # Explicit bcrypt dependency
+
+# Data Validation
+# pydantic==2.5.3
+# pydantic-settings==2.1.0
+email-validator==2.1.0.post1  # Email validation for EmailStr
+
+# Redis (Rate Limiting & Caching)
+redis[hiredis]==4.6.0  # Async Redis client with performance optimizations
+
+# Utilities
+# python-dotenv==1.0.0  # Environment variable loading
+
+# Production Server (Optional)
+gunicorn==21.2.0  # Production WSGI server
+
+# Development & Testing (Optional)
+pytest>=7.4.4
+pytest-asyncio>=0.23.3
+httpx>=0.27.0  # For testing async endpoints
+black==24.1.1  # Code formatting
+mypy==1.8.0  # Type checking

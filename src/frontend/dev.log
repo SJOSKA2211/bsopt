@@ -1,0 +1,10 @@
+
+> frontend@0.0.0 dev /home/kamau/bsopt/src/frontend
+> vite --force
+
+1:43:35 PM [vite] (client) Forced re-optimization of dependencies
+
+  ROLLDOWN-VITE v7.2.5  ready in 375 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose

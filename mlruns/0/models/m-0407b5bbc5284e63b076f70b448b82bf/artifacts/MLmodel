@@ -1,0 +1,22 @@
+artifact_path: /home/kamau/bsopt/mlruns/0/models/m-0407b5bbc5284e63b076f70b448b82bf/artifacts
+flavors:
+  python_function:
+    data: model.ubj
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.xgboost
+    python_version: 3.13.11
+  xgboost:
+    code: null
+    data: model.ubj
+    model_class: xgboost.core.Booster
+    model_format: ubj
+    xgb_version: 3.1.2
+mlflow_version: 3.8.1
+model_id: m-0407b5bbc5284e63b076f70b448b82bf
+model_size_bytes: 10671
+model_uuid: m-0407b5bbc5284e63b076f70b448b82bf
+prompts: null
+run_id: 07d918a6925f46488bd5d5894b2b94ef
+utc_time_created: '2026-01-10 16:14:06.770701'

@@ -1,0 +1,1184 @@
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/pytest_benchmark/logger.py:44: PytestBenchmarkWarning: Benchmarks are automatically disabled because xdist plugin is active.Benchmarks cannot be performed reliably in a parallelized environment.
+  warner(PytestBenchmarkWarning(text))
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-9.0.2, pluggy-1.6.0 -- /home/kamau/bsopt/.venv/bin/python3
+cachedir: .pytest_cache
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/kamau/bsopt
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: cov-7.0.0, anyio-4.12.0, asyncio-1.3.0, mock-3.15.1, docker-3.2.5, Faker-40.1.2, timeout-2.4.0, benchmark-5.2.3, locust-2.43.1, xdist-3.8.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+created: 8/8 workers
+8 workers [574 items]
+
+scheduling tests via LoadScheduling
+
+tests/unit/api/routes/test_api_pricing.py::test_calculate_batch_prices 
+tests/unit/api/exceptions/test_exceptions.py::test_base_api_exception_defaults 
+tests/unit/api/routes/test_auth_routes.py::test_login_mfa_verify 
+tests/unit/api/routes/test_users.py::test_revoke_api_key_not_found 
+tests/unit/api/test_auth_api.py::test_change_password_success 
+tests/unit/api/test_auth_api.py::test_register_idempotency_conflict 
+tests/unit/api/test_ml_api.py::test_proxy_predict_validation_error 
+tests/unit/api/test_pricing_api.py::test_calculate_price_unexpected_error 
+[gw1] [  0%] PASSED tests/unit/api/exceptions/test_exceptions.py::test_base_api_exception_defaults 
+tests/unit/api/exceptions/test_exceptions.py::test_base_api_exception_custom 
+[gw0] [  0%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_batch_prices 
+[gw1] [  0%] PASSED tests/unit/api/exceptions/test_exceptions.py::test_base_api_exception_custom 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_greeks 
+tests/unit/api/exceptions/test_exceptions.py::test_derived_exceptions 
+[gw1] [  0%] PASSED tests/unit/api/exceptions/test_exceptions.py::test_derived_exceptions 
+tests/unit/api/middleware/test_request_logging_unit.py::test_redact_headers 
+[gw1] [  0%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_redact_headers 
+[gw5] [  1%] PASSED tests/unit/api/test_auth_api.py::test_register_idempotency_conflict 
+[gw0] [  1%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_greeks 
+tests/unit/api/middleware/test_request_logging_unit.py::test_redact_params 
+tests/unit/api/test_auth_api.py::test_register_email_exists 
+[gw1] [  1%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_redact_params 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_iv 
+[gw2] [  1%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_unexpected_error 
+tests/unit/api/middleware/test_request_logging_unit.py::test_truncate_body 
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_with_error 
+[gw1] [  1%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_truncate_body 
+tests/unit/api/middleware/test_request_logging_unit.py::test_get_user_info 
+[gw0] [  1%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_iv 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_barrier 
+[gw1] [  2%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_get_user_info 
+[gw2] [  2%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_with_error 
+tests/unit/api/middleware/test_request_logging_unit.py::test_logging_middleware_dispatch 
+tests/unit/api/test_pricing_api.py::test_calculate_greeks_error 
+[gw0] [  2%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_barrier 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_asian 
+[gw5] [  2%] PASSED tests/unit/api/test_auth_api.py::test_register_email_exists 
+[gw1] [  2%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_logging_middleware_dispatch 
+tests/unit/api/test_auth_api.py::test_register_db_error 
+tests/unit/api/middleware/test_request_logging_unit.py::test_structured_logger 
+[gw1] [  2%] PASSED tests/unit/api/middleware/test_request_logging_unit.py::test_structured_logger 
+[gw4] [  3%] PASSED tests/unit/api/routes/test_users.py::test_revoke_api_key_not_found 
+tests/unit/api/middleware/test_security_middleware_base_unit.py::test_security_headers_middleware 
+tests/unit/api/routes/test_users.py::test_get_me 
+[gw0] [  3%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_asian 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_no_symbol 
+[gw1] [  3%] PASSED tests/unit/api/middleware/test_security_middleware_base_unit.py::test_security_headers_middleware 
+[gw2] [  3%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_greeks_error 
+tests/unit/api/middleware/test_security_middleware_base_unit.py::test_csrf_middleware_exempt 
+tests/unit/api/test_pricing_api.py::test_calculate_iv_value_error 
+[gw1] [  3%] PASSED tests/unit/api/middleware/test_security_middleware_base_unit.py::test_csrf_middleware_exempt 
+tests/unit/api/middleware/test_security_middleware_base_unit.py::test_ip_block_middleware 
+[gw4] [  4%] PASSED tests/unit/api/routes/test_users.py::test_get_me 
+tests/unit/api/routes/test_users.py::test_update_me_success 
+[gw1] [  4%] PASSED tests/unit/api/middleware/test_security_middleware_base_unit.py::test_ip_block_middleware 
+[gw3] [  4%] PASSED tests/unit/api/routes/test_auth_routes.py::test_login_mfa_verify 
+[gw2] [  4%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_iv_value_error 
+tests/unit/api/middleware/test_security_middleware_base_unit.py::test_input_sanitization_middleware 
+tests/unit/api/routes/test_auth_routes.py::test_logout 
+tests/unit/api/test_pricing_api.py::test_calculate_iv_unexpected_error 
+[gw1] [  4%] PASSED tests/unit/api/middleware/test_security_middleware_base_unit.py::test_input_sanitization_middleware 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_standard 
+[gw0] [  4%] FAILED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_no_symbol 
+[gw3] [  5%] PASSED tests/unit/api/routes/test_auth_routes.py::test_logout 
+[gw7] [  5%] PASSED tests/unit/api/test_auth_api.py::test_change_password_success 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_invalid_params 
+[gw4] [  5%] PASSED tests/unit/api/routes/test_users.py::test_update_me_success 
+tests/unit/api/routes/test_users.py::test_update_me_conflict 
+tests/unit/api/test_auth_api.py::test_change_password_wrong_current 
+[gw6] [  5%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_validation_error 
+tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable 
+tests/unit/api/routes/test_auth_routes.py::test_register_success 
+[gw2] [  5%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_iv_unexpected_error 
+tests/unit/api/test_pricing_api.py::test_calculate_exotic_barrier_missing_type 
+[gw4] [  5%] PASSED tests/unit/api/routes/test_users.py::test_update_me_conflict 
+[gw0] [  6%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_invalid_params 
+tests/unit/api/routes/test_users.py::test_get_stats 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_circuit_breaker 
+[gw1] [  6%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_standard 
+[gw7] [  6%] PASSED tests/unit/api/test_auth_api.py::test_change_password_wrong_current 
+[gw3] [  6%] PASSED tests/unit/api/routes/test_auth_routes.py::test_register_success 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_cache_hit 
+[gw2] [  6%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_exotic_barrier_missing_type 
+tests/unit/api/test_auth_api.py::test_change_password_weak_password 
+[gw4] [  6%] PASSED tests/unit/api/routes/test_users.py::test_get_stats 
+tests/unit/api/routes/test_users.py::test_delete_me_success 
+tests/unit/api/routes/test_auth_routes.py::test_verify_email_success 
+tests/unit/api/test_pricing_api.py::test_calculate_exotic_invalid_type 
+[gw0] [  7%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_circuit_breaker 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_iv_value_error 
+[gw1] [  7%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_cache_hit 
+[gw4] [  7%] PASSED tests/unit/api/routes/test_users.py::test_delete_me_success 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_success 
+tests/unit/api/routes/test_users.py::test_delete_me_fail 
+[gw6] [  7%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_service_unavailable 
+[gw5] [  7%] PASSED tests/unit/api/test_auth_api.py::test_register_db_error 
+[gw0] [  8%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_iv_value_error 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_invalid_barrier 
+[gw3] [  8%] PASSED tests/unit/api/routes/test_auth_routes.py::test_verify_email_success 
+tests/unit/api/routes/test_auth_routes.py::test_refresh_token_success 
+[gw7] [  8%] PASSED tests/unit/api/test_auth_api.py::test_change_password_weak_password 
+tests/unit/api/test_auth_api.py::test_verify_email_success 
+tests/unit/api/test_ml_api.py::test_proxy_predict_internal_error 
+tests/unit/api/test_auth_api.py::test_change_password_db_error 
+[gw4] [  8%] PASSED tests/unit/api/routes/test_users.py::test_delete_me_fail 
+[gw0] [  8%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_invalid_barrier 
+[gw2] [  8%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_exotic_invalid_type 
+tests/unit/api/routes/test_users.py::test_get_user_by_id_enterprise 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_error_fallback 
+tests/unit/api/test_pricing_api.py::test_calculate_exotic_asian_lookback_digital 
+[gw3] [  9%] PASSED tests/unit/api/routes/test_auth_routes.py::test_refresh_token_success 
+tests/unit/api/routes/test_debug.py::test_get_tracemalloc_snapshot_inactive 
+[gw0] [  9%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_error_fallback 
+[gw4] [  9%] PASSED tests/unit/api/routes/test_users.py::test_get_user_by_id_enterprise 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_batch_prices_error 
+[gw5] [  9%] PASSED tests/unit/api/test_auth_api.py::test_verify_email_success 
+tests/unit/api/routes/test_users.py::test_list_users_enterprise 
+[gw1] [  9%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_success 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_stale_fallback 
+tests/unit/api/test_auth_api.py::test_verify_email_invalid_token 
+[gw7] [  9%] PASSED tests/unit/api/test_auth_api.py::test_change_password_db_error 
+[gw3] [ 10%] PASSED tests/unit/api/routes/test_debug.py::test_get_tracemalloc_snapshot_inactive 
+tests/unit/api/test_auth_api.py::test_mfa_setup_success 
+[gw0] [ 10%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_batch_prices_error 
+tests/unit/api/routes/test_debug.py::test_get_tracemalloc_snapshot_active 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_iv_unexpected_error 
+[gw4] [ 10%] PASSED tests/unit/api/routes/test_users.py::test_list_users_enterprise 
+tests/unit/api/test_auth_api.py::test_login_success 
+[gw6] [ 10%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_internal_error 
+[gw5] [ 10%] PASSED tests/unit/api/test_auth_api.py::test_verify_email_invalid_token 
+tests/unit/api/test_auth_api.py::test_verify_email_db_error 
+[gw0] [ 10%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_iv_unexpected_error 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_error 
+[gw1] [ 11%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_price_heston_stale_fallback 
+[gw2] [ 11%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_exotic_asian_lookback_digital 
+tests/unit/api/test_ml_api.py::test_proxy_predict_request_error 
+[gw3] [ 11%] PASSED tests/unit/api/routes/test_debug.py::test_get_tracemalloc_snapshot_active 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_mocker 
+[gw7] [ 11%] PASSED tests/unit/api/test_auth_api.py::test_mfa_setup_success 
+tests/unit/api/test_users_api.py::test_create_api_key 
+tests/unit/api/test_pricing_api.py::test_calculate_exotic_error 
+[gw0] [ 11%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_exotic_error 
+tests/unit/api/test_auth_api.py::test_setup_mfa_db_error 
+tests/unit/api/routes/test_api_pricing.py::test_calculate_greeks_error 
+[gw2] [ 12%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_exotic_error 
+[gw5] [ 12%] PASSED tests/unit/api/test_auth_api.py::test_verify_email_db_error 
+[gw0] [ 12%] PASSED tests/unit/api/routes/test_api_pricing.py::test_calculate_greeks_error 
+tests/unit/api/test_auth_api.py::test_logout 
+[gw7] [ 12%] PASSED tests/unit/api/test_auth_api.py::test_setup_mfa_db_error 
+tests/unit/api/test_auth_api.py::test_mfa_verify_success 
+tests/unit/api/routes/test_auth_routes.py::test_login_success 
+[gw4] [ 12%] PASSED tests/unit/api/test_auth_api.py::test_login_success 
+tests/unit/api/test_auth_api.py::test_login_db_error_updating_last_login 
+tests/unit/api/test_pricing_api.py::test_calculate_price_circuit_breaker 
+[gw6] [ 12%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_request_error 
+tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_exception 
+[gw5] [ 13%] PASSED tests/unit/api/test_auth_api.py::test_logout 
+tests/unit/api/test_auth_api.py::test_refresh_token_success 
+[gw7] [ 13%] PASSED tests/unit/api/test_auth_api.py::test_mfa_verify_success 
+tests/unit/api/test_auth_api.py::test_mfa_verify_no_setup 
+[gw4] [ 13%] PASSED tests/unit/api/test_auth_api.py::test_login_db_error_updating_last_login 
+[gw2] [ 13%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_circuit_breaker 
+tests/unit/api/test_auth_api.py::test_login_invalid_credentials 
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_cached 
+[gw7] [ 13%] PASSED tests/unit/api/test_auth_api.py::test_mfa_verify_no_setup 
+[gw5] [ 13%] PASSED tests/unit/api/test_auth_api.py::test_refresh_token_success 
+[gw6] [ 14%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_unexpected_exception 
+tests/unit/api/test_auth_api.py::test_mfa_verify_invalid_code 
+[gw4] [ 14%] PASSED tests/unit/api/test_auth_api.py::test_login_invalid_credentials 
+tests/unit/api/test_auth_api.py::test_refresh_token_invalid_type 
+tests/unit/api/test_auth_api.py::test_login_unverified 
+tests/unit/api/test_ml_api.py::test_proxy_predict_unparseable_error 
+[gw2] [ 14%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_batch_prices_cached 
+tests/unit/api/test_pricing_api.py::test_calculate_greeks_cached 
+[gw5] [ 14%] PASSED tests/unit/api/test_auth_api.py::test_refresh_token_invalid_type 
+[gw4] [ 14%] PASSED tests/unit/api/test_auth_api.py::test_login_unverified 
+tests/unit/api/test_auth_api.py::test_refresh_token_user_inactive 
+[gw7] [ 14%] PASSED tests/unit/api/test_auth_api.py::test_mfa_verify_invalid_code 
+tests/unit/api/test_auth_api.py::test_mfa_verify_db_error 
+tests/unit/api/test_auth_api.py::test_login_inactive 
+[gw6] [ 15%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_unparseable_error 
+[gw2] [ 15%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_greeks_cached 
+[gw5] [ 15%] PASSED tests/unit/api/test_auth_api.py::test_refresh_token_user_inactive 
+tests/unit/api/test_pricing_api.py::test_calculate_price_success 
+tests/unit/api/test_auth_api.py::test_refresh_token_generic_exception 
+tests/unit/api/test_providers.py::test_polygon_provider_stub 
+[gw1] [ 15%] PASSED tests/unit/api/test_users_api.py::test_create_api_key 
+[gw4] [ 15%] PASSED tests/unit/api/test_auth_api.py::test_login_inactive 
+tests/unit/api/test_users_api.py::test_revoke_api_key_success 
+[gw7] [ 16%] PASSED tests/unit/api/test_auth_api.py::test_mfa_verify_db_error 
+tests/unit/api/test_auth_api.py::test_mfa_disable_success 
+tests/unit/api/test_auth_api.py::test_login_mfa_required 
+[gw2] [ 16%] PASSED tests/unit/api/test_providers.py::test_polygon_provider_stub 
+tests/unit/api/test_providers.py::test_yahoo_provider_stub 
+[gw2] [ 16%] PASSED tests/unit/api/test_providers.py::test_yahoo_provider_stub 
+tests/unit/api/test_users_api.py::test_get_current_user_profile 
+[gw3] [ 16%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_mocker 
+[gw0] [ 16%] PASSED tests/unit/api/routes/test_auth_routes.py::test_login_success 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_error_400 
+[gw6] [ 16%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_success 
+[gw5] [ 17%] PASSED tests/unit/api/test_auth_api.py::test_refresh_token_generic_exception 
+tests/unit/api/routes/test_auth_routes.py::test_login_mfa_required 
+tests/unit/api/test_auth_api.py::test_request_password_reset_nonexistent_user 
+tests/unit/api/test_pricing_api.py::test_calculate_price_cached 
+[gw4] [ 17%] PASSED tests/unit/api/test_auth_api.py::test_login_mfa_required 
+[gw7] [ 17%] PASSED tests/unit/api/test_auth_api.py::test_mfa_disable_success 
+tests/unit/api/test_auth_api.py::test_login_mfa_invalid_code 
+tests/unit/api/test_auth_api.py::test_mfa_disable_not_enabled 
+[gw0] [ 17%] PASSED tests/unit/api/routes/test_auth_routes.py::test_login_mfa_required 
+tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_producer_exception 
+[gw1] [ 17%] PASSED tests/unit/api/test_users_api.py::test_revoke_api_key_success 
+[gw6] [ 17%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_cached 
+tests/unit/api/test_users_api.py::test_revoke_api_key_not_found 
+[gw5] [ 18%] PASSED tests/unit/api/test_auth_api.py::test_request_password_reset_nonexistent_user 
+[gw3] [ 18%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_error_400 
+[gw2] [ 18%] PASSED tests/unit/api/test_users_api.py::test_get_current_user_profile 
+tests/unit/api/test_auth_api.py::test_request_password_reset_db_error 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_error_503 
+[gw0] [ 18%] PASSED tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_producer_exception 
+tests/unit/api/test_users_api.py::test_get_user_stats 
+tests/unit/auth/test_auth_security.py::test_get_jwks_cache_miss 
+[gw7] [ 18%] PASSED tests/unit/api/test_auth_api.py::test_mfa_disable_not_enabled 
+[gw4] [ 18%] PASSED tests/unit/api/test_auth_api.py::test_login_mfa_invalid_code 
+tests/unit/api/test_auth_api.py::test_register_success 
+tests/unit/api/test_auth_api.py::test_disable_mfa_invalid_code 
+[gw1] [ 19%] PASSED tests/unit/api/test_users_api.py::test_revoke_api_key_not_found 
+[gw6] [ 19%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_success 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_missing_symbol 
+[gw5] [ 19%] PASSED tests/unit/api/test_auth_api.py::test_request_password_reset_db_error 
+tests/unit/api/test_auth_api.py::test_request_password_reset_background_task_called 
+tests/unit/api/test_users_api.py::test_update_current_user_profile_success 
+[gw2] [ 19%] PASSED tests/unit/api/test_users_api.py::test_get_user_stats 
+tests/unit/api/test_users_api.py::test_list_api_keys 
+[gw3] [ 19%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_error_503 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_error_500 
+[gw7] [ 20%] PASSED tests/unit/api/test_auth_api.py::test_disable_mfa_invalid_code 
+[gw4] [ 20%] PASSED tests/unit/api/test_auth_api.py::test_register_success 
+tests/unit/database/test_crud_internal.py::test_expiring_positions 
+[gw6] [ 20%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_missing_symbol 
+tests/unit/api/test_auth_api.py::test_disable_mfa_db_error 
+[gw5] [ 20%] PASSED tests/unit/api/test_auth_api.py::test_request_password_reset_background_task_called 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_stale_fallback 
+tests/unit/api/test_auth_api.py::test_confirm_password_reset_success 
+[gw2] [ 20%] PASSED tests/unit/api/test_users_api.py::test_list_api_keys 
+[gw7] [ 20%] PASSED tests/unit/api/test_auth_api.py::test_disable_mfa_db_error 
+[gw6] [ 21%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_stale_fallback 
+[gw3] [ 21%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_error_500 
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success 
+tests/unit/api/test_pricing_api.py::test_calculate_batch_prices 
+tests/unit/cli/test_cli_auth.py::test_login_success 
+[gw5] [ 21%] PASSED tests/unit/api/test_auth_api.py::test_confirm_password_reset_success 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_request_error 
+tests/unit/api/test_auth_api.py::test_confirm_password_reset_invalid_password_validation 
+[gw1] [ 21%] PASSED tests/unit/api/test_users_api.py::test_update_current_user_profile_success 
+tests/unit/api/test_users_api.py::test_update_current_user_profile_email_conflict 
+[gw6] [ 21%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_batch_prices 
+[gw5] [ 21%] PASSED tests/unit/api/test_auth_api.py::test_confirm_password_reset_invalid_password_validation 
+tests/unit/api/test_auth_api.py::test_confirm_password_reset_db_error 
+[gw3] [ 22%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_request_error 
+tests/unit/api/routes/test_ml.py::test_proxy_predict_unexpected_error 
+[gw7] [ 22%] PASSED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_pricing_success 
+tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs 
+tests/unit/api/test_pricing_api.py::test_calculate_greeks 
+[gw1] [ 22%] PASSED tests/unit/api/test_users_api.py::test_update_current_user_profile_email_conflict 
+tests/unit/api/test_users_api.py::test_update_current_user_profile_email_success 
+[gw0] [ 22%] PASSED tests/unit/auth/test_auth_security.py::test_get_jwks_cache_miss 
+[gw5] [ 22%] PASSED tests/unit/api/test_auth_api.py::test_confirm_password_reset_db_error 
+tests/unit/auth/test_auth_security.py::test_get_jwks_cache_hit 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_no_password 
+[gw0] [ 22%] PASSED tests/unit/auth/test_auth_security.py::test_get_jwks_cache_hit 
+[gw3] [ 23%] PASSED tests/unit/api/routes/test_ml.py::test_proxy_predict_unexpected_error 
+[gw7] [ 23%] PASSED tests/unit/api/test_heston_api.py::TestPricingAPIHeston::test_heston_fallback_to_bs 
+tests/unit/api/test_ml_api.py::test_proxy_predict_success 
+[gw6] [ 23%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_greeks 
+tests/unit/auth/test_auth_security.py::test_verify_token_success 
+tests/unit/api/routes/test_system.py::test_get_system_status 
+tests/unit/api/test_pricing_api.py::test_calculate_iv 
+[gw0] [ 23%] PASSED tests/unit/auth/test_auth_security.py::test_verify_token_success 
+[gw5] [ 23%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_no_password 
+tests/unit/auth/test_auth_security.py::test_verify_token_no_rsa_key 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_no_url 
+[gw3] [ 24%] PASSED tests/unit/api/routes/test_system.py::test_get_system_status 
+tests/unit/api/routes/test_users.py::test_list_api_keys 
+[gw0] [ 24%] PASSED tests/unit/auth/test_auth_security.py::test_verify_token_no_rsa_key 
+[gw5] [ 24%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_no_url 
+tests/unit/auth/test_auth_security.py::test_verify_token_decode_error 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_failure 
+[gw0] [ 24%] PASSED tests/unit/auth/test_auth_security.py::test_verify_token_decode_error 
+[gw6] [ 24%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_iv 
+[gw3] [ 24%] PASSED tests/unit/api/routes/test_users.py::test_list_api_keys 
+[gw5] [ 25%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_failure 
+tests/unit/auth/test_auth_security.py::test_role_checker_success 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_put 
+tests/unit/api/routes/test_users.py::test_create_api_key 
+[gw0] [ 25%] PASSED tests/unit/auth/test_auth_security.py::test_role_checker_success 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_password_in_url 
+tests/unit/auth/test_auth_security.py::test_role_checker_denial 
+[gw1] [ 25%] PASSED tests/unit/api/test_users_api.py::test_update_current_user_profile_email_success 
+[gw0] [ 25%] PASSED tests/unit/auth/test_auth_security.py::test_role_checker_denial 
+tests/unit/auth/test_keycloak_security.py::test_get_jwks_success 
+[gw3] [ 25%] PASSED tests/unit/api/routes/test_users.py::test_create_api_key 
+[gw5] [ 25%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_password_in_url 
+tests/unit/api/test_users_api.py::test_update_current_user_profile_no_user 
+tests/unit/api/routes/test_users.py::test_revoke_api_key_success 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_fallback_to_db_pass 
+[gw5] [ 26%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_fallback_to_db_pass 
+[gw6] [ 26%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_put 
+tests/unit/database/test_verify_internal.py::test_verify_main_execution 
+[gw3] [ 26%] PASSED tests/unit/api/routes/test_users.py::test_revoke_api_key_success 
+tests/unit/database/test_models_internal.py::test_position_logic 
+tests/unit/api/test_pricing_api.py::test_calculate_price_heston_error_fallback 
+[gw0] [ 26%] PASSED tests/unit/auth/test_keycloak_security.py::test_get_jwks_success 
+[gw3] [ 26%] PASSED tests/unit/database/test_models_internal.py::test_position_logic 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_success 
+tests/unit/database/test_models_internal.py::test_order_repr 
+[gw3] [ 27%] PASSED tests/unit/database/test_models_internal.py::test_order_repr 
+tests/unit/database/test_models_internal.py::test_ml_model_repr 
+[gw1] [ 27%] PASSED tests/unit/api/test_users_api.py::test_update_current_user_profile_no_user 
+[gw2] [ 27%] PASSED tests/unit/cli/test_cli_auth.py::test_login_success 
+[gw3] [ 27%] PASSED tests/unit/database/test_models_internal.py::test_ml_model_repr 
+tests/unit/cli/test_cli_auth.py::test_logout 
+tests/unit/database/test_models_internal.py::test_model_prediction_logic 
+tests/unit/api/test_users_api.py::test_delete_current_user_account_success 
+[gw5] [ 27%] PASSED tests/unit/database/test_verify_internal.py::test_verify_main_execution 
+[gw3] [ 27%] PASSED tests/unit/database/test_models_internal.py::test_model_prediction_logic 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_data_preparation 
+tests/unit/database/test_models_internal.py::test_rate_limit_repr 
+[gw2] [ 28%] PASSED tests/unit/cli/test_cli_auth.py::test_logout 
+[gw3] [ 28%] PASSED tests/unit/database/test_models_internal.py::test_rate_limit_repr 
+[gw6] [ 28%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_heston_error_fallback 
+tests/unit/cli/test_cli_auth.py::test_get_current_user_no_token 
+tests/unit/api/test_pricing_api.py::test_calculate_price_value_error 
+tests/unit/database/test_models_internal.py::test_audit_log_repr 
+[gw2] [ 28%] PASSED tests/unit/cli/test_cli_auth.py::test_get_current_user_no_token 
+[gw3] [ 28%] PASSED tests/unit/database/test_models_internal.py::test_audit_log_repr 
+[gw5] [ 28%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_data_preparation 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_prediction_no_model 
+tests/unit/database/test_models_internal.py::test_request_log_repr 
+tests/unit/cli/test_config.py::test_config_defaults 
+[gw2] [ 29%] PASSED tests/unit/cli/test_config.py::test_config_defaults 
+[gw3] [ 29%] PASSED tests/unit/database/test_models_internal.py::test_request_log_repr 
+tests/unit/cli/test_config.py::test_config_set_get 
+tests/unit/database/test_models_internal.py::test_security_incident_repr 
+[gw5] [ 29%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_prediction_no_model 
+[gw3] [ 29%] PASSED tests/unit/database/test_models_internal.py::test_security_incident_repr 
+[gw1] [ 29%] PASSED tests/unit/api/test_users_api.py::test_delete_current_user_account_success 
+tests/unit/database/test_models_internal.py::test_gdpr_request_repr 
+[gw2] [ 29%] PASSED tests/unit/cli/test_config.py::test_config_set_get 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_interpretability_report 
+[gw6] [ 30%] PASSED tests/unit/api/test_pricing_api.py::test_calculate_price_value_error 
+tests/unit/cli/test_config.py::test_config_save_load 
+[gw3] [ 30%] PASSED tests/unit/database/test_models_internal.py::test_gdpr_request_repr 
+tests/unit/database/test_models_internal.py::test_calibration_result_repr 
+[gw5] [ 30%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_interpretability_report 
+tests/unit/api/test_users_api.py::test_delete_current_user_account_failure 
+tests/unit/ml/forecasting/test_tft_model.py::test_tft_training_and_prediction 
+tests/unit/ml/test_data_loader.py::test_normalize_incomplete_scraper_data 
+[gw3] [ 30%] PASSED tests/unit/database/test_models_internal.py::test_calibration_result_repr 
+[gw6] [ 30%] PASSED tests/unit/ml/test_data_loader.py::test_normalize_incomplete_scraper_data 
+tests/unit/database/test_verify.py::test_verify_postgres_connection_success 
+tests/unit/ml/test_data_loader.py::test_normalize_complete_data 
+[gw6] [ 31%] PASSED tests/unit/ml/test_data_loader.py::test_normalize_complete_data 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_true 
+[gw6] [ 31%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_true 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_false 
+[gw2] [ 31%] PASSED tests/unit/cli/test_config.py::test_config_save_load 
+tests/unit/cli/test_portfolio.py::test_add_list_remove_position 
+[gw6] [ 31%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_false 
+[gw0] [ 31%] PASSED tests/unit/auth/test_keycloak_security.py::test_verify_token_success 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_edge_cases 
+[gw1] [ 31%] PASSED tests/unit/api/test_users_api.py::test_delete_current_user_account_failure 
+[gw6] [ 32%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_edge_cases 
+[gw2] [ 32%] PASSED tests/unit/cli/test_portfolio.py::test_add_list_remove_position 
+[gw3] [ 32%] PASSED tests/unit/database/test_verify.py::test_verify_postgres_connection_success 
+tests/unit/database/test_verify.py::test_verify_postgres_connection_failure 
+tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise 
+tests/unit/cli/test_portfolio.py::test_calculate_position_value 
+[gw7] [ 32%] PASSED tests/unit/api/test_ml_api.py::test_proxy_predict_success 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_invalid_kid 
+[gw0] [ 32%] PASSED tests/unit/auth/test_keycloak_security.py::test_verify_token_invalid_kid 
+tests/unit/ml/test_data_loader.py::test_outlier_removal_price_key 
+tests/unit/auth/test_keycloak_security.py::test_verify_token_jwt_error 
+[gw6] [ 32%] PASSED tests/unit/ml/test_data_loader.py::test_outlier_removal_price_key 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_failure 
+[gw2] [ 33%] PASSED tests/unit/cli/test_portfolio.py::test_calculate_position_value 
+tests/unit/ml/test_serving.py::test_predict_xgb_success 
+tests/unit/cli/test_portfolio.py::test_get_portfolio_summary 
+[gw0] [ 33%] PASSED tests/unit/auth/test_keycloak_security.py::test_verify_token_jwt_error 
+[gw3] [ 33%] PASSED tests/unit/database/test_verify.py::test_verify_postgres_connection_failure 
+tests/unit/auth/test_keycloak_security.py::test_role_checker_success 
+[gw0] [ 33%] PASSED tests/unit/auth/test_keycloak_security.py::test_role_checker_success 
+tests/unit/auth/test_keycloak_security.py::test_role_checker_failure 
+[gw2] [ 33%] PASSED tests/unit/cli/test_portfolio.py::test_get_portfolio_summary 
+tests/unit/database/test_crud.py::test_user_crud 
+[gw7] [ 33%] PASSED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_failure 
+tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_success 
+[gw0] [ 34%] PASSED tests/unit/auth/test_keycloak_security.py::test_role_checker_failure 
+tests/unit/ml/test_serving.py::test_predict_unsupported_model 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_logic 
+[gw3] [ 34%] PASSED tests/unit/database/test_verify_internal.py::test_verify_postgres_connection_success 
+[gw6] [ 34%] PASSED tests/unit/ml/test_serving.py::test_predict_xgb_success 
+[gw1] [ 34%] PASSED tests/unit/api/test_users_api.py::test_get_user_by_id_enterprise 
+tests/unit/pricing/models/test_heston_fft.py::test_price_put 
+tests/unit/ml/test_serving.py::test_predict_nn_success 
+tests/unit/api/test_users_api.py::test_get_user_by_id_not_found 
+[gw0] [ 34%] PASSED tests/unit/ml/test_serving.py::test_predict_unsupported_model 
+tests/unit/ml/test_training.py::test_generate_synthetic_data 
+[gw0] [ 35%] PASSED tests/unit/ml/test_training.py::test_generate_synthetic_data 
+tests/unit/ml/test_training.py::test_load_or_collect_data_synthetic 
+[gw6] [ 35%] PASSED tests/unit/ml/test_serving.py::test_predict_nn_success 
+tests/unit/ml/test_serving.py::test_predict_xgb_unavailable 
+[gw0] [ 35%] PASSED tests/unit/ml/test_training.py::test_load_or_collect_data_synthetic 
+tests/unit/ml/test_training.py::test_train_smoke 
+[gw3] [ 35%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_put 
+tests/unit/pricing/models/test_heston_fft.py::test_pricing_integration_error_high 
+[gw3] [ 35%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_pricing_integration_error_high 
+tests/unit/pricing/models/test_heston_fft.py::test_price_exceeds_spot 
+[gw6] [ 35%] PASSED tests/unit/ml/test_serving.py::test_predict_xgb_unavailable 
+[gw1] [ 36%] PASSED tests/unit/api/test_users_api.py::test_get_user_by_id_not_found 
+[gw3] [ 36%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_exceeds_spot 
+tests/unit/ml/test_serving.py::test_predict_nn_unavailable 
+tests/unit/api/test_users_api.py::test_list_users_enterprise 
+tests/unit/pricing/models/test_heston_fft.py::test_pricing_failed_exception 
+[gw3] [ 36%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_pricing_failed_exception 
+tests/unit/pricing/models/test_heston_fft.py::test_price_floor 
+[gw3] [ 36%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_floor 
+tests/unit/pricing/models/test_heston_fft.py::test_price_put_integrand_error 
+[gw6] [ 36%] PASSED tests/unit/ml/test_serving.py::test_predict_nn_unavailable 
+tests/unit/ml/test_serving.py::test_health_check 
+[gw3] [ 36%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_put_integrand_error 
+tests/unit/pricing/models/test_heston_fft.py::test_pricing_integration_errors 
+[gw1] [ 37%] PASSED tests/unit/api/test_users_api.py::test_list_users_enterprise 
+tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_id_user 
+[gw3] [ 37%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_pricing_integration_errors 
+tests/unit/pricing/models/test_heston_fft.py::test_price_put_failure 
+[gw6] [ 37%] PASSED tests/unit/ml/test_serving.py::test_health_check 
+[gw3] [ 37%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_put_failure 
+tests/unit/ml/test_serving.py::test_load_models_failure 
+tests/unit/pricing/models/test_heston_fft.py::test_integrand_zero_denominator 
+[gw1] [ 37%] PASSED tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_id_user 
+tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_anonymous_user 
+[gw3] [ 37%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_integrand_zero_denominator 
+tests/unit/pricing/models/test_heston_fft.py::test_integrand_exception 
+[gw1] [ 38%] PASSED tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_anonymous_user 
+tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_producer_success 
+[gw3] [ 38%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_integrand_exception 
+[gw6] [ 38%] PASSED tests/unit/ml/test_serving.py::test_load_models_failure 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_static_price_methods 
+[gw1] [ 38%] PASSED tests/unit/audit/test_middleware_internal.py::test_audit_middleware_with_producer_success 
+tests/unit/pricing/calibration/test_svi_surface.py::test_fit_svi_slice_arbitrage_penalty 
+[gw3] [ 38%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_static_price_methods 
+tests/unit/pricing/test_base.py::test_pricing_engine_with_vectorized_strategy 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks_put 
+[gw3] [ 39%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks_put 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks_zero_maturity 
+[gw1] [ 39%] PASSED tests/unit/pricing/calibration/test_svi_surface.py::test_fit_svi_slice_arbitrage_penalty 
+[gw6] [ 39%] PASSED tests/unit/pricing/test_base.py::test_pricing_engine_with_vectorized_strategy 
+[gw3] [ 39%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks_zero_maturity 
+tests/unit/pricing/calibration/test_svi_surface.py::test_get_implied_vol 
+tests/unit/pricing/test_black_scholes.py::test_price_options_missing_params 
+[gw1] [ 39%] PASSED tests/unit/pricing/calibration/test_svi_surface.py::test_get_implied_vol 
+tests/unit/pricing/test_base.py::test_pricing_engine_invalid_strategy 
+[gw4] [ 39%] PASSED tests/unit/database/test_crud_internal.py::test_expiring_positions 
+tests/unit/pricing/graphql/test_schema.py::test_option_fields 
+[gw3] [ 40%] PASSED tests/unit/pricing/test_black_scholes.py::test_price_options_missing_params 
+tests/unit/database/test_crud_internal.py::test_order_crud 
+tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_missing_params 
+[gw3] [ 40%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_missing_params 
+[gw1] [ 40%] PASSED tests/unit/pricing/graphql/test_schema.py::test_option_fields 
+tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_single 
+tests/unit/pricing/graphql/test_schema.py::test_option_fields_expired 
+[gw6] [ 40%] PASSED tests/unit/pricing/test_base.py::test_pricing_engine_invalid_strategy 
+[gw3] [ 40%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_single 
+tests/unit/pricing/test_black_scholes.py::test_verify_put_call_parity 
+tests/unit/pricing/test_base.py::test_mock_strategy_greeks 
+[gw1] [ 40%] PASSED tests/unit/pricing/graphql/test_schema.py::test_option_fields_expired 
+tests/unit/pricing/graphql/test_schema.py::test_resolve_reference 
+[gw3] [ 41%] PASSED tests/unit/pricing/test_black_scholes.py::test_verify_put_call_parity 
+[gw1] [ 41%] PASSED tests/unit/pricing/graphql/test_schema.py::test_resolve_reference 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_price_instance 
+tests/unit/pricing/graphql/test_schema.py::test_query_dummy 
+[gw6] [ 41%] PASSED tests/unit/pricing/test_base.py::test_mock_strategy_greeks 
+[gw3] [ 41%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_price_instance 
+tests/unit/pricing/test_base.py::test_mock_vectorized_batch 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_calculate_greeks_instance 
+[gw1] [ 41%] PASSED tests/unit/pricing/graphql/test_schema.py::test_query_dummy 
+[gw6] [ 41%] PASSED tests/unit/pricing/test_base.py::test_mock_vectorized_batch 
+tests/unit/pricing/models/test_heston_fft.py::test_heston_params_validation 
+[gw3] [ 42%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_calculate_greeks_instance 
+[gw1] [ 42%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_heston_params_validation 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_single_pricing 
+tests/unit/pricing/models/test_heston_fft.py::test_heston_model_init 
+tests/unit/pricing/test_black_scholes.py::test_price_options_array_type 
+[gw1] [ 42%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_heston_model_init 
+[gw3] [ 42%] PASSED tests/unit/pricing/test_black_scholes.py::test_price_options_array_type 
+[gw6] [ 42%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_single_pricing 
+tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func 
+tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_with_params 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks 
+[gw1] [ 43%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func 
+tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_errors 
+[gw3] [ 43%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_with_params 
+tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_array_type 
+[gw1] [ 43%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_errors 
+[gw3] [ 43%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_greeks_batch_array_type 
+tests/unit/pricing/models/test_heston_fft.py::test_price_call 
+tests/unit/pricing/test_black_scholes.py::test_black_scholes_wrapper 
+[gw6] [ 43%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_greeks 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_batch_pricing 
+[gw3] [ 43%] PASSED tests/unit/pricing/test_black_scholes.py::test_black_scholes_wrapper 
+tests/unit/pricing/test_exotic.py::test_exotic_parameters 
+[gw3] [ 44%] PASSED tests/unit/pricing/test_exotic.py::test_exotic_parameters 
+[gw6] [ 44%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_batch_pricing 
+tests/unit/pricing/test_exotic.py::test_asian_geometric 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_edge_cases 
+[gw3] [ 44%] PASSED tests/unit/pricing/test_exotic.py::test_asian_geometric 
+tests/unit/pricing/test_exotic.py::test_asian_arithmetic_mc 
+[gw1] [ 44%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_call 
+tests/unit/pricing/test_exotic.py::test_lookback_mc 
+[gw6] [ 44%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_edge_cases 
+tests/unit/pricing/test_black_scholes.py::test_calculate_d1_d2 
+[gw6] [ 44%] PASSED tests/unit/pricing/test_black_scholes.py::test_calculate_d1_d2 
+tests/unit/pricing/test_black_scholes.py::test_bs_engine_calculate_put 
+[gw6] [ 45%] PASSED tests/unit/pricing/test_black_scholes.py::test_bs_engine_calculate_put 
+tests/unit/pricing/test_factory.py::test_factory_get_unknown 
+[gw6] [ 45%] PASSED tests/unit/pricing/test_factory.py::test_factory_get_unknown 
+tests/unit/pricing/test_factory.py::test_factory_case_insensitive 
+[gw6] [ 45%] PASSED tests/unit/pricing/test_factory.py::test_factory_case_insensitive 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_basic_pricing 
+[gw1] [ 45%] PASSED tests/unit/pricing/test_exotic.py::test_lookback_mc 
+tests/unit/pricing/test_exotic.py::test_digital_pricer 
+[gw1] [ 45%] PASSED tests/unit/pricing/test_exotic.py::test_digital_pricer 
+[gw3] [ 45%] PASSED tests/unit/pricing/test_exotic.py::test_asian_arithmetic_mc 
+tests/unit/pricing/test_exotic.py::test_lookback_extrema 
+tests/unit/pricing/test_exotic.py::test_barrier_analytical 
+[gw1] [ 46%] PASSED tests/unit/pricing/test_exotic.py::test_lookback_extrema 
+tests/unit/pricing/test_exotic.py::test_price_exotic_option_dispatch 
+[gw3] [ 46%] PASSED tests/unit/pricing/test_exotic.py::test_barrier_analytical 
+[gw0] [ 46%] PASSED tests/unit/ml/test_training.py::test_train_smoke 
+tests/unit/pricing/test_exotic.py::test_lookback_floating_analytical 
+tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_calibration_accuracy_synthetic 
+[gw3] [ 46%] PASSED tests/unit/pricing/test_exotic.py::test_lookback_floating_analytical 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_edge_idx 
+[gw6] [ 46%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_basic_pricing 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_zero_maturity 
+[gw6] [ 47%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_zero_maturity 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_method 
+[gw0] [ 47%] PASSED tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_calibration_accuracy_synthetic 
+[gw1] [ 47%] PASSED tests/unit/pricing/test_exotic.py::test_price_exotic_option_dispatch 
+tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_insufficient_data 
+tests/unit/pricing/test_exotic.py::test_barrier_in_type 
+[gw2] [ 47%] PASSED tests/unit/database/test_crud.py::test_user_crud 
+[gw0] [ 47%] PASSED tests/unit/pricing/calibration/test_calibration.py::TestHestonCalibrator::test_insufficient_data 
+[gw1] [ 47%] PASSED tests/unit/pricing/test_exotic.py::test_barrier_in_type 
+tests/unit/database/test_crud.py::test_portfolio_crud 
+tests/unit/pricing/test_factory.py::test_factory_get_black_scholes 
+tests/unit/pricing/calibration/test_engine.py::test_market_option_properties 
+[gw1] [ 48%] PASSED tests/unit/pricing/test_factory.py::test_factory_get_black_scholes 
+[gw0] [ 48%] PASSED tests/unit/pricing/calibration/test_engine.py::test_market_option_properties 
+tests/unit/pricing/test_factory.py::test_factory_get_monte_carlo 
+tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_filter_liquid 
+[gw1] [ 48%] PASSED tests/unit/pricing/test_factory.py::test_factory_get_monte_carlo 
+[gw0] [ 48%] PASSED tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_filter_liquid 
+tests/unit/pricing/test_factory.py::test_factory_get_binomial 
+tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_weighted_objective 
+[gw1] [ 48%] PASSED tests/unit/pricing/test_factory.py::test_factory_get_binomial 
+tests/unit/pricing/test_factory.py::test_factory_get_fdm 
+[gw1] [ 48%] PASSED tests/unit/pricing/test_factory.py::test_factory_get_fdm 
+tests/unit/pricing/test_implied_vol.py::test_calculate_intrinsic_value 
+[gw1] [ 49%] PASSED tests/unit/pricing/test_implied_vol.py::test_calculate_intrinsic_value 
+[gw6] [ 49%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_method 
+tests/unit/pricing/test_implied_vol.py::test_validate_inputs 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks 
+[gw1] [ 49%] PASSED tests/unit/pricing/test_implied_vol.py::test_validate_inputs 
+tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_early_break 
+[gw1] [ 49%] PASSED tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_early_break 
+tests/unit/pricing/test_implied_vol.py::test_newton_raphson_iv_validation 
+[gw1] [ 49%] PASSED tests/unit/pricing/test_implied_vol.py::test_newton_raphson_iv_validation 
+tests/unit/pricing/test_implied_vol.py::test_implied_volatility_methods 
+[gw4] [ 50%] PASSED tests/unit/database/test_crud_internal.py::test_order_crud 
+tests/unit/database/test_crud_internal.py::test_ml_model_crud 
+[gw1] [ 50%] PASSED tests/unit/pricing/test_implied_vol.py::test_implied_volatility_methods 
+tests/unit/pricing/test_implied_vol.py::test_implied_volatility_failure_fallback 
+[gw1] [ 50%] PASSED tests/unit/pricing/test_implied_vol.py::test_implied_volatility_failure_fallback 
+tests/unit/pricing/test_implied_vol.py::test_brent_iv_failure 
+[gw1] [ 50%] PASSED tests/unit/pricing/test_implied_vol.py::test_brent_iv_failure 
+tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility 
+[gw1] [ 50%] PASSED tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility 
+tests/unit/pricing/test_lattice.py::test_binomial_american_put 
+[gw6] [ 50%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_maturity 
+[gw6] [ 51%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_maturity 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_iterative 
+[gw0] [ 51%] PASSED tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_weighted_objective 
+[gw1] [ 51%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_american_put 
+tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate 
+tests/unit/pricing/test_lattice.py::test_trinomial_american_call_dividend 
+[gw4] [ 51%] PASSED tests/unit/database/test_crud_internal.py::test_ml_model_crud 
+tests/unit/database/test_crud_internal.py::test_option_price_queries 
+[gw6] [ 51%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_iterative 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_diagnostics_and_clone 
+[gw1] [ 51%] PASSED tests/unit/pricing/test_lattice.py::test_trinomial_american_call_dividend 
+[gw4] [ 52%] PASSED tests/unit/database/test_crud_internal.py::test_option_price_queries 
+tests/unit/database/test_crud_internal.py::test_bulk_insert_option_prices_mock 
+tests/unit/pricing/test_lattice.py::test_validate_convergence 
+[gw4] [ 52%] PASSED tests/unit/database/test_crud_internal.py::test_bulk_insert_option_prices_mock 
+tests/unit/database/test_crud_internal.py::test_get_portfolio_summary_non_existent 
+[gw1] [ 52%] PASSED tests/unit/pricing/test_lattice.py::test_validate_convergence 
+tests/unit/pricing/test_lattice.py::test_binomial_no_arbitrage_violation 
+[gw1] [ 52%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_no_arbitrage_violation 
+tests/unit/pricing/test_main.py::test_health_check 
+[gw1] [ 52%] PASSED tests/unit/pricing/test_main.py::test_health_check 
+tests/unit/pricing/test_main.py::test_graphql_endpoint_exists 
+[gw6] [ 52%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_diagnostics_and_clone 
+[gw1] [ 53%] PASSED tests/unit/pricing/test_main.py::test_graphql_endpoint_exists 
+tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_non_convergence 
+tests/unit/pricing/test_monte_carlo.py::test_mc_config_validation 
+[gw4] [ 53%] PASSED tests/unit/database/test_crud_internal.py::test_get_portfolio_summary_non_existent 
+[gw6] [ 53%] PASSED tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_non_convergence 
+tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_empty 
+[gw1] [ 53%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_config_validation 
+tests/unit/database/test_crud_internal.py::test_get_user_trading_stats_empty 
+[gw6] [ 53%] PASSED tests/unit/pricing/test_implied_vol.py::test_vectorized_implied_volatility_empty 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_basic_pricing 
+tests/unit/pricing/test_implied_vol.py::test_newton_raphson_iv_small_vega 
+[gw1] [ 54%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_basic_pricing 
+[gw6] [ 54%] PASSED tests/unit/pricing/test_implied_vol.py::test_newton_raphson_iv_small_vega 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_price_european_variants 
+tests/unit/pricing/test_init.py::test_pricing_init_dir 
+[gw1] [ 54%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_price_european_variants 
+[gw6] [ 54%] PASSED tests/unit/pricing/test_init.py::test_pricing_init_dir 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_invalid_option_type 
+tests/unit/pricing/test_init.py::test_pricing_init_getattr 
+[gw6] [ 54%] PASSED tests/unit/pricing/test_init.py::test_pricing_init_getattr 
+tests/unit/pricing/test_init.py::test_preload_classical_pricers 
+[gw1] [ 54%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_invalid_option_type 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_sobol 
+[gw6] [ 55%] PASSED tests/unit/pricing/test_init.py::test_preload_classical_pricers 
+tests/unit/pricing/test_init.py::test_auto_preload_logic 
+[gw6] [ 55%] PASSED tests/unit/pricing/test_init.py::test_auto_preload_logic 
+tests/unit/pricing/test_lattice.py::test_binomial_pricer_european 
+[gw4] [ 55%] PASSED tests/unit/database/test_crud_internal.py::test_get_user_trading_stats_empty 
+tests/unit/database/test_crud_internal.py::test_summaries 
+[gw6] [ 55%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_pricer_european 
+tests/unit/pricing/test_quant_utils.py::test_fast_normal_cdf 
+[gw1] [ 55%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_sobol 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_generate_normals_standard 
+[gw6] [ 55%] PASSED tests/unit/pricing/test_quant_utils.py::test_fast_normal_cdf 
+tests/unit/pricing/test_quant_utils.py::test_fast_normal_pdf 
+[gw1] [ 56%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_generate_normals_standard 
+[gw6] [ 56%] PASSED tests/unit/pricing/test_quant_utils.py::test_fast_normal_pdf 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_american_lsm 
+tests/unit/pricing/test_quant_utils.py::test_corrado_miller_initial_guess 
+[gw6] [ 56%] PASSED tests/unit/pricing/test_quant_utils.py::test_corrado_miller_initial_guess 
+[gw2] [ 56%] PASSED tests/unit/database/test_crud.py::test_portfolio_crud 
+tests/unit/pricing/test_quant_utils.py::test_calculate_d1_d2_jit 
+tests/unit/database/test_crud_internal.py::test_user_crud 
+[gw6] [ 56%] PASSED tests/unit/pricing/test_quant_utils.py::test_calculate_d1_d2_jit 
+tests/unit/pricing/test_quant_utils.py::test_batch_bs_price_jit 
+[gw6] [ 56%] PASSED tests/unit/pricing/test_quant_utils.py::test_batch_bs_price_jit 
+tests/unit/pricing/test_quant_utils.py::test_batch_bs_price_jit_stability 
+[gw6] [ 57%] PASSED tests/unit/pricing/test_quant_utils.py::test_batch_bs_price_jit_stability 
+tests/unit/pricing/test_quant_utils.py::test_batch_greeks_jit 
+[gw6] [ 57%] PASSED tests/unit/pricing/test_quant_utils.py::test_batch_greeks_jit 
+tests/unit/pricing/test_quantum_pricing.py::test_add_payoff_operator_coverage 
+[gw6] [ 57%] PASSED tests/unit/pricing/test_quantum_pricing.py::test_add_payoff_operator_coverage 
+tests/unit/pricing/test_quantum_pricing.py::test_price_european_call_quantum_errors 
+[gw1] [ 57%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_american_lsm 
+tests/unit/pricing/test_monte_carlo.py::test_mc_engine_american_lsm_no_itm 
+[gw1] [ 57%] PASSED tests/unit/pricing/test_monte_carlo.py::test_mc_engine_american_lsm_no_itm 
+tests/unit/pricing/test_monte_carlo.py::test_geometric_asian_price 
+[gw1] [ 58%] PASSED tests/unit/pricing/test_monte_carlo.py::test_geometric_asian_price 
+tests/unit/pricing/test_quantum_backend.py::test_get_local_backend 
+[gw1] [ 58%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_local_backend 
+[gw3] [ 58%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_edge_idx 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_iterative_failure 
+tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_no_provider 
+[gw1] [ 58%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_no_provider 
+tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_no_token 
+[gw3] [ 58%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_iterative_failure 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_ilu_failure 
+[gw1] [ 58%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_no_token 
+tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_success 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_success 
+[gw3] [ 59%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_ilu_failure 
+tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_provider_init_failure 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_spot 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_provider_init_failure 
+tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_retrieval_failure 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_quantum_backend.py::test_get_remote_backend_retrieval_failure 
+tests/unit/pricing/test_quantum_pricing.py::test_quantum_option_pricer_init 
+[gw1] [ 59%] PASSED tests/unit/pricing/test_quantum_pricing.py::test_quantum_option_pricer_init 
+tests/unit/pricing/test_quantum_pricing.py::test_hybrid_pricer_adaptive 
+[gw4] [ 59%] PASSED tests/unit/database/test_crud_internal.py::test_summaries 
+tests/unit/database/test_models_internal.py::test_user_repr 
+[gw4] [ 60%] PASSED tests/unit/database/test_models_internal.py::test_user_repr 
+tests/unit/database/test_models_internal.py::test_apikey_repr 
+[gw4] [ 60%] PASSED tests/unit/database/test_models_internal.py::test_apikey_repr 
+tests/unit/database/test_models_internal.py::test_option_price_logic 
+[gw4] [ 60%] PASSED tests/unit/database/test_models_internal.py::test_option_price_logic 
+tests/unit/database/test_models_internal.py::test_market_tick_repr 
+[gw4] [ 60%] PASSED tests/unit/database/test_models_internal.py::test_market_tick_repr 
+tests/unit/database/test_models_internal.py::test_portfolio_logic 
+[gw2] [ 60%] PASSED tests/unit/database/test_crud_internal.py::test_user_crud 
+tests/unit/database/test_crud_internal.py::test_portfolio_crud 
+[gw4] [ 60%] PASSED tests/unit/database/test_models_internal.py::test_portfolio_logic 
+tests/unit/pricing/test_vol_surface.py::test_svi_parameters_validation 
+[gw4] [ 61%] PASSED tests/unit/pricing/test_vol_surface.py::test_svi_parameters_validation 
+tests/unit/pricing/test_vol_surface.py::test_svi_natural_parameters 
+[gw4] [ 61%] PASSED tests/unit/pricing/test_vol_surface.py::test_svi_natural_parameters 
+tests/unit/pricing/test_vol_surface.py::test_sabr_parameters_validation 
+[gw4] [ 61%] PASSED tests/unit/pricing/test_vol_surface.py::test_sabr_parameters_validation 
+tests/unit/pricing/test_vol_surface.py::test_svi_model 
+[gw4] [ 61%] PASSED tests/unit/pricing/test_vol_surface.py::test_svi_model 
+tests/unit/pricing/test_vol_surface.py::test_sabr_model 
+[gw4] [ 61%] PASSED tests/unit/pricing/test_vol_surface.py::test_sabr_model 
+tests/unit/pricing/test_vol_surface.py::test_calibration_engine_svi 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_calibration_engine_svi 
+tests/unit/pricing/test_vol_surface.py::test_calibration_engine_errors 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_calibration_engine_errors 
+tests/unit/pricing/test_vol_surface.py::test_calibrate_sabr 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_calibrate_sabr 
+tests/unit/pricing/test_vol_surface.py::test_arbitrage_detector 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_arbitrage_detector 
+tests/unit/pricing/test_vol_surface.py::test_volatility_surface 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_volatility_surface 
+tests/unit/pricing/test_vol_surface.py::test_volatility_surface_empty 
+[gw4] [ 62%] PASSED tests/unit/pricing/test_vol_surface.py::test_volatility_surface_empty 
+tests/unit/pricing/test_vol_surface.py::test_volatility_surface_dataframe_and_smile 
+[gw4] [ 63%] PASSED tests/unit/pricing/test_vol_surface.py::test_volatility_surface_dataframe_and_smile 
+tests/unit/scrapers/test_concurrency.py::test_tab_multiplexing_concurrency 
+[gw4] [ 63%] PASSED tests/unit/scrapers/test_concurrency.py::test_tab_multiplexing_concurrency 
+tests/unit/scrapers/test_concurrency.py::test_scraper_shutdown 
+[gw4] [ 63%] PASSED tests/unit/scrapers/test_concurrency.py::test_scraper_shutdown 
+tests/unit/scrapers/test_nse_parsing.py::test_nse_cleaning_logic 
+[gw4] [ 63%] PASSED tests/unit/scrapers/test_nse_parsing.py::test_nse_cleaning_logic 
+tests/unit/scrapers/test_nse_parsing.py::test_nse_parsing_logic 
+[gw4] [ 63%] PASSED tests/unit/scrapers/test_nse_parsing.py::test_nse_parsing_logic 
+tests/unit/scrapers/test_scrapers.py::test_nse_scraper_stub 
+[gw4] [ 63%] PASSED tests/unit/scrapers/test_scrapers.py::test_nse_scraper_stub 
+tests/unit/security/test_audit.py::test_log_audit_basic 
+[gw4] [ 64%] PASSED tests/unit/security/test_audit.py::test_log_audit_basic 
+tests/unit/security/test_audit.py::test_log_audit_with_request 
+[gw4] [ 64%] PASSED tests/unit/security/test_audit.py::test_log_audit_with_request 
+tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa 
+[gw4] [ 64%] PASSED tests/unit/security/test_breach_notification.py::test_report_breach_to_dpa 
+tests/unit/security/test_breach_notification.py::test_notify_affected_users 
+[gw4] [ 64%] PASSED tests/unit/security/test_breach_notification.py::test_notify_affected_users 
+tests/unit/security/test_mfa.py::test_mfa_secret_generation 
+[gw4] [ 64%] PASSED tests/unit/security/test_mfa.py::test_mfa_secret_generation 
+tests/unit/security/test_mfa.py::test_mfa_provisioning_uri 
+[gw4] [ 64%] PASSED tests/unit/security/test_mfa.py::test_mfa_provisioning_uri 
+tests/unit/security/test_mfa.py::test_mfa_verification 
+[gw4] [ 65%] PASSED tests/unit/security/test_mfa.py::test_mfa_verification 
+tests/unit/security/test_password.py::test_hash_and_verify_password 
+[gw3] [ 65%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_spot 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_zero_maturity_call 
+[gw3] [ 65%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_zero_maturity_call 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_zero_maturity_put 
+[gw3] [ 65%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_solve_zero_maturity_put 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_get_greeks_small_maturity 
+[gw5] [ 65%] PASSED tests/unit/ml/forecasting/test_tft_model.py::test_tft_training_and_prediction 
+tests/unit/ml/forecasting/test_tft_predict.py::test_tft_prediction_stub 
+[gw5] [ 66%] PASSED tests/unit/ml/forecasting/test_tft_predict.py::test_tft_prediction_stub 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_trigger_success 
+[gw5] [ 66%] PASSED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_trigger_success 
+tests/unit/ml/pipelines/test_retraining.py::test_retrainer_with_custom_samples 
+[gw5] [ 66%] PASSED tests/unit/ml/pipelines/test_retraining.py::test_retrainer_with_custom_samples 
+tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate_put 
+[gw5] [ 66%] PASSED tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate_put 
+tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface 
+[gw5] [ 66%] PASSED tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface 
+tests/unit/pricing/calibration/test_engine.py::test_weighted_objective_all_fail 
+[gw5] [ 66%] PASSED tests/unit/pricing/calibration/test_engine.py::test_weighted_objective_all_fail 
+tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface_insufficient_options_per_maturity 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface_insufficient_options_per_maturity 
+tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface_insufficient_ivs 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_engine.py::test_calibrate_surface_insufficient_ivs 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_raw_svi_calculation 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_raw_svi_calculation 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_arbitrage_validation 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_arbitrage_validation 
+tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_svi_fitting 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_svi.py::TestSVISurface::test_svi_fitting 
+tests/unit/pricing/calibration/test_svi_surface.py::test_raw_svi 
+[gw5] [ 67%] PASSED tests/unit/pricing/calibration/test_svi_surface.py::test_raw_svi 
+tests/unit/pricing/calibration/test_svi_surface.py::test_validate_no_arbitrage 
+[gw5] [ 68%] PASSED tests/unit/pricing/calibration/test_svi_surface.py::test_validate_no_arbitrage 
+tests/unit/pricing/calibration/test_svi_surface.py::test_fit_svi_slice 
+[gw5] [ 68%] PASSED tests/unit/pricing/calibration/test_svi_surface.py::test_fit_svi_slice 
+tests/unit/shared/test_db.py::test_minio_storage 
+[gw5] [ 68%] PASSED tests/unit/shared/test_db.py::test_minio_storage 
+tests/unit/shared/test_db.py::test_market_data_model 
+[gw5] [ 68%] PASSED tests/unit/shared/test_db.py::test_market_data_model 
+[gw2] [ 68%] PASSED tests/unit/database/test_crud_internal.py::test_portfolio_crud 
+tests/unit/shared/test_observability.py::test_setup_logging 
+tests/unit/database/test_crud_internal.py::test_position_crud 
+[gw5] [ 68%] PASSED tests/unit/shared/test_observability.py::test_setup_logging 
+tests/unit/shared/test_observability.py::test_logging_middleware 
+[gw5] [ 69%] PASSED tests/unit/shared/test_observability.py::test_logging_middleware 
+tests/unit/shared/test_observability.py::test_logging_middleware_ipv6 
+[gw5] [ 69%] PASSED tests/unit/shared/test_observability.py::test_logging_middleware_ipv6 
+tests/unit/shared/test_observability.py::test_push_metrics_success 
+[gw5] [ 69%] PASSED tests/unit/shared/test_observability.py::test_push_metrics_success 
+tests/unit/shared/test_observability.py::test_push_metrics_no_url 
+[gw5] [ 69%] PASSED tests/unit/shared/test_observability.py::test_push_metrics_no_url 
+tests/unit/shared/test_observability.py::test_push_metrics_fail 
+[gw5] [ 69%] PASSED tests/unit/shared/test_observability.py::test_push_metrics_fail 
+tests/unit/shared/test_observability.py::test_post_grafana_annotation_success 
+[gw5] [ 70%] PASSED tests/unit/shared/test_observability.py::test_post_grafana_annotation_success 
+tests/unit/shared/test_observability.py::test_post_grafana_annotation_no_url 
+[gw5] [ 70%] PASSED tests/unit/shared/test_observability.py::test_post_grafana_annotation_no_url 
+tests/unit/shared/test_observability.py::test_post_grafana_annotation_http_error 
+[gw5] [ 70%] PASSED tests/unit/shared/test_observability.py::test_post_grafana_annotation_http_error 
+tests/unit/shared/test_observability.py::test_post_grafana_annotation_request_error 
+[gw5] [ 70%] PASSED tests/unit/shared/test_observability.py::test_post_grafana_annotation_request_error 
+tests/unit/shared/test_observability.py::test_post_grafana_annotation_unknown_error 
+[gw5] [ 70%] PASSED tests/unit/shared/test_observability.py::test_post_grafana_annotation_unknown_error 
+tests/unit/shared/test_shared_security.py::test_opa_enforcer_authorized 
+[gw5] [ 70%] PASSED tests/unit/shared/test_shared_security.py::test_opa_enforcer_authorized 
+tests/unit/shared/test_shared_security.py::test_opa_enforcer_denied 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_opa_enforcer_denied 
+tests/unit/shared/test_shared_security.py::test_opa_enforcer_error_status 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_opa_enforcer_error_status 
+tests/unit/shared/test_shared_security.py::test_opa_enforcer_exception 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_opa_enforcer_exception 
+tests/unit/shared/test_shared_security.py::test_mtls_verifier_success 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_mtls_verifier_success 
+tests/unit/shared/test_shared_security.py::test_mtls_verifier_failed_status 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_mtls_verifier_failed_status 
+tests/unit/shared/test_shared_security.py::test_mtls_verifier_dn_mismatch 
+[gw5] [ 71%] PASSED tests/unit/shared/test_shared_security.py::test_mtls_verifier_dn_mismatch 
+tests/unit/shared/test_shared_security.py::test_mtls_verifier_dn_match 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_mtls_verifier_dn_match 
+tests/unit/shared/test_shared_security.py::test_verify_mtls_dependency_success 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_verify_mtls_dependency_success 
+tests/unit/shared/test_shared_security.py::test_verify_mtls_dependency_failure 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_verify_mtls_dependency_failure 
+tests/unit/shared/test_shared_security.py::test_opa_authorize_dependency_success 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_opa_authorize_dependency_success 
+tests/unit/shared/test_shared_security.py::test_opa_authorize_dependency_failure 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_opa_authorize_dependency_failure 
+tests/unit/shared/test_shared_security.py::test_security_main_execution 
+[gw5] [ 72%] PASSED tests/unit/shared/test_shared_security.py::test_security_main_execution 
+tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_authorized 
+[gw5] [ 73%] PASSED tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_authorized 
+tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_unauthorized 
+[gw5] [ 73%] PASSED tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_unauthorized 
+tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_error 
+[gw5] [ 73%] PASSED tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_error 
+tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_connection_failed 
+[gw5] [ 73%] PASSED tests/unit/shared/test_shared_security_unit.py::test_opa_enforcer_connection_failed 
+tests/unit/shared/test_shared_security_unit.py::test_mtls_verifier 
+[gw5] [ 73%] PASSED tests/unit/shared/test_shared_security_unit.py::test_mtls_verifier 
+tests/unit/shared/test_shared_security_unit.py::test_verify_mtls_dependency 
+[gw5] [ 74%] PASSED tests/unit/shared/test_shared_security_unit.py::test_verify_mtls_dependency 
+tests/unit/shared/test_shared_security_unit.py::test_opa_authorize_dependency 
+[gw5] [ 74%] PASSED tests/unit/shared/test_shared_security_unit.py::test_opa_authorize_dependency 
+tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_calls_kafka 
+[gw5] [ 74%] PASSED tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_calls_kafka 
+tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_delivery_callback 
+[gw5] [ 74%] PASSED tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_delivery_callback 
+tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_exception_handling 
+[gw5] [ 74%] PASSED tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_exception_handling 
+tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_flush 
+[gw5] [ 74%] PASSED tests/unit/streaming/test_mesh_producer_unit.py::test_mesh_producer_flush 
+tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_success 
+[gw2] [ 75%] PASSED tests/unit/database/test_crud_internal.py::test_position_crud 
+tests/unit/pricing/models/test_heston_fft.py::test_price_put_integrand_exception 
+[gw5] [ 75%] PASSED tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_success 
+tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_failure 
+[gw2] [ 75%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_price_put_integrand_exception 
+tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_overflow_guard 
+[gw5] [ 75%] PASSED tests/unit/tasks/test_data_tasks.py::test_collect_options_data_task_failure 
+[gw2] [ 75%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_overflow_guard 
+tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_singularity 
+tests/unit/tasks/test_data_tasks.py::test_validate_collected_data_task 
+[gw2] [ 75%] PASSED tests/unit/pricing/models/test_heston_fft.py::test_characteristic_func_singularity 
+tests/unit/pricing/models/test_models.py::test_bs_parameters_validation 
+[gw2] [ 76%] PASSED tests/unit/pricing/models/test_models.py::test_bs_parameters_validation 
+tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_spot 
+[gw3] [ 76%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_get_greeks_small_maturity 
+tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_maturity_put_otm 
+[gw2] [ 76%] PASSED tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_spot 
+[gw3] [ 76%] PASSED tests/unit/pricing/test_finite_difference.py::test_fdm_solver_greeks_zero_maturity_put_otm 
+tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_maturity 
+tests/unit/security/test_security_auth.py::test_token_creation_and_decoding 
+[gw2] [ 76%] PASSED tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_maturity 
+tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_rate 
+[gw2] [ 77%] PASSED tests/unit/pricing/models/test_models.py::test_bs_parameters_invalid_rate 
+tests/unit/pricing/models/test_models.py::test_option_greeks_getitem 
+[gw2] [ 77%] PASSED tests/unit/pricing/models/test_models.py::test_option_greeks_getitem 
+tests/unit/pricing/models/test_models.py::test_bs_parameters_array_validation 
+[gw2] [ 77%] PASSED tests/unit/pricing/models/test_models.py::test_bs_parameters_array_validation 
+tests/unit/pricing/test_base.py::test_pricing_engine_with_strategy 
+[gw2] [ 77%] PASSED tests/unit/pricing/test_base.py::test_pricing_engine_with_strategy 
+tests/unit/tasks/test_ml_tasks.py::test_train_model_task_success 
+[gw2] [ 77%] PASSED tests/unit/tasks/test_ml_tasks.py::test_train_model_task_success 
+tests/unit/tasks/test_ml_tasks.py::test_train_model_task_failure 
+[gw2] [ 77%] PASSED tests/unit/tasks/test_ml_tasks.py::test_train_model_task_failure 
+tests/unit/tasks/test_ml_tasks.py::test_hyperparameter_search_task_success 
+[gw5] [ 78%] PASSED tests/unit/tasks/test_data_tasks.py::test_validate_collected_data_task 
+[gw2] [ 78%] PASSED tests/unit/tasks/test_ml_tasks.py::test_hyperparameter_search_task_success 
+tests/unit/tasks/test_data_tasks.py::test_check_data_freshness_task_no_data 
+[gw5] [ 78%] PASSED tests/unit/tasks/test_data_tasks.py::test_check_data_freshness_task_no_data 
+tests/unit/tasks/test_pricing_tasks.py::test_vectorized_black_scholes_logic 
+tests/unit/tasks/test_data_tasks.py::test_scheduled_data_collection_skips 
+[gw2] [ 78%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_vectorized_black_scholes_logic 
+tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_no_cache 
+[gw5] [ 78%] PASSED tests/unit/tasks/test_data_tasks.py::test_scheduled_data_collection_skips 
+tests/unit/tasks/test_email_tasks.py::test_send_transactional_email_success 
+[gw2] [ 78%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_no_cache 
+tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_invalid_input 
+[gw2] [ 79%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_price_option_task_invalid_input 
+[gw5] [ 79%] PASSED tests/unit/tasks/test_email_tasks.py::test_send_transactional_email_success 
+tests/unit/tasks/test_pricing_tasks.py::test_batch_price_options_task_small 
+tests/unit/tasks/test_email_tasks.py::test_send_batch_marketing_emails 
+[gw5] [ 79%] PASSED tests/unit/tasks/test_email_tasks.py::test_send_batch_marketing_emails 
+tests/unit/tasks/test_trading_tasks.py::test_check_risk_limits 
+[gw5] [ 79%] PASSED tests/unit/tasks/test_trading_tasks.py::test_check_risk_limits 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_success 
+[gw3] [ 79%] PASSED tests/unit/security/test_security_auth.py::test_token_creation_and_decoding 
+tests/unit/security/test_security_auth.py::test_refresh_token 
+[gw2] [ 79%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_batch_price_options_task_small 
+tests/unit/tasks/test_pricing_tasks.py::test_generate_volatility_surface_task 
+[gw2] [ 80%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_generate_volatility_surface_task 
+tests/unit/tasks/test_pricing_tasks.py::test_calculate_implied_volatility_task 
+[gw2] [ 80%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_calculate_implied_volatility_task 
+[gw5] [ 80%] PASSED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_success 
+tests/unit/tasks/test_pricing_tasks.py::test_calculate_implied_volatility_task_failure 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_risk_reject 
+[gw2] [ 80%] PASSED tests/unit/tasks/test_pricing_tasks.py::test_calculate_implied_volatility_task_failure 
+tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_invalid 
+[gw5] [ 80%] PASSED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_risk_reject 
+tests/unit/test_api_exceptions.py::test_not_found_exception 
+[gw2] [ 81%] PASSED tests/unit/tasks/test_trading_tasks.py::test_execute_trade_task_invalid 
+tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_success 
+[gw5] [ 81%] PASSED tests/unit/test_api_exceptions.py::test_not_found_exception 
+tests/unit/test_api_exceptions.py::test_validation_exception 
+[gw2] [ 81%] PASSED tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_success 
+[gw5] [ 81%] PASSED tests/unit/test_api_exceptions.py::test_validation_exception 
+tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_error 
+tests/unit/test_api_exceptions.py::test_permission_exception 
+[gw2] [ 81%] PASSED tests/unit/tasks/test_trading_tasks.py::test_backtest_strategy_task_error 
+tests/unit/test_api_exceptions.py::test_auth_exception 
+[gw5] [ 81%] PASSED tests/unit/test_api_exceptions.py::test_permission_exception 
+tests/unit/test_api_exceptions.py::test_internal_exception 
+[gw2] [ 82%] PASSED tests/unit/test_api_exceptions.py::test_auth_exception 
+tests/unit/test_api_exceptions.py::test_conflict_exception 
+[gw5] [ 82%] PASSED tests/unit/test_api_exceptions.py::test_internal_exception 
+tests/unit/test_app_config.py::test_settings_validation 
+[gw2] [ 82%] PASSED tests/unit/test_api_exceptions.py::test_conflict_exception 
+tests/unit/test_api_exceptions.py::test_service_unavailable_exception 
+[gw2] [ 82%] PASSED tests/unit/test_api_exceptions.py::test_service_unavailable_exception 
+[gw3] [ 82%] PASSED tests/unit/security/test_security_auth.py::test_refresh_token 
+tests/unit/test_app_config.py::test_settings_invalid_token_expiry 
+tests/unit/security/test_security_auth.py::test_token_blacklist 
+[gw3] [ 82%] PASSED tests/unit/security/test_security_auth.py::test_token_blacklist 
+tests/unit/security/test_security_auth.py::test_decode_invalid_token 
+[gw3] [ 83%] PASSED tests/unit/security/test_security_auth.py::test_decode_invalid_token 
+tests/unit/shared/test_db.py::test_get_db_session 
+[gw5] [ 83%] PASSED tests/unit/test_app_config.py::test_settings_validation 
+tests/unit/test_app_config.py::test_settings_invalid_env 
+[gw3] [ 83%] PASSED tests/unit/shared/test_db.py::test_get_db_session 
+tests/unit/test_app_config.py::test_settings_invalid_bcrypt_rounds 
+[gw2] [ 83%] PASSED tests/unit/test_app_config.py::test_settings_invalid_token_expiry 
+[gw4] [ 83%] PASSED tests/unit/security/test_password.py::test_hash_and_verify_password 
+tests/unit/test_app_config.py::test_settings_invalid_refresh_expiry 
+tests/unit/security/test_password.py::test_password_validator 
+[gw5] [ 83%] PASSED tests/unit/test_app_config.py::test_settings_invalid_env 
+tests/unit/test_app_config.py::test_settings_invalid_log_level 
+[gw2] [ 84%] PASSED tests/unit/test_app_config.py::test_settings_invalid_refresh_expiry 
+tests/unit/test_app_config.py::test_parse_cors_origins 
+[gw5] [ 84%] PASSED tests/unit/test_app_config.py::test_settings_invalid_log_level 
+tests/unit/test_app_config.py::test_get_settings_success 
+[gw3] [ 84%] PASSED tests/unit/test_app_config.py::test_settings_invalid_bcrypt_rounds 
+tests/unit/test_app_config.py::test_settings_invalid_password_length 
+[gw2] [ 84%] PASSED tests/unit/test_app_config.py::test_parse_cors_origins 
+tests/unit/test_app_config.py::test_rate_limit_tiers 
+[gw3] [ 84%] PASSED tests/unit/test_app_config.py::test_settings_invalid_password_length 
+tests/unit/test_app_config.py::test_get_settings_validation_error 
+[gw5] [ 85%] PASSED tests/unit/test_app_config.py::test_get_settings_success 
+tests/unit/test_app_config.py::test_get_settings_file_not_found 
+[gw2] [ 85%] PASSED tests/unit/test_app_config.py::test_rate_limit_tiers 
+tests/unit/test_app_config.py::test_configure_logging 
+[gw2] [ 85%] PASSED tests/unit/test_app_config.py::test_configure_logging 
+tests/unit/test_cli_main.py::test_cli_price_bs 
+[gw2] [ 85%] PASSED tests/unit/test_cli_main.py::test_cli_price_bs 
+tests/unit/test_cli_main.py::test_cli_compare 
+[gw5] [ 85%] PASSED tests/unit/test_app_config.py::test_get_settings_file_not_found 
+[gw3] [ 85%] PASSED tests/unit/test_app_config.py::test_get_settings_validation_error 
+tests/unit/test_cli_main.py::test_cli_version 
+tests/unit/test_app_config.py::test_settings_environment_edge_cases 
+[gw5] [ 86%] PASSED tests/unit/test_cli_main.py::test_cli_version 
+tests/unit/test_router.py::test_router_nse_suffix 
+[gw5] [ 86%] PASSED tests/unit/test_router.py::test_router_nse_suffix 
+tests/unit/test_router.py::test_router_crypto_detection 
+[gw5] [ 86%] PASSED tests/unit/test_router.py::test_router_crypto_detection 
+tests/unit/test_router.py::test_router_polygon_success 
+[gw2] [ 86%] PASSED tests/unit/test_cli_main.py::test_cli_compare 
+tests/unit/test_cli_main.py::test_cli_price_invalid_params 
+[gw5] [ 86%] PASSED tests/unit/test_router.py::test_router_polygon_success 
+tests/unit/test_router.py::test_router_fallback_to_yahoo 
+[gw2] [ 86%] PASSED tests/unit/test_cli_main.py::test_cli_price_invalid_params 
+tests/unit/test_router_metrics.py::test_router_metrics_increment 
+[gw5] [ 87%] PASSED tests/unit/test_router.py::test_router_fallback_to_yahoo 
+[gw2] [ 87%] PASSED tests/unit/test_router_metrics.py::test_router_metrics_increment 
+tests/unit/utils/test_cache.py::test_redis_init_failure 
+tests/unit/utils/test_cache.py::test_generate_cache_key 
+[gw5] [ 87%] PASSED tests/unit/utils/test_cache.py::test_redis_init_failure 
+[gw2] [ 87%] PASSED tests/unit/utils/test_cache.py::test_generate_cache_key 
+tests/unit/utils/test_cache.py::test_pricing_cache_redis_none 
+tests/unit/utils/test_cache.py::test_pricing_cache_redis_error 
+[gw5] [ 87%] PASSED tests/unit/utils/test_cache.py::test_pricing_cache_redis_none 
+[gw2] [ 87%] PASSED tests/unit/utils/test_cache.py::test_pricing_cache_redis_error 
+tests/unit/utils/test_cache.py::test_rate_limiter_error 
+tests/unit/utils/test_cache.py::test_rate_limiter_redis_none 
+[gw2] [ 88%] PASSED tests/unit/utils/test_cache.py::test_rate_limiter_error 
+tests/unit/utils/test_cache.py::test_pricing_cache 
+[gw5] [ 88%] PASSED tests/unit/utils/test_cache.py::test_rate_limiter_redis_none 
+tests/unit/utils/test_cache.py::test_rate_limiter 
+[gw2] [ 88%] PASSED tests/unit/utils/test_cache.py::test_pricing_cache 
+[gw5] [ 88%] PASSED tests/unit/utils/test_cache.py::test_rate_limiter 
+tests/unit/utils/test_cache.py::test_idempotency_manager 
+tests/unit/utils/test_cache.py::test_db_cache 
+[gw3] [ 88%] PASSED tests/unit/test_app_config.py::test_settings_environment_edge_cases 
+[gw2] [ 89%] PASSED tests/unit/utils/test_cache.py::test_idempotency_manager 
+tests/unit/test_router.py::test_router_nse_market_flag 
+[gw5] [ 89%] PASSED tests/unit/utils/test_cache.py::test_db_cache 
+tests/unit/utils/test_cache.py::test_publish_to_redis 
+tests/unit/utils/test_cache.py::test_get_redis_client_error 
+[gw3] [ 89%] PASSED tests/unit/test_router.py::test_router_nse_market_flag 
+[gw5] [ 89%] PASSED tests/unit/utils/test_cache.py::test_get_redis_client_error 
+[gw2] [ 89%] PASSED tests/unit/utils/test_cache.py::test_publish_to_redis 
+tests/unit/utils/test_circuit_breaker_unit.py::test_in_memory_circuit_breaker 
+tests/unit/utils/test_cache.py::test_warm_cache 
+tests/unit/utils/test_cache.py::test_close_redis_cache 
+[gw2] [ 89%] PASSED tests/unit/utils/test_cache.py::test_close_redis_cache 
+tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_cb_sync_func 
+[gw3] [ 90%] PASSED tests/unit/utils/test_cache.py::test_warm_cache 
+tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_circuit_breaker 
+[gw2] [ 90%] PASSED tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_cb_sync_func 
+tests/unit/utils/test_dashboard.py::test_generate_html_dashboard 
+[gw2] [ 90%] PASSED tests/unit/utils/test_dashboard.py::test_generate_html_dashboard 
+[gw3] [ 90%] PASSED tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_circuit_breaker 
+tests/unit/utils/test_errors.py::test_robust_pricing_task_failure 
+tests/unit/utils/test_errors.py::test_robust_pricing_task_success 
+[gw3] [ 90%] PASSED tests/unit/utils/test_errors.py::test_robust_pricing_task_success 
+[gw2] [ 90%] PASSED tests/unit/utils/test_errors.py::test_robust_pricing_task_failure 
+tests/unit/utils/test_lazy_import.py::test_lazy_import_success 
+tests/unit/utils/test_errors.py::test_service_unavailable_exception 
+[gw2] [ 91%] PASSED tests/unit/utils/test_errors.py::test_service_unavailable_exception 
+[gw3] [ 91%] PASSED tests/unit/utils/test_lazy_import.py::test_lazy_import_success 
+tests/unit/utils/test_lazy_import.py::test_lazy_import_previous_failure 
+tests/unit/utils/test_lazy_import.py::test_lazy_import_attribute_error 
+[gw2] [ 91%] PASSED tests/unit/utils/test_lazy_import.py::test_lazy_import_previous_failure 
+[gw3] [ 91%] PASSED tests/unit/utils/test_lazy_import.py::test_lazy_import_attribute_error 
+tests/unit/utils/test_lazy_import.py::test_lazy_import_circular 
+tests/unit/utils/test_lazy_import.py::test_get_import_stats 
+[gw2] [ 91%] PASSED tests/unit/utils/test_lazy_import.py::test_lazy_import_circular 
+[gw3] [ 91%] PASSED tests/unit/utils/test_lazy_import.py::test_get_import_stats 
+tests/unit/utils/test_lazy_import.py::test_preload_modules_failed 
+tests/unit/utils/test_lazy_import.py::test_preload_modules 
+[gw2] [ 92%] PASSED tests/unit/utils/test_lazy_import.py::test_preload_modules 
+[gw3] [ 92%] PASSED tests/unit/utils/test_lazy_import.py::test_preload_modules_failed 
+tests/unit/utils/test_sanitization_unit.py::test_sanitize_string 
+tests/unit/utils/test_lazy_import.py::test_lazy_import_thread_safe 
+[gw2] [ 92%] PASSED tests/unit/utils/test_sanitization_unit.py::test_sanitize_string 
+tests/unit/utils/test_sanitization_unit.py::test_sanitize_email 
+[gw3] [ 92%] PASSED tests/unit/utils/test_lazy_import.py::test_lazy_import_thread_safe 
+tests/unit/utils/test_sanitization_unit.py::test_mask_email 
+[gw2] [ 92%] PASSED tests/unit/utils/test_sanitization_unit.py::test_sanitize_email 
+tests/unit/utils/test_sanitization_unit.py::test_mask_email_exception 
+[gw3] [ 93%] PASSED tests/unit/utils/test_sanitization_unit.py::test_mask_email 
+tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_success 
+[gw2] [ 93%] PASSED tests/unit/utils/test_sanitization_unit.py::test_mask_email_exception 
+tests/unit/workers/test_math_worker_unit.py::test_health_check_success 
+[gw2] [ 93%] PASSED tests/unit/workers/test_math_worker_unit.py::test_health_check_success 
+[gw3] [ 93%] PASSED tests/unit/workers/test_math_worker_unit.py::test_recalibrate_symbol_success /home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7fbb8d288220>
+  gc.collect()
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7fbb8d0aee30>
+  gc.collect()
+
+[gw5] [ 93%] PASSED tests/unit/utils/test_circuit_breaker_unit.py::test_in_memory_circuit_breaker 
+tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_cb_internal_getters 
+[gw5] [ 93%] PASSED tests/unit/utils/test_circuit_breaker_unit.py::test_distributed_cb_internal_getters 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_quantum_pricing.py::test_hybrid_pricer_adaptive 
+tests/unit/pricing/test_quantum_pricing.py::test_quantum_pricer_backend_env 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_quantum_pricing.py::test_quantum_pricer_backend_env 
+tests/unit/pricing/test_vectorized_black_scholes.py::test_deprecated_vectorized_pricing 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_vectorized_black_scholes.py::test_deprecated_vectorized_pricing 
+tests/unit/pricing/test_vectorized_black_scholes.py::test_deprecated_vectorized_greeks 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_vectorized_black_scholes.py::test_deprecated_vectorized_greeks 
+tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_price 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_price 
+tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_greeks 
+[gw1] [ 94%] PASSED tests/unit/pricing/test_vectorized_wrapper.py::test_deprecated_wrapper_greeks 
+[gw4] [ 95%] PASSED tests/unit/security/test_password.py::test_password_validator 
+tests/unit/security/test_password.py::test_generate_password 
+[gw4] [ 95%] PASSED tests/unit/security/test_password.py::test_generate_password 
+tests/unit/security/test_password.py::test_password_history 
+[gw7] [ 95%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_logic 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_negative 
+[gw4] [ 95%] PASSED tests/unit/security/test_password.py::test_password_history /home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7ff83201ce50>
+  gc.collect()
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7ff8323632e0>
+  gc.collect()
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7ff8321575b0>
+  gc.collect()
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7ff83201ec50>
+  gc.collect()
+/home/kamau/bsopt/.venv/lib/python3.13/site-packages/_pytest/unraisableexception.py:33: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7ff831f8e7a0>
+  gc.collect()
+
+[gw7] [ 95%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_negative 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_neutral 
+[gw7] [ 95%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_neutral 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_load_failure 
+[gw7] [ 96%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_load_failure 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_runtime_failure 
+[gw7] [ 96%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_runtime_failure 
+tests/unit/ml/rl/test_augmented_agent.py::test_augmented_rl_agent_observation 
+[gw7] [ 96%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_augmented_rl_agent_observation 
+tests/unit/ml/rl/test_augmented_agent.py::test_augmented_rl_agent_observation_padding 
+[gw7] [ 96%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_augmented_rl_agent_observation_padding 
+tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_with_llm_stub 
+[gw7] [ 96%] PASSED tests/unit/ml/rl/test_augmented_agent.py::test_sentiment_extractor_with_llm_stub 
+tests/unit/ml/serving/test_quantization.py::test_dynamic_quantization 
+[gw7] [ 97%] PASSED tests/unit/ml/serving/test_quantization.py::test_dynamic_quantization 
+tests/unit/ml/serving/test_quantization.py::test_quantization_failure 
+[gw7] [ 97%] PASSED tests/unit/ml/serving/test_quantization.py::test_quantization_failure 
+tests/unit/ml/serving/test_quantization.py::test_quantization_save_load 
+[gw7] [ 97%] PASSED tests/unit/ml/serving/test_quantization.py::test_quantization_save_load 
+[gw0] [ 97%] PASSED tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate 
+tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate_insufficient_options 
+[gw0] [ 97%] PASSED tests/unit/pricing/calibration/test_engine.py::test_heston_calibrator_calibrate_insufficient_options 
+tests/unit/pricing/test_lattice.py::test_binomial_pricer_american 
+[gw0] [ 97%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_pricer_american 
+tests/unit/pricing/test_lattice.py::test_binomial_pricer_greeks 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_pricer_greeks 
+tests/unit/pricing/test_lattice.py::test_binomial_pricer_zero_maturity 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_pricer_zero_maturity 
+tests/unit/pricing/test_lattice.py::test_binomial_pricer_build_tree 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_binomial_pricer_build_tree 
+tests/unit/pricing/test_lattice.py::test_trinomial_pricer_european 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_trinomial_pricer_european 
+tests/unit/pricing/test_lattice.py::test_trinomial_pricer_american 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_trinomial_pricer_american 
+tests/unit/pricing/test_lattice.py::test_trinomial_pricer_greeks 
+[gw0] [ 98%] PASSED tests/unit/pricing/test_lattice.py::test_trinomial_pricer_greeks 
+tests/unit/pricing/test_lattice.py::test_trinomial_pricer_zero_maturity 
+[gw0] [ 99%] PASSED tests/unit/pricing/test_lattice.py::test_trinomial_pricer_zero_maturity 

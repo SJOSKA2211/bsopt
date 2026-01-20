@@ -1,0 +1,6 @@
+ImportError while loading conftest '/home/kamau/bsopt/tests/conftest.py'.
+/usr/lib/python3.13/ast.py:50: in parse
+    return compile(source, filename, mode, flags,
+E     File "/home/kamau/bsopt/tests/conftest.py", line 192
+E       mock_pipe = MagicMock()
+E   IndentationError: unexpected indent
