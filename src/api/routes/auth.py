@@ -18,7 +18,9 @@ from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, status
 from sqlalchemy.orm import Session
+from cryptography.fernet import Fernet
 
+from src.config import settings
 from src.api.exceptions import (
     AuthenticationException,
     ConflictException,
@@ -401,7 +403,7 @@ async def refresh_token(
     """
     try:
         # Validate refresh token
-        token_data = await auth_service.validate_token(refresh_data.refresh_token, request)
+        token_data = await auth_service.validate_token(refresh_data.refresh_token)
         if token_data.token_type != "refresh":
             raise AuthenticationException(message="Invalid token type")
 
@@ -611,7 +613,9 @@ async def setup_mfa(
 
     # Store secret temporarily (user must verify before enabling)
     try:
-        user.mfa_secret = secret
+        fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
+        encrypted_secret = fernet.encrypt(secret.encode())
+        user.mfa_secret = encrypted_secret.decode()
         db.commit()
     except Exception as e:
         db.rollback()
@@ -723,7 +727,13 @@ def _verify_mfa_code(user: User, code: str) -> bool:
     if not user.mfa_secret:
         return False
 
-    totp = pyotp.TOTP(user.mfa_secret)
+    try:
+        fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
+        decrypted_secret = fernet.decrypt(user.mfa_secret.encode()).decode()
+    except Exception:
+        return False
+
+    totp = pyotp.TOTP(decrypted_secret)
     return totp.verify(code, valid_window=1)
 
 
