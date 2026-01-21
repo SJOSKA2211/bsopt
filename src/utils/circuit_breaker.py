@@ -1,5 +1,5 @@
 import time
-import logging
+import structlog
 from enum import Enum
 from functools import wraps
 from typing import Callable, Any, Optional, cast
@@ -8,7 +8,7 @@ import asyncio
 import redis.asyncio as redis
 from src.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class CircuitState(Enum):
     CLOSED = "CLOSED"
@@ -33,7 +33,7 @@ class InMemoryCircuitBreaker:
             if self.state == CircuitState.OPEN:
                 if time.time() - self.last_failure_time > self.recovery_timeout:
                     self.state = CircuitState.HALF_OPEN
-                    logger.info("Circuit Breaker: State changed to HALF_OPEN")
+                    logger.info("circuit_breaker_half_open", mechanism="in_memory")
                 else:
                     raise Exception("Circuit Breaker is OPEN. Request rejected.")
 
@@ -43,7 +43,7 @@ class InMemoryCircuitBreaker:
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
-                    logger.info("Circuit Breaker: State changed to CLOSED")
+                    logger.info("circuit_breaker_closed", mechanism="in_memory")
                 
                 return result
             except Exception as e:
@@ -52,7 +52,12 @@ class InMemoryCircuitBreaker:
                 
                 if self.failure_count >= self.failure_threshold:
                     self.state = CircuitState.OPEN
-                    logger.error(f"Circuit Breaker: State changed to OPEN due to {self.failure_count} failures. Last error: {e}")
+                    logger.error(
+                        "circuit_breaker_open", 
+                        mechanism="in_memory", 
+                        failures=self.failure_count, 
+                        error=str(e)
+                    )
                 
                 raise e
         return wrapper
@@ -111,7 +116,7 @@ class DistributedCircuitBreaker:
                 last_failure = await self._get_last_failure_time()
                 if current_time - last_failure > self.recovery_timeout:
                     await self._set_state(CircuitState.HALF_OPEN)
-                    logger.info(f"Circuit Breaker '{self.name}': State changed to HALF_OPEN")
+                    logger.info("circuit_breaker_half_open", name=self.name, mechanism="distributed")
                     current_state = CircuitState.HALF_OPEN
                 else:
                     raise Exception(f"Circuit Breaker '{self.name}' is OPEN. Request rejected.")
@@ -126,7 +131,7 @@ class DistributedCircuitBreaker:
                 if current_state == CircuitState.HALF_OPEN:
                     await self._set_state(CircuitState.CLOSED)
                     await self._reset_failures()
-                    logger.info(f"Circuit Breaker '{self.name}': State changed to CLOSED")
+                    logger.info("circuit_breaker_closed", name=self.name, mechanism="distributed")
                 
                 return result
             except Exception as e:
@@ -135,7 +140,13 @@ class DistributedCircuitBreaker:
                 
                 if failures >= self.failure_threshold:
                     await self._set_state(CircuitState.OPEN, expiry=self.recovery_timeout) # Open for recovery_timeout
-                    logger.error(f"Circuit Breaker '{self.name}': State changed to OPEN due to {failures} failures. Last error: {e}")
+                    logger.error(
+                        "circuit_breaker_open", 
+                        name=self.name, 
+                        mechanism="distributed", 
+                        failures=failures, 
+                        error=str(e)
+                    )
                 
                 raise e
         return wrapper

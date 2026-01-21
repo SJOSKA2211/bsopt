@@ -8,7 +8,7 @@ Optimized for 1000+ concurrent users with connection pooling and keepalive.
 
 import hashlib
 import json
-import logging
+import structlog
 import time
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -31,7 +31,8 @@ except ImportError:  # pragma: no cover
 
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
+
 
 T = TypeVar("T")
 _redis_pool: Optional[Redis] = None
@@ -82,11 +83,15 @@ async def init_redis_cache(
         _redis_pool = Redis(connection_pool=pool)
         await _redis_pool.ping()
         logger.info(
-            f"Redis cache initialized with pool (max={max_connections}): {host}:{port}/{db}"
+            "redis_cache_initialized",
+            host=host,
+            port=port,
+            db=db,
+            max_connections=max_connections
         )
         return _redis_pool
     except Exception as e:
-        logger.error(f"Failed to initialize Redis cache: {e}")
+        logger.error("redis_init_failed", error=str(e))
         _redis_pool = None
         return None
 
@@ -131,7 +136,7 @@ class PricingCache:
                 return float(json.loads(val))
             return None
         except (AttributeError, RedisError, ValueError, json.JSONDecodeError) as e:
-            logger.error(f"Failed to get option price from cache: {e}")
+            logger.error("cache_get_price_failed", error=str(e), key=key)
             return None
 
     async def set_option_price(
@@ -145,7 +150,7 @@ class PricingCache:
             await redis.setex(key, ttl, json.dumps(float(price)))
             return True
         except (AttributeError, RedisError, TypeError) as e:
-            logger.error(f"Failed to set option price in cache: {e}")
+            logger.error("cache_set_price_failed", error=str(e), key=key)
             return False
 
     async def get_greeks(self, params: BSParameters, option_type: str) -> Optional[OptionGreeks]:
@@ -161,7 +166,7 @@ class PricingCache:
                 return OptionGreeks(**data)
             return None
         except Exception as e:
-            logger.error(f"Failed to get greeks from cache: {e}")
+            logger.error("cache_get_greeks_failed", error=str(e), key=key)
             return None
 
     async def set_greeks(
@@ -176,7 +181,7 @@ class PricingCache:
             await redis.setex(key, ttl, json.dumps(asdict(greeks)))
             return True
         except Exception as e:
-            logger.error(f"Failed to set greeks in cache: {e}")
+            logger.error("cache_set_greeks_failed", error=str(e), key=key)
             return False
 
 
@@ -207,7 +212,7 @@ class RateLimiter:
             results = await pipe.execute()
             return bool(results[0] <= (limit + config.burst_size))
         except Exception as e:
-            logger.error(f"Rate limiter failed: {e}")
+            logger.error("rate_limit_check_failed", error=str(e), user_id=user_id)
             return True
 
 
@@ -224,7 +229,7 @@ async def warm_cache():
     maturities = [0.1, 0.5, 1.0]
     vols = [0.2, 0.4]
 
-    logger.info("Warming pricing cache...")
+    logger.info("warming_cache_start")
     for s in spots:
         for k in strikes:
             for t in maturities:
@@ -241,7 +246,7 @@ async def warm_cache():
                     )
                     # price is a float here for single value
                     await pricing_cache.set_option_price(params, "call", "bs_unified", float(price))
-    logger.info("Cache warming complete.")
+    logger.info("warming_cache_complete")
 
 
 class IdempotencyManager:
@@ -275,7 +280,7 @@ class DatabaseQueryCache:
             val = await redis.get(f"{self.PREFIX}user:{user_id}")
             return json.loads(val) if val else None
         except Exception as e:
-            logger.error(f"Failed to get user from database cache: {e}")
+            logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
 
     async def set_user(self, user_id: str, user_data: Dict, ttl: int = 300):
@@ -288,7 +293,7 @@ class DatabaseQueryCache:
             )
             return True
         except Exception as e:
-            logger.error(f"Failed to set user in database cache: {e}")
+            logger.error("db_cache_set_user_failed", error=str(e), user_id=user_id)
             return False
 
 
@@ -306,9 +311,9 @@ async def publish_to_redis(channel: str, message: Dict[str, Any]):
         try:
             encoded_message = json.dumps(message)
             await redis.publish(channel, encoded_message)
-            logger.debug(f"Published to Redis channel '{channel}'")
+            logger.debug("redis_publish_success", channel=channel)
         except Exception as e:
-            logger.error(f"Failed to publish to Redis channel '{channel}': {e}")
+            logger.error("redis_publish_failed", error=str(e), channel=channel)
 
 
 async def get_redis_client() -> Redis:
