@@ -10,13 +10,13 @@ Asynchronous data collection tasks for:
 """
 
 import asyncio
-import logging
+import structlog
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from .celery_app import MLTask, celery_app
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # =============================================================================
@@ -51,7 +51,7 @@ def collect_options_data_task(
     Returns:
         Collection report dict
     """
-    logger.info(f"Starting options data collection for {symbols or 'default symbols'}")
+    logger.info("options_data_collection_start", symbols=symbols or "default symbols")
 
     try:
         from src.data.pipeline import DataPipeline, PipelineConfig, StorageBackend
@@ -92,7 +92,7 @@ def collect_options_data_task(
         finally:
             loop.close()
 
-        logger.info(f"Data collection completed: {report['samples_valid']} samples")
+        logger.info("data_collection_completed", samples_valid=report.get('samples_valid', 0))
 
         return {
             "task_id": self.request.id,
@@ -106,7 +106,7 @@ def collect_options_data_task(
         }
 
     except Exception as e:
-        logger.error(f"Data collection failed: {e}")
+        logger.error("data_collection_failed", error=str(e))
         raise
 
 
@@ -131,7 +131,7 @@ def validate_collected_data_task(
     Returns:
         Validation report dict
     """
-    logger.info(f"Validating data at {data_path}")
+    logger.info("data_validation_start", data_path=data_path)
 
     try:
         from pathlib import Path
@@ -182,8 +182,9 @@ def validate_collected_data_task(
         validation_results["passed"] = quality_score >= 0.7
 
         logger.info(
-            f"Validation complete: quality_score={quality_score:.3f}, "
-            f"passed={validation_results['passed']}"
+            "validation_complete", 
+            quality_score=quality_score, 
+            passed=validation_results['passed']
         )
 
         return {
@@ -195,7 +196,7 @@ def validate_collected_data_task(
         }
 
     except Exception as e:
-        logger.error(f"Data validation failed: {e}")
+        logger.error("data_validation_failed", error=str(e))
         raise
 
 
@@ -211,7 +212,7 @@ def check_data_freshness_task(self) -> Dict[str, Any]:
     Returns:
         Freshness check report
     """
-    logger.info("Checking data freshness...")
+    logger.info("data_freshness_check_start")
 
     try:
         import os
@@ -257,7 +258,7 @@ def check_data_freshness_task(self) -> Dict[str, Any]:
         }
 
     except Exception as e:
-        logger.error(f"Freshness check failed: {e}")
+        logger.error("freshness_check_failed", error=str(e))
         return {
             "task_id": self.request.id,
             "status": "error",
@@ -281,13 +282,13 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
     Scheduled task to collect data if needed.
     Called by Celery Beat.
     """
-    logger.info("Running scheduled data collection check...")
+    logger.info("scheduled_data_collection_check")
 
     # Check if we need fresh data
     freshness = check_data_freshness_task.apply().get()
 
     if freshness.get("needs_refresh", True):
-        logger.info("Data needs refresh, starting collection...")
+        logger.info("data_needs_refresh", reason=freshness.get("message", "Data too old"))
 
         # Trigger collection
         result = collect_options_data_task.apply_async()
@@ -301,7 +302,7 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
         }
 
     else:
-        logger.info("Data is fresh, skipping collection")
+        logger.info("data_is_fresh", age_hours=freshness.get('age_hours', 0))
         return {
             "task_id": self.request.id,
             "status": "skipped",
@@ -335,7 +336,7 @@ def run_full_data_pipeline_task(
     Returns:
         Pipeline execution report
     """
-    logger.info("Starting full data pipeline...")
+    logger.info("full_data_pipeline_start")
 
     try:
         # Step 1: Collect data
@@ -352,7 +353,7 @@ def run_full_data_pipeline_task(
         ).get()
 
         if not validation_result.get("validation", {}).get("passed", False):
-            logger.warning("Data validation failed, proceeding with caution")
+            logger.warning("data_validation_failed_proceeding", action="proceed_with_caution")
 
         # Step 3: Optionally trigger training
         training_task_id = None
@@ -361,7 +362,7 @@ def run_full_data_pipeline_task(
 
             train_result = train_model_task.apply_async()
             training_task_id = train_result.id
-            logger.info(f"Training triggered: {training_task_id}")
+            logger.info("training_triggered", task_id=training_task_id)
 
         return {
             "task_id": self.request.id,
@@ -373,5 +374,5 @@ def run_full_data_pipeline_task(
         }
 
     except Exception as e:
-        logger.error(f"Full pipeline failed: {e}")
+        logger.error("full_pipeline_failed", error=str(e))
         raise

@@ -9,6 +9,7 @@ from src.database.models import User, APIKey
 from datetime import datetime, timezone
 import numpy as np
 import importlib
+from fastapi.testclient import TestClient
 
 # A global store for mocked JWT payloads
 _mock_jwt_payload_store = {}
@@ -59,6 +60,8 @@ def pytest_configure(config):
     mock_settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
     mock_settings.ML_SERVICE_URL = "http://ml-service"
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
+    mock_settings.ML_TRAINING_TEST_SIZE = 0.2
+    mock_settings.ML_TRAINING_RANDOM_STATE = 42
 
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))
     mpatch.setattr("src.config.get_settings", MagicMock(return_value=mock_settings))
@@ -178,7 +181,6 @@ def api_client(mock_db_session):
     """
     FastAPI test client for integration testing.
     """
-    from fastapi.testclient import TestClient
     from src.api.main import app
     from src.database import get_db
 

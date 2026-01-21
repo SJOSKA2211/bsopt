@@ -3,7 +3,7 @@ Pricing Tasks for Celery - Production Optimized
 =================================================
 """
 
-import logging
+import structlog
 import math
 import time
 from typing import Any, Dict, List, cast
@@ -17,7 +17,7 @@ from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
 from src.utils.cache import pricing_cache
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 @celery_app.task(
     bind=True,
@@ -40,7 +40,7 @@ def price_option_task(
     use_cache: bool = True,
 ) -> Dict[str, Any]:
     start_time = time.perf_counter()
-    logger.info(f"Pricing {option_type} option: S={spot}, K={strike}, T={maturity}")
+    logger.info("pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity)
 
     if spot <= 0 or strike <= 0 or maturity <= 0 or volatility <= 0:
         raise ValueError("Invalid input parameters: all must be positive")
@@ -67,7 +67,7 @@ def price_option_task(
                     "computation_time_ms": round(computation_time, 3),
                 }
         except Exception as e:
-            logger.warning(f"Cache lookup failed: {e}, computing fresh")
+            logger.warning("cache_lookup_failed", error=str(e), action="computing_fresh")
 
     try:
         params = BSParameters(
@@ -110,12 +110,12 @@ def price_option_task(
                 )
                 loop.close()
             except Exception as e:
-                logger.warning(f"Failed to cache result: {e}")
+                logger.warning("cache_set_failed", error=str(e))
 
         return result
 
     except Exception as e:
-        logger.error(f"Pricing error: {e}")
+        logger.error("pricing_error", error=str(e))
         raise
 
 @celery_app.task(
@@ -131,6 +131,7 @@ def batch_price_options_task(
 ) -> Dict[str, Any]:
     start_time = time.perf_counter()
     count = len(options)
+    logger.info("batch_pricing_start", count=count, vectorized=vectorized)
     
     if vectorized:
         engine = BlackScholesEngine()
@@ -166,6 +167,7 @@ def calculate_implied_volatility_task(
     dividend: float = 0.0,
     option_type: str = "call",
 ) -> Dict[str, Any]:
+    logger.info("implied_vol_calc_start", option_type=option_type, price=price)
     iv = implied_volatility(price, spot, strike, maturity, rate, dividend, option_type)
     return {"implied_vol": iv}
 
@@ -181,6 +183,7 @@ def generate_volatility_surface_task(
     rate: float,
     option_type: str = "call",
 ) -> Dict[str, Any]:
+    logger.info("vol_surface_gen_start", option_type=option_type)
     surface = []
     for row_prices in prices:
         row_vols = []

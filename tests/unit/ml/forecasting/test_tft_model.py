@@ -22,9 +22,9 @@ def sample_market_data():
 
 def test_tft_data_preparation(sample_market_data):
     model = PriceTFTModel()
-    dataset = model.prepare_dataset(sample_market_data)
+    dataset = model.prepare_data(sample_market_data)
     assert dataset is not None
-    assert dataset.target == "close"
+    assert "train_loader" in dataset
 
 def test_tft_prediction_no_model():
     model = PriceTFTModel()

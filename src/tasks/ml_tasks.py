@@ -4,7 +4,7 @@ Machine Learning Tasks for Celery
 Handles asynchronous ML model training and inference.
 """
 
-import logging
+import structlog
 import os
 from typing import Optional
 
@@ -12,7 +12,7 @@ from src.ml.training.train import run_hyperparameter_optimization, train
 
 from .celery_app import celery_app
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @celery_app.task(bind=True, queue="ml")
@@ -25,7 +25,7 @@ def train_model_task(
     """
     Async task to train an ML model for option pricing.
     """
-    logger.info(f"Training {model_type} model")
+    logger.info("training_model_start", model_type=model_type)
 
     try:
         # Set environment for MLflow tracking URI if not already set
@@ -45,11 +45,11 @@ def train_model_task(
             "promoted": result_meta.get("promoted"),
         }
 
-        logger.info(f"Model training completed: {result}")
+        logger.info("model_training_completed", result=result)
         return result
 
     except Exception as e:
-        logger.error(f"Training error: {e}")
+        logger.error("training_error", error=str(e), task_id=self.request.id)
         return {"task_id": self.request.id, "status": "failed", "error": str(e)}
 
 
@@ -58,7 +58,7 @@ def hyperparameter_search_task(self, model_type: str, n_trials: int = 20):
     """
     Async task to perform hyperparameter optimization using Optuna.
     """
-    logger.info(f"Starting hyperparameter search for {model_type} with {n_trials} trials")
+    logger.info("hyperparameter_search_start", model_type=model_type, n_trials=n_trials)
 
     try:
         import asyncio
@@ -74,5 +74,5 @@ def hyperparameter_search_task(self, model_type: str, n_trials: int = 20):
         }
 
     except Exception as e:
-        logger.error(f"Hyperparameter search error: {e}")
+        logger.error("hyperparameter_search_error", error=str(e), task_id=self.request.id)
         return {"task_id": self.request.id, "status": "failed", "error": str(e)}
