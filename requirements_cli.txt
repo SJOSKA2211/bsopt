@@ -35,3 +35,4 @@ yfinance>=0.2.31
 # Optional: Visualization
 matplotlib>=3.8.0
 plotly>=5.17.0
+structlog>=24.1.0

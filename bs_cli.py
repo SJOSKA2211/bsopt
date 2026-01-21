@@ -32,6 +32,8 @@ from datetime import datetime
 import json
 import logging # Added logging import
 import re # Added re import
+import structlog
+from src.shared.observability import setup_logging
 
 from src.utils.filesystem import sanitize_path
 
@@ -68,9 +70,8 @@ from src.config import settings
 console = Console()
 
 # Configure logging
-log_level = logging.getLevelName(settings.LOG_LEVEL.upper())
-logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Note: Logging is configured via src.config -> configure_logging -> setup_logging on import
+logger = structlog.get_logger(__name__)
 
 
 # ============================================================================
@@ -421,51 +422,28 @@ from src.utils.filesystem import sanitize_path
 @click.option('--start-date', required=True, help="Start date (YYYY-MM-DD)")
 @click.option('--end-date', required=True, help="End date (YYYY-MM-DD)")
 @click.option('--output-file', default="batch_results.csv", type=click.Path(), help="Output CSV file for results")
+@click.option('--method', default='bs', help="Pricing method (default: bs)")
+@click.option('--compute-greeks', is_flag=True, help="Compute greeks")
 def batch_command(
     input_file: Path,
     symbols: str,
     start_date: str,
     end_date: str,
     output_file: Path,
+    method: str,
+    compute_greeks: bool
 ):
-
-
     """
     Batch price options from CSV file.
-
-    Input CSV format (required columns):
-        symbol, spot, strike, maturity, volatility, rate, dividend, option_type
-
-    Output CSV format:
-        symbol, price, delta, gamma, vega, theta, rho, method, computation_time_ms
-
-    Example:
-        bsopt batch --input options.csv --output results.csv --method bs --compute-greeks
     """
+    from src.services.batch_pricing_service import BatchPricingService
 
+    console.print(f"\n[bold cyan]Batch Pricing[/bold cyan]")
+    console.print(f"[dim]{'=' * 70}[/dim]\n")
+    
+    service = BatchPricingService()
+    
     try:
-        console.print(f"\n[bold cyan]Batch Pricing[/bold cyan]")
-        console.print(f"[dim]{'=' * 70}[/dim]\n")
-
-        # Load input CSV
-        console.print(f"[cyan]Loading:[/cyan] {input_file}")
-        safe_input_file = sanitize_path(Path.cwd(), input_file)
-        df = pd.read_csv(safe_input_file)
-
-        # Validate required columns
-        required_cols = ['symbol', 'spot', 'strike', 'maturity', 'volatility',
-                        'rate', 'dividend', 'option_type']
-        missing_cols = set(required_cols) - set(df.columns)
-
-        if missing_cols:
-            console.print(f"[bold red]Error:[/bold red] Missing columns: {missing_cols}")
-            sys.exit(1)
-
-        console.print(f"[green]Found {len(df)} options to price[/green]\n")
-
-        # Process each option
-        results = []
-
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -474,62 +452,30 @@ def batch_command(
             TimeRemainingColumn(),
             console=console
         ) as progress:
-
-            task = progress.add_task("[cyan]Pricing options...", total=len(df))
-
-            for idx, row in df.iterrows():
-                try:
-                    params = BSParameters(
-                        spot=row['spot'],
-                        strike=row['strike'],
-                        maturity=row['maturity'],
-                        volatility=row['volatility'],
-                        rate=row['rate'],
-                        dividend=row['dividend']
-                    )
-
-                    result = _price_single_method(
-                        params,
-                        row['option_type'],
-                        method,
-                        compute_greeks
-                    )
-
-                    result_row = {
-                        'symbol': row['symbol'],
-                        'price': result['price'],
-                        'method': method,
-                        'computation_time_ms': result['computation_time_ms']
-                    }
-
-                    if compute_greeks and 'greeks' in result:
-                        result_row.update(result['greeks'])
-
-                    results.append(result_row)
-
-                except Exception as e:
-                    console.print(f"[yellow]Warning:[/yellow] Failed to price {row['symbol']}: {e}")
-                    results.append({
-                        'symbol': row['symbol'],
-                        'price': None,
-                        'error': str(e)
-                    })
-
-                progress.advance(task)
-
-        # Save results
-        results_df = pd.DataFrame(results)
-        safe_output_file = sanitize_path(Path.cwd(), str(output_file))
-        results_df.to_csv(safe_output_file, index=False)
-        console.print(f"[bold green]Batch pricing completed. Results saved to:[/bold green] {safe_output_file}")
+            
+            task_id = progress.add_task("[cyan]Pricing options...", total=100) # Initial dummy
+            
+            def setup_p(total):
+                progress.update(task_id, total=total)
+                
+            def advance_p(amount):
+                progress.advance(task_id, advance=amount)
+            
+            results = service.process_batch(
+                input_file=input_file,
+                output_file=output_file,
+                method=method,
+                compute_greeks=compute_greeks,
+                progress_setup=setup_p,
+                progress_advance=advance_p
+            )
+            
+        console.print(f"[bold green]Batch pricing completed. Results saved to:[/bold green] {output_file}")
         console.print(f"[green]Processed: {len(results)} options[/green]\n")
-
+        
     except Exception as e:
         logger.exception(f"Unexpected error in batch command: {e}")
         console.print(f"[bold red]An unexpected error occurred during batch processing.[/bold red]")
-        if settings.DEBUG:
-            console.print(f"[bold red]Details:[/bold red] {str(e)}")
-            raise
         sys.exit(1)
 
 
@@ -1117,136 +1063,37 @@ def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics,
     """
     Run MLOps pipeline.
     """
+    from src.services.mlops_service import MLOpsService
+    
     console.print(f"\n[bold cyan]MLOps Pipeline Run[/bold cyan]")
     console.print(f"[dim]{'=' * 70}[/dim]\n")
     
-    console.print(f"[cyan]Pipeline Type:[/cyan] {pipeline_type}")
-    console.print(f"[cyan]Model Repo:[/cyan]    {model_repo}")
-    console.print(f"[cyan]Data Repo:[/cyan]     {data_repo}")
-    console.print(f"[cyan]Deploy Target:[/cyan] {deploy_target}")
-    console.print(f"[cyan]Monitor:[/cyan]       {monitor_metrics}")
-    console.print()
-
+    service = MLOpsService()
+    
     try:
-        # Validate model_repo for S3 URI format and safety
-        if model_repo:
-            s3_uri_pattern = re.compile(r"^s3://[a-zA-Z0-9.-]+(?:/[a-zA-Z0-9-._~/]*)?$")
-            if not s3_uri_pattern.match(model_repo):
-                logger.error(f"Invalid S3 model repository URI: {model_repo}")
-                console.print(f"[bold red]Error:[/bold red] Invalid S3 model repository URI format. Must start with 's3://' and contain only alphanumeric, periods, hyphens, underscores, and forward slashes.")
-                sys.exit(1)
-
-        # Validate other Kubernetes manifest variables
-        name_pattern = re.compile(r"^[a-zA-Z0-9.-]+$")
-        if not name_pattern.match(service_name):
-            logger.error(f"Invalid service name: {service_name}")
-            console.print(f"[bold red]Error:[/bold red] Invalid service name. Must contain only alphanumeric, periods, and hyphens.")
-            sys.exit(1)
-        if not name_pattern.match(model_name):
-            logger.error(f"Invalid model name: {model_name}")
-            console.print(f"[bold red]Error:[/bold red] Invalid model name. Must contain only alphanumeric, periods, and hyphens.")
-            sys.exit(1)
-
-        docker_image_pattern = re.compile(r"^[a-zA-Z0-9./-]+(?::[a-zA-Z0-9.-]+)?$")
-        if not docker_image_pattern.match(docker_image):
-            logger.error(f"Invalid docker image: {docker_image}")
-            console.print(f"[bold red]Error:[/bold red] Invalid docker image. Must follow Docker image naming conventions (e.g., 'myrepo/myimage:tag').")
-            sys.exit(1)
-
-        version_pattern = re.compile(r"^(v)?\d+(\.\d+){0,2}$") # Simple semantic versioning
-        if not version_pattern.match(str(model_version)): # model_version is already a string due to click.option
-            logger.error(f"Invalid model version: {model_version}")
-            console.print(f"[bold red]Error:[/bold red] Invalid model version. Must follow semantic versioning (e.g., '1.0.0' or 'v1.0').")
-            sys.exit(1)
-
-        with console.status("[bold green]Initializing pipeline..."):
-            # Mock implementation of pipeline initialization
-            time.sleep(1)
-            console.print("[green]Pipeline initialized.[/green]")
-
-        if model_repo and model_repo.startswith("s3://"):
-            with console.status(f"[bold green]Configuring S3 model repo: {model_repo}..."):
-                # In a real implementation, we would set MLFLOW_S3_ENDPOINT_URL etc.
-                os.environ["MLFLOW_ARTIFACT_ROOT"] = model_repo
-                time.sleep(1)
-                console.print(f"[green]S3 model repository configured.[/green]")
-
-        if deploy_target == 'kubernetes':
-            with console.status("[bold green]Preparing Kubernetes deployment manifests..."):
-                # Mock preparation of K8s manifests
-                k8s_path = Path("k8s/base/deployment.yaml")
-                if not k8s_path.parent.exists():
-                    k8s_path.parent.mkdir(parents=True, exist_ok=True)
+        with console.status("[bold green]Running pipeline...[/bold green]") as status:
+            def update_status(msg):
+                status.update(f"[bold green]{msg}[/bold green]")
                 
-                manifest_dict = {
-                    "apiVersion": "apps/v1",
-                    "kind": "Deployment",
-                    "metadata": {
-                        "name": f"{service_name}-model-serving"
-                    },
-                    "spec": {
-                        "replicas": 1,
-                        "selector": {
-                            "matchLabels": {
-                                "app": f"{service_name}-model-serving"
-                            }
-                        },
-                        "template": {
-                            "metadata": {
-                                "labels": {
-                                    "app": f"{service_name}-model-serving"
-                                }
-                            },
-                            "spec": {
-                                "containers": [
-                                    {
-                                        "name": f"{service_name}-model-serving",
-                                        "image": docker_image,
-                                        "ports": [
-                                            {
-                                                "containerPort": 8000
-                                            }
-                                        ],
-                                        "env": [
-                                            {
-                                                "name": "MODEL_REPO",
-                                                "value": model_repo
-                                            },
-                                            {
-                                                "name": "MODEL_NAME",
-                                                "value": model_name
-                                            },
-                                            {
-                                                "name": "MODEL_VERSION",
-                                                "value": str(model_version)
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                }
-                manifest = yaml.dump(manifest_dict, sort_keys=False)
-                with open(k8s_path, 'w') as f:
-                    f.write(manifest)
-                time.sleep(1)
-                console.print(f"[green]Kubernetes manifests generated at {k8s_path}[/green]")
-
-        with console.status("[bold green]Starting training task..."):
-            # Trigger the Celery task for training
-            from src.tasks.ml_tasks import train_model_task
-            task = train_model_task.delay(model_type="xgboost")
-            console.print(f"[green]Retraining task triggered (Task ID: {task.id})[/green]")
-
-        console.print(f"\n[bold green]MLOps pipeline execution started successfully![/bold green]\n")
+            task_id = service.run_pipeline(
+                pipeline_type=pipeline_type,
+                model_repo=model_repo,
+                data_repo=data_repo,
+                deploy_target=deploy_target,
+                monitor_metrics=monitor_metrics,
+                service_name=service_name,
+                docker_image=docker_image,
+                model_name=model_name,
+                model_version=model_version,
+                progress_callback=update_status
+            )
+            
+        console.print(f"\n[bold green]MLOps pipeline execution started successfully![/bold green]")
+        console.print(f"[cyan]Task ID:[/cyan] {task_id}\n")
 
     except Exception as e:
         logger.exception(f"MLOps pipeline run failed: {e}")
-        console.print(f"[bold red]MLOps pipeline run failed due to an unexpected error.[/bold red]")
-        if settings.DEBUG:
-            console.print(f"[bold red]Details:[/bold red] {str(e)}")
-            raise
+        console.print(f"[bold red]MLOps pipeline run failed: {str(e)}[/bold red]")
         sys.exit(1)
 
 
