@@ -52,6 +52,7 @@ from src.security.password import get_password_service
 from src.utils.sanitization import sanitize_string
 from src.utils.cache import idempotency_manager
 from src.tasks.email_tasks import send_transactional_email # Moved import here
+from src.api.dependencies.rate_limit import LoginRateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -126,9 +127,11 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post(
     "/login",
     response_model=DataResponse[LoginResponse],
+    dependencies=[Depends(LoginRateLimiter(max_attempts=5, window_seconds=300))],
     responses={
         401: {"model": ErrorResponse, "description": "Invalid credentials"},
         403: {"model": ErrorResponse, "description": "Account disabled or unverified"},
+        429: {"model": ErrorResponse, "description": "Too many login attempts"},
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
@@ -140,6 +143,8 @@ async def login(
 ):
     """
     Authenticate a user and return a JWT access and refresh token pair.
+
+    Rate limited to 5 attempts per 5 minutes per IP.
 
     - **email**: Registered email address
     - **password**: User password
