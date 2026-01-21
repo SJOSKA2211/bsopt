@@ -6,6 +6,7 @@ from pydantic import ValidationError
 import src.config
 from src.config import Settings, get_settings, configure_logging
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_validators():
     # Test valid values
     s = Settings(ENVIRONMENT="prod", LOG_LEVEL="DEBUG")
@@ -31,6 +32,7 @@ def test_settings_validators():
     with pytest.raises(ValidationError):
         Settings(PASSWORD_MIN_LENGTH=7)
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_parse_cors_origins():
     # String input
     s = Settings(CORS_ORIGINS="http://a.com, http://b.com")
@@ -44,6 +46,7 @@ def test_parse_cors_origins():
     s3 = Settings(CORS_ORIGINS=123)
     assert s3.CORS_ORIGINS == []
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_properties():
     s_dev = Settings(ENVIRONMENT="dev")
     assert s_dev.is_development is True
@@ -56,6 +59,7 @@ def test_settings_properties():
     tiers = s_dev.rate_limit_tiers
     assert tiers["free"] == s_dev.RATE_LIMIT_FREE
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_configure_logging():
     s = Settings(LOG_LEVEL="DEBUG", DEBUG=False)
     configure_logging(s)
@@ -66,6 +70,7 @@ def test_configure_logging():
     configure_logging(s_debug)
     # Should skip setting uvicorn/fastapi levels (they stay as they were or we don't care, just hit the False branch)
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_get_settings_cache(tmp_path, monkeypatch):
     importlib.reload(src.config)
     real_get_settings = src.config.get_settings
@@ -83,6 +88,7 @@ def test_get_settings_cache(tmp_path, monkeypatch):
     s2 = real_get_settings() # Should hit the cache (line 239)
     assert s1 is s2
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_get_settings_real_implementation(tmp_path, monkeypatch):
     # Restore the real get_settings if it was mocked in conftest.py
     # We need to reach the actual code in src/config.py
@@ -115,6 +121,7 @@ def test_get_settings_real_implementation(tmp_path, monkeypatch):
         # Restore mock for other tests
         src.config.get_settings = orig_get_settings
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_get_settings_file_not_found(tmp_path, monkeypatch):
     importlib.reload(src.config)
     real_get_settings = src.config.get_settings
@@ -125,6 +132,7 @@ def test_get_settings_file_not_found(tmp_path, monkeypatch):
     with pytest.raises(FileNotFoundError):
         real_get_settings()
 
+@pytest.mark.usefixtures("unmocked_config_settings")
 def test_get_settings_validation_error(monkeypatch):
     importlib.reload(src.config)
     real_get_settings = src.config.get_settings

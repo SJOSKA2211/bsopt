@@ -16,8 +16,8 @@ import string
 from dataclasses import dataclass
 from typing import List, Optional, Tuple, cast
 
+import bcrypt
 import pwnedpasswords
-from passlib.context import CryptContext
 
 from src.config import settings
 
@@ -156,17 +156,13 @@ class PasswordService:
     """
     Secure password hashing and verification.
 
-    Uses bcrypt with configurable rounds for security.
+    Uses bcrypt directly for performance and compatibility.
     Supports password history to prevent reuse.
     """
 
     def __init__(self, rounds: Optional[int] = None):
-        # Use bcrypt as specified by settings.BCRYPT_ROUNDS
-        self.pwd_context = CryptContext(
-            schemes=["bcrypt"],
-            deprecated="auto",
-            bcrypt__rounds=rounds or settings.BCRYPT_ROUNDS,
-        )
+        # Default to settings if not provided
+        self.rounds = rounds or (settings.BCRYPT_ROUNDS if settings else 12)
         self.validator = PasswordValidator()
 
     def hash_password(self, password: str) -> str:
@@ -179,7 +175,16 @@ class PasswordService:
         Returns:
             Hashed password string
         """
-        return cast(str, self.pwd_context.hash(password))
+        if isinstance(password, str):
+            password = password.encode("utf-8")
+        
+        # Bcrypt has a 72-byte limit. We truncate to ensure consistency.
+        if len(password) > 72:
+            password = password[:72]
+            
+        salt = bcrypt.gensalt(rounds=self.rounds)
+        hashed = bcrypt.hashpw(password, salt)
+        return hashed.decode("utf-8")
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """
@@ -192,8 +197,20 @@ class PasswordService:
         Returns:
             True if password matches, False otherwise
         """
+        if not plain_password or not hashed_password:
+            return False
+            
         try:
-            return bool(self.pwd_context.verify(plain_password, hashed_password))
+            if isinstance(plain_password, str):
+                plain_password = plain_password.encode("utf-8")
+            if isinstance(hashed_password, str):
+                hashed_password = hashed_password.encode("utf-8")
+                
+            # Bcrypt has a 72-byte limit.
+            if len(plain_password) > 72:
+                plain_password = plain_password[:72]
+                
+            return bcrypt.checkpw(plain_password, hashed_password)
         except Exception as e:
             logger.error(f"Password verification error: {e}")
             return False
@@ -210,7 +227,21 @@ class PasswordService:
         Returns:
             True if hash should be updated
         """
-        return bool(self.pwd_context.needs_update(hashed_password))
+        if not hashed_password:
+            return True
+            
+        try:
+            if isinstance(hashed_password, str):
+                hashed_password = hashed_password.encode("utf-8")
+                
+            # Bcrypt hash format: $2b$[rounds]$[22-char salt][31-char hash]
+            parts = hashed_password.split(b"$")
+            if len(parts) >= 3:
+                current_rounds = int(parts[2])
+                return current_rounds != self.rounds
+        except Exception:
+            return True
+        return False
 
     def validate_password(
         self, password: str, email: Optional[str] = None

@@ -52,3 +52,20 @@ def test_password_history():
     is_allowed, msg = service.check_password_history("NewPass123!", old_passwords)
     assert is_allowed
     assert_equal(msg, "")
+
+
+def test_password_long_password():
+    """Test handling of passwords longer than bcrypt's 72-byte limit."""
+    service = PasswordService(rounds=4)
+    long_password = "a" * 100
+    
+    # This should not raise ValueError: password cannot be longer than 72 bytes
+    hashed = service.hash_password(long_password)
+    assert service.verify_password(long_password, hashed)
+    
+    # Verify that first 72 chars are what matters
+    same_start = ("a" * 72) + "different"
+    assert service.verify_password(same_start, hashed)
+    
+    different_start = ("b" * 72) + "same_end"
+    assert not service.verify_password(different_start, hashed)

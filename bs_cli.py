@@ -30,6 +30,9 @@ from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
 import json
+import logging # Added logging import
+import re # Added re import
+
 from src.utils.filesystem import sanitize_path
 
 import click
@@ -63,6 +66,11 @@ from src.config import settings
 
 # Rich console for formatted output
 console = Console()
+
+# Configure logging
+log_level = logging.getLevelName(settings.LOG_LEVEL.upper())
+logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -176,12 +184,17 @@ def price(spot: float, strike: float, maturity: float, volatility: float,
                 _display_single_price(result, method)
 
     except ValueError as e:
-        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+        logger.error(f"Validation error in price command: {e}", exc_info=True)
+        console.print(f"[bold red]Error:[/bold red] Invalid input for pricing. Please check your parameters.")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
         sys.exit(1)
     except Exception as e:
-        console.print(f"[bold red]Unexpected error:[/bold red] {str(e)}")
+        logger.exception(f"Unexpected error in price command: {e}") # This logs the traceback automatically
+        console.print(f"[bold red]An unexpected error occurred during pricing.[/bold red]")
         if settings.DEBUG:
-            raise
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise # Re-raise only if in debug mode
         sys.exit(1)
 
 
@@ -288,8 +301,9 @@ def _compare_all_methods(params: BSParameters, option_type: str,
                 results[method] = result
                 progress.advance(task)
             except Exception as e:
+                logger.error(f"Error pricing with {method} method: {e}", exc_info=True)
                 results[method] = {
-                    'error': str(e),
+                    'error': "Pricing failed due to an unexpected error.",
                     'method': method
                 }
                 progress.advance(task)
@@ -402,11 +416,13 @@ from src.utils.filesystem import sanitize_path
 # ... (rest of the file)
 
 @cli.command("batch")
+@click.option('--input-file', type=click.Path(exists=True), required=True, help="Input CSV file with options to price")
 @click.option('--symbols', required=True, help="Comma-separated list of stock symbols")
 @click.option('--start-date', required=True, help="Start date (YYYY-MM-DD)")
 @click.option('--end-date', required=True, help="End date (YYYY-MM-DD)")
 @click.option('--output-file', default="batch_results.csv", type=click.Path(), help="Output CSV file for results")
 def batch_command(
+    input_file: Path,
     symbols: str,
     start_date: str,
     end_date: str,
@@ -509,8 +525,10 @@ def batch_command(
         console.print(f"[green]Processed: {len(results)} options[/green]\n")
 
     except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {str(e)}")
+        logger.exception(f"Unexpected error in batch command: {e}")
+        console.print(f"[bold red]An unexpected error occurred during batch processing.[/bold red]")
         if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
             raise
         sys.exit(1)
 
@@ -567,7 +585,11 @@ def serve(host: str, port: int, reload: bool, workers: int):
     except KeyboardInterrupt:
         console.print("\n[yellow]Server stopped by user[/yellow]")
     except Exception as e:
-        console.print(f"[bold red]Server error:[/bold red] {str(e)}")
+        logger.exception(f"Server error: {e}")
+        console.print(f"[bold red]Server failed to start due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -601,7 +623,7 @@ def init_db(seed: bool, force: bool):
             return
 
     try:
-        console.print(f"[cyan]Database URL:[/cyan] {settings.DATABASE_URL.split('@')[-1]}")
+        console.print(f"[cyan]Configuring database connection...[/cyan]")
         console.print()
 
         with console.status("[bold green]Creating tables...") as status:
@@ -620,7 +642,11 @@ def init_db(seed: bool, force: bool):
         console.print(f"\n[bold green]Database initialized successfully![/bold green]\n")
 
     except Exception as e:
-        console.print(f"[bold red]Database initialization failed:[/bold red] {str(e)}")
+        logger.exception(f"Database initialization failed: {e}")
+        console.print(f"[bold red]Database initialization failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -708,8 +734,10 @@ def fetch_data(symbol: str, days: int, provider: str, output: Optional[str], use
             console.print(f"[cyan]Data saved to:[/cyan] {output}\n")
 
     except Exception as e:
-        console.print(f"[bold red]Data fetch failed:[/bold red] {str(e)}")
+        logger.exception(f"Data fetch failed: {e}")
+        console.print(f"[bold red]Data fetch failed due to an unexpected error.[/bold red]")
         if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
             raise
         sys.exit(1)
 
@@ -805,7 +833,11 @@ def train_model(algorithm: str, data: str, output: str, test_split: float):
         console.print(f"[cyan]Model saved to:[/cyan] {output}\n")
 
     except Exception as e:
-        console.print(f"[bold red]Training failed:[/bold red] {str(e)}")
+        logger.exception(f"Model training failed: {e}")
+        console.print(f"[bold red]Model training failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -883,7 +915,11 @@ def backtest(strategy: str, start: str, end: str, capital: float, output: Option
             console.print(f"[cyan]Report saved to:[/cyan] {output}\n")
 
     except Exception as e:
-        console.print(f"[bold red]Backtest failed:[/bold red] {str(e)}")
+        logger.exception(f"Backtest failed: {e}")
+        console.print(f"[bold red]Backtest failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -960,7 +996,11 @@ def implied_vol(market_price: float, spot: float, strike: float, maturity: float
         console.print(f"[dim]Difference:              ${abs(theoretical_price - market_price):.4f}[/dim]\n")
 
     except Exception as e:
-        console.print(f"[bold red]Calculation failed:[/bold red] {str(e)}")
+        logger.exception(f"Implied volatility calculation failed: {e}")
+        console.print(f"[bold red]Implied volatility calculation failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -1011,7 +1051,11 @@ def vol_surface(symbol: str, date: Optional[str], output: Optional[str]):
             console.print("[dim]Opening interactive plot...[/dim]\n")
 
     except Exception as e:
-        console.print(f"[bold red]Generation failed:[/bold red] {str(e)}")
+        logger.exception(f"Volatility surface generation failed: {e}")
+        console.print(f"[bold red]Volatility surface generation failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -1064,7 +1108,12 @@ def mlops():
 @click.option('--data-repo', type=str, help='Data repository URI (e.g., s3://...)')
 @click.option('--deploy-target', type=click.Choice(['kubernetes', 'docker', 'lambda']), default='docker')
 @click.option('--monitor-metrics', type=click.Choice(['prometheus', 'mlflow', 'grafana']), default='prometheus')
-def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics):
+@click.option('--service-name', type=str, required=True, help='Name of the service for Kubernetes deployment')
+@click.option('--docker-image', type=str, required=True, help='Docker image for Kubernetes deployment')
+@click.option('--model-name', type=str, required=True, help='Name of the ML model')
+@click.option('--model-version', type=str, default='1.0.0', help='Version of the ML model')
+def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics,
+        service_name: str, docker_image: str, model_name: str, model_version: str):
     """
     Run MLOps pipeline.
     """
@@ -1079,6 +1128,37 @@ def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics):
     console.print()
 
     try:
+        # Validate model_repo for S3 URI format and safety
+        if model_repo:
+            s3_uri_pattern = re.compile(r"^s3://[a-zA-Z0-9.-]+(?:/[a-zA-Z0-9-._~/]*)?$")
+            if not s3_uri_pattern.match(model_repo):
+                logger.error(f"Invalid S3 model repository URI: {model_repo}")
+                console.print(f"[bold red]Error:[/bold red] Invalid S3 model repository URI format. Must start with 's3://' and contain only alphanumeric, periods, hyphens, underscores, and forward slashes.")
+                sys.exit(1)
+
+        # Validate other Kubernetes manifest variables
+        name_pattern = re.compile(r"^[a-zA-Z0-9.-]+$")
+        if not name_pattern.match(service_name):
+            logger.error(f"Invalid service name: {service_name}")
+            console.print(f"[bold red]Error:[/bold red] Invalid service name. Must contain only alphanumeric, periods, and hyphens.")
+            sys.exit(1)
+        if not name_pattern.match(model_name):
+            logger.error(f"Invalid model name: {model_name}")
+            console.print(f"[bold red]Error:[/bold red] Invalid model name. Must contain only alphanumeric, periods, and hyphens.")
+            sys.exit(1)
+
+        docker_image_pattern = re.compile(r"^[a-zA-Z0-9./-]+(?::[a-zA-Z0-9.-]+)?$")
+        if not docker_image_pattern.match(docker_image):
+            logger.error(f"Invalid docker image: {docker_image}")
+            console.print(f"[bold red]Error:[/bold red] Invalid docker image. Must follow Docker image naming conventions (e.g., 'myrepo/myimage:tag').")
+            sys.exit(1)
+
+        version_pattern = re.compile(r"^(v)?\d+(\.\d+){0,2}$") # Simple semantic versioning
+        if not version_pattern.match(str(model_version)): # model_version is already a string due to click.option
+            logger.error(f"Invalid model version: {model_version}")
+            console.print(f"[bold red]Error:[/bold red] Invalid model version. Must follow semantic versioning (e.g., '1.0.0' or 'v1.0').")
+            sys.exit(1)
+
         with console.status("[bold green]Initializing pipeline..."):
             # Mock implementation of pipeline initialization
             time.sleep(1)
@@ -1162,7 +1242,11 @@ def run(pipeline_type, model_repo, data_repo, deploy_target, monitor_metrics):
         console.print(f"\n[bold green]MLOps pipeline execution started successfully![/bold green]\n")
 
     except Exception as e:
-        console.print(f"[bold red]Pipeline run failed:[/bold red] {str(e)}")
+        logger.exception(f"MLOps pipeline run failed: {e}")
+        console.print(f"[bold red]MLOps pipeline run failed due to an unexpected error.[/bold red]")
+        if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
+            raise
         sys.exit(1)
 
 
@@ -1178,8 +1262,10 @@ def main():
         console.print("\n[yellow]Operation cancelled by user[/yellow]")
         sys.exit(130)
     except Exception as e:
-        console.print(f"\n[bold red]Unexpected error:[/bold red] {str(e)}")
+        logger.exception(f"Unhandled exception in main: {e}")
+        console.print(f"\n[bold red]An unhandled error occurred. Please check the logs.[/bold red]")
         if settings.DEBUG:
+            console.print(f"[bold red]Details:[/bold red] {str(e)}")
             raise
         sys.exit(1)
 

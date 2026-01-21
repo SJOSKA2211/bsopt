@@ -13,8 +13,7 @@
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0  # JWT token handling
-passlib[bcrypt]==1.7.4  # Password hashing with bcrypt
-bcrypt==4.1.2  # Explicit bcrypt dependency
+bcrypt==4.1.2  # Password hashing with bcrypt
 
 # Data Validation
 # pydantic==2.5.3

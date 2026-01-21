@@ -10,40 +10,6 @@ import sys
 import os
 from enum import Enum
 
-import bcrypt
-
-# Monkeypatch bcrypt to fix passlib 1.7.4 incompatibility with bcrypt >= 4.0.0
-# 1. Fix missing __about__ attribute
-if not hasattr(bcrypt, "__about__"):
-    class About:
-        __version__ = getattr(bcrypt, "__version__", "4.0.0")
-    bcrypt.__about__ = About()
-
-# 2. Fix ValueError: password cannot be longer than 72 bytes
-# passlib 1.7.4 runs 'detect_wrap_bug' with a long password, which modern bcrypt strictly rejects.
-# We truncate to 72 bytes to mimic legacy bcrypt behavior that passlib expects.
-if not hasattr(bcrypt, "_is_patched"):
-    _original_hashpw = bcrypt.hashpw
-    _original_checkpw = bcrypt.checkpw
-
-    def _safe_hashpw(password, salt, **kwargs):
-        if isinstance(password, str):
-            password = password.encode("utf-8")
-        if len(password) > 72:
-            password = password[:72]
-        return _original_hashpw(password, salt, **kwargs)
-
-    def _safe_checkpw(password, hashed_password, **kwargs):
-        if isinstance(password, str):
-            password = password.encode("utf-8")
-        if len(password) > 72:
-            password = password[:72]
-        return _original_checkpw(password, hashed_password, **kwargs)
-
-    bcrypt.hashpw = _safe_hashpw
-    bcrypt.checkpw = _safe_checkpw
-    bcrypt._is_patched = True
-
 from typing import Any, List, Optional, Union, cast
 
 from pydantic import Field, ValidationError, field_validator
@@ -141,6 +107,12 @@ class Settings(BaseSettings):
     # Breach Notification Configuration
     DPA_EMAIL: str = Field(
         default="your-dpa@example.com", description="Email address of the Data Protection Authority"
+    )
+    SENDGRID_API_KEY: Optional[str] = Field(
+        default=None, description="SendGrid API Key for transactional emails"
+    )
+    DEFAULT_FROM_EMAIL: str = Field(
+        default="noreply@example.com", description="Default sender email address for notifications"
     )
 
     # Database Configuration
