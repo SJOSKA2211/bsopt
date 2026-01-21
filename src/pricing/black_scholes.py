@@ -4,9 +4,19 @@ from typing import Union, Optional, Dict
 from src.pricing.models import BSParameters, OptionGreeks
 from .base import PricingStrategy
 
+import numpy as np
+from scipy.stats import norm
+from typing import Union, Optional, Dict, Any
+from src.pricing.models import BSParameters, OptionGreeks
+from .base import PricingStrategy
+
 class BlackScholesEngine(PricingStrategy):
     @staticmethod
     def calculate_d1_d2(params: BSParameters):
+        """
+        Legacy method for calculating d1 and d2.
+        Recommended to use internal JIT implementation for performance.
+        """
         S = params.spot
         K = params.strike
         T = params.maturity
@@ -22,105 +32,56 @@ class BlackScholesEngine(PricingStrategy):
         return d1, d2
 
     def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
-        """Instance method for PricingStrategy interface."""
-        if params is None:
-            params = BSParameters(**kwargs)
-        return self.calculate(params, option_type)['price']
-
-
-
+        """Instance method for PricingStrategy interface. Delegates to optimized static method."""
+        return self.price_options(params=params, option_type=option_type, **kwargs)
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        """Implementation of PricingStrategy.calculate_greeks."""
-        return self.calculate_greeks_static(params, option_type)
+        """Implementation of PricingStrategy.calculate_greeks. Delegates to optimized static method."""
+        return self.calculate_greeks_batch(params=params, option_type=option_type)
 
     def calculate(self, params: BSParameters, type: str = 'call'):
-        S = params.spot
-        K = params.strike
-        T = params.maturity
-        r = params.rate
-        sigma = params.volatility
-        dividend = params.dividend
-
-        if np.any(T <= 0):
-            prices = np.where(T <= 0, 
-                              np.where(type == 'call', np.maximum(S - K, 0.0), np.maximum(K - S, 0.0)),
-                              0.0)
-            if np.all(T <= 0):
-                return {"price": prices, "delta": np.zeros_like(S), "gamma": np.zeros_like(S)}
-
-
-        d1, d2 = self.calculate_d1_d2(params)
-
-        if type == 'call':
-            price = S * np.exp(-dividend * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
-            delta = np.exp(-dividend * T) * norm.cdf(d1)
-        else:
-            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(-dividend * T) * norm.cdf(-d1)
-            delta = np.exp(-dividend * T) * (norm.cdf(d1) - 1)
-
-        gamma = np.exp(-dividend * T) * norm.pdf(d1) / (S * sigma * np.sqrt(T))
+        """
+        Legacy method returning dict with price, delta, and gamma.
+        Delegates to optimized methods.
+        """
+        price = self.price_options(params=params, option_type=type)
+        greeks = self.calculate_greeks_batch(params=params, option_type=type)
         
-        return {
-            "price": price,
-            "delta": delta,
-            "gamma": gamma
-        }
-
+        if isinstance(greeks, OptionGreeks):
+            return {
+                "price": price,
+                "delta": greeks.delta,
+                "gamma": greeks.gamma
+            }
+        else:
+            return {
+                "price": price,
+                "delta": greeks['delta'],
+                "gamma": greeks['gamma']
+            }
 
     @staticmethod
     def price_call(params: BSParameters) -> float:
-        engine = BlackScholesEngine()
-        return engine.calculate(params, 'call')['price']
+        return float(BlackScholesEngine.price_options(params=params, option_type='call'))
 
     @staticmethod
     def price_put(params: BSParameters) -> float:
-        engine = BlackScholesEngine()
-        return engine.calculate(params, 'put')['price']
+        return float(BlackScholesEngine.price_options(params=params, option_type='put'))
 
-    @staticmethod
-    def _calculate_greeks_internal(params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        engine = BlackScholesEngine()
-        res = engine.calculate(params, option_type)
-        S = params.spot
-        K = params.strike
-        T = params.maturity
-        r = params.rate
-        sigma = params.volatility
-        dividend = params.dividend
-        
-        d1, _ = BlackScholesEngine.calculate_d1_d2(params)
-        
-        if T > 0:
-            vega = S * np.exp(-dividend * T) * norm.pdf(d1) * np.sqrt(T)
-            
-            if option_type == 'call':
-                theta = -(S * sigma * np.exp(-dividend * T) * norm.pdf(d1)) / (2 * np.sqrt(T)) - \
-                        r * K * np.exp(-r * T) * norm.cdf(d1 - sigma * np.sqrt(T)) + \
-                        dividend * S * np.exp(-dividend * T) * norm.cdf(d1)
-                rho = K * T * np.exp(-r * T) * norm.cdf(d1 - sigma * np.sqrt(T))
-            else:
-                theta = -(S * sigma * np.exp(-dividend * T) * norm.pdf(d1)) / (2 * np.sqrt(T)) + \
-                        r * K * np.exp(-r * T) * norm.cdf(-(d1 - sigma * np.sqrt(T))) - \
-                        dividend * S * np.exp(-dividend * T) * norm.cdf(-d1)
-                rho = -K * T * np.exp(-r * T) * norm.cdf(-(d1 - sigma * np.sqrt(T)))
-        else:
-            vega = 0.0
-            theta = 0.0
-            rho = 0.0
-
-        return OptionGreeks(
-            delta=res['delta'],
-            gamma=res['gamma'],
-            vega=float(vega),
-            theta=float(theta),
-            rho=float(rho)
-        )
-
-    # Maintain calculate_greeks as static for existing callers
     @staticmethod
     def calculate_greeks_static(params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        return BlackScholesEngine._calculate_greeks_internal(params, option_type)
+        """Compatibility wrapper."""
+        result = BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type)
+        if isinstance(result, dict):
+             # This case shouldn't happen if params is a single object, but handling just in case
+             return OptionGreeks(
+                delta=float(result['delta'][0]),
+                gamma=float(result['gamma'][0]),
+                vega=float(result['vega'][0]),
+                theta=float(result['theta'][0]),
+                rho=float(result['rho'][0])
+            )
+        return result
 
     @staticmethod
     def price_options(

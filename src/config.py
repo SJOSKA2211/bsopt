@@ -12,10 +12,12 @@ from enum import Enum
 
 from typing import Any, List, Optional, Union, cast
 
+import structlog
 from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from src.shared.observability import setup_logging
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Settings(BaseSettings):
@@ -140,11 +142,27 @@ class Settings(BaseSettings):
 
     @field_validator("MFA_ENCRYPTION_KEY", mode="before")
     @classmethod
-    def validate_mfa_encryption_key(cls, v: Any) -> str:
+    def validate_mfa_encryption_key(cls, v: Any, info) -> str:
         """Validate MFA encryption key or provide a default for tests."""
+        # Use info.data.get('ENVIRONMENT') instead of accessing info.ENVIRONMENT directly
+        # because the validator might run before the field is set.
+        # But BaseSettings handles fields in order.
+        env = os.environ.get("ENVIRONMENT", "dev").lower()
+        
         if not v or v == "":
+            if env in ["prod", "production", "staging"]:
+                raise ValueError("MFA_ENCRYPTION_KEY must be set in production/staging environments")
             return "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
         return str(v)
+
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret(cls, v: str) -> str:
+        """Ensure JWT_SECRET is not the default value in production."""
+        env = os.environ.get("ENVIRONMENT", "dev").lower()
+        if env in ["prod", "production"] and v == "change-me-in-production":
+            raise ValueError("JWT_SECRET must be changed from the default value in production environment")
+        return v
 
     @field_validator("ENVIRONMENT")
     @classmethod

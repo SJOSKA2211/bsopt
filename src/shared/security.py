@@ -1,7 +1,8 @@
 import requests
 import structlog
-from typing import Dict, Any, Optional
-from fastapi import Request, HTTPException, status
+import os
+from typing import Dict, Any, Optional, List
+from fastapi import Request, HTTPException, status, Depends
 
 logger = structlog.get_logger()
 
@@ -108,6 +109,25 @@ def opa_authorize(action: str, resource: str):
                 detail=f"OPA Authorization failed for {action} on {resource}"
             )
     return _authorize
+
+def get_zero_trust_deps(action: str, resource: str) -> List[Any]:
+    """
+    Returns a list of dependencies for Zero Trust security.
+    Includes:
+    1. Token verification (Authentication)
+    2. mTLS verification (Service Identity)
+    3. OPA authorization (Policy Enforcement)
+    """
+    if os.environ.get("TESTING") == "true":
+        return []
+
+    from src.auth.security import verify_token
+    
+    return [
+        Depends(verify_token),
+        Depends(verify_mtls),
+        Depends(opa_authorize(action, resource))
+    ]
 
 if __name__ == "__main__":
     enforcer = OPAEnforcer()

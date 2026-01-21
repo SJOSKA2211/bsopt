@@ -13,6 +13,7 @@ Endpoints for user authentication:
 
 import logging
 import secrets
+import hashlib
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -186,7 +187,7 @@ async def login(
             )
 
         # Verify MFA code
-        if not _verify_mfa_code(user, login_data.mfa_code):
+        if not _verify_mfa_code(user, login_data.mfa_code, db=db):
             log_audit(AuditEvent.MFA_LOGIN_FAILURE, user=user, request=request)
             raise AuthenticationException(
                 message="Invalid Multi-Factor Authentication code",
@@ -610,12 +611,14 @@ async def setup_mfa(
 
     # Generate backup codes
     backup_codes = [secrets.token_hex(4) for _ in range(8)]
+    hashed_backup_codes = [hashlib.sha256(bc.encode()).hexdigest() for bc in backup_codes]
 
-    # Store secret temporarily (user must verify before enabling)
+    # Store secret and backup codes
     try:
         fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
         encrypted_secret = fernet.encrypt(secret.encode())
         user.mfa_secret = encrypted_secret.decode()
+        user.mfa_backup_codes = ",".join(hashed_backup_codes)
         db.commit()
     except Exception as e:
         db.rollback()
@@ -653,7 +656,7 @@ async def verify_mfa(
             message="MFA setup has not been initiated for this account",
         )
 
-    if not _verify_mfa_code(user, verify_data.code):
+    if not _verify_mfa_code(user, verify_data.code, db=db):
         raise AuthenticationException(
             message="The Multi-Factor Authentication code provided is invalid",
         )
@@ -694,7 +697,7 @@ async def disable_mfa(
             message="Multi-Factor Authentication is already disabled for this account",
         )
 
-    if not _verify_mfa_code(user, verify_data.code):
+    if not _verify_mfa_code(user, verify_data.code, db=db):
         raise AuthenticationException(
             message="Invalid confirmation code provided",
         )
@@ -721,20 +724,34 @@ async def disable_mfa(
 # =============================================================================
 
 
-def _verify_mfa_code(user: User, code: str) -> bool:
-    """Verify TOTP code."""
-    # pyotp is now imported at the top of the module
+def _verify_mfa_code(user: User, code: str, db: Optional[Session] = None) -> bool:
+    """Verify TOTP code or backup code."""
     if not user.mfa_secret:
         return False
 
+    # 1. Try TOTP verification
     try:
         fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
         decrypted_secret = fernet.decrypt(user.mfa_secret.encode()).decode()
+        totp = pyotp.TOTP(decrypted_secret)
+        if totp.verify(code, valid_window=1):
+            return True
     except Exception:
-        return False
+        pass
 
-    totp = pyotp.TOTP(decrypted_secret)
-    return totp.verify(code, valid_window=1)
+    # 2. Try backup code verification if TOTP failed
+    if user.mfa_backup_codes:
+        hashed_code = hashlib.sha256(code.encode()).hexdigest()
+        backup_list = user.mfa_backup_codes.split(",")
+        if hashed_code in backup_list:
+            if db:
+                # Remove used backup code
+                backup_list.remove(hashed_code)
+                user.mfa_backup_codes = ",".join(backup_list)
+                # Note: Caller is responsible for final commit
+            return True
+
+    return False
 
 
 

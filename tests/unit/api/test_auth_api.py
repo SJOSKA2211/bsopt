@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock, ANY
 from fastapi.testclient import TestClient
+from cryptography.fernet import Fernet
 from src.api.main import app
 from src.database.models import User
 from src.database import get_db
@@ -392,7 +393,13 @@ def test_mfa_setup_success(mock_user):
         response = client.post("/api/v1/auth/mfa/setup")
         assert response.status_code == 200
         assert response.json()["data"]["secret"] == "randomsecret"
-        assert mock_user.mfa_secret == "randomsecret"
+        assert len(response.json()["data"]["backup_codes"]) == 8
+        
+        # Verify encryption
+        from src.config import settings
+        fernet = Fernet(settings.MFA_ENCRYPTION_KEY)
+        decrypted = fernet.decrypt(mock_user.mfa_secret.encode()).decode()
+        assert decrypted == "randomsecret"
         mock_db.commit.assert_called_once()
     app.dependency_overrides = {}
 
@@ -419,6 +426,33 @@ def test_mfa_verify_success(mock_user):
         assert response.status_code == 200
         assert mock_user.is_mfa_enabled is True
         mock_db.commit.assert_called_once()
+    app.dependency_overrides = {}
+
+@pytest.mark.usefixtures("override_get_current_active_user_dependency")
+def test_mfa_verify_backup_code_success(mock_user):
+    import hashlib
+    backup_code = "12345678"
+    hashed_backup_code = hashlib.sha256(backup_code.encode()).hexdigest()
+    mock_user.mfa_backup_codes = hashed_backup_code
+    mock_user.mfa_secret = "secret" # Not used but must be present
+    mock_user.is_mfa_enabled = False
+    
+    mock_db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: mock_db
+    
+    # TOTP fails, but backup code succeeds
+    from src.api.routes.auth import _verify_mfa_code
+    with patch("src.api.routes.auth._verify_mfa_code", wraps=_verify_mfa_code):
+        with patch("cryptography.fernet.Fernet") as mock_fernet:
+            mock_fernet_instance = MagicMock()
+            mock_fernet_instance.decrypt.side_effect = Exception("Invalid token")
+            mock_fernet.return_value = mock_fernet_instance
+            
+            response = client.post("/api/v1/auth/mfa/verify", json={"code": backup_code})
+            assert response.status_code == 200
+            assert mock_user.is_mfa_enabled is True
+            assert mock_user.mfa_backup_codes == ""
+            mock_db.commit.assert_called()
     app.dependency_overrides = {}
 
 @pytest.mark.usefixtures("override_get_current_active_user_dependency")

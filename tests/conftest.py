@@ -44,9 +44,9 @@ def pytest_configure(config):
 
     mock_settings.JWT_PRIVATE_KEY_PATH = ""
     mock_settings.JWT_PUBLIC_KEY_PATH = ""
-    mock_settings.JWT_PRIVATE_KEY = ""
-    mock_settings.JWT_PUBLIC_KEY = ""
-    mock_settings.JWT_ALGORITHM = "RS256"
+    mock_settings.JWT_PRIVATE_KEY = "test-secret-key"
+    mock_settings.JWT_PUBLIC_KEY = "test-secret-key"
+    mock_settings.JWT_ALGORITHM = "HS256"
     mock_settings.REDIS_HOST = "localhost"
     mock_settings.REDIS_PORT = 6379
     mock_settings.REDIS_DB = 0
@@ -178,6 +178,7 @@ def api_client(mock_db_session):
     """
     FastAPI test client for integration testing.
     """
+    from fastapi.testclient import TestClient
     from src.api.main import app
     from src.database import get_db
 
@@ -341,31 +342,27 @@ def unmocked_config_settings(monkeypatch):
     Fixture to temporarily un-mock src.config.settings and src.config._settings
     for tests that need to load the real Settings instance.
     """
-    # Save current mocked state
     import src.config
-    original_mocked_settings_instance = src.config.settings
-    original_mocked_Settings_class = src.config.Settings
-    original_mocked_get_settings_func = src.config.get_settings
-
-    # Remove mocks to allow real Settings to be loaded
-    monkeypatch.delattr(src.config, "settings", raising=False)
-    monkeypatch.delattr(src.config, "_settings", raising=False) # Important for re-initialization
-    monkeypatch.delattr(src.config, "Settings", raising=False)
-    monkeypatch.delattr(src.config, "get_settings", raising=False)
+    import sys
     
-    # Explicitly clear the singleton cache in src.config to force re-initialization
-    src.config._settings = None
-    src.config.settings = None
-
-    # Reload src.config to get the real Settings class and functions
+    # Save current mocked state (which are MagicMocks from pytest_configure)
+    mocked_settings_instance = src.config.settings
+    mocked_Settings_class = src.config.Settings
+    mocked_get_settings_func = src.config.get_settings
+    
+    # Force reload of the module to get real classes
+    if "src.config" in sys.modules:
+        del sys.modules["src.config"]
+    
+    import src.config
     importlib.reload(src.config)
-    src.config._initialize_settings() # Re-initialize the settings singleton
+    src.config._initialize_settings()
 
+    yield
 
-    yield # Run the test
-
-    # Restore original mocks after test
-    monkeypatch.setattr(src.config, "settings", original_mocked_settings_instance)
-    monkeypatch.setattr(src.config, "_settings", original_mocked_settings_instance)
-    monkeypatch.setattr(src.config, "Settings", original_mocked_Settings_class)
-    monkeypatch.setattr(src.config, "get_settings", original_mocked_get_settings_func)
+    # Restore mocks manually because pytest_configure won't run again
+    # We use setattr on the reloaded module object
+    src.config.settings = mocked_settings_instance
+    src.config._settings = mocked_settings_instance
+    src.config.Settings = mocked_Settings_class
+    src.config.get_settings = mocked_get_settings_func

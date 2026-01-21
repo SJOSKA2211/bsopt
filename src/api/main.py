@@ -6,7 +6,7 @@ import structlog
 from strawberry.fastapi import GraphQLRouter
 from src.api.graphql.schema import schema
 from src.shared.observability import setup_logging, logging_middleware
-from src.shared.security import verify_mtls, opa_authorize
+from src.shared.security import verify_mtls, opa_authorize, get_zero_trust_deps
 from src.auth.security import verify_token, RoleChecker
 from src.audit.middleware import AuditMiddleware
 from confluent_kafka import Producer
@@ -81,16 +81,11 @@ def get_context(request: Request):
 ENABLE_IDE = os.environ.get("DEBUG", "false").lower() == "true" or os.environ.get("TESTING") == "true"
 
 # Apply Zero Trust security dependencies:
+# Centralized policy management ensures consistent security across all endpoints.
 # 1. verify_token ensures the user is authenticated via Keycloak
 # 2. verify_mtls ensures the request came from a trusted service (mTLS)
 # 3. opa_authorize ensures the user has permission to access the options resource
-security_deps = [
-    Depends(verify_token),
-    Depends(verify_mtls),
-    Depends(opa_authorize("read", "options"))
-]
-if os.environ.get("TESTING") == "true":
-    security_deps = []
+security_deps = get_zero_trust_deps("read", "options")
 
 graphql_app = GraphQLRouter(schema, graphql_ide=ENABLE_IDE, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
