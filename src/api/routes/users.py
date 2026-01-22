@@ -37,7 +37,7 @@ from src.database.models import APIKey, User
 from src.security.audit import AuditEvent, log_audit
 from src.security.auth import (
     get_current_active_user,
-    require_tier,
+    require_admin,
 )
 from src.utils.cache import publish_to_redis, redis_channel_updates
 from src.utils.sanitization import sanitize_string
@@ -243,10 +243,10 @@ async def delete_current_user_account(
 @router.get(
     "/{user_id}",
     response_model=DataResponse[UserResponse],
-    dependencies=[Depends(require_tier(["enterprise"]))],
+    dependencies=[Depends(require_admin())],
 )
 async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
-    """ Enterprise: Get user by ID. """
+    """ Admin: Get user by ID. """
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise NotFoundException(message="User not found")
@@ -256,7 +256,7 @@ async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
 @router.get(
     "",
     response_model=PaginatedResponse[UserResponse],
-    dependencies=[Depends(require_tier(["enterprise"]))],
+    dependencies=[Depends(require_admin())],
 )
 async def list_users(
     db: Session = Depends(get_db),
@@ -264,7 +264,7 @@ async def list_users(
     page_size: int = 20,
     search: Optional[str] = None,
 ):
-    """ Enterprise: List all users. """
+    """ Admin: List all users. """
     query = db.query(User)
     if search:
         query = query.filter(User.email.ilike(f"%{search}%"))

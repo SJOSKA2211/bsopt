@@ -99,6 +99,8 @@ class TokenBlacklist:
 # Global token blacklist
 token_blacklist = TokenBlacklist()
 
+# Constants
+TIER_ADMIN = "admin"
 
 # FastAPI Dependencies
 
@@ -422,7 +424,7 @@ def require_tier(allowed_tiers: List[str]):
 
 def require_admin():
     """Dependency for admin-only endpoints."""
-    return require_tier(["enterprise"])
+    return require_tier([TIER_ADMIN])
 
 
 async def get_api_key(
