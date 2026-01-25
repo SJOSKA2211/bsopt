@@ -13,6 +13,7 @@ from src.security.rate_limit import rate_limit
 def setup_mocks():
     app.dependency_overrides[get_current_user_flexible] = lambda: {"username": "testuser", "id": "1"}
     app.dependency_overrides[rate_limit] = lambda: None
+    app.dependency_overrides[get_redis_client] = lambda: AsyncMock()
 
 setup_mocks()
 client = TestClient(app)

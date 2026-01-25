@@ -49,6 +49,7 @@ from src.database.models import User
 from src.security.audit import AuditEvent, log_audit
 from src.security.auth import get_auth_service, TokenData, get_token_from_header, get_current_active_user, get_current_user # Changed import
 from src.security.password import get_password_service
+from src.security.rate_limit import RateLimiter
 from src.utils.sanitization import sanitize_string
 from src.utils.cache import idempotency_manager
 from src.tasks.email_tasks import send_transactional_email # Moved import here
@@ -137,6 +138,7 @@ async def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db),
     auth_service = Depends(get_auth_service),
+    _: None = Depends(RateLimiter(requests=5, window=60)),
 ):
     """
     Authenticate a user and return a JWT access and refresh token pair.
@@ -268,6 +270,7 @@ async def register(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     password_service = Depends(get_password_service),
+    _: None = Depends(RateLimiter(requests=10, window=60)),
 ):
     """
     Create a new user account.

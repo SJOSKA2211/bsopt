@@ -112,6 +112,9 @@ def pytest_configure(config):
     mock_async_redis_mod.RedisError = MockRedisError
     sys.modules["redis.asyncio"] = mock_async_redis_mod
 
+    # Mock numba
+    sys.modules["numba"] = MagicMock()
+
 
 @pytest.fixture
 def mock_redis_and_celery(monkeypatch):
