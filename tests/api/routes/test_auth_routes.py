@@ -392,6 +392,7 @@ def test_change_password_db_error(mock_password_service, mock_db):
 def test_mfa_setup_db_error(mock_auth_service, mock_db):
     mock_user = MagicMock(spec=User)
     mock_user.id = uuid.uuid4()
+    mock_user.is_mfa_enabled = False # Ensure MFA is disabled so we hit the logic
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     mock_db.commit.side_effect = Exception("DB Fail")
     

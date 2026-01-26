@@ -94,6 +94,9 @@ def pytest_configure(config):
     sys.modules["confluent_kafka.schema_registry"] = MagicMock()
     sys.modules["confluent_kafka.schema_registry.avro"] = MagicMock()
     
+    # Mock numba
+    sys.modules["numba"] = MagicMock()
+
     # Mock redis (sync and async)
     class MockRedisError(Exception): pass
     
