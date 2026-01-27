@@ -1,0 +1,4 @@
+## 2025-02-17 - [MFA Overwrite Vulnerability]
+**Vulnerability:** The MFA setup endpoint `/api/v1/auth/mfa/setup` allowed authenticated users to overwrite their existing MFA secret without verifying their current MFA or disabling it first. This would allow an attacker with session access to lock out the legitimate user or take over MFA.
+**Learning:** Logic for sensitive state changes (like enabling/changing MFA) must strictly verify the current state and prevent unauthorized transitions. Even authenticated users shouldn't be able to reset critical security controls without re-verification or explicit disable steps.
+**Prevention:** Added a check `if user.is_mfa_enabled: raise ConflictException` in the setup endpoint to enforce the rule that MFA must be disabled before it can be set up again.

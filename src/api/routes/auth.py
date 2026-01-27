@@ -599,9 +599,15 @@ async def setup_mfa(
     db: Session = Depends(get_db),
 ):
     """
-    Begin Multi-Factor Authentication setup. 
+    Begin Multi-Factor Authentication setup.
     Returns a secret and a QR code URI for use with authenticator apps.
     """
+    if user.is_mfa_enabled:
+        raise ConflictException(
+            message="Multi-Factor Authentication is already enabled. "
+                    "You must disable it first to re-configure.",
+        )
+
     # Generate secret
     secret = pyotp.random_base32()
 

@@ -86,6 +86,15 @@ def pytest_configure(config):
     # Mock psycopg2
     mock_psycopg2 = MagicMock()
     sys.modules["psycopg2"] = mock_psycopg2
+
+    # Mock numba
+    mock_numba = MagicMock()
+    mock_numba.jit = lambda *args, **kwargs: lambda func: func
+    mock_numba.njit = lambda *args, **kwargs: lambda func: func
+    mock_numba.float64 = MagicMock()
+    mock_numba.int32 = MagicMock()
+    mock_numba.int64 = MagicMock()
+    sys.modules["numba"] = mock_numba
     
     # Mock confluent_kafka
     mock_confluent_kafka = MagicMock()
