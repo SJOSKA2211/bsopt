@@ -1,47 +1,44 @@
-import logging
-
+import os
 import torch
-import torch.nn.utils.prune as prune
+import structlog
+from typing import Any, Optional
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
-
-def apply_pruning(model: torch.nn.Module, amount: float = 0.3):
+def export_to_onnx(model: Any, dummy_input: torch.Tensor, export_path: str, input_names: list = None, output_names: list = None):
     """
-    Apply global unstructured pruning to the model.
+    Optimizes a model for production by exporting it to ONNX format.
     """
-    logger.info(f"Applying pruning (amount={amount})...")
-    parameters_to_prune = []
-    for name, module in model.named_modules():
-        if isinstance(module, torch.nn.Linear):
-            parameters_to_prune.append((module, "weight"))
+    if input_names is None:
+        input_names = ["input"]
+    if output_names is None:
+        output_names = ["output"]
 
-    if parameters_to_prune:
-        prune.global_unstructured(
-            parameters_to_prune,
-            pruning_method=prune.L1Unstructured,
-            amount=amount,
-        )
-        # Make pruning permanent
-        for module, name in parameters_to_prune:
-            prune.remove(module, name)
-
-    logger.info("Pruning complete.")
-    return model
-
-
-def apply_quantization(model: torch.nn.Module):
-    """
-    Apply post-training static quantization (simulated/prepared).
-    """
-    logger.info("Applying quantization...")
-    model.eval()
-    model.qconfig = torch.quantization.get_default_qconfig("fbgemm")
-    torch.quantization.prepare(model, inplace=True)
-
-    # Note: In a real scenario, we need a calibration pass here before conversion.
-    # For demonstration, we convert directly after preparation.
-    torch.quantization.convert(model, inplace=True)
-
-    logger.info("Quantization complete.")
-    return model
+    logger.info("exporting_to_onnx", path=export_path)
+    
+    try:
+        os.makedirs(os.path.dirname(export_path), exist_ok=True)
+        
+        # Export logic for PyTorch
+        if isinstance(model, torch.nn.Module):
+            torch.onnx.export(
+                model,
+                dummy_input,
+                export_path,
+                export_params=True,
+                opset_version=14,
+                do_constant_folding=True,
+                input_names=input_names,
+                output_names=output_names,
+                dynamic_axes={
+                    input_names[0]: {0: 'batch_size'},
+                    output_names[0]: {0: 'batch_size'}
+                }
+            )
+            logger.info("onnx_export_success", path=export_path)
+        else:
+            logger.error("unsupported_model_type", type=type(model))
+            
+    except Exception as e:
+        logger.error("onnx_export_failed", error=str(e))
+        raise

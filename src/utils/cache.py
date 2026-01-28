@@ -12,9 +12,11 @@ import structlog
 import time
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, Dict, Optional, TypeVar, Union
 
 import numpy as np
+from cachetools import TTLCache
+from functools import wraps
 
 try:
     import redis.asyncio as aioredis
@@ -185,16 +187,91 @@ class PricingCache:
             return False
 
 
+from cachetools import TTLCache
+from functools import wraps
+
+# ... existing code ...
+
+def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None):
+    """
+    Decorator for multi-layer caching:
+    Layer 1: Local In-Memory LRU (TTLCache)
+    Layer 2: Distributed Redis
+    """
+    l1_cache = TTLCache(maxsize=maxsize, ttl=ttl)
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Map args/kwargs to a dictionary for key generation
+            key_params = kwargs.copy()
+            for i, arg in enumerate(args[1:]):
+                key_params[f"arg_{i}"] = arg
+            
+            cache_key = generate_cache_key(prefix, **key_params)
+
+            # 1. L1 Check
+            if cache_key in l1_cache:
+                return l1_cache[cache_key]
+
+            # 2. L2 Check (Redis)
+            redis = get_redis()
+            if redis:
+                try:
+                    cached_val = await redis.get(cache_key)
+                    if cached_val:
+                        val = json.loads(cached_val)
+                        # Reconstruct model if needed
+                        if validation_model and isinstance(val, dict):
+                            val = validation_model(**val)
+                        l1_cache[cache_key] = val
+                        return val
+                except Exception as e:
+                    logger.warning("l2_cache_read_failed", error=str(e))
+
+            # 3. Execute
+            if asyncio.iscoroutinefunction(func):
+                result = await func(*args, **kwargs)
+            else:
+                from anyio.to_thread import run_sync
+                result = await run_sync(func, *args, **kwargs)
+
+            # 4. Update Caches
+            l1_cache[cache_key] = result
+            if redis:
+                try:
+                    # Handle Pydantic models
+                    if hasattr(result, "model_dump"):
+                        serializable_result = result.model_dump()
+                    else:
+                        serializable_result = result
+                        
+                    await redis.setex(cache_key, 3600, json.dumps(serializable_result, default=str))
+                except Exception as e:
+                    logger.warning("l2_cache_write_failed", error=str(e))
+
+            return result
+        return wrapper
+    return decorator
+
 pricing_cache = PricingCache()
 
 
 class RateLimiter:
     async def check_rate_limit(
-        self, user_id: str, endpoint: str, tier: RateLimitTier = RateLimitTier.FREE
+        self, user_id: str, endpoint: str, tier: Union[RateLimitTier, str] = RateLimitTier.FREE
     ) -> bool:
         redis = get_redis()
         if redis is None:
             return True
+            
+        # Convert string to Enum if needed
+        if isinstance(tier, str):
+            try:
+                tier = RateLimitTier(tier.lower())
+            except ValueError:
+                tier = RateLimitTier.FREE
+                
         config = RATE_LIMIT_CONFIGS[tier]
         limit = (
             config.pricing_requests_per_minute

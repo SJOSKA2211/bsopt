@@ -14,7 +14,7 @@ class NSEScraper:
     """
     Dedicated scraper for Nairobi Securities Exchange (NSE).
     Bypasses standard API limitations to get frontier market data.
-    Uses Tab Multiplexing to handle concurrent requests efficiently.
+    Uses Tab Multiplexing and In-Memory Caching for maximum efficiency.
     """
     BASE_URL = "https://www.nse.co.ke/market-statistics/equity-statistics"
 
@@ -22,47 +22,83 @@ class NSEScraper:
         self.playwright = None
         self.browser = None
         self._lock = asyncio.Lock()
+        self._data_cache = {}
+        self._last_refresh = 0
+        self._cache_ttl = 60 # 1 minute cache
 
     async def _ensure_browser(self):
         async with self._lock:
             if not self.browser:
                 self.playwright = await async_playwright().start()
-                self.browser = await self.playwright.chromium.launch(args=["--no-sandbox"])
+                self.browser = await self.playwright.chromium.launch(args=["--no-sandbox", "--disable-setuid-sandbox"])
+
+    async def _refresh_cache(self):
+        """Fetches all equity statistics and updates the cache."""
+        async with self._lock:
+            # Double-check if another task refreshed it while we were waiting for the lock
+            if time.time() - self._last_refresh < self._cache_ttl:
+                return
+
+            await self._ensure_browser()
+            page = await self.browser.new_page()
+            try:
+                logger.info("nse_refreshing_cache", url=self.BASE_URL)
+                await page.goto(self.BASE_URL, timeout=60000, wait_until="networkidle")
+                await page.wait_for_selector("table.equity-statistics", timeout=10000)
+                
+                # Extract all rows at once using JS for speed
+                rows_data = await page.evaluate("""() => {
+                    const rows = Array.from(document.querySelectorAll('table.equity-statistics tr')).slice(1);
+                    return rows.map(row => {
+                        const cols = row.querySelectorAll('td');
+                        if (cols.length < 8) return null;
+                        return {
+                            symbol: cols[0].innerText.trim(),
+                            price: cols[2].innerText.trim(),
+                            change: cols[3].innerText.trim(),
+                            volume: cols[7].innerText.trim()
+                        };
+                    }).filter(x => x !== null);
+                }""")
+                
+                new_cache = {}
+                timestamp = datetime.now().isoformat()
+                for item in rows_data:
+                    symbol = item['symbol']
+                    new_cache[symbol] = self._clean_data({
+                        "symbol": symbol,
+                        "market": "NSE",
+                        "price": item['price'],
+                        "change": item['change'],
+                        "volume": item['volume'],
+                        "timestamp": timestamp
+                    })
+                
+                self._data_cache = new_cache
+                self._last_refresh = time.time()
+                logger.info("nse_cache_updated", count=len(new_cache))
+            except Exception as e:
+                logger.error("nse_refresh_failed", error=str(e))
+                raise e
+            finally:
+                await page.close()
 
     async def get_ticker_data(self, symbol: str) -> Dict:
-        await self._ensure_browser()
-        
-        # Create a new page (tab) for this request
-        page = await self.browser.new_page()
-        try:
-            # Navigate to NSE live stats
-            await page.goto(self.BASE_URL, timeout=30000)
-            # Wait for the data table to load
-            await page.wait_for_selector("table.equity-statistics")
-            
-            # Extract row for specific symbol
-            row = page.locator(f"//tr[td[contains(text(), '{symbol}')]]")
-            if await row.count() == 0:
-                logger.error("nse_ticker_not_found", symbol=symbol)
-                return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
+        """Get ticker data, refreshing cache if necessary."""
+        if time.time() - self._last_refresh > self._cache_ttl:
+            try:
+                await self._refresh_cache()
+            except Exception:
+                # If refresh fails, try to serve from stale cache if possible
+                if not self._data_cache:
+                    return {"symbol": symbol, "error": "Scraper unavailable", "market": "NSE"}
 
-            # Extract columns
-            data = {
-                "symbol": symbol,
-                "market": "NSE",
-                "price": await row.locator("td:nth-child(3)").inner_text(),
-                "change": await row.locator("td:nth-child(4)").inner_text(),
-                "volume": await row.locator("td:nth-child(8)").inner_text(),
-                "timestamp": datetime.now().isoformat()
-            }
-            
-            return self._clean_data(data)
-        except Exception as e:
-            logger.error("nse_scrape_failed", error=str(e), symbol=symbol)
-            return {"symbol": symbol, "error": str(e), "market": "NSE"}
-        finally:
-            # Close the tab, but keep the browser running
-            await page.close()
+        data = self._data_cache.get(symbol)
+        if not data:
+            logger.warning("nse_ticker_not_in_cache", symbol=symbol)
+            return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
+        
+        return data
 
     async def shutdown(self):
         """Cleanly close the browser instance."""

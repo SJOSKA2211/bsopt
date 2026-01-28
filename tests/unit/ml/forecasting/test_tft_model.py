@@ -39,12 +39,12 @@ def test_tft_interpretability_report():
     model.model = "fake_model"
     model.training_dataset = "fake_dataset"
     report = model.get_interpretability_report()
-    assert report["interpretable_attention"] is True
+    assert "encoder_variables" in report
     assert "static_variables" in report
 
 @pytest.mark.asyncio
 async def test_tft_training_and_prediction(sample_market_data):
-    model = PriceTFTModel(max_prediction_length=2, max_encoder_length=10)
+    model = PriceTFTModel(config={"max_prediction_length": 2, "max_encoder_length": 10})
     
     # Train for 1 epoch
     await model.train(sample_market_data, max_epochs=1, batch_size=32)
@@ -53,5 +53,7 @@ async def test_tft_training_and_prediction(sample_market_data):
     # Test Prediction
     predictions = model.predict(sample_market_data)
     assert predictions is not None
-    assert hasattr(predictions, "output")
-    assert hasattr(predictions.output, "prediction")
+    # Predictions is a raw tensor
+    assert predictions.shape[0] > 0
+    
+    # Check interpretability

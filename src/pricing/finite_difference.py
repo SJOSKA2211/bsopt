@@ -9,11 +9,10 @@ import logging
 from typing import Any, Dict, Tuple
 
 import numpy as np
-from scipy.sparse import diags
-from scipy.sparse.linalg import LinearOperator, cg, spilu, spsolve
 
 from .base import PricingStrategy
 from src.pricing.models import BSParameters, OptionGreeks
+from src.pricing.quant_utils import jit_cn_solver
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +20,7 @@ logger = logging.getLogger(__name__)
 class CrankNicolsonSolver(PricingStrategy):
     """
     Finite difference solver using the Crank-Nicolson method.
+    Optimized using Numba JIT compilation.
     """
 
     def __init__(
@@ -33,7 +33,7 @@ class CrankNicolsonSolver(PricingStrategy):
         self.n_spots = n_spots
         self.n_time = n_time
         self.s_max_mult = s_max_mult
-        self.use_iterative = use_iterative
+        self.use_iterative = use_iterative # Kept for API compatibility, but JIT uses Thomas algo (direct)
 
     def _setup_grid(self, params: BSParameters):
         """Initialize grid for a specific option."""
@@ -75,119 +75,21 @@ class CrankNicolsonSolver(PricingStrategy):
         self.option_type = option_type.lower()
         return self.get_greeks()
 
-    def _build_matrices(self) -> Tuple[Any, Any]:
-        """
-        Build the implicit (A) and explicit (B) matrices for Crank-Nicolson.
-        """
-        M = self.n_spots
-        dt = self.dt
-        dS = self.dS
-
-        # Coefficients for the tridiagonal system
-        # α_i, β_i, γ_i as defined in the documentation
-        indices = np.arange(1, M)
-        S_i = self.s_grid[indices]
-
-        sig2 = self.volatility**2
-        mu = self.rate - self.dividend
-
-        alpha = 0.25 * dt * (sig2 * (S_i**2) / (dS**2) - mu * S_i / dS)
-        beta = -0.5 * dt * (sig2 * (S_i**2) / (dS**2) + self.rate)
-        gamma = 0.25 * dt * (sig2 * (S_i**2) / (dS**2) + mu * S_i / dS)
-
-        # Implicit matrix A (tridiag(-α, 1-β, -γ))
-        # Note: we use indices 1 to M-1 for internal points
-        diag_A = 1.0 - beta
-        lower_A = -alpha[1:]
-        upper_A = -gamma[:-1]
-
-        A = diags([lower_A, diag_A, upper_A], [-1, 0, 1], shape=(M - 1, M - 1), format="csr")
-
-        # Explicit matrix B (tridiag(α, 1+β, γ))
-        diag_B = 1.0 + beta
-        lower_B = alpha[1:]
-        upper_B = gamma[:-1]
-
-        B = diags([lower_B, diag_B, upper_B], [-1, 0, 1], shape=(M - 1, M - 1), format="csr")
-
-        return A, B
-
     def _solve_pde(self) -> np.ndarray:
-        """Internal core solver for the Black-Scholes PDE."""
-        M = self.n_spots
-        N = self.n_time
-        dt = self.dt
-
-        # 1. Initialize terminal condition (payoff at t=T)
-        if self.option_type == "call":
-            V = np.maximum(self.s_grid - self.strike, 0.0)
-        else:
-            V = np.maximum(self.strike - self.s_grid, 0.0)
-
-        # 2. Build matrices
-        A, B = self._build_matrices()
-
-        # Preconditioner for iterative solver
-        M_op = None
-        current_use_iterative = self.use_iterative
-        if current_use_iterative:
-            try:
-                # Incomplete LU factorization for preconditioning
-                ilu = spilu(A, drop_tol=1e-4)
-                M_op = LinearOperator(A.shape, ilu.solve)
-            except RuntimeError as e:
-                logger.warning(f"Sparse ILU failed, falling back to direct solver: {e}")
-                current_use_iterative = False
-
-        # 3. Time stepping (backward from T to 0)
-        for n in range(N, 0, -1):
-            tau = (N - n + 1) * dt
-
-            # Boundary conditions at level n-1
-            if self.option_type == "call":
-                v_min_next = 0.0
-                v_max_next = self.s_max - self.strike * np.exp(-self.rate * tau)
-            else:
-                v_min_next = self.strike * np.exp(-self.rate * tau)
-                v_max_next = 0.0
-
-            # Current boundary conditions
-            if self.option_type == "call":
-                v_min_curr = 0.0
-                v_max_curr = self.s_max - self.strike * np.exp(-self.rate * (tau - dt))
-            else:
-                v_min_curr = self.strike * np.exp(-self.rate * (tau - dt))
-                v_max_curr = 0.0
-
-            # RHS: b = B * V_internal + boundary_contributions
-            b = B @ V[1:M]
-
-            # alpha[0] corresponds to i=1
-            S_1 = self.s_grid[1]
-            S_M_1 = self.s_grid[M - 1]
-            sig2 = self.volatility**2
-            mu = self.rate - self.dividend
-
-            alpha_1 = 0.25 * dt * (sig2 * (S_1**2) / (self.dS**2) - mu * S_1 / self.dS)
-            gamma_M_1 = 0.25 * dt * (sig2 * (S_M_1**2) / (self.dS**2) + mu * S_M_1 / self.dS)
-
-            b[0] += alpha_1 * (v_min_curr + v_min_next)
-            b[-1] += gamma_M_1 * (v_max_curr + v_max_next)
-
-            # Solve A * V_new = b
-            if current_use_iterative:
-                # Use both for compatibility across scipy versions if possible, or just rtol
-                V_internal, info = cg(A, b, x0=V[1:M], M=M_op, rtol=1e-6)
-                if info != 0:
-                    logger.warning(f"Iterative solver failed to converge at step {n} (info={info})")
-                V[1:M] = V_internal
-            else:
-                V[1:M] = spsolve(A, b)
-
-            V[0] = v_min_next
-            V[M] = v_max_next
-
-        return V
+        """Internal core solver for the Black-Scholes PDE using JIT."""
+        is_call = (self.option_type == "call")
+        
+        # Delegate to Numba-optimized solver
+        return jit_cn_solver(
+            self.s_grid,
+            self.strike,
+            self.maturity,
+            self.rate,
+            self.volatility,
+            self.dividend,
+            is_call,
+            self.n_time
+        )
 
     def solve(self) -> float:
         """

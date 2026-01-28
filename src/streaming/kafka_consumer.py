@@ -1,10 +1,10 @@
 from confluent_kafka import Consumer, KafkaError
 import asyncio
-import json
+import ujson
 import structlog
 from typing import Dict, List, Callable
 import time
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, TypeAdapter
 from datetime import datetime
 
 class MarketDataSchema(BaseModel):
@@ -12,12 +12,8 @@ class MarketDataSchema(BaseModel):
     price: float
     timestamp: datetime
 
-class MarketDataSchema(BaseModel):
-    symbol: str
-    price: float
-    timestamp: datetime
-
 logger = structlog.get_logger()
+market_data_adapter = TypeAdapter(MarketDataSchema)
 
 class MarketDataConsumer:
     """
@@ -25,7 +21,8 @@ class MarketDataConsumer:
     Features:
     - Consumer group for load balancing
     - Automatic offset management
-    - Error handling and retry
+    - Bulk fetching via consume()
+    - ujson serialization
     """
     def __init__(
         self,
@@ -59,59 +56,54 @@ class MarketDataConsumer:
     ):
         """
         Consume messages in batches and process with callback.
-        Args:
-            callback: Function to process each message
-            batch_size: Number of messages to batch before processing
+        Uses bulk fetching for high throughput.
         """
         self.running = True
-        batch = []
         try:
             while self.running:
-                # Poll for messages
-                msg = self.consumer.poll(timeout=0.1)
+                # Bulk fetch for efficiency
+                msgs = self.consumer.consume(num_messages=batch_size, timeout=0.1)
                 
-                await asyncio.sleep(0) # Yield to event loop
-                
-                if msg is None:
-                    continue
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        logger.info("kafka_partition_eof", partition=msg.partition())
-                    else:
-                        logger.error("kafka_consumer_error", error=str(msg.error()))
+                if not msgs:
+                    await asyncio.sleep(0.01) # Yield
                     continue
 
-                # Deserialize and validate message
-                try:
-                    raw_data = msg.value().decode('utf-8')
-                    # Optional: Add size limit check before json.loads for very large messages
-                    # if len(raw_data) > MAX_MESSAGE_SIZE:
-                    #     raise ValueError("Message size exceeds limit")
+                batch = []
+                for msg in msgs:
+                    if msg.error():
+                        if msg.error().code() == KafkaError._PARTITION_EOF:
+                            continue
+                        logger.error("kafka_consumer_error", error=str(msg.error()))
+                        continue
+
+                    # Optimized processing
+                    try:
+                        raw_data = msg.value() # Bytes
+                        data = ujson.loads(raw_data)
+                        # Fast validation
+                        validated_data = market_data_adapter.validate_python(data)
+                        batch.append(validated_data.model_dump())
+                    except Exception as e:
+                        logger.error("message_processing_error", error=str(e))
+
+                if batch:
+                    await self._process_batch(batch, callback)
                     
-                    data = json.loads(raw_data)
-                    validated_data = MarketDataSchema(**data) # Validate with Pydantic
-                    batch.append(validated_data.dict()) # Append validated data as dict
-                    # Process batch when full
-                    if len(batch) >= batch_size:
-                        await self._process_batch(batch, callback)
-                        batch = []
-                except (json.JSONDecodeError, ValidationError, ValueError) as e:
-                    logger.error("message_processing_error", error=str(e), raw_message=raw_data[:200])
-                except Exception as e:
-                    logger.error("unexpected_message_processing_error", error=str(e))
-            # Process remaining messages if batch:
-            if batch:
-                await self._process_batch(batch, callback)
         finally:
             self.consumer.close()
 
     async def _process_batch(self, batch: List[Dict], callback: Callable):
-        """Process batch of messages"""
+        """Process batch of messages efficiently."""
         start_time = time.time()
         try:
-            # Process in parallel
-            tasks = [callback(msg) for msg in batch]
-            await asyncio.gather(*tasks)
+            # Check if callback explicitly handles batches
+            if getattr(callback, "_is_batch_aware", False):
+                await callback(batch)
+            else:
+                # Process in parallel for standard callbacks
+                tasks = [callback(msg) for msg in batch]
+                await asyncio.gather(*tasks)
+            
             duration = time.time() - start_time
             if duration <= 0:
                 duration = 0.001

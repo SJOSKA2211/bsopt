@@ -38,13 +38,13 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = Field(
-        default="postgresql://admin@postgres:5432/bsopt",
+        validation_alias="DATABASE_URL",
         description="PostgreSQL database connection string",
     )
 
     # Redis Configuration
     REDIS_URL: str = Field(
-        default="redis://localhost:6379/0",
+        validation_alias="REDIS_URL",
         description="Redis connection string for caching and session management",
     )
     REDIS_HOST: str = Field(default="localhost", description="Redis host")
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
 
     # RabbitMQ Configuration
     RABBITMQ_URL: str = Field(
-        default="amqp://admin@localhost:5672/bsopt",
+        validation_alias="RABBITMQ_URL",
         description="RabbitMQ connection string for async task processing",
     )
 
@@ -64,8 +64,10 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENTERPRISE: int = 10000
 
     # JWT Authentication
-    JWT_SECRET: str = Field(default="change-me-in-production", description="Secret key for secondary JWT/HMAC operations")
-    MFA_ENCRYPTION_KEY: Optional[str] = Field("", description="Key for encrypting MFA secrets")
+    JWT_SECRET: str = Field(validation_alias="JWT_SECRET", description="Secret key for secondary JWT/HMAC operations")
+    MFA_ENCRYPTION_KEY: Optional[str] = Field(
+        description="Key for encrypting MFA secrets. Required in production/staging."
+    )
     JWT_ALGORITHM: str = Field(default="RS256", description="JWT signing algorithm")
 
     JWT_PRIVATE_KEY: Optional[str] = Field("", description="Private key for JWT signing")
@@ -152,17 +154,9 @@ class Settings(BaseSettings):
         if not v or v == "":
             if env in ["prod", "production", "staging"]:
                 raise ValueError("MFA_ENCRYPTION_KEY must be set in production/staging environments")
-            return "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
+            return ""
         return str(v)
 
-    @field_validator("JWT_SECRET")
-    @classmethod
-    def validate_jwt_secret(cls, v: str) -> str:
-        """Ensure JWT_SECRET is not the default value in production."""
-        env = os.environ.get("ENVIRONMENT", "dev").lower()
-        if env in ["prod", "production"] and v == "change-me-in-production":
-            raise ValueError("JWT_SECRET must be changed from the default value in production environment")
-        return v
 
     @field_validator("ENVIRONMENT")
     @classmethod
@@ -320,63 +314,31 @@ def _initialize_settings():
         # Only configure logging if not in test mode
         if "pytest" not in sys.modules and not os.environ.get("BSOPT_TEST_MODE"):
             configure_logging(_settings)
-    except Exception:
-        # Fallback for tests: try to create a settings object with dummy required fields
-        # Using real looking keys to prevent jose errors
-        try:
-            settings = Settings(
-                MFA_ENCRYPTION_KEY="cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU=",
-                JWT_PRIVATE_KEY="""-----BEGIN PRIVATE KEY-----
-MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDb7ywMBX9G/n80
-8s9X72MvB9ii1kh/hj0DAwZgYQY+b+BCGwloqxf/IIGB8PNXQQtYxZgh3mmopil8
-F6pLcL53Cr5IRUd2JgLRL8NHEzTzHk/xMk2mBz9Syg0uvKzL3fkhlBS1mKLdnEO7
-GE3EZawBc1K89osvjFBrN5ydqnwWgAx2pzTzdmHWYRo/+78mq5BkRww8XeomJJMV
-d99jX7kwvKeJOTZkWlvqw8BzU2VUtpijv/ukfqUID+d+oc++wqSYZvK1iFu/ukXd
-0PKfS+ioFT5uULjJL+MrmqZ6EJhFWpTtZb3xtJT3UrAQCFlDn7GP9kUOCsLXosUK
-bJmjXJYxAgMBAAECggEADQJtqfPgyp2m/2Yt/OL+jFOD3WT8wptZjE4vYD/Y/1Q9
-kRd5k+EMATXGZ13t/P8uWUTN6hH2kMjsawhY1M/RWmgOp6Z+cscOk1pmjBOfJhLo
-0mkB9hRXavGj/DvhokkJ8bIpU/EYkDCMQprOTdPgS/ErB52zT7+WabMvTtW885Up
-JRN30y9MTsEDWHRBo3+LETnoyU3nRNUTOXtF6hL5KY766qJ+QO2buSI2ne/Er4N6
-Mk4hAz4Liz70GzwWCLzGjGvoVC+YKHXQjfvSUlrSKdoVYJhVNivfQkXGNL88oFGU
-SNTvLgv03+D81Jg6CkJj4un4S1B8qxeCA9JWOq07QQKBgQDupKXlQSJRwm3yEBt+
-9nvoyOXlHR7RFbBkQyt+EDO39dVuYmltq1nco+zTKJxASJPsbp5SAZ4+pM4cF1jF
-SwbHgOasZArv6mzpAmW/EwFnG+9/c2CASagaCTOMO7Y8k5sMHdKAQp8e/GOHrUxe
-yvsuXsHqYI7WtDZr9k3Vo1bREQKBgQDr7i3LLOSRgbTk6gbs+Sg++oPtuu6pBGmU
-igmoJrY2Z3XdS4i6Qe4e5YFmpCDrXLTD6aFB//wTQtucwKUrUSr5+mgQXC0sCby7
-m8aTfwIajTZlnMOkYJYtlVZwGSlXq7E20MQQ79192XZv1yDwl2dk3pXeXHA11IwQ
-N904gTFzIQKBgCflBobI2L/qTQ8GelJDSnuj+irPL3OsuIxKXl74vmymgEOv2Agp
-eSBVlyXFyDlG6NPBul3jP10hmANCM+jnnf6EIgv3vYxWGFbru66xsq5WETexRhSs
-O5n+p8ttwA1ob6ca5THj8U3wy4LHCdle/ZbG6IwSEE78WYy65FAuujjBAoGAUkX+
-xiljk7JNqL5Lp/vDIyMtOovDikE1qEzyzSaiyBoQKhmbFojDRxb1pxt5N1pe1yrz
-xxZDi1v3RZSQhKiLehzuiTX7sq26mRnbh7f0vdmcrJacSwg7lq3LNNAxcJc490qZ
-9OYQsUBSYvH8VKoXrj9IuAA4SS1Topw4kunKmsECgYEAkP+iSV8g3B0ha74S8/kC
-By+tdA50TlzSuZqiSjSnPfGZY/+BX3lF6nLWQ5pQ/z+n18EuI9lbBYdtHCd1RhVe
-dIbruokKlKF5zIPRbgx2B1nbeFIgLX9ZA40Rr0h7fxdhidofLJnp04rCt/Qr6aaP
-WlFA+wquePuW1wGO9TLhqfs=
------END PRIVATE KEY-----""",
-                JWT_PUBLIC_KEY="""-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2+8sDAV/Rv5/NPLPV+9j
-LwfYotZIf4Y9AwMGYGEGPm/gQhsJaKsX/yCBgfDzV0ELWMWYId5pqKYpfBeqS3C+
-dwq+SEVHdiYC0S/DRxM08x5P8TJNpgc/UsoNLrysy935IZQUtZii3ZxDuxhNxGWs
-AXNSvPaLL4xQazecnap8FoAMdqc083Zh1mEaP/u/JquQZEcMPF3qJiSTFXffY1+5
-MLyniTk2ZFpb6sPAc1NlVLaYo7/7pH6lCA/nfqHPvsKkmGbytYhbv7pF3dDyn0vo
-qBU+blC4yS/jK5qmehCYRVqU7WW98bSU91KwEAhZQ5+xj/ZFDgrC16LFCmyZo1yW
-MQIDAQAB
------END PUBLIC KEY-----"""
-            )
-        except Exception as e:
-            # Last resort: use a mock to prevent import errors
-            from unittest.mock import MagicMock
-            settings = MagicMock()
-            settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
-            settings.JWT_ALGORITHM = "RS256"
-            settings.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-            settings.REFRESH_TOKEN_EXPIRE_DAYS = 7
-            settings.BCRYPT_ROUNDS = 12
-            settings.ML_SERVICE_URL = "http://localhost"
-            settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
-            settings.LOG_LEVEL = "INFO"
-            settings.DEBUG = True
-            settings.ENVIRONMENT = "test"
+    except Exception as e:
+        # If configuration fails in a non-test environment, we must exit to avoid 
+        # running in an undefined/insecure state.
+        if "pytest" not in sys.modules and os.environ.get("ENVIRONMENT") in ["prod", "production", "staging"]:
+            print(f"CRITICAL: Settings initialization failed in {os.environ.get('ENVIRONMENT')} environment: {e}")
+            sys.exit(1)
+            
+        if "pytest" in sys.modules or os.environ.get("BSOPT_TEST_MODE"):
+            logger.warning(f"Settings initialization failed, using safe defaults for tests: {e}")
+            try:
+                settings = Settings(
+                    DATABASE_URL="sqlite:///:memory:",
+                    REDIS_URL="redis://localhost:6379/0",
+                    RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+                    JWT_SECRET="safe-default-secret-not-for-production",
+                    MFA_ENCRYPTION_KEY=None,
+                    JWT_PRIVATE_KEY=None,
+                    JWT_PUBLIC_KEY=None
+                )
+                _settings = settings
+                return
+            except Exception as e2:
+                logger.error(f"Failed to even initialize default settings: {e2}")
+        
+        logger.warning(f"Settings initialization failed. Please check environment variables. Error: {e}")
+        raise
 
 _initialize_settings()

@@ -19,11 +19,11 @@ def test_nginx_performance_settings():
         content = f.read()
     
     assert "worker_rlimit_nofile 200000;" in content
-    assert "worker_connections 20000;" in content
+    assert "worker_connections 40000;" in content
     assert "use epoll;" in content
     assert "sendfile on;" in content
     assert "tcp_nodelay on;" in content
-    assert "keepalive_requests 100000;" in content
+    assert "keepalive_requests 500000;" in content
 
 def test_websocket_optimizations():
     conf_path = "docker/nginx/nginx.conf"
@@ -33,5 +33,5 @@ def test_websocket_optimizations():
     # Check websocket block
     assert "location /ws/ {" in content
     assert "proxy_buffering off;" in content
-    assert "proxy_read_timeout 3600s;" in content
+    assert "proxy_read_timeout 86400;" in content
     assert 'proxy_set_header Connection "Upgrade";' in content

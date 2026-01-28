@@ -1,11 +1,11 @@
-import logging
+import structlog
 import numpy as np
 import pandas as pd
 from typing import List, Optional, Dict, Any, Tuple
 from enum import Enum
 from dataclasses import dataclass
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class StorageBackend(Enum):
     DATABASE = "database"
@@ -34,7 +34,7 @@ class DataPipeline:
         """
         Run the data collection pipeline.
         """
-        logger.info(f"Running data pipeline for symbols: {self.config.symbols}")
+        logger.info("data_pipeline_start", symbols=self.config.symbols)
         
         # In a real implementation, this would call scrapers
         # For now, we simulate data collection
@@ -45,6 +45,7 @@ class DataPipeline:
             "duration_seconds": 5.0,
             "validation_rate": 1.0
         }
+        logger.info("data_pipeline_completed", report=self.last_run_report)
         return self.last_run_report
 
     def load_latest_data(self) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:

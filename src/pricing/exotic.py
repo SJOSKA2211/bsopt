@@ -97,12 +97,16 @@ class AsianOptionPricer:
         dt = T / params.n_observations
         rng = np.random.default_rng(seed)
         z = rng.standard_normal((n_paths, params.n_observations))
-        paths = np.zeros((n_paths, params.n_observations + 1), dtype=np.float64)
+        
+        # Vectorized path generation using cumulative sum of log-returns
+        drift = (r - q - 0.5 * sigma**2) * dt
+        diffusion = sigma * np.sqrt(dt)
+        log_returns = drift + diffusion * z
+        cum_log_returns = np.cumsum(log_returns, axis=1)
+        
+        paths = np.empty((n_paths, params.n_observations + 1), dtype=np.float64)
         paths[:, 0] = S
-        drift, diff = (r - q - 0.5 * sigma**2) * dt, sigma * np.sqrt(dt)
-
-        for t in range(1, params.n_observations + 1):
-            paths[:, t] = paths[:, t - 1] * np.exp(drift + diff * z[:, t - 1])
+        paths[:, 1:] = S * np.exp(cum_log_returns)
 
         arith_mean = np.mean(paths[:, 1:], axis=1)
         if st == StrikeType.FIXED:
@@ -237,11 +241,17 @@ class LookbackOptionPricer:
         dt = T / params.n_observations
         rng = np.random.default_rng(seed)
         z = rng.standard_normal((n_paths, params.n_observations))
-        paths = np.zeros((n_paths, params.n_observations + 1), dtype=np.float64)
+        
+        # Vectorized path generation
+        drift = (r - q - 0.5 * sigma**2) * dt
+        diffusion = sigma * np.sqrt(dt)
+        log_returns = drift + diffusion * z
+        cum_log_returns = np.cumsum(log_returns, axis=1)
+        
+        paths = np.empty((n_paths, params.n_observations + 1), dtype=np.float64)
         paths[:, 0] = S
-        drift, diff = (r - q - 0.5 * sigma**2) * dt, sigma * np.sqrt(dt)
-        for t in range(1, params.n_observations + 1):
-            paths[:, t] = paths[:, t - 1] * np.exp(drift + diff * z[:, t - 1])
+        paths[:, 1:] = S * np.exp(cum_log_returns)
+
         if strike_type == StrikeType.FLOATING:
             payoff = (
                 paths[:, -1] - np.min(paths, axis=1)

@@ -12,7 +12,7 @@
 # alembic==1.13.1  # Database migrations (optional)
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0  # JWT token handling
+python-jose[cryptography]==3.4.0  # Updated from 3.3.0 to fix security vulnerabilities
 bcrypt==4.1.2  # Password hashing with bcrypt
 
 # Data Validation
@@ -21,17 +21,17 @@ bcrypt==4.1.2  # Password hashing with bcrypt
 email-validator==2.1.0.post1  # Email validation for EmailStr
 
 # Redis (Rate Limiting & Caching)
-redis[hiredis]==4.6.0  # Async Redis client with performance optimizations
+redis[hiredis]==5.2.0  # Updated from 4.6.0 for performance and consistency
 
 # Utilities
 # python-dotenv==1.0.0  # Environment variable loading
 
 # Production Server (Optional)
-gunicorn==21.2.0  # Production WSGI server
+gunicorn==22.0.0  # Updated from 21.2.0 to fix security vulnerabilities
 
 # Development & Testing (Optional)
 pytest>=7.4.4
 pytest-asyncio>=0.23.3
 httpx>=0.27.0  # For testing async endpoints
-black==24.1.1  # Code formatting
+black==24.3.0  # Updated from 24.1.1 to fix security vulnerabilities
 mypy==1.8.0  # Type checking

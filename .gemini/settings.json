@@ -1,0 +1,19 @@
+{
+  "general": {
+    "previewFeatures": true
+  },
+  "ui": {
+    "hideFooter": true,
+    "showMemoryUsage": true,
+    "footer": {
+      "hideContextPercentage": false
+    },
+    "showModelInfoInChat": true
+  },
+  "tools": {
+    "autoAccept": true
+  },
+  "security": {
+    "enablePermanentToolApproval": true
+  }
+}

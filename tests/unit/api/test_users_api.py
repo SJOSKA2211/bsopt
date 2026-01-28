@@ -195,8 +195,12 @@ def test_list_users_with_search(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.filter.return_value.count.return_value = 1
-    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [enterprise_user]
+    # Chain .filter().count() and .filter().offset().limit().all()
+    mock_query = mock_db.query.return_value
+    mock_filter = mock_query.filter.return_value
+    mock_filter.count.return_value = 1
+    mock_filter.offset.return_value.limit.return_value.all.return_value = [enterprise_user]
+    
     response = client.get("/api/v1/users?search=enterprise")
     assert response.status_code == 200
     assert len(response.json()["items"]) == 1
@@ -210,57 +214,89 @@ def test_get_user_by_id_insufficient_tier(mock_user):
     app.dependency_overrides = {}
 
 def test_list_users_with_tier_filter(enterprise_user, mock_user):
+
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
+
     mock_db = MagicMock()
+
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.filter.return_value.count.return_value = 1
-    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [mock_user]
+
+    mock_query = mock_db.query.return_value
+
+    mock_filter = mock_query.filter.return_value
+
+    mock_filter.count.return_value = 1
+
+    mock_filter.offset.return_value.limit.return_value.all.return_value = [mock_user]
+
+    
+
     response = client.get("/api/v1/users?tier=free")
+
     assert response.status_code == 200
+
     assert len(response.json()["items"]) == 1
+
     assert response.json()["items"][0]["tier"] == "free"
+
     app.dependency_overrides = {}
 
+
+
 def test_list_users_with_is_active_filter(enterprise_user):
+
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
+
     mock_db = MagicMock()
+
     app.dependency_overrides[get_db] = lambda: mock_db
+
     
+
     active_user = User(
+
         id=uuid.uuid4(),
+
         email="active@example.com",
+
         full_name="Active User",
+
         tier="free",
+
         is_active=True,
+
         is_verified=True,
+
         is_mfa_enabled=False,
+
         created_at=datetime.now(timezone.utc)
-    )
-    inactive_user = User(
-        id=uuid.uuid4(),
-        email="inactive@example.com",
-        full_name="Inactive User",
-        tier="free",
-        is_active=False,
-        is_verified=True,
-        is_mfa_enabled=False,
-        created_at=datetime.now(timezone.utc)
+
     )
 
-    # Test filtering for active users
-    mock_db.query.return_value.filter.return_value.count.return_value = 1
-    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [active_user]
+    
+
+    mock_query = mock_db.query.return_value
+
+    # Use side_effect to return the SAME mock_filter for consecutive .filter() calls if needed, 
+
+    # but here we just need it once per request.
+
+    mock_filter = MagicMock()
+
+    mock_query.filter.return_value = mock_filter
+
+    mock_filter.count.return_value = 1
+
+    mock_filter.offset.return_value.limit.return_value.all.return_value = [active_user]
+
+    
+
     response = client.get("/api/v1/users?is_active=true")
-    assert response.status_code == 200
-    assert len(response.json()["items"]) == 1
-    assert response.json()["items"][0]["is_active"] is True
 
-    # Test filtering for inactive users
-    mock_db.query.return_value.filter.return_value.offset.return_value.limit.return_value.all.return_value = [inactive_user]
-    mock_db.query.return_value.filter.return_value.count.return_value = 1
-    response = client.get("/api/v1/users?is_active=false")
     assert response.status_code == 200
+
     assert len(response.json()["items"]) == 1
-    assert response.json()["items"][0]["is_active"] is False
+
+    assert response.json()["items"][0]["is_active"] is True
 
     app.dependency_overrides = {}

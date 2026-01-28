@@ -8,7 +8,7 @@ import json
 app = FastAPI()
 
 @app.post("/test")
-async def test_endpoint(request: Request):
+async def mock_endpoint(request: Request):
     return {"message": "Success"}
 
 mock_redis_client = AsyncMock()
@@ -45,15 +45,16 @@ async def test_idempotency_cache_hit():
 
 @pytest.mark.asyncio
 async def test_idempotency_cache_miss_and_set():
+    mock_redis_client.get.reset_mock()
+    mock_redis_client.set.reset_mock()
     mock_redis_client.get.return_value = None
     mock_redis_client.setnx.return_value = True
-    mock_redis_client.setex.return_value = True
     
     response = client.post("/test")
     
     assert response.status_code == 200
     assert response.json() == {"message": "Success"}
-    mock_redis_client.setex.assert_called()
+    assert mock_redis_client.set.called
 
 @pytest.mark.asyncio
 async def test_idempotency_lock_conflict():

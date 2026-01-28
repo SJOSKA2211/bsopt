@@ -26,14 +26,16 @@ def test_near_zero_volatility():
     price = BlackScholesEngine.price_options(
         spot=100, strike=100, maturity=1.0, volatility=1e-9, rate=0.05, option_type="call"
     )
-    assert np.isnan(price)
+    # ATM call with zero vol and r=0.05 should be S - K*e^(-rT) = 100 - 100*e^-0.05 approx 4.877
+    assert np.isclose(price, 4.877, atol=1e-3)
 
 
 def test_high_volatility():
     price = BlackScholesEngine.price_options(
         spot=100, strike=100, maturity=1.0, volatility=10.0, rate=0.05, option_type="call"
     )
-    assert np.isnan(price)
+    # With extremely high vol, call price approaches spot price
+    assert np.isclose(price, 100.0, atol=1e-3)
 
 
 def test_vectorized_boundary_conditions():
@@ -52,13 +54,14 @@ def test_vectorized_boundary_conditions():
         option_type="call",
     )
 
-    assert_equal(len(prices), 3)
-    assert_equal(prices[1], 0.0)
+    assert len(prices) == 3
+    assert np.isclose(prices[1], 0.0, atol=1e-7)
 
 
 def test_invalid_parameters():
-    with pytest.raises(ValueError, match="Spot, strike, and volatility must be positive"):
-        BSParameters(spot=0, strike=100, maturity=1, volatility=0.2, rate=0.05)
+    # BSParameters __post_init__ raises ValueError("Spot, strike, and volatility must be non-negative")
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be non-negative"):
+        BSParameters(spot=-1, strike=100, maturity=1, volatility=0.2, rate=0.05)
 
 
 def test_extreme_interest_rates():
@@ -66,7 +69,8 @@ def test_extreme_interest_rates():
         spot=100, strike=100, maturity=1.0, volatility=0.2, rate=-0.05, option_type="call"
     )
     price_pos = BlackScholesEngine.price_options(
-        spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.05, option_type="call"
+        spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.5, option_type="call"
     )
-    assert np.isnan(price_neg)
-    assert np.isnan(price_pos)
+    assert price_neg > 0
+    assert price_pos > 0
+    assert price_pos > price_neg

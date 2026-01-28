@@ -27,6 +27,13 @@ class InMemoryCircuitBreaker:
         self.last_failure_time = 0
         self.state = CircuitState.CLOSED
 
+    def reset(self):
+        """Resets the circuit breaker state."""
+        self.state = CircuitState.CLOSED
+        self.failure_count = 0
+        self.last_failure_time = 0
+        logger.info("circuit_breaker_reset", mechanism="in_memory")
+
     def __call__(self, func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -77,6 +84,11 @@ class DistributedCircuitBreaker:
     REDIS_KEY_LAST_FAILURE = "{name}:cb_last_failure"
 
     def __init__(self, name: str, redis_client: redis.Redis, failure_threshold: int = 5, recovery_timeout: int = 30):
+        # Security: Validate name to prevent Redis key injection
+        import re
+        if not re.match(r"^[a-zA-Z0-9_-]+$", name):
+            raise ValueError(f"Invalid circuit breaker name: {name}")
+            
         self.name = name
         self.redis_client = redis_client
         self.failure_threshold = failure_threshold

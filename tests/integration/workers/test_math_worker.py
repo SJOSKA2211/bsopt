@@ -21,13 +21,18 @@ def event_loop():
     loop.close()
 
 class TestMathWorkerIntegration:
-    @patch('src.workers.math_worker.HestonCalibrator')
-    @patch('src.workers.math_worker.MarketDataRouter')
-    @patch('src.workers.math_worker.redis_client')
-    @patch('src.workers.math_worker.push_metrics')
-    def test_recalibrate_symbol_flow(self, mock_push, mock_redis, mock_router, mock_calibrator, event_loop):
-        """Verify the recalibrate_symbol task stores data in Redis."""
-        # 1. Setup mock market data
+        @patch('src.workers.math_worker.HestonCalibrator')
+        @patch('src.workers.math_worker.MarketDataRouter')
+        @patch('src.workers.math_worker.push_metrics')
+        def test_recalibrate_symbol_flow(self, mock_push, mock_router, mock_calibrator, event_loop):
+            """Verify the recalibrate_symbol task stores data in Redis."""
+            from src.workers import math_worker
+            mock_redis = AsyncMock()
+            mock_redis.setex = AsyncMock(return_value=True)
+            
+            with patch.object(math_worker, 'redis_client', mock_redis):
+                # 1. Setup mock market data
+    
         mock_chain = [
             {
                 "T": 0.5, "strike": 100.0, "spot": 100.0, "price": 5.0,
@@ -36,12 +41,8 @@ class TestMathWorkerIntegration:
             } for _ in range(10)
         ]
         
-        # Mock async response correctly
-        async def mock_get_snapshot(symbol):
-            return mock_chain
-            
         mock_router_instance = mock_router.return_value
-        mock_router_instance.get_option_chain_snapshot.side_effect = mock_get_snapshot
+        mock_router_instance.get_option_chain_snapshot = AsyncMock(return_value=mock_chain)
         
         # Mock calibrator
         mock_calibrator_instance = mock_calibrator.return_value
@@ -52,13 +53,19 @@ class TestMathWorkerIntegration:
         mock_calibrator_instance.calibrate_surface.return_value = {0.5: (0.1, 0.1, -0.3, 0.0, 0.1)}
         
         # Mock DB context
-        with patch('src.workers.math_worker.get_db_context') as mock_db:
-            mock_session = MagicMock()
-            mock_db.return_value.__enter__.return_value = mock_session
+        with patch('src.workers.math_worker.get_async_db_context') as mock_db:
+            mock_session = AsyncMock()
+            mock_db.return_value.__aenter__.return_value = mock_session
             
             # 2. Run task
             mock_task_self = MagicMock()
             mock_task_self.request.id = "test-id"
+            
+            # Functional retry to avoid 'raise MagicMock' errors
+            def mock_retry(exc=None, **kwargs):
+                if exc: raise exc
+                raise Exception("Retry requested")
+            mock_task_self.retry.side_effect = mock_retry
             
             # Get the original function from the task object
             func = recalibrate_symbol.run

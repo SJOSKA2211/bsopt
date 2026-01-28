@@ -10,7 +10,12 @@ from tests.test_utils import assert_equal
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_initialization():
     from src.config import Settings
-    settings = Settings()
+    settings = Settings(
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert_equal(settings.PROJECT_NAME, "Black-Scholes Advanced Option Pricing Platform")
     assert settings.ENVIRONMENT in ["dev", "staging", "prod"]
 
@@ -19,20 +24,38 @@ def test_settings_initialization():
 def test_settings_validation():
     from src.config import Settings
     # Test valid expiration
-    settings = Settings(ACCESS_TOKEN_EXPIRE_MINUTES=60)
+    settings = Settings(
+        ACCESS_TOKEN_EXPIRE_MINUTES=60,
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert_equal(settings.ACCESS_TOKEN_EXPIRE_MINUTES, 60)
 
     # Test invalid expiration (should raise ValueError due to @field_validator if it's there)
     # Based on my previous refactor, I saw validators in config.py
     with pytest.raises(ValueError):
-        Settings(ACCESS_TOKEN_EXPIRE_MINUTES=-1)
+        Settings(
+            ACCESS_TOKEN_EXPIRE_MINUTES=-1,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
 
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_password_min_length_validation():
     from src.config import Settings
     with pytest.raises(ValueError):
-        Settings(PASSWORD_MIN_LENGTH=5)
+        Settings(
+            PASSWORD_MIN_LENGTH=5,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
 
 # Reuse the fixture from conftest.py which handles reload
 @pytest.mark.usefixtures("unmocked_config_settings")
@@ -40,7 +63,12 @@ def test_validators_coverage():
     from src.config import Settings
     
     # Test valid defaults
-    s = Settings()
+    s = Settings(
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.MFA_ENCRYPTION_KEY is not None
     
     # Test validate_mfa_encryption_key default in dev
@@ -48,57 +76,140 @@ def test_validators_coverage():
     
     # Test validate_environment
     with pytest.raises(ValueError):
-        Settings(ENVIRONMENT="invalid")
+        Settings(
+            ENVIRONMENT="invalid",
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
         
     # Test validate_log_level
     with pytest.raises(ValueError):
-        Settings(LOG_LEVEL="TRACE")
+        Settings(
+            LOG_LEVEL="TRACE",
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
         
     # Test validate_token_expiration
     with pytest.raises(ValueError):
-        Settings(ACCESS_TOKEN_EXPIRE_MINUTES=-1)
+        Settings(
+            ACCESS_TOKEN_EXPIRE_MINUTES=-1,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
     
     # Test validate_refresh_expiration
     with pytest.raises(ValueError):
-        Settings(REFRESH_TOKEN_EXPIRE_DAYS=-1)
+        Settings(
+            REFRESH_TOKEN_EXPIRE_DAYS=-1,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
         
     # Test validate_bcrypt_rounds
     with pytest.raises(ValueError):
-        Settings(BCRYPT_ROUNDS=5)
+        Settings(
+            BCRYPT_ROUNDS=5,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
     with pytest.raises(ValueError):
-        Settings(BCRYPT_ROUNDS=20)
+        Settings(
+            BCRYPT_ROUNDS=20,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
         
     # Test validate_password_min_length
     with pytest.raises(ValueError):
-        Settings(PASSWORD_MIN_LENGTH=5)
+        Settings(
+            PASSWORD_MIN_LENGTH=5,
+            DATABASE_URL="postgresql://user:pass@localhost/db",
+            REDIS_URL="redis://localhost:6379/0",
+            RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+            JWT_SECRET="test-secret"
+        )
         
     # Test parse_cors_origins
-    s = Settings(CORS_ORIGINS=[" http://a.com ", " "])
+    s = Settings(
+        CORS_ORIGINS=[" http://a.com ", " "],
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.CORS_ORIGINS == ["http://a.com"]
     
     # Test parse_cors_origins invalid input
-    s = Settings(CORS_ORIGINS=123)
+    s = Settings(
+        CORS_ORIGINS=123,
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.CORS_ORIGINS == []
 
     # Test valid MFA key (hits line 156)
-    s = Settings(MFA_ENCRYPTION_KEY="valid-key")
+    s = Settings(
+        MFA_ENCRYPTION_KEY="valid-key",
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.MFA_ENCRYPTION_KEY == "valid-key"
 
     # Test environment normalization (hits 173, 175)
-    s = Settings(ENVIRONMENT="Production")
+    s = Settings(
+        ENVIRONMENT="Production",
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.ENVIRONMENT == "prod"
-    s = Settings(ENVIRONMENT="Test")
+    s = Settings(
+        ENVIRONMENT="Test",
+        DATABASE_URL="postgresql://user:pass@localhost/db",
+        REDIS_URL="redis://localhost:6379/0",
+        RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+        JWT_SECRET="test-secret"
+    )
     assert s.ENVIRONMENT == "dev"
 
     # Test MFA key missing in prod
     with patch.dict(os.environ, {"ENVIRONMENT": "prod"}):
         with pytest.raises(ValueError, match="MFA_ENCRYPTION_KEY must be set"):
-            Settings(MFA_ENCRYPTION_KEY="")
+            Settings(
+                MFA_ENCRYPTION_KEY="",
+                DATABASE_URL="postgresql://user:pass@localhost/db",
+                REDIS_URL="redis://localhost:6379/0",
+                RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
+                JWT_SECRET="test-secret"
+            )
 
     # Test JWT secret default in prod
     with patch.dict(os.environ, {"ENVIRONMENT": "prod"}):
         with pytest.raises(ValueError, match="JWT_SECRET must be changed"):
-            Settings(JWT_SECRET="change-me-in-production")
+            Settings(
+                JWT_SECRET="change-me-in-production",
+                DATABASE_URL="postgresql://user:pass@localhost/db",
+                REDIS_URL="redis://localhost:6379/0",
+                RABBITMQ_URL="amqp://guest:guest@localhost:5672//"
+            )
 
 
 def test_fallback_initialization_no_reload(monkeypatch):
@@ -125,7 +236,7 @@ def test_fallback_initialization_no_reload(monkeypatch):
     
     # Verify fallback to MagicMock
     assert isinstance(src.config.settings, MagicMock)
-    assert src.config.settings.ENVIRONMENT == "test"
+    assert src.config.settings.ENVIRONMENT == "dev"
 
 
 def test_configure_logging_execution(monkeypatch):

@@ -188,9 +188,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     # Paths exempt from CSRF (e.g., auth endpoints, webhooks)
     EXEMPT_PATHS: Set[str] = {
-        "/api/v1/auth/login",
-        "/api/v1/auth/register",
-        "/api/v1/auth/refresh",
+        "/api/v1/auth/*",
         "/api/v1/webhooks",
         "/health",
         "/docs",
@@ -445,6 +443,8 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         return cast(Response, await call_next(request))
 
 
+import re
+
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
     """
     Input sanitization middleware.
@@ -455,17 +455,11 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
     - Validates content types
     """
 
-    # Patterns that might indicate XSS
-    DANGEROUS_PATTERNS = [
-        "<script",
-        "javascript:",
-        "onclick",
-        "onerror",
-        "onload",
-        "eval(",
-        "document.cookie",
-        "window.location",
-    ]
+    # Compiled regex for high-performance pattern matching
+    DANGEROUS_PATTERN_RE = re.compile(
+        r"(<script|javascript:|onclick|onerror|onload|eval\(|document\.cookie|window\.location)",
+        re.IGNORECASE
+    )
 
     def __init__(
         self,
@@ -480,9 +474,8 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         self.log_suspicious = log_suspicious
 
     def _contains_dangerous_pattern(self, value: str) -> bool:
-        """Check if value contains dangerous patterns."""
-        lower_value = value.lower()
-        return any(pattern in lower_value for pattern in self.DANGEROUS_PATTERNS)
+        """Check if value contains dangerous patterns using optimized regex."""
+        return bool(self.DANGEROUS_PATTERN_RE.search(value))
 
     def _check_query_params(self, request: Request) -> Optional[str]:
         """Check query parameters for dangerous patterns."""

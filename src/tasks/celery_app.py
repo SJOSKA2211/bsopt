@@ -213,23 +213,10 @@ celery_app.conf.update(
             "schedule": crontab(hour="*/6"),  # Every 6 hours
             "options": {"queue": "ml"},
         },
-        # Data collection - 3x per week during market hours (9am-5pm ET)
-        # Monday at 10am ET (15:00 UTC)
-        "scheduled-data-collection-monday": {
+        # Daily data collection at 10am ET (15:00 UTC)
+        "scheduled-data-collection-daily": {
             "task": "src.tasks.data_tasks.scheduled_data_collection",
-            "schedule": crontab(hour=15, minute=0, day_of_week=1),
-            "options": {"queue": "ml", "priority": 2},
-        },
-        # Wednesday at 2pm ET (19:00 UTC)
-        "scheduled-data-collection-wednesday": {
-            "task": "src.tasks.data_tasks.scheduled_data_collection",
-            "schedule": crontab(hour=19, minute=0, day_of_week=3),
-            "options": {"queue": "ml", "priority": 2},
-        },
-        # Friday at 11am ET (16:00 UTC)
-        "scheduled-data-collection-friday": {
-            "task": "src.tasks.data_tasks.scheduled_data_collection",
-            "schedule": crontab(hour=16, minute=0, day_of_week=5),
+            "schedule": crontab(hour=15, minute=0),
             "options": {"queue": "ml", "priority": 2},
         },
         # Data freshness check - every 4 hours

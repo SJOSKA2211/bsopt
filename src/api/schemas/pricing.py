@@ -26,7 +26,7 @@ class PriceRequest(BaseModel):
     model: Literal["black_scholes", "monte_carlo", "binomial", "heston"] = Field(
         "black_scholes", description="Pricing model to use"
     )
-    symbol: Optional[str] = Field(None, description="Underlying symbol (required for Heston model)")
+    symbol: Optional[str] = Field(None, pattern=r"^[A-Z0-9]{1,10}$", description="Underlying symbol (required for Heston model)")
 
     @field_validator("time_to_expiry")
     @classmethod
@@ -91,7 +91,7 @@ class BatchPriceRequest(BaseModel):
     """Batch option pricing request."""
 
     options: List[PriceRequest] = Field(
-        ..., min_length=1, max_length=1000, description="List of options to price"
+        ..., min_length=1, max_length=50, description="List of options to price"
     )
 
     model_config = ConfigDict(
@@ -153,7 +153,7 @@ class GreeksRequest(BaseModel):
     volatility: float = Field(..., gt=0, le=5, description="Volatility")
     option_type: Literal["call", "put"] = Field("call", description="Option type")
     dividend_yield: float = Field(0, ge=0, le=1, description="Dividend yield")
-    symbol: Optional[str] = Field(None, description="Underlying symbol")
+    symbol: Optional[str] = Field(None, pattern=r"^[A-Z0-9]{1,10}$", description="Underlying symbol")
 
     model_config = ConfigDict(
         json_schema_extra={

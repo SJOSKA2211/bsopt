@@ -10,13 +10,13 @@ scipy>=1.11.0
 
 # Authentication
 keyring>=24.3.0
-cryptography>=42.0.0
+cryptography>=44.0.1
 
 # Configuration
 pyyaml>=6.0.1
 
 # HTTP requests
-requests>=2.31.0
+requests>=2.32.4
 
 # FastAPI (for serve command)
 fastapi>=0.109.1

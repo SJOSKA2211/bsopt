@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 
+from .models import BSParameters, OptionGreeks
 from .base import PricingStrategy
-from .black_scholes import BlackScholesEngine, BSParameters, OptionGreeks
-
+from .black_scholes import BlackScholesEngine
 
 @dataclass
 class LatticeGreeks:
@@ -28,12 +28,11 @@ class LatticeGreeks:
 class LatticeParameters(BSParameters):
     n_steps: int = 100
 
-
-@njit(cache=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _binomial_price_kernel(
     spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
 ):
-    """Numba-optimized kernel for binomial pricing."""
+    """Numba-optimized kernel for binomial pricing with fastmath and parallel execution."""
     if maturity <= 1e-12:
         if is_call:
             return max(spot - strike, 0.0)
@@ -52,10 +51,9 @@ def _binomial_price_kernel(
         p = max(0.0, min(1.0, p))
         q = 1.0 - p
 
-    # Terminal stock prices
-    # S_i = spot * u^(n-i) * d^i
-    S = np.zeros(n_steps + 1)
-    for i in range(n_steps + 1):
+    # Terminal stock prices - Parallelizable
+    S = np.empty(n_steps + 1)
+    for i in prange(n_steps + 1):
         S[i] = spot * (u ** (n_steps - i)) * (d**i)
 
     # Terminal payoffs
@@ -64,11 +62,12 @@ def _binomial_price_kernel(
     else:
         V = np.maximum(strike - S, 0.0)
 
-    # Backward induction
+    # Backward induction - Outer loop is sequential, inner can be parallelized for European
     disc = np.exp(-rate * dt)
     for i in range(n_steps - 1, -1, -1):
-        for j in range(i + 1):
-            V[j] = disc * (p * V[j] + q * V[j + 1])
+        # We can parallelize the update of V[j] at each time step
+        for j in prange(i + 1):
+            val_next = disc * (p * V[j] + q * V[j + 1])
 
             if is_american:
                 S_ij = spot * (u ** (i - j)) * (d**j)
@@ -76,17 +75,21 @@ def _binomial_price_kernel(
                     exercise = max(S_ij - strike, 0.0)
                 else:
                     exercise = max(strike - S_ij, 0.0)
-                if exercise > V[j]:
+                if exercise > val_next:
                     V[j] = exercise
+                else:
+                    V[j] = val_next
+            else:
+                V[j] = val_next
 
     return V[0]
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _trinomial_price_kernel(
     spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
 ):
-    """Numba-optimized kernel for trinomial pricing."""
+    """Numba-optimized kernel for trinomial pricing with fastmath and parallel execution."""
     if maturity <= 1e-12:
         return max(spot - strike, 0.0) if is_call else max(strike - spot, 0.0)
 
@@ -100,11 +103,10 @@ def _trinomial_price_kernel(
     p_d = 0.5 * ((volatility**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
     p_m = 1.0 - p_u - p_d
 
-    # Terminal asset prices
-    # We need 2*n_steps + 1 nodes at the end
+    # Terminal asset prices - Parallelizable
     num_nodes = 2 * n_steps + 1
-    S = np.zeros(num_nodes)
-    for j in range(num_nodes):
+    S = np.empty(num_nodes)
+    for j in prange(num_nodes):
         S[j] = spot * np.exp(dx * (n_steps - j))
 
     # Terminal payoffs
@@ -115,12 +117,9 @@ def _trinomial_price_kernel(
 
     disc = np.exp(-rate * dt)
     for i in range(n_steps - 1, -1, -1):
-        # In trinomial tree, at step i we have 2*i + 1 nodes
-        # The indices in V are shifted.
-        for j in range(2 * i + 1):
-            # V[j] corresponds to node (i, i-j)
-            # Its children are at i+1: j, j+1, j+2
-            V[j] = disc * (p_u * V[j] + p_m * V[j + 1] + p_d * V[j + 2])
+        # Parallelize node updates at time level i
+        for j in prange(2 * i + 1):
+            val_next = disc * (p_u * V[j] + p_m * V[j + 1] + p_d * V[j + 2])
 
             if is_american:
                 S_ij = spot * np.exp(dx * (i - j))
@@ -128,8 +127,12 @@ def _trinomial_price_kernel(
                     exercise = max(S_ij - strike, 0.0)
                 else:
                     exercise = max(strike - S_ij, 0.0)
-                if exercise > V[j]:
+                if exercise > val_next:
                     V[j] = exercise
+                else:
+                    V[j] = val_next
+            else:
+                V[j] = val_next
 
     return V[0]
 

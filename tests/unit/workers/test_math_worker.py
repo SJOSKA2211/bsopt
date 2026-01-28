@@ -51,14 +51,15 @@ def test_recalibrate_symbol_success(mock_push, mock_db, mock_calibrator, mock_ro
     mock_session = MagicMock()
     mock_db.return_value.__enter__.return_value = mock_session
     
-    # Run task
-    result = recalibrate_symbol("SPY")
+    with patch("src.workers.math_worker.redis_client", mock_redis_client):
+        # Run task
+        result = recalibrate_symbol("SPY")
     
-    assert result["status"] == "success"
-    assert result["symbol"] == "SPY"
-    
-    # Verify Redis interaction
-    assert mock_redis_client.setex.called
+        assert result["status"] == "success"
+        assert result["symbol"] == "SPY"
+        
+        # Verify Redis interaction
+        assert mock_redis_client.setex.called
     
     # Verify DB interaction
     assert mock_session.add.called
@@ -73,7 +74,8 @@ def test_health_check_success():
         None
     ]
     
-    result = health_check()
+    with patch("src.workers.math_worker.redis_client", mock_redis_client):
+        result = health_check()
     
     assert result["SPY"] == "healthy"
     assert result["QQQ"] == "missing"

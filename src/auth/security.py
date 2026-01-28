@@ -29,7 +29,7 @@ async def get_jwks():
         jwks_cache["keys"] = keys
         return keys
 
-async def verify_token(token: str = Depends(oauth2_scheme)) -> Dict:
+async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) -> Dict:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -62,6 +62,19 @@ async def verify_token(token: str = Depends(oauth2_scheme)) -> Dict:
             audience=AUDIENCE,
             options={"verify_at_hash": False}
         )
+        
+        # 🚀 FIX: Populate request.state.user for downstream dependencies (like opa_authorize)
+        # We create a simple object-like wrapper or map the dictionary to match the expected interface
+        class AuthenticatedUser:
+            def __init__(self, payload):
+                self.id = payload.get("sub")
+                # Map Keycloak roles to 'tier' for compatibility with opa_authorize
+                roles = payload.get("realm_access", {}).get("roles", [])
+                self.tier = "enterprise" if "admin" in roles else "free"
+                self.email = payload.get("email")
+        
+        request.state.user = AuthenticatedUser(payload)
+        
         return payload # Returns User Info (sub, roles, email)
     except JWTError:
         raise credentials_exception

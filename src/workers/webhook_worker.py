@@ -18,17 +18,27 @@ _webhook_dispatcher = None
 def get_webhook_dispatcher():
     global _webhook_dispatcher
     if _webhook_dispatcher is None:
-        # Placeholder for real DLQ task. In production, this would be a separate Celery task.
-        # For now, it's just a direct call for testing purposes or simple logging.
-        class MockDlqTask:
-            def delay(self, *args, **kwargs):
-                logger.error("dlq_mock_called", args=args, kwargs=kwargs)
+        from src.utils.cache import get_redis
+        from src.utils.circuit_breaker import DistributedCircuitBreaker
         
-        circuit_breaker = CircuitBreaker()
+        redis_client = get_redis()
+        if redis_client is None:
+            # Fallback for tests or local dev without redis
+            from src.utils.circuit_breaker import InMemoryCircuitBreaker
+            logger.warning("webhook_dispatcher_fallback_in_memory")
+            circuit_breaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
+        else:
+            circuit_breaker = DistributedCircuitBreaker(
+                name="webhook_dispatch",
+                redis_client=redis_client,
+                failure_threshold=5,
+                recovery_timeout=30
+            )
+            
         _webhook_dispatcher = WebhookDispatcher(
-            celery_app=celery_app, # Pass celery_app for task retry handling
+            celery_app=celery_app, 
             circuit_breaker=circuit_breaker,
-            dlq_task=send_to_dlq_task # Pass the actual DLQ task
+            dlq_task=send_to_dlq_task
         )
     return _webhook_dispatcher
 

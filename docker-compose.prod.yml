@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  api:
+    image: bsopt-api
+    networks:
+      - bsopt-network
+
+  geth:
+    image: ethereum/client-go:stable
+    networks:
+      - bsopt-network
+
+  kafka-1:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+    networks:
+      - bsopt-network
+
+  ray-head:
+    image: rayproject/ray:latest
+    shm_size: '2gb'
+    networks:
+      - bsopt-network
+
+  scraper:
+    image: bsopt-scraper
+    networks:
+      - bsopt-network
+
+  worker-ml:
+    image: bsopt-worker-ml
+    networks:
+      - bsopt-network
+
+  github-exporter:
+    image: caarlos0/github-exporter
+    networks:
+      - bsopt-network
+
+  neural-pricing:
+    image: bsopt-neural-pricing
+    cpuset: "0-3"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - USE_QUANTIZED_MODELS=true
+    networks:
+      - bsopt-network
+
+networks:
+  bsopt-network:
+    driver: bridge

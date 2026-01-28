@@ -11,10 +11,11 @@ This module provides:
 import logging
 import time
 from contextlib import asynccontextmanager, contextmanager
-from typing import Generator, cast
+from typing import Generator, AsyncGenerator, cast, Any
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
@@ -30,13 +31,15 @@ logger = logging.getLogger(__name__)
 
 _engine: Engine | None = None
 _SessionLocal: sessionmaker | None = None
+_async_engine: Any | None = None
+_AsyncSessionLocal: async_sessionmaker | None = None
 _SLOW_QUERY_THRESHOLD_MS: int | None = None
 
 def _initialize_db_components():
-    global _engine, _SessionLocal, _SLOW_QUERY_THRESHOLD_MS
+    global _engine, _SessionLocal, _async_engine, _AsyncSessionLocal, _SLOW_QUERY_THRESHOLD_MS
+    
+    # Sync Engine
     if _engine is None or _SessionLocal is None:
-        # Optimized for 1000+ concurrent users with PostgreSQL
-        # Pool Sizing: 40 base + 110 overflow = 150 max connections
         _engine = create_engine(
             settings.DATABASE_URL,
             poolclass=QueuePool,
@@ -44,105 +47,65 @@ def _initialize_db_components():
             max_overflow=110,
             pool_recycle=1800,
             pool_pre_ping=True,
-            pool_use_lifo=True,
-            pool_timeout=30,
             echo=settings.DEBUG if hasattr(settings, "DEBUG") else False,
-            connect_args={
-                "connect_timeout": 10,
-                "application_name": "bsopt_api",
-                "options": "-c statement_timeout=30000 -c idle_in_transaction_session_timeout=60000",
-            },
+        )
+        _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
+
+    # Async Engine
+    if _async_engine is None or _AsyncSessionLocal is None:
+        # Convert DATABASE_URL to asyncpg if needed
+        async_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+        _async_engine = create_async_engine(
+            async_url,
+            pool_size=40,
+            max_overflow=110,
+            pool_recycle=1800,
+            pool_pre_ping=True,
+        )
+        _AsyncSessionLocal = async_sessionmaker(
+            bind=_async_engine, 
+            class_=AsyncSession, 
+            expire_on_commit=False
         )
 
-        _SessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=_engine,
-            expire_on_commit=False,
-        )
-        _SLOW_QUERY_THRESHOLD_MS = settings.SLOW_QUERY_THRESHOLD_MS
-
-        # Register event listeners only once
-        if not event.contains(_engine, "before_cursor_execute", before_cursor_execute):
-            event.listen(_engine, "before_cursor_execute", before_cursor_execute)
-        if not event.contains(_engine, "after_cursor_execute", after_cursor_execute):
-            event.listen(_engine, "after_cursor_execute", after_cursor_execute)
-        if not event.contains(_engine, "handle_error", handle_error):
-            event.listen(_engine, "handle_error", handle_error)
-
-
-# =============================================================================
-# QUERY TIMING & MONITORING
-# =============================================================================
-
-@event.listens_for(Engine, "before_cursor_execute")
-def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """Record query start time for timing."""
-    conn.info.setdefault("query_start_time", []).append(time.perf_counter())
-
-
-@event.listens_for(Engine, "after_cursor_execute")
-def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """Log slow queries and record metrics."""
-    start_times = conn.info.get("query_start_time", [])
-    if not start_times:
-        return
-
-    elapsed_ms = (time.perf_counter() - start_times.pop()) * 1000
-
-    if _SLOW_QUERY_THRESHOLD_MS is not None and elapsed_ms > _SLOW_QUERY_THRESHOLD_MS:
-        # Truncate long queries for logging
-        query_preview = statement[:200] + "..." if len(statement) > 200 else statement
-        logger.warning(
-            f"Slow query ({elapsed_ms:.1f}ms): {query_preview}",
-            extra={"query_time_ms": elapsed_ms, "query": statement[:500]},
-        )
-
-
-@event.listens_for(Engine, "handle_error")
-def handle_error(exception_context):
-    """Log database errors with context."""
-    logger.error(f"Database error: {exception_context.original_exception}", exc_info=True)
+    _SLOW_QUERY_THRESHOLD_MS = settings.SLOW_QUERY_THRESHOLD_MS
 
 
 # =============================================================================
 # SESSION MANAGEMENT
 # =============================================================================
 
-
 def get_db() -> Generator[Session, None, None]:
-    """
-    FastAPI dependency for database sessions.
-
-    Usage:
-        @app.get("/items")
-        def get_items(db: Session = Depends(get_db)):
-            return db.query(Item).all()
-    """
+    """Sync session dependency."""
     _initialize_db_components()
-    if _SessionLocal is None:
-        raise RuntimeError("SessionLocal is not initialized.")
     db = _SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """Async session dependency for FastAPI."""
+    _initialize_db_components()
+    async with _AsyncSessionLocal() as session:
+        yield session
+
+@asynccontextmanager
+async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
+    """Async context manager for workers."""
+    _initialize_db_components()
+    async with _AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 @contextmanager
 def get_db_context() -> Generator[Session, None, None]:
-    """
-    Context manager for scripts and background tasks.
-    Automatically commits on success, rolls back on error.
-
-    Usage:
-        with get_db_context() as db:
-            db.add(item)
-            # Auto-commits if no exception
-    """
+    """Sync context manager."""
     _initialize_db_components()
-    if _SessionLocal is None:
-        raise RuntimeError("SessionLocal is not initialized.")
     db = _SessionLocal()
     try:
         yield db

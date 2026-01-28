@@ -27,7 +27,7 @@ class MarketDataProducer:
             'compression.type': 'lz4',
             'linger.ms': 10,  # Wait 10ms to batch messages
             'batch.size': 16384, # 16KB batches
-            'acks': 1, # Leader acknowledgment (balance between speed/reliability)
+            'acks': 'all', # Wait for all in-sync replicas (strongest durability)
             'max.in.flight.requests.per.connection': 5,
             # Idempotence for exactly-once semantics
             'enable.idempotence': True,

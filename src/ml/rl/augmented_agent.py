@@ -101,10 +101,10 @@ class AugmentedRLAgent:
             np.ndarray: Concatenated observation [Price_State, Sentiment_State].
         """
         # Ensure price_state is a numpy array
-        price_state = np.array(price_state)
+        price_state = np.array(price_state).flatten()
         # Create sentiment array (can be more complex if sentiment_state_dim > 1)
-        sentiment_state = np.array([sentiment_score])
-        
+        sentiment_state = np.array([sentiment_score]).flatten()
+    
         return np.concatenate([price_state, sentiment_state])
 
     def act(self, observation: np.ndarray) -> np.ndarray:

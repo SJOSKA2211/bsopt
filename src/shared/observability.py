@@ -1,8 +1,9 @@
 import structlog
 import os
 import time
+import gc
 from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
-from typing import List, Callable
+from typing import List, Callable, Any
 from fastapi import Request, Response
 import httpx
 from datetime import datetime, timezone
@@ -22,7 +23,16 @@ def setup_logging():
         cache_logger_on_first_use=True,
     )
 
+def tune_gc():
+    """
+    Optimizes Garbage Collection for long-running workers.
+    Reduces latency spikes by increasing collection thresholds.
+    """
+    gc.set_threshold(50000, 10, 10)
+    structlog.get_logger().info("gc_tuned", thresholds=gc.get_threshold())
+
 async def logging_middleware(request: Request, call_next: Callable) -> Response:
+# ... (rest of middleware)
     """FastAPI middleware for structured logging of every request."""
     logger = structlog.get_logger("api_request")
     start_time = time.time()
@@ -66,6 +76,11 @@ HESTON_FELLER_MARGIN = Gauge('heston_feller_margin', 'Margin above Feller condit
 CALIBRATION_DURATION = Histogram('calibration_duration_seconds', 'Time spent in calibration', ['symbol'])
 HESTON_R_SQUARED = Gauge('heston_r_squared', 'R-squared coefficient of determination for Heston fit', ['symbol'])
 HESTON_PARAMS_FRESHNESS = Gauge('heston_params_freshness_seconds', 'Time since last successful calibration', ['symbol'])
+
+# ONNX & Pricing Service Metrics
+ONNX_INFERENCE_LATENCY = Histogram('onnx_inference_latency_ms', 'Latency of ONNX inference in milliseconds')
+PRICING_SERVICE_DURATION = Histogram('pricing_service_duration_seconds', 'Time spent in PricingService methods', ['method'])
+ML_PROXY_PREDICT_LATENCY = Histogram('ml_proxy_predict_latency_seconds', 'Latency of ML model predictions via proxy')
 
 def push_metrics(job_name: str):
     """Pushes all metrics from the global REGISTRY to the Prometheus Pushgateway."""

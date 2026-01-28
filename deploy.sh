@@ -179,6 +179,10 @@ generate_secrets() {
             log "Generated secure value for $secret"
         fi
     done
+
+    # Harden permissions for the .env file
+    chmod 600 "$ENV_FILE"
+    success "Permissions hardened for $ENV_FILE"
 }
 
 validate_environment() {
@@ -192,7 +196,7 @@ validate_environment() {
 
 optimize_kernel() {
     section "Phase 2.1: System Optimization"
-    log "Applying kernel optimizations for high-concurrency workloads..."
+    log "Applying kernel optimizations for high-concurrency workloads (C100k ready)..."
     
     # Check if we are running as root or have sudo
     if [[ $EUID -ne 0 ]] && ! sudo -v &> /dev/null; then
@@ -207,6 +211,11 @@ optimize_kernel() {
         "net.ipv4.ip_local_port_range=1024 65535"
         "net.ipv4.tcp_tw_reuse=1"
         "net.ipv4.tcp_fin_timeout=15"
+        "net.core.rmem_max=16777216"
+        "net.core.wmem_max=16777216"
+        "net.ipv4.tcp_rmem=4096 87380 16777216"
+        "net.ipv4.tcp_wmem=4096 65536 16777216"
+        "net.ipv4.tcp_fastopen=3"
     )
 
     for param in "${sysctl_params[@]}"; do
@@ -220,7 +229,7 @@ optimize_kernel() {
         fi
     done
     
-    success "Kernel optimizations applied"
+    success "Kernel optimized for high-throughput and low-latency"
 }
 
 wait_for_postgres() {
@@ -282,7 +291,10 @@ create_backup() {
     local backup_file="${BACKUP_DIR}/backup_${timestamp}.tar.gz"
     
     # Backup config files
-    tar -czf "$backup_file" "$ENV_FILE" "$COMPOSE_FILE" 2>/dev/null || true
+    tar -czf "$backup_file" -C "$SCRIPT_DIR" .env docker-compose.prod.yml 2>/dev/null || true
+    
+    # Harden backup permissions
+    chmod 600 "$backup_file"
     
     # Create a symlink to the latest backup for easy rollback
     ln -sf "$backup_file" "${BACKUP_DIR}/last_good_state.tar.gz"
@@ -307,7 +319,7 @@ rollback() {
     local latest_backup
     latest_backup=$(readlink -f "${BACKUP_DIR}/last_good_state.tar.gz")
     log "Restoring configuration from $latest_backup"
-    tar -xzf "$latest_backup" -C /
+    tar -xzf "$latest_backup" -C "$SCRIPT_DIR"
     
     # Optional: Restore database if a corresponding SQL file exists
     # This logic would need to match the timestamps

@@ -30,10 +30,13 @@ class PriceTFTModel:
         """
         Prepares data for TFT training/validation.
         """
+        data = data.copy()
+        if "price" not in data.columns and "close" in data.columns:
+            data["price"] = data["close"]
+
         if "symbol" not in data.columns or "price" not in data.columns:
             raise KeyError("Missing required columns 'symbol' or 'price'")
 
-        data = data.copy()
         if "time_idx" not in data.columns:
             data["time_idx"] = np.arange(len(data))
         
@@ -85,10 +88,28 @@ class PriceTFTModel:
             gradient_clip_val=0.1,
         )
 
-    async def train(self, data: pd.DataFrame):
+    async def train(self, data: pd.DataFrame, **kwargs):
         """
         Implement TFT model training.
         """
+        # Security: Only allow specific parameters and enforce upper bounds
+        allowed_params = {
+            "max_epochs": (1, 100),
+            "batch_size": (1, 512),
+            "hidden_size": (4, 128),
+            "dropout": (0.0, 0.5)
+        }
+        
+        for key, (min_val, max_val) in allowed_params.items():
+            if key in kwargs:
+                val = kwargs[key]
+                if not isinstance(val, (int, float)) or not (min_val <= val <= max_val):
+                    logger.warning("invalid_param_ignoring", key=key, value=val)
+                    kwargs.pop(key)
+
+        # Update config with validated kwargs
+        self.config.update(kwargs)
+        
         processed = self.prepare_data(data)
         train_loader = processed["train_loader"]
         
@@ -110,12 +131,17 @@ class PriceTFTModel:
             
             return self.model
 
-    def predict(self, data: Any):
+    def predict(self, data: pd.DataFrame):
         """
         Perform forecasting using the trained TFT model.
         """
         if not self.model:
             return None
+            
+        data = data.copy()
+        if "price" not in data.columns and "close" in data.columns:
+            data["price"] = data["close"]
+            
         return self.model.predict(data)
 
     def get_interpretability_report(self) -> Dict[str, Any]:

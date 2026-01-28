@@ -16,6 +16,7 @@ from src.api.exceptions import BaseAPIException
 from contextlib import asynccontextmanager
 from src.utils.lazy_import import get_import_stats, preload_modules
 import asyncio
+from src.config import settings
 
 # Initialize logging
 logger = structlog.get_logger()
@@ -28,8 +29,18 @@ async def lifespan(app: FastAPI):
     # Preload critical modules during startup to reduce first-request latency.
     from src.ml import preload_critical_modules as ml_preload
     from src.pricing import preload_classical_pricers as pricing_preload
+    from src.utils.cache import warm_cache
+    
     ml_preload()
     pricing_preload()
+    
+    # Pre-warm cache with common scenarios
+    try:
+        await warm_cache()
+        logger.info("cache_warming_complete")
+    except Exception as e:
+        logger.warning(f"cache_warming_failed: {e}")
+
     stats = get_import_stats()
     logger.info(
         "preload_complete",
@@ -73,12 +84,10 @@ metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
 def get_context(request: Request):
-    if os.environ.get("TESTING") == "true":
-        return {}  # Return empty context for tests
     return {"request": request}
 
 # Enable GraphQL IDE only in debug or testing environments
-ENABLE_IDE = os.environ.get("DEBUG", "false").lower() == "true" or os.environ.get("TESTING") == "true"
+ENABLE_IDE = os.environ.get("DEBUG", "false").lower() == "true"
 
 # Apply Zero Trust security dependencies:
 # Centralized policy management ensures consistent security across all endpoints.
@@ -122,9 +131,12 @@ async def admin_only():
     """Endpoint accessible only by users with the 'admin' role."""
     return {"message": "Welcome, Admin"}
 
-@app.get("/api/diagnostics/imports")
+@app.get("/api/diagnostics/imports", dependencies=[Depends(RoleChecker(allowed_roles=["admin"]))])
 async def get_import_diagnostics():
-    """ Endpoint to inspect lazy import performance. Useful for debugging slow imports in production. """
+    """ Endpoint to inspect lazy import performance. Only available in non-prod. """
+    if settings.ENVIRONMENT == "prod":
+        raise HTTPException(status_code=404, detail="Endpoint not available in production")
+        
     stats = get_import_stats()
     return {
         "successful_imports": stats['successful_imports'],

@@ -11,6 +11,7 @@ Comprehensive request/response logging with:
 """
 
 import json
+import orjson
 import logging
 import time
 import traceback
@@ -270,8 +271,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             if self._should_reduce_log(path) and log_level == logging.INFO:
                 pass
             else:
-                # Log as JSON
-                request_logger.log(log_level, json.dumps(log_entry))
+                # Log as JSON using optimized orjson
+                request_logger.log(log_level, orjson.dumps(log_entry).decode('utf-8'))
 
             # Persist to database if configured
             if self.persist_to_db and not self._should_reduce_log(path):
@@ -283,43 +284,44 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return cast(Response, response)
 
     async def _persist_log(self, log_entry: Dict[str, Any], request: Request) -> None:
-        """Persist log entry to database."""
-        # Import here to avoid circular imports
-        try:
-            from src.database import get_session
-            from src.database.models import RequestLog
-
-            session = get_session()
+        """Persist log entry to database using anyio.to_thread to avoid blocking."""
+        from anyio.to_thread import run_sync
+        
+        def _save():
             try:
-                # Convert query_params dict to string if needed
-                query_params_str = None
-                if log_entry.get("query_params"):
-                    query_params_str = json.dumps(log_entry["query_params"])
+                from src.database import get_session
+                from src.database.models import RequestLog
 
-                request_log = RequestLog(
-                    request_id=log_entry["request_id"],
-                    method=log_entry["method"],
-                    path=log_entry["path"][:500],  # Truncate if too long
-                    query_params=query_params_str,
-                    headers=log_entry.get("headers"),
-                    client_ip=log_entry["client_ip"],
-                    user_id=UUID(log_entry["user_id"]) if log_entry.get("user_id") else None,
-                    status_code=log_entry["status_code"],
-                    response_time_ms=log_entry["duration_ms"],
-                    error_message=log_entry.get("error", {}).get("message"),
-                )
-                session.add(request_log)
-                session.commit()
+                session = get_session()
+                try:
+                    # Convert query_params dict to string using orjson
+                    query_params_str = None
+                    if log_entry.get("query_params"):
+                        query_params_str = orjson.dumps(log_entry["query_params"]).decode('utf-8')
+
+                    request_log = RequestLog(
+                        request_id=log_entry["request_id"],
+                        method=log_entry["method"],
+                        path=log_entry["path"][:500],
+                        query_params=query_params_str,
+                        headers=log_entry.get("headers"),
+                        client_ip=log_entry["client_ip"],
+                        user_id=UUID(log_entry["user_id"]) if log_entry.get("user_id") else None,
+                        status_code=log_entry["status_code"],
+                        response_time_ms=log_entry["duration_ms"],
+                        error_message=log_entry.get("error", {}).get("message"),
+                    )
+                    session.add(request_log)
+                    session.commit()
+                except Exception as e:
+                    session.rollback()
+                    logger.error(f"Database persistence failed: {e}")
+                finally:
+                    session.close()
             except Exception as e:
-                session.rollback()
                 logger.error(f"Database persistence failed: {e}")
-            finally:
-                session.close()
-        except ImportError as e:
-            # RequestLog model not available
-            logger.warning(f"RequestLog model not available: {e}")
-        except Exception as e:
-            logger.error(f"Database persistence failed: {e}")
+
+        await run_sync(_save)
 
 
 class StructuredLogger:
@@ -351,26 +353,26 @@ class StructuredLogger:
 
     def debug(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "DEBUG", **kwargs)
-        self.logger.debug(json.dumps(entry))
+        self.logger.debug(orjson.dumps(entry).decode('utf-8'))
 
     def info(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "INFO", **kwargs)
-        self.logger.info(json.dumps(entry))
+        self.logger.info(orjson.dumps(entry).decode('utf-8'))
 
     def warning(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "WARNING", **kwargs)
-        self.logger.warning(json.dumps(entry))
+        self.logger.warning(orjson.dumps(entry).decode('utf-8'))
 
     def error(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(json.dumps(entry))
+        self.logger.error(orjson.dumps(entry).decode('utf-8'))
 
     def critical(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "CRITICAL", **kwargs)
-        self.logger.critical(json.dumps(entry))
+        self.logger.critical(orjson.dumps(entry).decode('utf-8'))
 
     def exception(self, message: str, exc_info=True, **kwargs):
         if exc_info:
             kwargs["traceback"] = traceback.format_exc()
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(json.dumps(entry))
+        self.logger.error(orjson.dumps(entry).decode('utf-8'))

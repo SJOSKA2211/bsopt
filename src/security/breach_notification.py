@@ -45,7 +45,7 @@ class BreachNotificationService:
             "nature": incident.nature_of_breach,
             "data_subjects": incident.approximate_number_data_subjects,
             "records_count": incident.approximate_number_records,
-            "categories": ", ".join(incident.data_categories_affected),
+            "categories": ", ".join(incident.data_categories_affected) if incident.data_categories_affected else "Unknown",
             "consequences": incident.likely_consequences,
             "measures": incident.measures_taken,
             "detected_at": incident.detected_at.isoformat(),

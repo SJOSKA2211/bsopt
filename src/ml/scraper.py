@@ -1,9 +1,11 @@
-import requests
+import httpx
 import pandas as pd
 import time
+import asyncio
 import structlog
 import re
 from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS
+from src.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 
@@ -28,10 +30,11 @@ class MarketDataScraper:
             return message
         return message.replace(self.api_key, "[REDACTED]")
 
-    def fetch_historical_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
-        """Fetch historical daily data for a given ticker and date range."""
+    async def fetch_historical_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
+        """Fetch historical daily data for a given ticker and date range asynchronously."""
         self._validate_inputs(ticker, start_date, end_date)
         last_response = None
+        client = HttpClientManager.get_client()
         
         # Alpha Vantage Implementation
         if self.provider == "alpha_vantage" or self.provider == "auto":
@@ -45,7 +48,7 @@ class MarketDataScraper:
             start_time = time.time()
             for attempt in range(self.max_retries + 1):
                 try:
-                    response = requests.get(self.base_url, params=params)
+                    response = await client.get(self.base_url, params=params)
                     last_response = response
                     if response.status_code == 200:
                         data = response.json()
@@ -83,7 +86,7 @@ class MarketDataScraper:
                         elif "Note" in data: # Rate limit
                             logger.warning("scrape_rate_limit", ticker=ticker, note=data["Note"])
                             if attempt < self.max_retries:
-                                time.sleep(0.1)
+                                await asyncio.sleep(0.1)
                                 continue
                             else:
                                 if self.provider == "auto":
@@ -99,7 +102,7 @@ class MarketDataScraper:
                         logger.warning("scrape_http_error", ticker=ticker, status_code=response.status_code, attempt=attempt)
                     
                     if attempt < self.max_retries:
-                        time.sleep(0.1)
+                        await asyncio.sleep(0.1)
                         continue
 
                 except Exception as e:
@@ -119,7 +122,7 @@ class MarketDataScraper:
             start_time = time.time()
             for attempt in range(self.max_retries + 1):
                 try:
-                    response = requests.get(url, params=params)
+                    response = await client.get(url, params=params)
                     last_response = response
                     if response.status_code == 200:
                         data = response.json()
@@ -140,16 +143,17 @@ class MarketDataScraper:
                         logger.warning("scrape_http_error", ticker=ticker, status_code=response.status_code, attempt=attempt)
                     
                     if attempt < self.max_retries:
-                        time.sleep(0.1)
+                        await asyncio.sleep(0.1)
                         continue
                     
-                except requests.RequestException as e:
+                except httpx.RequestError as e:
                     SCRAPE_ERRORS.labels(api="polygon", status_code="exception").inc()
                     logger.error("scrape_exception", ticker=ticker, error=self._redact_message(str(e)), attempt=attempt)
                     if attempt < self.max_retries:
-                        time.sleep(0.1)
+                        await asyncio.sleep(0.1)
                         continue
                     raise Exception(f"Failed to fetch data for {ticker} after {self.max_retries} retries.")
         
-        status = last_response.status_code if last_response else "No response"
-        raise Exception(f"Failed to fetch data for {ticker}. Status: {status}")
+        status_code = last_response.status_code if last_response else "No response"
+        raise Exception(f"Failed to fetch data for {ticker}. Status: {status_code}")
+

@@ -40,9 +40,9 @@ class AutonomousMLPipeline:
         
         self.performance_monitor = PerformanceDriftMonitor(window_size=5, threshold=0.05)
 
-    def run(self):
+    async def run(self):
         """
-        Executes the full pipeline.
+        Executes the full pipeline asynchronously.
         """
         logger.info("pipeline_started", ticker=self.ticker, framework=self.framework)
         
@@ -51,12 +51,12 @@ class AutonomousMLPipeline:
             # 1. Scrape Data
             # Note: Dates are hardcoded for demo, would be dynamic in production
             try:
-                df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+                df = await self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
             except Exception as e:
                 logger.warning("scrape_failed_retrying_mock", error=str(e), provider=self.scraper.provider)
                 # Fallback to mock/demo mode
                 self.scraper = MarketDataScraper(api_key="DEMO_KEY", provider="mock")
-                df = self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
+                df = await self.scraper.fetch_historical_data(self.ticker, "2023-01-01", "2023-12-31")
 
             logger.info("data_scraped", rows=len(df))
             
@@ -187,4 +187,4 @@ if __name__ == "__main__":
         "framework": os.getenv("FRAMEWORK", "xgboost")
     }
     pipeline = AutonomousMLPipeline(config)
-    pipeline.run()
+    asyncio.run(pipeline.run())

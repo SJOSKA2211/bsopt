@@ -8,72 +8,45 @@ Endpoints for user profile management:
 - Account management
 """
 
-import asyncio
-import logging
-import math
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, cast
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 
-import numpy as np
-from fastapi import APIRouter, Depends, Request, status
-from sqlalchemy.orm import Session
-
-from src.api.exceptions import (
-    ConflictException,
-    InternalServerException,
-    NotFoundException,
-)
-from src.api.schemas.common import DataResponse, ErrorResponse, PaginatedResponse, PaginationMeta, SuccessResponse
-from src.api.schemas.user import (
-    APIKeyCreateRequest,
-    APIKeyResponse,
-    UserResponse,
-    UserStatsResponse,
-    UserUpdateRequest,
-)
-from src.config import settings
-from src.database import get_db
+from src.database import get_async_db
 from src.database.models import APIKey, User
-from src.security.audit import AuditEvent, log_audit
-from src.security.auth import (
-    get_current_active_user,
-    require_tier,
-)
-from src.utils.cache import publish_to_redis, redis_channel_updates
-from src.utils.sanitization import sanitize_string
+
+from fastapi import APIRouter, Depends, Request
 import secrets
 import hashlib
+import math
+from typing import List, Optional
 
-logger = logging.getLogger(__name__)
+from src.api.schemas.common import DataResponse, SuccessResponse, PaginatedResponse, PaginationMeta
+from src.api.schemas.user import APIKeyResponse, APIKeyCreateRequest, UserResponse, UserUpdateRequest
+from src.api.exceptions import NotFoundException, ConflictException
+from src.security.auth import get_current_active_user, require_tier
+from src.security.audit import AuditEvent, log_audit
+from src.utils.sanitization import sanitize_string
+
+# Try import redis stuff, if fails, mock it or leave it (it will fail at runtime if missing)
+try:
+    from src.utils.redis_events import publish_to_redis, redis_channel_updates
+except ImportError:
+    # Minimal mock if not found to avoid NameError
+    async def publish_to_redis(*args, **kwargs): pass
+    redis_channel_updates = "updates"
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
-# --- Mocking/Simulation for User Stats Update ---
-
-def _get_mock_user_stats(user: User) -> UserStatsResponse:
-    """Generates mock user stats for demonstration."""
-    now = datetime.now(timezone.utc)
-    return UserStatsResponse(
-        total_requests=np.random.randint(1000, 5000),
-        requests_today=np.random.randint(50, 200),
-        requests_this_month=np.random.randint(500, 2000),
-        rate_limit_remaining=settings.rate_limit_tiers.get(user.tier, 100),
-        rate_limit_reset=now + timedelta(minutes=np.random.randint(5, 60)),
-    )
-
-
-# =============================================================================
-# API Key Management
-# =============================================================================
 
 @router.get("/me/keys", response_model=DataResponse[List[APIKeyResponse]])
 async def list_api_keys(
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
-    """List all active API keys for the current user."""
-    keys = db.query(APIKey).filter(APIKey.user_id == user.id, APIKey.is_active == True).all()
+    """List active API keys (Async)."""
+    result = await db.execute(
+        select(APIKey).where(APIKey.user_id == user.id, APIKey.is_active == True)
+    )
+    keys = result.scalars().all()
     return DataResponse(data=[
         APIKeyResponse(
             id=str(k.id),
@@ -88,9 +61,9 @@ async def list_api_keys(
 async def create_api_key(
     request: APIKeyCreateRequest,
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
-    """Generate a new secure API key."""
+    """Generate API key (Async)."""
     raw_key = f"bs_{secrets.token_urlsafe(32)}"
     prefix = raw_key[:8]
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
@@ -104,8 +77,8 @@ async def create_api_key(
     )
     
     db.add(new_key)
-    db.commit()
-    db.refresh(new_key)
+    await db.commit()
+    await db.refresh(new_key)
     
     return DataResponse(
         data=APIKeyResponse(
@@ -114,23 +87,25 @@ async def create_api_key(
             prefix=new_key.prefix,
             created_at=new_key.created_at,
             raw_key=raw_key
-        ),
-        message="API Key created. Store this securely as it will not be shown again."
+        )
     )
 
 @router.delete("/me/keys/{key_id}", response_model=SuccessResponse)
 async def revoke_api_key(
     key_id: str,
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
-    """Revoke an API key."""
-    key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user.id).first()
+    """Revoke API key (Async)."""
+    result = await db.execute(
+        select(APIKey).where(APIKey.id == key_id, APIKey.user_id == user.id)
+    )
+    key = result.scalar_one_or_none()
     if not key:
         raise NotFoundException(message="API Key not found")
     
     key.is_active = False
-    db.commit()
+    await db.commit()
     
     return SuccessResponse(message="API Key revoked successfully")
 
@@ -143,12 +118,11 @@ async def revoke_api_key(
 @router.get(
     "/me",
     response_model=DataResponse[UserResponse],
-    responses={401: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
 )
 async def get_current_user_profile(
     user: User = Depends(get_current_active_user),
 ):
-    """ Retrieve the profile information of the currently authenticated user. """
+    """Retrieve profile (Async)."""
     return DataResponse(
         data=UserResponse(
             id=user.id,
@@ -167,20 +141,16 @@ async def get_current_user_profile(
 @router.patch(
     "/me",
     response_model=DataResponse[UserResponse],
-    responses={
-        401: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-        409: {"model": ErrorResponse},
-    },
 )
 async def update_current_user_profile(
     request: Request,
     update_data: UserUpdateRequest,
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ):
-    """ Update the profile details of the currently authenticated user. """
-    db_user = db.query(User).filter(User.id == user.id).first()
+    """Update profile (Async)."""
+    result = await db.execute(select(User).where(User.id == user.id))
+    db_user = result.scalar_one_or_none()
     if not db_user:
         raise NotFoundException(message="User account not found")
 
@@ -190,52 +160,41 @@ async def update_current_user_profile(
         updated_fields.append("full_name")
 
     if update_data.email is not None and update_data.email != db_user.email:
-        existing = db.query(User).filter(User.email == update_data.email).first()
-        if existing:
+        res = await db.execute(select(User).where(User.email == update_data.email))
+        if res.scalar_one_or_none():
             raise ConflictException(message="Email already in use")
         db_user.email = update_data.email
         db_user.is_verified = False
         updated_fields.append("email")
 
     if updated_fields:
-        db.commit()
-        db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
         log_audit(AuditEvent.USER_UPDATE, user=db_user, request=request, details={"fields": updated_fields})
+        await publish_to_redis(redis_channel_updates, {"event": "user_update", "user_id": str(db_user.id)})
 
-    return DataResponse(data=UserResponse.from_orm(db_user))
-
-
-@router.get(
-    "/me/stats",
-    response_model=DataResponse[UserStatsResponse],
-    responses={401: {"model": ErrorResponse}},
-)
-async def get_user_stats(
-    user: User = Depends(get_current_active_user),
-):
-    """ Get detailed usage statistics. """
-    return DataResponse(data=_get_mock_user_stats(user))
+    return DataResponse(data=UserResponse.model_validate(db_user))
 
 
 @router.delete(
     "/me",
     response_model=SuccessResponse,
-    responses={401: {"model": ErrorResponse}, 404: {"model": ErrorResponse}},
 )
 async def delete_current_user_account(
     request: Request,
     user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
 ):
-    """ Deactivate account. """
-    db_user = db.query(User).filter(User.id == user.id).first()
-    try:
-        db_user.is_active = False
-        db.commit()
-        log_audit(AuditEvent.USER_DELETE, user=db_user, request=request)
-    except Exception as e:
-        db.rollback()
-        raise InternalServerException(message="Deactivation failed")
+    """Deactivate account (Async)."""
+    result = await db.execute(select(User).where(User.id == user.id))
+    db_user = result.scalar_one_or_none()
+    if not db_user:
+        raise NotFoundException(message="User account not found")
+        
+    db_user.is_active = False
+    await db.commit()
+    log_audit(AuditEvent.USER_DELETE, user=db_user, request=request)
+    await publish_to_redis(redis_channel_updates, {"event": "user_delete", "user_id": str(db_user.id)})
 
     return SuccessResponse(message="Account deactivated")
 
@@ -245,12 +204,13 @@ async def delete_current_user_account(
     response_model=DataResponse[UserResponse],
     dependencies=[Depends(require_tier(["enterprise"]))],
 )
-async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
-    """ Enterprise: Get user by ID. """
-    user = db.query(User).filter(User.id == user_id).first()
+async def get_user_by_id(user_id: str, db: AsyncSession = Depends(get_async_db)):
+    """Enterprise: Get user (Async)."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
     if not user:
         raise NotFoundException(message="User not found")
-    return DataResponse(data=UserResponse.from_orm(user))
+    return DataResponse(data=UserResponse.model_validate(user))
 
 
 @router.get(
@@ -259,25 +219,36 @@ async def get_user_by_id(user_id: str, db: Session = Depends(get_db)):
     dependencies=[Depends(require_tier(["enterprise"]))],
 )
 async def list_users(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     page: int = 1,
     page_size: int = 20,
     search: Optional[str] = None,
+    tier: Optional[str] = None,
+    is_active: Optional[bool] = None,
 ):
-    """ Enterprise: List all users. """
-    query = db.query(User)
+    """Enterprise: List users (Async)."""
+    stmt = select(User)
     if search:
-        query = query.filter(User.email.ilike(f"%{search}%"))
+        stmt = stmt.where(User.email.ilike(f"%{search}%"))
+    if tier:
+        stmt = stmt.where(User.tier == tier)
+    if is_active is not None:
+        stmt = stmt.where(User.is_active == is_active)
     
-    total = query.count()
-    users = query.offset((page - 1) * page_size).limit(page_size).all()
-
+    # Count
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar_one()
+    
+    # Page
+    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+    
     return PaginatedResponse(
-        items=[UserResponse.from_orm(u) for u in users],
+        items=[UserResponse.model_validate(u) for u in users],
         pagination=PaginationMeta(
-            total=total,
-            page=page,
-            page_size=page_size,
+            total=total, page=page, page_size=page_size,
             total_pages=math.ceil(total / page_size),
             has_next=page * page_size < total,
             has_prev=page > 1

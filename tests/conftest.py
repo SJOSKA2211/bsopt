@@ -4,6 +4,7 @@ import sys
 from unittest.mock import MagicMock, AsyncMock, patch
 from _pytest.monkeypatch import MonkeyPatch # Import MonkeyPatch class
 import uuid
+import re
 from jose import JWTError
 from src.database.models import User, APIKey
 from datetime import datetime, timezone
@@ -11,13 +12,18 @@ import numpy as np
 import importlib
 from fastapi.testclient import TestClient
 
+# Shared stores for mocked database state
+_users_by_email = {}
+_users_by_id = {}
+_api_keys_by_hash = {}
+
 # A global store for mocked JWT payloads
 _mock_jwt_payload_store = {}
 
 
-# ============================================================================
+# ============================================================================ 
 # Pytest Configuration Hook
-# ============================================================================
+# ============================================================================ 
 
 
 def pytest_configure(config):
@@ -33,6 +39,7 @@ def pytest_configure(config):
 
     # Create a MonkeyPatch instance for early patching
     mpatch = MonkeyPatch()
+    os.environ["TESTING"] = "true"
 
     # Create a mock settings object early and patch src.config.Settings
     mock_settings = MagicMock()
@@ -47,6 +54,7 @@ def pytest_configure(config):
     mock_settings.JWT_PUBLIC_KEY_PATH = ""
     mock_settings.JWT_PRIVATE_KEY = "test-secret-key"
     mock_settings.JWT_PUBLIC_KEY = "test-secret-key"
+    mock_settings.JWT_SECRET = "test-secret-for-hmac"
     mock_settings.JWT_ALGORITHM = "HS256"
     mock_settings.REDIS_HOST = "localhost"
     mock_settings.REDIS_PORT = 6379
@@ -62,6 +70,9 @@ def pytest_configure(config):
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
     mock_settings.ML_TRAINING_TEST_SIZE = 0.2
     mock_settings.ML_TRAINING_RANDOM_STATE = 42
+    mock_settings.ML_TRAINING_PROMOTE_THRESHOLD_R2 = 0.9
+    mock_settings.DPA_EMAIL = "dpa@example.com"
+    mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
 
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))
     mpatch.setattr("src.config.get_settings", MagicMock(return_value=mock_settings))
@@ -75,6 +86,60 @@ def pytest_configure(config):
     mpatch.setattr("src.database.get_engine", MagicMock(return_value=mock_db_engine))
     mpatch.setattr("src.database._SessionLocal", MagicMock())
     mpatch.setattr("src.database._initialize_db_components", MagicMock())
+    
+    # Mock async db
+    async def mock_get_async_db():
+        mock_session = AsyncMock()
+        
+        # Helper to simulate SQLAlchemy result
+        class MockResult:
+            def __init__(self, val): self.val = val
+            def scalar_one_or_none(self): return self.val
+            def scalar(self): return self.val
+            def scalars(self):
+                m = MagicMock()
+                m.unique.return_value.all.return_value = [self.val] if self.val else []
+                m.all.return_value = [self.val] if self.val else []
+                m.first.return_value = self.val
+                return m
+
+        async def mock_execute(query, *args, **kwargs):
+            query_str = str(query)
+            
+            # Simple extraction for common test cases
+            if "FROM \"user\"" in query_str or "FROM users" in query_str:
+                # Try to find by looking at _users_by_email
+                # Very loose matching for tests
+                user = None
+                if "_users_by_email" in globals() and _users_by_email:
+                    # In tests like test_login, it's usually the only user
+                    user = list(_users_by_email.values())[-1]
+                return MockResult(user)
+            return MockResult(None)
+
+        mock_session.execute = AsyncMock(side_effect=mock_execute)
+        mock_session.commit = AsyncMock()
+        mock_session.rollback = AsyncMock()
+        mock_session.close = AsyncMock()
+        
+        def sync_add(obj):
+            if isinstance(obj, User):
+                if not obj.id: obj.id = uuid.uuid4()
+                obj.is_verified = True # Auto-verify for tests
+                if obj.is_mfa_enabled is None: obj.is_mfa_enabled = False
+                if not hasattr(obj, 'created_at') or obj.created_at is None:
+                    obj.created_at = datetime.now(timezone.utc)
+                _users_by_email[obj.email] = obj
+                _users_by_id[str(obj.id)] = obj
+            elif isinstance(obj, APIKey):
+                if not obj.id: obj.id = uuid.uuid4()
+                _api_keys_by_hash[obj.key_hash] = obj
+        
+        mock_session.add = MagicMock(side_effect=sync_add)
+        
+        yield mock_session
+
+    mpatch.setattr("src.database.get_async_db", mock_get_async_db)
 
 
     # Mock Celery delay method globally
@@ -85,6 +150,22 @@ def pytest_configure(config):
 
     # Mock psycopg2
     mock_psycopg2 = MagicMock()
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    
+    # Configure mock_cursor to return expected values for common test queries
+    def mock_fetchone():
+        # If it's the EXISTS query, return True
+        return (True,)
+    
+    def mock_fetchall():
+        # If it's the columns query, return expected column names
+        return [("symbol",), ("market",), ("source_type",), ("close",)]
+        
+    mock_cursor.fetchone.side_effect = mock_fetchone
+    mock_cursor.fetchall.side_effect = mock_fetchall
+    mock_conn.cursor.return_value = mock_cursor
+    mock_psycopg2.connect.return_value = mock_conn
     sys.modules["psycopg2"] = mock_psycopg2
     
     # Mock confluent_kafka
@@ -111,6 +192,15 @@ def pytest_configure(config):
     mock_async_redis_mod.Redis = MagicMock() # Ensure it's a MagicMock
     mock_async_redis_mod.RedisError = MockRedisError
     sys.modules["redis.asyncio"] = mock_async_redis_mod
+
+
+@pytest.fixture(autouse=True)
+def reset_shared_stores():
+    """Clear the shared database stores before each test."""
+    _users_by_email.clear()
+    _users_by_id.clear()
+    _api_keys_by_hash.clear()
+    _mock_jwt_payload_store.clear()
 
 
 @pytest.fixture
@@ -151,8 +241,6 @@ def mock_redis_and_celery(monkeypatch):
     monkeypatch.setattr("src.utils.cache.get_redis", lambda: mock_redis)
 
     # JWT Mocking (should use the dummy keys from mock_settings)
-    _mock_jwt_payload_store = {} # Reset for each fixture call
-
     def mock_jose_jwt_encode(payload, key, algorithm, headers=None):
         # Generate a unique token string for each payload
         jti = payload.get("jti", str(uuid.uuid4()))
@@ -200,9 +288,6 @@ def mock_db_session():
     from src.database.models import User, APIKey
 
     mock_session = MagicMock()
-    users_by_email = {}
-    users_by_id = {}
-    api_keys_by_hash = {}
 
     class MockQuery:
         def __init__(self, model):
@@ -232,17 +317,17 @@ def mock_db_session():
 
         def first(self):
             if self.model == User:
-                user = users_by_email.get(self.filter_val)
+                user = _users_by_email.get(self.filter_val)
                 if not user:
-                    user = users_by_id.get(self.filter_val)
+                    user = _users_by_id.get(self.filter_val)
                 return user
             if self.model == APIKey:
-                return api_keys_by_hash.get(self.filter_val)
+                return _api_keys_by_hash.get(self.filter_val)
             return None
 
         def count(self):
             if self.model == User:
-                return len(users_by_email)
+                return len(_users_by_email)
             return 0
 
         def offset(self, n):
@@ -253,7 +338,7 @@ def mock_db_session():
 
         def all(self):
             if self.model == User:
-                return list(users_by_email.values())
+                return list(_users_by_email.values())
             return []
 
     def mock_query(model):
@@ -271,24 +356,21 @@ def mock_db_session():
             if obj.created_at is None:
                 from datetime import datetime, timezone
                 obj.created_at = datetime.now(timezone.utc)
-            users_by_email[obj.email] = obj
-            users_by_id[str(obj.id)] = obj
-            users_by_id[obj.id] = obj
+            _users_by_email[obj.email] = obj
+            _users_by_id[str(obj.id)] = obj
+            _users_by_id[obj.id] = obj
         elif isinstance(obj, APIKey):
             if not obj.id:
                 obj.id = uuid.uuid4()
-            api_keys_by_hash[obj.key_hash] = obj
+            _api_keys_by_hash[obj.key_hash] = obj
 
     mock_session.add = MagicMock(side_effect=mock_add)
     mock_session.commit = MagicMock()
     
     def mock_refresh(obj):
         if isinstance(obj, User):
-            # Simulate refresh by populating object from our mock store
-            # This assumes obj.id is already set by mock_add
-            if str(obj.id) in users_by_id: # Use str(obj.id) for dictionary key lookup
-                refreshed_user = users_by_id[str(obj.id)]
-                # Copy attributes from the stored mock user to the passed object
+            if str(obj.id) in _users_by_id:
+                refreshed_user = _users_by_id[str(obj.id)]
                 obj.email = refreshed_user.email
                 obj.hashed_password = refreshed_user.hashed_password
                 obj.full_name = refreshed_user.full_name
@@ -299,19 +381,18 @@ def mock_db_session():
                 obj.last_login = refreshed_user.last_login
                 obj.is_mfa_enabled = refreshed_user.is_mfa_enabled
                 obj.mfa_secret = refreshed_user.mfa_secret
-            elif obj.email in users_by_email: # Fallback to email if ID not found (e.g. initial add)
-                refreshed_user = users_by_email[obj.email]
+            elif obj.email in _users_by_email:
+                refreshed_user = _users_by_email[obj.email]
                 obj.id = refreshed_user.id
-                obj.hashed_password = refreshed_user.hashed_password # Ensure hashed password is set
-                # ... copy other relevant attributes ...
+                obj.hashed_password = refreshed_user.hashed_password
     mock_session.refresh = MagicMock(side_effect=mock_refresh)
 
     return mock_session
 
 
-# ============================================================================
+# ============================================================================ 
 # Numerical Tolerance Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture

@@ -12,7 +12,7 @@ def test_lazy_import_success():
     cache_module = MockModule()
     import_map = {"test_attr": "os.path"}
     
-    with patch("src.utils.lazy_import.import_module") as mock_import:
+    with patch("importlib.import_module") as mock_import:
         mock_mod = MagicMock()
         mock_mod.test_attr = "val"
         mock_import.return_value = mock_mod
@@ -48,7 +48,7 @@ def test_lazy_import_failure_caching():
     cache_module = MockModule()
     import_map = {"fail": "nonexistent"}
     
-    with patch("src.utils.lazy_import.import_module", side_effect=ImportError("No module")):
+    with patch("importlib.import_module", side_effect=ImportError("No module")):
         with pytest.raises(LazyImportError):
             lazy_import("src", import_map, "fail", cache_module)
             
@@ -72,7 +72,7 @@ def test_preload_modules():
     cache_module = MockModule()
     import_map = {"path": "os", "version": "sys"}
     
-    with patch("src.utils.lazy_import.import_module") as mock_import:
+    with patch("importlib.import_module") as mock_import:
         mock_import.side_effect = [sys.modules['os'], sys.modules['sys']]
         preload_modules("src", import_map, ["path", "version"], cache_module_override=cache_module)
         assert hasattr(cache_module, "path")
@@ -86,7 +86,7 @@ def test_lazy_import_double_check():
     import_map = {"test_attr": "os.path"}
     
     # should return existing without importing
-    with patch("src.utils.lazy_import.import_module") as mock_import:
+    with patch("importlib.import_module") as mock_import:
         res = lazy_import("src", import_map, "test_attr", cache_module)
         assert res == "existing"
         mock_import.assert_not_called()
@@ -106,7 +106,7 @@ def test_lazy_import_relative():
     cache_module = MockModule()
     import_map = {"sub": ".submodule"}
     
-    with patch("src.utils.lazy_import.import_module") as mock_import:
+    with patch("importlib.import_module") as mock_import:
         mock_mod = MagicMock()
         mock_mod.sub = "val"
         mock_import.return_value = mock_mod
@@ -116,12 +116,12 @@ def test_lazy_import_relative():
         assert res == "val"
         mock_import.assert_called_with(".submodule", package="package")
 
-def test_preload_modules_failure():
+def test_preload_modules_failure_again():
     reset_import_stats()
     cache_module = MockModule()
     import_map = {"fail": "nonexistent"}
     
-    with patch("src.utils.lazy_import.import_module", side_effect=Exception("Fail")):
+    with patch("importlib.import_module", side_effect=Exception("Fail")):
         # Should catch exception and log warning, not raise
         preload_modules("src", import_map, ["fail"], cache_module_override=cache_module)
         # Verify it didn't crash
@@ -133,7 +133,7 @@ def test_lazy_import_already_loaded():
     import_map = {"existing": "os"}
     
     # Should return existing value without importing
-    with patch("src.utils.lazy_import.import_module") as mock_import:
+    with patch("importlib.import_module") as mock_import:
         res = lazy_import("src", import_map, "existing", cache_module)
         assert res == "value"
         mock_import.assert_not_called()

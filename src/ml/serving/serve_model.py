@@ -1,8 +1,9 @@
 import logging
 import os
-
+import subprocess
 import click
 import mlflow
+import uvicorn
 
 logger = logging.getLogger(__name__)
 
@@ -14,69 +15,44 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
 @click.option(
     "--model-name",
     required=True,
-    help='Registered MLflow model name (e.g., "XGBoost_Pricing_Enterprise")',
+    help='Registered MLflow model name',
 )
 @click.option(
-    "--model-version", type=str, default="latest", help='Model version (e.g., "1" or "latest")'
+    "--model-version", type=str, default="latest", help='Model version'
 )
-@click.option("--port", type=int, default=5001, help="Port to serve the model on")
-@click.option("--host", type=str, default="127.0.0.1", help="Host to bind the serving process to")
-@click.option("--workers", type=int, default=1, help="Number of worker processes")
-def serve_model(model_name: str, model_version: str, port: int, host: str, workers: int):
+@click.option("--port", type=int, default=5001, help="Port to serve on")
+@click.option("--host", type=str, default="127.0.0.1", help="Host to bind to")
+@click.option("--backend", type=click.Choice(['onnx', 'mlflow']), default='onnx', help="Serving backend")
+@click.option("--onnx-path", type=str, help="Path to ONNX model file (required for onnx backend)")
+def serve_model(model_name: str, model_version: str, port: int, host: str, backend: str, onnx_path: str):
     """
-    Serves a registered MLflow model using `mlflow models serve`.
+    Serves a model using either high-performance ONNX Runtime or standard MLflow.
     """
     logger.info(
-        f"Attempting to serve model '{model_name}' version '{model_version}' on {host}:{port}"
+        f"Starting model server: model={model_name}, version={model_version}, backend={backend}"
     )
 
-    # Construct the model URI
-    model_uri = f"models:/{model_name}/{model_version}"
+    if backend == 'onnx':
+        if not onnx_path:
+            # Try to infer path or download from MLflow
+            logger.info("Attempting to locate ONNX artifact from MLflow...")
+            onnx_path = f"models/{model_name}.onnx"
+            if not os.path.exists(onnx_path):
+                logger.error("ONNX model file not found. Please provide --onnx-path.")
+                return
 
-    try:
-        # Use subprocess to run the mlflow models serve command
-        # This allows us to control the serving process outside of Python's main process
+        os.environ["ONNX_MODEL_PATH"] = onnx_path
+        logger.info(f"Launching high-performance ONNX server on {host}:{port}")
+        uvicorn.run("src.ml.serving.onnx_serving:app", host=host, port=port, log_level="info")
+    
+    else:
+        # Legacy MLflow subprocess serving
+        model_uri = f"models:/{model_name}/{model_version}"
         command = [
-            "mlflow",
-            "models",
-            "serve",
-            "-m",
-            model_uri,
-            "-p",
-            str(port),
-            "-h",
-            host,
-            "--workers",
-            str(workers),
+            "mlflow", "models", "serve", "-m", model_uri, "-p", str(port), "-h", host
         ]
-
-        # Log the command being executed for debugging
-        logger.info(f"Executing serving command: {' '.join(command)}")
-
-        # Start the serving process. It will block until terminated.
-        # For a production scenario, you might want to run this in a detached process
-        # or use a process manager (e.g., Gunicorn, systemd)
-        import subprocess
-
-        process = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
-        )
-
-        # Print output in real-time
-        if process.stdout:
-            for line in process.stdout:
-                print(line, end="")
-
-        process.wait()  # Wait for the process to terminate
-
-        if process.returncode != 0:
-            logger.error(f"Model serving process exited with non-zero code: {process.returncode}")
-            raise Exception("Model serving failed.")
-
-    except FileNotFoundError:
-        logger.error("MLflow CLI not found. Make sure MLflow is installed and in your PATH.")
-    except Exception as e:
-        logger.error(f"An unexpected error occurred during model serving: {e}")
+        logger.info(f"Executing legacy MLflow command: {' '.join(command)}")
+        subprocess.run(command)
 
 
 if __name__ == "__main__":

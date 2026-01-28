@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import torch
 from src.ml.rl.augmented_agent import SentimentExtractor, AugmentedRLAgent
 from unittest.mock import patch, MagicMock
 
@@ -45,9 +46,9 @@ def test_sentiment_extractor_runtime_failure():
 def test_augmented_rl_agent_observation():
     agent = AugmentedRLAgent(price_state_dim=5, sentiment_state_dim=1)
     price_state = np.array([100.0, 101.0, 99.0, 102.0, 105.0])
-    sentiment_state = np.array([0.8])
+    sentiment_score = 0.8
     
-    observation = agent.get_augmented_observation(price_state, sentiment_state)
+    observation = agent.get_augmented_observation(price_state, sentiment_score)
     assert observation.shape == (6,)
     assert observation[-1] == 0.8
     assert np.array_equal(observation[:5], price_state)
@@ -56,9 +57,9 @@ def test_augmented_rl_agent_observation_padding():
     agent = AugmentedRLAgent(price_state_dim=5, sentiment_state_dim=1)
     # Testing truncation if input is too long
     price_state = np.array([1, 2, 3, 4, 5, 6, 7])
-    sentiment_state = np.array([0.8, 0.9])
+    sentiment_score = 0.8
     
-    observation = agent.get_augmented_observation(price_state, sentiment_state)
+    observation = agent.get_augmented_observation(price_state, sentiment_score)
     assert observation.shape == (6,)
     assert observation[:5].tolist() == [1, 2, 3, 4, 5]
     assert observation[5] == 0.8

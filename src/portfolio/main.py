@@ -12,8 +12,6 @@ app.middleware("http")(logging_middleware)
 
 # Apply Zero Trust security dependencies
 security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "portfolio"))]
-if os.environ.get("TESTING") == "true":
-    security_deps = []
 
 graphql_app = GraphQLRouter(schema)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)

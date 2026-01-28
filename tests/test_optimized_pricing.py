@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 
 from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
-from src.pricing.vectorized_black_scholes import VectorizedBlackScholesEngine
+from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 
 
 class TestOptimizedPricing(unittest.TestCase):

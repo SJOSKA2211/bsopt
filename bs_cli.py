@@ -57,13 +57,7 @@ from rich.syntax import Syntax
 from rich import box
 
 # Import pricing engines
-from src.pricing.black_scholes import (
-    BlackScholesEngine,
-    BSParameters,
-    OptionGreeks
-)
-from src.pricing.finite_difference import CrankNicolsonSolver
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig
+from src.pricing.models import BSParameters, OptionGreeks
 from src.config import settings
 
 # Rich console for formatted output
@@ -98,6 +92,50 @@ def cli(ctx):
 
 
 # ============================================================================
+# Helpers
+# ============================================================================
+
+async def _compare_all_methods_async(params: BSParameters, option_type: str,
+                                 compute_greeks: bool) -> dict:
+    """Compare all available pricing methods using PricingService."""
+    from src.services.pricing_service import PricingService
+    service = PricingService()
+    methods = ['bs', 'fdm', 'mc']
+    results = {}
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        console=console
+    ) as progress:
+
+        task = progress.add_task("[cyan]Computing prices...", total=len(methods))
+
+        for method in methods:
+            try:
+                # Use PricingService for consistent logic and caching
+                result = await service.price_option(params, option_type, method)
+                
+                if compute_greeks and method == 'bs':
+                    greeks_dict = await service.calculate_greeks(params, option_type)
+                    result['greeks'] = greeks_dict
+
+                results[method] = result
+                progress.advance(task)
+            except Exception as e:
+                logger.error("cli_comparison_failed", method=method, error=str(e))
+                results[method] = {
+                    'error': "Pricing failed.",
+                    'method': method
+                }
+                progress.advance(task)
+
+    return results
+
+
+# ============================================================================
 # Command: price - Price a single option
 # ============================================================================
 
@@ -119,18 +157,6 @@ def price(spot: float, strike: float, maturity: float, volatility: float,
           show_greeks: bool, json_output: bool):
     """
     Price a single option using specified method.
-
-    Supports multiple pricing methods:
-    - bs: Black-Scholes analytical formula (fastest)
-    - fdm: Finite Difference Method (Crank-Nicolson)
-    - mc: Monte Carlo simulation
-    - binomial: Binomial tree (not yet implemented)
-    - all: Compare all methods
-
-    Examples:
-        bsopt price --spot 100 --strike 100 --maturity 1.0 --volatility 0.2 --rate 0.05
-        bsopt price --spot 100 --strike 105 --maturity 0.5 --volatility 0.25 --rate 0.03 --option-type put
-        bsopt price --spot 100 --strike 100 --maturity 1.0 --volatility 0.2 --rate 0.05 --method all --show-greeks
     """
     try:
         # Create BS parameters
@@ -142,6 +168,20 @@ def price(spot: float, strike: float, maturity: float, volatility: float,
             rate=rate,
             dividend=dividend
         )
+
+        from src.services.pricing_service import PricingService
+        import asyncio
+        service = PricingService()
+
+        async def _run_pricing():
+            if method == 'all':
+                return await _compare_all_methods_async(params, option_type, show_greeks)
+            else:
+                result = await service.price_option(params, option_type, method)
+                if show_greeks:
+                    greeks = await service.calculate_greeks(params, option_type)
+                    result['greeks'] = greeks
+                return result
 
         if not json_output:
             console.print(f"\n[bold cyan]Option Pricing Request[/bold cyan]")
@@ -164,38 +204,19 @@ def price(spot: float, strike: float, maturity: float, volatility: float,
             console.print(param_table)
             console.print()
 
-        results = {}
+        # Run async pricing
+        results = asyncio.run(_run_pricing())
 
-        if method == 'all':
-            # Compare all methods
-            results = _compare_all_methods(params, option_type, show_greeks)
-
-            if json_output:
-                console.print_json(data=results)
-            else:
-                _display_comparison_table(results)
-
+        if json_output:
+            console.print_json(data=results)
+        elif method == 'all':
+            _display_comparison_table(results)
         else:
-            # Single method pricing
-            result = _price_single_method(params, option_type, method, show_greeks)
+            _display_single_price(results, method)
 
-            if json_output:
-                console.print_json(data=result)
-            else:
-                _display_single_price(result, method)
-
-    except ValueError as e:
-        logger.error(f"Validation error in price command: {e}", exc_info=True)
-        console.print(f"[bold red]Error:[/bold red] Invalid input for pricing. Please check your parameters.")
-        if settings.DEBUG:
-            console.print(f"[bold red]Details:[/bold red] {str(e)}")
-        sys.exit(1)
     except Exception as e:
-        logger.exception(f"Unexpected error in price command: {e}") # This logs the traceback automatically
-        console.print(f"[bold red]An unexpected error occurred during pricing.[/bold red]")
-        if settings.DEBUG:
-            console.print(f"[bold red]Details:[/bold red] {str(e)}")
-            raise # Re-raise only if in debug mode
+        logger.exception("price_command_failed", error=str(e))
+        console.print(f"[bold red]Error:[/bold red] {str(e)}")
         sys.exit(1)
 
 
@@ -729,9 +750,10 @@ def train_model(algorithm: str, data: str, output: str, test_split: float):
     console.print()
 
     try:
-        # Load data
+        # Load data with sanitized path
+        safe_data_path = sanitize_path(Path.cwd(), data)
         with console.status("[bold green]Loading training data..."):
-            df = pd.read_csv(data)
+            df = pd.read_csv(safe_data_path)
             console.print(f"[green]Loaded {len(df)} training samples[/green]\n")
 
         # Training simulation
