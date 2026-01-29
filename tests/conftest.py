@@ -112,6 +112,15 @@ def pytest_configure(config):
     mock_async_redis_mod.RedisError = MockRedisError
     sys.modules["redis.asyncio"] = mock_async_redis_mod
 
+    # Mock numba to avoid build issues in Python 3.12
+    mock_numba = MagicMock()
+    mock_numba.jit = lambda *args, **kwargs: lambda f: f
+    mock_numba.njit = lambda *args, **kwargs: lambda f: f
+    mock_numba.float64 = MagicMock()
+    mock_numba.int32 = MagicMock()
+    mock_numba.int64 = MagicMock()
+    sys.modules["numba"] = mock_numba
+
 
 @pytest.fixture
 def mock_redis_and_celery(monkeypatch):

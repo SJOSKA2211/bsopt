@@ -602,6 +602,12 @@ async def setup_mfa(
     Begin Multi-Factor Authentication setup. 
     Returns a secret and a QR code URI for use with authenticator apps.
     """
+    # Check if MFA is already enabled
+    if user.is_mfa_enabled:
+        raise PermissionDeniedException(
+            message="Multi-Factor Authentication is already enabled for this account. You must disable it first.",
+        )
+
     # Generate secret
     secret = pyotp.random_base32()
 

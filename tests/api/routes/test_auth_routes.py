@@ -540,3 +540,25 @@ def test_verify_mfa_code_helper():
             mock_db = MagicMock()
             assert _verify_mfa_code(mock_user, "code", db=mock_db) is True
             assert mock_user.mfa_backup_codes == "" # consumed
+
+
+def test_mfa_setup_already_enabled(mock_auth_service, mock_db):
+    """
+    Test that a user who already has MFA enabled CANNOT overwrite their MFA secret
+    by calling /mfa/setup again.
+    """
+    mock_user = MagicMock(spec=User)
+    mock_user.id = uuid.uuid4()
+    mock_user.email = "attacker@ex.com"
+    mock_user.is_active = True
+    mock_user.is_mfa_enabled = True
+
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+
+    response = client.post("/api/v1/auth/mfa/setup")
+
+    assert response.status_code == 403
+    assert "already enabled" in response.json()["message"]
+    assert "disable it first" in response.json()["message"]
+
+    app.dependency_overrides.pop(get_current_active_user, None)
