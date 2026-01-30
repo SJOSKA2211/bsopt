@@ -12,7 +12,7 @@ from typing import cast
 import numpy as np
 
 from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.quant_utils import corrado_miller_initial_guess
+from src.pricing.quant_utils import corrado_miller_initial_guess, vectorized_newton_raphson_iv_jit
 
 
 class ImpliedVolatilityError(Exception):
@@ -213,63 +213,27 @@ def vectorized_implied_volatility(
     """
     State-of-the-art vectorized IV calculation.
     """
-    n = len(market_prices)
-
-    # 1. Convert types to int for CM guess (0=call, 1=put)
-    type_ints = np.array([0 if t.lower() == "call" else 1 for t in option_types])
+    # 1. Convert types to bool for JIT (True=call, False=put)
+    is_call = np.array([str(t).lower() == "call" for t in option_types], dtype=bool)
+    type_ints = np.where(is_call, 0, 1)
 
     # 2. Corrado-Miller Initial Guess
     sigma = corrado_miller_initial_guess(
         market_prices, spots, strikes, maturities, rates, dividends, type_ints
     )
 
-    active = np.ones(n, dtype=bool)
+    # 3. Optimized JIT Newton-Raphson
+    sigma = vectorized_newton_raphson_iv_jit(
+        market_prices,
+        spots,
+        strikes,
+        maturities,
+        rates,
+        dividends,
+        is_call,
+        sigma,
+        tolerance,
+        max_iterations
+    )
 
-    for _ in range(max_iterations):
-        if not np.any(active):
-            break
-
-        # Price and Greeks for currently active ones
-        # For simplicity in indexing, we compute for all but update only active
-        results = BlackScholesEngine.calculate_greeks_batch(
-            spot=spots,
-            strike=strikes,
-            maturity=maturities,
-            volatility=sigma,
-            rate=rates,
-            dividend=dividends,
-            option_type=option_types,
-        )
-        prices = BlackScholesEngine.price_options(
-            spot=spots,
-            strike=strikes,
-            maturity=maturities,
-            volatility=sigma,
-            rate=rates,
-            dividend=dividends,
-            option_type=option_types,
-        )
-
-        vegas = cast(np.ndarray, results["vega"]) * 100.0  # Standard vega
-        diff = prices - market_prices
-
-        # Convergence check
-        converged = np.abs(diff) < tolerance
-        active &= ~converged
-
-        if not np.any(active):
-            break
-
-        # Newton-Raphson update: sigma = sigma - f(sigma)/f'(sigma)
-        # Handle small vegas to avoid division by zero
-        v_safe = np.where(vegas < 1e-9, 1e-9, vegas)
-        delta = diff / v_safe
-
-        # Adaptive step size (damping)
-        sigma[active] -= np.clip(delta[active], -0.2, 0.2)
-
-        # Bounds
-        sigma = np.clip(sigma, 1e-5, 5.0)
-
-    sigma[active] = np.nan
     return cast(np.ndarray, sigma)

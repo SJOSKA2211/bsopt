@@ -50,45 +50,34 @@ class MarketDataConsumer:
     ):
         """
         Consume messages in batches and process with async callback.
+        Uses bulk fetching via consume() for maximum throughput.
         """
         self.running = True
-        batch = []
         try:
             while self.running:
-                # Poll for messages
-                # Smaller timeout for better responsiveness to stop signal
-                msg = self.consumer.poll(timeout=0.1)
+                # Bulk fetch messages for better performance than polling individually
+                msgs = self.consumer.consume(num_messages=self.batch_size, timeout=0.1)
                 
-                await asyncio.sleep(0) # Yield to other tasks
-                
-                if not self.running:
-                    break
-                    
-                if msg is None:
-                    if batch:
-                        await self._process_batch(batch, callback)
-                        batch = []
+                if not msgs:
+                    await asyncio.sleep(0.01) # Yield
                     continue
-                    
-                if msg.error():
-                    if msg.error().code() == KafkaError._PARTITION_EOF:
-                        logger.info("kafka_partition_eof", partition=msg.partition())
-                    else:
+                
+                batch = []
+                for msg in msgs:
+                    if msg.error():
+                        if msg.error().code() == KafkaError._PARTITION_EOF:
+                            continue
                         logger.error("kafka_consumer_error", error=str(msg.error()))
-                    continue
+                        continue
 
-                # Deserialize message
-                try:
-                    data = self.avro_deserializer(msg.value(), None)
-                    batch.append(data)
-                    
-                    # Process batch when full
-                    if len(batch) >= self.batch_size:
-                        await self._process_batch(batch, callback)
-                        batch = []
-                except Exception as e:
-                    logger.error("deserialization_error", error=str(e))
-                    # In production, send to DLQ here
+                    try:
+                        data = self.avro_deserializer(msg.value(), None)
+                        batch.append(data)
+                    except Exception as e:
+                        logger.error("deserialization_error", error=str(e))
+
+                if batch:
+                    await self._process_batch(batch, callback)
                     
         finally:
             self.stop()

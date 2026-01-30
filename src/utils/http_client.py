@@ -12,8 +12,16 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+import httpx
+import asyncio
+from typing import Optional
+import structlog
+
+logger = structlog.get_logger(__name__)
+
 class HttpClientManager:
     _client: Optional[httpx.AsyncClient] = None
+    _semaphore: Optional[asyncio.Semaphore] = None
 
     @classmethod
     def get_client(cls) -> httpx.AsyncClient:
@@ -25,12 +33,19 @@ class HttpClientManager:
             cls._client = httpx.AsyncClient(
                 timeout=10.0,
                 limits=httpx.Limits(
-                    max_connections=100, 
-                    max_keepalive_connections=20,
+                    max_connections=150, 
+                    max_keepalive_connections=50,
                     keepalive_expiry=30.0
                 )
             )
         return cls._client
+
+    @classmethod
+    def get_semaphore(cls, limit: int = 20) -> asyncio.Semaphore:
+        """Get or create a concurrency semaphore."""
+        if cls._semaphore is None:
+            cls._semaphore = asyncio.Semaphore(limit)
+        return cls._semaphore
 
     @classmethod
     async def close(cls):

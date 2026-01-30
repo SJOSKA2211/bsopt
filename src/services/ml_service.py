@@ -63,9 +63,10 @@ class MLService:
 
     def _handle_error_response(self, response: httpx.Response):
         """Standardized error handling for ML service responses."""
+        import orjson
         error_data = {}
         try:
-            error_data = response.json()
+            error_data = orjson.loads(response.content)
         except Exception:
             pass
         

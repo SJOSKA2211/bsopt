@@ -43,10 +43,49 @@ class BaseTrainer:
 class XGBoostTrainer(BaseTrainer):
     def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
         dtrain = xgb.DMatrix(X_train, label=y_train)
+        dtest = xgb.DMatrix(X_test, label=y_test)
         xgb_params = params.copy()
         n_estimators = xgb_params.pop("n_estimators", 100)
         xgb_params.pop("framework", None)
-        return xgb.train(xgb_params, dtrain, num_boost_round=n_estimators)
+        
+        # Add early stopping for optimization
+        evallist = [(dtest, 'eval'), (dtrain, 'train')]
+        return xgb.train(
+            xgb_params, 
+            dtrain, 
+            num_boost_round=n_estimators,
+            evals=evallist,
+            early_stopping_rounds=10,
+            verbose_eval=False
+        )
+
+    def predict(self, model: Any, X: Any) -> Any:
+        dtest = xgb.DMatrix(X)
+        # Use best iteration from early stopping
+        y_pred_prob = model.predict(dtest, iteration_range=(0, model.best_iteration + 1))
+        return (y_pred_prob > 0.5).astype(int)
+
+    def log_model(self, model: Any, artifact_path: str):
+        mlflow.xgboost.log_model(model, artifact_path)
+
+    def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
+        importance = model.get_score(importance_type='weight')
+        # Map 'f0', 'f1'... to actual names if they are in that format
+        result = {}
+        for i, name in enumerate(feature_names):
+            key = f"f{i}"
+            if key in importance:
+                result[name] = float(importance[key])
+        return result
+
+from src.ml.utils.distributed import train_xgboost_distributed
+
+class DaskXGBoostTrainer(BaseTrainer):
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any]) -> Any:
+        xgb_params = params.copy()
+        xgb_params.pop("framework", None)
+        dask_address = xgb_params.pop("dask_address", None)
+        return train_xgboost_distributed(X_train, y_train, xgb_params, dask_address=dask_address)
 
     def predict(self, model: Any, X: Any) -> Any:
         dtest = xgb.DMatrix(X)
@@ -58,7 +97,6 @@ class XGBoostTrainer(BaseTrainer):
 
     def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
         importance = model.get_score(importance_type='weight')
-        # Map 'f0', 'f1'... to actual names if they are in that format
         result = {}
         for i, name in enumerate(feature_names):
             key = f"f{i}"
@@ -103,18 +141,39 @@ class PyTorchTrainer(BaseTrainer):
         
         X_train_t = torch.FloatTensor(X_train)
         y_train_t = torch.FloatTensor(y_train).view(-1, 1)
+        X_test_t = torch.FloatTensor(X_test)
+        y_test_t = torch.FloatTensor(y_test).view(-1, 1)
         
         model = self.SimpleNet(X_train.shape[1])
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCELoss()
         
-        model.train()
+        best_loss = float('inf')
+        patience = 5
+        trigger_times = 0
+        
         for epoch in range(epochs):
+            model.train()
             optimizer.zero_grad()
             outputs = model(X_train_t)
             loss = criterion(outputs, y_train_t)
             loss.backward()
             optimizer.step()
+            
+            # Simple Early Stopping
+            model.eval()
+            with torch.no_grad():
+                val_outputs = model(X_test_t)
+                val_loss = criterion(val_outputs, y_test_t)
+                if val_loss < best_loss:
+                    best_loss = val_loss
+                    trigger_times = 0
+                    # Save best model state if needed
+                else:
+                    trigger_times += 1
+                    if trigger_times >= patience:
+                        logger.info("early_stopping_triggered", epoch=epoch)
+                        break
         return model
 
     def predict(self, model: Any, X: Any) -> Any:
@@ -127,6 +186,8 @@ class PyTorchTrainer(BaseTrainer):
     def log_model(self, model: Any, artifact_path: str):
         mlflow.pytorch.log_model(model, artifact_path)
 
+from src.ml.serving.quantization import ModelQuantizer
+
 class InstrumentedTrainer:
     """
     Autonomous model trainer with hyperparameter optimization (Optuna),
@@ -138,13 +199,15 @@ class InstrumentedTrainer:
         self.storage = storage
         self.model = None
         self.best_params = {}
+        self.quantizer = ModelQuantizer()
         if tracking_uri:
             mlflow.set_tracking_uri(tracking_uri)
         
         self.trainers = {
             "xgboost": XGBoostTrainer(),
             "sklearn": SklearnTrainer(),
-            "pytorch": PyTorchTrainer()
+            "pytorch": PyTorchTrainer(),
+            "dask_xgboost": DaskXGBoostTrainer()
         }
 
     def push_metrics(self):
@@ -201,6 +264,11 @@ class InstrumentedTrainer:
                 mlflow.log_metric("duration", duration)
                 
                 # Log model and artifacts
+                if framework == "pytorch":
+                    # Apply quantization for optimized serving
+                    quantized_model = self.quantizer.quantize_dynamic(model)
+                    trainer.log_model(quantized_model, "model_quantized")
+                
                 trainer.log_model(model, "model")
                 
                 importance = trainer.get_feature_importance(model, feature_names)

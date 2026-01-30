@@ -1,8 +1,10 @@
 from confluent_kafka import Consumer, KafkaError
+from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroDeserializer
 import asyncio
-import ujson
+import orjson
 import structlog
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Optional
 import time
 from pydantic import BaseModel, ValidationError, TypeAdapter
 from datetime import datetime
@@ -22,11 +24,12 @@ class MarketDataConsumer:
     - Consumer group for load balancing
     - Automatic offset management
     - Bulk fetching via consume()
-    - ujson serialization
+    - Avro deserialization (matches producer)
     """
     def __init__(
         self,
         bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092",
+        schema_registry_url: str = "http://schema-registry:8081",
         group_id: str = "market-data-consumers",
         topics: List[str] = ["market-data"]
     ):
@@ -48,6 +51,15 @@ class MarketDataConsumer:
         self.consumer = Consumer(self.config)
         self.consumer.subscribe(topics)
         self.running = False
+
+        # Schema Registry for Avro deserialization
+        self.schema_registry = SchemaRegistryClient({'url': schema_registry_url})
+        with open("src/streaming/schemas/market_data.avsc", "r") as f:
+            self.market_data_schema = f.read()
+        self.avro_deserializer = AvroDeserializer(
+            self.schema_registry,
+            self.market_data_schema
+        )
 
     async def consume_messages(
         self,
@@ -78,11 +90,14 @@ class MarketDataConsumer:
 
                     # Optimized processing
                     try:
-                        raw_data = msg.value() # Bytes
-                        data = ujson.loads(raw_data)
-                        # Fast validation
-                        validated_data = market_data_adapter.validate_python(data)
-                        batch.append(validated_data.model_dump())
+                        # Deserialize with Avro
+                        data = self.avro_deserializer(msg.value(), None)
+                        
+                        # Fast validation (optional, Avro already validated against schema)
+                        # but keep it for Pydantic model conversion if needed
+                        # data = orjson.loads(raw_data) # REMOVED: using Avro
+                        
+                        batch.append(data)
                     except Exception as e:
                         logger.error("message_processing_error", error=str(e))
 

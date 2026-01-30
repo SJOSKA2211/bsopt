@@ -319,7 +319,16 @@ rollback() {
     local latest_backup
     latest_backup=$(readlink -f "${BACKUP_DIR}/last_good_state.tar.gz")
     log "Restoring configuration from $latest_backup"
-    tar -xzf "$latest_backup" -C "$SCRIPT_DIR"
+    local tmp_restore_dir="${SCRIPT_DIR}/tmp_restore_$(date +%s)"
+    mkdir -p "$tmp_restore_dir"
+    tar -xzf "$latest_backup" -C "$tmp_restore_dir"
+    
+    # Move only the specific files we want to restore
+    mv "${tmp_restore_dir}/.env" "$SCRIPT_DIR/"
+    mv "${tmp_restore_dir}/docker-compose.prod.yml" "$SCRIPT_DIR/"
+    
+    # Clean up the temporary directory
+    rm -rf "$tmp_restore_dir"
     
     # Optional: Restore database if a corresponding SQL file exists
     # This logic would need to match the timestamps

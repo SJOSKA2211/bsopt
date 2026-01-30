@@ -5,10 +5,19 @@ from typing import Dict, List
 from src.streaming.kafka_consumer import MarketDataConsumer
 from src.database import get_async_db_context
 from src.database.models import OptionPrice
-from src.shared.observability import tune_gc
+from src.shared.observability import tune_gc, setup_logging
 from datetime import datetime, timezone
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 
+# Optimized event loop
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
+setup_logging()
 logger = structlog.get_logger(__name__)
 tune_gc()
 
@@ -71,7 +80,10 @@ class IngestionWorker:
         self.consumer.stop()
 
 # FastAPI for monitoring the worker
-app = FastAPI(title="BS-Opt Ingestion Worker")
+app = FastAPI(
+    title="BS-Opt Ingestion Worker",
+    default_response_class=ORJSONResponse
+)
 worker = IngestionWorker()
 
 @app.on_event("startup")

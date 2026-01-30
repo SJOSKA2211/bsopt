@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Box, Typography, useTheme, Theme } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
+import type { Theme } from '@mui/material';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';

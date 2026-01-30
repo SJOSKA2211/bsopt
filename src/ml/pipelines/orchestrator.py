@@ -33,9 +33,33 @@ from src.config import settings
 from src.ml.architectures.neural_network import OptionPricingNN
 from src.ml.training.train import load_or_collect_data, run_hyperparameter_optimization
 
+import asyncio
+import orjson
+import structlog
+import os
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional, cast, List
+
+import click
+import mlflow
+import mlflow.data
+import mlflow.pytorch
+import mlflow.xgboost
+from mlflow.tracking import MlflowClient 
+import torch
+import xgboost as xgb
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from anyio.to_thread import run_sync
+
+from src.config import settings
+from src.ml.architectures.neural_network import OptionPricingNN
+from src.ml.training.train import load_or_collect_data, run_hyperparameter_optimization
+
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Constants
 TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "file://" + os.path.abspath("mlruns"))
@@ -46,7 +70,7 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 class MLOrchestrator:
     """
-    Unified orchestrator for all ML workflows.
+    Unified orchestrator for all ML workflows with async awareness.
     """
 
     def __init__(self):
@@ -54,7 +78,6 @@ class MLOrchestrator:
         os.makedirs("mlruns", exist_ok=True)
 
     def _get_experiment_name(self, model_type: str) -> str:
-        # Use a more stable experiment name, adding date as a tag to runs
         return f"{PROJECT_NAME}/{model_type.upper()}_Training"
 
     async def run_training_pipeline(
@@ -62,37 +85,39 @@ class MLOrchestrator:
         model_type: str = "xgboost",
         use_real_data: bool = False,
         n_samples: int = 10000,
-        test_size: float = settings.ML_TRAINING_TEST_SIZE, # Use setting
-        random_state: int = settings.ML_TRAINING_RANDOM_STATE, # Use setting
+        test_size: float = settings.ML_TRAINING_TEST_SIZE,
+        random_state: int = settings.ML_TRAINING_RANDOM_STATE,
         xgb_params: Optional[Dict[str, Any]] = None,
         nn_params: Optional[Dict[str, Any]] = None,
-        promotion_threshold_r2: float = settings.ML_TRAINING_PROMOTE_THRESHOLD_R2, # Use setting
+        promotion_threshold_r2: float = settings.ML_TRAINING_PROMOTE_THRESHOLD_R2,
         promote_to_production: bool = False,
     ) -> Dict[str, Any]:
         """
-        Execute a full training and evaluation pipeline.
+        Execute a full training and evaluation pipeline asynchronously.
         """
         exp_name = self._get_experiment_name(model_type)
         mlflow.set_experiment(exp_name)
         
-        # MLflow client for model registry operations
         client = MlflowClient()
 
         # 1. Data Preparation
         X, y, features, metadata = await load_or_collect_data(use_real_data, n_samples)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        
+        # Offload scikit-learn split to thread
+        X_train, X_test, y_train, y_test = await run_sync(
+            train_test_split, X, y, test_size=test_size, random_state=random_state
+        )
 
         scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        X_train_scaled = await run_sync(scaler.fit_transform, X_train)
+        X_test_scaled = await run_sync(scaler.transform, X_test)
 
         # 2. Training
         with mlflow.start_run(run_name=f"{model_type}_training"):
             mlflow.set_tag("data_source", metadata.get("data_source", "unknown"))
             mlflow.set_tag("model_type", model_type)
-            mlflow.set_tag("run_date", datetime.now().strftime("%Y-%m-%d")) # Add run date as a tag
+            mlflow.set_tag("run_date", datetime.now().strftime("%Y-%m-%d"))
             
-            # Log training parameters
             mlflow.log_param("n_samples", n_samples)
             mlflow.log_param("test_size", test_size)
             mlflow.log_param("random_state", random_state)
@@ -105,18 +130,19 @@ class MLOrchestrator:
                     "learning_rate": 0.1,
                     "n_estimators": 100,
                     "n_jobs": -1,
-                    "objective": "reg:squarederror", # Explicitly set objective
+                    "objective": "reg:squarederror",
                 }
                 mlflow.log_params(train_params)
                 model = xgb.XGBRegressor(**train_params)
-                model.fit(X_train_scaled, y_train)
-                # No need for model._estimator_type = "regressor", MLflow should infer from XGBRegressor
-                model_info = mlflow.xgboost.log_model(model, "model", registered_model_name=registered_model_name)
+                
+                # Offload heavy XGBoost training to thread
+                await run_sync(model.fit, X_train_scaled, y_train)
+                mlflow.xgboost.log_model(model, "model", registered_model_name=registered_model_name)
 
             elif model_type == "nn":
                 nn_train_params = nn_params or {
-                    "lr": settings.ML_TRAINING_NN_LR, # Use setting
-                    "epochs": settings.ML_TRAINING_NN_EPOCHS, # Use setting
+                    "lr": settings.ML_TRAINING_NN_LR,
+                    "epochs": settings.ML_TRAINING_NN_EPOCHS,
                     "hidden_dims": [128, 64, 32],
                 }
                 mlflow.log_params(nn_train_params)
@@ -128,26 +154,33 @@ class MLOrchestrator:
 
                 model.train()
                 epochs = nn_train_params["epochs"]
-                for epoch in range(epochs):
-                    optimizer.zero_grad()
-                    output = model(torch.from_numpy(X_train_scaled).float()) # Use from_numpy
-                    loss = criterion(output, torch.from_numpy(y_train).float().view(-1, 1)) # Use from_numpy
-                    loss.backward()
-                    optimizer.step()
-                    mlflow.log_metric("loss", float(loss.item()), step=epoch)
-
-                model_info = mlflow.pytorch.log_model(model, "model", registered_model_name=registered_model_name)
+                
+                # Move PyTorch training to thread to avoid event loop stalls
+                def _train_loop():
+                    for epoch in range(epochs):
+                        optimizer.zero_grad()
+                        output = model(torch.from_numpy(X_train_scaled).float())
+                        loss = criterion(output, torch.from_numpy(y_train).float().view(-1, 1))
+                        loss.backward()
+                        optimizer.step()
+                        mlflow.log_metric("loss", float(loss.item()), step=epoch)
+                
+                await run_sync(_train_loop)
+                mlflow.pytorch.log_model(model, "model", registered_model_name=registered_model_name)
 
             else:
                 raise ValueError(f"Unsupported model type: {model_type}")
 
             # 3. Evaluation
             if model_type == "xgboost":
-                y_pred = model.predict(X_test_scaled)
+                y_pred = await run_sync(model.predict, X_test_scaled)
             else:
                 model.eval()
                 with torch.no_grad():
-                    y_pred = model(torch.from_numpy(X_test_scaled).float()).numpy().flatten() # Use from_numpy
+                    # Evaluate in thread
+                    def _eval():
+                        return model(torch.from_numpy(X_test_scaled).float()).numpy().flatten()
+                    y_pred = await run_sync(_eval)
 
             r2 = r2_score(y_test, y_pred)
             mse = mean_squared_error(y_test, y_pred)
@@ -166,14 +199,8 @@ class MLOrchestrator:
 
             # 4. Model Promotion
             if promote_to_production and r2 > promotion_threshold_r2:
-                logger.info(f"Model {registered_model_name} (Run ID: {result['run_id']}) "
-                            f"achieved R2 of {r2:.4f}, which is above threshold {promotion_threshold_r2:.4f}.")
-                # Get the latest version of the registered model
-                latest_versions = client.search_model_versions(f"name='{registered_model_name}'")
-                latest_version = max([int(mv.version) for mv in latest_versions]) if latest_versions else 1
+                logger.info("model_promotion_triggered", name=registered_model_name, r2=r2, threshold=promotion_threshold_r2)
                 
-                # Transition new model version to Production stage
-                # Need to find the ModelVersion object corresponding to the current run
                 if active_run:
                     model_versions = client.search_model_versions(f"run_id='{run_id}'")
                     if model_versions:
@@ -183,13 +210,12 @@ class MLOrchestrator:
                             version=current_model_version,
                             stage="Production"
                         )
-                        logger.info(f"Model '{registered_model_name}' version {current_model_version} "
-                                    f"transitioned to Production stage.")
+                        logger.info("model_promoted_to_production", name=registered_model_name, version=current_model_version)
                         mlflow.set_tag("model_stage", "Production")
                     else:
-                        logger.warning(f"Could not find model version for run {run_id} to promote.")
+                        logger.warning("model_version_not_found_for_promotion", run_id=run_id)
                 else:
-                    logger.warning("No active MLflow run found for promotion.")
+                    logger.warning("no_active_run_for_promotion")
 
             return result
 
@@ -212,7 +238,7 @@ def train(model, samples, real_data):
             model_type=model, use_real_data=real_data, n_samples=samples
         )
     )
-    click.echo(f"Training completed: {json.dumps(result, indent=2)}")
+    click.echo(f"Training completed: {orjson.dumps(result, option=orjson.OPT_INDENT_2).decode('utf-8')}")
 
 
 @cli.command()
@@ -223,7 +249,7 @@ def optimize(samples, trials):
     result = asyncio.run(run_hyperparameter_optimization(
         use_real_data=False, n_samples=samples, n_trials=trials
     ))
-    click.echo(f"Optimization completed: {json.dumps(result, indent=2)}")
+    click.echo(f"Optimization completed: {orjson.dumps(result, option=orjson.OPT_INDENT_2).decode('utf-8')}")
 
 
 if __name__ == "__main__":

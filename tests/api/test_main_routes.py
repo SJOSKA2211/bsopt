@@ -54,7 +54,48 @@ async def test_graphql_context():
     os.environ["TESTING"] = "true"
     assert get_context(request) == {}
     
-    # Line 78
-    os.environ["TESTING"] = "false"
-    assert get_context(request) == {"request": request}
-    os.environ["TESTING"] = "true" # Reset
+        # Line 78
+    
+        os.environ["TESTING"] = "false"
+    
+        assert get_context(request) == {"request": request}
+    
+        os.environ["TESTING"] = "true" # Reset
+    
+    
+    
+    def test_response_time_header():
+    
+        with TestClient(app) as client:
+    
+            response = client.get("/")
+    
+            assert "X-Response-Time" in response.headers
+    
+            assert float(response.headers["X-Response-Time"]) >= 0
+    
+    
+    
+    def test_gzip_compression():
+    
+        # Create a large response by mocking an endpoint or using one that returns lots of data
+    
+        @app.get("/large-data")
+    
+        async def large_data():
+    
+            return {"data": "x" * 2000}
+    
+        
+    
+        with TestClient(app) as client:
+    
+            # Standard request should be compressed if 'Accept-Encoding' is set
+    
+            response = client.get("/large-data", headers={"Accept-Encoding": "gzip"})
+    
+            assert response.status_code == 200
+    
+            assert response.headers.get("Content-Encoding") == "gzip"
+    
+    

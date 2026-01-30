@@ -153,7 +153,7 @@ class OptionPrice(Base):
         CheckConstraint("option_type IN ('call', 'put')", name="check_option_type"),
         Index("idx_options_prices_symbol_time", "symbol", "time"),
         Index("idx_options_prices_expiry_time", "expiry", "time"),
-        Index("idx_options_prices_chain", "time", "symbol", "expiry", "option_type", "strike"),
+        Index("idx_options_prices_chain", "symbol", "expiry", "option_type", "strike", "time"),
     )
 
     @property

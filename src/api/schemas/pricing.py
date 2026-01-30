@@ -206,6 +206,22 @@ class GreeksResponse(BaseModel):
     )
 
 
+class BatchGreeksRequest(BaseModel):
+    """Batch Greeks calculation request."""
+
+    options: List[GreeksRequest] = Field(
+        ..., min_length=1, max_length=50, description="List of options for Greeks calculation"
+    )
+
+
+class BatchGreeksResponse(BaseModel):
+    """Batch Greeks calculation response."""
+
+    results: List[GreeksResponse] = Field(..., description="Greeks calculation results")
+    total_count: int = Field(..., description="Total options processed")
+    computation_time_ms: float = Field(..., description="Total computation time")
+
+
 class ImpliedVolatilityRequest(BaseModel):
     """Implied volatility calculation request."""
 

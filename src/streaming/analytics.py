@@ -1,12 +1,20 @@
 import structlog
 from faust import App
 import numpy as np
+import orjson
 
 logger = structlog.get_logger()
+
+class OrjsonSerializer:
+    def dumps(self, obj):
+        return orjson.dumps(obj)
+    def loads(self, s):
+        return orjson.loads(s)
 
 class VolatilityAggregationStream:
     """ Kafka Streams for real-time volatility calculation.
     Aggregates tick data into windowed volatility metrics.
+    Now optimized with orjson for ultra-high throughput.
     """
     def __init__(self,
         bootstrap_servers: str = 'kafka://kafka-1:9092'
@@ -15,7 +23,7 @@ class VolatilityAggregationStream:
         self.app = App(
             'volatility-aggregation',
             broker=bootstrap_servers,
-            value_serializer='json',
+            value_serializer=OrjsonSerializer(),
         )
 
         # Input stream

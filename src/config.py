@@ -134,7 +134,10 @@ class Settings(BaseSettings):
     ML_TRAINING_NN_LR: float = Field(default=0.001, description="Learning rate for Neural Network training")
 
     # Dask Configuration for Distributed ML Training
-    DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = Field(default=2, description="Number of threads per worker in local Dask cluster")
+    DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = Field(
+        default_factory=lambda: max(1, os.cpu_count() // 2 if os.cpu_count() else 2),
+        description="Number of threads per worker in local Dask cluster. Defaults to half of CPU count."
+    )
     DASK_ARRAY_DEFAULT_CHUNKS_FRACTION: int = Field(default=4, description="Fraction of data length to use for Dask array chunk size (e.g., 4 means len(X)//4)")
 
 

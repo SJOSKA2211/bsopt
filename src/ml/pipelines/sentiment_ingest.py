@@ -1,12 +1,12 @@
 import asyncio
-import json
-import logging
+import orjson
+import structlog
 from typing import Dict, Any, Optional
 
 from confluent_kafka import Consumer, Producer, KafkaError
 from src.ml.rl.augmented_agent import SentimentExtractor
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class SentimentIngestor:
     """
@@ -32,12 +32,12 @@ class SentimentIngestor:
 
     async def process_news_message(self, message_bytes: bytes) -> None:
         """
-        Process a single message payload.
+        Process a single message payload using optimized serialization.
         """
         try:
-            data = json.loads(message_bytes.decode('utf-8'))
-        except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
-            logger.error("Failed to decode message")
+            data = orjson.loads(message_bytes)
+        except Exception:
+            logger.error("failed_to_decode_message")
             return
 
         text = data.get("text", "")
@@ -59,15 +59,15 @@ class SentimentIngestor:
             self.producer.produce(
                 "model.signals",
                 key=data.get("symbol", "GLOBAL").encode('utf-8'),
-                value=json.dumps(result).encode('utf-8')
+                value=orjson.dumps(result)
             )
-            self.producer.flush()
+            self.producer.poll(0)
 
     def run(self):
         """
-        Main consumption loop.
+        Main high-performance consumption loop.
         """
-        logger.info("Starting Sentiment Ingestor loop...")
+        logger.info("sentiment_ingestor_loop_start")
         try:
             while True:
                 msg = self.consumer.poll(1.0)
@@ -75,20 +75,17 @@ class SentimentIngestor:
                     continue
                 if msg.error():
                     error = msg.error()
-                    # Handle both KafkaError objects and boolean/simple errors
-                    if hasattr(error, 'code'):
-                        if error.code() == KafkaError._PARTITION_EOF:
-                            continue
+                    if hasattr(error, 'code') and error.code() == KafkaError._PARTITION_EOF:
+                        continue
                     
-                    logger.error(f"Consumer error: {error}")
+                    logger.error("kafka_consumer_error", error=str(error))
                     continue
                 
                 # Process message
-                # We use asyncio.run to execute the async processing within the sync loop
                 asyncio.run(self.process_news_message(msg.value()))
 
         except Exception as e:
-            logger.error(f"Ingestor loop crashed: {e}")
+            logger.error("sentiment_ingestor_crashed", error=str(e))
             raise
         finally:
             self.consumer.close()

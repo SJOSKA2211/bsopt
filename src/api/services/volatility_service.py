@@ -1,17 +1,24 @@
+import structlog
 from typing import List, Optional
 from datetime import datetime
+import strawberry
 
+logger = structlog.get_logger(__name__)
 
-class VolatilityPoint:
-    def __init__(self, expiry: datetime, strike: float, implied_volatility: float):
-        self.expiry = expiry
-        self.strike = strike
-        self.implied_volatility = implied_volatility
+@strawberry.type
+class VolatilitySlice:
+    strike: float
+    implied_vol: float
 
-async def get_vol_surface(
-    underlying: str,
-    expiry_range: Optional[int] = 90
-) -> List[VolatilityPoint]:
-    """Dummy resolver for fetching implied volatility surface."""
-    print(f"Dummy get_vol_surface called for {underlying}, {expiry_range}")
-    return [VolatilityPoint(expiry=datetime.now(), strike=100.0, implied_volatility=0.25)]
+@strawberry.type
+class VolatilitySurface:
+    underlying: str
+    slices: List[VolatilitySlice]
+
+async def get_vol_surface(underlying: str, expiry_range: Optional[List[datetime]] = None) -> VolatilitySurface:
+    """Dummy resolver for volatility surface."""
+    logger.debug("dummy_vol_surface_fetch", underlying=underlying)
+    return VolatilitySurface(
+        underlying=underlying,
+        slices=[VolatilitySlice(strike=100.0, implied_vol=0.2)]
+    )

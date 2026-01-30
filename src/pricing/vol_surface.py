@@ -90,6 +90,47 @@ class MarketQuote:
     vega: Optional[Union[float, Decimal]] = None
 
 
+from numba import njit, prange
+
+@njit(cache=True, fastmath=True)
+def _svi_total_variance_jit(k, a, b, rho, m, sigma):
+    return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
+
+@njit(cache=True, fastmath=True)
+def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
+    f_v = float(forward)
+    k_v = strike
+    
+    one_minus_beta = 1.0 - beta
+    f_k_one_minus_beta = (f_v * k_v) ** (one_minus_beta / 2.0)
+    log_f_k = np.log(f_v / k_v)
+
+    z_v = (nu / alpha) * f_k_one_minus_beta * log_f_k
+    
+    # Handle ATM case
+    if abs(z_v) < 1e-8:
+        term2 = 1.0
+    else:
+        x_z = np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v * z_v) + z_v - rho) / (1.0 - rho))
+        term2 = z_v / x_z
+
+    term1 = alpha / (
+        f_k_one_minus_beta
+        * (1.0 + (one_minus_beta**2 / 24.0) * log_f_k**2 + (one_minus_beta**4 / 1920.0) * log_f_k**4)
+    )
+    
+    term3 = (
+        1.0
+        + (
+            (one_minus_beta**2 / 24.0) * alpha**2 / f_k_one_minus_beta**2
+            + (rho * beta * nu * alpha) / (4.0 * f_k_one_minus_beta)
+            + ((2.0 - 3.0 * rho**2) / 24.0) * nu**2
+        )
+        * maturity
+    )
+
+    return term1 * term2 * term3
+
 class SVIModel:
     """Stochastic Volatility Inspired (SVI) model."""
 
@@ -98,8 +139,14 @@ class SVIModel:
 
     def total_variance(self, k: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """Calculate total variance w(k). k is log-moneyness."""
-        p_v = self.params
-        return p_v.a + p_v.b * (p_v.rho * (k - p_v.m) + np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2))
+        p = self.params
+        if isinstance(k, np.ndarray):
+            # Apply JIT function over array
+            res = np.empty_like(k)
+            for i in range(len(k)):
+                res[i] = _svi_total_variance_jit(k[i], p.a, p.b, p.rho, p.m, p.sigma)
+            return res
+        return _svi_total_variance_jit(k, p.a, p.b, p.rho, p.m, p.sigma)
 
     def implied_volatility(
         self,
@@ -152,36 +199,21 @@ class SABRModel:
         if maturity <= 0:
             raise ValueError("Maturity must be positive")
 
-        p_v = self.params
+        p = self.params
         f_v = float(forward)
-        k_v = np.array(strike, dtype=float)
-
-        # ATM case (f == k)
-        one_minus_beta = 1 - p_v.beta
-        f_k_one_minus_beta = (f_v * k_v) ** (one_minus_beta / 2)
-        log_f_k = np.log(f_v / k_v)
-
-        z_v = (p_v.nu / p_v.alpha) * f_k_one_minus_beta * log_f_k
-        x_z = np.log((np.sqrt(1 - 2 * p_v.rho * z_v + z_v * z_v) + z_v - p_v.rho) / (1 - p_v.rho))
-
-        term1 = p_v.alpha / (
-            f_k_one_minus_beta
-            * (1 + (one_minus_beta**2 / 24) * log_f_k**2 + (one_minus_beta**4 / 1920) * log_f_k**4)
-        )
-        term2 = z_v / x_z
-        term3 = (
-            1
-            + (
-                (one_minus_beta**2 / 24) * p_v.alpha**2 / f_k_one_minus_beta**2
-                + (p_v.rho * p_v.beta * p_v.nu * p_v.alpha) / (4 * f_k_one_minus_beta)
-                + ((2 - 3 * p_v.rho**2) / 24) * p_v.nu**2
+        k_v = np.atleast_1d(np.array(strike, dtype=float))
+        
+        # Pre-allocate output
+        vols = np.empty_like(k_v)
+        
+        # Call JIT function
+        for i in range(len(k_v)):
+            vols[i] = _sabr_implied_vol_jit(
+                k_v[i], f_v, maturity, p.alpha, p.beta, p.rho, p.nu
             )
-            * maturity
-        )
 
-        # Handle ATM case where f == k, which results in z=0 and x_z=0
-        vols = np.where(np.abs(f_v - k_v) < 1e-8, term1, term1 * term2) * term3
-
+        if np.isscalar(strike):
+            return vols[0]
         return vols
 
 

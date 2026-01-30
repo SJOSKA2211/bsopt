@@ -316,19 +316,107 @@ def jit_cn_solver(
     return V
 
 @njit(cache=True, fastmath=True)
-def _laguerre_basis_jit(x: np.ndarray, degree: int) -> np.ndarray:
-    n = len(x)
-    basis = np.empty((n, degree + 1), dtype=np.float64)
-    basis[:, 0] = 1.0
-    if degree >= 1:
-        basis[:, 1] = x
-    if degree >= 2:
+def vectorized_newton_raphson_iv_jit(
+    market_prices: np.ndarray,
+    spots: np.ndarray,
+    strikes: np.ndarray,
+    maturities: np.ndarray,
+    rates: np.ndarray,
+    dividends: np.ndarray,
+    is_call: np.ndarray,
+    sigma: np.ndarray,
+    tolerance: float = 1e-8,
+    max_iterations: int = 100
+) -> np.ndarray:
+    """
+    Optimized Newton-Raphson loop for IV recovery.
+    Modifies sigma in-place.
+    """
+    n = len(market_prices)
+    active = np.ones(n, dtype=np.bool_)
+    inv_sqrt_2pi = 1.0 / 2.5066282746310005
+
+    for _ in range(max_iterations):
+        any_active = False
         for i in range(n):
-            basis[i, 2] = x[i]**2 - 1.0
-    if degree >= 3:
-        for i in range(n):
-            basis[i, 3] = x[i]**3 - 3.0 * x[i]
-    return basis
+            if not active[i]:
+                continue
+            
+            any_active = True
+            S, K, T, r, q = spots[i], strikes[i], maturities[i], rates[i], dividends[i]
+            sig = sigma[i]
+            
+            # BS Price & Vega calculation (inline for speed)
+            Ti = max(T, 1e-7)
+            sqrt_T = math.sqrt(Ti)
+            
+            # Avoid division by zero in d1
+            d1 = (math.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / (sig * sqrt_T)
+            d2 = d1 - sig * sqrt_T
+            
+            nd1 = 0.5 * (1.0 + math.erf(d1 / 1.4142135623730951))
+            nd2 = 0.5 * (1.0 + math.erf(d2 / 1.4142135623730951))
+            
+            exp_qt = math.exp(-q * Ti)
+            exp_rt = math.exp(-r * Ti)
+            
+            if is_call[i]:
+                price = S * exp_qt * nd1 - K * exp_rt * nd2
+            else:
+                price = K * exp_rt * (1.0 - nd2) - S * exp_qt * (1.0 - nd1)
+                
+            pdf_d1 = math.exp(-0.5 * d1**2) * inv_sqrt_2pi
+            vega = S * exp_qt * pdf_d1 * sqrt_T
+            
+            diff = price - market_prices[i]
+            
+            if abs(diff) < tolerance:
+                active[i] = False
+                continue
+                
+            # Newton step
+            v_safe = max(vega, 1e-12)
+            step = diff / v_safe
+            
+            # Damping to prevent divergence
+            sigma[i] -= max(-0.5, min(step, 0.5))
+            
+            # Bounds
+            if sigma[i] < 1e-4:
+                sigma[i] = 1e-4
+            elif sigma[i] > 5.0:
+                sigma[i] = 5.0
+                
+        if not any_active:
+            break
+            
+    return sigma
+
+@njit(cache=True, fastmath=True)
+def heston_char_func_jit(
+    u: complex, 
+    T: float, 
+    r: float, 
+    v0: float, 
+    kappa: float, 
+    theta: float, 
+    sigma: float, 
+    rho: float
+) -> complex:
+    """JIT-compiled Heston characteristic function."""
+    xi = kappa - sigma * rho * u * 1j
+    d = np.sqrt(xi**2 + sigma**2 * (u**2 + 1j * u))
+    g = (xi + d) / (xi - d)
+    
+    exp_dT = np.exp(d * T)
+    
+    # Stable formulation
+    A = (kappa * theta / sigma**2) * (
+        (xi + d) * T - 2.0 * np.log((1.0 - g * exp_dT) / (1.0 - g))
+    )
+    B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
+    
+    return np.exp(A + B)
 
 @njit(parallel=True, cache=True, fastmath=True)
 def jit_mc_european_price(
@@ -398,7 +486,7 @@ def jit_mc_european_price(
     return price, std_err
 
 @njit(parallel=True, cache=True, fastmath=True)
-def jit_mc_european_price(
+def jit_mc_european_with_control_variate(
     S0: float, 
     K: float, 
     T: float, 
@@ -410,84 +498,121 @@ def jit_mc_european_price(
     antithetic: bool
 ) -> Tuple[float, float]:
     """
-    JIT-optimized Monte Carlo for European options.
+    JIT-optimized Monte Carlo for European options using the underlying 
+    as a control variate (expectation of S_T is known).
     Returns (price, standard_error).
     """
     drift = (r - q - 0.5 * sigma**2) * T
     diffusion = sigma * math.sqrt(T)
     exp_rt = math.exp(-r * T)
     
-    sum_payoff = 0.0
-    sum_sq_payoff = 0.0
+    # Expected value of S_T = S_0 * exp((r-q)T)
+    expected_st = S0 * math.exp((r - q) * T)
     
-    actual_paths = n_paths
-    if antithetic:
-        loop_paths = n_paths // 2
-    else:
-        loop_paths = n_paths
+    sum_payoff = 0.0
+    sum_st = 0.0
+    sum_payoff_st = 0.0
+    sum_st_sq = 0.0
+    sum_payoff_sq = 0.0
+    
+    loop_paths = n_paths // 2 if antithetic else n_paths
 
     for i in prange(loop_paths):
         z = np.random.standard_normal()
         
         # Path 1
         st1 = S0 * math.exp(drift + diffusion * z)
-        if is_call:
-            payoff1 = max(st1 - K, 0.0)
-        else:
-            payoff1 = max(K - st1, 0.0)
-        
-        p1 = payoff1 * exp_rt
+        payoff1 = (max(st1 - K, 0.0) if is_call else max(K - st1, 0.0)) * exp_rt
         
         if antithetic:
-            # Path 2
             st2 = S0 * math.exp(drift - diffusion * z)
-            if is_call:
-                payoff2 = max(st2 - K, 0.0)
-            else:
-                payoff2 = max(K - st2, 0.0)
-            p2 = payoff2 * exp_rt
+            payoff2 = (max(st2 - K, 0.0) if is_call else max(K - st2, 0.0)) * exp_rt
             
-            avg_p = (p1 + p2) / 2.0
-            sum_payoff += avg_p * 2.0 # Total sum across all paths
-            sum_sq_payoff += p1**2 + p2**2
+            p_avg = (payoff1 + payoff2) / 2.0
+            s_avg = (st1 + st2) / 2.0
+            
+            sum_payoff += p_avg * 2.0
+            sum_st += s_avg * 2.0
+            sum_payoff_st += payoff1 * st1 + payoff2 * st2
+            sum_st_sq += st1**2 + st2**2
+            sum_payoff_sq += payoff1**2 + payoff2**2
         else:
-            sum_payoff += p1
-            sum_sq_payoff += p1**2
+            sum_payoff += payoff1
+            sum_st += st1
+            sum_payoff_st += payoff1 * st1
+            sum_st_sq += st1**2
+            sum_payoff_sq += payoff1**2
             
-    price = sum_payoff / n_paths
-    # Standard error calculation
-    variance = (sum_sq_payoff / n_paths) - price**2
-    std_err = math.sqrt(max(variance, 0.0) / n_paths)
+    # Calculate optimal beta = Cov(Payoff, S_T) / Var(S_T)
+    mu_p = sum_payoff / n_paths
+    mu_s = sum_st / n_paths
     
-    return price, std_err
+    cov_ps = (sum_payoff_st / n_paths) - (mu_p * mu_s)
+    var_s = (sum_st_sq / n_paths) - (mu_s**2)
+    
+    beta = cov_ps / max(var_s, 1e-12)
+    
+    # Control variate price: P_cv = P_mc - beta * (S_T_mean - E[S_T])
+    price_cv = mu_p - beta * (mu_s - expected_st)
+    
+    # Corrected variance
+    var_p = (sum_payoff_sq / n_paths) - (mu_p**2)
+    # R^2 = Cov(P, S)^2 / (Var(P) * Var(S))
+    # Var(P_cv) = Var(P) * (1 - R^2)
+    r2 = (cov_ps**2) / (max(var_p * var_s, 1e-12))
+    var_cv = var_p * (1.0 - min(r2, 0.999))
+    
+    std_err_cv = math.sqrt(max(var_cv, 0.0) / n_paths)
+    
+    return price_cv, std_err_cv
 
 @njit(cache=True, fastmath=True)
+def _laguerre_basis_jit(x: np.ndarray, degree: int) -> np.ndarray:
+    """
+    Generate Laguerre basis functions for LSM.
+    """
+    n = len(x)
+    basis = np.ones((n, degree + 1), dtype=np.float64)
+    if degree >= 1:
+        basis[:, 1] = 1.0 - x
+    if degree >= 2:
+        basis[:, 2] = 0.5 * (2.0 - 4.0 * x + x**2)
+    if degree >= 3:
+        basis[:, 3] = (1.0 / 6.0) * (6.0 - 18.0 * x + 9.0 * x**2 - x**3)
+    return basis
+
+@njit(parallel=True, cache=True, fastmath=True)
 def jit_lsm_american(
     S0: float, K: float, T: float, r: float, sigma: float, q: float, 
     n_paths: int, n_steps: int, is_call: bool
 ) -> float:
     """
-    JIT-compiled Longstaff-Schwartz algorithm with fastmath.
+    Highly optimized JIT-compiled Longstaff-Schwartz algorithm.
+    Parallelized path generation and vectorized regression logic.
     """
     dt = T / n_steps
     df = math.exp(-r * dt)
     
-    S = np.zeros((n_steps + 1, n_paths), dtype=np.float64)
+    S = np.empty((n_steps + 1, n_paths), dtype=np.float64)
     S[0, :] = S0
     
+    drift = (r - q - 0.5 * sigma**2) * dt
+    diffusion = sigma * math.sqrt(dt)
+
     for t in range(1, n_steps + 1):
         Z = np.random.standard_normal(n_paths)
-        for i in range(n_paths):
-            S[t, i] = S[t-1, i] * math.exp((r - q - 0.5 * sigma**2) * dt + sigma * math.sqrt(dt) * Z[i])
+        for i in prange(n_paths):
+            S[t, i] = S[t-1, i] * math.exp(drift + diffusion * Z[i])
             
-    value = np.zeros(n_paths, dtype=np.float64)
-    for i in range(n_paths):
+    value = np.empty(n_paths, dtype=np.float64)
+    for i in prange(n_paths):
         if is_call:
             value[i] = max(S[n_steps, i] - K, 0.0)
         else:
             value[i] = max(K - S[n_steps, i], 0.0)
             
     for t in range(n_steps - 1, 0, -1):
+        # Identify in-the-money paths
         itm_indices = []
         for i in range(n_paths):
             p = max(S[t, i] - K, 0.0) if is_call else max(K - S[t, i], 0.0)
@@ -502,21 +627,22 @@ def jit_lsm_american(
         X = S[t, itm]
         Y = value[itm] * df
         
+        # Regression
         basis = _laguerre_basis_jit(X / S0, 3)
-        coeffs = np.linalg.solve(basis.T @ basis, basis.T @ Y)
+        # Using lstsq for stability
+        coeffs = np.linalg.lstsq(basis, Y)[0]
         continuation_value = basis @ coeffs
         
-        current_payoff = np.zeros(n_paths, dtype=np.float64)
-        for i in itm:
-            current_payoff[i] = max(S[t, i] - K, 0.0) if is_call else max(K - S[t, i], 0.0)
-
+        # Early exercise decision
         for k in range(len(itm)):
             idx = itm[k]
-            if current_payoff[idx] > continuation_value[k]:
-                value[idx] = current_payoff[idx]
+            payoff = max(S[t, idx] - K, 0.0) if is_call else max(K - S[t, idx], 0.0)
+            if payoff > continuation_value[k]:
+                value[idx] = payoff
             else:
                 value[idx] *= df
         
+        # Discount out-of-the-money paths
         mask = np.ones(n_paths, dtype=np.bool_)
         mask[itm] = False
         value[mask] *= df

@@ -49,8 +49,7 @@ async def _verify_signature(secret: str, payload: str, timestamp: int, signature
 
 from src.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
 from src.utils.cache import get_redis
-
-# ... (HMAC functions remain)
+from src.utils.http_client import HttpClientManager
 
 class WebhookDispatcher:
     def __init__(self, celery_app: Any, circuit_breaker: Union[DistributedCircuitBreaker, InMemoryCircuitBreaker], dlq_task: Any):
@@ -58,24 +57,20 @@ class WebhookDispatcher:
         self.circuit_breaker = circuit_breaker
         self.dlq_task = dlq_task # Celery task to send to DLQ
 
-    async def _send_http_request(self, url: str, payload: Dict[str, Any], headers: Dict[str, str]) -> httpx.Response:
-        # Create a new client for each request to avoid RuntimeError "Cannot reopen a client instance"
-        async with httpx.AsyncClient() as client:
-            return await client.post(url, json=payload, headers=headers)
-
-    async def dispatch_webhook(self, url: str, payload: Dict[str, Any], headers: Dict[str, str], secret: str, retries: int = 0):
+    async def dispatch_webhook(self, url: str, payload: Dict[str, Any], headers: Dict[str, str], secret: str):
         # We wrap the internal dispatch logic with the circuit breaker
         @self.circuit_breaker
         async def _dispatch():
             # Automatically sign the payload if a secret is provided and signature header is missing
             if secret and "X-Webhook-Signature" not in headers:
-                import json
+                import orjson
                 # Use deterministic JSON serialization for consistent signatures
-                payload_str = json.dumps(payload, sort_keys=True)
+                payload_str = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS).decode('utf-8')
                 signature_header = await _generate_signature(secret, payload_str)
                 headers["X-Webhook-Signature"] = signature_header
 
-            response = await self._send_http_request(url, payload, headers)
+            client = HttpClientManager.get_client()
+            response = await client.post(url, json=payload, headers=headers)
             response.raise_for_status() # Raise an exception for 4xx/5xx responses
             logger.info("webhook_dispatch_success", url=url, status_code=response.status_code)
             return response
@@ -83,28 +78,12 @@ class WebhookDispatcher:
         try:
             await _dispatch()
         except Exception as e:
-            # Check if it was a circuit breaker rejection or a real failure
+            # Check if it was a circuit breaker rejection
             error_str = str(e)
             if "Circuit Breaker" in error_str and "OPEN" in error_str:
                 logger.warning("webhook_dispatch_skipped", url=url, reason="circuit_breaker_open")
-                await self.dlq_task.delay({
-                    "url": url, "payload": payload, "headers": headers, "secret": secret,
-                    "reason": "circuit_breaker_open"
-                })
-                return
-
-            logger.error("webhook_dispatch_failed", url=url, retries=retries, error=error_str)
+                raise # Re-raise to let Celery handle retry/DLQ
             
-            # Retry logic
-            if retries < 5:
-                retry_delay = 2 ** retries
-                logger.info("webhook_dispatch_retrying", url=url, retry_delay=retry_delay, retries=retries + 1)
-                await asyncio.sleep(retry_delay)
-                await self.dispatch_webhook(url, payload, headers, secret, retries + 1)
-            else:
-                logger.error("webhook_dispatch_failed_max_retries", url=url)
-                await self.dlq_task.delay({
-                    "url": url, "payload": payload, "headers": headers, "secret": secret,
-                    "reason": "max_retries_reached"
-                })
+            logger.error("webhook_dispatch_failed", url=url, error=error_str)
+            raise # Re-raise for Celery retry
 

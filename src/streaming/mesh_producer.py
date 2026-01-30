@@ -17,14 +17,22 @@ class MarketDataMeshProducer:
         bootstrap_servers: str = None,
         schema_registry_url: str = None
     ):
-        bootstrap_servers = bootstrap_servers or os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka-1:9092")
+        bootstrap_servers = bootstrap_servers or os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka-1:9092,kafka-2:9092,kafka-3:9092")
         schema_registry_url = schema_registry_url or os.environ.get("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 
         self.config = {
             'bootstrap.servers': bootstrap_servers,
             'client.id': 'market-data-mesh-producer',
+            # Performance tuning
             'compression.type': 'lz4',
+            'linger.ms': 20,
+            'batch.size': 65536,
+            'acks': 'all',
+            'max.in.flight.requests.per.connection': 5,
+            # Reliability
             'enable.idempotence': True,
+            'retries': 10,
+            'statistics.interval.ms': 60000,
         }
         self.producer = Producer(self.config)
 

@@ -29,7 +29,7 @@ export const CalibrationHealth: React.FC<CalibrationHealthProps> = ({ metrics })
       </Box>
 
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Box sx={{ mb: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2">RMSE (Error)</Typography>
@@ -43,21 +43,21 @@ export const CalibrationHealth: React.FC<CalibrationHealthProps> = ({ metrics })
           </Box>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Typography variant="caption" color="text.secondary">R-Squared</Typography>
           <Typography variant="body1" color={getStatusColor(metrics.r_squared, 0.95, true)}>
             {metrics.r_squared.toFixed(4)}
           </Typography>
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <Typography variant="caption" color="text.secondary">Feller Margin</Typography>
           <Typography variant="body1" color={metrics.feller_margin > 0 ? "success.main" : "error.main"}>
             {metrics.feller_margin.toFixed(4)}
           </Typography>
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'right', mt: 1 }}>
             Last Recalibration: {new Date(metrics.last_update).toLocaleTimeString()}
           </Typography>

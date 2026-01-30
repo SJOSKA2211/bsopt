@@ -7,7 +7,8 @@ import httpx # Import httpx for mocking responses
 
 # Import actual worker and dispatcher
 from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task, celery_app
-from src.webhooks.dispatcher import WebhookDispatcher, CircuitBreaker
+from src.webhooks.dispatcher import WebhookDispatcher
+from src.utils.circuit_breaker import CircuitBreaker
 
 @pytest.fixture
 def mock_dispatcher():

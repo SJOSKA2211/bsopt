@@ -6,6 +6,13 @@ import structlog
 from src.webhooks.dispatcher import WebhookDispatcher, CircuitBreaker
 import httpx # Required for WebhookDispatcher
 
+# Optimized event loop
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
 logger = structlog.get_logger()
 
 celery_app = Celery("webhook_worker", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"))
@@ -49,25 +56,31 @@ async def _process_webhook_core(task_self, webhook_data: dict):
     headers = webhook_data["headers"]
     secret = webhook_data["secret"]
     
-    
     try:
         await dispatcher.dispatch_webhook(
             url=url, 
             payload=payload, 
             headers=headers, 
-            secret=secret, 
-            retries=task_self.request.retries
+            secret=secret
         )
         logger.info("process_webhook_task_completed", url=url)
     except Exception as e:
-        logger.error("process_webhook_task_failed", url=url, error=str(e), retries=task_self.request.retries)
+        error_str = str(e)
+        if "Circuit Breaker" in error_str and "OPEN" in error_str:
+            # For circuit breaker, retry with a longer delay or send to DLQ
+            logger.warning("webhook_worker_circuit_breaker_open", url=url)
+            raise task_self.retry(exc=e, countdown=60) # Long delay
+            
+        logger.error("process_webhook_task_failed", url=url, error=error_str, retries=task_self.request.retries)
         try:
-            task_self.retry(exc=e)
-        except MaxRetriesExceededError: # Use the imported exception
+            # Use exponential backoff for retries
+            retry_delay = 2 ** task_self.request.retries
+            raise task_self.retry(exc=e, countdown=retry_delay)
+        except MaxRetriesExceededError:
             logger.error("process_webhook_task_max_retries", url=url)
-            send_to_dlq_task.delay(webhook_data, reason=f"celery_max_retries: {str(e)}")
+            send_to_dlq_task.delay(webhook_data, reason=f"celery_max_retries: {error_str}")
 
-@celery_app.task(bind=True, max_retries=5, default_retry_delay=1)
+@celery_app.task(bind=True, max_retries=5)
 def process_webhook_task(self, webhook_data: dict):
     asyncio.run(_process_webhook_core(self, webhook_data))
 

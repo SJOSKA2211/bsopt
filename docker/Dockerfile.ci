@@ -1,0 +1,31 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy all requirements
+COPY requirements-api.txt .
+COPY requirements-auth.txt .
+COPY requirements_cli.txt .
+
+RUN pip install --no-cache-dir -r requirements-api.txt \
+    && pip install --no-cache-dir -r requirements-auth.txt \
+    && pip install --no-cache-dir -r requirements_cli.txt \
+    && pip install --no-cache-dir pytest pytest-cov playwright structlog
+
+# Install playwright browsers for testing scrapers
+RUN playwright install chromium
+RUN playwright install-deps chromium
+
+# Copy the rest of the application
+COPY . .
+
+# Default command for CI is to run tests
+CMD ["pytest"]

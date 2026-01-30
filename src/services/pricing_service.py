@@ -7,7 +7,7 @@ import structlog
 import numpy as np
 from cachetools import TTLCache
 
-from src.api.schemas.pricing import PriceRequest, PriceResponse, BatchPriceResponse
+from src.api.schemas.pricing import PriceRequest, PriceResponse, BatchPriceResponse, GreeksResponse, BatchGreeksResponse
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
@@ -65,8 +65,9 @@ class PricingService:
         start_time = time.perf_counter()
         
         # 0. L1 Local Cache Check
-        # Using BSParameters as key via cache_key generator
-        l1_key = generate_cache_key(f"l1:{model}:{option_type}", **params.__dict__)
+        # Optimized: Use tuple key for L1 to avoid hashing overhead
+        l1_key = (model, option_type, params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend)
+        
         if l1_key in self._l1_cache:
             response = self._l1_cache[l1_key]
             # Update computation time to reflect cache hit
@@ -226,6 +227,73 @@ class PricingService:
             results=valid_results,
             total_count=len(valid_results),
             cached_count=cached_count,
+            computation_time_ms=computation_time
+        )
+
+    async def calculate_greeks_batch(self, options_data: List[Any]) -> BatchGreeksResponse:
+        """
+        High-throughput vectorized Greeks calculation.
+        Utilizes memory reuse and Numba JIT for maximum performance.
+        """
+        if not options_data:
+            return BatchGreeksResponse(results=[], total_count=0, computation_time_ms=0.0)
+
+        start_time = time.perf_counter()
+        from src.pricing.black_scholes import BlackScholesEngine
+
+        # Extract numpy arrays
+        spots = np.array([o.spot for i, o in enumerate(options_data)], dtype=np.float64)
+        strikes = np.array([o.strike for i, o in enumerate(options_data)], dtype=np.float64)
+        maturities = np.array([o.time_to_expiry for i, o in enumerate(options_data)], dtype=np.float64)
+        vols = np.array([o.volatility for i, o in enumerate(options_data)], dtype=np.float64)
+        rates = np.array([o.rate for i, o in enumerate(options_data)], dtype=np.float64)
+        dividends = np.array([o.dividend_yield for i, o in enumerate(options_data)], dtype=np.float64)
+        types = np.array([o.option_type for i, o in enumerate(options_data)])
+
+        n = len(options_data)
+        # Pre-allocate buffers for memory reuse
+        out_delta = np.empty(n, dtype=np.float64)
+        out_gamma = np.empty(n, dtype=np.float64)
+        out_vega = np.empty(n, dtype=np.float64)
+        out_theta = np.empty(n, dtype=np.float64)
+        out_rho = np.empty(n, dtype=np.float64)
+        out_prices = np.empty(n, dtype=np.float64)
+
+        # Vectorized calculation
+        await run_sync(
+            BlackScholesEngine.calculate_greeks_batch,
+            spots, strikes, maturities, vols, rates, dividends, types, None,
+            out_delta, out_gamma, out_vega, out_theta, out_rho
+        )
+        
+        # Also need prices for the response
+        is_call = np.array([str(t).lower() == "call" for t in types], dtype=bool)
+        await run_sync(
+            BlackScholesEngine.price_options,
+            spots, strikes, maturities, vols, rates, dividends, types, None, out_prices
+        )
+
+        results = []
+        for i in range(n):
+            req = options_data[i]
+            results.append(GreeksResponse.model_construct(
+                delta=float(out_delta[i]),
+                gamma=float(out_gamma[i]),
+                vega=float(out_vega[i]),
+                theta=float(out_theta[i]),
+                rho=float(out_rho[i]),
+                option_price=float(out_prices[i]),
+                spot=req.spot,
+                strike=req.strike,
+                time_to_expiry=req.time_to_expiry,
+                volatility=req.volatility,
+                option_type=req.option_type
+            ))
+
+        computation_time = (time.perf_counter() - start_time) * 1000
+        return BatchGreeksResponse(
+            results=results,
+            total_count=n,
             computation_time_ms=computation_time
         )
 

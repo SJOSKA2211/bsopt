@@ -14,6 +14,7 @@ class MarketDataProducer:
     - Compression (LZ4)
     - Partitioning by symbol for ordering
     - Schema validation with Avro
+    - Idempotence for exactly-once semantics
     """
     def __init__(
         self,
@@ -23,15 +24,16 @@ class MarketDataProducer:
         self.config = {
             'bootstrap.servers': bootstrap_servers,
             'client.id': 'market-data-producer',
-            # Performance tuning
+            # High-throughput performance tuning
             'compression.type': 'lz4',
-            'linger.ms': 10,  # Wait 10ms to batch messages
-            'batch.size': 16384, # 16KB batches
-            'acks': 'all', # Wait for all in-sync replicas (strongest durability)
+            'linger.ms': 20,  # Increased for better batching
+            'batch.size': 65536, # 64KB batches
+            'acks': 'all', 
             'max.in.flight.requests.per.connection': 5,
-            # Idempotence for exactly-once semantics
+            # Reliability
             'enable.idempotence': True,
             'retries': 10,
+            'retry.backoff.ms': 100,
             # Monitoring
             'statistics.interval.ms': 60000,
         }

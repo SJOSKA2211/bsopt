@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Optional, Union
 from dataclasses import dataclass
 from scipy.stats import norm
 from src.pricing.models import BSParameters, OptionGreeks
-from src.pricing.quant_utils import jit_lsm_american, _laguerre_basis_jit
+from src.pricing.quant_utils import jit_lsm_american, jit_mc_european_price, jit_mc_european_with_control_variate, _laguerre_basis_jit
 from .base import PricingStrategy
 
 @dataclass
@@ -30,10 +30,6 @@ class MCConfig:
             # The test expected rounding to next power of 2 for method='sobol'
             self.n_paths = 2**int(np.ceil(np.log2(self.n_paths)))
 
-from src.pricing.quant_utils import jit_lsm_american, _laguerre_basis_jit, jit_mc_european_price
-
-# ... (MCConfig remains same)
-
 class MonteCarloEngine(PricingStrategy):
     """
     Advanced Monte Carlo engine for option pricing.
@@ -42,6 +38,7 @@ class MonteCarloEngine(PricingStrategy):
     
     def __init__(self, config: Optional[MCConfig] = None):
         self.config = config or MCConfig()
+        self.rng = np.random.default_rng(self.config.seed)
 
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         """Implementation of PricingStrategy.price."""
@@ -123,24 +120,30 @@ class MonteCarloEngine(PricingStrategy):
         run_seed = seed if seed is not None else self.config.seed
         np.random.seed(run_seed) # Set global seed for Numba's np.random
 
-        price, std_err = jit_mc_european_price(
-            S0=float(params.spot),
-            K=float(params.strike),
-            T=float(params.maturity),
-            r=float(params.rate),
-            sigma=float(params.volatility),
-            q=float(params.dividend),
-            n_paths=self.config.n_paths,
-            is_call=(option_type == "call"),
-            antithetic=self.config.antithetic
-        )
-        
-        # Control Variate optimization if enabled
         if self.config.control_variate:
-            # We can use the Black-Scholes price as a control variate 
-            # but since we are already using JIT and Antithetic, we'll keep it simple.
-            # Real control variate logic would go here if needed.
-            pass
+            price, std_err = jit_mc_european_with_control_variate(
+                S0=float(params.spot),
+                K=float(params.strike),
+                T=float(params.maturity),
+                r=float(params.rate),
+                sigma=float(params.volatility),
+                q=float(params.dividend),
+                n_paths=self.config.n_paths,
+                is_call=(option_type == "call"),
+                antithetic=self.config.antithetic
+            )
+        else:
+            price, std_err = jit_mc_european_price(
+                S0=float(params.spot),
+                K=float(params.strike),
+                T=float(params.maturity),
+                r=float(params.rate),
+                sigma=float(params.volatility),
+                q=float(params.dividend),
+                n_paths=self.config.n_paths,
+                is_call=(option_type == "call"),
+                antithetic=self.config.antithetic
+            )
 
         ci = 1.96 * std_err  # 95% confidence interval
         return float(price), float(ci)

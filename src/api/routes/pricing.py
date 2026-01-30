@@ -21,6 +21,8 @@ from src.api.schemas.common import DataResponse, ErrorResponse
 from src.api.schemas.pricing import (
     BatchPriceRequest,
     BatchPriceResponse,
+    BatchGreeksRequest,
+    BatchGreeksResponse,
     GreeksRequest,
     GreeksResponse,
     ImpliedVolatilityRequest,
@@ -108,6 +110,24 @@ async def calculate_batch_prices(request: BatchPriceRequest):
     except Exception as e:
         logger.error("batch_route_failed", error=str(e))
         raise InternalServerException(message="Batch calculation failed")
+
+
+@router.post(
+    "/batch-greeks",
+    response_model=DataResponse[BatchGreeksResponse],
+    responses={400: {"model": ErrorResponse}},
+)
+async def calculate_batch_greeks(request: BatchGreeksRequest):
+    """
+    Calculate Greeks for multiple options in a single batch request.
+    Optimized for high-throughput vectorized execution.
+    """
+    try:
+        result = await pricing_service.calculate_greeks_batch(request.options)
+        return DataResponse(data=result)
+    except Exception as e:
+        logger.error("batch_greeks_route_failed", error=str(e))
+        raise InternalServerException(message="Batch Greeks calculation failed")
 
 
 @router.post(

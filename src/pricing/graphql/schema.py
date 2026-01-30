@@ -1,8 +1,52 @@
+from typing import List, Optional, Dict
 import strawberry
 from strawberry.federation import Schema
+from strawberry.dataloader import DataLoader
 from datetime import datetime
-from src.pricing.black_scholes import black_scholes
+from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
+from src.services.pricing_service import PricingService
+from src.api.schemas.pricing import PriceRequest
+
+# Instantiate the optimized service
+pricing_service = PricingService()
+
+async def load_prices(keys: List[tuple]) -> List[float]:
+    """Batch loader for option prices."""
+    requests = []
+    for key in keys:
+        # key: (id, strike, underlying_symbol, expiry, option_type)
+        _, strike, _, expiry, option_type = key
+        T = (expiry - datetime.now()).days / 365.0
+        if T <= 0: T = 0.001
+        
+        requests.append(PriceRequest(
+            symbol="UNKNOWN",
+            spot=155.0, # Placeholder, should come from market data
+            strike=strike,
+            time_to_expiry=T,
+            volatility=0.2, # Placeholder
+            rate=0.05,
+            option_type=option_type.lower(),
+            model="black_scholes"
+        ))
+    
+    batch_res = await pricing_service.price_batch(requests)
+    return [r.price for r in batch_res.results]
+
+async def load_greeks(keys: List[tuple]) -> List[Dict[str, float]]:
+    """Batch loader for option Greeks."""
+    results = []
+    for key in keys:
+        _, strike, _, expiry, option_type = key
+        T = (expiry - datetime.now()).days / 365.0
+        if T <= 0: T = 0.001
+        
+        params = BSParameters(spot=155.0, strike=strike, maturity=T, volatility=0.2, rate=0.05)
+        # Greeks calculation doesn't have a batch method in service yet, but we use the service's L1 cache
+        greeks = await pricing_service.calculate_greeks(params, option_type.lower())
+        results.append(greeks)
+    return results
 
 @strawberry.federation.type(keys=["id"])
 class Option:
@@ -13,50 +57,24 @@ class Option:
     option_type: str = strawberry.federation.field(shareable=True)
     
     @strawberry.field
-    def price(self, accuracy: float = 0.01, num_underlyings: int = 1) -> float:
-        S0 = 155.0
-        r = 0.05
-        sigma = 0.2
-        T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0:
-            T = 0.001
-        
-        pricer = HybridQuantumClassicalPricer()
-        result = pricer.price_option_adaptive(
-            S0=S0, K=self.strike, T=T, r=r, sigma=sigma,
-            accuracy=accuracy, num_underlyings=num_underlyings
-        )
-        # result is (price, ci) from adaptive pricer
-        return float(result[0])
+    async def price(self, info: strawberry.Info) -> float:
+        loader = info.context["price_loader"]
+        key = (self.id, self.strike, self.underlying_symbol, self.expiry, self.option_type)
+        return await loader.load(key)
 
     @strawberry.field
-    def delta(self) -> float:
-        S0 = 155.0
-        r = 0.05
-        sigma = 0.2
-        T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0:
-            T = 0.001
-        
-        # BlackScholesEngine().calculate returns a dict with price, delta, gamma
-        from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-        params = BSParameters(spot=S0, strike=self.strike, maturity=T, volatility=sigma, rate=r)
-        result = BlackScholesEngine().calculate(params, self.option_type)
-        return float(result["delta"])
+    async def delta(self, info: strawberry.Info) -> float:
+        loader = info.context["greeks_loader"]
+        key = (self.id, self.strike, self.underlying_symbol, self.expiry, self.option_type)
+        res = await loader.load(key)
+        return res["delta"]
 
     @strawberry.field
-    def gamma(self) -> float:
-        S0 = 155.0
-        r = 0.05
-        sigma = 0.2
-        T = (self.expiry - datetime.now()).days / 365.0
-        if T <= 0:
-            T = 0.001
-        
-        from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-        params = BSParameters(spot=S0, strike=self.strike, maturity=T, volatility=sigma, rate=r)
-        result = BlackScholesEngine().calculate(params, self.option_type)
-        return float(result["gamma"])
+    async def gamma(self, info: strawberry.Info) -> float:
+        loader = info.context["greeks_loader"]
+        key = (self.id, self.strike, self.underlying_symbol, self.expiry, self.option_type)
+        res = await loader.load(key)
+        return res["gamma"]
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID, strike: float, underlyingSymbol: str, expiry: str, optionType: str):
@@ -78,5 +96,11 @@ class Query:
     @strawberry.field
     def dummy(self) -> str:
         return "pricing"
+
+async def get_context():
+    return {
+        "price_loader": DataLoader(load_fn=load_prices),
+        "greeks_loader": DataLoader(load_fn=load_greeks),
+    }
 
 schema = Schema(query=Query, types=[Option])

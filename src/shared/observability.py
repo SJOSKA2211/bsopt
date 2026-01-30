@@ -3,19 +3,34 @@ import os
 import time
 import gc
 from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
-from typing import List, Callable, Any
+import logging
+from typing import Any, Dict, List, Optional, Callable
+
 from fastapi import Request, Response
 import httpx
 from datetime import datetime, timezone
 
 
+# Pre-instantiate processors for performance
+_TIME_STAMPER = structlog.processors.TimeStamper(fmt="iso")
+_JSON_RENDERER = structlog.processors.JSONRenderer()
+_LEVEL_ADDER = structlog.processors.add_log_level
+_CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
+    {
+        structlog.processors.CallsiteParameter.FILENAME,
+        structlog.processors.CallsiteParameter.FUNC_NAME,
+        structlog.processors.CallsiteParameter.LINENO,
+    }
+)
+
 def setup_logging():
-    """Configures structlog for JSON logging (Loki compliant)."""
+    """Configures structlog for JSON logging (Loki compliant) with optimized processors."""
     structlog.configure(
         processors=[
-            structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.add_log_level,
-            structlog.processors.JSONRenderer(),
+            _TIME_STAMPER,
+            _LEVEL_ADDER,
+            _CALLSITE_ADDER,
+            _JSON_RENDERER,
         ],
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
@@ -95,9 +110,21 @@ def push_metrics(job_name: str):
         structlog.get_logger().debug("metrics_push_skipped", reason="no_gateway_url")
 
 
-def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
+# Persistent HTTP client for observability
+_observability_client: Optional[httpx.AsyncClient] = None
+
+def get_obs_client() -> httpx.AsyncClient:
+    global _observability_client
+    if _observability_client is None:
+        _observability_client = httpx.AsyncClient(
+            timeout=5.0,
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5)
+        )
+    return _observability_client
+
+async def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
     """
-    Posts an annotation to Grafana.
+    Posts an annotation to Grafana using a shared persistent client.
     """
     grafana_url = os.environ.get("GRAFANA_URL")
     if not grafana_url:
@@ -107,27 +134,19 @@ def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
     if tags is None:
         tags = []
 
-    # Grafana expects time in milliseconds Unix epoch
     timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    payload = {"time": timestamp_ms, "text": message, "tags": tags}
 
-    payload = {
-        "time": timestamp_ms,
-        "text": message,
-        "tags": tags
-    }
-
+    client = get_obs_client()
     try:
-        # Assuming Grafana API endpoint is /api/annotations
-        response = httpx.post(f"{grafana_url}/api/annotations", headers={"Content-Type": "application/json"}, json=payload, timeout=5)
-        response.raise_for_status() # Raise an exception for bad status codes
-        structlog.get_logger().info("grafana_annotation_posted", status_code=response.status_code, response=response.json())
+        response = await client.post(
+            f"{grafana_url}/api/annotations", 
+            headers={"Content-Type": "application/json"}, 
+            json=payload
+        )
+        response.raise_for_status()
+        structlog.get_logger().info("grafana_annotation_posted", status_code=response.status_code)
         return True
-    except httpx.HTTPStatusError as e:
-        structlog.get_logger().error("grafana_annotation_failed", reason="HTTPStatusError", error=str(e), response_text=e.response.text)
-        return False
-    except httpx.RequestError as e:
-        structlog.get_logger().error("grafana_annotation_failed", reason="RequestError", error=str(e))
-        return False
     except Exception as e:
-        structlog.get_logger().error("grafana_annotation_failed", reason="UnknownError", error=str(e))
+        structlog.get_logger().error("grafana_annotation_failed", error=str(e))
         return False

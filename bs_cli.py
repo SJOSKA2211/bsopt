@@ -97,10 +97,11 @@ def cli(ctx):
 
 async def _compare_all_methods_async(params: BSParameters, option_type: str,
                                  compute_greeks: bool) -> dict:
-    """Compare all available pricing methods using PricingService."""
+    """Compare all available pricing methods using PricingService in parallel."""
     from src.services.pricing_service import PricingService
+    import asyncio
     service = PricingService()
-    methods = ['bs', 'fdm', 'mc']
+    methods = ['black_scholes', 'fdm', 'monte_carlo', 'binomial']
     results = {}
 
     with Progress(
@@ -111,26 +112,29 @@ async def _compare_all_methods_async(params: BSParameters, option_type: str,
         console=console
     ) as progress:
 
-        task = progress.add_task("[cyan]Computing prices...", total=len(methods))
+        task = progress.add_task("[cyan]Computing prices in parallel...", total=len(methods))
 
-        for method in methods:
+        async def _price_and_update(method):
             try:
                 # Use PricingService for consistent logic and caching
                 result = await service.price_option(params, option_type, method)
                 
-                if compute_greeks and method == 'bs':
+                if compute_greeks and method == 'black_scholes':
                     greeks_dict = await service.calculate_greeks(params, option_type)
                     result['greeks'] = greeks_dict
 
                 results[method] = result
-                progress.advance(task)
             except Exception as e:
                 logger.error("cli_comparison_failed", method=method, error=str(e))
                 results[method] = {
-                    'error': "Pricing failed.",
+                    'error': f"Pricing failed for {method}.",
                     'method': method
                 }
+            finally:
                 progress.advance(task)
+
+        # Execute all methods concurrently
+        await asyncio.gather(*[_price_and_update(m) for method in methods])
 
     return results
 

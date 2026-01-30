@@ -1,3 +1,4 @@
+from typing import List, Dict
 import httpx
 import pandas as pd
 import time
@@ -30,14 +31,32 @@ class MarketDataScraper:
             return message
         return message.replace(self.api_key, "[REDACTED]")
 
+    async def fetch_multiple_tickers(self, tickers: List[str], start_date: str, end_date: str) -> Dict[str, pd.DataFrame]:
+        """
+        Fetch historical data for multiple tickers concurrently.
+        """
+        tasks = [self.fetch_historical_data(ticker, start_date, end_date) for ticker in tickers]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        final_results = {}
+        for ticker, result in zip(tickers, results):
+            if isinstance(result, Exception):
+                logger.error("multi_scrape_failed", ticker=ticker, error=str(result))
+                final_results[ticker] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
+            else:
+                final_results[ticker] = result
+        return final_results
+
     async def fetch_historical_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
         """Fetch historical daily data for a given ticker and date range asynchronously."""
         self._validate_inputs(ticker, start_date, end_date)
         last_response = None
         client = HttpClientManager.get_client()
+        semaphore = HttpClientManager.get_semaphore()
         
-        # Alpha Vantage Implementation
-        if self.provider == "alpha_vantage" or self.provider == "auto":
+        async with semaphore:
+            # Alpha Vantage Implementation
+            if self.provider == "alpha_vantage" or self.provider == "auto":
             params = {
                 "function": "TIME_SERIES_DAILY",
                 "symbol": ticker,
@@ -109,6 +128,7 @@ class MarketDataScraper:
                     SCRAPE_ERRORS.labels(api="alpha_vantage", status_code="exception").inc()
                     logger.error("scrape_exception", ticker=ticker, error=self._redact_message(str(e)))
                     if attempt < self.max_retries:
+                        await asyncio.sleep(0.1)
                         continue
                     if self.provider == "auto":
                         break
@@ -156,4 +176,3 @@ class MarketDataScraper:
         
         status_code = last_response.status_code if last_response else "No response"
         raise Exception(f"Failed to fetch data for {ticker}. Status: {status_code}")
-

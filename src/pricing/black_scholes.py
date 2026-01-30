@@ -3,6 +3,7 @@ from scipy.stats import norm
 from typing import Union, Optional, Dict, Any
 from src.pricing.models import BSParameters, OptionGreeks
 from .base import PricingStrategy
+from .quant_utils import batch_bs_price_jit, batch_greeks_jit
 
 class BlackScholesEngine(PricingStrategy):
     def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
@@ -10,9 +11,9 @@ class BlackScholesEngine(PricingStrategy):
         return self.price_options(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
-    def calculate_greeks(params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> OptionGreeks:
         """Implementation of PricingStrategy.calculate_greeks. Delegates to optimized static method."""
-        return BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type)
+        return BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
     def price_call(params: BSParameters) -> float:
@@ -41,8 +42,6 @@ class BlackScholesEngine(PricingStrategy):
         **kwargs
     ) -> Union[float, np.ndarray]:
         """Highly optimized vectorized option pricing with memory reuse support."""
-        from .quant_utils import batch_bs_price_jit
-        
         if params is not None:
             spot = params.spot
             strike = params.strike
@@ -54,28 +53,42 @@ class BlackScholesEngine(PricingStrategy):
         if any(x is None for x in [spot, strike, maturity, volatility, rate]):
              raise TypeError("Missing required pricing parameters")
         
-        # Broadcast all inputs to the same shape
-        S, K, T, sigma, r, q = np.broadcast_arrays(
-            np.atleast_1d(spot).astype(np.float64),
-            np.atleast_1d(strike).astype(np.float64),
-            np.atleast_1d(maturity).astype(np.float64),
-            np.atleast_1d(volatility).astype(np.float64),
-            np.atleast_1d(rate).astype(np.float64),
-            np.atleast_1d(dividend).astype(np.float64)
-        )
+        # Performance optimization: Handle scalar cases separately to avoid array overhead
+        if np.isscalar(spot) and np.isscalar(strike) and np.isscalar(maturity) and \
+           np.isscalar(volatility) and np.isscalar(rate) and np.isscalar(dividend) and \
+           isinstance(option_type, str):
+            S, K, T, sigma, r, q = float(spot), float(strike), float(maturity), \
+                                  float(volatility), float(rate), float(dividend)
+            is_call = option_type.lower() == "call"
+            # We still use the jit function but with 1D arrays to leverage the logic
+            # but we could also have a scalar JIT if needed.
+            prices = batch_bs_price_jit(
+                np.array([S]), np.array([K]), np.array([T]), 
+                np.array([sigma]), np.array([r]), np.array([q]), 
+                np.array([is_call]), out=out
+            )
+            return float(prices[0])
+
+        # Optimized broadcasting: only broadcast if shapes differ
+        inputs = [spot, strike, maturity, volatility, rate, dividend]
+        if all(isinstance(x, np.ndarray) for x in inputs) and all(x.shape == inputs[0].shape for x in inputs):
+            S, K, T, sigma, r, q = inputs
+        else:
+            S, K, T, sigma, r, q = np.broadcast_arrays(
+                np.atleast_1d(spot).astype(np.float64),
+                np.atleast_1d(strike).astype(np.float64),
+                np.atleast_1d(maturity).astype(np.float64),
+                np.atleast_1d(volatility).astype(np.float64),
+                np.atleast_1d(rate).astype(np.float64),
+                np.atleast_1d(dividend).astype(np.float64)
+            )
         
         if isinstance(option_type, (str, np.str_)):
             is_call = np.full(S.shape, str(option_type).lower() == "call", dtype=bool)
         else:
             is_call = np.array([str(t).lower() == "call" for t in option_type], dtype=bool)
             
-        prices = batch_bs_price_jit(S, K, T, sigma, r, q, is_call, out=out)
-        
-        if np.isscalar(spot) and np.isscalar(strike) and np.isscalar(maturity) and \
-           np.isscalar(volatility) and np.isscalar(rate) and np.isscalar(dividend) and \
-           isinstance(option_type, str):
-            return float(prices[0])
-        return prices
+        return batch_bs_price_jit(S, K, T, sigma, r, q, is_call, out=out)
 
     @staticmethod
     def calculate_greeks_batch(
@@ -95,8 +108,6 @@ class BlackScholesEngine(PricingStrategy):
         **kwargs
     ) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
         """Highly optimized vectorized greeks calculation with memory reuse support."""
-        from .quant_utils import batch_greeks_jit
-        
         if params is not None:
             spot = params.spot
             strike = params.strike
@@ -108,15 +119,37 @@ class BlackScholesEngine(PricingStrategy):
         if any(x is None for x in [spot, strike, maturity, volatility, rate]):
              raise TypeError("Missing required pricing parameters")
         
-        # Broadcast all inputs to the same shape
-        S, K, T, sigma, r, q = np.broadcast_arrays(
-            np.atleast_1d(spot).astype(np.float64),
-            np.atleast_1d(strike).astype(np.float64),
-            np.atleast_1d(maturity).astype(np.float64),
-            np.atleast_1d(volatility).astype(np.float64),
-            np.atleast_1d(rate).astype(np.float64),
-            np.atleast_1d(dividend).astype(np.float64)
-        )
+        # Handle scalar case
+        if np.isscalar(spot) and isinstance(option_type, str):
+            S, K, T, sigma, r, q = float(spot), float(strike), float(maturity), \
+                                  float(volatility), float(rate), float(dividend)
+            is_call = option_type.lower() == "call"
+            delta, gamma, vega, theta, rho = batch_greeks_jit(
+                np.array([S]), np.array([K]), np.array([T]), 
+                np.array([sigma]), np.array([r]), np.array([q]), 
+                np.array([is_call])
+            )
+            return OptionGreeks(
+                delta=float(delta[0]),
+                gamma=float(gamma[0]),
+                vega=float(vega[0]),
+                theta=float(theta[0]),
+                rho=float(rho[0])
+            )
+
+        # Optimized broadcasting
+        inputs = [spot, strike, maturity, volatility, rate, dividend]
+        if all(isinstance(x, np.ndarray) for x in inputs) and all(x.shape == inputs[0].shape for x in inputs):
+            S, K, T, sigma, r, q = inputs
+        else:
+            S, K, T, sigma, r, q = np.broadcast_arrays(
+                np.atleast_1d(spot).astype(np.float64),
+                np.atleast_1d(strike).astype(np.float64),
+                np.atleast_1d(maturity).astype(np.float64),
+                np.atleast_1d(volatility).astype(np.float64),
+                np.atleast_1d(rate).astype(np.float64),
+                np.atleast_1d(dividend).astype(np.float64)
+            )
         
         if isinstance(option_type, (str, np.str_)):
             is_call = np.full(S.shape, str(option_type).lower() == "call", dtype=bool)
@@ -129,15 +162,6 @@ class BlackScholesEngine(PricingStrategy):
             out_theta=out_theta, out_rho=out_rho
         )
         
-        if np.isscalar(spot) and isinstance(option_type, str):
-            return OptionGreeks(
-                delta=float(delta[0]),
-                gamma=float(gamma[0]),
-                vega=float(vega[0]),
-                theta=float(theta[0]),
-                rho=float(rho[0])
-            )
-            
         return {
             "delta": delta,
             "gamma": gamma,

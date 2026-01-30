@@ -26,14 +26,7 @@ from src.api.exceptions import NotFoundException, ConflictException
 from src.security.auth import get_current_active_user, require_tier
 from src.security.audit import AuditEvent, log_audit
 from src.utils.sanitization import sanitize_string
-
-# Try import redis stuff, if fails, mock it or leave it (it will fail at runtime if missing)
-try:
-    from src.utils.redis_events import publish_to_redis, redis_channel_updates
-except ImportError:
-    # Minimal mock if not found to avoid NameError
-    async def publish_to_redis(*args, **kwargs): pass
-    redis_channel_updates = "updates"
+from src.utils.cache import publish_to_redis, redis_channel_updates
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

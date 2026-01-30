@@ -1,7 +1,7 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 import time
-import json
+import orjson
 import asyncio
 from typing import Any, Dict
 
@@ -42,14 +42,16 @@ class AuditMiddleware(BaseHTTPMiddleware):
         producer = self.producer or getattr(request.app.state, "audit_producer", None)
         
         if producer:
-            # Asynchronously send to Kafka
+            # Asynchronously send to Kafka using orjson for speed
             try:
                 producer.produce(
                     self.topic, 
-                    json.dumps(audit_payload).encode('utf-8')
+                    orjson.dumps(audit_payload)
                 )
+                # poll(0) serves delivery callbacks without blocking
                 producer.poll(0)
-            except Exception as e:
+            except Exception:
+                # Fail silently to avoid interrupting the request lifecycle
                 pass
             
         return response

@@ -111,6 +111,23 @@ def test_trainer_frameworks(sample_data):
     acc_torch = trainer.train_and_evaluate(X, y, params_torch)
     assert acc_torch >= 0
 
+@patch("src.ml.trainer.train_xgboost_distributed")
+def test_trainer_dask_xgboost(mock_train_dist, sample_data):
+    """Verify that DaskXGBoostTrainer correctly calls the distributed training utility."""
+    X, y = sample_data
+    trainer = InstrumentedTrainer(study_name="dask_test")
+    
+    mock_booster = MagicMock()
+    mock_train_dist.return_value = mock_booster
+    
+    params = {"n_estimators": 10, "framework": "dask_xgboost", "dask_address": "localhost:8786"}
+    trainer.train_and_evaluate(X, y, params)
+    
+    assert mock_train_dist.called
+    args, kwargs = mock_train_dist.call_args
+    assert kwargs["dask_address"] == "localhost:8786"
+    assert trainer.model == mock_booster
+
 def test_trainer_optuna_integration(sample_data):
     """Verify that Optuna correctly optimizes hyperparameters."""
     X, y = sample_data

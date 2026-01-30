@@ -18,6 +18,13 @@ from src.utils.lazy_import import get_import_stats, preload_modules
 import asyncio
 from src.config import settings
 
+# Optimized event loop for Linux
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
 # Initialize logging
 logger = structlog.get_logger()
 
@@ -25,7 +32,26 @@ logger = structlog.get_logger()
 async def lifespan(app: FastAPI):
     # Initialize logging
     setup_logging()
+    
+    # Tune GC for performance
+    from src.shared.observability import tune_gc
+    tune_gc()
+    
     logger.info("application_startup_begin")
+
+    # Initialize Redis Cache
+    from src.utils.cache import init_redis_cache
+    redis_conn = await init_redis_cache(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB,
+        password=settings.REDIS_PASSWORD
+    )
+
+    # Initialize Circuit Breakers
+    from src.utils.circuit_breaker import initialize_circuits
+    await initialize_circuits(redis_conn)
+
     # Preload critical modules during startup to reduce first-request latency.
     from src.ml import preload_critical_modules as ml_preload
     from src.pricing import preload_classical_pricers as pricing_preload
@@ -66,9 +92,38 @@ from src.api.routes.users import router as users_router
 from src.api.routes.ml import router as ml_router
 from src.api.routes.websocket import router as websocket_router
 
-app = FastAPI(title="BS-Opt API", lifespan=lifespan)
+from src.api.middleware.security import (
+    SecurityHeadersMiddleware,
+    CSRFMiddleware,
+    IPBlockMiddleware,
+    InputSanitizationMiddleware
+)
+from fastapi.middleware.cors import CORSMiddleware
 
-# Add middleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import ORJSONResponse
+
+app = FastAPI(
+    title="BS-Opt API", 
+    lifespan=lifespan,
+    default_response_class=ORJSONResponse
+)
+
+# Add GZip compression for large responses
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Add middleware (Order matters: outermost first)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS if hasattr(settings, "CORS_ORIGINS") else ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(CSRFMiddleware)
+app.add_middleware(IPBlockMiddleware)
+app.add_middleware(InputSanitizationMiddleware)
 app.add_middleware(AuditMiddleware)
 app.middleware("http")(logging_middleware)
 
@@ -106,14 +161,17 @@ REQUEST_LATENCY = Histogram("api_request_latency_seconds", "Request latency in s
 async def instrument_requests(request: Request, call_next):
     start_time = time.time()
     response = await call_next(request)
-    latency = time.time() - start_time
+    process_time = time.time() - start_time
+    
+    # Add response time header
+    response.headers["X-Response-Time"] = str(process_time)
     
     endpoint = request.url.path
     method = request.method
     status_code = response.status_code
     
     REQUEST_COUNT.labels(method=method, endpoint=endpoint, http_status=status_code).inc()
-    REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(latency)
+    REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(process_time)
     
     return response
 

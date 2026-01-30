@@ -16,6 +16,13 @@ from src.config import get_settings
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
 
+# Optimized event loop
+try:
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except ImportError:
+    pass
+
 setup_logging()
 tune_gc()
 logger = structlog.get_logger()
@@ -101,6 +108,9 @@ async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
         params, quality_metrics = calibrator.calibrate(market_options)
         surface_params = calibrator.calibrate_surface(market_options)
 
+import orjson
+
+# ... (inside _recalibrate_symbol_async)
         # Store in Redis
         cache_value = {
             'params': params.__dict__,
@@ -108,7 +118,7 @@ async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
             'metrics': quality_metrics,
             'timestamp': time.time()
         }
-        await async_redis_client.setex(f"heston_params:{symbol}", 600, json.dumps(cache_value))
+        await async_redis_client.setex(f"heston_params:{symbol}", 600, orjson.dumps(cache_value))
         
         # Persist to PostgreSQL (Async)
         async with get_async_db_context() as db:

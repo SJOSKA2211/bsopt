@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Union, Optional
 import numpy as np
 
-@dataclass
+@dataclass(slots=True)
 class BSParameters:
     """
     Standard Black-Scholes model parameters with validation.
@@ -30,7 +30,7 @@ class BSParameters:
         if np.any(_rate_arr < 0) or np.any(_dividend_arr < 0):
             raise ValueError("Rate and dividend cannot be negative")
 
-@dataclass
+@dataclass(slots=True)
 class OptionGreeks:
     """
     Container for option sensitivity measures.

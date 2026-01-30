@@ -16,6 +16,8 @@ except ImportError:
 
 logger = structlog.get_logger()
 
+import orjson
+
 class OnlineRLAgent:
     """
     Online Reinforcement Learning Agent for generating trading signals from real-time Kafka streams.
@@ -28,10 +30,13 @@ class OnlineRLAgent:
                  output_topic: str = "trading-signals"):
         self.initial_balance = initial_balance
         self.balance = initial_balance
-        self.positions = np.zeros(10)
+        self.positions = np.zeros(10, dtype=np.float32)
         self.kafka_config = kafka_config or {}
         self.input_topic = input_topic
         self.output_topic = output_topic
+        
+        # Pre-allocate state vector for speed
+        self._state_buf = np.zeros(100, dtype=np.float32)
         
         # Load the trained model
         if TD3 is not None:
@@ -86,42 +91,35 @@ class OnlineRLAgent:
         - [91:100] Padding
         """
         # 1. Portfolio state (11 dimensions)
-        portfolio_state = np.concatenate([
-            [self.balance / self.initial_balance],
-            self.positions
-        ])
+        self._state_buf[0] = self.balance / self.initial_balance
+        self._state_buf[1:11] = self.positions[:10]
         
         # 2. Market prices (10 dimensions)
-        prices = np.array(market_data.get('prices', np.zeros(10)))
-        if len(prices) != 10:
-            prices = np.pad(prices, (0, max(0, 10 - len(prices))))[:10]
+        prices = market_data.get('prices', [])
+        n_prices = min(len(prices), 10)
+        self._state_buf[11:11+n_prices] = prices[:n_prices]
+        if n_prices < 10:
+            self._state_buf[11+n_prices:21] = 0.0
         
         # 3. Greeks (50 dimensions)
-        greeks_raw = market_data.get('greeks', np.zeros((10, 5)))
-        greeks = np.array(greeks_raw).flatten()
-        if len(greeks) != 50:
-            greeks = np.pad(greeks, (0, max(0, 50 - len(greeks))))[:50]
+        greeks_raw = market_data.get('greeks', [])
+        greeks_flat = np.array(greeks_raw).flatten()
+        n_greeks = min(len(greeks_flat), 50)
+        self._state_buf[21:21+n_greeks] = greeks_flat[:n_greeks]
+        if n_greeks < 50:
+            self._state_buf[21+n_greeks:71] = 0.0
         
         # 4. Indicators (20 dimensions)
-        indicators = np.array(market_data.get('indicators', np.zeros(20)))
-        if len(indicators) != 20:
-            indicators = np.pad(indicators, (0, max(0, 20 - len(indicators))))[:20]
-        
-        # Combine all features
-        observation = np.concatenate([
-            portfolio_state, 
-            prices, 
-            greeks, 
-            indicators
-        ])
-        
-        # Ensure exactly 100 dimensions
-        if len(observation) < 100:
-            observation = np.pad(observation, (0, 100 - len(observation)))
-        else:
-            observation = observation[:100]
+        indicators = market_data.get('indicators', [])
+        n_ind = min(len(indicators), 20)
+        self._state_buf[71:71+n_ind] = indicators[:n_ind]
+        if n_ind < 20:
+            self._state_buf[71+n_ind:91] = 0.0
             
-        return observation.astype(np.float32)
+        # 5. Padding (9 dimensions)
+        self._state_buf[91:100] = 0.0
+            
+        return self._state_buf.copy()
 
     def process_market_data(self, market_data: Dict[str, Any]) -> np.ndarray:
         """Process market data and return target positions."""
@@ -234,7 +232,7 @@ class OnlineRLAgent:
             }
             self.producer.produce(
                 self.output_topic, 
-                value=json.dumps(signal).encode('utf-8')
+                value=orjson.dumps(signal)
             )
             self.producer.flush()
         except Exception as e:

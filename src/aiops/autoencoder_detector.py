@@ -62,7 +62,7 @@ class AutoencoderDetector:
                 self.optimizer.step()
                 total_loss += loss.item()
             if self.verbose:
-                print(f"Epoch {epoch+1}/{self.epochs}, Loss: {total_loss/len(dataloader):.4f}")
+                logger.info("autoencoder_epoch_complete", epoch=epoch+1, loss=total_loss/len(dataloader))
         
         # Calculate reconstruction errors on the training data to set the threshold
         self.model.eval()
@@ -71,7 +71,7 @@ class AutoencoderDetector:
             errors = torch.mean((reconstructions - tensor_data)**2, dim=1).numpy()
         self.threshold = np.mean(errors) + self.threshold_multiplier * np.std(errors)
         if self.verbose:
-            print(f"Calculated anomaly threshold: {self.threshold:.4f}")
+            logger.info("anomaly_threshold_calculated", threshold=self.threshold)
 
     def predict(self, data: np.ndarray) -> np.ndarray:
         if self.model is None or self.threshold is None:

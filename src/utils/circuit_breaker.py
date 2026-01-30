@@ -167,3 +167,25 @@ class DistributedCircuitBreaker:
 # Users would typically explicitly initialize DistributedCircuitBreaker where needed.
 pricing_circuit = InMemoryCircuitBreaker(failure_threshold=10, recovery_timeout=60)
 db_circuit = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
+
+async def initialize_circuits(redis_client: Optional[redis.Redis] = None):
+    """
+    Switch to distributed circuit breakers if Redis is available.
+    """
+    global pricing_circuit, db_circuit
+    if redis_client:
+        logger.info("initializing_distributed_circuit_breakers")
+        pricing_circuit = DistributedCircuitBreaker(
+            name="pricing", 
+            redis_client=redis_client,
+            failure_threshold=10,
+            recovery_timeout=60
+        )
+        db_circuit = DistributedCircuitBreaker(
+            name="database",
+            redis_client=redis_client,
+            failure_threshold=5,
+            recovery_timeout=30
+        )
+    else:
+        logger.info("using_in_memory_circuit_breakers")

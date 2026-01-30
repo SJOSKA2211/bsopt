@@ -56,41 +56,38 @@ class HestonModelFFT:
     @lru_cache(maxsize=1024)
     def characteristic_func(self, u: complex) -> complex:
         """
-        Heston characteristic function with numerical safeguards.
-        Uses log-space computation to prevent overflow in exponentials.
+        Heston characteristic function using JIT-optimized backend.
         """
+        from src.pricing.quant_utils import heston_char_func_jit
         p = self.params
-        xi = p.kappa - p.sigma * p.rho * u * 1j
-        d = np.sqrt(xi**2 + p.sigma**2 * (u**2 + 1j * u))
         
-        # Prevent division by zero
-        if abs(xi - d) < 1e-12:
-            logger.error("characteristic_func_singularity", xi=xi, d=d)
-            return 0.0 + 0.0j
-            
-        g = (xi + d) / (xi - d)
-        
-        # Log-space computation to prevent overflow
         try:
-            exp_dT = np.exp(d * self.T)
-            # Component 1: Drift term (Albrecher et al. 2007 stable formulation)
-            A = (p.kappa * p.theta / p.sigma**2) * (
-                (xi + d) * self.T - 2 * np.log((1 - g * exp_dT) / (1 - g))
+            phi = heston_char_func_jit(
+                u, self.T, self.r, p.v0, p.kappa, p.theta, p.sigma, p.rho
             )
-            # Component 2: Diffusion term
-            B = (p.v0 / p.sigma**2) * (xi + d) * (1 - exp_dT) / (1 - g * exp_dT)
-            
-            phi = np.exp(A + B)
             
             # Sanity check
             if abs(phi) > self.MAX_CHAR_FUNC_ABS:
-                logger.warning("char_func_overflow", abs_phi=abs(phi), u=u)
                 return 0.0 + 0.0j
                 
             return phi
-        except (OverflowError, RuntimeWarning) as e:
-            logger.error("char_func_computation_error", error=str(e), u=u)
+        except Exception:
             return 0.0 + 0.0j
+
+    def batch_characteristic_func(self, u_array: np.ndarray) -> np.ndarray:
+        """
+        Efficiently evaluate the characteristic function over an array of values.
+        """
+        # Vectorized evaluation using JIT backend
+        from src.pricing.quant_utils import heston_char_func_jit
+        p = self.params
+        
+        res = np.empty(len(u_array), dtype=np.complex128)
+        for i in range(len(u_array)):
+            res[i] = heston_char_func_jit(
+                u_array[i], self.T, self.r, p.v0, p.kappa, p.theta, p.sigma, p.rho
+            )
+        return res
 
     def price_call(self, S0: float, K: float, alpha: float = 1.5) -> float:
         """

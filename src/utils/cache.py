@@ -7,16 +7,17 @@ Optimized for 1000+ concurrent users with connection pooling and keepalive.
 """
 
 import hashlib
-import json
 import structlog
 import time
+import asyncio
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import Any, Dict, Optional, TypeVar, Union
+from functools import wraps
 
 import numpy as np
+import orjson
 from cachetools import TTLCache
-from functools import wraps
 
 try:
     import redis.asyncio as aioredis
@@ -112,16 +113,12 @@ def get_redis() -> Optional[Redis]:
 
 
 def generate_cache_key(prefix: str, **kwargs) -> str:
-    def json_serializer(obj):
-        if isinstance(obj, (np.integer, np.floating)):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        raise TypeError(f"Type {type(obj)} not serializable")
-
-    sorted_params = {k: kwargs[k] for k in sorted(kwargs.keys())}
-    param_json = json.dumps(sorted_params, sort_keys=True, default=json_serializer)
-    return f"{prefix}:{hashlib.sha256(param_json.encode()).hexdigest()}"
+    """
+    Generate a deterministic cache key using high-speed orjson serialization.
+    """
+    # orjson is much faster than json.dumps and supports numpy
+    param_json = orjson.dumps(kwargs, option=orjson.OPT_SORT_KEYS | orjson.OPT_SERIALIZE_NUMPY)
+    return f"{prefix}:{hashlib.sha256(param_json).hexdigest()}"
 
 
 class PricingCache:
@@ -135,9 +132,9 @@ class PricingCache:
         try:
             val = await redis.get(key)
             if val:
-                return float(json.loads(val))
+                return float(orjson.loads(val))
             return None
-        except (AttributeError, RedisError, ValueError, json.JSONDecodeError) as e:
+        except (AttributeError, RedisError, ValueError) as e:
             logger.error("cache_get_price_failed", error=str(e), key=key)
             return None
 
@@ -149,7 +146,7 @@ class PricingCache:
             return False
         key = generate_cache_key(f"{method}:{option_type}", **asdict(params))
         try:
-            await redis.setex(key, ttl, json.dumps(float(price)))
+            await redis.setex(key, ttl, orjson.dumps(float(price)))
             return True
         except (AttributeError, RedisError, TypeError) as e:
             logger.error("cache_set_price_failed", error=str(e), key=key)
@@ -164,7 +161,7 @@ class PricingCache:
         try:
             val = await redis.get(key)
             if val:
-                data = json.loads(val)
+                data = orjson.loads(val)
                 return OptionGreeks(**data)
             return None
         except Exception as e:
@@ -180,17 +177,12 @@ class PricingCache:
             return False
         key = generate_cache_key(f"greeks:{option_type}", **asdict(params))
         try:
-            await redis.setex(key, ttl, json.dumps(asdict(greeks)))
+            await redis.setex(key, ttl, orjson.dumps(asdict(greeks)))
             return True
         except Exception as e:
             logger.error("cache_set_greeks_failed", error=str(e), key=key)
             return False
 
-
-from cachetools import TTLCache
-from functools import wraps
-
-# ... existing code ...
 
 def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None):
     """
@@ -220,7 +212,7 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
                 try:
                     cached_val = await redis.get(cache_key)
                     if cached_val:
-                        val = json.loads(cached_val)
+                        val = orjson.loads(cached_val)
                         # Reconstruct model if needed
                         if validation_model and isinstance(val, dict):
                             val = validation_model(**val)
@@ -240,13 +232,13 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
             l1_cache[cache_key] = result
             if redis:
                 try:
-                    # Handle Pydantic models
-                    if hasattr(result, "model_dump"):
-                        serializable_result = result.model_dump()
-                    else:
-                        serializable_result = result
+                    # Handle Pydantic models or other complex types using orjson's fast serialization
+                    def _default(obj):
+                        if hasattr(obj, "model_dump"):
+                            return obj.model_dump()
+                        return str(obj)
                         
-                    await redis.setex(cache_key, 3600, json.dumps(serializable_result, default=str))
+                    await redis.setex(cache_key, 3600, orjson.dumps(result, default=_default))
                 except Exception as e:
                     logger.warning("l2_cache_write_failed", error=str(e))
 
@@ -297,7 +289,7 @@ rate_limiter = RateLimiter()
 
 
 async def warm_cache():
-    """Pre-warm cache with common option parameters."""
+    """Pre-warm cache with common option parameters in parallel."""
     from src.pricing.black_scholes import BlackScholesEngine
 
     # Common scenarios
@@ -307,6 +299,7 @@ async def warm_cache():
     vols = [0.2, 0.4]
 
     logger.info("warming_cache_start")
+    tasks = []
     for s in spots:
         for k in strikes:
             for t in maturities:
@@ -321,9 +314,11 @@ async def warm_cache():
                         dividend=0.02,
                         option_type="call",
                     )
-                    # price is a float here for single value
-                    await pricing_cache.set_option_price(params, "call", "bs_unified", float(price))
-    logger.info("warming_cache_complete")
+                    tasks.append(pricing_cache.set_option_price(params, "call", "bs_unified", float(price)))
+    
+    if tasks:
+        await asyncio.gather(*tasks)
+    logger.info("warming_cache_complete", count=len(tasks))
 
 
 class IdempotencyManager:
@@ -355,7 +350,7 @@ class DatabaseQueryCache:
             return None
         try:
             val = await redis.get(f"{self.PREFIX}user:{user_id}")
-            return json.loads(val) if val else None
+            return orjson.loads(val) if val else None
         except Exception as e:
             logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
@@ -366,7 +361,7 @@ class DatabaseQueryCache:
             return False
         try:
             await redis.setex(
-                f"{self.PREFIX}user:{user_id}", ttl, json.dumps(user_data, default=str)
+                f"{self.PREFIX}user:{user_id}", ttl, orjson.dumps(user_data)
             )
             return True
         except Exception as e:
@@ -382,11 +377,11 @@ redis_channel_updates: str = "pricing_updates"
 
 
 async def publish_to_redis(channel: str, message: Dict[str, Any]):
-    """Publish a message to a Redis channel."""
+    """Publish a message to a Redis channel using orjson."""
     redis = get_redis()
     if redis is not None:
         try:
-            encoded_message = json.dumps(message)
+            encoded_message = orjson.dumps(message)
             await redis.publish(channel, encoded_message)
             logger.debug("redis_publish_success", channel=channel)
         except Exception as e:

@@ -19,8 +19,10 @@ class TradingEnvironment(gym.Env):
         self.data_provider = data_provider
         self.risk_free_rate = risk_free_rate
         
+        # Pre-allocate observation buffer for speed
+        self._obs_buf = np.zeros(100, dtype=np.float32)
+        
         # Observation space: 100-dimensional vector
-        # [balance, positions (10), prices (10), greeks (50), indicators (20), padding (9)]
         self.observation_space = spaces.Box(
             low=-np.inf, 
             high=np.inf, 
@@ -55,43 +57,37 @@ class TradingEnvironment(gym.Env):
         return self._get_observation(), {}
 
     def _get_observation(self) -> np.ndarray:
-        """Construct observation vector from current state"""
-        # Portfolio state (11 dimensions)
-        portfolio_state = np.concatenate([
-            [self.balance / self.initial_balance],
-            self.positions
-        ])
+        """Construct observation vector from current state using pre-allocated buffer"""
+        # 1. Portfolio state (11 dimensions)
+        self._obs_buf[0] = self.balance / self.initial_balance
+        self._obs_buf[1:11] = self.positions[:10]
         
-        # Market prices (10 dimensions)
-        prices = self.market_data.get('prices', np.zeros(10))
-        if len(prices) != 10:
-            prices = np.pad(prices, (0, 10 - len(prices)))[:10]
+        # 2. Market prices (10 dimensions)
+        prices = self.market_data.get('prices', [])
+        n_prices = min(len(prices), 10)
+        self._obs_buf[11:11+n_prices] = prices[:n_prices]
+        if n_prices < 10:
+            self._obs_buf[11+n_prices:21] = 0.0
         
-        # Greeks (50 dimensions - assume 5 greeks per option)
-        greeks = self.market_data.get('greeks', np.zeros((10, 5))).flatten()
-        if len(greeks) != 50:
-            greeks = np.pad(greeks, (0, 50 - len(greeks)))[:50]
+        # 3. Greeks (50 dimensions)
+        greeks_raw = self.market_data.get('greeks', [])
+        greeks_flat = np.array(greeks_raw).flatten()
+        n_greeks = min(len(greeks_flat), 50)
+        self._obs_buf[21:21+n_greeks] = greeks_flat[:n_greeks]
+        if n_greeks < 50:
+            self._obs_buf[21+n_greeks:71] = 0.0
         
-        # Technical indicators (20 dimensions)
-        indicators = self.market_data.get('indicators', np.zeros(20))
-        if len(indicators) != 20:
-            indicators = np.pad(indicators, (0, 20 - len(indicators)))[:20]
-        
-        # Combine all features
-        observation = np.concatenate([
-            portfolio_state, 
-            prices, 
-            greeks, 
-            indicators
-        ])
-        
-        # Pad to exactly 100 dimensions if needed
-        if len(observation) < 100:
-            observation = np.pad(observation, (0, 100 - len(observation)))
-        else:
-            observation = observation[:100]
+        # 4. Technical indicators (20 dimensions)
+        indicators = self.market_data.get('indicators', [])
+        n_ind = min(len(indicators), 20)
+        self._obs_buf[71:71+n_ind] = indicators[:n_ind]
+        if n_ind < 20:
+            self._obs_buf[71+n_ind:91] = 0.0
             
-        return observation.astype(np.float32)
+        # 5. Padding (9 dimensions)
+        self._obs_buf[91:100] = 0.0
+            
+        return self._obs_buf.copy()
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """

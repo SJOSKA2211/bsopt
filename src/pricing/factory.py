@@ -6,43 +6,53 @@ Provides a centralized way to create pricing strategy instances
 based on model type.
 """
 
-from typing import Dict, Type
+from typing import Dict, Type, Any
+from src.utils.lazy_import import lazy_import
+import sys
 
-from src.pricing.base import PricingStrategy
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.finite_difference import CrankNicolsonSolver
-from src.pricing.lattice import BinomialTreePricer
-from src.pricing.monte_carlo import MonteCarloEngine
+# Lazy import map for strategies
+_STRATEGY_MAP = {
+    "black_scholes": ".black_scholes.BlackScholesEngine",
+    "monte_carlo": ".monte_carlo.MonteCarloEngine",
+    "binomial": ".lattice.BinomialTreePricer",
+    "fdm": ".finite_difference.CrankNicolsonSolver",
+}
+
 from src.utils.circuit_breaker import pricing_circuit
 
-
 class PricingEngineFactory:
-    """Factory for creating pricing strategies."""
+    """Factory for creating pricing strategies using lazy loading and instance caching."""
 
-    _strategies: Dict[str, Type[PricingStrategy]] = {
-        "black_scholes": BlackScholesEngine,
-        "monte_carlo": MonteCarloEngine,
-        "binomial": BinomialTreePricer,
-        "fdm": CrankNicolsonSolver,
-    }
+    _instances: Dict[str, Any] = {}
 
     @classmethod
     @pricing_circuit
-    def get_strategy(cls, model_type: str) -> PricingStrategy:
+    def get_strategy(cls, model_type: str) -> Any:
         """
         Get a pricing strategy instance for the given model type.
-
-        Args:
-            model_type: One of 'black_scholes', 'monte_carlo', 'binomial'
-
-        Returns:
-            An instance of PricingStrategy
-
-        Raises:
-            ValueError: If model_type is unknown
+        Uses a cache to return the same instance for multiple calls.
         """
-        strategy_class = cls._strategies.get(model_type.lower())
-        if not strategy_class:
+        model_key = model_type.lower()
+        
+        # Return cached instance if available
+        if model_key in cls._instances:
+            return cls._instances[model_key]
+
+        if model_key not in _STRATEGY_MAP:
             raise ValueError(f"Unknown pricing model: {model_type}")
 
-        return strategy_class()
+        # Extract module and class name
+        path = _STRATEGY_MAP[model_key]
+        module_path, class_name = path.rsplit('.', 1)
+        
+        # Use lazy_import utility
+        strategy_class = lazy_import(
+            "src.pricing",
+            {class_name: module_path},
+            class_name,
+            sys.modules[__name__]
+        )
+
+        instance = strategy_class()
+        cls._instances[model_key] = instance
+        return instance

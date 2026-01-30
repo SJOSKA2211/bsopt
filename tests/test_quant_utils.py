@@ -6,6 +6,8 @@ from src.pricing.quant_utils import (
     corrado_miller_initial_guess,
     fast_normal_cdf,
     fast_normal_pdf,
+    jit_mc_european_with_control_variate,
+    jit_lsm_american,
 )
 from tests.test_utils import assert_equal
 
@@ -45,8 +47,28 @@ def test_corrado_miller():
     T = np.array([1.0, 1.0])
     r = np.array([0.05, 0.05])
     q = np.array([0.0, 0.0])
-    is_call = np.array([0, 1])  # 0 for call, 1 for put (based on my previous read)
+    is_call = np.array([0, 1])  # 0 for call, 1 for put
 
     vols = corrado_miller_initial_guess(market_prices, S, K, T, r, q, is_call)
     assert_equal(len(vols), 2)
     assert np.all(vols > 0)
+
+def test_jit_mc_european_with_control_variate():
+    price, std_err = jit_mc_european_with_control_variate(
+        S0=100.0, K=100.0, T=1.0, r=0.05, sigma=0.2, q=0.02,
+        n_paths=1000, is_call=True, antithetic=True
+    )
+    assert price > 0
+    assert std_err >= 0
+    # Standard error with control variate should be very small
+    assert std_err < 1.0
+
+def test_jit_lsm_american():
+    price = jit_lsm_american(
+        S0=100.0, K=100.0, T=1.0, r=0.05, sigma=0.2, q=0.02,
+        n_paths=1000, n_steps=50, is_call=True
+    )
+    assert price > 0
+    # American call with dividends should be >= European call
+    # (Simplified check)
+    assert price > 5.0

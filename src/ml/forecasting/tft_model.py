@@ -70,8 +70,10 @@ class PriceTFTModel:
         validation = TimeSeriesDataSet.from_dataset(dataset, data, predict=True, stop_randomization=True)
         
         batch_size = self.config.get("batch_size", 64)
-        train_loader = dataset.to_dataloader(train=True, batch_size=batch_size, num_workers=0)
-        val_loader = validation.to_dataloader(train=False, batch_size=batch_size * 10, num_workers=0)
+        # Optimized: Use more workers for data loading
+        num_workers = min(os.cpu_count() or 4, 4)
+        train_loader = dataset.to_dataloader(train=True, batch_size=batch_size, num_workers=num_workers)
+        val_loader = validation.to_dataloader(train=False, batch_size=batch_size * 10, num_workers=num_workers)
         
         return {
             "train_loader": train_loader,
@@ -80,10 +82,14 @@ class PriceTFTModel:
         }
 
     def _init_trainer(self):
-        """Initialize the lightning trainer."""
+        """Initialize the lightning trainer with performance optimizations."""
+        # Enable mixed precision if GPU is available
+        precision = "16-mixed" if torch.cuda.is_available() else "32"
         return pl.Trainer(
             max_epochs=self.config.get("max_epochs", 10),
             accelerator="auto",
+            devices="auto",
+            precision=precision,
             enable_model_summary=True,
             gradient_clip_val=0.1,
         )

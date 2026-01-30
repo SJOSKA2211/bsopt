@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
-from typing import Dict, List
+from sklearn.preprocessing import StandardScaler
+from typing import Dict, List, Optional
 import structlog
 
 logger = structlog.get_logger()
@@ -9,35 +10,37 @@ logger = structlog.get_logger()
 class TimeSeriesAnomalyDetector:
     """
     ML-based anomaly detector for system metrics (latency, error rates, CPU).
-    Uses Isolation Forest to detect outliers in time-series data.
+    Uses Isolation Forest and StandardScaler for robust outlier detection.
     """
     def __init__(self, contamination: float = 0.05):
-        self.model = IsolationForest(contamination=contamination, random_state=42)
+        self.model = IsolationForest(contamination=contamination, n_jobs=-1, random_state=42)
+        self.scaler = StandardScaler()
         self.is_fitted = False
 
     def train(self, historical_data: pd.DataFrame):
         """
-        Train the model on historical 'normal' data.
-        historical_data should be a DataFrame where each row is a time step 
-        and columns are different metrics.
+        Train the model on historical 'normal' data with feature scaling.
         """
         if historical_data.empty:
             logger.warning("training_data_empty")
             return
 
         # Prepare features (assume all columns are numeric features)
-        features = historical_data.select_dtypes(include=[np.number]).values
+        numeric_df = historical_data.select_dtypes(include=[np.number])
+        features = numeric_df.values
         
-        self.model.fit(features)
+        # Scale features for better Isolation Forest performance
+        scaled_features = self.scaler.fit_transform(features)
+        
+        self.model.fit(scaled_features)
         self.is_fitted = True
         logger.info("anomaly_detector_trained", 
                     samples=len(historical_data), 
-                    features=list(historical_data.columns))
+                    features=list(numeric_df.columns))
 
     def detect(self, current_metrics: pd.DataFrame) -> List[Dict]:
         """
-        Detect anomalies in the current metrics.
-        Returns a list of detected anomalies with their scores.
+        Detect anomalies in current metrics with optimized scaling and vectorized prediction.
         """
         if not self.is_fitted:
             raise RuntimeError("Model must be trained before detection.")
@@ -45,21 +48,27 @@ class TimeSeriesAnomalyDetector:
         if current_metrics.empty:
             return []
 
-        features = current_metrics.select_dtypes(include=[np.number]).values
+        numeric_df = current_metrics.select_dtypes(include=[np.number])
+        features = numeric_df.values
         
-        # predict() returns -1 for anomalies and 1 for normal points
-        predictions = self.model.predict(features)
-        scores = self.model.decision_function(features)
+        # Scale current features using parameters from training
+        scaled_features = self.scaler.transform(features)
+        
+        # Vectorized prediction
+        predictions = self.model.predict(scaled_features)
+        scores = self.model.decision_function(scaled_features)
         
         anomalies = []
-        for i, (pred, score) in enumerate(zip(predictions, scores)):
-            if pred == -1:
-                anomaly_info = {
-                    "index": i,
-                    "score": float(score),
-                    "metrics": current_metrics.iloc[i].to_dict()
-                }
-                anomalies.append(anomaly_info)
-                logger.warning("anomaly_detected", **anomaly_info)
+        # Optimized loop for finding -1 (anomalies)
+        anomaly_indices = np.where(predictions == -1)[0]
+        
+        for idx in anomaly_indices:
+            anomaly_info = {
+                "index": int(idx),
+                "score": float(scores[idx]),
+                "metrics": numeric_df.iloc[idx].to_dict()
+            }
+            anomalies.append(anomaly_info)
+            logger.warning("anomaly_detected", **anomaly_info)
         
         return anomalies

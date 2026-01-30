@@ -1,4 +1,5 @@
 import asyncio
+import time
 from typing import Dict, Optional, Protocol
 from playwright.async_api import async_playwright
 import structlog

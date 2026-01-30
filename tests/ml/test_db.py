@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.shared.db import MarketData
+from src.database.models import MarketTick, Base
 
 @pytest.fixture
 def mock_engine():
@@ -10,17 +10,13 @@ def mock_engine():
 def mock_session():
     return MagicMock()
 
-def test_market_data_model():
-    """Verify that the MarketData model has the correct columns."""
-    assert MarketData.__tablename__ == 'market_data'
-    assert hasattr(MarketData, 'id')
-    assert hasattr(MarketData, 'ticker')
-    assert hasattr(MarketData, 'timestamp')
-    assert hasattr(MarketData, 'open')
-    assert hasattr(MarketData, 'high')
-    assert hasattr(MarketData, 'low')
-    assert hasattr(MarketData, 'close')
-    assert hasattr(MarketData, 'volume')
+def test_market_tick_model():
+    """Verify that the MarketTick model has the correct columns."""
+    assert MarketTick.__tablename__ == 'market_ticks'
+    assert hasattr(MarketTick, 'time')
+    assert hasattr(MarketTick, 'symbol')
+    assert hasattr(MarketTick, 'price')
+    assert hasattr(MarketTick, 'volume')
 
 @patch('src.shared.db.create_engine')
 @patch('src.shared.db.sessionmaker')

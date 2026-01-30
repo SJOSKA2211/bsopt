@@ -1,6 +1,14 @@
 import html
 import re
 
+def sanitize_alphanumeric(text: str) -> str:
+    """
+    Remove any characters that are not alphanumeric, underscores, or hyphens.
+    """
+    if not text:
+        return text
+    return re.sub(r"[^a-zA-Z0-9_-]", "", text)
+
 def sanitize_string(text: str) -> str:
     """
     Sanitize a string input by escaping HTML characters and trimming whitespace.

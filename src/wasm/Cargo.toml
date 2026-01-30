@@ -20,6 +20,8 @@ getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen-test = "0.3.50"
 
 [profile.release]
-# Optimize for small binary size
-opt-level = "s"
+# Optimize for maximum performance
+opt-level = 3
 lto = true
+codegen-units = 1
+panic = 'abort'

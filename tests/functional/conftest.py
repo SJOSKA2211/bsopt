@@ -86,7 +86,28 @@ def mock_db():
 # 11. API Client (httpx.AsyncClient)
 @pytest_asyncio.fixture
 async def client(mock_db):
+    from src.database import get_async_db
+    
+    # Mock Async Session
+    async def mock_get_async_db():
+        m_session = MagicMock()
+        m_session.execute = AsyncMock()
+        m_session.commit = AsyncMock()
+        m_session.rollback = AsyncMock()
+        m_session.close = AsyncMock()
+        
+        # Simple execute side effect for common queries
+        async def side_effect(query, *args, **kwargs):
+            mq = mock_db.query(User)
+            return MagicMock(scalar_one_or_none=lambda: mq.first())
+            
+        m_session.execute.side_effect = side_effect
+        m_session.add = mock_db.add
+        
+        yield m_session
+
     app.dependency_overrides[get_db] = lambda: mock_db
+    app.dependency_overrides[get_async_db] = mock_get_async_db
     
     # 69. Test Framework: mock.patch audit logs
     with patch("src.security.audit.log_audit"), \

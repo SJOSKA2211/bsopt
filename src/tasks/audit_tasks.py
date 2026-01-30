@@ -1,11 +1,11 @@
-import logging
+import structlog
 from typing import Any, Dict, Optional
 
 from src.tasks.celery_app import celery_app
 from src.database import get_session
 from src.database.models import AuditLog
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 @celery_app.task(name="audit_tasks.persist_audit_log", acks_late=True)
 def persist_audit_log(

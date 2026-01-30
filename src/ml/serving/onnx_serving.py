@@ -24,17 +24,24 @@ class ONNXModelServer:
     """
     def __init__(self, model_path: str):
         self.model_path = model_path
-        # Optimize for CPU performance
+        # Optimize for performance
         sess_options = ort.SessionOptions()
-        sess_options.intra_op_num_threads = 4
+        sess_options.intra_op_num_threads = os.cpu_count() or 4
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         
+        # Prioritize GPU if available
+        available_providers = ort.get_available_providers()
+        providers = []
+        if 'CUDAExecutionProvider' in available_providers:
+            providers.append('CUDAExecutionProvider')
+        providers.append('CPUExecutionProvider')
+        
         try:
-            self.session = ort.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvider'])
+            self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
             self.input_name = self.session.get_inputs()[0].name
             self.output_name = self.session.get_outputs()[0].name
-            logger.info("onnx_session_initialized", model_path=model_path)
+            logger.info("onnx_session_initialized", model_path=model_path, providers=providers)
         except Exception as e:
             logger.error("onnx_init_failed", error=str(e))
             raise
@@ -43,8 +50,13 @@ class ONNXModelServer:
         """Execute inference"""
         return self.session.run([self.output_name], {self.input_name: features.astype(np.float32)})[0]
 
+from fastapi.responses import ORJSONResponse
+
 # FastAPI Application for Serving
-app = FastAPI(title="BS-Opt ONNX Serving")
+app = FastAPI(
+    title="BS-Opt ONNX Serving",
+    default_response_class=ORJSONResponse
+)
 model_server: ONNXModelServer = None
 
 @app.on_event("startup")

@@ -115,12 +115,26 @@ class AuthService:
         else: # Fallback for sync session or MagicMock
              user = db.query(User).filter(User.email == email).first()
         
-        # Timing attack protection: always verify a password even if user not found
+        # Timing attack protection: always verify a password hash, even if the user is not found.
+        # This prevents attackers from enumerating valid usernames based on response times.
+        user_exists = True
         if not user:
-            await run_in_threadpool(password_service.verify_password, password, "$2b$12$7P1.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.")
-            return None
-            
-        if not await run_in_threadpool(password_service.verify_password, password, user.hashed_password):
+            user_exists = False
+            # Create a dummy user with a placeholder hashed password to ensure password verification always runs
+            user = User(
+                email="nonexistent@example.com",
+                hashed_password=password_service.hash_password(secrets.token_urlsafe(32)), # Use a random hash
+                full_name="Dummy User",
+                tier="free",
+                is_active=False,
+                is_verified=False,
+                created_at=datetime.now(timezone.utc)
+            )
+        
+        # Always run password verification
+        password_matches = await run_in_threadpool(password_service.verify_password, password, user.hashed_password)
+
+        if not user_exists or not password_matches:
             return None
         return user
 

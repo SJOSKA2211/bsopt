@@ -23,10 +23,13 @@ from src.utils.cache import get_redis # Import for DistributedCircuitBreaker ini
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+from fastapi.responses import ORJSONResponse
+
 app = FastAPI(
     title="BSOPT ML Serving",
     version="1.0.0",
-    description="Production-grade ML model serving for option pricing"
+    description="Production-grade ML model serving for option pricing",
+    default_response_class=ORJSONResponse
 )
 
 # Metrics

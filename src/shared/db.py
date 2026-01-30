@@ -1,38 +1,14 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, BigInteger
-from sqlalchemy.orm import sessionmaker, declarative_base
-from minio import Minio
+from sqlalchemy.orm import Session
+from src.database import get_session, get_engine
+from src.database.models import Base
 import io
+from minio import Minio
 
-Base = declarative_base()
-
-class MarketData(Base):
+def get_db_session(connection_string: str = None) -> Session:
     """
-    SQLAlchemy model for market data stored in TimescaleDB.
+    Creates a new database session using the central optimized engine.
     """
-    __tablename__ = 'market_data'
-
-    id = Column(Integer, primary_key=True)
-    ticker = Column(String, nullable=False, index=True)
-    timestamp = Column(BigInteger, nullable=False, index=True) # Unix timestamp in milliseconds
-    open = Column(Float, nullable=False)
-    high = Column(Float, nullable=False)
-    low = Column(Float, nullable=False)
-    close = Column(Float, nullable=False)
-    volume = Column(Float, nullable=False)
-
-def get_db_session(connection_string: str):
-    """
-    Creates a new database session.
-    
-    Args:
-        connection_string: SQLAlchemy connection string.
-        
-    Returns:
-        SQLAlchemy Session object.
-    """
-    engine = create_engine(connection_string)
-    Session = sessionmaker(bind=engine)
-    return Session()
+    return get_session()
 
 class MinioStorage:
     """

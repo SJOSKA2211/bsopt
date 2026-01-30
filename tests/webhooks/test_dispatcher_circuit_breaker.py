@@ -4,7 +4,7 @@ import asyncio
 import time
 import httpx
 
-from src.webhooks.dispatcher import CircuitBreaker, WebhookDispatcher
+from src.utils.circuit_breaker import CircuitBreaker, DistributedCircuitBreaker, InMemoryCircuitBreaker
 
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step
 class MockDlqTask:

@@ -41,11 +41,29 @@ class ConnectionManager:
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
         self.redis = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
         self.pubsub = self.redis.pubsub()
+        self._listener_task = None
+
+    async def _listen_to_redis(self):
+        """Background task to listen for Redis messages and broadcast locally."""
+        try:
+            async for message in self.pubsub.listen():
+                if message["type"] == "message":
+                    symbol = message["channel"]
+                    data = orjson.loads(message["data"])
+                    await self.broadcast_to_symbol(symbol, data, from_redis=True)
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.error("ws_redis_listener_error", error=str(e))
 
     async def connect(self, websocket: WebSocket, symbol: str):
         """Accept connection and subscribe to symbol updates."""
         await websocket.accept()
         
+        # Start listener if not running
+        if self._listener_task is None:
+            self._listener_task = asyncio.create_task(self._listen_to_redis())
+
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
              websocket.metadata = ConnectionMetadata(protocol=ProtocolType.JSON)
@@ -75,11 +93,18 @@ class ConnectionManager:
         WEBSOCKET_DISCONNECTIONS_TOTAL.inc() # Increment counter
         WEBSOCKET_ACTIVE_CONNECTIONS.dec() # Decrement gauge
 
-    async def broadcast_to_symbol(self, symbol: str, message: Any):
+    async def broadcast_to_symbol(self, symbol: str, message: Any, from_redis: bool = False):
         """
         Send message to all users watching a specific ticker.
         Supports multi-protocol broadcasting (JSON, Proto, MsgPack).
         """
+        # If message originates locally, publish to Redis for other workers
+        if not from_redis:
+            await self.redis.publish(symbol, orjson.dumps(message))
+            # If we broadcast locally now, we'll get it back from Redis listener too
+            # unless we add logic to skip. For now, let Redis be the source of truth.
+            return
+
         if symbol not in self.active_connections:
             return
 
@@ -90,7 +115,6 @@ class ConnectionManager:
         # Group by protocol to encode ONCE per protocol
         by_protocol: Dict[ProtocolType, List[WebSocket]] = {}
         for conn in connections:
-            # Assume metadata exists (set in connect)
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol
             if proto not in by_protocol:
                 by_protocol[proto] = []
@@ -105,13 +129,16 @@ class ConnectionManager:
                         tasks.append(conn.send_text(encoded))
                     else:
                         tasks.append(conn.send_bytes(encoded))
-                WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns)) # Increment counter by number of recipients
+                WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:
                 logger.error("ws_encode_error", symbol=symbol, protocol=proto, error=str(e))
                 continue
 
         if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # Execute in chunks to avoid blocking the event loop for too long
+            chunk_size = 100
+            for i in range(0, len(tasks), chunk_size):
+                await asyncio.gather(*tasks[i:i+chunk_size], return_exceptions=True)
 
 # Global manager instance for reuse across routes
 manager = ConnectionManager()

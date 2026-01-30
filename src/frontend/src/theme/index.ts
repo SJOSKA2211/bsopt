@@ -238,7 +238,7 @@ const components = {
     
     variants: [
       {
-        props: { variant: 'buy' },
+        props: { variant: 'buy' as any },
         style: {
           backgroundColor: palette.success.main,
           color: '#fff',
@@ -248,7 +248,7 @@ const components = {
         },
       },
       {
-        props: { variant: 'sell' },
+        props: { variant: 'sell' as any },
         style: {
           backgroundColor: palette.error.main,
           color: '#fff',
@@ -346,7 +346,7 @@ const components = {
         },
       },
     },
-  },
+  } as any,
   
   MuiTooltip: {
     styleOverrides: {

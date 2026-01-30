@@ -43,8 +43,9 @@ def _initialize_db_components():
         _engine = create_engine(
             settings.DATABASE_URL,
             poolclass=QueuePool,
-            pool_size=40,
-            max_overflow=110,
+            pool_size=50,
+            max_overflow=150,
+            pool_timeout=30,
             pool_recycle=1800,
             pool_pre_ping=True,
             echo=settings.DEBUG if hasattr(settings, "DEBUG") else False,
@@ -57,8 +58,9 @@ def _initialize_db_components():
         async_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
         _async_engine = create_async_engine(
             async_url,
-            pool_size=40,
-            max_overflow=110,
+            pool_size=50,
+            max_overflow=150,
+            pool_timeout=30,
             pool_recycle=1800,
             pool_pre_ping=True,
         )
