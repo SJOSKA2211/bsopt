@@ -1,9 +1,8 @@
-import time
-from typing import Optional, Dict
+from typing import Dict
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
-from cachetools import TTLCache # Optimization: Cache keys
+from cachetools import TTLCache  # Optimization: Cache keys
 import httpx
 import structlog
 
@@ -18,23 +17,28 @@ AUDIENCE = "account"
 # This keeps latency < 1ms for verification
 jwks_cache = TTLCache(maxsize=1, ttl=3600)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{KEYCLOAK_URL}/protocol/openid-connect/token")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl=f"{KEYCLOAK_URL}/protocol/openid-connect/token"
+)
+
 
 async def get_jwks():
     if "keys" in jwks_cache:
         return jwks_cache["keys"]
     async with httpx.AsyncClient() as client:
-        resp = await client.get(f"{KEYCLOAK_URL}/protocol/openid-connect/certs")
+        resp = await client.get(
+            f"{KEYCLOAK_URL}/protocol/openid-connect/certs"
+        )
         keys = resp.json()
         jwks_cache["keys"] = keys
         return keys
 
-async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) -> Dict:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+
+async def validate_token(token: str) -> Dict:
+    """
+    Validates the JWT token and returns the payload.
+    Raises JWTError if validation fails.
+    """
     try:
         # Get public keys
         jwks = await get_jwks()
@@ -52,7 +56,7 @@ async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) ->
                 }
                 break
         if not rsa_key:
-            raise credentials_exception
+            raise JWTError("Key not found")
 
         # Verify Signature
         payload = jwt.decode(
@@ -62,22 +66,44 @@ async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) ->
             audience=AUDIENCE,
             options={"verify_at_hash": False}
         )
-        
-        # 🚀 FIX: Populate request.state.user for downstream dependencies (like opa_authorize)
-        # We create a simple object-like wrapper or map the dictionary to match the expected interface
+        return payload
+    except Exception as e:
+        if not isinstance(e, JWTError):
+            raise JWTError(str(e))
+        raise e
+
+
+async def verify_token(
+    request: Request,
+    token: str = Depends(oauth2_scheme)
+) -> Dict:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = await validate_token(token)
+
+        # 🚀 FIX: Populate request.state.user for downstream dependencies
+        # (like opa_authorize)
+        # We create a simple object-like wrapper or map the dictionary
+        # to match the expected interface
         class AuthenticatedUser:
             def __init__(self, payload):
                 self.id = payload.get("sub")
-                # Map Keycloak roles to 'tier' for compatibility with opa_authorize
+                # Map Keycloak roles to 'tier' for compatibility
+                # with opa_authorize
                 roles = payload.get("realm_access", {}).get("roles", [])
                 self.tier = "enterprise" if "admin" in roles else "free"
                 self.email = payload.get("email")
-        
+
         request.state.user = AuthenticatedUser(payload)
-        
-        return payload # Returns User Info (sub, roles, email)
+
+        return payload  # Returns User Info (sub, roles, email)
     except JWTError:
         raise credentials_exception
+
 
 # Role-Based Access Control (RBAC) Dependency
 class RoleChecker:
@@ -91,6 +117,13 @@ class RoleChecker:
 
         # Check intersection
         if not set(self.allowed_roles).intersection(user_roles):
-            logger.warning("rbac_denied", user=token_payload.get("sub"), required=self.allowed_roles)
-            raise HTTPException(status_code=403, detail="Insufficient Permissions")
+            logger.warning(
+                "rbac_denied",
+                user=token_payload.get("sub"),
+                required=self.allowed_roles
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient Permissions"
+            )
         return token_payload
