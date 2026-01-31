@@ -47,8 +47,8 @@ class LoginResponse(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "access_token": "eyJhbGciOiJIUzI1NiIs...",
-                "refresh_token": "eyJhbGciOiJIUzI1NiIs...",  # nosec
+                "access_token": "ACCESS_TOKEN_EXAMPLE",
+                "refresh_token": "REFRESH_TOKEN_EXAMPLE",
                 "token_type": "bearer",
                 "expires_in": 1800,
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -159,7 +159,7 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Current refresh token")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}  # nosec
+        json_schema_extra={"example": {"refresh_token": "REFRESH_TOKEN_EXAMPLE"}}
     )
 
 
@@ -214,7 +214,7 @@ class PasswordResetConfirm(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "token": "abc123def456",  # nosec
+                "token": "RESET_TOKEN_EXAMPLE",
                 "new_password": "NewSecurePassword123!",  # nosec
                 "new_password_confirm": "NewSecurePassword123!",  # nosec
             }
@@ -292,5 +292,5 @@ class EmailVerificationRequest(BaseModel):
     token: str = Field(..., description="Verification token from email")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"token": "abc123def456"}}  # nosec
+        json_schema_extra={"example": {"token": "VERIFICATION_TOKEN_EXAMPLE"}}
     )
