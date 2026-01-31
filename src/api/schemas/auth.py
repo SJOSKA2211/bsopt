@@ -44,20 +44,7 @@ class LoginResponse(BaseModel):
     tier: str = Field(..., description="User subscription tier")
     requires_mfa: bool = False
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "access_token": "string",
-                "refresh_token": "string",
-                "token_type": "bearer",
-                "expires_in": 1800,
-                "user_id": "123e4567-e89b-12d3-a456-426614174000",
-                "email": "user@example.com",
-                "tier": "pro",
-                "requires_mfa": False,
-            }
-        }
-    )
+    model_config = ConfigDict()
 
 
 class RegisterRequest(BaseModel):
@@ -158,9 +145,7 @@ class RefreshTokenRequest(BaseModel):
 
     refresh_token: str = Field(..., description="Current refresh token")
 
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"refresh_token": "string"}}
-    )
+    model_config = ConfigDict()
 
 
 class PasswordResetRequest(BaseModel):
@@ -211,15 +196,7 @@ class PasswordResetConfirm(BaseModel):
             raise ValueError("Passwords do not match")
         return v
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "token": "string",
-                "new_password": "NewSecurePassword123!",  # nosec
-                "new_password_confirm": "NewSecurePassword123!",  # nosec
-            }
-        }
-    )
+    model_config = ConfigDict()
 
 
 class PasswordChangeRequest(BaseModel):
@@ -253,17 +230,7 @@ class MFASetupResponse(BaseModel):
     qr_code_uri: str = Field(..., description="URI for QR code generation")
     backup_codes: list[str] = Field(..., description="Backup recovery codes")
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "secret": "string",
-                "qr_code_uri": (
-                    "otpauth://totp/BSOPT:user@example.com?" "secret=string&issuer=BSOPT"
-                ),
-                "backup_codes": ["12345678", "23456789", "34567890"],
-            }
-        }
-    )
+    model_config = ConfigDict()
 
 
 class MFAVerifyRequest(BaseModel):
@@ -291,6 +258,4 @@ class EmailVerificationRequest(BaseModel):
 
     token: str = Field(..., description="Verification token from email")
 
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"token": "string"}}
-    )
+    model_config = ConfigDict()
