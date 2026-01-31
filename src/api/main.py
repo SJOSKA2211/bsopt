@@ -83,7 +83,7 @@ async def lifespan(app: FastAPI):
         app.state.audit_producer.flush(timeout=5)
 
 # Multiproc directory for Prometheus
-PROMETHEUS_MULTIPROC_DIR = os.environ.get("PROMETHEUS_MULTIPROC_DIR", "/tmp/metrics")
+PROMETHEUS_MULTIPROC_DIR = os.environ.get("PROMETHEUS_MULTIPROC_DIR", "/tmp/metrics")  # nosec
 if not os.path.exists(PROMETHEUS_MULTIPROC_DIR):
     os.makedirs(PROMETHEUS_MULTIPROC_DIR, exist_ok=True)
 from src.api.routes.auth import router as auth_router

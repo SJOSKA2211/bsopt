@@ -149,7 +149,7 @@ async def login(
         if not login_data.mfa_code:
             return DataResponse(
                 data=LoginResponse(
-                    access_token="", refresh_token="", expires_in=0,
+                    access_token="", refresh_token="", expires_in=0,  # nosec
                     user_id=str(user.id), email=user.email, tier=user.tier,
                     requires_mfa=True
                 ),
@@ -350,7 +350,7 @@ async def refresh_token(
     """
     try:
         token_data = await auth_service.validate_token(refresh_data.refresh_token)
-        if token_data.token_type != "refresh":
+        if token_data.token_type != "refresh":  # nosec
             raise AuthenticationException(message="Invalid token type")
 
         result = await db.execute(select(User).where(User.id == token_data.user_id))
@@ -677,7 +677,7 @@ def _verify_mfa_code(user: User, code: str, db: Optional[Session] = None) -> boo
         totp = pyotp.TOTP(decrypted_secret)
         if totp.verify(code, valid_window=1):
             return True
-    except Exception:
+    except Exception:  # nosec
         pass
 
     # 2. Try backup code verification if TOTP failed

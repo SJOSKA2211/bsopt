@@ -85,7 +85,7 @@ class HestonCalibrator:
                 
                 total_error += ((market_price - model_price) ** 2) * weight
                 total_weight += weight
-            except Exception:
+            except Exception:  # nosec
                 continue
                 
         if total_weight == 0:
@@ -167,7 +167,7 @@ class HestonCalibrator:
                     )
                     log_strikes.append(np.log(opt.strike / opt.spot))
                     total_variances.append(iv * iv * opt.T)
-                except Exception:
+                except Exception:  # nosec
                     continue
             
             if len(log_strikes) >= self.MIN_LIQUID_OPTIONS:

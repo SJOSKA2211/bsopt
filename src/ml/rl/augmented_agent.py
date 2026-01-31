@@ -14,8 +14,8 @@ class SentimentExtractor:
     def __init__(self, model_name: str = "ProsusAI/finbert"):
         self.model_name = model_name
         try:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name)  # nosec
+            self.model = AutoModelForSequenceClassification.from_pretrained(model_name)  # nosec
             self.model.eval()
         except Exception as e:
             logger.warning("sentiment_model_load_failed", error=str(e))

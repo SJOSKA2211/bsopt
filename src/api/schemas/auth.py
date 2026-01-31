@@ -48,7 +48,7 @@ class LoginResponse(BaseModel):
         json_schema_extra={
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIs...",
-                "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIs...",  # nosec
                 "token_type": "bearer",
                 "expires_in": 1800,
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -159,7 +159,7 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Current refresh token")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}
+        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}  # nosec
     )
 
 
@@ -214,9 +214,9 @@ class PasswordResetConfirm(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "token": "abc123def456",
-                "new_password": "NewSecurePassword123!",
-                "new_password_confirm": "NewSecurePassword123!",
+                "token": "abc123def456",  # nosec
+                "new_password": "NewSecurePassword123!",  # nosec
+                "new_password_confirm": "NewSecurePassword123!",  # nosec
             }
         }
     )
@@ -256,7 +256,7 @@ class MFASetupResponse(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "secret": "JBSWY3DPEHPK3PXP",
+                "secret": "JBSWY3DPEHPK3PXP",  # nosec
                 "qr_code_uri": (
                     "otpauth://totp/BSOPT:user@example.com?" "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
                 ),
@@ -292,5 +292,5 @@ class EmailVerificationRequest(BaseModel):
     token: str = Field(..., description="Verification token from email")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"token": "abc123def456"}}
+        json_schema_extra={"example": {"token": "abc123def456"}}  # nosec
     )

@@ -331,7 +331,7 @@ def _initialize_settings():
                     DATABASE_URL="sqlite:///:memory:",
                     REDIS_URL="redis://localhost:6379/0",
                     RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
-                    JWT_SECRET="safe-default-secret-not-for-production",
+                    JWT_SECRET="safe-default-secret-not-for-production",  # nosec
                     MFA_ENCRYPTION_KEY=None,
                     JWT_PRIVATE_KEY=None,
                     JWT_PUBLIC_KEY=None

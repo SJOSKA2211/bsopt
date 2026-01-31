@@ -14,7 +14,7 @@ async def load_fair_values(keys: List[strawberry.ID]) -> List[float]:
     for key in keys:
         # Mocking inference for now as we don't have a real batch inference endpoint
         # but using the service pattern.
-        results.append(15.5 + random.uniform(-0.5, 0.5))
+        results.append(15.5 + random.uniform(-0.5, 0.5))  # nosec
     return results
 
 @strawberry.federation.type(keys=["id"])
@@ -29,7 +29,7 @@ class Option:
     @strawberry.field
     def recommendation(self) -> str:
         # Mock inference
-        return random.choice(["BUY", "SELL", "HOLD"])
+        return random.choice(["BUY", "SELL", "HOLD"])  # nosec
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):

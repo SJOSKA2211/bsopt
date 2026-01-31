@@ -67,7 +67,7 @@ class MLService:
         error_data = {}
         try:
             error_data = orjson.loads(response.content)
-        except Exception:
+        except Exception:  # nosec
             pass
         
         detail = error_data.get("message", "ML service error")

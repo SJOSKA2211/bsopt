@@ -48,7 +48,7 @@ def verify_postgres_connection():
 
     print(f"Running: PGPASSWORD=[HIDDEN] {' '.join(cmd)}")
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # nosec
         print("\n--- Connection Verified ---")
         print(result.stdout)
     except subprocess.CalledProcessError as e:

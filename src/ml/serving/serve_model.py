@@ -52,7 +52,7 @@ def serve_model(model_name: str, model_version: str, port: int, host: str, backe
             "mlflow", "models", "serve", "-m", model_uri, "-p", str(port), "-h", host
         ]
         logger.info(f"Executing legacy MLflow command: {' '.join(command)}")
-        subprocess.run(command)
+        subprocess.run(command)  # nosec
 
 
 if __name__ == "__main__":

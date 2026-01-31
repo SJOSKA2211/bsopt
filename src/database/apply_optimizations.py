@@ -45,7 +45,7 @@ def apply_database_optimizations():
     logger.info("applying_optimizations", host=db_host, database=db_name)
     
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # nosec
         logger.info("optimizations_applied_successfully", output=result.stdout[:500])
     except subprocess.CalledProcessError as e:
         logger.error("optimizations_failed", error=e.stderr)

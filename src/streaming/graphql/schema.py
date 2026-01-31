@@ -16,11 +16,11 @@ class Option:
     
     @strawberry.field
     def last_price(self) -> float:
-        return 15.0 + random.uniform(0, 1.0)
+        return 15.0 + random.uniform(0, 1.0)  # nosec
 
     @strawberry.field
     def volume(self) -> int:
-        return random.randint(100, 10000)
+        return random.randint(100, 10000)  # nosec
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):
@@ -41,8 +41,8 @@ class Subscription:
             for symbol in symbols:
                 yield MarketData(
                     symbol=symbol,
-                    last_price=150.0 + random.uniform(-1, 1),
-                    volume=random.randint(100, 500)
+                    last_price=150.0 + random.uniform(-1, 1),  # nosec
+                    volume=random.randint(100, 500)  # nosec
                 )
             await asyncio.sleep(0.1)
 

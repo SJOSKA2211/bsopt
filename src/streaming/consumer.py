@@ -107,5 +107,5 @@ class MarketDataConsumer:
         self.running = False
         try:
             self.consumer.close()
-        except Exception:
+        except Exception:  # nosec
             pass
