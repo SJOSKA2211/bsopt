@@ -22,7 +22,7 @@ from typing import List, Optional
 
 from src.api.schemas.common import DataResponse, SuccessResponse, PaginatedResponse, PaginationMeta
 from src.api.schemas.user import APIKeyResponse, APIKeyCreateRequest, UserResponse, UserUpdateRequest
-from src.api.exceptions import NotFoundException, ConflictException
+from src.api.exceptions import NotFoundException, ConflictException, PermissionDeniedException
 from src.security.auth import get_current_active_user, require_tier
 from src.security.audit import AuditEvent, log_audit
 from src.utils.sanitization import sanitize_string
@@ -197,8 +197,15 @@ async def delete_current_user_account(
     response_model=DataResponse[UserResponse],
     dependencies=[Depends(require_tier(["enterprise"]))],
 )
-async def get_user_by_id(user_id: str, db: AsyncSession = Depends(get_async_db)):
+async def get_user_by_id(
+    user_id: str,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_active_user),
+):
     """Enterprise: Get user (Async)."""
+    if str(current_user.id) != user_id:
+        raise PermissionDeniedException(message="You do not have permission to access this user profile.")
+
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

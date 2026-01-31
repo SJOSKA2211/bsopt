@@ -1,9 +1,14 @@
+import sys
+from unittest.mock import MagicMock
+# Mock numba before imports
+sys.modules["numba"] = MagicMock()
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock, ANY
+from unittest.mock import patch, AsyncMock, ANY
 from fastapi.testclient import TestClient
 from src.api.main import app
 from src.database.models import User
-from src.database import get_db
+from src.database import get_db, get_async_db
 from src.security.auth import get_current_active_user, require_tier
 import uuid
 from datetime import datetime, timezone
@@ -153,9 +158,13 @@ def test_get_user_stats(mock_user):
 
 def test_get_user_by_id_enterprise(enterprise_user):
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
-    mock_db = MagicMock()
-    app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.filter.return_value.first.return_value = enterprise_user
+    mock_db = AsyncMock()
+    app.dependency_overrides[get_async_db] = lambda: mock_db
+
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = enterprise_user
+    mock_db.execute.return_value = mock_result
+
     response = client.get(f"/api/v1/users/{enterprise_user.id}")
     assert response.status_code == 200
     app.dependency_overrides = {}
@@ -165,8 +174,9 @@ def test_get_user_by_id_not_found(enterprise_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None
+    # User accessing a random UUID that is not their own ID should get 403 Forbidden
     response = client.get(f"/api/v1/users/{uuid.uuid4()}")
-    assert response.status_code == 404
+    assert response.status_code == 403
     app.dependency_overrides = {}
 
 def test_list_users_enterprise(enterprise_user, mock_user):
