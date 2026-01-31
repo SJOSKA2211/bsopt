@@ -47,8 +47,8 @@ class LoginResponse(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "access_token": "ACCESS_TOKEN_EXAMPLE",
-                "refresh_token": "REFRESH_TOKEN_EXAMPLE",
+                "access_token": "string",
+                "refresh_token": "string",
                 "token_type": "bearer",
                 "expires_in": 1800,
                 "user_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -159,7 +159,7 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Current refresh token")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"refresh_token": "REFRESH_TOKEN_EXAMPLE"}}
+        json_schema_extra={"example": {"refresh_token": "string"}}
     )
 
 
@@ -214,7 +214,7 @@ class PasswordResetConfirm(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "token": "RESET_TOKEN_EXAMPLE",
+                "token": "string",
                 "new_password": "NewSecurePassword123!",  # nosec
                 "new_password_confirm": "NewSecurePassword123!",  # nosec
             }
@@ -256,9 +256,9 @@ class MFASetupResponse(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "secret": "JBSWY3DPEHPK3PXP",  # nosec
+                "secret": "string",
                 "qr_code_uri": (
-                    "otpauth://totp/BSOPT:user@example.com?" "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
+                    "otpauth://totp/BSOPT:user@example.com?" "secret=string&issuer=BSOPT"
                 ),
                 "backup_codes": ["12345678", "23456789", "34567890"],
             }
@@ -292,5 +292,5 @@ class EmailVerificationRequest(BaseModel):
     token: str = Field(..., description="Verification token from email")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"token": "VERIFICATION_TOKEN_EXAMPLE"}}
+        json_schema_extra={"example": {"token": "string"}}
     )
