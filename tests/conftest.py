@@ -3,6 +3,15 @@ import os
 import sys
 from unittest.mock import MagicMock, AsyncMock, patch
 from _pytest.monkeypatch import MonkeyPatch # Import MonkeyPatch class
+
+# Mock numba globally before any src imports that might need it
+sys.modules["numba"] = MagicMock()
+
+# Mock pwnedpasswords to avoid network calls
+mock_pwned = MagicMock()
+mock_pwned.check.return_value = 0
+sys.modules["pwnedpasswords"] = mock_pwned
+
 import uuid
 import re
 from jose import JWTError
