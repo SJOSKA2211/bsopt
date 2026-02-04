@@ -777,11 +777,52 @@ mod tests {
         assert_eq!(bs.price_put(100.0, 90.0, 0.0, 0.2, 0.05, 0.0), 0.0);
     }
 
-    #[test]
-    fn test_iv_solver() {
-        let bs = BlackScholesWASM::new();
-        let price = bs.price_call(100.0, 100.0, 1.0, 0.2, 0.05, 0.0);
-        let solved_vol = bs.solve_iv(price, 100.0, 100.0, 1.0, 0.05, 0.0, true);
-        assert!((solved_vol - 0.2).abs() < 1e-4);
+        #[test]
+
+        fn test_iv_solver() {
+
+            let bs = BlackScholesWASM::new();
+
+            let price = bs.price_call(100.0, 100.0, 1.0, 0.2, 0.05, 0.0);
+
+            let solved_vol = bs.solve_iv(price, 100.0, 100.0, 1.0, 0.05, 0.0, true);
+
+            assert!((solved_vol - 0.2).abs() < 1e-4);
+
+        }
+
+    
+
+        #[test]
+
+        fn test_simd_math_precision() {
+
+            use std::arch::wasm32::*;
+
+            unsafe {
+
+                let x = f64x2(0.5, -0.5);
+
+                let cdf = simd_n_cdf(x);
+
+                let res: [f64; 2] = std::mem::transmute(cdf);
+
+                
+
+                // Expected values from normal distribution table
+
+                // Phi(0.5) approx 0.69146
+
+                // Phi(-0.5) approx 0.30854
+
+                assert!((res[0] - 0.69146).abs() < 1e-4);
+
+                assert!((res[1] - 0.30854).abs() < 1e-4);
+
+            }
+
+        }
+
     }
-}
+
+    
