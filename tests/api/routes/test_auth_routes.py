@@ -105,7 +105,7 @@ def test_helpers_final(mock_all):
     with patch("src.api.routes.auth.send_transactional_email.delay") as md:
         asyncio.run(_send_verification_email("a@b.com", "t")); assert md.called
         md.reset_mock(); asyncio.run(_send_password_reset_email("a@b.com", "t")); assert md.called
-    with patch("src.api.routes.auth.Fernet") as mf:
+    with patch("src.api.routes.auth.AES256GCM") as mf:
         mf.return_value.decrypt.side_effect = Exception("f")
         h = hashlib.sha256(b"123").hexdigest()
         assert _verify_mfa_code(create_mock_user(mfa_secret="s", mfa_backup_codes=h), "123", db=m_db) is True

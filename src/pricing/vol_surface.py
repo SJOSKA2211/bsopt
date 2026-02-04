@@ -90,7 +90,14 @@ class MarketQuote:
     vega: Optional[Union[float, Decimal]] = None
 
 
-from numba import njit, prange
+try:
+    from numba import njit, prange
+except ImportError:
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
 
 @njit(cache=True, fastmath=True)
 def _svi_total_variance_jit(k, a, b, rho, m, sigma):

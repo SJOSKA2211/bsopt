@@ -10,7 +10,34 @@ from anyio.to_thread import run_sync
 import structlog
 import numpy as np
 from cachetools import TTLCache
-import ray # SOTA: Distributed Computing
+try:
+    import ray
+except ImportError:
+    class RayMock:
+        def remote(self, func=None, **kwargs):
+            if func and callable(func):
+                class RemoteFunction:
+                    def __init__(self, f):
+                        self.f = f
+                    def remote(self, *args, **kwargs):
+                        return self.f(*args, **kwargs)
+                return RemoteFunction(func)
+            else:
+                def decorator(f):
+                    class RemoteFunction:
+                        def __init__(self, fn):
+                            self.f = fn
+                        def remote(self, *args, **kwargs):
+                            return self.f(*args, **kwargs)
+                    return RemoteFunction(f)
+                return decorator
+        def is_initialized(self):
+            return False
+        def put(self, obj):
+            return obj
+        def get(self, obj):
+            return obj
+    ray = RayMock()
 
 # Ray initialization moved to src/api/main.py for lifecycle management
 

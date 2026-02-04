@@ -122,7 +122,14 @@ class AsianOptionPricer:
 
 
 from src.pricing.quant_utils import batch_bs_price_jit, jit_generate_paths
-from numba import njit, prange
+try:
+    from numba import njit, prange
+except ImportError:
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
 
 @njit(parallel=True, cache=True, fastmath=True)
 def _jit_arithmetic_asian_payoff(

@@ -7,7 +7,39 @@ from src.pricing.quant_utils import heston_char_func_jit
 
 logger = structlog.get_logger()
 
-from numba import njit, prange
+try:
+    from numba import jit, njit, prange, config, vectorize, float64, cuda
+except ImportError:
+    def jit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
+    class Config:
+        pass
+    config = Config()
+    def vectorize(*args, **kwargs):
+        def decorator(func):
+            return np.vectorize(func)
+        return decorator
+    class NumbaType:
+        def __call__(self, *args):
+            return self
+    float64 = NumbaType()
+    class CudaMock:
+        def jit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+        def grid(self, *args):
+            return 0
+        def device_array(self, n, dtype):
+            return np.zeros(n, dtype=dtype)
+    cuda = CudaMock()
 
 @njit(cache=True, fastmath=True)
 def _heston_integrand_jit(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):

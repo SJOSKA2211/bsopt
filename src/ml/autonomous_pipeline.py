@@ -3,7 +3,39 @@ import asyncio
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional
-from numba import jit, prange
+try:
+    from numba import jit, njit, prange, config, vectorize, float64, cuda
+except ImportError:
+    def jit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
+    class Config:
+        pass
+    config = Config()
+    def vectorize(*args, **kwargs):
+        def decorator(func):
+            return np.vectorize(func)
+        return decorator
+    class NumbaType:
+        def __call__(self, *args):
+            return self
+    float64 = NumbaType()
+    class CudaMock:
+        def jit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+        def grid(self, *args):
+            return 0
+        def device_array(self, n, dtype):
+            return np.zeros(n, dtype=dtype)
+    cuda = CudaMock()
 from src.ml.scraper import MarketDataScraper
 from src.database import get_async_db_context, Base
 from src.database.models import MarketTick, ModelPrediction

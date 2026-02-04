@@ -32,6 +32,45 @@ def pytest_configure(config):
     Hook to configure pytest before any tests are run.
     This is where we can inject mocks for module-level imports.
     """
+    import sys
+    from unittest.mock import MagicMock
+
+    # Mock Ray
+    mock_ray = MagicMock()
+    mock_ray.remote = lambda x: x
+    mock_ray.init = MagicMock()
+    mock_ray.shutdown = MagicMock()
+    sys.modules["ray"] = mock_ray
+    sys.modules["ray.util"] = MagicMock()
+    sys.modules["ray.util.iter"] = MagicMock()
+
+    # Mock Numba
+    mock_numba = MagicMock()
+    mock_numba.jit = lambda *args, **kwargs: lambda func: func
+    mock_numba.njit = lambda *args, **kwargs: lambda func: func
+    mock_numba.float64 = MagicMock()
+    mock_numba.int64 = MagicMock()
+    sys.modules["numba"] = mock_numba
+    sys.modules["numba.core"] = MagicMock()
+    sys.modules["numba.core.decorators"] = MagicMock()
+    sys.modules["llvmlite"] = MagicMock()
+    sys.modules["llvmlite.binding"] = MagicMock()
+
+    # Mock pandas_ta
+    sys.modules["pandas_ta"] = MagicMock()
+
+    # Mock torch
+    mock_torch = MagicMock()
+    mock_torch.cuda.is_available.return_value = False
+    mock_torch.device = MagicMock()
+    
+    # Mock Tensor as a class
+    class MockTensor:
+        pass
+    mock_torch.Tensor = MockTensor
+    
+    sys.modules["torch"] = mock_torch
+
     import os
     import sys
     from unittest.mock import MagicMock

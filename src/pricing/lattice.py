@@ -9,7 +9,26 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-from numba import njit, prange
+try:
+    from numba import njit, prange, cuda, float64
+except ImportError:
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
+    class CudaMock:
+        def jit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+        def grid(self, *args):
+            return 0
+    cuda = CudaMock()
+    class NumbaType:
+        def __call__(self, *args):
+            return self
+    float64 = NumbaType()
 
 from .models import BSParameters, OptionGreeks
 from .base import PricingStrategy
@@ -28,7 +47,7 @@ class LatticeGreeks:
 class LatticeParameters(BSParameters):
     n_steps: int = 100
 
-from numba import cuda, float64
+# from numba import cuda, float64 # Handled by mock block
 import math
 
 @cuda.jit

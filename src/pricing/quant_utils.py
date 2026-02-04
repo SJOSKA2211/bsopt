@@ -11,7 +11,19 @@ Performance Notes:
 import math
 from typing import Optional, Tuple, Any
 import numpy as np
-from numba import njit, prange, config
+try:
+    from numba import njit, prange, config
+except ImportError:
+    # Fallback for systems without Numba (e.g. Python 3.14)
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    prange = range
+    class Config:
+        pass
+    config = Config()
+
 from src.shared.math_utils import (
     fast_normal_cdf, 
     fast_normal_pdf, 

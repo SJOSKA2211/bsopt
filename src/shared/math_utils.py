@@ -6,7 +6,21 @@ Consolidates critical numerical logic for cross-module consistency.
 
 import math
 import numpy as np
-from numba import njit, vectorize, float64
+try:
+    from numba import njit, vectorize, float64
+except ImportError:
+    def njit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    def vectorize(*args, **kwargs):
+        def decorator(func):
+            return np.vectorize(func)
+        return decorator
+    class NumbaType:
+        def __call__(self, *args):
+            return self
+    float64 = NumbaType()
 
 @vectorize([float64(float64)], cache=True, fastmath=True)
 def fast_normal_cdf(x: float) -> float:
