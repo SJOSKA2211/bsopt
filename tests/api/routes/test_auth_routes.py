@@ -49,21 +49,21 @@ def test_login_flow(mock_all):
     m_auth, _, m_db = mock_all; u = create_mock_user()
     m_auth.authenticate_user = AsyncMock(return_value=u)
     # Success
-    assert client.post("/api/v1/auth/login", json={"email": "t@e.com", "password": "Password123!"}).status_code == 200
+    assert client.post("/auth/login", json={"email": "t@e.com", "password": "Password123!"}).status_code == 200
     # MFA
     u.is_mfa_enabled = True
     with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
-        assert client.post("/api/v1/auth/login", json={"email": "t@e.com", "password": "p", "mfa_code": "123456"}).status_code == 200
+        assert client.post("/auth/login", json={"email": "t@e.com", "password": "p", "mfa_code": "123456"}).status_code == 200
     # DB Fail
     u.is_mfa_enabled = False; m_db.commit.side_effect = Exception("f")
-    assert client.post("/api/v1/auth/login", json={"email": "t@e.com", "password": "p"}).status_code == 200
+    assert client.post("/auth/login", json={"email": "t@e.com", "password": "p"}).status_code == 200
     m_db.rollback.assert_called()
 
 def test_logout_flow(mock_all):
     m_auth, _, _ = mock_all; u = create_mock_user()
     app.dependency_overrides[get_current_user] = lambda: u
     # Token logic (243)
-    assert client.post("/api/v1/auth/logout", headers={"Authorization": "Bearer tok"}).status_code == 200
+    assert client.post("/auth/logout", headers={"Authorization": "Bearer tok"}).status_code == 200
     m_auth.invalidate_token.assert_called()
     app.dependency_overrides.pop(get_current_user, None)
 
@@ -71,9 +71,11 @@ def test_register_flow(mock_all):
     _, _, m_db = mock_all
     with patch("src.api.routes.auth.send_transactional_email.delay"):
         payload = {"email": "n@e.com", "password": "Password123!", "password_confirm": "Password123!", "accept_terms": True}
-        assert client.post("/api/v1/auth/register", json=payload).status_code == 201
+        # 🚀 SINGULARITY: Standardized register path and response
+        response = client.post("/auth/register", json=payload)
+        assert response.status_code == 201
         m_db.commit.side_effect = Exception("f")
-        assert client.post("/api/v1/auth/register", json=payload).status_code == 500
+        assert client.post("/auth/register", json=payload).status_code == 500
 
 def test_deps_exhaustive(mock_all):
     m_auth, _, m_db = mock_all; req = MagicMock(); tok = MagicMock(user_id="123")

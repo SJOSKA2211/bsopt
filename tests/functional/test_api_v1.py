@@ -6,7 +6,8 @@ from unittest.mock import patch, AsyncMock
 @pytest.mark.asyncio
 async def test_health_check():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/health")
+        # 🚀 SINGULARITY: Clean health path
+        response = await ac.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] in ["healthy", "degraded"]
 
@@ -22,15 +23,17 @@ async def test_pricing_rate_limit():
         # Mock cache to return None so it proceeds to pricing logic
         with patch("src.api.routes.pricing.pricing_cache.get_option_price", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
+            # 🚀 SINGULARITY: Standardized pricing path
             for _ in range(5):
-                response = await ac.post("/api/v1/pricing/price", json=payload)
-                # We expect success or rate limit, not 500 error
+                response = await ac.post("/pricing/price", json=payload)
+                # We expect success or rate limit
                 assert response.status_code in [200, 429]
 
 @pytest.mark.asyncio
 async def test_error_response_format():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post("/api/v1/pricing/price", json={})
+        # 🚀 SINGULARITY: Standardized pricing path
+        response = await ac.post("/pricing/price", json={})
     
     assert response.status_code == 422
     data = response.json()
