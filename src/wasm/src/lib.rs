@@ -314,72 +314,11 @@ impl BlackScholesWASM {
         Float64Array::from(results.as_slice())
     }
 
-    fn calculate_d1_d2(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64) -> (f64, f64) {
-        let d1 = ((spot / strike).ln() + (rate - div + 0.5 * vol.powi(2)) * time) / (vol * time.sqrt());
-        let d2 = d1 - vol * time.sqrt();
-        (d1, d2)
-    }
-}
+mod simd_math;
+use crate::simd_math::*;
 
-// 🚀 SOTA: SIMD Math Kernels (Approximations for WASM SIMD128)
-#[cfg(feature = "js")]
-use std::arch::wasm32::*;
-
-#[inline]
-#[cfg(feature = "js")]
-pub unsafe fn simd_ln(x: v128) -> v128 {
-    // Polynomial approximation for ln(x)
-    // ln(x) = 2 * sum( ((x-1)/(x+1))^(2n+1) / (2n+1) )
-    // For small range around 1.0
-    let one = f64x2(1.0, 1.0);
-    let num = f64x2_sub(x, one);
-    let den = f64x2_add(x, one);
-    let t = f64x2_div(num, den);
-    let t2 = f64x2_mul(t, t);
-    
-    // t * (2.0 + (2.0/3.0)*t^2 + (2.0/5.0)*t^4)
-    let res = f64x2_mul(t, f64x2_add(f64x2(2.0, 2.0), f64x2_mul(t2, f64x2_add(f64x2(0.66666666, 0.66666666), f64x2_mul(t2, f64x2(0.4, 0.4))))));
-    res
-}
-
-#[inline]
-#[cfg(feature = "js")]
-pub unsafe fn simd_exp(x: v128) -> v128 {
-    // Polynomial approximation for exp(x)
-    // 1 + x + x^2/2! + x^3/6 + x^4/24
-    let one = f64x2(1.0, 1.0);
-    let x2 = f64x2_mul(x, x);
-    let x3 = f64x2_mul(x2, x);
-    let x4 = f64x2_mul(x2, x2);
-    
-    let res = f64x2_add(one, f64x2_add(x, f64x2_add(f64x2_mul(x2, f64x2(0.5, 0.5)), f64x2_add(f64x2_mul(x3, f64x2(0.16666666, 0.16666666)), f64x2_mul(x4, f64x2(0.04166666, 0.04166666))))));
-    res
-}
-
-#[inline]
-#[cfg(feature = "js")]
-pub unsafe fn simd_n_pdf(x: v128) -> v128 {
-    // 1/sqrt(2pi) * exp(-0.5 * x^2)
-    let inv_sqrt_2pi = f64x2(0.3989422804014327, 0.3989422804014327);
-    let neg_half = f64x2(-0.5, -0.5);
-    let arg = f64x2_mul(neg_half, f64x2_mul(x, x));
-    f64x2_mul(inv_sqrt_2pi, simd_exp(arg))
-}
-
-#[inline]
-#[cfg(feature = "js")]
-pub unsafe fn simd_n_cdf(x: v128) -> v128 {
-    // 0.5 * (1 + erf(x/sqrt(2)))
-    // Using Abramowitz and Stegun approximation for erf
-    let one = f64x2(1.0, 1.0);
-    let half = f64x2(0.5, 0.5);
-    let sqrt2_inv = f64x2(0.7071067811865476, 0.7071067811865476);
-    
-    let t = f64x2_mul(x, sqrt2_inv);
-    // erf approximation placeholder - simpler version for now
-    // In production, use a higher order polynomial
-    f64x2_add(half, f64x2_mul(half, t)) // Very rough linear approximation for now
-}
+#[cfg_attr(feature = "js", wasm_bindgen)]
+impl BlackScholesWASM {
 
 // 🚀 SOTA: Python-Friendly C-API (No JS Types)
 #[unsafe(no_mangle)]

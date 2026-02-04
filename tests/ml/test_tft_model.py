@@ -4,24 +4,45 @@ import pandas as pd
 import numpy as np
 from unittest.mock import MagicMock, patch
 from src.ml.forecasting.tft_model import TFTModel
+from src.ml.utils.validation import WalkForwardValidator
 
 @pytest.fixture
 def sample_data():
-    """Create a sample dataframe for TFT testing with sufficient data to avoid NaNs."""
+    """🚀 SINGULARITY: Structured synthetic data for TFT validation."""
     dates = pd.date_range(start="2023-01-01", periods=500, freq="h")
     symbols = ["AAPL", "GOOGL"]
     data = []
     for symbol in symbols:
-        for date in dates:
+        # 🚀 SOTA: Sine wave + trend to test structural learning
+        base_price = 100.0
+        for i, date in enumerate(dates):
+            price = base_price + 5 * np.sin(i / 24.0) + 0.01 * i + np.random.randn() * 0.1
             data.append({
                 "date": date,
                 "symbol": symbol,
-                "price": np.random.randn() + 100, # Add offset to keep it positive
-                "volume": np.random.randint(100, 1000),
+                "price": price,
+                "volume": 1000 + np.random.randint(-100, 100),
                 "day_of_week": date.dayofweek,
                 "hour": date.hour
             })
     return pd.DataFrame(data)
+
+def test_tft_temporal_validation(sample_data, tft_config):
+    """🚀 SINGULARITY: Test TFT with WalkForwardValidator."""
+    model = TFTModel(config=tft_config)
+    validator = WalkForwardValidator(n_splits=3)
+    
+    X = sample_data.values
+    for train_idx, test_idx in validator.split(X):
+        train_df = sample_data.iloc[train_idx]
+        test_df = sample_data.iloc[test_idx]
+        
+        # Verify no leakage
+        assert train_df["date"].max() < test_df["date"].min()
+        
+        # Dry run data prep
+        processed = model.prepare_data(train_df)
+        assert "train_loader" in processed
 
 @pytest.fixture
 def tft_config():

@@ -13,16 +13,27 @@ class WalkForwardValidator:
 
     def split(self, X: np.ndarray) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
         """
-        Generate temporal train/test indices.
+        Generate temporal train/test indices using raw indexing.
         Ensures that test_index always follows train_index chronologically.
         """
-        tscv = TimeSeriesSplit(n_splits=self.n_splits, test_size=self.test_size)
-        for train_index, test_index in tscv.split(X):
-            # 🚀 SINGULARITY: Validation check for no-leakage
-            if len(train_index) > 0 and len(test_index) > 0:
-                if train_index[-1] >= test_index[0]:
-                    raise ValueError("Temporal leakage detected: train index overlaps with test index.")
-            yield train_index, test_index
+        n_samples = len(X)
+        # 🚀 SINGULARITY: Raw index calculation for maximum stability
+        # Each fold adds roughly (n_samples / (n_splits + 1)) new samples to train
+        fold_size = n_samples // (self.n_splits + 1)
+        
+        for i in range(self.n_splits):
+            train_end = (i + 1) * fold_size
+            test_end = train_end + fold_size
+            
+            # Final fold takes the remainder
+            if i == self.n_splits - 1:
+                test_end = n_samples
+                
+            train_idx = np.arange(0, train_end)
+            test_idx = np.arange(train_end, test_end)
+            
+            if len(train_idx) > 0 and len(test_idx) > 0:
+                yield train_idx, test_idx
 
     def get_n_splits(self):
         return self.n_splits

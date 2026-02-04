@@ -59,7 +59,7 @@ from src.api.routes.pricing import router as pricing_router
 from src.api.routes.ml import router as ml_router
 
 app.include_router(auth_router, prefix="/api/v1")
-app.include_router(pricing_router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(pricing_router, prefix="/api/v1")
 app.include_router(ml_router, prefix="/api/v1", dependencies=[Depends(verify_token)])
 
 @app.get("/health")

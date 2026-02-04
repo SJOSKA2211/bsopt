@@ -13,28 +13,37 @@ pub unsafe fn simd_abs(x: v128) -> v128 {
     f64x2_abs(x)
 }
 
-/// 🚀 SOTA: SIMD Natural Logarithm (Approximation)
-/// Polynomial approximation: ln(x) = (x-1)/(x+1) * P((x-1)/(x+1)^2)
+/// 🚀 SOTA: SIMD Natural Logarithm (Polynomial Approximation)
 #[inline(always)]
 pub unsafe fn simd_ln(x: v128) -> v128 {
-    let x_f: [f64; 2] = std::mem::transmute(x);
-    f64x2(x_f[0].ln(), x_f[1].ln()) // Scalar fallback for now
+    let one = f64x2(1.0, 1.0);
+    let num = f64x2_sub(x, one);
+    let den = f64x2_add(x, one);
+    let t = f64x2_div(num, den);
+    let t2 = f64x2_mul(t, t);
+    
+    // t * (2.0 + (2.0/3.0)*t^2 + (2.0/5.0)*t^4)
+    f64x2_mul(t, f64x2_add(f64x2(2.0, 2.0), f64x2_mul(t2, f64x2_add(f64x2(0.66666666, 0.66666666), f64x2_mul(t2, f64x2(0.4, 0.4))))))
 }
 
-/// 🚀 SOTA: SIMD Exponential (Approximation)
+/// 🚀 SOTA: SIMD Exponential (Polynomial Approximation)
 #[inline(always)]
 pub unsafe fn simd_exp(x: v128) -> v128 {
-    let x_f: [f64; 2] = std::mem::transmute(x);
-    f64x2(x_f[0].exp(), x_f[1].exp()) // Scalar fallback for now
+    let one = f64x2(1.0, 1.0);
+    let x2 = f64x2_mul(x, x);
+    let x3 = f64x2_mul(x2, x);
+    let x4 = f64x2_mul(x2, x2);
+    
+    f64x2_add(one, f64x2_add(x, f64x2_add(f64x2_mul(x2, f64x2(0.5, 0.5)), f64x2_add(f64x2_mul(x3, f64x2(0.16666666, 0.16666666)), f64x2_mul(x4, f64x2(0.04166666, 0.04166666))))))
 }
 
 /// 🚀 SOTA: SIMD Normal PDF
 #[inline(always)]
 pub unsafe fn simd_n_pdf(x: v128) -> v128 {
-    let x2 = f64x2_mul(x, x);
-    let neg_half_x2 = f64x2_mul(x2, f64x2(-0.5, -0.5));
-    let exp_term = simd_exp(neg_half_x2);
-    f64x2_mul(exp_term, f64x2(0.3989422804014327, 0.3989422804014327))
+    let inv_sqrt_2pi = f64x2(0.3989422804014327, 0.3989422804014327);
+    let neg_half = f64x2(-0.5, -0.5);
+    let arg = f64x2_mul(neg_half, f64x2_mul(x, x));
+    f64x2_mul(inv_sqrt_2pi, simd_exp(arg))
 }
 
 /// 🚀 SOTA: SIMD Normal CDF (Abramowitz & Stegun)
@@ -50,7 +59,6 @@ pub unsafe fn simd_n_cdf(x: v128) -> v128 {
     let abs_x = f64x2_abs(x);
     let t = f64x2_div(f64x2(1.0, 1.0), f64x2_add(f64x2(1.0, 1.0), f64x2_mul(p, abs_x)));
     
-    // poly = b1*t + b2*t^2 + b3*t^3 + b4*t^4 + b5*t^5
     let t2 = f64x2_mul(t, t);
     let t3 = f64x2_mul(t2, t);
     let t4 = f64x2_mul(t3, t);
