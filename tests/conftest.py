@@ -216,6 +216,32 @@ def pytest_configure(config):
     mock_async_redis_mod.RedisError = MockRedisError
     sys.modules["redis.asyncio"] = mock_async_redis_mod
 
+    # Mock numba to avoid build issues
+    mock_numba = MagicMock()
+    def mock_njit(*args, **kwargs):
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return lambda func: func
+    mock_numba.njit = mock_njit
+    mock_numba.prange = range
+    mock_numba.config = MagicMock()
+    mock_numba.vectorize = MagicMock(return_value=lambda func: func)
+    mock_numba.float64 = MagicMock()
+    sys.modules["numba"] = mock_numba
+
+    # Mock ray
+    mock_ray = MagicMock()
+    mock_ray.remote = lambda func: func
+    mock_ray.get = lambda x: x
+    sys.modules["ray"] = mock_ray
+
+    # Mock torch
+    mock_torch = MagicMock()
+    mock_torch.cuda.is_available.return_value = False
+    class MockTensor: pass
+    mock_torch.Tensor = MockTensor
+    sys.modules["torch"] = mock_torch
+
 
 @pytest.fixture(autouse=True)
 def reset_shared_stores():

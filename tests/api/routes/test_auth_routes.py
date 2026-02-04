@@ -105,7 +105,20 @@ def test_helpers_final(mock_all):
     with patch("src.api.routes.auth.send_transactional_email.delay") as md:
         asyncio.run(_send_verification_email("a@b.com", "t")); assert md.called
         md.reset_mock(); asyncio.run(_send_password_reset_email("a@b.com", "t")); assert md.called
-    with patch("src.api.routes.auth.Fernet") as mf:
-        mf.return_value.decrypt.side_effect = Exception("f")
+    with patch("src.api.routes.auth.AES256GCM") as ma:
+        ma.return_value.decrypt.side_effect = Exception("f")
         h = hashlib.sha256(b"123").hexdigest()
         assert _verify_mfa_code(create_mock_user(mfa_secret="s", mfa_backup_codes=h), "123", db=m_db) is True
+
+def test_mfa_setup_prevention(mock_all):
+    # Test that MFA setup is prevented if already enabled
+    _, _, m_db = mock_all
+    u = create_mock_user(is_mfa_enabled=True)
+    app.dependency_overrides[get_current_active_user] = lambda: u
+
+    response = client.post("/api/v1/auth/mfa/setup")
+    assert response.status_code == 409
+    assert "Multi-Factor Authentication is already enabled" in response.json()["message"]
+    assert not m_db.commit.called
+
+    app.dependency_overrides.pop(get_current_active_user, None)
