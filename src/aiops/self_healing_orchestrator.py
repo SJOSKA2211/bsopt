@@ -36,16 +36,22 @@ class SelfHealingOrchestrator:
 
             logger.warning("anomalies_detected", count=len(anomalies))
             
-            # 2. Trigger remediation for each anomaly concurrently
+            # 2. Trigger targeted remediation
             tasks = []
             for anomaly in anomalies:
+                # 🚀 SOTA: Route anomaly to specific remediators based on type
+                a_type = anomaly.get("type", "generic")
                 for remediator in self.remediators:
-                    if asyncio.iscoroutinefunction(remediator.remediate):
-                        tasks.append(remediator.remediate(anomaly))
-                    else:
-                        tasks.append(asyncio.to_thread(remediator.remediate, anomaly))
+                    # Check if remediator supports this specific anomaly type
+                    supported_types = getattr(remediator, "supported_types", ["generic"])
+                    if a_type in supported_types:
+                        if asyncio.iscoroutinefunction(remediator.remediate):
+                            tasks.append(remediator.remediate(anomaly))
+                        else:
+                            tasks.append(asyncio.to_thread(remediator.remediate, anomaly))
             
             if tasks:
+                logger.info("triggering_remediations", task_count=len(tasks))
                 await asyncio.gather(*tasks)
                     
         except Exception as e:

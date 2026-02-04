@@ -1,14 +1,25 @@
-from confluent_kafka import Producer
-from confluent_kafka.schema_registry import SchemaRegistryClient
-from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka import Producer as ConfluentProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from .base import Producer
 import structlog
-from typing import Dict, Any, Optional
+import msgspec
+from typing import Dict, Any, Optional, List
 
 logger = structlog.get_logger()
+
+class MarketData(msgspec.Struct):
+    """SOTA: High-performance typed schema for market data."""
+    time: float
+    symbol: str
+    strike: float
+    expiry: str
+    option_type: str
+    bid: Optional[float] = None
+    ask: Optional[float] = None
+    last: Optional[float] = None
+    volume: Optional[int] = None
+    open_interest: Optional[int] = None
 
 class MarketDataProducer(Producer):
     """
@@ -83,24 +94,29 @@ class MarketDataProducer(Producer):
 
     async def produce_batch(self, batch: List[Dict[str, Any]], topic: str):
         """
-        🚀 OPTIMIZATION: Batched ingestion to reduce serialization overhead.
+        🚀 OPTIMIZATION: Batched ingestion with msgspec validation.
         """
         if not topic:
             return
             
         try:
-            for data in batch:
-                key = data.get("symbol")
-                value = self.avro_serializer(data, None)
+            # 1. Zero-cost validation via msgspec
+            # This ensures all data in the batch matches the schema before processing
+            validated_batch = [msgspec.convert(d, MarketData) for d in batch]
+            
+            for data in validated_batch:
+                # 2. Optimized Avro serialization (using dict conversion)
+                payload = msgspec.to_builtins(data)
+                value = self.avro_serializer(payload, None)
                 self.producer.produce(
                     topic=topic,
-                    key=key.encode('utf-8') if key else None,
+                    key=data.symbol.encode('utf-8'),
                     value=value,
                     on_delivery=self._delivery_callback
                 )
             # 🚀 FLUSH BATCH
             self.producer.poll(0)
-            logger.debug("kafka_batch_produced", count=len(batch), topic=topic)
+            logger.debug("kafka_batch_produced_msgspec", count=len(batch), topic=topic)
         except Exception as e:
             logger.error("kafka_batch_error", error=str(e), topic=topic)
 
