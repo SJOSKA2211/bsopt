@@ -24,6 +24,7 @@ from src.api.schemas.common import DataResponse, SuccessResponse, PaginatedRespo
 from src.api.schemas.user import APIKeyResponse, APIKeyCreateRequest, UserResponse, UserUpdateRequest
 from src.api.exceptions import NotFoundException, ConflictException
 from src.security.auth import get_current_active_user, require_tier
+from src.auth.security import verify_token
 from src.security.audit import AuditEvent, log_audit
 from src.utils.sanitization import sanitize_string
 from src.utils.cache import publish_to_redis, redis_channel_updates
@@ -49,6 +50,11 @@ async def list_api_keys(
             last_used_at=k.last_used_at
         ) for k in keys
     ])
+
+@router.get("/secure-me", response_model=SuccessResponse)
+async def get_secure_info(payload: dict = Depends(verify_token)):
+    """OIDC Protected Endpoint (Resource Server)."""
+    return SuccessResponse(message=f"Access granted for sub: {payload.get('sub')}")
 
 @router.post("/me/keys", response_model=DataResponse[APIKeyResponse])
 async def create_api_key(
@@ -115,7 +121,7 @@ async def revoke_api_key(
 async def get_current_user_profile(
     user: User = Depends(get_current_active_user),
 ):
-    """Retrieve profile (Async)."""
+    """Fetch the authenticated user's profile and subscription metadata."""
     return DataResponse(
         data=UserResponse(
             id=user.id,

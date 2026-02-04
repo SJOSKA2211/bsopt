@@ -1,5 +1,6 @@
 """
-Highly Optimized Quantitative Implementation Utilities - APOTHEOSIS VERSION
+🚀 APOTHEOSIS: High-Performance Quantitative Kernels
+Targets: AVX-512, SIMD, Parallel JIT
 
 Performance Notes:
 - To force AVX-512: export NUMBA_ENABLE_AVX512=1
