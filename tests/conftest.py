@@ -107,12 +107,26 @@ sys.modules["pytorch_forecasting"] = VersionedMock()
 sys.modules["selectolax"] = VersionedMock()
 sys.modules["selectolax.lexbor"] = VersionedMock()
 
-# Mock onnxruntime
-sys.modules["onnxruntime"] = VersionedMock()
+# Mock stable_baselines3
+sys.modules["stable_baselines3"] = VersionedMock()
+sys.modules["stable_baselines3.common"] = VersionedMock()
+sys.modules["stable_baselines3.common.on_policy_algorithm"] = VersionedMock()
+sys.modules["stable_baselines3.common.base_class"] = VersionedMock()
+sys.modules["stable_baselines3.common.env_util"] = VersionedMock()
+sys.modules["stable_baselines3.common.monitor"] = VersionedMock()
+
+# Mock gymnasium.core
+sys.modules["gymnasium.core"] = VersionedMock()
+
+# Mock optuna
+sys.modules["optuna"] = VersionedMock()
 
 # Mock authlib
 sys.modules["authlib"] = VersionedMock()
 sys.modules["authlib.jose"] = VersionedMock()
+
+# Mock onnxruntime
+sys.modules["onnxruntime"] = VersionedMock()
 
 # Mock gymnasium
 sys.modules["gymnasium"] = VersionedMock()
@@ -208,6 +222,9 @@ def pytest_configure(config):
     mock_settings.JWT_SECRET = "test-secret-for-hmac"
     mock_settings.JWT_ALGORITHM = "HS256"
     mock_settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
+    mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051" # Fix unpacking error
+    mock_settings.ML_GRPC_POOL_SIZE = 1
+    mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
 
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))
     

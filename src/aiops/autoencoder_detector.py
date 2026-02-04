@@ -43,6 +43,8 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decoder(z), mu, logvar
 
+Autoencoder = VAE
+
 class AutoencoderDetector:
     def __init__(self, input_dim: int, latent_dim: int, epochs: int = 20,
                  threshold_percentile: float = 95.0, threshold_multiplier: float = 1.0,

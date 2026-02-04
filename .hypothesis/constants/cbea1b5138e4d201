@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/routes/websocket.py
+# hypothesis_version: 6.151.5
+
+['/ws/market-data', 'ws_error']

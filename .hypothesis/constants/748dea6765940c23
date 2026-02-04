@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/security/rate_limit.py
+# hypothesis_version: 6.151.5
+
+[100, 999999, 'Retry-After', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'free', 'tier', 'unknown', 'user']

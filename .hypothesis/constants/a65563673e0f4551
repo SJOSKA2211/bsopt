@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/responses.py
+# hypothesis_version: 6.151.5
+
+[200, 'application/json', 'utf-8']

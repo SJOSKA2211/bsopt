@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/routes/ml.py
+# hypothesis_version: 6.151.5
+
+['/drift-metrics', '/ml', '/predict', 'Machine Learning', 'xgb']

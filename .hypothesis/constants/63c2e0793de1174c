@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/shared/shm_mesh.py
+# hypothesis_version: 6.151.5
+
+[b'\x00', 100000, '\x00', '8s d q d', 'ENVIRONMENT', 'ascii', 'price', 'prod', 'q', 'symbol', 'timestamp', 'volume']

@@ -108,6 +108,32 @@ class AuditLog(Base):
         return f"<AuditLog(user_id={self.user_id}, path={self.path})>"
 
 
+class RequestLog(Base):
+    """Detailed API request logs."""
+
+    __tablename__ = "request_logs"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    path: Mapped[str] = mapped_column(String(255), nullable=False)
+    method: Mapped[str] = mapped_column(String(10), nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    latency_ms: Mapped[float] = mapped_column(Numeric, nullable=False)
+
+
+class SecurityIncident(Base):
+    """Security incident tracking."""
+
+    __tablename__ = "security_incidents"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    severity: Mapped[str] = mapped_column(String(20), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    resolved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+
 # =============================================================================
 # OAUTH2 CLIENT MODEL
 # =============================================================================

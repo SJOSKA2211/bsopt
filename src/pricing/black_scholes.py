@@ -116,3 +116,11 @@ class BlackScholesEngine(PricingStrategy):
         )
         
         return {"delta": delta, "gamma": gamma, "vega": vega, "theta": theta, "rho": rho}
+
+    @staticmethod
+    def verify_put_call_parity(spot: float, strike: float, maturity: float, rate: float, 
+                               call_price: float, put_price: float, dividend: float = 0.0) -> bool:
+        """Verify Put-Call Parity: C - P = S*e^(-qT) - K*e^(-rT)"""
+        lhs = call_price - put_price
+        rhs = spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity)
+        return np.isclose(lhs, rhs, atol=1e-4)
