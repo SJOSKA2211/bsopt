@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/evaluation/metrics.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1e-09, 1e-05, 1.0, 252, 'mae', 'mape', 'max_pe', 'r2', 'rmse', 'wrmse']

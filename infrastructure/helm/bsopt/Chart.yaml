@@ -1,6 +1,0 @@
-apiVersion: v2
-name: bsopt
-description: The God-Mode Financial Manifold Helm Chart
-type: application
-version: 0.1.0
-appVersion: "2.5.0"

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/config.py
-# hypothesis_version: 6.151.4
-
-[0.001, 0.2, 0.98, 100, 1000, 6379, 8080, 10000, ',', '.env', '127.0.0.1', 'Allowed CORS origins', 'Application name', 'BCRYPT_ROUNDS', 'BSOPT_TEST_MODE', 'CORS_ORIGINS', 'CRITICAL', 'DATABASE_URL', 'DEBUG', 'ENVIRONMENT', 'ERROR', 'Enable debug mode', 'INFO', 'JWT_SECRET', 'LOG_LEVEL', 'Logging level', 'MFA_ENCRYPTION_KEY', 'PASSWORD_MIN_LENGTH', 'RABBITMQ_URL', 'REDIS_URL', 'RS256', 'Redis database index', 'Redis host', 'Redis password', 'Redis port', 'WARNING', 'before', 'dev', 'enterprise', 'fastapi', 'free', 'http://localhost:80', 'ignore', 'localhost', 'noreply@example.com', 'pro', 'prod', 'production', 'pytest', 'sqlite:///:memory:', 'staging', 'test', 'utf-8', 'uvicorn', 'your-dpa@example.com']

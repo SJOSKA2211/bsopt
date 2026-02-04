@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/scrapers/engine.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.3, 0.7, 2.0, 3.0, 10.0, 3600, '([-+]?\\d*\\.?\\d+)', ',', '0.0', 'BS-Opt/2.0', 'NSE', 'Ticker not found', 'User-Agent', 'action', 'active', 'change', 'coerce', 'display_prices', 'error', 'failures', 'isin', 'latency', 'market', 'name', 'nse_cache_updated', 'nse_nonce_not_found', 'nse_refresh_failed', 'price', 'proxy_deactivated', 'records', 'sector', 'security', 'symbol', 'td', 'timestamp', 'tr', 'url', 'volume']

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/utils/cache.py
-# hypothesis_version: 6.151.5
-
-[0.02, 0.05, 0.1, 0.2, 0.4, 0.5, 1.0, 90.0, 100.0, 110.0, 100, 120, 300, 500, 1000, 3600, 5000, 10000, '1', 'bs_unified', 'call', 'db:', 'enterprise', 'free', 'idem:', 'l2_cache_read_failed', 'price', 'pricing_updates', 'pro', 'redis_cache_closed', 'redis_publish_failed', 'warming_cache_start']

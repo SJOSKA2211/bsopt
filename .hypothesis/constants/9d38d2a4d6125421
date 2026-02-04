@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/reinforcement_learning/transformer_policy.py
-# hypothesis_version: 6.151.5
-
-[0.1, 10000.0, 256, 500, 512, 'gelu', 'pe']

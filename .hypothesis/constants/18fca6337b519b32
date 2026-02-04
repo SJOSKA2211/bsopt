@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/webhooks/dispatcher.py
-# hypothesis_version: 6.151.5
-
-[300, 'Circuit Breaker', 'OPEN', 'X-Webhook-Signature', 'circuit_breaker_open', 'utf-8']

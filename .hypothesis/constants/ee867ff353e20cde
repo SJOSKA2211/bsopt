@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/tracker.py
-# hypothesis_version: 6.151.5
-
-['Importance', 'accuracy', 'duration', 'model', 'pytorch', 'rmse', 'sklearn', 'training_failed', 'validation', 'xgboost']

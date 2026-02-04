@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/utils/lazy_import.py
-# hypothesis_version: 6.151.5
-
-[' -> ', ', ', '.', 'SERVICE_TYPE', 'api', 'core', 'failed_imports', 'failures', 'lazy_import_failed', 'lazy_import_start', 'lazy_import_success', 'ml', 'modules', 'preload_complete', 'preload_failed', 'preload_start', 'slowest_imports', 'successful_imports', 'total_import_time']

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/models.py
-# hypothesis_version: 6.151.5
-
-[100, 255, '0', '0.00', 'APIKey', 'CASCADE', 'OAuth2Client', 'Portfolio', 'User', 'all, delete-orphan', 'api_keys', 'audit_logs', 'free', 'market_ticks', 'metadata', 'ml_models', 'ml_models.id', 'model_predictions', 'name', 'oauth2_clients', 'oauth_clients', 'options_prices', 'orders', 'pending', 'portfolios', 'portfolios.id', 'positions', 'rate_limits', 'user', 'user_id', 'users', 'users.id']

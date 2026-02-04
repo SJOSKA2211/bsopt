@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/portfolio/graphql/schema.py
-# hypothesis_version: 6.151.5
-
-[5.5, 10000.0, -100, 100, 'AAPL_20260115_C_150', 'PENDING', 'id', 'port_123', 'pos_1', 'user_123']

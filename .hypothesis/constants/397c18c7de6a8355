@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/services/email_service.py
-# hypothesis_version: 6.151.5
-
-[200, 300, 'Total emails sent', 'context', 'email', 'emails', 'emails_sent_total', 'error', 'failed', 'html', 'marketing', 'src', 'status', 'success', 'templates', 'transactional', 'type', 'xml']

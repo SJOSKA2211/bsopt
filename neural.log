@@ -1,0 +1,10 @@
+2026-02-04 14:28:17 [debug    ] engine_registered              name=black_scholes
+2026-02-04 14:28:18 [debug    ] engine_registered              name=monte_carlo
+2026-02-04 14:28:18 [warning  ] shm_buffer_missing_using_dummy name=market_mesh_ring_buffer
+2026-02-04 14:28:18 [info     ] initialized_process_pool_executor workers=8
+INFO:     Started server process [71423]
+INFO:     Waiting for application startup.
+{"mode": "analytical", "thresholds": [50000, 10, 0], "event": "gc_tuned", "timestamp": "2026-02-04T11:28:18.265721Z", "level": "info", "lineno": 69, "func_name": "tune_gc", "filename": "observability.py"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:38656 - "GET /health HTTP/1.1" 200 OK

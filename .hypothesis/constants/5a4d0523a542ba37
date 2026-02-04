@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/calibration/engine.py
-# hypothesis_version: 6.151.5
-
-[-0.95, 0.0, 0.01, 0.03, 0.05, 0.1, 0.4, 0.5, 0.8, 0.95, 1.0, 1.2, 1.5, 2.0, 15.0, 1000000000000.0, 100, 1000, 2147483648, 'CPUExecutionProvider', 'SLSQP', 'call', 'de+slsqp', 'device_id', 'duration', 'feller_margin', 'method', 'neural+slsqp', 'num_options', 'r_squared', 'rmse', 'success', 'trt_fp16_enable', 'unknown']

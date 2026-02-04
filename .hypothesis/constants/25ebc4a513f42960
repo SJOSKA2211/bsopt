@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/pipelines/sentiment_ingest.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1.0, 'GLOBAL', 'auto.offset.reset', 'bootstrap.servers', 'code', 'earliest', 'group.id', 'kafka_consumer_error', 'localhost:9092', 'model.signals', 'original_data', 'scraper.news', 'sentiment', 'sentiment-ingestor', 'sentiment_extracted', 'sentiment_score', 'signal_type', 'symbol', 'text', 'utf-8']

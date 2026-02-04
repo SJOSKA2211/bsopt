@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/routes/debug.py
-# hypothesis_version: 6.151.5
-
-[500, 1024, '/debug', 'Debug & Diagnostics', 'count', 'description', 'file', 'line', 'model', 'size_kb', 'traceback']

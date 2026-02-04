@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/federated_learning/coordinator.py
-# hypothesis_version: 6.151.5
-
-['0.0.0.0:8080', 'FedAvg', '__main__', 'fl_server_stopped', 'starting_fl_server', 'unknown_strategy']

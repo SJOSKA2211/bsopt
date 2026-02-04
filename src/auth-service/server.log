@@ -1,0 +1,7 @@
+
+> auth-service@1.0.0 dev
+> tsx watch src/index.ts
+
+Server is running on port 4000
+[2m2026-02-03T11:10:44.827Z[0m [33mWARN[0m [1m[Better Auth]:[0m [better-auth] Base URL could not be determined. Please set a valid base URL using the baseURL config option or the BETTER_AUTH_BASE_URL environment variable. Without this, callbacks and redirects may not work correctly.
+2:10:52 PM [tsx] Previous process hasn't exited yet. Force killing...

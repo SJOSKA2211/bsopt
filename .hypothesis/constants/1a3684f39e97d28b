@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/reinforcement_learning/train.py
-# hypothesis_version: 6.151.5
-
-[0.0001, 0.005, 0.1, 0.99, 256, 512, 1000, 1024, 10000, 200000, '--output', '--timesteps', './logs/results/', '__main__', 'model', 'model_path', 'models/best_td3', 'rl_weights', 'run_id', 'training_started']

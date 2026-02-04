@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/black_scholes.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.0001, 'Spot price required', 'call', 'delta', 'gamma', 'rho', 'theta', 'vega']

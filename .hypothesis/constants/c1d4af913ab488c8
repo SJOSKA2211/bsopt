@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/main.py
-# hypothesis_version: 6.151.5
-
-[401, 500, 1000, '*', '/', '/api/v1', '/health', 'Authorization', 'Bearer ', 'Not authenticated', 'achieved', 'api_error', 'detail', 'healthy', 'http', 'message', 'singularity', 'status', 'user']

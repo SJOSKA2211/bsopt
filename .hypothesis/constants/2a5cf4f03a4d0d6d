@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/implied_vol.py
-# hypothesis_version: 6.151.4
-
-[0.0, 1e-12, 1e-08, 1e-07, 1e-06, 0.25, 5.0, 100.0, 100, 'auto', 'brent', 'call', 'failed to converge', 'newton', 'put', 'vega']

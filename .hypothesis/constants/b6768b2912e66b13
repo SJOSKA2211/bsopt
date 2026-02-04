@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/__init__.py
-# hypothesis_version: 6.151.4
-
-[150, 1800, 'Base', 'DEBUG', 'SELECT 1', '_invalidate_time', '_max_overflow', 'checked_in', 'checked_out', 'create_tables', 'dev', 'dispose_engine', 'drop_tables', 'get_db', 'get_db_context', 'get_pool_status', 'get_session', 'health_check', 'invalidated', 'max_overflow', 'overflow', 'pool_size', 'postgresql://', 'test', 'total_connections']

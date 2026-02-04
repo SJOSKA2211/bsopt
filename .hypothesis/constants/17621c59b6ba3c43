@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/tasks/pricing_tasks.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.2, 1000, 'batch_pricing_failed', 'batch_pricing_start', 'black_scholes', 'cache_hit', 'cache_lookup_failed', 'cache_set_failed', 'call', 'completed', 'computation_time_ms', 'computing_fresh', 'count', 'delta', 'dividend', 'gamma', 'implied_vol', 'maturity', 'option_type', 'price', 'prices', 'pricing', 'pricing_error', 'pricing_option_start', 'put', 'rate', 'results', 'rho', 'spot', 'status', 'strike', 'surface', 'task_id', 'theta', 'vectorized', 'vega', 'volatility']

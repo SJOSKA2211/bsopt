@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/__init__.py
-# hypothesis_version: 6.151.5
-
-['&', '?', 'SELECT 1', 'dev', 'postgresql', 'postgresql://', 'prod', 'sqlite', 'sqlite+aiosqlite://', 'sqlite://', 'ssl', 'sslmode', 'test']

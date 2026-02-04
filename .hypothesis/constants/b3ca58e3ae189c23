@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/websockets/manager.py
-# hypothesis_version: 6.151.5
-
-[100, 'REDIS_URL', 'channel', 'data', 'message', 'metadata', 'type', 'utf-8', 'ws_connected', 'ws_disconnected', 'ws_encode_error']

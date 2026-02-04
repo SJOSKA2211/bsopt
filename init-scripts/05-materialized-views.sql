@@ -1,4 +1,0 @@
--- This file is intentionally left empty.
--- The portfolio_summary_mv definition has been moved to and improved in:
--- init-scripts/09-portfolio-summary-mv.sql
--- to resolve schema definition conflicts and enable better aggregation.
