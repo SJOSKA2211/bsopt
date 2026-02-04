@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/scraper.py
+# hypothesis_version: 6.151.5
+
+[0.1, 200, 401, '1. open', '2. high', '3. low', '4. close', '5. volume', 'DEMO_KEY', 'Error Message', 'No data in range', 'No response', 'Note', 'OK', 'TIME_SERIES_DAILY', 'Time Series (Daily)', '[REDACTED]', '^[A-Z0-9.-]{1,20}$', '^\\d{4}-\\d{2}-\\d{2}$', 'alpha_vantage', 'apiKey', 'apikey', 'auto', 'c', 'close', 'exception', 'full', 'function', 'h', 'high', 'l', 'low', 'multi_scrape_failed', 'o', 'open', 'outputsize', 'polygon', 'results', 'scrape_api_error', 'scrape_empty', 'scrape_error', 'scrape_exception', 'scrape_http_error', 'scrape_rate_limit', 'scrape_success', 'status', 'symbol', 't', 'timestamp', 'v', 'volume']

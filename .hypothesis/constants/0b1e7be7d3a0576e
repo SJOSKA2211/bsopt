@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/streaming/kafka_consumer.py
+# hypothesis_version: 6.151.5
+
+[0.001, 0.01, 0.1, 0.5, 0.8, 1.2, 100, 1000, 15000, 45000, 524288, 104857600, '_is_batch_aware', 'adaptive_batching', 'auto.offset.reset', 'batch_processed', 'bootstrap.servers', 'enable.auto.commit', 'fetch.min.bytes', 'fetch.wait.max.ms', 'group.id', 'kafka_consumer_error', 'latest', 'market-data', 'offset_commit_failed', 'r', 'session.timeout.ms', 'url']

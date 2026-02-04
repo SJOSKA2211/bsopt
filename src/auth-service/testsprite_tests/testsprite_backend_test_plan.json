@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC001",
+    "title": "health check endpoint returns 200",
+    "description": "Verify that a GET request to the root endpoint '/' returns an HTTP 200 status code indicating the service is running and healthy."
+  },
+  {
+    "id": "TC002",
+    "title": "authentication endpoint delegates requests to betterauth",
+    "description": "Verify that all requests sent to the '/api/auth/*' endpoint are correctly delegated to the better-auth handler and that successful authentication responses return HTTP 200 status codes."
+  },
+  {
+    "id": "TC003",
+    "title": "database connectivity on startup",
+    "description": "Verify that the service successfully connects to the PostgreSQL database on startup and can execute a simple query such as 'SELECT 1;'. If the connection fails, the service should log the error and not mark itself as ready."
+  },
+  {
+    "id": "TC004",
+    "title": "openapi documentation compliance",
+    "description": "Verify that the provided OpenAPI 3.0 documentation for the '/' and '/api/auth/*' endpoints validates against a schema validator and accurately describes the API surface."
+  },
+  {
+    "id": "TC005",
+    "title": "authentication tokens are persisted and validated",
+    "description": "Verify that tokens and sessions produced by the better-auth handler are correctly persisted in PostgreSQL and validated on subsequent requests, ensuring security and session integrity."
+  },
+  {
+    "id": "TC006",
+    "title": "error handling and logging on failures",
+    "description": "Verify that errors from the better-auth handler or database connectivity issues are logged with sufficient context, that 5xx responses are returned appropriately without leaking internal details, and that error responses are rate-limited."
+  },
+  {
+    "id": "TC007",
+    "title": "performance under expected load",
+    "description": "Verify that typical authentication request latency remains under 200ms at the 95th percentile under normal expected traffic load, ensuring the service remains responsive."
+  }
+]

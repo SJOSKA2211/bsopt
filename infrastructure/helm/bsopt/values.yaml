@@ -1,0 +1,27 @@
+replicaCount: 3
+image:
+  repository: bsopt-api
+  pullPolicy: Always
+  tag: "singularity"
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+env:
+  ENVIRONMENT: production
+  REDIS_URL: "redis://redis-master:6379/0"
+  # 🚀 SINGULARITY: Point to Neon via Secrets
+  DATABASE_URL: "${NEON_DATABASE_URL}"
+  # 🚀 SINGULARITY: Gateway and Subgraph configuration
+  GATEWAY_PORT: 4000
+  AUTH_SERVICE_URL: "http://bsopt-auth:3001"
+  ML_SERVICE_URL: "http://bsopt-ml:8002"

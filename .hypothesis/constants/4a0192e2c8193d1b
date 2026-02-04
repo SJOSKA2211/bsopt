@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/tasks/email_tasks.py
+# hypothesis_version: 6.151.5
+
+[100, 'FROM_EMAIL', 'batch_sent', 'count', 'no-reply@bsopt.com', 'send_email', 'sent', 'status', 'system_email', 'to']

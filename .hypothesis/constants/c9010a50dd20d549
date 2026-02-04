@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/schemas/auth.py
+# hypothesis_version: 6.151.5
+
+[255, 1800, '-', '123456', '12345678', '23456789', '34567890', '; ', 'Confirm new password', 'Created user ID', 'Current password', 'JBSWY3DPEHPK3PXP', 'JWT access token', 'JWT refresh token', 'John Doe', 'MFA code if enabled', 'New JWT access token', 'New password', 'SecurePassword123!', 'Success message', 'TOTP secret key', 'Token type', 'User ID', 'User email', 'User email address', 'User password', "User's full name", '[A-Z]', '[a-z]', '\\d', 'abc123def456', 'accept_terms', 'access_token', 'backup_codes', 'bearer', 'code', 'email', 'example', 'expires_in', 'full_name', 'message', 'new_password', 'new_password_confirm', 'newuser@example.com', 'password', 'password_confirm', 'pro', 'qr_code_uri', 'refresh_token', 'remember_me', 'requires_mfa', 'secret', 'tier', 'token', 'token_type', 'user@example.com', 'user_id']

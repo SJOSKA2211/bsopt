@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/database/models.py
+# hypothesis_version: 6.151.5
+
+[100, 255, '0.00', 'APIKey', 'CASCADE', 'OAuth2Client', 'Portfolio', 'User', 'all, delete-orphan', 'api_keys', 'free', 'name', 'oauth2_clients', 'oauth_clients', 'options_prices', 'portfolios', 'rate_limits', 'user', 'user_id', 'users', 'users.id']

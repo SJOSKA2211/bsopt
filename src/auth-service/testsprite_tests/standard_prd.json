@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "project": "Authentication Microservice (better-auth wrapper)",
+    "date": "2026-02-03",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "Lightweight authentication microservice that delegates all auth-related requests to the better-auth handler and exposes a health-check endpoint. Built with TypeScript, Hono, Node.js, and PostgreSQL for session/persistence and includes OpenAPI documentation for the public endpoints.",
+  "core_goals": [
+    "Securely accept and process all authentication requests by delegating to the better-auth handler.",
+    "Provide a minimal, well-documented HTTP surface: /api/auth/* for auth operations and / for health checks.",
+    "Ensure reliable startup and runtime behavior including PostgreSQL connectivity and graceful error handling.",
+    "Enable easy local development and deployment via clear configuration and minimal operational dependencies.",
+    "Provide measurable validation criteria (API, DB connectivity, security, documentation)."
+  ],
+  "key_features": [
+    "Authentication endpoint: single catch-all route at /api/auth/* that delegates requests to the better-auth handler (files: src/index.ts, src/auth.ts).",
+    "Health check endpoint: GET / returns 200 to indicate service availability (file: src/index.ts).",
+    "Database connectivity: PostgreSQL integration for session or user persistence and lookups (file: src/db.ts).",
+    "OpenAPI documentation: OpenAPI 3.0 spec describing the authentication endpoint and health check for discoverability and client integration.",
+    "Config-driven runtime: port and local endpoint configurable (config.json / environment variables) to support local development and production deployment.",
+    "Logging and error handling: centralized request/error handling to surface problems and ensure graceful responses from delegated handler."
+  ],
+  "user_flow_summary": [
+    "Service startup: loads config, initializes DB pool (src/db.ts), mounts routes (src/index.ts) and starts listening on configured port.",
+    "Health check flow: external system calls GET / -> Hono route returns 200 to signal service readiness.",
+    "Authentication flow: client sends request to /api/auth/* -> Hono catch-all route delegates the request to the better-auth handler via code in src/auth.ts -> better-auth processes authentication (login, logout, callback, passwordless, etc.) and returns a response -> service forwards the response to the client and persists any necessary session/state in PostgreSQL.",
+    "Failure flow: if DB connection fails or better-auth returns an error, service logs the error, returns an appropriate 5xx/4xx response, and exposes error details only to logs (not to clients)."
+  ],
+  "validation_criteria": [
+    "Health check: GET / returns HTTP 200; monitored by health checks in orchestration (k8s, load balancer).",
+    "Auth delegation: Representative auth requests (login, logout, callback) sent to /api/auth/* are proxied to better-auth and return expected 2xx responses in end-to-end integration tests.",
+    "Database connectivity: On startup the service successfully connects to PostgreSQL and can run a simple SELECT 1; failures trigger non-ready status and logs.",
+    "OpenAPI compliance: Provided OpenAPI 3.0 document validates against a schema validator and covers / and /api/auth/* endpoints.",
+    "Security verification: tokens/sessions produced by better-auth are correctly persisted/validated via src/db.ts; inputs are sanitized and common auth vulnerabilities (CSRF, replay, injection) are mitigated.",
+    "Error handling and observability: Errors are logged with sufficient context; 5xx responses are rate-limited and do not leak internal state. Logging, request IDs and metrics are present for debugging.",
+    "Performance baseline: Typical auth request latency under 200ms at 95th percentile in normal load; service must remain responsive under expected traffic profile."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "Hono",
+      "PostgreSQL",
+      "Node.js",
+      "better-auth"
+    ],
+    "features": [
+      {
+        "name": "Authentication API",
+        "description": "Handles all authentication-related requests under /api/auth/.",
+        "files": [
+          "src/index.ts",
+          "src/auth.ts",
+          "src/db.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Authentication API",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/api/auth/*": {
+              "all": {
+                "summary": "Authentication endpoint",
+                "description": "Delegates all requests under /api/auth/ to the better-auth handler.",
+                "responses": {
+                  "200": {
+                    "description": "Successful response from better-auth handler."
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Health Check API",
+        "description": "A simple health check endpoint.",
+        "files": [
+          "src/index.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Health Check API",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/": {
+              "get": {
+                "summary": "Health check",
+                "responses": {
+                  "200": {
+                    "description": "Service is running."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

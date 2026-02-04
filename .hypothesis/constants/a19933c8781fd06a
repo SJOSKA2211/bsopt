@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/schemas/user.py
+# hypothesis_version: 6.151.5
+
+[100, 250, 255, 750, 3500, 15000, '2024-01-01T00:00:00Z', '2024-01-15T10:30:00Z', '2024-01-15T11:00:00Z', 'John Doe', 'John Smith', 'Last login timestamp', 'List of users', 'MFA enabled status', 'New email address', 'Pagination metadata', 'Payment method ID', 'Requests made today', 'Subscription tier', 'Total API requests', 'User ID', 'User email', "User's full name", 'created_at', 'email', 'example', 'full_name', 'id', 'is_active', 'is_mfa_enabled', 'is_verified', 'last_login', 'payment_method_id', 'pm_123456789', 'pro', 'rate_limit_remaining', 'rate_limit_reset', 'requests_this_month', 'requests_today', 'target_tier', 'tier', 'total_requests', 'user@example.com']

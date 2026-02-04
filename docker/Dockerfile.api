@@ -1,0 +1,52 @@
+# Stage 1: Builder
+FROM ghcr.io/astral-sh/uv:python3.14-slim AS builder
+
+WORKDIR /app
+
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+# 🚀 SINGULARITY: Optimized build flags
+ENV PYTHON_JIT=all
+
+COPY pyproject.toml requirements.txt ./
+
+# Lightning-fast dependency resolution
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --no-cache -r requirements.txt
+
+# Stage 2: Final
+FROM python:3.14-slim
+
+WORKDIR /app
+
+# 🚀 SINGULARITY: Enable JIT globally
+ENV PYTHON_JIT=all
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONOPTIMIZE=2
+
+# Create a non-root user for security
+RUN groupadd -r bsopt && useradd -r -g bsopt bsopt \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R bsopt:bsopt /app
+
+# Copy the installed packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+COPY src/ ./src
+RUN chown -R bsopt:bsopt /app
+
+USER bsopt
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

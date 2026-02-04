@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/pricing/models/heston_fft.py
+# hypothesis_version: 6.151.5
+
+[-2.5, -0.1, 0.0, 1e-10, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 250.0, 1000, 1024, 2000, 'pricing_failed', 'put_pricing_failed']

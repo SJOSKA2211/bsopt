@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/reinforcement_learning/trading_env.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.001, 0.03, 0.1, 0.5, 100, 110, 100000, 'balance', 'greeks', 'human', 'indicators', 'portfolio_value', 'positions', 'prices', 'render.modes', 'step', 'strikes']

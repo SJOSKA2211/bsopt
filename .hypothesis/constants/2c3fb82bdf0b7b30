@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/architectures/neural_network.py
+# hypothesis_version: 6.151.5
+
+[0.1, 128, 'batch_size', 'fbgemm', 'input', 'output']

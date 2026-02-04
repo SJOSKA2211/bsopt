@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/routes/pricing.py
+# hypothesis_version: 6.151.5
+
+['/batch', '/greeks', '/price', '/pricing', 'Pricing']
