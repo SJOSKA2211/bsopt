@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/utils/distributed.py
+# hypothesis_version: 6.151.5
+
+[0.6, 0.7, 0.8, 0.95, 'lz4']
