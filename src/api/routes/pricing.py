@@ -1,294 +1,60 @@
 """
-Pricing Routes
-==============
-
-RESTful API endpoints for options pricing and Greeks calculation.
+Pricing Routes (Singularity Refactored)
 """
 
 import time
-from typing import Any, Dict, Union, cast
-
-from fastapi import APIRouter, Depends, Response, Request
-from src.security.auth import get_current_user_flexible
-from src.security.rate_limit import rate_limit
-
-from src.api.exceptions import (
-    InternalServerException,
-    ServiceUnavailableException,
-    ValidationException,
-)
-from src.api.schemas.common import DataResponse, ErrorResponse
+from typing import Any, List
+from fastapi import APIRouter, Depends, Request, Response
 from src.api.schemas.pricing import (
-    BatchPriceRequest,
-    BatchPriceResponse,
-    BatchGreeksRequest,
-    BatchGreeksResponse,
-    GreeksRequest,
-    GreeksResponse,
-    ImpliedVolatilityRequest,
-    ImpliedVolatilityResponse,
     PriceRequest,
     PriceResponse,
-    ExoticPriceRequest,
-    ExoticPriceResponse,
-    PricingDataResponse,
+    BatchPriceRequest,
+    BatchPriceResponse,
+    GreeksRequest,
+    GreeksResponse
 )
-from src.api.responses import MsgspecJSONResponse
-from src.pricing.black_scholes import BSParameters
-from src.pricing.factory import PricingEngineFactory
-from src.pricing.implied_vol import implied_volatility
-from src.pricing.exotic import (
-    ExoticParameters,
-    BarrierType,
-    AsianType,
-    StrikeType,
-    price_exotic_option
-)
-from src.utils.cache import get_redis_client, pricing_cache
-from src.utils.cache_decorator import cached_endpoint
 from src.services.pricing_service import PricingService
-from src.utils.circuit_breaker import pricing_circuit
-
+from src.api.responses import MsgspecJSONResponse
 import structlog
 
-router = APIRouter(prefix="/pricing", tags=["pricing"])
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
+router = APIRouter(prefix="/pricing", tags=["Pricing"])
 pricing_service = PricingService()
 
-
-@router.post(
-    "/price",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}, 503: {"model": ErrorResponse}},
-)
-@pricing_circuit
-@cached_endpoint(prefix="pricing_price", ttl=60)
+@router.post("/price", response_class=MsgspecJSONResponse)
 async def calculate_price(
-    request: Request,
     body: PriceRequest,
-    response: Response,
-    user: Any = Depends(get_current_user_flexible),
-    redis_client: Any = Depends(get_redis_client),
-    _: Any = Depends(rate_limit)
+    request: Request
 ):
     """
-    Calculate the theoretical price of a single option.
+    Calculate theoretical price for a single option.
     """
     params = body.to_bs_params()
+    result = await pricing_service.price_option(
+        params=params,
+        option_type=body.option_type,
+        model=body.model,
+        symbol=body.symbol
+    )
+    return result
 
-    try:
-        result = await pricing_service.price_option(
-            params=params,
-            option_type=body.option_type,
-            model=body.model,
-            symbol=body.symbol,
-            redis_client=redis_client
-        )
-        
-        response.headers["X-Pricing-Model"] = result.model
-        
-        # SOTA: Bypass Pydantic serialization
-        return PricingDataResponse(data=result)
-        
-    except ValueError as e:
-        raise ValidationException(message=f"Invalid parameters: {str(e)}")
-    except Exception as e:
-        if "Circuit Breaker" in str(e):
-            raise ServiceUnavailableException(message=str(e))
-        logger.error("pricing_route_failed", error=str(e), exc_info=True)
-        raise InternalServerException(message=f"Internal error: {str(e)}")
-
-
-@router.post(
-    "/batch",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}},
-)
+@router.post("/batch", response_class=MsgspecJSONResponse)
 async def calculate_batch_prices(
-    request: BatchPriceRequest,
-    user: Any = Depends(get_current_user_flexible),
-    redis_client: Any = Depends(get_redis_client),
-    _: Any = Depends(rate_limit)
+    request: BatchPriceRequest
 ):
     """
-    Calculate prices for multiple options in a single batch request.
-    Optimized for high-throughput vectorized execution.
+    Vectorized batch pricing.
     """
-    try:
-        result = await pricing_service.price_batch(request.options, redis_client=redis_client)
-        
-        return PricingDataResponse(data=result)
-    except Exception as e:
-        logger.error("batch_route_failed", error=str(e))
-        raise InternalServerException(message="Batch calculation failed")
+    result = await pricing_service.price_batch(request.options)
+    return result
 
-
-@router.post(
-    "/batch-greeks",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}},
-)
-async def calculate_batch_greeks(
-    request: BatchGreeksRequest,
-    user: Any = Depends(get_current_user_flexible),
-    _: Any = Depends(rate_limit)
-):
-    """
-    Calculate Greeks for multiple options in a single batch request.
-    Optimized for high-throughput vectorized execution.
-    """
-    try:
-        result = await pricing_service.calculate_greeks_batch(request.options)
-        return PricingDataResponse(data=result)
-    except Exception as e:
-        logger.error("batch_greeks_route_failed", error=str(e))
-        raise InternalServerException(message="Batch Greeks calculation failed")
-
-
-@router.post(
-    "/greeks",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-@pricing_circuit
-@cached_endpoint(prefix="pricing_greeks", ttl=60)
+@router.post("/greeks", response_class=MsgspecJSONResponse)
 async def calculate_greeks(
-    request: Request,
-    body: GreeksRequest,
-    user: Any = Depends(get_current_user_flexible),
-    _: Any = Depends(rate_limit)
+    body: GreeksRequest
 ):
     """
-    Calculate all standard option Greeks.
+    Calculate option Greeks.
     """
     params = body.to_bs_params()
-
-    try:
-        result = await pricing_service.calculate_greeks(params, body.option_type)
-        
-        return PricingDataResponse(
-            data=GreeksResponse(
-                delta=result["delta"],
-                gamma=result["gamma"],
-                theta=result["theta"],
-                vega=result["vega"],
-                rho=result["rho"],
-                option_price=result["price"],
-                spot=body.spot,
-                strike=body.strike,
-                time_to_expiry=body.time_to_expiry,
-                volatility=body.volatility,
-                option_type=body.option_type,
-            )
-        )
-    except Exception as e:
-        logger.error("greeks_route_failed", error=str(e))
-        raise ValidationException(message=f"Greeks calculation failed: {str(e)}")
-
-
-@router.post(
-    "/implied-volatility",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-async def calculate_iv(
-    request: ImpliedVolatilityRequest,
-    user: Any = Depends(get_current_user_flexible),
-    _: Any = Depends(rate_limit)
-):
-    """
-    Calculate the implied volatility.
-    """
-    try:
-        iv = await pricing_service.calculate_iv(
-            market_price=request.option_price,
-            spot=request.spot,
-            strike=request.strike,
-            maturity=request.time_to_expiry,
-            rate=request.rate,
-            dividend=request.dividend_yield,
-            option_type=request.option_type,
-        )
-        
-        return PricingDataResponse(
-            data=ImpliedVolatilityResponse(
-                implied_volatility=iv,
-                option_price=request.option_price,
-                spot=request.spot,
-                strike=request.strike,
-                iterations=0,
-                converged=True,
-            )
-        )
-    except ValueError as e:
-        raise ValidationException(message=f"IV calculation failed: {str(e)}")
-    except Exception as e:
-        logger.error("iv_route_failed", error=str(e), exc_info=True)
-        raise InternalServerException(message="Internal error during IV calculation")
-
-
-@router.post(
-    "/exotic",
-    response_class=MsgspecJSONResponse,
-    responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}},
-)
-async def calculate_exotic_price(
-    request: ExoticPriceRequest,
-    user: Any = Depends(get_current_user_flexible),
-    _: Any = Depends(rate_limit)
-):
-    """
-    Price exotic options.
-    """
-    base_params = BSParameters(
-        spot=request.spot,
-        strike=request.strike,
-        maturity=request.time_to_expiry,
-        volatility=request.volatility,
-        rate=request.rate,
-        dividend=request.dividend_yield,
-    )
-    
-    exotic_params = ExoticParameters(
-        base_params=base_params,
-        n_observations=request.n_observations,
-        barrier=request.barrier or 0.0,
-        rebate=request.rebate or 0.0
-    )
-
-    kwargs: Dict[str, Any] = {}
-    if request.exotic_type == "barrier":
-        if not request.barrier_type:
-            raise ValidationException(message="barrier_type required")
-        try:
-            kwargs["barrier_type"] = BarrierType[request.barrier_type.upper().replace("-", "_")]
-        except KeyError:
-            raise ValidationException(message=f"Invalid barrier type: {request.barrier_type}")
-            
-    if request.exotic_type == "asian":
-        kwargs["asian_type"] = AsianType[request.asian_type.upper()] if request.asian_type else AsianType.GEOMETRIC
-        
-    if request.exotic_type in ["asian", "lookback"]:
-        kwargs["strike_type"] = StrikeType[request.strike_type.upper()] if request.strike_type else StrikeType.FIXED
-
-    if request.exotic_type == "digital":
-        kwargs["payout"] = request.payout
-
-    try:
-        price, ci = await pricing_service.price_exotic(
-            request.exotic_type, 
-            exotic_params, 
-            request.option_type, 
-            **kwargs
-        )
-        
-        return PricingDataResponse(
-            data=ExoticPriceResponse(
-                price=price,
-                confidence_interval=ci,
-                exotic_type=request.exotic_type
-            )
-        )
-    except Exception as e:
-        logger.error("exotic_route_failed", error=str(e))
-        raise ValidationException(message=f"Pricing failed: {str(e)}")
+    result = await pricing_service.calculate_greeks(params, body.option_type)
+    return result

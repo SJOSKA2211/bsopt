@@ -85,6 +85,30 @@ class APIKey(Base):
 
 
 # =============================================================================
+# AUDIT LOG MODEL
+# =============================================================================
+
+
+class AuditLog(Base):
+    """Audit logs for security and compliance."""
+
+    __tablename__ = "audit_logs"
+
+    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True, server_default=func.now())
+    method: Mapped[str] = mapped_column(Text, nullable=False)
+    path: Mapped[str] = mapped_column(Text, nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    user_id: Mapped[str] = mapped_column(Text, nullable=False)
+    client_ip: Mapped[str] = mapped_column(Text, nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, nullable=False)
+    latency_ms: Mapped[float] = mapped_column(Numeric, nullable=False)
+    metadata_json: Mapped[Optional[dict]] = mapped_column("metadata", JSONB)
+
+    def __repr__(self) -> str:
+        return f"<AuditLog(user_id={self.user_id}, path={self.path})>"
+
+
+# =============================================================================
 # OAUTH2 CLIENT MODEL
 # =============================================================================
 

@@ -27,6 +27,24 @@ class Settings(BaseSettings):
 
     # Redis Configuration
     REDIS_URL: str = Field(validation_alias="REDIS_URL")
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+    REDIS_PASSWORD: Optional[str] = None
+
+    # RabbitMQ Configuration
+    RABBITMQ_URL: str = "amqp://guest:guest@localhost:5672//"
+
+    # ML Serving Configuration
+    ML_SERVICE_GRPC_URL: str = "localhost:50051"
+    
+    # Rate Limiting Tiers
+    RATE_LIMIT_FREE: int = 100
+    RATE_LIMIT_PRO: int = 1000
+    RATE_LIMIT_ENTERPRISE: int = 10000
+
+    # CORS Configuration
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # JWT Authentication
     JWT_SECRET: str = Field(validation_alias="JWT_SECRET")

@@ -19,7 +19,7 @@ app.get('/openapi.json', async (c) => {
     return c.json(openAPISchema);
 });
 
-const port = 4000
+const port = 3001
 console.log(`Server is running on port ${port}`)
 
 serve({

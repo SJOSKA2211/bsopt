@@ -27,6 +27,8 @@ class PricingStrategy(ABC):
         """Calculate option sensitivity measures."""
         pass
 
+BasePricingEngine = PricingStrategy
+
 
 class VectorizedPricingStrategy(ABC):
     """Abstract base class for high-performance vectorized pricing."""
