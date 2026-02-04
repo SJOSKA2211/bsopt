@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/reinforcement_learning/train.py
+# hypothesis_version: 6.151.5
+
+['training_distributed', 'training_td3']

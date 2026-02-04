@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/pipelines/retraining.py
+# hypothesis_version: 6.151.5
+
+[10000, 'is_drift_detected', 'nn', 'r2', 'retraining_completed', 'retraining_failed', 'run_id']

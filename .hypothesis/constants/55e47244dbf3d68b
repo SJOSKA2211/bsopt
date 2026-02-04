@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/blockchain/defi_options.py
+# hypothesis_version: 6.151.5
+
+[0.0, 100.0, '0x', 'BLOCKCHAIN_RPC_URL', 'DEFI_TX_START', 'allowFailure', 'callData', 'f', 'function', 'get_price', 'inputs', 'multicall', 'name', 'outputs', 'price', 'target', 'time', 'type', 'uint256', 'ws://', 'wss://']

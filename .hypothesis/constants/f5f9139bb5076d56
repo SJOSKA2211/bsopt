@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/workers/math_worker.py
+# hypothesis_version: 6.151.5
+
+['math_worker', 'status', 'success', 'symbol']

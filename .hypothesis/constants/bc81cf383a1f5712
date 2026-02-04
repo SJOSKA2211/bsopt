@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/pipelines/orchestrator.py
+# hypothesis_version: 6.151.5
+
+[5000, '%Y-%m-%d', '--model', '--real-data', '--samples', '--trials', 'MLFLOW_TRACKING_URI', 'Production', '__main__', 'batch_size', 'data_source', 'epochs', 'hidden_dims', 'input', 'learning_rate', 'loss', 'lr', 'max_depth', 'mlruns', 'model', 'model_stage', 'model_type', 'mse', 'n_estimators', 'n_jobs', 'n_samples', 'nn', 'objective', 'onnx_export_failed', 'onnx_model', 'output', 'quantized_model', 'r2', 'r2_score', 'random_state', 'reg:squarederror', 'run_date', 'run_id', 'test_size', 'unknown', 'xgboost']

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/utils/distributed.py
+# hypothesis_version: 6.151.5
+
+[0.3, 1024, ',', '-', '/tmp/ray_spill', 'SC_PAGE_SIZE', 'SC_PHYS_PAGES', '__main__', 'cpu_affinity_pinned', 'cpu_pinning_failed', 'directory_path', 'filesystem', 'params', 'r', 'ray_cluster_shutdown', 'type']

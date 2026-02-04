@@ -1,0 +1,18 @@
+🥒 Pickle Rick Activated!
+
+>> Loop Config:
+   Iteration: 1
+   Limit:     5
+   Max Time:  60m
+   Worker TO: 1200s
+   Promise:   None
+
+>> Workspace:
+   Path:      /home/kamau/.gemini/extensions/pickle-rick/sessions/2026-02-04-de12a986
+   State:     /home/kamau/.gemini/extensions/pickle-rick/sessions/2026-02-04-de12a986/state.json
+
+>> Directive:
+   use any available resource to achieve coverage while debugging the codebase
+
+⚠️  WARNING: This loop will continue until the task is complete,
+    the iteration limit (5) is reached, the time limit (60m) expires, or a promise is fulfilled.

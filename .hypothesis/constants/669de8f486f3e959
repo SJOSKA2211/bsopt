@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/pipelines/dag_neural_greeks.py
+# hypothesis_version: 6.151.5
+
+[100, 10000, '__main__']

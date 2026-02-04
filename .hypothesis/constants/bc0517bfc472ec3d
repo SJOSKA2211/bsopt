@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/feature_store/features.py
+# hypothesis_version: 6.151.5
+
+[0.0, 'close', 'high', 'log_return', 'low', 'open', 'price', 'synthetic_ohlc']
