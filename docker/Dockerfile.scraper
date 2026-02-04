@@ -1,31 +1,31 @@
 # Stage 1: Builder
-FROM python:3.12-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.14-slim AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gcc \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY requirements.txt ./
 
-COPY requirements.txt .
-RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt \
-    && pip install --default-timeout=1000 --no-cache-dir playwright structlog
+# Lightning-fast dependency resolution
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --no-cache -r requirements.txt \
+    && uv pip install --no-cache playwright
 
-# Install browsers to root's cache in builder
-RUN playwright install chromium
-RUN playwright install-deps chromium
+# Install ONLY Chromium
+RUN playwright install --with-deps chromium
 
 # Stage 2: Final
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 WORKDIR /app
+
+# 🚀 SINGULARITY: Optimized performance flags
+ENV PYTHON_JIT=all
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONOPTIMIZE=2
 
 # Create a non-root user for security
 RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
@@ -33,7 +33,7 @@ RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
     libpq5 \
     curl \
     tini \
-    # Install playwright system deps in final image too
+    # Minimum required deps for Chromium headless
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -50,23 +50,17 @@ RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
     && rm -rf /var/lib/apt/lists/* \
     && chown -R bsopt:bsopt /app
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy the installed packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.14/site-packages /usr/local/lib/python3.14/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy Playwright browsers to non-root user's cache
+# Copy Playwright browsers
 COPY --from=builder --chown=bsopt:bsopt /root/.cache/ms-playwright /home/bsopt/.cache/ms-playwright
 
-COPY . .
+COPY src/ ./src
 RUN chown -R bsopt:bsopt /app
 
 USER bsopt
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONOPTIMIZE=2
-
-# Playwright needs to know where to look if not in default location (optional but good practice)
-# But standard ~/.cache/ms-playwright should work for the user.
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "src/scrapers/engine.py"]
