@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/data_loader.py
+# hypothesis_version: 6.151.5
+
+[0.1, 10000, '.csv', '.parquet', 'close', 'high', 'log_return', 'low', 'open', 'outlier_detected', 'price', 'scraper_synthetic', 'source_type', 'symbol', 'timestamp', 'volume']

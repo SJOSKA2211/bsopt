@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/cli/config.py
+# hypothesis_version: 6.151.5
+
+['.', '.bsopt', 'api', 'base_url', 'bs', 'color', 'config.json', 'default_method', 'format', 'output', 'pricing', 'r', 'table', 'user', 'w']

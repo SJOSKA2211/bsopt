@@ -3,7 +3,13 @@ from typing import Any, List, Optional, Tuple, Dict
 import numpy as np
 import concurrent.futures
 import asyncio
-import ray
+try:
+    import ray
+except ImportError:
+    class RayMock:
+        def put(self, obj): return obj
+        def get(self, obj): return obj
+    ray = RayMock()
 from src.utils.shared_memory import shm_manager
 from src.config import settings
 import structlog

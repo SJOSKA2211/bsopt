@@ -1,12 +1,11 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Database Schema
+-- Black-Scholes Option Pricing Platform - Database Schema (Neon Optimized)
 -- ============================================================================
--- PostgreSQL 15 with TimescaleDB
+-- PostgreSQL 15+ Native Partitioning
 -- ============================================================================
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 
 -- ============================================================================
 -- USERS TABLE
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_tier_active ON users(tier, is_active);
 
-COMMENT ON TABLE users IS 'Core user entity. Tiers (free, pro, enterprise) determine API rate limits and model access. Indexed by email for O(log n) lookup during auth triad validation.';
+COMMENT ON TABLE users IS 'Core user entity. Tiers (free, pro, enterprise) determine API rate limits and model access.';
 
 -- ============================================================================
 -- OAUTH2_CLIENTS TABLE
@@ -46,7 +45,7 @@ CREATE TABLE IF NOT EXISTS oauth2_clients (
 CREATE INDEX IF NOT EXISTS idx_oauth2_client_id ON oauth2_clients(client_id);
 
 -- ============================================================================
--- OPTIONS_PRICES TABLE (TimescaleDB Hypertable)
+-- OPTIONS_PRICES TABLE (Native Partitioning)
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS options_prices (
@@ -67,17 +66,18 @@ CREATE TABLE IF NOT EXISTS options_prices (
     theta NUMERIC(8, 6),
     rho NUMERIC(8, 6),
     PRIMARY KEY (time, symbol, strike, expiry, option_type)
-);
+) PARTITION BY RANGE (time);
 
--- Convert to TimescaleDB hypertable
-SELECT create_hypertable('options_prices', 'time', if_not_exists => TRUE);
+-- Initial Partition (February 2026)
+CREATE TABLE IF NOT EXISTS options_prices_y2026m02 PARTITION OF options_prices
+    FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
 
 -- Indexes for options_prices
 CREATE INDEX IF NOT EXISTS idx_options_prices_symbol_time ON options_prices(symbol, time DESC);
 CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_time ON options_prices(expiry, time DESC);
 CREATE INDEX IF NOT EXISTS idx_options_prices_chain ON options_prices(symbol, expiry, option_type, strike, time DESC);
 
-COMMENT ON TABLE options_prices IS 'High-velocity time-series market data. TimescaleDB hypertable optimized for range-based time queries. Partitioned by ''time'' to support sub-second data retention policies.';
+COMMENT ON TABLE options_prices IS 'High-velocity time-series market data. Native Postgres range partitioning on ''time''.';
 
 -- ============================================================================
 -- PORTFOLIOS TABLE
@@ -92,10 +92,7 @@ CREATE TABLE IF NOT EXISTS portfolios (
     UNIQUE(user_id, name)
 );
 
-CREATE INDEX IF NOT EXISTS idx_portfolios_user_created ON portfolios(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_name ON portfolios(user_id, name);
-
-COMMENT ON TABLE portfolios IS 'Aggregated position containers. Linked to users via UUID. Access patterns prioritize (user_id, name) composite keys for O(1) existence checks.';
 
 -- ============================================================================
 -- POSITIONS TABLE
@@ -122,10 +119,6 @@ CREATE TABLE IF NOT EXISTS positions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_positions_portfolio_status ON positions(portfolio_id, status);
-CREATE INDEX IF NOT EXISTS idx_positions_symbol_status ON positions(symbol, status);
-CREATE INDEX IF NOT EXISTS idx_positions_expiry_status ON positions(expiry, status);
-
-COMMENT ON TABLE positions IS 'Atomic trade snapshots. Quantity polarity denotes long/short bias. Expiry status triggers automated risk engine recalculations.';
 
 -- ============================================================================
 -- ORDERS TABLE
@@ -160,12 +153,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_portfolio_created ON orders(portfolio_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_broker_lookup ON orders(broker, broker_order_id);
-CREATE INDEX IF NOT EXISTS idx_orders_symbol_status ON orders(symbol, status, created_at DESC);
-
-COMMENT ON TABLE orders IS 'Trading lifecycle registry. Constraints enforce limit/stop price presence based on order_type. Triggers automated updated_at timestamping for audit integrity.';
 
 -- ============================================================================
 -- ML_MODELS TABLE
@@ -174,7 +162,7 @@ COMMENT ON TABLE orders IS 'Trading lifecycle registry. Constraints enforce limi
 CREATE TABLE IF NOT EXISTS ml_models (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
-    algorithm VARCHAR(50) NOT NULL CHECK (algorithm IN ('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble')),
+    algorithm VARCHAR(50) NOT NULL,
     version INTEGER NOT NULL CHECK (version > 0),
     hyperparameters JSONB,
     training_metrics JSONB,
@@ -186,10 +174,6 @@ CREATE TABLE IF NOT EXISTS ml_models (
 );
 
 CREATE INDEX IF NOT EXISTS idx_ml_models_production ON ml_models(name, is_production);
-CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC);
-CREATE INDEX IF NOT EXISTS idx_ml_models_created_by ON ml_models(created_by);
-
-COMMENT ON TABLE ml_models IS 'Implements Strategy Pattern registry for model versioning. JSONB hyperparameters allow for dynamic schema-less tuning tracking across heterogeneous algorithms.';
 
 -- ============================================================================
 -- MODEL_PREDICTIONS TABLE
@@ -205,11 +189,6 @@ CREATE TABLE IF NOT EXISTS model_predictions (
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
-
-COMMENT ON TABLE model_predictions IS 'High-volume inference logs. Partitioned strategy recommended for actual_price NULL filtering to identify pending validation sets.';
-
 -- ============================================================================
 -- RATE_LIMITS TABLE
 -- ============================================================================
@@ -221,10 +200,6 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     request_count INTEGER DEFAULT 1,
     PRIMARY KEY (user_id, endpoint, window_start)
 );
-
-CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup ON rate_limits(user_id, endpoint, window_start);
-
-COMMENT ON TABLE rate_limits IS 'Zero-trust traffic shaping repository. PK composite (user_id, endpoint, window_start) ensures linear scalability of rate enforcement middleware.';
 
 -- ============================================================================
 -- TRIGGER FOR AUTO-UPDATING updated_at
@@ -243,25 +218,3 @@ CREATE TRIGGER update_orders_updated_at
     BEFORE UPDATE ON orders
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
-
--- ============================================================================
--- COMPLETION
--- ============================================================================
-
--- Show all created tables
-DO $$
-BEGIN
-    RAISE NOTICE '========================================';
-    RAISE NOTICE 'DATABASE SCHEMA CREATION COMPLETE';
-    RAISE NOTICE '========================================';
-    RAISE NOTICE 'Tables created:';
-    RAISE NOTICE '  - users';
-    RAISE NOTICE '  - options_prices (TimescaleDB hypertable)';
-    RAISE NOTICE '  - portfolios';
-    RAISE NOTICE '  - positions';
-    RAISE NOTICE '  - orders';
-    RAISE NOTICE '  - ml_models';
-    RAISE NOTICE '  - model_predictions';
-    RAISE NOTICE '  - rate_limits';
-    RAISE NOTICE '========================================';
-END $$;

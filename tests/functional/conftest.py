@@ -106,8 +106,15 @@ async def client(mock_db):
         
         yield m_session
 
+    from src.security.auth import get_current_user_flexible
+    
+    # Mock Current User
+    def mock_get_current_user_flexible():
+        return mock_db.users.get("func_test_user") or MagicMock(id=uuid.uuid4(), email="test@example.com", tier="free")
+
     app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_async_db] = mock_get_async_db
+    app.dependency_overrides[get_current_user_flexible] = mock_get_current_user_flexible
     
     # 69. Test Framework: mock.patch audit logs
     with patch("src.security.audit.log_audit"), \

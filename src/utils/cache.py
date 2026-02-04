@@ -366,4 +366,15 @@ async def init_redis_cache(**kwargs):
             logger.info("redis_cache_initialized")
         except Exception as e:
             logger.error("redis_cache_init_failed", error=str(e))
+
+async def close_redis_cache():
+    """Close the Redis client connection."""
+    global _redis
+    if _redis:
+        try:
+            await _redis.aclose()
+            _redis = None
+            logger.info("redis_cache_closed")
+        except Exception as e:
+            logger.error("redis_cache_close_failed", error=str(e))
     

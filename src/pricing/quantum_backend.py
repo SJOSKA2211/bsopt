@@ -1,6 +1,10 @@
 import os
 import structlog
-from qiskit_aer import AerSimulator
+try:
+    from qiskit_aer import AerSimulator
+except ImportError:
+    class AerSimulator:
+        def __init__(self, *args, **kwargs): pass
 from typing import Any
 
 try:

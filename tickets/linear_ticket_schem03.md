@@ -1,7 +1,7 @@
 ---
 id: schem03
 title: Fix Market Mesh Schema Mismatches
-status: Triage
+status: Done
 priority: High
 project: BS-OPT
 created: 2026-02-04

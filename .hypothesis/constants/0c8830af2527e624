@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/shared/security.py
+# hypothesis_version: 6.151.5
+
+[2.0, 200, 'Authorized:', 'SUCCESS', 'X-SSL-Client-S-DN', 'X-SSL-Client-Verify', '__main__', 'action', 'anonymous', 'guest', 'id', 'input', 'market_data', 'mtls_dn_mismatch', 'mtls_verified', 'opa_error', 'opa_wasm_init_failed', 'opa_wasm_initialized', 'policies/authz.wasm', 'rb', 'read', 'redis_not_available', 'resource', 'result', 'role', 'security_opa', 'trader', 'user', 'user123']

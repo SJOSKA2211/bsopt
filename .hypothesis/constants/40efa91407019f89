@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/cli/auth.py
+# hypothesis_version: 6.151.5
+
+[384, '.bsopt', 'Unknown error', 'access_token', 'cli_auth_successful', 'cli_ctx', 'client_credentials', 'client_id', 'client_secret', 'detail', 'grant_type', 'r', 'red', 'token.json', 'user', 'w']

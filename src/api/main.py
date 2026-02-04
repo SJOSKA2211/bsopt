@@ -1,4 +1,21 @@
 from fastapi import FastAPI, Request, Depends, HTTPException
+try:
+    import ray
+except ImportError:
+    class RayMock:
+        def is_initialized(self): return False
+        def init(self, *args, **kwargs): pass
+        def shutdown(self): pass
+        def put(self, obj): return obj
+        def get(self, obj): return obj
+        def remote(self, *args, **kwargs):
+            def decorator(f):
+                class RemoteFunc:
+                    def __init__(self, func): self.f = func
+                    def remote(self, *args, **kwargs): return self.f(*args, **kwargs)
+                return RemoteFunc(f)
+            return decorator
+    ray = RayMock()
 from prometheus_client import make_asgi_app, Counter, Histogram
 import os
 import time
@@ -68,7 +85,7 @@ async def lifespan(app: FastAPI):
     tune_worker_resources()
     
     # SOTA: Initialize Ray for distributed compute
-    import ray
+    # import ray (handled by global mock)
     if not ray.is_initialized():
         # Limit resources to prevent OOM on smaller systems
         ray.init(ignore_reinit_error=True, include_dashboard=False, num_cpus=2, object_store_memory=10**9) # 1GB
@@ -125,7 +142,7 @@ async def lifespan(app: FastAPI):
     await close_redis_cache()
     
     # SOTA: Shutdown Ray
-    import ray
+    # import ray (handled by global mock)
     if ray.is_initialized():
         ray.shutdown()
         

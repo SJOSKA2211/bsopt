@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/utils/circuit_breaker.py
+# hypothesis_version: 6.151.5
+
+[120, 'CLOSED', 'HALF_OPEN', 'OPEN', '^[a-zA-Z0-9_-]+$', 'circuit_breaker_open', 'database', 'distributed', 'in_memory', 'ml_client', 'nse', 'pricing', '{name}:cb_failures', '{name}:cb_state']

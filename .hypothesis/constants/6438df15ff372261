@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/audit/middleware.py
+# hypothesis_version: 6.151.5
+
+[0.1, 10.0, 1000, 'AUDIT_VAULT_KEY', 'anonymous', 'audit-logs', 'audit_log_delivered', 'audit_producer', 'background_tasks', 'client_ip', 'flushing_audit_logs', 'id', 'latency_ms', 'method', 'path', 'status_code', 'sub', 'timestamp', 'unknown', 'user', 'user-agent', 'user_agent', 'user_id']

@@ -1,7 +1,106 @@
-import pytest
-import os
 import sys
 from unittest.mock import MagicMock, AsyncMock, patch
+
+# ============================================================================
+# EARLY MOCKS (Immediate Deception for Python 3.14 Compatibility)
+# ============================================================================
+
+# Version Info for Compatibility
+version_tuple = (4, 6, 0)
+version_str = "4.6.0"
+
+# Create a base MagicMock that handles version comparisons
+class VersionedMock(MagicMock):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.VERSION = version_tuple
+        self.__version__ = version_str
+    def __gt__(self, other):
+        if isinstance(other, int): return self.VERSION[0] > other
+        if isinstance(other, tuple): return self.VERSION > other
+        return super().__gt__(other)
+    def __ge__(self, other):
+        if isinstance(other, int): return self.VERSION[0] >= other
+        if isinstance(other, tuple): return self.VERSION >= other
+        return super().__ge__(other)
+    def __lt__(self, other):
+        if isinstance(other, int): return self.VERSION[0] < other
+        if isinstance(other, tuple): return self.VERSION < other
+        return super().__lt__(other)
+    def __le__(self, other):
+        if isinstance(other, int): return self.VERSION[0] <= other
+        if isinstance(other, tuple): return self.VERSION <= other
+        return super().__le__(other)
+
+# Mock Ray
+mock_ray = VersionedMock()
+mock_ray.remote = lambda x: x
+mock_ray.init = MagicMock()
+mock_ray.shutdown = MagicMock()
+sys.modules["ray"] = mock_ray
+sys.modules["ray.util"] = VersionedMock()
+sys.modules["ray.util.iter"] = VersionedMock()
+
+# Mock Numba
+mock_numba = VersionedMock()
+mock_numba.jit = lambda *args, **kwargs: lambda func: func
+mock_numba.njit = lambda *args, **kwargs: lambda func: func
+mock_numba.float64 = MagicMock()
+mock_numba.int64 = MagicMock()
+sys.modules["numba"] = mock_numba
+sys.modules["numba.core"] = VersionedMock()
+sys.modules["numba.core.decorators"] = VersionedMock()
+sys.modules["llvmlite"] = VersionedMock()
+sys.modules["llvmlite.binding"] = VersionedMock()
+
+# Mock pandas_ta
+sys.modules["pandas_ta"] = VersionedMock()
+
+# Mock torch
+mock_torch = VersionedMock()
+mock_torch.cuda.is_available.return_value = False
+mock_torch.device = MagicMock()
+class MockTensor: pass
+mock_torch.Tensor = MockTensor
+sys.modules["torch"] = mock_torch
+
+# Mock redis (sync and async)
+class MockRedisError(Exception): pass
+
+mock_redis_mod = VersionedMock()
+mock_redis_mod.client = VersionedMock()
+mock_redis_mod.connection = VersionedMock()
+
+class MockRedis(MagicMock):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.VERSION = version_tuple
+        self.__version__ = version_str
+    def ping(self): return True
+    async def get(self, *args, **kwargs): return None
+    async def set(self, *args, **kwargs): return True
+    async def setex(self, *args, **kwargs): return True
+    def pipeline(self):
+        m = VersionedMock()
+        m.execute = AsyncMock(return_value=[None, 0])
+        m.__aenter__ = AsyncMock(return_value=m)
+        m.__aexit__ = AsyncMock(return_value=None)
+        return m
+    @classmethod
+    def from_url(cls, *args, **kwargs): return MockRedis()
+
+mock_redis_mod.Redis = MockRedis
+mock_redis_mod.StrictRedis = MockRedis
+mock_redis_mod.RedisError = MockRedisError
+sys.modules["redis"] = mock_redis_mod
+
+mock_async_redis_mod = VersionedMock()
+mock_async_redis_mod.Redis = MockRedis
+mock_async_redis_mod.RedisError = MockRedisError
+sys.modules["redis.asyncio"] = mock_async_redis_mod
+
+import pytest
+import os
 from _pytest.monkeypatch import MonkeyPatch # Import MonkeyPatch class
 import uuid
 import re
@@ -22,9 +121,9 @@ _api_keys_by_hash = {}
 _mock_jwt_payload_store = {}
 
 
-# ============================================================================ 
+# ============================================================================
 # Pytest Configuration Hook
-# ============================================================================ 
+# ============================================================================
 
 
 def pytest_configure(config):
@@ -32,45 +131,6 @@ def pytest_configure(config):
     Hook to configure pytest before any tests are run.
     This is where we can inject mocks for module-level imports.
     """
-    import sys
-    from unittest.mock import MagicMock
-
-    # Mock Ray
-    mock_ray = MagicMock()
-    mock_ray.remote = lambda x: x
-    mock_ray.init = MagicMock()
-    mock_ray.shutdown = MagicMock()
-    sys.modules["ray"] = mock_ray
-    sys.modules["ray.util"] = MagicMock()
-    sys.modules["ray.util.iter"] = MagicMock()
-
-    # Mock Numba
-    mock_numba = MagicMock()
-    mock_numba.jit = lambda *args, **kwargs: lambda func: func
-    mock_numba.njit = lambda *args, **kwargs: lambda func: func
-    mock_numba.float64 = MagicMock()
-    mock_numba.int64 = MagicMock()
-    sys.modules["numba"] = mock_numba
-    sys.modules["numba.core"] = MagicMock()
-    sys.modules["numba.core.decorators"] = MagicMock()
-    sys.modules["llvmlite"] = MagicMock()
-    sys.modules["llvmlite.binding"] = MagicMock()
-
-    # Mock pandas_ta
-    sys.modules["pandas_ta"] = MagicMock()
-
-    # Mock torch
-    mock_torch = MagicMock()
-    mock_torch.cuda.is_available.return_value = False
-    mock_torch.device = MagicMock()
-    
-    # Mock Tensor as a class
-    class MockTensor:
-        pass
-    mock_torch.Tensor = MockTensor
-    
-    sys.modules["torch"] = mock_torch
-
     import os
     import sys
     from unittest.mock import MagicMock
@@ -85,59 +145,18 @@ def pytest_configure(config):
     mock_settings = MagicMock()
     # Populate mock_settings with all required values
     mock_settings.DATABASE_URL = "sqlite:///:memory:"
+    mock_settings.REDIS_URL = "redis://localhost:6379/0"
     mock_settings.DEBUG = False
     mock_settings.SLOW_QUERY_THRESHOLD_MS = 100
     mock_settings.ENVIRONMENT = "dev"
     mock_settings.LOG_LEVEL = "INFO"
-    mock_settings.ML_SERVICE_GRPC_URL = "localhost:50051"
-    mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051"
-    mock_settings.ML_GRPC_POOL_SIZE = 1
     mock_settings.PROJECT_NAME = "BS-Opt-Test"
-
-    mock_settings.JWT_PRIVATE_KEY_PATH = ""
-    mock_settings.JWT_PUBLIC_KEY_PATH = ""
-    mock_settings.JWT_PRIVATE_KEY = "test-secret-key"
-    mock_settings.JWT_PUBLIC_KEY = "test-secret-key"
     mock_settings.JWT_SECRET = "test-secret-for-hmac"
     mock_settings.JWT_ALGORITHM = "HS256"
-    mock_settings.REDIS_HOST = "localhost"
-    mock_settings.REDIS_PORT = 6379
-    mock_settings.REDIS_DB = 0
-    mock_settings.REDIS_PASSWORD = None
-    mock_settings.CORS_ORIGINS = ["http://localhost"]
-    mock_settings.ACCESS_TOKEN_EXPIRE_MINUTES = 30
-    mock_settings.REFRESH_TOKEN_EXPIRE_DAYS = 7
-    mock_settings.BCRYPT_ROUNDS = 12 # Explicitly set to an integer
-    mock_settings.PASSWORD_MIN_LENGTH = 8
     mock_settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
-    mock_settings.ML_SERVICE_URL = "http://ml-service"
-    mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
-    mock_settings.ML_TRAINING_TEST_SIZE = 0.2
-    mock_settings.ML_TRAINING_RANDOM_STATE = 42
-    mock_settings.ML_TRAINING_PROMOTE_THRESHOLD_R2 = 0.9
-    mock_settings.DPA_EMAIL = "dpa@example.com"
-    mock_settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
-    mock_settings.MONTE_CARLO_GPU_THRESHOLD = 500000
-    mock_settings.NSE_CACHE_TTL = 60
-    mock_settings.NSE_SECTORS = ["agric", "auto", "bank", "comm", "const", "energy", "insr", "invest", "investse", "manu", "tele", "real", "exchange"]
-    mock_settings.NSE_NAME_SYMBOL_MAP = {
-            "SAFARICOM": "SCOM",
-            "EQUITY": "EQTY",
-            "KCB": "KCB",
-            "ABSA": "ABSA",
-            "CO-OP": "COOP",
-            "BAT": "BAT",
-            "EABL": "EABL",
-            "KENGEN": "KEGN",
-            "CENTUM": "CTUM",
-            "BAMBURI": "BAMB",
-            "NCBA": "NCBA",
-            "SCBK": "SCBK"
-        }
 
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))
-    mpatch.setattr("src.config.get_settings", MagicMock(return_value=mock_settings))
-
+    
     import src.config
     src.config.settings = mock_settings
     src.config._settings = mock_settings
@@ -146,6 +165,7 @@ def pytest_configure(config):
     mock_db_engine = MagicMock()
     mpatch.setattr("src.database.get_engine", MagicMock(return_value=mock_db_engine))
     mpatch.setattr("src.database._SessionLocal", MagicMock())
+    mpatch.setattr("src.database._AsyncSessionLocal", MagicMock())
     mpatch.setattr("src.database._initialize_db_components", MagicMock())
     
     # Mock async db
@@ -235,25 +255,6 @@ def pytest_configure(config):
     sys.modules["confluent_kafka.admin"] = MagicMock()
     sys.modules["confluent_kafka.schema_registry"] = MagicMock()
     sys.modules["confluent_kafka.schema_registry.avro"] = MagicMock()
-    
-    # Mock redis (sync and async)
-    class MockRedisError(Exception): pass
-    
-    mock_redis_mod = MagicMock()
-    mock_redis_mod.VERSION = (4, 6, 0) # Add VERSION for OTel compatibility
-    class MockRedis:
-        def __init__(self, *args, **kwargs): pass
-        def ping(self): return True
-        def pipeline(self): return MagicMock()
-    mock_redis_mod.Redis = MockRedis
-    mock_redis_mod.StrictRedis = MockRedis
-    mock_redis_mod.RedisError = MockRedisError
-    sys.modules["redis"] = mock_redis_mod
-    
-    mock_async_redis_mod = MagicMock()
-    mock_async_redis_mod.Redis = MagicMock() # Ensure it's a MagicMock
-    mock_async_redis_mod.RedisError = MockRedisError
-    sys.modules["redis.asyncio"] = mock_async_redis_mod
 
 
 @pytest.fixture(autouse=True)
@@ -453,9 +454,9 @@ def mock_db_session():
     return mock_session
 
 
-# ============================================================================ 
+# ============================================================================
 # Numerical Tolerance Fixtures
-# ============================================================================ 
+# ============================================================================
 
 
 @pytest.fixture

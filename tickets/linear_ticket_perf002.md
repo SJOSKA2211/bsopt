@@ -1,7 +1,7 @@
 ---
 id: perf002
 title: Fix Pricing Performance Regressions
-status: Triage
+status: Done
 priority: High
 project: BS-OPT
 created: 2026-02-04

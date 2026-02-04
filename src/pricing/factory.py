@@ -1,75 +1,78 @@
 """
-Pricing Engine Factory
-======================
+Pricing Engine Factory (Refactored)
+==================================
 
-Provides a centralized way to create pricing strategy instances
-based on model type.
+Implements a hardware-aware Strategy Pattern for option pricing.
+Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
 """
 
-from typing import Dict, Type, Any
-from src.utils.lazy_import import lazy_import
 import sys
+import structlog
+from typing import Dict, Any, Type, Optional
+from src.pricing.base import BasePricingEngine
 
-# Lazy import map for strategies
-_STRATEGY_MAP = {
-    "black_scholes": ".black_scholes.BlackScholesEngine",
-    "monte_carlo": ".monte_carlo.MonteCarloEngine",
-    "binomial": ".lattice.BinomialTreePricer",
-    "fdm": ".finite_difference.CrankNicolsonSolver",
-    "heston": ".models.heston_strategy.HestonPricingStrategy",
-    "neural": ".models.neural_strategy.NeuralPricingStrategy",
-    "wasm": ".wasm_engine.WASMPricingEngine",
-}
-
-from src.utils.circuit_breaker import pricing_circuit
+logger = structlog.get_logger(__name__)
 
 class PricingEngineFactory:
-    """Factory for creating pricing strategies using lazy loading and instance caching."""
+    """
+    Centralized registry for pricing engines.
+    Automatically selects the optimal execution strategy based on available hardware.
+    """
 
-    _instances: Dict[str, Any] = {}
+    _engines: Dict[str, Type[BasePricingEngine]] = {}
+    _instances: Dict[str, BasePricingEngine] = {}
 
     @classmethod
-    @pricing_circuit
-    def get_strategy(cls, model_type: str) -> Any:
+    def register(cls, name: str, engine_cls: Type[BasePricingEngine]):
+        """Register a new pricing engine."""
+        cls._engines[name.lower()] = engine_cls
+        logger.debug("engine_registered", name=name)
+
+    @classmethod
+    def get_engine(cls, name: str, execution_strategy: Optional[str] = None) -> BasePricingEngine:
         """
-        Get a pricing strategy instance for the given model type.
-        Prioritizes WASM implementations for complex models if available.
+        Get an engine instance. 
+        Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').
         """
-        model_key = model_type.lower()
+        name = name.lower()
         
-        # SOTA: Auto-offload to WASM for complex models if WASM is available
-        from .wasm_engine import WASM_AVAILABLE
-        if WASM_AVAILABLE and model_key in ["monte_carlo", "heston", "fdm"]:
-            # Pass original model type to WASM engine
-            strategy_class = lazy_import(
-                "src.pricing",
-                {"WASMPricingEngine": ".wasm_engine"},
-                "WASMPricingEngine",
-                sys.modules[__name__]
-            )
-            # Create a model-specific WASM engine
-            instance = strategy_class(model=model_key)
-            return instance
-            
-        # Return cached instance if available
-        if model_key in cls._instances:
-            return cls._instances[model_key]
+        # Check if we should override with WASM
+        from src.pricing.wasm_engine import WASM_AVAILABLE
+        if execution_strategy == "wasm" or (WASM_AVAILABLE and execution_strategy is None and name in ["heston", "monte_carlo"]):
+            name = "wasm"
 
-        if model_key not in _STRATEGY_MAP:
-            raise ValueError(f"Unknown pricing model: {model_type}")
+        if name in cls._instances:
+            return cls._instances[name]
 
-        # Extract module and class name
-        path = _STRATEGY_MAP[model_key]
-        module_path, class_name = path.rsplit('.', 1)
-        
-        # Use lazy_import utility
-        strategy_class = lazy_import(
-            "src.pricing",
-            {class_name: module_path},
-            class_name,
-            sys.modules[__name__]
-        )
+        if name not in cls._engines:
+            # Fallback to lazy loading for legacy support
+            cls._lazy_load(name)
 
-        instance = strategy_class()
-        cls._instances[model_key] = instance
+        if name not in cls._engines:
+            raise ValueError(f"Unknown pricing engine: {name}")
+
+        engine_cls = cls._engines[name]
+        instance = engine_cls()
+        cls._instances[name] = instance
         return instance
+
+    @classmethod
+    def _lazy_load(cls, name: str):
+        """Lazy load core engines to prevent circular imports."""
+        try:
+            if name == "black_scholes":
+                from src.pricing.black_scholes import BlackScholesEngine
+                cls.register("black_scholes", BlackScholesEngine)
+            elif name == "monte_carlo":
+                from src.pricing.monte_carlo import MonteCarloEngine
+                cls.register("monte_carlo", MonteCarloEngine)
+            elif name == "wasm":
+                from src.pricing.wasm_engine import WASMPricingEngine
+                cls.register("wasm", WASMPricingEngine)
+            # Add more as needed
+        except ImportError as e:
+            logger.error("lazy_load_failed", engine=name, error=str(e))
+
+# Auto-initialize with core engines
+PricingEngineFactory._lazy_load("black_scholes")
+PricingEngineFactory._lazy_load("monte_carlo")

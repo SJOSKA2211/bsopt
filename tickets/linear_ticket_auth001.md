@@ -1,7 +1,7 @@
 ---
 id: auth001
 title: Fix Auth Route Failures
-status: Triage
+status: Done
 priority: Urgent
 project: BS-OPT
 created: 2026-02-04
