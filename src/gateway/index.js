@@ -55,10 +55,32 @@ const gateway = new ApolloGateway({
   },
 });
 
-async function startServer() {
+async function startServer(supergraphSdl = null) {
   const fastify = Fastify({ 
-    logger: false, // Apollo has its own logging or we use pino directly
+    logger: false, 
     disableRequestLogging: true
+  });
+
+  // Use passed SDL or fallback to introspection (dev mode)
+  const gatewayConfig = supergraphSdl 
+    ? { supergraphSdl }
+    : {
+        supergraphSdl: new IntrospectAndCompose({
+          subgraphs: [
+            { name: 'options', url: process.env.OPTIONS_URL || 'http://localhost:8000/graphql' },
+            { name: 'pricing', url: process.env.PRICING_URL || 'http://localhost:8001/graphql' },
+            { name: 'ml', url: process.env.ML_URL || 'http://localhost:8002/graphql' },
+            { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://localhost:8003/graphql' },
+            { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
+          ],
+        }),
+      };
+
+  const gateway = new ApolloGateway({
+    ...gatewayConfig,
+    buildService({ url }) {
+      return new AuthenticatedDataSource({ url });
+    },
   });
 
   // Fastify optimized plugins
@@ -103,14 +125,34 @@ async function startServer() {
 
 if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
   const numCPUs = os.cpus().length;
-  logger.info(`Primary ${process.pid} is running. Forking ${numCPUs} workers...`);
-  for (let i = 0; i < numCPUs; i++) cluster.fork();
+  logger.info(`Primary ${process.pid} is running. Centralizing introspection for ${numCPUs} workers...`);
+  
+  // 🚀 SINGULARITY: Introspect once in primary
+  const composer = new IntrospectAndCompose({
+    subgraphs: [
+      { name: 'options', url: process.env.OPTIONS_URL || 'http://localhost:8000/graphql' },
+      { name: 'pricing', url: process.env.PRICING_URL || 'http://localhost:8001/graphql' },
+      { name: 'ml', url: process.env.ML_URL || 'http://localhost:8002/graphql' },
+      { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://localhost:8003/graphql' },
+      { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
+    ],
+  });
+
+  composer.initialize({ updateLastEntityModified: false }).then(({ supergraphSdl }) => {
+    for (let i = 0; i < numCPUs; i++) {
+      cluster.fork({ SUPERGRAPH_SDL: supergraphSdl });
+    }
+  }).catch(err => {
+    logger.error(err, 'failed_to_initialize_supergraph');
+    process.exit(1);
+  });
+
   cluster.on('exit', (worker) => {
     logger.warn(`Worker ${worker.process.pid} died. Forking a new one...`);
     cluster.fork();
   });
 } else {
-  startServer().catch(err => {
+  startServer(process.env.SUPERGRAPH_SDL).catch(err => {
     logger.error(err, 'failed_to_start_server');
     process.exit(1);
   });
