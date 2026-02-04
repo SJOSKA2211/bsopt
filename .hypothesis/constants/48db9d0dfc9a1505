@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/scripts/enforce_venv.py
+# hypothesis_version: 6.151.5
+
+['\nFIX IT:', '=', 'VIRTUAL_ENV', '__main__', 'conda-meta']

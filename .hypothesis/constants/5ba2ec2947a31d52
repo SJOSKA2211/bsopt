@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/security/auth.py
+# hypothesis_version: 6.151.5
+
+[401, '1', 'Account is disabled', 'Dummy User', 'Invalid token', 'Not authenticated', 'Token has expired', 'Token revoked', 'User not found', 'X-API-Key', 'access', 'bearer', 'email', 'execute', 'exp', 'free', 'iat', 'jti', 'refresh', 'sub', 'tier', 'type']

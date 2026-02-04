@@ -16,6 +16,34 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+import click
+
+@click.group(name="auth")
+def auth_group():
+    """Authentication and session management."""
+    pass
+
+@auth_group.command(name="login")
+@click.option("--client-id", required=True, help="OAuth2 Client ID")
+@click.option("--client-secret", required=True, prompt=True, hide_input=True, help="OAuth2 Client Secret")
+def login_command(client_id: str, client_secret: str):
+    """Log in to the BSOPT API."""
+    manager = AuthManager()
+    try:
+        manager.login(client_id, client_secret)
+        click.secho("Login successful!", fg="green")
+    except AuthenticationError as e:
+        click.secho(str(e), fg="red")
+
+@auth_group.command(name="logout")
+def logout_command():
+    """Log out from the BSOPT API."""
+    manager = AuthManager()
+    if manager.logout():
+        click.secho("Logged out successfully.", fg="green")
+    else:
+        click.secho("Already logged out.", fg="yellow")
+
 class AuthenticationError(Exception):
     """Exception raised for authentication failures."""
 

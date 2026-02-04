@@ -53,6 +53,10 @@ AsyncSessionLocal = async_sessionmaker(bind=async_engine, class_=AsyncSession, e
 
 # --- DEPENDENCIES ---
 
+def get_session():
+    """Alias for get_db for compatibility."""
+    return get_db()
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
