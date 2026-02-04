@@ -551,6 +551,14 @@ async def setup_mfa(
     """
     Begin Multi-Factor Authentication setup. 
     """
+    if user.is_mfa_enabled:
+        raise ConflictException(
+            message=(
+                "Multi-Factor Authentication is already enabled. "
+                "Please disable it first if you wish to re-configure it."
+            ),
+        )
+
     secret = pyotp.random_base32()
     totp = pyotp.TOTP(secret)
     qr_uri = totp.provisioning_uri(name=user.email, issuer_name="BSOPT")
