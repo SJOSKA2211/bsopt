@@ -18,33 +18,31 @@ class OrderExecutor:
     async def execute_order(self, 
                             params: Dict[str, Any], 
                             max_slippage_pct: float = 0.5) -> Dict[str, Any]:
-        """🚀 SINGULARITY: Execute a signed transaction with real-time optimization."""
+        """🚀 SINGULARITY: Execute a signed transaction via DeFi protocol."""
         async with self._execution_lock:
             start_time = time.time()
             try:
-                # 1. Check Circuit Breaker
+                # 1. Extract params
+                contract_address = params.get("contract_address")
+                amount = params.get("amount", 1)
+                
+                # 2. Check Circuit Breaker
                 await self.protocol._check_circuit()
                 
-                # 2. Get Optimal Gas (EIP-1559)
-                # Note: generate_gas_price is a mock for this example
-                gas_estimate = {"maxFeePerGas": 100, "maxPriorityFeePerGas": 2}
-                
-                # 3. SOR Logic
-                logger.info("routing_order", params=params, gas=gas_estimate)
-                
-                # 4. Dispatch with Nonce Management
-                nonce = await self.protocol._get_next_nonce()
-                
-                tx_hash = "0x" + "f" * 64 # Mock Hash
+                # 3. Dispatch real transaction
+                tx_hash = await self.protocol.buy_option(
+                    contract_address=contract_address,
+                    amount=amount,
+                    max_slippage=max_slippage_pct / 100.0
+                )
                 
                 duration = (time.time() - start_time) * 1000
-                logger.info("order_dispatched", tx_hash=tx_hash, latency_ms=duration)
+                logger.info("order_dispatched_real", tx_hash=tx_hash, latency_ms=duration)
                 
                 return {
                     "status": "dispatched",
                     "tx_hash": tx_hash,
-                    "latency_ms": duration,
-                    "gas_used": gas_estimate
+                    "latency_ms": duration
                 }
                 
             except Exception as e:

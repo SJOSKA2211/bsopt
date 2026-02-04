@@ -3,10 +3,16 @@ import pandas as pd
 from typing import Dict, Any, List, Optional
 import structlog
 import cvxpy as cp
+import ray
 from scipy.cluster.hierarchy import linkage
 from src.pricing.black_scholes import BlackScholesEngine
 
 logger = structlog.get_logger()
+
+@ray.remote
+def _run_backtest_task(engine_instance, df, strategy_fn, params):
+    """Ray task for parallel backtest execution."""
+    return engine_instance.run_vectorized(df, strategy_fn, params)
 
 class PortfolioOptimizer:
     """
@@ -98,11 +104,22 @@ class PortfolioOptimizer:
 class BacktestEngine:
     """
     High-performance vectorized backtesting engine for option strategies.
-    Supports parallel evaluation using Ray or Dask.
+    Supports parallel evaluation using Ray.
     """
     
     def __init__(self, initial_capital: float = 100000.0):
         self.initial_capital = initial_capital
+
+    def run_batch(self, scenarios: List[Dict]) -> List[Dict]:
+        """🚀 SINGULARITY: Run multiple backtests in parallel using Ray."""
+        if not ray.is_initialized():
+            ray.init(ignore_reinit_error=True)
+            
+        futures = []
+        for s in scenarios:
+            futures.append(_run_backtest_task.remote(self, s['df'], s['fn'], s['params']))
+            
+        return ray.get(futures)
 
     def run_vectorized(self, 
                        df: pd.DataFrame, 
