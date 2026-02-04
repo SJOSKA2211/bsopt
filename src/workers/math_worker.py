@@ -32,6 +32,8 @@ settings = get_settings()
 from src.workers.ray_workers import MathActor
 from src.utils.distributed import RayOrchestrator
 
+app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
+
 # 🚀 SINGULARITY: Initialize Ray Hive Mind
 RayOrchestrator.init()
 math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
@@ -100,3 +102,14 @@ async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
     except Exception as exc:
         logger.error("calibration_error", symbol=symbol, error=str(exc))
         raise self.retry(exc=exc, countdown=60)
+
+def health_check() -> bool:
+    """Check if the math worker and its dependencies are healthy."""
+    try:
+        # Check Ray
+        import ray
+        if not ray.is_initialized():
+            return False
+        return True
+    except Exception:
+        return False

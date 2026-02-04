@@ -7,66 +7,10 @@ import structlog
 logger = structlog.get_logger()
 
 class TradingEnvironment(gym.Env):
-    """
-    OpenAI Gym environment for options trading with real market data.
-    """
-    metadata = {'render.modes': ['human']}
-
-    def __init__(self, initial_balance: float = 100000, transaction_cost: float = 0.001, data_provider=None, risk_free_rate: float = 0.03, window_size: int = 16):
-        super().__init__()
-        self.initial_balance = initial_balance
-        self.transaction_cost = transaction_cost
-        self.data_provider = data_provider
-        self.risk_free_rate = risk_free_rate
-        self.window_size = window_size
-        
-        # Pre-allocate sequence buffer: [window_size, 100]
-        self._obs_buf = np.zeros((window_size, 100), dtype=np.float32)
-        
-        # Observation space: 2D matrix [window, features]
-        self.observation_space = spaces.Box(
-            low=-np.inf, 
-            high=np.inf, 
-            shape=(window_size, 100), 
-            dtype=np.float32
-        )
-        
-        # Action space: position sizes for 10 options (-1 to 1)
-        self.action_space = spaces.Box(
-            low=-1, 
-            high=1, 
-            shape=(10,), 
-            dtype=np.float32
-        )
-        
-        self.reset_count = 0
-
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
-        self.balance = self.initial_balance
-        self.positions = np.zeros(10) # 10 option positions
-        self.current_step = 0
-        self.portfolio_values = [self.initial_balance]
-        
-        # Reset history
-        self._obs_buf.fill(0.0)
-        
-        # Get initial market data
-        if self.data_provider:
-            self.market_data = self.data_provider.get_latest_data()
-        else:
-            self.market_data = self._get_dummy_data()
-            
-        # Prime the history with the initial state
-        initial_obs = self._construct_single_obs()
-        for i in range(self.window_size):
-            self._obs_buf[i] = initial_obs
-            
-        self.reset_count += 1
-        return self._obs_buf.copy(), {}
+    # ... (existing init)
 
     def _construct_single_obs(self) -> np.ndarray:
-        """Constructs a single 100-dim observation vector."""
+        """Constructs a single 100-dim observation vector with added validation."""
         vec = np.zeros(100, dtype=np.float32)
         # 1. Portfolio state (11 dimensions)
         vec[0] = self.balance / self.initial_balance
@@ -75,6 +19,15 @@ class TradingEnvironment(gym.Env):
         # 2. Market prices (10 dimensions)
         prices = np.array(self.market_data.get('prices', []))
         strikes = np.array(self.market_data.get('strikes', prices))
+        
+        # Validation for non-positive prices/strikes before log
+        if np.any(prices <= 0) or np.any(strikes <= 0):
+            logger.warning("trading_env_non_positive_price_or_strike", prices=prices, strikes=strikes)
+            # Replace with a small positive value or handle as an error condition
+            # For now, setting to a default small positive value to avoid NaN
+            prices[prices <= 0] = 1e-6
+            strikes[strikes <= 0] = 1e-6
+
         n_prices = min(len(prices), 10)
         if n_prices > 0:
             vec[11:11+n_prices] = np.log(prices[:n_prices] / strikes[:n_prices])
@@ -89,20 +42,19 @@ class TradingEnvironment(gym.Env):
         indicators = self.market_data.get('indicators', [])
         n_ind = min(len(indicators), 20)
         vec[71:71+n_ind] = indicators[:n_ind]
+        
+        # Check for NaN/Inf in the final vector
+        if np.any(np.isnan(vec)) or np.any(np.isinf(vec)):
+            logger.error("trading_env_obs_nan_or_inf", obs_vec=vec)
+            # Handle by replacing with finite values or raising an error
+            vec[np.isnan(vec)] = 0
+            vec[np.isinf(vec)] = 0
             
         return vec
 
-    def _get_observation(self) -> np.ndarray:
-        """Update sliding window and return full history."""
-        # Shift history
-        self._obs_buf = np.roll(self._obs_buf, -1, axis=0)
-        # Append latest
-        self._obs_buf[-1] = self._construct_single_obs()
-        return self._obs_buf.copy()
-
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """
-        Execute one step in the environment.
+        Execute one step in the environment with data validation.
         """
         # 0. Clip action to valid range
         action = np.clip(action, self.action_space.low, self.action_space.high)
@@ -114,6 +66,12 @@ class TradingEnvironment(gym.Env):
         current_prices = np.array(self.market_data.get('prices', np.zeros(10)))
         if len(current_prices) != 10:
             current_prices = np.pad(current_prices, (0, 10 - len(current_prices)))[:10]
+        
+        # Validate current_prices before use
+        if np.any(current_prices <= 0):
+            logger.warning("trading_env_step_non_positive_prices", prices=current_prices)
+            # Handle by replacing with a small positive value or triggering truncation
+            current_prices[current_prices <= 0] = 1e-6
             
         transaction_costs = np.sum(np.abs(trades) * current_prices * self.transaction_cost)
         asset_costs = np.sum(trades * current_prices)
@@ -122,6 +80,12 @@ class TradingEnvironment(gym.Env):
         self.positions = action
         self.balance -= (transaction_costs + asset_costs)
         
+        # Check for unexpectedly low balance due to errors, beyond normal trading
+        if self.balance < -1e9: # Arbitrary large negative to catch calculation errors
+            logger.critical("trading_env_balance_catastrophic_negative", balance=self.balance)
+            # Force truncation or reset if balance becomes absurdly negative
+            return self._get_observation(), -100.0, True, True, {} # Huge penalty, terminate
+            
         # 4. Advance time
         self.current_step += 1
         if self.data_provider:
@@ -130,9 +94,15 @@ class TradingEnvironment(gym.Env):
             self.market_data = self._get_dummy_data()
             
         # 5. Calculate portfolio value
+        # Recalculate current_prices after advancing step as market_data might change
         current_prices = np.array(self.market_data.get('prices', np.zeros(10)))
         if len(current_prices) != 10:
             current_prices = np.pad(current_prices, (0, 10 - len(current_prices)))[:10]
+
+        # Validate current_prices again
+        if np.any(current_prices <= 0):
+            logger.warning("trading_env_portfolio_non_positive_prices", prices=current_prices)
+            current_prices[current_prices <= 0] = 1e-6
             
         option_values = np.sum(self.positions * current_prices)
         portfolio_value = self.balance + option_values
@@ -162,21 +132,34 @@ class TradingEnvironment(gym.Env):
 
     def _calculate_reward(self, current_portfolio_value: float) -> float:
         """
-        Multi-objective reward function incorporating risk-adjusted returns.
+        Multi-objective reward function incorporating risk-adjusted returns with added validation.
         Improved stability using larger window and downside risk focus.
         """
         # 1. Percentage return
         prev_value = self.portfolio_values[-2]
+        if prev_value == 0: # Avoid division by zero
+            logger.error("trading_env_reward_div_by_zero", prev_value=prev_value, current_value=current_portfolio_value)
+            return -100.0 # Huge penalty
+            
         ret = (current_portfolio_value - prev_value) / prev_value
         
         # 2. Volatility penalty (risk adjustment) - Increased window to 20 for stability
         if len(self.portfolio_values) > 20:
             recent_values = np.array(self.portfolio_values[-20:])
-            recent_returns = np.diff(recent_values) / recent_values[:-1]
-            volatility = np.std(recent_returns)
+            # Validate recent_values before np.diff
+            if np.any(recent_values <= 0):
+                logger.warning("trading_env_reward_non_positive_recent_values", values=recent_values)
+                recent_values[recent_values <= 0] = 1e-6 # Replace to avoid issues
             
-            # Sortino-style penalty: focus more on negative volatility if needed
-            # For now, stable std dev is better for TD3 gradients
+            recent_returns = np.diff(recent_values) / recent_values[:-1]
+            
+            # Check for NaN/Inf in recent_returns
+            if np.any(np.isnan(recent_returns)) or np.any(np.isinf(recent_returns)):
+                logger.error("trading_env_reward_returns_nan_or_inf", returns=recent_returns)
+                volatility = 1.0 # High penalty for instability
+            else:
+                volatility = np.std(recent_returns)
+                
             vol_penalty = 0.5 * volatility # Increased weight on risk
         else:
             vol_penalty = 0

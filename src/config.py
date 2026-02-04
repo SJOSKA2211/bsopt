@@ -25,6 +25,14 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
     SLOW_QUERY_THRESHOLD_MS: int = 100
 
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        if not v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+            if "sqlite" not in v:
+                raise ValueError("DATABASE_URL must be a PostgreSQL connection string for Neon integration.")
+        return v
+
     # Redis Configuration
     REDIS_URL: str = Field(validation_alias="REDIS_URL")
     REDIS_HOST: str = "localhost"
@@ -110,10 +118,14 @@ class Settings(BaseSettings):
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        allowed = ["dev", "staging", "prod"]
+        allowed = ["dev", "staging", "prod", "test"]
         v_lower = v.lower()
         if v_lower not in allowed:
             raise ValueError(f"ENVIRONMENT must be one of {allowed}")
         return v_lower
 
 settings = Settings()
+
+def get_settings():
+    """Returns the singleton settings instance."""
+    return settings

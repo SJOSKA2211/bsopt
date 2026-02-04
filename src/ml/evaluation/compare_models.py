@@ -26,12 +26,27 @@ def compare_models(model_name, challenger_run_id, champion_stage="Production"):
     challenger_rmse = challenger_run.data.metrics.get("rmse", float('inf'))
     logger.info("challenger_metrics_loaded", rmse=challenger_rmse)
 
-    # 3. Decision Logic
-    if challenger_rmse < champion_rmse:
+    # 3. Decision Logic (Advanced Financial Decisioning)
+    # Don't just check RMSE, Morty! Check if the model actually makes money.
+    
+    challenger_sharpe = challenger_run.data.metrics.get("sharpe_ratio", 0.0)
+    champion_sharpe = champion_run.data.metrics.get("sharpe_ratio", 0.0)
+    
+    challenger_drawdown = challenger_run.data.metrics.get("max_drawdown", -1.0)
+    champion_drawdown = champion_run.data.metrics.get("max_drawdown", -1.0)
+
+    logger.info("performance_comparison", 
+                challenger_rmse=challenger_rmse, champion_rmse=champion_rmse,
+                challenger_sharpe=challenger_sharpe, champion_sharpe=champion_sharpe)
+
+    # Decision: Improved RMSE AND (Better Sharpe OR Better Drawdown)
+    if challenger_rmse < champion_rmse and (challenger_sharpe > champion_sharpe or challenger_drawdown > champion_drawdown):
         logger.info("promotion_recommended", challenger=challenger_run_id, champion=champion_stage)
         return True
     else:
-        logger.info("promotion_rejected", reason="Performance did not improve")
+        reason = "Performance did not meet financial requirements"
+        if challenger_rmse >= champion_rmse: reason = "RMSE not improved"
+        logger.info("promotion_rejected", reason=reason)
         return False
 
 if __name__ == "__main__":

@@ -89,23 +89,35 @@ class MarketDataConsumer:
     async def _process_batch(self, batch: List[Dict], callback: Callable):
         """Process batch of messages in parallel using gather"""
         start_time = time.time()
-        try:
-            tasks = [callback(msg) for msg in batch]
-            await asyncio.gather(*tasks)
+        
+        tasks = [callback(msg) for msg in batch]
+        # Use return_exceptions=True to allow individual task failures without stopping the whole batch
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        processed_count = 0
+        failed_count = 0
+        for i, res in enumerate(results):
+            if isinstance(res, Exception):
+                failed_count += 1
+                logger.error("streaming_message_processing_failed", error=str(res), message=batch[i])
+            else:
+                processed_count += 1
+        
+        duration = time.time() - start_time
+        if duration <= 0:
+            duration = 0.001
             
-            duration = time.time() - start_time
-            if duration <= 0:
-                duration = 0.001
-                
-            logger.info(
-                "batch_processed", 
-                batch_size=len(batch), 
-                duration_ms=duration * 1000,
-                throughput=len(batch) / duration
-            )
-        except Exception as e:
-            logger.error("batch_processing_error", error=str(e))
-
+        logger.info(
+            "batch_processed_summary", 
+            batch_size=len(batch),
+            processed_ok=processed_count,
+            failed=failed_count,
+            duration_ms=duration * 1000,
+            throughput=len(batch) / duration
+        )
+    
+        if failed_count > 0:
+            logger.warning("streaming_batch_partial_failure", failed_count=failed_count, total_count=len(batch))
     def stop(self):
         """Stop consuming messages"""
         self.running = False

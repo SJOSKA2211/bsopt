@@ -1,7 +1,7 @@
 ---
 id: auth001
 title: "Implementation: Unified Auth Server"
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-04

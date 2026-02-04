@@ -3,7 +3,7 @@ import os
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError # Import MaxRetriesExceededError
 import structlog
-from src.webhooks.dispatcher import WebhookDispatcher, CircuitBreaker
+from src.webhooks.dispatcher import WebhookDispatcher
 import httpx # Required for WebhookDispatcher
 
 # Optimized event loop

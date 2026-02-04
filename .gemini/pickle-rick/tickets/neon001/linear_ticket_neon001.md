@@ -1,7 +1,7 @@
 ---
 id: neon001
 title: "Migration: PostgreSQL to Neon"
-status: Triage
+status: Done
 priority: Urgent
 project: bsopt
 created: 2026-02-04

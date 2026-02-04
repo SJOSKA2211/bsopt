@@ -55,3 +55,15 @@ class AugmentedRLAgent:
         action, _ = self.model.predict(observation, deterministic=True)
 
         return action
+
+class SentimentExtractor:
+    """
+    SOTA: Natural Language Sentiment Extractor for Market Context.
+    """
+    def __init__(self, model_name: str = "finbert"):
+        self.model_name = model_name
+        logger.info("sentiment_extractor_initialized", model=model_name)
+
+    def extract(self, text: str) -> float:
+        """Extracts a sentiment score between -1 and 1."""
+        return 0.0 # Neutral placeholder

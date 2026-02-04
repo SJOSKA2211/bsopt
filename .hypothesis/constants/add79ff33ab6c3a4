@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/services/ml_service.py
+# hypothesis_version: 6.151.5
+
+[-1.0, 0.0, 1.0, 1000, 1024, ':', 'ml_inference_failed', 'ml_inference_shm', 'ml_service', 'model_type', 'xgb']

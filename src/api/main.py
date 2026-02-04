@@ -85,10 +85,20 @@ async def verify_token(request: Request, db: Session = Depends(get_db)):
 from src.api.routes.auth import router as auth_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.ml import router as ml_router
+from src.api.routes.users import router as users_router
+from strawberry.fastapi import GraphQLRouter
+from src.api.graphql.schema import schema
+from src.api.middleware.security import JWTAuthenticationMiddleware
+
+graphql_app = GraphQLRouter(schema)
+
+app.add_middleware(JWTAuthenticationMiddleware)
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
-app.include_router(ml_router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(ml_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/api/v1")
+app.include_router(graphql_app, prefix="/graphql")
 
 @app.get("/health")
 async def health():

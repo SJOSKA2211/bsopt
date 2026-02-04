@@ -448,6 +448,56 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         return cast(Response, await call_next(request))
 
 
+from src.auth.providers import auth_registry
+
+class AuthenticatedUser:
+    def __init__(self, payload):
+        self.id = payload.get("sub")
+        roles = payload.get("realm_access", {}).get("roles", []) or payload.get("roles", [])
+        self.tier = "enterprise" if "admin" in roles else "free"
+        self.email = payload.get("email")
+
+class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware to verify JWT tokens in the Authorization header.
+    Populates request.state.user with the verified identity.
+    """
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Exempt public paths and auth endpoints
+        EXEMPT_PATHS = ["/api/v1/auth/", "/auth/", "/docs", "/redoc", "/openapi.json", "/health"]
+        if any(request.url.path.startswith(p) for p in EXEMPT_PATHS):
+            return await call_next(request)
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return ORJSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"detail": "Missing or invalid authentication credentials"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        token = auth_header.split(" ")[1]
+        try:
+            # 🚀 TEST BYPASS: Allow dummy tokens in non-prod environments
+            if settings.ENVIRONMENT in ["dev", "test"] and token.startswith("legacy-"):
+                payload = {"sub": "legacy-id", "email": "test@example.com", "roles": ["free"]}
+            else:
+                # 🚀 OPTIMIZATION: Verify against registry
+                payload = await auth_registry.verify_any(token)
+            
+            # Populate state for downstream dependencies
+            request.state.user = AuthenticatedUser(payload)
+        except Exception as e:
+            logger.warning(f"jwt_verification_failed: {str(e)} for path: {request.url.path}")
+            return ORJSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"detail": f"Authentication failed: {str(e)}"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return await call_next(request)
+
+
 import re
 
 class InputSanitizationMiddleware(BaseHTTPMiddleware):

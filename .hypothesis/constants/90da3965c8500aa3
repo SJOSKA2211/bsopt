@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/streaming/consumer.py
+# hypothesis_version: 6.151.5
+
+[0.001, 0.01, 0.1, 100, 200, 1000, 5000, 10000, 30000, 102400, 10485760, 'auto.offset.reset', 'bootstrap.servers', 'enable.auto.commit', 'fetch.min.bytes', 'fetch.wait.max.ms', 'group.id', 'kafka_consumer_error', 'latest', 'localhost:9092', 'market-data', 'session.timeout.ms', 'url']

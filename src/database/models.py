@@ -26,7 +26,6 @@ from sqlalchemy.sql import func
 
 
 class Base(DeclarativeBase):
-    """Base class for all ORM models."""
     pass
 
 
@@ -36,8 +35,6 @@ class Base(DeclarativeBase):
 
 
 class User(Base):
-    """User accounts with tiered access."""
-
     __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -48,6 +45,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    mfa_secret: Mapped[Optional[str]] = mapped_column(String(255))
 
     # Relationships
     portfolios: Mapped[List["Portfolio"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -64,8 +62,6 @@ class User(Base):
 
 
 class APIKey(Base):
-    """Secure API keys for automated access."""
-
     __tablename__ = "api_keys"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -90,8 +86,6 @@ class APIKey(Base):
 
 
 class AuditLog(Base):
-    """Audit logs for security and compliance."""
-
     __tablename__ = "audit_logs"
 
     time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True, server_default=func.now())
@@ -149,6 +143,8 @@ class OAuth2Client(Base):
     client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_uris: Mapped[Optional[List[str]]] = mapped_column(JSONB)
     scopes: Mapped[Optional[List[str]]] = mapped_column(JSONB)
+    grant_types: Mapped[Optional[List[str]]] = mapped_column(JSONB)
+    response_types: Mapped[Optional[List[str]]] = mapped_column(JSONB)
     is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
@@ -156,11 +152,77 @@ class OAuth2Client(Base):
     user: Mapped["User"] = relationship(back_populates="oauth_clients")
 
     def verify_secret(self, secret: str) -> bool:
-        # Optimization: Use a real hash check here in production
         return self.client_secret == secret
+
+    def check_redirect_uri(self, redirect_uri):
+        if not self.redirect_uris:
+            return False
+        return redirect_uri in self.redirect_uris
+
+    def check_client_secret(self, client_secret):
+        return self.client_secret == client_secret
+
+    def check_endpoint_auth_method(self, method, endpoint):
+        if endpoint == 'token':
+            if self.is_confidential:
+                return method in ['client_secret_basic', 'client_secret_post']
+            return method == 'none'
+        return True
+
+    @property
+    def client_metadata(self):
+        return {
+            "redirect_uris": self.redirect_uris,
+            "scopes": self.scopes,
+            "grant_types": self.grant_types,
+            "response_types": self.response_types
+        }
 
     def __repr__(self) -> str:
         return f"<OAuth2Client(id={self.client_id})>"
+
+
+class OAuth2AuthorizationCode(Base):
+    """Temporary codes for Authorization Code flow."""
+
+    __tablename__ = "oauth2_auth_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    code: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    client_id: Mapped[str] = mapped_column(String(48))
+    redirect_uri: Mapped[str] = mapped_column(Text)
+    scope: Mapped[str] = mapped_column(Text)
+    nonce: Mapped[Optional[str]] = mapped_column(Text)
+    auth_time: Mapped[int] = mapped_column(Integer, nullable=False, default=lambda: int(time.time()))
+    code_challenge: Mapped[Optional[str]] = mapped_column(Text)
+    code_challenge_method: Mapped[Optional[str]] = mapped_column(String(48))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    def is_expired(self):
+        return self.auth_time + 300 < time.time()
+
+
+class OAuth2Token(Base):
+    """Access and Refresh tokens."""
+
+    __tablename__ = "oauth2_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    client_id: Mapped[str] = mapped_column(String(48))
+    token_type: Mapped[str] = mapped_column(String(40))
+    access_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    refresh_token: Mapped[Optional[str]] = mapped_column(String(255), index=True)
+    scope: Mapped[str] = mapped_column(Text)
+    issued_at: Mapped[int] = mapped_column(Integer, nullable=False, default=lambda: int(time.time()))
+    expires_in: Mapped[int] = mapped_column(Integer, nullable=False)
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+
+    def is_expired(self):
+        return self.issued_at + self.expires_in < time.time()
+
+    def is_revoked(self):
+        return self.revoked
 
 
 # =============================================================================
@@ -318,3 +380,30 @@ class RateLimit(Base):
     endpoint: Mapped[str] = mapped_column(String(100), primary_key=True)
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     request_count: Mapped[int] = mapped_column(Integer, default=1)
+
+
+# =============================================================================
+# PRICING CALIBRATION MODEL
+# =============================================================================
+
+
+class CalibrationResult(Base):
+    """Stores results of pricing model calibration."""
+
+    __tablename__ = "calibration_results"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    symbol: Mapped[str] = mapped_column(String(20), nullable=False)
+    v0: Mapped[float] = mapped_column(Numeric, nullable=False)
+    kappa: Mapped[float] = mapped_column(Numeric, nullable=False)
+    theta: Mapped[float] = mapped_column(Numeric, nullable=False)
+    sigma: Mapped[float] = mapped_column(Numeric, nullable=False)
+    rho: Mapped[float] = mapped_column(Numeric, nullable=False)
+    rmse: Mapped[float] = mapped_column(Numeric, nullable=False)
+    r_squared: Mapped[float] = mapped_column(Numeric, nullable=False)
+    num_options: Mapped[int] = mapped_column(Integer, nullable=False)
+    svi_params: Mapped[Optional[dict]] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self) -> str:
+        return f"<CalibrationResult(symbol={self.symbol}, rmse={self.rmse})>"

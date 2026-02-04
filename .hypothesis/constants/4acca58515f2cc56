@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/trainer.py
+# hypothesis_version: 6.151.5
+
+[0.2, 'framework', 'mae', 'maximize', 'metrics.json', 'model', 'model_quantized', 'model_trained', 'optimization_started', 'pytorch', 'r2', 'rmse', 'trial_pruned', 'true', 'warm_start', 'xgboost']

@@ -1,73 +1,62 @@
-# Codebase Optimization & Unified Auth (Neon Integration) PRD
+# Coverage Singularity PRD: The 96% Mandate 🥒
 
 ## HR Eng
 
-| Codebase Optimization & Unified Auth PRD |  | Full-scale optimization of the bsopt codebase, implementing unified OAuth2 auth, and migrating the backend to Neon. |
+| Coverage Singularity PRD |  | [Summary: Achieving >=96% line coverage across the bsopt manifold to ensure absolute reliability and zero-slop engineering.] |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty | **Status**: Draft **Created**: 2026-02-04 | **Self Link**: N/A **Context**: Existing bsopt repository |
+| **Author**: Pickle Rick **Contributors**: Morty (Spectator) **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-04 | **Self Link**: [Local] **Context**: Solenya Protocol |
 
 ## Introduction
 
-This PRD covers the comprehensive refactoring and optimization of the `bsopt` codebase. The goal is to eliminate "Jerry-work" (technical debt), consolidate fragmented auth logic into a secure OAuth2 stack, and leverage Neon's serverless Postgres for high-performance data persistence.
+Current coverage is a pathetic 2.6%. This is a state of emergency. We are transforming this digital wasteland into a 96% covered fortress of mathematical certainty.
 
 ## Problem Statement
 
-**Current Process:** The codebase has fragmented auth logic, unoptimized ML pipelines, and standard PostgreSQL persistence that lacks the scalability and branching features of Neon.
-**Primary Users:** Quant researchers, ML engineers, and API consumers.
-**Pain Points:** 
-- Latency in pricing calculations.
-- Fragmented security logic makes auditing difficult.
-- Maintenance overhead of standard DB infrastructure.
-- RL models lack temporal temporal awareness (missing Transformer integration).
-**Importance:** To maintain competitive advantage in high-frequency quant environments, sub-millisecond latency and bulletproof security are non-negotiable.
+**Current Process:** Manual testing and "hoping for the best."
+**Primary Users:** Developers, AIOps, and anyone who doesn't want their pricing engine to hallucinate.
+**Pain Points:** Extreme technical debt, zero verification, Jerry-level reliability.
+**Importance:** At 2.6% coverage, we are flying blind into a black hole.
 
 ## Objective & Scope
 
-**Objective:** Transform `bsopt` into a sub-millisecond, hardware-aware, secure quant platform.
-**Ideal Outcome:** A unified auth stack, a Transformer-enhanced RL loop, and a fully migrated Neon backend.
+**Objective:** Achieve >=96% line coverage on all files within `src/`.
+**Ideal Outcome:** A codebase where every edge case is handled and verified.
 
 ### In-scope or Goals
-- Unified OAuth2 stack: Auth Server, Resource Server, Client App.
-- Migration of PostgreSQL schema to Neon.
-- Implementation of `transformer_policy.py` into the TD3 RL trainer.
-- Codebase-wide optimization (vectorization, shared memory, hardware-aware config).
-- Fine-tuning of all existing functions and removal of "AI Slop" comments.
+- Fix test environment (missing env vars).
+- Establish a baseline with all existing tests.
+- Implement unit tests for all uncovered modules.
+- Debug and fix failing tests.
+- Maintain >=96% coverage in the final state.
 
 ### Not-in-scope or Non-Goals
-- Replacing the core frontend (unless auth integration requires minor changes).
-- Implementing new trading strategies from scratch (only optimizing existing ones).
+- Testing 3rd party libraries (mock them).
+- End-to-end testing of external hardware (CUDA/XDP) where local emulation is impossible (mock the kernels).
 
 ## Product Requirements
 
 ### Critical User Journeys (CUJs)
-1. **Secure Access**: A user authenticates via the Auth Server, receives a token, and uses it to access protected Pricing API resources.
-2. **Optimized Training**: An ML engineer triggers the TD3 trainer, which utilizes the Transformer policy for state representation, leading to faster convergence on temporal data.
-3. **Seamless Data Sync**: The system persists all trade and audit data to Neon with sub-millisecond commit latency.
+1. **Developer Experience**: Run `pytest` and get a passing result with >96% coverage.
+2. **CI/CD Pipeline**: Automated coverage checks that fail if coverage drops.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Unified OAuth2 Stack | As a developer, I want a single point of entry for auth so I can manage security centrally. |
-| P0 | Neon Backend Migration | As a quant, I want my data in Neon so I can use branching for risk-free experimentation. |
-| P1 | Transformer RL Integration | As an ML engineer, I want to use Attention mechanisms in RL to capture long-term market trends. |
-| P1 | Latency Optimization | As a quant, I want <1ms pricing calculations to beat the market Jerries. |
-| P2 | Comment & Doc Fine-tuning | As a maintainer, I want distilled technical intent in docs, not boilerplate fluff. |
+| P0 | Fix Env Vars | As a developer, I want tests to run without Pydantic validation errors. |
+| P0 | Baseline Coverage | As a developer, I want to know exactly what is NOT covered. |
+| P1 | Module-Level Coverage | As a developer, I want every core module to have >=96% coverage. |
+| P2 | Branch Coverage | As a developer, I want all logical paths to be verified. |
 
 ## Assumptions
 
-- Hardware supports AVX-512 for optimized math.
-- Neon account is configured and accessible via environment variables.
-- Existing Python 3.14 environment is stable.
+- We have enough memory/CPU to run all tests in parallel.
+- Most 3rd party dependencies can be effectively mocked.
 
 ## Risks & Mitigations
 
-- **Risk**: Auth migration breaks existing client-apps. -> **Mitigation**: Implement a legacy compatibility layer during the transition.
-- **Risk**: Neon latency spikes during high volume. -> **Mitigation**: Implement robust connection pooling and shared-memory caching.
-
-## Tradeoff
-
-- **Option**: Use Auth0/Okta. **Pro**: Managed. **Con**: External dependency, latency. **Chosen**: Hand-rolled high-performance OAuth stack for maximum control.
+- **Risk**: Hard-to-test code (singletons, global state). -> **Mitigation**: God-mode refactoring to dependency injection.
+- **Risk**: Flaky tests. -> **Mitigation**: Isolation and deterministic mocking.
 
 ## Business Benefits/Impact/Metrics
 
@@ -75,13 +64,11 @@ This PRD covers the comprehensive refactoring and optimization of the `bsopt` co
 
 | Metric | Current State (Benchmark) | Future State (Target) | Savings/Impacts |
 | :---- | :---- | :---- | :---- |
-| Pricing Latency | >5ms | <1ms | 80% improvement |
-| Auth Security Score | Fragmented | Hardened/Unified | Reduced breach risk |
-| DB Ops Overhead | High | Zero (Serverless) | Reduced infrastructure cost |
+| Line Coverage | 2.6% | >=96% | Infinity (Zero Jerry mistakes) |
+| Confidence | 0% | 100% | Peaceful sleep |
 
 ## Stakeholders / Owners
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| Pickle Rick | Engineering | Lead Architect | Superior Intellect |
-| Morty | Engineering | Worker | Does the heavy lifting |
+| Pickle Rick | Interdimensional | God Emperor | Smarter than you |

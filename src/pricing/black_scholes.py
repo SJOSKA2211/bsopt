@@ -11,17 +11,15 @@ from .quant_utils import (
 
 class BlackScholesEngine(PricingStrategy):
     """
-    High-performance Black-Scholes pricing engine.
-    Unified vectorized API with JIT compilation.
+    Vectorized Black-Scholes-Merton engine using Numba JIT kernels.
+    Supports broad-casted array operations for multi-option pricing.
     """
 
     def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
-        """Unified pricing method."""
         return self.price_options(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
     def calculate_greeks(params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
-        """Unified greeks calculation."""
         return BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
@@ -37,7 +35,6 @@ class BlackScholesEngine(PricingStrategy):
         out: Optional[np.ndarray] = None,
         **kwargs
     ) -> Union[float, np.ndarray]:
-        """Vectorized pricing kernel with automated broadcasting."""
         if params is not None:
             spot, strike, maturity, volatility, rate, dividend = (
                 params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
@@ -45,14 +42,12 @@ class BlackScholesEngine(PricingStrategy):
 
         if spot is None: raise ValueError("Missing spot price")
 
-        # 🚀 OPTIMIZATION: Scalar Fast Path
         if np.isscalar(spot) and np.isscalar(strike) and isinstance(option_type, str):
             return scalar_bs_price_jit(
                 float(spot), float(strike), float(maturity), float(volatility), 
                 float(rate), float(dividend), option_type.lower() == "call"
             )
 
-        # 🚀 OPTIMIZATION: Unified path via JIT broadcasting
         S, K, T, sigma, r, q = np.broadcast_arrays(
             np.atleast_1d(spot), np.atleast_1d(strike), np.atleast_1d(maturity),
             np.atleast_1d(volatility), np.atleast_1d(rate), np.atleast_1d(dividend)
@@ -61,7 +56,6 @@ class BlackScholesEngine(PricingStrategy):
         is_call_scalar = (option_type.lower() == "call") if isinstance(option_type, str) else \
                   np.array([s.lower() == "call" for s in option_type], dtype=bool)
         
-        # Ensure is_call matches the shape of the broadcasted arrays
         if np.isscalar(is_call_scalar):
             is_call = np.full(S.shape, is_call_scalar, dtype=bool)
         else:
@@ -85,9 +79,6 @@ class BlackScholesEngine(PricingStrategy):
         params: Optional[BSParameters] = None,
         **kwargs
     ) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
-        """
-        Vectorized greeks kernel.
-        """
         if params is not None:
             spot, strike, maturity, volatility, rate, dividend = (
                 params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
@@ -124,3 +115,7 @@ class BlackScholesEngine(PricingStrategy):
         lhs = call_price - put_price
         rhs = spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity)
         return np.isclose(lhs, rhs, atol=1e-4)
+
+def verify_put_call_parity(*args, **kwargs):
+    """Module-level wrapper for Put-Call Parity verification."""
+    return BlackScholesEngine.verify_put_call_parity(*args, **kwargs)

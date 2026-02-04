@@ -1,25 +1,26 @@
 ---
-id: parent-venv-setup
-title: [Epic] Python Virtual Environment Setup
-status: Done
-priority: Medium
+id: parent_626591cb
+title: "[Epic] Coverage Singularity: The 96% Mandate"
+status: Backlog
+priority: High
 project: project
-created: 2026-02-03
-updated: 2026-02-03
+created: 2026-02-04
+updated: 2026-02-04
 links:
-  - url: /home/kamau/bsopt/prd.md
-    title: Python Virtual Environment Setup PRD
-labels: [epic, environment]
+  - url: /home/kamau/bsopt/PICKLE_RICK_PRD.md
+    title: Coverage Singularity PRD
+labels: [core, testing, meta]
 assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-The `bsopt` project lacks a standardized and isolated Python virtual environment, leading to potential dependency conflicts, inconsistent developer setups, and difficulties in reproducing build environments. This epic aims to formalize the process of environment setup.
+The current codebase has an unacceptable 2.6% line coverage. This represents a critical risk for a high-performance pricing engine. We are flying blind.
 
 ## Solution
-Implement a clear and simple process for creating and managing a Python virtual environment for the `bsopt` project using `venv`. This will ensure dependency isolation and improve developer experience.
+Execute a systematic coverage expansion strategy: fix the environment, establish a baseline, identify holes, and implement comprehensive unit and integration tests across all modules until >=96% coverage is achieved.
 
 # Discussion/Comments
-- 2026-02-03 Pickle Rick: Created epic based on the Python Virtual Environment Setup PRD.
+
+- 2026-02-04 Pickle Rick: Initialization. The baseline is a joke. Time to get to work.

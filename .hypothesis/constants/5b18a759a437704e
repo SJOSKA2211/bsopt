@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/celery_app.py
+# hypothesis_version: 6.151.5
+
+['UTC', 'best_params', 'best_value', 'bsopt_ml', 'celery_task_failed', 'celery_task_started', 'json', 'status', 'success', 'task_id', 'ticker']

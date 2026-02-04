@@ -18,16 +18,14 @@ logger = structlog.get_logger()
 
 class SHMWeightSyncCallback(BaseCallback):
     """
-    Synchronizes model weights to shared memory for zero-copy access by the API or other workers.
+    Synchronizes model weights to shared memory for zero-copy access.
     """
     def __init__(self, shm_name: str = "rl_weights", verbose: int = 0):
         super().__init__(verbose)
-        # Using a generic dict schema for msgspec, or we could define a proper state_dict schema
         self.shm = SHMManager(shm_name, dict, size=50 * 1024 * 1024)
         self.shm.create()
 
     def _on_step(self) -> bool:
-        # Sync every 1000 steps or based on some logic
         if self.num_timesteps % 1000 == 0:
             weights = {k: v.cpu().numpy().tolist() for k, v in self.model.policy.state_dict().items()}
             self.shm.write(weights)
@@ -35,16 +33,17 @@ class SHMWeightSyncCallback(BaseCallback):
         return True
 
 def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3"):
-    """
-    Train TD3 agent with the advanced Transformer Singularity policy.
-    """
     mlflow.set_tracking_uri(settings.tracking_uri)
     mlflow.set_experiment("rl_trading_singularity")
     
     with mlflow.start_run() as run:
-        env = TradingEnvironment()
-        eval_env = TradingEnvironment()
-        
+        try:
+            env = TradingEnvironment()
+            eval_env = TradingEnvironment()
+        except Exception as e:
+            logger.error("ml_env_setup_failed", error=str(e))
+            raise # Re-raise to crash training if env fails
+            
         policy_kwargs = dict(
             features_extractor_class=TransformerSingularityExtractor,
             features_extractor_kwargs=dict(features_dim=512, d_model=256, nhead=8, num_layers=4),
@@ -54,18 +53,22 @@ def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3")
         n_actions = env.action_space.shape[-1]
         action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
-        model = TD3(
-            TransformerTD3Policy, 
-            env, 
-            action_noise=action_noise, 
-            verbose=1,
-            policy_kwargs=policy_kwargs,
-            learning_rate=1e-4, # Lower LR for Transformers
-            buffer_size=200000,
-            batch_size=256,
-            tau=0.005,
-            gamma=0.99
-        )
+        try:
+            model = TD3(
+                TransformerTD3Policy, 
+                env, 
+                action_noise=action_noise, 
+                verbose=1,
+                policy_kwargs=policy_kwargs,
+                learning_rate=1e-4,
+                buffer_size=200000,
+                batch_size=256,
+                tau=0.005,
+                gamma=0.99
+            )
+        except Exception as e:
+            logger.error("ml_model_init_failed", error=str(e))
+            raise
 
         eval_callback = EvalCallback(
             eval_env, 
@@ -79,13 +82,25 @@ def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3")
         callback = CallbackList([eval_callback, shm_callback])
         
         logger.info("training_started", total_timesteps=total_timesteps)
-        model.learn(total_timesteps=total_timesteps, callback=callback)
+        try:
+            model.learn(total_timesteps=total_timesteps, callback=callback)
+        except Exception as e:
+            logger.error("ml_model_learn_failed", error=str(e))
+            raise
         
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)
-        model.save(model_path)
-        mlflow.pytorch.log_model(model.policy, "model")
+        try:
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            model.save(model_path)
+            mlflow.pytorch.log_model(model.policy, "model")
+        except Exception as e:
+            logger.error("ml_model_save_failed", error=str(e))
+            raise
         
         return {"run_id": run.info.run_id, "model_path": model_path}
+
+def train_distributed(*args, **kwargs):
+    """Alias for train_td3 for compatibility with tests."""
+    return train_td3(*args, **kwargs)
 
 def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Singularity")

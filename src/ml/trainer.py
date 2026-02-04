@@ -115,3 +115,8 @@ class ModelTrainer:
 
 # Alias for backward compatibility
 InstrumentedTrainer = ModelTrainer
+from src.ml.strategies import (
+    XGBoostStrategy as XGBoostTrainer,
+    SklearnStrategy as SklearnTrainer,
+    PyTorchStrategy as PyTorchTrainer
+)

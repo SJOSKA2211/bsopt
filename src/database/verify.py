@@ -42,5 +42,8 @@ def verify_connection():
         print(f"❌ Connection Failed: {e}")
         sys.exit(1)
 
+# Alias for backward compatibility with tests
+verify_postgres_connection = verify_connection
+
 if __name__ == "__main__":
     verify_connection()

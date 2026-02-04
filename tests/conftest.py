@@ -39,7 +39,15 @@ for mod in [
     "stable_baselines3", "stable_baselines3.common", "stable_baselines3.common.noise",
     "stable_baselines3.common.callbacks", "stable_baselines3.common.on_policy_algorithm",
     "stable_baselines3.common.base_class", "stable_baselines3.common.env_util",
-    "stable_baselines3.common.monitor", "gymnasium", "gymnasium.core", "optuna",
+    "stable_baselines3.common.monitor", "stable_baselines3.common.torch_layers",
+    "stable_baselines3.common.policies", "stable_baselines3.common.distributions",
+    "stable_baselines3.common.vec_env", "stable_baselines3.common.preprocessing",
+    "stable_baselines3.td3", "stable_baselines3.td3.policies",
+    "stable_baselines3.sac", "stable_baselines3.sac.policies",
+    "stable_baselines3.ppo", "stable_baselines3.ppo.policies",
+    "gymnasium", "gymnasium.core", "gymnasium.spaces", "gymnasium.envs", "optuna",
+    "ray", "ray.tune", "ray.air", "ray.train", "ray.serve", 
+    "ray.tune.search", "ray.tune.search.optuna", "ray.tune.schedulers",
     "authlib", "authlib.jose", "onnxruntime", "sklearn", "sklearn.ensemble",
     "sklearn.metrics", "sklearn.model_selection", "sklearn.preprocessing",
     "mlflow", "mlflow.pyfunc", "mlflow.models", "mlflow.pytorch", "mlflow.xgboost",
@@ -47,7 +55,8 @@ for mod in [
     "qiskit.circuit.library", "cvxpy", "web3", "web3.providers", "eth_account",
     "prometheus_api_client", "prefect", "pytorch_forecasting", "pytorch_forecasting.data",
     "pytorch_forecasting.metrics", "selectolax", "selectolax.lexbor", "pandas_ta",
-    "xgboost", "xgboost.dask"
+    "xgboost", "xgboost.dask", "lightning", "lightning.pytorch", "lightning.pytorch.callbacks",
+    "flwr", "confluent_kafka.schema_registry", "confluent_kafka.schema_registry.avro"
 ]:
     sys.modules[mod] = VersionedMock(_mock_name=mod)
 
@@ -63,6 +72,7 @@ sys.modules["torch.optim"] = VersionedMock(_mock_name="torch.optim")
 sys.modules["torch.utils"] = VersionedMock(_mock_name="torch.utils")
 sys.modules["torch.utils.data"] = VersionedMock(_mock_name="torch.utils.data")
 sys.modules["torch.distributed"] = VersionedMock(_mock_name="torch.distributed")
+sys.modules["torch.distributions"] = VersionedMock(_mock_name="torch.distributions")
 
 # Mock redis (sync and async)
 class MockRedisError(Exception): pass

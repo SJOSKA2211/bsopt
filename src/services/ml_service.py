@@ -88,7 +88,18 @@ class MLService:
         self.channel.close()
         self.shm.close()
 
-ml_service = MLService()
+_ml_service = None
 
 def get_ml_service() -> MLService:
-    return ml_service
+    """Returns the singleton MLService instance, initializing it lazily."""
+    global _ml_service
+    if _ml_service is None:
+        _ml_service = MLService()
+    return _ml_service
+
+class MLServiceProxy:
+    """True lazy proxy that only instantiates the real service on first access."""
+    def __getattr__(self, name):
+        return getattr(get_ml_service(), name)
+
+ml_service = MLServiceProxy()

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/routes/auth.py
+# hypothesis_version: 6.151.5
+
+[400, 401, '/', '/auth', '/jwks', '/login', '/logout', '/me', '/refresh-token', '/register', '/token', 'Authentication', 'Bearer', 'Logged out (Shim)', 'Not authenticated', 'RSA', 'User created (Shim)', 'access_token', 'email', 'expires_in', 'free', 'id', 'internal-key-01', 'issuer', 'jwks_uri', 'keys', 'kid', 'kty', 'legacy-id', 'legacy-user', 'message', 'new-token-shim', 'password', 'scope', 'sig', 'token_endpoint', 'token_type', 'use', 'user']

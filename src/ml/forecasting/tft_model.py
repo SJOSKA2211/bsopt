@@ -82,30 +82,68 @@ class PriceTFTModel:
             "group_ids": ["symbol"]
         }
 
-    def _init_trainer(self):
-        """Initialize the lightning trainer with performance optimizations."""
-        # Enable mixed precision if GPU is available
-        precision = "16-mixed" if torch.cuda.is_available() else "32"
-        
-        early_stop_callback = EarlyStopping(
-            monitor="train_loss", # Using train_loss as proxy if val_loss not always available
-            min_delta=1e-4,
-            patience=3,
-            verbose=False,
-            mode="min"
-        )
-        lr_monitor = LearningRateMonitor(logging_interval="step")
+    def train(self, data: Dict[str, Any]):
+        """
+        Train the TFT model with experiment tracking.
+        """
+        if not self.training_dataset:
+            raise RuntimeError("Dataset not prepared. Call prepare_data first.")
 
+        model = TemporalFusionTransformer.from_dataset(
+            self.training_dataset,
+            learning_rate=0.03,
+            hidden_size=self.config.get("hidden_size", 16),
+            attention_head_size=4,
+            dropout=0.1,
+            hidden_continuous_size=8,
+            loss=QuantileLoss(),
+            log_interval=10,
+            reduce_on_plateau_patience=4,
+        )
+        
+        trainer = self._init_trainer()
+        
+        with mlflow.start_run() as run:
+            mlflow.log_params(self.config)
+            trainer.fit(model, train_dataloaders=data["train_loader"])
+            self.model = model
+            
+            # 🚀 ADVANCED: Post-Training Static Quantization (Simulated for CPU)
+            self._quantize()
+            
+            # Log model artifact
+            mlflow.pytorch.log_model(self.model, "tft_challenger")
+            
+        return run.info.run_id
+
+    def _init_trainer(self) -> pl.Trainer:
+        """Initializes the lightning trainer with optimal callbacks."""
+        early_stop_callback = EarlyStopping(monitor="val_loss", min_delta=1e-4, patience=10, verbose=False, mode="min")
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        
         return pl.Trainer(
             max_epochs=self.config.get("max_epochs", 10),
             accelerator="auto",
             devices="auto",
-            precision=precision,
             enable_model_summary=True,
             gradient_clip_val=0.1,
             callbacks=[early_stop_callback, lr_monitor],
             log_every_n_steps=10
         )
+
+    def _quantize(self):
+        """
+        🚀 OPTIMIZATION: Quantize model to INT8 for faster inference.
+        """
+        logger.info("model_quantization_started")
+        try:
+            self._quantized_model = torch.quantization.quantize_dynamic(
+                self.model, {torch.nn.Linear}, dtype=torch.qint8
+            )
+            logger.info("model_quantization_complete")
+        except Exception as e:
+            logger.warning("quantization_failed", error=str(e))
+            self._quantized_model = self.model
 
     async def train(self, data: pd.DataFrame, **kwargs):
         """

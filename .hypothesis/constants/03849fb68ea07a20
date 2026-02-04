@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/config.py
+# hypothesis_version: 6.151.5
+
+[100, 1000, 2048, 6379, 10000, 65537, '.env', 'BSOpt Singularity', 'DATABASE_URL', 'ENVIRONMENT', 'INFO', 'JWT_SECRET', 'REDIS_URL', 'RS256', 'dev', 'ignore', 'localhost', 'localhost:50051', 'postgresql', 'postgresql+asyncpg', 'postgresql://', 'private', 'prod', 'public', 'sqlite', 'sqlite:///mlflow.db', 'staging', 'utf-8']

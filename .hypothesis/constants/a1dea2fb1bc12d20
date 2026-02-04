@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/shared/shm_manager.py
+# hypothesis_version: 6.151.5
+
+[0.1, 1024, 'I', 'SHM not initialized.', 'T', 'shm_already_exists', 'shm_created', 'shm_destroyed', 'shm_write_atomic']

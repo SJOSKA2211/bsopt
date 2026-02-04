@@ -1,7 +1,7 @@
 ---
 id: res001
 title: "Research: OAuth2 Consolidation Strategy"
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-04

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/main.py
+# hypothesis_version: 6.151.5
+
+[401, 500, 1000, '*', '/', '/api/v1', '/graphql', '/health', 'Authorization', 'Bearer ', 'Not authenticated', 'achieved', 'api_error', 'api_error_detailed', 'detail', 'healthy', 'http', 'message', 'prod', 'singularity', 'status', 'user']

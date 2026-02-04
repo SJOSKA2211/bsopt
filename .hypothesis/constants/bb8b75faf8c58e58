@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/forecasting/tft_model.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.0001, 0.03, 0.1, 0.5, 100, 128, 512, 'auto', 'batch_size', 'close', 'decoder_variables', 'dropout', 'dynamic_int8', 'encoder_variables', 'error', 'group_ids', 'hidden_size', 'input_chunk_length', 'max_encoder_length', 'max_epochs', 'message', 'min', 'num_attention_heads', 'output_chunk_length', 'price', 'quantization_failed', 'raw', 'softplus', 'static_variables', 'status', 'step', 'symbol', 'tft_challenger', 'time_idx', 'train_loader', 'val_loader', 'val_loss']
