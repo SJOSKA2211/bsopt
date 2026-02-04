@@ -18,8 +18,28 @@ from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
 from src.utils.cache import pricing_cache
+import msgspec
 
 logger = structlog.get_logger(__name__)
+
+# 🚀 SINGULARITY: Worker-local engine caching
+# Reusing strategy objects avoids redundant initialization overhead.
+_STRATEGY_CACHE = {}
+
+def _get_cached_strategy(name: str):
+    """Retrieve or initialize a cached pricing strategy."""
+    if name not in _STRATEGY_CACHE:
+        _STRATEGY_CACHE[name] = PricingEngineFactory.get_strategy(name)
+    return _STRATEGY_CACHE[name]
+
+class PricingResult(msgspec.Struct):
+    """SOTA: High-performance result structure for batch pricing."""
+    price: float
+    delta: float
+    gamma: float
+    vega: float
+    theta: float
+    rho: float
 
 @celery_app.task(
     bind=True,
@@ -87,7 +107,7 @@ def price_option_task(
             dividend=dividend
         )
 
-        engine = PricingEngineFactory.get_strategy("black_scholes")
+        engine = _get_cached_strategy("black_scholes")
 
         price = engine.price(params, option_type)
 
@@ -173,19 +193,23 @@ def batch_price_options_task(
             )
             
             # Format results
-            result_list = []
-            for i in range(count):
-                result_list.append({
-                    "price": round(float(prices[i]), 4),
-                    "delta": round(float(greeks['delta'][i]), 6),
-                    "gamma": round(float(greeks['gamma'][i]), 6),
-                    "vega": round(float(greeks['vega'][i]), 6),
-                    "theta": round(float(greeks['theta'][i]), 6),
-                    "rho": round(float(greeks['rho'][i]), 6)
-                })
+            # 🚀 SINGULARITY: Optimized batch construction via msgspec
+            results = [
+                PricingResult(
+                    price=round(float(prices[i]), 4),
+                    delta=round(float(greeks['delta'][i]), 6),
+                    gamma=round(float(greeks['gamma'][i]), 6),
+                    vega=round(float(greeks['vega'][i]), 6),
+                    theta=round(float(greeks['theta'][i]), 6),
+                    rho=round(float(greeks['rho'][i]), 6)
+                ) for i in range(count)
+            ]
+            
+            # Convert to plain dicts for Celery/Kombu compatibility
+            result_list = msgspec.to_builtins(results)
         else:
-            # Fallback to sequential pricing
-            engine = PricingEngineFactory.get_strategy("black_scholes")
+            # Fallback to sequential pricing using cache
+            engine = _get_cached_strategy("black_scholes")
             result_list = []
             for opt in options:
                 params = BSParameters(**opt)
