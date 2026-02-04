@@ -63,6 +63,60 @@ mock_torch.device = MagicMock()
 class MockTensor: pass
 mock_torch.Tensor = MockTensor
 sys.modules["torch"] = mock_torch
+sys.modules["torch.nn"] = VersionedMock()
+sys.modules["torch.optim"] = VersionedMock()
+sys.modules["torch.utils"] = VersionedMock()
+sys.modules["torch.utils.data"] = VersionedMock()
+
+# Mock scikit-learn
+sys.modules["sklearn"] = VersionedMock()
+sys.modules["sklearn.ensemble"] = VersionedMock()
+sys.modules["sklearn.metrics"] = VersionedMock()
+sys.modules["sklearn.model_selection"] = VersionedMock()
+sys.modules["sklearn.preprocessing"] = VersionedMock()
+
+# Mock mlflow
+sys.modules["mlflow"] = VersionedMock()
+sys.modules["mlflow.pyfunc"] = VersionedMock()
+sys.modules["mlflow.models"] = VersionedMock()
+sys.modules["mlflow.pytorch"] = VersionedMock()
+sys.modules["mlflow.xgboost"] = VersionedMock()
+sys.modules["mlflow.data"] = VersionedMock()
+
+# Mock qiskit
+sys.modules["qiskit"] = VersionedMock()
+sys.modules["qiskit_aer"] = VersionedMock()
+
+# Mock cvxpy
+sys.modules["cvxpy"] = VersionedMock()
+
+# Mock web3
+sys.modules["web3"] = VersionedMock()
+sys.modules["eth_account"] = VersionedMock()
+
+# Mock prometheus_api_client
+sys.modules["prometheus_api_client"] = VersionedMock()
+
+# Mock prefect
+sys.modules["prefect"] = VersionedMock()
+
+# Mock pytorch_forecasting
+sys.modules["pytorch_forecasting"] = VersionedMock()
+
+# Mock selectolax
+sys.modules["selectolax"] = VersionedMock()
+sys.modules["selectolax.lexbor"] = VersionedMock()
+
+# Mock onnxruntime
+sys.modules["onnxruntime"] = VersionedMock()
+
+# Mock authlib
+sys.modules["authlib"] = VersionedMock()
+sys.modules["authlib.jose"] = VersionedMock()
+
+# Mock gymnasium
+sys.modules["gymnasium"] = VersionedMock()
+sys.modules["gym"] = VersionedMock()
 
 # Mock redis (sync and async)
 class MockRedisError(Exception): pass
@@ -163,10 +217,10 @@ def pytest_configure(config):
 
     # Mock src.database internals
     mock_db_engine = MagicMock()
-    mpatch.setattr("src.database.get_engine", MagicMock(return_value=mock_db_engine))
-    mpatch.setattr("src.database._SessionLocal", MagicMock())
-    mpatch.setattr("src.database._AsyncSessionLocal", MagicMock())
-    mpatch.setattr("src.database._initialize_db_components", MagicMock())
+    mpatch.setattr("src.database.engine", mock_db_engine)
+    mpatch.setattr("src.database.async_engine", AsyncMock())
+    mpatch.setattr("src.database.SessionLocal", MagicMock())
+    mpatch.setattr("src.database.AsyncSessionLocal", MagicMock())
     
     # Mock async db
     async def mock_get_async_db():

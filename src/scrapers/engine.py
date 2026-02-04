@@ -206,6 +206,10 @@ class NSEScraper:
                     self._data_cache = new_cache
                     self._last_refresh = time.time()
                     logger.info("nse_cache_updated", count=len(new_cache))
+                    
+                    # 🚀 SINGULARITY: Publish to Market Mesh
+                    from src.scrapers.mesh_publisher import get_market_publisher
+                    get_market_publisher().publish(new_cache)
                 
             finally:
                 if client != self.client:

@@ -1,159 +1,49 @@
-const { ApolloServer } = require('@apollo/server');
-const { fastifyApolloHandler, fastifyApolloDrainPlugin } = require('@as-integrations/fastify');
-const { ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource } = require('@apollo/gateway');
 const Fastify = require('fastify');
+const proxy = require('@fastify/reply-from');
 const cors = require('@fastify/cors');
 const helmet = require('@fastify/helmet');
-const compress = require('@fastify/compression');
 const pino = require('pino');
-const responseCachePlugin = require('@apollo/server-plugin-response-cache').default;
-const cluster = require('cluster');
-const os = require('os');
 
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  transport: process.env.NODE_ENV !== 'production' ? {
-    target: 'pino-pretty',
-    options: { colorize: true }
-  } : undefined
-});
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-class AuthenticatedDataSource extends RemoteGraphQLDataSource {
-  willSendRequest({ request, context }) {
-    if (context.headers && context.headers['authorization']) {
-      request.http.headers.set('authorization', context.headers['authorization']);
-    }
-    request.http.headers.set('X-SSL-Client-Verify', 'SUCCESS');
-    request.http.headers.set('X-SSL-Client-S-DN', 'CN=api-gateway');
-    
-    if (context.headers && context.headers['x-user-id']) {
-      request.http.headers.set('X-User-Id', context.headers['x-user-id']);
-    }
-  }
-}
+const subgraphs = {
+  options: process.env.OPTIONS_URL || 'http://localhost:8000',
+  pricing: process.env.PRICING_URL || 'http://localhost:8001',
+  ml: process.env.ML_URL || 'http://localhost:8002',
+  auth: process.env.AUTH_URL || 'http://localhost:3001'
+};
 
-const fs = require('fs');
+const app = Fastify({ logger: false });
 
-const gatewayConfig = process.env.SUPERGRAPH_SDL_PATH && fs.existsSync(process.env.SUPERGRAPH_SDL_PATH)
-  ? { supergraphSdl: fs.readFileSync(process.env.SUPERGRAPH_SDL_PATH, 'utf-8') }
-  : {
-      supergraphSdl: new IntrospectAndCompose({
-        subgraphs: [
-          { name: 'options', url: process.env.OPTIONS_URL || 'http://localhost:8000/graphql' },
-          { name: 'pricing', url: process.env.PRICING_URL || 'http://localhost:8001/graphql' },
-          { name: 'ml', url: process.env.ML_URL || 'http://localhost:8002/graphql' },
-          { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://localhost:8003/graphql' },
-          { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
-        ],
-      }),
-    };
-
-const gateway = new ApolloGateway({
-  ...gatewayConfig,
-  buildService({ url }) {
-    return new AuthenticatedDataSource({ url });
-  },
-});
-
-async function startServer(supergraphSdl = null) {
-  const fastify = Fastify({ 
-    logger: false, 
-    disableRequestLogging: true
-  });
-
-  // Use passed SDL or fallback to introspection (dev mode)
-  const gatewayConfig = supergraphSdl 
-    ? { supergraphSdl }
-    : {
-        supergraphSdl: new IntrospectAndCompose({
-          subgraphs: [
-            { name: 'options', url: process.env.OPTIONS_URL || 'http://localhost:8000/graphql' },
-            { name: 'pricing', url: process.env.PRICING_URL || 'http://localhost:8001/graphql' },
-            { name: 'ml', url: process.env.ML_URL || 'http://localhost:8002/graphql' },
-            { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://localhost:8003/graphql' },
-            { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
-          ],
-        }),
-      };
-
-  const gateway = new ApolloGateway({
-    ...gatewayConfig,
-    buildService({ url }) {
-      return new AuthenticatedDataSource({ url });
-    },
-  });
-
-  // Fastify optimized plugins
-  await fastify.register(helmet, { contentSecurityPolicy: false });
-  await fastify.register(cors);
-  await fastify.register(compress);
+async function start() {
+  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(cors);
   
-  // 🚀 SOTA: Auth Proxy Singularity
-  await fastify.register(require('@fastify/reply-from'), {
-    base: process.env.AUTH_URL || 'http://localhost:3001'
-  });
+  // Register proxy targets
+  for (const [name, url] of Object.entries(subgraphs)) {
+    await app.register(proxy, {
+      name,
+      base: url,
+      prefix: `/api/v1/${name}`
+    });
+  }
 
-  await gateway.load();
-
-  const server = new ApolloServer({
-    gateway,
-    plugins: [
-      responseCachePlugin(),
-      fastifyApolloDrainPlugin(fastify),
-    ],
-  });
-
-  await server.start();
-
-  // Proxy Better Auth paths
-  fastify.all('/api/auth/*', (request, reply) => {
-    reply.from(request.url);
-  });
-
-  fastify.route({
-    method: ['GET', 'POST', 'OPTIONS'],
-    url: '/',
-    handler: fastifyApolloHandler(server, {
-      context: async (request) => ({ headers: request.headers }),
-    }),
+  // Unified Route Handler
+  app.all('/api/v1/:service/*', (request, reply) => {
+    const { service } = request.params;
+    if (subgraphs[service]) {
+      reply.from(request.url.replace(`/api/v1/${service}`, ''));
+    } else {
+      reply.code(404).send({ error: 'Service not found' });
+    }
   });
 
   const port = process.env.PORT || 4000;
-  await fastify.listen({ port, host: '0.0.0.0' });
-  logger.info(`🚀 Gateway worker ${process.pid} ready at http://localhost:${port}/`);
+  await app.listen({ port, host: '0.0.0.0' });
+  logger.info(`🚀 Singularity Gateway ready at http://localhost:${port}/`);
 }
 
-if (process.env.NODE_ENV === 'production' && cluster.isPrimary) {
-  const numCPUs = os.cpus().length;
-  logger.info(`Primary ${process.pid} is running. Centralizing introspection for ${numCPUs} workers...`);
-  
-  // 🚀 SINGULARITY: Introspect once in primary
-  const composer = new IntrospectAndCompose({
-    subgraphs: [
-      { name: 'options', url: process.env.OPTIONS_URL || 'http://localhost:8000/graphql' },
-      { name: 'pricing', url: process.env.PRICING_URL || 'http://localhost:8001/graphql' },
-      { name: 'ml', url: process.env.ML_URL || 'http://localhost:8002/graphql' },
-      { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://localhost:8003/graphql' },
-      { name: 'marketdata', url: process.env.MARKETDATA_URL || 'http://localhost:8004/graphql' },
-    ],
-  });
-
-  composer.initialize({ updateLastEntityModified: false }).then(({ supergraphSdl }) => {
-    for (let i = 0; i < numCPUs; i++) {
-      cluster.fork({ SUPERGRAPH_SDL: supergraphSdl });
-    }
-  }).catch(err => {
-    logger.error(err, 'failed_to_initialize_supergraph');
-    process.exit(1);
-  });
-
-  cluster.on('exit', (worker) => {
-    logger.warn(`Worker ${worker.process.pid} died. Forking a new one...`);
-    cluster.fork();
-  });
-} else {
-  startServer(process.env.SUPERGRAPH_SDL).catch(err => {
-    logger.error(err, 'failed_to_start_server');
-    process.exit(1);
-  });
-}
+start().catch(err => {
+  logger.error(err);
+  process.exit(1);
+});

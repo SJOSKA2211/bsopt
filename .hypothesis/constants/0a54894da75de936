@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/prometheus_adapter.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.9, 1.1, '1h', 'fetch_5xx_failed', 'fetch_p95_failed', 'value', 'values']

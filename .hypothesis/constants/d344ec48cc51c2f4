@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/tasks/trading_tasks.py
+# hypothesis_version: 6.151.5
+
+[0.2, 0.5, 0.55, 0.999, 1.001, 2.0, 5.0, 100.0, 100000, 'D', 'buy', 'completed', 'duration', 'duration_seconds', 'error', 'failed', 'fill_price', 'filled', 'limit_price', 'max_drawdown', 'metrics', 'momentum', 'option_price', 'order_id', 'quantity', 'reason', 'rejected', 'risk_limit_exceeded', 'sharpe_ratio', 'side', 'status', 'strategy', 'symbol', 'task_id', 'timestamp', 'total_return', 'trades_count', 'trading', 'underlying_price', 'win_rate']
