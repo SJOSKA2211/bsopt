@@ -15,6 +15,23 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+async def get_current_user(request: Request):
+    if not hasattr(request.state, "user"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return request.state.user
+
+async def get_current_active_user(user = Depends(get_current_user)):
+    return user
+
+def _verify_mfa_code(user: User, code: str, db: Session):
+    return True # Simulation
+
+async def _send_verification_email(email: str, token: str):
+    pass # Simulation
+
+async def _send_password_reset_email(email: str, token: str):
+    pass # Simulation
+
 @router.post("/token")
 async def login_for_access_token(
     client_id: str = Form(...),

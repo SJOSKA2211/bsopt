@@ -1,11 +1,14 @@
+"""
+Unified Temporal Validator (Singularity Refactored)
+"""
+
 import numpy as np
-from sklearn.model_selection import TimeSeriesSplit
 from typing import Generator, Tuple, Optional
 
 class WalkForwardValidator:
     """
-    🚀 SOTA: Unified Temporal Cross-Validator.
-    Provides expanding and sliding window splits for robust time-series validation.
+    High-performance temporal cross-validator.
+    Minimizes memory allocations by using index views.
     """
     def __init__(self, n_splits: int = 5, test_size: Optional[int] = None):
         self.n_splits = n_splits
@@ -13,27 +16,30 @@ class WalkForwardValidator:
 
     def split(self, X: np.ndarray) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
         """
-        Generate temporal train/test indices using raw indexing.
-        Ensures that test_index always follows train_index chronologically.
+        Generate temporal splits with pre-computed index boundaries.
         """
         n_samples = len(X)
-        # 🚀 SINGULARITY: Raw index calculation for maximum stability
-        # Each fold adds roughly (n_samples / (n_splits + 1)) new samples to train
-        fold_size = n_samples // (self.n_splits + 1)
+        indices = np.arange(n_samples)
         
-        for i in range(self.n_splits):
-            train_end = (i + 1) * fold_size
-            test_end = train_end + fold_size
-            
-            # Final fold takes the remainder
-            if i == self.n_splits - 1:
-                test_end = n_samples
-                
-            train_idx = np.arange(0, train_end)
-            test_idx = np.arange(train_end, test_end)
-            
-            if len(train_idx) > 0 and len(test_idx) > 0:
+        # Calculate split points
+        if self.test_size:
+            # Fixed-size sliding window
+            for i in range(self.n_splits):
+                end = n_samples - (self.n_splits - 1 - i) * self.test_size
+                start = end - self.test_size
+                train_idx = indices[:start]
+                test_idx = indices[start:end]
                 yield train_idx, test_idx
+        else:
+            # Expanding window
+            fold_size = n_samples // (self.n_splits + 1)
+            for i in range(self.n_splits):
+                train_end = (i + 1) * fold_size
+                test_end = train_end + fold_size
+                if i == self.n_splits - 1:
+                    test_end = n_samples
+                
+                yield indices[:train_end], indices[train_end:test_end]
 
     def get_n_splits(self):
         return self.n_splits

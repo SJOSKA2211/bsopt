@@ -1,9 +1,9 @@
 import sys
 from unittest.mock import MagicMock, AsyncMock, patch
 
-# ============================================================================
+# ============================================================================ 
 # EARLY MOCKS (Immediate Deception for Python 3.14 Compatibility)
-# ============================================================================
+# ============================================================================ 
 
 # Version Info for Compatibility
 version_tuple = (4, 6, 0)
@@ -15,6 +15,7 @@ class VersionedMock(MagicMock):
         super().__init__(*args, **kwargs)
         self.VERSION = version_tuple
         self.__version__ = version_str
+        self.__path__ = [] # 🚀 LEVEL 4: Package Hallucination
     def __gt__(self, other):
         if isinstance(other, int): return self.VERSION[0] > other
         if isinstance(other, tuple): return self.VERSION > other
@@ -32,29 +33,28 @@ class VersionedMock(MagicMock):
         if isinstance(other, tuple): return self.VERSION <= other
         return super().__le__(other)
 
-# Mock Ray
-mock_ray = VersionedMock()
-mock_ray.remote = lambda x: x
-mock_ray.init = MagicMock()
-mock_ray.shutdown = MagicMock()
-sys.modules["ray"] = mock_ray
-sys.modules["ray.util"] = VersionedMock()
-sys.modules["ray.util.iter"] = VersionedMock()
+# Mock stable_baselines3
+sys.modules["stable_baselines3"] = VersionedMock()
+sys.modules["stable_baselines3.common"] = VersionedMock()
+sys.modules["stable_baselines3.common.noise"] = VersionedMock()
+sys.modules["stable_baselines3.common.on_policy_algorithm"] = VersionedMock()
+sys.modules["stable_baselines3.common.base_class"] = VersionedMock()
+sys.modules["stable_baselines3.common.env_util"] = VersionedMock()
+sys.modules["stable_baselines3.common.monitor"] = VersionedMock()
 
-# Mock Numba
-mock_numba = VersionedMock()
-mock_numba.jit = lambda *args, **kwargs: lambda func: func
-mock_numba.njit = lambda *args, **kwargs: lambda func: func
-mock_numba.float64 = MagicMock()
-mock_numba.int64 = MagicMock()
-sys.modules["numba"] = mock_numba
-sys.modules["numba.core"] = VersionedMock()
-sys.modules["numba.core.decorators"] = VersionedMock()
-sys.modules["llvmlite"] = VersionedMock()
-sys.modules["llvmlite.binding"] = VersionedMock()
+# Mock gymnasium
+sys.modules["gymnasium"] = VersionedMock()
+sys.modules["gymnasium.core"] = VersionedMock()
 
-# Mock pandas_ta
-sys.modules["pandas_ta"] = VersionedMock()
+# Mock optuna
+sys.modules["optuna"] = VersionedMock()
+
+# Mock authlib
+sys.modules["authlib"] = VersionedMock()
+sys.modules["authlib.jose"] = VersionedMock()
+
+# Mock onnxruntime
+sys.modules["onnxruntime"] = VersionedMock()
 
 # Mock torch
 mock_torch = VersionedMock()
@@ -82,6 +82,7 @@ sys.modules["mlflow.models"] = VersionedMock()
 sys.modules["mlflow.pytorch"] = VersionedMock()
 sys.modules["mlflow.xgboost"] = VersionedMock()
 sys.modules["mlflow.data"] = VersionedMock()
+sys.modules["mlflow.tracking"] = VersionedMock()
 
 # Mock qiskit
 sys.modules["qiskit"] = VersionedMock()
@@ -92,6 +93,7 @@ sys.modules["cvxpy"] = VersionedMock()
 
 # Mock web3
 sys.modules["web3"] = VersionedMock()
+sys.modules["web3.providers"] = VersionedMock()
 sys.modules["eth_account"] = VersionedMock()
 
 # Mock prometheus_api_client
@@ -102,35 +104,17 @@ sys.modules["prefect"] = VersionedMock()
 
 # Mock pytorch_forecasting
 sys.modules["pytorch_forecasting"] = VersionedMock()
+sys.modules["pytorch_forecasting.data"] = VersionedMock()
 
 # Mock selectolax
 sys.modules["selectolax"] = VersionedMock()
 sys.modules["selectolax.lexbor"] = VersionedMock()
 
-# Mock stable_baselines3
-sys.modules["stable_baselines3"] = VersionedMock()
-sys.modules["stable_baselines3.common"] = VersionedMock()
-sys.modules["stable_baselines3.common.on_policy_algorithm"] = VersionedMock()
-sys.modules["stable_baselines3.common.base_class"] = VersionedMock()
-sys.modules["stable_baselines3.common.env_util"] = VersionedMock()
-sys.modules["stable_baselines3.common.monitor"] = VersionedMock()
+# Mock pandas_ta
+sys.modules["pandas_ta"] = VersionedMock()
 
-# Mock gymnasium.core
-sys.modules["gymnasium.core"] = VersionedMock()
-
-# Mock optuna
-sys.modules["optuna"] = VersionedMock()
-
-# Mock authlib
-sys.modules["authlib"] = VersionedMock()
-sys.modules["authlib.jose"] = VersionedMock()
-
-# Mock onnxruntime
-sys.modules["onnxruntime"] = VersionedMock()
-
-# Mock gymnasium
-sys.modules["gymnasium"] = VersionedMock()
-sys.modules["gym"] = VersionedMock()
+# Mock xgboost
+sys.modules["xgboost"] = VersionedMock()
 
 # Mock redis (sync and async)
 class MockRedisError(Exception): pass
@@ -148,7 +132,7 @@ class MockRedis(MagicMock):
     async def get(self, *args, **kwargs): return None
     async def set(self, *args, **kwargs): return True
     async def setex(self, *args, **kwargs): return True
-    def pipeline(self):
+    def pipeline(self): 
         m = VersionedMock()
         m.execute = AsyncMock(return_value=[None, 0])
         m.__aenter__ = AsyncMock(return_value=m)
@@ -189,9 +173,9 @@ _api_keys_by_hash = {}
 _mock_jwt_payload_store = {}
 
 
-# ============================================================================
+# ============================================================================ 
 # Pytest Configuration Hook
-# ============================================================================
+# ============================================================================ 
 
 
 def pytest_configure(config):
@@ -222,7 +206,7 @@ def pytest_configure(config):
     mock_settings.JWT_SECRET = "test-secret-for-hmac"
     mock_settings.JWT_ALGORITHM = "HS256"
     mock_settings.MFA_ENCRYPTION_KEY = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
-    mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051" # Fix unpacking error
+    mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051"
     mock_settings.ML_GRPC_POOL_SIZE = 1
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
 
@@ -525,9 +509,9 @@ def mock_db_session():
     return mock_session
 
 
-# ============================================================================
+# ============================================================================ 
 # Numerical Tolerance Fixtures
-# ============================================================================
+# ============================================================================ 
 
 
 @pytest.fixture
@@ -566,7 +550,6 @@ def unmocked_config_settings(monkeypatch):
     # Save current mocked state (which are MagicMocks from pytest_configure)
     mocked_settings_instance = src.config.settings
     mocked_Settings_class = src.config.Settings
-    mocked_get_settings_func = src.config.get_settings
     
     # Force reload of the module to get real classes
     if "src.config" in sys.modules:
@@ -574,7 +557,6 @@ def unmocked_config_settings(monkeypatch):
     
     import src.config
     importlib.reload(src.config)
-    src.config._initialize_settings()
 
     yield
 
@@ -583,4 +565,3 @@ def unmocked_config_settings(monkeypatch):
     src.config.settings = mocked_settings_instance
     src.config._settings = mocked_settings_instance
     src.config.Settings = mocked_Settings_class
-    src.config.get_settings = mocked_get_settings_func

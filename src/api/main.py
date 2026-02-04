@@ -38,7 +38,28 @@ app.add_middleware(
 )
 app.middleware("http")(logging_middleware)
 
+# Exception Handler
+async def api_exception_handler(request: Request, exc: Exception):
+    """Global exception handler."""
+    logger.error("api_error", error=str(exc), path=request.url.path)
+    return ORJSONResponse(
+        status_code=500,
+        content={"message": "Internal server error", "detail": str(exc)}
+    )
+
+app.add_exception_handler(Exception, api_exception_handler)
+
 # Dependency for Auth
+async def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """Helper to get user from state."""
+    if not hasattr(request.state, "user"):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return request.state.user
+
+async def get_current_active_user(user: dict = Depends(get_current_user)):
+    """Helper to get active user."""
+    return user
+
 async def verify_token(request: Request, db: Session = Depends(get_db)):
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):

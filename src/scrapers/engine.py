@@ -114,11 +114,32 @@ class NSEScraper:
         self._refresh_future: Optional[asyncio.Future] = None
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
         
-        # 🚀 OPTIMIZATION: O(1) Symbol Lookup Map
+        # 🚀 OPTIMIZATION: Pre-computed exact-match hash map
         self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
+        # Map from fully normalized name to symbol
+        self._exact_symbol_map = {k.upper().strip(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
         
         # SOTA: shared client with connection pooling
         self.client = HttpClientManager.get_client()
+
+# ... (lines continue)
+
+    def _map_name_to_symbol(self, name: str) -> str:
+        """🚀 OPTIMIZATION: O(1) mapping using pre-computed hash map."""
+        n = name.upper().strip()
+        
+        # 1. Exact match lookup (O(1))
+        if n in self._exact_symbol_map:
+            return self._exact_symbol_map[n]
+        
+        # 2. Keyword substring match (Optimized fallback)
+        # Using a generator expression for slightly better memory perf
+        match = next((symbol for keyword, symbol in self._symbol_map.items() if keyword in n), None)
+        if match:
+            return match
+        
+        # 3. Fallback: Use the first word as the symbol
+        return n.split(' ')[0]
 
     async def _get_client_with_proxy(self) -> httpx.AsyncClient:
         """🚀 OPTIMIZATION: Acquire a fresh client with a rotated proxy if enabled."""
