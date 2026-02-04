@@ -1,0 +1,57 @@
+import torch
+from typing import List, Dict, Any, Optional
+import numpy as np
+import structlog
+from src.ml.forecasting.tft_model import PriceTFTModel
+from .transformer_policy import TransformerTD3Policy
+from stable_baselines3 import TD3
+
+logger = structlog.get_logger()
+
+class AugmentedRLAgent:
+
+    """
+
+    SOTA: Temporal-aware RL Agent.
+
+    Integrated with Transformer-based Actor-Critic for non-Markovian market state handling.
+
+    """
+
+    def __init__(self, env, config: Optional[Dict[str, Any]] = None, **kwargs):
+
+        self.config = config or {}
+
+        self.config.update(kwargs)
+
+        self.env = env
+
+        
+
+        # High-performance Transformer policy
+
+        self.model = TD3(
+
+            TransformerTD3Policy, 
+
+            env, 
+
+            verbose=1,
+
+            tensorboard_log="./logs/td3_trading/"
+
+        )
+
+        
+
+        self.forecaster = PriceTFTModel(config=self.config.get("tft_config"))
+
+
+
+    def act(self, observation: np.ndarray) -> np.ndarray:
+
+        """Deterministic action selection with attention-weighted state representation."""
+
+        action, _ = self.model.predict(observation, deterministic=True)
+
+        return action

@@ -1,0 +1,23 @@
+replicaCount: 3
+image:
+  repository: bsopt-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+    nvidia.com/gpu: 1
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+env:
+  ENVIRONMENT: production
+  REDIS_URL: "redis://redis-master:6379/0"
+  DATABASE_URL: "postgresql://admin:password@postgres:5432/bsopt"

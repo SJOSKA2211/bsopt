@@ -1,0 +1,22 @@
+artifact_path: /home/kamau/bsopt/mlruns/0/models/m-7c4f00c4b0b64ce1b6618ede81806c8a/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.11
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+mlflow_version: 3.8.1
+model_id: m-7c4f00c4b0b64ce1b6618ede81806c8a
+model_size_bytes: 14604
+model_uuid: m-7c4f00c4b0b64ce1b6618ede81806c8a
+prompts: null
+run_id: e8f64861d38f453995e6e04145253b5c
+utc_time_created: '2026-01-21 09:40:16.762865'

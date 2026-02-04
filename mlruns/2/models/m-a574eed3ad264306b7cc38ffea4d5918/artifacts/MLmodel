@@ -1,0 +1,23 @@
+artifact_path: /home/kamau/bsopt/mlruns/2/models/m-a574eed3ad264306b7cc38ffea4d5918/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.13.11
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.9.1+cu128
+mlflow_version: 3.8.1
+model_id: m-a574eed3ad264306b7cc38ffea4d5918
+model_size_bytes: 3975743
+model_uuid: m-a574eed3ad264306b7cc38ffea4d5918
+prompts: null
+run_id: dd351b32dfeb42ea8312762f74301247
+utc_time_created: '2026-01-18 11:11:17.795305'

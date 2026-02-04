@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package bsopt.inference;
+
+message InferenceRequest {
+  double underlying_price = 1;
+  double strike = 2;
+  double time_to_expiry = 3;
+  int32 is_call = 4;
+  double moneyness = 5;
+  double log_moneyness = 6;
+  double sqrt_time_to_expiry = 7;
+  double days_to_expiry = 8;
+  double implied_volatility = 9;
+  string model_type = 10;
+}
+
+message InferenceResponse {
+  double price = 1;
+  string model_type = 2;
+  double latency_ms = 3;
+}
+
+service MLInference {
+  rpc Predict(InferenceRequest) returns (InferenceResponse);
+}

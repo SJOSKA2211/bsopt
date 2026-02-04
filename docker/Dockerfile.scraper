@@ -1,0 +1,72 @@
+# Stage 1: Builder
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt \
+    && pip install --default-timeout=1000 --no-cache-dir playwright structlog
+
+# Install browsers to root's cache in builder
+RUN playwright install chromium
+RUN playwright install-deps chromium
+
+# Stage 2: Final
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Create a non-root user for security
+RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    tini \
+    # Install playwright system deps in final image too
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R bsopt:bsopt /app
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy Playwright browsers to non-root user's cache
+COPY --from=builder --chown=bsopt:bsopt /root/.cache/ms-playwright /home/bsopt/.cache/ms-playwright
+
+COPY . .
+RUN chown -R bsopt:bsopt /app
+
+USER bsopt
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONOPTIMIZE=2
+
+# Playwright needs to know where to look if not in default location (optional but good practice)
+# But standard ~/.cache/ms-playwright should work for the user.
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["python", "src/scrapers/engine.py"]

@@ -1,0 +1,302 @@
+"""
+Database Session Management with Optimized Connection Pooling
+
+This module provides:
+- Connection pooling optimized for 1000+ concurrent users
+- Query timing and slow query logging
+- Context managers for FastAPI and background tasks
+- Connection health monitoring
+"""
+
+import logging
+import time
+from contextlib import asynccontextmanager, contextmanager
+from typing import Generator, AsyncGenerator, cast, Any
+
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import QueuePool
+
+from src.config import settings
+
+from .models import Base
+
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# CONNECTION POOL CONFIGURATION (Lazy Initialization)
+# =============================================================================
+
+_engine: Engine | None = None
+_SessionLocal: sessionmaker | None = None
+_async_engine: Any | None = None
+_AsyncSessionLocal: async_sessionmaker | None = None
+_SLOW_QUERY_THRESHOLD_MS: int | None = None
+
+def _initialize_db_components():
+    global _engine, _SessionLocal, _async_engine, _AsyncSessionLocal, _SLOW_QUERY_THRESHOLD_MS
+    
+    # 🚀 OPTIMIZATION: Ensure SSL for Neon and adjust pool for serverless
+    db_url = settings.DATABASE_URL
+    if "sslmode" not in db_url:
+        separator = "&" if "?" in db_url else "?"
+        db_url = f"{db_url}{separator}sslmode=require"
+
+    # Sync Engine
+    if _engine is None or _SessionLocal is None:
+        _engine = create_engine(
+            db_url,
+            poolclass=QueuePool,
+            pool_size=10,  # 🚀 Lower for serverless to reduce overhead
+            max_overflow=20,
+            pool_timeout=30,
+            pool_recycle=1800,
+            pool_pre_ping=True,
+            connect_args={"connect_timeout": 10}, # 🚀 Fast fail on cold starts
+            echo=settings.DEBUG if hasattr(settings, "DEBUG") else False,
+        )
+        _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False)
+
+    # Async Engine
+    if _async_engine is None or _AsyncSessionLocal is None:
+        # Convert DATABASE_URL to asyncpg
+        # Note: asyncpg does not support sslmode or channel_binding in DSN
+        # We need to strip these params from the URL for asyncpg
+        async_url_str = db_url.replace("postgresql://", "postgresql+asyncpg://")
+        if "?" in async_url_str:
+            base, query = async_url_str.split("?", 1)
+            params = [
+                p for p in query.split("&") 
+                if not p.startswith("sslmode=") and not p.startswith("channel_binding=")
+            ]
+            async_url_str = f"{base}?{'&'.join(params)}" if params else base
+            
+        _async_engine = create_async_engine(
+            async_url_str,
+            pool_size=10,
+            max_overflow=20,
+            pool_timeout=30,
+            pool_recycle=1800,
+            pool_pre_ping=True,
+            connect_args={
+                "command_timeout": 15,
+                "ssl": "require"  # Explicitly enforce SSL for Neon
+            }, 
+        )
+        _AsyncSessionLocal = async_sessionmaker(
+            bind=_async_engine, 
+            class_=AsyncSession, 
+            expire_on_commit=False
+        )
+
+    _SLOW_QUERY_THRESHOLD_MS = settings.SLOW_QUERY_THRESHOLD_MS
+
+
+# =============================================================================
+# SESSION MANAGEMENT
+# =============================================================================
+
+def get_db() -> Generator[Session, None, None]:
+    """Sync session dependency."""
+    _initialize_db_components()
+    db = _SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """Async session dependency for FastAPI."""
+    _initialize_db_components()
+    async with _AsyncSessionLocal() as session:
+        yield session
+
+@asynccontextmanager
+async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
+    """Async context manager for workers."""
+    _initialize_db_components()
+    async with _AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+@contextmanager
+def get_db_context() -> Generator[Session, None, None]:
+    """Sync context manager."""
+    _initialize_db_components()
+    db = _SessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def get_session() -> Session:
+    """
+    Get a new session directly (caller MUST manage lifecycle, including closing the session).
+    
+    WARNING: This function bypasses FastAPI's dependency injection session management.
+    Mismanagement (e.g., forgetting to call session.close()) can lead to connection leaks.
+
+    Usage:
+        session = get_session()
+        try:
+            # use session
+            session.commit()
+        finally:
+            session.close()
+    """
+    _initialize_db_components()
+    if _SessionLocal is None:
+        raise RuntimeError("SessionLocal is not initialized.")
+    return _SessionLocal()
+
+
+def get_engine() -> Engine:
+    """Expose the database engine, initializing components if necessary."""
+    _initialize_db_components()
+    if _engine is None:
+        raise RuntimeError("Database engine is not initialized.")
+    return _engine
+
+
+# =============================================================================
+# CONNECTION POOL UTILITIES
+# =============================================================================
+
+
+def get_pool_status() -> dict:
+    """
+    Get current connection pool statistics.
+
+    Returns:
+        dict with pool metrics for monitoring
+    """
+    _initialize_db_components()
+    if _engine is None:
+        raise RuntimeError("Database engine is not initialized.")
+    pool = cast(QueuePool, _engine.pool)
+    return {
+        "pool_size": pool.size(),
+        "checked_out": pool.checkedout(),
+        "overflow": pool.overflow(),
+        "checked_in": pool.checkedin(),
+        "invalidated": getattr(pool, "_invalidate_time", 0),
+        "max_overflow": getattr(pool, "_max_overflow", 0),
+        "total_connections": pool.size() + pool.overflow(),
+    }
+
+
+def health_check() -> bool:
+    """
+    Verify database connectivity.
+    """
+    _initialize_db_components()
+    if _engine is None:
+        return False
+    try:
+        start = time.time()
+        with _engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        latency = (time.time() - start) * 1000
+        logger.info("database_health_check_passed", latency_ms=f"{latency:.2f}ms")
+        return True
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        return False
+
+def neon_health_check() -> dict:
+    """
+    SOTA: Specialized health check for Neon serverless PostgreSQL.
+    Validates SSL and reports connection characteristics.
+    """
+    _initialize_db_components()
+    status = {"connected": False, "ssl": False, "latency_ms": 0.0}
+    
+    try:
+        start = time.time()
+        with _engine.connect() as conn:
+            res = conn.execute(text("SHOW ssl")).fetchone()
+            status["ssl"] = (res[0] == "on") if res else False
+            status["connected"] = True
+        status["latency_ms"] = (time.time() - start) * 1000
+        logger.info(f"neon_health_check: {status}")
+    except Exception as e:
+        logger.error(f"neon_health_check_failed: {e}")
+        
+    return status
+
+
+def dispose_engine():
+    """
+    Dispose of all pooled connections.
+    Call during graceful shutdown.
+    """
+    _initialize_db_components()
+    if _engine:
+        _engine.dispose()
+        logger.info("Database connection pool disposed")
+
+
+# =============================================================================
+# TABLE INITIALIZATION
+# =============================================================================
+
+
+def create_tables():
+    """
+    Create all tables defined in models.
+    Only use for development/testing - use Alembic for production.
+    """
+    _initialize_db_components()
+    if settings.ENVIRONMENT in ["dev", "test"]:
+        if _engine is None:
+            raise RuntimeError("Database engine is not initialized.")
+        Base.metadata.create_all(bind=_engine)
+        logger.info("Database tables created")
+    else:
+        logger.warning(f"Attempted to create tables in {settings.ENVIRONMENT} environment. Operation blocked.")
+
+
+def drop_tables():
+    """
+    Drop all tables. USE WITH EXTREME CAUTION.
+    """
+    _initialize_db_components()
+    if settings.ENVIRONMENT in ["dev", "test"]:
+        if _engine is None:
+            raise RuntimeError("Database engine is not initialized.")
+        Base.metadata.drop_all(bind=_engine)
+        logger.warning("All database tables dropped!")
+    else:
+        logger.warning(f"Attempted to drop tables in {settings.ENVIRONMENT} environment. Operation blocked.")
+
+
+# =============================================================================
+# EXPORTS
+# =============================================================================
+
+__all__ = [
+    # Core
+    "Base",
+    # Session management
+    "get_db",
+    "get_db_context",
+    "get_session",
+    # Utilities
+    "get_pool_status",
+    "health_check",
+    "dispose_engine",
+    # Models (re-export for convenience)
+    "create_tables",
+    "drop_tables",
+]

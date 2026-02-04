@@ -1,0 +1,30 @@
+# Development Dockerfile for the Worker Service
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install build dependencies for requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+
+# Copy the entire source directory for development
+COPY src/ ./src
+COPY pyproject.toml . # Needed for some local package references
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Corrected CMD to use src.tasks.celery_app for development
+CMD ["celery", "-A", "src.tasks.celery_app", "worker", "-l", "info"]
