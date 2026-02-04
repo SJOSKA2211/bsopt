@@ -11,6 +11,10 @@ import structlog
 from typing import Dict, Any, Type, Optional
 from src.pricing.base import BasePricingEngine
 
+class PricingEngineNotFound(Exception):
+    """Custom exception raised when a requested pricing engine is not found."""
+    pass
+
 logger = structlog.get_logger(__name__)
 
 class PricingEngineFactory:
@@ -49,7 +53,7 @@ class PricingEngineFactory:
             cls._lazy_load(name)
 
         if name not in cls._engines:
-            raise ValueError(f"Unknown pricing engine: {name}")
+            raise PricingEngineNotFound(f"Unknown pricing engine: {name}")
 
         engine_cls = cls._engines[name]
         instance = engine_cls()

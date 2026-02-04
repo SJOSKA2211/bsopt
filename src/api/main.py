@@ -41,10 +41,17 @@ app.middleware("http")(logging_middleware)
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
     """Global exception handler."""
-    logger.error("api_error", error=str(exc), path=request.url.path)
+    error_detail = str(exc)
+    if settings.ENVIRONMENT != "prod": # Provide more detail in non-prod environments
+        import traceback
+        error_detail = traceback.format_exc()
+        logger.error("api_error_detailed", error=error_detail, path=request.url.path)
+    else:
+        logger.error("api_error", error=str(exc), path=request.url.path)
+    
     return ORJSONResponse(
         status_code=500,
-        content={"message": "Internal server error", "detail": str(exc)}
+        content={"message": "Internal server error", "detail": error_detail if settings.ENVIRONMENT != "prod" else "An unexpected error occurred"}
     )
 
 app.add_exception_handler(Exception, api_exception_handler)

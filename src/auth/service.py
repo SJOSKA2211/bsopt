@@ -2,9 +2,10 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from src.database.models import User, OAuth2Client
 from src.config import settings
-from authlib.jose import jwt
+from authlib.jose import jwt, JoseError # Added JoseError
 import time
 import structlog
+from fastapi import HTTPException # Added HTTPException
 
 logger = structlog.get_logger(__name__)
 
@@ -50,9 +51,12 @@ class AuthService:
             payload = jwt.decode(token, settings.rsa_public_key)
             payload.validate()
             return payload
+        except JoseError as e: # Catch specific JWT exceptions
+            logger.warning("token_validation_failed_jwt_error", error=str(e))
+            raise HTTPException(status_code=401, detail=f"Invalid or expired token: {e.__class__.__name__}")
         except Exception as e:
-            logger.warning("token_validation_failed", error=str(e))
-            raise ValueError("Invalid or expired token")
+            logger.error("token_validation_failed_generic_error", error=str(e))
+            raise HTTPException(status_code=500, detail=f"Authentication service error: {e.__class__.__name__}")
 
 def get_auth_service(db: Session):
     return AuthService(db)
