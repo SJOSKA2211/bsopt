@@ -93,9 +93,16 @@ def train_all():
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y_class, test_size=0.2, random_state=42
-    )
+    
+    # 🚀 SINGULARITY: Strict Temporal Split (No Shuffling)
+    # Market data must be validated sequentially to avoid leakage.
+    test_size = 0.2
+    split_idx = int(len(X_scaled) * (1 - test_size))
+    
+    X_train, X_test = X_scaled[:split_idx], X_scaled[split_idx:]
+    y_train, y_test = y_class[:split_idx], y_class[split_idx:]
+    
+    logger.info("temporal_split_complete", train_len=len(X_train), test_len=len(X_test))
 
     train_dataset = TensorDataset(torch.FloatTensor(X_train), torch.LongTensor(y_train))
     test_dataset = TensorDataset(torch.FloatTensor(X_test), torch.LongTensor(y_test))
@@ -108,9 +115,14 @@ def train_all():
     criterion = nn.CrossEntropyLoss()
 
     # 4. MLflow Tracking
-    tracking_uri = "file://" + os.path.abspath("mlruns")
+    from src.config import get_settings
+    settings = get_settings()
+    
+    # MLflow needs standard postgresql prefix (not asyncpg)
+    tracking_uri = settings.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
     mlflow.set_tracking_uri(tracking_uri)
-    os.makedirs("mlruns", exist_ok=True)
+    
+    logger.info("mlflow_tracking_redirected", target="neon")
 
     mlflow.set_experiment("Option_ITM_Classification")
     with mlflow.start_run(run_name=f"master-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"):
