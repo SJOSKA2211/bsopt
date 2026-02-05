@@ -3,7 +3,7 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { auth } from './auth'
 
-const app = new Hono()
+export const app = new Hono()
 const authApp = new Hono() // NEW LINE
 
 authApp.all('*', async (c) => { // NEW BLOCK START
