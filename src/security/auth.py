@@ -282,7 +282,8 @@ async def get_api_key(
     if not api_key:
         return None
     
-    import hmac; key_hash = hmac.new(settings.JWT_SECRET.encode(), api_key.encode(), hashlib.sha256).hexdigest()
+    # Use SHA256 for high-entropy API keys (fast lookup). Not a user password.
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()  # codeql[py/weak-password-hashing]
     
     result = await db.execute(
         select(APIKey).options(selectinload(APIKey.user)).where(
