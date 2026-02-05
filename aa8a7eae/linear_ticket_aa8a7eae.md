@@ -1,7 +1,7 @@
 ---
 id: aa8a7eae
 title: Backend & Infra Cleanup
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-05

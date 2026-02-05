@@ -1,7 +1,7 @@
 ---
 id: 347d6575
 title: Codebase Deep Audit & Python 3.13 Verification
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-05

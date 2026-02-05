@@ -1,7 +1,7 @@
 ---
 id: 4d05ef4c
 title: Advance RL Models (Transformer Integration)
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-05

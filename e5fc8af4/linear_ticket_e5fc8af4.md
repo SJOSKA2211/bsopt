@@ -1,7 +1,7 @@
 ---
 id: e5fc8af4
 title: Ruthless Refactor & Slop Removal
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-05

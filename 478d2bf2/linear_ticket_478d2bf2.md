@@ -1,7 +1,7 @@
 ---
 id: 478d2bf2
 title: Refactor ML Training/Eval Pipelines
-status: Triage
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-05

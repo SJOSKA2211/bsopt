@@ -44,49 +44,49 @@ class TestMonteCarloEngine:
         # American put value should be slightly higher or equal
         assert am_put >= eu_put - 0.2
 
-        def test_greeks_calculation(self, params):
-            # Increased paths to ensure convexity (Gamma > 0) isn't drowned by noise
-            config = MCConfig(n_paths=50000, seed=42, control_variate=False)
-            engine = MonteCarloEngine(config)
-            greeks = engine.calculate_greeks(params, "call")
+    def test_greeks_calculation(self, params):
+        # Increased paths to ensure convexity (Gamma > 0) isn't drowned by noise
+        config = MCConfig(n_paths=50000, seed=42, control_variate=False)
+        engine = MonteCarloEngine(config)
+        greeks = engine.calculate_greeks(params, "call")
+    
+        # BS Delta ~ 0.6368
+        assert 0.6 < greeks.delta < 0.7
+        # Gamma for Long Call is always positive
+        # assert greeks.gamma > 0 # FIXME: Investigate negative Gamma in MC
+        assert greeks.vega > 0
+
+    def test_geometric_asian_price(self, params):
+        price = geometric_asian_price(params, "call", n_obs=252)
+        assert price > 0
+        # Asian call on geometric average is usually cheaper than vanilla
+        assert price < 10.4506 
+
+    def test_config_validation(self):
+        with pytest.raises(ValueError):
+            MCConfig(n_paths=-1)
+        with pytest.raises(ValueError):
+            MCConfig(n_steps=0)
+
+    def test_sobol_method(self, params):
+        # Test that sobol initialization doesn't crash and adjusts n_paths
+        config = MCConfig(n_paths=1000, method="sobol", seed=42)
+        engine = MonteCarloEngine(config)
+        price, _ = engine.price_european(params, "call")
+        assert price > 0
+
+    def test_gpu_threshold_logic(self, params):
+        # Trigger the GPU path logic
+        config = MCConfig(n_paths=10, method="monte_carlo", control_variate=False)
+        engine = MonteCarloEngine(config)
+        price = engine.price(params, "call")
+        assert price >= 0
+
+    def test_greeks_fd_fallback(self, params):
+        """Test Greeks calculation using Finite Difference fallback (Control Variate enabled)."""
+        config = MCConfig(n_paths=10000, seed=42, control_variate=True)
+        engine = MonteCarloEngine(config)
+        greeks = engine.calculate_greeks(params, "call")
         
-            # BS Delta ~ 0.6368
-            assert 0.6 < greeks.delta < 0.7
-            # Gamma for Long Call is always positive
-            # assert greeks.gamma > 0 # FIXME: Investigate negative Gamma in MC
-            assert greeks.vega > 0
-    
-        def test_geometric_asian_price(self, params):
-            price = geometric_asian_price(params, "call", n_obs=252)
-            assert price > 0
-            # Asian call on geometric average is usually cheaper than vanilla
-            assert price < 10.4506 
-    
-        def test_config_validation(self):
-            with pytest.raises(ValueError):
-                MCConfig(n_paths=-1)
-            with pytest.raises(ValueError):
-                MCConfig(n_steps=0)
-    
-        def test_sobol_method(self, params):
-            # Test that sobol initialization doesn't crash and adjusts n_paths
-            config = MCConfig(n_paths=1000, method="sobol", seed=42)
-            engine = MonteCarloEngine(config)
-            price, _ = engine.price_european(params, "call")
-            assert price > 0
-    
-        def test_gpu_threshold_logic(self, params):
-            # Trigger the GPU path logic
-            config = MCConfig(n_paths=10, method="monte_carlo", control_variate=False)
-            engine = MonteCarloEngine(config)
-            price = engine.price(params, "call")
-            assert price >= 0
-    
-        def test_greeks_fd_fallback(self, params):
-            """Test Greeks calculation using Finite Difference fallback (Control Variate enabled)."""
-            config = MCConfig(n_paths=10000, seed=42, control_variate=True)
-            engine = MonteCarloEngine(config)
-            greeks = engine.calculate_greeks(params, "call")
-            
-            assert 0.5 < greeks.delta < 0.8 # Widened tolerance for MC noise/bias
-            # assert greeks.gamma > 0
+        assert 0.5 < greeks.delta < 0.8 # Widened tolerance for MC noise/bias
+        # assert greeks.gamma > 0
