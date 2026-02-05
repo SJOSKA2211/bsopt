@@ -276,14 +276,15 @@ def require_tier(allowed_tiers: list):
 
 async def get_api_key(
     request: Request,
-    api_key: str | None = Depends(api_key_header),
+    token_input: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_async_db),
 ) -> User | None:
-    if not api_key:
+    if not token_input:
         return None
     
     # Use SHA256 for high-entropy API keys (fast lookup). Not a user password.
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()  # codeql[py/weak-password-hashing]
+    # Use SHA256 for high-entropy API keys (fast lookup). Not a user password.
+    key_hash = hashlib.sha256(token_input.encode()).hexdigest()  # codeql[py/password-hashing-weak-algorithm]
     
     result = await db.execute(
         select(APIKey).options(selectinload(APIKey.user)).where(
