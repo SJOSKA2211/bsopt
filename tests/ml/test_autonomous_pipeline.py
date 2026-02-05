@@ -85,7 +85,13 @@ async def test_get_current_model_performance(mock_config):
     with patch("src.ml.autonomous_pipeline.create_engine"):
         pipeline = AutonomousMLPipeline(mock_config)
         mock_session = AsyncMock()
-        mock_session.execute.return_value.scalar.return_value = 0.85
+        
+        # Create a sync Mock for the result object
+        mock_result = MagicMock()
+        mock_result.scalar.return_value = 0.85
+        
+        # AsyncSession.execute is async, so it returns the result when awaited
+        mock_session.execute.return_value = mock_result
         
         perf = await pipeline.get_current_model_performance(mock_session)
         assert perf == 0.85

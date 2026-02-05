@@ -11,11 +11,10 @@ This module provides:
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Sequence, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from anyio.to_thread import run_sync
-from sqlalchemy import and_, func, insert, select, update
-from sqlalchemy.dialects.postgresql import insert as postgresql_insert
+from sqlalchemy import and_, func, insert, select, update, text
 from sqlalchemy.orm import Session, selectinload
 
 from src.security.password import password_service
@@ -453,6 +452,8 @@ async def create_model(
     db: AsyncSession,
     name: str,
     algorithm: str,
+    model_type: str = "equity_options",
+    artifact_uri: str = "s3://models/null",
     created_by: Optional[UUID] = None,
     hyperparameters: Optional[dict] = None,
     training_metrics: Optional[dict] = None,
@@ -460,12 +461,14 @@ async def create_model(
 ) -> MLModel:
     """Create a new model version (Async)."""
     latest = await get_latest_model_version(db, name)
-    version = (latest.version + 1) if latest else 1
+    version = str(int(latest.version) + 1) if latest else "1"
 
     model = MLModel(
         name=name,
         algorithm=algorithm,
         version=version,
+        model_type=model_type,
+        artifact_uri=artifact_uri,
         created_by=created_by,
         hyperparameters=hyperparameters,
         training_metrics=training_metrics,

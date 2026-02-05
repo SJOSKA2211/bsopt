@@ -1,43 +1,69 @@
 import torch
-import torch.distributed as dist
-import os
+import ray
+from ray.train import ScalingConfig
+from ray.train.torch import TorchTrainer
+from src.ml.trainer_v2 import Trainer
+import torch.nn as nn
+from typing import Dict, Any, Optional
 import structlog
-from typing import Optional
 
 logger = structlog.get_logger(__name__)
 
-class NCCLOrchestrator:
+def train_func(config: Dict[str, Any]):
     """
-    🚀 SINGULARITY: High-performance multi-GPU weight synchronization.
-    Uses NCCL (NVIDIA Collective Communications Library) for zero-latency GPU-to-GPU sync.
+    Worker function executed on each Ray node.
     """
-    @staticmethod
-    def init_process_group(rank: int, world_size: int, master_addr: str = "localhost", master_port: str = "12355"):
-        os.environ['MASTER_ADDR'] = master_addr
-        os.environ['MASTER_PORT'] = master_port
-        
-        # 🚀 SOTA: Force NCCL backend for peak GPU performance
-        dist.init_process_group("nccl", rank=rank, world_size=world_size)
-        
-        # Set local device
-        torch.cuda.set_device(rank)
-        logger.info("nccl_process_group_initialized", rank=rank, world_size=world_size)
+    # 1. Setup Model, Optimizer, Criterion
+    # For now using a simple placeholder, but in prod this uses architectures/
+    model = nn.Sequential(
+        nn.Linear(10, 128),
+        nn.ReLU(),
+        nn.Linear(128, 1)
+    )
+    
+    # 2. Wrap model for Distributed Data Parallel (DDP)
+    model = ray.train.torch.prepare_model(model)
+    
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.get("lr", 1e-3))
+    criterion = nn.MSELoss()
+    
+    # 3. Setup Data (Sharded automatically by Ray Train)
+    # train_loader = ... 
+    # val_loader = ...
+    # loader = ray.train.torch.prepare_data_loader(loader)
+    
+    # 4. Initialize the custom V2 Trainer
+    # We pass the sharded loaders and the DDP model
+    trainer = Trainer(
+        model=model,
+        optimizer=optimizer,
+        criterion=criterion,
+        experiment_name=config.get("experiment_name", "BSOpt_Distributed")
+    )
+    
+    # trainer.fit(train_loader, val_loader, epochs=config.get("epochs", 10))
+    logger.info("distributed_worker_ready", rank=ray.train.get_context().get_local_rank())
 
-    @staticmethod
-    def sync_weights(model: torch.nn.Module):
-        """🚀 SOTA: Synchronize weights across all GPUs in the world."""
-        if not dist.is_initialized():
-            return
-            
-        for param in model.parameters():
-            # All-reduce gradients or weights depending on the phase
-            # For pure weight sync, we broadcast from rank 0
-            dist.broadcast(param.data, src=0)
-            
-        logger.debug("weights_synchronized_via_nccl")
+class BSOptDistributedTrainer:
+    """
+    Orchestrator for scaling BSOpt training across a cluster.
+    """
+    def __init__(self, num_workers: int = 2, use_gpu: bool = torch.cuda.is_available()):
+        self.num_workers = num_workers
+        self.use_gpu = use_gpu
 
-    @staticmethod
-    def cleanup():
-        if dist.is_initialized():
-            dist.destroy_process_group()
-            logger.info("nccl_process_group_destroyed")
+    def run(self, config: Dict[str, Any]):
+        trainer = TorchTrainer(
+            train_func,
+            train_loop_config=config,
+            scaling_config=ScalingConfig(num_workers=self.num_workers, use_gpu=self.use_gpu)
+        )
+        
+        result = trainer.fit()
+        logger.info("distributed_training_complete", metrics=result.metrics)
+        return result
+
+if __name__ == "__main__":
+    ray.init(ignore_reinit_error=True)
+    dt = BSOptDistributedTrainer()
+    dt.run({"lr": 1e-4, "epochs": 5})

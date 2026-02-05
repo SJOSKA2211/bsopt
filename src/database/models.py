@@ -15,12 +15,13 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    JSON,
     Numeric,
     String,
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -98,7 +99,7 @@ class AuditLog(Base):
     client_ip: Mapped[str] = mapped_column(Text, nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Numeric, nullable=False)
-    metadata_json: Mapped[Optional[dict]] = mapped_column("metadata", JSONB)
+    metadata_json: Mapped[Optional[dict]] = mapped_column("metadata", JSON)
 
     def __repr__(self) -> str:
         return f"<AuditLog(user_id={self.user_id}, path={self.path})>"
@@ -143,10 +144,10 @@ class OAuth2Client(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     client_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
-    redirect_uris: Mapped[Optional[List[str]]] = mapped_column(JSONB)
-    scopes: Mapped[Optional[List[str]]] = mapped_column(JSONB)
-    grant_types: Mapped[Optional[List[str]]] = mapped_column(JSONB)
-    response_types: Mapped[Optional[List[str]]] = mapped_column(JSONB)
+    redirect_uris: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    scopes: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    grant_types: Mapped[Optional[List[str]]] = mapped_column(JSON)
+    response_types: Mapped[Optional[List[str]]] = mapped_column(JSON)
     is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
@@ -374,9 +375,9 @@ class MLModel(Base):
     algorithm: Mapped[str] = mapped_column(String(50), nullable=False)
     artifact_uri: Mapped[str] = mapped_column(String(255), nullable=False)
     model_artifact_url: Mapped[Optional[str]] = mapped_column(String(255)) # Alias for crud compat
-    metrics: Mapped[Optional[dict]] = mapped_column(JSONB)
-    hyperparameters: Mapped[Optional[dict]] = mapped_column(JSONB)
-    training_metrics: Mapped[Optional[dict]] = mapped_column(JSONB)
+    metrics: Mapped[Optional[dict]] = mapped_column(JSON)
+    hyperparameters: Mapped[Optional[dict]] = mapped_column(JSON)
+    training_metrics: Mapped[Optional[dict]] = mapped_column(JSON)
     created_by: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True))
     is_production: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -437,7 +438,7 @@ class CalibrationResult(Base):
     rmse: Mapped[float] = mapped_column(Numeric, nullable=False)
     r_squared: Mapped[float] = mapped_column(Numeric, nullable=False)
     num_options: Mapped[int] = mapped_column(Integer, nullable=False)
-    svi_params: Mapped[Optional[dict]] = mapped_column(JSONB)
+    svi_params: Mapped[Optional[dict]] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:

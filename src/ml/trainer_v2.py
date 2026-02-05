@@ -64,7 +64,7 @@ class Trainer:
     def train_epoch(self, loader: DataLoader) -> float:
         self.model.train()
         total_loss = 0.0
-        for batch_idx, (data, target) in enumerate(loader):
+        for data, target in loader:
             data, target = data.to(self.device), target.to(self.device)
             self.optimizer.zero_grad()
             output = self.model(data)
@@ -79,7 +79,7 @@ class Trainer:
         self.model.eval()
         total_loss = 0.0
         with torch.no_grad():
-            for data, target in enumerate(loader):
+            for data, target in loader:
                 data, target = data.to(self.device), target.to(self.device)
                 output = self.model(data)
                 loss = self.criterion(output, target)

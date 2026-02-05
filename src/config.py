@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     # ML Serving Configuration
     ML_SERVICE_GRPC_URL: str = "localhost:50051"
     
+    # Pricing Configuration
+    MONTE_CARLO_GPU_THRESHOLD: int = 10000
+    
     # Rate Limiting Tiers
     RATE_LIMIT_FREE: int = 100
     RATE_LIMIT_PRO: int = 1000
@@ -60,6 +63,21 @@ class Settings(BaseSettings):
     JWT_PRIVATE_KEY: Optional[str] = ""
     JWT_PUBLIC_KEY: Optional[str] = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # NSE Scraper Configuration
+    NSE_CACHE_TTL: int = 300
+    NSE_NAME_SYMBOL_MAP: Dict[str, str] = {
+        "Safaricom": "SCOM",
+        "KCB": "KCB",
+        "Equity": "EQTY",
+        "Co-operative": "COOP"
+    }
+    NSE_SECTORS: List[str] = ["Banking", "Commercial", "Energy", "Insurance", "Investment", "Manufacturing", "Telecommunication"]
+
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT == "prod"
 
     @property
     def rsa_private_key(self) -> str:

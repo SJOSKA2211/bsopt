@@ -1,0 +1,14 @@
+artifact_uri: file:///home/kamau/bsopt/mlruns/927315337018571002/a72066c7506f4bca90f5d208516dd4ba/artifacts
+end_time: 1770301095906
+entry_point_name: ''
+experiment_id: '927315337018571002'
+lifecycle_stage: active
+run_id: a72066c7506f4bca90f5d208516dd4ba
+run_name: suave-moth-429
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1770301095744
+status: 3
+tags: []
+user_id: kamau

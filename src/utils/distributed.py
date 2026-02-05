@@ -48,10 +48,11 @@ class RayOrchestrator:
         actual_cpus = num_cpus if num_cpus is not None else detected_cpus
         
         # 2. Memory Optimization
-        # Rule of thumb: Leave 30% for system and other services
+        total_ram_gb = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024**3)
         if object_store_memory_gb is None:
-            total_ram_gb = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024**3)
-            object_store_memory = int(total_ram_gb * 0.3 * 1024**3)
+            # Rule of thumb: 10% for object store, max 2GB in tests
+            limit = 0.1 if os.getenv("ENVIRONMENT") != "test" else 0.05
+            object_store_memory = int(min(total_ram_gb * limit, 2.0) * 1024**3)
         else:
             object_store_memory = int(object_store_memory_gb * 1024**3)
             
@@ -66,15 +67,16 @@ class RayOrchestrator:
         )
         
         # 🚀 SOTA: Initializing Ray with hardware-aware config
+        import json
         ray.init(
             num_cpus=actual_cpus,
             num_gpus=num_gpus,
             object_store_memory=object_store_memory,
             _system_config={
-                "object_spilling_config": {
+                "object_spilling_config": json.dumps({
                     "type": "filesystem",
                     "params": {"directory_path": spill_dir}
-                }
+                })
             },
             ignore_reinit_error=True
         )

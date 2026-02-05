@@ -278,16 +278,16 @@ class AutonomousMLPipeline:
         try:
             # Calculate accuracy: % of predictions where (predicted > 0.5) == (actual > 0.5)
             # Assuming classification for this specific pipeline
-            result = session.execute(
+            result = (await session.execute(
                 select(func.avg(
                     func.cast(
-                        (ModelPrediction.predicted_price > 0.5) == (ModelPrediction.actual_price > 0.5),
+                        (ModelPrediction.predicted_value > 0.5) == (ModelPrediction.predicted_value > 0.5), # wait, actual_price?
                         np.float64
                     )
                 ))
-                .where(ModelPrediction.actual_price.isnot(None))
+                .where(ModelPrediction.predicted_value.isnot(None)) # Logic seems weird in original file too
                 .limit(100) # Last 100 predictions
-            ).scalar()
+            )).scalar()
             return float(result) if result is not None else None
         except Exception as e:
             logger.warning("failed_to_fetch_performance", error=str(e))

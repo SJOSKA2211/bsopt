@@ -92,9 +92,9 @@ async def get_token_from_header(
 
 class AuthService:
     @property
-    def private_key(self): return settings.JWT_PRIVATE_KEY
+    def private_key(self): return settings.rsa_private_key
     @property
-    def public_key(self): return settings.JWT_PUBLIC_KEY
+    def public_key(self): return settings.rsa_public_key
     @property
     def algorithm(self): return settings.JWT_ALGORITHM
     @property

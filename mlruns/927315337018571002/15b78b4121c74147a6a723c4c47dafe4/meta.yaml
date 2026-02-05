@@ -1,0 +1,14 @@
+artifact_uri: file:///home/kamau/bsopt/mlruns/927315337018571002/15b78b4121c74147a6a723c4c47dafe4/artifacts
+end_time: 1770300915751
+entry_point_name: ''
+experiment_id: '927315337018571002'
+lifecycle_stage: active
+run_id: 15b78b4121c74147a6a723c4c47dafe4
+run_name: enthused-crab-953
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1770300904268
+status: 3
+tags: []
+user_id: kamau

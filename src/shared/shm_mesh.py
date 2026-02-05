@@ -106,6 +106,8 @@ class SharedMemoryRingBuffer:
         return [MarketTick(t['symbol'].decode().strip('\x00'), t['price'], t['volume'], t['timestamp']) for t in view], head
 
     def close(self):
+        if hasattr(self, 'data_view'):
+            del self.data_view
         if self.shm:
             self.shm.close()
 
