@@ -82,17 +82,29 @@ class MonteCarloEngine(PricingStrategy):
         # But we reuse the price we just got!
         # Actually, let's just do a quick FD for Gamma around the spot
         ds = max(params.spot * 0.001, 0.01)
+        # CRITICAL: Use the same seed for FD steps to reduce variance (Common Random Numbers)
+        # We need to know what seed was used for the base price.
+        # Since we can't easily extract the exact state from the previous JIT call,
+        # we ideally should have generated Z outside. 
+        # But here, we will just ensure p_plus and p_minus share a seed (even if different from base).
+        # Better yet, let's use the config seed if available.
+        fd_seed = self.config.seed
+        
         p_plus, _ = self.price_european(
-            dataclasses.replace(params, spot=params.spot + ds), option_type
+            dataclasses.replace(params, spot=params.spot + ds), option_type, seed=fd_seed
         )
         p_minus, _ = self.price_european(
-            dataclasses.replace(params, spot=params.spot - ds), option_type
+            dataclasses.replace(params, spot=params.spot - ds), option_type, seed=fd_seed
         )
         # Recalculate p_base from +/- to be consistent or use price
         # gamma ~ (p_plus - 2*price + p_minus) / ds^2
         # But consistent FD uses p_base from the same estimator type
+        # To be safe, we should re-calculate p_center with the same seed if 'price' came from a different stream?
+        # The 'price' above came from jit_mc_european_price_and_greeks which might handle RNG differently.
+        # Let's calculate p_center with the same seed for Gamma consistency.
+        p_center, _ = self.price_european(params, option_type, seed=fd_seed)
         
-        gamma = (p_plus - 2 * price + p_minus) / (ds**2)
+        gamma = (p_plus - 2 * p_center + p_minus) / (ds**2)
         
         # Theta via PWM (usually -r*Price - ... )
         # But we have Rho/Vega/Delta. 

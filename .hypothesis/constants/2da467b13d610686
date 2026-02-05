@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/registry/promote.py
+# hypothesis_version: 6.151.5
+
+['--model', '--run_id', '--stage', 'Production', '__main__', 'model_promoted']

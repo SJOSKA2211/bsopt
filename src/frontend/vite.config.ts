@@ -25,6 +25,24 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
+      proxy: {
+        '/api/auth': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        },
+        '/api/v1': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        },
+        '/graphql': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        },
+        '/health': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        }
+      },
       watch: {
         usePolling: true,
       },
@@ -33,6 +51,7 @@ export default defineConfig(({ mode }) => {
       exclude: ['bsopt-wasm'] // Prevent Vite from trying to pre-bundle the WASM pkg
     },
     build: {
+      sourcemap: true,
       target: 'esnext', // Support top-level await for WASM
       cssCodeSplit: true, // 🚀 SINGULARITY: Granular CSS delivery
       assetsInlineLimit: 4096, // Inline small assets to reduce requests

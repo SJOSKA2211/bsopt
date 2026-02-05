@@ -3,7 +3,7 @@ name = "bsopt"
 version = "2.5.0"
 description = "The God-Mode Financial Manifold for Transdimensional Derivative Pricing"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
     "numpy>=2.0.0",
@@ -34,7 +34,7 @@ ml = [
     "optuna>=3.6.0",
     "ray[tune]>=2.30.0",
     "qiskit>=1.1.0",
-    "qiskit-aer-gpu>=0.14.0",
+    "qiskit-aer>=0.14.0",
 ]
 cli = [
     "click>=8.1.0",

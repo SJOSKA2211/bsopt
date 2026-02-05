@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import structlog
 from typing import Dict, Any, Optional

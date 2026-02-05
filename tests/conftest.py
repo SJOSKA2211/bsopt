@@ -1,5 +1,13 @@
 import sys
+import os
 from unittest.mock import MagicMock, AsyncMock, patch
+
+# Pre-set environment variables to avoid Pydantic validation errors during import
+os.environ["REDIS_URL"] = "redis://localhost:6379/0"
+os.environ["JWT_SECRET"] = "test-secret-for-hmac"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["ML_SERVICE_GRPC_URL"] = "localhost:50051"
+os.environ["MFA_ENCRYPTION_KEY"] = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
 
 # ============================================================================ 
 # EARLY MOCKS (Immediate Deception for Python 3.14 Compatibility)
@@ -59,6 +67,11 @@ for mod in [
     "flwr", "confluent_kafka.schema_registry", "confluent_kafka.schema_registry.avro"
 ]:
     sys.modules[mod] = VersionedMock(_mock_name=mod)
+
+# Fix mlflow context manager
+mock_mlflow = sys.modules["mlflow"]
+mock_mlflow.start_run.return_value.__enter__ = MagicMock()
+mock_mlflow.start_run.return_value.__exit__ = MagicMock()
 
 # Mock torch specifically
 mock_torch = VersionedMock(_mock_name="torch")
@@ -138,6 +151,7 @@ def pytest_configure(config):
     mock_settings.ML_SERVICE_GRPC_URL = "localhost:50051"
     mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051"
     mock_settings.ML_GRPC_POOL_SIZE = 1
+    mock_settings.MONTE_CARLO_GPU_THRESHOLD = 1000000 # High threshold to default to CPU
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
     
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))

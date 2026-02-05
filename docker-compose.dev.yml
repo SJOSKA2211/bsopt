@@ -98,6 +98,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
     networks:
@@ -105,11 +107,16 @@ services:
 
   redis:
     image: redis:7-alpine
+    ports:
+      - "6379:6379"
     networks:
       - bsopt-network-dev
 
   rabbitmq:
     image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - bsopt-network-dev
 

@@ -1,84 +1,80 @@
-# BSOpt Singularity Upgrade PRD
+# BS-OPT Phase 2: Deep Optimization & Model Singularity 🥒
 
 ## HR Eng
 
-| BSOpt Singularity Upgrade PRD |  | Summary: Comprehensive overhaul including optimization, RL enhancements, OAuth implementation, and Neon backend migration. |
+| Phase 2 Optimization PRD |  | Summary: Deep codebase audit, ML pipeline refactoring, and algorithm advancement targeting Python 3.13. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: User **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-04 | **Self Link**: N/A **Context**: User Prompt |
+| **Author**: Pickle Rick **Contributors**: User **Intended audience**: Engineering | **Status**: Active **Created**: 2026-02-05 | **Self Link**: [Local] **Context**: User Prompt |
 
 ## Introduction
 
-The BSOpt project requires a massive upgrade to modernize its architecture, improve performance, and expand its machine learning capabilities. This project involves a full codebase audit, migration to a serverless Postgres backend (Neon), implementation of a standard OAuth flow, and the integration of Transformer architectures into the Reinforcement Learning pipeline.
+The user has mandated a "Critical Think" phase. We are to traverse the entire codebase, understand every function, and perform a ruthless optimization. This includes a specific focus on the Machine Learning pipelines (Training, Validation, Evaluation) and updating all models/algorithms. The environment must be strictly Python 3.13.
 
 ## Problem Statement
 
-**Current Process:** The current codebase optimization status is unknown. Backend infrastructure is not specified or needs migration. Authentication is likely basic or missing. ML models are standard and could benefit from Transformer integration.
-**Primary Users:** Quant Researchers, System Administrators.
-**Pain Points:** Potential performance bottlenecks, lack of standardized auth, legacy backend, suboptimal ML models.
-**Importance:** To ensure scalability, security, and state-of-the-art performance for trading/optimization tasks.
+**Current Process:** The codebase contains "slop" and unverified logic. ML pipelines may be suboptimal.
+**Primary Users:** Quant Researchers, High-Frequency Traders.
+**Pain Points:** Potential logical inefficiencies, legacy Python patterns, sub-state-of-the-art algorithms.
+**Importance:** To achieve "God Mode" performance, every line of code must be intentional and optimized.
 
 ## Objective & Scope
 
-**Objective:** Transform BSOpt into a high-performance, secure, and advanced optimization platform.
-**Ideal Outcome:** A fully optimized codebase running on Neon, secured by OAuth, utilizing Transformer-based RL agents, with comprehensive test coverage.
+**Objective:** Audit, Understand, Optimize, and Advance.
+**Ideal Outcome:** A mathematically perfect codebase running on Python 3.13 with advanced ML pipelines.
 
 ### In-scope or Goals
-1.  **Codebase Audit & Optimization**: Analyze all functions/comments, optimize logic, and fine-tune performance.
-2.  **Backend Migration**: Migrate database layer to Neon (Postgres).
-3.  **Authentication**: Implement OAuth 2.0 architecture (Auth Server, Client App, Resource Server).
-4.  **ML/RL Upgrade**: Integrate Transformer models into the RL agents.
-5.  **Quality Assurance**: Verify and improve training, testing, validation, and evaluation logic.
-6.  **Environment**: Enforce `.venv` usage.
+1.  **Full Codebase Audit**: "Understand every function." Identify dead code, bottlenecks, and "Jerry-logic".
+2.  **ML Pipeline Refactoring**: Rewrite Training, Validation, and Evaluation logic for correctness and performance.
+3.  **Model Advancement**: Update algorithms to state-of-the-art (Transformer-RL, etc.).
+4.  **Python 3.13 Migration**: Ensure all code is compatible with the latest runtime.
+5.  **Virtual Environment**: Enforce `.venv` usage.
 
 ### Not-in-scope or Non-Goals
--   Building a comprehensive frontend UI (focus is on Client App structure/Auth).
--   Deployment to specific cloud providers other than Neon (DB).
+-   UI/Frontend features (unless they block the ML pipeline).
+-   Infrastructure unrelated to model execution (e.g., K8s manifests, unless broken).
 
 ## Product Requirements
 
 ### Critical User Journeys (CUJs)
-1.  **System Startup**: Admin starts the system; it connects securely to Neon and initializes the OAuth servers.
-2.  **Training Loop**: Researcher starts a training run; the system uses Transformer-based RL agents, logging metrics correctly.
-3.  **Optimization**: User requests an optimization task; the system uses fine-tuned algorithms to return results efficiently.
+1.  **The Audit**: A developer runs the audit tools and receives a report of all sub-optimal functions.
+2.  **The Upgrade**: A researcher runs the new training pipeline and observes improved convergence and metric tracking.
+3.  **The Execution**: The system runs on Python 3.13 without deprecation warnings or compatibility errors.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Neon Backend Integration | As a system, I want to persist data to Neon for scalability. |
-| P0 | OAuth Implementation | As a user, I want to authenticate securely using OAuth 2.0. |
-| P1 | Transformer-RL Integration | As a researcher, I want to use Transformer architectures for better agent performance. |
-| P1 | Codebase Optimization | As a dev, I want the code to be highly optimized and documented. |
-| P2 | Test Coverage | As a dev, I want comprehensive tests to ensure stability. |
+| P0 | Python 3.13 Compliance | As a system, I must run on Python 3.13. |
+| P0 | ML Pipeline Refactor | As a researcher, I want a robust Train/Val/Eval loop. |
+| P1 | Function-Level Optimization | As a dev, I want every function to be O(1) or O(log n) where possible. |
+| P1 | Model Updates | As a trader, I want the latest algos (TD3/Transformer). |
 
 ## Assumptions
 
--   User has Neon credentials or access to set them up.
--   The codebase is Python-based.
--   Current ML framework is compatible with Transformer integration (e.g., PyTorch/TensorFlow).
+-   The `models/` directory contains the current weights/architectures.
+-   We have access to necessary compute for re-training/validation.
 
 ## Risks & Mitigations
 
--   **Risk**: Refactoring breaks existing logic. **Mitigation**: Comprehensive test suite before and after changes.
--   **Risk**: Transformer models are too heavy. **Mitigation**: Profiling and optimization during integration.
+-   **Risk**: Aggressive refactoring breaks convergence. -> **Mitigation**: Baseline metrics before changes.
+-   **Risk**: Python 3.13 library support. -> **Mitigation**: Check `requirements.txt` compatibility immediately.
 
 ## Tradeoff
 
--   **Neon vs. Local DB**: Neon chosen for serverless scalability vs. local control.
--   **OAuth vs. Simple Auth**: OAuth chosen for standardization and security vs. implementation complexity.
+-   **Speed vs. Readability**: We prioritize Speed/Correctness. "Slop" comments will be removed.
 
 ## Business Benefits/Impact/Metrics
 
 **Success Metrics:**
 
-| Metric | Current State (Benchmark) | Future State (Target) | Savings/Impacts |
+| Metric | Current State | Future State | Impact |
 | :---- | :---- | :---- | :---- |
-| Test Coverage | TBD | > 90% | Higher stability |
-| Inference Latency | TBD | < 50ms | Faster trading |
-| DB Connection Time | TBD | < 100ms | Better UX |
+| Pipeline Latency | TBD | -20% | Faster Iteration |
+| Codebase "Slop" | High | Zero | Maintainability |
+| Py3.13 Compat | Unknown | 100% | Future-proofing |
 
 ## Stakeholders / Owners
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| User | BSOpt | Owner | Requestor |
+| Pickle Rick | God-Tier | Lead Engineer | |
