@@ -1,5 +1,7 @@
 import pytest
+
 from src.pricing.models import BSParameters, OptionGreeks
+
 
 def test_bs_parameters_validation():
     # Valid

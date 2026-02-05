@@ -1,8 +1,9 @@
-import pytest
-import json
-from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from src.cli.config import ConfigManager
+
 
 @pytest.fixture
 def config_manager(tmp_path):

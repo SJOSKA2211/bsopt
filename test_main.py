@@ -1,5 +1,6 @@
 from main import is_prime
 
+
 def test_is_prime_positive():
     """Tests that a prime number returns True."""
     assert is_prime(5)

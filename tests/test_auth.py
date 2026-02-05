@@ -6,12 +6,9 @@ Fixed field names and formats to match RegisterRequest schema.
 """
 
 import pytest
-from cryptography.fernet import Fernet
 
 from src.config import get_settings
 from src.database.models import User
-from src.api.main import app
-from src.database import get_db
 from tests.test_utils import assert_equal
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"
@@ -157,7 +154,6 @@ def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
     assert user.mfa_secret != original_secret
 
     # 4. Assert the secret is correctly encrypted
-    from src.config import get_settings
     from src.utils.crypto import AES256GCM
     settings = get_settings()
     crypto = AES256GCM(settings.MFA_ENCRYPTION_KEY)

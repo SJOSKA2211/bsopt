@@ -6,22 +6,21 @@ Provides a centralized, tuned, and persistent httpx.AsyncClient for service-to-s
 Ensures connection pooling and optimal timeout settings.
 """
 
+
 import httpx
-from typing import Optional
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-import httpx
 import asyncio
-from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 class HttpClientManager:
-    _client: Optional[httpx.AsyncClient] = None
-    _semaphore: Optional[asyncio.Semaphore] = None
+    _client: httpx.AsyncClient | None = None
+    _semaphore: asyncio.Semaphore | None = None
 
     @classmethod
     def get_client(cls) -> httpx.AsyncClient:

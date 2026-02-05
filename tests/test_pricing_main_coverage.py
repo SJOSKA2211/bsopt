@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
+
 from src.pricing.main import app
-from datetime import datetime, timedelta
+
 
 def test_pricing_health():
     client = TestClient(app)

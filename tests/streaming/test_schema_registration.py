@@ -1,12 +1,13 @@
-import os
 import json
-import pytest
+import os
+import sys
 from unittest.mock import MagicMock, patch
 
-import sys
+import pytest
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../scripts'))
-from register_market_data_schema import register_schema
 from confluent_kafka.schema_registry import Schema
+from register_market_data_schema import register_schema
 
 SCHEMA_PATH = "src/streaming/schemas/market_data.avsc"
 TEST_SUBJECT_NAME = "test-market-data-value"
@@ -22,7 +23,7 @@ def test_market_data_schema_is_valid_json():
     """
     Test that the market_data.avsc schema file is valid JSON.
     """
-    with open(SCHEMA_PATH, 'r') as f:
+    with open(SCHEMA_PATH) as f:
         schema_content = f.read()
     try:
         json.loads(schema_content)
@@ -39,7 +40,7 @@ def test_register_market_data_schema_script_interaction(mock_schema_registry_cli
     mock_schema_registry_client.return_value = mock_client_instance
     mock_client_instance.register_schema.return_value = 1 # Simulate a successful registration
 
-    with open(SCHEMA_PATH, 'r') as f:
+    with open(SCHEMA_PATH) as f:
         expected_schema_str = f.read()
 
     register_schema(SCHEMA_PATH, TEST_SUBJECT_NAME, TEST_SCHEMA_REGISTRY_URL)

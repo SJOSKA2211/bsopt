@@ -1,13 +1,15 @@
-import numpy as np
 import os
 import sys
-import requests
 import time
+
+import numpy as np
+import requests
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 from ml.trainer import InstrumentedTrainer
+
 
 def verify_pushgateway(job_name):
     """Verify that metrics exist in Pushgateway."""

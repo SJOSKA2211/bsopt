@@ -1,8 +1,9 @@
-import pytest
-from fastapi.testclient import TestClient
-from src.api.main import app
-from src.auth.security import verify_token, RoleChecker
 from unittest.mock import patch
+
+from fastapi.testclient import TestClient
+
+from src.api.main import app
+from src.auth.security import verify_token
 
 client = TestClient(app)
 

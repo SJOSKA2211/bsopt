@@ -1,8 +1,9 @@
 import os
-import subprocess
+import subprocess # nosec B404
 from urllib.parse import urlparse
-from dotenv import load_dotenv
+
 import structlog
+from dotenv import load_dotenv
 
 logger = structlog.get_logger()
 
@@ -45,7 +46,7 @@ def apply_database_optimizations():
     logger.info("applying_optimizations", host=db_host, database=db_name)
     
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True) # nosec B603
         logger.info("optimizations_applied_successfully", output=result.stdout[:500])
     except subprocess.CalledProcessError as e:
         logger.error("optimizations_failed", error=e.stderr)

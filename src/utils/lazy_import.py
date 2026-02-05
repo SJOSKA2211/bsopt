@@ -7,24 +7,24 @@ Features:
 - Graceful error handling
 - Module preloading for production
 """
-import sys
-import time
-import threading
-import importlib
 import os
-from typing import Any, Dict, List, Optional, Tuple, Callable, Iterable
-import structlog
-from importlib import import_module
+import sys
+import threading
+import time
+from collections.abc import Iterable
 from contextlib import contextmanager
+from importlib import import_module
+from typing import Any
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 # Global state
-_import_locks: Dict[str, threading.RLock] = {}
-_import_times: Dict[str, float] = {}
+_import_locks: dict[str, threading.RLock] = {}
+_import_times: dict[str, float] = {}
 _import_stack: threading.local = threading.local()
-_failed_imports: Dict[str, Exception] = {}
+_failed_imports: dict[str, Exception] = {}
 
 class LazyImportError(ImportError):
     """Raised when a lazy import fails with additional context."""
@@ -60,7 +60,7 @@ def _track_import_stack(module_name: str):
 
 def lazy_import(
     package_name: str,
-    import_map: Dict[str, str],
+    import_map: dict[str, str],
     attr_name: str,
     cache_module: Any
 ) -> Any:
@@ -140,7 +140,7 @@ def lazy_import(
                 f"Failed to import {attr_name} from {package_name}: {e}"
             ) from e
 
-def get_import_stats() -> Dict[str, Any]:
+def get_import_stats() -> dict[str, Any]:
     """Get statistics about lazy imports."""
     return {
         'successful_imports': len(_import_times),
@@ -161,10 +161,10 @@ def reset_import_stats():
 
 def preload_modules(
     package_name: str,
-    import_map: Dict[str, str],
+    import_map: dict[str, str],
     attributes: Iterable[str],
     cache_module_override: Any = None,
-    service_type: Optional[str] = None
+    service_type: str | None = None
 ):
     """
     Eagerly load a set of modules with service-awareness.

@@ -6,10 +6,11 @@ Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
 """
 
-import sys
+
 import structlog
-from typing import Dict, Any, Type, Optional
+
 from src.pricing.base import BasePricingEngine
+
 
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
@@ -23,17 +24,17 @@ class PricingEngineFactory:
     Automatically selects the optimal execution strategy based on available hardware.
     """
 
-    _engines: Dict[str, Type[BasePricingEngine]] = {}
-    _instances: Dict[str, BasePricingEngine] = {}
+    _engines: dict[str, type[BasePricingEngine]] = {}
+    _instances: dict[str, BasePricingEngine] = {}
 
     @classmethod
-    def register(cls, name: str, engine_cls: Type[BasePricingEngine]):
+    def register(cls, name: str, engine_cls: type[BasePricingEngine]):
         """Register a new pricing engine."""
         cls._engines[name.lower()] = engine_cls
         logger.debug("engine_registered", name=name)
 
     @classmethod
-    def get_engine(cls, name: str, execution_strategy: Optional[str] = None) -> BasePricingEngine:
+    def get_engine(cls, name: str, execution_strategy: str | None = None) -> BasePricingEngine:
         """
         Get an engine instance. 
         Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').

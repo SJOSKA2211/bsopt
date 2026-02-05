@@ -1,6 +1,7 @@
 import numpy as np
+
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -32,8 +33,8 @@ except ImportError:
         def device_array(self, n, dtype):
             return np.zeros(n, dtype=dtype)
     cuda = CudaMock()
+
 import structlog
-from typing import Tuple
 
 logger = structlog.get_logger(__name__)
 
@@ -84,7 +85,7 @@ class MultivariateDriftDetector:
     def __init__(self, threshold: float = 0.05):
         self.threshold = threshold
 
-    def detect_drift(self, baseline_X: np.ndarray, current_X: np.ndarray) -> Tuple[bool, float]:
+    def detect_drift(self, baseline_X: np.ndarray, current_X: np.ndarray) -> tuple[bool, float]:
         """Detect drift between two multivariate samples."""
         # Auto-scale sigma using median heuristic
         # (Simplified: using fixed sigma for speed in this manifold)

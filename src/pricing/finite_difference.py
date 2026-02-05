@@ -6,13 +6,14 @@ partial differential equation using the second-order accurate Crank-Nicolson sch
 """
 
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 
-from .base import PricingStrategy
 from src.pricing.models import BSParameters, OptionGreeks
 from src.pricing.quant_utils import jit_cn_solver
+
+from .base import PricingStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -217,7 +218,7 @@ class CrankNicolsonSolver(PricingStrategy):
         params.update(kwargs)
         return CrankNicolsonSolver(**params)
 
-    def get_diagnostics(self) -> Dict[str, Any]:
+    def get_diagnostics(self) -> dict[str, Any]:
         """Return solver diagnostics."""
         return {
             "scheme": "Crank-Nicolson",

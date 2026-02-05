@@ -1,7 +1,16 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from src.utils.cache import generate_cache_key, PricingCache, RateLimiter, IdempotencyManager, RateLimitTier
+
 from src.pricing.black_scholes import BSParameters
+from src.utils.cache import (
+    IdempotencyManager,
+    PricingCache,
+    RateLimiter,
+    RateLimitTier,
+    generate_cache_key,
+)
+
 
 def test_generate_cache_key():
     key1 = generate_cache_key("test", spot=100.0, strike=100.0)

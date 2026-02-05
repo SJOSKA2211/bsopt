@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.shared.security import OPAEnforcer
+
 
 @pytest.fixture
 def enforcer():

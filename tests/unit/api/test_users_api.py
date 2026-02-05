@@ -1,13 +1,15 @@
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock, ANY
-from fastapi.testclient import TestClient
-from src.api.main import app
-from src.database.models import User
-from src.database import get_db
-from src.security.auth import get_current_active_user, require_tier
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+
 from src.api.exceptions import AuthenticationException
+from src.api.main import app
+from src.database import get_db
+from src.database.models import User
+from src.security.auth import get_current_active_user
 
 client = TestClient(app)
 
@@ -25,7 +27,7 @@ def mock_user():
         is_active=True,
         is_verified=True,
         is_mfa_enabled=False,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(UTC)
     )
 
 @pytest.fixture
@@ -38,7 +40,7 @@ def enterprise_user():
         is_active=True,
         is_verified=True,
         is_mfa_enabled=False,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(UTC)
     )
 
 def test_get_me_success(mock_user):
@@ -269,7 +271,7 @@ def test_list_users_with_is_active_filter(enterprise_user):
 
         is_mfa_enabled=False,
 
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(UTC)
 
     )
 

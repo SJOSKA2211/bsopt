@@ -1,18 +1,21 @@
-import os
 import argparse
-import numpy as np
+import os
+
 import mlflow
 import mlflow.pytorch
-import tempfile
+import numpy as np
 import structlog
 from stable_baselines3 import TD3
+from stable_baselines3.common.callbacks import BaseCallback, CallbackList, EvalCallback
 from stable_baselines3.common.noise import NormalActionNoise
-from stable_baselines3.common.callbacks import EvalCallback, BaseCallback, CallbackList
-from src.ml.reinforcement_learning.trading_env import TradingEnvironment
-from src.ml.reinforcement_learning.transformer_policy import TransformerSingularityExtractor, TransformerTD3Policy
+
 from src.config import settings
+from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+from src.ml.reinforcement_learning.transformer_policy import (
+    TransformerSingularityExtractor,
+    TransformerTD3Policy,
+)
 from src.shared.shm_manager import SHMManager
-import torch
 
 logger = structlog.get_logger()
 

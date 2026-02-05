@@ -1,8 +1,10 @@
+import math
+
 import torch as th
 import torch.nn as nn
 from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-import math
+
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model: int, max_len: int = 500):
@@ -74,6 +76,7 @@ class TransformerSingularityExtractor(BaseFeaturesExtractor):
         return self.output_projection(pooled.squeeze(1))
 
 from stable_baselines3.td3.policies import TD3Policy
+
 
 class TransformerTD3Policy(TD3Policy):
     """

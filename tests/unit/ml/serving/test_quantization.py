@@ -1,9 +1,11 @@
-import pytest
+import os
+from unittest.mock import patch
+
 import torch
 import torch.nn as nn
-import os
+
 from src.ml.serving.quantization import ModelQuantizer
-from unittest.mock import patch, MagicMock
+
 
 class SimpleNet(nn.Module):
     def __init__(self):

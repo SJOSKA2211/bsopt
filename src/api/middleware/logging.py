@@ -10,14 +10,15 @@ Comprehensive request/response logging with:
 - Sensitive data redaction
 """
 
-import msgspec
 import logging
 import time
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Set, cast
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any, cast
 from uuid import UUID
 
+import msgspec
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
@@ -42,7 +43,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
 
     # Headers to redact
-    SENSITIVE_HEADERS: Set[str] = {
+    SENSITIVE_HEADERS: set[str] = {
         "authorization",
         "cookie",
         "set-cookie",
@@ -53,7 +54,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     }
 
     # Query params to redact
-    SENSITIVE_PARAMS: Set[str] = {
+    SENSITIVE_PARAMS: set[str] = {
         "password",
         "token",
         "api_key",
@@ -63,14 +64,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     }
 
     # Paths to skip logging (high-frequency, low-value)
-    SKIP_PATHS: Set[str] = {
+    SKIP_PATHS: set[str] = {
         "/health",
         "/metrics",
         "/favicon.ico",
     }
 
     # Paths with reduced logging (only errors)
-    REDUCED_LOG_PATHS: Set[str] = {
+    REDUCED_LOG_PATHS: set[str] = {
         "/docs",
         "/redoc",
         "/openapi.json",
@@ -92,7 +93,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         self.persist_to_db = persist_to_db
         self.slow_request_threshold_ms = slow_request_threshold_ms
 
-    def _redact_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
+    def _redact_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Redact sensitive headers."""
         redacted = {}
         for key, value in headers.items():
@@ -102,7 +103,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 redacted[key] = value
         return redacted
 
-    def _redact_params(self, params: Dict[str, str]) -> Dict[str, str]:
+    def _redact_params(self, params: dict[str, str]) -> dict[str, str]:
         """Redact sensitive query parameters."""
         redacted = {}
         for key, value in params.items():
@@ -134,9 +135,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return cast(str, request.client.host if request.client else "unknown")
 
-    def _get_user_info(self, request: Request) -> Dict[str, Any]:
+    def _get_user_info(self, request: Request) -> dict[str, Any]:
         """Extract user info from request state."""
-        user_info: Dict[str, Any] = {
+        user_info: dict[str, Any] = {
             "user_id": None,
             "user_email": None,
             "user_tier": None,
@@ -175,7 +176,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Start timing
         start_time = time.perf_counter()
-        start_timestamp = datetime.now(timezone.utc)
+        start_timestamp = datetime.now(UTC)
 
         # Collect request info
         request_info = {
@@ -282,7 +283,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return cast(Response, response)
 
-    async def _persist_log(self, log_entry: Dict[str, Any], request: Request) -> None:
+    async def _persist_log(self, log_entry: dict[str, Any], request: Request) -> None:
         """Persist log entry to database using anyio.to_thread to avoid blocking."""
         from anyio.to_thread import run_sync
         
@@ -333,16 +334,16 @@ class StructuredLogger:
 
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-        self.default_fields: Dict[str, Any] = {}
+        self.default_fields: dict[str, Any] = {}
 
     def set_default_fields(self, **fields):
         """Set default fields to include in all logs."""
         self.default_fields.update(fields)
 
-    def _build_log_entry(self, message: str, level: str, **kwargs) -> Dict[str, Any]:
+    def _build_log_entry(self, message: str, level: str, **kwargs) -> dict[str, Any]:
         """Build structured log entry."""
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": level,
             "message": message,
             **self.default_fields,

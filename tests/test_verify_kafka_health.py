@@ -1,11 +1,12 @@
-from unittest.mock import MagicMock, patch
-import sys
 import os
+import sys
+from unittest.mock import MagicMock, patch
 
 # Add scripts directory to path to import verify_kafka_health
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../scripts')))
 
-from verify_kafka_health import check_kafka_brokers, check_schema_registry, check_ksqldb
+from verify_kafka_health import check_kafka_brokers, check_ksqldb, check_schema_registry
+
 
 def test_check_kafka_brokers_success():
     with patch('verify_kafka_health.AdminClient') as mock_admin:

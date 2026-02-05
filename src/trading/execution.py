@@ -1,7 +1,9 @@
 import asyncio
 import time
+from typing import Any
+
 import structlog
-from typing import Dict, Any, Optional, List
+
 from src.blockchain.defi_options import DeFiOptionsProtocol
 
 logger = structlog.get_logger(__name__)
@@ -16,8 +18,8 @@ class OrderExecutor:
         self._execution_lock = asyncio.Lock()
 
     async def execute_order(self, 
-                            params: Dict[str, Any], 
-                            max_slippage_pct: float = 0.5) -> Dict[str, Any]:
+                            params: dict[str, Any],
+                            max_slippage_pct: float = 0.5) -> dict[str, Any]:
         """🚀 SINGULARITY: Execute a signed transaction via DeFi protocol."""
         async with self._execution_lock:
             start_time = time.time()

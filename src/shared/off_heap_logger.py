@@ -1,9 +1,8 @@
 import struct
-from multiprocessing import shared_memory
-import orjson
-import os
 import time
-from typing import Dict, Any
+from multiprocessing import shared_memory
+
+import orjson
 
 # Log Entry Structure: q (Timestamp), 1024s (JSON Payload) = 8 + 1024 = 1032 bytes
 LOG_STRUCT = struct.Struct("q 1024s")

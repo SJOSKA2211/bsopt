@@ -1,5 +1,7 @@
 import os
+
 import structlog
+
 try:
     from qiskit_aer import AerSimulator
 except ImportError:

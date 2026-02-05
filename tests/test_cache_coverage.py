@@ -1,23 +1,26 @@
-import json
-import pytest
 import importlib
-from unittest.mock import MagicMock, AsyncMock, patch
+import json
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 import src.utils.cache
 from src.utils.cache import (
-    generate_cache_key,
+    BSParameters,
+    OptionGreeks,
     PricingCache,
     RateLimiter,
     RateLimitTier,
-    BSParameters,
-    OptionGreeks,
-    init_redis_cache,
     close_redis_cache,
-    warm_cache,
-    idempotency_manager,
     db_cache,
+    generate_cache_key,
+    get_redis_client,
+    idempotency_manager,
+    init_redis_cache,
     publish_to_redis,
-    get_redis_client
+    warm_cache,
 )
+
 
 @pytest.mark.asyncio
 async def test_generate_cache_key():
@@ -183,7 +186,6 @@ async def test_cache_errors(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_redis_direct(monkeypatch):
     import src.utils.cache
-    from src.utils.cache import get_redis, _redis_pool
     # Revert the autouse mock from conftest.py if it exists
     # We need the original function. Since it's a module level function, 
     # we can try to find it in the module's __dict__ if it wasn't overwritten yet,
@@ -197,13 +199,11 @@ async def test_get_redis_direct(monkeypatch):
     # If we can't get the original, we can at least cover the lines by 
     # ensuring we don't mock it in a separate test file or by 
     # using a reload trick.
-    import importlib
     importlib.reload(src.utils.cache)
     assert src.utils.cache.get_redis() is src.utils.cache._redis_pool
 
 @pytest.mark.asyncio
 async def test_init_redis_exception(monkeypatch):
-    from redis.asyncio import ConnectionPool
     # This should trigger the except block in init_redis_cache
     monkeypatch.setattr("src.utils.cache.ConnectionPool.from_url", MagicMock(side_effect=RuntimeError("Init failed")))
     r = await init_redis_cache()
@@ -238,11 +238,11 @@ async def test_pricing_cache_miss(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_redis_error_type_hit(monkeypatch):
-    import src.utils.cache
-    import importlib
-    import types
     import sys
+    import types
     from unittest.mock import MagicMock
+
+    import src.utils.cache
     
     # Create a mock module that looks real
     mock_aioredis = types.ModuleType("redis.asyncio")
@@ -259,8 +259,6 @@ async def test_redis_error_type_hit(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_init_redis_no_aioredis_direct(monkeypatch):
-    import src.utils.cache
-    import importlib
     
     # Simulate aioredis import failure
     monkeypatch.setattr("src.utils.cache.aioredis", None)

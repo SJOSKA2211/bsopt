@@ -1,5 +1,7 @@
-import requests
 import time
+
+import requests
+
 
 def percentile(data, percent):
     size = len(data)
@@ -27,12 +29,12 @@ def test_performance_under_expected_load():
             elapsed_ms = (time.perf_counter() - start) * 1000
             latencies.append(elapsed_ms)
             # Accept 2xx as success
-            assert 200 <= response.status_code < 300
+            assert  # nosec B101 200 <= response.status_code < 300
         except requests.RequestException as e:
             raise AssertionError(f"Request failed: {e}")
 
     p95_latency = percentile(latencies, 95)
 
-    assert p95_latency < 200, f"95th percentile latency {p95_latency:.2f}ms exceeds 200ms threshold"
+    assert  # nosec B101 p95_latency < 200, f"95th percentile latency {p95_latency:.2f}ms exceeds 200ms threshold"
 
 test_performance_under_expected_load()

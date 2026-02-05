@@ -1,10 +1,10 @@
-import time
-from typing import Optional, Dict
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import OAuth2PasswordBearer
 import structlog
-from .providers import auth_registry, OIDCProvider
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
+
 from src.config import settings
+
+from .providers import OIDCProvider, auth_registry
 
 logger = structlog.get_logger()
 
@@ -39,7 +39,7 @@ async def get_jwks():
         return keys
     return None
 
-async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) -> Dict:
+async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) -> dict:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -69,7 +69,7 @@ class RoleChecker:
     def __init__(self, allowed_roles: list):
         self.allowed_roles = allowed_roles
 
-    def __call__(self, token_payload: Dict = Depends(verify_token)):
+    def __call__(self, token_payload: dict = Depends(verify_token)):
         # Normalize role check
         user_roles = token_payload.get("realm_access", {}).get("roles", []) or token_payload.get("roles", [])
 

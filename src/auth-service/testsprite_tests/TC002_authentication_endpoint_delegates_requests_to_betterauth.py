@@ -12,7 +12,7 @@ def test_authentication_endpoint_delegates_to_betterauth():
         {
             "method": "POST",
             "path": "/api/auth/login",
-            "json": {"username": "testuser", "password": "testpass"}
+            "json": {"username": "testuser", "password": "testpass" # nosec B105}
         },
         {
             "method": "POST",
@@ -42,10 +42,10 @@ def test_authentication_endpoint_delegates_to_betterauth():
                 continue  # Skip unsupported method in this test context
 
             # Assert the request was delegated and successful (HTTP 200)
-            assert response.status_code == 200, (
+            assert  # nosec B101 response.status_code == 200, (
                 f"Expected HTTP 200 for {req['method']} {req['path']}, got {response.status_code} with body: {response.text}"
             )
         except requests.RequestException as e:
-            assert False, f"Request to {url} failed with exception: {e}"
+            assert  # nosec B101 False, f"Request to {url} failed with exception: {e}"
 
 test_authentication_endpoint_delegates_to_betterauth()

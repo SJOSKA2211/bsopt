@@ -1,16 +1,14 @@
 import asyncio
 import logging
 import time
-import grpc
 from concurrent import futures
-import numpy as np
-import pandas as pd
-import onnxruntime as ort
-import mlflow.pyfunc
-from typing import Any, Dict
 
-from src.protos import inference_pb2, inference_pb2_grpc
+import grpc
+import numpy as np
+import onnxruntime as ort
+
 from src.config import settings
+from src.protos import inference_pb2, inference_pb2_grpc
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +114,6 @@ async def serve_grpc(xgb_model, nn_ort_session):
 
 if __name__ == "__main__":
     # Example manual execution for testing
-    import os
     logging.basicConfig(level=logging.INFO)
     
     # Mock models for standalone testing if needed

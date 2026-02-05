@@ -1,10 +1,11 @@
+import asyncio
+import time
+from collections.abc import Callable
+
+import structlog
 from confluent_kafka import Consumer, KafkaError
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
-import asyncio
-from typing import Dict, Callable, List
-import structlog
-import time
 
 logger = structlog.get_logger()
 
@@ -21,7 +22,7 @@ class MarketDataConsumer:
         self, 
         bootstrap_servers: str = "localhost:9092", 
         group_id: str = "market-data-consumers", 
-        topics: List[str] = ["market-data"],
+        topics: list[str] = ["market-data"],
         schema_registry_url: str = "http://localhost:8081",
         batch_size: int = 100
     ):
@@ -50,7 +51,7 @@ class MarketDataConsumer:
 
     async def consume_messages(
         self, 
-        callback: Callable[[Dict], None]
+        callback: Callable[[dict], None]
     ):
         """
         Consume messages in batches and process with async callback.
@@ -86,7 +87,7 @@ class MarketDataConsumer:
         finally:
             self.stop()
 
-    async def _process_batch(self, batch: List[Dict], callback: Callable):
+    async def _process_batch(self, batch: list[dict], callback: Callable):
         """Process batch of messages in parallel using gather"""
         start_time = time.time()
         
@@ -124,4 +125,4 @@ class MarketDataConsumer:
         try:
             self.consumer.close()
         except Exception:
-            pass
+            pass # nosec B110

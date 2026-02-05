@@ -3,8 +3,9 @@ Edge Case Functional Tests (Principles 31, 49, 57, 73, 81, 89, 97)
 ==============================================================
 """
 
+
 import pytest
-import uuid
+
 
 @pytest.mark.asyncio
 async def test_register_null_fields(client, user_payload):

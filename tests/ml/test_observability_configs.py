@@ -1,13 +1,15 @@
 import json
 import os
-import yaml
+
 import pytest
+import yaml
+
 
 def test_prometheus_rules_valid_yaml():
     """Verify that Prometheus rules file is valid YAML."""
     path = "src/shared/observability_configs/prometheus_rules.yml"
     assert os.path.exists(path)
-    with open(path, "r") as f:
+    with open(path) as f:
         try:
             data = yaml.safe_load(f)
             assert "groups" in data
@@ -20,7 +22,7 @@ def test_grafana_dashboard_valid_json():
     """Verify that Grafana dashboard file is valid JSON."""
     path = "src/shared/observability_configs/grafana_dashboard.json"
     assert os.path.exists(path)
-    with open(path, "r") as f:
+    with open(path) as f:
         try:
             data = json.load(f)
             assert data["title"] == "BS-Opt ML Pipeline Dashboard"

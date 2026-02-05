@@ -1,5 +1,6 @@
-import msgspec
 from typing import Any
+
+import msgspec
 from starlette.responses import Response
 
 # 🚀 SINGULARITY: High-performance msgspec encoder

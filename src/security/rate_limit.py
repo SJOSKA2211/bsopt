@@ -1,9 +1,11 @@
 import time
-from typing import Optional, Tuple
+
+import redis.asyncio as redis  # Import redis.asyncio for type hinting
 from fastapi import Depends, HTTPException, Request, status
+
 from src.config import settings
 from src.utils.cache import get_redis_client
-import redis.asyncio as redis # Import redis.asyncio for type hinting
+
 
 async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
     """

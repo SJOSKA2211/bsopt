@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Depends
+import asyncio
+from contextlib import asynccontextmanager
+
+from fastapi import Depends, FastAPI
 from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
+
 from src.portfolio.graphql.schema import schema
-from src.shared.observability import setup_logging, logging_middleware, tune_gc
-from src.shared.security import verify_mtls, opa_authorize
-from contextlib import asynccontextmanager
-import os
-import asyncio
+from src.shared.observability import logging_middleware, setup_logging, tune_gc
+from src.shared.security import opa_authorize, verify_mtls
 
 # Optimized event loop
 try:
@@ -22,8 +23,8 @@ async def lifespan(app: FastAPI):
     tune_gc()
     
     # Initialize Redis for caching if needed
-    from src.utils.cache import init_redis_cache
     from src.config import settings
+    from src.utils.cache import init_redis_cache
     await init_redis_cache(
         host=settings.REDIS_HOST,
         port=settings.REDIS_PORT,

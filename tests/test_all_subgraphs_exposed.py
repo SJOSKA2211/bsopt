@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+
 def test_pricing_subgraph_exposed():
     from src.pricing.main import app
     client = TestClient(app)

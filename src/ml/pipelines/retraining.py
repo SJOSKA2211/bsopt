@@ -1,8 +1,9 @@
-import asyncio
+from typing import Any
+
 import structlog
-from typing import Dict, Any, Optional
-from src.ml.pipelines.orchestrator import MLOrchestrator
+
 from src.aiops.data_drift_detector import DataDriftDetector
+from src.ml.pipelines.orchestrator import MLOrchestrator
 
 logger = structlog.get_logger()
 
@@ -26,7 +27,7 @@ class NeuralGreeksRetrainer:
             return False
         return True
 
-    async def retrain_now(self, data: Optional[Any] = None) -> Dict[str, Any]:
+    async def retrain_now(self, data: Any | None = None) -> dict[str, Any]:
         """
         Triggers a full retraining pipeline with pre-validation.
         """

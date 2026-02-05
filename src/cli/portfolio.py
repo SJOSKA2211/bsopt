@@ -8,7 +8,7 @@ Handles local portfolio management for the CLI.
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 
 @dataclass
@@ -35,19 +35,19 @@ class PortfolioManager:
     def __init__(self) -> None:
         self.portfolio_file = Path.home() / ".bsopt" / "portfolio.json"
         self._ensure_portfolio_dir()
-        self.positions: List[Position] = self._load()
+        self.positions: list[Position] = self._load()
 
     def _ensure_portfolio_dir(self) -> None:
         """Ensure the portfolio directory exists."""
         self.portfolio_file.parent.mkdir(parents=True, exist_ok=True)
 
-    def _load(self) -> List[Position]:
+    def _load(self) -> list[Position]:
         """Load portfolio from file."""
         if not self.portfolio_file.exists():
             return []
 
         try:
-            with open(self.portfolio_file, "r") as f:
+            with open(self.portfolio_file) as f:
                 data = json.load(f)
                 return [Position(**pos) for pos in data]
         except Exception:
@@ -74,11 +74,11 @@ class PortfolioManager:
             return True
         return False
 
-    def list_positions(self) -> List[Position]:
+    def list_positions(self) -> list[Position]:
         """Get all positions in the portfolio."""
         return self.positions
 
-    def calculate_position_value(self, position: Position) -> Dict[str, Any]:
+    def calculate_position_value(self, position: Position) -> dict[str, Any]:
         """
         Calculate current value and P&L for a position.
 
@@ -117,7 +117,7 @@ class PortfolioManager:
             "pnl_percent": (pnl / entry_value * 100) if entry_value != 0 else 0,
         }
 
-    def get_portfolio_summary(self) -> Dict[str, Any]:
+    def get_portfolio_summary(self) -> dict[str, Any]:
         """Get aggregate metrics for the entire portfolio."""
         total_pnl = 0.0
         total_entry_value = 0.0

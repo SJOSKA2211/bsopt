@@ -3,14 +3,14 @@ Fixtures for Functional Tests (Principles 27, 53, 93, 94)
 ======================================================
 """
 
+import uuid
+from datetime import UTC, datetime
+from unittest.mock import MagicMock, patch
+
 import pytest
 import pytest_asyncio
-import uuid
-import asyncio
-from datetime import datetime, timezone
-from unittest.mock import patch, MagicMock
-from httpx import AsyncClient, ASGITransport
 from faker import Faker
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.orm import Session
 
 from src.api.main import app
@@ -50,7 +50,7 @@ def mock_db():
                 raise IntegrityError("duplicate key", params={}, orig=None)
             
             if getattr(obj, "id", None) is None: obj.id = uuid.uuid4()
-            if getattr(obj, "created_at", None) is None: obj.created_at = datetime.now(timezone.utc)
+            if getattr(obj, "created_at", None) is None: obj.created_at = datetime.now(UTC)
             if getattr(obj, "is_mfa_enabled", None) is None: obj.is_mfa_enabled = False
             if getattr(obj, "is_active", None) is None: obj.is_active = True
             if getattr(obj, "tier", None) is None: obj.tier = "free"

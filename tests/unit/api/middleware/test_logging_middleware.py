@@ -1,11 +1,12 @@
-import pytest
-from fastapi import FastAPI, Request, Response
-from fastapi.testclient import TestClient
-from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
-from unittest.mock import MagicMock, patch, ANY
 import json
-import logging
 import uuid
+from unittest.mock import MagicMock, patch
+
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+
+from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
+
 
 def test_structured_logger_full():
     sl = StructuredLogger("test_logger")

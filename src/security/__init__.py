@@ -11,7 +11,6 @@ Comprehensive security implementation for the BSOPT platform:
 """
 
 from .audit import AuditEvent, AuditLog, log_audit
-
 from .password import PasswordService, PasswordValidator
 
 __all__ = [

@@ -1,10 +1,11 @@
 import os
+
 import yaml
-import pytest
+
 
 def test_github_exporter_in_docker_compose():
     """Verify that github-exporter is in the production docker-compose file."""
-    with open("docker-compose.prod.yml", "r") as f:
+    with open("docker-compose.prod.yml") as f:
         config = yaml.safe_load(f)
     
     assert "github-exporter" in config["services"]
@@ -14,7 +15,7 @@ def test_github_exporter_in_docker_compose():
 
 def test_prometheus_scrapes_github_exporter():
     """Verify that Prometheus is configured to scrape github-exporter."""
-    with open("monitoring/prometheus/prometheus.yml", "r") as f:
+    with open("monitoring/prometheus/prometheus.yml") as f:
         config = yaml.safe_load(f)
     
     jobs = [job["job_name"] for job in config["scrape_configs"]]
@@ -28,7 +29,7 @@ def test_prometheus_scrapes_github_exporter():
 def test_grafana_pipeline_dashboard_exists():
     """Verify that the Grafana pipeline dashboard file exists."""
     assert os.path.exists("monitoring/grafana/dashboards/pipeline-metrics.json")
-    with open("monitoring/grafana/dashboards/pipeline-metrics.json", "r") as f:
+    with open("monitoring/grafana/dashboards/pipeline-metrics.json") as f:
         content = f.read()
     
     assert "BS-Opt Pipeline Observability" in content

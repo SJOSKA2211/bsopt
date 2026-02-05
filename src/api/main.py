@@ -1,23 +1,24 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
-import os
-import time
+
 import structlog
-from src.shared.observability import setup_logging, logging_middleware
-from src.auth.service import get_auth_service, AuthService
-from src.database import get_db
+from brotli_asgi import BrotliMiddleware
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import ORJSONResponse
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
-from brotli_asgi import BrotliMiddleware
-from fastapi.responses import ORJSONResponse
+
+from src.auth.service import AuthService
 from src.config import settings
+from src.database import get_db
+from src.shared.observability import logging_middleware
 
 # Initialize logging
 logger = structlog.get_logger()
 
 # Optimized event loop
 try:
-    import uvloop
     import asyncio
+
+    import uvloop
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
     pass
@@ -82,13 +83,14 @@ async def verify_token(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail=str(e))
 
 # Routers
-from src.api.routes.auth import router as auth_router
-from src.api.routes.pricing import router as pricing_router
-from src.api.routes.ml import router as ml_router
-from src.api.routes.users import router as users_router
 from strawberry.fastapi import GraphQLRouter
+
 from src.api.graphql.schema import schema
 from src.api.middleware.security import JWTAuthenticationMiddleware
+from src.api.routes.auth import router as auth_router
+from src.api.routes.ml import router as ml_router
+from src.api.routes.pricing import router as pricing_router
+from src.api.routes.users import router as users_router
 
 graphql_app = GraphQLRouter(schema)
 

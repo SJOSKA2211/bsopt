@@ -1,6 +1,7 @@
-import pytest
 import sys
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock onnxruntime if not available
 try:
@@ -8,8 +9,9 @@ try:
 except ImportError:
     sys.modules["onnxruntime"] = MagicMock()
 
-from src.ml.serving.serve import predict, state
 from src.api.schemas.ml import InferenceRequest
+from src.ml.serving.serve import predict, state
+
 
 @pytest.mark.asyncio
 async def test_predict_xgb_success():

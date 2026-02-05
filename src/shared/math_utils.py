@@ -5,9 +5,11 @@ Consolidates critical numerical logic for cross-module consistency.
 """
 
 import math
+
 import numpy as np
+
 try:
-    from numba import njit, vectorize, float64
+    from numba import float64, njit, vectorize
 except ImportError:
     def njit(*args, **kwargs):
         def decorator(func):

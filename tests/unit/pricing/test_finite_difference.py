@@ -1,7 +1,8 @@
 import pytest
-import numpy as np
-from src.pricing.finite_difference import CrankNicolsonSolver
+
 from src.pricing.black_scholes import BSParameters
+from src.pricing.finite_difference import CrankNicolsonSolver
+
 
 def test_fd_price_european():
     params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)

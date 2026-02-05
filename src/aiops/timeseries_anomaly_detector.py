@@ -1,9 +1,9 @@
+
 import numpy as np
 import pandas as pd
+import structlog
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
-from typing import Dict, List, Optional
-import structlog
 
 logger = structlog.get_logger()
 
@@ -38,7 +38,7 @@ class TimeSeriesAnomalyDetector:
                     samples=len(historical_data), 
                     features=list(numeric_df.columns))
 
-    def detect(self, current_metrics: pd.DataFrame) -> List[Dict]:
+    def detect(self, current_metrics: pd.DataFrame) -> list[dict]:
         """
         Detect anomalies in current metrics with optimized scaling and vectorized prediction.
         """

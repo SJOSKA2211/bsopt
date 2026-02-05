@@ -4,8 +4,9 @@ Pickle Rick's Venv Enforcer
 If you aren't in a venv, you aren't doing engineering.
 """
 
-import sys
 import os
+import sys
+
 
 def check_venv():
     # 🚀 SINGULARITY: The ultimate check
@@ -30,8 +31,8 @@ def check_venv():
 
     # Secondary check for core performance libraries
     try:
-        import numba
         import msgspec
+        import numba
     except ImportError as e:
         print(f"⚠️ WARNING: Performance slop detected. Missing {e.name}.")
         print("The singularity requires numba and msgspec for god-mode pricing.")

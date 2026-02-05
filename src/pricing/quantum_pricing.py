@@ -1,5 +1,7 @@
 import os
+
 import structlog
+
 try:
     import mlflow
 except ImportError:
@@ -16,8 +18,8 @@ except ImportError:
 try:
     from qiskit import QuantumCircuit, QuantumRegister
     from qiskit.circuit.library import StatePreparation
-    from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
     from qiskit.primitives import StatevectorSampler
+    from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 except ImportError:
     class MockClass:
         def __init__(self, *args, **kwargs): pass
@@ -30,10 +32,11 @@ except ImportError:
     StatevectorSampler = MockClass
 
 import warnings
+
 import numpy as np
 
-from src.pricing.quantum_backend import QuantumBackendManager
 from src.pricing.models import BSParameters
+from src.pricing.quantum_backend import QuantumBackendManager
 
 # Filter deprecation warnings from Qiskit and Qiskit Algorithms that are beyond our control
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit.*")
@@ -67,7 +70,7 @@ class QuantumOptionPricer:
                 except ImportError:
                     AerSimulator = MockClass
                 # 🚀 SINGULARITY: Auto-detect GPU for cuQuantum acceleration
-                import torch # Using torch for easy CUDA detection
+                import torch  # Using torch for easy CUDA detection
                 if torch.cuda.is_available():
                     logger.info("quantum_gpu_acceleration_enabled", device="nvidia_cuquantum")
                     self.backend = AerSimulator(method='statevector', device='GPU', cuStateVec_enable=True)
@@ -246,7 +249,10 @@ class QuantumCircuitOptimizer:
         self.backend = backend
         try:
             from qiskit.transpiler import PassManager
-            from qiskit.transpiler.passes import Optimize1qGatesDecomposition, CommutativeCancellation
+            from qiskit.transpiler.passes import (
+                CommutativeCancellation,
+                Optimize1qGatesDecomposition,
+            )
             
             self.pass_manager = PassManager([
                 Optimize1qGatesDecomposition(),

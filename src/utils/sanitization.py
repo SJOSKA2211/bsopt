@@ -1,6 +1,7 @@
 import html
 import re
 
+
 def sanitize_alphanumeric(text: str) -> str:
     """
     Remove any characters that are not alphanumeric, underscores, or hyphens.

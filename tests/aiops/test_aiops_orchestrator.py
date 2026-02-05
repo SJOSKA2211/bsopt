@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import MagicMock, patch, ANY, call
-import os
+from unittest.mock import ANY, patch
+
 import numpy as np
+import pytest
 
 
 @pytest.fixture
@@ -72,6 +72,7 @@ def mock_orchestrator_dependencies():
         }
 
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+
 
 def test_orchestrator_init_all_enabled(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)

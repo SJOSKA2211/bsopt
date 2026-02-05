@@ -1,8 +1,11 @@
-from fastapi import Request, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from src.database import get_db
-from src.database.models import BetterAuthSession, User # Import legacy User
 from datetime import datetime
+
+from fastapi import Depends, Request
+from sqlalchemy.orm import Session
+
+from src.database import get_db
+from src.database.models import BetterAuthSession, User  # Import legacy User
+
 
 async def get_current_user(request: Request, db: Session = Depends(get_db)):
     # Check Cookie

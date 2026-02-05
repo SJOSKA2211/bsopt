@@ -1,5 +1,5 @@
-import pytest
 import yaml
+
 
 def test_docker_network_isolation_configured():
     """
@@ -9,7 +9,7 @@ def test_docker_network_isolation_configured():
     """
     docker_compose_path = "docker-compose.prod.yml"
     
-    with open(docker_compose_path, 'r') as f:
+    with open(docker_compose_path) as f:
         compose_config = yaml.safe_load(f)
     
     assert 'networks' in compose_config, "docker-compose.prod.yml must define networks"

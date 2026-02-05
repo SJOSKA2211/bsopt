@@ -1,9 +1,9 @@
-import structlog
-import numpy as np
-import pandas as pd
-from typing import List, Optional, Dict, Any, Tuple
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+
+import numpy as np
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +14,7 @@ class StorageBackend(Enum):
 
 @dataclass
 class PipelineConfig:
-    symbols: List[str]
+    symbols: list[str]
     min_samples: int = 1000
     max_samples: int = 10000
     use_multi_source: bool = False
@@ -28,9 +28,9 @@ class DataPipeline:
     """
     def __init__(self, config: PipelineConfig):
         self.config = config
-        self.last_run_report: Dict[str, Any] = {}
+        self.last_run_report: dict[str, Any] = {}
 
-    async def run(self) -> Dict[str, Any]:
+    async def run(self) -> dict[str, Any]:
         """
         Run the data collection pipeline.
         """
@@ -48,7 +48,7 @@ class DataPipeline:
         logger.info("data_pipeline_completed", report=self.last_run_report)
         return self.last_run_report
 
-    def load_latest_data(self) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+    def load_latest_data(self) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
         """
         Load the latest collected data.
         Returns: (X, y, feature_names, metadata)

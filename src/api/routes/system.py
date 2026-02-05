@@ -1,11 +1,15 @@
 from fastapi import APIRouter
-from src.utils.circuit_breaker import pricing_circuit, db_circuit
+
+from src.utils.circuit_breaker import db_circuit, pricing_circuit
 
 router = APIRouter(prefix="/system", tags=["System"])
 
-import torch
 import os
+
+import torch
+
 from src.shared.shm_mesh import SharedMemoryRingBuffer
+
 
 @router.get("/health/deep")
 async def get_deep_health():

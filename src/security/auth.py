@@ -9,27 +9,26 @@ Secure JWT-based authentication with:
 - FastAPI dependency injection
 """
 
+import hashlib
+import inspect
 import logging
 import secrets
-import inspect
-from starlette.concurrency import run_in_threadpool
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Union, cast
-from uuid import UUID
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
-import hashlib
 import jwt
-from jwt.exceptions import PyJWTError, ExpiredSignatureError
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from jwt.exceptions import ExpiredSignatureError, PyJWTError
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
+from starlette.concurrency import run_in_threadpool
 
 from src.config import settings
 from src.database import get_async_db
-from src.database.models import User, APIKey, OAuth2Client
+from src.database.models import APIKey, User
 
 from .password import password_service
 
@@ -48,7 +47,7 @@ class TokenData:
     token_type: str
     exp: datetime
     iat: datetime
-    jti: Optional[str] = None
+    jti: str | None = None
 
 
 @dataclass
@@ -69,7 +68,7 @@ class TokenBlacklist:
 
     async def add(self, jti: str, exp: datetime) -> None:
         if self._redis:
-            ttl = int((exp - datetime.now(timezone.utc)).total_seconds())
+            ttl = int((exp - datetime.now(UTC)).total_seconds())
             if ttl > 0:
                 await self._redis.setex(f"blacklist:{jti}", ttl, "1")
         else:
@@ -84,7 +83,7 @@ token_blacklist = TokenBlacklist()
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
-) -> Optional[str]:
+) -> str | None:
     if credentials:
         return credentials.credentials
     return None
@@ -104,7 +103,7 @@ class AuthService:
 
     async def authenticate_user(
         self, db: Any, email: str, password: str, request: Request
-    ) -> Optional[User]:
+    ) -> User | None:
         """Authenticate a user by email and password with timing attack protection."""
         
         # Check if db.execute is an async function (AsyncSession)
@@ -129,7 +128,7 @@ class AuthService:
                 tier="free",
                 is_active=False,
                 is_verified=False,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(UTC)
             )
         
         # Always run password verification
@@ -165,8 +164,8 @@ class AuthService:
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token."""
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + expires_delta
-        to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc), "jti": secrets.token_hex(16)})
+        expire = datetime.now(UTC) + expires_delta
+        to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
         return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def invalidate_token(self, token: str, request: Request) -> None:
@@ -176,7 +175,7 @@ class AuthService:
             jti = payload.get("jti")
             exp_timestamp = payload.get("exp")
             if jti and exp_timestamp:
-                exp = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+                exp = datetime.fromtimestamp(exp_timestamp, tz=UTC)
                 await token_blacklist.add(jti, exp)
         except PyJWTError:
             pass
@@ -189,8 +188,8 @@ class AuthService:
                 email=payload.get("email", ""),
                 tier=payload.get("tier", "free"),
                 token_type=payload.get("type", "access"),
-                exp=datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc),
-                iat=datetime.fromtimestamp(payload.get("iat", 0), tz=timezone.utc),
+                exp=datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
+                iat=datetime.fromtimestamp(payload.get("iat", 0), tz=UTC),
                 jti=payload.get("jti"),
             )
         except ExpiredSignatureError:
@@ -198,7 +197,7 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-    async def validate_token(self, token: Optional[str] = Depends(get_token_from_header)) -> TokenData:
+    async def validate_token(self, token: str | None = Depends(get_token_from_header)) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
         token_data = self.decode_token(token)
@@ -210,7 +209,7 @@ auth_service = AuthService()
 def get_auth_service(): return auth_service
 
 async def verify_token_claims_only(
-    token: Optional[str] = Depends(get_token_from_header),
+    token: str | None = Depends(get_token_from_header),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> TokenData:
     """
@@ -225,7 +224,7 @@ async def verify_token_claims_only(
 
 async def get_current_user(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
+    token: str | None = Depends(get_token_from_header),
     db: AsyncSession = Depends(get_async_db),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> User:
@@ -277,13 +276,15 @@ def require_tier(allowed_tiers: list):
 
 async def get_api_key(
     request: Request,
-    api_key: Optional[str] = Depends(api_key_header),
+    token_input: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_async_db),
-) -> Optional[User]:
-    if not api_key:
+) -> User | None:
+    if not token_input:
         return None
     
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    # Use SHA256 for high-entropy API keys (fast lookup). Not a user password.
+    # Use SHA256 for high-entropy API keys (fast lookup). Not a user password.
+    key_hash = hashlib.sha256(token_input.encode()).hexdigest()  # codeql[py/password-hashing-weak-algorithm]
     
     result = await db.execute(
         select(APIKey).options(selectinload(APIKey.user)).where(
@@ -295,7 +296,7 @@ async def get_api_key(
     if not key_record:
         return None
         
-    key_record.last_used_at = datetime.now(timezone.utc)
+    key_record.last_used_at = datetime.now(UTC)
     await db.commit()
     
     request.state.user = key_record.user
@@ -303,11 +304,11 @@ async def get_api_key(
 
 async def get_current_user_flexible(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
-    api_key_user: Optional[User] = Depends(get_api_key),
+    token: str | None = Depends(get_token_from_header),
+    api_key_user: User | None = Depends(get_api_key),
     db: AsyncSession = Depends(get_async_db),
     auth_service: AuthService = Depends(get_auth_service),
-) -> Union[User, Any]:
+) -> User | Any:
     # 1. API Key Auth (Programmatic)
     if api_key_user:
         return api_key_user

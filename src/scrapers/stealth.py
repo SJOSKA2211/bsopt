@@ -1,7 +1,7 @@
-import structlog
 import random
-from typing import Dict, Any, Optional
-import os
+from typing import Any
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 

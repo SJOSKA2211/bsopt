@@ -1,6 +1,8 @@
 import pytest
-from sqlalchemy import text, inspect, create_engine
-from src.database.models import Base, MarketTick
+from sqlalchemy import create_engine, inspect
+
+from src.database.models import MarketTick
+
 
 @pytest.fixture
 def test_engine():

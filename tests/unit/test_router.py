@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.data.router import MarketDataRouter
+
 
 @pytest.mark.asyncio
 async def test_router_nse_suffix():

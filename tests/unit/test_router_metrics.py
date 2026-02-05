@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import AsyncMock, patch
-from src.data.router import MarketDataRouter, ROUTING_COUNT, SCRAPER_PARSE_SUCCESS
+
+import pytest
+
+from src.data.router import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS, MarketDataRouter
+
 
 @pytest.mark.asyncio
 async def test_router_metrics_increment():

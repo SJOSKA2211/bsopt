@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 
 def test_src_directories_exist():
     """Verify that required source directories exist."""
@@ -17,13 +19,13 @@ def test_pyproject_toml_exists():
 def test_dependencies_loadable():
     """Verify that core dependencies can be imported."""
     try:
-        import numpy
-        import pandas
-        import xgboost
-        import optuna
+        import minio
         import mlflow
+        import numpy
+        import optuna
+        import pandas
         import prometheus_client
         import structlog
-        import minio
+        import xgboost
     except ImportError as e:
         pytest.fail(f"Failed to import core dependency: {e}")

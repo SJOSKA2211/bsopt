@@ -1,5 +1,6 @@
 import ray
 import structlog
+
 from src.ml.reinforcement_learning.train import train_distributed
 
 logger = structlog.get_logger()

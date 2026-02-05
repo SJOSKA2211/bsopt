@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from src.api.websockets.manager import ConnectionManager
+
+import pytest
 from fastapi import WebSocket
-import orjson
-import asyncio
+
+from src.api.websockets.manager import ConnectionManager
+
 
 @pytest.mark.asyncio
 async def test_connection_manager_connect():
@@ -45,7 +46,7 @@ async def test_connection_manager_broadcast():
         await manager.broadcast_to_symbol("AAPL", message)
         
         # orjson dumps returns bytes, but codec decode it to utf-8 str for JSON
-        from src.api.websockets.codec import WebSocketCodec, ProtocolType
+        from src.api.websockets.codec import ProtocolType, WebSocketCodec
         expected_text = WebSocketCodec.encode(message, ProtocolType.JSON)
         
         assert mock_ws1.send_text.called

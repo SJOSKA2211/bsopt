@@ -1,6 +1,7 @@
-import pytest
 import subprocess
-import time
+
+import pytest
+
 
 def run_command(command):
     """Run a shell command and return the output."""

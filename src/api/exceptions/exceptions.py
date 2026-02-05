@@ -1,13 +1,15 @@
+from typing import Any
+
 from fastapi import HTTPException, status
-from typing import Optional, Any
+
 
 class BaseAPIException(HTTPException):
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
     error: str = "InternalServerError"
     message: str = "An unexpected error occurred."
-    details: Optional[Any] = None
+    details: Any | None = None
 
-    def __init__(self, status_code: Optional[int] = None, error: Optional[str] = None, message: Optional[str] = None, details: Optional[Any] = None):
+    def __init__(self, status_code: int | None = None, error: str | None = None, message: str | None = None, details: Any | None = None):
         super().__init__(
             status_code=status_code or self.status_code,
             detail={

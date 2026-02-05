@@ -1,6 +1,6 @@
-from prometheus_api_client import PrometheusConnect
-import structlog
 import numpy as np
+import structlog
+from prometheus_api_client import PrometheusConnect
 
 logger = structlog.get_logger()
 

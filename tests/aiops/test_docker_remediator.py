@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, call, patch
+
 import pytest
+
 import docker
-from unittest.mock import MagicMock, patch, call
 from src.aiops.docker_remediator import DockerRemediator
+
 
 @patch("src.aiops.docker_remediator.logger")
 @patch("src.aiops.docker_remediator.docker.from_env")

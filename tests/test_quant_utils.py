@@ -6,8 +6,8 @@ from src.pricing.quant_utils import (
     corrado_miller_initial_guess,
     fast_normal_cdf,
     fast_normal_pdf,
-    jit_mc_european_with_control_variate,
     jit_lsm_american,
+    jit_mc_european_with_control_variate,
 )
 from tests.test_utils import assert_equal
 

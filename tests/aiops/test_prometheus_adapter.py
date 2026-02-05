@@ -1,6 +1,6 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 
 from src.aiops.prometheus_adapter import PrometheusClient
 

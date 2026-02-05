@@ -1,7 +1,8 @@
 import os
-import torch
+from typing import Any
+
 import structlog
-from typing import Any, Optional
+import torch
 
 logger = structlog.get_logger(__name__)
 

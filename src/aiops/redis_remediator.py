@@ -1,6 +1,6 @@
+
 import redis
 import structlog
-from typing import List
 
 logger = structlog.get_logger()
 
@@ -25,7 +25,7 @@ class RedisRemediator:
         try:
             # Use SCAN for large datasets to avoid blocking the server, but for tests KEYS is fine
             # In a real-world scenario, you might use a more robust iterative scanning.
-            keys_bytes: List[bytes] = self.client.keys(cache_key_pattern)
+            keys_bytes: list[bytes] = self.client.keys(cache_key_pattern)
             
             if not keys_bytes:
                 logger.info("redis_remediator_purge", status="no_keys_found", pattern=cache_key_pattern, message="No keys matching pattern found to purge.")

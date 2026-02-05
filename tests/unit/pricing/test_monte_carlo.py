@@ -1,7 +1,14 @@
-import pytest
 import numpy as np
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig, _laguerre_basis, geometric_asian_price
+import pytest
+
 from src.pricing.black_scholes import BSParameters
+from src.pricing.monte_carlo import (
+    MCConfig,
+    MonteCarloEngine,
+    _laguerre_basis,
+    geometric_asian_price,
+)
+
 
 def test_mc_config_validation():
     with pytest.raises(ValueError, match="n_paths must be positive"):

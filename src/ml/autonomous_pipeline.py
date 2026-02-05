@@ -1,10 +1,12 @@
-import structlog
 import asyncio
-import pandas as pd
+from typing import Any
+
 import numpy as np
-from typing import Dict, Any, List, Optional
+import pandas as pd
+import structlog
+
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -36,20 +38,18 @@ except ImportError:
         def device_array(self, n, dtype):
             return np.zeros(n, dtype=dtype)
     cuda = CudaMock()
+from sqlalchemy import create_engine, func, select
+
+from src.config import get_settings
+from src.database import Base, get_async_db_context
+from src.database.models import ModelPrediction
+from src.ml.drift import DriftTrigger, PerformanceDriftMonitor
 from src.ml.scraper import MarketDataScraper
-from src.database import get_async_db_context, Base
-from src.database.models import MarketTick, ModelPrediction
-from src.ml.drift import calculate_ks_test, calculate_psi, PerformanceDriftMonitor, DriftTrigger
 from src.ml.trainer import InstrumentedTrainer
 from src.shared.observability import (
-    setup_logging, 
     push_metrics,
-    DATA_DRIFT_SCORE,
-    KS_TEST_SCORE,
-    PERFORMANCE_DRIFT_ALERT
+    setup_logging,
 )
-from sqlalchemy import create_engine, select, func
-from src.config import get_settings
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -252,7 +252,7 @@ class AutonomousMLPipeline:
     drift detection, and model optimization.
     """
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         setup_logging()
         self.config = config
         self.scraper = MarketDataScraper(
@@ -273,7 +273,7 @@ class AutonomousMLPipeline:
         self.drift_trigger = DriftTrigger(self.config)
         self.performance_monitor = PerformanceDriftMonitor()
 
-    async def get_current_model_performance(self, session) -> Optional[float]:
+    async def get_current_model_performance(self, session) -> float | None:
         """Fetches the average accuracy of the current model from recent predictions."""
         try:
             # Calculate accuracy: % of predictions where (predicted > 0.5) == (actual > 0.5)
@@ -492,7 +492,6 @@ class AutonomousMLPipeline:
                 
                 try:
                     # Logic to export XGBoost/PyTorch to ONNX
-                    from src.ml.serving.quantization import ModelQuantizer
                     # For now, we simulate the export; in production, this would use onnxmltools
                     logger.info("exporting_model_to_onnx", path=model_path)
                     

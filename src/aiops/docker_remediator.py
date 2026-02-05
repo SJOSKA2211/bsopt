@@ -1,5 +1,6 @@
-import docker
 import structlog
+
+import docker
 
 logger = structlog.get_logger()
 

@@ -1,9 +1,9 @@
+import os
+
+import structlog
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
-import structlog
-from typing import Dict
-import os
 
 logger = structlog.get_logger()
 
@@ -41,7 +41,7 @@ class MarketDataMeshProducer:
         
         # Load Mesh Schema
         schema_path = os.path.join(os.path.dirname(__file__), "schemas/market_data_mesh.avsc")
-        with open(schema_path, "r") as f:
+        with open(schema_path) as f:
             self.mesh_schema = f.read()
             
         self.avro_serializer = AvroSerializer(
@@ -51,7 +51,7 @@ class MarketDataMeshProducer:
 
     async def produce_mesh_data(
         self,
-        data: Dict,
+        data: dict,
         topic: str = "market-data-mesh"
     ):
         """

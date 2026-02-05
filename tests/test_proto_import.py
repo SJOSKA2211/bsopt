@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_generated_protos_import():
     """Test that generated protobuf modules can be imported."""
     try:

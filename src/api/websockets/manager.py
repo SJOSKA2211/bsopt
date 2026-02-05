@@ -1,14 +1,16 @@
-from typing import List, Dict, Set, Optional, Any
+import asyncio
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from fastapi import WebSocket
+from typing import Any
+
 import orjson
 import redis.asyncio as redis
-import asyncio
 import structlog
-import os
+from fastapi import WebSocket
+from prometheus_client import Counter, Gauge  # Import Prometheus client metrics
+
 from .codec import ProtocolType, WebSocketCodec
-from prometheus_client import Counter, Gauge # Import Prometheus client metrics
 
 logger = structlog.get_logger()
 
@@ -20,9 +22,9 @@ WEBSOCKET_MESSAGES_SENT_TOTAL = Counter('websocket_messages_sent_total', 'Total 
 
 @dataclass
 class ConnectionMetadata:
-    user_id: Optional[str] = None
+    user_id: str | None = None
     protocol: ProtocolType = ProtocolType.JSON
-    subscriptions: Set[str] = field(default_factory=set)
+    subscriptions: set[str] = field(default_factory=set)
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
 
     def update_heartbeat(self):
@@ -35,7 +37,7 @@ class ConnectionManager:
     """
     def __init__(self):
         # Store active connections: { "AAPL": [ws1, ws2], "GOOG": [ws3] }
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+        self.active_connections: dict[str, list[WebSocket]] = {}
         
         # Redis setup for cross-worker communication
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
@@ -113,7 +115,7 @@ class ConnectionManager:
             return
 
         # Group by protocol to encode ONCE per protocol
-        by_protocol: Dict[ProtocolType, List[WebSocket]] = {}
+        by_protocol: dict[ProtocolType, list[WebSocket]] = {}
         for conn in connections:
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol
             if proto not in by_protocol:

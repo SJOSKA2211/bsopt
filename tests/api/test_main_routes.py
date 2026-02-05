@@ -1,8 +1,11 @@
+import os
+from unittest.mock import MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
-from unittest.mock import patch, MagicMock
-import os
+
 
 def test_root_endpoint():
     with TestClient(app) as client:
@@ -45,7 +48,6 @@ def test_admin_only_success():
 @pytest.mark.asyncio
 async def test_graphql_context():
     from src.api.main import get_context
-    from unittest.mock import MagicMock
     request = MagicMock()
     
     os.environ["TESTING"] = "true"

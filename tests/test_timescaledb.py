@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import psycopg2
 import pytest
@@ -50,7 +50,7 @@ def test_insert_and_aggregate(db_conn):
         cur.execute("DELETE FROM options_prices WHERE symbol = 'TEST_AAPL';")
 
         # Insert some test data
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         test_data = [
             (
                 now - timedelta(hours=2),
@@ -166,7 +166,7 @@ def test_model_predictions_aggregate(db_conn):
         cur.execute("DELETE FROM model_predictions WHERE model_id = %s;", (model_id,))
 
         # Insert predictions
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         pred_data = [
             (now - timedelta(minutes=10), model_id, "{}", 100.0, 105.0, -5.0),
             (now - timedelta(minutes=5), model_id, "{}", 110.0, 108.0, 2.0),

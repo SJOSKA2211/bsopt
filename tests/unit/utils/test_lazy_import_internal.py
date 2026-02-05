@@ -1,29 +1,28 @@
-import pytest
-import threading
-import time
+import builtins  # Import builtins for patching
+import importlib  # Added importlib
+import io  # Added for capturing stdout
 import os
+import re  # Import regex for parsing log messages
 import sys
-import importlib # Added importlib
+from contextlib import redirect_stdout  # Added for capturing stdout
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.utils.lazy_import import (
-    lazy_import, 
-    _get_import_lock, 
-    _track_import_stack, 
-    _import_times, 
-    _failed_imports,
-    _import_stack,
-    LazyImportError,
     CircularImportError,
-    preload_modules,
+    LazyImportError,
+    _failed_imports,
+    _get_import_lock,
+    _import_stack,
+    _import_times,
+    _track_import_stack,
     get_import_stats,
-    reset_import_stats
+    lazy_import,
+    preload_modules,
+    reset_import_stats,
 )
-import structlog # Import structlog for patching it globally
-import io # Added for capturing stdout
-from contextlib import redirect_stdout # Added for capturing stdout
-import re # Import regex for parsing log messages
-from typing import TYPE_CHECKING # Import TYPE_CHECKING for patching
-import builtins # Import builtins for patching
+
 
 def test_get_import_lock_concurrency():
     lock1 = _get_import_lock("mod1")
@@ -143,6 +142,7 @@ def test_lazy_import_circular_error_propagation(mocker):
 
 def test_ml_init_logic():
     import importlib
+
     import src.ml
     
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}):

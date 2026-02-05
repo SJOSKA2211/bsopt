@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from strawberry.fastapi import GraphQLRouter
-from src.pricing.graphql.schema import schema, get_context
-from src.shared.observability import setup_logging, logging_middleware, tune_gc
-from src.pricing.quant_utils import warmup_jit
 from fastapi.responses import ORJSONResponse
+from strawberry.fastapi import GraphQLRouter
+
+from src.pricing.graphql.schema import get_context, schema
+from src.pricing.quant_utils import warmup_jit
+from src.shared.observability import logging_middleware, setup_logging, tune_gc
 
 setup_logging()
 

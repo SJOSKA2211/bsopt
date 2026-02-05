@@ -1,22 +1,23 @@
-import structlog
-from typing import Any, Dict, Optional
+from typing import Any
 
-from src.tasks.celery_app import celery_app
+import structlog
+
 from src.database import get_session
 from src.database.models import AuditLog
+from src.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 
 @celery_app.task(name="audit_tasks.persist_audit_log", acks_late=True)
 def persist_audit_log(
     event_type: str,
-    user_id: Optional[str],
-    user_email: Optional[str], # Already masked
-    source_ip: Optional[str],
-    user_agent: Optional[str],
-    request_path: Optional[str],
-    request_method: Optional[str],
-    details: Optional[Dict[str, Any]],
+    user_id: str | None,
+    user_email: str | None, # Already masked
+    source_ip: str | None,
+    user_agent: str | None,
+    request_path: str | None,
+    request_method: str | None,
+    details: dict[str, Any] | None,
 ) -> None:
     """
     Celery task to asynchronously persist an audit log to the database.
@@ -29,7 +30,7 @@ def persist_audit_log(
             path=request_path[:500] if request_path else "UNKNOWN",
             status_code=0, # Default for async tasks
             user_id=user_id or "ANONYMOUS",
-            client_ip=source_ip or "0.0.0.0",
+            client_ip=source_ip or "0.0.0.0" # nosec B104,
             user_agent=user_agent[:500] if user_agent else "UNKNOWN",
             latency_ms=0.0,
             metadata_json={

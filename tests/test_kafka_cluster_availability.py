@@ -1,7 +1,9 @@
+import os
+
 import pytest
 import requests
 from confluent_kafka.admin import AdminClient
-import os
+
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="Skipping infra check in CI")
 def test_kafka_brokers_available():

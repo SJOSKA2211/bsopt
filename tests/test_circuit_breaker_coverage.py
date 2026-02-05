@@ -1,8 +1,16 @@
-import pytest
 import asyncio
 import time
-from src.utils.circuit_breaker import CircuitBreaker, CircuitState, pricing_circuit, DistributedCircuitBreaker
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+
+import pytest
+
+from src.utils.circuit_breaker import (
+    CircuitBreaker,
+    CircuitState,
+    DistributedCircuitBreaker,
+    pricing_circuit,
+)
+
 
 @pytest.mark.asyncio
 async def test_circuit_breaker_state_transitions():

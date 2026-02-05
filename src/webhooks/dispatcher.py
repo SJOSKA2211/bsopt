@@ -1,20 +1,19 @@
-import hmac
 import hashlib
+import hmac
 import time
-import asyncio
-import httpx
+from typing import Any
+
 import structlog
-from typing import Optional, Dict, Any, Union
 
 logger = structlog.get_logger()
 
 def _sign_payload(secret: str, timestamp: int, payload: str) -> str:
     """Helper to generate the HMAC-SHA256 signature."""
-    signed_payload = f"{timestamp}.{payload}".encode('utf-8') # Ensure payload is bytes
+    signed_payload = f"{timestamp}.{payload}".encode() # Ensure payload is bytes
     h = hmac.new(secret.encode('utf-8'), signed_payload, hashlib.sha256)
     return h.hexdigest()
 
-async def _generate_signature(secret: str, payload: str, timestamp: Optional[int] = None) -> str:
+async def _generate_signature(secret: str, payload: str, timestamp: int | None = None) -> str:
     """
     Generates a Stripe-style HMAC-SHA256 signature for a webhook payload.
     Format: t=<timestamp>,sha256=<signature>
@@ -48,16 +47,16 @@ async def _verify_signature(secret: str, payload: str, timestamp: int, signature
     return hmac.compare_digest(expected_signature, signature)
 
 from src.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
-from src.utils.cache import get_redis
 from src.utils.http_client import HttpClientManager
 
+
 class WebhookDispatcher:
-    def __init__(self, celery_app: Any, circuit_breaker: Union[DistributedCircuitBreaker, InMemoryCircuitBreaker], dlq_task: Any):
+    def __init__(self, celery_app: Any, circuit_breaker: DistributedCircuitBreaker | InMemoryCircuitBreaker, dlq_task: Any):
         self.celery_app = celery_app
         self.circuit_breaker = circuit_breaker
         self.dlq_task = dlq_task # Celery task to send to DLQ
 
-    async def dispatch_webhook(self, url: str, payload: Dict[str, Any], headers: Dict[str, str], secret: str):
+    async def dispatch_webhook(self, url: str, payload: dict[str, Any], headers: dict[str, str], secret: str):
         # We wrap the internal dispatch logic with the circuit breaker
         @self.circuit_breaker
         async def _dispatch():

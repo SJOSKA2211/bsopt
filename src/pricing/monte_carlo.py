@@ -1,20 +1,22 @@
-import numpy as np
-from typing import Dict, Tuple, Optional, Union
 import dataclasses
 from dataclasses import dataclass
+
+import numpy as np
 from scipy.stats import norm
-from src.pricing.models import BSParameters, OptionGreeks
-from src.pricing.quant_utils import (
-    jit_lsm_american, 
-    jit_mc_european_price, 
-    jit_mc_european_with_control_variate, 
-    jit_mc_european_price_and_greeks,
-    _laguerre_basis_jit,
-    gpu_mc_european_price
-)
-from .base import PricingStrategy
 
 from src.config import settings
+from src.pricing.models import BSParameters, OptionGreeks
+from src.pricing.quant_utils import (
+    _laguerre_basis_jit,
+    gpu_mc_european_price,
+    jit_lsm_american,
+    jit_mc_european_price,
+    jit_mc_european_price_and_greeks,
+    jit_mc_european_with_control_variate,
+)
+
+from .base import PricingStrategy
+
 
 @dataclass
 class MCConfig:
@@ -46,7 +48,7 @@ class MonteCarloEngine(PricingStrategy):
     Supports European and American options with variance reduction.
     """
     
-    def __init__(self, config: Optional[MCConfig] = None):
+    def __init__(self, config: MCConfig | None = None):
         self.config = config or MCConfig()
         self.rng = np.random.default_rng(self.config.seed)
 
@@ -144,8 +146,8 @@ class MonteCarloEngine(PricingStrategy):
         self, 
         params: BSParameters, 
         option_type: str = "call",
-        seed: Optional[int] = None
-    ) -> Tuple[float, float]:
+        seed: int | None = None
+    ) -> tuple[float, float]:
         """
         Price European option using JIT-optimized Monte Carlo.
         Returns (price, confidence_interval).

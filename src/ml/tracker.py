@@ -1,16 +1,17 @@
-import mlflow
 import os
-import structlog
-import time
 import tempfile
+from typing import Any
+
 import matplotlib.pyplot as plt
-from typing import Dict, Any, List, Optional
+import mlflow
+import structlog
+
 from src.shared.observability import (
-    TRAINING_DURATION, 
-    MODEL_ACCURACY, 
+    MODEL_ACCURACY,
     MODEL_RMSE,
+    TRAINING_DURATION,
     TRAINING_ERRORS,
-    push_metrics
+    push_metrics,
 )
 
 logger = structlog.get_logger()
@@ -27,10 +28,10 @@ class ExperimentTracker:
     def start_run(self, nested: bool = True):
         return mlflow.start_run(nested=nested)
 
-    def log_params(self, params: Dict[str, Any]):
+    def log_params(self, params: dict[str, Any]):
         mlflow.log_params(params)
 
-    def set_tags(self, tags: Dict[str, str]):
+    def set_tags(self, tags: dict[str, str]):
         mlflow.set_tags(tags)
 
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str):
@@ -59,7 +60,7 @@ class ExperimentTracker:
         else:
             mlflow.log_model(model, artifact_path) # Generic fallback
 
-    def log_feature_importance(self, importance: Dict[str, float], framework: str):
+    def log_feature_importance(self, importance: dict[str, float], framework: str):
         plt.figure(figsize=(10, 6))
         names = list(importance.keys())
         values = list(importance.values())

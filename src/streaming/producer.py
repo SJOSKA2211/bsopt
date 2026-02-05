@@ -1,9 +1,9 @@
+import os
+
+import structlog
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
-from typing import Dict, Optional
-import structlog
-import os
 
 logger = structlog.get_logger()
 
@@ -42,7 +42,7 @@ class MarketDataProducer:
         
         # Load Avro schema
         schema_path = os.path.join(os.path.dirname(__file__), "../shared/schemas/market_data.avsc")
-        with open(schema_path, 'r') as f:
+        with open(schema_path) as f:
             self.market_data_schema = f.read()
             
         self.avro_serializer = AvroSerializer(
@@ -53,8 +53,8 @@ class MarketDataProducer:
     async def produce_market_data(
         self, 
         topic: str, 
-        data: Dict, 
-        key: Optional[str] = None
+        data: dict,
+        key: str | None = None
     ):
         """
         Produce market data message to Kafka.

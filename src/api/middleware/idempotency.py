@@ -1,14 +1,13 @@
 import hashlib
-import msgspec
-import asyncio
 import time
-from typing import Any, Optional, Dict, Union
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response, StreamingResponse
+
+import msgspec
 import redis.asyncio as redis
 import structlog
-from prometheus_client import Counter, Gauge, Histogram
+from fastapi import Request, Response
+from prometheus_client import Counter, Histogram
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 logger = structlog.get_logger()
 

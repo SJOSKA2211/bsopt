@@ -1,7 +1,8 @@
+from datetime import datetime
+
 import strawberry
 from strawberry.federation import Schema
-from typing import List, Optional
-from datetime import datetime
+
 
 # ============================================================================
 # TYPE DEFINITIONS (Base Subgraph: Options)
@@ -38,11 +39,11 @@ class OptionEdge:
 @strawberry.type
 class PageInfo:
     has_next_page: bool
-    end_cursor: Optional[str]
+    end_cursor: str | None
 
 @strawberry.type
 class OptionConnection:
-    edges: List[OptionEdge]
+    edges: list[OptionEdge]
     page_info: PageInfo
 
 # ============================================================================
@@ -52,7 +53,7 @@ class OptionConnection:
 class Query:
     """Root Query for Options subgraph"""
     @strawberry.field
-    async def option(self, contract_symbol: str) -> Optional[Option]:
+    async def option(self, contract_symbol: str) -> Option | None:
         """Get single option by contract symbol"""
         from src.api.graphql.resolvers.option_service import get_option
         return await get_option(contract_symbol)
@@ -60,12 +61,12 @@ class Query:
     @strawberry.field
     async def options(
         self,
-        underlying: Optional[str] = None,
-        min_strike: Optional[float] = None,
-        max_strike: Optional[float] = None,
-        expiry: Optional[datetime] = None,
+        underlying: str | None = None,
+        min_strike: float | None = None,
+        max_strike: float | None = None,
+        expiry: datetime | None = None,
         first: int = 100,
-        after: Optional[str] = None
+        after: str | None = None
     ) -> OptionConnection:
         """Search options with Relay-style pagination"""
         from src.api.graphql.resolvers.option_service import search_options_paginated
@@ -95,7 +96,9 @@ class Query:
 class Mutation:
     @strawberry.mutation
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
-        from src.api.graphql.resolvers.portfolio_service import create_portfolio as create_portfolio_svc
+        from src.api.graphql.resolvers.portfolio_service import (
+            create_portfolio as create_portfolio_svc,
+        )
         return await create_portfolio_svc(user_id=strawberry.ID(user_id), name=name, initial_cash=initial_cash)
 
 # ============================================================================

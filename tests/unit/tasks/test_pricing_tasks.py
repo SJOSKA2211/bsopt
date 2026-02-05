@@ -1,12 +1,14 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
 
+import numpy as np
+import pytest
+
 from src.tasks.pricing_tasks import (
-    price_option_task,
     batch_price_options_task,
-    generate_volatility_surface_task
+    generate_volatility_surface_task,
+    price_option_task,
 )
+
 
 def test_vectorized_black_scholes_logic():
     from src.pricing.black_scholes import BlackScholesEngine, BSParameters

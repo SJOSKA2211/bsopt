@@ -1,7 +1,10 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
-from unittest.mock import patch
-from src.ml.drift import calculate_psi, calculate_ks_test
+
+from src.ml.drift import calculate_ks_test, calculate_psi
+
 
 @patch("src.ml.drift.logger")
 @patch("src.ml.drift.KS_TEST_SCORE")

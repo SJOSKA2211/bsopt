@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
+
 class IsolationForestDetector:
     def __init__(self, contamination: float = 0.1):
         if not (0.0 < contamination < 0.5):

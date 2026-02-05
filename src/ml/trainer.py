@@ -1,14 +1,15 @@
 import time
+from collections.abc import Callable
+from typing import Any
+
 import optuna
-import os
 import structlog
-from typing import Dict, Any, List, Optional, Callable
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, r2_score
+
 from src.ml.evaluation.metrics import calculate_regression_metrics
-from src.ml.tracker import ExperimentTracker
-from src.ml.strategies import get_strategy
 from src.ml.serving.quantization import ModelQuantizer
+from src.ml.strategies import get_strategy
+from src.ml.tracker import ExperimentTracker
 
 logger = structlog.get_logger()
 
@@ -24,7 +25,7 @@ class ModelTrainer:
         self.model = None
         self.best_params = {}
 
-    def train_and_evaluate(self, X: Any, y: Any, params: Dict[str, Any], feature_names: List[str] = None, dataset_metadata: Optional[Dict[str, str]] = None, base_model: Optional[Any] = None, trial: Optional[optuna.Trial] = None) -> float:
+    def train_and_evaluate(self, X: Any, y: Any, params: dict[str, Any], feature_names: list[str] = None, dataset_metadata: dict[str, str] | None = None, base_model: Any | None = None, trial: optuna.Trial | None = None) -> float:
         """
         Trains a model using the specified strategy and evaluates regression performance.
         """
@@ -115,8 +116,3 @@ class ModelTrainer:
 
 # Alias for backward compatibility
 InstrumentedTrainer = ModelTrainer
-from src.ml.strategies import (
-    XGBoostStrategy as XGBoostTrainer,
-    SklearnStrategy as SklearnTrainer,
-    PyTorchStrategy as PyTorchTrainer
-)

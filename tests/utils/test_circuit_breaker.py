@@ -1,8 +1,14 @@
-import pytest
 import time
-import asyncio
-from unittest.mock import MagicMock, AsyncMock
-from src.utils.circuit_breaker import InMemoryCircuitBreaker, DistributedCircuitBreaker, CircuitState
+from unittest.mock import AsyncMock
+
+import pytest
+
+from src.utils.circuit_breaker import (
+    CircuitState,
+    DistributedCircuitBreaker,
+    InMemoryCircuitBreaker,
+)
+
 
 def test_local_circuit_breaker_flow():
     cb = InMemoryCircuitBreaker(failure_threshold=2, recovery_timeout=1)

@@ -5,18 +5,17 @@ ML Service (Singularity Refactored)
 Interacts with the ML serving layer via gRPC or Shared Memory (SMI).
 """
 
-import structlog
 import time
-import asyncio
-from typing import Dict, Any, Optional
-from src.config import settings
-from src.api.schemas.ml import InferenceRequest, InferenceResponse
-from src.api.exceptions import ServiceUnavailableException
-from src.shared.observability import ML_PROXY_PREDICT_LATENCY
-from src.shared.shm_manager import SHMManager
+
+import structlog
 from grpclib.client import Channel
+
+from src.api.schemas.ml import InferenceRequest, InferenceResponse
+from src.config import settings
 from src.protos.inference_grpc import MLInferenceStub
 from src.protos.inference_pb2 import InferenceRequest as GrpcInferenceRequest
+from src.shared.observability import ML_PROXY_PREDICT_LATENCY
+from src.shared.shm_manager import SHMManager
 
 logger = structlog.get_logger(__name__)
 
@@ -34,7 +33,7 @@ class MLService:
         try:
             self.shm.create()
         except Exception:
-            pass # Already exists or managed by server
+            pass # nosec B110
 
     async def predict(self, request: InferenceRequest, model_type: str = "xgb") -> InferenceResponse:
         start_time = time.perf_counter()

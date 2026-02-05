@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_dockerfile_wasm_non_root_user_verification_skipped():
     """
     Verification of Dockerfile.wasm running as non-root user is skipped

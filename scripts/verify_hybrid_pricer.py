@@ -1,5 +1,6 @@
 from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
 
+
 def verify_hybrid_pricer():
     print("Initializing HybridQuantumClassicalPricer...")
     pricer = HybridQuantumClassicalPricer()

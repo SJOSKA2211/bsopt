@@ -1,7 +1,10 @@
-import pytest
 from datetime import datetime
-from src.security.breach_notification import BreachNotificationService
+
+import pytest
+
 from src.database.models import SecurityIncident
+from src.security.breach_notification import BreachNotificationService
+
 
 @pytest.mark.asyncio
 async def test_report_breach_to_dpa():

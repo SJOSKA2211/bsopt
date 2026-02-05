@@ -1,7 +1,7 @@
-import torch as th
 import structlog
+import torch as th
+
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
-from src.config import settings
 
 logger = structlog.get_logger()
 

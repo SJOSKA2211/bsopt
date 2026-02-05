@@ -1,13 +1,15 @@
+import uuid
+from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
+from unittest.mock import patch
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.database.models import Base, User, Portfolio, Position, Order, MLModel, OptionPrice
+
 from src.database import crud
-from decimal import Decimal
-from datetime import date, datetime, timedelta, timezone
-import uuid
-from sqlalchemy.dialects import postgresql
-from unittest.mock import MagicMock, patch
+from src.database.models import Base, OptionPrice
+
 
 @pytest.fixture(autouse=True)
 def mock_password_service():
@@ -22,8 +24,8 @@ def db_session():
     engine = create_engine("sqlite:///:memory:")
     
     # Define a custom compilation for JSONB on SQLite
-    from sqlalchemy.ext.compiler import compiles
     from sqlalchemy.dialects import postgresql as pg_dialect
+    from sqlalchemy.ext.compiler import compiles
     
     @compiles(pg_dialect.JSONB, "sqlite")
     def compile_jsonb_sqlite(type_, compiler, **kw):
@@ -219,7 +221,7 @@ def test_option_price_operations(db_session):
         
     # get_latest_option_price (manual insert first)
     op = OptionPrice(
-        time=datetime.now(timezone.utc), symbol="AAPL", strike=Decimal("150.00"), 
+        time=datetime.now(UTC), symbol="AAPL", strike=Decimal("150.00"),
         expiry=expiry, option_type="call", bid=Decimal("10.00"), ask=Decimal("11.00"), last=Decimal("10.50")
     )
     db_session.add(op)

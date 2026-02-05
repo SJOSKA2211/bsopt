@@ -1,6 +1,7 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from src.tasks.ml_tasks import train_model_task, hyperparameter_search_task
+from unittest.mock import patch
+
+from src.tasks.ml_tasks import hyperparameter_search_task, train_model_task
+
 
 @patch("src.tasks.ml_tasks.train")
 def test_train_model_task_success(mock_train):

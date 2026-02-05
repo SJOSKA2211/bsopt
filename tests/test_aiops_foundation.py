@@ -1,5 +1,7 @@
 import pytest
+
 from src.aiops.prometheus_adapter import PrometheusClient
+
 
 def test_prometheus_client_init():
     """Test initialization of PrometheusClient."""

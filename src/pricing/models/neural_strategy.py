@@ -1,10 +1,10 @@
 import os
+
 import numpy as np
 import structlog
-from typing import Optional, Any
+
 from src.pricing.base import PricingStrategy
 from src.pricing.models import BSParameters, OptionGreeks
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -13,7 +13,7 @@ class NeuralPricingStrategy(PricingStrategy):
     SOTA: Neural Network based pricing using ONNX Runtime.
     Provides sub-microsecond inference for complex pricing surfaces.
     """
-    def __init__(self, model_path: Optional[str] = None):
+    def __init__(self, model_path: str | None = None):
         self.ort_session = None
         path = model_path or os.path.join(os.getcwd(), "results/ml/OptionPricer_NN.onnx")
         

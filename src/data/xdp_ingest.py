@@ -1,10 +1,8 @@
+import asyncio
 import socket
 import struct
-import os
-import asyncio
+
 import structlog
-from typing import Optional
-import flatbuffers
 
 logger = structlog.get_logger(__name__)
 
@@ -20,7 +18,7 @@ class XDPIngester:
     def __init__(self, interface: str = "eth0", port: int = 5555):
         self.interface = interface
         self.port = port
-        self.sock: Optional[socket.socket] = None
+        self.sock: socket.socket | None = None
         self._running = False
 
     async def start(self):

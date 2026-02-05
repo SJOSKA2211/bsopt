@@ -3,8 +3,8 @@ MLflow Model Promotion and App Dispatch script.
 Handles transitioning model versions in the registry and notifying the application layer.
 """
 import argparse
+
 import mlflow
-import requests
 import structlog
 
 logger = structlog.get_logger()

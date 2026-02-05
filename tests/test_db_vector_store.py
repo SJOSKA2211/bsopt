@@ -1,8 +1,8 @@
-import pytest
 import os
+
+import pytest
 import sqlalchemy
 from sqlalchemy import text
-import numpy as np
 
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")

@@ -1,13 +1,16 @@
+
 import numpy as np
-from typing import Union, Optional, Dict, Any
+
 from src.pricing.models import BSParameters, OptionGreeks
+
 from .base import PricingStrategy
 from .quant_utils import (
-    batch_bs_price_jit, 
+    batch_bs_price_jit,
     batch_greeks_jit,
     scalar_bs_price_jit,
-    scalar_greeks_jit
+    scalar_greeks_jit,
 )
+
 
 class BlackScholesEngine(PricingStrategy):
     """
@@ -15,26 +18,26 @@ class BlackScholesEngine(PricingStrategy):
     Supports broad-casted array operations for multi-option pricing.
     """
 
-    def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
+    def price(self, params: BSParameters | None = None, option_type: str = "call", **kwargs) -> float | np.ndarray:
         return self.price_options(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
-    def calculate_greeks(params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
+    def calculate_greeks(params: BSParameters | None = None, option_type: str = "call", **kwargs) -> OptionGreeks | dict[str, np.ndarray]:
         return BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type, **kwargs)
 
     @staticmethod
     def price_options(
-        spot: Union[float, np.ndarray, None] = None,
-        strike: Union[float, np.ndarray, None] = None,
-        maturity: Union[float, np.ndarray, None] = None,
-        volatility: Union[float, np.ndarray, None] = None,
-        rate: Union[float, np.ndarray, None] = None,
-        dividend: Union[float, np.ndarray] = 0.0,
-        option_type: Union[str, np.ndarray] = "call",
-        params: Optional[BSParameters] = None,
-        out: Optional[np.ndarray] = None,
+        spot: float | np.ndarray | None = None,
+        strike: float | np.ndarray | None = None,
+        maturity: float | np.ndarray | None = None,
+        volatility: float | np.ndarray | None = None,
+        rate: float | np.ndarray | None = None,
+        dividend: float | np.ndarray = 0.0,
+        option_type: str | np.ndarray = "call",
+        params: BSParameters | None = None,
+        out: np.ndarray | None = None,
         **kwargs
-    ) -> Union[float, np.ndarray]:
+    ) -> float | np.ndarray:
         if params is not None:
             spot, strike, maturity, volatility, rate, dividend = (
                 params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
@@ -69,16 +72,16 @@ class BlackScholesEngine(PricingStrategy):
 
     @staticmethod
     def calculate_greeks_batch(
-        spot: Union[float, np.ndarray, None] = None,
-        strike: Union[float, np.ndarray, None] = None,
-        maturity: Union[float, np.ndarray, None] = None,
-        volatility: Union[float, np.ndarray, None] = None,
-        rate: Union[float, np.ndarray, None] = None,
-        dividend: Union[float, np.ndarray] = 0.0,
-        option_type: Union[str, np.ndarray] = "call",
-        params: Optional[BSParameters] = None,
+        spot: float | np.ndarray | None = None,
+        strike: float | np.ndarray | None = None,
+        maturity: float | np.ndarray | None = None,
+        volatility: float | np.ndarray | None = None,
+        rate: float | np.ndarray | None = None,
+        dividend: float | np.ndarray = 0.0,
+        option_type: str | np.ndarray = "call",
+        params: BSParameters | None = None,
         **kwargs
-    ) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
+    ) -> OptionGreeks | dict[str, np.ndarray]:
         if params is not None:
             spot, strike, maturity, volatility, rate, dividend = (
                 params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend

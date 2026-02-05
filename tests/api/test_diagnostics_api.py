@@ -1,10 +1,11 @@
 """
 Tests for the /api/diagnostics/imports endpoint.
 """
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
-import sys
+
 
 # Mock src.utils.lazy_import and its functions
 @pytest.fixture(autouse=True)

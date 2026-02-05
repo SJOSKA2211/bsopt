@@ -1,8 +1,11 @@
-import numpy as np
 import os
 from unittest.mock import MagicMock
+
+import numpy as np
 from qiskit import QuantumCircuit
+
 from src.pricing.quantum_pricing import QuantumOptionPricer
+
 
 class TestQuantumPricing:
     
