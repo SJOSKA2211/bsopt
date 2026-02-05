@@ -1,88 +1,160 @@
-import torch as th
+import torch
 import torch.nn as nn
-from gymnasium import spaces
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+import torch.nn.functional as F
 import math
+from typing import Optional, Tuple
 
-class PositionalEncoding(nn.Module):
-    def __init__(self, d_model: int, max_len: int = 500):
+class CausalSelfAttention(nn.Module):
+    def __init__(self, n_embd: int, n_head: int, n_positions: int, attn_pdrop: float, resid_pdrop: float):
         super().__init__()
-        pe = th.zeros(max_len, d_model)
-        position = th.arange(0, max_len, dtype=th.float).unsqueeze(1)
-        div_term = th.exp(th.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe[:, 0::2] = th.sin(position * div_term)
-        pe[:, 1::2] = th.cos(position * div_term)
-        self.register_buffer('pe', pe.unsqueeze(0))
+        assert n_embd % n_head == 0
+        
+        self.key = nn.Linear(n_embd, n_embd)
+        self.query = nn.Linear(n_embd, n_embd)
+        self.value = nn.Linear(n_embd, n_embd)
+        self.attn_drop = nn.Dropout(attn_pdrop)
+        self.resid_drop = nn.Dropout(resid_pdrop)
+        self.proj = nn.Linear(n_embd, n_embd)
+        self.n_head = n_head
+        self.register_buffer("mask", torch.tril(torch.ones(n_positions, n_positions)).view(1, 1, n_positions, n_positions))
 
-    def forward(self, x: th.Tensor) -> th.Tensor:
-        return x + self.pe[:, :x.size(1)]
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B, T, C = x.size()
+        
+        k = self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
-class TransformerSingularityExtractor(BaseFeaturesExtractor):
-    """
-    Advanced Transformer feature extractor for multi-modal market data.
-    Implements multi-head self-attention with learned positional encodings and layer-norm bottlenecks.
-    """
-    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, d_model: int = 256, nhead: int = 8, num_layers: int = 4):
-        super().__init__(observation_space, features_dim)
+        # Causal Attention
+        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+        att = att.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)
+        att = self.attn_drop(att)
         
-        # Determine shape [window_size, input_dim]
-        if len(observation_space.shape) == 2:
-            self.window_size, self.input_dim = observation_space.shape
-        else:
-            # Flattened or unexpected shape
-            self.window_size = 1
-            self.input_dim = observation_space.shape[0]
+        y = att @ v
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
+        y = self.resid_drop(self.proj(y))
+        return y
 
-        self.input_projection = nn.Linear(self.input_dim, d_model)
-        self.pos_encoder = PositionalEncoding(d_model, max_len=max(500, self.window_size))
-        
-        encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, 
-            nhead=nhead, 
-            dim_feedforward=d_model * 4, 
-            dropout=0.1, 
-            activation='gelu',
-            batch_first=True
-        )
-        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        
-        # 🚀 SOTA: Learnable query-based pooling (attention pooling)
-        self.query = nn.Parameter(th.randn(1, 1, d_model))
-        self.attn_pool = nn.MultiheadAttention(d_model, nhead, batch_first=True)
-        
-        self.output_projection = nn.Sequential(
-            nn.Linear(d_model, features_dim),
-            nn.LayerNorm(features_dim),
-            nn.GELU()
+class Block(nn.Module):
+    def __init__(self, n_embd: int, n_head: int, n_positions: int, attn_pdrop: float, resid_pdrop: float):
+        super().__init__()
+        self.ln1 = nn.LayerNorm(n_embd)
+        self.ln2 = nn.LayerNorm(n_embd)
+        self.attn = CausalSelfAttention(n_embd, n_head, n_positions, attn_pdrop, resid_pdrop)
+        self.mlp = nn.Sequential(
+            nn.Linear(n_embd, 4 * n_embd),
+            nn.GELU(),
+            nn.Linear(4 * n_embd, n_embd),
+            nn.Dropout(resid_pdrop),
         )
 
-    def forward(self, observations: th.Tensor) -> th.Tensor:
-        # observations: [batch, window, dim] or [batch, dim]
-        if observations.dim() == 2:
-            observations = observations.unsqueeze(1)
-            
-        x = self.input_projection(observations)
-        x = self.pos_encoder(x)
-        x = self.transformer(x)
-        
-        # Query-based attention pooling: 
-        # The 'query' attends to the transformer sequence to produce a fixed-size representation.
-        # [batch, 1, d_model]
-        query = self.query.expand(x.size(0), -1, -1)
-        pooled, _ = self.attn_pool(query, x, x)
-        
-        return self.output_projection(pooled.squeeze(1))
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x + self.attn(self.ln1(x))
+        x = x + self.mlp(self.ln2(x))
+        return x
 
-from stable_baselines3.td3.policies import TD3Policy
+class DecisionTransformer(nn.Module):
+    def __init__(
+        self,
+        state_dim: int,
+        act_dim: int,
+        hidden_size: int,
+        max_length: int = 20,
+        max_ep_len: int = 4096,
+        action_tanh: bool = True,
+        n_layer: int = 3,
+        n_head: int = 1,
+        n_inner: int = 4 * 128,
+        activation_function: str = 'relu',
+        n_positions: int = 1024,
+        resid_pdrop: float = 0.1,
+        attn_pdrop: float = 0.1,
+    ):
+        super().__init__()
+        self.state_dim = state_dim
+        self.act_dim = act_dim
+        self.max_length = max_length
+        self.hidden_size = hidden_size
 
-class TransformerTD3Policy(TD3Policy):
-    """
-    Policy for TD3 using the Transformer Singularity Extractor.
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args, 
-            **kwargs, 
-            features_extractor_class=TransformerSingularityExtractor,
-            features_extractor_kwargs=dict(features_dim=512, d_model=256, nhead=8, num_layers=4)
+        self.embed_timestep = nn.Embedding(max_ep_len, hidden_size)
+        self.embed_return = nn.Linear(1, hidden_size)
+        self.embed_state = nn.Linear(state_dim, hidden_size)
+        self.embed_action = nn.Linear(act_dim, hidden_size)
+
+        self.embed_ln = nn.LayerNorm(hidden_size)
+        
+        self.predict_action = nn.Sequential(
+            *([nn.Linear(hidden_size, act_dim)] + ([nn.Tanh()] if action_tanh else []))
         )
+        self.predict_return = nn.Linear(hidden_size, 1)
+        self.predict_state = nn.Linear(hidden_size, state_dim)
+
+        self.blocks = nn.Sequential(
+            *[Block(hidden_size, n_head, n_positions, attn_pdrop, resid_pdrop) for _ in range(n_layer)]
+        )
+
+    def forward(
+        self,
+        states: torch.Tensor,
+        actions: torch.Tensor,
+        returns: torch.Tensor,
+        timesteps: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        
+        batch_size, seq_length = states.shape[0], states.shape[1]
+
+        if attention_mask is None:
+            attention_mask = torch.ones((batch_size, seq_length), dtype=torch.long, device=states.device)
+
+        # Embeddings
+        state_embeddings = self.embed_state(states)
+        action_embeddings = self.embed_action(actions)
+        returns_embeddings = self.embed_return(returns)
+        time_embeddings = self.embed_timestep(timesteps)
+
+        # Time embeddings are added similar to positional embeddings
+        state_embeddings = state_embeddings + time_embeddings
+        action_embeddings = action_embeddings + time_embeddings
+        returns_embeddings = returns_embeddings + time_embeddings
+
+        # Stack embeddings: [R, s, a, R, s, a, ...]
+        # For simplicity, let's use the standard DT ordering: (R_t, s_t, a_t)
+        # But for inference we usually want a_t given (R_t, s_t).
+        
+        # Interleave embeddings: (batch, 3 * seq_len, hidden_size)
+        token_embeddings = torch.zeros((batch_size, seq_length * 3, self.hidden_size), device=states.device)
+        token_embeddings[:, ::3, :] = returns_embeddings
+        token_embeddings[:, 1::3, :] = state_embeddings
+        token_embeddings[:, 2::3, :] = action_embeddings
+
+        token_embeddings = self.embed_ln(token_embeddings)
+
+        # Transformer forward
+        # Adjust mask for 3 tokens per step
+        # (batch, 3 * seq_len)
+        all_mask = torch.zeros((batch_size, seq_length * 3), dtype=torch.long, device=states.device)
+        all_mask[:, ::3] = attention_mask
+        all_mask[:, 1::3] = attention_mask
+        all_mask[:, 2::3] = attention_mask
+        
+        # We need to implement padding masking in the Attention block if we want variable length
+        # For now, assuming fixed block processing or simple causal masking (handled by CausalSelfAttention)
+        
+        x = self.blocks(token_embeddings)
+
+        # Outputs
+        # Action prediction comes from state embedding (index 1)
+        x_reshaped = x.reshape(batch_size, seq_length, 3, self.hidden_size)
+        
+        # Predict action given (R, s) -> using output at index 1 (state)
+        action_preds = self.predict_action(x_reshaped[:, :, 1, :]) 
+        
+        # Predict return given (R, s, a) -> next R (index 2)
+        return_preds = self.predict_return(x_reshaped[:, :, 2, :])
+        
+        # Predict state given (R, s, a) -> next s (index 2)
+        state_preds = self.predict_state(x_reshaped[:, :, 2, :])
+
+        return state_preds, action_preds, return_preds
