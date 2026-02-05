@@ -1,8 +1,9 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from typing import Optional, Tuple
+
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, n_embd: int, n_head: int, n_positions: int, attn_pdrop: float, resid_pdrop: float):
@@ -100,8 +101,8 @@ class DecisionTransformer(nn.Module):
         actions: torch.Tensor,
         returns: torch.Tensor,
         timesteps: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        attention_mask: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         
         batch_size, seq_length = states.shape[0], states.shape[1]
 
@@ -158,3 +159,30 @@ class DecisionTransformer(nn.Module):
         state_preds = self.predict_state(x_reshaped[:, :, 2, :])
 
         return state_preds, action_preds, return_preds
+
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from stable_baselines3.td3.policies import TD3Policy
+
+
+class TransformerSingularityExtractor(BaseFeaturesExtractor):
+    """🚀 SOTA: Custom transformer feature extractor for RL."""
+    def __init__(self, observation_space, features_dim: int = 512, d_model: int = 256, nhead: int = 8, num_layers: int = 4):
+        super().__init__(observation_space, features_dim)
+        self.d_model = d_model
+        input_dim = observation_space.shape[0]
+        self.embed = nn.Linear(input_dim, d_model)
+        self.blocks = nn.Sequential(
+            *[Block(d_model, nhead, n_positions=1024, attn_pdrop=0.1, resid_pdrop=0.1) for _ in range(num_layers)]
+        )
+        self.out = nn.Linear(d_model, features_dim)
+
+    def forward(self, observations: torch.Tensor) -> torch.Tensor:
+        # (batch, input_dim) -> (batch, 1, d_model)
+        x = self.embed(observations).unsqueeze(1)
+        x = self.blocks(x)
+        return self.out(x.squeeze(1))
+
+class TransformerTD3Policy(TD3Policy):
+    """🚀 SOTA: TD3 Policy with Transformer extractor."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

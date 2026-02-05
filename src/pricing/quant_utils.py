@@ -9,10 +9,11 @@ Performance Notes:
 """
 
 import math
-from typing import Optional, Tuple, Any
+
 import numpy as np
+
 try:
-    from numba import njit, prange, config
+    from numba import config, njit, prange
 except ImportError:
     # Fallback for systems without Numba (e.g. Python 3.14)
     def njit(*args, **kwargs):
@@ -24,11 +25,8 @@ except ImportError:
         pass
     config = Config()
 
-from src.shared.math_utils import (
-    fast_normal_cdf, 
-    fast_normal_pdf, 
-    calculate_d1_d2 as calculate_d1_d2_jit
-)
+from src.shared.math_utils import calculate_d1_d2 as calculate_d1_d2_jit
+from src.shared.math_utils import fast_normal_cdf, fast_normal_pdf
 
 # Force aggressive LLVM optimizations if requested
 # config.OPT = 3 
@@ -95,7 +93,7 @@ def batch_bs_price_jit(
     r: np.ndarray,
     q: np.ndarray,
     is_call: np.ndarray,
-    out: Optional[np.ndarray] = None
+    out: np.ndarray | None = None
 ) -> np.ndarray:
     """
     JIT compiled batch pricing for options.
@@ -157,12 +155,12 @@ def batch_greeks_jit(
     r: np.ndarray,
     q: np.ndarray,
     is_call: np.ndarray,
-    out_delta: Optional[np.ndarray] = None,
-    out_gamma: Optional[np.ndarray] = None,
-    out_vega: Optional[np.ndarray] = None,
-    out_theta: Optional[np.ndarray] = None,
-    out_rho: Optional[np.ndarray] = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    out_delta: np.ndarray | None = None,
+    out_gamma: np.ndarray | None = None,
+    out_vega: np.ndarray | None = None,
+    out_theta: np.ndarray | None = None,
+    out_rho: np.ndarray | None = None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     JIT compiled batch greeks calculation.
     Optimized with float64 for high-speed SIMD processing.
@@ -449,8 +447,8 @@ def jit_mc_european_price(
     n_paths: int, 
     is_call: bool,
     antithetic: bool,
-    z_innovations: Optional[np.ndarray] = None
-) -> Tuple[float, float]:
+    z_innovations: np.ndarray | None = None
+) -> tuple[float, float]:
     """
     JIT-optimized Monte Carlo for European options.
     Returns (price, standard_error).
@@ -465,7 +463,6 @@ def jit_mc_european_price(
     # Process in chunks if n_paths is very large to avoid huge random array
     # But for now, we'll use Numba's parallel prange which is very efficient.
     
-    actual_paths = n_paths
     if antithetic:
         loop_paths = n_paths // 2
     else:
@@ -520,7 +517,7 @@ def jit_mc_european_price_and_greeks(
     n_paths: int, 
     is_call: bool,
     antithetic: bool
-) -> Tuple[float, float, float, float, float]:
+) -> tuple[float, float, float, float, float]:
     """
     🚀 SOTA: Pathwise Sensitivity (PWM) Monte Carlo.
     Calculates Price, Delta, Vega, Rho in a single simulation pass.
@@ -536,7 +533,6 @@ def jit_mc_european_price_and_greeks(
     sum_delta = 0.0
     sum_vega = 0.0
     sum_rho = 0.0
-    sum_gamma = 0.0 # Placeholder/Proxy
     
     # Pre-calc constants for Pathwise Greeks
     # d(S_T)/d(S_0) = S_T / S_0
@@ -628,8 +624,8 @@ def jit_mc_european_with_control_variate(
     n_paths: int, 
     is_call: bool,
     antithetic: bool,
-    z_innovations: Optional[np.ndarray] = None
-) -> Tuple[float, float]:
+    z_innovations: np.ndarray | None = None
+) -> tuple[float, float]:
     """
     JIT-optimized Monte Carlo for European options using the underlying 
     as a control variate (expectation of S_T is known).
@@ -713,7 +709,7 @@ def gpu_mc_european_price(
     n_paths: int, 
     is_call: bool,
     antithetic: bool
-) -> Optional[Tuple[float, float]]:
+) -> tuple[float, float] | None:
     """
     GPU-accelerated Monte Carlo using CuPy.
     Returns (price, standard_error) or None if GPU is unavailable.
@@ -943,7 +939,7 @@ def scalar_bs_price_jit(
 @njit(cache=True, fastmath=True, error_model='numpy', nogil=True)
 def scalar_greeks_jit(
     S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool
-) -> Tuple[float, float, float, float, float]:
+) -> tuple[float, float, float, float, float]:
     """SOTA: Dedicated scalar Greeks calculation."""
     Ti = max(T, 1e-7)
     sqrt_T = math.sqrt(Ti)

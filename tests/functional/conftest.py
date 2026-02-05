@@ -122,3 +122,13 @@ async def client(mock_db):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
             yield ac
     app.dependency_overrides.clear()
+
+def validate_response(response, model):
+    """🚀 SINGULARITY: Strict Pydantic contract validation for functional tests."""
+    data = response.json()
+    # Handle DataResponse/SuccessResponse wrapper if present
+    if isinstance(data, dict) and "data" in data and hasattr(model, "model_validate"):
+        return model.model_validate(data["data"])
+    return model.model_validate(data)
+    
+    

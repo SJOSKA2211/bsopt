@@ -10,8 +10,9 @@ Comprehensive security implementation for the BSOPT platform:
 - Audit logging
 """
 
-from .audit import AuditEvent, AuditLog, log_audit
+from src.database.models import AuditLog
 
+from .audit import AuditEvent, log_audit
 from .password import PasswordService, PasswordValidator
 
 __all__ = [

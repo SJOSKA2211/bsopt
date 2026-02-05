@@ -3,10 +3,8 @@ Application configuration management.
 Neon and OAuth 2.0 optimized.
 """
 
-import os
-from typing import List, Optional, Union, Dict
 import structlog
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
@@ -38,7 +36,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
-    REDIS_PASSWORD: Optional[str] = None
+    REDIS_PASSWORD: str | None = None
 
     # RabbitMQ Configuration
     RABBITMQ_URL: str = "amqp://guest:guest@localhost:5672//"
@@ -48,6 +46,15 @@ class Settings(BaseSettings):
     
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
+
+    # ML Training Configuration
+    ML_TRAINING_DEFAULT_SAMPLES: int = 1000
+    ML_TRAINING_OPTUNA_TRIALS: int = 50
+
+    # Email Configuration
+    SENDGRID_API_KEY: str = "mock_key"
+    DEFAULT_FROM_EMAIL: str = "noreply@bsopt.ai"
+    DPA_EMAIL: str = "dpa@bsopt.ai"
     
     # Rate Limiting Tiers
     RATE_LIMIT_FREE: int = 100
@@ -55,25 +62,25 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENTERPRISE: int = 10000
 
     # CORS Configuration
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
     # JWT Authentication
     JWT_SECRET: str = Field(validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
-    JWT_PRIVATE_KEY: Optional[str] = ""
-    JWT_PUBLIC_KEY: Optional[str] = ""
+    JWT_PRIVATE_KEY: str | None = ""
+    JWT_PUBLIC_KEY: str | None = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300
-    NSE_NAME_SYMBOL_MAP: Dict[str, str] = {
+    NSE_NAME_SYMBOL_MAP: dict[str, str] = {
         "Safaricom": "SCOM",
         "KCB": "KCB",
         "Equity": "EQTY",
         "Co-operative": "COOP"
     }
-    NSE_SECTORS: List[str] = ["Banking", "Commercial", "Energy", "Insurance", "Investment", "Manufacturing", "Telecommunication"]
+    NSE_SECTORS: list[str] = ["Banking", "Commercial", "Energy", "Insurance", "Investment", "Manufacturing", "Telecommunication"]
 
     @property
     def is_production(self) -> bool:
@@ -97,13 +104,13 @@ class Settings(BaseSettings):
             raise ValueError("JWT_PUBLIC_KEY is missing in production")
         return self._get_transient_key("public")
 
-    _transient_keys: Dict[str, str] = {}
+    _transient_keys: dict[str, str] = {}
 
     def _get_transient_key(self, key_type: str) -> str:
         """Generates or retrieves a transient RSA key for development."""
         if not self._transient_keys:
-            from cryptography.hazmat.primitives.asymmetric import rsa
             from cryptography.hazmat.primitives import serialization
+            from cryptography.hazmat.primitives.asymmetric import rsa
             
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             self._transient_keys["private"] = private_key.private_bytes(
@@ -130,7 +137,7 @@ class Settings(BaseSettings):
         return "sqlite:///mlflow.db"
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
+        env_file=(".env", ".env.test"), env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
     @field_validator("ENVIRONMENT")

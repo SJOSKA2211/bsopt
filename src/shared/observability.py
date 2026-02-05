@@ -1,15 +1,15 @@
-import structlog
+import gc
+import logging
 import os
 import time
-import gc
-from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
-import logging
-from typing import Any, Dict, List, Optional, Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import Request, Response
 import httpx
-from datetime import datetime, timezone
-
+import structlog
+from fastapi import Request, Response
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram, Summary, push_to_gateway
 
 from src.shared.off_heap_logger import omega_logger
 
@@ -25,7 +25,7 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
     }
 )
 
-def _off_heap_processor(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+def _off_heap_processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """🚀 SINGULARITY: Zero-latency redirect for high-frequency logs."""
     if event_dict.get("high_frequency") or event_dict.get("latency_sensitive"):
         # Remove the marker before logging to SHM
@@ -74,7 +74,7 @@ def tune_worker_resources():
     Prevents CPU oversubscription between Ray and Numba.
     """
     import os
-    import psutil
+
     
     cpu_count = os.cpu_count() or 1
     # Assign 50% of cores to Numba to leave room for Ray/Event Loop
@@ -92,12 +92,18 @@ def tune_worker_resources():
 import orjson
 from cachetools import LRUCache
 
+import uuid
+
 _IP_CACHE = LRUCache(maxsize=1000)
 
 async def logging_middleware(request: Request, call_next: Callable) -> Response:
-    """FastAPI middleware for structured logging of every request with optimized IP masking."""
+    """FastAPI middleware for structured logging of every request with optimized IP masking and tracing."""
     logger = structlog.get_logger("api_request")
     start_time = time.time()
+    
+    # Trace Injection: Use existing ID or generate new one
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = request_id
     
     response = await call_next(request)
     
@@ -128,6 +134,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     if should_log:
         logger.info(
             "request_processed",
+            request_id=request_id,
             method=request.method,
             path=request.url.path,
             status_code=response.status_code,
@@ -135,7 +142,25 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
             client_ip=client_ip,
             sampled=True if 200 <= response.status_code < 300 else False
         )
+    
+    # Propagate ID back to client
+    response.headers["X-Request-ID"] = request_id
     return response
+
+# System Metrics
+def update_system_metrics(service_name: str):
+    """🚀 SINGULARITY: Capture real-time resource utilization for the current process."""
+    try:
+        import psutil
+        process = psutil.Process()
+        # Note: interval=None makes it non-blocking (returns diff since last call)
+        PROCESS_CPU_USAGE = Gauge('process_cpu_usage_percent', 'CPU usage of the current process', ['service'])
+        PROCESS_MEMORY_USAGE = Gauge('process_memory_usage_bytes', 'RSS memory usage of the current process', ['service'])
+        
+        PROCESS_CPU_USAGE.labels(service=service_name).set(process.cpu_percent(interval=None))
+        PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
+    except Exception:
+        pass
 
 # Common Metrics
 SCRAPE_DURATION = Summary('market_scrape_duration_seconds', 'Time spent scraping market data', ['api'])
@@ -174,7 +199,6 @@ ONNX_INFERENCE_LATENCY = Histogram('onnx_inference_latency_ms', 'Latency of ONNX
 PRICING_SERVICE_DURATION = Histogram('pricing_service_duration_seconds', 'Time spent in PricingService methods', ['method'])
 ML_PROXY_PREDICT_LATENCY = Histogram('ml_proxy_predict_latency_seconds', 'Latency of ML model predictions via proxy')
 
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
@@ -202,7 +226,7 @@ def push_metrics(job_name: str):
 
 
 # Persistent HTTP client for observability
-_observability_client: Optional[httpx.AsyncClient] = None
+_observability_client: httpx.AsyncClient | None = None
 
 def get_obs_client() -> httpx.AsyncClient:
     global _observability_client
@@ -213,7 +237,7 @@ def get_obs_client() -> httpx.AsyncClient:
         )
     return _observability_client
 
-async def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
+async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     """
     Posts an annotation to Grafana using a shared persistent client and high-speed serialization.
     """
@@ -225,7 +249,7 @@ async def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
     if tags is None:
         tags = []
 
-    timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    timestamp_ms = int(datetime.now(UTC).timestamp() * 1000)
     payload = {"time": timestamp_ms, "text": message, "tags": tags}
 
     client = get_obs_client()
