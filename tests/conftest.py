@@ -8,6 +8,7 @@ os.environ["JWT_SECRET"] = "test-secret-for-hmac"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["ML_SERVICE_GRPC_URL"] = "localhost:50051"
 os.environ["MFA_ENCRYPTION_KEY"] = "cUMkImRgwyuUNS_WDJPWOnJhlZlB_1cTOEMjtR2TMhU="
+os.environ["NUMBA_DISABLE_JIT"] = "1" # Enable coverage for JIT functions
 
 # ============================================================================ 
 # EARLY MOCKS (Immediate Deception for Python 3.14 Compatibility)
@@ -152,6 +153,7 @@ def pytest_configure(config):
     mock_settings.ML_SERVICE_GRPC_URLS = "localhost:50051"
     mock_settings.ML_GRPC_POOL_SIZE = 1
     mock_settings.MONTE_CARLO_GPU_THRESHOLD = 1000000 # High threshold to default to CPU
+    mock_settings.PRICING_LARGE_BATCH_THRESHOLD = 1000
     mock_settings.rate_limit_tiers = {"free": 100, "pro": 1000, "enterprise": 0}
     
     mpatch.setattr("src.config.Settings", MagicMock(return_value=mock_settings))

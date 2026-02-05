@@ -45,7 +45,9 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[Optional[str]] = mapped_column(String(255))
+    verification_token: Mapped[Optional[str]] = mapped_column(String(255))
 
     # Relationships
     portfolios: Mapped[List["Portfolio"]] = relationship(back_populates="user", cascade="all, delete-orphan")
@@ -291,6 +293,18 @@ class Position(Base):
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
     quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
     average_price: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
+    
+    # Missing fields inferred from CRUD
+    entry_price: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
+    current_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    exit_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    realized_pnl: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    status: Mapped[str] = mapped_column(String(20), default="open")
+    entry_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    exit_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    strike: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    expiry: Mapped[Optional[date]] = mapped_column(Date)
+    option_type: Mapped[Optional[str]] = mapped_column(String(4))
 
     def __repr__(self) -> str:
         return f"<Position(symbol={self.symbol}, quantity={self.quantity})>"
@@ -302,12 +316,27 @@ class Order(Base):
     __tablename__ = "orders"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     portfolio_id: Mapped[UUID] = mapped_column(ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False)
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
+    side: Mapped[str] = mapped_column(String(10), nullable=False) # buy/sell
     order_type: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="pending")
     quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), nullable=False)
     price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    
+    # Advanced order fields
+    limit_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    stop_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    filled_quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
+    filled_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(15, 4))
+    strike: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    expiry: Mapped[Optional[date]] = mapped_column(Date)
+    option_type: Mapped[Optional[str]] = mapped_column(String(4))
+    
+    broker: Mapped[Optional[str]] = mapped_column(String(50))
+    broker_order_id: Mapped[Optional[str]] = mapped_column(String(100))
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:
@@ -342,8 +371,14 @@ class MLModel(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     version: Mapped[str] = mapped_column(String(20), nullable=False)
     model_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    algorithm: Mapped[str] = mapped_column(String(50), nullable=False)
     artifact_uri: Mapped[str] = mapped_column(String(255), nullable=False)
+    model_artifact_url: Mapped[Optional[str]] = mapped_column(String(255)) # Alias for crud compat
     metrics: Mapped[Optional[dict]] = mapped_column(JSONB)
+    hyperparameters: Mapped[Optional[dict]] = mapped_column(JSONB)
+    training_metrics: Mapped[Optional[dict]] = mapped_column(JSONB)
+    created_by: Mapped[Optional[UUID]] = mapped_column(UUID(as_uuid=True))
+    is_production: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self) -> str:

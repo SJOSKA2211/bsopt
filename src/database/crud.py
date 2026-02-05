@@ -395,6 +395,7 @@ async def create_order(
         side=side,
         quantity=quantity,
         order_type=order_type,
+        status="pending",
         limit_price=limit_price,
         stop_price=stop_price,
         strike=strike,
