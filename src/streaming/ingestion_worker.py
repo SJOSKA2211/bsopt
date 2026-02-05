@@ -43,18 +43,21 @@ class IngestionWorker:
         from src.database.crud import bulk_insert_option_prices
         start_time = time.time()
         try:
-            # 1. Update Zero-Copy Shared Memory Mesh immediately (Process Loop)
+            # 1. Update Zero-Copy Shared Memory Mesh immediately (Off-load to thread to keep loop free)
             current_time = time.time()
-            for item in batch:
-                self.shm_mesh.write_tick(
-                    symbol=item['symbol'],
-                    price=item['price'],
-                    volume=item.get('volume', 0),
-                    timestamp=current_time
-                )
+            
+            def _write_shm():
+                for item in batch:
+                    self.shm_mesh.write_tick(
+                        symbol=item['symbol'],
+                        price=item['price'],
+                        volume=item.get('volume', 0),
+                        timestamp=current_time
+                    )
+            
+            await asyncio.to_thread(_write_shm)
 
-            # 2. Vectorized Transformation for DB (List Comprehension)
-            # Pre-calculate common values
+            # 2. Transformation for DB
             now_utc = datetime.now(timezone.utc)
             today_date = now_utc.date()
             
