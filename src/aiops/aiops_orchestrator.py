@@ -1,30 +1,29 @@
 import time
-import os
+from typing import Any
+
 import structlog
-import numpy as np
-from typing import Dict, Any, List
-from src.aiops.prometheus_adapter import PrometheusClient
-from src.aiops.isolation_forest_detector import IsolationForestDetector
+
 from src.aiops.autoencoder_detector import AutoencoderDetector
 from src.aiops.data_drift_detector import DataDriftDetector
 from src.aiops.docker_remediator import DockerRemediator
+from src.aiops.isolation_forest_detector import IsolationForestDetector
 from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
+from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.redis_remediator import RedisRemediator
-from src.shared.observability import setup_logging, push_metrics, post_grafana_annotation
-
 from src.aiops.remediation_strategies import (
-    RemediationRegistry, 
-    RestartServiceStrategy, 
-    RetrainModelStrategy, 
-    PurgeCacheStrategy
+    PurgeCacheStrategy,
+    RemediationRegistry,
+    RestartServiceStrategy,
+    RetrainModelStrategy,
 )
-from src.ml.forecasting.tft_model import PriceTFTModel
 from src.aiops.transformer_detector import TransformerAnomalyDetector
+from src.ml.forecasting.tft_model import PriceTFTModel
+from src.shared.observability import post_grafana_annotation, push_metrics, setup_logging
 
 logger = structlog.get_logger()
 
 class AIOpsOrchestrator:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         setup_logging()
         self.config = config
         self.check_interval_seconds = config.get("check_interval_seconds", 60)
@@ -85,7 +84,7 @@ class AIOpsOrchestrator:
 
         logger.info("aiops_orchestrator_init", status="success", config=self.config)
 
-    def notify(self, message: str, tags: List[str]):
+    def notify(self, message: str, tags: list[str]):
         """Wraps the async Grafana annotation for sync strategy execution."""
         # This calls the module-level function which the tests patch
         post_grafana_annotation(message, tags)
@@ -105,7 +104,7 @@ class AIOpsOrchestrator:
         # Predictive strategies
         self.remediation_registry.register("predicted_load_spike", restart) 
 
-    def _detect_anomalies(self) -> Dict[str, Any]:
+    def _detect_anomalies(self) -> dict[str, Any]:
         """Scans Prometheus and local detectors for system anomalies."""
         anomalies = {}
         
@@ -143,10 +142,10 @@ class AIOpsOrchestrator:
                     
                     # 🚀 SOTA: Transformer Check
                     if self.transformer_detector:
-                        is_anomaly, score = self.transformer_detector.detect(data_multi)
-                        if is_anomaly:
+                        result = self.transformer_detector.detect(data_multi)
+                        if result["is_anomaly"]:
                             anomalies["transformer_anomaly"] = True
-                            logger.warning("transformer_anomaly_detected", score=score)
+                            logger.warning("transformer_anomaly_detected", score=result["score"])
 
         # 5. Data Drift Detection
         if self.data_drift_detection_enabled:
@@ -161,7 +160,7 @@ class AIOpsOrchestrator:
         
         return anomalies
 
-    def _remediate_anomalies(self, anomalies: Dict[str, Any]):
+    def _remediate_anomalies(self, anomalies: dict[str, Any]):
         """🚀 Dynamic remediation dispatch via Strategy Pattern."""
         for anomaly_type, data in anomalies.items():
             strategies = self.remediation_registry.get_strategy(anomaly_type)

@@ -61,7 +61,7 @@ def test_detect_anomalies_ml(mock_config):
                         # AE anomaly
                         MockAE.return_value.fit_predict.return_value = [-1]
                         # Transformer anomaly
-                        MockTrans.return_value.detect.return_value = (True, 0.9)
+                        MockTrans.return_value.detect.return_value = {"is_anomaly": True, "score": 0.9}
                         # Drift anomaly
                         MockDrift.return_value.detect_drift.return_value = (True, {"p_value": 0.01})
                         

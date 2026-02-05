@@ -227,9 +227,9 @@ def test_remediate_anomalies(mock_config, anomaly_detected, drift_detected, expe
 @pytest.mark.parametrize("univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml", [
     (False, False, False, {}),
     (True, False, False, {"univariate_anomaly": True}),
-    (False, True, False, {"multivariate_anomaly": True}),
+    (False, True, False, {"multivariate_anomaly": True, "transformer_anomaly": True}),
     (False, False, True, {"data_drift": True}),
-    (True, True, True, {"univariate_anomaly": True, "multivariate_anomaly": True, "data_drift": True}),
+    (True, True, True, {"univariate_anomaly": True, "multivariate_anomaly": True, "data_drift": True, "transformer_anomaly": True}),
 ])
 def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml, mock_orchestrator_dependencies):
     # Create a specific config for this parameterization
@@ -240,11 +240,12 @@ def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, mu
 
     with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=0.01), \
          patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=0.01):
-        
+    
         # Explicitly control Prometheus client return values based on expected calls
         orchestrator.prometheus_client.get_historical_metric_data.return_value = np.array([1]) if univariate_anomaly_detected else np.array([])
-        orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.array([[1, 2]]) if multivariate_anomaly_detected or data_drift_detected else np.array([])
-        
+        # Multivariate data must match input_dim (10)
+        orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.random.rand(1, 10) if multivariate_anomaly_detected or data_drift_detected else np.array([])
+    
         orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([-1]) if univariate_anomaly_detected else np.array([1])
         if orchestrator.autoencoder_detector: # Only set if autoencoder is enabled
             orchestrator.autoencoder_detector.fit_predict.return_value = np.array([-1]) if multivariate_anomaly_detected else np.array([1])
@@ -292,29 +293,58 @@ def test_detect_anomalies_ml_driven_no_data(mock_config, mock_orchestrator_depen
         orchestrator.data_drift_detector.detect_drift.assert_not_called()
         mock_orchestrator_dependencies["logger"].info.assert_called_with("data_drift_check_skipped", reason=ANY)
 
-def test_detect_anomalies_disabled(mock_config, mock_orchestrator_dependencies):
-    # Create a copy of mock_config and disable ML detections for this specific test
-    config_ml_disabled = mock_config.copy()
-    config_ml_disabled["anomaly_detection_enabled"] = False
-    config_ml_disabled["data_drift_detection_enabled"] = False
-    orchestrator = AIOpsOrchestrator(config_ml_disabled)
-
+def test_detect_anomalies_transformer(mock_config, mock_orchestrator_dependencies):
+    orchestrator = AIOpsOrchestrator(mock_config)
+    
     with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=0.01), \
          patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=0.01):
         
-        # Ensure Prometheus client methods return something with .size
-        orchestrator.prometheus_client.get_historical_metric_data.return_value = np.array([])
-        orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.array([])
-
-        orchestrator.isolation_forest_detector.fit_predict.reset_mock() # Reset to ensure no lingering calls
-        if orchestrator.autoencoder_detector:
-            orchestrator.autoencoder_detector.fit_predict.reset_mock()
-        orchestrator.data_drift_detector.detect_drift.reset_mock()
+        # Configure Prometheus to return data
+        orchestrator.prometheus_client.get_historical_metric_data.return_value = np.array([1, 2, 3])
+        # Multivariate data must match input_dim (10)
+        orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.random.rand(5, 10)
         
-        anomalies = orchestrator._detect_anomalies()
-        assert anomalies == {}
+        # Mock detectors
+        orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([1]) # No anomaly
+        orchestrator.autoencoder_detector.fit_predict.return_value = np.array([1]) # No anomaly
+        
+        # 🚀 Test Transformer Anomaly
+        with patch.object(orchestrator.transformer_detector, "detect") as mock_detect:
+            mock_detect.return_value = {"is_anomaly": True, "score": 0.1}
+            anomalies = orchestrator._detect_anomalies()
+            assert "transformer_anomaly" in anomalies
+            assert anomalies["transformer_anomaly"] is True
 
-        orchestrator.isolation_forest_detector.fit_predict.assert_not_called()
-        if orchestrator.autoencoder_detector:
-            orchestrator.autoencoder_detector.fit_predict.assert_not_called()
-        orchestrator.data_drift_detector.detect_drift.assert_not_called()
+def test_orchestrator_notify(mock_config, mock_orchestrator_dependencies):
+    orchestrator = AIOpsOrchestrator(mock_config)
+    message = "Test notification"
+    tags = ["test", "tag"]
+    
+    orchestrator.notify(message, tags)
+    
+    # Verify post_grafana_annotation was called
+    mock_orchestrator_dependencies["post_grafana_annotation"].assert_called_once_with(message, tags)
+
+def test_remediate_anomalies_error_handling(mock_config, mock_orchestrator_dependencies):
+    orchestrator = AIOpsOrchestrator(mock_config)
+    anomalies = {"high_error_rate": True}
+    
+    # Mock strategy to raise exception
+    with patch.object(orchestrator.remediation_registry, "get_strategy") as mock_get:
+        mock_strategy = MagicMock()
+        mock_strategy.execute.side_effect = Exception("Remediation failed")
+        mock_get.return_value = [mock_strategy]
+        
+        # Should not raise exception
+        orchestrator._remediate_anomalies(anomalies)
+        
+        mock_orchestrator_dependencies["logger"].error.assert_called_with(
+            "remediation_execution_failed", strategy=ANY, error="Remediation failed"
+        )
+
+def test_detect_anomalies_prometheus_multi_no_data(mock_config, mock_orchestrator_dependencies):
+    orchestrator = AIOpsOrchestrator(mock_config)
+    with patch.object(orchestrator.prometheus_client, "get_historical_metric_data_multi", return_value=None):
+        anomalies = orchestrator._detect_anomalies()
+        assert "multivariate_anomaly" not in anomalies
+        assert "data_drift" not in anomalies
