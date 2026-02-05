@@ -1,32 +1,43 @@
 import struct
 import numpy as np
 from multiprocessing import shared_memory, Lock
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 import structlog
 import os
+import msgspec
 
 logger = structlog.get_logger()
 
-# Market Tick Structure: 8s (Symbol), d (Price), q (Volume), d (Timestamp) = 8 + 8 + 8 + 8 = 32 bytes
-TICK_STRUCT = struct.Struct("8s d q d")
-TICK_SIZE = TICK_STRUCT.size
+# Market Tick Structure: 8s (Symbol), d (Price), q (Volume), d (Timestamp) = 32 bytes
+TICK_DTYPE = np.dtype([
+    ('symbol', 'S8'),
+    ('price', 'f8'),
+    ('volume', 'i8'),
+    ('timestamp', 'f8')
+])
+TICK_SIZE = TICK_DTYPE.itemsize
 BUFFER_CAPACITY = 100000 # 100k ticks
 SHM_NAME = "market_mesh_ring_buffer"
+
+class MarketTick(msgspec.Struct):
+    symbol: str
+    price: float
+    volume: int
+    timestamp: float
 
 class SharedMemoryRingBuffer:
     """
     Ultra-high-performance Zero-Copy Ring Buffer using Shared Memory.
-    Designed for single-writer (IngestionWorker), multi-reader (PricingEngine) access.
+    Optimized for NumPy views and msgspec serialization.
     """
     def __init__(self, create: bool = False):
-        self.shm_size = (TICK_SIZE * BUFFER_CAPACITY) + 8 # +8 bytes for the atomic head index
-        self._lock = Lock() # Inter-process lock
+        self.shm_size = (TICK_SIZE * BUFFER_CAPACITY) + 8 
+        self._lock = Lock()
         self.shm = None
         self.buf = None
         
         try:
             if create:
-                # Destroy existing if it exists to ensure fresh start
                 try:
                     existing = shared_memory.SharedMemory(name=SHM_NAME)
                     existing.close()
@@ -34,94 +45,73 @@ class SharedMemoryRingBuffer:
                 except FileNotFoundError:
                     pass
                 self.shm = shared_memory.SharedMemory(name=SHM_NAME, create=True, size=self.shm_size)
-                # Initialize head index to 0
                 self.shm.buf[:8] = struct.pack("q", 0)
             else:
                 try:
                     self.shm = shared_memory.SharedMemory(name=SHM_NAME)
                 except FileNotFoundError:
-                    # 🚀 SOTA: Graceful fallback for dev/test
                     if os.getenv("ENVIRONMENT") == "prod":
                         raise
                     logger.warning("shm_buffer_missing_using_dummy", name=SHM_NAME)
-                    # Create a dummy buffer in process memory for safety
                     self.buf = bytearray(self.shm_size)
                     return
             
             self.buf = self.shm.buf
+            # Create a numpy view of the entire tick buffer (skipping head index)
+            self.data_view = np.frombuffer(self.buf, dtype=TICK_DTYPE, offset=8, count=BUFFER_CAPACITY)
+            
             logger.info("shm_buffer_initialized", name=SHM_NAME, size=self.shm_size, create=create)
         except Exception as e:
             logger.error("shm_initialization_failed", error=str(e))
             raise
 
     def write_tick(self, symbol: str, price: float, volume: int, timestamp: float):
-        """Writer: IngestionWorker writes binary tick into the ring."""
+        """Writer: Direct write into numpy view."""
         with self._lock:
             head = struct.unpack("q", self.buf[:8])[0]
-            offset = 8 + (head % BUFFER_CAPACITY) * TICK_SIZE
+            idx = head % BUFFER_CAPACITY
             
-            # Pack data into the buffer at the calculated offset
-            # Truncate symbol to 8 chars
-            sym_bytes = symbol.encode('ascii')[:8].ljust(8, b'\x00')
-            self.buf[offset : offset + TICK_SIZE] = TICK_STRUCT.pack(sym_bytes, price, volume, timestamp)
+            # Zero-copy write via numpy view
+            self.data_view[idx] = (symbol.encode('ascii')[:8], price, volume, timestamp)
             
-            # Atomically (effectively) increment head
+            # Atomic head update
             self.buf[:8] = struct.pack("q", head + 1)
 
-    def read_latest(self, last_head: int) -> Tuple[list, int]:
-        """Reader: PricingEngine reads all new ticks since last_head."""
-        current_head = struct.unpack("q", self.buf[:8])[0]
-        if current_head <= last_head:
-            return [], last_head
-        
-        new_ticks = []
-        # Optimization: limit read if we fell too far behind (overflow)
-        start_idx = max(last_head, current_head - BUFFER_CAPACITY)
-        
-        for h in range(start_idx, current_head):
-            offset = 8 + (h % BUFFER_CAPACITY) * TICK_SIZE
-            data = TICK_STRUCT.unpack(self.buf[offset : offset + TICK_SIZE])
-            symbol = data[0].decode('ascii').strip('\x00')
-            new_ticks.append({
-                "symbol": symbol,
-                "price": data[1],
-                "volume": data[2],
-                "timestamp": data[3]
-            })
-            
-        return new_ticks, current_head
-
-    def read_latest_raw(self, last_head: int) -> Tuple[bytes, int]:
+    def read_latest_view(self, last_head: int) -> Tuple[np.ndarray, int]:
         """
-        Ultra-low latency reader: returns a single contiguous bytes object 
-        containing all new ticks in binary format.
-        Perfect for direct WebSocket broadcasting.
+        🚀 SOTA: Returns a zero-copy NumPy view of the new ticks.
+        If the data wraps, returns a copy (rare).
         """
         current_head = struct.unpack("q", self.buf[:8])[0]
         if current_head <= last_head:
-            return b"", last_head
-
+            return np.array([], dtype=TICK_DTYPE), last_head
+        
         start_idx = max(last_head, current_head - BUFFER_CAPACITY)
-        num_ticks = current_head - start_idx
+        num_new = current_head - start_idx
         
-        # Determine if we need to wrap around the ring
-        start_off = 8 + (start_idx % BUFFER_CAPACITY) * TICK_SIZE
-        end_off = 8 + (current_head % BUFFER_CAPACITY) * TICK_SIZE
+        s = start_idx % BUFFER_CAPACITY
+        e = current_head % BUFFER_CAPACITY
         
-        if start_off < end_off:
-            # Contiguous read
-            return bytes(self.buf[start_off:end_off]), current_head
+        if s < e:
+            # Simple slice - zero copy
+            return self.data_view[s:e], current_head
         else:
-            # Wrapped read: two fragments
-            first_part = self.buf[start_off : 8 + BUFFER_CAPACITY * TICK_SIZE]
-            second_part = self.buf[8:end_off]
-            return bytes(first_part) + bytes(second_part), current_head
+            # Wrap around - must concatenate (copy unavoidable here)
+            return np.concatenate([self.data_view[s:], self.data_view[:e]]), current_head
+
+    def read_latest_msgspec(self, last_head: int) -> Tuple[list[MarketTick], int]:
+        """High-level reader using msgspec for speed."""
+        view, head = self.read_latest_view(last_head)
+        # Faster than dictionary comprehension
+        return [MarketTick(t['symbol'].decode().strip('\x00'), t['price'], t['volume'], t['timestamp']) for t in view], head
 
     def close(self):
-        self.shm.close()
+        if self.shm:
+            self.shm.close()
 
     def unlink(self):
-        try:
-            self.shm.unlink()
-        except FileNotFoundError:
-            pass
+        if self.shm:
+            try:
+                self.shm.unlink()
+            except FileNotFoundError:
+                pass
