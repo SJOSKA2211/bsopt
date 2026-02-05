@@ -3,14 +3,21 @@ User Management Routes (Singularity Refactored)
 """
 
 import math
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Request, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+
+from src.api.schemas.common import (
+    DataResponse,
+    PaginatedResponse,
+    PaginationMeta,
+    SuccessResponse,
+)
+from src.api.schemas.user import UserResponse, UserUpdateRequest
+from src.auth.security import RoleChecker
 from src.database import get_db
 from src.database.models import User
-from src.api.schemas.user import UserResponse, UserUpdateRequest
-from src.api.schemas.common import DataResponse, SuccessResponse, PaginatedResponse, PaginationMeta
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -49,14 +56,18 @@ async def update_current_user_profile(
     
     return SuccessResponse(message="Profile updated")
 
-@router.get("", response_model=PaginatedResponse[UserResponse])
+@router.get(
+    "",
+    response_model=PaginatedResponse[UserResponse],
+    dependencies=[Depends(RoleChecker(["admin"]))],
+)
 async def list_users(
     db: Session = Depends(get_db),
     page: int = 1,
     page_size: int = 20
 ):
     """
-    List users (Admin only logic can be added via dependency).
+    List users (Admin only).
     """
     total = db.query(func.count(User.id)).scalar()
     users = db.query(User).offset((page - 1) * page_size).limit(page_size).all()
