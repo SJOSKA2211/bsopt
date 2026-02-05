@@ -1,7 +1,10 @@
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from src.scrapers.engine import NSEScraper
+
 
 @pytest.mark.asyncio
 async def test_tab_multiplexing_concurrency():

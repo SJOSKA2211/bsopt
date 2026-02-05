@@ -1,11 +1,12 @@
 import pytest
-from src.pricing.factory import PricingEngineFactory
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.monte_carlo import MonteCarloEngine
-from src.pricing.lattice import BinomialTreePricer
-from src.pricing.finite_difference import CrankNicolsonSolver
 
-from src.pricing.wasm_engine import WASMPricingEngine, WASM_AVAILABLE
+from src.pricing.black_scholes import BlackScholesEngine
+from src.pricing.factory import PricingEngineFactory
+from src.pricing.finite_difference import CrankNicolsonSolver
+from src.pricing.lattice import BinomialTreePricer
+from src.pricing.monte_carlo import MonteCarloEngine
+from src.pricing.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
+
 
 def test_factory_get_strategy():
     assert isinstance(PricingEngineFactory.get_strategy("black_scholes"), BlackScholesEngine)

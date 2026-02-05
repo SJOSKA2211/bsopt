@@ -1,9 +1,11 @@
-import strawberry
-from strawberry.federation import Schema
-from typing import List, Optional, AsyncGenerator
 import asyncio
 import random
+from collections.abc import AsyncGenerator
 from datetime import datetime
+
+import strawberry
+from strawberry.federation import Schema
+
 
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
@@ -25,7 +27,7 @@ class Portfolio:
     id: strawberry.ID
     user_id: str
     cash_balance: float
-    positions: List[Position]
+    positions: list[Position]
 
 @strawberry.type
 class Order:
@@ -36,14 +38,14 @@ class Order:
     quantity: int
     order_type: str # LIMIT/MARKET
     status: str # PENDING/FILLED/CANCELLED
-    limit_price: Optional[float] = None
+    limit_price: float | None = None
     created_at: datetime
     updated_at: datetime
 
 @strawberry.type
 class Query:
     @strawberry.field
-    def portfolio(self, user_id: str) -> Optional[Portfolio]:
+    def portfolio(self, user_id: str) -> Portfolio | None:
         # Mock data
         if user_id == "user_123":
             return Portfolio(
@@ -71,11 +73,11 @@ class Mutation:
         side: str,
         quantity: int,
         order_type: str,
-        limit_price: Optional[float] = None
+        limit_price: float | None = None
     ) -> Order:
         # Mock order creation
         return Order(
-            id=strawberry.ID(f"order_{random.randint(1000, 9999)}"),
+            id=strawberry.ID(f"order_{random.randint(1000, 9999)}"), # nosec B311}"),
             portfolio_id=portfolio_id,
             contract_symbol=contract_symbol,
             side=side,
@@ -94,7 +96,7 @@ class Mutation:
     @strawberry.mutation
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         return Portfolio(
-            id=strawberry.ID(f"port_{random.randint(1000, 9999)}"),
+            id=strawberry.ID(f"port_{random.randint(1000, 9999)}"), # nosec B311}"),
             user_id=user_id,
             cash_balance=initial_cash,
             positions=[]
@@ -103,12 +105,12 @@ class Mutation:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio, None]:
+    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio]:
         while True:
             yield Portfolio(
                 id=portfolio_id,
                 user_id="user_123",
-                cash_balance=10000.0 + random.uniform(-100, 100),
+                cash_balance=10000.0 + random.uniform(-100, 100), # nosec B311
                 positions=[]
             )
             await asyncio.sleep(1)

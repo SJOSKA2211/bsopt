@@ -1,10 +1,11 @@
-from typing import List, Dict
+import asyncio
+import re
+import time
+
 import httpx
 import pandas as pd
-import time
-import asyncio
 import structlog
-import re
+
 from src.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS
 from src.utils.http_client import HttpClientManager
 
@@ -31,7 +32,7 @@ class MarketDataScraper:
             return message
         return message.replace(self.api_key, "[REDACTED]")
 
-    async def fetch_multiple_tickers(self, tickers: List[str], start_date: str, end_date: str) -> Dict[str, pd.DataFrame]:
+    async def fetch_multiple_tickers(self, tickers: list[str], start_date: str, end_date: str) -> dict[str, pd.DataFrame]:
         """
         Fetch historical data for multiple tickers concurrently.
         """

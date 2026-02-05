@@ -1,8 +1,9 @@
-import pytest
-import pandas as pd
 import numpy as np
-from src.ml.feature_store.store import feature_store
+import pandas as pd
+
 from src.ml.feature_store.features import LogReturnFeature, SyntheticOHLCFeature
+from src.ml.feature_store.store import feature_store
+
 
 def test_log_return_feature():
     data = pd.DataFrame({'close': [100, 105, 102]})

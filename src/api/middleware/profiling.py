@@ -21,7 +21,6 @@ class ProfilingMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         from src.config import settings
-        import pyinstrument
 
         should_profile = request.query_params.get("profile") == "true" and settings.DEBUG
 

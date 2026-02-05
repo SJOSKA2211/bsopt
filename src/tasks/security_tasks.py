@@ -9,14 +9,13 @@ Automated tasks for:
 """
 
 import logging
-import asyncio
-from typing import Dict, Any
 
-from src.tasks.celery_app import celery_app, BaseTaskWithRetry
-from src.shared.db import get_db_session
+from sqlalchemy import select
+
 from src.database.models import User
 from src.security.password import get_password_service
-from sqlalchemy import select, update
+from src.shared.db import get_db_session
+from src.tasks.celery_app import BaseTaskWithRetry, celery_app
 
 logger = logging.getLogger(__name__)
 

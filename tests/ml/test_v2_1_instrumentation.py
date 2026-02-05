@@ -1,8 +1,11 @@
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
 from prometheus_client import Histogram
-from src.shared import observability
+
 from src.ml.trainer import InstrumentedTrainer
+from src.shared import observability
+
 
 def test_training_duration_is_histogram():
     """Verify that ml_training_duration_seconds is a Histogram as per PRD."""
@@ -92,6 +95,7 @@ def test_pipeline_updates_drift_score():
 def test_structlog_json_formatting():
     """Verify that structlog is configured with JSONRenderer."""
     import structlog
+
     from src.shared.observability import setup_logging
     
     # Reset structlog config to test our setup

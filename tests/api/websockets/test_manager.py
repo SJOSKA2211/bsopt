@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
+
 from src.api.websockets.manager import ConnectionManager, ConnectionMetadata, ProtocolType
 from src.protos.market_data_pb2 import TickerUpdate
+
 
 @pytest.fixture
 def manager():

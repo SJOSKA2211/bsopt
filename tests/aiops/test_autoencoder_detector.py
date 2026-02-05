@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
-import torch
+
 from src.aiops.autoencoder_detector import AutoencoderDetector
+
 
 class TestAutoencoderDetector(unittest.TestCase):
     def setUp(self):

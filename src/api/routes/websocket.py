@@ -1,7 +1,8 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
-from typing import Optional
 import structlog
-from src.api.websockets.manager import manager, ConnectionMetadata, ProtocolType
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+
+from src.api.websockets.manager import ProtocolType, manager
+
 # In a real app, we would import auth dependencies here
 # from src.api.dependencies import get_current_user
 

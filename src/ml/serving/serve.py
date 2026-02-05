@@ -1,10 +1,10 @@
+import asyncio
 import logging
 import os
 import time
 import uuid
-import asyncio
-from datetime import datetime, timezone # Added timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime  # Added timezone
+from typing import Any
 
 import mlflow
 import mlflow.pyfunc
@@ -12,18 +12,24 @@ import numpy as np
 import onnxruntime as ort
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.responses import Response, ORJSONResponse
+from fastapi.responses import ORJSONResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
-from src.api.schemas.common import DataResponse, ErrorDetail, ErrorResponse
-from src.api.schemas.ml import InferenceRequest, InferenceResponse, BatchInferenceRequest, BatchInferenceResponse
-from src.utils.circuit_breaker import InMemoryCircuitBreaker, DistributedCircuitBreaker # Import both
-from src.utils.cache import get_redis # Import for DistributedCircuitBreaker initialization
+from src.api.schemas.common import DataResponse, ErrorResponse
+from src.api.schemas.ml import (
+    BatchInferenceRequest,
+    BatchInferenceResponse,
+    InferenceRequest,
+    InferenceResponse,
+)
+from src.utils.circuit_breaker import (  # Import both
+    DistributedCircuitBreaker,
+    InMemoryCircuitBreaker,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from fastapi.responses import ORJSONResponse
 
 app = FastAPI(
     title="BSOPT ML Serving",
@@ -47,7 +53,7 @@ MODEL_LOAD_STATUS = Gauge(
 ml_circuit: InMemoryCircuitBreaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30) # Default to in-memory
 
 # Global model state
-state: Dict[str, Any] = {
+state: dict[str, Any] = {
     "xgb_model": None, 
     "xgb_ort_session": None,
     "nn_ort_session": None, 
@@ -328,7 +334,7 @@ async def health():
             "xgb": state["xgb_model"] is not None,
             "nn": state["nn_ort_session"] is not None,
         },
-        "timestamp": datetime.now(timezone.utc).isoformat() # Use timezone-aware datetime
+        "timestamp": datetime.now(UTC).isoformat() # Use timezone-aware datetime
     }
 
 

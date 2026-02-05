@@ -1,7 +1,9 @@
-from typing import Dict, Any, Iterator, List
-import structlog
+from collections.abc import Iterator
+from typing import Any
+
 import pandas as pd
-import numpy as np
+import structlog
+
 from src.ml.feature_store.store import feature_store
 
 logger = structlog.get_logger()
@@ -12,7 +14,7 @@ class DataNormalizer:
     Handles synthetic bar generation via Feature Store.
     """
     @staticmethod
-    def normalize_incoming(raw_data: Dict[str, Any]) -> Dict[str, Any]:
+    def normalize_incoming(raw_data: dict[str, Any]) -> dict[str, Any]:
         """
         Converts disparate data sources into a unified OHLCV format.
         Now delegates to Feature Store logic for consistency if needed, 
@@ -43,7 +45,7 @@ class DataNormalizer:
         return raw_data
 
     @staticmethod
-    def remove_outliers(data: Dict[str, Any], prev_price: float, threshold: float = 0.1) -> bool:
+    def remove_outliers(data: dict[str, Any], prev_price: float, threshold: float = 0.1) -> bool:
         """
         Simple outlier detection logic. Returns True if data is considered an outlier.
         """

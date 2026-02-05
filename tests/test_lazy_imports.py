@@ -1,18 +1,19 @@
 """
 Test suite for lazy import functionality.
 """
-import pytest
 import sys
 import threading
 import time
+
+import pytest
+
 from src.utils.lazy_import import (
-    reset_import_stats, 
-    get_import_stats, 
-    lazy_import, 
-    LazyImportError, 
     CircularImportError,
-    preload_modules
+    LazyImportError,
+    get_import_stats,
+    reset_import_stats,
 )
+
 
 class TestLazyImports:
     """Test lazy import behavior."""
@@ -186,8 +187,9 @@ class TestLazyImports:
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
         monkeypatch.syspath_prepend(str(tmp_path))
-        import mock_package_abs
         import json
+
+        import mock_package_abs
         assert mock_package_abs.dumps is json.dumps
 
     def test_preload_modules_failure(self, tmp_path, monkeypatch):

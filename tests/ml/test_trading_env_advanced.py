@@ -1,5 +1,7 @@
 import numpy as np
+
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+
 
 def test_reward_function_risk_awareness():
     """Test that the reward function accounts for volatility/risk."""

@@ -1,11 +1,13 @@
+from typing import Any
+
 import structlog
-from typing import Dict, Any
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 logger = structlog.get_logger()
 
 class MLPipelineTrigger:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         if "ticker" not in config or "framework" not in config:
             raise ValueError("ML Pipeline config must contain 'ticker' and 'framework'")
         self.config = config

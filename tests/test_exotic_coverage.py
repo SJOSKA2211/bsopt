@@ -1,17 +1,16 @@
-import numpy as np
 import pytest
+
 from src.pricing.exotic import (
     AsianOptionPricer,
-    BarrierOptionPricer,
-    LookbackOptionPricer,
+    BarrierType,
+    BSParameters,
     DigitalOptionPricer,
     ExoticParameters,
-    BSParameters,
-    AsianType,
-    BarrierType,
+    LookbackOptionPricer,
     StrikeType,
     price_exotic_option,
 )
+
 
 def test_geometric_asian_zero_maturity():
     params = ExoticParameters(BSParameters(100, 100, 0.0, 0.05, 0.0, 0.2))

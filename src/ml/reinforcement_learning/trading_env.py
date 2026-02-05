@@ -1,7 +1,6 @@
+
 import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-from typing import Dict, Tuple
 import structlog
 
 logger = structlog.get_logger()
@@ -52,7 +51,7 @@ class TradingEnvironment(gym.Env):
             
         return vec
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
+    def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict]:
         """
         Execute one step in the environment with data validation.
         """
@@ -173,7 +172,7 @@ class TradingEnvironment(gym.Env):
             
         return float(reward)
 
-    def _get_dummy_data(self) -> Dict:
+    def _get_dummy_data(self) -> dict:
         """Generate random data for fallback/tests"""
         return {
             'prices': np.random.uniform(90, 110, 10),

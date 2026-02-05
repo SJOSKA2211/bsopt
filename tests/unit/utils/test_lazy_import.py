@@ -1,7 +1,17 @@
-import pytest
 import sys
 from unittest.mock import MagicMock, patch
-from src.utils.lazy_import import lazy_import, get_import_stats, reset_import_stats, preload_modules, CircularImportError, LazyImportError
+
+import pytest
+
+from src.utils.lazy_import import (
+    CircularImportError,
+    LazyImportError,
+    get_import_stats,
+    lazy_import,
+    preload_modules,
+    reset_import_stats,
+)
+
 
 class MockModule:
     def __init__(self):

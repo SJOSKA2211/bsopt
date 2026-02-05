@@ -1,6 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
+
 from src.aiops.redis_remediator import RedisRemediator
+
 
 @patch("src.aiops.redis_remediator.logger")
 @patch("src.aiops.redis_remediator.redis.Redis")

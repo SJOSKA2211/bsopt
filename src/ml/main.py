@@ -1,7 +1,9 @@
 import asyncio
+
 from fastapi import FastAPI
 from strawberry.fastapi import GraphQLRouter
-from src.ml.graphql.schema import schema, get_context
+
+from src.ml.graphql.schema import get_context, schema
 from src.shared.observability import logging_middleware, setup_logging
 
 # Optimized event loop

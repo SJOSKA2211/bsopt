@@ -1,5 +1,6 @@
-import requests
 import time
+
+import requests
 
 BASE_URL = "http://localhost:4000"
 AUTH_LOGIN_ENDPOINT = f"{BASE_URL}/api/auth/login"

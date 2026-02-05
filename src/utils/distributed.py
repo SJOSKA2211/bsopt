@@ -1,8 +1,8 @@
-import os
 import multiprocessing
+import os
+
 import ray
 import structlog
-from typing import Optional, Dict, Any
 
 logger = structlog.get_logger(__name__)
 
@@ -25,7 +25,7 @@ class RayOrchestrator:
     def get_optimal_core_for_numa(node_id: int) -> int:
         """SOTA: Find a physical core on the target NUMA node."""
         try:
-            with open(f"/sys/devices/system/node/node{node_id}/cpulist", "r") as f:
+            with open(f"/sys/devices/system/node/node{node_id}/cpulist") as f:
                 cores = f.read().strip().split(",")[0]
                 return int(cores.split("-")[0])
         except:
@@ -33,10 +33,10 @@ class RayOrchestrator:
 
     @staticmethod
     def init(
-        num_cpus: Optional[int] = None, 
-        num_gpus: Optional[int] = 0, 
-        object_store_memory_gb: Optional[float] = None,
-        spill_dir: str = "/tmp/ray_spill"
+        num_cpus: int | None = None,
+        num_gpus: int | None = 0,
+        object_store_memory_gb: float | None = None,
+        spill_dir: str = "/tmp/ray_spill" # nosec B108
     ):
         """🚀 SINGULARITY: Initialize Ray with optimal hardware settings."""
         if ray.is_initialized():

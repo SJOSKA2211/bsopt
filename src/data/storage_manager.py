@@ -1,7 +1,7 @@
-import aioboto3
 import asyncio
+
+import aioboto3
 import structlog
-from typing import Optional, Any, Dict
 from botocore.exceptions import ClientError
 
 logger = structlog.get_logger(__name__)

@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
-from src.ml.trainer import InstrumentedTrainer, XGBoostTrainer, SklearnTrainer, PyTorchTrainer
-import torch
+
+import numpy as np
+import pytest
+
+from src.ml.trainer import InstrumentedTrainer, PyTorchTrainer
+
 
 @pytest.fixture
 def dummy_data():

@@ -1,6 +1,7 @@
 import os
+from typing import Any
+
 import structlog
-from typing import Dict, Any, Optional
 
 logger = structlog.get_logger(__name__)
 
@@ -9,7 +10,7 @@ class WasmModuleCache:
     SOTA: Persistence and caching for compiled WASM modules.
     Reduces instantiation latency by 100x by serializing the machine code.
     """
-    _memory_cache: Dict[str, Any] = {}
+    _memory_cache: dict[str, Any] = {}
 
     @classmethod
     def get_module(cls, store: Any, wasm_path: str) -> Any:

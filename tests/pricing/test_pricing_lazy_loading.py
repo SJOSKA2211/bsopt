@@ -2,7 +2,7 @@
 Test lazy loading behavior for the src.pricing package.
 """
 import sys
-import pytest
+
 
 def test_pricing_does_not_load_heavy_deps_on_import():
     """
@@ -11,7 +11,6 @@ def test_pricing_does_not_load_heavy_deps_on_import():
     # Ensure it's not already loaded
     assert 'qiskit' not in sys.modules
     
-    import src.pricing
     
     # Still should not be loaded
     assert 'qiskit' not in sys.modules

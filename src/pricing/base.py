@@ -7,7 +7,6 @@ testability, and consistent patterns across the platform.
 """
 
 from abc import ABC, abstractmethod
-from typing import Union
 
 import numpy as np
 
@@ -59,7 +58,7 @@ class PricingEngine:
     Refactored for performance and modularity (Ultrathinking).
     """
 
-    def __init__(self, strategy: Union[PricingStrategy, VectorizedPricingStrategy]):
+    def __init__(self, strategy: PricingStrategy | VectorizedPricingStrategy):
         self.strategy = strategy
 
     def get_price(self, params: BSParameters, option_type: str = "call") -> float:

@@ -1,9 +1,8 @@
 import asyncio
-import asyncpg
-import numpy as np
-import structlog
-from typing import List, Tuple, Any, Optional
 import os
+
+import asyncpg
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +13,7 @@ class VectorizedDBWriter:
     """
     def __init__(self, dsn: str):
         self.dsn = dsn.replace("postgresql+asyncpg", "postgresql")
-        self._pool: Optional[asyncpg.Pool] = None
+        self._pool: asyncpg.Pool | None = None
 
     async def connect(self):
         """🚀 SINGULARITY: Initialize high-concurrency connection pool."""
@@ -27,7 +26,7 @@ class VectorizedDBWriter:
             )
             logger.info("db_pipeliner_pool_initialized")
 
-    async def insert_prices_vectorized(self, data: List[Tuple]):
+    async def insert_prices_vectorized(self, data: list[tuple]):
         """🚀 SINGULARITY: Bulk ingestion via COPY (Fastest Path)."""
         if not self._pool: await self.connect()
         

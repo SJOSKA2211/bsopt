@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from multiprocessing import shared_memory
+
 import numpy as np
-from contextlib import contextmanager
-from typing import Generator, List, Callable, Any, Tuple
+
 
 class SHMContextManager:
     """
@@ -12,7 +13,7 @@ class SHMContextManager:
         self.shm_names = shm_names
         self.shm_objects = []
 
-    def __enter__(self) -> List[shared_memory.SharedMemory]:
+    def __enter__(self) -> list[shared_memory.SharedMemory]:
         try:
             for name in self.shm_names:
                 if isinstance(name, dict): # Handle dict for named outputs
@@ -32,12 +33,12 @@ class SHMContextManager:
             try:
                 shm.close()
             except:
-                pass
+                pass # nosec B110
         self.shm_objects.clear()
 
 def _generic_shm_worker(
     shm_name_inputs: str, 
-    input_shape: Tuple[int, int], 
+    input_shape: tuple[int, int],
     shm_name_output: str, 
     kernel_func: Callable, 
     *args
@@ -51,7 +52,7 @@ def _generic_shm_worker(
             # But SHMContextManager flattens the list.
             # We need to be careful about order.
             # Re-instantiating inside for clarity/safety might be better if order is complex, 
-            # but we can rely on order of shm_names passed to init.
+            # but we can rely on order of shm_names pass # nosec B110ed to init.
             
             shm_in = shms[0]
             shm_out = shms[1]

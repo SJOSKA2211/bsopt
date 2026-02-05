@@ -1,6 +1,8 @@
+from typing import Any
+
 import numpy as np
 import structlog
-from typing import Union, Optional, List, Dict, Any
+
 from .base import PricingStrategy
 from .models import BSParameters, OptionGreeks
 

@@ -1,6 +1,7 @@
 import numpy as np
+
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -33,6 +34,7 @@ except ImportError:
             return np.zeros(n, dtype=dtype)
     cuda = CudaMock()
 import math
+
 import structlog
 
 logger = structlog.get_logger(__name__)

@@ -1,14 +1,13 @@
+
 import numpy as np
-from typing import Optional, Dict
 import structlog
-from functools import lru_cache
+
 from src.pricing.models import HestonParams
-from src.pricing.quant_utils import heston_char_func_jit
 
 logger = structlog.get_logger()
 
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -197,7 +196,7 @@ class HestonModelFFT:
 
     
 
-        def price_surface_fft(self, S0: float, K_min: float, K_max: float, N: int = 1024) -> Dict[float, float]:
+        def price_surface_fft(self, S0: float, K_min: float, K_max: float, N: int = 1024) -> dict[float, float]:
 
             """
 

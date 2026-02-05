@@ -1,5 +1,7 @@
-import requests
 import time
+
+import requests
+
 
 def percentile(data, percent):
     size = len(data)

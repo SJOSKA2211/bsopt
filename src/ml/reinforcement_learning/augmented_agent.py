@@ -1,10 +1,12 @@
-import torch
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 import numpy as np
 import structlog
-from src.ml.forecasting.tft_model import PriceTFTModel
-from .transformer_policy import TransformerTD3Policy
 from stable_baselines3 import TD3
+
+from src.ml.forecasting.tft_model import PriceTFTModel
+
+from .transformer_policy import TransformerTD3Policy
 
 logger = structlog.get_logger()
 
@@ -18,7 +20,7 @@ class AugmentedRLAgent:
 
     """
 
-    def __init__(self, env, config: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, env, config: dict[str, Any] | None = None, **kwargs):
 
         self.config = config or {}
 

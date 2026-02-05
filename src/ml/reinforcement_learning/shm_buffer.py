@@ -1,8 +1,8 @@
-import numpy as np
-from multiprocessing import shared_memory
 import struct
+from multiprocessing import shared_memory
+
+import numpy as np
 import structlog
-from typing import Tuple, Optional
 
 logger = structlog.get_logger(__name__)
 

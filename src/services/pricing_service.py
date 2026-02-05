@@ -3,14 +3,17 @@ Pricing Service (Singularity Refactored)
 """
 
 import time
-import asyncio
+from typing import Any
+
 import structlog
-from typing import Any, List, Optional
-from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound # Added PricingEngineNotFound
-from src.api.schemas.pricing import PriceResponse, BatchPriceResponse
+from fastapi import HTTPException  # Added HTTPException
+
+from src.api.schemas.pricing import BatchPriceResponse, PriceResponse
 from src.pricing.black_scholes import BSParameters
-from src.config import settings
-from fastapi import HTTPException # Added HTTPException
+from src.pricing.factory import (  # Added PricingEngineNotFound
+    PricingEngineFactory,
+    PricingEngineNotFound,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -24,7 +27,7 @@ class PricingService:
         params: BSParameters,
         option_type: str,
         model: str = "black_scholes",
-        symbol: Optional[str] = None
+        symbol: str | None = None
     ) -> PriceResponse:
         start_time = time.perf_counter()
         
@@ -56,7 +59,7 @@ class PricingService:
             computation_time_ms=(time.perf_counter() - start_time) * 1000
         )
 
-    async def price_batch(self, options: List[Any]) -> BatchPriceResponse:
+    async def price_batch(self, options: list[Any]) -> BatchPriceResponse:
         """
         🚀 OPTIMIZATION: True Batch Pricing.
         Groups options by model and uses vectorized engines for massive performance gains.

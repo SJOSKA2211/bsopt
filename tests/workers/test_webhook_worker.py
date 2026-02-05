@@ -1,14 +1,13 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from celery import Celery
-from celery.exceptions import MaxRetriesExceededError # Import the correct exception
-import asyncio
-import httpx # Import httpx for mocking responses
+from celery.exceptions import MaxRetriesExceededError  # Import the correct exception
+
+from src.webhooks.dispatcher import WebhookDispatcher
 
 # Import actual worker and dispatcher
-from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task, celery_app
-from src.webhooks.dispatcher import WebhookDispatcher
-from src.utils.circuit_breaker import CircuitBreaker
+from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task
+
 
 @pytest.fixture
 def mock_dispatcher():

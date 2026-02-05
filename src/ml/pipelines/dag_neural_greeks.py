@@ -1,10 +1,13 @@
-from prefect import flow, task
-from src.ml.pipelines.retraining import NeuralGreeksRetrainer
 import asyncio
-from typing import Dict, Any
+from typing import Any
+
+from prefect import flow, task
+
+from src.ml.pipelines.retraining import NeuralGreeksRetrainer
+
 
 @task(name="Retrain-Neural-Greeks")
-async def retrain_neural_greeks_task(n_samples: int) -> Dict[str, Any]:
+async def retrain_neural_greeks_task(n_samples: int) -> dict[str, Any]:
     """Prefect task to trigger NeuralGreeksRetrainer."""
     retrainer = NeuralGreeksRetrainer(n_samples=n_samples)
     return await retrainer.retrain_now()

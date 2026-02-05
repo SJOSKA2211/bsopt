@@ -1,7 +1,8 @@
-import pytest
 import json
 from unittest.mock import mock_open, patch
+
 from src.utils.dashboard import generate_html_dashboard
+
 
 def test_generate_html_dashboard():
     summary_data = {

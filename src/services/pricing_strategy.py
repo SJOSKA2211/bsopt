@@ -12,7 +12,7 @@ Implements dynamic pricing algorithms for SaaS tiers including:
 import logging
 import random
 from enum import Enum
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import numpy as np
 
@@ -32,7 +32,7 @@ class DynamicPricingService:
     """
 
     def __init__(self) -> None:
-        self.experiments: Dict[str, Dict[str, Any]] = {
+        self.experiments: dict[str, dict[str, Any]] = {
             "tier_pricing_v2": {
                 "active": True,
                 "variants": ["control", "variant_a"],
@@ -40,7 +40,7 @@ class DynamicPricingService:
             }
         }
         # Mocked elasticity data: {tier: {price_change: demand_change}}
-        self.elasticity_data: Dict[str, List[float]] = {
+        self.elasticity_data: dict[str, list[float]] = {
             "free": [0.0, 0.0],
             "pro": [0.1, -0.05],  # 10% price increase led to 5% demand drop
             "enterprise": [0.2, -0.02],
@@ -53,7 +53,7 @@ class DynamicPricingService:
             return "control"
 
         # Use a local random instance seeded with user_id for determinism without affecting global state
-        rng = random.Random(user_id)
+        rng = random.Random(user_id) # nosec B311
         r = rng.random()
         cumulative = 0.0
         for variant, allocation in config["allocations"].items():
@@ -84,7 +84,7 @@ class DynamicPricingService:
             return 0.0
         return data[1] / data[0]
 
-    def automate_adjustments(self, competitor_prices: List[float]) -> PricingStrategy:
+    def automate_adjustments(self, competitor_prices: list[float]) -> PricingStrategy:
         """Suggest a strategy based on competitor data."""
         avg_comp = np.mean(competitor_prices)
         # Logic to stay competitive

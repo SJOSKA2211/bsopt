@@ -1,14 +1,14 @@
+from dataclasses import dataclass
 from enum import Enum
-from dataclasses import dataclass, field
-from typing import Optional, Union, Dict, Any, List
-import structlog
-import numpy as np
+from typing import Any
 
-from src.pricing.models import BSParameters, OptionGreeks
+import numpy as np
+import structlog
+
 from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig
+from src.pricing.models import BSParameters
+from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
 from src.pricing.wasm_engine import WASMPricingEngine
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -22,8 +22,8 @@ class PricingModel(str, Enum):
 class PricingRequest:
     params: BSParameters
     option_type: str = "call"
-    model: Optional[PricingModel] = None
-    engine_config: Optional[Dict[str, Any]] = None
+    model: PricingModel | None = None
+    engine_config: dict[str, Any] | None = None
     style: str = "european" # european, american
     use_gpu: bool = False
 
@@ -87,7 +87,7 @@ class EngineArbiter:
                     sigma: np.ndarray, 
                     r: np.ndarray, 
                     is_call: np.ndarray,
-                    model: Optional[PricingModel] = None) -> np.ndarray:
+                    model: PricingModel | None = None) -> np.ndarray:
         """
         Routes batch requests efficiently.
         """

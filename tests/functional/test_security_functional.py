@@ -3,8 +3,9 @@ Security Vulnerability Functional Tests (Principles 50, 58, 66, 74, 82, 98)
 ==========================================================================
 """
 
+
 import pytest
-import uuid
+
 
 @pytest.mark.asyncio
 async def test_security_sql_injection_on_user_id(client):

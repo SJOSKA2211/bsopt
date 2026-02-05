@@ -1,5 +1,6 @@
 import yaml
-with open('.github/workflows/mlops-pipeline.yml', 'r') as f:
+
+with open('.github/workflows/mlops-pipeline.yml') as f:
     try:
         data = yaml.safe_load(f)
         print("YAML Loaded successfully")

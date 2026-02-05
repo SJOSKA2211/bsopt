@@ -1,7 +1,7 @@
-import sys
 import json
+import sys
 import time
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # Mock dependencies that are initialized at module level
 mock_redis_client = MagicMock()
@@ -15,10 +15,12 @@ mock_settings.REDIS_URL = "redis://localhost:6379/0"
 mock_settings.RABBITMQ_URL = "amqp://guest@localhost//"
 with patch("src.workers.math_worker.get_settings", return_value=mock_settings):
     # Now we can safely import
-    from src.workers.math_worker import recalibrate_symbol, health_check
+    from src.workers.math_worker import health_check, recalibrate_symbol
 
 import pytest
+
 from src.pricing.models.heston_fft import HestonParams
+
 
 @pytest.fixture
 def mock_market_data():

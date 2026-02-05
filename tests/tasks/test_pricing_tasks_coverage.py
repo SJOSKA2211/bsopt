@@ -1,6 +1,14 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from src.tasks.pricing_tasks import price_option_task, batch_price_options_task, calculate_implied_volatility_task, generate_volatility_surface_task
+
+import pytest
+
+from src.tasks.pricing_tasks import (
+    batch_price_options_task,
+    calculate_implied_volatility_task,
+    generate_volatility_surface_task,
+    price_option_task,
+)
+
 
 @patch("src.tasks.pricing_tasks.PricingEngineFactory")
 @patch("src.tasks.pricing_tasks.pricing_cache")

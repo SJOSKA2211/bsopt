@@ -9,8 +9,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+
 try:
-    from numba import njit, prange, cuda, float64
+    from numba import cuda, float64, njit, prange
 except ImportError:
     def njit(*args, **kwargs):
         def decorator(func):
@@ -30,9 +31,10 @@ except ImportError:
             return self
     float64 = NumbaType()
 
-from .models import BSParameters, OptionGreeks
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
+from .models import BSParameters, OptionGreeks
+
 
 @dataclass
 class LatticeGreeks:
@@ -48,7 +50,6 @@ class LatticeParameters(BSParameters):
     n_steps: int = 100
 
 # from numba import cuda, float64 # Handled by mock block
-import math
 
 @cuda.jit
 def _binomial_price_cuda_kernel(

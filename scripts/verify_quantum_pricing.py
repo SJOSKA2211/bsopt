@@ -1,5 +1,6 @@
-from src.pricing.quantum_pricing import QuantumOptionPricer
 from src.pricing.black_scholes import black_scholes
+from src.pricing.quantum_pricing import QuantumOptionPricer
+
 
 def verify_pricing():
     print("Initializing QuantumOptionPricer...")

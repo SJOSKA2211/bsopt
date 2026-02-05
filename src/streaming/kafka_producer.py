@@ -1,10 +1,12 @@
+from typing import Any
+
+import msgspec
+import structlog
 from confluent_kafka import Producer as ConfluentProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
+
 from .base import Producer
-import structlog
-import msgspec
-from typing import Dict, Any, Optional, List
 
 logger = structlog.get_logger()
 
@@ -15,11 +17,11 @@ class MarketData(msgspec.Struct):
     strike: float
     expiry: str
     option_type: str
-    bid: Optional[float] = None
-    ask: Optional[float] = None
-    last: Optional[float] = None
-    volume: Optional[int] = None
-    open_interest: Optional[int] = None
+    bid: float | None = None
+    ask: float | None = None
+    last: float | None = None
+    volume: int | None = None
+    open_interest: int | None = None
 
 class MarketDataProducer(Producer):
     """
@@ -58,7 +60,7 @@ class MarketDataProducer(Producer):
         self.schema_registry = SchemaRegistryClient({'url': schema_registry_url})
         # Define Avro schema for market data
         # Read the Avro schema from the file
-        with open("src/streaming/schemas/market_data.avsc", "r") as f:
+        with open("src/streaming/schemas/market_data.avsc") as f:
             self.market_data_schema = f.read()
         self.avro_serializer = AvroSerializer(
             self.schema_registry,
@@ -67,7 +69,7 @@ class MarketDataProducer(Producer):
 
     async def produce(
         self,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         **kwargs
     ):
         """Produce market data message to Kafka."""
@@ -92,7 +94,7 @@ class MarketDataProducer(Producer):
         except Exception as e:
             logger.error("kafka_produce_error", error=str(e), topic=topic)
 
-    async def produce_batch(self, batch: List[Dict[str, Any]], topic: str):
+    async def produce_batch(self, batch: list[dict[str, Any]], topic: str):
         """
         🚀 OPTIMIZATION: Batched ingestion with msgspec validation.
         """

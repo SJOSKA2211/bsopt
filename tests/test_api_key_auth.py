@@ -1,13 +1,12 @@
-import pytest
-import hashlib
+from fastapi import Request  # Import Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from src.api.main import app
-from src.database.models import User
-from unittest.mock import patch, AsyncMock
 from src.database import get_db
+from src.database.models import User
 from src.security.auth import get_api_key
-from fastapi import Request # Import Request
+
 
 def test_api_key_authentication(api_client: TestClient, mock_db_session: Session, mock_redis_and_celery):
     """Test that API Key authentication correctly identifies the user and applies rate limits."""

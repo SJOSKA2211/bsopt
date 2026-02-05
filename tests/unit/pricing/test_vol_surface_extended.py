@@ -1,11 +1,19 @@
-import pytest
+
 import numpy as np
+import pytest
+
 from src.pricing.vol_surface import (
-    SVIParameters, SVINaturalParameters, SABRParameters, 
-    SVIModel, SABRModel, MarketQuote, CalibrationEngine, 
-    VolatilitySurface, ArbitrageDetector
+    ArbitrageDetector,
+    CalibrationEngine,
+    MarketQuote,
+    SABRModel,
+    SABRParameters,
+    SVIModel,
+    SVINaturalParameters,
+    SVIParameters,
+    VolatilitySurface,
 )
-from decimal import Decimal
+
 
 def test_svi_parameters_validation():
     with pytest.raises(ValueError, match="b must be non-negative"):

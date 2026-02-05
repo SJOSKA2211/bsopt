@@ -1,14 +1,15 @@
-import pandas as pd
+from typing import Any
+
+import lightning.pytorch as pl
+import mlflow
 import numpy as np
-from typing import Dict, Any, List, Optional
-from pytorch_forecasting import TimeSeriesDataSet, TemporalFusionTransformer
+import pandas as pd
+import structlog
+import torch
+from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
+from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from pytorch_forecasting.data import GroupNormalizer
 from pytorch_forecasting.metrics import QuantileLoss
-import lightning.pytorch as pl
-from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor
-import torch
-import structlog
-import mlflow
 
 logger = structlog.get_logger()
 
@@ -16,7 +17,7 @@ class PriceTFTModel:
     """
     Temporal Fusion Transformer (TFT) for SOTA Price Forecasting.
     """
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {
             "max_prediction_length": 5,
             "max_encoder_length": 24,
@@ -27,7 +28,7 @@ class PriceTFTModel:
         self.model = None
         self._quantized_model = None
 
-    def prepare_data(self, data: pd.DataFrame) -> Dict[str, Any]:
+    def prepare_data(self, data: pd.DataFrame) -> dict[str, Any]:
         """
         Prepares data for TFT training/validation.
         """
@@ -82,7 +83,7 @@ class PriceTFTModel:
             "group_ids": ["symbol"]
         }
 
-    def train(self, data: Dict[str, Any]):
+    def train(self, data: dict[str, Any]):
         """
         Train the TFT model with experiment tracking.
         """
@@ -213,7 +214,7 @@ class PriceTFTModel:
 
         return model_to_use.predict(data)
 
-    def get_interpretability_report(self) -> Dict[str, Any]:
+    def get_interpretability_report(self) -> dict[str, Any]:
         """
         Extracts real feature importance using TFT's built-in attention weights.
         """

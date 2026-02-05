@@ -1,12 +1,13 @@
 
-import pytest
-from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
-import sys
-from datetime import datetime
-
 # Set environment variables required by Settings
 import os
+import sys
+from datetime import datetime
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi.testclient import TestClient
+
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 os.environ["JWT_SECRET"] = "test-secret-key-1234567890"
 os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost:5432/db"
@@ -25,8 +26,8 @@ sys.modules["torch"] = mock_torch
 # Patch RayOrchestrator to avoid import side effects
 with patch("src.utils.distributed.RayOrchestrator.init") as mock_init:
     from src.api.main import app
-    from src.database import get_db
     from src.auth.providers import auth_registry
+    from src.database import get_db
     from src.database.models import User
 
 # Test client fixture

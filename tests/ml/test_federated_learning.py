@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from src.ml.federated_learning.coordinator import FederatedLearningCoordinator
+
 
 @pytest.fixture
 def mock_flwr_server():

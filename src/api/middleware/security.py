@@ -15,11 +15,12 @@ import hmac
 import logging
 import os
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Callable, Dict, List, Literal, Optional, Set, cast
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from typing import Literal, cast
 from urllib.parse import urlparse
 
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Request, Response, status
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
@@ -60,8 +61,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         content_type_options: bool = True,
         xss_protection: bool = True,
         referrer_policy: str = "strict-origin-when-cross-origin",
-        permissions_policy: Optional[Dict[str, List[str]]] = None,
-        csp_directives: Optional[Dict[str, List[str]]] = None,
+        permissions_policy: dict[str, list[str]] | None = None,
+        csp_directives: dict[str, list[str]] | None = None,
     ):
         super().__init__(app)
         self.hsts_max_age = hsts_max_age
@@ -73,7 +74,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.permissions_policy = permissions_policy or self._default_permissions_policy()
         self.csp_directives = csp_directives or self._default_csp()
 
-    def _default_permissions_policy(self) -> Dict[str, List[str]]:
+    def _default_permissions_policy(self) -> dict[str, list[str]]:
         """Default restrictive permissions policy."""
         return {
             "accelerometer": [],
@@ -86,7 +87,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "usb": [],
         }
 
-    def _default_csp(self) -> Dict[str, List[str]]:
+    def _default_csp(self) -> dict[str, list[str]]:
         """Default Content Security Policy."""
         return {
             "default-src": ["'self'"],
@@ -188,7 +189,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     PROTECTED_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
     # Paths exempt from CSRF (e.g., auth endpoints, webhooks)
-    EXEMPT_PATHS: Set[str] = {
+    EXEMPT_PATHS: set[str] = {
         "/api/v1/auth/*",
         "/api/v1/webhooks",
         "/health",
@@ -204,7 +205,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        secret_key: Optional[str] = None,
+        secret_key: str | None = None,
         token_length: int = 32,
         cookie_max_age: int = 3600,  # 1 hour
         cookie_secure: bool = True,
@@ -276,7 +277,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             source_origin = f"{parsed.scheme}://{parsed.netloc}"
 
             # Check against allowed origins
-            allowed_origins = cast(List[str], settings.CORS_ORIGINS) + [
+            allowed_origins = cast(list[str], settings.CORS_ORIGINS) + [
                 f"{request.url.scheme}://{request.url.netloc}"
             ]
 
@@ -363,7 +364,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        blocked_ips: Optional[Set[str]] = None,
+        blocked_ips: set[str] | None = None,
         max_failed_attempts: int = 10,
         block_duration_minutes: int = 30,
     ):
@@ -371,8 +372,8 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         self.blocked_ips = blocked_ips or set()
         self.max_failed_attempts = max_failed_attempts
         self.block_duration = timedelta(minutes=block_duration_minutes)
-        self._failed_attempts: Dict[str, List[datetime]] = {}
-        self._temporary_blocks: Dict[str, datetime] = {}
+        self._failed_attempts: dict[str, list[datetime]] = {}
+        self._temporary_blocks: dict[str, datetime] = {}
 
     def _get_client_ip(self, request: Request) -> str:
         """Get real client IP, considering proxies."""
@@ -399,7 +400,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         # Check temporary blocks
         if ip in self._temporary_blocks:
             block_until = self._temporary_blocks[ip]
-            if datetime.now(timezone.utc) < block_until:
+            if datetime.now(UTC) < block_until:
                 return True
             else:
                 # Block expired
@@ -409,7 +410,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
     def record_failed_attempt(self, ip: str) -> None:
         """Record a failed authentication attempt."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cutoff = now - self.block_duration
 
         # Clean old attempts
@@ -449,6 +450,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
 
 from src.auth.providers import auth_registry
+
 
 class AuthenticatedUser:
     def __init__(self, payload):
@@ -500,6 +502,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
 
 import re
 
+
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
     """
     Input sanitization middleware.
@@ -532,14 +535,14 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         """Check if value contains dangerous patterns using optimized regex."""
         return bool(self.DANGEROUS_PATTERN_RE.search(value))
 
-    def _check_query_params(self, request: Request) -> Optional[str]:
+    def _check_query_params(self, request: Request) -> str | None:
         """Check query parameters for dangerous patterns."""
         for key, value in request.query_params.items():
             if self._contains_dangerous_pattern(value):
                 return f"Dangerous pattern in query param '{key}'"
         return None
 
-    def _check_headers(self, request: Request) -> Optional[str]:
+    def _check_headers(self, request: Request) -> str | None:
         """Check headers for dangerous patterns."""
         # Only check user-controllable headers
         check_headers = ["user-agent", "referer", "x-custom-header"]

@@ -1,21 +1,20 @@
-import os
 import asyncio
+import os
 import time
-import concurrent.futures
-from celery import Celery
-from celery.schedules import crontab
-from celery.signals import task_failure, task_success
-import structlog
-import redis.asyncio as redis
+
 import orjson
-from typing import Dict, List, Tuple
-from src.pricing.calibration.engine import HestonCalibrator, MarketOption
-from src.pricing.models.heston_fft import HestonParams
-from src.data.router import MarketDataRouter
-from src.shared.observability import push_metrics, setup_logging, tune_gc, HESTON_FELLER_MARGIN, CALIBRATION_DURATION, MODEL_RMSE, HESTON_R_SQUARED, HESTON_PARAMS_FRESHNESS
+import structlog
+from celery import Celery
+
 from src.config import get_settings
+from src.data.router import MarketDataRouter
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
+from src.shared.observability import (
+    CALIBRATION_DURATION,
+    setup_logging,
+    tune_gc,
+)
 
 # Optimized event loop
 try:
@@ -29,8 +28,8 @@ tune_gc()
 logger = structlog.get_logger()
 settings = get_settings()
 
-from src.workers.ray_workers import MathActor
 from src.utils.distributed import RayOrchestrator
+from src.workers.ray_workers import MathActor
 
 app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
 
@@ -39,7 +38,7 @@ RayOrchestrator.init()
 math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
 
 @app.task(bind=True, max_retries=3, default_retry_delay=60)
-def recalibrate_symbol(self, symbol: str) -> Dict:
+def recalibrate_symbol(self, symbol: str) -> dict:
     """Delegate calibration to the optimal Ray Actor."""
     try:
         # Simple round-robin or Ray's internal scheduler can be used here
@@ -52,7 +51,7 @@ def recalibrate_symbol(self, symbol: str) -> Dict:
     """Wrapper for async calibration."""
     return asyncio.run(_recalibrate_symbol_async(self, symbol))
 
-async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
+async def _recalibrate_symbol_async(self, symbol: str) -> dict:
     """
     Persistent async calibration logic utilizing ProcessPoolExecutor for heavy math.
     """

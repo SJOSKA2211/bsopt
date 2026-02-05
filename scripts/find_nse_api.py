@@ -1,7 +1,8 @@
 import asyncio
 import os
-from playwright.async_api import async_playwright
 from urllib.parse import parse_qs
+
+from playwright.async_api import async_playwright
 
 TEMP_DIR = "/home/kamau/.gemini/tmp/2b8aa2f42273da2920d6a0846a0beee0179039373f45f52c93793c0248598408"
 

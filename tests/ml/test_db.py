@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from src.database.models import MarketTick, Base
+
+import pytest
+
+from src.database.models import MarketTick
+
 
 @pytest.fixture
 def mock_engine():

@@ -1,7 +1,10 @@
-import pytest
 import os
+
+import pytest
 import ray
+
 from src.ml.reinforcement_learning.train import train_distributed
+
 
 @pytest.fixture(scope="module")
 def ray_cluster():

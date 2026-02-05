@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
-from src.aiops.isolation_forest_detector import IsolationForestDetector # Assuming this path
+import pytest
+
+from src.aiops.isolation_forest_detector import IsolationForestDetector  # Assuming this path
+
 
 def test_isolation_forest_detector_init():
     """Test initialization of IsolationForestDetector."""

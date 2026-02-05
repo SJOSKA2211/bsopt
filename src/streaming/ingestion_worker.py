@@ -1,14 +1,14 @@
 import asyncio
-import structlog
 import time
-from typing import Dict, List
-from src.streaming.kafka_consumer import MarketDataConsumer
-from src.database import get_async_db_context
-from src.database.models import OptionPrice
-from src.shared.observability import tune_gc, setup_logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+import structlog
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
+
+from src.database import get_async_db_context
+from src.shared.observability import setup_logging, tune_gc
+from src.streaming.kafka_consumer import MarketDataConsumer
 
 # Optimized event loop
 try:
@@ -28,13 +28,13 @@ class IngestionWorker:
     Asynchronous ingestion worker that bridges Kafka to both Postgres AND 
     the Zero-Copy Shared Memory Mesh for ultra-low latency internal paths.
     """
-    def __init__(self, topics: List[str] = ["market-data"]):
+    def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
         # Initialize the high-performance SHM ring buffer
         self.shm_mesh = SharedMemoryRingBuffer(create=True)
 
-    async def _ingest_batch_callback(self, batch: List[Dict]):
+    async def _ingest_batch_callback(self, batch: list[dict]):
         """
         Optimized batch processing:
         1. Writes to Zero-Copy SHM Mesh for immediate consumption by Pricing/Trading.
@@ -55,7 +55,7 @@ class IngestionWorker:
 
             # 2. Vectorized Transformation for DB (List Comprehension)
             # Pre-calculate common values
-            now_utc = datetime.now(timezone.utc)
+            now_utc = datetime.now(UTC)
             today_date = now_utc.date()
             
             transformed_batch = [

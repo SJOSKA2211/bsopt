@@ -1,8 +1,10 @@
-from src.scrapers.engine import NSEScraper
-from src.api.providers import PolygonProvider, YahooProvider
-import structlog
 import time
+
+import structlog
 from prometheus_client import Counter, Histogram
+
+from src.api.providers import PolygonProvider, YahooProvider
+from src.scrapers.engine import NSEScraper
 
 logger = structlog.get_logger()
 

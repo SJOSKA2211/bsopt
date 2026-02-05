@@ -1,8 +1,11 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
-from src.ml.trainer import InstrumentedTrainer
+
+import numpy as np
+import pytest
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.trainer import InstrumentedTrainer
+
 
 @pytest.fixture
 def sample_data():
@@ -70,6 +73,7 @@ def test_trainer_error_metrics(sample_data):
 def test_structlog_configuration():
     """Verify that structlog is configured correctly."""
     import structlog
+
     from src.shared.observability import setup_logging
     
     setup_logging()

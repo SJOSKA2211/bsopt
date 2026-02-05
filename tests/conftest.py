@@ -1,5 +1,5 @@
 import sys
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 # ============================================================================ 
 # EARLY MOCKS (Immediate Deception for Python 3.14 Compatibility)
@@ -102,18 +102,15 @@ mock_async_redis_mod = VersionedMock(_mock_name="redis.asyncio")
 mock_async_redis_mod.Redis = MockRedis
 sys.modules["redis.asyncio"] = mock_async_redis_mod
 
-import pytest
-import os
-from _pytest.monkeypatch import MonkeyPatch
-import uuid
-import re
-import jwt
-from jwt.exceptions import PyJWTError as JWTError
-from src.database.models import User, APIKey
-from datetime import datetime, timezone
-import numpy as np
 import importlib
+import os
+import uuid
+
+import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from fastapi.testclient import TestClient
+
+from src.database.models import User
 
 _users_by_email = {}
 _users_by_id = {}

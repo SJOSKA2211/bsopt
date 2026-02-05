@@ -1,6 +1,7 @@
-import pytest
 import sys
 from unittest.mock import MagicMock
+
+import pytest
 
 # Mock qrcode if not available
 try:
@@ -9,6 +10,7 @@ except ImportError:
     sys.modules["qrcode"] = MagicMock()
 
 from src.security.mfa import MfaService
+
 
 @pytest.fixture
 def mfa_service():

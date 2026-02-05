@@ -1,8 +1,8 @@
+import os
+
+import structlog
 import torch
 import torch.distributed as dist
-import os
-import structlog
-from typing import Optional
 
 logger = structlog.get_logger(__name__)
 

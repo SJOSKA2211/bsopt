@@ -1,10 +1,11 @@
 import asyncio
 import os
-from celery import Celery
-from celery.exceptions import MaxRetriesExceededError # Import MaxRetriesExceededError
+
 import structlog
+from celery import Celery
+from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
+
 from src.webhooks.dispatcher import WebhookDispatcher
-import httpx # Required for WebhookDispatcher
 
 # Optimized event loop
 try:

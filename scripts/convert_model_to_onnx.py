@@ -1,9 +1,10 @@
+import os
+
 import mlflow
 import mlflow.xgboost
 import onnxmltools
-from onnxconverter_common.data_types import FloatTensorType
-import os
 import structlog
+from onnxconverter_common.data_types import FloatTensorType
 
 logger = structlog.get_logger(__name__)
 

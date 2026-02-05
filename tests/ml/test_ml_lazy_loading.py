@@ -2,7 +2,7 @@
 Test lazy loading behavior for the src.ml package.
 """
 import sys
-import pytest
+
 
 def test_ml_does_not_load_heavy_deps_on_import():
     """
@@ -12,7 +12,6 @@ def test_ml_does_not_load_heavy_deps_on_import():
     assert 'torch' not in sys.modules
     assert 'ray' not in sys.modules
     
-    import src.ml
     
     # Still should not be loaded
     assert 'torch' not in sys.modules

@@ -1,9 +1,11 @@
+from datetime import datetime
+from typing import Any
+
 import numpy as np
 import structlog
-from typing import Dict, Any, List
-from datetime import datetime, timedelta
-from src.pricing.factory import PricingEngineFactory
+
 from src.database.manager import DatabaseManager
+from src.pricing.factory import PricingEngineFactory
 
 logger = structlog.get_logger()
 
@@ -18,7 +20,7 @@ class PricingDriftDetector:
         self.db = DatabaseManager()
         self.factory = PricingEngineFactory()
 
-    async def check_drift(self, symbol: str, window_minutes: int = 60) -> Dict[str, Any]:
+    async def check_drift(self, symbol: str, window_minutes: int = 60) -> dict[str, Any]:
         """
         Analyzes the last N minutes of data for a symbol to detect pricing drift.
         """
@@ -67,7 +69,7 @@ class PricingDriftDetector:
             "timestamp": datetime.now().isoformat()
         }
 
-    async def analyze_vol_smile_drift(self, symbol: str) -> Dict[str, Any]:
+    async def analyze_vol_smile_drift(self, symbol: str) -> dict[str, Any]:
         """
         Detects structural changes in the volatility smile, which might
         indicate the need for recalibration of the Heston or Neural models.

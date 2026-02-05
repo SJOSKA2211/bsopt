@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
-from src.pricing.models.heston_fft import HestonParams, HestonModelFFT
+import pytest
+
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+
 
 class TestHestonParams:
     def test_valid_params(self):

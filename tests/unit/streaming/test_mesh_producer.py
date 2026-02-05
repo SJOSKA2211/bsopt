@@ -1,7 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.streaming.mesh_producer import MarketDataMeshProducer
-import os
+
 
 @pytest.mark.asyncio
 async def test_mesh_producer_calls_kafka():

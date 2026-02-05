@@ -1,8 +1,10 @@
-import zmq
-import zmq.asyncio
+from typing import Any
+
 import orjson
 import structlog
-from typing import Dict, Any, Optional
+import zmq
+import zmq.asyncio
+
 from .base import Producer
 
 logger = structlog.get_logger()
@@ -28,7 +30,7 @@ class ZMQMarketDataProducer(Producer):
             logger.error("zmq_bind_failed", endpoint=endpoint, error=str(e))
             raise
 
-    async def produce(self, data: Dict[str, Any], **kwargs):
+    async def produce(self, data: dict[str, Any], **kwargs):
         """
         Send market data via ZeroMQ with zero-copy-like speed using orjson.
         """

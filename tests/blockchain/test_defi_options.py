@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.blockchain.defi_options import DeFiOptionsProtocol
+
 
 @pytest.fixture
 def mock_web3():

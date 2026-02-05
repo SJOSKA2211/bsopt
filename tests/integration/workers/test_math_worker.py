@@ -1,8 +1,7 @@
-import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-import json
 import asyncio
-import time
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # We need to mock settings before importing the worker because it initializes redis_client at module level
 with patch('src.config.get_settings') as mock_settings_getter:
@@ -12,7 +11,6 @@ with patch('src.config.get_settings') as mock_settings_getter:
     mock_settings_getter.return_value = mock_settings
     
     # Now we can import the worker
-    from src.workers.math_worker import recalibrate_symbol
 
 @pytest.fixture
 def event_loop():

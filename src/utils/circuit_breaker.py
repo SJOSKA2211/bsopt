@@ -1,12 +1,12 @@
+import asyncio
 import time
-import structlog
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Callable, Any, Optional, cast
-import asyncio
+from typing import Any, cast
 
 import redis.asyncio as redis
-from src.config import settings
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -98,7 +98,7 @@ class DistributedCircuitBreaker:
         state_str = await self.redis_client.get(self.REDIS_KEY_STATE.format(name=self.name))
         return CircuitState(state_str.decode() if state_str else CircuitState.CLOSED.value)
 
-    async def _set_state(self, state: CircuitState, expiry: Optional[int] = None) -> None:
+    async def _set_state(self, state: CircuitState, expiry: int | None = None) -> None:
         await self.redis_client.set(self.REDIS_KEY_STATE.format(name=self.name), state.value, ex=expiry)
 
     async def _get_failures(self) -> int:
@@ -115,7 +115,7 @@ class DistributedCircuitBreaker:
         last_failure = await self.redis_client.get(self.REDIS_KEY_LAST_FAILURE.format(name=self.name)) # pragma: no cover
         return int(last_failure) if last_failure else 0 # pragma: no cover
 
-    async def _set_last_failure_time(self, timestamp: int, expiry: Optional[int] = None) -> None:
+    async def _set_last_failure_time(self, timestamp: int, expiry: int | None = None) -> None:
         await self.redis_client.set(self.REDIS_KEY_LAST_FAILURE.format(name=self.name), timestamp, ex=expiry)
 
     def __call__(self, func: Callable):
@@ -171,7 +171,7 @@ class CircuitBreakerFactory:
     @staticmethod
     def create(
         name: str, 
-        redis_client: Optional[redis.Redis] = None,
+        redis_client: redis.Redis | None = None,
         failure_threshold: int = 5, 
         recovery_timeout: int = 30
     ) -> Any:
@@ -193,7 +193,7 @@ db_circuit = CircuitBreakerFactory.create("database", failure_threshold=5, recov
 ml_client_circuit = CircuitBreakerFactory.create("ml_client", failure_threshold=5, recovery_timeout=30)
 nse_circuit = CircuitBreakerFactory.create("nse", failure_threshold=3, recovery_timeout=120)
 
-async def initialize_circuits(redis_client: Optional[redis.Redis] = None):
+async def initialize_circuits(redis_client: redis.Redis | None = None):
     """
     Upgrade global circuit breakers to distributed mode if Redis is available.
     """

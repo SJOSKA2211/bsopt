@@ -1,9 +1,8 @@
 import asyncio
 import time
+
 from web3 import AsyncWeb3, Web3
 from web3.providers import AsyncHTTPProvider, AsyncWebsocketProvider
-from typing import Optional, Dict, List
-import structlog
 
 # ... (rest of imports)
 
@@ -13,7 +12,7 @@ class DeFiOptionsProtocol:
     def __init__(
         self, 
         rpc_url: str = "wss://polygon-mainnet.g.alchemy.com/v2/your-api-key",
-        private_key: Optional[str] = None,
+        private_key: str | None = None,
         cache_ttl: int = 10
     ):
         self.rpc_url = rpc_url
@@ -26,7 +25,7 @@ class DeFiOptionsProtocol:
             
         self.private_key = private_key
         self.cache_ttl = cache_ttl
-        self._price_cache: Dict[str, Dict] = {}
+        self._price_cache: dict[str, dict] = {}
         
         # 🚀 OPTIMIZATION: Thread-safe nonce and circuit breaker
         self._nonce_lock = asyncio.Lock()
@@ -93,7 +92,7 @@ class DeFiOptionsProtocol:
             
         return price
 
-    async def get_option_prices_batch(self, contract_addresses: List[str]) -> Dict[str, float]:
+    async def get_option_prices_batch(self, contract_addresses: list[str]) -> dict[str, float]:
         """
         Fetch multiple option prices using Multicall3 and JSON-RPC Batching.
         Provides dual-layer optimization: network-level batching and contract-level multicall.
@@ -168,7 +167,7 @@ class DeFiOptionsProtocol:
             logger.error("sota_multicall_failed", error=str(e))
             return await self._get_option_prices_parallel(contract_addresses)
 
-    async def _get_option_prices_parallel(self, contract_addresses: List[str]) -> Dict[str, float]:
+    async def _get_option_prices_parallel(self, contract_addresses: list[str]) -> dict[str, float]:
         """Parallel execution fallback."""
         tasks = [self.get_option_price(addr) for addr in contract_addresses]
         results = await asyncio.gather(*tasks, return_exceptions=True)

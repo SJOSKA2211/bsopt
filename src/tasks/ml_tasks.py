@@ -4,9 +4,9 @@ Machine Learning Tasks for Celery
 Handles asynchronous ML model training and inference.
 """
 
-import structlog
 import os
-from typing import Optional
+
+import structlog
 
 from src.ml.training.train import run_hyperparameter_optimization, train
 
@@ -19,8 +19,8 @@ logger = structlog.get_logger(__name__)
 def train_model_task(
     self,
     model_type: str = "xgboost",
-    training_data: Optional[dict] = None,
-    hyperparams: Optional[dict] = None,
+    training_data: dict | None = None,
+    hyperparams: dict | None = None,
 ):
     """
     Async task to train an ML model for option pricing.
@@ -84,10 +84,11 @@ def monitor_drift_and_retrain_task(self):
     Periodic task to monitor data/performance drift and trigger 
     automated retraining if thresholds are breached.
     """
-    from src.ml.autonomous_pipeline import AutonomousMLPipeline
-    from src.config import settings
     import asyncio
     import os
+
+    from src.config import settings
+    from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
     logger.info("drift_monitoring_task_started")
     

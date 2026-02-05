@@ -1,11 +1,11 @@
+from typing import Any
+
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List, Optional
-import structlog
-import cvxpy as cp
 import ray
+import structlog
 from scipy.cluster.hierarchy import linkage
-from src.pricing.black_scholes import BlackScholesEngine
 
 logger = structlog.get_logger()
 
@@ -25,7 +25,7 @@ class PortfolioOptimizer:
         self.mean_returns = returns_df.mean().values * 252
         self.asset_names = returns_df.columns.tolist()
 
-    def optimize_weights(self, target_return: Optional[float] = None) -> np.ndarray:
+    def optimize_weights(self, target_return: float | None = None) -> np.ndarray:
         """🚀 SINGULARITY: Convex optimization using cvxpy and OSQP."""
         n = len(self.mean_returns)
         w = cp.Variable(n)
@@ -110,7 +110,7 @@ class BacktestEngine:
     def __init__(self, initial_capital: float = 100000.0):
         self.initial_capital = initial_capital
 
-    def run_batch(self, scenarios: List[Dict]) -> List[Dict]:
+    def run_batch(self, scenarios: list[dict]) -> list[dict]:
         """🚀 SINGULARITY: Run multiple backtests in parallel using Ray."""
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
@@ -124,7 +124,7 @@ class BacktestEngine:
     def run_vectorized(self, 
                        df: pd.DataFrame, 
                        strategy_fn: Any, 
-                       params: Optional[Dict] = None) -> Dict[str, Any]:
+                       params: dict | None = None) -> dict[str, Any]:
         """
         Executes a strategy over historical data using vectorized operations.
         df must contain: timestamp, underlying_price, option_price, strike, maturity, etc.
@@ -196,7 +196,7 @@ class BacktestEngine:
         return result
 
     @staticmethod
-    def sample_momentum_strategy(df: pd.DataFrame, params: Dict = None) -> pd.DataFrame:
+    def sample_momentum_strategy(df: pd.DataFrame, params: dict = None) -> pd.DataFrame:
         """Sample vectorized strategy: momentum-based option buying."""
         window = params.get('window', 20) if params else 20
         df['ema'] = df['underlying_price'].ewm(span=window).mean()

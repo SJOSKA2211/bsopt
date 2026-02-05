@@ -1,9 +1,11 @@
-from functools import wraps
-from typing import Callable, Optional, Type
 import hashlib
-import structlog
+from collections.abc import Callable
+from functools import wraps
+
 import msgspec
+import structlog
 from fastapi import Request, Response
+
 from src.utils.cache import get_redis
 
 logger = structlog.get_logger()

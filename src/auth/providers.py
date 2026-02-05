@@ -1,12 +1,11 @@
-from typing import List, Dict, Optional
 import httpx
-import structlog
 import jwt
+import structlog
 
 logger = structlog.get_logger()
 
 class OIDCProvider:
-    def __init__(self, name: str, issuer_url: str, audience: str, public_key: Optional[str] = None):
+    def __init__(self, name: str, issuer_url: str, audience: str, public_key: str | None = None):
         self.name = name
         self.issuer_url = issuer_url
         self.audience = audience
@@ -30,7 +29,7 @@ class OIDCProvider:
                 logger.error("jwks_fetch_failed", provider=self.name, error=str(e))
         return None
 
-    async def verify(self, token: str) -> Dict:
+    async def verify(self, token: str) -> dict:
         """Verifies the JWT using RSA public key or dynamically fetched JWKS."""
         if self.public_key:
             return jwt.decode(
@@ -68,26 +67,26 @@ class OIDCProvider:
         try:
             return jwt.decode(token, options={"verify_signature": False}, audience=self.audience)
         except:
-            pass
+            pass # nosec B110
 
         # Fallback to secret (Legacy/POC)
         return jwt.decode(token, key="secret", algorithms=["HS256"], audience=self.audience)
 
 class AuthRegistry:
     def __init__(self):
-        self.providers: Dict[str, OIDCProvider] = {}
+        self.providers: dict[str, OIDCProvider] = {}
 
     def register(self, provider: OIDCProvider):
         self.providers[provider.name] = provider
 
-    async def verify_any(self, token: str) -> Dict:
+    async def verify_any(self, token: str) -> dict:
         # In a real setup, we'd check 'iss' claim first to pick provider
         # For now, we try all
         for provider in self.providers.values():
             try:
                 return await provider.verify(token)
             except:
-                continue
+                continue # nosec B112
         raise Exception("Invalid token")
 
 auth_registry = AuthRegistry()

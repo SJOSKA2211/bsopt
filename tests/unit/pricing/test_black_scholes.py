@@ -1,11 +1,9 @@
-import pytest
 import numpy as np
-from src.pricing.black_scholes import (
-    BlackScholesEngine, 
-    BSParameters, 
-    verify_put_call_parity
-)
+import pytest
+
+from src.pricing.black_scholes import BlackScholesEngine, BSParameters, verify_put_call_parity
 from src.pricing.models import OptionGreeks
+
 
 def test_bs_engine_single_pricing():
     """Test basic call/put pricing and Greeks."""

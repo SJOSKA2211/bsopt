@@ -1,4 +1,5 @@
 import numpy as np
+
 try:
     from faust import App
 except ImportError:
@@ -11,6 +12,7 @@ except ImportError:
     from unittest.mock import MagicMock
 
 from typing import Any
+
 
 class VolatilityAggregationStream:
     """

@@ -7,7 +7,6 @@ Handles asynchronous trading operations. Fully implemented with risk simulation.
 import logging
 import random
 import time
-from typing import Optional
 
 from .celery_app import celery_app
 
@@ -69,13 +68,15 @@ def execute_trade_task(self, order: dict):
         return {"task_id": self.request.id, "status": "failed", "error": str(e)}
 
 
-from src.portfolio.engine import BacktestEngine
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from src.portfolio.engine import BacktestEngine
+
 
 @celery_app.task(bind=True, queue="trading")
 def backtest_strategy_task(
-    self, strategy: str, start_date: str, end_date: str, params: Optional[dict] = None
+    self, strategy: str, start_date: str, end_date: str, params: dict | None = None
 ):
     """
     Async task to run a high-performance vectorized backtest.

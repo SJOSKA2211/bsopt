@@ -1,6 +1,8 @@
-import requests
-import psycopg2
 import logging
+
+import psycopg2
+import requests
+
 
 def test_database_connectivity_on_startup():
     # Configure logging

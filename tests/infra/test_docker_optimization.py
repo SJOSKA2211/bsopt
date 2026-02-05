@@ -1,6 +1,8 @@
+import os
+
 import pytest
 import yaml
-import os
+
 
 @pytest.fixture
 def prod_compose_config():
@@ -9,7 +11,7 @@ def prod_compose_config():
     if not os.path.exists(compose_path):
         pytest.fail(f"{compose_path} not found")
     
-    with open(compose_path, "r") as f:
+    with open(compose_path) as f:
         return yaml.safe_load(f)
 
 def test_neural_pricing_resource_pinning(prod_compose_config):

@@ -1,7 +1,10 @@
-from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
-from src.pricing.black_scholes import black_scholes
 import time
+
 import pandas as pd
+
+from src.pricing.black_scholes import black_scholes
+from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
+
 
 def run_benchmarks():
     print("🚀 Starting E2E Quantum-Classical Pricing Benchmarks")

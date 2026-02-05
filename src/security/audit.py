@@ -8,12 +8,11 @@ Supports both file logging and database persistence.
 
 import logging
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import Request
 
-from src.database import get_session
-from src.database.models import AuditLog, User
+from src.database.models import User
 from src.utils.sanitization import mask_email
 
 # Use a dedicated logger for audit trails
@@ -39,13 +38,13 @@ class AuditEvent(str, Enum):
     MFA_LOGIN_FAILURE = "MFA_LOGIN_FAILURE"
 
     # Password events
-    PASSWORD_CHANGED = "PASSWORD_CHANGED"
-    PASSWORD_RESET_REQUEST = "PASSWORD_RESET_REQUEST"
-    PASSWORD_RESET_SUCCESS = "PASSWORD_RESET_SUCCESS"
+    PASSWORD_CHANGED = "PASSWORD_CHANGED"  # nosec B105
+    PASSWORD_RESET_REQUEST = "PASSWORD_RESET_REQUEST"  # nosec B105
+    PASSWORD_RESET_SUCCESS = "PASSWORD_RESET_SUCCESS"  # nosec B105
 
     # Token events
-    TOKEN_REFRESH = "TOKEN_REFRESH"
-    TOKEN_REVOKED = "TOKEN_REVOKED"
+    TOKEN_REFRESH = "TOKEN_REFRESH"  # nosec B105
+    TOKEN_REVOKED = "TOKEN_REVOKED"  # nosec B105
 
     # Access events
     PROTECTED_RESOURCE_ACCESS = "PROTECTED_RESOURCE_ACCESS"
@@ -59,9 +58,9 @@ class AuditEvent(str, Enum):
 
 def log_audit(
     event: AuditEvent,
-    user: Optional[User] = None,
-    request: Optional[Request] = None,
-    details: Optional[Dict[str, Any]] = None,
+    user: User | None = None,
+    request: Request | None = None,
+    details: dict[str, Any] | None = None,
     persist_to_db: bool = True,
 ):
     """
@@ -74,7 +73,7 @@ def log_audit(
         details: Additional structured details about the event.
         persist_to_db: Whether to save to database (default True).
     """
-    log_data: Dict[str, Any] = {
+    log_data: dict[str, Any] = {
         "event_type": event.value,
         "user_id": str(user.id) if user else None,
         "user_email": mask_email(user.email) if user else None,
@@ -105,7 +104,9 @@ def log_audit(
     # Persist to database asynchronously via Celery task
     if persist_to_db:
         try:
-            from src.tasks.audit_tasks import persist_audit_log # Import here to avoid circular dependency
+            from src.tasks.audit_tasks import (
+                persist_audit_log,  # Import here to avoid circular dependency
+            )
             persist_audit_log.delay(
                 event_type=event.value,
                 user_id=str(user.id) if user else None,

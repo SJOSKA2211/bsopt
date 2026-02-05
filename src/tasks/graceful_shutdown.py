@@ -1,7 +1,8 @@
+import asyncio
 import logging
 import signal
-import asyncio
-from typing import Callable, List, Coroutine, Any
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ class ShutdownManager:
     and executing registered cleanup tasks.
     """
     def __init__(self):
-        self.cleanup_tasks: List[Callable[[], Coroutine[Any, Any, None]]] = []
+        self.cleanup_tasks: list[Callable[[], Coroutine[Any, Any, None]]] = []
         self._shutdown_event = asyncio.Event()
 
     def register_cleanup(self, task: Callable[[], Coroutine[Any, Any, None]]):

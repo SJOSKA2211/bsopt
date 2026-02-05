@@ -1,8 +1,11 @@
-import pytest
+from unittest.mock import ANY, patch  # Import ANY
+
 import numpy as np
 import pandas as pd
-from unittest.mock import MagicMock, patch, call, ANY # Import ANY
+import pytest
+
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
+
 
 @patch("src.aiops.timeseries_anomaly_detector.logger")
 class TestTimeSeriesAnomalyDetector:

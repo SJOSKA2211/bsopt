@@ -1,25 +1,26 @@
 import asyncio
-import time
 import re
-from typing import Dict, List, Optional, Protocol
+import time
 from datetime import datetime
+from typing import Protocol
+
 import httpx
-import structlog
 import numpy as np
-import msgspec
-from selectolax.lexbor import LexborHTMLParser
+import structlog
 from anyio.to_thread import run_sync
-from src.utils.circuit_breaker import nse_circuit
-from src.utils.resilience import retry_with_backoff
-from src.utils.cache import get_redis
-from src.shared.observability import PROXY_LATENCY, PROXY_FAILURES
-from src.utils.http_client import HttpClientManager
+from selectolax.lexbor import LexborHTMLParser
+
 from src.config import settings
+from src.shared.observability import PROXY_FAILURES, PROXY_LATENCY
+from src.utils.cache import get_redis
+from src.utils.circuit_breaker import nse_circuit
+from src.utils.http_client import HttpClientManager
+from src.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger()
 
 class MarketSource(Protocol):
-    async def get_ticker_data(self, symbol: str) -> Dict:
+    async def get_ticker_data(self, symbol: str) -> dict:
         """Fetch real-time data for a given symbol."""
         ...
 
@@ -27,13 +28,13 @@ class ProxyRotator:
     """
     Manages a pool of proxies with persistent health tracking in Redis.
     """
-    def __init__(self, proxies: List[str]):
+    def __init__(self, proxies: list[str]):
         # Store metadata for each proxy
         self.proxies = [{"url": p, "failures": 0, "active": True, "latency": 0.0} for p in proxies]
         self._index = 0
         self.redis = get_redis()
 
-    async def get_proxy(self) -> Optional[str]:
+    async def get_proxy(self) -> str | None:
         if not self.proxies:
             return None
         
@@ -84,7 +85,7 @@ class ProxyRotator:
                     logger.warning("proxy_deactivated", url=url)
                 await self._sync_health(p)
 
-    async def _sync_health(self, proxy_obj: Dict):
+    async def _sync_health(self, proxy_obj: dict):
         if self.redis:
             try:
                 await self.redis.setex(
@@ -107,11 +108,11 @@ class NSEScraper:
     BASE_URL = "https://www.nse.co.ke/dataservices/market-statistics/"
     AJAX_URL = "https://www.nse.co.ke/dataservices/wp-admin/admin-ajax.php"
 
-    def __init__(self, proxies: Optional[List[str]] = None):
+    def __init__(self, proxies: list[str] | None = None):
         self._data_cache = {}
         self._last_refresh = 0
         self._cache_ttl = settings.NSE_CACHE_TTL
-        self._refresh_future: Optional[asyncio.Future] = None
+        self._refresh_future: asyncio.Future | None = None
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
         
         # 🚀 OPTIMIZATION: Pre-computed exact-match hash map
@@ -155,7 +156,7 @@ class NSEScraper:
             proxy=proxy_url,
             headers={"User-Agent": "BS-Opt/2.0"},
             timeout=10.0,
-            verify=False # NSE often has SSL issues with proxies
+            verify=False # nosec B501
         )
 
     @nse_circuit
@@ -248,7 +249,7 @@ class NSEScraper:
             self._refresh_future = None
 
 
-    async def _fetch_sector(self, client: httpx.AsyncClient, nonce: str, sector: str) -> List[Dict]:
+    async def _fetch_sector(self, client: httpx.AsyncClient, nonce: str, sector: str) -> list[dict]:
         """Fetch data for a specific sector via the WordPress AJAX endpoint."""
         payload = {
             "action": "display_prices",
@@ -261,7 +262,7 @@ class NSEScraper:
         # SOTA: Offload synchronous parsing to a thread pool
         return await run_sync(self._parse_html, resp.text)
 
-    def _parse_html(self, html: str) -> List[Dict]:
+    def _parse_html(self, html: str) -> list[dict]:
         """Robustly parse the HTML table fragment using selectolax (Lexbor)."""
         parser = LexborHTMLParser(html)
         results = []
@@ -307,7 +308,7 @@ class NSEScraper:
         # Fallback: Use the first word as the symbol
         return name.split(' ')[0].upper()
 
-    async def get_ticker_data(self, symbol: str) -> Dict:
+    async def get_ticker_data(self, symbol: str) -> dict:
         """Get ticker data, refreshing cache if necessary."""
         if time.time() - self._last_refresh > self._cache_ttl:
             await self._refresh_cache()
@@ -328,7 +329,7 @@ class NSEScraper:
         """Gracefully close the HTTP client."""
         await self.client.aclose()
 
-    def _clean_data(self, data: Dict) -> Dict:
+    def _clean_data(self, data: dict) -> dict:
         """Converts string values to appropriate numeric types."""
         try:
             if 'price' in data and isinstance(data['price'], str):
@@ -342,7 +343,7 @@ class NSEScraper:
         except (ValueError, AttributeError, TypeError):
             return data
 
-    def _batch_clean(self, items: List[Dict]) -> List[Dict]:
+    def _batch_clean(self, items: list[dict]) -> list[dict]:
         """
         SOTA: Vectorized batch cleaning using Pandas.
         Replaces manual NumPy extraction loops with optimized C-level operations.

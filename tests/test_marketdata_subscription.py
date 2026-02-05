@@ -1,5 +1,7 @@
 import pytest
+
 from src.streaming.graphql.schema import schema
+
 
 @pytest.mark.asyncio
 async def test_market_data_subscription():

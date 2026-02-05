@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 from scipy.stats import norm
@@ -78,7 +78,7 @@ class AsianOptionPricer:
         option_type: str,
         strike_type: StrikeType = StrikeType.FIXED,
         **kwargs,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         S, K, T, r, q, sigma = (
             params.base_params.spot,
             params.base_params.strike,
@@ -121,7 +121,8 @@ class AsianOptionPricer:
         return float(np.mean(y_sim)), float(1.96 * np.std(y_sim) / np.sqrt(n_paths))
 
 
-from src.pricing.quant_utils import batch_bs_price_jit, jit_generate_paths
+from src.pricing.quant_utils import jit_generate_paths
+
 try:
     from numba import njit, prange
 except ImportError:
@@ -307,7 +308,7 @@ class LookbackOptionPricer:
     @staticmethod
     def price_lookback_mc(
         params: ExoticParameters, option_type: str, strike_type: StrikeType, **kwargs
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         S, T, r, q, sigma = (
             params.base_params.spot,
             params.base_params.maturity,
@@ -369,7 +370,6 @@ class DigitalOptionPricer:
         digital_type: str = "cash",
         payout: float = 1.0,
     ) -> Any:
-        from src.pricing.black_scholes import OptionGreeks
 
         S, K, T, r, q, sigma = (
             params.spot,

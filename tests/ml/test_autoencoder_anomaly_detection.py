@@ -1,6 +1,11 @@
-import pytest
 import numpy as np
-from src.aiops.autoencoder_detector import AutoencoderDetector, Autoencoder # Import actual Autoencoder
+import pytest
+
+from src.aiops.autoencoder_detector import (  # Import actual Autoencoder
+    Autoencoder,
+    AutoencoderDetector,
+)
+
 
 def test_autoencoder_detector_init():
     """Test initialization of AutoencoderDetector."""

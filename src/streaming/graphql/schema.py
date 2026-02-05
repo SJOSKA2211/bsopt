@@ -1,8 +1,10 @@
+import asyncio
+import random
+from collections.abc import AsyncGenerator
+
 import strawberry
 from strawberry.federation import Schema
-from typing import List, AsyncGenerator
-import random
-import asyncio
+
 
 @strawberry.type
 class MarketData:
@@ -16,11 +18,11 @@ class Option:
     
     @strawberry.field
     def last_price(self) -> float:
-        return 15.0 + random.uniform(0, 1.0)
+        return 15.0 + random.uniform(0, 1.0) # nosec B311
 
     @strawberry.field
     def volume(self) -> int:
-        return random.randint(100, 10000)
+        return random.randint(100, 10000) # nosec B311
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):
@@ -35,14 +37,14 @@ class Query:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def market_data_stream(self, symbols: List[str]) -> AsyncGenerator[MarketData, None]:
+    async def market_data_stream(self, symbols: list[str]) -> AsyncGenerator[MarketData]:
         # Mock stream
         while True:
             for symbol in symbols:
                 yield MarketData(
                     symbol=symbol,
-                    last_price=150.0 + random.uniform(-1, 1),
-                    volume=random.randint(100, 500)
+                    last_price=150.0 + random.uniform(-1, 1), # nosec B311
+                    volume=random.randint(100, 500) # nosec B311
                 )
             await asyncio.sleep(0.1)
 

@@ -1,27 +1,23 @@
 import asyncio
 import os
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any
 
-import mlflow
-import mlflow.xgboost
 import numpy as np
 import optuna
-import xgboost as xgb
 import structlog
-from mlflow.tracking import MlflowClient
-from sklearn.metrics import r2_score, mean_squared_error
+import xgboost as xgb
+from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, TimeSeriesSplit, train_test_split
-from sklearn.preprocessing import StandardScaler
 
 from src.config import settings
-from src.pricing.black_scholes import BlackScholesEngine
-from src.ml.training.data_gen import generate_synthetic_data_numba
 from src.ml.evaluation.metrics import calculate_regression_metrics
+from src.ml.training.data_gen import generate_synthetic_data_numba
 
 logger = structlog.get_logger(__name__)
 
 
 import torch.distributed as dist
+
 
 def init_collective_backend():
     """🚀 SINGULARITY: High-performance NCCL backend for multi-GPU training."""
@@ -41,7 +37,7 @@ def init_collective_backend():
         if not dist.is_initialized():
             dist.init_process_group(backend="gloo", init_method="env://")
 
-def generate_synthetic_data(n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+def generate_synthetic_data(n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Generate synthetic training data using Numba-optimized Black-Scholes engine."""
     logger.info("generating_synthetic_data_numba", n_samples=n_samples)
     return generate_synthetic_data_numba(n_samples=n_samples, random_state=settings.ML_TRAINING_RANDOM_STATE)
@@ -87,12 +83,13 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
 
 
 from ray import tune
-from ray.tune.search.optuna import OptunaSearch
 from ray.tune.schedulers import ASHAScheduler
+from ray.tune.search.optuna import OptunaSearch
+
 
 async def run_hyperparameter_optimization(
     use_real_data: bool = True, n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES, n_trials: int = settings.ML_TRAINING_OPTUNA_TRIALS
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """🚀 SINGULARITY: Distributed HPO using Ray Tune and Optuna."""
     X, y, _, _ = await load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
     
@@ -136,8 +133,8 @@ async def run_hyperparameter_optimization(
 
 
 async def collect_real_data(
-    symbols: Optional[List[str]] = None, min_samples: int = 10000
-) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+    symbols: list[str] | None = None, min_samples: int = 10000
+) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Collect options data from market APIs."""
     from src.data.pipeline import DataPipeline, PipelineConfig
 
@@ -153,7 +150,7 @@ async def collect_real_data(
 
 async def load_or_collect_data(
     use_real_data: bool = True, n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES
-) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Load data with synthetic fallback."""
     if use_real_data:
         try:
@@ -167,9 +164,9 @@ async def train(
     use_real_data: bool = True,
     n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES,
     framework: str = "xgboost",
-    params: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
     promote_threshold: float = 0.99,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute training pipeline with MLflow tracking and distributed support."""
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI", settings.MLFLOW_TRACKING_URI)
     os.makedirs("mlruns", exist_ok=True)

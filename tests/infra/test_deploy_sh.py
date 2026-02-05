@@ -1,7 +1,6 @@
-import subprocess
 import os
-import pytest
 import shutil
+import subprocess
 
 DEPLOY_SH = os.path.abspath("./deploy.sh")
 
@@ -68,7 +67,7 @@ def test_setup_env_creates_new_file():
     
     env_file = os.path.join(temp_dir, ".env")
     assert os.path.exists(env_file)
-    with open(env_file, "r") as f:
+    with open(env_file) as f:
         content = f.read()
     assert "DB_PASSWORD" in content
     shutil.rmtree(temp_dir)

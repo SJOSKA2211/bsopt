@@ -1,13 +1,15 @@
-import pytest
 import json
 import time
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
-from src.pricing.black_scholes import BSParameters
-from src.utils.cache import get_redis_client
 from src.security.auth import get_current_user_flexible
 from src.security.rate_limit import rate_limit
+from src.utils.cache import get_redis_client
+
 
 def create_mock_redis():
     mock_redis = AsyncMock()
@@ -34,8 +36,8 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
-    from src.utils.circuit_breaker import pricing_circuit
     from src.api.routes.pricing import pricing_service
+    from src.utils.circuit_breaker import pricing_circuit
     pricing_circuit.reset()
     pricing_service.clear_cache()
     yield

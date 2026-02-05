@@ -1,9 +1,8 @@
-import struct
-import numpy as np
-from multiprocessing import shared_memory, Lock
-from typing import Optional, Tuple
-import structlog
 import os
+import struct
+from multiprocessing import Lock, shared_memory
+
+import structlog
 
 logger = structlog.get_logger()
 
@@ -68,7 +67,7 @@ class SharedMemoryRingBuffer:
             # Atomically (effectively) increment head
             self.buf[:8] = struct.pack("q", head + 1)
 
-    def read_latest(self, last_head: int) -> Tuple[list, int]:
+    def read_latest(self, last_head: int) -> tuple[list, int]:
         """Reader: PricingEngine reads all new ticks since last_head."""
         current_head = struct.unpack("q", self.buf[:8])[0]
         if current_head <= last_head:
@@ -91,7 +90,7 @@ class SharedMemoryRingBuffer:
             
         return new_ticks, current_head
 
-    def read_latest_raw(self, last_head: int) -> Tuple[bytes, int]:
+    def read_latest_raw(self, last_head: int) -> tuple[bytes, int]:
         """
         Ultra-low latency reader: returns a single contiguous bytes object 
         containing all new ticks in binary format.

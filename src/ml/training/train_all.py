@@ -12,16 +12,14 @@ Models:
 
 import asyncio
 import logging
-import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import mlflow
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -42,7 +40,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def collect_dataset() -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+async def collect_dataset() -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Collect fresh dataset from yfinance and NSE."""
     logger.info("Starting data collection from yfinance and NSE...")
 

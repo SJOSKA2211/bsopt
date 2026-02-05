@@ -10,9 +10,10 @@ Asynchronous data collection tasks for:
 """
 
 import asyncio
-import structlog
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+import structlog
 
 from .celery_app import MLTask, celery_app
 
@@ -34,11 +35,11 @@ logger = structlog.get_logger(__name__)
 )
 def collect_options_data_task(
     self,
-    symbols: Optional[List[str]] = None,
+    symbols: list[str] | None = None,
     min_samples: int = 10000,
     max_samples: int = 50000,
     validate: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Collect options data from market sources.
 
@@ -121,7 +122,7 @@ def collect_options_data_task(
 def validate_collected_data_task(
     self,
     data_path: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate previously collected data.
 
@@ -148,7 +149,7 @@ def validate_collected_data_task(
         df = pd.read_parquet(parquet_path)
 
         # Basic validation
-        validation_results: Dict[str, Any] = {
+        validation_results: dict[str, Any] = {
             "total_samples": len(df),
             "n_features": len(df.columns) - 1,  # Exclude target
             "missing_values": int(df.isnull().sum().sum()),
@@ -205,7 +206,7 @@ def validate_collected_data_task(
     queue="ml",
     priority=2,
 )
-def check_data_freshness_task(self) -> Dict[str, Any]:
+def check_data_freshness_task(self) -> dict[str, Any]:
     """
     Check if training data is fresh enough for use.
 
@@ -272,13 +273,14 @@ def check_data_freshness_task(self) -> Dict[str, Any]:
     queue="batch",
     priority=1,
 )
-def refresh_materialized_views_task(self) -> Dict[str, Any]:
+def refresh_materialized_views_task(self) -> dict[str, Any]:
     """
     Refreshes PostgreSQL materialized views for pre-aggregated statistics.
     """
     logger.info("refreshing_materialized_views_start")
     
     from sqlalchemy import text
+
     from src.shared.db import get_db_session
     
     db_session = get_db_session()
@@ -326,7 +328,7 @@ def refresh_materialized_views_task(self) -> Dict[str, Any]:
     queue="ml",
     priority=2,
 )
-def scheduled_data_collection(self) -> Dict[str, Any]:
+def scheduled_data_collection(self) -> dict[str, Any]:
     """
     Scheduled task to collect data if needed.
     Called by Celery Beat.
@@ -372,9 +374,9 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
 )
 def run_full_data_pipeline_task(
     self,
-    symbols: Optional[List[str]] = None,
+    symbols: list[str] | None = None,
     train_after_collection: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run the full data pipeline: collect, validate, and optionally train.
 

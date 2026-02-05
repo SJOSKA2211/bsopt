@@ -1,8 +1,10 @@
-from unittest.mock import patch, MagicMock, ANY
-import httpx
-from datetime import timezone
+from datetime import UTC
+from unittest.mock import ANY, MagicMock, patch
 
-from src.shared.observability import post_grafana_annotation # Assuming new function
+import httpx
+
+from src.shared.observability import post_grafana_annotation  # Assuming new function
+
 
 @patch('src.shared.observability.httpx.post')
 @patch('src.shared.observability.os.environ.get')
@@ -102,4 +104,4 @@ def test_post_grafana_annotation_payload_time(mock_environ_get, mock_httpx_post,
     mock_httpx_post.assert_called_once()
     args, kwargs = mock_httpx_post.call_args
     assert kwargs['json']['time'] == expected_payload_time
-    mock_datetime.now.assert_called_once_with(timezone.utc)
+    mock_datetime.now.assert_called_once_with(UTC)

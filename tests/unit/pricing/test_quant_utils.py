@@ -1,14 +1,17 @@
-import pytest
-import numpy as np
 import math
+
+import numpy as np
+import pytest
+
 from src.pricing.quant_utils import (
-    fast_normal_cdf, 
-    fast_normal_pdf, 
-    corrado_miller_initial_guess,
-    calculate_d1_d2_jit,
     batch_bs_price_jit,
-    batch_greeks_jit
+    batch_greeks_jit,
+    calculate_d1_d2_jit,
+    corrado_miller_initial_guess,
+    fast_normal_cdf,
+    fast_normal_pdf,
 )
+
 
 def test_fast_normal_cdf():
     assert pytest.approx(fast_normal_cdf(0), abs=1e-7) == 0.5

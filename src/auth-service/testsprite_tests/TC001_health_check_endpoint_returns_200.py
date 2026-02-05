@@ -1,5 +1,6 @@
 import requests
 
+
 def test_health_check_returns_200():
     base_url = "http://localhost:4000"
     url = f"{base_url}/"

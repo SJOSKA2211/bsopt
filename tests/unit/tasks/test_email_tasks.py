@@ -1,6 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from src.tasks.email_tasks import send_transactional_email, send_batch_marketing_emails
+
+import pytest
+
+from src.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
+
 
 @pytest.fixture
 def mock_email_service():

@@ -1,5 +1,6 @@
+
 import msgspec
-from typing import List, Optional
+
 
 class MarketData(msgspec.Struct):
     """🚀 SINGULARITY: Binary-level schema for high-throughput market data."""
@@ -19,7 +20,7 @@ class OptionsDataValidator:
     """
     def __init__(self, min_samples: int):
         self.min_samples = min_samples
-        self._decoder = msgspec.json.Decoder(List[MarketData])
+        self._decoder = msgspec.json.Decoder(list[MarketData])
 
     def validate_raw(self, data: bytes) -> bool:
         """Ultra-fast validation of raw bytes."""

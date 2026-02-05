@@ -1,9 +1,11 @@
 from enum import Enum
-from typing import Optional, Dict, Any
+
+from src.config import settings
+
 from .base import Producer
 from .kafka_producer import MarketDataProducer as KafkaProducer
 from .zmq_producer import ZMQMarketDataProducer
-from src.config import settings
+
 
 class StreamingBackend(str, Enum):
     KAFKA = "kafka"

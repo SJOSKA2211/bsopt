@@ -1,14 +1,16 @@
-import os
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
 import asyncio
+import os
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # Assuming MarketDataConsumer will be importable from src.streaming.kafka_consumer
 try:
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+    from confluent_kafka import KafkaError  # Needed for mocking KafkaError
+
     from streaming.kafka_consumer import MarketDataConsumer
-    from confluent_kafka import KafkaError # Needed for mocking KafkaError
 except ImportError:
     MarketDataConsumer = None
     KafkaError = MagicMock()

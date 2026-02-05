@@ -1,9 +1,9 @@
+import importlib.util
 import os
 import sys
-import importlib.util
-from typing import Dict, Any, List, Optional
 
-def _find_lazy_loaded_modules(base_path: str) -> Dict[str, Dict[str, str]]:
+
+def _find_lazy_loaded_modules(base_path: str) -> dict[str, dict[str, str]]:
     lazy_modules = {}
     # base_path is the package directory (e.g., .../src)
     # package_name is the name of that directory (e.g., 'src')

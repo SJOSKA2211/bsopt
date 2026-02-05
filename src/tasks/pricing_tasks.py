@@ -3,22 +3,21 @@ Pricing Tasks for Celery - Production Optimized
 =================================================
 """
 
-import structlog
-import math
-import time
-import gc
 import asyncio
-from typing import Any, Dict, List, cast
+import gc
+import time
+from typing import Any
 
+import msgspec
 import numpy as np
-from scipy import stats
+import structlog
 
-from .celery_app import PricingTask, celery_app
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
 from src.utils.cache import pricing_cache
-import msgspec
+
+from .celery_app import PricingTask, celery_app
 
 logger = structlog.get_logger(__name__)
 
@@ -60,7 +59,7 @@ def price_option_task(
     dividend: float = 0.0,
     option_type: str = "call",
     use_cache: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     start_time = time.perf_counter()
     logger.info("pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity)
 
@@ -153,9 +152,9 @@ def price_option_task(
 )
 def batch_price_options_task(
     self,
-    options: List[Dict[str, Any]],
+    options: list[dict[str, Any]],
     vectorized: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Highly optimized batch pricing task.
     Uses vectorization to process multiple options in a single JIT pass.
@@ -255,7 +254,7 @@ def calculate_implied_volatility_task(
     rate: float,
     dividend: float = 0.0,
     option_type: str = "call",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger.info("implied_vol_calc_start", option_type=option_type, price=price)
     iv = implied_volatility(price, spot, strike, maturity, rate, dividend, option_type)
     return {"implied_vol": iv}
@@ -265,13 +264,13 @@ def calculate_implied_volatility_task(
 )
 def generate_volatility_surface_task(
     self,
-    prices: List[List[float]],
-    strikes: List[float],
-    maturities: List[float],
+    prices: list[list[float]],
+    strikes: list[float],
+    maturities: list[float],
     spot: float,
     rate: float,
     option_type: str = "call",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger.info("vol_surface_gen_start", option_type=option_type)
     surface = []
     for row_prices in prices:

@@ -1,6 +1,8 @@
 import asyncio
+from typing import Any
+
 import structlog
-from typing import Any, List
+
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
 
 logger = structlog.get_logger()
@@ -14,7 +16,7 @@ class SelfHealingOrchestrator:
     def __init__(
         self, 
         detector: TimeSeriesAnomalyDetector,
-        remediators: List[Any],
+        remediators: list[Any],
         check_interval: int = 10
     ):
         self.detector = detector

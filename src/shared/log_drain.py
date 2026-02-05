@@ -1,12 +1,14 @@
-import struct
-import time
-import os
-import sys
 import asyncio
+import os
+import struct
+import sys
+import time
 from multiprocessing import shared_memory
-import structlog
+
 import orjson
-from src.shared.off_heap_logger import LOG_STRUCT, LOG_SIZE, LOG_BUFFER_CAPACITY, SHM_LOG_NAME
+import structlog
+
+from src.shared.off_heap_logger import LOG_BUFFER_CAPACITY, LOG_SIZE, LOG_STRUCT, SHM_LOG_NAME
 from src.utils.http_client import HttpClientManager
 
 # Standard logging for the drainer itself

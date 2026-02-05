@@ -2,8 +2,7 @@
 Test lazy loading behavior for the src.blockchain package.
 """
 import sys
-import pytest
-import importlib
+
 
 class TestBlockchainLazyLoading:
     def setup_method(self):
@@ -17,7 +16,6 @@ class TestBlockchainLazyLoading:
         # Re-import src.blockchain to ensure a clean state for each test
         if 'src.blockchain' in sys.modules:
             del sys.modules['src.blockchain']
-        import src.blockchain
 
     def test_blockchain_does_not_load_heavy_deps_on_import(self):
         """

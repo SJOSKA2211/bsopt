@@ -1,9 +1,9 @@
 import numpy as np
+import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-import structlog
 
 logger = structlog.get_logger()
 

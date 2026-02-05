@@ -1,7 +1,9 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-import numpy as np
-from src.ml.training.train import generate_synthetic_data, train, load_or_collect_data
-from unittest.mock import patch, MagicMock
+
+from src.ml.training.train import generate_synthetic_data, load_or_collect_data, train
+
 
 def test_generate_synthetic_data():
     n = 100

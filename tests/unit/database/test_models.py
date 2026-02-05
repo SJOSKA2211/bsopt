@@ -1,6 +1,7 @@
-import pytest
-from src.database.models import User, OptionPrice, MarketTick
 from datetime import datetime
+
+from src.database.models import MarketTick, OptionPrice, User
+
 
 def test_models_creation():
     # Just test instantiation and basic attributes

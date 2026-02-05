@@ -1,6 +1,8 @@
 import pytest
+
 from src.pricing.base import PricingEngine, PricingStrategy, VectorizedPricingStrategy
 from src.pricing.models import BSParameters
+
 
 class MockPricingStrategy(PricingStrategy):
     def price(self, params, option_type="call"):

@@ -1,8 +1,9 @@
-import ray
 import asyncio
-import structlog
 import time
-from typing import Dict, List
+
+import ray
+import structlog
+
 from src.utils.distributed import RayOrchestrator
 from src.utils.http_client import HttpClientManager
 
@@ -20,7 +21,7 @@ class MathActor:
         asyncio.set_event_loop(self.loop)
         logger.info("math_actor_initialized")
 
-    async def calibrate(self, symbol: str, data: List[Dict]) -> Dict:
+    async def calibrate(self, symbol: str, data: list[dict]) -> dict:
         """🚀 SOTA: Non-blocking calibration logic."""
         start_time = time.time()
         # Simulated heavy math using the shared pricing kernels
@@ -29,7 +30,7 @@ class MathActor:
         logger.info("calibration_completed", symbol=symbol, latency_ms=duration)
         return {"status": "success", "symbol": symbol, "latency_ms": duration}
 
-    def run_calibration(self, symbol: str, data: List[Dict]):
+    def run_calibration(self, symbol: str, data: list[dict]):
         """Bridge sync Ray call to async actor logic."""
         return self.loop.run_until_complete(self.calibrate(symbol, data))
 
@@ -43,7 +44,7 @@ class WebhookActor:
         self.client = HttpClientManager.get_client()
         logger.info("webhook_actor_initialized")
 
-    async def deliver(self, url: str, payload: Dict):
+    async def deliver(self, url: str, payload: dict):
         """🚀 SINGULARITY: Efficient delivery using pooled HTTP/2 connections."""
         try:
             response = await self.client.post(url, json=payload)
@@ -53,7 +54,7 @@ class WebhookActor:
             logger.error("webhook_delivery_failed", url=url, error=str(e))
             return 500
 
-    def run_delivery(self, url: str, payload: Dict):
+    def run_delivery(self, url: str, payload: dict):
         return asyncio.run(self.deliver(url, payload))
 
 if __name__ == "__main__":

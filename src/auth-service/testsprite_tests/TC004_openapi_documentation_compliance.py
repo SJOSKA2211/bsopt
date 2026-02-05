@@ -1,5 +1,6 @@
 import requests
-from jsonschema import validate, ValidationError
+from jsonschema import ValidationError, validate
+
 
 def test_openapi_documentation_compliance():
     base_url = "http://localhost:4000"

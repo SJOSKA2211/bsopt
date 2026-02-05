@@ -1,5 +1,6 @@
-import requests
 import time
+
+import requests
 
 BASE_URL = "http://localhost:4000"
 TIMEOUT = 30
@@ -21,14 +22,14 @@ def test_error_handling_and_logging_on_failures():
         try:
             resp = requests.post(f"{BASE_URL}{AUTH_ENDPOINT}", json=payload, headers=HEADERS, timeout=TIMEOUT)
             return resp
-        except requests.RequestException as e:
+        except requests.RequestException:
             # Network or connection error could mean service down or error in connectivity
             return None
 
     error_payloads = [
         {},  # Empty payload likely causes handler error
-        {"username": "user", "password": ""},  # Missing password to simulate error case
-        {"username": "user", "password": "wrongpassword"}  # invalid creds, might cause error or 401
+        {"username": "user", "password": ""  # nosec B105},  # Missing password to simulate error case
+        {"username": "user", "password": "wrongpassword"  # nosec B105}  # invalid creds, might cause error or 401
     ]
 
     # Send a request that causes an error to get a 5xx or error response

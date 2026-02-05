@@ -1,15 +1,15 @@
-import structlog
+import gc
+import logging
 import os
 import time
-import gc
-from prometheus_client import Summary, Counter, Gauge, Histogram, push_to_gateway, REGISTRY
-import logging
-from typing import Any, Dict, List, Optional, Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import Request, Response
 import httpx
-from datetime import datetime, timezone
-
+import structlog
+from fastapi import Request, Response
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram, Summary, push_to_gateway
 
 from src.shared.off_heap_logger import omega_logger
 
@@ -25,7 +25,7 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
     }
 )
 
-def _off_heap_processor(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
+def _off_heap_processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
     """🚀 SINGULARITY: Zero-latency redirect for high-frequency logs."""
     if event_dict.get("high_frequency") or event_dict.get("latency_sensitive"):
         # Remove the marker before logging to SHM
@@ -74,7 +74,7 @@ def tune_worker_resources():
     Prevents CPU oversubscription between Ray and Numba.
     """
     import os
-    import psutil
+
     
     cpu_count = os.cpu_count() or 1
     # Assign 50% of cores to Numba to leave room for Ray/Event Loop
@@ -122,7 +122,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     import random
     should_log = True
     if 200 <= response.status_code < 300:
-        if random.random() > 0.1: # 10% sampling rate
+        if random.random() > 0.1: # 10% sampling rate # nosec B311
             should_log = False
 
     if should_log:
@@ -174,7 +174,6 @@ ONNX_INFERENCE_LATENCY = Histogram('onnx_inference_latency_ms', 'Latency of ONNX
 PRICING_SERVICE_DURATION = Histogram('pricing_service_duration_seconds', 'Time spent in PricingService methods', ['method'])
 ML_PROXY_PREDICT_LATENCY = Histogram('ml_proxy_predict_latency_seconds', 'Latency of ML model predictions via proxy')
 
-import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
@@ -202,7 +201,7 @@ def push_metrics(job_name: str):
 
 
 # Persistent HTTP client for observability
-_observability_client: Optional[httpx.AsyncClient] = None
+_observability_client: httpx.AsyncClient | None = None
 
 def get_obs_client() -> httpx.AsyncClient:
     global _observability_client
@@ -213,7 +212,7 @@ def get_obs_client() -> httpx.AsyncClient:
         )
     return _observability_client
 
-async def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
+async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     """
     Posts an annotation to Grafana using a shared persistent client and high-speed serialization.
     """
@@ -225,7 +224,7 @@ async def post_grafana_annotation(message: str, tags: List[str] = None) -> bool:
     if tags is None:
         tags = []
 
-    timestamp_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    timestamp_ms = int(datetime.now(UTC).timestamp() * 1000)
     payload = {"time": timestamp_ms, "text": message, "tags": tags}
 
     client = get_obs_client()

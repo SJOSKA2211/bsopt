@@ -1,9 +1,11 @@
+import json
+from unittest.mock import AsyncMock
+
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
+
 from src.api.middleware.idempotency import IdempotencyMiddleware
-from unittest.mock import AsyncMock, patch
-import json
 
 app = FastAPI()
 

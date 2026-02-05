@@ -1,17 +1,18 @@
-import time
 import os
-import numpy as np
-from scipy.optimize import minimize, differential_evolution
-from typing import List, Dict, Tuple, Optional
+import time
 from dataclasses import dataclass
+
+import numpy as np
 import structlog
-from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+from scipy.optimize import differential_evolution, minimize
+
 from src.config import settings
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
 from src.shared.observability import (
     CALIBRATION_DURATION,
-    HESTON_R_SQUARED,
     HESTON_FELLER_MARGIN,
-    push_metrics
+    HESTON_R_SQUARED,
+    push_metrics,
 )
 
 logger = structlog.get_logger()
@@ -53,7 +54,7 @@ class HestonCalibrator:
 
     def __init__(self, risk_free_rate: float = 0.03):
         self.r = risk_free_rate
-        self.calibration_history: List[Dict] = []
+        self.calibration_history: list[dict] = []
         self.ort_session = None
         
         # Load ONNX model for neural calibration if available
@@ -98,7 +99,7 @@ class HestonCalibrator:
         except Exception as e:
             logger.warning("neural_calibration_model_load_failed", error=str(e))
 
-    def _filter_liquid_options(self, market_data: List[MarketOption]) -> List[MarketOption]:
+    def _filter_liquid_options(self, market_data: list[MarketOption]) -> list[MarketOption]:
         """Filter out illiquid options."""
         filtered = [
             opt for opt in market_data 
@@ -108,7 +109,7 @@ class HestonCalibrator:
         ]
         return filtered
 
-    def _calibrate_neural(self, market_data: List[MarketOption]) -> Optional[np.ndarray]:
+    def _calibrate_neural(self, market_data: list[MarketOption]) -> np.ndarray | None:
         """
         Predict Heston parameters using ONNX model.
         Features: A 10x10 grid of Implied Volatilities (Moneyness vs T).
@@ -137,7 +138,7 @@ class HestonCalibrator:
                     m_coords.append(opt.moneyness)
                     t_coords.append(opt.T)
                 except Exception:
-                    continue
+                    continue # nosec B112
             
             if len(market_ivs) < self.MIN_LIQUID_OPTIONS:
                 return None
@@ -183,7 +184,7 @@ class HestonCalibrator:
             logger.warning("neural_calibration_failed", error=str(e))
             return None
 
-    def _weighted_objective(self, params: np.ndarray, market_data: List[MarketOption]) -> float:
+    def _weighted_objective(self, params: np.ndarray, market_data: list[MarketOption]) -> float:
         """Vega-weighted RMSE objective function."""
         kappa, theta, sigma, rho, v0 = params
         
@@ -213,14 +214,14 @@ class HestonCalibrator:
                 total_error += ((market_price - model_price) ** 2) * weight
                 total_weight += weight
             except Exception:
-                continue
+                continue # nosec B112
                 
         if total_weight == 0:
             return 1e12
             
         return np.sqrt(total_error / total_weight)
 
-    def calibrate(self, market_data: List[MarketOption], maxiter: int = 50, popsize: int = 15, symbol: str = "unknown") -> Tuple[HestonParams, Dict]:
+    def calibrate(self, market_data: list[MarketOption], maxiter: int = 50, popsize: int = 15, symbol: str = "unknown") -> tuple[HestonParams, dict]:
         """Two-stage calibration with quality metrics."""
         start_time = time.time()
         try:
@@ -294,7 +295,7 @@ class HestonCalibrator:
             logger.error("heston_calibration_failed", symbol=symbol, error=str(e))
             raise
 
-    def calibrate_surface(self, market_data: List[MarketOption]) -> Dict[float, Tuple[float, ...]]:
+    def calibrate_surface(self, market_data: list[MarketOption]) -> dict[float, tuple[float, ...]]:
         """Fit SVI parameters for each maturity slice."""
         from src.pricing.calibration.svi_surface import SVISurface
         from src.pricing.implied_vol import implied_volatility
@@ -302,7 +303,7 @@ class HestonCalibrator:
         liquid_options = self._filter_liquid_options(market_data)
         
         # Group by maturity
-        by_maturity: Dict[float, List[MarketOption]] = {}
+        by_maturity: dict[float, list[MarketOption]] = {}
         for opt in liquid_options:
             if opt.T not in by_maturity:
                 by_maturity[opt.T] = []
@@ -311,7 +312,7 @@ class HestonCalibrator:
         surface_params = {}
         for T, options in by_maturity.items():
             if len(options) < self.MIN_LIQUID_OPTIONS:
-                continue
+                continue # nosec B112
                 
             log_strikes = []
             total_variances = []
@@ -324,7 +325,7 @@ class HestonCalibrator:
                     log_strikes.append(np.log(opt.strike / opt.spot))
                     total_variances.append(iv * iv * opt.T)
                 except Exception:
-                    continue
+                    continue # nosec B112
             
             if len(log_strikes) >= self.MIN_LIQUID_OPTIONS:
                 params = SVISurface.fit_svi_slice(

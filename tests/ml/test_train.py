@@ -1,6 +1,9 @@
+from unittest.mock import ANY, MagicMock, PropertyMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, ANY, PropertyMock
+
 from src.ml.reinforcement_learning.train import train_td3
+
 
 @pytest.fixture
 def mock_mlflow():

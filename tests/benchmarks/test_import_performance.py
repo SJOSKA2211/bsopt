@@ -1,9 +1,8 @@
 """
 Benchmark lazy import performance vs eager imports.
 """
-import pytest
-import time
 import sys
+
 
 class TestImportPerformance:
     """Benchmark import performance."""
@@ -40,7 +39,6 @@ class TestImportPerformance:
         from src.ml import DataNormalizer
         
         def cached_access():
-            from src.ml import DataNormalizer
             return DataNormalizer
 
         result = benchmark(cached_access)

@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.pricing.calibration.engine import HestonCalibrator, MarketOption
 from src.pricing.models.heston_fft import HestonParams
+
 
 class TestHestonCalibrator:
     def test_calibration_accuracy_synthetic(self):
