@@ -282,7 +282,7 @@ async def get_api_key(
     if not api_key:
         return None
     
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    import hmac; key_hash = hmac.new(settings.JWT_SECRET.encode(), api_key.encode(), hashlib.sha256).hexdigest()
     
     result = await db.execute(
         select(APIKey).options(selectinload(APIKey.user)).where(

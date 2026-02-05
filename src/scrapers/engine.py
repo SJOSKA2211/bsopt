@@ -183,7 +183,8 @@ class NSEScraper:
             client = await self._get_client_with_proxy()
             start_time = time.time()
             try:
-                logger.info("nse_refreshing_cache_http", url=self.BASE_URL, using_proxy=(client != self.client))
+                logger.info("nse_refreshing_cache_http", url=self.BASE_URL, using_proxy=(client != self.client)
+                )
                 
                 # ... (rest of the implementation remains same)
                 resp = await client.get(self.BASE_URL)

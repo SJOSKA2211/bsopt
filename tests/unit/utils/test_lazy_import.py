@@ -19,8 +19,8 @@ class MockModule:
 
 def test_lazy_import_success():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"test_attr": "os.path"}
+    MockModule()
+    {"test_attr": "os.path"}
     
     with patch("importlib.import_module") as mock_import:
         mock_mod = MagicMock()
@@ -35,15 +35,15 @@ def test_lazy_import_success():
         assert stats['successful_imports'] == 1
 
 def test_lazy_import_attribute_error():
-    cache_module = MockModule()
-    import_map = {"a": "b"}
+    MockModule()
+    {"a": "b"}
     with pytest.raises(AttributeError):
         lazy_import("src", import_map, "wrong", cache_module)
 
 def test_lazy_import_circular():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"circular": "src.circular"}
+    MockModule()
+    {"circular": "src.circular"}
     
     # We need to manually trigger the circular detection by nested calls if we want to test the logic
     from src.utils.lazy_import import _track_import_stack
@@ -55,8 +55,8 @@ def test_lazy_import_circular():
 
 def test_lazy_import_failure_caching():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"fail": "nonexistent"}
+    MockModule()
+    {"fail": "nonexistent"}
     
     with patch("importlib.import_module", side_effect=ImportError("No module")):
         with pytest.raises(LazyImportError):
@@ -68,8 +68,8 @@ def test_lazy_import_failure_caching():
 
 def test_lazy_import_circular_reraise():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"circular": "src.circular"}
+    MockModule()
+    {"circular": "src.circular"}
     
     with patch("src.utils.lazy_import._track_import_stack") as mock_track:
         mock_track.side_effect = CircularImportError("Circular")
@@ -79,8 +79,8 @@ def test_lazy_import_circular_reraise():
 def test_preload_modules():
 
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"path": "os", "version": "sys"}
+    MockModule()
+    {"path": "os", "version": "sys"}
     
     with patch("importlib.import_module") as mock_import:
         mock_import.side_effect = [sys.modules['os'], sys.modules['sys']]
@@ -91,9 +91,9 @@ def test_preload_modules():
 def test_lazy_import_double_check():
     """Test the case where attribute exists after lock acquisition."""
     reset_import_stats()
-    cache_module = MockModule()
+    MockModule()
     cache_module.test_attr = "existing"
-    import_map = {"test_attr": "os.path"}
+    {"test_attr": "os.path"}
     
     # should return existing without importing
     with patch("importlib.import_module") as mock_import:
@@ -104,8 +104,8 @@ def test_lazy_import_double_check():
 def test_preload_modules_failure():
     """Test preload_modules when an import fails."""
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"path": "os"}
+    MockModule()
+    {"path": "os"}
     
     with patch("src.utils.lazy_import.lazy_import", side_effect=Exception("Preload fail")):
         # Should not raise exception, just log warning
@@ -113,8 +113,8 @@ def test_preload_modules_failure():
 
 def test_lazy_import_relative():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"sub": ".submodule"}
+    MockModule()
+    {"sub": ".submodule"}
     
     with patch("importlib.import_module") as mock_import:
         mock_mod = MagicMock()
@@ -128,8 +128,8 @@ def test_lazy_import_relative():
 
 def test_preload_modules_failure_again():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"fail": "nonexistent"}
+    MockModule()
+    {"fail": "nonexistent"}
     
     with patch("importlib.import_module", side_effect=Exception("Fail")):
         # Should catch exception and log warning, not raise
@@ -138,9 +138,9 @@ def test_preload_modules_failure_again():
 
 def test_lazy_import_already_loaded():
     reset_import_stats()
-    cache_module = MockModule()
+    MockModule()
     cache_module.existing = "value"
-    import_map = {"existing": "os"}
+    {"existing": "os"}
     
     # Should return existing value without importing
     with patch("importlib.import_module") as mock_import:

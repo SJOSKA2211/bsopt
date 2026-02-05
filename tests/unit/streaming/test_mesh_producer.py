@@ -8,7 +8,7 @@ from src.streaming.mesh_producer import MarketDataMeshProducer
 @pytest.mark.asyncio
 async def test_mesh_producer_calls_kafka():
     # Mock SchemaRegistry and Serializer
-    with patch("src.streaming.mesh_producer.SchemaRegistryClient") as mock_sr:
+    with patch("src.streaming.mesh_producer.SchemaRegistryClient"):
         with patch("src.streaming.mesh_producer.AvroSerializer") as mock_avro:
             with patch("src.streaming.mesh_producer.Producer") as mock_prod:
                 mock_avro.return_value = lambda data, ctx: b"serialized_data"
