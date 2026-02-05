@@ -19,6 +19,7 @@ from src.aiops.remediation_strategies import (
     PurgeCacheStrategy
 )
 from src.ml.forecasting.tft_model import PriceTFTModel
+from src.aiops.transformer_detector import TransformerAnomalyDetector
 
 logger = structlog.get_logger()
 
@@ -59,8 +60,14 @@ class AIOpsOrchestrator:
                 threshold_multiplier=config.get("autoencoder_threshold_multiplier", 2.0),
                 verbose=False
             )
+            # 🚀 SOTA: Transformer-based Detector
+            self.transformer_detector = TransformerAnomalyDetector(
+                input_dim=ae_input_dim,
+                threshold=config.get("transformer_threshold", 0.05)
+            )
         else:
             self.autoencoder_detector = None
+            self.transformer_detector = None
 
         self.data_drift_detector = DataDriftDetector(
             psi_threshold=config.get("data_drift_psi_threshold", 0.1),
@@ -94,6 +101,7 @@ class AIOpsOrchestrator:
         self.remediation_registry.register("data_drift", retrain)
         self.remediation_registry.register("univariate_anomaly", purge)
         self.remediation_registry.register("multivariate_anomaly", purge)
+        self.remediation_registry.register("transformer_anomaly", purge)
         # Predictive strategies
         self.remediation_registry.register("predicted_load_spike", restart) 
 
@@ -132,6 +140,13 @@ class AIOpsOrchestrator:
                     preds_multi = self.autoencoder_detector.fit_predict(data_multi)
                     if -1 in preds_multi:
                         anomalies["multivariate_anomaly"] = True
+                    
+                    # 🚀 SOTA: Transformer Check
+                    if self.transformer_detector:
+                        is_anomaly, score = self.transformer_detector.detect(data_multi)
+                        if is_anomaly:
+                            anomalies["transformer_anomaly"] = True
+                            logger.warning("transformer_anomaly_detected", score=score)
 
         # 5. Data Drift Detection
         if self.data_drift_detection_enabled:
