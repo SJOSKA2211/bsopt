@@ -1,24 +1,70 @@
 import asyncio
 import time
+
 from web3 import AsyncWeb3, Web3
-from web3.providers import AsyncHTTPProvider, AsyncWebsocketProvider
-from typing import Optional, Dict, List
+
+try:
+    from web3.providers import AsyncHTTPProvider, AsyncWebsocketProvider
+except ImportError:
+    # web3 v7+ compatibility
+    from web3.providers import AsyncHTTPProvider
+    try:
+        from web3.providers import WebSocketProvider as AsyncWebsocketProvider
+    except ImportError:
+        from web3.providers import LegacyWebSocketProvider as AsyncWebsocketProvider
+
+
 import structlog
 
-# ... (rest of imports)
+logger = structlog.get_logger(__name__)
 
 class DeFiOptionsProtocol:
-    # ... (Multicall constants)
+    """
+    DeFi options interaction protocol using Multicall3 and JSON-RPC batching.
+    """
     
+    # OPTIMIZED: Multicall3 Address on Polygon Mainnet
+    MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11"
+    MULTICALL_ABI = [
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {"internalType": "address", "name": "target", "type": "address"},
+                        {"internalType": "bool", "name": "allowFailure", "type": "bool"},
+                        {"internalType": "bytes", "name": "callData", "type": "bytes"}
+                    ],
+                    "internalType": "struct Multicall3.Call3[]",
+                    "name": "calls",
+                    "type": "tuple[]"
+                }
+            ],
+            "name": "aggregate3",
+            "outputs": [
+                {
+                    "components": [
+                        {"internalType": "bool", "name": "success", "type": "bool"},
+                        {"internalType": "bytes", "name": "returnData", "type": "bytes"}
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]
+
     def __init__(
         self, 
         rpc_url: str = "wss://polygon-mainnet.g.alchemy.com/v2/your-api-key",
-        private_key: Optional[str] = None,
+        private_key: str | None = None,
         cache_ttl: int = 10
     ):
         self.rpc_url = rpc_url
         
-        # 🚀 SINGULARITY: High-performance WebSocket provider
+        # Hardware-aware provider selection
         if rpc_url.startswith(("ws://", "wss://")):
             self.w3 = AsyncWeb3(AsyncWebsocketProvider(rpc_url))
         else:
@@ -26,23 +72,23 @@ class DeFiOptionsProtocol:
             
         self.private_key = private_key
         self.cache_ttl = cache_ttl
-        self._price_cache: Dict[str, Dict] = {}
+        self._price_cache: dict[str, dict] = {}
         
-        # 🚀 OPTIMIZATION: Thread-safe nonce and circuit breaker
         self._nonce_lock = asyncio.Lock()
         self._failure_count = 0
         self._last_failure_time = 0
         self._circuit_open = False
         
         if private_key:
-            self.account = self.w3.eth.account.from_key(private_key)
+            from eth_account import Account
+            self.account = Account.from_key(private_key)
             self.address = self.account.address
         else:
             self.account = None
             self.address = None
 
     async def _get_next_nonce(self) -> int:
-        """🚀 SOTA: Synchronized nonce acquisition."""
+        """Fetch and increment account nonce with chain synchronization."""
         async with self._nonce_lock:
             current_on_chain = await self.w3.eth.get_transaction_count(self.address)
             if not hasattr(self, '_local_nonce'):
@@ -55,25 +101,26 @@ class DeFiOptionsProtocol:
             return nonce
 
     async def _check_circuit(self):
+        """Circuit breaker for RPC endpoints."""
         if self._circuit_open:
-            if time.time() - self._last_failure_time > 30: # 30s timeout
+            if time.time() - self._last_failure_time > 30:
                 self._circuit_open = False
                 self._failure_count = 0
-                logger.info("blockchain_circuit_half_open")
+                logger.info("rpc_circuit_recovered")
             else:
-                raise Exception("Blockchain RPC circuit open")
+                raise Exception("RPC Circuit Open: Service Unavailable")
 
     async def get_option_price(self, contract_address: str) -> float:
-        """Fetch option price with multi-level caching and circuit breaking."""
+        """Fetch option price with multi-level caching."""
         now = time.time()
         
-        # 1. Memory Cache (L1)
+        # L1: Memory
         if contract_address in self._price_cache:
             cache_entry = self._price_cache[contract_address]
             if now - cache_entry["time"] < self.cache_ttl:
                 return cache_entry["price"]
 
-        # 2. Redis Cache (L2) - for shared process efficiency
+        # L2: Shared Redis
         from src.utils.cache import get_redis
         redis = get_redis()
         if redis:
@@ -83,20 +130,18 @@ class DeFiOptionsProtocol:
                 self._price_cache[contract_address] = {"price": price, "time": now}
                 return price
 
-        # 3. RPC Call (Origin)
+        # Fetch from chain
         results = await self.get_option_prices_batch([contract_address])
         price = results.get(contract_address, 0.0)
         
-        # Store in Redis if successful
         if redis and price > 0:
             await redis.setex(f"defi_price:{contract_address}", self.cache_ttl, str(price))
             
         return price
 
-    async def get_option_prices_batch(self, contract_addresses: List[str]) -> Dict[str, float]:
+    async def get_option_prices_batch(self, contract_addresses: list[str]) -> dict[str, float]:
         """
         Fetch multiple option prices using Multicall3 and JSON-RPC Batching.
-        Provides dual-layer optimization: network-level batching and contract-level multicall.
         """
         if not contract_addresses:
             return {}
@@ -104,11 +149,10 @@ class DeFiOptionsProtocol:
         await self._check_circuit()
         
         start_time = time.time()
-        # 1. SOTA: Combine Multicall with JSON-RPC Batching for massive efficiency
         CHUNK_SIZE = 100 
         chunks = [contract_addresses[i:i + CHUNK_SIZE] for i in range(0, len(contract_addresses), CHUNK_SIZE)]
         
-        # Target contract ABI for 'get_price'
+        # Shared ABI for price queries
         price_abi = [{"name": "get_price", "type": "function", "inputs": [], "outputs": [{"type": "uint256"}]}]
         price_contract = self.w3.eth.contract(abi=price_abi)
         get_price_data = price_contract.encode_abi("get_price")
@@ -116,8 +160,7 @@ class DeFiOptionsProtocol:
         output = {}
         
         try:
-            # We use a mix of Multicall for efficiency and Batch requests
-            # This allows us to hit the node with fewer HTTP requests AND the blockchain with fewer calls
+            # Note: batch_requests is a context manager in some web3 versions
             async with self.w3.batch_requests() as batch:
                 tasks = []
                 for chunk in chunks:
@@ -131,13 +174,10 @@ class DeFiOptionsProtocol:
                         address=Web3.to_checksum_address(self.MULTICALL3_ADDRESS), 
                         abi=self.MULTICALL_ABI
                     )
-                    # Add to JSON-RPC batch
                     tasks.append(multicall.functions.aggregate3(calls).call())
                 
-                # Execute all multicalls in a single JSON-RPC batch
                 results = await asyncio.gather(*tasks)
                 
-                # Flatten and process results
                 idx = 0
                 now = time.time()
                 from src.utils.cache import get_redis
@@ -151,24 +191,20 @@ class DeFiOptionsProtocol:
                             price_wei = int.from_bytes(return_data, byteorder='big')
                             price = float(Web3.from_wei(price_wei, 'ether'))
                             output[addr] = price
-                            # Proactive cache update
                             self._price_cache[addr] = {"price": price, "time": now}
                             if pipe:
                                 await pipe.setex(f"defi_price:{addr}", self.cache_ttl, str(price))
-                        else:
-                            BLOCKCHAIN_RPC_ERRORS.labels(method="aggregate3").inc()
                         idx += 1
                 
                 if pipe:
                     await pipe.execute()
             
-            BLOCKCHAIN_RPC_LATENCY.labels(method="batch_multicall").observe(time.time() - start_time)
             return output
         except Exception as e:
-            logger.error("sota_multicall_failed", error=str(e))
+            logger.error("multicall_failed", error=str(e))
             return await self._get_option_prices_parallel(contract_addresses)
 
-    async def _get_option_prices_parallel(self, contract_addresses: List[str]) -> Dict[str, float]:
+    async def _get_option_prices_parallel(self, contract_addresses: list[str]) -> dict[str, float]:
         """Parallel execution fallback."""
         tasks = [self.get_option_price(addr) for addr in contract_addresses]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -205,14 +241,11 @@ class DeFiOptionsProtocol:
         ]
 
         try:
-            # 1. Price check for slippage (SOTA: Check immediately before build)
+            # 1. Price check for slippage
             contract = self.w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=abi)
             current_price_wei = await contract.functions.get_price().call()
             expected_price = float(Web3.from_wei(current_price_wei, 'ether'))
             
-            # 🚀 OPTIMIZATION: Real slippage check
-            # In a real DeFi app, you'd pass this to the smart contract, 
-            # but for this POC we check locally before sending gas.
             logger.info("slippage_check", expected=expected_price, amount=amount)
 
             # 2. Build EIP-1559 Transaction
@@ -247,12 +280,10 @@ class DeFiOptionsProtocol:
                 raise Exception(f"Transaction failed: {tx_hash.hex()}")
         except Exception as e:
             logger.error("blockchain_tx_error", error=str(e))
-            # Reset local nonce on failure to sync with chain next time
-            if hasattr(self, '_nonce'): delattr(self, '_nonce')
+            if hasattr(self, '_local_nonce'): delattr(self, '_local_nonce')
             raise
 
 
 if __name__ == "__main__":
-    # Example usage
     protocol = DeFiOptionsProtocol()
-    print("Web3 Connected:", protocol.w3.is_connected())
+    print("Web3 initialized")
