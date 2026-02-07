@@ -318,6 +318,7 @@ async def get_api_key(
     if not api_key:
         return None
 
+    # Use SHA256 for fast API key lookups (comparison only, high entropy keys)
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
 
     result = await db.execute(

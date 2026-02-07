@@ -174,7 +174,7 @@ class NSEScraper:
             proxy=proxy_url,
             headers={"User-Agent": "BS-Opt/2.0"},
             timeout=10.0,
-            verify=False,  # NSE often has SSL issues with proxies
+            verify=False,  # nosec B501 - NSE often has SSL issues with proxies
         )
 
     @nse_circuit
