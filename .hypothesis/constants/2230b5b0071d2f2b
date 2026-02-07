@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/graphql/schema.py
+# hypothesis_version: 6.151.5
+
+[-0.5, 0.5, 15.5, 'BUY', 'HOLD', 'SELL', 'fair_value_loader', 'id', 'ml']

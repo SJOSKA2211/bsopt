@@ -141,6 +141,10 @@ class Settings(BaseSettings):
             return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
         return "sqlite:///mlflow.db"
 
+    # Dask & Distributed
+    DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = 1
+    DASK_ARRAY_DEFAULT_CHUNKS_FRACTION: int = 10
+
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.test"), env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )

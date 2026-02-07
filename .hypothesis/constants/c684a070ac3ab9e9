@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/utils/sanitization.py
+# hypothesis_version: 6.151.5
+
+['****@****', '@', '[^a-zA-Z0-9_-]']

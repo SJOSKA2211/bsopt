@@ -34,6 +34,10 @@ class ExperimentTracker:
     def set_tags(self, tags: dict[str, str]):
         mlflow.set_tags(tags)
 
+    def log_dict(self, dictionary: dict, artifact_file: str):
+        """Logs a dictionary as a JSON artifact."""
+        mlflow.log_dict(dictionary, artifact_file)
+
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str):
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("rmse", rmse)

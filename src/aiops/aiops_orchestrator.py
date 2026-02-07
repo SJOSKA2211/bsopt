@@ -94,6 +94,7 @@ class AIOpsOrchestrator:
         restart = RestartServiceStrategy()
         retrain = RetrainModelStrategy()
         purge = PurgeCacheStrategy()
+        scale = AutonomousScalerStrategy()
 
         self.remediation_registry.register("high_error_rate", restart)
         self.remediation_registry.register("high_latency", restart)
@@ -101,8 +102,10 @@ class AIOpsOrchestrator:
         self.remediation_registry.register("univariate_anomaly", purge)
         self.remediation_registry.register("multivariate_anomaly", purge)
         self.remediation_registry.register("transformer_anomaly", purge)
-        # Predictive strategies
-        self.remediation_registry.register("predicted_load_spike", restart) 
+        # Predictive and load-based strategies
+        self.remediation_registry.register("predicted_load_spike", scale) 
+        self.remediation_registry.register("cpu_high", scale)
+        self.remediation_registry.register("high_load", scale)
 
     def _detect_anomalies(self) -> dict[str, Any]:
         """Scans Prometheus and local detectors for system anomalies."""

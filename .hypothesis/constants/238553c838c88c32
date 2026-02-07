@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/auth/security.py
+# hypothesis_version: 6.151.5
+
+[403, 'Bearer', 'WWW-Authenticate', 'account', 'admin', 'bsopt-api', 'email', 'enterprise', 'free', 'internal', 'keycloak', 'keys', 'rbac_denied', 'realm_access', 'roles', 'sub']

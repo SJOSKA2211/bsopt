@@ -1,0 +1,10 @@
+{
+  "active": true,
+  "iteration": 1,
+  "started_at": "2026-02-07T12:00:00Z",
+  "task_description": "Advance models and algorithms across the entire codebase. Check training, validation, evaluation pipeline. Refactor logic. Optimize and fine-tune. Achieve >97% coverage.",
+  "max_iterations": 0,
+  "max_time_minutes": 0,
+  "worker_timeout_seconds": 300,
+  "completion_promise": ""
+}

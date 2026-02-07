@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/bs_cli.py
+# hypothesis_version: 6.151.5
+
+[0.0, 10000, '--dividend', '--maturity', '--model', '--option-type', '--rate', '--shm-name', '--spot', '--strike', '--timesteps', '--volatility', '3.0.0', 'Execution Time', 'Field', 'Model', 'Theoretical Price', 'Total training steps', 'Value', '__main__', 'black_scholes', 'bsopt-singularity', 'call', 'cyan', 'green', 'market_mesh', 'put', 'rl_weights']

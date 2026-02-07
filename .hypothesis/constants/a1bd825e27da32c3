@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/protos/inference_pb2.py
+# hypothesis_version: 6.151.5
+
+[281, 283, 357, 359, 454, '_INFERENCEREQUEST', '_INFERENCERESPONSE', '_MLINFERENCE', 'inference.proto', 'inference_pb2']

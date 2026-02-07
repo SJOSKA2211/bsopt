@@ -1,6 +1,8 @@
-import yaml
 import os
 import sys
+
+import yaml
+
 
 def verify_workflow(file_path):
     print(f"Verifying workflow: {file_path}")
@@ -10,7 +12,7 @@ def verify_workflow(file_path):
         return False
         
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path) as f:
             workflow = yaml.safe_load(f)
             
         # Basic syntax and required keys

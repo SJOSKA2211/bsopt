@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/pricing/exotic.py
+# hypothesis_version: 6.151.5
+
+[0.0, 1e-12, 0.01, 0.5, 1.0, 1.96, 252, 10000, 'arithmetic', 'asian', 'asian_type', 'barrier', 'barrier_type', 'call', 'cash', 'digital', 'down-and-in', 'down-and-out', 'geometric', 'lookback', 'max', 'n_paths', 'out', 'payout', 'strike_type', 'up', 'up-and-in', 'up-and-out', 'use_control_variate', 'use_mc']

@@ -1,5 +1,7 @@
 import asyncio
+
 from src.scrapers.engine import NSEScraper
+
 
 async def test():
     scraper = NSEScraper()

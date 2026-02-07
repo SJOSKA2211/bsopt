@@ -80,7 +80,7 @@ class BreachNotificationService:
                 "email": user.email,
                 "context": {
                     "user_name": user.full_name or "Valued User",
-                    "incident_type": incident.incident_type,
+                    "incident_type": incident.event_type,
                     "measures_taken": incident.measures_taken,
                     "recommendation": "We recommend changing your password and enabling MFA immediately."
                 }

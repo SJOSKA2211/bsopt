@@ -16,15 +16,27 @@ class VersionedMock(MagicMock):
         import importlib.machinery
         self.__spec__ = importlib.machinery.ModuleSpec(self._mock_name or "mock", None)
     
+    def __float__(self):
+        return 1.0
+        
+    def __array__(self, dtype=None, copy=None):
+        return np.array(1.0, dtype=dtype or float)
+
     def __gt__(self, other):
-        # Return array of length 10 to match mock X_test size
-        return np.ones(10, dtype=int)
+        if isinstance(other, float) and other == float('inf'): return False
+        return np.ones(10, dtype=bool)
     
     def __ge__(self, other):
-        return np.ones(10, dtype=int)
+        if isinstance(other, float) and other == float('inf'): return False
+        return np.ones(10, dtype=bool)
         
     def __lt__(self, other):
-        return np.zeros(10, dtype=int)
+        if isinstance(other, float) and other == float('inf'): return True
+        return np.zeros(10, dtype=bool)
+
+    def __le__(self, other):
+        if isinstance(other, float) and other == float('inf'): return True
+        return np.zeros(10, dtype=bool)
 
     def __iter__(self):
         return iter([MagicMock(), MagicMock()])
@@ -36,11 +48,14 @@ class VersionedMock(MagicMock):
         return np.ones(10, dtype=t)
 
 class MockTensor: 
+    def __init__(self, *args, **kwargs):
+        pass
     def to(self, *args, **kwargs): return self
     def item(self): return 1.0
     def cpu(self): return self
     def numpy(self): return np.ones(10)
     def size(self, dim=None): return 10 if dim is None else 10
+    def view(self, *args, **kwargs): return self
     def __iter__(self): return iter([MockTensor() for _ in range(10)])
 
 # List of modules to aggressively mock
@@ -58,7 +73,7 @@ MOCK_MODULES = [
     "ray", "ray.tune", "ray.air", "ray.train", "ray.serve", 
     "ray.tune.search", "ray.tune.search.optuna", "ray.tune.schedulers",
     "ray.dag", "ray.experimental", "ray.rllib",
-    "grpclib", "grpclib.client", "grpclib.const", "sendgrid", "sendgrid.helpers", "sendgrid.helpers.mail", "dask", "dask.distributed", "distributed",
+    "grpclib", "grpclib.client", "grpclib.const", "sendgrid", "sendgrid.helpers", "sendgrid.helpers.mail", "dask", "dask.distributed", "dask.array", "distributed",
     "redis", "redis.asyncio", "redis.asyncio.client",
     "authlib", "authlib.jose", "onnxruntime", "sklearn", "sklearn.ensemble",
     "sklearn.metrics", "sklearn.model_selection", "sklearn.preprocessing",
@@ -114,6 +129,7 @@ booster_mock = MagicMock()
 # FIX: Return array of length 10 to match train_test_split mock
 booster_mock.predict.return_value = np.ones(10) * 0.9 
 booster_mock.best_iteration = 10
+booster_mock.get_score.return_value = {"f0": 10, "f1": 20}
 xgboost_mock.train.return_value = booster_mock
 xgboost_mock.XGBRegressor = MagicMock(return_value=booster_mock)
 sys.modules["xgboost"] = xgboost_mock
@@ -131,6 +147,7 @@ sys.modules["sklearn.preprocessing"].StandardScaler.return_value = scaler_mock
 # RandomForest Fix
 rf_mock = MagicMock()
 rf_mock.predict.return_value = np.ones(10) # Match y_test length
+rf_mock.feature_importances_ = np.array([0.2] * 5)
 sys.modules["sklearn.ensemble"].RandomForestClassifier.return_value = rf_mock
 
 # Numba fixes

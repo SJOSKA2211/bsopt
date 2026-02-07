@@ -128,6 +128,15 @@ class SecurityIncident(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    # GDPR Specific Fields
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    nature_of_breach: Mapped[str | None] = mapped_column(Text)
+    approximate_number_data_subjects: Mapped[int | None] = mapped_column(Integer)
+    approximate_number_records: Mapped[int | None] = mapped_column(Integer)
+    data_categories_affected: Mapped[list[str] | None] = mapped_column(JSON)
+    likely_consequences: Mapped[str | None] = mapped_column(Text)
+    measures_taken: Mapped[str | None] = mapped_column(Text)
+
 
 # =============================================================================
 # OAUTH2 CLIENT MODEL
@@ -270,6 +279,7 @@ class Portfolio(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="portfolios")
+    positions: Mapped[list["Position"]] = relationship(back_populates="portfolio", cascade="all, delete-orphan")
 
     __table_args__ = (UniqueConstraint("user_id", "name"),)
 
@@ -304,6 +314,8 @@ class Position(Base):
     strike: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     expiry: Mapped[date | None] = mapped_column(Date)
     option_type: Mapped[str | None] = mapped_column(String(4))
+
+    portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
 
     def __repr__(self) -> str:
         return f"<Position(symbol={self.symbol}, quantity={self.quantity})>"

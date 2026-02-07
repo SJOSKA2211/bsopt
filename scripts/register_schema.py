@@ -1,7 +1,9 @@
 import json
-import requests
-import sys
 import os
+import sys
+
+import requests
+
 
 def register_schema(url, subject, schema_path):
     print(f"Registering schema for subject '{subject}' at {url}...")
@@ -10,7 +12,7 @@ def register_schema(url, subject, schema_path):
         print(f"Error: Schema file not found at {schema_path}")
         return False
         
-    with open(schema_path, 'r') as f:
+    with open(schema_path) as f:
         schema_json = json.load(f)
         
     payload = {

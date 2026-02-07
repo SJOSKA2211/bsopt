@@ -1,8 +1,10 @@
-import numpy as np
 import time
-import structlog
-from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import structlog
+
+from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
 logger = structlog.get_logger()
 

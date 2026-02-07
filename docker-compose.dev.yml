@@ -104,6 +104,10 @@ services:
       - postgres_data_dev:/var/lib/postgresql/data
     networks:
       - bsopt-network-dev
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   redis:
     image: redis:7-alpine
@@ -111,6 +115,10 @@ services:
       - "6379:6379"
     networks:
       - bsopt-network-dev
+    deploy:
+      resources:
+        limits:
+          memory: 256M
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -119,6 +127,10 @@ services:
       - "15672:15672"
     networks:
       - bsopt-network-dev
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
 networks:
   bsopt-network-dev:

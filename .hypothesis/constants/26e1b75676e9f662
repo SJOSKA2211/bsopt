@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/workers/math_worker.py
+# hypothesis_version: 6.151.5
+
+[600, 'CELERY_BROKER_URL', 'calibration_complete', 'calibration_error', 'calibration_started', 'failed', 'math_worker', 'metrics', 'no_data', 'num_options', 'params', 'r_squared', 'reason', 'rmse', 'status', 'success', 'surface', 'symbol', 'timestamp']

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/security/audit.py
+# hypothesis_version: 6.151.5
+
+[500, 'IP_BLOCKED', 'MFA_DISABLED', 'MFA_ENABLED', 'MFA_LOGIN_FAILURE', 'MFA_LOGIN_SUCCESS', 'MFA_VERIFIED', 'PASSWORD_CHANGED', 'RATE_LIMIT_EXCEEDED', 'SUSPICIOUS_ACTIVITY', 'TOKEN_REFRESH', 'TOKEN_REVOKED', 'USER_DELETE', 'USER_LOGIN_FAILURE', 'USER_LOGIN_SUCCESS', 'USER_LOGOUT', 'USER_REGISTER', 'USER_UPDATE', 'audit', 'details', 'event_type', 'request_method', 'request_path', 'source_ip', 'user-agent', 'user_agent', 'user_email', 'user_id']

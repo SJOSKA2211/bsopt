@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/reinforcement_learning/online_agent.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.5, 1.0, 100, 1000, 100000, 'agent_id', 'agent_running', 'bootstrap.servers', 'flushing_experience', 'greeks', 'group.id', 'indicators', 'inference_failed', 'kafka_error', 'kafka_init_failed', 'kafka_initialized', 'localhost:9092', 'market-data', 'model_load_failed', 'model_loaded', 'msg_process_failed', 'now', 'prices', 'produce_failed', 'rl-agent-td3', 'rl-trading-agent', 'run_failed', 'strikes', 'target_positions', 'timestamp', 'trading-signals', 'utf-8']

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/websockets/codec.py
+# hypothesis_version: 6.151.5
+
+['json', 'msgpack', 'proto', 'utf-8']

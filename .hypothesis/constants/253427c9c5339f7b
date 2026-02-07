@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/data/router.py
+# hypothesis_version: 6.151.5
+
+[0.05, 0.1, 0.2, 0.5, 2.0, '-', '.NR', 'AUTO', 'NSE', 'Polygon', 'USD', 'USDT', 'Yahoo', 'error', 'market', 'market_search_failed', 'option_chain_fetched', 'target', 'yahoo_search']

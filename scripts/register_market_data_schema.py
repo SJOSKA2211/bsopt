@@ -1,6 +1,8 @@
 import argparse
 import os
-from confluent_kafka.schema_registry import SchemaRegistryClient, Schema
+
+from confluent_kafka.schema_registry import Schema, SchemaRegistryClient
+
 
 def register_schema(schema_path, subject_name, schema_registry_url):
     """
@@ -8,7 +10,7 @@ def register_schema(schema_path, subject_name, schema_registry_url):
     """
     client = SchemaRegistryClient({'url': schema_registry_url})
 
-    with open(schema_path, 'r') as f:
+    with open(schema_path) as f:
         schema_str = f.read()
 
     schema = Schema(schema_str, 'AVRO')

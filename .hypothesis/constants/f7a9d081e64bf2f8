@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/timeseries_anomaly_detector.py
+# hypothesis_version: 6.151.5
+
+[0.05, 'anomaly_detected', 'index', 'metrics', 'score', 'training_data_empty']

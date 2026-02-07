@@ -10,7 +10,10 @@ def test_vectorized_bs_scalar_greeks():
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
     )
     assert isinstance(res, OptionGreeks)
-    assert isinstance(res.delta, float)
+    # Due to np.atleast_1d fix, output is a 1-element array
+    assert isinstance(res.delta, (float, np.ndarray))
+    if isinstance(res.delta, np.ndarray):
+        assert res.delta.size == 1
 
 def test_vectorized_bs_array_greeks():
     # Pass array inputs to hit line 69 branch (return dict directly)
@@ -18,11 +21,15 @@ def test_vectorized_bs_array_greeks():
     res = VectorizedBlackScholesEngine.calculate_greeks(
         spot=S, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
     )
-    assert isinstance(res, dict)
-    assert len(res["delta"]) == 2
+    # The engine now consistently returns OptionGreeks
+    assert isinstance(res, OptionGreeks)
+    assert len(res.delta) == 2
 
 def test_vectorized_bs_price_options_scalar():
     res = VectorizedBlackScholesEngine.price_options(
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
     )
-    assert isinstance(res, float)
+    # Due to np.atleast_1d fix, output is a 1-element array
+    assert isinstance(res, (float, np.ndarray))
+    if isinstance(res, np.ndarray):
+        assert res.size == 1

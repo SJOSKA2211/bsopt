@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/pricing/quantum_backend.py
+# hypothesis_version: 6.151.5
+
+['IBM_QUANTUM_TOKEN', 'aer_simulator', 'using_local_backend', 'using_remote_backend', 'zne']

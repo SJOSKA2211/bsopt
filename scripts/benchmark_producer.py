@@ -1,14 +1,15 @@
 import asyncio
-import time
 import os
-import sys
 import random
+import sys
+import time
 from datetime import datetime
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
 from streaming.producer import MarketDataProducer
+
 
 async def run_benchmark(num_messages=1000):
     producer = MarketDataProducer()

@@ -10,6 +10,7 @@ from src.ml.evaluation.metrics import calculate_regression_metrics
 from src.ml.serving.quantization import ModelQuantizer
 from src.ml.strategies import get_strategy
 from src.ml.tracker import ExperimentTracker
+from src.ml.utils.distributed import train_xgboost_distributed
 
 logger = structlog.get_logger()
 

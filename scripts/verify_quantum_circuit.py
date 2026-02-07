@@ -1,5 +1,6 @@
 from src.pricing.quantum_pricing import QuantumOptionPricer
 
+
 def verify_circuit():
     print("Initializing QuantumOptionPricer...")
     pricer = QuantumOptionPricer()

@@ -47,6 +47,14 @@ yarn-error.log*
 *.db
 mlflow.db
 
+# WASM
+src/wasm/target/
+
+# ML/AI
+mlruns/
+lightning_logs/
+td3_trading/
+
 # IDEs
 .idea/
 .vscode/

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/config.py
+# hypothesis_version: 6.151.5
+
+[100, 300, 1000, 2048, 6379, 10000, 65537, '.env', '.env.test', 'BSOpt Engine', 'Banking', 'COOP', 'Co-operative', 'Commercial', 'DATABASE_URL', 'ENVIRONMENT', 'EQTY', 'Energy', 'Equity', 'INFO', 'Insurance', 'Investment', 'JWT_SECRET', 'KCB', 'Manufacturing', 'REDIS_URL', 'RS256', 'SCOM', 'Safaricom', 'Telecommunication', 'dev', 'dpa@bsopt.ai', 'ignore', 'localhost', 'localhost:50051', 'mock_key', 'noreply@bsopt.ai', 'postgresql', 'postgresql+asyncpg', 'postgresql://', 'private', 'prod', 'public', 'sqlite', 'sqlite:///mlflow.db', 'staging', 'test', 'utf-8']

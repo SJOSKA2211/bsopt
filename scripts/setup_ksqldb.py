@@ -1,7 +1,9 @@
-import requests
-import sys
-import os
 import json
+import os
+import sys
+
+import requests
+
 
 def run_ksql_query(url, ksql_text):
     print("Executing ksqlDB query...")

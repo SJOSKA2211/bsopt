@@ -46,7 +46,7 @@ class BlackScholesEngine:
 
     @staticmethod
     def price_options(
-        spot: float | np.ndarray | None = None,
+        spot: float | np.ndarray | Any | None = None,
         strike: float | np.ndarray | None = None,
         maturity: float | np.ndarray | None = None,
         volatility: float | np.ndarray | None = None,
@@ -58,6 +58,11 @@ class BlackScholesEngine:
         """
         Calculate European option prices using Black-Scholes formula (JIT Accelerated).
         """
+        # If first arg is BSParameters, shift it to params
+        if hasattr(spot, 'spot') and params is None:
+            params = spot
+            spot = None
+
         S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
             params, spot=spot, strike=strike, maturity=maturity, 
             volatility=volatility, rate=rate, dividend=dividend
@@ -73,11 +78,25 @@ class BlackScholesEngine:
         # 🚀 OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
         is_call_np = np.atleast_1d(is_call).astype(bool)
 
-        return calculate_price(S, K, T, sigma, r, q, is_call_np)
+        prices = calculate_price(S, K, T, sigma, r, q, is_call_np)
+        
+        # If all inputs were scalars (implied by params object or all floats), return scalar
+        is_scalar = False
+        if params is not None:
+            # Check if any field in BSParameters is a numpy array
+            fields = ['spot', 'strike', 'maturity', 'volatility', 'rate', 'dividend']
+            is_scalar = all(not isinstance(getattr(params, f, 0.0), np.ndarray) for f in fields)
+        elif all(not isinstance(x, np.ndarray) for x in [spot, strike, maturity, volatility, rate, dividend]):
+            is_scalar = True
+            
+        if is_scalar:
+            return float(prices[0])
+            
+        return prices
 
     @staticmethod
     def calculate_greeks(
-        spot: float | np.ndarray | None = None,
+        spot: float | np.ndarray | Any | None = None,
         strike: float | np.ndarray | None = None,
         maturity: float | np.ndarray | None = None,
         volatility: float | np.ndarray | None = None,
@@ -89,6 +108,11 @@ class BlackScholesEngine:
         """
         Calculate Greeks for European options (JIT Accelerated).
         """
+        # If first arg is BSParameters, shift it to params
+        if hasattr(spot, 'spot') and params is None:
+            params = spot
+            spot = None
+
         S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
             params, spot=spot, strike=strike, maturity=maturity, 
             volatility=volatility, rate=rate, dividend=dividend
@@ -104,6 +128,23 @@ class BlackScholesEngine:
         is_call_np = np.atleast_1d(is_call).astype(bool)
 
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call_np)
+
+        # If all inputs were scalars, return scalar values in OptionGreeks
+        is_scalar = False
+        if params is not None:
+            fields = ['spot', 'strike', 'maturity', 'volatility', 'rate', 'dividend']
+            is_scalar = all(not isinstance(getattr(params, f, 0.0), np.ndarray) for f in fields)
+        elif all(not isinstance(x, np.ndarray) for x in [spot, strike, maturity, volatility, rate, dividend]):
+            is_scalar = True
+
+        if is_scalar:
+            return OptionGreeks(
+                delta=float(delta[0]), 
+                gamma=float(gamma[0]), 
+                theta=float(theta[0]), 
+                vega=float(vega[0]), 
+                rho=float(rho[0])
+            )
 
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
 

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/tasks/celery_app.py
+# hypothesis_version: 6.151.5
+
+[0.5, 300, 600, 1000, 3000, 3300, 3600, 60000, 300000, 512000, 3600000, 7200000, '#', '*/12', '*/4', '*/6', '1/m', '100/s', '1000/s', '50/s', '500/s', 'ENVIRONMENT', 'RABBITMQ_URL', 'REDIS_URL', 'UTC', '__main__', 'batch', 'broker_use_ssl', 'bsopt', 'check-data-freshness', 'completed', 'dead_letter', 'default', 'development', 'direct', 'dlx', 'error', 'failed', 'gzip', 'healthy', 'json', 'message', 'ml', 'ml.dead', 'options', 'persistent', 'pricing', 'pricing.dead', 'priority', 'production', 'queue', 'rate_limit', 'refresh-cache', 'routing_key', 'schedule', 'skipped', 'src.tasks.data_tasks', 'src.tasks.ml_tasks', 'src.tasks.ml_tasks.*', 'status', 'task', 'task_id', 'task_result_expires', 'timestamp', 'trading', 'trading.dead', 'worker', 'x-max-priority', 'x-message-ttl']

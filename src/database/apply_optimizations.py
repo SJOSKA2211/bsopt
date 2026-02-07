@@ -29,29 +29,31 @@ def apply_database_optimizations():
     if db_password:
         os.environ["PGPASSWORD"] = db_password
 
-    schema_file = "src/database/optimized_schema.sql"
-    if not os.path.exists(schema_file):
-        logger.error("schema_file_missing", path=schema_file)
-        return
-
-    cmd = [
-        "psql", 
-        "-h", str(db_host), 
-        "-p", str(db_port), 
-        "-U", str(db_user), 
-        "-d", str(db_name), 
-        "-f", schema_file
-    ]
-
-    logger.info("applying_optimizations", host=db_host, database=db_name)
+    schema_files = ["src/database/optimized_schema.sql", "src/database/advanced_optimizations.sql"]
     
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        logger.info("optimizations_applied_successfully", output=result.stdout[:500])
-    except subprocess.CalledProcessError as e:
-        logger.error("optimizations_failed", error=e.stderr)
-        if "already exists" in e.stderr:
-            logger.info("some_optimizations_already_present")
+    for schema_file in schema_files:
+        if not os.path.exists(schema_file):
+            logger.error("schema_file_missing", path=schema_file)
+            continue
+
+        cmd = [
+            "psql", 
+            "-h", str(db_host), 
+            "-p", str(db_port), 
+            "-U", str(db_user), 
+            "-d", str(db_name), 
+            "-f", schema_file
+        ]
+
+        logger.info("applying_optimizations", host=db_host, database=db_name, file=schema_file)
+        
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            logger.info("optimizations_applied_successfully", file=schema_file, output=result.stdout[:500])
+        except subprocess.CalledProcessError as e:
+            logger.error("optimizations_failed", file=schema_file, error=e.stderr)
+            if "already exists" in e.stderr:
+                logger.info("some_optimizations_already_present", file=schema_file)
 
 if __name__ == "__main__":
     apply_database_optimizations()

@@ -5,16 +5,14 @@ BS-OPT Singularity Command-Line Interface
 Precision control for high-performance quantitative finance.
 """
 
-import sys
 import asyncio
+
 import click
-import time
 import structlog
-from rich.console import Console
-from rich.table import Table
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 from rich import box
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
 # Enforce Venv
 try:
@@ -23,9 +21,8 @@ try:
 except ImportError:
     pass
 
-from src.config import settings
-from src.services.pricing_service import PricingService
 from src.pricing.black_scholes import BSParameters
+from src.services.pricing_service import PricingService
 
 console = Console()
 logger = structlog.get_logger()
@@ -81,7 +78,7 @@ def train_transformer(timesteps, shm_name):
         # This will run the real training loop we refactored
         result = train_td3(total_timesteps=timesteps)
         
-    console.print(f"[bold green]Training Complete![/bold green]")
+    console.print("[bold green]Training Complete![/bold green]")
     console.print(f"MLflow Run ID: [cyan]{result['run_id']}[/cyan]")
     console.print(f"Model saved to: [dim]{result['model_path']}[/dim]")
 
@@ -95,7 +92,7 @@ def mesh_status():
     try:
         shm = SHMManager("market_mesh", dict)
         data = shm.read()
-        console.print(f"[green]✔ Market Mesh SHM:[/green] Active")
+        console.print("[green]✔ Market Mesh SHM:[/green] Active")
         console.print(f"  - Segment Name: {shm.name}")
         console.print(f"  - Tickers Tracked: {len(data)}")
     except Exception as e:
@@ -104,9 +101,9 @@ def mesh_status():
     # Check RL Weights Mesh
     try:
         shm = SHMManager("rl_weights", dict)
-        console.print(f"[green]✔ RL Weights SHM:[/green] Active")
+        console.print("[green]✔ RL Weights SHM:[/green] Active")
     except Exception:
-        console.print(f"[yellow]! RL Weights SHM:[/yellow] Inactive")
+        console.print("[yellow]! RL Weights SHM:[/yellow] Inactive")
 
 if __name__ == '__main__':
     cli()

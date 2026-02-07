@@ -1,55 +1,54 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.dialects import postgresql
-
-# Patch JSONB to use JSON for SQLite
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.compiler import compiles
 
 from src.database.crud import create_portfolio, create_user, get_user_by_email, get_user_portfolios
 from src.database.models import Base
 
+# Patch JSONB for SQLite
+@compiles(postgresql.JSONB, "sqlite")
+def compile_jsonb_sqlite(type_, compiler, **kw):
+    return "JSON"
 
-@pytest.fixture(autouse=True)
-def patch_jsonb(monkeypatch):
-    # This is a bit hacky, but common for SQLite testing of PG models
-    pass
-
-@pytest.fixture
-def db_session():
-    # Force SQLite to accept JSONB as JSON
-    engine = create_engine("sqlite:///:memory:")
+@pytest_asyncio.fixture
+async def db_session():
+    # Use aiosqlite for async SQLite
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     
-    # Define a custom compilation for JSONB on SQLite
-    from sqlalchemy.ext.compiler import compiles
-    @compiles(postgresql.JSONB, "sqlite")
-    def compile_jsonb_sqlite(type_, compiler, **kw):
-        return "JSON"
-
-    Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
-    try:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        
+    AsyncSessionLocal = sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False
+    )
+    
+    async with AsyncSessionLocal() as session:
         yield session
-    finally:
-        session.close()
+    
+    await engine.dispose()
 
-def test_user_crud(db_session):
+@pytest.mark.asyncio
+async def test_user_crud(db_session):
     # Create
-    user = create_user(db_session, "test@example.com", "Password123!", "Test User")
+    user = await create_user(db_session, "test@example.com", "Password123!", "Test User")
     assert user.email == "test@example.com"
     assert user.full_name == "Test User"
     
     # Get
-    fetched = get_user_by_email(db_session, "test@example.com")
+    fetched = await get_user_by_email(db_session, "test@example.com")
     assert fetched.id == user.id
 
-def test_portfolio_crud(db_session):
-    user = create_user(db_session, "test@example.com", "Password123!", "Test User")
-    portfolio = create_portfolio(db_session, user.id, "My Portfolio", 10000.0)
+@pytest.mark.asyncio
+async def test_portfolio_crud(db_session):
+    user = await create_user(db_session, "test@example.com", "Password123!", "Test User")
+    portfolio = await create_portfolio(db_session, user.id, "My Portfolio", 10000.0)
     
     assert portfolio.name == "My Portfolio"
     assert portfolio.user_id == user.id
     
-    portfolios = get_user_portfolios(db_session, user.id)
+    portfolios = await get_user_portfolios(db_session, user.id)
     assert len(portfolios) == 1
     assert portfolios[0].name == "My Portfolio"

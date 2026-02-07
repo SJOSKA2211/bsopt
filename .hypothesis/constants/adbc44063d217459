@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/latency_remediator.py
+# hypothesis_version: 6.151.5
+
+[0.0, 50.0, 1000, 3600, 'PROMETHEUS_URL', 'data', 'query', 'result', 'sudo', 'value']

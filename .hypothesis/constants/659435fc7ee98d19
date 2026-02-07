@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/exceptions/exceptions.py
+# hypothesis_version: 6.151.5
+
+['AuthenticationFailed', 'Conflict', 'InternalServerError', 'NotFound', 'PermissionDenied', 'ServiceUnavailable', 'ValidationError', 'details', 'error', 'message']

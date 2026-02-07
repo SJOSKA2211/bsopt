@@ -1,6 +1,8 @@
 import sys
+
 import requests
 from confluent_kafka.admin import AdminClient
+
 
 def check_kafka_brokers(bootstrap_servers):
     print(f"Checking Kafka brokers at {bootstrap_servers}...")

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import socket
 import sys
+
 import requests
-import time
+
 
 def check_port(host, port, name):
     try:
@@ -48,11 +49,14 @@ print("\nChecking App Services (Must be started manually via scripts/start_*.sh)
 api_up = check_port("localhost", 8000, "API")
 auth_up = check_port("localhost", 3001, "Auth Service")
 front_up = check_port("localhost", 5173, "Frontend")
+neural_up = check_port("localhost", 8001, "Neural Pricing")
 
 if api_up:
     success &= check_http("http://localhost:8000/health", "API Health")
 if auth_up:
     success &= check_http("http://localhost:3001/", "Auth Root")
+if neural_up:
+    success &= check_http("http://localhost:8001/health", "Neural Pricing Health")
 
 print("---------------------------------------")
 if success:

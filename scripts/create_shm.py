@@ -1,7 +1,9 @@
-import time
 import signal
 import sys
+import time
+
 from src.shared.shm_mesh import SharedMemoryRingBuffer
+
 
 def signal_handler(sig, frame):
     print('Shutting down...')

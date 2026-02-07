@@ -25,7 +25,11 @@ except ImportError:
         pass
     config = Config()
 
-from src.shared.math_utils import calculate_d1_d2 as calculate_d1_d2_jit
+from src.shared.math_utils import (
+    calculate_d1_d2 as calculate_d1_d2_jit,
+    fast_normal_cdf,
+    fast_normal_pdf,
+)
 
 # Force aggressive LLVM optimizations if requested
 # config.OPT = 3 

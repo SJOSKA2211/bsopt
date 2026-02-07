@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/pricing/execution_strategies.py
+# hypothesis_version: 6.151.5
+
+['dividends', 'is_call', 'maturities', 'rates', 'spots', 'strikes', 'vols']

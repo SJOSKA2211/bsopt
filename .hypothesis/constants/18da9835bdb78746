@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/pricing/black_scholes.py
+# hypothesis_version: 6.151.5
+
+[0.0, 1e-09, 1e-05, 0.5, 1.0, 100.0, 365.0, 'Missing maturity', 'Missing rate', 'Missing spot price', 'Missing strike price', 'Missing volatility', 'call', 'dividend', 'maturity', 'params', 'price', 'put', 'rate', 'spot', 'strike', 'volatility']

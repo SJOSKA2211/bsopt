@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/data_drift_detector.py
+# hypothesis_version: 6.151.5
+
+[0.05, 0.1, 'KS_Drift', 'KS_P_VALUE', 'PSI', 'PSI_Drift', 'drift_detected', 'drift_types', 'feature', 'feature_drifts', 'feature_index', 'ks_p_value', 'overall', 'psi_score']

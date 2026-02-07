@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/workers/ray_workers.py
+# hypothesis_version: 6.151.5
+
+[0.01, 500, 1000, 'SPY', '__main__', 'calibration_done', 'delivery_error', 'latency_ms', 'math_worker_ready', 'ok', 'status', 'symbol', 'webhook_sent']

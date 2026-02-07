@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/streaming/main.py
+# hypothesis_version: 6.151.5
+
+[140, 150, 160, '/graphql', '/health', '/marketdata', 'AAPL', 'close', 'healthy', 'high', 'http', 'low', 'open', 'status', 'symbol', 'time', 'utf-8', 'ws_error']

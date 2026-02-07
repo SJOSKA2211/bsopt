@@ -47,6 +47,19 @@ class ArgoCDRollbackStrategy(RemediationStrategy):
         remediator.remediate(anomaly_data)
         orchestrator.notify(f"AIOps: Triggered ArgoCD rollback for {anomaly_data.get('service')} due to regression.", ["aiops", "remediation", "rollback"])
 
+class AutonomousScalerStrategy(RemediationStrategy):
+    """Strategy to autonomously scale a service based on load or predicted spikes."""
+    supported_types = ["high_load", "predicted_load_spike", "cpu_high"]
+    def execute(self, orchestrator: Any, anomaly_data: dict[str, Any]):
+        service_name = orchestrator.api_service_name
+        current_replicas = anomaly_data.get("metrics", {}).get("replicas", 1)
+        target_replicas = current_replicas + 1
+        
+        logger.warning("remediation_scaling_trigger", service=service_name, target=target_replicas)
+        success = orchestrator.docker_remediator.scale_service(service_name, target_replicas)
+        if success:
+            orchestrator.notify(f"AIOps: Autonomously scaled {service_name} to {target_replicas} replicas.", ["aiops", "remediation", "scale"])
+
 
 class RemediationRegistry:
     """Registry to map anomaly types to remediation strategies."""

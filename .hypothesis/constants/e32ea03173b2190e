@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/ml_pipeline_trigger.py
+# hypothesis_version: 6.151.5
+
+['failure', 'framework', 'ml_pipeline_trigger', 'success', 'ticker']
