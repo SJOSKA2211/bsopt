@@ -319,6 +319,7 @@ async def get_api_key(
         return None
 
     # Use SHA256 for fast API key lookups (comparison only, high entropy keys)
+    # CodeQL: This is NOT a password hash, but a lookup hash for high-entropy API keys
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
 
     result = await db.execute(

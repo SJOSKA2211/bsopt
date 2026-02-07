@@ -40,24 +40,23 @@ app.middleware("http")(logging_middleware)
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
     """Global exception handler."""
-    error_detail = str(exc)
-    if settings.ENVIRONMENT != "prod":  # Provide more detail in non-prod environments
-        import traceback
+    is_prod = settings.ENVIRONMENT == "prod"
 
-        error_detail = traceback.format_exc()
-        logger.error("api_error_detailed", error=error_detail, path=request.url.path)
-    else:
+    if is_prod:
+        # Production: Safe error message, log detail internally
+        error_message = "An unexpected error occurred"
         logger.error("api_error", error=str(exc), path=request.url.path)
+    else:
+        # Non-Production: Return traceback for debugging
+        import traceback
+        error_message = traceback.format_exc()
+        logger.error("api_error_detailed", error=error_message, path=request.url.path)
 
     return ORJSONResponse(
         status_code=500,
         content={
             "message": "Internal server error",
-            "detail": (
-                error_detail
-                if settings.ENVIRONMENT != "prod"
-                else "An unexpected error occurred"
-            ),
+            "detail": error_message,
         },
     )
 

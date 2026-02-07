@@ -60,7 +60,7 @@ def test_app_pipeline_matrix_build():
     assert "docker/login-action" in steps.lower()
     assert "docker/build-push-action" in steps.lower()
     assert "'push': true" in steps.lower() or "'push': True" in steps
-    assert "ghcr.io" in steps.lower()
+    assert "ghcr.io/" in steps.lower()
     assert "latest" in steps.lower()
 
 
