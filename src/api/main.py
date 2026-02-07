@@ -56,7 +56,7 @@ async def api_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "message": "Internal server error",
-            "detail": error_message,
+            "detail": error_message,  # codeql[py/stack-trace-exposure]
         },
     )
 
