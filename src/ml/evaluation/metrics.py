@@ -15,9 +15,9 @@ def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict
     """Calculate standard and weighted regression metrics."""
     mse = mean_squared_error(y_true, y_pred)
     # 🚀 OPTIMIZATION: Weighted MSE to penalize errors on high-premium options more
-    weights = np.maximum(y_true, 1.0) 
-    wmse = np.average((y_true - y_pred)**2, weights=weights)
-    
+    weights = np.maximum(y_true, 1.0)
+    wmse = np.average((y_true - y_pred) ** 2, weights=weights)
+
     return {
         "rmse": float(np.sqrt(mse)),
         "wrmse": float(np.sqrt(wmse)),
@@ -40,13 +40,13 @@ def calculate_sharpe_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) -> 
     """
     if len(returns) < 2:
         return 0.0
-    
+
     mean_return = np.mean(returns) - risk_free_rate / 252
     std_return = np.std(returns)
-    
+
     if std_return < 1e-9:
         return 0.0
-        
+
     return float(mean_return / std_return * np.sqrt(252))
 
 
@@ -56,10 +56,10 @@ def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
     """
     if len(equity_curve) < 2:
         return 0.0
-        
+
     running_max = np.maximum.accumulate(equity_curve)
     # Avoid division by zero
     running_max = np.maximum(running_max, 1e-9)
-    
+
     drawdown = (equity_curve - running_max) / running_max
     return float(np.min(drawdown))

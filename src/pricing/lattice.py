@@ -9,30 +9,41 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+
 try:
-    from numba import njit, prange, cuda, float64
+    from numba import cuda, float64, njit, prange
 except ImportError:
+
     def njit(*args, **kwargs):
         def decorator(func):
             return func
+
         return decorator
+
     prange = range
+
     class CudaMock:
         def jit(self, *args, **kwargs):
             def decorator(func):
                 return func
+
             return decorator
+
         def grid(self, *args):
             return 0
+
     cuda = CudaMock()
+
     class NumbaType:
         def __call__(self, *args):
             return self
+
     float64 = NumbaType()
 
-from .models import BSParameters, OptionGreeks
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
+from .models import BSParameters, OptionGreeks
+
 
 @dataclass
 class LatticeGreeks:
@@ -47,8 +58,9 @@ class LatticeGreeks:
 class LatticeParameters(BSParameters):
     n_steps: int = 100
 
+
 # from numba import cuda, float64 # Handled by mock block
-import math
+
 
 @cuda.jit
 def _binomial_price_cuda_kernel(
@@ -61,8 +73,8 @@ def _binomial_price_cuda_kernel(
     if i <= n_steps:
         # Calculate terminal price at node i
         # S_i = S * u^i * d^(n-i)
-        s_i = spot * (u**i) * (d**(n_steps - i))
-        
+        s_i = spot * (u**i) * (d ** (n_steps - i))
+
         # Terminal payoff
         if is_call:
             out[i] = max(s_i - strike, 0.0)
@@ -73,6 +85,7 @@ def _binomial_price_cuda_kernel(
     # In a full God-Mode implementation, we'd use a single kernel with __syncthreads()
     # or multiple kernel dispatches to handle the induction layers.
     # (Simplified: Induction logic logic abbreviated for brevity)
+
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _binomial_price_kernel(
@@ -212,7 +225,9 @@ class BinomialTreePricer(PricingStrategy):
     """
 
     def __init__(
-        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
+        self,
+        n_steps: int = 100,
+        exercise_type: Literal["european", "american"] = "european",
     ):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
@@ -233,7 +248,9 @@ class BinomialTreePricer(PricingStrategy):
             )
         )
 
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         """Implementation of PricingStrategy interface."""
         p0 = self.price(params, option_type)
         eps_s = max(params.spot * 0.001, 0.01)
@@ -349,7 +366,9 @@ class TrinomialTreePricer(PricingStrategy):
     """Standard Trinomial Tree Pricer."""
 
     def __init__(
-        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
+        self,
+        n_steps: int = 100,
+        exercise_type: Literal["european", "american"] = "european",
     ):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
@@ -370,7 +389,9 @@ class TrinomialTreePricer(PricingStrategy):
             )
         )
 
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         """Implementation of PricingStrategy interface."""
         p0 = self.price(params, option_type)
         eps_s = max(params.spot * 0.001, 0.01)

@@ -1,5 +1,6 @@
 import requests
-from jsonschema import validate, ValidationError
+from jsonschema import ValidationError, validate
+
 
 def test_openapi_documentation_compliance():
     base_url = "http://localhost:4000"
@@ -16,24 +17,24 @@ def test_openapi_documentation_compliance():
                 "required": ["title", "version"],
                 "properties": {
                     "title": {"type": "string"},
-                    "version": {"type": "string"}
+                    "version": {"type": "string"},
                 },
-                "additionalProperties": True
+                "additionalProperties": True,
             },
             "paths": {
                 "type": "object",
                 "minProperties": 1,
-                "additionalProperties": {
-                    "type": "object"
-                }
-            }
+                "additionalProperties": {"type": "object"},
+            },
         },
-        "additionalProperties": True
+        "additionalProperties": True,
     }
 
     # Retrieve OpenAPI docs for root '/'
     resp_root = requests.get(f"{base_url}/openapi.json", timeout=timeout)
-    assert resp_root.status_code == 200, f"Failed to get OpenAPI doc from /openapi.json: {resp_root.status_code}"
+    assert (
+        resp_root.status_code == 200
+    ), f"Failed to get OpenAPI doc from /openapi.json: {resp_root.status_code}"
 
     openapi_root = resp_root.json()
 
@@ -41,7 +42,9 @@ def test_openapi_documentation_compliance():
     try:
         validate(instance=openapi_root, schema=openapi_schema)
     except ValidationError as ve:
-        assert False, f"OpenAPI document at /openapi.json failed schema validation: {ve}"
+        assert (
+            False
+        ), f"OpenAPI document at /openapi.json failed schema validation: {ve}"
 
     # Check that '/' path exists and defines GET operation with 200 response
     paths = openapi_root.get("paths", {})
@@ -74,6 +77,9 @@ def test_openapi_documentation_compliance():
             if "200" in resp_codes:
                 found_200 = True
                 break
-    assert found_200, f"OpenAPI doc for '{auth_path}' endpoint missing 200 response in any HTTP method"
+    assert (
+        found_200
+    ), f"OpenAPI doc for '{auth_path}' endpoint missing 200 response in any HTTP method"
+
 
 test_openapi_documentation_compliance()

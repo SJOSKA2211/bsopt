@@ -28,7 +28,7 @@ Every Gateway worker independently introspects subgraphs, causing redundant netw
 
 ## Solution
 Update the Primary process to perform introspection once and share the SDL with workers via an environment variable or shared file.
-"""
+""",
     },
     "wasm002": {
         "dir": "wasm002",
@@ -55,15 +55,15 @@ WASM SIMD path uses unsafe memory transmutations and only parallelizes the Price
 
 ## Solution
 Refactor batch_calculate_simd to include SIMD-accelerated Greeks and use safer memory access patterns.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

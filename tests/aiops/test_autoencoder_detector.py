@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
-import torch
+
 from src.aiops.autoencoder_detector import AutoencoderDetector
+
 
 class TestAutoencoderDetector(unittest.TestCase):
     def setUp(self):
@@ -10,8 +12,8 @@ class TestAutoencoderDetector(unittest.TestCase):
         self.detector = AutoencoderDetector(
             input_dim=self.input_dim,
             latent_dim=self.latent_dim,
-            epochs=2, # Keep epochs low for speed
-            verbose=False
+            epochs=2,  # Keep epochs low for speed
+            verbose=False,
         )
 
     def test_init(self):
@@ -23,10 +25,10 @@ class TestAutoencoderDetector(unittest.TestCase):
     def test_fit_predict(self):
         # Generate synthetic data (normal)
         data = np.random.rand(100, self.input_dim)
-        
+
         self.detector.fit(data)
         self.assertIsNotNone(self.detector.threshold)
-        
+
         predictions = self.detector.predict(data)
         self.assertEqual(predictions.shape, (100,))
         # Most points should be normal (1)
@@ -46,11 +48,11 @@ class TestAutoencoderDetector(unittest.TestCase):
         # Train on "normal" data (small values)
         normal_data = np.random.normal(0, 0.1, (100, self.input_dim))
         self.detector.fit(normal_data)
-        
+
         # Test on "anomalous" data (large values)
         anomaly_data = np.random.normal(10, 1, (10, self.input_dim))
         predictions = self.detector.predict(anomaly_data)
-        
+
         # Should detect anomalies (-1)
         # Note: Autoencoder might not be perfect with random weights/low epochs, but large deviation should trigger high error
         # Check if at least some are detected as -1
@@ -64,15 +66,12 @@ class TestAutoencoderDetector(unittest.TestCase):
     def test_verbose_logging(self):
         # Create a detector with verbose=True
         verbose_detector = AutoencoderDetector(
-            input_dim=self.input_dim,
-            latent_dim=self.latent_dim,
-            epochs=1,
-            verbose=True
+            input_dim=self.input_dim, latent_dim=self.latent_dim, epochs=1, verbose=True
         )
         data = np.random.rand(20, self.input_dim)
         # This should print logs (captured by stdout/stderr if we checked, but here we just ensure lines are executed)
         verbose_detector.fit(data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

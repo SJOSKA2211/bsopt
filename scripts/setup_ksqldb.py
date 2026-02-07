@@ -1,26 +1,26 @@
-import requests
-import sys
-import os
 import json
+import os
+import sys
+
+import requests
+
 
 def run_ksql_query(url, ksql_text):
     print("Executing ksqlDB query...")
     print(f"Query: {ksql_text}")
-    
+
     payload = {
         "ksql": ksql_text,
-        "streamsProperties": {
-            "ksql.streams.auto.offset.reset": "earliest"
-        }
+        "streamsProperties": {"ksql.streams.auto.offset.reset": "earliest"},
     }
-    
+
     try:
         response = requests.post(
             f"{url}/ksql",
             json=payload,
-            headers={"Content-Type": "application/vnd.ksql.v1+json"}
+            headers={"Content-Type": "application/vnd.ksql.v1+json"},
         )
-        
+
         if response.status_code == 200:
             print("Successfully executed query.")
             print(f"Response: {json.dumps(response.json(), indent=2)}")
@@ -33,9 +33,10 @@ def run_ksql_query(url, ksql_text):
         print(f"Error connecting to ksqlDB: {e}")
         return False
 
+
 if __name__ == "__main__":
     ksqldb_url = os.environ.get("KSQLDB_URL", "http://localhost:8088")
-    
+
     # 1. Create Stream from market-data topic (Optimized with Protobuf)
     create_stream_query = """
     CREATE STREAM IF NOT EXISTS market_data_stream (
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         PARTITIONS=8
     );
     """
-    
+
     # 2. Create Persistent Table for High IV Options (Optimized with 1-minute Tumbling Window)
     # Reduces downstream noise by aggregating metrics per minute per symbol
     create_high_iv_query = """
@@ -74,14 +75,14 @@ if __name__ == "__main__":
     WHERE implied_volatility > 0.5
     GROUP BY symbol;
     """
-    
+
     success = True
     if not run_ksql_query(ksqldb_url, create_stream_query):
         success = False
-        
+
     if success and not run_ksql_query(ksqldb_url, create_high_iv_query):
         success = False
-        
+
     if success:
         print("\nksqlDB streams and queries setup SUCCESSFULLY!")
         sys.exit(0)

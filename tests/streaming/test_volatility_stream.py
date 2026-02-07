@@ -1,12 +1,14 @@
 import os
-import pytest
 from unittest.mock import MagicMock, patch
-import numpy as np 
+
+import numpy as np
+import pytest
 
 # Assuming VolatilityAggregationStream will be importable from src.streaming.analytics
 try:
     import sys
-    sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
+
+    sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
     from streaming.analytics import VolatilityAggregationStream
 except ImportError:
     VolatilityAggregationStream = None
@@ -22,7 +24,9 @@ def test_volatility_stream_file_exists():
     """
     Test that the analytics.py file exists for VolatilityAggregationStream.
     """
-    assert os.path.exists(VOLATILITY_STREAM_PATH), f"VolatilityAggregationStream file not found at {VOLATILITY_STREAM_PATH}"
+    assert os.path.exists(
+        VOLATILITY_STREAM_PATH
+    ), f"VolatilityAggregationStream file not found at {VOLATILITY_STREAM_PATH}"
 
 
 def test_volatility_aggregation_stream_class_exists():
@@ -30,10 +34,12 @@ def test_volatility_aggregation_stream_class_exists():
     Test that the VolatilityAggregationStream class can be imported.
     This test will fail if the class is not yet defined or importable.
     """
-    assert VolatilityAggregationStream is not None, "VolatilityAggregationStream class is not defined or importable."
+    assert (
+        VolatilityAggregationStream is not None
+    ), "VolatilityAggregationStream class is not defined or importable."
 
 
-@patch('streaming.analytics.App') 
+@patch("streaming.analytics.App")
 def test_volatility_aggregation_stream_init(mock_app):
     """
     Test that VolatilityAggregationStream constructor initializes Faust App, Topic, and Table.
@@ -46,17 +52,18 @@ def test_volatility_aggregation_stream_init(mock_app):
     stream = VolatilityAggregationStream(bootstrap_servers=TEST_BOOTSTRAP_SERVERS)
 
     # Simplified assertions: check if attributes are set
-    assert hasattr(stream, 'app')
-    assert hasattr(stream, 'market_data_topic')
-    assert hasattr(stream, 'volatility_table')
-    assert hasattr(stream, 'price_history')
+    assert hasattr(stream, "app")
+    assert hasattr(stream, "market_data_topic")
+    assert hasattr(stream, "volatility_table")
+    assert hasattr(stream, "price_history")
     assert mock_app.called
     assert mock_app_instance.topic.called
     assert mock_app_instance.Table.called
-    assert mock_app_instance.agent.called # Verify agent registration
+    assert mock_app_instance.agent.called  # Verify agent registration
+
 
 @pytest.mark.asyncio
-@patch('streaming.analytics.np') # Correct patch target
+@patch("streaming.analytics.np")  # Correct patch target
 async def test_update_volatility_calculation(mock_np):
     """
     Test the _update_volatility method directly.
@@ -66,11 +73,11 @@ async def test_update_volatility_calculation(mock_np):
     mock_np.sqrt.side_effect = np.sqrt
 
     stream = VolatilityAggregationStream(bootstrap_servers=TEST_BOOTSTRAP_SERVERS)
-    stream.price_history = {'AAPL': 100.0}
-    stream.volatility_table = {} # Mock as a dict for direct interaction
+    stream.price_history = {"AAPL": 100.0}
+    stream.volatility_table = {}  # Mock as a dict for direct interaction
 
     # Simulate first event for log_return
-    symbol = 'AAPL'
+    symbol = "AAPL"
     price_t1 = 101.0
     timestamp_t1 = 1060
     log_return_t1 = np.log(price_t1 / stream.price_history[symbol])
@@ -78,8 +85,8 @@ async def test_update_volatility_calculation(mock_np):
 
     # Call _update_volatility directly
     volatility = stream._update_volatility(symbol, log_return_t1, timestamp_t1)
-    
-    assert volatility > 0 # Expect some positive volatility
+
+    assert volatility > 0  # Expect some positive volatility
     mock_np.sqrt.assert_called()
 
     # Simulate a second event to ensure EMA works
@@ -87,6 +94,6 @@ async def test_update_volatility_calculation(mock_np):
     timestamp_t2 = 1120
     log_return_t2 = np.log(price_t2 / stream.price_history[symbol])
     stream.price_history[symbol] = price_t2
-    
+
     volatility_t2 = stream._update_volatility(symbol, log_return_t2, timestamp_t2)
-    assert volatility_t2 != volatility # Should change with new data
+    assert volatility_t2 != volatility  # Should change with new data

@@ -12,16 +12,14 @@ Models:
 
 import asyncio
 import logging
-import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import mlflow
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -42,7 +40,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def collect_dataset() -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+async def collect_dataset() -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Collect fresh dataset from yfinance and NSE."""
     logger.info("Starting data collection from yfinance and NSE...")
 
@@ -93,15 +91,15 @@ def train_all():
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-    
+
     # 🚀 SINGULARITY: Strict Temporal Split (No Shuffling)
     # Market data must be validated sequentially to avoid leakage.
     test_size = 0.2
     split_idx = int(len(X_scaled) * (1 - test_size))
-    
+
     X_train, X_test = X_scaled[:split_idx], X_scaled[split_idx:]
     y_train, y_test = y_class[:split_idx], y_class[split_idx:]
-    
+
     logger.info("temporal_split_complete", train_len=len(X_train), test_len=len(X_test))
 
     train_dataset = TensorDataset(torch.FloatTensor(X_train), torch.LongTensor(y_train))
@@ -116,16 +114,19 @@ def train_all():
 
     # 4. MLflow Tracking
     from src.config import get_settings
+
     settings = get_settings()
-    
+
     # MLflow needs standard postgresql prefix (not asyncpg)
     tracking_uri = settings.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
     mlflow.set_tracking_uri(tracking_uri)
-    
+
     logger.info("mlflow_tracking_redirected", target="neon")
 
     mlflow.set_experiment("Option_ITM_Classification")
-    with mlflow.start_run(run_name=f"master-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"):
+    with mlflow.start_run(
+        run_name=f"master-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    ):
         mlflow.log_params(
             {
                 "epochs": EPOCHS,
@@ -161,7 +162,9 @@ def train_all():
             val_acc = val_correct / val_total
             logger.info(f"Epoch {epoch}/{EPOCHS} - Val Acc: {val_acc:.4f}")
             mlflow.log_metric("val_acc", val_acc, step=epoch)
-            mlflow.log_metric("train_loss", running_loss / len(train_loader), step=epoch)
+            mlflow.log_metric(
+                "train_loss", running_loss / len(train_loader), step=epoch
+            )
 
         mlflow.pytorch.log_model(model, "itm_classifier")
         logger.info("NN Classifier training complete and logged to MLflow.")

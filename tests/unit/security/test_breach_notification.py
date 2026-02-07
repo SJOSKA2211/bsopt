@@ -1,7 +1,10 @@
-import pytest
 from datetime import datetime
-from src.security.breach_notification import BreachNotificationService
+
+import pytest
+
 from src.database.models import SecurityIncident
+from src.security.breach_notification import BreachNotificationService
+
 
 @pytest.mark.asyncio
 async def test_report_breach_to_dpa():
@@ -13,14 +16,13 @@ async def test_report_breach_to_dpa():
         approximate_number_data_subjects=100,
         likely_consequences="None",
         measures_taken="None",
-        data_categories_affected=["email", "password"]
+        data_categories_affected=["email", "password"],
     )
-    
+
     # Just verify it runs without error (simulated)
     await service.report_breach_to_dpa(incident)
 
     @pytest.mark.asyncio
-
     async def test_notify_affected_users():
 
         service = BreachNotificationService()
@@ -32,5 +34,3 @@ async def test_report_breach_to_dpa():
         user2 = MagicMock(email="user2@example.com", full_name="User Two")
 
         await service.notify_affected_users(incident, [user1, user2])
-
-

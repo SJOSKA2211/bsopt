@@ -3,22 +3,21 @@ Pricing Tasks for Celery - Production Optimized
 =================================================
 """
 
-import structlog
-import math
-import time
-import gc
 import asyncio
-from typing import Any, Dict, List, cast
+import gc
+import time
+from typing import Any
 
+import msgspec
 import numpy as np
-from scipy import stats
+import structlog
 
-from .celery_app import PricingTask, celery_app
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.implied_vol import implied_volatility
 from src.utils.cache import pricing_cache
-import msgspec
+
+from .celery_app import PricingTask, celery_app
 
 logger = structlog.get_logger(__name__)
 
@@ -26,20 +25,24 @@ logger = structlog.get_logger(__name__)
 # Reusing strategy objects avoids redundant initialization overhead.
 _STRATEGY_CACHE = {}
 
+
 def _get_cached_strategy(name: str):
     """Retrieve or initialize a cached pricing strategy."""
     if name not in _STRATEGY_CACHE:
         _STRATEGY_CACHE[name] = PricingEngineFactory.get_strategy(name)
     return _STRATEGY_CACHE[name]
 
+
 class PricingResult(msgspec.Struct):
     """SOTA: High-performance result structure for batch pricing."""
+
     price: float
     delta: float
     gamma: float
     vega: float
     theta: float
     rho: float
+
 
 @celery_app.task(
     bind=True,
@@ -60,9 +63,11 @@ def price_option_task(
     dividend: float = 0.0,
     option_type: str = "call",
     use_cache: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     start_time = time.perf_counter()
-    logger.info("pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity)
+    logger.info(
+        "pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity
+    )
 
     if spot <= 0 or strike <= 0 or maturity <= 0 or volatility <= 0:
         raise ValueError("Invalid input parameters: all must be positive")
@@ -79,8 +84,9 @@ def price_option_task(
             if loop.is_running():
                 # In some environments, the loop might already be running
                 import nest_asyncio
+
                 nest_asyncio.apply()
-            
+
             cached_price = loop.run_until_complete(
                 pricing_cache.get_option_price(params, option_type, "black_scholes")
             )
@@ -95,7 +101,9 @@ def price_option_task(
                     "computation_time_ms": round(computation_time, 3),
                 }
         except Exception as e:
-            logger.warning("cache_lookup_failed", error=str(e), action="computing_fresh")
+            logger.warning(
+                "cache_lookup_failed", error=str(e), action="computing_fresh"
+            )
 
     try:
         params = BSParameters(
@@ -104,7 +112,7 @@ def price_option_task(
             maturity=maturity,
             volatility=volatility,
             rate=rate,
-            dividend=dividend
+            dividend=dividend,
         )
 
         engine = _get_cached_strategy("black_scholes")
@@ -112,7 +120,6 @@ def price_option_task(
         price = engine.price(params, option_type)
 
         greeks = engine.calculate_greeks(params, option_type)
-
 
         computation_time = (time.perf_counter() - start_time) * 1000
 
@@ -133,7 +140,9 @@ def price_option_task(
             try:
                 loop = asyncio.new_event_loop()
                 loop.run_until_complete(
-                    pricing_cache.set_option_price(params, option_type, "black_scholes", float(price))
+                    pricing_cache.set_option_price(
+                        params, option_type, "black_scholes", float(price)
+                    )
                 )
                 loop.close()
             except Exception as e:
@@ -145,6 +154,7 @@ def price_option_task(
         logger.error("pricing_error", error=str(e))
         raise
 
+
 @celery_app.task(
     bind=True,
     base=PricingTask,
@@ -153,9 +163,9 @@ def price_option_task(
 )
 def batch_price_options_task(
     self,
-    options: List[Dict[str, Any]],
+    options: list[dict[str, Any]],
     vectorized: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Highly optimized batch pricing task.
     Uses vectorization to process multiple options in a single JIT pass.
@@ -163,48 +173,57 @@ def batch_price_options_task(
     start_time = time.perf_counter()
     count = len(options)
     logger.info("batch_pricing_start", count=count, vectorized=vectorized)
-    
+
     if not options:
         return {"prices": [], "count": 0, "computation_time_ms": 0}
 
     try:
         if vectorized:
             # Extract parameters into arrays for vectorization
-            spots = np.array([o['spot'] for o in options], dtype=np.float64)
-            strikes = np.array([o['strike'] for o in options], dtype=np.float64)
-            maturities = np.array([o['maturity'] for o in options], dtype=np.float64)
-            vols = np.array([o['volatility'] for o in options], dtype=np.float64)
-            rates = np.array([o['rate'] for o in options], dtype=np.float64)
-            divs = np.array([o.get('dividend', 0.0) for o in options], dtype=np.float64)
-            types = np.array([o.get('option_type', 'call') for o in options])
+            spots = np.array([o["spot"] for o in options], dtype=np.float64)
+            strikes = np.array([o["strike"] for o in options], dtype=np.float64)
+            maturities = np.array([o["maturity"] for o in options], dtype=np.float64)
+            vols = np.array([o["volatility"] for o in options], dtype=np.float64)
+            rates = np.array([o["rate"] for o in options], dtype=np.float64)
+            divs = np.array([o.get("dividend", 0.0) for o in options], dtype=np.float64)
+            types = np.array([o.get("option_type", "call") for o in options])
 
             # Perform vectorized pricing
             prices = BlackScholesEngine.price_options(
-                spot=spots, strike=strikes, maturity=maturities,
-                volatility=vols, rate=rates, dividend=divs,
-                option_type=types
+                spot=spots,
+                strike=strikes,
+                maturity=maturities,
+                volatility=vols,
+                rate=rates,
+                dividend=divs,
+                option_type=types,
             )
-            
+
             # Perform vectorized greeks
             greeks = BlackScholesEngine.calculate_greeks_batch(
-                spot=spots, strike=strikes, maturity=maturities,
-                volatility=vols, rate=rates, dividend=divs,
-                option_type=types
+                spot=spots,
+                strike=strikes,
+                maturity=maturities,
+                volatility=vols,
+                rate=rates,
+                dividend=divs,
+                option_type=types,
             )
-            
+
             # Format results
             # 🚀 SINGULARITY: Optimized batch construction via msgspec
             results = [
                 PricingResult(
                     price=round(float(prices[i]), 4),
-                    delta=round(float(greeks['delta'][i]), 6),
-                    gamma=round(float(greeks['gamma'][i]), 6),
-                    vega=round(float(greeks['vega'][i]), 6),
-                    theta=round(float(greeks['theta'][i]), 6),
-                    rho=round(float(greeks['rho'][i]), 6)
-                ) for i in range(count)
+                    delta=round(float(greeks["delta"][i]), 6),
+                    gamma=round(float(greeks["gamma"][i]), 6),
+                    vega=round(float(greeks["vega"][i]), 6),
+                    theta=round(float(greeks["theta"][i]), 6),
+                    rho=round(float(greeks["rho"][i]), 6),
+                )
+                for i in range(count)
             ]
-            
+
             # Convert to plain dicts for Celery/Kombu compatibility
             result_list = msgspec.to_builtins(results)
         else:
@@ -213,23 +232,25 @@ def batch_price_options_task(
             result_list = []
             for opt in options:
                 params = BSParameters(**opt)
-                price = engine.price(params, opt.get('option_type', 'call'))
-                greeks = engine.calculate_greeks(params, opt.get('option_type', 'call'))
-                result_list.append({
-                    "price": round(float(price), 4),
-                    "delta": round(float(greeks.delta), 6),
-                    "gamma": round(float(greeks.gamma), 6),
-                    "vega": round(float(greeks.vega), 6),
-                    "theta": round(float(greeks.theta), 6),
-                    "rho": round(float(greeks.rho), 6)
-                })
+                price = engine.price(params, opt.get("option_type", "call"))
+                greeks = engine.calculate_greeks(params, opt.get("option_type", "call"))
+                result_list.append(
+                    {
+                        "price": round(float(price), 4),
+                        "delta": round(float(greeks.delta), 6),
+                        "gamma": round(float(greeks.gamma), 6),
+                        "vega": round(float(greeks.vega), 6),
+                        "theta": round(float(greeks.theta), 6),
+                        "rho": round(float(greeks.rho), 6),
+                    }
+                )
 
         computation_time = (time.perf_counter() - start_time) * 1000
-        
+
         # Explicitly trigger GC for large batch tasks to free up memory immediately
         if count > 1000:
             gc.collect()
-            
+
         return {
             "task_id": self.request.id,
             "results": result_list,
@@ -240,6 +261,7 @@ def batch_price_options_task(
     except Exception as e:
         logger.error("batch_pricing_failed", error=str(e))
         raise
+
 
 @celery_app.task(
     bind=True,
@@ -255,23 +277,24 @@ def calculate_implied_volatility_task(
     rate: float,
     dividend: float = 0.0,
     option_type: str = "call",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger.info("implied_vol_calc_start", option_type=option_type, price=price)
     iv = implied_volatility(price, spot, strike, maturity, rate, dividend, option_type)
     return {"implied_vol": iv}
+
 
 @celery_app.task(
     bind=True,
 )
 def generate_volatility_surface_task(
     self,
-    prices: List[List[float]],
-    strikes: List[float],
-    maturities: List[float],
+    prices: list[list[float]],
+    strikes: list[float],
+    maturities: list[float],
     spot: float,
     rate: float,
     option_type: str = "call",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     logger.info("vol_surface_gen_start", option_type=option_type)
     surface = []
     for row_prices in prices:

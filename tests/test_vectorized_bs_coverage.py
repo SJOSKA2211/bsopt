@@ -1,8 +1,8 @@
 import numpy as np
-import pytest
-from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 
+from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.pricing.models import OptionGreeks
+
 
 def test_vectorized_bs_scalar_greeks():
     # Pass scalar inputs to hit line 71 branch (return from OptionGreeks)
@@ -12,6 +12,7 @@ def test_vectorized_bs_scalar_greeks():
     assert isinstance(res, OptionGreeks)
     assert isinstance(res.delta, float)
 
+
 def test_vectorized_bs_array_greeks():
     # Pass array inputs to hit line 69 branch (return dict directly)
     S = np.array([100.0, 110.0])
@@ -20,6 +21,7 @@ def test_vectorized_bs_array_greeks():
     )
     assert isinstance(res, dict)
     assert len(res["delta"]) == 2
+
 
 def test_vectorized_bs_price_options_scalar():
     res = VectorizedBlackScholesEngine.price_options(

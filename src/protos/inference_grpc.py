@@ -4,8 +4,9 @@
 import abc
 import typing
 
-import grpclib.const
 import grpclib.client
+import grpclib.const
+
 if typing.TYPE_CHECKING:
     import grpclib.server
 
@@ -15,12 +16,15 @@ from . import inference_pb2
 class MLInferenceBase(abc.ABC):
 
     @abc.abstractmethod
-    async def Predict(self, stream: 'grpclib.server.Stream[inference_pb2.InferenceRequest, inference_pb2.InferenceResponse]') -> None:
+    async def Predict(
+        self,
+        stream: "grpclib.server.Stream[inference_pb2.InferenceRequest, inference_pb2.InferenceResponse]",
+    ) -> None:
         pass
 
-    def __mapping__(self) -> typing.Dict[str, grpclib.const.Handler]:
+    def __mapping__(self) -> dict[str, grpclib.const.Handler]:
         return {
-            '/bsopt.inference.MLInference/Predict': grpclib.const.Handler(
+            "/bsopt.inference.MLInference/Predict": grpclib.const.Handler(
                 self.Predict,
                 grpclib.const.Cardinality.UNARY_UNARY,
                 inference_pb2.InferenceRequest,
@@ -34,7 +38,7 @@ class MLInferenceStub:
     def __init__(self, channel: grpclib.client.Channel) -> None:
         self.Predict = grpclib.client.UnaryUnaryMethod(
             channel,
-            '/bsopt.inference.MLInference/Predict',
+            "/bsopt.inference.MLInference/Predict",
             inference_pb2.InferenceRequest,
             inference_pb2.InferenceResponse,
         )

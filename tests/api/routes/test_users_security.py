@@ -1,7 +1,9 @@
-import pytest
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.database.models import User
 
 
@@ -14,13 +16,13 @@ def mock_db_with_users(mock_db_session):
         full_name="User One",
         is_active=True,
         tier="free",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
         hashed_password="hash",
         mfa_secret=None,
     )
     user1.is_verified = True
     user1.is_mfa_enabled = False
-    user1.updated_at = datetime.now(timezone.utc)
+    user1.updated_at = datetime.now(UTC)
 
     user2 = User(
         id=uuid.uuid4(),
@@ -28,13 +30,13 @@ def mock_db_with_users(mock_db_session):
         full_name="User Two",
         is_active=True,
         tier="pro",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
         hashed_password="hash",
         mfa_secret=None,
     )
     user2.is_verified = True
     user2.is_mfa_enabled = False
-    user2.updated_at = datetime.now(timezone.utc)
+    user2.updated_at = datetime.now(UTC)
 
     mock_db_session.add(user1)
     mock_db_session.add(user2)

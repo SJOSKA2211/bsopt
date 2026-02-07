@@ -28,7 +28,7 @@ Core auth and rate limiting tests are failing due to architectural changes.
 
 ## Solution
 Update tests/api/routes/test_auth_routes.py and tests/functional/test_api_v1.py to reflect the new OIDC triad and rate limit tiers.
-"""
+""",
     },
     "test002": {
         "dir": "test002",
@@ -55,7 +55,7 @@ Existing ML tests use random shuffling, which is invalid for time-series data.
 
 ## Solution
 Implement a Walk-Forward validation utility and apply it to the TFT and TD3 test suites.
-"""
+""",
     },
     "test003": {
         "dir": "test003",
@@ -82,15 +82,15 @@ New performance-critical and security-critical logic lacks sufficient test cover
 
 ## Solution
 Add unit tests for WASM SIMD greeks and integration tests for the OIDC discovery/JWKS flow.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

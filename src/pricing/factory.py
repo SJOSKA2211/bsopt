@@ -6,16 +6,19 @@ Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
 """
 
-import sys
 import structlog
-from typing import Dict, Any, Type, Optional
+
 from src.pricing.base import BasePricingEngine
+
 
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
+
     pass
 
+
 logger = structlog.get_logger(__name__)
+
 
 class PricingEngineFactory:
     """
@@ -23,26 +26,33 @@ class PricingEngineFactory:
     Automatically selects the optimal execution strategy based on available hardware.
     """
 
-    _engines: Dict[str, Type[BasePricingEngine]] = {}
-    _instances: Dict[str, BasePricingEngine] = {}
+    _engines: dict[str, type[BasePricingEngine]] = {}
+    _instances: dict[str, BasePricingEngine] = {}
 
     @classmethod
-    def register(cls, name: str, engine_cls: Type[BasePricingEngine]):
+    def register(cls, name: str, engine_cls: type[BasePricingEngine]):
         """Register a new pricing engine."""
         cls._engines[name.lower()] = engine_cls
         logger.debug("engine_registered", name=name)
 
     @classmethod
-    def get_engine(cls, name: str, execution_strategy: Optional[str] = None) -> BasePricingEngine:
+    def get_engine(
+        cls, name: str, execution_strategy: str | None = None
+    ) -> BasePricingEngine:
         """
-        Get an engine instance. 
+        Get an engine instance.
         Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').
         """
         name = name.lower()
-        
+
         # Check if we should override with WASM
         from src.pricing.wasm_engine import WASM_AVAILABLE
-        if execution_strategy == "wasm" or (WASM_AVAILABLE and execution_strategy is None and name in ["heston", "monte_carlo"]):
+
+        if execution_strategy == "wasm" or (
+            WASM_AVAILABLE
+            and execution_strategy is None
+            and name in ["heston", "monte_carlo"]
+        ):
             name = "wasm"
 
         if name in cls._instances:
@@ -66,16 +76,20 @@ class PricingEngineFactory:
         try:
             if name == "black_scholes":
                 from src.pricing.black_scholes import BlackScholesEngine
+
                 cls.register("black_scholes", BlackScholesEngine)
             elif name == "monte_carlo":
                 from src.pricing.monte_carlo import MonteCarloEngine
+
                 cls.register("monte_carlo", MonteCarloEngine)
             elif name == "wasm":
                 from src.pricing.wasm_engine import WASMPricingEngine
+
                 cls.register("wasm", WASMPricingEngine)
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))
+
 
 # Auto-initialize with core engines
 PricingEngineFactory._lazy_load("black_scholes")

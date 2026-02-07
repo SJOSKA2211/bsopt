@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def calculate_data_hash(filepath: str) -> str:
     return hash_sha256.hexdigest()
 
 
-def tag_dataset(data_dir: str, version_name: Optional[str] = None):
+def tag_dataset(data_dir: str, version_name: str | None = None):
     """
     Create a version tag for a dataset.
     Simulates DVC functionality.
@@ -28,7 +28,7 @@ def tag_dataset(data_dir: str, version_name: Optional[str] = None):
         return
 
     version = version_name or datetime.now().strftime("%Y%m%d_%H%M%S")
-    metadata: Dict[str, Any] = {
+    metadata: dict[str, Any] = {
         "version": version,
         "timestamp": datetime.now().isoformat(),
         "files": [],
@@ -36,7 +36,11 @@ def tag_dataset(data_dir: str, version_name: Optional[str] = None):
 
     for file in data_path.glob("*.csv"):
         metadata["files"].append(
-            {"name": file.name, "hash": calculate_data_hash(str(file)), "size": file.stat().st_size}
+            {
+                "name": file.name,
+                "hash": calculate_data_hash(str(file)),
+                "size": file.stat().st_size,
+            }
         )
 
     version_file = data_path / f"version_{version}.json"

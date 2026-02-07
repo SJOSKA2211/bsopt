@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+
 
 class TestHestonFFT:
     """Test suite for Heston pricing engine."""
@@ -8,13 +10,7 @@ class TestHestonFFT:
     @pytest.fixture
     def standard_params(self):
         """Standard Heston parameters from literature."""
-        return HestonParams(
-            v0=0.04,
-            kappa=2.0,
-            theta=0.04,
-            sigma=0.3,
-            rho=-0.7
-        )
+        return HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
 
     def test_feller_condition_validation(self):
         """Verify Feller condition is enforced."""

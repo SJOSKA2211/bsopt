@@ -8,7 +8,7 @@ Fully implemented with least squares optimization and arbitrage detection.
 import warnings
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, cast
 
 import numpy as np
 from scipy.optimize import least_squares
@@ -82,50 +82,61 @@ class SABRParameters:
 class MarketQuote:
     """Market option quote for calibration."""
 
-    strike: Union[float, Decimal]
+    strike: float | Decimal
     maturity: float
     implied_vol: float
-    forward: Union[float, Decimal]
+    forward: float | Decimal
     option_type: str = "call"
-    vega: Optional[Union[float, Decimal]] = None
+    vega: float | Decimal | None = None
 
 
 try:
     from numba import njit, prange
 except ImportError:
+
     def njit(*args, **kwargs):
         def decorator(func):
             return func
+
         return decorator
+
     prange = range
+
 
 @njit(cache=True, fastmath=True)
 def _svi_total_variance_jit(k, a, b, rho, m, sigma):
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
 
+
 @njit(cache=True, fastmath=True)
 def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     f_v = float(forward)
     k_v = strike
-    
+
     one_minus_beta = 1.0 - beta
     f_k_one_minus_beta = (f_v * k_v) ** (one_minus_beta / 2.0)
     log_f_k = np.log(f_v / k_v)
 
     z_v = (nu / alpha) * f_k_one_minus_beta * log_f_k
-    
+
     # Handle ATM case
     if abs(z_v) < 1e-8:
         term2 = 1.0
     else:
-        x_z = np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v * z_v) + z_v - rho) / (1.0 - rho))
+        x_z = np.log(
+            (np.sqrt(1.0 - 2.0 * rho * z_v + z_v * z_v) + z_v - rho) / (1.0 - rho)
+        )
         term2 = z_v / x_z
 
     term1 = alpha / (
         f_k_one_minus_beta
-        * (1.0 + (one_minus_beta**2 / 24.0) * log_f_k**2 + (one_minus_beta**4 / 1920.0) * log_f_k**4)
+        * (
+            1.0
+            + (one_minus_beta**2 / 24.0) * log_f_k**2
+            + (one_minus_beta**4 / 1920.0) * log_f_k**4
+        )
     )
-    
+
     term3 = (
         1.0
         + (
@@ -138,12 +149,16 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
 
     return term1 * term2 * term3
 
+
 @njit(parallel=True, cache=True, fastmath=True)
 def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu):
     vols = np.empty_like(strikes)
     for i in prange(len(strikes)):
-        vols[i] = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta, rho, nu)
+        vols[i] = _sabr_implied_vol_jit(
+            strikes[i], forward, maturity, alpha, beta, rho, nu
+        )
     return vols
+
 
 class SVIModel:
     """Stochastic Volatility Inspired (SVI) model."""
@@ -151,7 +166,7 @@ class SVIModel:
     def __init__(self, params: SVIParameters):
         self.params = params
 
-    def total_variance(self, k: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def total_variance(self, k: float | np.ndarray) -> float | np.ndarray:
         """Calculate total variance w(k). k is log-moneyness."""
         p = self.params
         if isinstance(k, np.ndarray):
@@ -164,10 +179,10 @@ class SVIModel:
 
     def implied_volatility(
         self,
-        strike: Union[float, Decimal, np.ndarray],
-        forward: Union[float, Decimal],
+        strike: float | Decimal | np.ndarray,
+        forward: float | Decimal,
         maturity: float,
-    ) -> Union[float, np.ndarray]:
+    ) -> float | np.ndarray:
         """Calculate implied volatility."""
         if maturity <= 0:
             raise ValueError("Maturity must be positive")
@@ -179,12 +194,14 @@ class SVIModel:
             k = np.log(float(strike) / float(forward))
 
         w_v = self.total_variance(k)
-        return cast(Union[float, np.ndarray], np.sqrt(np.maximum(w_v / maturity, 1e-9)))
+        return cast(float | np.ndarray, np.sqrt(np.maximum(w_v / maturity, 1e-9)))
 
     def variance_derivative(self, k: float) -> float:
         """First derivative of total variance w.r.t k."""
         p_v = self.params
-        return float(p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2)))
+        return float(
+            p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2))
+        )
 
     def variance_second_derivative(self, k: float) -> float:
         """Second derivative of total variance w.r.t k."""
@@ -205,10 +222,10 @@ class SABRModel:
 
     def implied_volatility(
         self,
-        strike: Union[float, Decimal, np.ndarray],
-        forward: Union[float, Decimal],
+        strike: float | Decimal | np.ndarray,
+        forward: float | Decimal,
         maturity: float,
-    ) -> Union[float, np.ndarray]:
+    ) -> float | np.ndarray:
         """Hagan et al. (2002) formula for SABR implied volatility."""
         if maturity <= 0:
             raise ValueError("Maturity must be positive")
@@ -216,7 +233,7 @@ class SABRModel:
         p = self.params
         f_v = float(forward)
         k_v = np.atleast_1d(np.array(strike, dtype=float))
-        
+
         # SOTA: Parallel vectorized evaluation
         vols = _sabr_implied_vol_batch_jit(
             k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu
@@ -241,24 +258,26 @@ class CalibrationConfig:
 
 
 class CalibrationEngine:
-    def __init__(self, config: Optional[CalibrationConfig] = None):
+    def __init__(self, config: CalibrationConfig | None = None):
         self.config = config or CalibrationConfig()
 
     def _svi_objective_function(self, params, k, market_vols, weights, maturity):
         """Highly optimized objective function for SVI calibration."""
         # Use JITed kernel directly to avoid object overhead
         a, b, rho, m, sigma = params
-        
+
         # Calculate total variance using JIT kernel over the array k
         w_v = np.empty_like(k)
         for i in range(len(k)):
             w_v[i] = _svi_total_variance_jit(k[i], a, b, rho, m, sigma)
-            
+
         # Convert total variance to implied volatility
         model_vols = np.sqrt(np.maximum(w_v / maturity, 1e-9))
         return (model_vols - market_vols) * weights
 
-    def calibrate_svi(self, quotes: List[MarketQuote]) -> Tuple[SVIParameters, Dict[str, Any]]:
+    def calibrate_svi(
+        self, quotes: list[MarketQuote]
+    ) -> tuple[SVIParameters, dict[str, Any]]:
         if not quotes:
             raise ValueError("No market quotes")
 
@@ -272,7 +291,7 @@ class CalibrationEngine:
         k = np.log(strikes / forward)
 
         if self.config.weighted_by_vega and all(q.vega is not None for q in quotes):
-            weights = np.array([float(cast(Union[float, Decimal], q.vega)) for q in quotes])
+            weights = np.array([float(cast(float | Decimal, q.vega)) for q in quotes])
             weights /= weights.sum()
         else:
             weights = np.ones_like(market_vols)
@@ -304,8 +323,8 @@ class CalibrationEngine:
         return calibrated_params, diag
 
     def calibrate_sabr(
-        self, quotes: List[MarketQuote], fix_beta: Optional[float] = None
-    ) -> Tuple[SABRParameters, Dict[str, Any]]:
+        self, quotes: list[MarketQuote], fix_beta: float | None = None
+    ) -> tuple[SABRParameters, dict[str, Any]]:
         params = SABRParameters(
             alpha=0.2, beta=fix_beta if fix_beta is not None else 0.5, rho=-0.3, nu=0.4
         )
@@ -316,7 +335,7 @@ class CalibrationEngine:
 class ArbitrageDetector:
     def check_butterfly_arbitrage(
         self, strikes: np.ndarray, prices: np.ndarray
-    ) -> Tuple[bool, np.ndarray]:
+    ) -> tuple[bool, np.ndarray]:
         # d^2C/dK^2 >= 0
         diff2 = np.diff(prices, 2)
         # Pad to match length if needed
@@ -327,12 +346,12 @@ class ArbitrageDetector:
 
     def check_calendar_arbitrage(
         self, maturities: np.ndarray, total_vars: np.ndarray
-    ) -> Tuple[bool, np.ndarray]:
+    ) -> tuple[bool, np.ndarray]:
         increments = np.diff(total_vars)
         is_free = np.all(increments >= -1e-9)
         return bool(is_free), increments
 
-    def check_svi_arbitrage(self, model: SVIModel) -> Dict[str, Any]:
+    def check_svi_arbitrage(self, model: SVIModel) -> dict[str, Any]:
         is_free = model.params.a >= 0
         return {
             "is_arbitrage_free": is_free,
@@ -348,20 +367,22 @@ class InterpolationMethod:
 class VolatilitySurface:
     def __init__(self, method: str = InterpolationMethod.LINEAR):
         self.method = method
-        self.models: Dict[float, Union[SVIModel, SABRModel]] = {}
-        self.forwards: Dict[float, float] = {}
+        self.models: dict[float, SVIModel | SABRModel] = {}
+        self.forwards: dict[float, float] = {}
 
     def add_slice(
-        self, t_m: float, model: Union[SVIModel, SABRModel], forward: Union[float, Decimal]
+        self, t_m: float, model: SVIModel | SABRModel, forward: float | Decimal
     ):
-        if self.models and not isinstance(model, type(next(iter(self.models.values())))):
+        if self.models and not isinstance(
+            model, type(next(iter(self.models.values())))
+        ):
             raise ValueError("Cannot mix model types")
         self.models[t_m] = model
         self.forwards[t_m] = float(forward)
 
     def implied_volatility(
-        self, strike: Union[float, Decimal, np.ndarray], maturity: float
-    ) -> Union[float, np.ndarray]:
+        self, strike: float | Decimal | np.ndarray, maturity: float
+    ) -> float | np.ndarray:
         if not self.models:
             raise ValueError("No models in surface")
 
@@ -397,10 +418,10 @@ class VolatilitySurface:
         # Interpolate total variance
         w_v = var1 + (var2 - var1) * (maturity - t1) / (t2 - t1)
 
-        return cast(Union[float, np.ndarray], np.sqrt(np.maximum(w_v / maturity, 1e-9)))
+        return cast(float | np.ndarray, np.sqrt(np.maximum(w_v / maturity, 1e-9)))
 
     def get_smile(
-        self, maturity: float, strike_range: Tuple[float, float], num_points: int = 50
+        self, maturity: float, strike_range: tuple[float, float], num_points: int = 50
     ) -> Any:
         import pandas as pd
 

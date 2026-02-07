@@ -35,7 +35,9 @@ def install_cli(dev_mode=False):
         print("\n✓ Installation successful!")
         print("\nYou can now use 'bsopt' command:")
         print("  bsopt --help")
-        print("  bsopt price call --spot 100 --strike 100 --maturity 1.0 --vol 0.2 --rate 0.05")
+        print(
+            "  bsopt price call --spot 100 --strike 100 --maturity 1.0 --vol 0.2 --rate 0.05"
+        )
         print("  bsopt auth login")
     except subprocess.CalledProcessError as e:
         print(f"\n✗ Installation failed: {e}")

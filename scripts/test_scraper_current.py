@@ -1,5 +1,7 @@
 import asyncio
+
 from src.scrapers.engine import NSEScraper
+
 
 async def test():
     scraper = NSEScraper()
@@ -15,6 +17,7 @@ async def test():
         print(f"Error: {e}")
     finally:
         await scraper.shutdown()
+
 
 if __name__ == "__main__":
     asyncio.run(test())

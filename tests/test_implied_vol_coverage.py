@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
+
 from src.pricing.implied_vol import (
+    ImpliedVolatilityError,
+    _brent_iv,
+    _newton_raphson_iv,
     implied_volatility,
     vectorized_implied_volatility,
-    ImpliedVolatilityError,
-    _newton_raphson_iv,
-    _brent_iv,
 )
-from src.pricing.models import BSParameters
+
 
 def test_iv_method_newton_fail():
     # Test method='newton' failing to converge to hit the raise line
@@ -20,8 +21,9 @@ def test_iv_method_newton_fail():
             rate=0.05,
             method="newton",
             max_iterations=1,
-            initial_guess=0.01
+            initial_guess=0.01,
         )
+
 
 def test_iv_method_auto_fallback():
     # Test method='auto' falling back to Brent when Newton fails
@@ -35,9 +37,10 @@ def test_iv_method_auto_fallback():
         rate=0.05,
         method="auto",
         max_iterations=1,
-        initial_guess=0.01 # Far away
+        initial_guess=0.01,  # Far away
     )
     assert iv > 0
+
 
 def test_brent_iv_fail():
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):
@@ -48,21 +51,23 @@ def test_brent_iv_fail():
             maturity=1.0,
             rate=0.05,
             dividend=0.0,
-            option_type="call"
+            option_type="call",
         )
+
 
 def test_newton_iv_low_vega_break():
     with pytest.raises(ImpliedVolatilityError, match="failed to converge"):
-         _newton_raphson_iv(
+        _newton_raphson_iv(
             market_price=10.0,
             spot=100.0,
-            strike=10000.0, # deep OTM
+            strike=10000.0,  # deep OTM
             maturity=1.0,
             rate=0.05,
             dividend=0.0,
             option_type="call",
-            initial_guess=0.00001
+            initial_guess=0.00001,
         )
+
 
 def test_vectorized_iv_basic():
     market_prices = np.array([10.45, 5.50])
@@ -72,7 +77,7 @@ def test_vectorized_iv_basic():
     rates = np.array([0.05, 0.05])
     dividends = np.array([0.0, 0.0])
     option_types = np.array(["call", "put"])
-    
+
     ivs = vectorized_implied_volatility(
         market_prices, spots, strikes, maturities, rates, dividends, option_types
     )
@@ -80,13 +85,13 @@ def test_vectorized_iv_basic():
     assert ivs[0] > 0
     assert ivs[1] > 0
 
+
 def test_vectorized_iv_empty():
     # Test with empty arrays to hit the break at top of loop (line 230)
     empty = np.array([])
-    ivs = vectorized_implied_volatility(
-        empty, empty, empty, empty, empty, empty, empty
-    )
+    ivs = vectorized_implied_volatility(empty, empty, empty, empty, empty, empty, empty)
     assert len(ivs) == 0
+
 
 def test_vectorized_iv_low_vega():
     market_prices = np.array([0.0001])
@@ -96,8 +101,15 @@ def test_vectorized_iv_low_vega():
     rates = np.array([0.05])
     dividends = np.array([0.0])
     option_types = np.array(["call"])
-    
+
     ivs = vectorized_implied_volatility(
-        market_prices, spots, strikes, maturities, rates, dividends, option_types, max_iterations=2
+        market_prices,
+        spots,
+        strikes,
+        maturities,
+        rates,
+        dividends,
+        option_types,
+        max_iterations=2,
     )
     assert len(ivs) == 1

@@ -6,13 +6,14 @@ partial differential equation using the second-order accurate Crank-Nicolson sch
 """
 
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
 
-from .base import PricingStrategy
 from src.pricing.models import BSParameters, OptionGreeks
 from src.pricing.quant_utils import jit_cn_solver
+
+from .base import PricingStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class CrankNicolsonSolver(PricingStrategy):
         self.n_spots = n_spots
         self.n_time = n_time
         self.s_max_mult = s_max_mult
-        self.use_iterative = use_iterative # Kept for API compatibility, but JIT uses Thomas algo (direct)
+        self.use_iterative = use_iterative  # Kept for API compatibility, but JIT uses Thomas algo (direct)
 
     def _setup_grid(self, params: BSParameters):
         """Initialize grid for a specific option."""
@@ -69,7 +70,9 @@ class CrankNicolsonSolver(PricingStrategy):
         V = self._solve_pde()
         return float(np.interp(self.spot, self.s_grid, V))
 
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         """Implementation of PricingStrategy interface."""
         self._setup_grid(params)
         self.option_type = option_type.lower()
@@ -77,8 +80,8 @@ class CrankNicolsonSolver(PricingStrategy):
 
     def _solve_pde(self) -> np.ndarray:
         """Internal core solver for the Black-Scholes PDE using JIT."""
-        is_call = (self.option_type == "call")
-        
+        is_call = self.option_type == "call"
+
         # Delegate to Numba-optimized solver
         return jit_cn_solver(
             self.s_grid,
@@ -88,7 +91,7 @@ class CrankNicolsonSolver(PricingStrategy):
             self.volatility,
             self.dividend,
             is_call,
-            self.n_time
+            self.n_time,
         )
 
     def solve(self) -> float:
@@ -110,7 +113,9 @@ class CrankNicolsonSolver(PricingStrategy):
         """
         # Handle zero maturity case
         if self.maturity <= 1e-12:
-            delta = 1.0 if (self.option_type == "call" and self.spot > self.strike) else 0.0
+            delta = (
+                1.0 if (self.option_type == "call" and self.spot > self.strike) else 0.0
+            )
             if self.option_type == "put" and self.spot < self.strike:
                 delta = -1.0
             return OptionGreeks(delta, 0.0, 0.0, 0.0, 0.0)
@@ -150,7 +155,10 @@ class CrankNicolsonSolver(PricingStrategy):
         )
 
         vega = (
-            (self.price(params_up, self.option_type) - self.price(params_down, self.option_type))
+            (
+                self.price(params_up, self.option_type)
+                - self.price(params_down, self.option_type)
+            )
             / (2 * eps_vol)
             * 0.01
         )
@@ -168,7 +176,12 @@ class CrankNicolsonSolver(PricingStrategy):
             )
             theta = self.price(params_t, self.option_type) - self.price(
                 BSParameters(
-                    self.spot, self.strike, self.maturity, self.volatility, self.rate, self.dividend
+                    self.spot,
+                    self.strike,
+                    self.maturity,
+                    self.volatility,
+                    self.rate,
+                    self.dividend,
                 ),
                 self.option_type,
             )
@@ -217,7 +230,7 @@ class CrankNicolsonSolver(PricingStrategy):
         params.update(kwargs)
         return CrankNicolsonSolver(**params)
 
-    def get_diagnostics(self) -> Dict[str, Any]:
+    def get_diagnostics(self) -> dict[str, Any]:
         """Return solver diagnostics."""
         return {
             "scheme": "Crank-Nicolson",
@@ -238,7 +251,11 @@ class CrankNicolsonSolver(PricingStrategy):
                 "is_stable": True,
                 "note": "Unconditionally stable",
             },
-            "accuracy": {"spatial_order": 2, "temporal_order": 2, "note": "O(dt^2 + dS^2)"},
+            "accuracy": {
+                "spatial_order": 2,
+                "temporal_order": 2,
+                "note": "O(dt^2 + dS^2)",
+            },
             "performance": {
                 "operations_per_step": "O(M)",
                 "total_operations": f"O({self.n_spots * self.n_time})",

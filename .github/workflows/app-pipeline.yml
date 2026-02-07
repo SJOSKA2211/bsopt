@@ -37,7 +37,7 @@ jobs:
           # Use non-zero exit code only on high/critical vulnerabilities
           pip-audit -r requirements-api.txt -r requirements-auth.txt -r requirements_cli.txt || true
       - name: Run Bandit
-        run: bandit -r src/
+        run: bandit -r src/ -x tests,testsprite_tests,src/auth-service/testsprite_tests
 
   integration-tests:
     runs-on: ubuntu-latest

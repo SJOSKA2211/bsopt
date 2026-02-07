@@ -7,7 +7,6 @@ testability, and consistent patterns across the platform.
 """
 
 from abc import ABC, abstractmethod
-from typing import Union
 
 import numpy as np
 
@@ -23,9 +22,12 @@ class PricingStrategy(ABC):
         pass
 
     @abstractmethod
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         """Calculate option sensitivity measures."""
         pass
+
 
 BasePricingEngine = PricingStrategy
 
@@ -59,7 +61,7 @@ class PricingEngine:
     Refactored for performance and modularity (Ultrathinking).
     """
 
-    def __init__(self, strategy: Union[PricingStrategy, VectorizedPricingStrategy]):
+    def __init__(self, strategy: PricingStrategy | VectorizedPricingStrategy):
         self.strategy = strategy
 
     def get_price(self, params: BSParameters, option_type: str = "call") -> float:

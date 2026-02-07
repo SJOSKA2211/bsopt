@@ -1,30 +1,32 @@
-import aioboto3
 import asyncio
+
+import aioboto3
 import structlog
-from typing import Optional, Any, Dict
 from botocore.exceptions import ClientError
 
 logger = structlog.get_logger(__name__)
+
 
 class AsyncStorageManager:
     """
     High-performance asynchronous S3/MinIO storage manager.
     Supports non-blocking multipart uploads and background checkpointing.
     """
+
     def __init__(
         self,
         endpoint_url: str,
         access_key: str,
         secret_key: str,
         bucket_name: str,
-        region: str = "us-east-1"
+        region: str = "us-east-1",
     ):
         self.endpoint_url = endpoint_url
         self.bucket_name = bucket_name
         self.session = aioboto3.Session(
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
-            region_name=region
+            region_name=region,
         )
 
     async def upload_file(self, local_path: str, remote_key: str):
@@ -56,7 +58,10 @@ class AsyncStorageManager:
         # Optional: Track tasks if needed for coordination
         return task
 
+
 # Example usage (Mock)
 async def test_storage():
-    manager = AsyncStorageManager("http://localhost:9000", "admin", "password", "models")
+    manager = AsyncStorageManager(
+        "http://localhost:9000", "admin", "password", "models"
+    )
     # await manager.upload_file("model.pt", "v1/model.pt")

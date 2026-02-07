@@ -6,12 +6,9 @@ Fixed field names and formats to match RegisterRequest schema.
 """
 
 import pytest
-from cryptography.fernet import Fernet
 
 from src.config import get_settings
 from src.database.models import User
-from src.api.main import app
-from src.database import get_db
 from tests.test_utils import assert_equal
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"
@@ -76,7 +73,7 @@ def logged_in_client(api_client, auth_data):
     )
     assert response.status_code == 200
     tokens = response.json()["data"]
-    
+
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     return api_client, tokens
 
@@ -101,11 +98,15 @@ def test_refresh_token(api_client, auth_data):
     """Test token refresh."""
     # Register and Login to get real tokens
     api_client.post("/api/v1/auth/register", json=auth_data)
-    login_res = api_client.post("/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    login_res = api_client.post(
+        "/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
+    )
     assert login_res.status_code == 200
     tokens = login_res.json()["data"]
-    
-    response = api_client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+
+    response = api_client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+    )
 
     assert_equal(response.status_code, 200)
     new_tokens = response.json()["data"]
@@ -117,13 +118,13 @@ def test_invalid_token(api_client):
     response = api_client.get(
         "/api/v1/users/me", headers={"Authorization": "Bearer invalid_token_12345"}
     )
-    # If users/me is not under /api/v1, this might 404. 
+    # If users/me is not under /api/v1, this might 404.
     # But for invalid token it should be 401 if it hits the middleware.
     if response.status_code == 404:
-         response = api_client.get(
+        response = api_client.get(
             "/users/me", headers={"Authorization": "Bearer invalid_token_12345"}
         )
-    
+
     assert response.status_code in [401, 403]
 
 
@@ -131,13 +132,16 @@ def test_logout(api_client, auth_data):
     """Test logout."""
     # Register and Login to get real tokens
     api_client.post("/api/v1/auth/register", json=auth_data)
-    login_res = api_client.post("/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    login_res = api_client.post(
+        "/api/v1/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
+    )
     assert login_res.status_code == 200
     tokens = login_res.json()["data"]
-    
+
     api_client.headers["Authorization"] = f"Bearer {tokens['access_token']}"
     response = api_client.post("/api/v1/auth/logout")
     assert_equal(response.status_code, 200)
+
 
 def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
     """Test that the MFA secret is encrypted in the database."""
@@ -157,8 +161,8 @@ def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
     assert user.mfa_secret != original_secret
 
     # 4. Assert the secret is correctly encrypted
-    from src.config import get_settings
     from src.utils.crypto import AES256GCM
+
     settings = get_settings()
     crypto = AES256GCM(settings.MFA_ENCRYPTION_KEY)
     decrypted_secret = crypto.decrypt(user.mfa_secret).decode()

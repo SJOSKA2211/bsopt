@@ -12,6 +12,9 @@ def test_email_service_send():
         service._render_template = MagicMock(return_value="<html></html>")
 
         success = service.send_single_email(
-            to_email="to@test.com", subject="Test", template_name="test.html", context={}
+            to_email="to@test.com",
+            subject="Test",
+            template_name="test.html",
+            context={},
         )
         assert success

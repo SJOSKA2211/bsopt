@@ -1,17 +1,19 @@
 import tracemalloc
-from fastapi import APIRouter, status
-from fastapi.responses import ORJSONResponse
+
+from fastapi import APIRouter
+
+from src.api.exceptions import (
+    InternalServerException,  # Imported directly as it's a specific exception
+)
 from src.api.schemas.common import DataResponse, ErrorResponse
-from src.api.exceptions import InternalServerException # Imported directly as it's a specific exception
 
 router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
+
 
 @router.get(
     "/tracemalloc_snapshot",
     response_model=DataResponse[dict],
-    responses={
-        500: {"model": ErrorResponse, "description": "Tracemalloc not active"}
-    }
+    responses={500: {"model": ErrorResponse, "description": "Tracemalloc not active"}},
 )
 async def get_tracemalloc_snapshot():
     """
@@ -22,21 +24,23 @@ async def get_tracemalloc_snapshot():
         raise InternalServerException(message="Tracemalloc is not active.")
 
     snapshot = tracemalloc.take_snapshot()
-    top_stats = snapshot.statistics('traceback') # Changed to 'traceback'
+    top_stats = snapshot.statistics("traceback")  # Changed to 'traceback'
 
     report = []
     # Display more comprehensive traceback information
-    for stat in top_stats[:20]: # Display top 20 items
-        report.append({
-            "size_kb": stat.size / 1024,
-            "count": stat.count,
-            "traceback": [
-                {"file": frame.filename, "line": frame.lineno}
-                for frame in stat.traceback # Iterate over all frames in the traceback
-            ]
-        })
-    
+    for stat in top_stats[:20]:  # Display top 20 items
+        report.append(
+            {
+                "size_kb": stat.size / 1024,
+                "count": stat.count,
+                "traceback": [
+                    {"file": frame.filename, "line": frame.lineno}
+                    for frame in stat.traceback  # Iterate over all frames in the traceback
+                ],
+            }
+        )
+
     return DataResponse(
         data={"top_10_memory_allocations": report},
-        message="Tracemalloc snapshot taken successfully."
+        message="Tracemalloc snapshot taken successfully.",
     )

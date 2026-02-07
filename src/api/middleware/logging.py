@@ -10,14 +10,15 @@ Comprehensive request/response logging with:
 - Sensitive data redaction
 """
 
-import msgspec
 import logging
 import time
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Set, cast
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any, cast
 from uuid import UUID
 
+import msgspec
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
@@ -42,7 +43,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
 
     # Headers to redact
-    SENSITIVE_HEADERS: Set[str] = {
+    SENSITIVE_HEADERS: set[str] = {
         "authorization",
         "cookie",
         "set-cookie",
@@ -53,7 +54,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     }
 
     # Query params to redact
-    SENSITIVE_PARAMS: Set[str] = {
+    SENSITIVE_PARAMS: set[str] = {
         "password",
         "token",
         "api_key",
@@ -63,14 +64,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     }
 
     # Paths to skip logging (high-frequency, low-value)
-    SKIP_PATHS: Set[str] = {
+    SKIP_PATHS: set[str] = {
         "/health",
         "/metrics",
         "/favicon.ico",
     }
 
     # Paths with reduced logging (only errors)
-    REDUCED_LOG_PATHS: Set[str] = {
+    REDUCED_LOG_PATHS: set[str] = {
         "/docs",
         "/redoc",
         "/openapi.json",
@@ -92,7 +93,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         self.persist_to_db = persist_to_db
         self.slow_request_threshold_ms = slow_request_threshold_ms
 
-    def _redact_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
+    def _redact_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Redact sensitive headers."""
         redacted = {}
         for key, value in headers.items():
@@ -102,7 +103,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 redacted[key] = value
         return redacted
 
-    def _redact_params(self, params: Dict[str, str]) -> Dict[str, str]:
+    def _redact_params(self, params: dict[str, str]) -> dict[str, str]:
         """Redact sensitive query parameters."""
         redacted = {}
         for key, value in params.items():
@@ -115,7 +116,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     def _truncate_body(self, body: str) -> str:
         """Truncate body if too long."""
         if len(body) > self.max_body_length:
-            return body[: self.max_body_length] + f"... [truncated, {len(body)} bytes total]"
+            return (
+                body[: self.max_body_length]
+                + f"... [truncated, {len(body)} bytes total]"
+            )
         return body
 
     def _get_client_ip(self, request: Request) -> str:
@@ -134,9 +138,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return cast(str, request.client.host if request.client else "unknown")
 
-    def _get_user_info(self, request: Request) -> Dict[str, Any]:
+    def _get_user_info(self, request: Request) -> dict[str, Any]:
         """Extract user info from request state."""
-        user_info: Dict[str, Any] = {
+        user_info: dict[str, Any] = {
             "user_id": None,
             "user_email": None,
             "user_tier": None,
@@ -175,7 +179,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Start timing
         start_time = time.perf_counter()
-        start_timestamp = datetime.now(timezone.utc)
+        start_timestamp = datetime.now(UTC)
 
         # Collect request info
         request_info = {
@@ -202,9 +206,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         body_json = msgspec.json.decode(body_bytes)
                         # Redact sensitive fields
                         for key in list(body_json.keys()):
-                            if any(s in key.lower() for s in ["password", "secret", "token"]):
+                            if any(
+                                s in key.lower()
+                                for s in ["password", "secret", "token"]
+                            ):
                                 body_json[key] = "[REDACTED]"
-                        request_body = msgspec.json.encode(body_json).decode('utf-8')
+                        request_body = msgspec.json.encode(body_json).decode("utf-8")
                     except Exception:
                         request_body = body_bytes.decode("utf-8", errors="replace")
 
@@ -271,7 +278,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 pass
             else:
                 # SOTA: Log as JSON using optimized msgspec
-                request_logger.log(log_level, msgspec.json.encode(log_entry).decode('utf-8'))
+                request_logger.log(
+                    log_level, msgspec.json.encode(log_entry).decode("utf-8")
+                )
 
             # Persist to database if configured
             if self.persist_to_db and not self._should_reduce_log(path):
@@ -282,10 +291,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         return cast(Response, response)
 
-    async def _persist_log(self, log_entry: Dict[str, Any], request: Request) -> None:
+    async def _persist_log(self, log_entry: dict[str, Any], request: Request) -> None:
         """Persist log entry to database using anyio.to_thread to avoid blocking."""
         from anyio.to_thread import run_sync
-        
+
         def _save():
             try:
                 from src.database import get_session
@@ -296,7 +305,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     # SOTA: Convert query_params dict to string using msgspec
                     query_params_str = None
                     if log_entry.get("query_params"):
-                        query_params_str = msgspec.json.encode(log_entry["query_params"]).decode('utf-8')
+                        query_params_str = msgspec.json.encode(
+                            log_entry["query_params"]
+                        ).decode("utf-8")
 
                     request_log = RequestLog(
                         request_id=log_entry["request_id"],
@@ -305,7 +316,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         query_params=query_params_str,
                         headers=log_entry.get("headers"),
                         client_ip=log_entry["client_ip"],
-                        user_id=UUID(log_entry["user_id"]) if log_entry.get("user_id") else None,
+                        user_id=(
+                            UUID(log_entry["user_id"])
+                            if log_entry.get("user_id")
+                            else None
+                        ),
                         status_code=log_entry["status_code"],
                         response_time_ms=log_entry["duration_ms"],
                         error_message=log_entry.get("error", {}).get("message"),
@@ -333,16 +348,16 @@ class StructuredLogger:
 
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-        self.default_fields: Dict[str, Any] = {}
+        self.default_fields: dict[str, Any] = {}
 
     def set_default_fields(self, **fields):
         """Set default fields to include in all logs."""
         self.default_fields.update(fields)
 
-    def _build_log_entry(self, message: str, level: str, **kwargs) -> Dict[str, Any]:
+    def _build_log_entry(self, message: str, level: str, **kwargs) -> dict[str, Any]:
         """Build structured log entry."""
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "level": level,
             "message": message,
             **self.default_fields,
@@ -352,26 +367,26 @@ class StructuredLogger:
 
     def debug(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "DEBUG", **kwargs)
-        self.logger.debug(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.debug(msgspec.json.encode(entry).decode("utf-8"))
 
     def info(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "INFO", **kwargs)
-        self.logger.info(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.info(msgspec.json.encode(entry).decode("utf-8"))
 
     def warning(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "WARNING", **kwargs)
-        self.logger.warning(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.warning(msgspec.json.encode(entry).decode("utf-8"))
 
     def error(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.error(msgspec.json.encode(entry).decode("utf-8"))
 
     def critical(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "CRITICAL", **kwargs)
-        self.logger.critical(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.critical(msgspec.json.encode(entry).decode("utf-8"))
 
     def exception(self, message: str, exc_info=True, **kwargs):
         if exc_info:
             kwargs["traceback"] = traceback.format_exc()
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.error(msgspec.json.encode(entry).decode("utf-8"))

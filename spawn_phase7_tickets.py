@@ -28,7 +28,7 @@ Analytical barrier option pricer uses placeholders and is missing critical mathe
 
 ## Solution
 Implement the full set of Reiner-Rubinstein (1991) formulas (A through F) to support all 8 standard barrier option types.
-"""
+""",
     },
     "scrap002": {
         "dir": "scrap002",
@@ -55,15 +55,15 @@ NSE Scraper uses sequential substring matching for symbol mapping, which is O(N)
 
 ## Solution
 Implement a pre-computed exact-match cache and a more efficient keyword matching strategy.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

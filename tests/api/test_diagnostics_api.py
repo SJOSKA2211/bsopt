@@ -1,15 +1,17 @@
 """
 Tests for the /api/diagnostics/imports endpoint.
 """
+
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
-import sys
+
 
 # Mock src.utils.lazy_import and its functions
 @pytest.fixture(autouse=True)
 def mock_lazy_import_module():
-    with patch('src.api.main.get_import_stats') as mock_get_import_stats:
+    with patch("src.api.main.get_import_stats") as mock_get_import_stats:
         mock_get_import_stats.return_value = {
             "successful_imports": 5,
             "failed_imports": 1,
@@ -22,10 +24,12 @@ def mock_lazy_import_module():
         }
         yield
 
+
 # Import the FastAPI app AFTER patching
 from src.api.main import app
 
 client = TestClient(app)
+
 
 def test_get_import_diagnostics():
     response = client.get("/api/diagnostics/imports")
@@ -40,6 +44,7 @@ def test_get_import_diagnostics():
     assert data["slowest_imports"][0]["duration_ms"] == pytest.approx(50.0)
     assert "src.ml.BrokenModule" in data["failures"]
     assert data["failures"]["src.ml.BrokenModule"] == "ModuleNotFoundError"
+
 
 def test_health_check():
     response = client.get("/health")

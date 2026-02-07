@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
-from src.pricing.models.heston_fft import HestonParams, HestonModelFFT
+import pytest
+
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+
 
 class TestHestonParams:
     def test_valid_params(self):
@@ -18,8 +20,11 @@ class TestHestonParams:
             HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=1.5)
 
     def test_non_positive_params(self):
-        with pytest.raises(ValueError, match="All parameters except rho must be positive"):
+        with pytest.raises(
+            ValueError, match="All parameters except rho must be positive"
+        ):
             HestonParams(v0=-0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
+
 
 class TestHestonModelFFT:
     @pytest.fixture
@@ -30,7 +35,7 @@ class TestHestonModelFFT:
         model = HestonModelFFT(standard_params, r=0.03, T=1.0)
         S0, K = 100.0, 100.0
         price = model.price_call(S0, K)
-        
+
         # Rough estimate: ATM call ~= 0.4 * S * sqrt(T) * sqrt(v0)
         # 0.4 * 100 * 1 * 0.2 = 8.0
         assert 4.0 < price < 16.0
@@ -41,7 +46,7 @@ class TestHestonModelFFT:
         S0, K = 100.0, 105.0
         call_price = model.price_call(S0, K)
         put_price = model.price_put(S0, K)
-        
+
         lhs = call_price - put_price
         rhs = S0 - K * np.exp(-0.05 * 0.5)
         assert abs(lhs - rhs) < 0.01

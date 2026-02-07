@@ -3,9 +3,11 @@ Comprehensive Test Suite for Optimized Quantitative Engines
 """
 
 import unittest
+
 import numpy as np
-from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
+
 from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
 
 
 class TestOptimizedPricing(unittest.TestCase):
@@ -20,20 +22,22 @@ class TestOptimizedPricing(unittest.TestCase):
 
     def test_vectorized_bs_accuracy(self):
         """Verify JIT BS engine against known values."""
-        price = VectorizedBlackScholesEngine.price_options(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, "call")
+        price = VectorizedBlackScholesEngine.price_options(
+            100.0, 100.0, 1.0, 0.2, 0.05, 0.0, "call"
+        )
         # Standard BS price for S=100, K=100, T=1, sigma=0.2, r=0.05 is ~10.4506
         self.assertAlmostEqual(float(price), 10.450583572185565, places=6)
 
     def test_greeks_consistency(self):
         """Verify delta is within [0, 1] for calls and [-1, 0] for puts."""
         greeks = VectorizedBlackScholesEngine.calculate_greeks_batch(
-            spot=self.spots, 
-            strike=self.strikes, 
-            maturity=self.maturities, 
-            volatility=self.vols, 
-            rate=self.rates, 
-            dividend=self.divs, 
-            option_type=self.types
+            spot=self.spots,
+            strike=self.strikes,
+            maturity=self.maturities,
+            volatility=self.vols,
+            rate=self.rates,
+            dividend=self.divs,
+            option_type=self.types,
         )
         self.assertTrue(np.all(greeks["delta"] >= 0))
         self.assertTrue(np.all(greeks["delta"] <= 1.0))
@@ -52,11 +56,23 @@ class TestOptimizedPricing(unittest.TestCase):
         """Verify batch IV calculation speed and accuracy."""
         vols = np.array([0.15, 0.25, 0.35])
         prices = VectorizedBlackScholesEngine.price_options(
-            self.spots, self.strikes, self.maturities, vols, self.rates, self.divs, self.types
+            self.spots,
+            self.strikes,
+            self.maturities,
+            vols,
+            self.rates,
+            self.divs,
+            self.types,
         )
 
         calc_vols = vectorized_implied_volatility(
-            prices, self.spots, self.strikes, self.maturities, self.rates, self.divs, self.types
+            prices,
+            self.spots,
+            self.strikes,
+            self.maturities,
+            self.rates,
+            self.divs,
+            self.types,
         )
 
         np.testing.assert_array_almost_equal(calc_vols, vols, decimal=4)
@@ -65,6 +81,7 @@ class TestOptimizedPricing(unittest.TestCase):
         """🚀 SINGULARITY: Verify WASM SIMD pricing if available."""
         try:
             from src.wasm.engine import BlackScholesWASM
+
             engine = BlackScholesWASM()
             # Test case: S=100, K=100, T=1, sigma=0.2, r=0.05
             price = engine.price_call(100.0, 100.0, 1.0, 0.2, 0.05, 0.0)
@@ -79,6 +96,7 @@ class TestOptimizedPricing(unittest.TestCase):
         """🚀 SINGULARITY: Verify Optimized LSM American Pricing."""
         try:
             from src.wasm.engine import AmericanOptionsWASM
+
             engine = AmericanOptionsWASM()
             # Standard American Call on non-dividend paying stock = European Call
             price = engine.price_lsm(100.0, 100.0, 1.0, 0.2, 0.05, 0.0, True, 10000, 50)

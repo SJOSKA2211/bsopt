@@ -22,7 +22,9 @@ class MfaService:
 
     def get_provisioning_uri(self, email: str, secret: str) -> str:
         """Get the provisioning URI for QR code generation."""
-        return pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name=self.issuer_name)
+        return pyotp.totp.TOTP(secret).provisioning_uri(
+            name=email, issuer_name=self.issuer_name
+        )
 
     def generate_qr_code(self, uri: str) -> str:
         """Generate a QR code from a provisioning URI and return as base64."""

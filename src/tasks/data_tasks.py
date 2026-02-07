@@ -10,9 +10,10 @@ Asynchronous data collection tasks for:
 """
 
 import asyncio
-import structlog
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+import structlog
 
 from .celery_app import MLTask, celery_app
 
@@ -34,11 +35,11 @@ logger = structlog.get_logger(__name__)
 )
 def collect_options_data_task(
     self,
-    symbols: Optional[List[str]] = None,
+    symbols: list[str] | None = None,
     min_samples: int = 10000,
     max_samples: int = 50000,
     validate: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Collect options data from market sources.
 
@@ -92,7 +93,9 @@ def collect_options_data_task(
         finally:
             loop.close()
 
-        logger.info("data_collection_completed", samples_valid=report.get('samples_valid', 0))
+        logger.info(
+            "data_collection_completed", samples_valid=report.get("samples_valid", 0)
+        )
 
         return {
             "task_id": self.request.id,
@@ -121,7 +124,7 @@ def collect_options_data_task(
 def validate_collected_data_task(
     self,
     data_path: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate previously collected data.
 
@@ -148,7 +151,7 @@ def validate_collected_data_task(
         df = pd.read_parquet(parquet_path)
 
         # Basic validation
-        validation_results: Dict[str, Any] = {
+        validation_results: dict[str, Any] = {
             "total_samples": len(df),
             "n_features": len(df.columns) - 1,  # Exclude target
             "missing_values": int(df.isnull().sum().sum()),
@@ -166,7 +169,9 @@ def validate_collected_data_task(
 
         # Check for outliers (values beyond 5 std)
         outlier_threshold = 5
-        outliers = ((target - target.mean()).abs() > outlier_threshold * target.std()).sum()
+        outliers = (
+            (target - target.mean()).abs() > outlier_threshold * target.std()
+        ).sum()
         validation_results["outliers"] = int(outliers)
 
         # Quality score
@@ -182,9 +187,9 @@ def validate_collected_data_task(
         validation_results["passed"] = quality_score >= 0.7
 
         logger.info(
-            "validation_complete", 
-            quality_score=quality_score, 
-            passed=validation_results['passed']
+            "validation_complete",
+            quality_score=quality_score,
+            passed=validation_results["passed"],
         )
 
         return {
@@ -205,7 +210,7 @@ def validate_collected_data_task(
     queue="ml",
     priority=2,
 )
-def check_data_freshness_task(self) -> Dict[str, Any]:
+def check_data_freshness_task(self) -> dict[str, Any]:
     """
     Check if training data is fresh enough for use.
 
@@ -272,41 +277,42 @@ def check_data_freshness_task(self) -> Dict[str, Any]:
     queue="batch",
     priority=1,
 )
-def refresh_materialized_views_task(self) -> Dict[str, Any]:
+def refresh_materialized_views_task(self) -> dict[str, Any]:
     """
     Refreshes PostgreSQL materialized views for pre-aggregated statistics.
     """
     logger.info("refreshing_materialized_views_start")
-    
+
     from sqlalchemy import text
+
     from src.shared.db import get_db_session
-    
+
     db_session = get_db_session()
     try:
         # Refresh Market Stats
         db_session.execute(text("SELECT refresh_market_stats();"))
-        
+
         # Refresh Portfolio Summary
         db_session.execute(text("SELECT refresh_portfolio_summary();"))
-        
+
         # Refresh Trading Stats
         db_session.execute(text("SELECT refresh_trading_stats();"))
 
         # Refresh Model Drift Metrics
         db_session.execute(text("SELECT refresh_model_drift_metrics();"))
-        
+
         db_session.commit()
         logger.info("materialized_views_refreshed_successfully")
-        
+
         return {
             "status": "success",
             "views": [
-                "market_stats_mv", 
-                "portfolio_summary_mv", 
+                "market_stats_mv",
+                "portfolio_summary_mv",
                 "trading_stats_mv",
-                "model_drift_metrics_mv"
+                "model_drift_metrics_mv",
             ],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         logger.error("materialized_view_refresh_failed", error=str(e))
@@ -326,7 +332,7 @@ def refresh_materialized_views_task(self) -> Dict[str, Any]:
     queue="ml",
     priority=2,
 )
-def scheduled_data_collection(self) -> Dict[str, Any]:
+def scheduled_data_collection(self) -> dict[str, Any]:
     """
     Scheduled task to collect data if needed.
     Called by Celery Beat.
@@ -337,7 +343,9 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
     freshness = check_data_freshness_task.apply().get()
 
     if freshness.get("needs_refresh", True):
-        logger.info("data_needs_refresh", reason=freshness.get("message", "Data too old"))
+        logger.info(
+            "data_needs_refresh", reason=freshness.get("message", "Data too old")
+        )
 
         # Trigger collection
         result = collect_options_data_task.apply_async()
@@ -351,7 +359,7 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
         }
 
     else:
-        logger.info("data_is_fresh", age_hours=freshness.get('age_hours', 0))
+        logger.info("data_is_fresh", age_hours=freshness.get("age_hours", 0))
         return {
             "task_id": self.request.id,
             "status": "skipped",
@@ -372,9 +380,9 @@ def scheduled_data_collection(self) -> Dict[str, Any]:
 )
 def run_full_data_pipeline_task(
     self,
-    symbols: Optional[List[str]] = None,
+    symbols: list[str] | None = None,
     train_after_collection: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run the full data pipeline: collect, validate, and optionally train.
 
@@ -402,11 +410,15 @@ def run_full_data_pipeline_task(
         ).get()
 
         if not validation_result.get("validation", {}).get("passed", False):
-            logger.warning("data_validation_failed_proceeding", action="proceed_with_caution")
+            logger.warning(
+                "data_validation_failed_proceeding", action="proceed_with_caution"
+            )
 
         # Step 3: Optionally trigger training
         training_task_id = None
-        if train_after_collection and validation_result.get("validation", {}).get("passed", False):
+        if train_after_collection and validation_result.get("validation", {}).get(
+            "passed", False
+        ):
             from .ml_tasks import train_model_task
 
             train_result = train_model_task.apply_async()

@@ -1,6 +1,5 @@
 """
 Worker modules for BSOpt Singularity.
 """
-from . import math_worker
-from . import webhook_worker
-from . import ray_workers
+
+from . import math_worker, ray_workers, webhook_worker

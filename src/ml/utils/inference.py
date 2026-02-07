@@ -42,21 +42,26 @@ def optimize_onnx_model(input_path: str, output_path: str):
     Uses ORT's internal graph optimization levels.
     """
     logger.info(f"Optimizing ONNX model from {input_path} to {output_path}")
-    
+
     try:
         # Configure optimization options
         sess_options = ort.SessionOptions()
-        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.graph_optimization_level = (
+            ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        )
         sess_options.optimized_model_filepath = output_path
-        
+
         # Creating a session with optimized_model_filepath set will trigger optimization and save the file
         # We use the 'CPUExecutionProvider' for general compatibility during optimization
-        ort.InferenceSession(input_path, sess_options, providers=['CPUExecutionProvider'])
-        
+        ort.InferenceSession(
+            input_path, sess_options, providers=["CPUExecutionProvider"]
+        )
+
         logger.info(f"Successfully optimized and saved model to {output_path}")
     except Exception as e:
         logger.error(f"Failed to optimize ONNX model: {e}")
         # Fallback to copy if optimization fails
         import shutil
+
         logger.warning("Falling back to simple file copy.")
         shutil.copyfile(input_path, output_path)

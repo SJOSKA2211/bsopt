@@ -9,7 +9,7 @@ Stores tokens securely in the user's home directory.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, cast
 
 import httpx
 
@@ -18,14 +18,22 @@ logger = logging.getLogger(__name__)
 
 import click
 
+
 @click.group(name="auth")
 def auth_group():
     """Authentication and session management."""
     pass
 
+
 @auth_group.command(name="login")
 @click.option("--client-id", required=True, help="OAuth2 Client ID")
-@click.option("--client-secret", required=True, prompt=True, hide_input=True, help="OAuth2 Client Secret")
+@click.option(
+    "--client-secret",
+    required=True,
+    prompt=True,
+    hide_input=True,
+    help="OAuth2 Client Secret",
+)
 def login_command(client_id: str, client_secret: str):
     """Log in to the BSOPT API."""
     manager = AuthManager()
@@ -34,6 +42,7 @@ def login_command(client_id: str, client_secret: str):
         click.secho("Login successful!", fg="green")
     except AuthenticationError as e:
         click.secho(str(e), fg="red")
+
 
 @auth_group.command(name="logout")
 def logout_command():
@@ -44,6 +53,7 @@ def logout_command():
     else:
         click.secho("Already logged out.", fg="yellow")
 
+
 class AuthenticationError(Exception):
     """Exception raised for authentication failures."""
 
@@ -53,7 +63,7 @@ class AuthenticationError(Exception):
 class AuthManager:
     """Manages CLI authentication state and API interaction."""
 
-    def __init__(self, api_base_url: Optional[str] = None):
+    def __init__(self, api_base_url: str | None = None):
         self.api_base_url = api_base_url or "http://localhost:8000"
         self.token_file = Path.home() / ".bsopt" / "token.json"
         self._ensure_token_dir()
@@ -62,7 +72,7 @@ class AuthManager:
         """Ensure the directory for storing tokens exists."""
         self.token_file.parent.mkdir(parents=True, exist_ok=True)
 
-    def login(self, client_id: str, client_secret: str) -> Dict[str, Any]:
+    def login(self, client_id: str, client_secret: str) -> dict[str, Any]:
         """
         Authenticate with the API via OAuth2 client_credentials flow.
         """
@@ -78,7 +88,7 @@ class AuthManager:
                     },
                 )
                 response.raise_for_status()
-                data = cast(Dict[str, Any], response.json())
+                data = cast(dict[str, Any], response.json())
 
             # 🚀 SECURITY: Set restricted permissions (600)
             self.token_file.touch(mode=0o600)
@@ -97,7 +107,9 @@ class AuthManager:
             raise AuthenticationError(f"Login failed: {error_detail}")
         except (httpx.RequestError, OSError) as e:
             logger.error(f"Connection error during login: {e}")
-            raise AuthenticationError(f"Could not connect to authentication server: {str(e)}")
+            raise AuthenticationError(
+                f"Could not connect to authentication server: {str(e)}"
+            )
 
     def logout(self) -> bool:
         """Clear stored authentication tokens."""
@@ -109,28 +121,28 @@ class AuthManager:
             logger.error(f"Failed to delete token file: {e}")
         return False
 
-    def get_current_user(self) -> Optional[Dict[str, Any]]:
+    def get_current_user(self) -> dict[str, Any] | None:
         """Get information about the currently logged-in user."""
         if not self.token_file.exists():
             return None
 
         try:
-            with open(self.token_file, "r") as f:
+            with open(self.token_file) as f:
                 data = json.load(f)
-                return cast(Optional[Dict[str, Any]], data.get("user"))
+                return cast(dict[str, Any] | None, data.get("user"))
         except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Failed to read user data from token file: {e}")
             return None
 
-    def get_token(self) -> Optional[str]:
+    def get_token(self) -> str | None:
         """Get the stored access token."""
         if not self.token_file.exists():
             return None
 
         try:
-            with open(self.token_file, "r") as f:
+            with open(self.token_file) as f:
                 data = json.load(f)
-                return cast(Optional[str], data.get("access_token"))
+                return cast(str | None, data.get("access_token"))
         except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Failed to read access token from token file: {e}")
             return None

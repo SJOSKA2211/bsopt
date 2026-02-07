@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import psycopg2
 import pytest
@@ -37,7 +37,9 @@ def test_hypertables_exist(db_conn):
 
 def test_continuous_aggregates_exist(db_conn):
     with db_conn.cursor() as cur:
-        cur.execute("SELECT view_name FROM timescaledb_information.continuous_aggregates;")
+        cur.execute(
+            "SELECT view_name FROM timescaledb_information.continuous_aggregates;"
+        )
         views = [row[0] for row in cur.fetchall()]
         assert "options_daily_ohlc" in views
         assert "options_hourly_greeks" in views
@@ -50,7 +52,7 @@ def test_insert_and_aggregate(db_conn):
         cur.execute("DELETE FROM options_prices WHERE symbol = 'TEST_AAPL';")
 
         # Insert some test data
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         test_data = [
             (
                 now - timedelta(hours=2),
@@ -123,8 +125,12 @@ def test_insert_and_aggregate(db_conn):
 
         # Continuous aggregates refresh asynchronously or on schedule.
         # We manually refresh for the test.
-        cur.execute("CALL refresh_continuous_aggregate('options_daily_ohlc', NULL, NULL);")
-        cur.execute("CALL refresh_continuous_aggregate('options_hourly_greeks', NULL, NULL);")
+        cur.execute(
+            "CALL refresh_continuous_aggregate('options_daily_ohlc', NULL, NULL);"
+        )
+        cur.execute(
+            "CALL refresh_continuous_aggregate('options_hourly_greeks', NULL, NULL);"
+        )
 
         # Check OHLC
         cur.execute(
@@ -166,7 +172,7 @@ def test_model_predictions_aggregate(db_conn):
         cur.execute("DELETE FROM model_predictions WHERE model_id = %s;", (model_id,))
 
         # Insert predictions
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         pred_data = [
             (now - timedelta(minutes=10), model_id, "{}", 100.0, 105.0, -5.0),
             (now - timedelta(minutes=5), model_id, "{}", 110.0, 108.0, 2.0),
@@ -183,7 +189,9 @@ def test_model_predictions_aggregate(db_conn):
             pred_data,
         )
 
-        cur.execute("CALL refresh_continuous_aggregate('model_daily_performance', NULL, NULL);")
+        cur.execute(
+            "CALL refresh_continuous_aggregate('model_daily_performance', NULL, NULL);"
+        )
 
         cur.execute(
             "SELECT model_id, mae, rmse FROM model_daily_performance WHERE model_id = %s;",

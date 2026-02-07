@@ -28,7 +28,7 @@ Redundant serialization in MarketDataProducer increases latency.
 
 ## Solution
 Use msgspec for internal data handling and optimize the batch production path.
-"""
+""",
     },
     "aiops002": {
         "dir": "aiops002",
@@ -55,15 +55,15 @@ SelfHealingOrchestrator triggers every remediator for every anomaly, which is in
 
 ## Solution
 Implement a mapping between anomaly types and specific remediators to ensure targeted actions.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

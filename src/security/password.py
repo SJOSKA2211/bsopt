@@ -14,15 +14,13 @@ import re
 import secrets
 import string
 from dataclasses import dataclass
-from typing import List, Optional, Tuple, cast
 
 import bcrypt
 import pwnedpasswords
-
-from src.config import settings
-
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +30,9 @@ class PasswordValidationResult:
     """Result of password validation."""
 
     is_valid: bool
-    errors: List[str]
+    errors: list[str]
     strength_score: int  # 0-100
-    suggestions: List[str]
+    suggestions: list[str]
 
 
 class PasswordValidator:
@@ -45,15 +43,15 @@ class PasswordValidator:
 
     def __init__(
         self,
-        min_length: Optional[int] = None,
-        require_uppercase: Optional[bool] = None,
-        require_lowercase: Optional[bool] = None,
-        require_digit: Optional[bool] = None,
-        require_special: Optional[bool] = None,
+        min_length: int | None = None,
+        require_uppercase: bool | None = None,
+        require_lowercase: bool | None = None,
+        require_digit: bool | None = None,
+        require_special: bool | None = None,
     ):
         # Handle cases where settings might be None (e.g. during test initialization)
         s = settings if settings else None
-        
+
         self.min_length = min_length or getattr(s, "PASSWORD_MIN_LENGTH", 8)
         self.require_uppercase = (
             require_uppercase
@@ -66,13 +64,19 @@ class PasswordValidator:
             else getattr(s, "PASSWORD_REQUIRE_LOWERCASE", True)
         )
         self.require_digit = (
-            require_digit if require_digit is not None else getattr(s, "PASSWORD_REQUIRE_DIGIT", True)
+            require_digit
+            if require_digit is not None
+            else getattr(s, "PASSWORD_REQUIRE_DIGIT", True)
         )
         self.require_special = (
-            require_special if require_special is not None else getattr(s, "PASSWORD_REQUIRE_SPECIAL", False)
+            require_special
+            if require_special is not None
+            else getattr(s, "PASSWORD_REQUIRE_SPECIAL", False)
         )
 
-    def validate(self, password: str, email: Optional[str] = None) -> PasswordValidationResult:
+    def validate(
+        self, password: str, email: str | None = None
+    ) -> PasswordValidationResult:
         """
         Validate password strength.
 
@@ -89,7 +93,9 @@ class PasswordValidator:
 
         # 1. Length Check
         if len(password) < self.min_length:
-            errors.append(f"Password must be at least {self.min_length} characters long")
+            errors.append(
+                f"Password must be at least {self.min_length} characters long"
+            )
             suggestions.append("Use a longer password")
         else:
             strength_score += 20
@@ -162,21 +168,21 @@ class PasswordService:
     Uses Argon2id for new hashes, with fallback to bcrypt for verification.
     """
 
-    def __init__(self, rounds: Optional[int] = None):
+    def __init__(self, rounds: int | None = None):
         # Default to settings if not provided
         self.rounds = rounds or (settings.BCRYPT_ROUNDS if settings else 12)
         self.validator = PasswordValidator()
-        
+
         # Initialize with tuned parameters for Argon2id
         # Use explicit type checking to handle cases where settings might be mocked (e.g. in tests)
         argon2_time_cost = getattr(settings, "ARGON2_TIME_COST", 3)
         if not isinstance(argon2_time_cost, int):
             argon2_time_cost = 3
-            
+
         argon2_memory_cost = getattr(settings, "ARGON2_MEMORY_COST", 65536)
         if not isinstance(argon2_memory_cost, int):
             argon2_memory_cost = 65536
-            
+
         argon2_parallelism = getattr(settings, "ARGON2_PARALLELISM", 4)
         if not isinstance(argon2_parallelism, int):
             argon2_parallelism = 4
@@ -184,7 +190,7 @@ class PasswordService:
         self.ph = PasswordHasher(
             time_cost=argon2_time_cost,
             memory_cost=argon2_memory_cost,
-            parallelism=argon2_parallelism
+            parallelism=argon2_parallelism,
         )
 
     def hash_password(self, password: str) -> str:
@@ -199,7 +205,7 @@ class PasswordService:
         """
         if not plain_password or not hashed_password:
             return False
-            
+
         # 1. Try Argon2 (new standard)
         if hashed_password.startswith("$argon2"):
             try:
@@ -209,18 +215,18 @@ class PasswordService:
             except Exception as e:
                 logger.error(f"Argon2 verification error: {e}")
                 return False
-        
+
         # 2. Try Bcrypt (fallback for legacy hashes)
         try:
             if isinstance(plain_password, str):
                 plain_password = plain_password.encode("utf-8")
             if isinstance(hashed_password, str):
                 hashed_password = hashed_password.encode("utf-8")
-                
+
             # Bcrypt has a 72-byte limit.
             if len(plain_password) > 72:
                 plain_password = plain_password[:72]
-                
+
             return bcrypt.checkpw(plain_password, hashed_password)
         except Exception as e:
             logger.error(f"Legacy Bcrypt verification error: {e}")
@@ -232,11 +238,11 @@ class PasswordService:
         """
         if not hashed_password:
             return True
-        
+
         # Check if it's a legacy bcrypt hash
         if not hashed_password.startswith("$argon2"):
             return True
-            
+
         # Check if Argon2 parameters need tuning
         try:
             return self.ph.check_needs_rehash(hashed_password)
@@ -244,7 +250,7 @@ class PasswordService:
             return True
 
     def validate_password(
-        self, password: str, email: Optional[str] = None
+        self, password: str, email: str | None = None
     ) -> PasswordValidationResult:
         """
         Validate password strength.
@@ -259,8 +265,8 @@ class PasswordService:
         return self.validator.validate(password, email)
 
     def check_password_history(
-        self, password: str, password_history: List[str], history_count: int = 5
-    ) -> Tuple[bool, str]:
+        self, password: str, password_history: list[str], history_count: int = 5
+    ) -> tuple[bool, str]:
         """
         Check if password was recently used.
 
@@ -323,7 +329,9 @@ class PasswordService:
 
         # Generate remaining characters
         remaining_length = length - len(required)
-        password_chars = required + [secrets.choice(characters) for _ in range(remaining_length)]
+        password_chars = required + [
+            secrets.choice(characters) for _ in range(remaining_length)
+        ]
 
         # Shuffle to avoid predictable positions
         secrets.SystemRandom().shuffle(password_chars)
@@ -352,7 +360,8 @@ class PasswordService:
 
 
 # Global instance
-_password_service_instance: Optional[PasswordService] = None
+_password_service_instance: PasswordService | None = None
+
 
 def get_password_service() -> PasswordService:
     global _password_service_instance
@@ -364,6 +373,7 @@ def get_password_service() -> PasswordService:
             rounds = 12
         _password_service_instance = PasswordService(rounds=rounds)
     return _password_service_instance
+
 
 # For backward compatibility or direct usage
 password_service = get_password_service()

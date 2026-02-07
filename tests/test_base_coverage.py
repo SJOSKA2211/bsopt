@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from src.pricing.base import (
     PricingEngine,
     PricingStrategy,
@@ -7,17 +8,24 @@ from src.pricing.base import (
 )
 from src.pricing.models import BSParameters, OptionGreeks
 
+
 class MockPricingStrategy(PricingStrategy):
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         return 10.0
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         return OptionGreeks(0, 0, 0, 0, 0)
+
 
 class MockVectorizedStrategy(VectorizedPricingStrategy):
     def price_batch(self, S, K, T, sigma, r, q, is_call) -> np.ndarray:
         return np.array([10.0])
+
     def price_single(self, params: BSParameters, option_type: str = "call") -> float:
         return 10.0
+
 
 def test_pricing_engine_strategy():
     strategy = MockPricingStrategy()
@@ -25,11 +33,13 @@ def test_pricing_engine_strategy():
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
     assert engine.get_price(params) == 10.0
 
+
 def test_pricing_engine_vectorized():
     strategy = MockVectorizedStrategy()
     engine = PricingEngine(strategy)
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
     assert engine.get_price(params) == 10.0
+
 
 def test_pricing_engine_invalid():
     engine = PricingEngine("not a strategy")
