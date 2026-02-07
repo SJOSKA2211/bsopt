@@ -1,20 +1,21 @@
-import numpy as np
 import os
+from typing import Any
+
+import numpy as np
 import structlog
-from typing import Dict, Any, Optional
 
 logger = structlog.get_logger(__name__)
 
 class WasmModuleCache:
     """
-    SOTA: Persistence and caching for compiled WASM modules.
+    OPTIMIZED: Persistence and caching for compiled WASM modules.
     Reduces instantiation latency by 100x by serializing the machine code.
     """
-    _memory_cache: Dict[str, Any] = {}
+    _memory_cache: dict[str, Any] = {}
 
     @classmethod
     def get_module(cls, store: Any, wasm_path: str) -> Any:
-        """🚀 SINGULARITY: Get pre-compiled module from cache or disk."""
+        """Get pre-compiled module from cache or disk."""
         if wasm_path in cls._memory_cache:
             return cls._memory_cache[wasm_path]
 
@@ -26,7 +27,7 @@ class WasmModuleCache:
             try:
                 with open(cache_path, "rb") as f:
                     compiled_bytes = f.read()
-                # SOTA: Deserializing pre-compiled machine code
+                # OPTIMIZED: Deserializing pre-compiled machine code
                 module = Module.deserialize(store, compiled_bytes)
                 cls._memory_cache[wasm_path] = module
                 logger.info("wasm_module_deserialized", path=wasm_path)
@@ -57,11 +58,11 @@ class WasmModuleCache:
 
     def map_wasm_memory(cls, instance: Any) -> np.ndarray:
 
-        """🚀 SINGULARITY: Zero-copy memory view of the WASM heap."""
+        """Zero-copy memory view of the WASM heap."""
 
         try:
 
-            # SOTA: WASM instances export a 'memory' object
+            # OPTIMIZED: WASM instances export a 'memory' object
 
             wasm_mem = instance.exports.memory
 

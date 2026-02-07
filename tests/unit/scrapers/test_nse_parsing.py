@@ -1,5 +1,7 @@
 import pytest
+
 from src.scrapers.engine import NSEScraper
+
 
 def test_nse_cleaning_logic():
     scraper = NSEScraper()

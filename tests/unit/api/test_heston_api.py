@@ -1,7 +1,6 @@
-import pytest
-from fastapi.testclient import TestClient
 import json
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
 
 class TestPricingAPIHeston:
     def test_heston_pricing_success(self, api_client):
@@ -54,9 +53,9 @@ class TestPricingAPIHeston:
         mock_redis.get = AsyncMock(return_value=None)
         
         from src.api.main import app
-        from src.utils.cache import get_redis_client
         from src.security.auth import get_current_user_flexible
         from src.security.rate_limit import rate_limit
+        from src.utils.cache import get_redis_client
         
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
         app.dependency_overrides[get_current_user_flexible] = lambda: {"id": "test-user", "tier": "free"}

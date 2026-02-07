@@ -1,13 +1,15 @@
-import yaml
 import os
+
 import pytest
+import yaml
+
 
 def test_docker_neural_pricing_optimization():
     compose_path = "docker-compose.prod.yml"
     if not os.path.exists(compose_path):
         pytest.skip("docker-compose.prod.yml not found")
         
-    with open(compose_path, "r") as f:
+    with open(compose_path) as f:
         config = yaml.safe_load(f)
         
     services = config.get("services", {})

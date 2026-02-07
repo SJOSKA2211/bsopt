@@ -1,13 +1,13 @@
+
+import structlog
 import torch
 import torch.nn as nn
-import structlog
-from typing import Any
 
 logger = structlog.get_logger()
 
 class ModelQuantizer:
     """
-    SOTA Model Quantization Strategy.
+    OPTIMIZED Model Quantization Strategy.
     Reduces model size and increases inference speed using PyTorch quantization.
     """
     def __init__(self):
@@ -43,7 +43,7 @@ class ModelQuantizer:
         """
         Performs INT8 quantization on an ONNX model for high-performance inference.
         """
-        from onnxruntime.quantization import quantize_dynamic, QuantType
+        from onnxruntime.quantization import QuantType, quantize_dynamic
         
         logger.info("quantizing_onnx_model", input=input_path, output=output_path)
         try:

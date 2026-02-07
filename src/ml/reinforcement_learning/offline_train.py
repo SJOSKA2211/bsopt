@@ -1,7 +1,7 @@
-import torch as th
 import structlog
+import torch as th
+
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
-from src.config import settings
 
 logger = structlog.get_logger()
 
@@ -14,7 +14,7 @@ def train_offline(dataset_path: str, epochs: int = 100):
     
     # State dim 100 (from TradingEnv), Action dim 10
     model = DecisionTransformer(state_dim=100, action_dim=10)
-    optimizer = th.optim.AdamW(model.parameters(), lr=1e-4)
+    th.optim.AdamW(model.parameters(), lr=1e-4)
     
     # Placeholder for loading trajectories and minimizing Action MSE
     # 1. Load (s, a, r) sequences

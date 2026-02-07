@@ -1,9 +1,9 @@
-import pytest
-from unittest.mock import MagicMock, patch, mock_open
+import asyncio
 import os
 import sys
-import time
-import asyncio
+from unittest.mock import MagicMock, mock_open, patch
+
+import pytest
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
@@ -82,7 +82,7 @@ async def test_consume_messages_batch(mock_schema_file):
         consumer.stop()
         try:
             await asyncio.wait_for(task, timeout=1.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
         
         assert len(processed_data) == 2
@@ -95,8 +95,9 @@ async def test_consumer_error_handling(mock_schema_file):
          patch('streaming.kafka_consumer.SchemaRegistryClient'), \
          patch('streaming.kafka_consumer.AvroDeserializer') as mock_avro_deserializer:
         
-        from streaming.kafka_consumer import MarketDataConsumer
         from confluent_kafka import KafkaError
+
+        from streaming.kafka_consumer import MarketDataConsumer
         
         mock_instance = MagicMock()
         mock_kafka_consumer.return_value = mock_instance
@@ -127,7 +128,7 @@ async def test_consumer_error_handling(mock_schema_file):
             consumer.stop()
             try:
                 await asyncio.wait_for(task, timeout=1.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
             
             # Check logs
@@ -175,7 +176,7 @@ async def test_batch_processing_error(mock_schema_file):
             consumer.stop()
             try:
                 await asyncio.wait_for(task, timeout=1.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
             
             # _process_batch catches exceptions and logs 'batch_processing_error'

@@ -1,12 +1,10 @@
-import numpy as np
-import pytest
 from src.pricing.lattice import (
     BinomialTreePricer,
-    TrinomialTreePricer,
-    LatticeParameters,
-    validate_convergence,
     BSParameters,
+    TrinomialTreePricer,
+    validate_convergence,
 )
+
 
 def test_binomial_zero_maturity():
     pricer = BinomialTreePricer()

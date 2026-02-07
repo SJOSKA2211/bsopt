@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import os
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.aiops.latency_remediator import LatencyRemediator
+
 
 @pytest.fixture
 def remediator():

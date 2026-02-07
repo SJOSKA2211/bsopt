@@ -1,27 +1,29 @@
-import xgboost as xgb
+from typing import Any
+
+import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from typing import Dict, Any, List, Optional
-import structlog
+
 from src.ml.utils.distributed import train_xgboost_distributed
 
 logger = structlog.get_logger()
 
 class TrainingStrategy:
     """Base interface for training strategies."""
-    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any], base_model: Optional[Any] = None) -> Any:
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: dict[str, Any], base_model: Any | None = None) -> Any:
         raise NotImplementedError
 
     def predict(self, model: Any, X: Any) -> Any:
         raise NotImplementedError
     
-    def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self, model: Any, feature_names: list[str]) -> dict[str, float] | None:
         return None
 
 class XGBoostStrategy(TrainingStrategy):
-    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any], base_model: Optional[Any] = None) -> Any:
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: dict[str, Any], base_model: Any | None = None) -> Any:
         dtrain = xgb.DMatrix(X_train, label=y_train)
         dtest = xgb.DMatrix(X_test, label=y_test)
         xgb_params = params.copy()
@@ -44,7 +46,7 @@ class XGBoostStrategy(TrainingStrategy):
         y_pred_prob = model.predict(dtest, iteration_range=(0, model.best_iteration + 1))
         return (y_pred_prob > 0.5).astype(int)
 
-    def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self, model: Any, feature_names: list[str]) -> dict[str, float] | None:
         importance = model.get_score(importance_type='weight')
         result = {}
         for i, name in enumerate(feature_names):
@@ -54,7 +56,7 @@ class XGBoostStrategy(TrainingStrategy):
         return result
 
 class DaskXGBoostStrategy(TrainingStrategy):
-    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any], base_model: Optional[Any] = None) -> Any:
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: dict[str, Any], base_model: Any | None = None) -> Any:
         xgb_params = params.copy()
         xgb_params.pop("framework", None)
         dask_address = xgb_params.pop("dask_address", None)
@@ -65,7 +67,7 @@ class DaskXGBoostStrategy(TrainingStrategy):
         y_pred_prob = model.predict(dtest)
         return (y_pred_prob > 0.5).astype(int)
 
-    def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self, model: Any, feature_names: list[str]) -> dict[str, float] | None:
         importance = model.get_score(importance_type='weight')
         result = {}
         for i, name in enumerate(feature_names):
@@ -75,7 +77,7 @@ class DaskXGBoostStrategy(TrainingStrategy):
         return result
 
 class SklearnStrategy(TrainingStrategy):
-    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any], base_model: Optional[Any] = None) -> Any:
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: dict[str, Any], base_model: Any | None = None) -> Any:
         sk_params = params.copy()
         sk_params.pop("framework", None)
         model = RandomForestClassifier(**sk_params)
@@ -85,7 +87,7 @@ class SklearnStrategy(TrainingStrategy):
     def predict(self, model: Any, X: Any) -> Any:
         return model.predict(X)
 
-    def get_feature_importance(self, model: Any, feature_names: List[str]) -> Optional[Dict[str, float]]:
+    def get_feature_importance(self, model: Any, feature_names: list[str]) -> dict[str, float] | None:
         importances = model.feature_importances_
         return {name: float(imp) for name, imp in zip(feature_names, importances)}
 
@@ -102,7 +104,7 @@ class PyTorchStrategy(TrainingStrategy):
         def forward(self, x):
             return self.fc(x)
 
-    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: Dict[str, Any], base_model: Optional[Any] = None) -> Any:
+    def train(self, X_train: Any, y_train: Any, X_test: Any, y_test: Any, params: dict[str, Any], base_model: Any | None = None) -> Any:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         epochs = params.get("epochs", 10)
         lr = params.get("lr", 0.01)

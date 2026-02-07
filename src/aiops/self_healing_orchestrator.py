@@ -1,6 +1,8 @@
 import asyncio
+from typing import Any
+
 import structlog
-from typing import Any, List
+
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
 
 logger = structlog.get_logger()
@@ -14,7 +16,7 @@ class SelfHealingOrchestrator:
     def __init__(
         self, 
         detector: TimeSeriesAnomalyDetector,
-        remediators: List[Any],
+        remediators: list[Any],
         check_interval: int = 10
     ):
         self.detector = detector
@@ -39,7 +41,7 @@ class SelfHealingOrchestrator:
             # 2. Trigger targeted remediation
             tasks = []
             for anomaly in anomalies:
-                # 🚀 SOTA: Route anomaly to specific remediators based on type
+                # Route anomaly to specific remediators based on type
                 a_type = anomaly.get("type", "generic")
                 for remediator in self.remediators:
                     # Check if remediator supports this specific anomaly type

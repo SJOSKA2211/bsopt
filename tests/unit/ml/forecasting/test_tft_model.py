@@ -1,7 +1,9 @@
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
+
 from src.ml.forecasting.tft_model import PriceTFTModel
+
 
 @pytest.fixture
 def sample_market_data():

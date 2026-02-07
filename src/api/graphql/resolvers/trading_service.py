@@ -1,7 +1,7 @@
-import structlog
-from typing import Optional
 from datetime import datetime
+
 import strawberry
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +14,7 @@ class Order:
     quantity: int
     order_type: str
     status: str
-    limit_price: Optional[float] = None
+    limit_price: float | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -24,7 +24,7 @@ async def create_order(
     side: str,
     quantity: int,
     order_type: str,
-    limit_price: Optional[float] = None
+    limit_price: float | None = None
 ) -> Order:
     logger.info("dummy_order_create", portfolio_id=portfolio_id, symbol=contract_symbol, side=side)
     return Order(

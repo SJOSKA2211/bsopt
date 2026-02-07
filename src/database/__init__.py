@@ -4,12 +4,15 @@ Database Session Management (Neon Native)
 
 import logging
 import time
-from typing import Generator, AsyncGenerator
+from collections.abc import AsyncGenerator, Generator
+
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
+
 from src.config import settings
+
 from .models import Base
 
 logger = logging.getLogger(__name__)
@@ -18,13 +21,21 @@ logger = logging.getLogger(__name__)
 # Use NullPool for serverless if in production to avoid connection pinning
 POOL_CLASS = NullPool if settings.ENVIRONMENT == "prod" else QueuePool
 
-# Ensure SSL for Neon
+# Ensure SSL for Neon in production
 db_url = settings.DATABASE_URL
-if "sslmode" not in db_url:
+if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
     separator = "&" if "?" in db_url else "?"
     db_url = f"{db_url}{separator}sslmode=require"
 
 # --- ENGINES ---
+def get_engine():
+    """Returns the synchronous SQLAlchemy engine."""
+    return engine
+
+def get_async_engine():
+    """Returns the asynchronous SQLAlchemy engine."""
+    return async_engine
+
 engine = create_engine(
     db_url,
     poolclass=POOL_CLASS,
@@ -57,18 +68,27 @@ def get_session():
     """Alias for get_db for compatibility."""
     return get_db()
 
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Generator[Session]:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_async_db() -> AsyncGenerator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         yield session
 
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
+
+
+@contextmanager
+def get_db_context():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @asynccontextmanager
 async def get_async_db_context():

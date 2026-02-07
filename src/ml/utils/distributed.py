@@ -1,11 +1,15 @@
-import logging
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
+import dask
+import structlog
 import xgboost as xgb
 import xgboost.dask
-import dask
 from dask.distributed import Client, LocalCluster
+
+from src.config import settings
+
+logger = structlog.get_logger(__name__)
 
 # Configure Dask for high-performance communication
 dask.config.set({
@@ -16,7 +20,7 @@ dask.config.set({
     "distributed.worker.memory.terminate": 0.95,
 })
 
-def get_dask_client(address: Optional[str] = None) -> Tuple[Client, bool]:
+def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     """
     Get or create a Dask client for distributed training.
     Returns (client, is_local_cluster).
@@ -32,7 +36,7 @@ def get_dask_client(address: Optional[str] = None) -> Tuple[Client, bool]:
     return Client(cluster), True
 
 
-def train_xgboost_distributed(X, y, params: Dict[str, Any], dask_address: Optional[str] = None):
+def train_xgboost_distributed(X, y, params: dict[str, Any], dask_address: str | None = None):
     """
     Train XGBoost model using Dask for distributed execution.
     """

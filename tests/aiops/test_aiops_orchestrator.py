@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import MagicMock, patch, ANY, call
-import os
+from unittest.mock import ANY, MagicMock, patch
+
 import numpy as np
+import pytest
 
 
 @pytest.fixture
@@ -36,11 +36,19 @@ def mock_orchestrator_dependencies():
          patch("src.aiops.aiops_orchestrator.DockerRemediator") as mock_docker_remediator_cls, \
          patch("src.aiops.aiops_orchestrator.MLPipelineTrigger") as mock_ml_pipeline_trigger_cls, \
          patch("src.aiops.aiops_orchestrator.RedisRemediator") as mock_redis_remediator_cls, \
+         patch("src.aiops.aiops_orchestrator.TransformerAnomalyDetector") as mock_transformer_cls, \
+         patch("src.aiops.aiops_orchestrator.PriceTFTModel"), \
          patch("src.aiops.aiops_orchestrator.setup_logging") as mock_setup_logging, \
          patch("src.aiops.aiops_orchestrator.push_metrics") as mock_push_metrics, \
          patch("src.aiops.aiops_orchestrator.post_grafana_annotation") as mock_post_grafana_annotation, \
-         patch("src.aiops.aiops_orchestrator.logger") as mock_orchestrator_logger: # Patch the logger directly
+         patch("src.aiops.aiops_orchestrator.logger") as mock_orchestrator_logger:
     
+        # Configure Transformer Mock
+        mock_transformer = mock_transformer_cls.return_value
+        mock_transformer.detect.return_value = {"is_anomaly": False, "score": 0.0}
+
+        # Configure TFT Mock
+
         # Configure PrometheusClient instance methods to return numpy arrays
         mock_prometheus_client_cls.return_value.get_historical_metric_data.return_value = np.array([1, 2, 3])
         mock_prometheus_client_cls.return_value.get_historical_metric_data_multi.return_value = np.array([[1, 2], [3, 4]])
@@ -72,6 +80,7 @@ def mock_orchestrator_dependencies():
         }
 
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+
 
 def test_orchestrator_init_all_enabled(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
@@ -249,6 +258,14 @@ def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, mu
         orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([-1]) if univariate_anomaly_detected else np.array([1])
         if orchestrator.autoencoder_detector: # Only set if autoencoder is enabled
             orchestrator.autoencoder_detector.fit_predict.return_value = np.array([-1]) if multivariate_anomaly_detected else np.array([1])
+        
+        # 🚀 Configure Transformer Mock based on test parameters
+        if hasattr(orchestrator, "transformer_detector") and orchestrator.transformer_detector:
+            orchestrator.transformer_detector.detect.return_value = {
+                "is_anomaly": multivariate_anomaly_detected, 
+                "score": 0.1 if multivariate_anomaly_detected else 0.0
+            }
+
         orchestrator.data_drift_detector.detect_drift.return_value = (data_drift_detected, {"drift_type": "KS"})
         
         anomalies = orchestrator._detect_anomalies()

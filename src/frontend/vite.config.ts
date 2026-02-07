@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: true,
       target: 'esnext', // Support top-level await for WASM
-      cssCodeSplit: true, // 🚀 SINGULARITY: Granular CSS delivery
+      cssCodeSplit: true, // Granular CSS delivery
       assetsInlineLimit: 4096, // Inline small assets to reduce requests
       rollupOptions: {
         output: {

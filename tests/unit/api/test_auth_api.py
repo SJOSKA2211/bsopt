@@ -1,14 +1,15 @@
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock, ANY
-from fastapi.testclient import TestClient
-from cryptography.fernet import Fernet
-from src.api.main import app
-from src.database.models import User
-from src.database import get_db
-from src.security.auth import get_current_user, get_current_active_user
 import uuid
-from datetime import datetime, timezone
-from fastapi import HTTPException
+from datetime import UTC, datetime
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
+
+import pytest
+from cryptography.fernet import Fernet
+from fastapi.testclient import TestClient
+
+from src.api.main import app
+from src.database import get_db
+from src.database.models import User
+from src.security.auth import get_current_active_user, get_current_user
 
 client = TestClient(app)
 
@@ -29,7 +30,7 @@ def mock_user():
         is_active=True,
         is_verified=True,
         is_mfa_enabled=False,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(UTC)
     )
     return user
 

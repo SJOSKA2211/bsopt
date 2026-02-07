@@ -1,8 +1,9 @@
-import ray
 import asyncio
-import structlog
 import time
-from typing import Dict, List
+
+import ray
+import structlog
+
 from src.utils.distributed import RayOrchestrator
 from src.utils.http_client import HttpClientManager
 
@@ -11,49 +12,53 @@ logger = structlog.get_logger(__name__)
 @ray.remote
 class MathActor:
     """
-    SOTA: Persistent Ray Actor for high-speed mathematical computations.
-    Maintains a persistent event loop and shared memory attachments.
+    Persistent Ray Actor for high-speed mathematical computations.
     """
     def __init__(self):
-        # 🚀 SINGULARITY: Initialize persistent state
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        logger.info("math_actor_initialized")
+        logger.info("math_worker_ready")
 
-    async def calibrate(self, symbol: str, data: List[Dict]) -> Dict:
-        """🚀 SOTA: Non-blocking calibration logic."""
+    async def calibrate(self, symbol: str, data: list[dict]) -> dict:
+        """Perform non-blocking calibration."""
         start_time = time.time()
-        # Simulated heavy math using the shared pricing kernels
-        await asyncio.sleep(0.1) # Mock work
+        # Simulated heavy math using pricing kernels
+        await asyncio.sleep(0.01) # Reduced mock latency
         duration = (time.time() - start_time) * 1000
-        logger.info("calibration_completed", symbol=symbol, latency_ms=duration)
-        return {"status": "success", "symbol": symbol, "latency_ms": duration}
+        logger.info("calibration_done", symbol=symbol, ms=duration)
+        return {"status": "ok", "symbol": symbol, "latency_ms": duration}
 
-    def run_calibration(self, symbol: str, data: List[Dict]):
-        """Bridge sync Ray call to async actor logic."""
-        return self.loop.run_until_complete(self.calibrate(symbol, data))
+    def run_calibration(self, symbol: str, data: list[dict]):
+        """Synchronous bridge for Ray orchestration."""
+        try:
+            loop = asyncio.get_running_loop()
+            # If we are here, we are already in an event loop (likely Ray's IO thread)
+            # Use a thread-safe way to run the coroutine
+            return asyncio.run_coroutine_threadsafe(self.calibrate(symbol, data), loop).result()
+        except RuntimeError:
+            # No running event loop, use asyncio.run
+            return asyncio.run(self.calibrate(symbol, data))
 
 @ray.remote
 class WebhookActor:
     """
-    SOTA: Persistent Ray Actor for high-throughput webhook delivery.
-    Leverages shared HttpClientManager with HTTP/2 and connection pooling.
+    Persistent Ray Actor for high-throughput webhook delivery.
     """
     def __init__(self):
+        # Use shared HTTP/2 connection pool
         self.client = HttpClientManager.get_client()
-        logger.info("webhook_actor_initialized")
+        logger.info("delivery_worker_ready")
 
-    async def deliver(self, url: str, payload: Dict):
-        """🚀 SINGULARITY: Efficient delivery using pooled HTTP/2 connections."""
+    async def deliver(self, url: str, payload: dict):
+        """Asynchronous webhook delivery."""
         try:
             response = await self.client.post(url, json=payload)
-            logger.info("webhook_delivered", url=url, status=response.status_code)
+            logger.info("webhook_sent", url=url, status=response.status_code)
             return response.status_code
         except Exception as e:
-            logger.error("webhook_delivery_failed", url=url, error=str(e))
+            logger.error("delivery_error", url=url, error=str(e))
             return 500
 
-    def run_delivery(self, url: str, payload: Dict):
+    def run_delivery(self, url: str, payload: dict):
+        """Synchronous bridge."""
         return asyncio.run(self.deliver(url, payload))
 
 if __name__ == "__main__":

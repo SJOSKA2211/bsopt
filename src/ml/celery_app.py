@@ -1,7 +1,9 @@
-from celery import Celery
-from typing import Dict, Any
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from typing import Any
+
 import structlog
+from celery import Celery
+
+from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -26,7 +28,7 @@ celery_app.conf.update(
 )
 
 @celery_app.task(bind=True, name="ml.run_autonomous_pipeline")
-def run_pipeline_task(self, config: Dict[str, Any]):
+def run_pipeline_task(self, config: dict[str, Any]):
     """
     Celery task to run the autonomous ML pipeline.
     """

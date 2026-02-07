@@ -1,13 +1,14 @@
+import asyncio
+import time
+from collections.abc import Callable
+from datetime import datetime
+
+import structlog
 from confluent_kafka import Consumer, KafkaError
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
-import asyncio
-import orjson
-import structlog
-from typing import Dict, List, Callable, Optional
-import time
-from pydantic import BaseModel, ValidationError, TypeAdapter, ConfigDict
-from datetime import datetime
+from pydantic import BaseModel, ConfigDict, TypeAdapter
+
 
 class MarketDataSchema(BaseModel):
     model_config = ConfigDict(slots=True)
@@ -32,7 +33,7 @@ class MarketDataConsumer:
         bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092",
         schema_registry_url: str = "http://schema-registry:8081",
         group_id: str = "market-data-consumers",
-        topics: List[str] = ["market-data"]
+        topics: list[str] = ["market-data"]
     ):
         self.config = {
             'bootstrap.servers': bootstrap_servers,
@@ -54,7 +55,7 @@ class MarketDataConsumer:
 
         # Schema Registry for Avro deserialization
         self.schema_registry = SchemaRegistryClient({'url': schema_registry_url})
-        with open("src/streaming/schemas/market_data.avsc", "r") as f:
+        with open("src/streaming/schemas/market_data.avsc") as f:
             self.market_data_schema = f.read()
         self.avro_deserializer = AvroDeserializer(
             self.schema_registry,
@@ -63,7 +64,7 @@ class MarketDataConsumer:
 
     async def consume_messages(
         self,
-        callback: Callable[[Dict], None],
+        callback: Callable[[dict], None],
         batch_size: int = 100
     ):
         """
@@ -123,7 +124,7 @@ class MarketDataConsumer:
         finally:
             self.consumer.close()
 
-    async def _process_batch(self, batch: List[Dict], callback: Callable):
+    async def _process_batch(self, batch: list[dict], callback: Callable):
         """Process batch of messages efficiently."""
         start_time = time.time()
         try:

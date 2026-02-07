@@ -1,7 +1,9 @@
-from dataclasses import dataclass
-from typing import Union, Optional
-import numpy as np
 import threading
+from dataclasses import dataclass
+from typing import Optional, Union
+
+import numpy as np
+
 
 class ModelPool:
     """
@@ -78,23 +80,20 @@ class OptionGreeks:
     """
     Container for option sensitivity measures.
     """
-    delta: Union[float, np.ndarray]
-    gamma: Union[float, np.ndarray]
-    theta: Union[float, np.ndarray]
-    vega: Union[float, np.ndarray]
-    rho: Union[float, np.ndarray]
-    phi: Optional[Union[float, np.ndarray]] = None
+    delta: float | np.ndarray
+    gamma: float | np.ndarray
+    theta: float | np.ndarray
+    vega: float | np.ndarray
+    rho: float | np.ndarray
+    phi: float | np.ndarray | None = None
 
     def __getitem__(self, item):
         if isinstance(item, str):
             return getattr(self, item)
         raise TypeError(f"OptionGreeks indices must be strings, not {type(item).__name__}")
 
-        def __contains__(self, item):
-
-            return hasattr(self, item)
-
-    
+    def __contains__(self, item):
+        return hasattr(self, item)
 
 @dataclass(frozen=True, slots=True)
 class HestonParams:
@@ -116,4 +115,4 @@ class HestonParams:
         if any(p <= 0 for p in [self.v0, self.kappa, self.theta, self.sigma]):
             raise ValueError("All parameters except rho must be positive")
 
-    
+__all__ = ["BSParameters", "OptionGreeks", "HestonParams"]

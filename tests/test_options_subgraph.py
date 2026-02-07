@@ -1,6 +1,8 @@
 import pytest
 from strawberry.types import ExecutionResult
+
 from src.api.graphql.options import schema
+
 
 @pytest.mark.asyncio
 async def test_options_subgraph_schema_valid():
@@ -47,9 +49,11 @@ async def test_resolve_option():
 
 def test_graphql_endpoint():
     """Verify that the /graphql endpoint is mounted and working in the FastAPI app."""
-    from src.api.main import app
-    from fastapi.testclient import TestClient
     from unittest.mock import patch
+
+    from fastapi.testclient import TestClient
+
+    from src.api.main import app
     
     client = TestClient(app)
     

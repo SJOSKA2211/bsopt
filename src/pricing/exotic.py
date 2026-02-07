@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 from scipy.stats import norm
@@ -78,7 +78,7 @@ class AsianOptionPricer:
         option_type: str,
         strike_type: StrikeType = StrikeType.FIXED,
         **kwargs,
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         S, K, T, r, q, sigma = (
             params.base_params.spot,
             params.base_params.strike,
@@ -121,7 +121,8 @@ class AsianOptionPricer:
         return float(np.mean(y_sim)), float(1.96 * np.std(y_sim) / np.sqrt(n_paths))
 
 
-from src.pricing.quant_utils import batch_bs_price_jit, jit_generate_paths
+from src.pricing.quant_utils import jit_generate_paths
+
 try:
     from numba import njit, prange
 except ImportError:
@@ -200,8 +201,8 @@ class BarrierOptionPricer:
         params: ExoticParameters, option_type: str, barrier_type: BarrierType
     ) -> float:
         """
-        🚀 SINGULARITY: Full Reiner-Rubinstein (1991) analytical solution.
-        Supports all 8 standard barrier option types with exact closed-form math.
+        Implementation of the Reiner-Rubinstein (1991) analytical solution.
+        Supports standard barrier option types with exact closed-form math.
         """
         S, K, T, r, q, sigma = (
             params.base_params.spot,
@@ -247,8 +248,8 @@ class BarrierOptionPricer:
             phi * K * np.exp(-r * T) * (H / S)**(2 * mu) * _f_cdf(eta * d8)
         D = phi * S * np.exp((b - r) * T) * (H / S)**(2 * (mu + 1)) * _f_cdf(eta * d5) - \
             phi * K * np.exp(-r * T) * (H / S)**(2 * mu) * _f_cdf(eta * d6)
-        E = R * np.exp(-r * T) * (_f_cdf(eta * d4) - (H / S)**(2 * mu) * _f_cdf(eta * d8))
-        F = R * ((H / S)**(mu + lam) * _f_cdf(eta * d3) + (H / S)**(mu - lam) * _f_cdf(eta * d4)) # Simplified rebate F
+        R * np.exp(-r * T) * (_f_cdf(eta * d4) - (H / S)**(2 * mu) * _f_cdf(eta * d8))
+        R * ((H / S)**(mu + lam) * _f_cdf(eta * d3) + (H / S)**(mu - lam) * _f_cdf(eta * d4)) # Simplified rebate F
 
         # Dispatch logic
         if barrier_type == BarrierType.DOWN_AND_OUT:
@@ -307,7 +308,7 @@ class LookbackOptionPricer:
     @staticmethod
     def price_lookback_mc(
         params: ExoticParameters, option_type: str, strike_type: StrikeType, **kwargs
-    ) -> Tuple[float, float]:
+    ) -> tuple[float, float]:
         S, T, r, q, sigma = (
             params.base_params.spot,
             params.base_params.maturity,
@@ -369,7 +370,6 @@ class DigitalOptionPricer:
         digital_type: str = "cash",
         payout: float = 1.0,
     ) -> Any:
-        from src.pricing.black_scholes import OptionGreeks
 
         S, K, T, r, q, sigma = (
             params.spot,

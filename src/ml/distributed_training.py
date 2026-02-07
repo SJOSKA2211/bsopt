@@ -1,15 +1,17 @@
-import torch
+from typing import Any
+
 import ray
+import structlog
+import torch
+import torch.nn as nn
 from ray.train import ScalingConfig
 from ray.train.torch import TorchTrainer
+
 from src.ml.trainer_v2 import Trainer
-import torch.nn as nn
-from typing import Dict, Any, Optional
-import structlog
 
 logger = structlog.get_logger(__name__)
 
-def train_func(config: Dict[str, Any]):
+def train_func(config: dict[str, Any]):
     """
     Worker function executed on each Ray node.
     """
@@ -34,7 +36,7 @@ def train_func(config: Dict[str, Any]):
     
     # 4. Initialize the custom V2 Trainer
     # We pass the sharded loaders and the DDP model
-    trainer = Trainer(
+    Trainer(
         model=model,
         optimizer=optimizer,
         criterion=criterion,
@@ -52,7 +54,7 @@ class BSOptDistributedTrainer:
         self.num_workers = num_workers
         self.use_gpu = use_gpu
 
-    def run(self, config: Dict[str, Any]):
+    def run(self, config: dict[str, Any]):
         trainer = TorchTrainer(
             train_func,
             train_loop_config=config,

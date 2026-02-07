@@ -1,7 +1,8 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from src.security.audit import log_audit, AuditEvent
+
 from src.database.models import User
+from src.security.audit import AuditEvent, log_audit
+
 
 @patch("src.tasks.audit_tasks.persist_audit_log.delay")
 def test_log_audit_basic(mock_delay):

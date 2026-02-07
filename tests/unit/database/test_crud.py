@@ -1,14 +1,13 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.database.models import Base, User, Portfolio
-from src.database.crud import create_user, get_user_by_email, create_portfolio, get_user_portfolios
-
-from sqlalchemy.dialects import postgresql, sqlite
+from sqlalchemy.dialects import postgresql
 
 # Patch JSONB to use JSON for SQLite
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.types import JSON
+from sqlalchemy.orm import sessionmaker
+
+from src.database.crud import create_portfolio, create_user, get_user_by_email, get_user_portfolios
+from src.database.models import Base
+
 
 @pytest.fixture(autouse=True)
 def patch_jsonb(monkeypatch):

@@ -1,8 +1,11 @@
-import pytest
-import pandas as pd
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
-from unittest.mock import MagicMock, AsyncMock, patch
+import pandas as pd
+import pytest
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+
 
 @pytest.fixture
 def mock_config():
@@ -30,7 +33,7 @@ def mock_df():
 
 @pytest.mark.asyncio
 async def test_pipeline_run(mock_config, mock_df):
-    with patch("src.ml.autonomous_pipeline.create_engine") as mock_engine:
+    with patch("src.ml.autonomous_pipeline.create_engine"):
         with patch("src.ml.autonomous_pipeline.Base.metadata.create_all"):
             with patch("src.ml.autonomous_pipeline.MarketDataScraper") as MockScraper:
                 with patch("src.ml.autonomous_pipeline.get_async_db_context") as mock_db_ctx:

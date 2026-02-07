@@ -15,7 +15,7 @@ interface PricingState {
   batchUpdate: (updates: Record<string, Partial<PriceData>>) => void;
 }
 
-// 🚀 SINGULARITY: Zero-re-render transient state store
+// Zero-re-render transient state store
 export const usePricingStore = create<PricingState>()(
   subscribeWithSelector((set) => ({
     prices: {},

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
@@ -7,7 +7,7 @@ from tests.test_utils import assert_equal
 
 
 def test_options_data_validation():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     df = pd.DataFrame(
         {
             "symbol": ["AAPL", "AAPL"],

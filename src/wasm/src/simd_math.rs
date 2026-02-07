@@ -1,6 +1,6 @@
 use std::arch::wasm32::*;
 
-/// 🚀 SINGULARITY: SIMD-accelerated math for WASM
+/// SIMD-accelerated math for WASM
 /// Optimized for Black-Scholes workloads.
 
 #[inline(always)]
@@ -13,7 +13,7 @@ pub unsafe fn simd_abs(x: v128) -> v128 {
     f64x2_abs(x)
 }
 
-/// 🚀 SOTA: SIMD Natural Logarithm (Polynomial Approximation)
+/// SIMD Natural Logarithm (Polynomial Approximation)
 #[inline(always)]
 pub unsafe fn simd_ln(x: v128) -> v128 {
     let one = f64x2(1.0, 1.0);
@@ -26,7 +26,7 @@ pub unsafe fn simd_ln(x: v128) -> v128 {
     f64x2_mul(t, f64x2_add(f64x2(2.0, 2.0), f64x2_mul(t2, f64x2_add(f64x2(0.66666666, 0.66666666), f64x2_mul(t2, f64x2(0.4, 0.4))))))
 }
 
-/// 🚀 SOTA: SIMD Exponential (Polynomial Approximation)
+/// SIMD Exponential (Polynomial Approximation)
 #[inline(always)]
 pub unsafe fn simd_exp(x: v128) -> v128 {
     let one = f64x2(1.0, 1.0);
@@ -37,7 +37,7 @@ pub unsafe fn simd_exp(x: v128) -> v128 {
     f64x2_add(one, f64x2_add(x, f64x2_add(f64x2_mul(x2, f64x2(0.5, 0.5)), f64x2_add(f64x2_mul(x3, f64x2(0.16666666, 0.16666666)), f64x2_mul(x4, f64x2(0.04166666, 0.04166666))))))
 }
 
-/// 🚀 SOTA: SIMD Normal PDF
+/// SIMD Normal PDF
 #[inline(always)]
 pub unsafe fn simd_n_pdf(x: v128) -> v128 {
     let inv_sqrt_2pi = f64x2(0.3989422804014327, 0.3989422804014327);
@@ -46,7 +46,7 @@ pub unsafe fn simd_n_pdf(x: v128) -> v128 {
     f64x2_mul(inv_sqrt_2pi, simd_exp(arg))
 }
 
-/// 🚀 SOTA: SIMD Normal CDF (Abramowitz & Stegun)
+/// SIMD Normal CDF (Abramowitz & Stegun)
 #[inline(always)]
 pub unsafe fn simd_n_cdf(x: v128) -> v128 {
     let p = f64x2(0.2316419, 0.2316419);

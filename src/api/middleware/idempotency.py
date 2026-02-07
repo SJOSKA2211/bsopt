@@ -1,14 +1,13 @@
 import hashlib
-import msgspec
-import asyncio
 import time
-from typing import Any, Optional, Dict, Union
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response, StreamingResponse
+
+import msgspec
 import redis.asyncio as redis
 import structlog
-from prometheus_client import Counter, Gauge, Histogram
+from fastapi import Request, Response
+from prometheus_client import Counter, Histogram
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 logger = structlog.get_logger()
 
@@ -22,21 +21,20 @@ IDEMPOTENCY_PROCESSING_TIME = Histogram('idempotency_processing_seconds', 'Time 
 
 async def _generate_fingerprint(request: Request) -> str:
     """
-    🚀 SINGULARITY: Fast-path fingerprinting.
-    Prefers X-Idempotency-Key header to avoid expensive body hashing.
+    Calculate a request fingerprint for idempotency tracking.
+    Uses X-Idempotency-Key if provided, otherwise hashes the request context.
     """
-    # 1. Fast-Path: Client-provided idempotency key
+    # 1. Preferred: Client-provided unique key
     idempotency_key = request.headers.get("X-Idempotency-Key")
     if idempotency_key:
-        # Use a sub-hash or just the key if it's already a UUID/Hash
         return f"hdr:{idempotency_key}"
 
-    # 2. Slow-Path: Hash the entire request context
+    # 2. Fallback: Generate fingerprint from method, path, and payload
     hasher = hashlib.sha256()
     hasher.update(request.method.encode())
     hasher.update(request.url.path.encode())
     
-    # 🚀 SOTA: Only hash critical headers
+    # Hash identifying headers
     for h in ["authorization", "content-type"]:
         val = request.headers.get(h, "")
         hasher.update(f"{h}:{val}".encode())
@@ -123,7 +121,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         "headers": dict(response.headers)
                     }
                     
-                    # 🚀 SOTA: Atomic multi-set with expiry
+                    # Atomic multi-set with expiry
                     await self.redis.set(cache_key, msgspec.json.encode(cache_data), ex=self.expiry)
                     IDEMPOTENCY_REQUESTS_TOTAL.labels(status='cached').inc()
                     

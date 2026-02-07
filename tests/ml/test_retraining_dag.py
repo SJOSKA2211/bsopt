@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.ml.pipelines.dag_neural_greeks import neural_greeks_retraining_flow
+
 
 @pytest.mark.asyncio
 async def test_neural_greeks_flow_execution():

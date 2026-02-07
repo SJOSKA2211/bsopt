@@ -1,9 +1,9 @@
-import pytest
-import hmac
-import hashlib
 import time
 
+import pytest
+
 from src.webhooks.dispatcher import _generate_signature, _verify_signature
+
 
 @pytest.mark.asyncio
 async def test_generate_signature_consistency():

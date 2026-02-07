@@ -1,7 +1,10 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from src.blockchain.defi_options import DeFiOptionsProtocol
+
 
 @pytest.fixture
 def mock_web3():
@@ -37,7 +40,7 @@ async def test_get_option_price_fetch(protocol, mock_web3):
     addr = "0x0000000000000000000000000000000000000001"
     
     # Mock fallback parallel call logic
-    with patch.object(protocol, '_get_option_prices_parallel', return_value={addr: 50.0}) as mock_parallel:
+    with patch.object(protocol, '_get_option_prices_parallel', return_value={addr: 50.0}):
         # Mock batch_requests to fail
         mock_web3.batch_requests.side_effect = Exception("Batch failed")
         

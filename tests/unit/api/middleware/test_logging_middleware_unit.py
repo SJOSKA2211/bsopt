@@ -1,11 +1,12 @@
-import pytest
-from fastapi import FastAPI, Request, Response
-from fastapi.testclient import TestClient
-from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
-from unittest.mock import MagicMock, patch, ANY
 import json
-import logging
 import uuid
+from unittest.mock import MagicMock, patch
+
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
+
+from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
+
 
 def test_structured_logger_full():
     sl = StructuredLogger("test_logger")
@@ -110,7 +111,7 @@ def test_request_logging_user_info():
 
 @patch("src.database.get_session")
 def test_persist_log_full(mock_get_session):
-    with patch("src.database.models.RequestLog") as mock_request_log_cls:
+    with patch("src.database.models.RequestLog"):
         mock_session = MagicMock()
         mock_get_session.return_value = mock_session
         

@@ -1,7 +1,9 @@
-import pytest
-from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from src.cli.portfolio import PortfolioManager, Position
+
 
 @pytest.fixture
 def portfolio_manager(tmp_path):

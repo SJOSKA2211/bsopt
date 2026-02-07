@@ -1,7 +1,8 @@
+from datetime import datetime
+
 import strawberry
 from strawberry.federation import Schema
-from datetime import datetime
-from typing import Optional
+
 
 @strawberry.federation.type(keys=["id"])
 class Option:
@@ -15,7 +16,7 @@ class Option:
 @strawberry.type
 class Query:
     @strawberry.field
-    def option(self, contract_symbol: str) -> Optional[Option]:
+    def option(self, contract_symbol: str) -> Option | None:
         # Mock data for now, as we aren't connecting to DB yet
         if contract_symbol == "AAPL_20260115_C_150":
             return Option(

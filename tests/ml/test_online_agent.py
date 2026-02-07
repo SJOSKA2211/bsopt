@@ -1,6 +1,7 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
 
 # We anticipate the module path but it doesn't exist yet
 try:

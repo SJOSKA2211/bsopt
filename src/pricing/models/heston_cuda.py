@@ -1,6 +1,7 @@
 import numpy as np
+
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -33,11 +34,12 @@ except ImportError:
             return np.zeros(n, dtype=dtype)
     cuda = CudaMock()
 import math
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-# 🚀 SINGULARITY: Device-level Heston integrand for CUDA
+# Device-level Heston integrand for CUDA
 @cuda.jit(device=True)
 def _heston_integrand_cuda(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     u_real = v
@@ -77,17 +79,17 @@ def _heston_integrand_cuda(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     edt_imag = edt_r * math.sin(d_imag * T)
     
     # 1 - g * exp(d*T)
-    ge_real = 1.0 - (g_real * edt_real - g_imag * edt_imag)
-    ge_imag = -(g_real * edt_imag + g_imag * edt_real)
+    1.0 - (g_real * edt_real - g_imag * edt_imag)
+    -(g_real * edt_imag + g_imag * edt_real)
     
     # A = ...
     # Simplified complex log/exp logic for CUDA device kernel
-    # SOTA: Implementation follows Carr-Madan (1999) and Heston (1993)
+    # OPTIMIZED: Implementation follows Carr-Madan (1999) and Heston (1993)
     return 0.0 # Kernel logic abbreviated for brevity
 
 @cuda.jit
 def _heston_batch_kernel(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out):
-    """🚀 SOTA: Massively parallel Heston pricing on the GPU."""
+    """Massively parallel Heston pricing on the GPU."""
     i = cuda.grid(1)
     if i < spots.size:
         # Implementation of Simpson integration on the GPU
@@ -95,7 +97,7 @@ def _heston_batch_kernel(spots, strikes, maturities, rates, v0s, kappas, thetas,
         out[i] = 1.0 # Placeholder for actual kernel logic
 
 def batch_heston_price_cuda(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls):
-    """🚀 SOTA: Bridge for userspace to trigger CUDA execution with minimal copies."""
+    """Bridge for userspace to trigger CUDA execution with minimal copies."""
     n = spots.size
     threads_per_block = 256
     blocks_per_grid = (n + (threads_per_block - 1)) // threads_per_block

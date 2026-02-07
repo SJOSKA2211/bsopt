@@ -1,8 +1,10 @@
 
-import pytest
-from hypothesis import given, strategies as st, settings, Verbosity
-import numpy as np
 from dataclasses import replace
+
+import numpy as np
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 from src.pricing.implied_vol import implied_volatility
 

@@ -2,20 +2,12 @@
 Pricing Routes (Singularity Refactored)
 """
 
-import time
-from typing import Any, List
-from fastapi import APIRouter, Depends, Request, Response
-from src.api.schemas.pricing import (
-    PriceRequest,
-    PriceResponse,
-    BatchPriceRequest,
-    BatchPriceResponse,
-    GreeksRequest,
-    GreeksResponse
-)
-from src.services.pricing_service import PricingService
-from src.api.responses import MsgspecJSONResponse
 import structlog
+from fastapi import APIRouter, Request
+
+from src.api.responses import MsgspecJSONResponse
+from src.api.schemas.pricing import BatchPriceRequest, GreeksRequest, PriceRequest
+from src.services.pricing_service import PricingService
 
 logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/pricing", tags=["Pricing"])

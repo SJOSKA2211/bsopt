@@ -1,7 +1,10 @@
-import pytest
-import pandas as pd
 from unittest.mock import MagicMock, patch
+
+import pandas as pd
+import pytest
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+
 
 @pytest.fixture
 def mock_config():

@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.ml.pipelines.retraining import NeuralGreeksRetrainer
+
 
 @pytest.mark.asyncio
 async def test_retrainer_trigger_success():

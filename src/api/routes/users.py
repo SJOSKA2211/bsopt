@@ -3,14 +3,15 @@ User Management Routes (Singularity Refactored)
 """
 
 import math
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Request, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
+
+from src.api.schemas.common import DataResponse, PaginatedResponse, PaginationMeta, SuccessResponse
+from src.api.schemas.user import UserResponse, UserUpdateRequest
 from src.database import get_db
 from src.database.models import User
-from src.api.schemas.user import UserResponse, UserUpdateRequest
-from src.api.schemas.common import DataResponse, SuccessResponse, PaginatedResponse, PaginationMeta
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

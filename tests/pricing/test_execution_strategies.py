@@ -1,8 +1,16 @@
-import pytest
-import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
-from unittest.mock import MagicMock, patch, AsyncMock
-from src.pricing.execution_strategies import StrategyFactory, SequentialStrategy, SHMStrategy, RayStrategy, WASMStrategy
+import pytest
+
+from src.pricing.execution_strategies import (
+    RayStrategy,
+    SequentialStrategy,
+    SHMStrategy,
+    StrategyFactory,
+    WASMStrategy,
+)
+
 
 @pytest.fixture
 def inputs():

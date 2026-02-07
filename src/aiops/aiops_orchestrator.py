@@ -46,7 +46,7 @@ class AIOpsOrchestrator:
         # Initialize Detectors
         self.isolation_forest_detector = IsolationForestDetector(contamination=self.isolation_forest_contamination)
         
-        # 🚀 SOTA: Forecasting Model for Predictive AIOps
+        # Forecasting Model for Predictive AIOps
         self.forecaster = PriceTFTModel(config=config.get("tft_config")) if self.predictive_scaling_enabled else None
 
         # Autoencoder initialization with logic for disabling
@@ -59,7 +59,7 @@ class AIOpsOrchestrator:
                 threshold_multiplier=config.get("autoencoder_threshold_multiplier", 2.0),
                 verbose=False
             )
-            # 🚀 SOTA: Transformer-based Detector
+            # Transformer-based Detector
             self.transformer_detector = TransformerAnomalyDetector(
                 input_dim=ae_input_dim,
                 threshold=config.get("transformer_threshold", 0.05)
@@ -118,7 +118,7 @@ class AIOpsOrchestrator:
         if p95_latency > self.latency_threshold:
             anomalies["high_latency"] = True
 
-        # 3. 🚀 SOTA: Predictive Load Detection via TFT
+        # 3. Predictive Load Detection via TFT
         if self.predictive_scaling_enabled and self.forecaster:
             # Placeholder: In production, fetch actual timeseries and run inference
             pass
@@ -140,7 +140,7 @@ class AIOpsOrchestrator:
                     if -1 in preds_multi:
                         anomalies["multivariate_anomaly"] = True
                     
-                    # 🚀 SOTA: Transformer Check
+                    # Transformer Check
                     if self.transformer_detector:
                         result = self.transformer_detector.detect(data_multi)
                         if result["is_anomaly"]:

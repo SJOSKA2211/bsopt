@@ -123,7 +123,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       if (pricingModel === 'black_scholes') {
         results = await batchCalculate(allParams);
       } else if (pricingModel === 'monte_carlo') {
-        // Run MC for each row (SOTA: parallelized in worker)
+        // Run MC for each row (OPTIMIZED: parallelized in worker)
         results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
       } else if (pricingModel === 'crank_nicolson') {
         results = await Promise.all(allParams.map(p => priceAmerican(p)));

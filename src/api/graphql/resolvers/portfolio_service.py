@@ -1,7 +1,6 @@
-import structlog
-from typing import List, Optional
-from datetime import datetime
+
 import strawberry
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -19,7 +18,7 @@ class Portfolio:
     cash_balance: float
     
     @strawberry.field
-    async def positions(self) -> List[Position]:
+    async def positions(self) -> list[Position]:
         logger.debug("dummy_positions_fetch", portfolio_id=self.id)
         return [
             Position(
@@ -30,7 +29,7 @@ class Portfolio:
             )
         ]
 
-async def get_portfolio(id: str) -> Optional[Portfolio]:
+async def get_portfolio(id: str) -> Portfolio | None:
     logger.debug("dummy_portfolio_fetch", portfolio_id=id)
     return Portfolio(id=strawberry.ID(id), user_id="user_123", cash_balance=10000.0)
 

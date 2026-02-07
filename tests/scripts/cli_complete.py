@@ -28,7 +28,7 @@ import sys
 import time
 import uuid
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import click
 from rich import box
@@ -265,7 +265,7 @@ def price(
 
 def _price_single_method(
     params: BSParameters, option_type: str, method: str, compute_greeks: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Price option using single method."""
     start_time = time.perf_counter()
 
@@ -339,7 +339,7 @@ def _price_all_methods(params: BSParameters, option_type: str, output: str):
     _display_comparison(results, output)
 
 
-def _display_price_result(result: Dict[str, Any], output_format: str):
+def _display_price_result(result: dict[str, Any], output_format: str):
     """Display single pricing result."""
     if output_format == "json":
         output_data = {
@@ -385,7 +385,7 @@ def _display_price_result(result: Dict[str, Any], output_format: str):
             console.print()
 
 
-def _display_comparison(results: Dict[str, Any], output_format: str):
+def _display_comparison(results: dict[str, Any], output_format: str):
     """Display comparison of multiple methods."""
     if output_format == "json":
         console.print_json(data=results)

@@ -1,8 +1,9 @@
-import pytest
 import os
+from datetime import datetime
+
+import pytest
 import sqlalchemy
 from sqlalchemy import text
-from datetime import datetime
 
 # Skip if no DB connection
 DATABASE_URL = os.getenv("DATABASE_URL")

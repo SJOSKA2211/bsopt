@@ -1,11 +1,12 @@
-import pytest
 import numpy as np
-from src.pricing.implied_vol import (
-    implied_volatility, 
-    vectorized_implied_volatility,
-    ImpliedVolatilityError
-)
+import pytest
+
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.pricing.implied_vol import (
+    implied_volatility,
+    vectorized_implied_volatility,
+)
+
 
 def test_iv_single_newton():
     spot, strike, maturity, rate, vol = 100.0, 105.0, 0.5, 0.05, 0.25

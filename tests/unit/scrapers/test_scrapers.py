@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.scrapers.engine import NSEScraper
+
 
 @pytest.mark.asyncio
 async def test_nse_scraper_http():

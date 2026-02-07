@@ -1,16 +1,15 @@
-import ray
-import asyncio
-import structlog
-import random
 import os
-from src.database import get_async_db_context
+
+import structlog
 from sqlalchemy import text
+
+from src.database import get_async_db_context
 
 logger = structlog.get_logger(__name__)
 
 class ChaosMonkey:
     """
-    SOTA: Proactive failure injection to verify AIOps remediation strategies.
+    OPTIMIZED: Proactive failure injection to verify AIOps remediation strategies.
     Only active if BSOPT_CHAOS_MODE=1.
     """
     def __init__(self):
@@ -19,7 +18,7 @@ class ChaosMonkey:
             logger.warning("chaos_monkey_enabled_prepare_for_disaster")
 
     def kill_actor(self, actor_name: str):
-        """🚀 SINGULARITY: Terminate a random Ray actor matching the name."""
+        """Terminate a random Ray actor matching the name."""
         if not self.enabled: return
         
         try:
@@ -33,16 +32,16 @@ class ChaosMonkey:
             logger.error("chaos_injection_failed", error=str(e))
 
     async def delay_db(self, seconds: float = 2.0):
-        """🚀 SOTA: Inject latency into a database connection."""
+        """Inject latency into a database connection."""
         if not self.enabled: return
         
         logger.error("chaos_injecting_db_latency", seconds=seconds)
         async with get_async_db_context() as session:
-            # SOTA: Using pg_sleep to simulate heavy load or network congestion
+            # OPTIMIZED: Using pg_sleep to simulate heavy load or network congestion
             await session.execute(text(f"SELECT pg_sleep({seconds})"))
 
     def partition_network(self, service_url: str):
-        """🚀 SOTA: Block traffic to a service URL (simulated)."""
+        """Block traffic to a service URL (simulated)."""
         if not self.enabled: return
         
         logger.error("chaos_injecting_network_partition", url=service_url)

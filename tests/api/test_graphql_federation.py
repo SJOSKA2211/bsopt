@@ -1,13 +1,15 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
+import os
+import sys
 from unittest.mock import patch
 
-import sys
-import os
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
+from src.api.main import GraphQLRouter as OriginalGraphQLRouter  # Import original for patching
 from src.api.main import app
-from src.api.main import GraphQLRouter as OriginalGraphQLRouter # Import original for patching
+
 
 @pytest.fixture(autouse=True)
 def patch_graphql_router():

@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
+
 import numpy as np
+import pytest
 
 # Import components from src.aiops
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+
 
 # Mocks for all components and shared observability functions
 @pytest.fixture

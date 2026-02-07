@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
 import struct
 from unittest.mock import MagicMock, patch
-from src.shared.shm_mesh import SharedMemoryRingBuffer, TICK_DTYPE, BUFFER_CAPACITY, TICK_SIZE
+
+import pytest
+
+from src.shared.shm_mesh import BUFFER_CAPACITY, TICK_SIZE, SharedMemoryRingBuffer
+
 
 @pytest.fixture
 def mock_shm():
@@ -35,7 +37,7 @@ def test_write_read_tick(mock_shm):
     assert view[0]['price'] == 150.0
 
 def test_wrap_around(mock_shm):
-    rb = SharedMemoryRingBuffer(create=True)
+    SharedMemoryRingBuffer(create=True)
     
     # Fake a full buffer
     # We can't easily fake 100k writes fast in python test

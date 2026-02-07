@@ -1,8 +1,9 @@
+from collections import deque
+
 import numpy as np
 import structlog
-from typing import List, Union, Tuple
 from scipy.stats import ks_2samp
-from collections import deque
+
 from src.shared.observability import DATA_DRIFT_SCORE, KS_TEST_SCORE, PERFORMANCE_DRIFT_ALERT
 
 # Initialize structured logger
@@ -57,7 +58,7 @@ class PerformanceDriftMonitor:
             
         return bool(is_drifted)
 
-def calculate_ks_test(expected: np.ndarray, actual: Union[np.ndarray, List]) -> Tuple[float, float]:
+def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[float, float]:
     """
     Calculates the Kolmogorov-Smirnov (KS) test between two distributions.
     
@@ -82,7 +83,7 @@ def calculate_ks_test(expected: np.ndarray, actual: Union[np.ndarray, List]) -> 
     
     return float(statistic), float(p_value)
 
-def calculate_psi(expected: np.ndarray, actual: Union[np.ndarray, List], buckets: int = 10) -> float:
+def calculate_psi(expected: np.ndarray, actual: np.ndarray | list, buckets: int = 10) -> float:
     """
     Calculates the Population Stability Index (PSI) between two distributions.
     
@@ -157,8 +158,8 @@ class DriftTrigger:
         self, 
         reference_data: np.ndarray, 
         current_data: np.ndarray, 
-        current_perf: Union[float, None]
-    ) -> Tuple[bool, str]:
+        current_perf: float | None
+    ) -> tuple[bool, str]:
         """
         Determines if retraining is necessary based on data distribution shift 
         and performance degradation.

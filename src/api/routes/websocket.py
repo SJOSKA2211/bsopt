@@ -1,7 +1,8 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, Depends
-from typing import Optional
 import structlog
-from src.api.websockets.manager import manager, ConnectionMetadata, ProtocolType
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+
+from src.api.websockets.manager import ProtocolType, manager
+
 # In a real app, we would import auth dependencies here
 # from src.api.dependencies import get_current_user
 
@@ -18,8 +19,15 @@ async def market_data_ws(
     WebSocket endpoint for real-time market data.
     """
     # Optimized: Direct registration without intermediate metadata object overhead
-    await manager.add_connection(websocket, symbol)
+    await manager.connect(websocket, symbol)
     
+    # Set protocol on the websocket object itself for the manager to read
+    if not hasattr(websocket, "metadata"):
+         from src.api.websockets.manager import ConnectionMetadata
+         websocket.metadata = ConnectionMetadata(protocol=protocol)
+    else:
+         websocket.metadata.protocol = protocol
+
     try:
         while True:
             # Keep connection alive and wait for client disconnect
@@ -27,7 +35,7 @@ async def market_data_ws(
             await websocket.receive_text()
             
     except WebSocketDisconnect:
-        manager.remove_connection(websocket, symbol)
+        manager.disconnect(websocket, symbol)
     except Exception as e:
         logger.error("ws_error", error=str(e))
-        manager.remove_connection(websocket, symbol)
+        manager.disconnect(websocket, symbol)

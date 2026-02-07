@@ -1,7 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
-from src.pricing.models import BSParameters
+
 
 @pytest.fixture
 def benchmark_data():

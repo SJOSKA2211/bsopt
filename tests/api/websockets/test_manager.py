@@ -1,12 +1,16 @@
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
+
 from src.api.websockets.manager import ConnectionManager, ConnectionMetadata, ProtocolType
 from src.protos.market_data_pb2 import TickerUpdate
+
 
 @pytest.fixture
 def manager():
     mgr = ConnectionManager()
     mgr.redis = Mock()
+    mgr.redis.publish = AsyncMock()
     mgr.pubsub = Mock()
     mgr.pubsub.subscribe = AsyncMock()
     mgr.pubsub.unsubscribe = AsyncMock()

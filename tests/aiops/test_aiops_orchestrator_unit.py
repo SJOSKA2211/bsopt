@@ -1,7 +1,9 @@
-import tests.mock_all
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, ANY
+
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+
 
 @pytest.fixture
 def mock_config():

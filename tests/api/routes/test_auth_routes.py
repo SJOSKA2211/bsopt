@@ -1,14 +1,23 @@
+import asyncio
+import hashlib
+import uuid
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
+from src.api.routes.auth import (
+    _send_password_reset_email,
+    _send_verification_email,
+    _verify_mfa_code,
+    get_current_active_user,
+    get_current_user,
+)
 from src.database import get_async_db, get_db
+from src.database.models import User
 from src.security.auth import get_auth_service
 from src.security.password import get_password_service
-from src.database.models import User
-from src.api.routes.auth import get_current_user, get_current_active_user, _verify_mfa_code, _send_verification_email, _send_password_reset_email
-from unittest.mock import MagicMock, patch, AsyncMock
-import uuid, asyncio, hashlib
-from fastapi import HTTPException
 
 client = TestClient(app)
 
@@ -31,8 +40,7 @@ def mock_all():
     app.dependency_overrides[get_async_db] = lambda: m_db
     # Global patches for settings and audit
     from src.config import settings as mock_settings
-    with patch("src.api.routes.auth.log_audit"), \
-         patch("src.api.schemas.auth.settings", mock_settings), \
+    with patch("src.api.schemas.auth.settings", mock_settings), \
          patch("src.api.routes.auth.settings", mock_settings):
         yield m_auth, m_pwd, m_db
     app.dependency_overrides.clear()
@@ -103,7 +111,7 @@ def test_mfa_exhaustive(mock_all):
     app.dependency_overrides.pop(get_current_active_user, None)
 
 def test_helpers_final(mock_all):
-    _, _, m_db = mock_all; u = create_mock_user(mfa_secret="e", mfa_backup_codes="h1")
+    _, _, m_db = mock_all; create_mock_user(mfa_secret="e", mfa_backup_codes="h1")
     with patch("src.api.routes.auth.send_transactional_email.delay") as md:
         asyncio.run(_send_verification_email("a@b.com", "t")); assert md.called
         md.reset_mock(); asyncio.run(_send_password_reset_email("a@b.com", "t")); assert md.called

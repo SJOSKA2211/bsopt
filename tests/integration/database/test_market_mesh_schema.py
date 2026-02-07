@@ -1,6 +1,8 @@
-import pytest
-import psycopg2
 import os
+
+import psycopg2
+import pytest
+
 
 @pytest.fixture
 def db_connection():

@@ -7,7 +7,7 @@ Manages CLI-specific settings and preferences.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 
 class ConfigManager:
@@ -27,13 +27,13 @@ class ConfigManager:
         """Ensure the configuration directory exists."""
         self.config_file.parent.mkdir(parents=True, exist_ok=True)
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         """Load configuration from file, falling back to defaults."""
         if not self.config_file.exists():
-            return cast(Dict[str, Any], self.defaults.copy())
+            return cast(dict[str, Any], self.defaults.copy())
 
         try:
-            with open(self.config_file, "r") as f:
+            with open(self.config_file) as f:
                 user_config = json.load(f)
                 # Deep merge defaults with user config (simple version)
                 config = self.defaults.copy()
@@ -42,9 +42,9 @@ class ConfigManager:
                         config[key].update(value)
                     else:
                         config[key] = value
-                return cast(Dict[str, Any], config)
+                return cast(dict[str, Any], config)
         except Exception:
-            return cast(Dict[str, Any], self.defaults.copy())
+            return cast(dict[str, Any], self.defaults.copy())
 
     def save(self, scope: str = "user"):
         """Save current configuration to file."""
@@ -73,9 +73,9 @@ class ConfigManager:
             val = val[part]
         val[parts[-1]] = value
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         """Get the entire configuration dictionary."""
-        return cast(Dict[str, Any], self.config)
+        return cast(dict[str, Any], self.config)
 
     def reset(self, scope: str = "user"):
         """Reset configuration to defaults."""

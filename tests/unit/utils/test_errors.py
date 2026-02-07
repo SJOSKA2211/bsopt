@@ -1,5 +1,5 @@
-import pytest
-from src.utils.errors import robust_pricing_task, ServiceUnavailableException
+from src.utils.errors import ServiceUnavailableException, robust_pricing_task
+
 
 def test_robust_pricing_task_decorator():
     @robust_pricing_task(error_return_value={"error": True})

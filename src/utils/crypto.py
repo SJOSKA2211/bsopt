@@ -1,6 +1,8 @@
-import os
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import base64
+import os
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
 
 class AES256GCM:
     """

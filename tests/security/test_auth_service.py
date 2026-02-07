@@ -1,11 +1,13 @@
-import tests.mock_all
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timezone, timedelta
-from fastapi import HTTPException
-from src.security.auth import auth_service, token_blacklist, TokenData
-from src.database.models import User
 import uuid
+from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+import pytest
+from fastapi import HTTPException
+
+from src.database.models import User
+from src.security.auth import auth_service, token_blacklist
+
 
 @pytest.mark.asyncio
 async def test_token_creation_and_decoding():
@@ -27,7 +29,7 @@ async def test_token_creation_and_decoding():
 @pytest.mark.asyncio
 async def test_token_blacklist():
     jti = "test-jti"
-    exp = datetime.now(timezone.utc) + timedelta(hours=1)
+    exp = datetime.now(UTC) + timedelta(hours=1)
     
     # Local set-based blacklist (no redis)
     await token_blacklist.initialize(redis_client=None)

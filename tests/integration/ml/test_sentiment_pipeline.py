@@ -1,7 +1,10 @@
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from src.ml.pipelines.sentiment_ingest import SentimentIngestor
 import json
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.ml.pipelines.sentiment_ingest import SentimentIngestor
+
 
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_message():

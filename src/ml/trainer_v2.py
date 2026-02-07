@@ -1,33 +1,23 @@
+import json
+import logging
+import time
+from pathlib import Path
+from typing import Any
+
+import mlflow
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from typing import Optional, Callable, Dict, Any, Union
-import logging
-from pathlib import Path
-import json
-import time
-import mlflow
+
+from src.ml.callbacks import EarlyStopping
 
 logger = logging.getLogger(__name__)
 
-class EarlyStopping:
-    def __init__(self, patience: int = 5, min_delta: float = 0.0):
-        self.patience = patience
-        self.min_delta = min_delta
-        self.counter = 0
-        self.best_loss = float('inf')
-        self.early_stop = False
-
-    def __call__(self, val_loss: float):
-        if val_loss < self.best_loss - self.min_delta:
-            self.best_loss = val_loss
-            self.counter = 0
-        else:
-            self.counter += 1
-            if self.counter >= self.patience:
-                self.early_stop = True
-
 class Trainer:
+    """
+    Optimized Trainer for Neural Networks.
+    Handles training loop, validation, checkpointing, and MLflow logging.
+    """
     def __init__(
         self,
         model: nn.Module,
@@ -35,7 +25,7 @@ class Trainer:
         criterion: nn.Module,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
         output_dir: str = "models/checkpoints",
-        scheduler: Optional[Any] = None,
+        scheduler: Any | None = None,
         experiment_name: str = "Default_Experiment"
     ):
         self.model = model.to(device)
@@ -45,14 +35,15 @@ class Trainer:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scheduler = scheduler
-        self.history: Dict[str, list] = {"train_loss": [], "val_loss": []}
+        self.history: dict[str, list] = {"train_loss": [], "val_loss": []}
         
         # MLflow Init
         mlflow.set_experiment(experiment_name)
         self.run = mlflow.start_run()
-        self.log_params()
+        self._log_params()
 
-    def log_params(self):
+    def _log_params(self):
+        """Logs model and optimizer parameters to MLflow."""
         params = {
             "optimizer": self.optimizer.__class__.__name__,
             "criterion": self.criterion.__class__.__name__,
@@ -62,6 +53,7 @@ class Trainer:
         mlflow.log_params(params)
 
     def train_epoch(self, loader: DataLoader) -> float:
+        """Trains for one epoch."""
         self.model.train()
         total_loss = 0.0
         for data, target in loader:
@@ -76,6 +68,7 @@ class Trainer:
         return total_loss / len(loader)
 
     def validate(self, loader: DataLoader) -> float:
+        """Validates the model."""
         self.model.eval()
         total_loss = 0.0
         with torch.no_grad():
@@ -86,6 +79,31 @@ class Trainer:
                 total_loss += loss.item()
         return total_loss / len(loader)
 
+    def _handle_epoch_end(self, epoch: int, train_loss: float, val_loss: float):
+        """Processes logic at the end of each epoch."""
+        self.history["train_loss"].append(train_loss)
+        self.history["val_loss"].append(val_loss)
+
+        # Logging
+        mlflow.log_metrics({
+            "train_loss": train_loss,
+            "val_loss": val_loss,
+            "epoch": epoch
+        }, step=epoch)
+
+        if self.scheduler:
+            if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                self.scheduler.step(val_loss)
+            else:
+                self.scheduler.step()
+
+        logger.info(f"Epoch {epoch+1} | Train: {train_loss:.4f} | Val: {val_loss:.4f}")
+
+        # Checkpoint Best
+        if val_loss == min(self.history["val_loss"]):
+            self._save_checkpoint("best_model.pt")
+            mlflow.log_artifact(str(self.output_dir / "best_model.pt"))
+
     def fit(
         self,
         train_loader: DataLoader,
@@ -93,6 +111,7 @@ class Trainer:
         epochs: int = 100,
         early_stopping_patience: int = 10,
     ):
+        """Main training entry point."""
         early_stopping = EarlyStopping(patience=early_stopping_patience)
         start_time = time.time()
 
@@ -100,28 +119,7 @@ class Trainer:
             train_loss = self.train_epoch(train_loader)
             val_loss = self.validate(val_loader)
             
-            self.history["train_loss"].append(train_loss)
-            self.history["val_loss"].append(val_loss)
-
-            # Logging
-            mlflow.log_metrics({
-                "train_loss": train_loss,
-                "val_loss": val_loss,
-                "epoch": epoch
-            }, step=epoch)
-
-            if self.scheduler:
-                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                    self.scheduler.step(val_loss)
-                else:
-                    self.scheduler.step()
-
-            logger.info(f"Epoch {epoch+1}/{epochs} | Train: {train_loss:.4f} | Val: {val_loss:.4f}")
-
-            # Checkpoint Best
-            if val_loss == min(self.history["val_loss"]):
-                self.save_checkpoint("best_model.pt")
-                mlflow.log_artifact(str(self.output_dir / "best_model.pt"))
+            self._handle_epoch_end(epoch, train_loss, val_loss)
 
             early_stopping(val_loss)
             if early_stopping.early_stop:
@@ -131,10 +129,11 @@ class Trainer:
         total_time = time.time() - start_time
         logger.info(f"Training complete in {total_time:.2f}s")
         mlflow.log_metric("total_time", total_time)
-        self.save_metrics()
+        self._save_metrics()
         mlflow.end_run()
 
-    def save_checkpoint(self, filename: str):
+    def _save_checkpoint(self, filename: str):
+        """Saves a model checkpoint."""
         path = self.output_dir / filename
         torch.save({
             'model_state_dict': self.model.state_dict(),
@@ -143,7 +142,8 @@ class Trainer:
         }, path)
         logger.info(f"Saved checkpoint to {path}")
 
-    def save_metrics(self):
+    def _save_metrics(self):
+        """Saves history to JSON and logs as artifact."""
         metrics_path = self.output_dir / "metrics.json"
         with open(metrics_path, "w") as f:
             json.dump(self.history, f, indent=2)

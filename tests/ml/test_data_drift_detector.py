@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
-from src.aiops.data_drift_detector import DataDriftDetector # Assuming this path
+import pytest
+
+from src.aiops.data_drift_detector import DataDriftDetector  # Assuming this path
 
 # Mock for simplicity if DataDriftDetector doesn't directly use these or needs a wrapper
 # For this Red Phase, we just need to test the detector's logic around these scores.

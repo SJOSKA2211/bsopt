@@ -1,7 +1,10 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import os
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.pricing.quantum_backend import QuantumBackendManager
+
 
 class TestQuantumBackendManager:
     @patch.dict(os.environ, {"IBM_QUANTUM_TOKEN": "test_token"})

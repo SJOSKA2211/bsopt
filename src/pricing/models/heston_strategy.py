@@ -5,11 +5,9 @@ Heston Pricing Strategy Implementation
 Standardized wrapper for the Heston Stochastic Volatility model.
 """
 
-from typing import Optional, Any
-import numpy as np
 
 from src.pricing.base import PricingStrategy
-from src.pricing.models import BSParameters, OptionGreeks, HestonParams
+from src.pricing.models import BSParameters, OptionGreeks
 from src.pricing.models.heston_fft import HestonModelFFT
 
 

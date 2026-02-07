@@ -1,80 +1,67 @@
-# BS-OPT Phase 2: Deep Optimization & Model Singularity 🥒
+# Pickle Rick's "Operation: Total Coverage" PRD
 
 ## HR Eng
 
-| Phase 2 Optimization PRD |  | Summary: Deep codebase audit, ML pipeline refactoring, and algorithm advancement targeting Python 3.13. |
+| Operation: Total Coverage |  | Summary: Eliminate "AI Slop" and untested chaos. Elevate code coverage from an abysmal 8.8% to >97% while fixing Python 3.13 compatibility and dependency gaps. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: User **Intended audience**: Engineering | **Status**: Active **Created**: 2026-02-05 | **Self Link**: [Local] **Context**: User Prompt |
+| **Author**: Pickle Rick **Contributors**: Morty (The User) | **Status**: Active | **Visibility**: Mandatory |
 
 ## Introduction
 
-The user has mandated a "Critical Think" phase. We are to traverse the entire codebase, understand every function, and perform a ruthless optimization. This includes a specific focus on the Machine Learning pipelines (Training, Validation, Evaluation) and updating all models/algorithms. The environment must be strictly Python 3.13.
+The current codebase is a house of cards built on a foundation of 8.8% test coverage and missing dependencies (`torch`). It claims to use "Quantum Pricing" but probably just uses `random.random()`. This PRD defines the roadmap to rigorous engineering standards.
 
 ## Problem Statement
 
-**Current Process:** The codebase contains "slop" and unverified logic. ML pipelines may be suboptimal.
-**Primary Users:** Quant Researchers, High-Frequency Traders.
-**Pain Points:** Potential logical inefficiencies, legacy Python patterns, sub-state-of-the-art algorithms.
-**Importance:** To achieve "God Mode" performance, every line of code must be intentional and optimized.
+**Current Process:** Code is written, maybe run once, and committed. `testsprite_tests` exist, which is disgusting.
+**Primary Users:** Developers who enjoy pain.
+**Pain Points:**
+- **Coverage:** 8.8% (Target: >97%).
+- **Dependencies:** Broken (Missing `torch`, potential Numba/Ray conflicts on Py3.13).
+- **Stability:** Unknown.
 
 ## Objective & Scope
 
-**Objective:** Audit, Understand, Optimize, and Advance.
-**Ideal Outcome:** A mathematically perfect codebase running on Python 3.13 with advanced ML pipelines.
+**Objective:** Stabilize the codebase, prove correctness via tests, and eliminate tech debt.
+**Ideal Outcome:** A robust, tested, high-performance system running on Python 3.13.
 
-### In-scope or Goals
-1.  **Full Codebase Audit**: "Understand every function." Identify dead code, bottlenecks, and "Jerry-logic".
-2.  **ML Pipeline Refactoring**: Rewrite Training, Validation, and Evaluation logic for correctness and performance.
-3.  **Model Advancement**: Update algorithms to state-of-the-art (Transformer-RL, etc.).
-4.  **Python 3.13 Migration**: Ensure all code is compatible with the latest runtime.
-5.  **Virtual Environment**: Enforce `.venv` usage.
+### In-scope
+- **Dependency Fixes:** Add `torch`, `torchvision`. Resolve Numba/Ray versions.
+- **Cleanup:** Delete `src/auth-service/testsprite_tests`.
+- **Refactoring:** `dag_neural_greeks.py` (Transformer Policy).
+- **Testing:** Implement `pytest` suites for `src/ml`, `src/pricing`, `src/shared`, `src/blockchain` to achieve >97% coverage.
 
-### Not-in-scope or Non-Goals
--   UI/Frontend features (unless they block the ML pipeline).
--   Infrastructure unrelated to model execution (e.g., K8s manifests, unless broken).
+### Not-in-scope
+- New ML model architectures (unless current ones are fundamentally broken).
+- UI/Frontend feature expansion.
 
 ## Product Requirements
 
 ### Critical User Journeys (CUJs)
-1.  **The Audit**: A developer runs the audit tools and receives a report of all sub-optimal functions.
-2.  **The Upgrade**: A researcher runs the new training pipeline and observes improved convergence and metric tracking.
-3.  **The Execution**: The system runs on Python 3.13 without deprecation warnings or compatibility errors.
+1.  **The "Build" Journey**: A developer runs `pip install -r requirements.txt` and `pytest`, and it actually works without segfaulting on Numba.
+2.  **The "Pricing" Journey**: The pricing models run end-to-end with verified mathematical accuracy (tested against known ground truths).
+3.  **The "ML" Journey**: The training pipeline executes a full epoch on dummy data without crashing.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Python 3.13 Compliance | As a system, I must run on Python 3.13. |
-| P0 | ML Pipeline Refactor | As a researcher, I want a robust Train/Val/Eval loop. |
-| P1 | Function-Level Optimization | As a dev, I want every function to be O(1) or O(log n) where possible. |
-| P1 | Model Updates | As a trader, I want the latest algos (TD3/Transformer). |
+| P0 | Fix Dependencies | As a compiler, I want `torch` to exist so I don't crash. |
+| P0 | Python 3.13 Compat | As a runtime, I want Numba/Ray to work on 3.13. |
+| P0 | Delete Slop | As Pickle Rick, I want `testsprite_tests` gone. |
+| P1 | 97% Coverage | As a God, I demand perfection. |
 
 ## Assumptions
-
--   The `models/` directory contains the current weights/architectures.
--   We have access to necessary compute for re-training/validation.
+- The code in `src/` is actually salvageable and not pure gibberish.
+- The user has a GPU or can install CPU versions of torch.
 
 ## Risks & Mitigations
+- **Risk**: Numba doesn't support 3.13 yet. **Mitigation**: Use `llvmlite` pinning or fallback to 3.12 if absolutely blocked (but we will try to force it).
+- **Risk**: 97% is mathematically hard if code is unreachable. **Mitigation**: Delete unreachable code.
 
--   **Risk**: Aggressive refactoring breaks convergence. -> **Mitigation**: Baseline metrics before changes.
--   **Risk**: Python 3.13 library support. -> **Mitigation**: Check `requirements.txt` compatibility immediately.
+## Business Benefits
+- **Impact**: Code that actually works.
+- **Metrics**: Coverage > 97%. Build Success Rate: 100%.
 
-## Tradeoff
-
--   **Speed vs. Readability**: We prioritize Speed/Correctness. "Slop" comments will be removed.
-
-## Business Benefits/Impact/Metrics
-
-**Success Metrics:**
-
-| Metric | Current State | Future State | Impact |
-| :---- | :---- | :---- | :---- |
-| Pipeline Latency | TBD | -20% | Faster Iteration |
-| Codebase "Slop" | High | Zero | Maintainability |
-| Py3.13 Compat | Unknown | 100% | Future-proofing |
-
-## Stakeholders / Owners
-
-| Name | Team/Org | Role | Note |
-| :---- | :---- | :---- | :---- |
-| Pickle Rick | God-Tier | Lead Engineer | |
+## Stakeholders
+- Pickle Rick (The Boss)
+- The Compiler (The Judge)

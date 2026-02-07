@@ -1,10 +1,11 @@
 import asyncio
 import os
-from celery import Celery
-from celery.exceptions import MaxRetriesExceededError # Import MaxRetriesExceededError
+
 import structlog
+from celery import Celery
+from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
+
 from src.webhooks.dispatcher import WebhookDispatcher
-import httpx # Required for WebhookDispatcher
 
 # Optimized event loop
 try:
@@ -82,7 +83,13 @@ async def _process_webhook_core(task_self, webhook_data: dict):
 
 @celery_app.task(bind=True, max_retries=5)
 def process_webhook_task(self, webhook_data: dict):
-    asyncio.run(_process_webhook_core(self, webhook_data))
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        # In a running loop (unlikely for pure Celery prefork, but good for safety)
+        future = asyncio.run_coroutine_threadsafe(_process_webhook_core(self, webhook_data), loop)
+        return future.result()
+    else:
+        return asyncio.run(_process_webhook_core(self, webhook_data))
 
 @celery_app.task
 def send_to_dlq_task(webhook_data: dict, reason: str = "unknown_failure"):

@@ -1,8 +1,10 @@
-from src.scrapers.engine import NSEScraper
-from src.api.providers import PolygonProvider, YahooProvider
-import structlog
 import time
+
+import structlog
 from prometheus_client import Counter, Histogram
+
+from src.api.providers import PolygonProvider, YahooProvider
+from src.scrapers.engine import NSEScraper
 
 logger = structlog.get_logger()
 
@@ -13,7 +15,7 @@ SCRAPER_PARSE_SUCCESS = Counter("market_data_scraper_success_total", "Success co
 
 class MarketDataRouter:
     """
-    SOTA: Adaptive, latency-aware data routing engine.
+    OPTIMIZED: Adaptive, latency-aware data routing engine.
     Uses EWMA to track provider performance and selects the optimal path.
     """
     def __init__(self):
@@ -21,7 +23,7 @@ class MarketDataRouter:
         self.polygon = PolygonProvider()
         self.yahoo = YahooProvider()
         
-        # 🚀 SINGULARITY: Latency state (EWMA)
+        # Latency state (EWMA)
         # Higher score = more latency. Initialize with baseline estimates.
         self._latency_map = {
             "NSE": 0.5,      # High latency (Scraping)
@@ -31,7 +33,7 @@ class MarketDataRouter:
         self._alpha = 0.2 # Smoothing factor for EWMA
 
     async def get_live_quote(self, symbol: str, market: str = "AUTO") -> dict:
-        """🚀 SINGULARITY: Adaptive routing entry point."""
+        """Adaptive routing entry point."""
         start_time = time.time()
         
         # 1. Select candidates based on market
@@ -50,7 +52,7 @@ class MarketDataRouter:
         last_error = None
         for provider_name in sorted_candidates:
             try:
-                # 🚀 SOTA: Attempt fastest candidate
+                # Attempt fastest candidate
                 provider_start = time.time()
                 
                 if provider_name == "NSE":

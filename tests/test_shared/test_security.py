@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+
 from src.shared.security import MTLSVerifier, OPAEnforcer
+
 
 def test_mtls_verifier_success():
     verifier = MTLSVerifier(required_dn="CN=backend")

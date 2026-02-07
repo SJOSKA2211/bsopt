@@ -1,6 +1,14 @@
-import pytest
 import numpy as np
-from src.pricing.vol_surface import SVIParameters, SABRParameters, SVIModel, SABRModel, VolatilitySurface
+import pytest
+
+from src.pricing.vol_surface import (
+    SABRModel,
+    SABRParameters,
+    SVIModel,
+    SVIParameters,
+    VolatilitySurface,
+)
+
 
 def test_svi_parameters_validation():
     with pytest.raises(ValueError, match="b must be non-negative"):
@@ -41,7 +49,7 @@ def test_vol_surface_interpolation():
     assert vol05 <= vol <= vol10 or vol10 <= vol <= vol05
 
 def test_calibration_engine_svi():
-    from src.pricing.vol_surface import MarketQuote, CalibrationEngine
+    from src.pricing.vol_surface import CalibrationEngine, MarketQuote
     quotes = [
         MarketQuote(strike=90, maturity=1.0, implied_vol=0.25, forward=100),
         MarketQuote(strike=100, maturity=1.0, implied_vol=0.20, forward=100),

@@ -1,11 +1,13 @@
-import pytest
-import sys
 import os
-import importlib
+import sys
 from unittest.mock import MagicMock, patch
+
+import pytest
 from pydantic import ValidationError
+
 import src.config
 from tests.test_utils import assert_equal
+
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_initialization():

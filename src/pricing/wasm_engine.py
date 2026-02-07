@@ -1,6 +1,8 @@
+from typing import Any
+
 import numpy as np
 import structlog
-from typing import Union, Optional, List, Dict, Any
+
 from .base import PricingStrategy
 from .models import BSParameters, OptionGreeks
 
@@ -31,7 +33,7 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return 0.0 # Fallback should be handled by factory
         
-        # SOTA: Route to specialized WASM solvers based on model type (Task 3)
+        # OPTIMIZED: Route to specialized WASM solvers based on model type (Task 3)
         if self.model in ["monte_carlo", "mc"]:
             return self.price_monte_carlo(params, option_type)
         elif self.model in ["fdm", "crank_nicolson"]:

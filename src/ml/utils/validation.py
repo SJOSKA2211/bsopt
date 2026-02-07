@@ -1,35 +1,38 @@
 """
-Unified Temporal Validator (Singularity Refactored)
+Temporal Cross-Validation Utilities
 """
 
+from collections.abc import Generator
+
 import numpy as np
-from typing import Generator, Tuple, Optional
+
 
 class WalkForwardValidator:
     """
-    High-performance temporal cross-validator.
-    Minimizes memory allocations by using index views.
+    High-performance temporal cross-validator using index views.
     """
-    def __init__(self, n_splits: int = 5, test_size: Optional[int] = None):
+    def __init__(self, n_splits: int = 5, test_size: int | None = None):
         self.n_splits = n_splits
         self.test_size = test_size
 
-    def split(self, X: np.ndarray) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
+    def split(self, X: np.ndarray) -> Generator[tuple[np.ndarray, np.ndarray]]:
         """
-        Generate temporal splits with pre-computed index boundaries.
+        Generate temporal splits using index views to minimize memory overhead.
         """
         n_samples = len(X)
+        if n_samples < self.n_splits + 1:
+            raise ValueError(f"Insufficient samples ({n_samples}) for {self.n_splits} splits.")
+
         indices = np.arange(n_samples)
         
-        # Calculate split points
         if self.test_size:
             # Fixed-size sliding window
             for i in range(self.n_splits):
                 end = n_samples - (self.n_splits - 1 - i) * self.test_size
                 start = end - self.test_size
-                train_idx = indices[:start]
-                test_idx = indices[start:end]
-                yield train_idx, test_idx
+                if start < 0:
+                    continue
+                yield indices[:start], indices[start:end]
         else:
             # Expanding window
             fold_size = n_samples // (self.n_splits + 1)

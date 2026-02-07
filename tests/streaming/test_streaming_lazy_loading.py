@@ -2,8 +2,7 @@
 Test lazy loading behavior for the src.streaming package.
 """
 import sys
-import pytest
-import importlib
+
 
 class TestStreamingLazyLoading:
     def setup_method(self):
@@ -17,7 +16,6 @@ class TestStreamingLazyLoading:
         # Re-import src.streaming to ensure a clean state for each test
         if 'src.streaming' in sys.modules:
             del sys.modules['src.streaming']
-        import src.streaming
 
     def test_streaming_does_not_load_heavy_deps_on_import(self):
         """

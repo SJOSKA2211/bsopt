@@ -1,7 +1,7 @@
-from typing import Dict, List, Type
 import pandas as pd
 import structlog
-from .base import FeatureStore, Feature
+
+from .base import Feature, FeatureStore
 from .features import LogReturnFeature, SyntheticOHLCFeature
 
 logger = structlog.get_logger()
@@ -12,7 +12,7 @@ class InMemoryFeatureStore(FeatureStore):
     Registry is populated at startup.
     """
     def __init__(self):
-        self._registry: Dict[str, Feature] = {}
+        self._registry: dict[str, Feature] = {}
         self._register_defaults()
 
     def _register_defaults(self):
@@ -31,7 +31,7 @@ class InMemoryFeatureStore(FeatureStore):
             raise KeyError(f"Feature '{name}' not found in registry")
         return self._registry[name]
 
-    def compute_features(self, data: pd.DataFrame, feature_names: List[str]) -> pd.DataFrame:
+    def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """
         Computes requested features and appends them to the dataframe.
         """

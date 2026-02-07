@@ -125,10 +125,8 @@ class DecisionTransformer(nn.Module):
         # But for inference we usually want a_t given (R_t, s_t).
         
         # Interleave embeddings: (batch, 3 * seq_len, hidden_size)
-        token_embeddings = torch.zeros((batch_size, seq_length * 3, self.hidden_size), device=states.device)
-        token_embeddings[:, ::3, :] = returns_embeddings
-        token_embeddings[:, 1::3, :] = state_embeddings
-        token_embeddings[:, 2::3, :] = action_embeddings
+        stacked = torch.stack([returns_embeddings, state_embeddings, action_embeddings], dim=2)
+        token_embeddings = stacked.reshape(batch_size, seq_length * 3, self.hidden_size)
 
         token_embeddings = self.embed_ln(token_embeddings)
 
@@ -164,8 +162,8 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 
 
-class TransformerSingularityExtractor(BaseFeaturesExtractor):
-    """🚀 SOTA: Custom transformer feature extractor for RL."""
+class TransformerFeatureExtractor(BaseFeaturesExtractor):
+    """Custom transformer feature extractor for RL."""
     def __init__(self, observation_space, features_dim: int = 512, d_model: int = 256, nhead: int = 8, num_layers: int = 4):
         super().__init__(observation_space, features_dim)
         self.d_model = d_model
@@ -183,6 +181,6 @@ class TransformerSingularityExtractor(BaseFeaturesExtractor):
         return self.out(x.squeeze(1))
 
 class TransformerTD3Policy(TD3Policy):
-    """🚀 SOTA: TD3 Policy with Transformer extractor."""
+    """TD3 Policy with Transformer extractor."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

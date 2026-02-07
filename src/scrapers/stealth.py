@@ -1,14 +1,14 @@
-import structlog
 import random
-from typing import Dict, Any, Optional
-import os
+from typing import Any
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 
 class StealthHttpClient:
     """
-    SOTA: Invisible HTTP client using TLS fingerprint mimicry.
-    Bypasses modern WAFs by masquerading as a specific browser.
+    HTTP client using TLS fingerprint mimicry.
+    Uses impersonation to minimize detection by WAFs.
     """
     def __init__(self):
         try:
@@ -19,11 +19,11 @@ class StealthHttpClient:
             import httpx
             self.session = httpx.AsyncClient()
             self._has_cffi = False
-            logger.warning("curl_cffi_missing_using_httpx_fallback")
+            logger.warning("curl_cffi_not_found_using_httpx")
 
     async def get(self, url: str, **kwargs) -> Any:
-        """🚀 SINGULARITY: High-stealth GET request."""
-        # SOTA: Mimic Chrome 120 on Windows
+        """Perform request with browser impersonation."""
+        # Mimic modern browser fingerprints
         impersonate = random.choice(["chrome110", "chrome120", "safari15_5"])
         
         headers = {
@@ -41,12 +41,12 @@ class StealthHttpClient:
         }
 
         if self._has_cffi:
-            # 🚀 SOTA: JA3 Fingerprinting via impersonate
+            # JA3 Fingerprinting
             response = self.session.get(url, headers=headers, impersonate=impersonate, **kwargs)
-            logger.info("stealth_request_sent", url=url, impersonate=impersonate)
+            logger.info("impersonated_request", url=url, type=impersonate)
             return response
         else:
             return await self.session.get(url, headers=headers, **kwargs)
 
-# Singleton ghost client
-stealth_client = StealthHttpClient()
+# Default client instance
+default_stealth_client = StealthHttpClient()

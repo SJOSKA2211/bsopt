@@ -1,7 +1,9 @@
-import pytest
-import numpy as np
 import math
+
+import numpy as np
+
 from src.shared import math_utils
+
 
 def test_fast_normal_cdf_scalar():
     assert math.isclose(math_utils.scalar_normal_cdf(0.0), 0.5, rel_tol=1e-5)

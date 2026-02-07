@@ -1,8 +1,9 @@
-from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Tuple, Dict
-import numpy as np
-import concurrent.futures
 import asyncio
+import concurrent.futures
+from abc import ABC, abstractmethod
+
+import numpy as np
+
 try:
     import ray
 except ImportError:
@@ -10,9 +11,10 @@ except ImportError:
         def put(self, obj): return obj
         def get(self, obj): return obj
     ray = RayMock()
-from src.utils.shared_memory import shm_manager
-from src.config import settings
 import structlog
+
+from src.config import settings
+from src.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
@@ -20,12 +22,12 @@ class ExecutionStrategy(ABC):
     """Abstract base class for execution strategies."""
     
     @abstractmethod
-    async def execute(self, inputs: Dict[str, np.ndarray], executor: Optional[concurrent.futures.ProcessPoolExecutor] = None) -> np.ndarray:
+    async def execute(self, inputs: dict[str, np.ndarray], executor: concurrent.futures.ProcessPoolExecutor | None = None) -> np.ndarray:
         pass
 
 class SequentialStrategy(ExecutionStrategy):
     """Sequential execution (fallback)."""
-    async def execute(self, inputs: Dict[str, np.ndarray], executor: Optional[concurrent.futures.ProcessPoolExecutor] = None) -> np.ndarray:
+    async def execute(self, inputs: dict[str, np.ndarray], executor: concurrent.futures.ProcessPoolExecutor | None = None) -> np.ndarray:
         # Import inside to avoid circular deps
         from src.pricing.black_scholes import BlackScholesEngine
         n = len(inputs['spots'])
@@ -41,7 +43,7 @@ class SequentialStrategy(ExecutionStrategy):
 
 class RayStrategy(ExecutionStrategy):
     """Ray distributed execution."""
-    async def execute(self, inputs: Dict[str, np.ndarray], executor: Optional[concurrent.futures.ProcessPoolExecutor] = None) -> np.ndarray:
+    async def execute(self, inputs: dict[str, np.ndarray], executor: concurrent.futures.ProcessPoolExecutor | None = None) -> np.ndarray:
         from src.services.pricing_service import _ray_worker_pricing
         
         s_ref = ray.put(inputs['spots'])
@@ -57,7 +59,7 @@ class RayStrategy(ExecutionStrategy):
 
 class SHMStrategy(ExecutionStrategy):
     """Shared Memory + ProcessPoolExecutor execution."""
-    async def execute(self, inputs: Dict[str, np.ndarray], executor: Optional[concurrent.futures.ProcessPoolExecutor] = None) -> np.ndarray:
+    async def execute(self, inputs: dict[str, np.ndarray], executor: concurrent.futures.ProcessPoolExecutor | None = None) -> np.ndarray:
         from src.services.pricing_service import _worker_shared_memory_pricing
         
         n = len(inputs['spots'])
@@ -101,7 +103,7 @@ class SHMStrategy(ExecutionStrategy):
 
 class WASMStrategy(ExecutionStrategy):
     """WebAssembly execution strategy."""
-    async def execute(self, inputs: Dict[str, np.ndarray], executor: Optional[concurrent.futures.ProcessPoolExecutor] = None) -> np.ndarray:
+    async def execute(self, inputs: dict[str, np.ndarray], executor: concurrent.futures.ProcessPoolExecutor | None = None) -> np.ndarray:
         from src.pricing.wasm_engine import WASMPricingEngine
         engine = WASMPricingEngine()
         # WASM engine expects arrays and returns a list/array

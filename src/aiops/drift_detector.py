@@ -24,7 +24,7 @@ class PricingDriftDetector:
         Analyzes the last N minutes of data for a symbol to detect pricing drift.
         """
         # 1. Fetch recent predictions and market data from TimescaleDB
-        async with AsyncSessionLocal() as session:
+        async with AsyncSessionLocal():
             # Note: This is a simplified fetch logic for the orchestrator
             # In a real scenario, we'd use a more complex query on option_prices/market_data
             # For now, returning empty to trigger 'insufficient_data' path or mocking in tests

@@ -1,8 +1,9 @@
 import os
 import subprocess
 from urllib.parse import urlparse
-from dotenv import load_dotenv
+
 import structlog
+from dotenv import load_dotenv
 
 logger = structlog.get_logger()
 

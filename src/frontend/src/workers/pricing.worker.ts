@@ -113,24 +113,27 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
 
       case 'BATCH_PRICE_AMERICAN': {
         const { payload, id } = e.data as any;
-        const result = engine.batch_price_american(new Float64Array(payload), 200, 200);
-        // 🚀 SINGULARITY: Zero-copy transfer using Transferable Objects
+        const data = new Float64Array(payload);
+        const result = engine.batch_price_american(data, 200, 200);
+        // Transfer buffer ownership for zero-copy efficiency
         self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id }, [result.buffer]);
         break;
       }
 
       case 'BATCH_PRICE_MONTE_CARLO': {
         const { payload, id } = e.data as any;
-        const result = engine.batch_price_monte_carlo(new Float64Array(payload), 100000);
-        // 🚀 SINGULARITY: Zero-copy transfer using Transferable Objects
+        const data = new Float64Array(payload);
+        const result = engine.batch_price_monte_carlo(data, 100000);
+        // Transfer buffer ownership for zero-copy efficiency
         self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id }, [result.buffer]);
         break;
       }
 
       case 'BATCH_PRICE_HESTON': {
         const { payload, id } = e.data as any;
-        const result = engine.batch_price_heston(new Float64Array(payload));
-        // 🚀 SINGULARITY: Zero-copy transfer using Transferable Objects
+        const data = new Float64Array(payload);
+        const result = engine.batch_price_heston(data);
+        // Transfer buffer ownership for zero-copy efficiency
         self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id }, [result.buffer]);
         break;
       }

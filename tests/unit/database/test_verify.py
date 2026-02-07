@@ -1,6 +1,7 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from src.database.verify import verify_postgres_connection
+
 
 @patch("subprocess.run")
 @patch("os.getenv")

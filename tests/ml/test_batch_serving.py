@@ -1,9 +1,10 @@
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from src.ml.serving.serve import app, state
-from fastapi.testclient import TestClient
-import pandas as pd
+from unittest.mock import MagicMock
+
 import numpy as np
+import pytest
+from fastapi.testclient import TestClient
+
+from src.ml.serving.serve import app, state
 
 client = TestClient(app)
 

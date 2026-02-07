@@ -1,6 +1,8 @@
 import pytest
 from click.testing import CliRunner
+
 from bs_cli import cli
+
 
 @pytest.fixture
 def runner():

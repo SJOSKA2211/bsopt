@@ -1,7 +1,9 @@
-import os
 import sys
+
 from sqlalchemy import create_engine, text
+
 from src.config import get_settings
+
 
 def verify_connection():
     print("🥒 BSOpt Database Verification Tool")

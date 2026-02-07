@@ -1,14 +1,13 @@
-import tests.mock_all
-import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-from src.database.models import Base, User, Portfolio, Position, Order, MLModel
-from src.database import crud
 from decimal import Decimal
-from datetime import date, datetime, timezone
-import uuid
 
+import pytest
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
+from src.database import crud
+from src.database.models import Base, User
+
 
 # Setup in-memory sqlite for fast CRUD testing
 @pytest_asyncio.fixture

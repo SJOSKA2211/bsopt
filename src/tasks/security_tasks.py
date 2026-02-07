@@ -9,14 +9,13 @@ Automated tasks for:
 """
 
 import logging
-import asyncio
-from typing import Dict, Any
 
-from src.tasks.celery_app import celery_app, BaseTaskWithRetry
-from src.shared.db import get_db_session
+from sqlalchemy import select
+
 from src.database.models import User
 from src.security.password import get_password_service
-from sqlalchemy import select, update
+from src.shared.db import get_db_session
+from src.tasks.celery_app import BaseTaskWithRetry, celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ def rehash_legacy_passwords(self):
         result = db_session.execute(
             select(User).where(
                 (User.hashed_password.notlike("$argon2id$%%")) | 
-                (User.is_active == True) # Periodically check even argon2 for parameter updates
+                (User.is_active) # Periodically check even argon2 for parameter updates
             ).limit(batch_size)
         )
         users = result.scalars().all()

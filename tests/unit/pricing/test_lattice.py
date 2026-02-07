@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
-from src.pricing.lattice import BinomialTreePricer, TrinomialTreePricer, validate_convergence
+import pytest
+
 from src.pricing.black_scholes import BSParameters
+from src.pricing.lattice import BinomialTreePricer, TrinomialTreePricer, validate_convergence
+
 
 def test_binomial_european():
     params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)

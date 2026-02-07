@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock, call
+from unittest.mock import MagicMock, patch
+
 import numpy as np
+import pytest
 
 # Assuming src.streaming.analytics.py is correctly in the path
 from src.streaming.analytics import VolatilityAggregationStream
+
 
 @pytest.fixture
 def mock_faust_app():

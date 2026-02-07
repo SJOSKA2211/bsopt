@@ -1,5 +1,7 @@
 import os
+
 import pytest
+
 
 def test_dockerfile_ci_exists():
     """Verify that the CI runner Dockerfile exists."""
@@ -7,7 +9,7 @@ def test_dockerfile_ci_exists():
 
 def test_dockerfile_ci_contents():
     """Verify that the CI runner Dockerfile contains necessary tools."""
-    with open("docker/Dockerfile.ci", "r") as f:
+    with open("docker/Dockerfile.ci") as f:
         content = f.read()
     
     # Check base image
@@ -33,7 +35,7 @@ def test_dockerfile_ci_non_root_verification_skipped():
 def test_dockerfile_scraper_hardened():
     """Verify that Dockerfile.scraper uses a non-root user."""
     assert os.path.exists("docker/Dockerfile.scraper")
-    with open("docker/Dockerfile.scraper", "r") as f:
+    with open("docker/Dockerfile.scraper") as f:
         content = f.read()
     
     assert "USER " in content

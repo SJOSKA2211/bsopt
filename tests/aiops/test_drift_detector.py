@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-import numpy as np
+
 from src.aiops.drift_detector import PricingDriftDetector
+
 
 @pytest.mark.asyncio
 async def test_pricing_drift_detector_init():
@@ -27,7 +29,7 @@ async def test_check_drift_insufficient_data(mock_session_cls):
 async def test_check_drift_detected(mock_session_cls):
     detector = PricingDriftDetector(threshold=0.01)
     # Mock data return
-    mock_data = [
+    [
         {
             "params": MagicMock(),
             "market_price": 10.0,

@@ -3,9 +3,11 @@ Comprehensive Test Suite for Optimized Quantitative Engines
 """
 
 import unittest
+
 import numpy as np
-from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
+
 from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
 
 
 class TestOptimizedPricing(unittest.TestCase):

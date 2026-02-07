@@ -1,18 +1,16 @@
-import pytest
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.testclient import TestClient
-from starlette.middleware.base import BaseHTTPMiddleware
-from src.api.middleware.security import (
-    SecurityHeadersMiddleware,
-    CSRFMiddleware,
-    IPBlockMiddleware,
-    InputSanitizationMiddleware
-)
-import hmac
-import hashlib
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
+from src.api.middleware.security import (
+    CSRFMiddleware,
+    InputSanitizationMiddleware,
+    IPBlockMiddleware,
+    SecurityHeadersMiddleware,
+)
+
 
 def create_app_with_middleware(middleware_class, **kwargs):
     app = FastAPI()
@@ -180,7 +178,7 @@ def test_ip_block_temp_block_expiration():
     # We need to simulate time passing.
     # Let's mock datetime
     with patch("src.api.middleware.security.datetime") as mock_datetime:
-        mock_now = datetime.now(timezone.utc)
+        mock_now = datetime.now(UTC)
         mock_datetime.now.return_value = mock_now
         
         # Set block duration to 10 mins
@@ -201,7 +199,7 @@ def test_ip_block_clean_old_attempts():
     ip = "8.8.8.8"
     
     with patch("src.api.middleware.security.datetime") as mock_datetime:
-        base_time = datetime.now(timezone.utc)
+        base_time = datetime.now(UTC)
         mock_datetime.now.return_value = base_time
         
         # Record attempt 20 mins ago (should be cleaned)

@@ -1,6 +1,9 @@
+from unittest.mock import MagicMock, call, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
-from src.aiops.ml_pipeline_trigger import MLPipelineTrigger # Assuming this path
+
+from src.aiops.ml_pipeline_trigger import MLPipelineTrigger  # Assuming this path
+
 
 @patch("src.aiops.ml_pipeline_trigger.logger")
 @patch("src.aiops.ml_pipeline_trigger.AutonomousMLPipeline")

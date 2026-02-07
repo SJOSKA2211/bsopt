@@ -1,10 +1,12 @@
 import os
 import re
-import yaml
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Optional, Callable
+
 import structlog
+import yaml
+
 from src.tasks.ml_tasks import train_model_task
 
 logger = structlog.get_logger(__name__)
@@ -13,15 +15,15 @@ class MLOpsService:
     def run_pipeline(
         self,
         pipeline_type: str,
-        model_repo: Optional[str],
-        data_repo: Optional[str],
+        model_repo: str | None,
+        data_repo: str | None,
         deploy_target: str,
         monitor_metrics: str,
         service_name: str,
         docker_image: str,
         model_name: str,
         model_version: str,
-        progress_callback: Optional[Callable[[str], None]] = None
+        progress_callback: Callable[[str], None] | None = None
     ) -> str:
         """
         Run the MLOps pipeline.

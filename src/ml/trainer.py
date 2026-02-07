@@ -134,3 +134,6 @@ class PyTorchTrainer(ModelTrainer):
     def train(self, X, y, params, **kwargs):
         params["framework"] = "pytorch"
         return self.train_and_evaluate(X, y, params, **kwargs)
+
+# Alias for backward compatibility
+BaseTrainer = ModelTrainer

@@ -7,20 +7,19 @@ Supports both file logging and database persistence.
 """
 
 import logging
-from enum import Enum
-from typing import Any, Dict, Optional
+from enum import StrEnum
+from typing import Any
 
 from fastapi import Request
 
-from src.database import get_session
-from src.database.models import AuditLog, User
+from src.database.models import User
 from src.utils.sanitization import mask_email
 
 # Use a dedicated logger for audit trails
 audit_logger = logging.getLogger("audit")
 
 
-class AuditEvent(str, Enum):
+class AuditEvent(StrEnum):
     """All auditable security events."""
 
     # Auth events
@@ -59,9 +58,9 @@ class AuditEvent(str, Enum):
 
 def log_audit(
     event: AuditEvent,
-    user: Optional[User] = None,
-    request: Optional[Request] = None,
-    details: Optional[Dict[str, Any]] = None,
+    user: User | None = None,
+    request: Request | None = None,
+    details: dict[str, Any] | None = None,
     persist_to_db: bool = True,
 ):
     """
@@ -74,7 +73,7 @@ def log_audit(
         details: Additional structured details about the event.
         persist_to_db: Whether to save to database (default True).
     """
-    log_data: Dict[str, Any] = {
+    log_data: dict[str, Any] = {
         "event_type": event.value,
         "user_id": str(user.id) if user else None,
         "user_email": mask_email(user.email) if user else None,
@@ -105,7 +104,9 @@ def log_audit(
     # Persist to database asynchronously via Celery task
     if persist_to_db:
         try:
-            from src.tasks.audit_tasks import persist_audit_log # Import here to avoid circular dependency
+            from src.tasks.audit_tasks import (
+                persist_audit_log,  # Import here to avoid circular dependency
+            )
             persist_audit_log.delay(
                 event_type=event.value,
                 user_id=str(user.id) if user else None,

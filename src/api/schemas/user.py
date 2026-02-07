@@ -6,7 +6,6 @@ Pydantic models for user management endpoints.
 """
 
 from datetime import datetime
-from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -19,13 +18,13 @@ class UserResponse(BaseModel):
 
     id: UUID = Field(..., description="User ID")
     email: EmailStr = Field(..., description="User email")
-    full_name: Optional[str] = Field(None, description="User's full name")
+    full_name: str | None = Field(None, description="User's full name")
     tier: str = Field(..., description="Subscription tier")
     is_active: bool = Field(..., description="Account active status")
     is_verified: bool = Field(..., description="Email verified status")
     is_mfa_enabled: bool = Field(..., description="MFA enabled status")
     created_at: datetime = Field(..., description="Account creation date")
-    last_login: Optional[datetime] = Field(None, description="Last login timestamp")
+    last_login: datetime | None = Field(None, description="Last login timestamp")
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -48,8 +47,8 @@ class UserResponse(BaseModel):
 class UserUpdateRequest(BaseModel):
     """User profile update request."""
 
-    full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
-    email: Optional[EmailStr] = Field(None, description="New email address")
+    full_name: str | None = Field(None, max_length=255, description="User's full name")
+    email: EmailStr | None = Field(None, description="New email address")
 
     model_config = ConfigDict(
         json_schema_extra={"example": {"full_name": "John Smith"}}
@@ -59,7 +58,7 @@ class UserUpdateRequest(BaseModel):
 class UserListResponse(BaseModel):
     """Paginated user list response."""
 
-    items: List[UserResponse] = Field(..., description="List of users")
+    items: list[UserResponse] = Field(..., description="List of users")
     pagination: PaginationMeta = Field(..., description="Pagination metadata")
 
 
@@ -96,15 +95,15 @@ class APIKeyResponse(BaseModel):
     name: str
     prefix: str
     created_at: datetime
-    last_used_at: Optional[datetime] = None
-    raw_key: Optional[str] = None # Only populated on creation
+    last_used_at: datetime | None = None
+    raw_key: str | None = None # Only populated on creation
 
 
 class TierUpgradeRequest(BaseModel):
     """Tier upgrade request."""
 
     target_tier: str = Field(..., description="Target subscription tier")
-    payment_method_id: Optional[str] = Field(None, description="Payment method ID")
+    payment_method_id: str | None = Field(None, description="Payment method ID")
 
     model_config = ConfigDict(
         json_schema_extra={"example": {"target_tier": "pro", "payment_method_id": "pm_123456789"}}

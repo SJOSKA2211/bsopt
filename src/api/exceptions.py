@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from fastapi import status
 
@@ -12,10 +12,10 @@ class BaseAPIException(Exception):
 
     def __init__(
         self,
-        message: Optional[str] = None,
-        error_code: Optional[str] = None,
-        status_code: Optional[int] = None,
-        details: Optional[Any] = None,
+        message: str | None = None,
+        error_code: str | None = None,
+        status_code: int | None = None,
+        details: Any | None = None,
     ):
         self.message = message or self.message
         self.error_code = error_code or self.error_code

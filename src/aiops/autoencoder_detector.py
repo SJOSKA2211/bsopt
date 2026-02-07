@@ -1,9 +1,9 @@
 import numpy as np
+import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-import structlog
 
 logger = structlog.get_logger()
 
@@ -13,7 +13,7 @@ class VAE(nn.Module):
     Learns a latent distribution instead of fixed point embeddings.
     """
     def __init__(self, input_dim, latent_dim):
-        super(VAE, self).__init__()
+        super().__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 128),
             nn.LeakyReLU(0.2), # 🚀 Better for gradients

@@ -1,20 +1,32 @@
-from typing import List, Optional
 from datetime import datetime
+
 import strawberry
+
 from src.data.router import MarketDataRouter
 
 router = MarketDataRouter()
 
 from strawberry.dataloader import DataLoader
+
 from src.shared.shm_mesh import SharedMemoryRingBuffer
-import numpy as np
 
 # Singleton SHM reader for DataLoaders
 _shm_reader = SharedMemoryRingBuffer(create=False)
 
-async def _load_options_vectorized(keys: List[str]) -> List[Option]:
-    """🚀 SINGULARITY: Vectorized batch fetcher for DataLoaders."""
-    # SOTA: In a real implementation, we'd read all keys from SHM in one pass
+@strawberry.type
+class Option:
+    id: strawberry.ID
+    contract_symbol: str
+    underlying_symbol: str
+    strike: float
+    expiry: datetime
+    option_type: str
+    last: float | None = None
+    delta: float | None = None
+
+async def _load_options_vectorized(keys: list[str]) -> list[Option]:
+    """Vectorized batch fetcher for DataLoaders."""
+    # OPTIMIZED: In a real implementation, we'd read all keys from SHM in one pass
     # For now, we simulate the batch mapping
     results = []
     for symbol in keys:
@@ -29,14 +41,10 @@ async def _load_options_vectorized(keys: List[str]) -> List[Option]:
         ))
     return results
 
-# 🚀 SOTA: Persistent DataLoader for the request context
+# Persistent DataLoader for the request context
 option_loader = DataLoader(load_fn=_load_options_vectorized)
 
-@strawberry.type
-class Option:
-    # ... (fields remain same)
-
-async def get_option(contract_symbol: str) -> Optional[Option]:
+async def get_option(contract_symbol: str) -> Option | None:
     """Fetch a single option, potentially using the router for live data."""
     # In a real implementation, we'd look up this specific contract
     return Option(
@@ -50,12 +58,12 @@ async def get_option(contract_symbol: str) -> Optional[Option]:
 
 async def search_options_paginated(
     underlying: str,
-    min_strike: Optional[float] = None,
-    max_strike: Optional[float] = None,
-    expiry: Optional[datetime] = None,
+    min_strike: float | None = None,
+    max_strike: float | None = None,
+    expiry: datetime | None = None,
     limit: int = 100,
-    cursor: Optional[str] = None
-) -> tuple[List[Option], bool, Optional[str]]:
+    cursor: str | None = None
+) -> tuple[list[Option], bool, str | None]:
     """Search for options with cursor-based pagination."""
     # Fetch data (in real app, this would be a DB query with OFFSET or CURSOR)
     raw_chain = await router.get_option_chain_snapshot(underlying)

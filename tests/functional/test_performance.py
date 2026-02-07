@@ -3,8 +3,10 @@ Performance Functional Tests (Principles 33, 51, 59, 67, 83, 91, 99)
 ==================================================================
 """
 
-import pytest
 import time
+
+import pytest
+
 
 @pytest.mark.asyncio
 async def test_pricing_latency(client):

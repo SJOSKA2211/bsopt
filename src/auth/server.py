@@ -1,8 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Form
-from sqlalchemy.orm import Session
-from src.database import get_db
-from src.database.models import User, OAuth2Client, OAuth2Token, OAuth2AuthorizationCode
-from src.config import settings
+import structlog
 from authlib.integrations.sqla_oauth2 import (
     create_query_client_func,
     create_save_token_func,
@@ -10,8 +6,12 @@ from authlib.integrations.sqla_oauth2 import (
 from authlib.oauth2 import AuthorizationServer
 from authlib.oauth2.rfc6749 import grants
 from authlib.oauth2.rfc7636 import CodeChallenge
-import structlog
-import time
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from src.config import settings
+from src.database import get_db
+from src.database.models import OAuth2AuthorizationCode, OAuth2Client, OAuth2Token, User
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/auth", tags=["auth"])

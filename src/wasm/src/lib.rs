@@ -230,7 +230,7 @@ impl BlackScholesWASM {
             let d = f64x2(params[off1 + 5], params[off2 + 5]);
             let is_call_mask = [params[off1+6] > 0.5, params[off2+6] > 0.5];
 
-            // 🚀 SINGULARITY: Full SIMD path
+            // Optimized SIMD path
             let sqrt_t = f64x2_sqrt(t);
             let ln_sk = simd_ln(f64x2_div(s, k));
             let v_sq = f64x2_mul(v, v);
@@ -320,7 +320,7 @@ use crate::simd_math::*;
 #[cfg_attr(feature = "js", wasm_bindgen)]
 impl BlackScholesWASM {
 
-// 🚀 SOTA: Python-Friendly C-API (No JS Types)
+// Python-Friendly C-API (No JS Types)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, params_len: usize, results_ptr: *mut f64) {
     use std::arch::wasm32::*;
@@ -333,63 +333,62 @@ pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, para
     let results = unsafe { std::slice::from_raw_parts_mut(results_ptr, num_options * stride_out) };
 
     let mut i = 0;
-    while i + 1 < num_options {
-        let off1 = i * stride_in;
-        let off2 = (i + 1) * stride_in;
-        
-        let s = f64x2(params[off1], params[off2]);
-        let k = f64x2(params[off1 + 1], params[off2 + 1]);
-        let t = f64x2(params[off1 + 2], params[off2 + 2]);
-        let v = f64x2(params[off1 + 3], params[off2 + 3]);
-        let r = f64x2(params[off1 + 4], params[off2 + 4]);
-        let d = f64x2(params[off1 + 5], params[off2 + 5]);
-        let is_call_mask = [params[off1+6] > 0.5, params[off2+6] > 0.5];
-
-        // 🚀 SINGULARITY: Full SIMD path
-        let ln_sk = simd_ln(f64x2_div(s, k));
-        let v_sq = f64x2_mul(v, v);
-        let half = f64x2(0.5, 0.5);
-        let drift = f64x2_add(f64x2_sub(r, d), f64x2_mul(half, v_sq));
-        let vol_sqrt_t = f64x2_mul(v, f64x2_sqrt(t));
-        let d1 = f64x2_div(f64x2_add(ln_sk, f64x2_mul(drift, t)), vol_sqrt_t);
-        let d2 = f64x2_sub(d1, vol_sqrt_t);
-
-        let cdf_d1 = simd_n_cdf(d1);
-        let cdf_d2 = simd_n_cdf(d2);
-        let cdf_neg_d1 = simd_n_cdf(f64x2_neg(d1));
-        let cdf_neg_d2 = simd_n_cdf(f64x2_neg(d2));
-
-        let exp_neg_dt = simd_exp(f64x2_neg(f64x2_mul(d, t)));
-        let exp_neg_rt = simd_exp(f64x2_neg(f64x2_mul(r, t)));
-        
-        let call_price = f64x2_sub(
-            f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_d1), 
-            f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_d2)
-        );
-        let put_price = f64x2_sub(
-            f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_neg_d2), 
-            f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_neg_d1)
-        );
-
-        let cp: [f64; 2] = std::mem::transmute(call_price);
-        let pp: [f64; 2] = std::mem::transmute(put_price);
-
-        for j in 0..2 {
-            let idx = i + j;
-            let off = idx * stride_out;
-            let p_idx = if j == 0 { off1 } else { off2 };
-            results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
-            let g = bs.calculate_greeks(params[p_idx], params[p_idx+1], params[p_idx+2], params[p_idx+3], params[p_idx+4], params[p_idx+5]);
-            results[off + 1] = g.delta;
-            results[off + 2] = g.gamma;
-            results[off + 3] = g.vega;
-            results[off + 4] = g.theta;
-            results[off + 5] = g.rho;
+            while i + 1 < num_options {
+            let off1 = i * stride_in;
+            let off2 = (i + 1) * stride_in;
+            
+            let s = f64x2(params[off1], params[off2]);
+            let k = f64x2(params[off1 + 1], params[off2 + 1]);
+            let t = f64x2(params[off1 + 2], params[off2 + 2]);
+            let v = f64x2(params[off1 + 3], params[off2 + 3]);
+            let r = f64x2(params[off1 + 4], params[off2 + 4]);
+            let d = f64x2(params[off1 + 5], params[off2 + 5]);
+            let is_call_mask = [params[off1+6] > 0.5, params[off2+6] > 0.5];
+    
+            // Optimized SIMD path
+            let ln_sk = simd_ln(f64x2_div(s, k));
+            let v_sq = f64x2_mul(v, v);
+            let half = f64x2(0.5, 0.5);
+            let drift = f64x2_add(f64x2_sub(r, d), f64x2_mul(half, v_sq));
+            let vol_sqrt_t = f64x2_mul(v, f64x2_sqrt(t));
+            let d1 = f64x2_div(f64x2_add(ln_sk, f64x2_mul(drift, t)), vol_sqrt_t);
+            let d2 = f64x2_sub(d1, vol_sqrt_t);
+    
+            let cdf_d1 = simd_n_cdf(d1);
+            let cdf_d2 = simd_n_cdf(d2);
+            let cdf_neg_d1 = simd_n_cdf(f64x2_neg(d1));
+            let cdf_neg_d2 = simd_n_cdf(f64x2_neg(d2));
+    
+            let exp_neg_dt = simd_exp(f64x2_neg(f64x2_mul(d, t)));
+            let exp_neg_rt = simd_exp(f64x2_neg(f64x2_mul(r, t)));
+            
+            let call_price = f64x2_sub(
+                f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_d1), 
+                f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_d2)
+            );
+            let put_price = f64x2_sub(
+                f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_neg_d2), 
+                f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_neg_d1)
+            );
+    
+            let cp: [f64; 2] = std::mem::transmute(call_price);
+            let pp: [f64; 2] = std::mem::transmute(put_price);
+    
+            for j in 0..2 {
+                let idx = i + j;
+                let off = idx * stride_out;
+                let p_idx = if j == 0 { off1 } else { off2 };
+                results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
+                let g = bs.calculate_greeks(params[p_idx], params[p_idx+1], params[p_idx+2], params[p_idx+3], params[p_idx+4], params[p_idx+5]);
+                results[off + 1] = g.delta;
+                results[off + 2] = g.gamma;
+                results[off + 3] = g.vega;
+                results[off + 4] = g.theta;
+                results[off + 5] = g.rho;
+            }
+            i += 2;
         }
-        i += 2;
-    }
-
-    // Remainder
+        // Remainder
     while i < num_options {
         let off_in = i * stride_in;
         let off_out = i * stride_out;

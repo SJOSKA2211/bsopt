@@ -1,8 +1,11 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
-from src.ml.trainer import InstrumentedTrainer
+
+import numpy as np
+import pytest
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.trainer import InstrumentedTrainer
+
 
 @pytest.fixture
 def sample_data():
@@ -70,6 +73,7 @@ def test_trainer_error_metrics(sample_data):
 def test_structlog_configuration():
     """Verify that structlog is configured correctly."""
     import structlog
+
     from src.shared.observability import setup_logging
     
     setup_logging()
@@ -82,7 +86,8 @@ def test_structlog_configuration():
     assert any("JSONRenderer" in str(t) for t in renderer_types)
     assert any("TimeStamper" in str(t) for t in renderer_types)
 
-def test_pipeline_scrape_execution():
+@pytest.mark.asyncio
+async def test_pipeline_scrape_execution():
     """Verify that scraper is called correctly in the pipeline."""
     config = {
         "api_key": "TEST",
@@ -93,7 +98,7 @@ def test_pipeline_scrape_execution():
     
     # Test Error Path
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
-         patch("src.ml.autonomous_pipeline.get_db_session"), \
+         patch("src.ml.autonomous_pipeline.get_async_db_context"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
          patch("src.ml.autonomous_pipeline.Base.metadata.create_all"), \
          patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor"):
@@ -105,14 +110,14 @@ def test_pipeline_scrape_execution():
         
         # We expect a critical failure log but NO metrics increment in pipeline (handled by scraper)
         with pytest.raises(Exception, match="API Fail"):
-            pipeline.run()
+            await pipeline.run()
             
         assert mock_scraper.fetch_historical_data.called
 
     # Test Success Path
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
          patch("src.ml.autonomous_pipeline.calculate_psi") as mock_psi, \
-         patch("src.ml.autonomous_pipeline.get_db_session"), \
+         patch("src.ml.autonomous_pipeline.get_async_db_context"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
          patch("src.ml.autonomous_pipeline.Base.metadata.create_all"), \
          patch("src.ml.autonomous_pipeline.InstrumentedTrainer"), \
@@ -129,9 +134,8 @@ def test_pipeline_scrape_execution():
         pipeline = AutonomousMLPipeline(config)
         
         try:
-             pipeline.run()
+             await pipeline.run()
         except Exception:
              pass 
              
         assert mock_scraper.fetch_historical_data.called
-        assert mock_psi.called

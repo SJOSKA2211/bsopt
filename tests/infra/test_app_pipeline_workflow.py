@@ -1,6 +1,7 @@
 import os
+
 import yaml
-import pytest
+
 
 def test_app_pipeline_workflow_exists():
     """Verify that the app-pipeline workflow file exists."""
@@ -8,7 +9,7 @@ def test_app_pipeline_workflow_exists():
 
 def test_app_pipeline_workflow_contents():
     """Verify that the app-pipeline workflow contains the required quality gates."""
-    with open(".github/workflows/app-pipeline.yml", "r") as f:
+    with open(".github/workflows/app-pipeline.yml") as f:
         # Load without tag transformation to avoid 'on' key issues with booleans
         workflow = yaml.load(f, Loader=yaml.SafeLoader)
     
@@ -35,7 +36,7 @@ def test_app_pipeline_workflow_contents():
 
 def test_app_pipeline_matrix_build():
     """Verify that the app-pipeline workflow contains matrix build and push logic."""
-    with open(".github/workflows/app-pipeline.yml", "r") as f:
+    with open(".github/workflows/app-pipeline.yml") as f:
         workflow = yaml.load(f, Loader=yaml.SafeLoader)
     
     jobs = workflow["jobs"]
@@ -62,7 +63,7 @@ def test_app_pipeline_matrix_build():
 
 def test_app_pipeline_gitops_update():
     """Verify that the app-pipeline workflow contains GitOps update logic."""
-    with open(".github/workflows/app-pipeline.yml", "r") as f:
+    with open(".github/workflows/app-pipeline.yml") as f:
         workflow = yaml.load(f, Loader=yaml.SafeLoader)
     
     jobs = workflow["jobs"]

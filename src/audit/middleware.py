@@ -1,22 +1,23 @@
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request, BackgroundTasks
-import time
-import orjson
-import asyncio
-import structlog
 import base64
-from typing import Any, Dict
+import time
+from typing import Any
+
+import orjson
+import structlog
+from fastapi import BackgroundTasks, Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = structlog.get_logger(__name__)
 
-from src.utils.crypto import AES256GCM
 import os
 
-# 🚀 SINGULARITY: Initialize Audit Vault
+from src.utils.crypto import AES256GCM
+
+# Initialize Audit Vault
 _vault_key = os.getenv("AUDIT_VAULT_KEY", "changeme_32byte_key_for_god_mode!")
 _vault = AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) if _vault_key else None
 
-def _produce_audit_log(producer: Any, topic: str, payload: Dict[str, Any]):
+def _produce_audit_log(producer: Any, topic: str, payload: dict[str, Any]):
     """Background task to produce audit logs to Kafka with delivery assurance."""
     try:
         # 🚀 OPTIMIZATION: Encrypt PII fields at rest in Kafka/Loki
@@ -31,7 +32,7 @@ def _produce_audit_log(producer: Any, topic: str, payload: Dict[str, Any]):
             orjson.dumps(payload),
             on_delivery=lambda err, msg: logger.debug("audit_log_delivered", topic=msg.topic()) if not err else logger.error("audit_log_delivery_failed", error=str(err))
         )
-        # SOTA: Poll with a small timeout to allow for network batching
+        # OPTIMIZED: Poll with a small timeout to allow for network batching
         producer.poll(0.1) 
     except Exception as e:
         logger.warning("audit_log_production_failed", error=str(e))

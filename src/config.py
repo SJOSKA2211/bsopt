@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Application Configuration
-    PROJECT_NAME: str = "BSOpt Singularity"
+    PROJECT_NAME: str = "BSOpt"
     ENVIRONMENT: str = Field(default="dev")
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Database Configuration (Neon Optimized)
     # Neon uses 'postgresql://' strings. Ensure we handle pooled connections.
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
+    DATABASE_MIN_POOL_SIZE: int = 10
+    DATABASE_MAX_POOL_SIZE: int = 50
     SLOW_QUERY_THRESHOLD_MS: int = 100
 
     @field_validator("DATABASE_URL")
@@ -46,10 +48,13 @@ class Settings(BaseSettings):
     
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
+    PRICING_LARGE_BATCH_THRESHOLD: int = 1000
 
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
     ML_TRAINING_OPTUNA_TRIALS: int = 50
+    ML_TRAINING_RANDOM_STATE: int = 42
+    ML_TRAINING_PROMOTE_THRESHOLD_R2: float = 0.95
 
     # Email Configuration
     SENDGRID_API_KEY: str = "mock_key"

@@ -1,6 +1,8 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from .base import Feature
+
 
 class LogReturnFeature(Feature):
     name = "log_return"

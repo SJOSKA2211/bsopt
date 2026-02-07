@@ -1,14 +1,14 @@
-import numpy as np
-from multiprocessing import shared_memory
 import struct
+from multiprocessing import shared_memory
+
+import numpy as np
 import structlog
-from typing import Tuple, Optional
 
 logger = structlog.get_logger(__name__)
 
 class SharedExperienceBuffer:
     """
-    🚀 SINGULARITY: High-performance Shared Memory Replay Buffer.
+    High-performance Shared Memory Replay Buffer.
     Allows zero-copy experience collection and sampling across the Ray cluster.
     """
     def __init__(self, 
@@ -62,7 +62,7 @@ class SharedExperienceBuffer:
             raise
 
     def add(self, obs, act, rew, next_obs):
-        """🚀 SINGULARITY: Zero-copy transition push."""
+        """Zero-copy transition push."""
         head = struct.unpack("q", self.buf[:8])[0]
         idx = head % self.capacity
         
@@ -74,7 +74,7 @@ class SharedExperienceBuffer:
         self.buf[:8] = struct.pack("q", head + 1)
 
     def sample(self, batch_size: int):
-        """🚀 SOTA: Zero-copy batch sampling."""
+        """Zero-copy batch sampling."""
         head = struct.unpack("q", self.buf[:8])[0]
         max_idx = min(head, self.capacity)
         indices = np.random.choice(max_idx, batch_size, replace=False)

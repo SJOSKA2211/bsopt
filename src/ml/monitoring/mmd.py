@@ -1,6 +1,7 @@
 import numpy as np
+
 try:
-    from numba import jit, njit, prange, config, vectorize, float64, cuda
+    from numba import config, cuda, float64, jit, njit, prange, vectorize
 except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
@@ -32,46 +33,46 @@ except ImportError:
         def device_array(self, n, dtype):
             return np.zeros(n, dtype=dtype)
     cuda = CudaMock()
+
 import structlog
-from typing import Tuple
 
 logger = structlog.get_logger(__name__)
 
 @njit(parallel=True, fastmath=True)
-def _gaussian_kernel_matrix(X, Y, sigma):
-    """🚀 SINGULARITY: Optimized Gaussian RBF kernel calculation."""
-    n = X.shape[0]
-    m = Y.shape[0]
-    K = np.empty((n, m), dtype=np.float64)
+def _gaussian_kernel_matrix(x, y, sigma):
+    """Optimized Gaussian RBF kernel calculation."""
+    n = x.shape[0]
+    m = y.shape[0]
+    k_mat = np.empty((n, m), dtype=np.float64)
     gamma = 1.0 / (2.0 * sigma**2)
     
     for i in prange(n):
         for j in range(m):
             dist_sq = 0.0
-            for k in range(X.shape[1]):
-                diff = X[i, k] - Y[j, k]
+            for k in range(x.shape[1]):
+                diff = x[i, k] - y[j, k]
                 dist_sq += diff * diff
-            K[i, j] = np.exp(-gamma * dist_sq)
-    return K
+            k_mat[i, j] = np.exp(-gamma * dist_sq)
+    return k_mat
 
 @njit(fastmath=True)
-def calculate_mmd(X, Y, sigma=1.0):
+def calculate_mmd(x, y, sigma=1.0):
     """
-    SOTA: Maximum Mean Discrepancy (MMD) multivariate distance.
+    OPTIMIZED: Maximum Mean Discrepancy (MMD) multivariate distance.
     Measures the distance between two distributions in RKHS.
     """
-    n = X.shape[0]
-    m = Y.shape[0]
+    n = x.shape[0]
+    m = y.shape[0]
     
-    K_xx = _gaussian_kernel_matrix(X, X, sigma)
-    K_yy = _gaussian_kernel_matrix(Y, Y, sigma)
-    K_xy = _gaussian_kernel_matrix(X, Y, sigma)
+    k_xx = _gaussian_kernel_matrix(x, x, sigma)
+    k_yy = _gaussian_kernel_matrix(y, y, sigma)
+    k_xy = _gaussian_kernel_matrix(x, y, sigma)
     
     # MMD^2 = 1/n^2 * sum(K_xx) + 1/m^2 * sum(K_yy) - 2/(nm) * sum(K_xy)
     # Subtracting diagonal from K_xx and K_yy for unbiased estimator
-    sum_xx = (np.sum(K_xx) - n) / (n * (n - 1))
-    sum_yy = (np.sum(K_yy) - m) / (m * (m - 1))
-    sum_xy = np.mean(K_xy)
+    sum_xx = (np.sum(k_xx) - n) / (n * (n - 1))
+    sum_yy = (np.sum(k_yy) - m) / (m * (m - 1))
+    sum_xy = np.mean(k_xy)
     
     mmd_sq = sum_xx + sum_yy - 2 * sum_xy
     return np.sqrt(max(mmd_sq, 0.0))
@@ -84,11 +85,11 @@ class MultivariateDriftDetector:
     def __init__(self, threshold: float = 0.05):
         self.threshold = threshold
 
-    def detect_drift(self, baseline_X: np.ndarray, current_X: np.ndarray) -> Tuple[bool, float]:
+    def detect_drift(self, baseline_x: np.ndarray, current_x: np.ndarray) -> tuple[bool, float]:
         """Detect drift between two multivariate samples."""
         # Auto-scale sigma using median heuristic
         # (Simplified: using fixed sigma for speed in this manifold)
-        mmd_val = calculate_mmd(baseline_X, current_X, sigma=1.0)
+        mmd_val = calculate_mmd(baseline_x, current_x, sigma=1.0)
         is_drifted = mmd_val > self.threshold
         
         if is_drifted:

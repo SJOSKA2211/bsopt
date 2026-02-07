@@ -7,8 +7,9 @@ Provides standard decorators for robust error handling and backoff.
 import asyncio
 import functools
 import random
+from collections.abc import Callable
+
 import structlog
-from typing import Any, Callable, Type, Union, Tuple
 
 logger = structlog.get_logger(__name__)
 
@@ -17,7 +18,7 @@ def retry_with_backoff(
     initial_delay: float = 1.0,
     backoff_factor: float = 2.0,
     jitter: bool = True,
-    exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = (Exception,)
+    exceptions: type[Exception] | tuple[type[Exception], ...] = (Exception,)
 ):
     """
     Standardized retry decorator with exponential backoff and jitter.
@@ -26,13 +27,11 @@ def retry_with_backoff(
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             delay = initial_delay
-            last_exception = None
             
             for attempt in range(retries + 1):
                 try:
                     return await func(*args, **kwargs)
                 except exceptions as e:
-                    last_exception = e
                     if attempt == retries:
                         logger.error(
                             "retry_limit_reached", 

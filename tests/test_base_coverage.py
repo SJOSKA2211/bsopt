@@ -1,11 +1,13 @@
 import numpy as np
 import pytest
+
 from src.pricing.base import (
     PricingEngine,
     PricingStrategy,
     VectorizedPricingStrategy,
 )
 from src.pricing.models import BSParameters, OptionGreeks
+
 
 class MockPricingStrategy(PricingStrategy):
     def price(self, params: BSParameters, option_type: str = "call") -> float:

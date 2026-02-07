@@ -1,5 +1,5 @@
-import pytest
 import yaml
+
 
 def test_ray_shm_size_configured():
     """
@@ -17,7 +17,7 @@ def test_ray_shm_size_configured():
     # This test will initially "fail" by asserting False,
     # and then pass once the actual file is updated.
     
-    with open(docker_compose_path, 'r') as f:
+    with open(docker_compose_path) as f:
         compose_config = yaml.safe_load(f)
     
     assert 'services' in compose_config, "docker-compose.prod.yml must define services"

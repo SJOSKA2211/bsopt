@@ -1,7 +1,9 @@
+from unittest.mock import patch
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.ml.pipelines.sentiment_ingest import SentimentPipeline
+
 
 @pytest.fixture
 def mock_extractor():

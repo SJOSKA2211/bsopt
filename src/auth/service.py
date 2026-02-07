@@ -1,11 +1,12 @@
-from typing import Optional
-from sqlalchemy.orm import Session
-from src.database.models import User, OAuth2Client
-from src.config import settings
-from authlib.jose import jwt, JoseError # Added JoseError
 import time
+
 import structlog
-from fastapi import HTTPException # Added HTTPException
+from authlib.jose import JoseError, jwt  # Added JoseError
+from fastapi import HTTPException  # Added HTTPException
+from sqlalchemy.orm import Session
+
+from src.config import settings
+from src.database.models import OAuth2Client
 
 logger = structlog.get_logger(__name__)
 
@@ -18,7 +19,7 @@ class AuthService:
     def __init__(self, db: Session):
         self.db = db
 
-    def verify_client(self, client_id: str, client_secret: str) -> Optional[OAuth2Client]:
+    def verify_client(self, client_id: str, client_secret: str) -> OAuth2Client | None:
         """Verify client credentials."""
         client = self.db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
         if client and client.verify_secret(client_secret):

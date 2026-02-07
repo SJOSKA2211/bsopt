@@ -1,4 +1,3 @@
-import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
@@ -13,7 +12,6 @@ from src.api.exceptions import (
     ValidationException,
 )
 from src.api.main import api_exception_handler
-from src.api.schemas.common import ErrorResponse
 
 # Create a minimal app for testing exceptions
 app = FastAPI()

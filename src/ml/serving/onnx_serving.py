@@ -1,21 +1,22 @@
-import onnxruntime as ort
-import numpy as np
-import structlog
 import os
-from typing import Dict, Any, List
-from fastapi import FastAPI, HTTPException, Request, Response
-import msgspec
 import time
+
+import msgspec
+import numpy as np
+import onnxruntime as ort
+import structlog
+from fastapi import FastAPI, HTTPException, Request, Response
+
 from src.shared.observability import ONNX_INFERENCE_LATENCY
 
 logger = structlog.get_logger(__name__)
 
 # Use msgspec for high-performance validation and serialization
 class PredictionRequest(msgspec.Struct):
-    features: List[List[float]]
+    features: list[list[float]]
 
 class PredictionResponse(msgspec.Struct):
-    predictions: List[float]
+    predictions: list[float]
     latency_ms: float
 
 class ONNXModelServer:

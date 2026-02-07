@@ -1,8 +1,10 @@
+import asyncio
+import random
+from collections.abc import AsyncGenerator
+
 import strawberry
 from strawberry.federation import Schema
-from typing import List, AsyncGenerator
-import random
-import asyncio
+
 
 @strawberry.type
 class MarketData:
@@ -35,7 +37,7 @@ class Query:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def market_data_stream(self, symbols: List[str]) -> AsyncGenerator[MarketData, None]:
+    async def market_data_stream(self, symbols: list[str]) -> AsyncGenerator[MarketData]:
         # Mock stream
         while True:
             for symbol in symbols:

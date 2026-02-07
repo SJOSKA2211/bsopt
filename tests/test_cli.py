@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import MagicMock, patch
-from click.testing import CliRunner
 import sys
+from unittest.mock import MagicMock
+
+from click.testing import CliRunner
 
 # Mock imports before loading bs_cli
 sys.modules["scripts.enforce_venv"] = MagicMock()
@@ -10,6 +10,7 @@ sys.modules["src.ml.reinforcement_learning.train"] = MagicMock()
 sys.modules["src.shared.shm_manager"] = MagicMock()
 
 from bs_cli import cli
+
 
 class TestCli:
     def test_price_command(self):

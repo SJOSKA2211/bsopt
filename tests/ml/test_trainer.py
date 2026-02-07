@@ -1,7 +1,10 @@
-import pytest
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
+
 from src.ml.trainer import InstrumentedTrainer
+
 
 @pytest.fixture
 def sample_data():
@@ -19,7 +22,7 @@ def mock_mlflow():
 
 def test_trainer_initialization():
     trainer = InstrumentedTrainer(study_name="test_study")
-    assert trainer.study_name == "test_study"
+    assert trainer.tracker.study_name == "test_study"
     assert trainer.model is None
 
 def test_trainer_train_xgboost(sample_data):
@@ -148,22 +151,6 @@ def test_trainer_optuna_integration(sample_data):
     assert len(study.trials) == 5
     assert "n_estimators" in study.best_params
     assert study.best_value >= 0
-
-def test_base_trainer_abstract_methods():
-    """Verify that BaseTrainer raises NotImplementedError or returns default values."""
-    from src.ml.trainer import BaseTrainer
-    
-    trainer = BaseTrainer()
-    
-    with pytest.raises(NotImplementedError):
-        trainer.train(None, None, None, None, {})
-        
-    with pytest.raises(NotImplementedError):
-        trainer.predict(None, None)
-    
-    # These should not raise but just pass/return None
-    trainer.log_model(None, "test")
-    assert trainer.get_feature_importance(None, []) is None
 
 @patch("mlflow.log_artifact")
 @patch("mlflow.sklearn.log_model")

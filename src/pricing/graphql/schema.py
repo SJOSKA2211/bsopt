@@ -1,17 +1,16 @@
-from typing import List, Optional, Dict
-import strawberry
-from strawberry.federation import Schema
-from strawberry.dataloader import DataLoader
 from datetime import datetime
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
-from src.services.pricing_service import PricingService
+
+import strawberry
+from strawberry.dataloader import DataLoader
+from strawberry.federation import Schema
+
 from src.api.schemas.pricing import PriceRequest
+from src.services.pricing_service import PricingService
 
 # Instantiate the optimized service
 pricing_service = PricingService()
 
-async def load_prices(keys: List[tuple]) -> List[float]:
+async def load_prices(keys: list[tuple]) -> list[float]:
     """Batch loader for option prices."""
     requests = []
     for key in keys:
@@ -34,7 +33,7 @@ async def load_prices(keys: List[tuple]) -> List[float]:
     batch_res = await pricing_service.price_batch(requests)
     return [r.price for r in batch_res.results]
 
-async def load_greeks(keys: List[tuple]) -> List[Dict[str, float]]:
+async def load_greeks(keys: list[tuple]) -> list[dict[str, float]]:
     """Batch loader for option Greeks."""
     requests = []
     for key in keys:

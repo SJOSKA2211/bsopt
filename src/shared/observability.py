@@ -26,7 +26,7 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
 )
 
 def _off_heap_processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
-    """🚀 SINGULARITY: Zero-latency redirect for high-frequency logs."""
+    """Zero-latency redirect for high-frequency logs."""
     if event_dict.get("high_frequency") or event_dict.get("latency_sensitive"):
         # Remove the marker before logging to SHM
         event_dict.pop("high_frequency", None)
@@ -70,7 +70,7 @@ def tune_gc(mode: str = "analytical"):
 
 def tune_worker_resources():
     """
-    SOTA: Coordinates CPU resource allocation for multi-backend parallelism.
+    OPTIMIZED: Coordinates CPU resource allocation for multi-backend parallelism.
     Prevents CPU oversubscription between Ray and Numba.
     """
     import os
@@ -89,10 +89,10 @@ def tune_worker_resources():
         numba_threads=numba_threads
     )
 
+import uuid
+
 import orjson
 from cachetools import LRUCache
-
-import uuid
 
 _IP_CACHE = LRUCache(maxsize=1000)
 
@@ -149,7 +149,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
 
 # System Metrics
 def update_system_metrics(service_name: str):
-    """🚀 SINGULARITY: Capture real-time resource utilization for the current process."""
+    """Capture real-time resource utilization for the current process."""
     try:
         import psutil
         process = psutil.Process()

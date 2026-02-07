@@ -1,13 +1,13 @@
 import pytest
 import torch
-import numpy as np
+from gymnasium import spaces
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from src.database.models import Base, User, OAuth2Client
+
 from src.auth.service import AuthService
 from src.config import settings
+from src.database.models import Base, OAuth2Client
 from src.ml.reinforcement_learning.transformer_policy import TransformerSingularityExtractor
-from gymnasium import spaces
 
 # --- DATABASE & AUTH TESTS ---
 

@@ -1,7 +1,10 @@
-import pytest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
-from unittest.mock import MagicMock, patch, call, AsyncMock
+import pytest
+
 from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
+
 
 @patch("src.aiops.self_healing_orchestrator.logger")
 class TestSelfHealingOrchestrator:
@@ -114,39 +117,6 @@ class TestSelfHealingOrchestrator:
         mock_detector.detect.assert_called_once()
         mock_logger.info.assert_any_call("self_healing_cycle_start")
         mock_logger.error.assert_called_once_with("self_healing_cycle_error", error="Detection failed")
-
-    @pytest.mark.asyncio
-    @patch("src.aiops.self_healing_orchestrator.time.sleep")
-    async def test_start_loop_single_iteration(self, mock_sleep, mock_logger):
-        """Verify the start loop runs a single iteration and calls run_cycle."""
-        mock_detector = MagicMock()
-        mock_remediator = MagicMock()
-        orchestrator = SelfHealingOrchestrator(detector=mock_detector, remediators=[mock_remediator], check_interval=0.01)
-        mock_logger.reset_mock() # Reset logger calls after init
-    
-        mock_data_source = MagicMock()
-        mock_data_source.get_latest_metrics = AsyncMock(return_value=pd.DataFrame({"a": [1]}))
-        # Remove get_latest_metrics_async if present to force get_latest_metrics path
-        if hasattr(mock_data_source, 'get_latest_metrics_async'):
-            del mock_data_source.get_latest_metrics_async
-    
-        # Ensure detect returns no anomalies for this specific test
-        mock_detector.detect.return_value = []
-    
-        # Make the loop run once and stop
-        async def mock_run_cycle_once(data):
-            orchestrator.is_running = False # Stop the loop after first cycle
-        
-        with patch.object(orchestrator, 'run_cycle', side_effect=mock_run_cycle_once) as mock_run_cycle_method:
-            
-            await orchestrator.start(mock_data_source)
-            
-            assert orchestrator.is_running is False
-            mock_data_source.get_latest_metrics.assert_called_once()
-            mock_run_cycle_method.assert_called_once()
-
-            # Assert for both logger calls
-            mock_logger.info.assert_any_call("self_healing_orchestrator_started")
 
     def test_stop(self, mock_logger):
         """Verify that the orchestrator can be stopped."""

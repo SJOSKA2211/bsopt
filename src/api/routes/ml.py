@@ -2,15 +2,16 @@
 Machine Learning Routes (Singularity Refactored)
 """
 
-import structlog
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Optional
 from uuid import UUID
-from src.api.schemas.ml import InferenceRequest, InferenceResponse, DriftMetricsResponse
-from src.api.schemas.common import DataResponse
-from src.services.ml_service import get_ml_service, MLService
-from src.database import get_db
+
+import structlog
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
+from src.api.schemas.common import DataResponse
+from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
+from src.database import get_db
+from src.services.ml_service import MLService, get_ml_service
 
 router = APIRouter(prefix="/ml", tags=["Machine Learning"])
 logger = structlog.get_logger(__name__)
@@ -29,7 +30,7 @@ async def predict(
 
 @router.get("/drift-metrics")
 async def get_drift_metrics(
-    model_id: Optional[UUID] = None,
+    model_id: UUID | None = None,
     db: Session = Depends(get_db)
 ):
     """

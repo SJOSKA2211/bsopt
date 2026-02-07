@@ -1,15 +1,17 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
 import os
 import sys
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 
-from src.streaming.producer import MarketDataProducer
-from src.streaming.consumer import MarketDataConsumer
 from src.streaming.analytics import VolatilityAggregationStream
+from src.streaming.consumer import MarketDataConsumer
+from src.streaming.producer import MarketDataProducer
+
 
 @pytest.mark.asyncio
 async def test_streaming_e2e_flow():

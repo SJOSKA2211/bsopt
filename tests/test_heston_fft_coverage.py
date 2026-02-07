@@ -1,6 +1,7 @@
-import numpy as np
 import pytest
-from src.pricing.models.heston_fft import HestonParams, HestonModelFFT
+
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+
 
 def test_heston_params_validation():
     # Correlation OOB

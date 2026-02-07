@@ -1,6 +1,5 @@
-import pytest
-import os
 from src.config import settings
+
 
 def test_environment_variables():
     """Verify that environment variables are correctly mocked/loaded."""

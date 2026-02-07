@@ -1,16 +1,19 @@
 """
-Pricing Service (Singularity Refactored)
+Unified Pricing Service
 """
 
 import time
-import asyncio
+from collections import defaultdict
+from typing import Any
+
+import numpy as np
 import structlog
-from typing import Any, List, Optional
-from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound # Added PricingEngineNotFound
-from src.api.schemas.pricing import PriceResponse, BatchPriceResponse
+from anyio.to_thread import run_sync
+from fastapi import HTTPException
+
+from src.api.schemas.pricing import BatchPriceResponse, PriceResponse
 from src.pricing.black_scholes import BSParameters
-from src.config import settings
-from fastapi import HTTPException # Added HTTPException
+from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound
 
 logger = structlog.get_logger(__name__)
 
@@ -24,7 +27,7 @@ class PricingService:
         params: BSParameters,
         option_type: str,
         model: str = "black_scholes",
-        symbol: Optional[str] = None
+        symbol: str | None = None
     ) -> PriceResponse:
         start_time = time.perf_counter()
         
@@ -33,15 +36,11 @@ class PricingService:
         except PricingEngineNotFound as e:
             logger.error("pricing_engine_not_found", model=model, error=str(e))
             raise HTTPException(status_code=400, detail=f"Invalid pricing model '{model}': {str(e)}")
-        except Exception as e:
-            logger.error("pricing_engine_factory_error", model=model, error=str(e))
-            raise HTTPException(status_code=500, detail=f"Error initializing pricing engine: {str(e)}")
         
-        from anyio.to_thread import run_sync
         try:
             price = await run_sync(engine.price, params, option_type)
         except Exception as e:
-            logger.error("pricing_engine_calculation_error", model=model, error=str(e), params=params.dict())
+            logger.error("pricing_engine_calculation_error", model=model, error=str(e))
             raise HTTPException(status_code=422, detail=f"Pricing calculation failed: {str(e)}")
         
         return PriceResponse.model_construct(
@@ -56,15 +55,13 @@ class PricingService:
             computation_time_ms=(time.perf_counter() - start_time) * 1000
         )
 
-    async def price_batch(self, options: List[Any]) -> BatchPriceResponse:
+    async def price_batch(self, options: list[Any]) -> BatchPriceResponse:
         """
-        🚀 OPTIMIZATION: True Batch Pricing.
-        Groups options by model and uses vectorized engines for massive performance gains.
+        Efficient Batch Pricing using vectorized engines.
         """
         start_time = time.perf_counter()
         
-        # 1. Group options by model
-        from collections import defaultdict
+        # 1. Group options by model to leverage vectorization
         model_groups = defaultdict(list)
         for o in options:
             model_groups[o.model].append(o)
@@ -72,7 +69,7 @@ class PricingService:
         results = [None] * len(options)
         option_to_idx = {id(o): i for i, o in enumerate(options)}
         
-        # 2. Process each group vectorially
+        # 2. Process each model group
         for model, group in model_groups.items():
             try:
                 engine = PricingEngineFactory.get_engine(model)
@@ -85,12 +82,10 @@ class PricingService:
                 rates = np.array([o.rate for o in group], dtype=np.float64)
                 types = np.array([o.option_type for o in group])
                 
-                # Vectorized call
-                # Offload to thread pool for heavy math
-                from anyio.to_thread import run_sync
+                # JIT-accelerated vectorized call
                 prices = await run_sync(engine.price_options, spots, strikes, maturities, vols, rates, 0.0, types)
                 
-                # Reconstruct responses
+                # Map results back to original order
                 for i, o in enumerate(group):
                     idx = option_to_idx[id(o)]
                     results[idx] = PriceResponse.model_construct(
@@ -102,18 +97,16 @@ class PricingService:
                         volatility=o.volatility,
                         option_type=o.option_type,
                         model=model,
-                        computation_time_ms=0 # Grouped time is tracked at batch level
+                        computation_time_ms=0
                     )
             except Exception as e:
-                logger.error("vectorized_batch_failed", model=model, error=str(e))
-                # Fallback to individual error reporting for the group
+                logger.error("batch_group_processing_failed", model=model, error=str(e))
                 for o in group:
                     idx = option_to_idx[id(o)]
                     results[idx] = PriceResponse.model_construct(
-                        error=f"Batch processing failed for {model}: {str(e)}",
+                        error=f"Batch failed: {str(e)}",
                         spot=o.spot, strike=o.strike, time_to_expiry=o.time_to_expiry,
-                        rate=o.rate, volatility=o.volatility, option_type=o.option_type,
-                        model=model, computation_time_ms=0
+                        model=model
                     )
 
         return BatchPriceResponse(
@@ -124,6 +117,5 @@ class PricingService:
 
     async def calculate_greeks(self, params: BSParameters, option_type: str) -> dict:
         engine = PricingEngineFactory.get_engine("black_scholes")
-        from anyio.to_thread import run_sync
         greeks = await run_sync(engine.calculate_greeks, params, option_type)
         return greeks.__dict__

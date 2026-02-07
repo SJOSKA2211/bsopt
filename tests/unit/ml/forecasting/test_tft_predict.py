@@ -1,6 +1,7 @@
-import pytest
 import pandas as pd
+
 from src.ml.forecasting.tft_model import PriceTFTModel
+
 
 def test_tft_prediction_stub():
     model = PriceTFTModel()

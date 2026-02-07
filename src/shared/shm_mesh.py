@@ -1,10 +1,10 @@
-import struct
-import numpy as np
-from multiprocessing import shared_memory, Lock
-from typing import Optional, Tuple, Dict, Any
-import structlog
 import os
+import struct
+from multiprocessing import Lock, shared_memory
+
 import msgspec
+import numpy as np
+import structlog
 
 logger = structlog.get_logger()
 
@@ -77,17 +77,17 @@ class SharedMemoryRingBuffer:
             # Atomic head update
             self.buf[:8] = struct.pack("q", head + 1)
 
-    def read_latest_view(self, last_head: int) -> Tuple[np.ndarray, int]:
+    def read_latest_view(self, last_head: int) -> tuple[np.ndarray, int]:
         """
-        🚀 SOTA: Returns a zero-copy NumPy view of the new ticks.
-        If the data wraps, returns a copy (rare).
+        Returns a zero-copy NumPy view of the new ticks in the ring buffer.
+        If the data wraps around the buffer capacity, returns a concatenated copy.
         """
         current_head = struct.unpack("q", self.buf[:8])[0]
         if current_head <= last_head:
             return np.array([], dtype=TICK_DTYPE), last_head
         
         start_idx = max(last_head, current_head - BUFFER_CAPACITY)
-        num_new = current_head - start_idx
+        current_head - start_idx
         
         s = start_idx % BUFFER_CAPACITY
         e = current_head % BUFFER_CAPACITY
@@ -99,7 +99,7 @@ class SharedMemoryRingBuffer:
             # Wrap around - must concatenate (copy unavoidable here)
             return np.concatenate([self.data_view[s:], self.data_view[:e]]), current_head
 
-    def read_latest_msgspec(self, last_head: int) -> Tuple[list[MarketTick], int]:
+    def read_latest_msgspec(self, last_head: int) -> tuple[list[MarketTick], int]:
         """High-level reader using msgspec for speed."""
         view, head = self.read_latest_view(last_head)
         # Faster than dictionary comprehension

@@ -1,7 +1,9 @@
-import pytest
-import pandas as pd
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.ml.scraper import MarketDataScraper
+
 
 @pytest.fixture
 def scraper():

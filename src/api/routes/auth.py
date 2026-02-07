@@ -3,13 +3,14 @@ Authentication Routes (Singularity Refactored)
 """
 
 import logging
-from typing import Optional
-from fastapi import APIRouter, Depends, Request, status, HTTPException, Form
+
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from sqlalchemy.orm import Session
-from src.database import get_db
-from src.database.models import User, OAuth2Client
+
 from src.auth.service import AuthService
 from src.config import settings
+from src.database import get_db
+from src.database.models import User
 
 logger = logging.getLogger(__name__)
 

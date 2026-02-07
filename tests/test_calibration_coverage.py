@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
+
 from src.pricing.calibration.engine import HestonCalibrator, MarketOption
+
 
 def test_market_option_spread():
     opt = MarketOption(T=1.0, strike=100, spot=100, price=10, bid=9, ask=11, volume=100, open_interest=100, option_type='call')

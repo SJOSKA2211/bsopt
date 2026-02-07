@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
+
 from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+
 
 def test_deprecated_wrapper_price():
     prices = VectorizedBlackScholesEngine.price_options(100.0, 100.0, 1.0, 0.2, 0.05)

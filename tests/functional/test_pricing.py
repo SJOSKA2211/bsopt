@@ -5,6 +5,7 @@ Pricing Engine Functional Tests (Refined Plan)
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_pricing_valid_request(client):
     """5. Pricing Endpoint: Valid payload."""

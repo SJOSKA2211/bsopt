@@ -1,8 +1,9 @@
+
 import numpy as np
 import structlog
-from typing import Tuple, Dict, List, Union
-from src.ml.drift import calculate_psi, calculate_ks_test
-from prometheus_client import Gauge # Assuming Prometheus client is available
+from prometheus_client import Gauge  # Assuming Prometheus client is available
+
+from src.ml.drift import calculate_ks_test, calculate_psi
 
 logger = structlog.get_logger()
 
@@ -16,7 +17,7 @@ class DataDriftDetector:
         self.psi_threshold = psi_threshold
         self.ks_threshold = ks_threshold
 
-    def detect_drift(self, reference_data: np.ndarray, current_data: np.ndarray) -> Tuple[bool, Dict]:
+    def detect_drift(self, reference_data: np.ndarray, current_data: np.ndarray) -> tuple[bool, dict]:
         if reference_data.shape[0] == 0 or current_data.shape[0] == 0:
             raise ValueError("Reference or current data cannot be empty.")
         
@@ -25,7 +26,7 @@ class DataDriftDetector:
 
         n_features = reference_data.shape[1]
         overall_drift_detected = False
-        drift_info: Dict[str, Union[float, bool, List[Dict]]] = {
+        drift_info: dict[str, float | bool | list[dict]] = {
             "overall_drift_detected": False,
             "feature_drifts": []
         }

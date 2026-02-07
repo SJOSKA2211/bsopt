@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
+
 from src.api.routes.websocket import market_data_ws
 from src.api.websockets.codec import ProtocolType
+
 
 @pytest.mark.asyncio
 async def test_market_data_ws_protocol_negotiation():
@@ -36,7 +39,7 @@ async def test_market_data_ws_default_protocol():
     symbol = "GOOG"
     protocol = ProtocolType.JSON
     
-    with patch("src.api.routes.websocket.manager.connect", new_callable=AsyncMock) as mock_connect:
+    with patch("src.api.routes.websocket.manager.connect", new_callable=AsyncMock):
         try:
             await market_data_ws(websocket, symbol, protocol)
         except Exception as e:

@@ -5,9 +5,10 @@ Performance Characteristics:
 - Classical (Heston, Black-Scholes): Load in ~50ms
 - Quantum (Qiskit): Load in ~2.5s (only loaded when needed)
 """
-import sys
 import os
+import sys
 from typing import TYPE_CHECKING, List
+
 from src.utils.lazy_import import lazy_import, preload_modules
 
 __all__ = [
@@ -20,13 +21,13 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
-    from .models.heston_fft import HestonModelFFT
-    from .calibration.engine import HestonCalibrator
     from .black_scholes import BlackScholesEngine
-    from .monte_carlo import MonteCarloEngine
+    from .calibration.engine import HestonCalibrator
     from .calibration.svi_surface import SVISurface
-    from .vol_surface import SABRModel
+    from .models.heston_fft import HestonModelFFT
+    from .monte_carlo import MonteCarloEngine
     from .quantum_pricing import QuantumOptionPricer
+    from .vol_surface import SABRModel
 
 _import_map = {
     # Classical (Fast - can preload)
@@ -46,7 +47,7 @@ _import_map = {
 def __getattr__(name: str):
     return lazy_import(__name__, _import_map, name, sys.modules[__name__])
 
-def __dir__() -> List[str]:
+def __dir__() -> list[str]:
     return sorted(__all__)
 
 def preload_classical_pricers():

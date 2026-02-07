@@ -1,6 +1,5 @@
-import pytest
-import numpy as np
-from src.pricing.quantum_pricing import QuantumOptionPricer, HybridQuantumClassicalPricer
+from src.pricing.quantum_pricing import HybridQuantumClassicalPricer, QuantumOptionPricer
+
 
 def test_quantum_option_pricer_simulation():
     pricer = QuantumOptionPricer(use_real_quantum=False)

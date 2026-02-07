@@ -1,10 +1,11 @@
-import subprocess
 import os
+import subprocess
+
 
 def test_nginx_config_syntax():
     # If nginx is installed on the runner, we can check syntax
     try:
-        result = subprocess.run(["nginx", "-t", "-c", os.path.abspath("docker/nginx/nginx.conf")], 
+        subprocess.run(["nginx", "-t", "-c", os.path.abspath("docker/nginx/nginx.conf")], 
                                 capture_output=True, text=True)
         # Nginx -t might fail if paths like /etc/nginx/mime.types don't exist locally,
         # so we primarily rely on grep validation for specific settings.
@@ -15,7 +16,7 @@ def test_nginx_config_syntax():
 
 def test_nginx_performance_settings():
     conf_path = "docker/nginx/nginx.conf"
-    with open(conf_path, "r") as f:
+    with open(conf_path) as f:
         content = f.read()
     
     assert "worker_rlimit_nofile 200000;" in content
@@ -27,7 +28,7 @@ def test_nginx_performance_settings():
 
 def test_websocket_optimizations():
     conf_path = "docker/nginx/nginx.conf"
-    with open(conf_path, "r") as f:
+    with open(conf_path) as f:
         content = f.read()
     
     # Check websocket block

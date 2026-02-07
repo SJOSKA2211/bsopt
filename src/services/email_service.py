@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from prometheus_client import Counter, Histogram
@@ -31,7 +31,7 @@ class TransactionalEmailService:
             loader=FileSystemLoader(template_dir), autoescape=select_autoescape(["html", "xml"])
         )
 
-    def _render_template(self, template_name: str, context: Dict[str, Any]) -> str:
+    def _render_template(self, template_name: str, context: dict[str, Any]) -> str:
         """Render email template with context."""
         template = self.jinja_env.get_template(template_name)
         return template.render(**context)
@@ -41,7 +41,7 @@ class TransactionalEmailService:
         to_email: str,
         subject: str,
         template_name: str,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         email_type: str = "transactional",
     ) -> bool:
         """Send a single email with monitoring and error handling."""
@@ -71,7 +71,7 @@ class TransactionalEmailService:
 
     def send_batch_emails(
         self,
-        recipients: List[Dict[str, Any]],
+        recipients: list[dict[str, Any]],
         subject: str,
         template_name: str,
         email_type: str = "marketing",

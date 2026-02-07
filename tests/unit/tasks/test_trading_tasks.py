@@ -1,6 +1,7 @@
-import pytest
-from unittest.mock import MagicMock, patch
-from src.tasks.trading_tasks import execute_trade_task, backtest_strategy_task, check_risk_limits
+from unittest.mock import patch
+
+from src.tasks.trading_tasks import backtest_strategy_task, check_risk_limits, execute_trade_task
+
 
 def test_check_risk_limits():
     assert check_risk_limits({"quantity": 10, "limit_price": 100}) is True

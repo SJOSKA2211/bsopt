@@ -140,7 +140,7 @@ celery_app.conf.update(
     # High-performance settings for transient tasks
     task_persistent=True, # Default to True, but will override for pricing
     # Worker configuration
-    worker_prefetch_multiplier=1,  # SOTA: Set to 1 for high-throughput heterogeneous tasks
+    worker_prefetch_multiplier=1,  # OPTIMIZED: Set to 1 for high-throughput heterogeneous tasks
     worker_concurrency=os.cpu_count() or 4,
     worker_max_tasks_per_child=1000,  # Recycle workers periodically
     worker_max_memory_per_child=512000,  # 512MB memory limit

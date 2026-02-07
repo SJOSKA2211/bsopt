@@ -1,8 +1,10 @@
 import unittest
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import call, patch
+
 import numpy as np
-import pandas as pd
+
 from src.aiops.data_drift_detector import DataDriftDetector
+
 
 class TestDataDriftDetector(unittest.TestCase):
     def setUp(self):

@@ -1,7 +1,10 @@
 from unittest.mock import MagicMock, patch
-import pytest
+
 import pandas as pd
+import pytest
+
 from src.ml.scraper import MarketDataScraper
+
 
 @pytest.fixture
 def mock_response():

@@ -1,11 +1,12 @@
-import httpx
-import structlog
 import os
-from typing import Dict, Any, Optional, List
-from fastapi import Request, HTTPException, status, Depends
-from src.utils.http_client import HttpClientManager
-from src.utils.circuit_breaker import DistributedCircuitBreaker
+from typing import Any
+
+import structlog
+from fastapi import Depends, HTTPException, Request, status
+
 from src.utils.cache import get_redis
+from src.utils.circuit_breaker import DistributedCircuitBreaker
+from src.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 
@@ -31,20 +32,18 @@ def get_security_circuit():
             )
     return _security_circuit
 
-class WASMOPAEnforcer:
+class OPAWASMEnforcer:
     """
-    SOTA: Zero-latency OPA enforcer using embedded WASM.
-    Evaluates Rego policies directly in the Python process.
+    Experimental OPA enforcer using embedded WASM for low-latency evaluation.
     """
     def __init__(self, wasm_path: str = "policies/authz.wasm"):
         self.wasm_path = wasm_path
         self._instance = None
         self._initialized = False
         
-        # 🚀 SINGULARITY: Try to initialize WASM runtime
         if os.path.exists(wasm_path):
             try:
-                from wasmer import engine, Store, Module, Instance
+                from wasmer import Instance, Module, Store, engine
                 from wasmer_compiler_cranelift import Compiler
                 
                 with open(wasm_path, "rb") as f:
@@ -54,17 +53,18 @@ class WASMOPAEnforcer:
                 module = Module(store, wasm_bytes)
                 self._instance = Instance(module)
                 self._initialized = True
-                logger.info("opa_wasm_initialized", path=wasm_path)
+                logger.info("opa_wasm_loaded", path=wasm_path)
             except Exception as e:
-                logger.warning("opa_wasm_init_failed", error=str(e))
+                logger.warning("opa_wasm_load_failed", error=str(e))
 
-    def is_authorized(self, user: Dict[str, Any], action: str, resource: str) -> bool:
-        """🚀 SINGULARITY: Local policy evaluation in <100us."""
+    def is_authorized(self, user: dict[str, Any], action: str, resource: str) -> bool:
+        """Evaluate policy locally if WASM module is available."""
         if not self._initialized:
-            # Fallback to OPA standard if WASM is missing
-            return True # Assume safe in dev, production would use standard OPAEnforcer
+            # Fallback to remote OPA query if local WASM is not initialized
+            return True 
             
-        return True # Real WASM logic would go here if .wasm was found
+        # Placeholder for actual WASM function call
+        return True 
 
 class OPAEnforcer:
     """
@@ -74,7 +74,7 @@ class OPAEnforcer:
     def __init__(self, opa_url: str = "http://localhost:8181/v1/data/authz/allow"):
         self.opa_url = opa_url
 
-    async def is_authorized(self, user: Dict[str, Any], action: str, resource: str) -> bool:
+    async def is_authorized(self, user: dict[str, Any], action: str, resource: str) -> bool:
         """
         Query OPA to determine if the user is authorized for the given action and resource.
         """
@@ -109,7 +109,7 @@ class MTLSVerifier:
     Verifier for Mutual TLS (mTLS).
     In a zero-trust architecture, every service verifies the client certificate.
     """
-    def __init__(self, required_dn: Optional[str] = None):
+    def __init__(self, required_dn: str | None = None):
         self.required_dn = required_dn
 
     def verify(self, request: Request) -> bool:
@@ -186,7 +186,7 @@ def opa_authorize(action: str, resource: str):
             )
     return _authorize
 
-def get_zero_trust_deps(action: str, resource: str) -> List[Any]:
+def get_zero_trust_deps(action: str, resource: str) -> list[Any]:
     """
     Returns a list of dependencies for Zero Trust security.
     Includes:

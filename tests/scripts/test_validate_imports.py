@@ -1,10 +1,9 @@
-import pytest
-import subprocess
-import sys
 import os
-from pathlib import Path
 import random
 import string
+import subprocess
+import sys
+from pathlib import Path
 
 VALIDATE_IMPORTS_SCRIPT = Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
 os.chmod(VALIDATE_IMPORTS_SCRIPT, 0o755)

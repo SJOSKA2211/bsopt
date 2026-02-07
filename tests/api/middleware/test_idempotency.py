@@ -1,9 +1,11 @@
+import json
+from unittest.mock import AsyncMock
+
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
+
 from src.api.middleware.idempotency import IdempotencyMiddleware
-from unittest.mock import AsyncMock, patch
-import json
 
 app = FastAPI()
 
@@ -24,7 +26,7 @@ client = TestClient(app)
 
 def test_idempotency_skipped_for_get():
     mock_redis_client.get.reset_mock()
-    response = client.get("/")
+    client.get("/")
     mock_redis_client.get.assert_not_called()
 
 @pytest.mark.asyncio

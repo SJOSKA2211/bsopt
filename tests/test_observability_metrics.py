@@ -1,6 +1,9 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from prometheus_client import REGISTRY
+
 from src.shared.observability import push_metrics
+
 
 @patch('src.shared.observability.push_to_gateway')
 @patch('src.shared.observability.os.environ.get')

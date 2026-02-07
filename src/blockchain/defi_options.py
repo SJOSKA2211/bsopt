@@ -148,7 +148,7 @@ class DeFiOptionsProtocol:
 
         await self._check_circuit()
         
-        start_time = time.time()
+        time.time()
         CHUNK_SIZE = 100 
         chunks = [contract_addresses[i:i + CHUNK_SIZE] for i in range(0, len(contract_addresses), CHUNK_SIZE)]
         
@@ -161,7 +161,7 @@ class DeFiOptionsProtocol:
         
         try:
             # Note: batch_requests is a context manager in some web3 versions
-            async with self.w3.batch_requests() as batch:
+            async with self.w3.batch_requests():
                 tasks = []
                 for chunk in chunks:
                     calls = [{

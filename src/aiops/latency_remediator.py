@@ -1,9 +1,9 @@
 import asyncio
 import os
+
 import structlog
-from typing import Dict, Any
+
 from src.shared.observability import get_obs_client
-from src.config import settings
 
 logger = structlog.get_logger()
 

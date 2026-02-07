@@ -1,6 +1,8 @@
 import pytest
 from strawberry.types import ExecutionResult
+
 from src.pricing.graphql.schema import schema
+
 
 @pytest.mark.asyncio
 async def test_pricing_subgraph_schema_valid():

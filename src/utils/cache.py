@@ -6,27 +6,27 @@ Implements a multi-layer caching strategy using Redis to improve API performance
 Optimized for 1000+ concurrent users with connection pooling and keepalive.
 """
 
-import hashlib
-import structlog
-import time
 import asyncio
+import hashlib
+import time
 from dataclasses import asdict, dataclass
-from enum import Enum
-from typing import Any, Dict, Optional, TypeVar, Union
+from enum import StrEnum
 from functools import wraps
+from typing import Any
 
-import numpy as np
 import msgspec
 import orjson
+import structlog
 from cachetools import TTLCache
-from src.pricing.models import BSParameters, OptionGreeks
 from redis.asyncio import Redis, RedisError
+
+from src.pricing.models import BSParameters, OptionGreeks
 
 logger = structlog.get_logger(__name__)
 
-_redis: Optional[Redis] = None
+_redis: Redis | None = None
 
-def get_redis() -> Optional[Redis]:
+def get_redis() -> Redis | None:
     """Get or initialize the global Redis client instance."""
     global _redis
     if _redis is None:
@@ -54,7 +54,7 @@ def generate_cache_key(prefix: str, **kwargs) -> str:
 class PricingCache:
     async def get_option_price(
         self, params: BSParameters, option_type: str, method: str
-    ) -> Optional[float]:
+    ) -> float | None:
         redis = get_redis()
         if redis is None:
             return None
@@ -82,7 +82,7 @@ class PricingCache:
             logger.error("cache_set_price_failed", error=str(e), key=key)
             return False
 
-    async def get_greeks(self, params: BSParameters, option_type: str) -> Optional[OptionGreeks]:
+    async def get_greeks(self, params: BSParameters, option_type: str) -> OptionGreeks | None:
         """Retrieve cached Greeks."""
         redis = get_redis()
         if redis is None:
@@ -116,7 +116,7 @@ class PricingCache:
 
 def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None):
     """
-    Decorator for multi-layer caching with SOTA X-Fetch (Probabilistic Early Recomputation).
+    Decorator for multi-layer caching with OPTIMIZED X-Fetch (Probabilistic Early Recomputation).
     Layer 1: Local In-Memory LRU
     Layer 2: Distributed Redis
     """
@@ -126,8 +126,8 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            import random
             import math
+            import random
             
             key_params = kwargs.copy()
             for i, arg in enumerate(args[1:]):
@@ -142,12 +142,11 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
 
             # 2. L2 Check (Redis) with X-Fetch implementation
             redis = get_redis()
-            recompute = False
             cached_val = None
             
             if redis:
                 try:
-                    # SOTA: Fetch value AND remaining TTL
+                    # OPTIMIZED: Fetch value AND remaining TTL
                     pipe = redis.pipeline()
                     pipe.get(cache_key)
                     pipe.pttl(cache_key)
@@ -160,7 +159,6 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
                         delta_ms = 100 # Assume 100ms computation time average
                         if remaining_ms > 0 and (remaining_ms - delta_ms * beta * math.log(random.random())) < 0:
                             logger.info("x_fetch_triggered_early_refresh", key=cache_key)
-                            recompute = True
                         else:
                             val = msgspec.json.decode(cached_val)
                             if validation_model and isinstance(val, dict):
@@ -181,7 +179,7 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
             l1_cache[cache_key] = result
             if redis:
                 try:
-                    # SOTA: msgspec is extremely fast for complex objects
+                    # OPTIMIZED: msgspec is extremely fast for complex objects
                     await redis.setex(cache_key, 3600, msgspec.json.encode(result))
                 except Exception as e:
                     logger.warning("l2_cache_write_failed", error=str(e))
@@ -190,7 +188,7 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
         return wrapper
     return decorator
 
-class RateLimitTier(str, Enum):
+class RateLimitTier(StrEnum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"
@@ -212,7 +210,7 @@ pricing_cache = PricingCache()
 
 class RateLimiter:
     async def check_rate_limit(
-        self, user_id: str, endpoint: str, tier: Union[RateLimitTier, str] = RateLimitTier.FREE
+        self, user_id: str, endpoint: str, tier: RateLimitTier | str = RateLimitTier.FREE
     ) -> bool:
         redis = get_redis()
         if redis is None:
@@ -305,7 +303,7 @@ idempotency_manager = IdempotencyManager()
 class DatabaseQueryCache:
     PREFIX = "db:"
 
-    async def get_user(self, user_id: str) -> Optional[Dict]:
+    async def get_user(self, user_id: str) -> dict | None:
         redis = get_redis()
         if redis is None:
             return None
@@ -316,7 +314,7 @@ class DatabaseQueryCache:
             logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
 
-    async def set_user(self, user_id: str, user_data: Dict, ttl: int = 300):
+    async def set_user(self, user_id: str, user_data: dict, ttl: int = 300):
         redis = get_redis()
         if redis is None:
             return False
@@ -337,7 +335,7 @@ db_cache = DatabaseQueryCache()
 redis_channel_updates: str = "pricing_updates"
 
 
-async def publish_to_redis(channel: str, message: Dict[str, Any]):
+async def publish_to_redis(channel: str, message: dict[str, Any]):
     """Publish a message to a Redis channel using orjson."""
     redis = get_redis()
     if redis is not None:

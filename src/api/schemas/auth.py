@@ -6,7 +6,6 @@ Pydantic models for authentication endpoints.
 """
 
 import re
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -19,7 +18,7 @@ class LoginRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=1, description="User password")
     remember_me: bool = Field(False, description="Extend token expiration")
-    mfa_code: Optional[str] = Field(None, description="MFA code if enabled")
+    mfa_code: str | None = Field(None, description="MFA code if enabled")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -66,7 +65,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
     password_confirm: str = Field(..., description="Password confirmation")
-    full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
+    full_name: str | None = Field(None, max_length=255, description="User's full name")
     accept_terms: bool = Field(..., description="Accept terms and conditions")
 
     @field_validator("password")

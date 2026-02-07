@@ -1,12 +1,14 @@
-import struct
-import time
-import os
-import sys
 import asyncio
+import os
+import struct
+import sys
+import time
 from multiprocessing import shared_memory
-import structlog
+
 import orjson
-from src.shared.off_heap_logger import LOG_STRUCT, LOG_SIZE, LOG_BUFFER_CAPACITY, SHM_LOG_NAME
+import structlog
+
+from src.shared.off_heap_logger import LOG_BUFFER_CAPACITY, LOG_SIZE, LOG_STRUCT, SHM_LOG_NAME
 from src.utils.http_client import HttpClientManager
 
 # Standard logging for the drainer itself
@@ -14,7 +16,7 @@ logger = structlog.get_logger()
 
 class AsyncLogDrain:
     """
-    SOTA: Asynchronous worker that drains the Off-Heap SHM log buffer and batches to Loki.
+    OPTIMIZED: Asynchronous worker that drains the Off-Heap SHM log buffer and batches to Loki.
     Ensures that log persistence never touches the hot path.
     """
     def __init__(self, loki_url: str = None, batch_size: int = 1000, flush_interval: float = 5.0):
@@ -35,7 +37,7 @@ class AsyncLogDrain:
         self._running = True
 
     async def _push_to_loki(self, batch):
-        """🚀 SINGULARITY: Push batched logs to Loki using HTTP/2."""
+        """Push batched logs to Loki using HTTP/2."""
         if not batch: return
         
         streams = []
@@ -55,7 +57,7 @@ class AsyncLogDrain:
             logger.error("loki_push_error", error=str(e))
 
     async def run(self):
-        """🚀 SOTA: Main async loop to drain and batch logs."""
+        """Main async loop to drain and batch logs."""
         logger.info("async_log_drain_started", url=self.loki_url)
         last_flush = time.time()
         

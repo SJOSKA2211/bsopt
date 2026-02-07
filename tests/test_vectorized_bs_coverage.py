@@ -1,8 +1,8 @@
 import numpy as np
-import pytest
-from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 
+from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 from src.pricing.models import OptionGreeks
+
 
 def test_vectorized_bs_scalar_greeks():
     # Pass scalar inputs to hit line 71 branch (return from OptionGreeks)

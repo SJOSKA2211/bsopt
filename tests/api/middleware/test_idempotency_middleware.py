@@ -1,8 +1,10 @@
-import pytest
 import json
-from fastapi import FastAPI, Request, Response
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.api.middleware.idempotency import IdempotencyMiddleware
 
 # Note: We create fresh app per test to avoid middleware stacking issues

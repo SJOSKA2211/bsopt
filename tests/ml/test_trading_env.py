@@ -1,8 +1,9 @@
-import numpy as np
-import gymnasium as gym
-from unittest.mock import MagicMock
-import sys
 import os
+import sys
+from unittest.mock import MagicMock
+
+import gymnasium as gym
+import numpy as np
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))

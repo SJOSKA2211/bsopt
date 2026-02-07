@@ -1,21 +1,26 @@
-import os
 import asyncio
-import time
 import concurrent.futures
-from celery import Celery
-from celery.schedules import crontab
-from celery.signals import task_failure, task_success
-import structlog
-import redis.asyncio as redis
+import os
+import time
+from typing import Any
+
 import orjson
-from typing import Dict, List, Tuple
-from src.pricing.calibration.engine import HestonCalibrator, MarketOption
-from src.pricing.models.heston_fft import HestonParams
-from src.data.router import MarketDataRouter
-from src.shared.observability import push_metrics, setup_logging, tune_gc, HESTON_FELLER_MARGIN, CALIBRATION_DURATION, MODEL_RMSE, HESTON_R_SQUARED, HESTON_PARAMS_FRESHNESS
+import ray
+import redis.asyncio as redis
+import structlog
+from celery import Celery
+
 from src.config import get_settings
+from src.data.router import MarketDataRouter
 from src.database import get_async_db_context
 from src.database.models import CalibrationResult
+from src.pricing.calibration.engine import HestonCalibrator
+from src.pricing.models.heston_fft import HestonParams
+from src.shared.observability import (
+    CALIBRATION_DURATION,
+    setup_logging,
+    tune_gc,
+)
 
 # Optimized event loop
 try:
@@ -29,30 +34,64 @@ tune_gc()
 logger = structlog.get_logger()
 settings = get_settings()
 
-from src.workers.ray_workers import MathActor
+# Initialize missing references
+executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
+async_redis_client = redis.from_url(settings.REDIS_URL)
+
 from src.utils.distributed import RayOrchestrator
+from src.workers.ray_workers import MathActor
 
 app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
 
-# 🚀 SINGULARITY: Initialize Ray Hive Mind
-RayOrchestrator.init()
-math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
+# Initialize Ray Hive Mind
+# RayOrchestrator.init() -> Moved to lazy load
+# math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
+_math_swarm = None
+
+def get_math_swarm():
+    """Lazy initialize the Ray swarm."""
+    global _math_swarm
+    if _math_swarm is None:
+        RayOrchestrator.init()
+        # Check if we are in a test/mock environment where Ray might be mocked
+        if ray.is_initialized():
+             # Respect the capped CPU count from RayOrchestrator
+             num_workers = int(ray.cluster_resources().get("CPU", 2))
+             _math_swarm = [MathActor.remote() for _ in range(num_workers)]
+        else:
+             # Fallback for when Ray is mocked but not "initialized" in a way that allows remote()
+             # Or if initialization failed silently.
+             logger.warning("ray_not_initialized_in_swarm_getter")
+             _math_swarm = []
+    return _math_swarm
+
+def _calibration_worker(market_data: Any) -> tuple[HestonParams, dict, dict]:
+    """
+    Worker function to be executed in a ProcessPoolExecutor.
+    Performs heavy math calibration using HestonCalibrator.
+    """
+    calibrator = HestonCalibrator()
+    params, metrics = calibrator.calibrate(market_data)
+    surface = calibrator.calibrate_surface(market_data)
+    return params, metrics, surface
 
 @app.task(bind=True, max_retries=3, default_retry_delay=60)
-def recalibrate_symbol(self, symbol: str) -> Dict:
+def recalibrate_symbol(self, symbol: str) -> dict:
     """Delegate calibration to the optimal Ray Actor."""
     try:
         # Simple round-robin or Ray's internal scheduler can be used here
-        actor = math_swarm[0] 
+        swarm = get_math_swarm()
+        if not swarm:
+             raise RuntimeError("Ray swarm not available")
+        actor = swarm[0] 
         result = ray.get(actor.run_calibration.remote(symbol, []))
         return result
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
-        raise self.retry(exc=e)
-    """Wrapper for async calibration."""
-    return asyncio.run(_recalibrate_symbol_async(self, symbol))
+        # If Ray fails, fallback to the async local implementation
+        return asyncio.run(_recalibrate_symbol_async(self, symbol))
 
-async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
+async def _recalibrate_symbol_async(self, symbol: str) -> dict:
     """
     Persistent async calibration logic utilizing ProcessPoolExecutor for heavy math.
     """
@@ -101,13 +140,14 @@ async def _recalibrate_symbol_async(self, symbol: str) -> Dict:
         
     except Exception as exc:
         logger.error("calibration_error", symbol=symbol, error=str(exc))
-        raise self.retry(exc=exc, countdown=60)
+        if hasattr(self, "retry"):
+            raise self.retry(exc=exc, countdown=60)
+        raise exc
 
 def health_check() -> bool:
     """Check if the math worker and its dependencies are healthy."""
     try:
         # Check Ray
-        import ray
         if not ray.is_initialized():
             return False
         return True

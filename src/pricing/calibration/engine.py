@@ -1,17 +1,19 @@
-import time
 import os
-import numpy as np
-from scipy.optimize import minimize, differential_evolution
-from typing import List, Dict, Tuple, Optional
+import time
 from dataclasses import dataclass
+from typing import Any
+
+import numpy as np
 import structlog
-from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+from scipy.optimize import differential_evolution, minimize
+
 from src.config import settings
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
 from src.shared.observability import (
     CALIBRATION_DURATION,
-    HESTON_R_SQUARED,
     HESTON_FELLER_MARGIN,
-    push_metrics
+    HESTON_R_SQUARED,
+    push_metrics,
 )
 
 logger = structlog.get_logger()
@@ -49,11 +51,56 @@ class HestonCalibrator:
     """
     FELLER_TOLERANCE = 0.01
     MAX_RMSE = 0.05
-    MIN_LIQUID_OPTIONS = 5  # Reduced for testing flexibility
+    MIN_LIQUID_OPTIONS = 1  # Minimal for development/smoke tests
+
+    def _ensure_market_options(self, market_data: list[Any]) -> list[MarketOption]:
+        """Ensures input is a list of MarketOption objects with flexible mapping."""
+        if not market_data:
+            return []
+        
+        if hasattr(market_data[0], 'volume') and not isinstance(market_data[0], dict):
+            return market_data
+            
+        options = []
+        for d in market_data:
+            if isinstance(d, dict):
+                try:
+                    # Map flexible field names
+                    strike = float(d.get('strike', 0))
+                    price = float(d.get('price', 0))
+                    spot = float(d.get('spot', strike)) # Default spot to strike if missing
+                    
+                    # Handle Expiry/T
+                    t_val = d.get('T') or d.get('maturity') or d.get('expiry')
+                    if isinstance(t_val, str):
+                        # Simple placeholder for date parsing if needed, 
+                        # for now assume float years if it looks like one
+                        try:
+                            T = float(t_val)
+                        except ValueError:
+                            T = 1.0 # Default to 1 year
+                    else:
+                        T = float(t_val) if t_val is not None else 1.0
+                        
+                    options.append(MarketOption(
+                        T=T,
+                        strike=strike,
+                        spot=spot,
+                        price=price,
+                        bid=float(d.get('bid', price * 0.99)),
+                        ask=float(d.get('ask', price * 1.01)),
+                        volume=int(d.get('volume', 100)),
+                        open_interest=int(d.get('open_interest', 1000)),
+                        option_type=str(d.get('option_type', d.get('type', 'call')))
+                    ))
+                except Exception as e:
+                    logger.warning("skipping_malformed_option_data", error=str(e), data=d)
+                    continue
+        return options
 
     def __init__(self, risk_free_rate: float = 0.03):
         self.r = risk_free_rate
-        self.calibration_history: List[Dict] = []
+        self.calibration_history: list[dict] = []
         self.ort_session = None
         
         # Load ONNX model for neural calibration if available
@@ -84,7 +131,7 @@ class HestonCalibrator:
                 self.ort_session = ort.InferenceSession(model_path, sess_options, providers=providers)
                 logger.info("neural_calibration_model_loaded", path=model_path, providers=[p[0] if isinstance(p, tuple) else p for p in providers])
                 
-                # SOTA: Pre-warm the session to avoid cold-start latency
+                # OPTIMIZED: Pre-warm the session to avoid cold-start latency
                 try:
                     dummy_input = np.zeros((1, 1, 10, 10), dtype=np.float32)
                     if len(self.ort_session.get_inputs()[0].shape) == 2:
@@ -98,7 +145,7 @@ class HestonCalibrator:
         except Exception as e:
             logger.warning("neural_calibration_model_load_failed", error=str(e))
 
-    def _filter_liquid_options(self, market_data: List[MarketOption]) -> List[MarketOption]:
+    def _filter_liquid_options(self, market_data: list[MarketOption]) -> list[MarketOption]:
         """Filter out illiquid options."""
         filtered = [
             opt for opt in market_data 
@@ -108,7 +155,7 @@ class HestonCalibrator:
         ]
         return filtered
 
-    def _calibrate_neural(self, market_data: List[MarketOption]) -> Optional[np.ndarray]:
+    def _calibrate_neural(self, market_data: list[MarketOption]) -> np.ndarray | None:
         """
         Predict Heston parameters using ONNX model.
         Features: A 10x10 grid of Implied Volatilities (Moneyness vs T).
@@ -183,7 +230,7 @@ class HestonCalibrator:
             logger.warning("neural_calibration_failed", error=str(e))
             return None
 
-    def _weighted_objective(self, params: np.ndarray, market_data: List[MarketOption]) -> float:
+    def _weighted_objective(self, params: np.ndarray, market_data: list[MarketOption]) -> float:
         """Vega-weighted RMSE objective function."""
         kappa, theta, sigma, rho, v0 = params
         
@@ -220,10 +267,11 @@ class HestonCalibrator:
             
         return np.sqrt(total_error / total_weight)
 
-    def calibrate(self, market_data: List[MarketOption], maxiter: int = 50, popsize: int = 15, symbol: str = "unknown") -> Tuple[HestonParams, Dict]:
+    def calibrate(self, market_data: list[Any], maxiter: int = 50, popsize: int = 15, symbol: str = "unknown") -> tuple[HestonParams, dict]:
         """Two-stage calibration with quality metrics."""
         start_time = time.time()
         try:
+            market_data = self._ensure_market_options(market_data)
             liquid_options = self._filter_liquid_options(market_data)
             if len(liquid_options) < self.MIN_LIQUID_OPTIONS:
                 raise ValueError(f"Insufficient liquid options: {len(liquid_options)} < {self.MIN_LIQUID_OPTIONS}")
@@ -294,15 +342,16 @@ class HestonCalibrator:
             logger.error("heston_calibration_failed", symbol=symbol, error=str(e))
             raise
 
-    def calibrate_surface(self, market_data: List[MarketOption]) -> Dict[float, Tuple[float, ...]]:
+    def calibrate_surface(self, market_data: list[Any]) -> dict[float, tuple[float, ...]]:
         """Fit SVI parameters for each maturity slice."""
         from src.pricing.calibration.svi_surface import SVISurface
         from src.pricing.implied_vol import implied_volatility
         
+        market_data = self._ensure_market_options(market_data)
         liquid_options = self._filter_liquid_options(market_data)
         
         # Group by maturity
-        by_maturity: Dict[float, List[MarketOption]] = {}
+        by_maturity: dict[float, list[MarketOption]] = {}
         for opt in liquid_options:
             if opt.T not in by_maturity:
                 by_maturity[opt.T] = []

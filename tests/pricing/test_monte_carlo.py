@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig, geometric_asian_price
+import pytest
+
 from src.pricing.models import BSParameters
+from src.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
+
 
 class TestMonteCarloEngine:
     @pytest.fixture

@@ -1,6 +1,7 @@
-import asyncio
+from typing import Any
+
 import structlog
-from typing import Dict, Any, Optional
+
 from src.aiops.data_drift_detector import DataDriftDetector
 from src.ml.training.train_v2 import train_neural_network
 
@@ -8,7 +9,7 @@ logger = structlog.get_logger()
 
 class NeuralGreeksRetrainer:
     """
-    Automated Retrainer for SOTA Neural Greeks Engine (V2).
+    Automated Retrainer for OPTIMIZED Neural Greeks Engine (V2).
     """
     def __init__(self, n_samples: int = 10000):
         self.drift_detector = DataDriftDetector()
@@ -24,7 +25,7 @@ class NeuralGreeksRetrainer:
             return False
         return True
 
-    async def retrain_now(self, data: Optional[Any] = None) -> Dict[str, Any]:
+    async def retrain_now(self, data: Any | None = None) -> dict[str, Any]:
         """
         Triggers a full retraining pipeline with pre-validation.
         """

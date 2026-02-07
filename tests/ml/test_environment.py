@@ -1,6 +1,8 @@
-import os
 import importlib
+import os
+
 import pytest
+
 
 def test_src_directories_exist():
     """Verify that core source directories exist."""

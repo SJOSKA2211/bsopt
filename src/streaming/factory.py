@@ -1,11 +1,13 @@
-from enum import Enum
-from typing import Optional, Dict, Any
+from enum import StrEnum
+
+from src.config import settings
+
 from .base import Producer
 from .kafka_producer import MarketDataProducer as KafkaProducer
 from .zmq_producer import ZMQMarketDataProducer
-from src.config import settings
 
-class StreamingBackend(str, Enum):
+
+class StreamingBackend(StrEnum):
     KAFKA = "kafka"
     ZMQ = "zmq"
 
@@ -28,7 +30,7 @@ class StreamingFactory:
             return ZMQMarketDataProducer(endpoint=endpoint)
         
         elif backend == StreamingBackend.KAFKA:
-            bootstrap_servers = kwargs.get("bootstrap_servers", settings.RABBITMQ_URL if "kafka" in settings.RABBITMQ_URL else "localhost:9092") # fallback logic
+            kwargs.get("bootstrap_servers", settings.RABBITMQ_URL if "kafka" in settings.RABBITMQ_URL else "localhost:9092") # fallback logic
             # Actually use defaults from kafka_producer if not provided
             return KafkaProducer(
                 bootstrap_servers=kwargs.get("bootstrap_servers", "kafka-1:9092,kafka-2:9092,kafka-3:9092"),

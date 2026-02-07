@@ -9,7 +9,8 @@ Generates and tracks unique request IDs for:
 """
 
 import uuid
-from typing import Callable, Optional, cast
+from collections.abc import Callable
+from typing import cast
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -32,7 +33,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         header_name: str = "X-Request-ID",
-        generator: Optional[Callable[[], str]] = None,
+        generator: Callable[[], str] | None = None,
     ):
         super().__init__(app)
         self.header_name = header_name
@@ -57,6 +58,6 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         return response
 
 
-def get_request_id(request: Request) -> Optional[str]:
+def get_request_id(request: Request) -> str | None:
     """Get request ID from request state."""
     return getattr(request.state, "request_id", None)

@@ -5,6 +5,7 @@ HTTP Header and Cookie Functional Tests (Principles 64, 79, 95)
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_header_content_type_json(client):
     """79. Test Assertions: Check content types."""

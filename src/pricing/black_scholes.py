@@ -1,121 +1,142 @@
+from typing import Any
+
 import numpy as np
-from typing import Union, Optional, Dict, Any
+
 from src.pricing.models import BSParameters, OptionGreeks
-from .base import PricingStrategy
-from .quant_utils import (
-    batch_bs_price_jit, 
-    batch_greeks_jit,
-    scalar_bs_price_jit,
-    scalar_greeks_jit
-)
+from src.shared.math_utils import calculate_greeks, calculate_price
 
-class BlackScholesEngine(PricingStrategy):
-    """
-    Vectorized Black-Scholes-Merton engine using Numba JIT kernels.
-    Supports broad-casted array operations for multi-option pricing.
-    """
 
-    def price(self, params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[float, np.ndarray]:
-        return self.price_options(params=params, option_type=option_type, **kwargs)
+class BlackScholesEngine:
+    """
+    Black-Scholes option pricing engine.
+    Implements scalar and vectorized calculations for European options using Numba JIT.
+    """
 
     @staticmethod
-    def calculate_greeks(params: Optional[BSParameters] = None, option_type: str = "call", **kwargs) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
-        return BlackScholesEngine.calculate_greeks_batch(params=params, option_type=option_type, **kwargs)
+    def _extract_params(params: Any | None = None, **kwargs) -> tuple:
+        """Helper to extract parameters."""
+        if params:
+            s = getattr(params, 'spot', kwargs.get('spot'))
+            k = getattr(params, 'strike', kwargs.get('strike'))
+            t = getattr(params, 'maturity', kwargs.get('maturity'))
+            v = getattr(params, 'volatility', kwargs.get('volatility'))
+            r = getattr(params, 'rate', kwargs.get('rate'))
+            d = getattr(params, 'dividend', kwargs.get('dividend', 0.0))
+        else:
+            s = kwargs.get('spot')
+            k = kwargs.get('strike')
+            t = kwargs.get('maturity')
+            v = kwargs.get('volatility')
+            r = kwargs.get('rate')
+            d = kwargs.get('dividend', 0.0)
+
+        # Basic validation
+        if any(x is None for x in [s, k, t, v, r]):
+            raise ValueError("Missing required parameters (spot, strike, maturity, volatility, rate)")
+
+        # Convert to numpy arrays for Numba (float64) - use atleast_1d to avoid Numba NdIter bugs
+        return (
+            np.atleast_1d(s).astype(np.float64),
+            np.atleast_1d(k).astype(np.float64),
+            np.atleast_1d(t).astype(np.float64),
+            np.atleast_1d(v).astype(np.float64),
+            np.atleast_1d(r).astype(np.float64),
+            np.atleast_1d(d).astype(np.float64)
+        )
 
     @staticmethod
     def price_options(
-        spot: Union[float, np.ndarray, None] = None,
-        strike: Union[float, np.ndarray, None] = None,
-        maturity: Union[float, np.ndarray, None] = None,
-        volatility: Union[float, np.ndarray, None] = None,
-        rate: Union[float, np.ndarray, None] = None,
-        dividend: Union[float, np.ndarray] = 0.0,
-        option_type: Union[str, np.ndarray] = "call",
-        params: Optional[BSParameters] = None,
-        out: Optional[np.ndarray] = None,
-        **kwargs
-    ) -> Union[float, np.ndarray]:
-        if params is not None:
-            spot, strike, maturity, volatility, rate, dividend = (
-                params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
-            )
-
-        if spot is None: raise ValueError("Missing spot price")
-
-        if np.isscalar(spot) and np.isscalar(strike) and isinstance(option_type, str):
-            return scalar_bs_price_jit(
-                float(spot), float(strike), float(maturity), float(volatility), 
-                float(rate), float(dividend), option_type.lower() == "call"
-            )
-
-        S, K, T, sigma, r, q = np.broadcast_arrays(
-            np.atleast_1d(spot), np.atleast_1d(strike), np.atleast_1d(maturity),
-            np.atleast_1d(volatility), np.atleast_1d(rate), np.atleast_1d(dividend)
+        spot: float | np.ndarray | None = None,
+        strike: float | np.ndarray | None = None,
+        maturity: float | np.ndarray | None = None,
+        volatility: float | np.ndarray | None = None,
+        rate: float | np.ndarray | None = None,
+        dividend: float | np.ndarray = 0.0,
+        option_type: str | np.ndarray = "call",
+        params: Any | None = None
+    ) -> float | np.ndarray:
+        """
+        Calculate European option prices using Black-Scholes formula (JIT Accelerated).
+        """
+        S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
+            params, spot=spot, strike=strike, maturity=maturity, 
+            volatility=volatility, rate=rate, dividend=dividend
         )
-        
-        is_call_scalar = (option_type.lower() == "call") if isinstance(option_type, str) else \
-                  np.array([s.lower() == "call" for s in option_type], dtype=bool)
-        
-        if np.isscalar(is_call_scalar):
-            is_call = np.full(S.shape, is_call_scalar, dtype=bool)
+
+        # Handle option_type
+        if isinstance(option_type, str):
+            is_call = option_type.lower() == "call"
         else:
-            is_call = is_call_scalar
+            option_type_arr = np.asanyarray(option_type)
+            is_call = np.char.lower(option_type_arr.astype(str)) == "call"
 
-        result = batch_bs_price_jit(S.astype(np.float64), K.astype(np.float64), T.astype(np.float64), 
-                                   sigma.astype(np.float64), r.astype(np.float64), q.astype(np.float64), 
-                                   is_call, out=out)
-        
-        return result[0] if np.isscalar(spot) and result.size == 1 else result
+        # 🚀 OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
+        is_call_np = np.atleast_1d(is_call).astype(bool)
 
-    @staticmethod
-    def calculate_greeks_batch(
-        spot: Union[float, np.ndarray, None] = None,
-        strike: Union[float, np.ndarray, None] = None,
-        maturity: Union[float, np.ndarray, None] = None,
-        volatility: Union[float, np.ndarray, None] = None,
-        rate: Union[float, np.ndarray, None] = None,
-        dividend: Union[float, np.ndarray] = 0.0,
-        option_type: Union[str, np.ndarray] = "call",
-        params: Optional[BSParameters] = None,
-        **kwargs
-    ) -> Union[OptionGreeks, Dict[str, np.ndarray]]:
-        if params is not None:
-            spot, strike, maturity, volatility, rate, dividend = (
-                params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
-            )
-
-        if spot is None: raise ValueError("Missing spot price")
-
-        if np.isscalar(spot) and isinstance(option_type, str):
-            delta, gamma, vega, theta, rho = scalar_greeks_jit(
-                float(spot), float(strike), float(maturity), float(volatility), float(rate), float(dividend),
-                option_type.lower() == "call"
-            )
-            return OptionGreeks(delta=delta, gamma=gamma, vega=vega, theta=theta, rho=rho)
-
-        S, K, T, sigma, r, q = np.broadcast_arrays(
-            np.atleast_1d(spot), np.atleast_1d(strike), np.atleast_1d(maturity),
-            np.atleast_1d(volatility), np.atleast_1d(rate), np.atleast_1d(dividend)
-        )
-        
-        is_call = (option_type.lower() == "call") if isinstance(option_type, str) else \
-                  np.array([s.lower() == "call" for s in option_type], dtype=bool)
-                  
-        delta, gamma, vega, theta, rho = batch_greeks_jit(
-            S.astype(np.float64), K.astype(np.float64), T.astype(np.float64), 
-            sigma.astype(np.float64), r.astype(np.float64), q.astype(np.float64), is_call
-        )
-        
-        return {"delta": delta, "gamma": gamma, "vega": vega, "theta": theta, "rho": rho}
+        return calculate_price(S, K, T, sigma, r, q, is_call_np)
 
     @staticmethod
-    def verify_put_call_parity(spot: float, strike: float, maturity: float, rate: float, 
-                               call_price: float, put_price: float, dividend: float = 0.0) -> bool:
-        """Verify Put-Call Parity: C - P = S*e^(-qT) - K*e^(-rT)"""
-        lhs = call_price - put_price
-        rhs = spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity)
-        return np.isclose(lhs, rhs, atol=1e-4)
+    def calculate_greeks(
+        spot: float | np.ndarray | None = None,
+        strike: float | np.ndarray | None = None,
+        maturity: float | np.ndarray | None = None,
+        volatility: float | np.ndarray | None = None,
+        rate: float | np.ndarray | None = None,
+        dividend: float | np.ndarray = 0.0,
+        option_type: str | np.ndarray = "call",
+        params: Any | None = None
+    ) -> OptionGreeks:
+        """
+        Calculate Greeks for European options (JIT Accelerated).
+        """
+        S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
+            params, spot=spot, strike=strike, maturity=maturity, 
+            volatility=volatility, rate=rate, dividend=dividend
+        )
 
-def verify_put_call_parity(*args, **kwargs):
-    """Module-level wrapper for Put-Call Parity verification."""
-    return BlackScholesEngine.verify_put_call_parity(*args, **kwargs)
+        if isinstance(option_type, str):
+            is_call = option_type.lower() == "call"
+        else:
+            option_type_arr = np.asanyarray(option_type)
+            is_call = np.char.lower(option_type_arr.astype(str)) == "call"
+
+        # 🚀 OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
+        is_call_np = np.atleast_1d(is_call).astype(bool)
+
+        delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call_np)
+
+        return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
+
+
+    @staticmethod
+    def price_call(params: BSParameters) -> float:
+        return float(BlackScholesEngine.price_options(params=params, option_type="call"))
+
+    @staticmethod
+    def price_put(params: BSParameters) -> float:
+        return float(BlackScholesEngine.price_options(params=params, option_type="put"))
+
+    @staticmethod
+    def verify_put_call_parity(S, K, T, r, call_price, put_price, q=0.0):
+        lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
+        rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - \
+              np.asanyarray(K) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
+        return np.allclose(lhs, rhs, atol=1e-5)
+
+    def price(self, **kwargs) -> float:
+        return self.price_options(**kwargs)
+
+def black_scholes(*args, **kwargs):
+    result = BlackScholesEngine.price_options(*args, **kwargs)
+    if len(args) == 5 or 'params' in kwargs:
+        return {"price": result}
+    return result
+
+def verify_put_call_parity(params_or_S, K=None, T=None, r=None, call_price=None, put_price=None, q=0.0):
+    """Module-level parity verifier for test compatibility."""
+    if hasattr(params_or_S, 'spot') and K is None:
+        p = params_or_S
+        cp = BlackScholesEngine.price_options(params=p, option_type="call")
+        pp = BlackScholesEngine.price_options(params=p, option_type="put")
+        return BlackScholesEngine.verify_put_call_parity(p.spot, p.strike, p.maturity, p.rate, cp, pp, p.dividend)
+    return BlackScholesEngine.verify_put_call_parity(params_or_S, K, T, r, call_price, put_price, q)

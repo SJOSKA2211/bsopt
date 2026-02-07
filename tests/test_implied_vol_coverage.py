@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
+
 from src.pricing.implied_vol import (
+    ImpliedVolatilityError,
+    _brent_iv,
+    _newton_raphson_iv,
     implied_volatility,
     vectorized_implied_volatility,
-    ImpliedVolatilityError,
-    _newton_raphson_iv,
-    _brent_iv,
 )
-from src.pricing.models import BSParameters
+
 
 def test_iv_method_newton_fail():
     # Test method='newton' failing to converge to hit the raise line

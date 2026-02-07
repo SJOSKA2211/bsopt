@@ -1,8 +1,9 @@
 from collections import deque
+from typing import Any
+
 import numpy as np
-import structlog
-from typing import Dict, Optional, Any
 import orjson
+import structlog
 
 try:
     from stable_baselines3 import TD3
@@ -10,7 +11,7 @@ except ImportError:
     TD3 = None
 
 try:
-    from confluent_kafka import Consumer, Producer, KafkaError
+    from confluent_kafka import Consumer, KafkaError, Producer
 except ImportError:
     Consumer = None
     Producer = None
@@ -18,6 +19,7 @@ except ImportError:
 logger = structlog.get_logger()
 
 from src.shared.observability import tune_gc
+
 
 class OnlineRLAgent:
     """
@@ -27,7 +29,7 @@ class OnlineRLAgent:
     def __init__(self, 
                  model_path: str, 
                  initial_balance: float = 100000, 
-                 kafka_config: Optional[Dict] = None,
+                 kafka_config: dict | None = None,
                  input_topic: str = "market-data",
                  output_topic: str = "trading-signals",
                  use_transformer: bool = False,
@@ -95,7 +97,7 @@ class OnlineRLAgent:
         except Exception as e:
             logger.error("kafka_init_failed", error=str(e))
 
-    def _get_state_vector(self, market_data: Dict[str, Any]) -> np.ndarray:
+    def _get_state_vector(self, market_data: dict[str, Any]) -> np.ndarray:
         """
         Construct the state vector. 
         If use_transformer is True, returns a flattened window of history.
@@ -137,7 +139,7 @@ class OnlineRLAgent:
             
         return current_obs
 
-    def process_market_data(self, market_data: Dict[str, Any]) -> np.ndarray:
+    def process_market_data(self, market_data: dict[str, Any]) -> np.ndarray:
         """Process market data and return target positions."""
         if self.model is None:
             return np.zeros(10)
@@ -160,7 +162,7 @@ class OnlineRLAgent:
             logger.error("inference_failed", error=str(e))
             return np.zeros(10)
 
-    def _calculate_reward(self, market_data: Dict[str, Any]) -> float:
+    def _calculate_reward(self, market_data: dict[str, Any]) -> float:
         """
         Calculate risk-adjusted reward for online learning consistency.
         Uses PnL and volatility penalty.

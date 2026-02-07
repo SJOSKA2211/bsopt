@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from src.api.websockets.manager import ConnectionManager
+
+import pytest
 from fastapi import WebSocket
-import orjson
-import asyncio
+
+from src.api.websockets.manager import ConnectionManager
+
 
 @pytest.mark.asyncio
 async def test_connection_manager_connect():
@@ -33,7 +34,7 @@ async def test_connection_manager_connect():
 
 @pytest.mark.asyncio
 async def test_connection_manager_broadcast():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         mock_ws1 = AsyncMock(spec=WebSocket)
         mock_ws2 = AsyncMock(spec=WebSocket)
@@ -45,7 +46,7 @@ async def test_connection_manager_broadcast():
         await manager.broadcast_to_symbol("AAPL", message)
         
         # orjson dumps returns bytes, but codec decode it to utf-8 str for JSON
-        from src.api.websockets.codec import WebSocketCodec, ProtocolType
+        from src.api.websockets.codec import ProtocolType, WebSocketCodec
         expected_text = WebSocketCodec.encode(message, ProtocolType.JSON)
         
         assert mock_ws1.send_text.called
@@ -55,7 +56,7 @@ async def test_connection_manager_broadcast():
 
 @pytest.mark.asyncio
 async def test_broadcast_no_connections():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         # Symbol exists but list is empty
         manager.active_connections["AAPL"] = []
@@ -63,14 +64,14 @@ async def test_broadcast_no_connections():
 
 @pytest.mark.asyncio
 async def test_broadcast_unknown_symbol():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         # Should return early without error
         await manager.broadcast_to_symbol("UNKNOWN", {"msg": "test"})
 
 @pytest.mark.asyncio
 async def test_connection_manager_disconnect():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         mock_ws = AsyncMock(spec=WebSocket)
         manager.active_connections["AAPL"] = [mock_ws]
@@ -87,7 +88,7 @@ async def test_connection_manager_disconnect():
 
 @pytest.mark.asyncio
 async def test_disconnect_multiple_clients():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         mock_ws1 = AsyncMock(spec=WebSocket)
         mock_ws2 = AsyncMock(spec=WebSocket)
@@ -104,7 +105,7 @@ async def test_disconnect_multiple_clients():
 
 @pytest.mark.asyncio
 async def test_broadcast_with_exception():
-    with patch("src.api.websockets.manager.redis") as mock_redis_module:
+    with patch("src.api.websockets.manager.redis"):
         manager = ConnectionManager()
         mock_ws = AsyncMock(spec=WebSocket)
         mock_ws.send_text.side_effect = Exception("Send failed")

@@ -1,6 +1,6 @@
 import os
-import pytest
 from unittest.mock import MagicMock, patch
+
 
 def test_compare_models_script_exists():
     """Verify that the model comparison script exists."""

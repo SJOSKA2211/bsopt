@@ -1,8 +1,9 @@
-import pytest
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.cli.auth import AuthManager, AuthenticationError
+
+import pytest
+
+from src.cli.auth import AuthManager
+
 
 @pytest.fixture
 def auth_manager(tmp_path):

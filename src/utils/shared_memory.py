@@ -1,9 +1,8 @@
-import numpy as np
-from multiprocessing import shared_memory
-import structlog
-from typing import Dict, Optional, List
-import threading
 import atexit
+import threading
+from multiprocessing import shared_memory
+
+import structlog
 
 logger = structlog.get_logger()
 
@@ -18,8 +17,8 @@ class SharedMemoryManager:
     def __init__(self, segment_size: int = 20 * 1024 * 1024, num_segments: int = 10):
         self.segment_size = segment_size
         self.num_segments = num_segments
-        self.available_segments: List[str] = []
-        self.all_segments: Dict[str, shared_memory.SharedMemory] = {}
+        self.available_segments: list[str] = []
+        self.all_segments: dict[str, shared_memory.SharedMemory] = {}
         self._pool_lock = threading.Lock()
         
         self._initialize_pool()
@@ -35,7 +34,7 @@ class SharedMemoryManager:
         for i in range(self.num_segments):
             name = f"bsopt_shm_pool_{i}"
             try:
-                # 🚀 SOTA: Aggressive cleanup of stale segments
+                # Aggressive cleanup of stale segments
                 try:
                     temp = shared_memory.SharedMemory(name=name)
                     temp.close()
@@ -50,7 +49,7 @@ class SharedMemoryManager:
             except Exception as e:
                 logger.error("shm_pool_init_failed", segment=name, error=str(e))
 
-    def acquire(self) -> Optional[str]:
+    def acquire(self) -> str | None:
         """Acquires a segment from the pool with thread-safe pop."""
         with self._pool_lock:
             if not self.available_segments:
@@ -74,7 +73,7 @@ class SharedMemoryManager:
             else:
                 logger.warning("shm_release_invalid", segment=name)
 
-    def get_segment(self, name: str) -> Optional[shared_memory.SharedMemory]:
+    def get_segment(self, name: str) -> shared_memory.SharedMemory | None:
         return self.all_segments.get(name)
 
     def cleanup(self):
@@ -91,5 +90,5 @@ class SharedMemoryManager:
 # Global manager instance
 shm_manager = SharedMemoryManager.get_instance()
 
-# SOTA: Register cleanup with atexit to ensure segments are unlinked on process exit
+# OPTIMIZED: Register cleanup with atexit to ensure segments are unlinked on process exit
 atexit.register(shm_manager.cleanup)

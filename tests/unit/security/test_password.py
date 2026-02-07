@@ -1,5 +1,7 @@
 import pytest
+
 from src.security.password import PasswordService, PasswordValidator
+
 
 @pytest.fixture
 def password_service():

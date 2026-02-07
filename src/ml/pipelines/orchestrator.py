@@ -9,50 +9,25 @@ Provides a unified interface for:
 """
 
 import asyncio
-import orjson
-import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional, cast, List
+from typing import Any, cast
 
 import click
 import mlflow
 import mlflow.data
 import mlflow.pytorch
 import mlflow.xgboost
-from mlflow.tracking import MlflowClient # Added for model promotion
-import torch
-import xgboost as xgb
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
-from src.config import settings
-
-from src.ml.architectures.neural_network import OptionPricingNN
-from src.ml.training.train import load_or_collect_data, run_hyperparameter_optimization
-
-import asyncio
 import orjson
 import structlog
-import os
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional, cast, List
-
-import click
-import mlflow
-import mlflow.data
-import mlflow.pytorch
-import mlflow.xgboost
-from mlflow.tracking import MlflowClient 
 import torch
 import xgboost as xgb
+from anyio.to_thread import run_sync
+from mlflow.tracking import MlflowClient  # Added for model promotion
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from anyio.to_thread import run_sync
 
 from src.config import settings
 from src.ml.architectures.neural_network import OptionPricingNN
@@ -87,11 +62,11 @@ class MLOrchestrator:
         n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES,
         test_size: float = settings.ML_TRAINING_TEST_SIZE,
         random_state: int = settings.ML_TRAINING_RANDOM_STATE,
-        xgb_params: Optional[Dict[str, Any]] = None,
-        nn_params: Optional[Dict[str, Any]] = None,
+        xgb_params: dict[str, Any] | None = None,
+        nn_params: dict[str, Any] | None = None,
         promotion_threshold_r2: float = settings.ML_TRAINING_PROMOTE_THRESHOLD_R2,
         promote_to_production: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute a full training and evaluation pipeline asynchronously.
         """
@@ -233,7 +208,7 @@ class MLOrchestrator:
                                 
                                 # 6. Extreme Optimization: INT8 Quantization
                                 try:
-                                    from onnxruntime.quantization import quantize_dynamic, QuantType
+                                    from onnxruntime.quantization import QuantType, quantize_dynamic
                                     quantized_path = RESULTS_DIR / f"{registered_model_name}_int8.onnx"
                                     quantize_dynamic(
                                         str(onnx_path),

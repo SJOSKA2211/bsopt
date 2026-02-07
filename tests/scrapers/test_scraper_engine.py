@@ -1,9 +1,9 @@
-import tests.mock_all
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
-import httpx
-from src.scrapers.engine import ProxyRotator, NSEScraper
+
+from src.scrapers.engine import NSEScraper, ProxyRotator
+
 
 @pytest.fixture
 def mock_redis():

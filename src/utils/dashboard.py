@@ -3,7 +3,7 @@ import os
 
 
 def generate_html_dashboard(summary_path: str, output_path: str) -> None:
-    with open(summary_path, "r") as f:
+    with open(summary_path) as f:
         summary = json.load(f)
 
     html_content = f"""

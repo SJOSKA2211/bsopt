@@ -6,31 +6,30 @@ Provides a centralized, tuned, and persistent httpx.AsyncClient for service-to-s
 Ensures connection pooling and optimal timeout settings.
 """
 
+
 import httpx
-from typing import Optional
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-import httpx
 import asyncio
-from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 class HttpClientManager:
-    _client: Optional[httpx.AsyncClient] = None
-    _semaphore: Optional[asyncio.Semaphore] = None
+    _client: httpx.AsyncClient | None = None
+    _semaphore: asyncio.Semaphore | None = None
 
     @classmethod
     def get_client(cls) -> httpx.AsyncClient:
         """
-        Get or create the singleton AsyncClient instance with SOTA pooling.
+        Get or create the singleton AsyncClient instance with OPTIMIZED pooling.
         """
         if cls._client is None:
             logger.info("initializing_shared_http_client_c100k")
-            # 🚀 SINGULARITY: High-concurrency limits and HTTP/2 multiplexing
+            # High-concurrency limits and HTTP/2 multiplexing
             cls._client = httpx.AsyncClient(
                 http2=True,
                 timeout=httpx.Timeout(10.0, connect=5.0),

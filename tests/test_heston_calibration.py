@@ -1,7 +1,6 @@
-import pytest
-import numpy as np
 from src.pricing.calibration.engine import HestonCalibrator, MarketOption
 from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+
 
 class TestHestonCalibration:
     """Test suite for Heston calibration engine."""

@@ -1,8 +1,11 @@
-import numpy as np
 from unittest.mock import MagicMock, patch
+
+import numpy as np
 from prometheus_client import Histogram
-from src.shared import observability
+
 from src.ml.trainer import InstrumentedTrainer
+from src.shared import observability
+
 
 def test_training_duration_is_histogram():
     """Verify that ml_training_duration_seconds is a Histogram as per PRD."""
@@ -31,14 +34,13 @@ def test_metric_names_match_prd():
     # Counter strips _total suffix internally but exposes it.
     assert observability.TRAINING_ERRORS._name == 'ml_training_errors'
 
-def test_trainer_updates_rmse():
-    """Verify that trainer updates ml_model_rmse Gauge."""
-    X = np.random.rand(10, 5)
-    y = np.random.randint(0, 2, 10)
-    trainer = InstrumentedTrainer(study_name="rmse_test")
+    def test_trainer_updates_rmse():
+        """Verify that trainer updates ml_model_rmse Gauge."""
+        X = np.random.rand(10, 5)
+        y = np.random.randint(0, 2, 10)
+        trainer = InstrumentedTrainer(study_name="rmse_test")
     
-    with patch("src.ml.trainer.MODEL_RMSE") as mock_rmse:
-        mock_labels = MagicMock()
+        with patch("src.ml.tracker.MODEL_RMSE") as mock_rmse:        mock_labels = MagicMock()
         mock_rmse.labels.return_value = mock_labels
         
         params = {"framework": "xgboost", "max_depth": 3}
@@ -63,12 +65,12 @@ def test_pipeline_updates_drift_score():
     
     # Mock dependencies to reach drift check
     with patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls, \
-         patch("src.ml.autonomous_pipeline.get_db_session"), \
+         patch("src.ml.autonomous_pipeline.get_async_db_context"), \
          patch("src.ml.autonomous_pipeline.create_engine"), \
          patch("src.ml.autonomous_pipeline.Base.metadata.create_all"), \
          patch("src.ml.autonomous_pipeline.InstrumentedTrainer"), \
-         patch("src.ml.autonomous_pipeline.DATA_DRIFT_SCORE") as mock_drift_gauge, \
-         patch("src.ml.autonomous_pipeline.KS_TEST_SCORE") as mock_ks_gauge:
+         patch("src.ml.drift.DATA_DRIFT_SCORE") as mock_drift_gauge, \
+         patch("src.ml.drift.KS_TEST_SCORE") as mock_ks_gauge:
         
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd
@@ -92,6 +94,7 @@ def test_pipeline_updates_drift_score():
 def test_structlog_json_formatting():
     """Verify that structlog is configured with JSONRenderer."""
     import structlog
+
     from src.shared.observability import setup_logging
     
     # Reset structlog config to test our setup

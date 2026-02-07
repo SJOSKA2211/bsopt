@@ -1,11 +1,11 @@
+from typing import Any
+
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List, Optional
-import structlog
-import cvxpy as cp
 import ray
+import structlog
 from scipy.cluster.hierarchy import linkage
-from src.pricing.black_scholes import BlackScholesEngine
 
 logger = structlog.get_logger()
 
@@ -16,7 +16,7 @@ def _run_backtest_task(engine_instance, df, strategy_fn, params):
 
 class PortfolioOptimizer:
     """
-    SOTA: Convex Portfolio Optimizer and Hierarchical Risk Parity.
+    OPTIMIZED: Convex Portfolio Optimizer and Hierarchical Risk Parity.
     Uses cvxpy/OSQP for quadratic programming and machine learning for robust allocation.
     """
     def __init__(self, returns_df: pd.DataFrame):
@@ -25,8 +25,8 @@ class PortfolioOptimizer:
         self.mean_returns = returns_df.mean().values * 252
         self.asset_names = returns_df.columns.tolist()
 
-    def optimize_weights(self, target_return: Optional[float] = None) -> np.ndarray:
-        """🚀 SINGULARITY: Convex optimization using cvxpy and OSQP."""
+    def optimize_weights(self, target_return: float | None = None) -> np.ndarray:
+        """Convex optimization using cvxpy and OSQP."""
         n = len(self.mean_returns)
         w = cp.Variable(n)
         
@@ -42,7 +42,7 @@ class PortfolioOptimizer:
         prob = cp.Problem(cp.Minimize(risk), constraints)
         
         try:
-            # SOTA: OSQP is the gold standard for QP portfolio problems
+            # OPTIMIZED: OSQP is the gold standard for QP portfolio problems
             prob.solve(solver=cp.OSQP)
             if w.value is None:
                 raise ValueError("optimization_resulted_in_none")
@@ -52,7 +52,7 @@ class PortfolioOptimizer:
             return np.array([1.0 / n] * n)
 
     def optimize_hrp(self) -> np.ndarray:
-        """🚀 SOTA: Hierarchical Risk Parity (HRP) allocation."""
+        """Hierarchical Risk Parity (HRP) allocation."""
         # 1. Clustering
         corr = self.returns.corr().values
         dist = np.sqrt(0.5 * (1 - corr))
@@ -110,8 +110,8 @@ class BacktestEngine:
     def __init__(self, initial_capital: float = 100000.0):
         self.initial_capital = initial_capital
 
-    def run_batch(self, scenarios: List[Dict]) -> List[Dict]:
-        """🚀 SINGULARITY: Run multiple backtests in parallel using Ray."""
+    def run_batch(self, scenarios: list[dict]) -> list[dict]:
+        """Run multiple backtests in parallel using Ray."""
         if not ray.is_initialized():
             ray.init(ignore_reinit_error=True)
             
@@ -124,7 +124,7 @@ class BacktestEngine:
     def run_vectorized(self, 
                        df: pd.DataFrame, 
                        strategy_fn: Any, 
-                       params: Optional[Dict] = None) -> Dict[str, Any]:
+                       params: dict | None = None) -> dict[str, Any]:
         """
         Executes a strategy over historical data using vectorized operations.
         df must contain: timestamp, underlying_price, option_price, strike, maturity, etc.
@@ -168,7 +168,7 @@ class BacktestEngine:
         drawdown = (df['equity_curve'] - rolling_max) / rolling_max
         max_drawdown = drawdown.min()
 
-        # 4. SOTA Risk Metrics: VaR and Expected Shortfall (Vectorized)
+        # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get('confidence_level', 0.95) if params else 0.95
         
         # Historical VaR
@@ -196,7 +196,7 @@ class BacktestEngine:
         return result
 
     @staticmethod
-    def sample_momentum_strategy(df: pd.DataFrame, params: Dict = None) -> pd.DataFrame:
+    def sample_momentum_strategy(df: pd.DataFrame, params: dict = None) -> pd.DataFrame:
         """Sample vectorized strategy: momentum-based option buying."""
         window = params.get('window', 20) if params else 20
         df['ema'] = df['underlying_price'].ewm(span=window).mean()

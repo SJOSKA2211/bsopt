@@ -12,9 +12,13 @@ from sklearn.metrics import (
 
 
 def calculate_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict:
-    """Calculate standard and weighted regression metrics."""
+    """
+    Calculate comprehensive regression performance metrics.
+    Includes weighted RMSE to account for relative impact on high-premium options.
+    """
     mse = mean_squared_error(y_true, y_pred)
-    # 🚀 OPTIMIZATION: Weighted MSE to penalize errors on high-premium options more
+    
+    # Weighted MSE: Use higher premiums as higher importance
     weights = np.maximum(y_true, 1.0) 
     wmse = np.average((y_true - y_pred)**2, weights=weights)
     

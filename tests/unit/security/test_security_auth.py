@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
-from src.security.auth import AuthService, TokenBlacklist, TokenData
-from src.config import settings
+
+from src.security.auth import AuthService, TokenBlacklist
+
 
 @pytest.fixture
 def auth_service():
@@ -33,7 +35,7 @@ def test_refresh_token(auth_service):
 async def test_token_blacklist():
     blacklist = TokenBlacklist()
     jti = "test-jti"
-    exp = datetime.now(timezone.utc)
+    exp = datetime.now(UTC)
     
     await blacklist.add(jti, exp)
     assert await blacklist.contains(jti) is True

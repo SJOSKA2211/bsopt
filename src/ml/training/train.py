@@ -1,58 +1,57 @@
 import asyncio
 import os
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any
 
 import mlflow
 import mlflow.xgboost
 import numpy as np
 import optuna
-import xgboost as xgb
 import structlog
+import xgboost as xgb
 from mlflow.tracking import MlflowClient
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, TimeSeriesSplit, train_test_split
-from sklearn.preprocessing import StandardScaler
 
 from src.config import settings
-from src.pricing.black_scholes import BlackScholesEngine
-from src.ml.training.data_gen import generate_synthetic_data_numba
 from src.ml.evaluation.metrics import calculate_regression_metrics
+from src.ml.training.data_gen import generate_synthetic_data_numba
 
 logger = structlog.get_logger(__name__)
 
 
+import torch
 import torch.distributed as dist
 
+
 def init_collective_backend():
-    """🚀 SINGULARITY: High-performance NCCL backend for multi-GPU training."""
+    """Initialize NCCL backend for multi-GPU training if available."""
     if not torch.cuda.is_available():
         return
         
     try:
-        # SOTA: Initialize collective communication
         if not dist.is_initialized():
             dist.init_process_group(
                 backend="nccl", 
                 init_method="env://"
             )
-            logger.info("nccl_collective_telepathy_initialized", world_size=dist.get_world_size())
+            logger.info("nccl_backend_initialized", world_size=dist.get_world_size())
     except Exception as e:
-        logger.warning("nccl_init_failed_falling_back_to_gloo", error=str(e))
+        logger.warning("nccl_init_failed", error=str(e))
         if not dist.is_initialized():
             dist.init_process_group(backend="gloo", init_method="env://")
 
-def generate_synthetic_data(n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+def generate_synthetic_data(n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Generate synthetic training data using Numba-optimized Black-Scholes engine."""
-    logger.info("generating_synthetic_data_numba", n_samples=n_samples)
+    logger.info("generating_synthetic_data", n_samples=n_samples)
     return generate_synthetic_data_numba(n_samples=n_samples, random_state=settings.ML_TRAINING_RANDOM_STATE)
 
 
-def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 3, is_timeseries: bool = True) -> float:
-    """Optuna objective for XGBoost optimization with temporal awareness."""
+def objective(trial: optuna.Trial, x_vals: np.ndarray, y_vals: np.ndarray, n_folds: int = 3, is_timeseries: bool = True) -> float:
+    """Optuna objective for XGBoost optimization."""
     param = {
         "objective": "reg:squarederror",
         "eval_metric": "rmse",
-        "n_estimators": trial.suggest_int("n_estimators", 50, 1000), # 🚀 ADVANCED: More estimators
+        "n_estimators": trial.suggest_int("n_estimators", 50, 1000),
         "max_depth": trial.suggest_int("max_depth", 3, 15),
         "learning_rate": trial.suggest_float("learning_rate", 0.001, 0.3, log=True),
         "subsample": trial.suggest_float("subsample", 0.5, 1.0),
@@ -67,19 +66,19 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
         cv = KFold(n_splits=n_folds, shuffle=True, random_state=settings.ML_TRAINING_RANDOM_STATE)
         
     scores = []
-    for train_idx, val_idx in cv.split(X):
-        X_t, X_v = X[train_idx], X[val_idx]
-        y_t, y_v = y[train_idx], y[val_idx]
+    for train_idx, val_idx in cv.split(x_vals):
+        x_t, x_v = x_vals[train_idx], x_vals[val_idx]
+        y_t, y_v = y_vals[train_idx], y_vals[val_idx]
         
-        # 🚀 OPTIMIZATION: Use sample weights in training to match weighted metrics
+        # Use sample weights in training to match weighted metrics logic
         weights = np.maximum(y_t, 1.0)
         
         model = xgb.XGBRegressor(**param)
-        model.fit(X_t, y_t, sample_weight=weights, eval_set=[(X_v, y_v)], verbose=False)
+        model.fit(x_t, y_t, sample_weight=weights, eval_set=[(x_v, y_v)], verbose=False)
         
-        preds = model.predict(X_v)
+        preds = model.predict(x_v)
         metrics = calculate_regression_metrics(y_v, preds)
-        scores.append(metrics["r2"]) # Still using R2 for optimization, but training was weighted
+        scores.append(metrics["r2"]) 
     
     res = float(np.mean(scores))
     logger.debug("trial_complete", r2=res, params=param)
@@ -87,16 +86,16 @@ def objective(trial: optuna.Trial, X: np.ndarray, y: np.ndarray, n_folds: int = 
 
 
 from ray import tune
-from ray.tune.search.optuna import OptunaSearch
 from ray.tune.schedulers import ASHAScheduler
+from ray.tune.search.optuna import OptunaSearch
+
 
 async def run_hyperparameter_optimization(
     use_real_data: bool = True, n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES, n_trials: int = settings.ML_TRAINING_OPTUNA_TRIALS
-) -> Dict[str, Any]:
-    """🚀 SINGULARITY: Distributed HPO using Ray Tune and Optuna."""
-    X, y, _, _ = await load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
+) -> dict[str, Any]:
+    """Distributed HPO using Ray Tune and Optuna."""
+    x_vals, y_vals, _, _ = await load_or_collect_data(use_real_data=use_real_data, n_samples=n_samples)
     
-    # SOTA: Ray Tune configuration swarm
     config = {
         "n_estimators": tune.randint(50, 1000),
         "max_depth": tune.randint(3, 15),
@@ -105,21 +104,20 @@ async def run_hyperparameter_optimization(
         "colsample_bytree": tune.uniform(0.5, 1.0),
     }
 
-    # Asynchronous Successive Halving (Early Stopping)
     scheduler = ASHAScheduler(metric="r2", mode="max", max_t=100, grace_period=10)
     search_alg = OptunaSearch(metric="r2", mode="max")
 
     def trainable(config):
         """Inner trainable for Ray workers."""
         model = xgb.XGBRegressor(**config, n_jobs=1)
-        # Use a simple split for the parallel trials to minimize memory overhead
-        X_t, X_v, y_t, y_v = train_test_split(X, y, test_size=0.2, shuffle=False)
-        model.fit(X_t, y_t)
-        preds = model.predict(X_v)
+        # Use a simple split for the parallel trials
+        x_t, x_v, y_t, y_v = train_test_split(x_vals, y_vals, test_size=0.2, shuffle=False)
+        model.fit(x_t, y_t)
+        preds = model.predict(x_v)
         r2 = r2_score(y_v, preds)
         tune.report(r2=r2)
 
-    logger.info("starting_distributed_hpo_swarm", n_trials=n_trials)
+    logger.info("starting_distributed_hpo", n_trials=n_trials)
     
     analysis = tune.run(
         trainable,
@@ -136,8 +134,8 @@ async def run_hyperparameter_optimization(
 
 
 async def collect_real_data(
-    symbols: Optional[List[str]] = None, min_samples: int = 10000
-) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+    symbols: list[str] | None = None, min_samples: int = 10000
+) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Collect options data from market APIs."""
     from src.data.pipeline import DataPipeline, PipelineConfig
 
@@ -153,7 +151,7 @@ async def collect_real_data(
 
 async def load_or_collect_data(
     use_real_data: bool = True, n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES
-) -> Tuple[np.ndarray, np.ndarray, List[str], Dict[str, Any]]:
+) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
     """Load data with synthetic fallback."""
     if use_real_data:
         try:
@@ -167,10 +165,10 @@ async def train(
     use_real_data: bool = True,
     n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES,
     framework: str = "xgboost",
-    params: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
     promote_threshold: float = 0.99,
-) -> Dict[str, Any]:
-    """Execute training pipeline with MLflow tracking and distributed support."""
+) -> dict[str, Any]:
+    """Execute training pipeline with MLflow tracking."""
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI", settings.MLFLOW_TRACKING_URI)
     os.makedirs("mlruns", exist_ok=True)
     
@@ -180,7 +178,7 @@ async def train(
         tracking_uri=tracking_uri
     )
     
-    X, y, features, meta = await load_or_collect_data(use_real_data, n_samples)
+    x_vals, y_vals, features, meta = await load_or_collect_data(use_real_data, n_samples)
     
     # Default parameters
     default_params = {
@@ -192,21 +190,43 @@ async def train(
     if params:
         default_params.update(params)
     
-    logger.info("starting_model_training", n_samples=len(X), params=default_params, meta=meta)
+    logger.info("starting_model_training", n_samples=len(x_vals), params=default_params, meta=meta)
     
-    # train_and_evaluate handles MLflow internally
-    # For promotion, we do a final validation on a held-out set if possible, 
-    # or use the metrics logged during training.
+    # 🚀 SINGULARITY: Instrumented training with SOTA metrics
+    accuracy = trainer.train_and_evaluate(
+        x_vals, y_vals, 
+        params=default_params,
+        feature_names=features,
+        dataset_metadata=meta
+    )
     
-    # 🚀 ADVANCED: Promotion based on tail-risk aware metrics
     promoted = False
-    if accuracy >= settings.ML_TRAINING_PROMOTE_THRESHOLD_R2:
-        logger.info("model_meets_r2_threshold", accuracy=accuracy)
-        # In a real scenario, we'd pull wrmse and max_pe from the tracker
-        promoted = True
+    run_id = trainer.tracker.run_id if hasattr(trainer.tracker, "run_id") else "unknown"
     
-    run_id = "last_run" 
-    logger.info("training_complete", accuracy=accuracy, promoted=promoted)
+    if accuracy >= promote_threshold:
+        logger.info("model_meets_promotion_threshold", accuracy=accuracy, threshold=promote_threshold)
+        try:
+            client = MlflowClient(tracking_uri=tracking_uri)
+            model_name = f"Option_Pricing_{framework}"
+            
+            # Register model
+            result = mlflow.register_model(
+                f"runs:/{run_id}/model",
+                model_name
+            )
+            
+            # Transition to Production
+            client.transition_model_version_stage(
+                name=model_name,
+                version=result.version,
+                stage="Production"
+            )
+            logger.info("model_promoted_to_production", name=model_name, version=result.version)
+            promoted = True
+        except Exception as e:
+            logger.warning("model_promotion_failed", error=str(e))
+    
+    logger.info("training_complete", accuracy=accuracy, promoted=promoted, run_id=run_id)
     return {"run_id": run_id, "accuracy": accuracy, "promoted": promoted}
 
 

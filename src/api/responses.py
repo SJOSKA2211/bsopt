@@ -1,23 +1,24 @@
-import msgspec
 from typing import Any
+
+import msgspec
 from starlette.responses import Response
 
-# 🚀 SINGULARITY: High-performance msgspec encoder
+# Core msgspec encoder instance
 _encoder = msgspec.json.Encoder()
 
 class MsgspecJSONResponse(Response):
     """
-    SOTA: Ultra-fast JSON response using msgspec.
-    Bypasses standard Python dict-to-json conversion for direct byte serialization.
+    JSON response class using msgspec for efficient serialization.
+    Optimized for high-throughput API endpoints.
     """
     media_type = "application/json"
 
     def render(self, content: Any) -> bytes:
-        """🚀 SINGULARITY: Direct byte serialization."""
+        """Encode content to bytes."""
         try:
             return _encoder.encode(content)
         except Exception:
-            # Fallback for non-serializable objects (though msgspec is robust)
+            # Fallback for complex objects not handled by the encoder
             import json
             return json.dumps(content).encode("utf-8")
 

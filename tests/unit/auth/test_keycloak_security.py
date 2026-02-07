@@ -1,13 +1,16 @@
-import pytest
+import base64
 from unittest.mock import AsyncMock, patch
-import jwt
-from fastapi import HTTPException
-from src.auth.security import get_jwks, verify_token, RoleChecker, jwks_cache
+
 import httpx
+import jwt
+import pytest
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
-import base64
+from fastapi import HTTPException
+
+from src.auth.security import RoleChecker, get_jwks, jwks_cache, verify_token
+
 
 # Helper to generate RSA keys for testing
 def generate_rsa_keys():

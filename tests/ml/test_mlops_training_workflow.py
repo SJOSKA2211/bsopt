@@ -1,6 +1,7 @@
 import os
+
 import yaml
-import pytest
+
 
 def test_mlops_training_workflow_exists():
     """Verify that the mlops-training workflow file exists."""
@@ -8,7 +9,7 @@ def test_mlops_training_workflow_exists():
 
 def test_mlops_training_workflow_contents():
     """Verify that the mlops-training workflow contains the required triggers and jobs."""
-    with open(".github/workflows/mlops-training.yml", "r") as f:
+    with open(".github/workflows/mlops-training.yml") as f:
         workflow = yaml.load(f, Loader=yaml.SafeLoader)
     
     # Check triggers

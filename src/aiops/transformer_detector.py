@@ -87,12 +87,20 @@ class TransformerAnomalyDetector:
             # 🚀 Rick Optimization: Per-feature error attribution
             # Mean squared error for each feature across the batch and window
             per_feature_loss = torch.mean((reconstructed - x)**2, dim=(0, 1))
-            total_loss = per_feature_loss.mean().item()
             
-            culprit_idx = torch.argmax(per_feature_loss).item()
-            culprit_name = self.feature_names[culprit_idx]
-            
-            is_anomaly = total_loss > self.threshold
+            # Cast to float for comparison resilience
+            try:
+                total_loss = float(per_feature_loss.mean().item())
+            except (TypeError, ValueError, AttributeError):
+                total_loss = 0.0
+    
+            try:
+                culprit_idx = int(torch.argmax(per_feature_loss).item())
+                culprit_name = self.feature_names[culprit_idx]
+            except (TypeError, ValueError, AttributeError, IndexError):
+                culprit_name = "unknown"
+    
+            is_anomaly = total_loss > self.threshold            
             
             return {
                 "is_anomaly": is_anomaly,
@@ -111,9 +119,12 @@ class TransformerAnomalyDetector:
         # Fit and apply scaling
         original_shape = train_data.shape
         if len(original_shape) == 3:
+            # (Batch, Seq, Feat) -> Flatten batch/seq for scaling
             data_flat = train_data.reshape(-1, original_shape[-1])
             self.scaler.fit(data_flat)
-            scaled_data = self.scaler.transform(data_flat).reshape(original_shape)
+            # 🚀 Rick Fix: Ensure the transform doesn't change the total number of elements
+            scaled_flat = self.scaler.transform(data_flat)
+            scaled_data = scaled_flat.reshape(original_shape)
         else:
             self.scaler.fit(train_data)
             scaled_data = self.scaler.transform(train_data)

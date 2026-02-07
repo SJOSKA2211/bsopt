@@ -26,7 +26,6 @@ except ImportError:
     config = Config()
 
 from src.shared.math_utils import calculate_d1_d2 as calculate_d1_d2_jit
-from src.shared.math_utils import fast_normal_cdf, fast_normal_pdf
 
 # Force aggressive LLVM optimizations if requested
 # config.OPT = 3 
@@ -519,7 +518,7 @@ def jit_mc_european_price_and_greeks(
     antithetic: bool
 ) -> tuple[float, float, float, float, float]:
     """
-    🚀 SOTA: Pathwise Sensitivity (PWM) Monte Carlo.
+    Pathwise Sensitivity (PWM) Monte Carlo.
     Calculates Price, Delta, Vega, Rho in a single simulation pass.
     Gamma is estimated via Likelihood Ratio / mixed method proxy (less stable but fast).
     Returns (price, delta, gamma, vega, rho).
@@ -767,7 +766,7 @@ def jit_generate_paths(
     n_steps: int
 ) -> np.ndarray:
     """
-    SOTA: Vectorized path generation with pre-allocated innovations.
+    OPTIMIZED: Vectorized path generation with pre-allocated innovations.
     Eliminates O(N_steps) memory allocations.
     """
     dt = T / n_steps
@@ -847,7 +846,7 @@ def _laguerre_basis_jit(x: np.ndarray, degree: int) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _jit_solve_normal_equations(X: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """🚀 SOTA: Specialized O(N) Normal Equations solver for LSM."""
+    """Specialized O(N) Normal Equations solver for LSM."""
     XT = X.T
     XTX = np.dot(XT, X)
     XTy = np.dot(XT, y)
@@ -921,7 +920,7 @@ def jit_lsm_american(
 def scalar_bs_price_jit(
     S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool
 ) -> float:
-    """SOTA: Dedicated scalar BS pricing to avoid array overhead."""
+    """OPTIMIZED: Dedicated scalar BS pricing to avoid array overhead."""
     if T < 1e-7:
         return max(S - K, 0.0) if is_call else max(K - S, 0.0)
 
@@ -940,7 +939,7 @@ def scalar_bs_price_jit(
 def scalar_greeks_jit(
     S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool
 ) -> tuple[float, float, float, float, float]:
-    """SOTA: Dedicated scalar Greeks calculation."""
+    """OPTIMIZED: Dedicated scalar Greeks calculation."""
     Ti = max(T, 1e-7)
     sqrt_T = math.sqrt(Ti)
     d1, d2 = calculate_d1_d2_jit(S, K, Ti, sigma, r, q)

@@ -1,10 +1,11 @@
+
 import torch as th
 import torch.nn as nn
-from typing import Optional, Tuple
+
 
 class DecisionTransformer(nn.Module):
     """
-    SOTA: Decision Transformer for Offline RL.
+    OPTIMIZED: Decision Transformer for Offline RL.
     Treats trading as a sequence modeling problem: predicting actions from (returns-to-go, state, action).
     """
     def __init__(self, state_dim: int, action_dim: int, n_layer: int = 4, n_head: int = 8, n_inner: int = 1024, max_length: int = 20, max_ep_len: int = 1000):

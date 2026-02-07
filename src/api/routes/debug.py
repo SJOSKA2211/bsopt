@@ -1,8 +1,11 @@
 import tracemalloc
-from fastapi import APIRouter, status
-from fastapi.responses import ORJSONResponse
+
+from fastapi import APIRouter
+
+from src.api.exceptions import (
+    InternalServerException,  # Imported directly as it's a specific exception
+)
 from src.api.schemas.common import DataResponse, ErrorResponse
-from src.api.exceptions import InternalServerException # Imported directly as it's a specific exception
 
 router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
 

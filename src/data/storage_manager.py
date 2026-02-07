@@ -1,7 +1,7 @@
-import aioboto3
 import asyncio
+
+import aioboto3
 import structlog
-from typing import Optional, Any, Dict
 from botocore.exceptions import ClientError
 
 logger = structlog.get_logger(__name__)
@@ -28,7 +28,7 @@ class AsyncStorageManager:
         )
 
     async def upload_file(self, local_path: str, remote_key: str):
-        """🚀 SINGULARITY: Asynchronous file upload."""
+        """Asynchronous file upload."""
         async with self.session.client("s3", endpoint_url=self.endpoint_url) as s3:
             try:
                 logger.info("uploading_to_vault", key=remote_key)
@@ -39,7 +39,7 @@ class AsyncStorageManager:
                 raise
 
     async def download_file(self, remote_key: str, local_path: str):
-        """🚀 SINGULARITY: Asynchronous file download."""
+        """Asynchronous file download."""
         async with self.session.client("s3", endpoint_url=self.endpoint_url) as s3:
             try:
                 logger.info("downloading_from_vault", key=remote_key)
@@ -50,7 +50,7 @@ class AsyncStorageManager:
                 raise
 
     def upload_background(self, local_path: str, remote_key: str):
-        """🚀 SOTA: Fire-and-forget background upload (non-blocking)."""
+        """Fire-and-forget background upload (non-blocking)."""
         loop = asyncio.get_event_loop()
         task = loop.create_task(self.upload_file(local_path, remote_key))
         # Optional: Track tasks if needed for coordination
@@ -58,5 +58,5 @@ class AsyncStorageManager:
 
 # Example usage (Mock)
 async def test_storage():
-    manager = AsyncStorageManager("http://localhost:9000", "admin", "password", "models")
+    AsyncStorageManager("http://localhost:9000", "admin", "password", "models")
     # await manager.upload_file("model.pt", "v1/model.pt")

@@ -1,6 +1,5 @@
 import subprocess
-import pytest
-import os
+
 
 def get_sysctl(key):
     try:

@@ -1,9 +1,10 @@
 import asyncio
+from typing import Any
+
 import orjson
 import structlog
-from typing import Dict, Any, Optional
+from confluent_kafka import Consumer, KafkaError, Producer
 
-from confluent_kafka import Consumer, Producer, KafkaError
 from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
 
 logger = structlog.get_logger(__name__)
@@ -100,7 +101,7 @@ class SentimentPipeline:
         self.extractor = SentimentExtractor()
         logger.info("sentiment_pipeline_initialized")
 
-    async def process_scraper_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_scraper_message(self, message: dict[str, Any]) -> dict[str, Any]:
         """
         Processes a single message from the scraper.
         

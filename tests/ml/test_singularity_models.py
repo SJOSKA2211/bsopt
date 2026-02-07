@@ -1,11 +1,11 @@
+
 import torch
 import torch.nn as nn
-from src.ml.trainer_v2 import Trainer
-from src.ml.reinforcement_learning.transformer_policy import DecisionTransformer
-import numpy as np
 from torch.utils.data import DataLoader, TensorDataset
-import pytest
-from pathlib import Path
+
+from src.ml.reinforcement_learning.transformer_policy import DecisionTransformer
+from src.ml.trainer_v2 import Trainer
+
 
 def test_decision_transformer_forward():
     model = DecisionTransformer(state_dim=10, act_dim=2, hidden_size=64)

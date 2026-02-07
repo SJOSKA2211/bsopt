@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
-from src.pricing.finite_difference import CrankNicolsonSolver
+
 from src.pricing.black_scholes import BSParameters
+from src.pricing.finite_difference import CrankNicolsonSolver
+
 
 def test_fdm_call_price():
     params = BSParameters(

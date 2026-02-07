@@ -1,8 +1,11 @@
-import pytest
-from unittest.mock import MagicMock, patch
-from fastapi import FastAPI, Request, Response
-from src.audit.middleware import AuditMiddleware
 import json
+from unittest.mock import MagicMock
+
+import pytest
+from fastapi import FastAPI, Request
+
+from src.audit.middleware import AuditMiddleware
+
 
 @pytest.mark.asyncio
 async def test_audit_middleware_calls_kafka():

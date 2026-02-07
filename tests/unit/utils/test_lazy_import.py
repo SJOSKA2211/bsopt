@@ -1,7 +1,17 @@
-import pytest
 import sys
 from unittest.mock import MagicMock, patch
-from src.utils.lazy_import import lazy_import, get_import_stats, reset_import_stats, preload_modules, CircularImportError, LazyImportError
+
+import pytest
+
+from src.utils.lazy_import import (
+    CircularImportError,
+    LazyImportError,
+    get_import_stats,
+    lazy_import,
+    preload_modules,
+    reset_import_stats,
+)
+
 
 class MockModule:
     def __init__(self):
@@ -32,8 +42,7 @@ def test_lazy_import_attribute_error():
 
 def test_lazy_import_circular():
     reset_import_stats()
-    cache_module = MockModule()
-    import_map = {"circular": "src.circular"}
+    MockModule()
     
     # We need to manually trigger the circular detection by nested calls if we want to test the logic
     from src.utils.lazy_import import _track_import_stack

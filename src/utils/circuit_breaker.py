@@ -1,12 +1,12 @@
+import asyncio
 import time
-import structlog
+from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Callable, Any, Optional, cast
-import asyncio
+from typing import Any, cast
 
 import redis.asyncio as redis
-from src.config import settings
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -20,7 +20,8 @@ class InMemoryCircuitBreaker:
     In-memory implementation of the Circuit Breaker pattern.
     Suitable for single-process applications or testing.
     """
-    def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 30):
+    def __init__(self, name: str = "default", failure_threshold: int = 5, recovery_timeout: int = 30):
+        self.name = name
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
@@ -32,25 +33,30 @@ class InMemoryCircuitBreaker:
         self.state = CircuitState.CLOSED
         self.failure_count = 0
         self.last_failure_time = 0
-        logger.info("circuit_breaker_reset", mechanism="in_memory")
+        logger.info("circuit_breaker_reset", name=self.name, mechanism="in_memory")
 
     def __call__(self, func: Callable):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             if self.state == CircuitState.OPEN:
                 if time.time() - self.last_failure_time > self.recovery_timeout:
                     self.state = CircuitState.HALF_OPEN
-                    logger.info("circuit_breaker_half_open", mechanism="in_memory")
+                    logger.info("circuit_breaker_half_open", name=self.name, mechanism="in_memory")
                 else:
-                    raise Exception("Circuit Breaker is OPEN. Request rejected.")
+                    raise Exception(f"Circuit Breaker '{self.name}' is OPEN. Request rejected.")
 
             try:
-                result = func(*args, **kwargs)
+                if asyncio.iscoroutinefunction(func):
+                    result = await func(*args, **kwargs)
+                else:
+                    # Offload sync function to thread to avoid blocking loop if needed, 
+                    # but simple call for now.
+                    result = func(*args, **kwargs)
                 
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
-                    logger.info("circuit_breaker_closed", mechanism="in_memory")
+                    logger.info("circuit_breaker_closed", name=self.name, mechanism="in_memory")
                 
                 return result
             except Exception as e:
@@ -61,6 +67,7 @@ class InMemoryCircuitBreaker:
                     self.state = CircuitState.OPEN
                     logger.error(
                         "circuit_breaker_open", 
+                        name=self.name,
                         mechanism="in_memory", 
                         failures=self.failure_count, 
                         error=str(e)
@@ -98,7 +105,7 @@ class DistributedCircuitBreaker:
         state_str = await self.redis_client.get(self.REDIS_KEY_STATE.format(name=self.name))
         return CircuitState(state_str.decode() if state_str else CircuitState.CLOSED.value)
 
-    async def _set_state(self, state: CircuitState, expiry: Optional[int] = None) -> None:
+    async def _set_state(self, state: CircuitState, expiry: int | None = None) -> None:
         await self.redis_client.set(self.REDIS_KEY_STATE.format(name=self.name), state.value, ex=expiry)
 
     async def _get_failures(self) -> int:
@@ -115,7 +122,7 @@ class DistributedCircuitBreaker:
         last_failure = await self.redis_client.get(self.REDIS_KEY_LAST_FAILURE.format(name=self.name)) # pragma: no cover
         return int(last_failure) if last_failure else 0 # pragma: no cover
 
-    async def _set_last_failure_time(self, timestamp: int, expiry: Optional[int] = None) -> None:
+    async def _set_last_failure_time(self, timestamp: int, expiry: int | None = None) -> None:
         await self.redis_client.set(self.REDIS_KEY_LAST_FAILURE.format(name=self.name), timestamp, ex=expiry)
 
     def __call__(self, func: Callable):
@@ -171,7 +178,7 @@ class CircuitBreakerFactory:
     @staticmethod
     def create(
         name: str, 
-        redis_client: Optional[redis.Redis] = None,
+        redis_client: redis.Redis | None = None,
         failure_threshold: int = 5, 
         recovery_timeout: int = 30
     ) -> Any:
@@ -192,8 +199,9 @@ pricing_circuit = CircuitBreakerFactory.create("pricing", failure_threshold=10, 
 db_circuit = CircuitBreakerFactory.create("database", failure_threshold=5, recovery_timeout=30)
 ml_client_circuit = CircuitBreakerFactory.create("ml_client", failure_threshold=5, recovery_timeout=30)
 nse_circuit = CircuitBreakerFactory.create("nse", failure_threshold=3, recovery_timeout=120)
+webhook_circuit = CircuitBreakerFactory.create("webhook", failure_threshold=5, recovery_timeout=30)
 
-async def initialize_circuits(redis_client: Optional[redis.Redis] = None):
+async def initialize_circuits(redis_client: redis.Redis | None = None):
     """
     Upgrade global circuit breakers to distributed mode if Redis is available.
     """

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any
+
 
 class Producer(ABC):
     """
@@ -7,7 +8,7 @@ class Producer(ABC):
     Enforces a unified interface for data ingestion.
     """
     @abstractmethod
-    async def produce(self, data: Dict[str, Any], **kwargs):
+    async def produce(self, data: dict[str, Any], **kwargs):
         """
         Produce a message to the stream.
         

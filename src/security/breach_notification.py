@@ -6,9 +6,7 @@ Service for handling data breach notifications as required by GDPR.
 """
 
 import logging
-from datetime import datetime, timezone
-from typing import List
-from uuid import UUID
+from datetime import UTC, datetime
 
 from src.config import settings
 from src.database.models import SecurityIncident, User
@@ -35,7 +33,7 @@ class BreachNotificationService:
         Report to Data Protection Authority within 72 hours.
         """
         # 1. GDPR Compliance Check
-        time_elapsed = (datetime.now(timezone.utc) - incident.detected_at.astimezone(timezone.utc)).total_seconds()
+        time_elapsed = (datetime.now(UTC) - incident.detected_at.astimezone(UTC)).total_seconds()
         if time_elapsed > 72 * 3600:
             logger.critical(f"GDPR VIOLATION: 72-hour notification deadline missed for incident {incident.id}")
 
@@ -68,7 +66,7 @@ class BreachNotificationService:
         
         return success
 
-    async def notify_affected_users(self, incident: SecurityIncident, users: List[User]) -> int:
+    async def notify_affected_users(self, incident: SecurityIncident, users: list[User]) -> int:
         """
         Notify data subjects if there is a high risk to their rights and freedoms.
         GDPR Article 34 requirement.

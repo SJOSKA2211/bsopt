@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
+
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional, Literal
-from datetime import datetime, timezone
+
 
 class InferenceRequest(BaseModel):
     """ML inference request."""
@@ -44,7 +45,7 @@ class InferenceResponse(BaseModel):
 
     latency_ms: float = Field(..., description="Inference latency in milliseconds")
 
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 class BatchInferenceResponse(BaseModel):
     """Batch ML inference response."""

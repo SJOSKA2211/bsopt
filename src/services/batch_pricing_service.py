@@ -1,22 +1,14 @@
-import sys
-import pandas as pd
-from pathlib import Path
-from typing import Callable, Optional, List, Dict
-import structlog
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.utils.filesystem import sanitize_path
-
-logger = structlog.get_logger(__name__)
-
-import sys
-import pandas as pd
-import numpy as np
-from pathlib import Path
-from typing import Callable, Optional, List, Dict
-import structlog
 import time
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+from collections.abc import Callable
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import structlog
+
+from src.services.pricing_service import PricingService
 from src.utils.filesystem import sanitize_path
+from src.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
@@ -27,9 +19,9 @@ class BatchPricingService:
         output_file: Path,
         method: str = 'bs',
         compute_greeks: bool = True,
-        progress_setup: Optional[Callable[[int], None]] = None,
-        progress_advance: Optional[Callable[[int], None]] = None
-    ) -> List[Dict]:
+        progress_setup: Callable[[int], None] | None = None,
+        progress_advance: Callable[[int], None] | None = None
+    ) -> list[dict]:
         """
         Process a batch of options from a CSV file using vectorized engines.
         Benefits from ProcessPoolExecutor and SharedMemory for large batches.

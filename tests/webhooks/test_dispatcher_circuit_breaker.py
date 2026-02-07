@@ -1,10 +1,13 @@
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 import asyncio
-import time
-import httpx
+from unittest.mock import AsyncMock, patch
 
-from src.utils.circuit_breaker import CircuitBreaker, DistributedCircuitBreaker, InMemoryCircuitBreaker
+import httpx
+import pytest
+
+from src.utils.circuit_breaker import (
+    CircuitBreaker,
+)
+
 
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step
 class MockDlqTask:
