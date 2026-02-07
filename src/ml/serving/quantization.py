@@ -1,15 +1,16 @@
+import structlog
 import torch
 import torch.nn as nn
-import structlog
-from typing import Any
 
 logger = structlog.get_logger()
+
 
 class ModelQuantizer:
     """
     SOTA Model Quantization Strategy.
     Reduces model size and increases inference speed using PyTorch quantization.
     """
+
     def __init__(self):
         logger.info("model_quantizer_initialized")
 
@@ -19,13 +20,11 @@ class ModelQuantizer:
         Useful for models where the weights are static but activations vary.
         """
         logger.info("applying_dynamic_quantization", model_type=type(model).__name__)
-        
+
         try:
             # We target Linear and LSTM layers for quantization as they are compute-heavy
             quantized_model = torch.quantization.quantize_dynamic(
-                model, 
-                {nn.Linear, nn.LSTM}, 
-                dtype=torch.qint8
+                model, {nn.Linear, nn.LSTM}, dtype=torch.qint8
             )
             return quantized_model
         except Exception as e:
@@ -43,14 +42,14 @@ class ModelQuantizer:
         """
         Performs INT8 quantization on an ONNX model for high-performance inference.
         """
-        from onnxruntime.quantization import quantize_dynamic, QuantType
-        
+        from onnxruntime.quantization import QuantType, quantize_dynamic
+
         logger.info("quantizing_onnx_model", input=input_path, output=output_path)
         try:
             quantize_dynamic(
                 input_model=input_path,
                 output_model=output_path,
-                weight_type=QuantType.QInt8
+                weight_type=QuantType.QInt8,
             )
             logger.info("onnx_quantization_success")
         except Exception as e:

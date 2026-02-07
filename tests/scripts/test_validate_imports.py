@@ -1,31 +1,34 @@
-import pytest
-import subprocess
-import sys
 import os
-from pathlib import Path
 import random
 import string
+import subprocess
+import sys
+from pathlib import Path
 
-VALIDATE_IMPORTS_SCRIPT = Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
+VALIDATE_IMPORTS_SCRIPT = (
+    Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
+)
 os.chmod(VALIDATE_IMPORTS_SCRIPT, 0o755)
+
 
 def run_validator_script(base_path: Path) -> subprocess.CompletedProcess:
     env = os.environ.copy()
     # Ensure project root (parent of the mock package) is in PYTHONPATH
-    env['PYTHONPATH'] = str(base_path.parent) + os.pathsep + env.get('PYTHONPATH', '')
+    env["PYTHONPATH"] = str(base_path.parent) + os.pathsep + env.get("PYTHONPATH", "")
     result = subprocess.run(
         [sys.executable, str(VALIDATE_IMPORTS_SCRIPT), str(base_path)],
         capture_output=True,
         text=True,
         env=env,
-        check=False
+        check=False,
     )
     return result
+
 
 class TestImportValidationIntegration:
     def create_mock_package(self, tmp_path):
         # Use a UNIQUE name for each test to avoid sys.modules cache issues
-        suffix = ''.join(random.choices(string.ascii_lowercase, k=6))
+        suffix = "".join(random.choices(string.ascii_lowercase, k=6))
         pkg_name = f"mock_src_{suffix}"
         pkg_path = tmp_path / pkg_name
         pkg_path.mkdir()
@@ -68,10 +71,12 @@ class TestImportValidationIntegration:
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
         )
         (ml_dir / "valid_ml_submodule.py").write_text("class ValidMLClass: pass")
-    
+
         result = run_validator_script(pkg_path)
         assert result.returncode == 0
-        assert "Validation successful: All lazy imports confirmed valid." in result.stdout
+        assert (
+            "Validation successful: All lazy imports confirmed valid." in result.stdout
+        )
 
     def test_broken_import_map(self, tmp_path):
         pkg_name, pkg_path = self.create_mock_package(tmp_path)
@@ -83,11 +88,14 @@ class TestImportValidationIntegration:
             "_import_map = {'BrokenClass': '.non_existent_submodule'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
         )
-    
+
         result = run_validator_script(pkg_path)
         assert result.returncode == 1
         assert "Validation failed: Found broken lazy import mappings." in result.stdout
-        assert f"{pkg_name}.broken.BrokenClass (maps to .non_existent_submodule): Simulated import failure for .non_existent_submodule" in result.stdout
+        assert (
+            f"{pkg_name}.broken.BrokenClass (maps to .non_existent_submodule): Simulated import failure for .non_existent_submodule"
+            in result.stdout
+        )
 
     def test_circular_import_map(self, tmp_path):
         pkg_name, pkg_path = self.create_mock_package(tmp_path)
@@ -99,18 +107,24 @@ class TestImportValidationIntegration:
             "_import_map = {'CircularClass': '.circular_submodule'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
         )
-    
+
         result = run_validator_script(pkg_path)
         assert result.returncode == 1
         assert "Validation failed: Found broken lazy import mappings." in result.stdout
-        assert f"{pkg_name}.circular.CircularClass (maps to .circular_submodule): Simulated circular import for .circular_submodule" in result.stdout
+        assert (
+            f"{pkg_name}.circular.CircularClass (maps to .circular_submodule): Simulated circular import for .circular_submodule"
+            in result.stdout
+        )
 
     def test_no_lazy_loaded_modules_found(self, tmp_path):
         pkg_name, pkg_path = self.create_mock_package(tmp_path)
         no_lazy_dir = pkg_path / "no_lazy"
         no_lazy_dir.mkdir()
         (no_lazy_dir / "__init__.py").write_text("print('No lazy imports here')")
-    
+
         result = run_validator_script(no_lazy_dir)
         assert result.returncode == 0
-        assert "No lazy-loaded modules with _import_map and __getattr__ found under the given path." in result.stdout
+        assert (
+            "No lazy-loaded modules with _import_map and __getattr__ found under the given path."
+            in result.stdout
+        )

@@ -28,7 +28,7 @@ Pricing tasks re-initialize strategies on every run, adding unnecessary overhead
 
 ## Solution
 Implement a worker-local cache for engine instances in src/tasks/pricing_tasks.py.
-"""
+""",
     },
     "task002": {
         "dir": "task002",
@@ -55,15 +55,15 @@ Batch pricing tasks use slow manual loops for result formatting.
 
 ## Solution
 Use msgspec or optimized dictionary creation to speed up batch result serialization.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

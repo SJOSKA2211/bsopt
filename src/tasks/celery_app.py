@@ -138,7 +138,7 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     task_acks_on_failure_or_timeout=True,
     # High-performance settings for transient tasks
-    task_persistent=True, # Default to True, but will override for pricing
+    task_persistent=True,  # Default to True, but will override for pricing
     # Worker configuration
     worker_prefetch_multiplier=1,  # SOTA: Set to 1 for high-throughput heterogeneous tasks
     worker_concurrency=os.cpu_count() or 4,
@@ -154,7 +154,7 @@ celery_app.conf.update(
         "src.tasks.pricing_tasks.*": {
             "queue": "pricing",
             "routing_key": "pricing",
-            "persistent": False, # Non-persistent for speed
+            "persistent": False,  # Non-persistent for speed
         },
         "src.tasks.ml_tasks.*": {
             "queue": "ml",
@@ -176,7 +176,7 @@ celery_app.conf.update(
     task_annotations={
         "src.tasks.pricing_tasks.price_option_task": {
             "rate_limit": "1000/s",  # High throughput for pricing
-            "task_result_expires": 60, # Expire results quickly to save memory
+            "task_result_expires": 60,  # Expire results quickly to save memory
         },
         "src.tasks.pricing_tasks.batch_price_options_task": {
             "rate_limit": "100/s",
@@ -193,7 +193,7 @@ celery_app.conf.update(
         },
     },
     # Result backend configuration
-    result_expires=timedelta(hours=1), # Reduced from 24h to save Redis memory
+    result_expires=timedelta(hours=1),  # Reduced from 24h to save Redis memory
     result_extended=True,  # Include task name and args in result
     result_compression="gzip",
     # Beat scheduler (for periodic tasks)
@@ -237,7 +237,7 @@ celery_app.conf.update(
         },
         "monitor-drift-and-retrain": {
             "task": "src.tasks.ml_tasks.monitor_drift_and_retrain_task",
-            "schedule": crontab(hour="*/12"), # Every 12 hours
+            "schedule": crontab(hour="*/12"),  # Every 12 hours
             "options": {"queue": "ml", "priority": 1},
         },
     },
@@ -372,7 +372,9 @@ class BaseTaskWithRetry(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Handle task failure after all retries exhausted."""
-        logger.error(f"Task {self.name}[{task_id}] failed after {self.max_retries} retries: {exc}")
+        logger.error(
+            f"Task {self.name}[{task_id}] failed after {self.max_retries} retries: {exc}"
+        )
         # Could send to dead letter queue or alerting system here
 
 

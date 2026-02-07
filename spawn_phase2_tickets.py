@@ -28,7 +28,7 @@ OrderExecutor uses mock hashes instead of real blockchain transactions.
 
 ## Solution
 Update OrderExecutor.execute_order to call DeFiOptionsProtocol.buy_option.
-"""
+""",
     },
     "back002": {
         "dir": "back002",
@@ -55,15 +55,15 @@ BacktestEngine runs sequentially, limiting HPO and multi-strategy runs.
 
 ## Solution
 Integrate Ray to parallelize the execution of multiple backtest scenarios.
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

@@ -6,7 +6,8 @@ import functools
 import logging
 import time
 import traceback
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import HTTPException, status
 
@@ -32,7 +33,11 @@ def robust_pricing_task(error_return_value: Any = None):
                     f"Error: {str(e)}\n"
                     f"Duration: {duration:.2f}ms\n"
                     f"Traceback: {traceback.format_exc()}",
-                    extra={"task": func.__name__, "error": str(e), "duration_ms": duration},
+                    extra={
+                        "task": func.__name__,
+                        "error": str(e),
+                        "duration_ms": duration,
+                    },
                 )
                 return error_return_value
 

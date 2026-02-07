@@ -1,10 +1,14 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.shared.security import OPAEnforcer
+
 
 @pytest.fixture
 def enforcer():
     return OPAEnforcer(opa_url="http://mock-opa:8181/v1/data/authz/allow")
+
 
 @pytest.mark.asyncio
 @patch("src.utils.http_client.HttpClientManager.get_client")
@@ -16,9 +20,10 @@ async def test_opa_authorized(mock_get_client, enforcer):
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": True}
     mock_client.post.return_value = mock_response
-    
+
     user = {"id": "1", "role": "admin"}
     assert await enforcer.is_authorized(user, "delete", "all") is True
+
 
 @pytest.mark.asyncio
 @patch("src.utils.http_client.HttpClientManager.get_client")
@@ -30,9 +35,10 @@ async def test_opa_unauthorized(mock_get_client, enforcer):
     mock_response.status_code = 200
     mock_response.json.return_value = {"result": False}
     mock_client.post.return_value = mock_response
-    
+
     user = {"id": "2", "role": "guest"}
     assert await enforcer.is_authorized(user, "read", "secrets") is False
+
 
 @pytest.mark.asyncio
 @patch("src.utils.http_client.HttpClientManager.get_client")

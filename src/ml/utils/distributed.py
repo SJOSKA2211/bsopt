@@ -1,22 +1,24 @@
-import logging
 import os
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
+import dask
 import xgboost as xgb
 import xgboost.dask
-import dask
 from dask.distributed import Client, LocalCluster
 
 # Configure Dask for high-performance communication
-dask.config.set({
-    "distributed.comm.compression": "lz4",
-    "distributed.worker.memory.target": 0.6,
-    "distributed.worker.memory.spill": 0.7,
-    "distributed.worker.memory.pause": 0.8,
-    "distributed.worker.memory.terminate": 0.95,
-})
+dask.config.set(
+    {
+        "distributed.comm.compression": "lz4",
+        "distributed.worker.memory.target": 0.6,
+        "distributed.worker.memory.spill": 0.7,
+        "distributed.worker.memory.pause": 0.8,
+        "distributed.worker.memory.terminate": 0.95,
+    }
+)
 
-def get_dask_client(address: Optional[str] = None) -> Tuple[Client, bool]:
+
+def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     """
     Get or create a Dask client for distributed training.
     Returns (client, is_local_cluster).
@@ -32,11 +34,13 @@ def get_dask_client(address: Optional[str] = None) -> Tuple[Client, bool]:
     return Client(cluster), True
 
 
-def train_xgboost_distributed(X, y, params: Dict[str, Any], dask_address: Optional[str] = None):
+def train_xgboost_distributed(
+    X, y, params: dict[str, Any], dask_address: str | None = None
+):
     """
     Train XGBoost model using Dask for distributed execution.
     """
-    client, is_local_cluster = get_dask_client(dask_address) # Get client and flag
+    client, is_local_cluster = get_dask_client(dask_address)  # Get client and flag
     try:
         logger.info("Starting distributed XGBoost training...")
         # Wrap data in Dask collections if not already
@@ -52,5 +56,5 @@ def train_xgboost_distributed(X, y, params: Dict[str, Any], dask_address: Option
         logger.info("Distributed training complete.")
         return dask_model.get_booster()
     finally:
-        if is_local_cluster: # Only close if it was a locally created cluster
+        if is_local_cluster:  # Only close if it was a locally created cluster
             client.close()

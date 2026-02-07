@@ -28,7 +28,7 @@ Random shuffling in train_test_split causes future-to-past data leakage in time-
 
 ## Solution
 Replace random shuffling with TimeSeriesSplit or sequential index slicing to ensure valid temporal validation.
-"""
+""",
     },
     "ml002": {
         "dir": "ml002",
@@ -55,15 +55,15 @@ MLflow logs to local files, which is not scalable or shareable across the platfo
 
 ## Solution
 Update the MLflow tracking URI to use the Neon database URL (postgres backend).
-"""
-    }
+""",
+    },
 }
 
 for key, ticket in tickets.items():
     dir_path = os.path.join(session_root, ticket["dir"])
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, ticket["path"])
-    
+
     with open(file_path, "w") as f:
         f.write(ticket["content"])
     print(f"Created: {file_path}")

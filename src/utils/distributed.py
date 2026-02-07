@@ -1,10 +1,11 @@
-import os
 import multiprocessing
+import os
+
 import ray
 import structlog
-from typing import Optional, Dict, Any
 
 logger = structlog.get_logger(__name__)
+
 
 class RayOrchestrator:
     """
@@ -25,46 +26,48 @@ class RayOrchestrator:
     def get_optimal_core_for_numa(node_id: int) -> int:
         """SOTA: Find a physical core on the target NUMA node."""
         try:
-            with open(f"/sys/devices/system/node/node{node_id}/cpulist", "r") as f:
+            with open(f"/sys/devices/system/node/node{node_id}/cpulist") as f:
                 cores = f.read().strip().split(",")[0]
                 return int(cores.split("-")[0])
         except:
-            return node_id # Fallback to node_id as core_id
+            return node_id  # Fallback to node_id as core_id
 
     @staticmethod
     def init(
-        num_cpus: Optional[int] = None, 
-        num_gpus: Optional[int] = 0, 
-        object_store_memory_gb: Optional[float] = None,
-        spill_dir: str = "/tmp/ray_spill"
+        num_cpus: int | None = None,
+        num_gpus: int | None = 0,
+        object_store_memory_gb: float | None = None,
+        spill_dir: str = "/tmp/ray_spill",
     ):
         """🚀 SINGULARITY: Initialize Ray with optimal hardware settings."""
         if ray.is_initialized():
             logger.info("ray_already_initialized")
             return
-            
+
         # 1. Hardware Detection
         detected_cpus = multiprocessing.cpu_count()
         actual_cpus = num_cpus if num_cpus is not None else detected_cpus
-        
+
         # 2. Memory Optimization
         # Rule of thumb: Leave 30% for system and other services
         if object_store_memory_gb is None:
-            total_ram_gb = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024**3)
+            total_ram_gb = (
+                os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024**3)
+            )
             object_store_memory = int(total_ram_gb * 0.3 * 1024**3)
         else:
             object_store_memory = int(object_store_memory_gb * 1024**3)
-            
+
         # 3. Spill Path (prefer NVMe if possible, placeholder check)
         os.makedirs(spill_dir, exist_ok=True)
-        
+
         logger.info(
-            "initializing_ray_cluster", 
-            cpus=actual_cpus, 
-            gpus=num_gpus, 
-            memory_gb=object_store_memory / 1024**3
+            "initializing_ray_cluster",
+            cpus=actual_cpus,
+            gpus=num_gpus,
+            memory_gb=object_store_memory / 1024**3,
         )
-        
+
         # 🚀 SOTA: Initializing Ray with hardware-aware config
         ray.init(
             num_cpus=actual_cpus,
@@ -73,17 +76,18 @@ class RayOrchestrator:
             _system_config={
                 "object_spilling_config": {
                     "type": "filesystem",
-                    "params": {"directory_path": spill_dir}
+                    "params": {"directory_path": spill_dir},
                 }
             },
-            ignore_reinit_error=True
+            ignore_reinit_error=True,
         )
-        
+
     @staticmethod
     def shutdown():
         if ray.is_initialized():
             ray.shutdown()
             logger.info("ray_cluster_shutdown")
+
 
 if __name__ == "__main__":
     RayOrchestrator.init()

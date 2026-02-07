@@ -1,15 +1,18 @@
 import os
+from typing import Any
+
 import structlog
-from typing import Dict, Any, Optional
 
 logger = structlog.get_logger(__name__)
+
 
 class WasmModuleCache:
     """
     SOTA: Persistence and caching for compiled WASM modules.
     Reduces instantiation latency by 100x by serializing the machine code.
     """
-    _memory_cache: Dict[str, Any] = {}
+
+    _memory_cache: dict[str, Any] = {}
 
     @classmethod
     def get_module(cls, store: Any, wasm_path: str) -> Any:
@@ -18,7 +21,7 @@ class WasmModuleCache:
             return cls._memory_cache[wasm_path]
 
         from wasmer import Module
-        
+
         # 1. Check for serialized artifact on disk
         cache_path = f"{wasm_path}.compiled"
         if os.path.exists(cache_path):
@@ -37,9 +40,9 @@ class WasmModuleCache:
         logger.info("wasm_module_compiling", path=wasm_path)
         with open(wasm_path, "rb") as f:
             wasm_bytes = f.read()
-        
+
         module = Module(store, wasm_bytes)
-        
+
         # 3. Save for future dimensions
         try:
             serialized_bytes = module.serialize()
@@ -53,9 +56,7 @@ class WasmModuleCache:
         return module
 
     @classmethod
-
     def map_wasm_memory(cls, instance: Any) -> np.ndarray:
-
         """🚀 SINGULARITY: Zero-copy memory view of the WASM heap."""
 
         try:
@@ -77,7 +78,6 @@ class WasmModuleCache:
             logger.error("wasm_memory_mapping_failed", error=str(e))
 
             return np.empty(0)
-
 
 
 # Singleton accessor

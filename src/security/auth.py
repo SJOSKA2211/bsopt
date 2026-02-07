@@ -9,27 +9,26 @@ Secure JWT-based authentication with:
 - FastAPI dependency injection
 """
 
+import hashlib
+import inspect
 import logging
 import secrets
-import inspect
-from starlette.concurrency import run_in_threadpool
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Union, cast
-from uuid import UUID
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
-import hashlib
 import jwt
-from jwt.exceptions import PyJWTError, ExpiredSignatureError
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from jwt.exceptions import ExpiredSignatureError, PyJWTError
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 from sqlalchemy.orm import selectinload
+from starlette.concurrency import run_in_threadpool
 
 from src.config import settings
 from src.database import get_async_db
-from src.database.models import User, APIKey, OAuth2Client
+from src.database.models import APIKey, User
 
 from .password import password_service
 
@@ -48,7 +47,7 @@ class TokenData:
     token_type: str
     exp: datetime
     iat: datetime
-    jti: Optional[str] = None
+    jti: str | None = None
 
 
 @dataclass
@@ -69,7 +68,7 @@ class TokenBlacklist:
 
     async def add(self, jti: str, exp: datetime) -> None:
         if self._redis:
-            ttl = int((exp - datetime.now(timezone.utc)).total_seconds())
+            ttl = int((exp - datetime.now(UTC)).total_seconds())
             if ttl > 0:
                 await self._redis.setex(f"blacklist:{jti}", ttl, "1")
         else:
@@ -80,11 +79,13 @@ class TokenBlacklist:
             return bool(await self._redis.exists(f"blacklist:{jti}"))
         return jti in self._blacklist
 
+
 token_blacklist = TokenBlacklist()
+
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
-) -> Optional[str]:
+) -> str | None:
     if credentials:
         return credentials.credentials
     return None
@@ -92,30 +93,39 @@ async def get_token_from_header(
 
 class AuthService:
     @property
-    def private_key(self): return settings.JWT_PRIVATE_KEY
+    def private_key(self):
+        return settings.JWT_PRIVATE_KEY
+
     @property
-    def public_key(self): return settings.JWT_PUBLIC_KEY
+    def public_key(self):
+        return settings.JWT_PUBLIC_KEY
+
     @property
-    def algorithm(self): return settings.JWT_ALGORITHM
+    def algorithm(self):
+        return settings.JWT_ALGORITHM
+
     @property
-    def access_token_expire(self): return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    def access_token_expire(self):
+        return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
     @property
-    def refresh_token_expire(self): return timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    def refresh_token_expire(self):
+        return timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     async def authenticate_user(
         self, db: Any, email: str, password: str, request: Request
-    ) -> Optional[User]:
+    ) -> User | None:
         """Authenticate a user by email and password with timing attack protection."""
-        
+
         # Check if db.execute is an async function (AsyncSession)
-        is_async = hasattr(db, 'execute') and inspect.iscoroutinefunction(db.execute)
-        
-        if is_async: 
-             result = await db.execute(select(User).where(User.email == email))
-             user = result.scalar_one_or_none()
-        else: # Fallback for sync session or MagicMock
-             user = db.query(User).filter(User.email == email).first()
-        
+        is_async = hasattr(db, "execute") and inspect.iscoroutinefunction(db.execute)
+
+        if is_async:
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalar_one_or_none()
+        else:  # Fallback for sync session or MagicMock
+            user = db.query(User).filter(User.email == email).first()
+
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
         user_exists = True
@@ -124,26 +134,36 @@ class AuthService:
             # Create a dummy user with a placeholder hashed password to ensure password verification always runs
             user = User(
                 email="nonexistent@example.com",
-                hashed_password=password_service.hash_password(secrets.token_urlsafe(32)), # Use a random hash
+                hashed_password=password_service.hash_password(
+                    secrets.token_urlsafe(32)
+                ),  # Use a random hash
                 full_name="Dummy User",
                 tier="free",
                 is_active=False,
                 is_verified=False,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(UTC),
             )
-        
+
         # Always run password verification
-        password_matches = await run_in_threadpool(password_service.verify_password, password, user.hashed_password)
+        password_matches = await run_in_threadpool(
+            password_service.verify_password, password, user.hashed_password
+        )
 
         if not user_exists or not password_matches:
             return None
-            
+
         # Optimization: Rehash legacy passwords on successful login to migrate to Argon2id
         if password_service.needs_rehash(user.hashed_password):
-            logger.info("password_rehash_triggered_on_login", user_id=str(user.id), email=user.email)
-            user.hashed_password = await run_in_threadpool(password_service.hash_password, password)
+            logger.info(
+                "password_rehash_triggered_on_login",
+                user_id=str(user.id),
+                email=user.email,
+            )
+            user.hashed_password = await run_in_threadpool(
+                password_service.hash_password, password
+            )
             # Persisted by the commit in the calling login route
-            
+
         return user
 
     def create_token_pair(self, user_id: str, email: str, tier: str) -> TokenPair:
@@ -165,8 +185,10 @@ class AuthService:
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token."""
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + expires_delta
-        to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc), "jti": secrets.token_hex(16)})
+        expire = datetime.now(UTC) + expires_delta
+        to_encode.update(
+            {"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)}
+        )
         return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def invalidate_token(self, token: str, request: Request) -> None:
@@ -176,7 +198,7 @@ class AuthService:
             jti = payload.get("jti")
             exp_timestamp = payload.get("exp")
             if jti and exp_timestamp:
-                exp = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
+                exp = datetime.fromtimestamp(exp_timestamp, tz=UTC)
                 await token_blacklist.add(jti, exp)
         except PyJWTError:
             pass
@@ -189,8 +211,8 @@ class AuthService:
                 email=payload.get("email", ""),
                 tier=payload.get("tier", "free"),
                 token_type=payload.get("type", "access"),
-                exp=datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc),
-                iat=datetime.fromtimestamp(payload.get("iat", 0), tz=timezone.utc),
+                exp=datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
+                iat=datetime.fromtimestamp(payload.get("iat", 0), tz=UTC),
                 jti=payload.get("jti"),
             )
         except ExpiredSignatureError:
@@ -198,7 +220,9 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-    async def validate_token(self, token: Optional[str] = Depends(get_token_from_header)) -> TokenData:
+    async def validate_token(
+        self, token: str | None = Depends(get_token_from_header)
+    ) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
         token_data = self.decode_token(token)
@@ -206,11 +230,16 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Token revoked")
         return token_data
 
+
 auth_service = AuthService()
-def get_auth_service(): return auth_service
+
+
+def get_auth_service():
+    return auth_service
+
 
 async def verify_token_claims_only(
-    token: Optional[str] = Depends(get_token_from_header),
+    token: str | None = Depends(get_token_from_header),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> TokenData:
     """
@@ -219,13 +248,14 @@ async def verify_token_claims_only(
     """
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     # decode_token already verifies signature, expiration and format
     return auth_service.decode_token(token)
 
+
 async def get_current_user(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
+    token: str | None = Depends(get_token_from_header),
     db: AsyncSession = Depends(get_async_db),
     auth_service: AuthService = Depends(get_auth_service),
 ) -> User:
@@ -237,6 +267,7 @@ async def get_current_user(
 
     try:
         from src.utils.cache import db_cache
+
         cached_user_data = await db_cache.get_user(user_id)
         if cached_user_data:
             user = User(**cached_user_data)
@@ -254,6 +285,7 @@ async def get_current_user(
     request.state.user = user
     return user
 
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
@@ -265,6 +297,7 @@ async def get_current_active_user(
         )
     return user
 
+
 def require_tier(allowed_tiers: list):
     def decorator(user: User = Depends(get_current_active_user)):
         if user.tier not in allowed_tiers:
@@ -273,59 +306,63 @@ def require_tier(allowed_tiers: list):
                 detail="Insufficient subscription tier",
             )
         return user
+
     return decorator
+
 
 async def get_api_key(
     request: Request,
-    api_key: Optional[str] = Depends(api_key_header),
+    api_key: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_async_db),
-) -> Optional[User]:
+) -> User | None:
     if not api_key:
         return None
-    
-    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    
+
+    # Use SHA256 for fast API key lookups (comparison only, high entropy keys)
+    # CodeQL: This is NOT a password hash, but a lookup hash for high-entropy API keys
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()  # codeql[py/weak-cryptographic-algorithm]
+
     result = await db.execute(
-        select(APIKey).options(selectinload(APIKey.user)).where(
-            and_(APIKey.key_hash == key_hash, APIKey.is_active == True)
-        )
+        select(APIKey)
+        .options(selectinload(APIKey.user))
+        .where(and_(APIKey.key_hash == key_hash, APIKey.is_active == True))
     )
     key_record = result.scalar_one_or_none()
-    
+
     if not key_record:
         return None
-        
-    key_record.last_used_at = datetime.now(timezone.utc)
+
+    key_record.last_used_at = datetime.now(UTC)
     await db.commit()
-    
+
     request.state.user = key_record.user
     return key_record.user
 
+
 async def get_current_user_flexible(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
-    api_key_user: Optional[User] = Depends(get_api_key),
+    token: str | None = Depends(get_token_from_header),
+    api_key_user: User | None = Depends(get_api_key),
     db: AsyncSession = Depends(get_async_db),
     auth_service: AuthService = Depends(get_auth_service),
-) -> Union[User, Any]:
+) -> User | Any:
     # 1. API Key Auth (Programmatic)
     if api_key_user:
         return api_key_user
-        
+
     # 2. 🚀 SINGULARITY: Better Auth Session (New Primary Auth)
     from src.auth.better_auth import get_current_user as get_better_auth_user
+
     try:
         # Check if we have a Better Auth session
         better_user = await get_better_auth_user(request, db)
         if better_user:
             return better_user
     except Exception:
-        pass # Fallback to legacy JWT if Better Auth fails/missing
+        pass  # Fallback to legacy JWT if Better Auth fails/missing
 
     # 3. Legacy JWT Auth (Migration Path)
     try:
         return await get_current_user(request, token, db, auth_service)
     except HTTPException:
         raise
-        
-    

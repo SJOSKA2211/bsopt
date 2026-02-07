@@ -1,7 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
-from src.pricing.models import BSParameters
+
 
 @pytest.fixture
 def benchmark_data():
@@ -16,28 +17,30 @@ def benchmark_data():
     is_call = np.random.choice([True, False], n)
     return S, K, T, sigma, r, q, is_call
 
+
 def test_benchmark_bs_price_jit(benchmark, benchmark_data):
     """
     Benchmarks the Numba JIT Black-Scholes pricing kernel.
     Ensures that any changes to quant_utils.py are statistically verified.
     """
     S, K, T, sigma, r, q, is_call = benchmark_data
-    
+
     # Run the benchmark
     # The 'benchmark' fixture is provided by pytest-benchmark
     result = benchmark(batch_bs_price_jit, S, K, T, sigma, r, q, is_call)
-    
+
     assert len(result) == len(S)
     assert result.dtype == np.float32
+
 
 def test_benchmark_greeks_jit(benchmark, benchmark_data):
     """Benchmarks the Numba JIT Greeks kernel."""
     S, K, T, sigma, r, q, is_call = benchmark_data
-    
+
     # benchmark() handles timing, warm-up, and statistical analysis
     delta, gamma, vega, theta, rho = benchmark(
         batch_greeks_jit, S, K, T, sigma, r, q, is_call
     )
-    
+
     assert len(delta) == len(S)
     assert delta.dtype == np.float32

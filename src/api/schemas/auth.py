@@ -6,7 +6,6 @@ Pydantic models for authentication endpoints.
 """
 
 import re
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -19,7 +18,7 @@ class LoginRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=1, description="User password")
     remember_me: bool = Field(False, description="Extend token expiration")
-    mfa_code: Optional[str] = Field(None, description="MFA code if enabled")
+    mfa_code: str | None = Field(None, description="MFA code if enabled")
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -66,7 +65,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
     password_confirm: str = Field(..., description="Password confirmation")
-    full_name: Optional[str] = Field(None, max_length=255, description="User's full name")
+    full_name: str | None = Field(None, max_length=255, description="User's full name")
     accept_terms: bool = Field(..., description="Accept terms and conditions")
 
     @field_validator("password")
@@ -76,7 +75,9 @@ class RegisterRequest(BaseModel):
         errors = []
 
         if len(v) < settings.PASSWORD_MIN_LENGTH:
-            errors.append(f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters")
+            errors.append(
+                f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters"
+            )
 
         if settings.PASSWORD_REQUIRE_UPPERCASE and not re.search(r"[A-Z]", v):
             errors.append("Password must contain at least one uppercase letter")
@@ -87,7 +88,9 @@ class RegisterRequest(BaseModel):
         if settings.PASSWORD_REQUIRE_DIGIT and not re.search(r"\d", v):
             errors.append("Password must contain at least one digit")
 
-        if settings.PASSWORD_REQUIRE_SPECIAL and not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+        if settings.PASSWORD_REQUIRE_SPECIAL and not re.search(
+            r"[!@#$%^&*(),.?\":{}|<>]", v
+        ):
             errors.append("Password must contain at least one special character")
 
         if errors:
@@ -187,7 +190,9 @@ class PasswordResetConfirm(BaseModel):
         errors = []
 
         if len(v) < settings.PASSWORD_MIN_LENGTH:
-            errors.append(f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters")
+            errors.append(
+                f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters"
+            )
 
         if settings.PASSWORD_REQUIRE_UPPERCASE and not re.search(r"[A-Z]", v):
             errors.append("Password must contain at least one uppercase letter")
@@ -234,7 +239,9 @@ class PasswordChangeRequest(BaseModel):
     def validate_password(cls, v: str) -> str:
         """Validate password strength."""
         if len(v) < settings.PASSWORD_MIN_LENGTH:
-            raise ValueError(f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters")
+            raise ValueError(
+                f"Password must be at least {settings.PASSWORD_MIN_LENGTH} characters"
+            )
         return v
 
     @field_validator("new_password_confirm")
@@ -258,7 +265,8 @@ class MFASetupResponse(BaseModel):
             "example": {
                 "secret": "JBSWY3DPEHPK3PXP",
                 "qr_code_uri": (
-                    "otpauth://totp/BSOPT:user@example.com?" "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
+                    "otpauth://totp/BSOPT:user@example.com?"
+                    "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
                 ),
                 "backup_codes": ["12345678", "23456789", "34567890"],
             }
@@ -269,7 +277,9 @@ class MFASetupResponse(BaseModel):
 class MFAVerifyRequest(BaseModel):
     """MFA verification request."""
 
-    code: str = Field(..., min_length=6, max_length=8, description="TOTP code or backup code")
+    code: str = Field(
+        ..., min_length=6, max_length=8, description="TOTP code or backup code"
+    )
 
     @field_validator("code")
     @classmethod
@@ -281,9 +291,7 @@ class MFAVerifyRequest(BaseModel):
             raise ValueError("Code must contain only digits")
         return clean_code
 
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"code": "123456"}}
-    )
+    model_config = ConfigDict(json_schema_extra={"example": {"code": "123456"}})
 
 
 class EmailVerificationRequest(BaseModel):
@@ -291,6 +299,4 @@ class EmailVerificationRequest(BaseModel):
 
     token: str = Field(..., description="Verification token from email")
 
-    model_config = ConfigDict(
-        json_schema_extra={"example": {"token": "abc123def456"}}
-    )
+    model_config = ConfigDict(json_schema_extra={"example": {"token": "abc123def456"}})

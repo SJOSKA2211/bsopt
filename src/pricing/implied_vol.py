@@ -12,7 +12,10 @@ from typing import cast
 import numpy as np
 
 from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.quant_utils import corrado_miller_initial_guess, vectorized_newton_raphson_iv_jit
+from src.pricing.quant_utils import (
+    corrado_miller_initial_guess,
+    vectorized_newton_raphson_iv_jit,
+)
 
 
 class ImpliedVolatilityError(Exception):
@@ -20,16 +23,27 @@ class ImpliedVolatilityError(Exception):
 
 
 def _calculate_intrinsic_value(
-    spot: float, strike: float, rate: float, dividend: float, maturity: float, option_type: str
+    spot: float,
+    strike: float,
+    rate: float,
+    dividend: float,
+    maturity: float,
+    option_type: str,
 ) -> float:
     """Calculate the discounted intrinsic value of an option."""
     if option_type.lower() == "call":
         return float(
-            max(spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity), 0.0)
+            max(
+                spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity),
+                0.0,
+            )
         )
     else:
         return float(
-            max(strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity), 0.0)
+            max(
+                strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity),
+                0.0,
+            )
         )
 
 
@@ -54,7 +68,9 @@ def _validate_inputs(
     if option_type.lower() not in ["call", "put"]:
         raise ValueError("option_type must be 'call' or 'put'")
 
-    intrinsic = _calculate_intrinsic_value(spot, strike, rate, dividend, maturity, option_type)
+    intrinsic = _calculate_intrinsic_value(
+        spot, strike, rate, dividend, maturity, option_type
+    )
     if market_price < intrinsic - 1e-7:
         raise ValueError(
             f"Arbitrage violation: market price {market_price} is below intrinsic value {intrinsic}"
@@ -104,7 +120,11 @@ def _newton_raphson_iv(
             dividend=np.array([dividend]),
             option_type=np.array([option_type]),
         )
-        price = float(price_res[0]) if isinstance(price_res, np.ndarray) else float(price_res)
+        price = (
+            float(price_res[0])
+            if isinstance(price_res, np.ndarray)
+            else float(price_res)
+        )
 
         vega = cast(np.ndarray, results["vega"])[0] * 100.0
         diff = price - market_price
@@ -144,7 +164,11 @@ def _brent_iv(
             dividend=np.array([dividend]),
             option_type=np.array([option_type]),
         )
-        price_val = float(price_res[0]) if isinstance(price_res, np.ndarray) else float(price_res)
+        price_val = (
+            float(price_res[0])
+            if isinstance(price_res, np.ndarray)
+            else float(price_res)
+        )
         return price_val - market_price
 
     try:
@@ -194,7 +218,14 @@ def implied_volatility(
         # Fallback to Brent if Newton fails and auto
         if method == "auto":
             return _brent_iv(
-                market_price, spot, strike, maturity, rate, dividend, option_type, tolerance
+                market_price,
+                spot,
+                strike,
+                maturity,
+                rate,
+                dividend,
+                option_type,
+                tolerance,
             )
         raise
 
@@ -233,7 +264,7 @@ def vectorized_implied_volatility(
         is_call,
         sigma,
         tolerance,
-        max_iterations
+        max_iterations,
     )
 
     return cast(np.ndarray, sigma)

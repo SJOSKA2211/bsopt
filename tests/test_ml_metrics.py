@@ -1,6 +1,9 @@
 import numpy as np
 
-from src.ml.evaluation.metrics import calculate_pricing_bias, calculate_regression_metrics
+from src.ml.evaluation.metrics import (
+    calculate_pricing_bias,
+    calculate_regression_metrics,
+)
 from tests.test_utils import assert_equal
 
 

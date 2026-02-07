@@ -16,7 +16,9 @@ from src.ml.architectures.neural_network import OptionPricingNN
 from src.ml.training.train import load_or_collect_data
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 # Hyperparameters from user request
@@ -50,7 +52,9 @@ def prepare_classification_data(X, feature_names):
 def train_v2():
     # 1. Load Data
     logger.info("Loading data...")
-    X, y_reg, feature_names, _ = load_or_collect_data(use_real_data=False, n_samples=50000)
+    X, y_reg, feature_names, _ = load_or_collect_data(
+        use_real_data=False, n_samples=50000
+    )
 
     # Prepare targets for CrossEntropy
     y = prepare_classification_data(X, feature_names)
@@ -59,7 +63,9 @@ def train_v2():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.2, random_state=42
+    )
 
     # Convert to Tensors
     train_dataset = TensorDataset(torch.FloatTensor(X_train), torch.LongTensor(y_train))
@@ -84,7 +90,9 @@ def train_v2():
     os.makedirs("mlruns", exist_ok=True)
     mlflow.set_experiment("Option_ITM_Classification")
 
-    with mlflow.start_run(run_name=f"training-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"):
+    with mlflow.start_run(
+        run_name=f"training-run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+    ):
         mlflow.log_params(
             {
                 "epochs": EPOCHS,
@@ -122,7 +130,9 @@ def train_v2():
             mlflow.log_metric("train_loss", train_loss, step=epoch)
             mlflow.log_metric("train_acc", train_acc, step=epoch)
 
-            logger.info(f"Epoch {epoch}/{EPOCHS} - Loss: {train_loss:.4f}, Acc: {train_acc:.4f}")
+            logger.info(
+                f"Epoch {epoch}/{EPOCHS} - Loss: {train_loss:.4f}, Acc: {train_acc:.4f}"
+            )
 
             # Evaluation
             if epoch % EVAL_FREQ == 0:
@@ -143,7 +153,9 @@ def train_v2():
                 val_loss_avg = val_loss / len(test_loader)
                 mlflow.log_metric("val_loss", val_loss_avg, step=epoch)
                 mlflow.log_metric("val_acc", val_acc, step=epoch)
-                logger.info(f"  Validation - Loss: {val_loss_avg:.4f}, Acc: {val_acc:.4f}")
+                logger.info(
+                    f"  Validation - Loss: {val_loss_avg:.4f}, Acc: {val_acc:.4f}"
+                )
 
             # Saving
             if epoch % SAVE_FREQ == 0:

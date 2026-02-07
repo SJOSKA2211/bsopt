@@ -5,8 +5,8 @@ Common API Schemas
 Shared schemas for API responses and pagination.
 """
 
-from datetime import datetime, timezone
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from datetime import UTC, datetime
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,9 +16,9 @@ T = TypeVar("T")
 class ErrorDetail(BaseModel):
     """Detailed error information."""
 
-    field: Optional[str] = Field(None, description="Field that caused the error")
+    field: str | None = Field(None, description="Field that caused the error")
     message: str = Field(..., description="Error message")
-    code: Optional[str] = Field(None, description="Error code for programmatic handling")
+    code: str | None = Field(None, description="Error code for programmatic handling")
 
 
 class ErrorResponse(BaseModel):
@@ -26,9 +26,11 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type or title")
     message: str = Field(..., description="Human-readable error message")
-    details: Optional[List[ErrorDetail]] = Field(None, description="Detailed error information")
-    request_id: Optional[str] = Field(None, description="Request ID for support reference")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    details: list[ErrorDetail] | None = Field(
+        None, description="Detailed error information"
+    )
+    request_id: str | None = Field(None, description="Request ID for support reference")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -36,7 +38,11 @@ class ErrorResponse(BaseModel):
                 "error": "ValidationError",
                 "message": "Request validation failed",
                 "details": [
-                    {"field": "email", "message": "Invalid email format", "code": "invalid_format"}
+                    {
+                        "field": "email",
+                        "message": "Invalid email format",
+                        "code": "invalid_format",
+                    }
                 ],
                 "request_id": "abc123",
                 "timestamp": "2024-01-15T10:30:00Z",
@@ -50,7 +56,7 @@ class SuccessResponse(BaseModel):
 
     success: bool = True
     message: str = Field(..., description="Success message")
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -68,8 +74,8 @@ class DataResponse(BaseModel, Generic[T]):
 
     success: bool = True
     data: T
-    message: Optional[str] = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    message: str | None = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class PaginationMeta(BaseModel):
@@ -86,7 +92,7 @@ class PaginationMeta(BaseModel):
 class PaginatedResponse(BaseModel, Generic[T]):
     """Paginated response wrapper."""
 
-    items: List[T] = Field(..., description="List of items")
+    items: list[T] = Field(..., description="List of items")
     pagination: PaginationMeta = Field(..., description="Pagination metadata")
 
     model_config = ConfigDict(
@@ -111,8 +117,8 @@ class HealthResponse(BaseModel):
 
     status: str = Field(..., description="Overall health status")
     version: str = Field(..., description="API version")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    checks: Dict[str, Dict[str, Any]] = Field(
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    checks: dict[str, dict[str, Any]] = Field(
         default_factory=dict, description="Individual component health checks"
     )
 

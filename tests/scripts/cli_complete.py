@@ -28,12 +28,18 @@ import sys
 import time
 import uuid
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import click
 from rich import box
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+)
 from rich.prompt import Confirm
 from rich.table import Table
 
@@ -202,10 +208,17 @@ def whoami(ctx):
 @click.option("--strike", type=float, required=True, help="Strike price")
 @click.option("--maturity", type=float, required=True, help="Time to maturity (years)")
 @click.option(
-    "--vol", "--volatility", "volatility", type=float, required=True, help="Annualized volatility"
+    "--vol",
+    "--volatility",
+    "volatility",
+    type=float,
+    required=True,
+    help="Annualized volatility",
 )
 @click.option("--rate", type=float, required=True, help="Risk-free interest rate")
-@click.option("--dividend", type=float, default=0.0, help="Dividend yield (default: 0.0)")
+@click.option(
+    "--dividend", type=float, default=0.0, help="Dividend yield (default: 0.0)"
+)
 @click.option(
     "--method",
     type=click.Choice(["bs", "fdm", "mc", "all"]),
@@ -213,7 +226,10 @@ def whoami(ctx):
     help="Pricing method (default: bs)",
 )
 @click.option(
-    "--output", type=click.Choice(["table", "json", "csv"]), default="table", help="Output format"
+    "--output",
+    type=click.Choice(["table", "json", "csv"]),
+    default="table",
+    help="Output format",
 )
 @click.pass_context
 def price(
@@ -255,7 +271,9 @@ def price(
         if method == "all":
             _price_all_methods(params, option_type, output)
         else:
-            result = _price_single_method(params, option_type, method, compute_greeks=True)
+            result = _price_single_method(
+                params, option_type, method, compute_greeks=True
+            )
             _display_price_result(result, output)
 
     except ValueError as e:
@@ -265,7 +283,7 @@ def price(
 
 def _price_single_method(
     params: BSParameters, option_type: str, method: str, compute_greeks: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Price option using single method."""
     start_time = time.perf_counter()
 
@@ -275,7 +293,9 @@ def _price_single_method(
         else:
             price = BlackScholesEngine.price_put(params)
         greeks = (
-            BlackScholesEngine.calculate_greeks(params, option_type) if compute_greeks else None
+            BlackScholesEngine.calculate_greeks(params, option_type)
+            if compute_greeks
+            else None
         )
 
     elif method == "fdm":
@@ -330,7 +350,9 @@ def _price_all_methods(params: BSParameters, option_type: str, output: str):
         task = progress.add_task("[cyan]Computing prices...", total=len(methods))
         for method in methods:
             try:
-                results[method] = _price_single_method(params, option_type, method, True)
+                results[method] = _price_single_method(
+                    params, option_type, method, True
+                )
                 progress.advance(task)
             except Exception as e:
                 results[method] = {"error": str(e)}
@@ -339,7 +361,7 @@ def _price_all_methods(params: BSParameters, option_type: str, output: str):
     _display_comparison(results, output)
 
 
-def _display_price_result(result: Dict[str, Any], output_format: str):
+def _display_price_result(result: dict[str, Any], output_format: str):
     """Display single pricing result."""
     if output_format == "json":
         output_data = {
@@ -385,7 +407,7 @@ def _display_price_result(result: Dict[str, Any], output_format: str):
             console.print()
 
 
-def _display_comparison(results: Dict[str, Any], output_format: str):
+def _display_comparison(results: dict[str, Any], output_format: str):
     """Display comparison of multiple methods."""
     if output_format == "json":
         console.print_json(data=results)
@@ -424,14 +446,27 @@ def _display_comparison(results: Dict[str, Any], output_format: str):
 @click.option("--strike", type=float, required=True, help="Strike price")
 @click.option("--maturity", type=float, required=True, help="Time to maturity (years)")
 @click.option(
-    "--vol", "--volatility", "volatility", type=float, required=True, help="Annualized volatility"
+    "--vol",
+    "--volatility",
+    "volatility",
+    type=float,
+    required=True,
+    help="Annualized volatility",
 )
 @click.option("--rate", type=float, required=True, help="Risk-free interest rate")
 @click.option("--dividend", type=float, default=0.0, help="Dividend yield")
 @click.option(
-    "--option-type", type=click.Choice(["call", "put"]), default="call", help="Option type"
+    "--option-type",
+    type=click.Choice(["call", "put"]),
+    default="call",
+    help="Option type",
 )
-@click.option("--method", type=click.Choice(["bs", "fdm"]), default="bs", help="Calculation method")
+@click.option(
+    "--method",
+    type=click.Choice(["bs", "fdm"]),
+    default="bs",
+    help="Calculation method",
+)
 def greeks(
     spot: float,
     strike: float,
@@ -483,7 +518,9 @@ def greeks(
             solver.solve()
             greeks_result = solver.get_greeks()
 
-        console.print(f"\n[bold cyan]Option Greeks ({option_type.upper()})[/bold cyan]\n")
+        console.print(
+            f"\n[bold cyan]Option Greeks ({option_type.upper()})[/bold cyan]\n"
+        )
 
         table = Table(box=box.ROUNDED, show_header=True)
         table.add_column("Greek", style="cyan", width=10)
@@ -493,7 +530,8 @@ def greeks(
         table.add_row(
             "Delta",
             f"{greeks_result.delta:>10.4f}",
-            "For $1 move in underlying, option moves $" + f"{abs(greeks_result.delta):.4f}",
+            "For $1 move in underlying, option moves $"
+            + f"{abs(greeks_result.delta):.4f}",
         )
         table.add_row(
             "Gamma",
@@ -601,19 +639,32 @@ def portfolio_list(ctx):
 @portfolio.command(name="add")
 @click.option("--symbol", required=True, help="Underlying symbol")
 @click.option(
-    "--option-type", type=click.Choice(["call", "put"]), required=True, help="Option type"
+    "--option-type",
+    type=click.Choice(["call", "put"]),
+    required=True,
+    help="Option type",
 )
 @click.option(
-    "--quantity", type=int, required=True, help="Number of contracts (negative for short)"
+    "--quantity",
+    type=int,
+    required=True,
+    help="Number of contracts (negative for short)",
 )
 @click.option("--strike", type=float, required=True, help="Strike price")
 @click.option("--maturity", type=float, required=True, help="Time to maturity (years)")
 @click.option(
-    "--vol", "--volatility", "volatility", type=float, required=True, help="Implied volatility"
+    "--vol",
+    "--volatility",
+    "volatility",
+    type=float,
+    required=True,
+    help="Implied volatility",
 )
 @click.option("--rate", type=float, required=True, help="Risk-free rate")
 @click.option("--dividend", type=float, default=0.0, help="Dividend yield")
-@click.option("--entry-price", type=float, required=True, help="Entry price per contract")
+@click.option(
+    "--entry-price", type=float, required=True, help="Entry price per contract"
+)
 @click.option("--spot", type=float, required=True, help="Current underlying price")
 @click.pass_context
 def portfolio_add(
@@ -704,7 +755,9 @@ def portfolio_pnl(ctx):
 
     pnl_color = "green" if pnl["total_pnl"] >= 0 else "red"
     pnl_table.add_row("P&L", f"[{pnl_color}]${pnl['total_pnl']:+,.2f}[/{pnl_color}]")
-    pnl_table.add_row("P&L %", f"[{pnl_color}]{pnl['total_pnl_percent']:+.2f}%[/{pnl_color}]")
+    pnl_table.add_row(
+        "P&L %", f"[{pnl_color}]{pnl['total_pnl_percent']:+.2f}%[/{pnl_color}]"
+    )
 
     console.print(pnl_table)
     console.print()
@@ -788,7 +841,10 @@ def config_get(ctx, key: str):
 @click.argument("key")
 @click.argument("value")
 @click.option(
-    "--scope", type=click.Choice(["user", "project"]), default="user", help="Configuration scope"
+    "--scope",
+    type=click.Choice(["user", "project"]),
+    default="user",
+    help="Configuration scope",
 )
 @click.pass_context
 def config_set(ctx, key: str, value: str, scope: str):

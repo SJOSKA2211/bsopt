@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+
 def sanitize_path(base_dir: Path, user_path: str) -> Path:
     """
     Sanitizes a user-provided path to ensure it stays within a designated base directory.
@@ -24,7 +25,8 @@ def sanitize_path(base_dir: Path, user_path: str) -> Path:
 
     # Ensure the resolved path is a sub-path of the base directory
     if not full_path.is_relative_to(base_dir):
-        raise ValueError(f"Path traversal detected: {user_path} attempts to access outside {base_dir}")
+        raise ValueError(
+            f"Path traversal detected: {user_path} attempts to access outside {base_dir}"
+        )
 
     return full_path
-

@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.scrapers.engine import NSEScraper
+
 
 @pytest.mark.asyncio
 async def test_nse_scraper_http():
@@ -20,16 +23,16 @@ async def test_nse_scraper_http():
         mock_client.get = AsyncMock(return_value=mock_resp_main)
         mock_client.post = AsyncMock(return_value=mock_resp_ajax)
         mock_client.aclose = AsyncMock()
-        
+
         scraper = NSEScraper()
         # Manually inject mock if constructor already ran or let patch handle it
         scraper.client = mock_client
-        
+
         result = await scraper.get_ticker_data("SCOM")
-        
+
         if "error" in result:
             pytest.fail(f"Scrape failed with error: {result['error']}")
-            
+
         assert result["symbol"] == "SCOM"
         assert result["market"] == "NSE"
         assert result["price"] == 29.5

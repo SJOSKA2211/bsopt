@@ -1,18 +1,21 @@
+import os
+
 import pytest
 import requests
 from confluent_kafka.admin import AdminClient
-import os
+
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="Skipping infra check in CI")
 def test_kafka_brokers_available():
     """Verify that Kafka brokers are reachable on localhost:9092."""
-    conf = {'bootstrap.servers': 'localhost:9092'}
+    conf = {"bootstrap.servers": "localhost:9092"}
     admin = AdminClient(conf)
     try:
         metadata = admin.list_topics(timeout=10)
         assert len(metadata.brokers) >= 1
     except Exception as e:
         pytest.fail(f"Kafka brokers not available: {e}")
+
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="Skipping infra check in CI")
 def test_schema_registry_available():
@@ -22,6 +25,7 @@ def test_schema_registry_available():
         assert response.status_code == 200
     except Exception as e:
         pytest.fail(f"Schema Registry not available: {e}")
+
 
 @pytest.mark.skipif(os.getenv("CI") == "true", reason="Skipping infra check in CI")
 def test_ksqldb_available():

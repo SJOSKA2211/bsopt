@@ -1,11 +1,14 @@
-import zmq
-import zmq.asyncio
+from typing import Any
+
 import orjson
 import structlog
-from typing import Dict, Any, Optional
+import zmq
+import zmq.asyncio
+
 from .base import Producer
 
 logger = structlog.get_logger()
+
 
 class ZMQMarketDataProducer(Producer):
     """
@@ -13,14 +16,15 @@ class ZMQMarketDataProducer(Producer):
     Uses PUSH/PULL pattern for fire-and-forget data distribution.
     Complements Kafka by providing a sub-millisecond bypass for critical paths.
     """
+
     def __init__(self, endpoint: str = "tcp://*:5555"):
         self.context = zmq.asyncio.Context()
         self.socket = self.context.socket(zmq.PUSH)
-        
+
         # Performance tuning for high-frequency data
         self.socket.setsockopt(zmq.SNDHWM, 10000)  # High water mark
-        self.socket.setsockopt(zmq.LINGER, 0)      # Don't wait on close
-        
+        self.socket.setsockopt(zmq.LINGER, 0)  # Don't wait on close
+
         try:
             self.socket.bind(endpoint)
             logger.info("zmq_producer_bound", endpoint=endpoint)
@@ -28,7 +32,7 @@ class ZMQMarketDataProducer(Producer):
             logger.error("zmq_bind_failed", endpoint=endpoint, error=str(e))
             raise
 
-    async def produce(self, data: Dict[str, Any], **kwargs):
+    async def produce(self, data: dict[str, Any], **kwargs):
         """
         Send market data via ZeroMQ with zero-copy-like speed using orjson.
         """
