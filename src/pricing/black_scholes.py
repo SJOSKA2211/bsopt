@@ -62,6 +62,9 @@ class BlackScholesEngine:
         if hasattr(spot, 'spot') and params is None:
             params = spot
             spot = None
+            if isinstance(strike, (str, np.ndarray)) and option_type == "call":
+                option_type = strike
+                strike = None
 
         S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
             params, spot=spot, strike=strike, maturity=maturity, 
@@ -109,9 +112,14 @@ class BlackScholesEngine:
         Calculate Greeks for European options (JIT Accelerated).
         """
         # If first arg is BSParameters, shift it to params
+        # AND if second arg was meant to be option_type, shift it too
         if hasattr(spot, 'spot') and params is None:
             params = spot
             spot = None
+            # If strike was passed as a string, it was likely option_type
+            if isinstance(strike, (str, np.ndarray)) and option_type == "call":
+                option_type = strike
+                strike = None
 
         S, K, T, sigma, r, q = BlackScholesEngine._extract_params(
             params, spot=spot, strike=strike, maturity=maturity, 
