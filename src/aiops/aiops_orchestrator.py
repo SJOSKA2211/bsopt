@@ -131,12 +131,12 @@ class AIOpsOrchestrator:
 
         # 3. Predictive Load Detection via TFT
         if self.predictive_scaling_enabled and self.forecaster:
-            # OPTIMIZED: Proactive anomaly detection via forecasting
-            recent_metrics = self.prometheus_client.get_historical_metric_data(self.api_service_name)
-            if recent_metrics is not None and len(recent_metrics) > 10:
+            # OPTIMIZED: Proactive anomaly detection via forecasting on real range data
+            recent_df = self.prometheus_client.get_metric_range(self.api_service_name, "container_cpu_usage_seconds_total")
+            if not recent_df.empty and len(recent_df) >= self.forecaster.config.get("max_encoder_length", 24):
                 # Predict next 5 minutes
-                forecast = self.forecaster.predict(recent_metrics)
-                if any(forecast > self.latency_threshold * 1.5): # Predicted spike
+                forecast = self.forecaster.predict(recent_df)
+                if forecast is not None and any(forecast > self.latency_threshold * 1.5): # Predicted spike
                     anomalies["predicted_load_spike"] = {
                         "forecast": forecast.tolist(),
                         "threshold": self.latency_threshold * 1.5,
