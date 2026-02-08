@@ -11,12 +11,8 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
     Constructs features from option surface topology.
     """
     def __init__(self, observation_space, features_dim: int = 64, heads: int = 4):
-        # features_dim is the output dimension after pooling
         super().__init__(observation_space, features_dim)
-        
-        # We assume node features are fixed-size (e.g. price, strike, greeks)
-        # state_dim is inferred from observation_space if possible, or hardcoded for the extractor
-        self.input_dim = 100 # Example dimension for option nodes
+        self.input_dim = 100
         
         self.conv1 = GATConv(self.input_dim, 64, heads=heads, dropout=0.1)
         self.conv2 = GATConv(64 * heads, 64, heads=heads, dropout=0.1)
@@ -25,27 +21,19 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
         self.layer_norm = nn.LayerNorm(features_dim)
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        """
-        Hot path: Converts flat observations into graph and passes through GAT.
-        Note: In a pure graph env, edge_index would be part of the observation.
-        For now, we infer adjacencies (strike/expiry neighbors).
-        """
-        # 🚀 TOPOLOGICAL INFERENCE: Construct graph from flat state
-        # num_options = observations.shape[1] // self.input_dim
-        # x = observations.view(-1, num_options, self.input_dim)
-        
-        # Mocking graph construction for SB3 integration compatibility
-        # In a real GraphEnv, we use a custom SB3 policy that takes dict observations
-        x = observations # Placeholder
-        edge_index = self._get_static_edge_index(x.device) 
-        
+        """Standard path for training."""
+        edge_index = self._get_static_edge_index(observations.device)
+        return self.forward_jit(observations, edge_index)
+
+    @torch.jit.export
+    def forward_jit(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        """🚀 SILICON PATH: High-performance JIT-friendly forward pass."""
         x = F.elu(self.conv1(x, edge_index))
         x = F.elu(self.conv2(x, edge_index))
         x = self.conv3(x, edge_index)
-        
         return self.layer_norm(x)
 
-    def _get_static_edge_index(self, device):
+    def _get_static_edge_index(self, device: torch.device):
         """Build edges between strike/expiry neighbors."""
         # Simple adjacency for 10 nodes (OPT_0 to OPT_9)
         edges = []

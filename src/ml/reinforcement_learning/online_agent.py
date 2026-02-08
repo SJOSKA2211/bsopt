@@ -16,12 +16,13 @@ except ImportError:
 
 logger = structlog.get_logger()
 
+import torch
+
 class OnlineRLAgent:
     """
     God-Mode Online RL Agent.
-    Bypasses Kafka. Spins on the lock-free SHM Mesh.
-    Uses fused JIT kernels for state construction.
-    Connects to the Order Engine via lock-free command buffers.
+    Bypasses SB3. Uses TorchScript for silicon-speed inference.
+    Spins on the lock-free SHM Mesh.
     """
     def __init__(self, 
                  model_path: str, 
@@ -44,20 +45,44 @@ class OnlineRLAgent:
         self._orders = OrderBuffer(create=False)
         self._execs = ExecutionBuffer(create=False)
         self._last_head = 0
-        self._last_exec_head = 0
         
-        # Load the trained model
-        if TD3 is not None:
-            try:
-                self.model = TD3.load(model_path)
-                logger.info("model_loaded_to_silicon", model_path=model_path)
-            except Exception as e:
-                self.model = None
-                logger.error("model_load_failed", error=str(e))
-        else:
-            self.model = None
+        # Load the Silicon Brain (TorchScript)
+        try:
+            # We expect a .pt file exported from the training script
+            self.brain = torch.jit.load(model_path.replace(".zip", ".pt"))
+            self.brain.eval()
+            # 🚀 WARMUP: Prime the JIT compiler
+            _ = self.brain(torch.zeros((1, 100)), torch.zeros((2, 10), dtype=torch.long))
+            logger.info("silicon_brain_loaded", path=model_path)
+        except Exception as e:
+            self.brain = None
+            logger.error("silicon_brain_load_failed", error=str(e))
 
     def run(self, cpu_core: int = 2):
+        # ... (same as before)
+        
+        try:
+            with torch.no_grad():
+                while True:
+                    # 🚀 SPIN LOCK
+                    view, current_head = self._mesh.read_latest_view(self._last_head)
+                    
+                    if current_head > self._last_head:
+                        # ... (state vector construction)
+                        
+                        # 2. Inference (SILICON PATH)
+                        if self.brain:
+                            # Convert state_vector to torch tensor (Zero-copy if possible)
+                            x = torch.from_numpy(state_vector).unsqueeze(0)
+                            # Edge index for 10 nodes (OPT_0 to OPT_9)
+                            edge_index = torch.tensor([[0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9],
+                                                       [1,0,2,1,3,2,4,3,5,4,6,5,7,6,8,7,9,8]], dtype=torch.long)
+                            
+                            # Fire the Silicon Brain!
+                            action = self.brain(x, edge_index).numpy()[0]
+                            
+                            # 3. Action Execution
+                            self._execute_action(action, prices)
         """
         Hot loop: Pinned to core, spinning on SHM Mesh. 
         Zero-latency inference path.
@@ -76,49 +101,56 @@ class OnlineRLAgent:
                 # 🚀 SPIN LOCK: Poll the SHM head index
                 view, current_head = self._mesh.read_latest_view(self._last_head)
                 
-                if current_head > self._last_head:
-                    # New ticks detected!
-                    latest_tick = view[-1]
-                    
-                    # 1. Update State & Generate State Vector (Fused JIT)
-                    from src.pricing.factory import PricingEngineFactory
-                    from src.pricing.models import BSParameters
-                    
-                    current_price = float(latest_tick['price'])
-                    prices = np.full(10, current_price, dtype=np.float32)
-                    strikes = np.full(10, 100.0, dtype=np.float32)
-                    
-                    # 🔥 FUSION: Real-time Greek Calculation
-                    engine = PricingEngineFactory.get_engine("black_scholes")
-                    params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
-                    g_vals = engine.calculate_greeks(params)
-                    greeks = np.zeros(50, dtype=np.float32)
-                    greeks[:5] = [g_vals.delta, g_vals.gamma, g_vals.theta, g_vals.vega, g_vals.rho]
-                    
-                    indicators = np.zeros(20, dtype=np.float32)
-                    
-                    state_vector = _fused_state_kernel(
-                        float(self.balance), float(self.initial_balance),
-                        self.positions, prices, strikes,
-                        greeks, indicators,
-                        self._window_buffer, self._window_idx, self.window_size
-                    )
-                    
-                    # 2. Inference
-                    if self.model:
-                        action, _ = self.model.predict(state_vector, deterministic=True)
+                    if current_head > self._last_head:
+                        # New ticks detected!
+                        latest_tick = view[-1]
                         
-                        # 3. Action Execution (Simulated)
-                        self._execute_action(action, prices)
+                        # 1. Update State & Generate State Vector (Fused JIT)
+                        from src.pricing.factory import PricingEngineFactory
+                        from src.pricing.models import BSParameters
                         
-                        # 4. Reward & Portfolio Tracking (Fused JIT)
-                        new_val, ret = _calculate_reward_kernel(
-                            self.positions, prices, self._prev_portfolio_value, self.balance
+                        current_price = float(latest_tick['price'])
+                        prices = np.full(10, current_price, dtype=np.float32)
+                        strikes = np.full(10, 100.0, dtype=np.float32)
+                        
+                        # 🔥 FUSION: Real-time Greek Calculation
+                        engine = PricingEngineFactory.get_engine("black_scholes")
+                        params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
+                        g_vals = engine.calculate_greeks(params)
+                        greeks = np.zeros(50, dtype=np.float32)
+                        greeks[:5] = [g_vals.delta, g_vals.gamma, g_vals.theta, g_vals.vega, g_vals.rho]
+                        
+                        indicators = np.zeros(20, dtype=np.float32)
+                        
+                        state_vector = _fused_state_kernel(
+                            float(self.balance), float(self.initial_balance),
+                            self.positions, prices, strikes,
+                            greeks, indicators,
+                            self._window_buffer, self._window_idx, self.window_size
                         )
-                        self._prev_portfolio_value = new_val
-                    
-                    self._window_idx += 1
-                    self._last_head = current_head
+                        
+                        # 2. Inference (SILICON BRAIN)
+                        if self.brain:
+                            # Convert to torch tensor
+                            x = torch.from_numpy(state_vector).unsqueeze(0)
+                            # Static edge index for 10 nodes
+                            edge_index = torch.tensor([[0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9],
+                                                       [1,0,2,1,3,2,4,3,5,4,6,5,7,6,8,7,9,8]], dtype=torch.long)
+                            
+                            # Fire inference!
+                            action = self.brain(x, edge_index).detach().numpy()[0]
+                            
+                            # 3. Action Execution
+                            self._execute_action(action, prices)
+                            
+                            # 4. Reward & Portfolio Tracking (Fused JIT)
+                            new_val, ret = _calculate_reward_kernel(
+                                self.positions, prices, self._prev_portfolio_value, self.balance
+                            )
+                            self._prev_portfolio_value = new_val
+                        
+                        self._window_idx += 1
+                        self._last_head = current_head
                 else:
                     # 🚀 ZERO-LATENCY YIELD: Hints the CPU but stays in the spin
                     os.sched_yield()

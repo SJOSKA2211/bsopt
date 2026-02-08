@@ -14,6 +14,7 @@ logger = structlog.get_logger(__name__)
 # Raw Binary Tick: 8s (Symbol), d (Price), q (Volume), d (Timestamp)
 # Total: 32 bytes. No JSON slop.
 TICK_STRUCT = struct.Struct("8s d q d")
+SHM_NAME = "market_mesh_ring_buffer"
 
 class XDPIngester:
     """
@@ -41,7 +42,6 @@ class XDPIngester:
         """Initialize ingestion path in a pinned high-priority thread."""
         self._running = True
         if self._pulse:
-            # SHM path is typically /dev/shm/market_mesh_ring_buffer on Linux
             shm_path = f"/dev/shm/{SHM_NAME}"
             self._pulse.start(shm_path, cpu_core)
             logger.info("rust_pulse_active_pinned", core=cpu_core)
@@ -49,47 +49,58 @@ class XDPIngester:
 
         try:
             # 🚀 PYTHON FALLBACK
-            self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
-            # ... (rest of old Python start logic)
+            # Use AF_INET/UDP for generic portability if AF_PACKET fails
+            try:
+                self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
+                self.sock.bind((self.interface, 0))
+            except (AttributeError, PermissionError):
+                logger.warning("af_packet_failed_using_udp_fallback")
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.sock.bind(("", self.port))
+
+            self._thread = threading.Thread(target=self._run_loop, args=(cpu_core,), daemon=True)
+            self._thread.start()
+            logger.info("python_ingest_started", core=cpu_core)
+        except Exception as e:
+            logger.error("ingest_start_failed", error=str(e))
+            self._running = False
 
     def _run_loop(self, cpu_core: int):
         """Hot loop: Pinned to core, real-time priority."""
-        # 🚀 SILICON LOCKDOWN: Pin to core and set real-time priority
         try:
             os.sched_setaffinity(0, {cpu_core})
-            # Try to set real-time priority (requires root/capabilities)
             try:
                 param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
                 os.sched_setscheduler(0, os.SCHED_FIFO, param)
                 logger.info("ingest_realtime_priority_set")
-            except PermissionError:
+            except (PermissionError, AttributeError):
                 logger.warning("ingest_priority_failed_missing_perms")
         except Exception as e:
             logger.error("ingest_pinning_failed", error=str(e))
 
-        # Pre-allocate buffer to avoid GC pressure
         buf = bytearray(2048)
-        offset = 42 if self.sock.family == socket.AF_PACKET else 0
+        # Offset 42 for Ethernet+IP+UDP header if using RAW AF_PACKET
+        offset = 42 if hasattr(socket, 'AF_PACKET') and self.sock and self.sock.family == socket.AF_PACKET else 0
         
         while self._running:
             try:
                 nbytes, _ = self.sock.recvfrom_into(buf)
                 if nbytes > offset:
                     payload = buf[offset:offset+32]
-                    # 🚀 SILICON SPEED: Unpack raw bytes directly into variables
-                    # symbol, price, volume, timestamp
+                    if len(payload) < 32:
+                        continue
                     data = TICK_STRUCT.unpack(payload)
                     
-                    # Write directly to lock-free SHM Mesh
                     self._mesh.write_tick(
-                        symbol=data[0].decode('ascii').strip('\x00'),
+                        symbol=data[0].decode('ascii', errors='ignore').strip('\x00'),
                         price=data[1],
                         volume=data[2],
                         timestamp=data[3]
                     )
             except (BlockingIOError, InterruptedError):
                 continue
-            except Exception:
+            except Exception as e:
+                # Non-critical error in loop
                 continue
 
     def stop(self):
@@ -98,7 +109,8 @@ class XDPIngester:
             self._thread.join(timeout=1.0)
         if self.sock:
             self.sock.close()
-        self._mesh.close()
+        if hasattr(self, '_mesh'):
+            self._mesh.close()
 
 if __name__ == "__main__":
     ingester = XDPIngester()

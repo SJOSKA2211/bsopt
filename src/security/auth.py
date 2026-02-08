@@ -79,6 +79,12 @@ class TokenBlacklist:
             return bool(await self._redis.exists(f"blacklist:{jti}"))
         return jti in self._blacklist
 
+    async def cleanup(self):
+        """Cleanup expired tokens from memory blacklist."""
+        # Redis handles this automatically via TTL.
+        # For memory, we could store (jti, exp) and filter here.
+        pass
+
 token_blacklist = TokenBlacklist()
 
 async def get_token_from_header(
@@ -147,18 +153,24 @@ class AuthService:
 
     def create_token_pair(self, user_id: str, email: str, tier: str) -> TokenPair:
         """Create a pair of access and refresh tokens."""
-        access_token = self._create_token(
-            {"sub": user_id, "email": email, "tier": tier, "type": "access"},
-            self.access_token_expire,
-        )
-        refresh_token = self._create_token(
-            {"sub": user_id, "email": email, "tier": tier, "type": "refresh"},
-            self.refresh_token_expire,
-        )
+        access_token = self.create_access_token(user_id, email, tier)
+        refresh_token = self.create_refresh_token(user_id, email, tier)
         return TokenPair(
             access_token=access_token,
             refresh_token=refresh_token,
             expires_in=int(self.access_token_expire.total_seconds()),
+        )
+
+    def create_access_token(self, user_id: str, email: str, tier: str) -> str:
+        return self._create_token(
+            {"sub": user_id, "email": email, "tier": tier, "type": "access"},
+            self.access_token_expire,
+        )
+
+    def create_refresh_token(self, user_id: str, email: str, tier: str) -> str:
+        return self._create_token(
+            {"sub": user_id, "email": email, "tier": tier, "type": "refresh"},
+            self.refresh_token_expire,
         )
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
