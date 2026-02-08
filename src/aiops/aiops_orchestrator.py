@@ -44,6 +44,7 @@ class AIOpsOrchestrator:
         self.last_remediation_time = {}
         self.error_rate_threshold = config.get("error_rate_threshold", 0.05)
         self.latency_threshold = config.get("latency_threshold", 0.5)
+        self.t2t_latency_threshold_ns = config.get("t2t_latency_threshold_ns", 500000) # 500µs
         self.isolation_forest_contamination = config.get("isolation_forest_contamination", 0.1)
         
         # ML Detection Flags
@@ -107,10 +108,13 @@ class AIOpsOrchestrator:
         purge = PurgeCacheStrategy()
         scale = AutonomousScalerStrategy()
         switch = ModelSwitchStrategy()
+        # 🚀 SILICON: Performance-specific remediation
+        silicon_reset = SiliconResetStrategy()
 
         self.remediation_registry.register("high_error_rate", restart)
-        self.remediation_registry.register("high_latency", switch) # Use switch for latency
-        self.remediation_registry.register("data_drift", switch) # Use switch for drift
+        self.remediation_registry.register("high_latency", switch)
+        self.remediation_registry.register("jitter_anomaly", silicon_reset)
+        self.remediation_registry.register("data_drift", switch)
         self.remediation_registry.register("univariate_anomaly", purge)
         self.remediation_registry.register("multivariate_anomaly", purge)
         self.remediation_registry.register("transformer_anomaly", purge)
@@ -137,6 +141,16 @@ class AIOpsOrchestrator:
                 "fallback_model": "black_scholes", # Safe fallback
                 "priority": "high"
             }
+
+        # 🚀 HIGH-RES: Tick-to-Trade Jitter Detection
+        t2t_latency = self.prometheus_client.get_custom_metric("bsopt_t2t_latency_ns")
+        if t2t_latency > self.t2t_latency_threshold_ns:
+            anomalies["jitter_anomaly"] = {
+                "metric": t2t_latency,
+                "threshold": self.t2t_latency_threshold_ns,
+                "priority": "critical"
+            }
+            logger.error("silicon_jitter_detected", t2t_ns=t2t_latency)
 
         # 3. Predictive Load Detection via TFT
         if self.predictive_scaling_enabled and self.forecaster:

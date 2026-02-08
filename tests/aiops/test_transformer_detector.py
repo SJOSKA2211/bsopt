@@ -13,9 +13,9 @@ class TestTransformerDetector(unittest.TestCase):
     def setUp(self):
         self.mock_model = MagicMock(spec=nn.Module)
         self.mock_model.side_effect = lambda x: x
-        # Parameters must be real tensors for Adam, and must be returned as a list
+        # Parameters must be real tensors for Adam, and must be returned as an iterable
         p = nn.Parameter(torch.tensor([0.1]))
-        self.mock_model.parameters.return_value = [p]
+        self.mock_model.parameters.side_effect = lambda: iter([p])
         self.mock_model.eval.return_value = self.mock_model
         self.mock_model.train.return_value = self.mock_model
 

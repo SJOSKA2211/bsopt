@@ -186,9 +186,10 @@ class BlackScholesEngine:
               np.asanyarray(K) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
         return np.allclose(lhs, rhs, atol=1e-5)
 
-    def price(self, params: BSParameters | None = None, option_type: str = "call", **kwargs) -> float:
-        """Instance method for PricingStrategy interface."""
-        return float(self.price_options(params=params, option_type=option_type, **kwargs))
+    @classmethod
+    def price(cls, params: BSParameters | None = None, option_type: str = "call", **kwargs) -> float:
+        """Class method for backward compatibility and PricingStrategy interface."""
+        return float(cls.price_options(params=params, option_type=option_type, **kwargs))
 
 def black_scholes(*args, **kwargs):
     result = BlackScholesEngine.price_options(*args, **kwargs)
