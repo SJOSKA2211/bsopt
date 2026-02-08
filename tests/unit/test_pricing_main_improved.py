@@ -1,15 +1,22 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from fastapi.testclient import TestClient
 import sys
 
-# Mock strawberry and others
-sys.modules["strawberry"] = MagicMock()
+# Mock strawberry as a package with submodules
+strawberry = MagicMock()
+sys.modules["strawberry"] = strawberry
 sys.modules["strawberry.fastapi"] = MagicMock()
+sys.modules["strawberry.dataloader"] = MagicMock()
+sys.modules["strawberry.types"] = MagicMock()
+sys.modules["strawberry.federation"] = MagicMock()
 
-with patch("src.pricing.main.setup_logging"), \
-     patch("src.pricing.main.GraphQLRouter"):
+# Mock setup_logging to avoid side effects
+with patch("src.shared.observability.setup_logging"), \
+     patch("src.shared.observability.logging_middleware"), \
+     patch("strawberry.fastapi.GraphQLRouter"):
     from src.pricing.main import app
+
+from fastapi.testclient import TestClient
 
 class TestPricingMain(unittest.TestCase):
     def test_health(self):

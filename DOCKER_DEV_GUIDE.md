@@ -34,6 +34,24 @@ docker compose -f docker-compose.dev.yml up --build
 ### Backend (Python)
 - To enable debugging, you can use `debugpy`. (Not configured by default, but can be added to the dev Dockerfiles).
 
+## High-Performance Mode (Silicon Lockdown)
+To enable ultra-low latency features (AF_XDP Ingestion and CPU Pinning), the containers require additional Linux capabilities.
+
+Add the following to your `docker-compose.override.yml`:
+```yaml
+services:
+  worker:
+    cap_add:
+      - NET_RAW
+      - SYS_NICE
+    # For core pinning to work correctly, use host networking if possible
+    # network_mode: host 
+```
+
+### Silicon Lockdown Core Mapping:
+- **Core 1**: Dedicated to `XDPIngester` (High-priority thread).
+- **Core 2**: Dedicated to `OnlineRLAgent` (Spinning inference loop).
+
 ## Troubleshooting
 - **Permission Denied**: If you get `permission denied` on `docker.sock`, ensure your user is in the `docker` group or use `sudo`.
 - **Database Connection**: Ensure the `DATABASE_URL` in `.env` points to `postgres` service when running inside Docker.

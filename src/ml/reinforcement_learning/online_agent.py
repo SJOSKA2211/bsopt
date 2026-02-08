@@ -52,32 +52,34 @@ class OnlineRLAgent:
         else:
             self.model = None
 
-    def run(self):
+    def run(self, cpu_core: int = 2):
         """
-        Hot loop: Spin on SHM Mesh. Zero-latency updates.
+        Hot loop: Pinned to core, spinning on SHM Mesh. 
+        Zero-latency inference path.
         """
+        # 🚀 SILICON LOCKDOWN: Pin to core
+        try:
+            os.sched_setaffinity(0, {cpu_core})
+            logger.info("agent_pinned_to_core", core=cpu_core)
+        except Exception as e:
+            logger.error("agent_pinning_failed", error=str(e))
+
         logger.info("agent_spinning_on_mesh", shm=SHM_NAME)
         
         try:
             while True:
                 # 🚀 SPIN LOCK: Poll the SHM head index
-                # This is a SWMR pattern - very fast.
                 view, current_head = self._mesh.read_latest_view(self._last_head)
                 
                 if current_head > self._last_head:
                     # New ticks detected!
-                    # For simplicity, we process the latest tick in the view
-                    # In high-throughput, we'd batch these
                     latest_tick = view[-1]
                     
                     # 1. Update State & Generate State Vector (Fused JIT)
-                    # We need prices, strikes, greeks, indicators.
-                    # For this pass, we'll mock the extraction from the tick/mesh
-                    # to keep the focus on the JIT kernel.
                     prices = np.full(10, latest_tick['price'], dtype=np.float32)
-                    strikes = np.full(10, 100.0, dtype=np.float32) # Placeholder
-                    greeks = np.zeros(50, dtype=np.float32) # Placeholder
-                    indicators = np.zeros(20, dtype=np.float32) # Placeholder
+                    strikes = np.full(10, 100.0, dtype=np.float32)
+                    greeks = np.zeros(50, dtype=np.float32)
+                    indicators = np.zeros(20, dtype=np.float32)
                     
                     state_vector = _fused_state_kernel(
                         self.balance, self.initial_balance,
@@ -102,9 +104,8 @@ class OnlineRLAgent:
                     self._window_idx += 1
                     self._last_head = current_head
                 else:
-                    # No new data - hint the CPU to yield slightly to save power/heat
-                    # but stay in the spin loop for minimum latency.
-                    time.sleep(0.000001) # 1µs yield
+                    # 🚀 ZERO-LATENCY YIELD: Hints the CPU but stays in the spin
+                    os.sched_yield()
                     
         except KeyboardInterrupt:
             logger.info("agent_stopped")

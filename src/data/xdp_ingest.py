@@ -29,8 +29,8 @@ class XDPIngester:
         self._mesh = SharedMemoryRingBuffer()
         self._thread: threading.Thread | None = None
 
-    def start(self):
-        """Initialize ingestion path in a dedicated high-priority thread."""
+    def start(self, cpu_core: int = 1):
+        """Initialize ingestion path in a pinned high-priority thread."""
         self._running = True
         try:
             # 🚀 OPTIMIZATION: Use raw packet socket for zero-stack traversal
@@ -45,16 +45,29 @@ class XDPIngester:
             # Set high-performance socket options
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024 * 16) # 16MB buffer
             
-            self._thread = threading.Thread(target=self._run_loop, daemon=True, name="IngestEngine")
+            self._thread = threading.Thread(target=self._run_loop, args=(cpu_core,), daemon=True, name="IngestEngine")
             self._thread.start()
-            logger.info("ingester_active_dedicated_thread", interface=self.interface)
+            logger.info("ingester_active_pinned", core=cpu_core, interface=self.interface)
             
         except Exception as e:
             logger.error("ingester_init_failed", error=str(e))
             self._running = False
 
-    def _run_loop(self):
-        """Hot loop: Zero allocations, zero async overhead."""
+    def _run_loop(self, cpu_core: int):
+        """Hot loop: Pinned to core, real-time priority."""
+        # 🚀 SILICON LOCKDOWN: Pin to core and set real-time priority
+        try:
+            os.sched_setaffinity(0, {cpu_core})
+            # Try to set real-time priority (requires root/capabilities)
+            try:
+                param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+                os.sched_setscheduler(0, os.SCHED_FIFO, param)
+                logger.info("ingest_realtime_priority_set")
+            except PermissionError:
+                logger.warning("ingest_priority_failed_missing_perms")
+        except Exception as e:
+            logger.error("ingest_pinning_failed", error=str(e))
+
         # Pre-allocate buffer to avoid GC pressure
         buf = bytearray(2048)
         offset = 42 if self.sock.family == socket.AF_PACKET else 0
