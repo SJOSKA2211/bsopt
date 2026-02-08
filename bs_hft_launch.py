@@ -42,25 +42,38 @@ def launch_manifold():
     # 1. Global Pre-flight
     lock_memory()
     
-    # 2. Start Ingestion Swarm (Core 1)
-    # Handles DB, WebSockets, and SHM (via XDP)
-    ingest_thread = threading.Thread(
-        target=run_ingestion_worker,
-        args=(1,),
-        name="IngestSwarm",
-        daemon=True
-    )
-    ingest_thread.start()
+    # 2. Initialize Ingestion Swarm
+    worker = IngestionWorker()
+    
+    # 2a. Pulse: XDP/SHM Path (Core 1)
+    worker.xdp_ingester.start(cpu_core=1)
+    
+    # 2b. Voice: WS Broadcasting (Core 4)
+    threading.Thread(
+        target=lambda: asyncio.run(worker.run_broadcaster(cpu_core=4)),
+        name="VoiceEngine", daemon=True
+    ).start()
+    
+    # 2c. Scribe: DB Persistence (Core 5)
+    threading.Thread(
+        target=lambda: asyncio.run(worker.run_scribe(cpu_core=5)),
+        name="ScribeEngine", daemon=True
+    ).start()
+    
+    # 2d. Verve: Ingestion Dispatcher (Core 6)
+    threading.Thread(
+        target=lambda: asyncio.run(worker.run_dispatcher(cpu_core=6)),
+        name="VerveEngine", daemon=True
+    ).start()
     
     # 3. Start Agent (Core 2)
     agent = OnlineRLAgent(model_path="models/latest_td3.zip")
-    agent_thread = threading.Thread(
+    threading.Thread(
         target=agent.run, 
         args=(2,), 
         name="AgentEngine", 
         daemon=True
-    )
-    agent_thread.start()
+    ).start()
     
     # 4. Start AIOps Orchestrator (Core 3)
     # Runs in main thread to keep it free for global supervision

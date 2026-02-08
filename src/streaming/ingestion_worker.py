@@ -28,81 +28,136 @@ from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 from src.api.websockets.manager import manager as ws_manager
 
+class BroadcastWorker:
+    """The Voice: Dedicated to zero-latency WebSocket broadcasting."""
+    def __init__(self):
+        self.queue = asyncio.Queue(maxsize=1000)
+        self.running = False
+
+    async def run(self):
+        self.running = True
+        logger.info("broadcast_worker_active")
+        while self.running:
+            batch = await self.queue.get()
+            try:
+                for item in batch:
+                    await ws_manager.broadcast_to_symbol(item['symbol'], item)
+            except Exception as e:
+                logger.error("broadcast_batch_failed", error=str(e))
+            finally:
+                self.queue.task_done()
+
+class PersistenceWorker:
+    """The Scribe: Dedicated to high-throughput DB persistence."""
+    def __init__(self):
+        self.queue = asyncio.Queue(maxsize=1000)
+        self.running = False
+
+    async def run(self):
+        from src.database.crud import bulk_insert_option_prices
+        self.running = True
+        logger.info("persistence_worker_active")
+        while self.running:
+            batch = await self.queue.get()
+            try:
+                now_utc = datetime.now(UTC)
+                today_date = now_utc.date()
+                transformed = [
+                    {
+                        "time": item.get('timestamp', now_utc),
+                        "symbol": item['symbol'],
+                        "strike": item.get('strike', 0.0),
+                        "expiry": item.get('expiry', today_date),
+                        "option_type": item.get('option_type', 'call'),
+                        "last": item['price'],
+                        "bid": item.get('bid', 0.0),
+                        "ask": item.get('ask', 0.0),
+                        "volume": item.get('volume', 0),
+                        "open_interest": item.get('open_interest', 0),
+                        "implied_volatility": item.get('implied_volatility', 0.0),
+                        "delta": item.get('delta'),
+                        "gamma": item.get('gamma'),
+                        "vega": item.get('vega'),
+                        "theta": item.get('theta'),
+                        "rho": item.get('rho')
+                    }
+                    for item in batch
+                ]
+                async with get_async_db_context() as db:
+                    await bulk_insert_option_prices(db, transformed)
+            except Exception as e:
+                logger.error("persistence_batch_failed", error=str(e))
+            finally:
+                self.queue.task_done()
+
 class IngestionWorker:
     """
-    Asynchronous ingestion worker that bridges Kafka to Postgres,
-    SHM Mesh, and real-time WebSocket clients via Redis.
+    God-Mode Multi-Path Dispatcher.
+    Splits ingestion into:
+    1. Pulse (XDP/SHM) - Internal to XDPIngester
+    2. Voice (WebSockets) - Dispatched to BroadcastWorker
+    3. Scribe (Postgres) - Dispatched to PersistenceWorker
     """
     def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
-        # XDPIngester now manages its own mesh internally for Core 1 isolation
         self.xdp_ingester = XDPIngester()
+        self.broadcaster = BroadcastWorker()
+        self.scribe = PersistenceWorker()
 
-    async def _ingest_batch_callback(self, batch: list[dict]):
-        """
-        Multi-path ingestion:
-        1. DB Persistence (Historical)
-        2. WebSocket Broadcast via Redis (Real-time)
-        Note: SHM is handled by XDPIngester thread.
-        """
-        from src.database.crud import bulk_insert_option_prices
-        start_time = time.time()
+    async def _dispatch_batch(self, batch: list[dict]):
+        """Non-blocking dispatch to specialized workers."""
         try:
-            # 1. Broadast to WebSockets (Async, non-blocking)
-            for item in batch:
-                await ws_manager.broadcast_to_symbol(item['symbol'], item)
-
-            # 2. Transformation for DB
-            now_utc = datetime.now(UTC)
-            today_date = now_utc.date()
+            self.broadcaster.queue.put_nowait(batch)
+        except asyncio.QueueFull:
+            pass
             
-            transformed_batch = [
-                {
-                    "time": item.get('timestamp', now_utc),
-                    "symbol": item['symbol'],
-                    "strike": item.get('strike', 0.0),
-                    "expiry": item.get('expiry', today_date),
-                    "option_type": item.get('option_type', 'call'),
-                    "last": item['price'],
-                    "bid": item.get('bid', 0.0),
-                    "ask": item.get('ask', 0.0),
-                    "volume": item.get('volume', 0),
-                    "open_interest": item.get('open_interest', 0),
-                    "implied_volatility": item.get('implied_volatility', 0.0),
-                    "delta": item.get('delta'),
-                    "gamma": item.get('gamma'),
-                    "vega": item.get('vega'),
-                    "theta": item.get('theta'),
-                    "rho": item.get('rho')
-                }
-                for item in batch
-            ]
+        try:
+            self.scribe.queue.put_nowait(batch)
+        except asyncio.QueueFull:
+            pass
 
-            async with get_async_db_context() as db:
-                count = await bulk_insert_option_prices(db, transformed_batch)
-            
-            duration = time.time() - start_time
-            logger.info("ingestion_complete", db_count=count, ws_broadcasts=len(batch), duration_ms=duration*1000)
-        except Exception as e:
-            logger.error("ingestion_batch_failed", error=str(e))
-
-    async def run(self, cpu_core: int = 1):
+    async def run_dispatcher(self, cpu_core: int):
+        """Pure dispatcher: Kafka -> Queues."""
         self.running = True
-        self.xdp_ingester.start(cpu_core=cpu_core)
-        
-        retry_delay = 1
+        try:
+            os.sched_setaffinity(0, {cpu_core})
+            logger.info("dispatcher_pinned", core=cpu_core)
+        except Exception:
+            pass
+
         while self.running:
             try:
-                await self.consumer.consume_messages(callback=self._ingest_batch_callback)
+                await self.consumer.consume_messages(callback=self._dispatch_batch)
                 break
             except Exception as e:
-                logger.error("ingestion_worker_crash", error=str(e), next_retry_s=retry_delay)
-                await asyncio.sleep(retry_delay)
-                retry_delay = min(60, retry_delay * 2)
-        
+                logger.error("dispatcher_crash", error=str(e))
+                await asyncio.sleep(1)
+
+    async def run_broadcaster(self, cpu_core: int):
+        """Voice: Dedicated thread for WS broadcasting."""
+        try:
+            os.sched_setaffinity(0, {cpu_core})
+            logger.info("broadcaster_pinned", core=cpu_core)
+        except Exception:
+            pass
+        await self.broadcaster.run()
+
+    async def run_scribe(self, cpu_core: int):
+        """Scribe: Dedicated thread for DB persistence."""
+        try:
+            os.sched_setaffinity(0, {cpu_core})
+            logger.info("scribe_pinned", core=cpu_core)
+        except Exception:
+            pass
+        await self.scribe.run()
+
+    def stop(self):
+        self.running = False
+        self.consumer.stop()
+        self.broadcaster.running = False
+        self.scribe.running = False
         self.xdp_ingester.stop()
-        logger.info("ingestion_worker_stop")
 
     def stop(self):
         self.running = False
