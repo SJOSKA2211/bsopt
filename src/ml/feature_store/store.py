@@ -33,33 +33,35 @@ class InMemoryFeatureStore(FeatureStore):
 
     def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """
-        Computes requested features and appends them to the dataframe.
+        Computes requested features using a dependency-aware engine.
+        OPTIMIZED: Minimized copying and registration-based pre-processing.
         """
+        # 1. Resolve required pre-processors (features with priority < 0)
+        # 2. Sort features by priority to handle dependencies
+        requested_features = []
+        for name in feature_names:
+            try:
+                requested_features.append(self.get_feature(name))
+            except KeyError:
+                logger.warning("skipping_unregistered_feature", name=name)
+        
+        # Sort by priority (default is 0, pre-processors < 0)
+        sorted_features = sorted(requested_features, key=lambda f: getattr(f, "priority", 0))
+        
+        # Work on a single copy
         df = data.copy()
         
-        # 1. Pre-processing (Implicit for now based on logic)
-        # If we need synthetic OHLC, we do it first.
-        # This logic should be more robust in a full implementation.
-        synthetic_gen = SyntheticOHLCFeature()
-        df = synthetic_gen.transform(df)
-
-        for name in feature_names:
-            if name == "synthetic_ohlc":
-                continue # Already handled
-            
+        for feature in sorted_features:
             try:
-                feature = self.get_feature(name)
-                # If the feature returns a Series, assign it
+                logger.debug("computing_feature", name=feature.name)
                 result = feature.transform(df)
                 if isinstance(result, pd.Series):
-                    df[name] = result
+                    df[feature.name] = result
                 elif isinstance(result, pd.DataFrame):
-                    # Merge or update
-                    df = result
+                    df = result # Feature transformed the entire frame
             except Exception as e:
-                logger.error("feature_computation_failed", feature=name, error=str(e))
-                # Depending on strictness, we might raise or skip
-                raise e
+                logger.error("feature_computation_failed", feature=feature.name, error=str(e))
+                raise
                 
         return df
 

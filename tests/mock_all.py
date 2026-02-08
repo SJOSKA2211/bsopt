@@ -44,8 +44,8 @@ MOCK_IF_MISSING = [
     "sendgrid", "sendgrid.helpers", "sendgrid.helpers.mail",
     "rich", "rich.box", "rich.console", "rich.panel", "rich.table", "rich.live", "rich.layout",
     "torch_geometric", "torch_geometric.nn", "torch_geometric.data",
-    "pytorch_forecasting", "pytorch_forecasting.data", "onnxruntime", "flwr",
-    "ray.tune", "ray.tune.schedulers", "ray.air"
+    "pytorch_forecasting", "pytorch_forecasting.data", "pytorch_forecasting.metrics", "onnxruntime", "flwr",
+    "ray.tune", "ray.tune.schedulers", "ray.tune.search", "ray.tune.search.optuna", "ray.air"
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in God-Mode venv

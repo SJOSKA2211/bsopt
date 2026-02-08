@@ -117,12 +117,17 @@ class AIOpsOrchestrator:
         # 1. Threshold-based Error Rate Detection
         error_rate = self.prometheus_client.get_5xx_error_rate(service=self.api_service_name)
         if error_rate > self.error_rate_threshold:
-            anomalies["high_error_rate"] = True
+            anomalies["high_error_rate"] = {"metric": error_rate, "threshold": self.error_rate_threshold}
 
         # 2. Threshold-based Latency Detection
         p95_latency = self.prometheus_client.get_p95_latency(service=self.api_service_name)
         if p95_latency > self.latency_threshold:
-            anomalies["high_latency"] = True
+            anomalies["high_latency"] = {
+                "metric": p95_latency,
+                "threshold": self.latency_threshold,
+                "fallback_model": "black_scholes", # Safe fallback
+                "priority": "high"
+            }
 
         # 3. Predictive Load Detection via TFT
         if self.predictive_scaling_enabled and self.forecaster:
@@ -134,7 +139,8 @@ class AIOpsOrchestrator:
                 if any(forecast > self.latency_threshold * 1.5): # Predicted spike
                     anomalies["predicted_load_spike"] = {
                         "forecast": forecast.tolist(),
-                        "threshold": self.latency_threshold * 1.5
+                        "threshold": self.latency_threshold * 1.5,
+                        "fallback_model": "xgboost" # Proactive lighter model
                     }
                     logger.warning("predictive_anomaly_detected", forecast_max=forecast.max())
 
@@ -145,7 +151,7 @@ class AIOpsOrchestrator:
             if data is not None and len(data) > 0:
                 preds = self.isolation_forest_detector.fit_predict(data)
                 if -1 in preds:
-                    anomalies["univariate_anomaly"] = True
+                    anomalies["univariate_anomaly"] = {"status": "anomaly_detected"}
             
             # Multivariate
             if self.autoencoder_detector:
@@ -153,13 +159,13 @@ class AIOpsOrchestrator:
                 if data_multi is not None and len(data_multi) > 0:
                     preds_multi = self.autoencoder_detector.fit_predict(data_multi)
                     if -1 in preds_multi:
-                        anomalies["multivariate_anomaly"] = True
+                        anomalies["multivariate_anomaly"] = {"status": "anomaly_detected"}
                     
                     # Transformer Check
                     if self.transformer_detector:
                         result = self.transformer_detector.detect(data_multi)
                         if result["is_anomaly"]:
-                            anomalies["transformer_anomaly"] = True
+                            anomalies["transformer_anomaly"] = {"score": result["score"]}
                             logger.warning("transformer_anomaly_detected", score=result["score"])
 
         # 5. Data Drift Detection
@@ -169,7 +175,10 @@ class AIOpsOrchestrator:
                 # Mocking reference vs current for simplicity in this logic
                 drift_detected, info = self.data_drift_detector.detect_drift(data_multi, data_multi)
                 if drift_detected:
-                    anomalies["data_drift"] = True
+                    anomalies["data_drift"] = {
+                        "drift_score": info.get("mmd_distance", 0),
+                        "fallback_model": "black_scholes"
+                    }
             else:
                 logger.info("data_drift_check_skipped", reason="no_data")
         

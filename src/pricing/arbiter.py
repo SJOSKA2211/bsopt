@@ -29,56 +29,29 @@ class PricingRequest:
 
 class EngineArbiter:
     """
-    Intelligent routing logic to select the optimal pricing engine
-    based on request characteristics, system load, and configuration.
+    Intelligent routing logic to select the optimal pricing engine.
+    OPTIMIZED: Respects AIOps overrides via PricingEngineFactory.
     """
     def __init__(self):
-        self.bs_engine = BlackScholesEngine()
-        self.wasm_engine = WASMPricingEngine()
-        self.default_mc_engine = MonteCarloEngine() 
+        from src.pricing.factory import PricingEngineFactory
+        self.factory = PricingEngineFactory
 
     def route_request(self, request: PricingRequest) -> float:
         """
         Routes the pricing request to the optimal engine.
         """
-        logger.debug("routing_pricing_request", 
-                     model=request.model, 
-                     style=request.style, 
-                     use_gpu=request.use_gpu)
-
-        # 1. Explicit Model Selection
-        if request.model == PricingModel.WASM:
-             if self.wasm_engine.instance:
-                 if request.style == "american":
-                     return self.wasm_engine.price_american_lsm(request.params, request.option_type)
-                 return self.wasm_engine.price(request.params, request.option_type)
-             else:
-                 logger.warning("wasm_requested_but_unavailable_fallback_bs")
-                 return self.bs_engine.price(request.params, request.option_type)
-
-        if request.model == PricingModel.MONTE_CARLO:
-            config = MCConfig(**request.engine_config) if request.engine_config else None
-            engine = MonteCarloEngine(config)
-            if request.style == "american":
-                return engine.price_american_lsm(request.params, request.option_type)
-            return engine.price(request.params, request.option_type)
-
-        if request.model == PricingModel.BLACK_SCHOLES:
-            return self.bs_engine.price(request.params, request.option_type)
-
-        # 2. Automatic Arbitration (Smart Routing)
+        # 1. Resolve Engine via Factory (Handles dynamic AIOps overrides)
+        strategy = "wasm" if request.model == PricingModel.WASM else None
+        engine = self.factory.get_engine(request.model or "black_scholes", execution_strategy=strategy)
         
-        # American Options -> Prefer WASM (Speed) > Monte Carlo (Accuracy/Fallback)
-        if request.style == "american":
-            if self.wasm_engine.instance:
-                return self.wasm_engine.price_american_lsm(request.params, request.option_type)
-            return self.default_mc_engine.price_american_lsm(request.params, request.option_type)
+        logger.debug("routing_pricing_request", 
+                     model=engine.__class__.__name__, 
+                     style=request.style)
 
-        # European Options
-        # For standard European options, Python's vectorized/JIT BS is highly optimized.
-        # However, if we needed to offload CPU from the Python process, WASM would be a good choice.
-        # For now, we stick to the robust BS Engine.
-        return self.bs_engine.price(request.params, request.option_type)
+        if request.style == "american":
+            return engine.price_american_lsm(request.params, request.option_type)
+        
+        return engine.price(request.params, request.option_type)
 
     def route_batch(self, 
                     S: np.ndarray, 
@@ -91,12 +64,17 @@ class EngineArbiter:
         """
         Routes batch requests efficiently.
         """
-        # WASM batch is likely faster for very large batches due to SIMD in Rust
-        if model == PricingModel.WASM and self.wasm_engine.instance:
-            q = np.zeros_like(S) # Default dividend 0
-            return self.wasm_engine.batch_price_black_scholes(S, K, T, sigma, r, q, is_call)
+        # Auto-select WASM for large batches if available
+        use_wasm = (model == PricingModel.WASM or len(S) > 1000)
+        engine_name = "wasm" if use_wasm else "black_scholes"
+        
+        engine = self.factory.get_engine(engine_name)
+        
+        if hasattr(engine, "batch_price_black_scholes") and use_wasm:
+            q = np.zeros_like(S)
+            return engine.batch_price_black_scholes(S, K, T, sigma, r, q, is_call)
             
-        # Default to Python Vectorized BS
+        # Fallback to standard vectorized pricing
         dividend = np.zeros_like(S)
         option_types = np.where(is_call == 1, "call", "put")
-        return self.bs_engine.price_batch(S, K, T, sigma, r, dividend, option_types)
+        return engine.price_batch(S, K, T, sigma, r, dividend, option_types)

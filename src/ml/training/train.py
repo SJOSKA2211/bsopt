@@ -115,12 +115,18 @@ async def run_hyperparameter_optimization(
 
     logger.info("starting_distributed_hpo", n_trials=n_trials)
     
+    # 🚀 OPTIMIZATION: Resource-aware trial distribution
+    # CPU: 1 per trial allows maximum concurrency on the cluster.
+    # GPU: 0 for XGBoost unless we force device='cuda'
+    resources_per_trial = {"cpu": 1, "gpu": 0}
+    
     analysis = tune.run(
         trainable,
         config=config,
         num_samples=n_trials,
         scheduler=scheduler,
         search_alg=search_alg,
+        resources_per_trial=resources_per_trial,
         verbose=1
     )
     
