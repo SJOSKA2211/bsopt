@@ -34,6 +34,7 @@ def lock_memory():
 
 from src.trading.order_engine import OrderEngine
 from src.monitoring.telemetry import TelemetryEngine
+from src.shared.mesh_bridge import MeshBridge
 from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
 
 def launch_manifold():
@@ -97,6 +98,23 @@ def launch_manifold():
         target=te.run,
         args=(8,),
         name="TelemetryEngine",
+        daemon=True
+    ).start()
+
+    # 6. Start Interdimensional Mesh Bridge (Cores 9 & 10)
+    bridge = MeshBridge()
+    # Broadcaster mirrored to the cluster
+    threading.Thread(
+        target=bridge.run_broadcaster,
+        args=(9,),
+        name="MeshBroadcaster",
+        daemon=True
+    ).start()
+    # Listener for cluster-wide ticks
+    threading.Thread(
+        target=bridge.run_listener,
+        args=(10,),
+        name="MeshListener",
         daemon=True
     ).start()
     
