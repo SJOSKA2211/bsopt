@@ -58,3 +58,24 @@ def train_xgboost_distributed(X, y, params: dict[str, Any], dask_address: str | 
     finally:
         if is_local_cluster: # Only close if it was a locally created cluster
             client.close()
+
+def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
+    """
+    Synchronizes metrics across all workers in a distributed training group.
+    Uses torch.distributed if initialized.
+    """
+    import torch
+    if not torch.distributed.is_available() or not torch.distributed.is_initialized():
+        return metrics
+
+    world_size = torch.distributed.get_world_size()
+    synced_metrics = {}
+    
+    for k, v in metrics.items():
+        # Ensure we use the correct device for the rank
+        device = torch.device("cuda", torch.cuda.current_device()) if torch.cuda.is_available() else torch.device("cpu")
+        t = torch.tensor([v], device=device)
+        torch.distributed.all_reduce(t, op=torch.distributed.ReduceOp.SUM)
+        synced_metrics[k] = t.item() / world_size
+        
+    return synced_metrics

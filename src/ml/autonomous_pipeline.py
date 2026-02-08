@@ -211,18 +211,34 @@ class AutonomousMLPipeline:
         
         return trainer.optimize(objective, n_trials=self.n_trials)
 
-    def _export_model(self, best_accuracy: float):
-        """Handles model promotion and ONNX export."""
-        if best_accuracy >= self.config.get("promotion_threshold", 0.8):
-            logger.info("model_promotion_triggered", accuracy=best_accuracy)
+    def _export_model(self, best_accuracy: float, run_id: str):
+        """Handles model promotion, MLflow staging, and ONNX export."""
+        promotion_threshold = self.config.get("promotion_threshold", 0.8)
+        if best_accuracy >= promotion_threshold:
+            logger.info("model_promotion_triggered", accuracy=best_accuracy, threshold=promotion_threshold)
+            
+            # 1. Promote in MLflow
+            try:
+                model_name = f"Option_Pricing_{self.framework}"
+                result = mlflow.register_model(f"runs:/{run_id}/model", model_name)
+                client = mlflow.tracking.MlflowClient()
+                client.transition_model_version_stage(
+                    name=model_name,
+                    version=result.version,
+                    stage="Production"
+                )
+                logger.info("mlflow_promotion_complete", name=model_name, version=result.version)
+            except Exception as e:
+                logger.error("mlflow_promotion_failed", error=str(e))
+
+            # 2. Asynchronous ONNX Export
             model_path = f"models/{self.study_name}_latest.onnx"
             quantized_path = f"models/{self.study_name}_latest.int8.onnx"
             try:
-                logger.info("exporting_model_to_onnx", path=model_path)
                 from src.tasks.ml_tasks import optimize_model_task
                 optimize_model_task.delay(model_path, quantized_path)
             except Exception as e:
-                logger.error("model_export_failed", error=str(e))
+                logger.error("onnx_export_failed", error=str(e))
 
     async def run(self):
         """
@@ -261,7 +277,11 @@ class AutonomousMLPipeline:
             x_vals, y_vals, feature_names, dataset_metadata = self._prepare_training_data(df_featured)
             study = await self._train_and_optimize(x_vals, y_vals, feature_names, dataset_metadata, base_model)
             best_accuracy = study.best_value
-            self._export_model(best_accuracy)
+            
+            # Extract run_id from best trial or current context
+            # (In a real implementation, trainer would expose this)
+            run_id = study.user_attrs.get("best_run_id", "unknown")
+            self._export_model(best_accuracy, run_id)
 
             is_drifted = self.performance_monitor.detect_drift(best_accuracy)
             self.performance_monitor.add_metric(best_accuracy)

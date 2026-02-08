@@ -29,24 +29,40 @@ class Trainer:
         model: nn.Module,
         optimizer: torch.optim.Optimizer,
         criterion: nn.Module,
-        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        device: str | None = None,
         output_dir: str = "models/checkpoints",
         scheduler: Any | None = None,
         experiment_name: str = "Default_Experiment",
         is_distributed: bool = False
     ):
         self.is_distributed = is_distributed
-        self.device = device
+        self.rank = 0
         
+        if self.is_distributed and HAS_RAY:
+            try:
+                self.rank = ray.train.get_context().get_local_rank()
+                # Auto-detect device for Ray workers
+                self.device = f"cuda:{self.rank}" if torch.cuda.is_available() else "cpu"
+            except (ImportError, RuntimeError):
+                self.rank = 0
+                self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+
         if not self.is_distributed:
-            self.model = model.to(device)
+            self.model = model.to(self.device)
             # MLflow Init only for local runs
             mlflow.set_experiment(experiment_name)
             self.run = mlflow.start_run()
         else:
             # Distributed: Model assumed already wrapped/placed by orchestrator (e.g. Ray DDP)
             self.model = model
-            self.run = None
+            # Rank 0 in distributed mode also initializes MLflow for centralized tracking
+            if self.rank == 0:
+                mlflow.set_experiment(experiment_name)
+                self.run = mlflow.start_run(nested=True)
+            else:
+                self.run = None
 
         self.optimizer = optimizer
         self.criterion = criterion
@@ -55,7 +71,7 @@ class Trainer:
         self.scheduler = scheduler
         self.history: dict[str, list] = {"train_loss": [], "val_loss": []}
         
-        if not self.is_distributed:
+        if self.rank == 0:
             # Log params only after attributes are set
             self._log_params()
 
@@ -65,9 +81,11 @@ class Trainer:
             "optimizer": self.optimizer.__class__.__name__,
             "criterion": self.criterion.__class__.__name__,
             "device": self.device,
-            "model_class": self.model.__class__.__name__
+            "model_class": self.model.__class__.__name__,
+            "is_distributed": self.is_distributed
         }
-        mlflow.log_params(params)
+        if self.run:
+            mlflow.log_params(params)
 
     def train_epoch(self, loader: DataLoader) -> float:
         """Trains for one epoch."""
@@ -98,6 +116,11 @@ class Trainer:
 
     def _handle_epoch_end(self, epoch: int, train_loss: float, val_loss: float):
         """Processes logic at the end of each epoch."""
+        # Sync metrics across all workers in distributed mode
+        from src.ml.utils.distributed import sync_metrics
+        synced = sync_metrics({"train_loss": train_loss, "val_loss": val_loss})
+        train_loss, val_loss = synced["train_loss"], synced["val_loss"]
+
         self.history["train_loss"].append(train_loss)
         self.history["val_loss"].append(val_loss)
 
@@ -181,8 +204,12 @@ class Trainer:
         logger.info(f"Saved checkpoint to {path}")
 
     def _save_metrics(self):
-        """Saves history to JSON and logs as artifact."""
+        """Saves history to JSON and logs as artifact (Rank 0 only)."""
+        if self.rank != 0:
+            return
+            
         metrics_path = self.output_dir / "metrics.json"
         with open(metrics_path, "w") as f:
             json.dump(self.history, f, indent=2)
-        mlflow.log_artifact(str(metrics_path))
+        if self.run:
+            mlflow.log_artifact(str(metrics_path))

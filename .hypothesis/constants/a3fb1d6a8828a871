@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/aiops_orchestrator.py
+# hypothesis_version: 6.151.5
+
+[0.05, 0.1, 0.5, 1.5, 2.0, 120, 300, 600, 3600, '*', 'aiops_orchestrator', 'anomalies_found', 'anomaly_detected', 'api_service_name', 'autoencoder_epochs', 'black_scholes', 'cpu_high', 'data_drift', 'drift_score', 'error_rate_threshold', 'fallback_model', 'forecast', 'high', 'high_error_rate', 'high_latency', 'high_load', 'is_anomaly', 'latency_threshold', 'max_encoder_length', 'metric', 'ml_pipeline_config', 'mmd_distance', 'multivariate_anomaly', 'no_anomalies_found', 'no_data', 'predicted_load_spike', 'priority', 'prometheus_url', 'redis_cache_pattern', 'restart', 'retrain', 'scale', 'score', 'status', 'success', 'switch', 'tft_config', 'threshold', 'transformer_anomaly', 'univariate_anomaly', 'xgboost']

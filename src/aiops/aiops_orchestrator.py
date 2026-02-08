@@ -32,7 +32,15 @@ class AIOpsOrchestrator:
         self.prometheus_url = config["prometheus_url"]
         self.api_service_name = config["api_service_name"]
 
-        # Anomaly Detection Thresholds
+        # 🚀 STATEFUL: Remediation tracking and cooldowns
+        self.active_remediations = {}
+        self.remediation_cooldowns = {
+            "retrain": 3600,  # 1 hour cooldown for retraining
+            "restart": 300,   # 5 minute cooldown for restarts
+            "scale": 120,     # 2 minute cooldown for scaling
+            "switch": 600     # 10 minute cooldown for model swaps
+        }
+        self.last_remediation_time = {}
         self.error_rate_threshold = config.get("error_rate_threshold", 0.05)
         self.latency_threshold = config.get("latency_threshold", 0.5)
         self.isolation_forest_contamination = config.get("isolation_forest_contamination", 0.1)
@@ -185,14 +193,27 @@ class AIOpsOrchestrator:
         return anomalies
 
     def _remediate_anomalies(self, anomalies: dict[str, Any]):
-        """🚀 Dynamic remediation dispatch via Strategy Pattern."""
+        """🚀 Dynamic remediation dispatch with stateful cooldowns."""
+        current_time = time.time()
         for anomaly_type, data in anomalies.items():
             strategies = self.remediation_registry.get_strategy(anomaly_type)
             for strategy in strategies:
+                strategy_name = strategy.__class__.__name__
+                
+                # Check cooldowns
+                last_time = self.last_remediation_time.get(strategy_name, 0)
+                cooldown = self.config.get(f"{anomaly_type}_cooldown", 300) # Default 5m
+                
+                if current_time - last_time < cooldown:
+                    logger.debug("remediation_skipped_cooldown", strategy=strategy_name, remaining=cooldown - (current_time - last_time))
+                    continue
+                
                 try:
+                    logger.info("executing_remediation", strategy=strategy_name, anomaly=anomaly_type)
                     strategy.execute(self, data)
+                    self.last_remediation_time[strategy_name] = current_time
                 except Exception as e:
-                    logger.error("remediation_execution_failed", strategy=strategy.__class__.__name__, error=str(e))
+                    logger.error("remediation_execution_failed", strategy=strategy_name, error=str(e))
 
     def run(self, iterations: int = -1):
         iteration_count = 0
