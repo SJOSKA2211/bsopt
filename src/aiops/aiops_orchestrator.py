@@ -18,6 +18,7 @@ from src.aiops.remediation_strategies import (
     RemediationRegistry,
     RestartServiceStrategy,
     RetrainModelStrategy,
+    SiliconResetStrategy,
 )
 from src.aiops.transformer_detector import TransformerAnomalyDetector
 from src.ml.forecasting.tft_model import PriceTFTModel

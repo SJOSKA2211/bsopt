@@ -85,6 +85,28 @@ class HestonModelFFT:
         self.r = r
         self.T = T
 
+    def price_call(self, S0: float, K: float) -> float:
+        """Single option pricing for backward compatibility."""
+        out = np.zeros(1)
+        batch_heston_price_jit(
+            np.array([S0]), np.array([K]), np.array([self.T]), np.array([self.r]),
+            np.array([self.params.v0]), np.array([self.params.kappa]),
+            np.array([self.params.theta]), np.array([self.params.sigma]),
+            np.array([self.params.rho]), np.array([True]), out
+        )
+        return float(out[0])
+
+    def price_put(self, S0: float, K: float) -> float:
+        """Single option pricing for backward compatibility."""
+        out = np.zeros(1)
+        batch_heston_price_jit(
+            np.array([S0]), np.array([K]), np.array([self.T]), np.array([self.r]),
+            np.array([self.params.v0]), np.array([self.params.kappa]),
+            np.array([self.params.theta]), np.array([self.params.sigma]),
+            np.array([self.params.rho]), np.array([False]), out
+        )
+        return float(out[0])
+
     def price_surface_fft(self, S0: float, K_min: float, K_max: float, N: int = 1024) -> dict[float, float]:
         """
         O(N log N) multi-strike pricing using vectorized FFT.

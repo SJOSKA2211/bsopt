@@ -12,12 +12,14 @@ from src.aiops.transformer_detector import TransformerAnomalyDetector
 class TestTransformerDetector(unittest.TestCase):
     def setUp(self):
         self.mock_model = MagicMock()
-        self.mock_model.side_effect = lambda x: x
+        # Return a tensor that requires grad to support loss.backward()
+        self.mock_model.side_effect = lambda x: x.clone().detach().requires_grad_(True)
         # Parameters must be real tensors for Adam
         self.p = nn.Parameter(torch.tensor([0.1]))
         self.mock_model.parameters.return_value = [self.p]
         self.mock_model.eval.return_value = self.mock_model
         self.mock_model.train.return_value = self.mock_model
+        self.mock_model.to.return_value = self.mock_model
 
         with patch("src.aiops.transformer_detector.TimeSeriesTransformerEncoder", return_value=self.mock_model):
             self.detector = TransformerAnomalyDetector(input_dim=10, threshold=0.1)

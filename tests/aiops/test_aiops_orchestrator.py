@@ -29,7 +29,9 @@ def mock_orchestrator_dependencies():
          patch("src.aiops.aiops_orchestrator.logger") as mock_logger:
         
         # Ensure instances are returned correctly
-        mock_prom.return_value = MagicMock()
+        mock_prom_instance = MagicMock()
+        mock_prom_instance.get_custom_metric.return_value = 0.0
+        mock_prom.return_value = mock_prom_instance
         mock_if.return_value = MagicMock()
         mock_ae.return_value = MagicMock()
         mock_transformer.return_value = MagicMock()

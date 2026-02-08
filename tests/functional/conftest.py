@@ -125,8 +125,7 @@ async def client(mock_db):
     app.dependency_overrides[get_current_user_flexible] = mock_get_current_user_flexible
     
     # 69. Test Framework: mock.patch audit logs
-    with patch("src.security.audit.log_audit"), \
-         patch("src.security.audit.AuditLog"):
+    with patch("src.security.audit.log_audit"):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
             yield ac
     app.dependency_overrides.clear()
