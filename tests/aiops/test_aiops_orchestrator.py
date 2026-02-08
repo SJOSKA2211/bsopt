@@ -173,17 +173,18 @@ def test_orchestrator_run_exception_handling(mock_sleep, mock_detect, mock_confi
             "high_latency": {"fallback_model": "black_scholes", "metric": 0.2, "priority": "high", "threshold": 0.1}
         }), # Both
     ])
-    def test_detect_anomalies_prometheus_metrics(mock_config, error_rate, latency, expected_anomalies, mock_orchestrator_dependencies):    # Create a copy of mock_config and disable ML detections for this specific test
-    config_prometheus_only = mock_config.copy()
-    config_prometheus_only["anomaly_detection_enabled"] = False
-    config_prometheus_only["data_drift_detection_enabled"] = False
-    orchestrator = AIOpsOrchestrator(config_prometheus_only)
+    def test_detect_anomalies_prometheus_metrics(mock_config, error_rate, latency, expected_anomalies, mock_orchestrator_dependencies):
+        # Create a copy of mock_config and disable ML detections for this specific test
+        config_prometheus_only = mock_config.copy()
+        config_prometheus_only["anomaly_detection_enabled"] = False
+        config_prometheus_only["data_drift_detection_enabled"] = False
+        orchestrator = AIOpsOrchestrator(config_prometheus_only)
 
-    with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=error_rate), \
-         patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=latency):
-        
-        anomalies = orchestrator._detect_anomalies()
-        assert anomalies == expected_anomalies
+        with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=error_rate), \
+             patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=latency):
+            
+            anomalies = orchestrator._detect_anomalies()
+            assert anomalies == expected_anomalies
         orchestrator.prometheus_client.get_5xx_error_rate.assert_called_once_with(service=orchestrator.api_service_name)
         orchestrator.prometheus_client.get_p95_latency.assert_called_once_with(service=orchestrator.api_service_name)
         
@@ -247,35 +248,36 @@ def test_remediate_anomalies(mock_config, anomaly_detected, drift_detected, expe
             "transformer_anomaly": {"score": 0.1}
         }),
     ])
-    def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml, mock_orchestrator_dependencies):    # Create a specific config for this parameterization
-    current_mock_config = mock_config.copy()
-    current_mock_config["anomaly_detection_enabled"] = univariate_anomaly_detected or multivariate_anomaly_detected
-    current_mock_config["data_drift_detection_enabled"] = data_drift_detected
-    orchestrator = AIOpsOrchestrator(current_mock_config)
+    def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml, mock_orchestrator_dependencies):
+        # Create a specific config for this parameterization
+        current_mock_config = mock_config.copy()
+        current_mock_config["anomaly_detection_enabled"] = univariate_anomaly_detected or multivariate_anomaly_detected
+        current_mock_config["data_drift_detection_enabled"] = data_drift_detected
+        orchestrator = AIOpsOrchestrator(current_mock_config)
 
-    with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=0.01), \
-         patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=0.01):
-    
-        # Explicitly control Prometheus client return values based on expected calls
-        orchestrator.prometheus_client.get_historical_metric_data.return_value = np.array([1]) if univariate_anomaly_detected else np.array([])
-        # Multivariate data must match input_dim (10)
-        orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.random.rand(1, 10) if multivariate_anomaly_detected or data_drift_detected else np.array([])
-    
-        orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([-1]) if univariate_anomaly_detected else np.array([1])
-        if orchestrator.autoencoder_detector: # Only set if autoencoder is enabled
-            orchestrator.autoencoder_detector.fit_predict.return_value = np.array([-1]) if multivariate_anomaly_detected else np.array([1])
+        with patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=0.01), \
+             patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=0.01):
         
-        # 🚀 Configure Transformer Mock based on test parameters
-        if hasattr(orchestrator, "transformer_detector") and orchestrator.transformer_detector:
-            orchestrator.transformer_detector.detect.return_value = {
-                "is_anomaly": multivariate_anomaly_detected, 
-                "score": 0.1 if multivariate_anomaly_detected else 0.0
-            }
+            # Explicitly control Prometheus client return values based on expected calls
+            orchestrator.prometheus_client.get_historical_metric_data.return_value = np.array([1]) if univariate_anomaly_detected else np.array([])
+            # Multivariate data must match input_dim (10)
+            orchestrator.prometheus_client.get_historical_metric_data_multi.return_value = np.random.rand(1, 10) if multivariate_anomaly_detected or data_drift_detected else np.array([])
+        
+            orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([-1]) if univariate_anomaly_detected else np.array([1])
+            if orchestrator.autoencoder_detector: # Only set if autoencoder is enabled
+                orchestrator.autoencoder_detector.fit_predict.return_value = np.array([-1]) if multivariate_anomaly_detected else np.array([1])
+            
+            # 🚀 Configure Transformer Mock based on test parameters
+            if hasattr(orchestrator, "transformer_detector") and orchestrator.transformer_detector:
+                orchestrator.transformer_detector.detect.return_value = {
+                    "is_anomaly": multivariate_anomaly_detected, 
+                    "score": 0.1 if multivariate_anomaly_detected else 0.0
+                }
 
-        orchestrator.data_drift_detector.detect_drift.return_value = (data_drift_detected, {"drift_type": "KS"})
-        
-        anomalies = orchestrator._detect_anomalies()
-        assert anomalies == expected_anomalies_ml
+            orchestrator.data_drift_detector.detect_drift.return_value = (data_drift_detected, {"drift_type": "KS"})
+            
+            anomalies = orchestrator._detect_anomalies()
+            assert anomalies == expected_anomalies_ml
 
         if univariate_anomaly_detected:
             orchestrator.isolation_forest_detector.fit_predict.assert_called_once_with(ANY)

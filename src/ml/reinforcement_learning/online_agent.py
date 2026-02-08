@@ -76,13 +76,24 @@ class OnlineRLAgent:
                     latest_tick = view[-1]
                     
                     # 1. Update State & Generate State Vector (Fused JIT)
-                    prices = np.full(10, latest_tick['price'], dtype=np.float32)
+                    from src.pricing.factory import PricingEngineFactory
+                    from src.pricing.models import BSParameters
+                    
+                    current_price = float(latest_tick['price'])
+                    prices = np.full(10, current_price, dtype=np.float32)
                     strikes = np.full(10, 100.0, dtype=np.float32)
+                    
+                    # 🔥 FUSION: Real-time Greek Calculation
+                    engine = PricingEngineFactory.get_engine("black_scholes")
+                    params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
+                    g_vals = engine.calculate_greeks(params)
                     greeks = np.zeros(50, dtype=np.float32)
+                    greeks[:5] = [g_vals.delta, g_vals.gamma, g_vals.theta, g_vals.vega, g_vals.rho]
+                    
                     indicators = np.zeros(20, dtype=np.float32)
                     
                     state_vector = _fused_state_kernel(
-                        self.balance, self.initial_balance,
+                        float(self.balance), float(self.initial_balance),
                         self.positions, prices, strikes,
                         greeks, indicators,
                         self._window_buffer, self._window_idx, self.window_size
