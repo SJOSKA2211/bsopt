@@ -26,28 +26,34 @@ tune_gc(mode="high_frequency") # Optimized for high-frequency trading workers
 from src.data.xdp_ingest import XDPIngester
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 
+from src.api.websockets.manager import manager as ws_manager
+
 class IngestionWorker:
     """
-    Asynchronous ingestion worker that bridges Kafka to Postgres
-    and utilizes XDPIngester for ultra-low latency SHM updates.
+    Asynchronous ingestion worker that bridges Kafka to Postgres,
+    SHM Mesh, and real-time WebSocket clients via Redis.
     """
     def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
-        # Initialize the high-performance SHM ring buffer
         self.shm_mesh = SharedMemoryRingBuffer(create=True)
-        # 🔥 FUSION: High-priority XDP Ingester for the hot path
         self.xdp_ingester = XDPIngester(self.shm_mesh)
 
     async def _ingest_batch_callback(self, batch: list[dict]):
         """
-        Optimized batch processing for DB persistence.
-        SHM updates are handled in parallel by the XDPIngester thread.
+        Multi-path ingestion:
+        1. DB Persistence (Historical)
+        2. WebSocket Broadcast via Redis (Real-time)
+        Note: SHM is handled by XDPIngester thread.
         """
         from src.database.crud import bulk_insert_option_prices
         start_time = time.time()
         try:
-            # Transformation for DB
+            # 1. Broadast to WebSockets (Async, non-blocking)
+            for item in batch:
+                await ws_manager.broadcast_to_symbol(item['symbol'], item)
+
+            # 2. Transformation for DB
             now_utc = datetime.now(UTC)
             today_date = now_utc.date()
             
@@ -77,55 +83,31 @@ class IngestionWorker:
                 count = await bulk_insert_option_prices(db, transformed_batch)
             
             duration = time.time() - start_time
-            logger.info("persistence_complete", db_count=count, duration_ms=duration*1000)
+            logger.info("ingestion_complete", db_count=count, ws_broadcasts=len(batch), duration_ms=duration*1000)
         except Exception as e:
-            logger.error("persistence_batch_failed", error=str(e), duration_ms=(time.time() - start_time) * 1000)
+            logger.error("ingestion_batch_failed", error=str(e))
 
     async def run(self):
         self.running = True
-        
-        # Start the hot-path XDP ingester
-        logger.info("starting_xdp_ingester_thread")
         self.xdp_ingester.start()
         
         retry_delay = 1
-        max_delay = 60
-
         while self.running:
-            logger.info("ingestion_worker_iteration_start", retry_delay=retry_delay)
             try:
                 await self.consumer.consume_messages(callback=self._ingest_batch_callback)
                 break
             except Exception as e:
                 logger.error("ingestion_worker_crash", error=str(e), next_retry_s=retry_delay)
                 await asyncio.sleep(retry_delay)
-                retry_delay = min(max_delay, retry_delay * 2)
+                retry_delay = min(60, retry_delay * 2)
         
         self.xdp_ingester.stop()
         self.shm_mesh.close()
         logger.info("ingestion_worker_stop")
 
-    _ingest_batch_callback._is_batch_aware = True
-
-    async def run(self):
-        self.running = True
-        retry_delay = 1
-        max_delay = 60
-
-        while self.running:
-            logger.info("ingestion_worker_iteration_start", retry_delay=retry_delay)
-            try:
-                await self.consumer.consume_messages(callback=self._ingest_batch_callback)
-                # If it exits cleanly, we might want to stop
-                break
-            except Exception as e:
-                logger.error("ingestion_worker_crash", error=str(e), next_retry_s=retry_delay)
-                await asyncio.sleep(retry_delay)
-                # Exponential backoff
-                retry_delay = min(max_delay, retry_delay * 2)
-        
-        self.shm_mesh.close()
-        logger.info("ingestion_worker_stop")
+    def stop(self):
+        self.running = False
+        self.consumer.stop()
 
     def stop(self):
         self.running = False

@@ -7,20 +7,33 @@ from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 
 
+import msgspec
+import orjson
+from google.protobuf.json_format import MessageToDict
+from google.protobuf.message import Message
+
 class ProtocolType(StrEnum):
     JSON = "json"
     PROTO = "proto"
     MSGPACK = "msgpack"
 
 class WebSocketCodec:
+    """
+    Ultra-high-performance codec for multi-protocol serialization.
+    FUSED: Uses msgspec for binary speed.
+    """
+    _msgpack_encoder = msgspec.msgpack.Encoder()
+    _msgpack_decoder = msgspec.msgpack.Decoder()
+
     @staticmethod
     def encode(data: Any, protocol: ProtocolType) -> str | bytes:
         if protocol == ProtocolType.JSON:
             if isinstance(data, Message):
                 data = MessageToDict(data, preserving_proto_field_name=True)
-            return orjson.dumps(data).decode('utf-8')
+            # Returning bytes directly is faster for the WS layer
+            return orjson.dumps(data)
         elif protocol == ProtocolType.MSGPACK:
-            return msgpack.packb(data)
+            return WebSocketCodec._msgpack_encoder.encode(data)
         elif protocol == ProtocolType.PROTO:
             if not isinstance(data, Message):
                 raise ValueError("Data must be a Protobuf Message for PROTO protocol")

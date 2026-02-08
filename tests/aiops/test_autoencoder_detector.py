@@ -5,37 +5,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 
 
-# 🚀 BORDER CONTROL: Pre-emptive mocking
-class MockTensor(np.ndarray):
-    def __new__(cls, input_array):
-        return np.asarray(input_array).view(cls)
-    def to(self, *args, **kwargs):
-        return self
-    def float(self):
-        return self
-    def dim(self):
-        return len(self.shape)
-    def item(self):
-        return float(self.flatten()[0]) if self.size > 0 else 0.1
-    def mean(self, *args, **kwargs): 
-        res = np.mean(self, **kwargs)
-        if isinstance(res, (np.ndarray, list)):
-            return MockTensor(res)
-        return MockTensor(np.array([res]))
-    def numpy(self):
-        return np.asarray(self)
-    def backward(self):
-        pass
-    def __sub__(self, other):
-        return MockTensor(np.asarray(self) - np.asarray(other))
-    def __pow__(self, other):
-        return MockTensor(np.asarray(self) ** other)
-
-# sys.modules["torch"] = MagicMock(Tensor=MockTensor, tensor=lambda x, **k: MockTensor(x), from_numpy=lambda x: MockTensor(x), no_grad=MagicMock, __version__="2.0.0", __config__=MagicMock())
-# sys.modules["torch"].__config__.show.return_value = ""
-# sys.modules["torch.nn"] = MagicMock(Module=MagicMock)
-# sys.modules["torch.utils.data"] = MagicMock()
-# sys.modules["torch.optim"] = MagicMock()
+import torch
+import torch.nn as nn
 
 from src.aiops.autoencoder_detector import AutoencoderDetector  # noqa: E402
 
@@ -45,10 +16,16 @@ class TestAutoencoderDetector(unittest.TestCase):
         self.input_dim = 5
         self.latent_dim = 2
         
-        self.mock_model = MagicMock()
-        # Return 3 values for VAE
-        self.mock_model.return_value = (MockTensor(np.zeros((10, 5))), MockTensor(np.zeros(10)), MockTensor(np.zeros(10)))
-        self.mock_model.parameters.return_value = [MockTensor([0.1])]
+        self.mock_model = MagicMock(spec=nn.Module)
+        # Return 3 values for VAE: recon, mu, logvar
+        self.mock_model.return_value = (
+            torch.zeros((10, 5)), 
+            torch.zeros((10, 2)), 
+            torch.zeros((10, 2))
+        )
+        # Parameters must be real tensors for Adam
+        p = nn.Parameter(torch.tensor([0.1]))
+        self.mock_model.parameters.return_value = [p]
         self.mock_model.eval.return_value = self.mock_model
         self.mock_model.train.return_value = self.mock_model
 

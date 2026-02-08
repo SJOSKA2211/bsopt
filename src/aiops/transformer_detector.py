@@ -94,6 +94,7 @@ class TransformerAnomalyDetector:
             except (TypeError, ValueError, AttributeError):
                 total_loss = 0.0
     
+            culprit_idx = -1
             try:
                 culprit_idx = int(torch.argmax(per_feature_loss).item())
                 culprit_name = self.feature_names[culprit_idx]

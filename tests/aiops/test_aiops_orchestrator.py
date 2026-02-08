@@ -164,14 +164,16 @@ def test_orchestrator_run_exception_handling(mock_sleep, mock_detect, mock_confi
     mock_orchestrator_dependencies["push_metrics"].assert_called_once_with(job_name="aiops_orchestrator")
 
 
-@pytest.mark.parametrize("error_rate, latency, expected_anomalies", [
-    (0.01, 0.01, {}), # No anomalies
-    (0.2, 0.01, {"high_error_rate": True}), # High error rate
-    (0.01, 0.2, {"high_latency": True}), # High latency
-    (0.2, 0.2, {"high_error_rate": True, "high_latency": True}), # Both
-])
-def test_detect_anomalies_prometheus_metrics(mock_config, error_rate, latency, expected_anomalies, mock_orchestrator_dependencies):
-    # Create a copy of mock_config and disable ML detections for this specific test
+    @pytest.mark.parametrize("error_rate, latency, expected_anomalies", [
+        (0.01, 0.01, {}), # No anomalies
+        (0.2, 0.01, {"high_error_rate": {"metric": 0.2, "threshold": 0.1}}), # High error rate
+        (0.01, 0.2, {"high_latency": {"fallback_model": "black_scholes", "metric": 0.2, "priority": "high", "threshold": 0.1}}), # High latency
+        (0.2, 0.2, {
+            "high_error_rate": {"metric": 0.2, "threshold": 0.1},
+            "high_latency": {"fallback_model": "black_scholes", "metric": 0.2, "priority": "high", "threshold": 0.1}
+        }), # Both
+    ])
+    def test_detect_anomalies_prometheus_metrics(mock_config, error_rate, latency, expected_anomalies, mock_orchestrator_dependencies):    # Create a copy of mock_config and disable ML detections for this specific test
     config_prometheus_only = mock_config.copy()
     config_prometheus_only["anomaly_detection_enabled"] = False
     config_prometheus_only["data_drift_detection_enabled"] = False
@@ -233,15 +235,19 @@ def test_remediate_anomalies(mock_config, anomaly_detected, drift_detected, expe
         mock_orchestrator_dependencies["post_grafana_annotation"].assert_not_called()
 
 
-@pytest.mark.parametrize("univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml", [
-    (False, False, False, {}),
-    (True, False, False, {"univariate_anomaly": True}),
-    (False, True, False, {"multivariate_anomaly": True, "transformer_anomaly": True}),
-    (False, False, True, {"data_drift": True}),
-    (True, True, True, {"univariate_anomaly": True, "multivariate_anomaly": True, "data_drift": True, "transformer_anomaly": True}),
-])
-def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml, mock_orchestrator_dependencies):
-    # Create a specific config for this parameterization
+    @pytest.mark.parametrize("univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml", [
+        (False, False, False, {}),
+        (True, False, False, {"univariate_anomaly": {"status": "anomaly_detected"}}),
+        (False, True, False, {"multivariate_anomaly": {"status": "anomaly_detected"}, "transformer_anomaly": {"score": 0.1}}),
+        (False, False, True, {"data_drift": {"drift_score": 0, "fallback_model": "black_scholes"}}),
+        (True, True, True, {
+            "univariate_anomaly": {"status": "anomaly_detected"},
+            "multivariate_anomaly": {"status": "anomaly_detected"},
+            "data_drift": {"drift_score": 0, "fallback_model": "black_scholes"},
+            "transformer_anomaly": {"score": 0.1}
+        }),
+    ])
+    def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, multivariate_anomaly_detected, data_drift_detected, expected_anomalies_ml, mock_orchestrator_dependencies):    # Create a specific config for this parameterization
     current_mock_config = mock_config.copy()
     current_mock_config["anomaly_detection_enabled"] = univariate_anomaly_detected or multivariate_anomaly_detected
     current_mock_config["data_drift_detection_enabled"] = data_drift_detected
@@ -326,12 +332,11 @@ def test_detect_anomalies_transformer(mock_config, mock_orchestrator_dependencie
         orchestrator.autoencoder_detector.fit_predict.return_value = np.array([1]) # No anomaly
         
         # 🚀 Test Transformer Anomaly
-        with patch.object(orchestrator.transformer_detector, "detect") as mock_detect:
-            mock_detect.return_value = {"is_anomaly": True, "score": 0.1}
-            anomalies = orchestrator._detect_anomalies()
-            assert "transformer_anomaly" in anomalies
-            assert anomalies["transformer_anomaly"] is True
-
+                    with patch.object(orchestrator.transformer_detector, "detect") as mock_detect:
+                        mock_detect.return_value = {"is_anomaly": True, "score": 0.1}
+                        anomalies = orchestrator._detect_anomalies()
+                        assert "transformer_anomaly" in anomalies
+                        assert anomalies["transformer_anomaly"]["score"] == 0.1
 def test_orchestrator_notify(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
     message = "Test notification"

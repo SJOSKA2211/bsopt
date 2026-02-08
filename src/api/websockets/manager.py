@@ -33,7 +33,7 @@ class ConnectionMetadata:
 class ConnectionManager:
     """
     High-performance WebSocket connection manager for C100k.
-    Optimized for broadcast using orjson and Redis Pub/Sub.
+    OPTIMIZED: Binary-aware delivery with minimal serialization overhead.
     """
     def __init__(self):
         # Store active connections: { "AAPL": [ws1, ws2], "GOOG": [ws3] }
@@ -41,7 +41,8 @@ class ConnectionManager:
         
         # Redis setup for cross-worker communication
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-        self.redis = redis.from_url(redis_url, encoding="utf-8", decode_responses=True)
+        # 🔥 FUSION: Use raw bytes from Redis
+        self.redis = redis.from_url(redis_url, encoding=None, decode_responses=False)
         self.pubsub = self.redis.pubsub()
         self._listener_task = None
 
@@ -50,9 +51,9 @@ class ConnectionManager:
         try:
             async for message in self.pubsub.listen():
                 if message["type"] == "message":
-                    symbol = message["channel"]
-                    data = orjson.loads(message["data"])
-                    await self.broadcast_to_symbol(symbol, data, from_redis=True)
+                    symbol = message["channel"].decode('utf-8') if isinstance(message["channel"], bytes) else message["channel"]
+                    raw_data = message["data"]
+                    await self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True)
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -68,43 +69,38 @@ class ConnectionManager:
 
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
-             websocket.metadata = ConnectionMetadata(protocol=ProtocolType.JSON)
+             websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK) # Default to binary
 
         if symbol not in self.active_connections:
             self.active_connections[symbol] = []
-            # Subscribe to Redis topic for this symbol
             await self.pubsub.subscribe(symbol)
             
         self.active_connections[symbol].append(websocket)
         logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
-        WEBSOCKET_CONNECTIONS_TOTAL.inc() # Increment counter
-        WEBSOCKET_ACTIVE_CONNECTIONS.inc() # Increment gauge
+        WEBSOCKET_CONNECTIONS_TOTAL.inc()
+        WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
     def disconnect(self, websocket: WebSocket, symbol: str):
         """Handle disconnection and cleanup."""
         if symbol in self.active_connections:
             if websocket in self.active_connections[symbol]:
                 self.active_connections[symbol].remove(websocket)
-            
-            # Cleanup empty lists
             if not self.active_connections[symbol]:
                 del self.active_connections[symbol]
-                # In production, we'd also unsubscribe from Redis if no workers are listening
         
         logger.info("ws_disconnected", symbol=symbol)
-        WEBSOCKET_DISCONNECTIONS_TOTAL.inc() # Increment counter
-        WEBSOCKET_ACTIVE_CONNECTIONS.dec() # Decrement gauge
+        WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
+        WEBSOCKET_ACTIVE_CONNECTIONS.dec()
 
-    async def broadcast_to_symbol(self, symbol: str, message: Any, from_redis: bool = False):
+    async def broadcast_to_symbol(self, symbol: str, message: Any, from_redis: bool = False, is_raw: bool = False):
         """
         Send message to all users watching a specific ticker.
-        Supports multi-protocol broadcasting (JSON, Proto, MsgPack).
+        OPTIMIZED: Multi-protocol delivery with minimal serialization overhead.
         """
-        # If message originates locally, publish to Redis for other workers
         if not from_redis:
-            await self.redis.publish(symbol, orjson.dumps(message))
-            # If we broadcast locally now, we'll get it back from Redis listener too
-            # unless we add logic to skip. For now, let Redis be the source of truth.
+            # Originating locally: Encode to binary once and push to Redis
+            payload = WebSocketCodec.encode(message, ProtocolType.MSGPACK)
+            await self.redis.publish(symbol, payload)
             return
 
         if symbol not in self.active_connections:
@@ -114,7 +110,7 @@ class ConnectionManager:
         if not connections:
             return
 
-        # Group by protocol to encode ONCE per protocol
+        # 🚀 GOD MODE: Deliver to clients
         by_protocol: dict[ProtocolType, list[WebSocket]] = {}
         for conn in connections:
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol
@@ -125,22 +121,24 @@ class ConnectionManager:
         tasks = []
         for proto, conns in by_protocol.items():
             try:
-                encoded = WebSocketCodec.encode(message, proto)
+                # Optimized Encoding
+                if is_raw and proto == ProtocolType.MSGPACK:
+                    encoded = message # Pass-through bytes
+                else:
+                    data = WebSocketCodec.decode(message, ProtocolType.MSGPACK) if is_raw else message
+                    encoded = WebSocketCodec.encode(data, proto)
+                
                 for conn in conns:
-                    if isinstance(encoded, str):
-                        tasks.append(conn.send_text(encoded))
-                    else:
-                        tasks.append(conn.send_bytes(encoded))
+                    # Send as bytes regardless of protocol for maximum speed
+                    tasks.append(conn.send_bytes(encoded))
+                
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:
                 logger.error("ws_encode_error", symbol=symbol, protocol=proto, error=str(e))
                 continue
 
         if tasks:
-            # Execute in chunks to avoid blocking the event loop for too long
-            chunk_size = 100
-            for i in range(0, len(tasks), chunk_size):
-                await asyncio.gather(*tasks[i:i+chunk_size], return_exceptions=True)
+            await asyncio.gather(*tasks, return_exceptions=True)
 
 # Global manager instance for reuse across routes
 manager = ConnectionManager()
