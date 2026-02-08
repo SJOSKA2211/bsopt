@@ -19,7 +19,8 @@ class ChaosMonkey:
 
     def kill_actor(self, actor_name: str):
         """Terminate a random Ray actor matching the name."""
-        if not self.enabled: return
+        if not self.enabled:
+            return
         
         try:
             # Find actors by name in the Ray registry (simplified)
@@ -33,7 +34,8 @@ class ChaosMonkey:
 
     async def delay_db(self, seconds: float = 2.0):
         """Inject latency into a database connection."""
-        if not self.enabled: return
+        if not self.enabled:
+            return
         
         logger.error("chaos_injecting_db_latency", seconds=seconds)
         async with get_async_db_context() as session:
@@ -42,7 +44,8 @@ class ChaosMonkey:
 
     def partition_network(self, service_url: str):
         """Block traffic to a service URL (simulated)."""
-        if not self.enabled: return
+        if not self.enabled:
+            return
         
         logger.error("chaos_injecting_network_partition", url=service_url)
         # In production, this could update an iptables rule or the XDP filter

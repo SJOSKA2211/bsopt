@@ -11,6 +11,8 @@ from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
 from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.redis_remediator import RedisRemediator
 from src.aiops.remediation_strategies import (
+    AutonomousScalerStrategy,
+    ModelSwitchStrategy,
     PurgeCacheStrategy,
     RemediationRegistry,
     RestartServiceStrategy,
@@ -95,10 +97,11 @@ class AIOpsOrchestrator:
         retrain = RetrainModelStrategy()
         purge = PurgeCacheStrategy()
         scale = AutonomousScalerStrategy()
+        switch = ModelSwitchStrategy()
 
         self.remediation_registry.register("high_error_rate", restart)
-        self.remediation_registry.register("high_latency", restart)
-        self.remediation_registry.register("data_drift", retrain)
+        self.remediation_registry.register("high_latency", switch) # Use switch for latency
+        self.remediation_registry.register("data_drift", switch) # Use switch for drift
         self.remediation_registry.register("univariate_anomaly", purge)
         self.remediation_registry.register("multivariate_anomaly", purge)
         self.remediation_registry.register("transformer_anomaly", purge)
@@ -123,8 +126,17 @@ class AIOpsOrchestrator:
 
         # 3. Predictive Load Detection via TFT
         if self.predictive_scaling_enabled and self.forecaster:
-            # Placeholder: In production, fetch actual timeseries and run inference
-            pass
+            # OPTIMIZED: Proactive anomaly detection via forecasting
+            recent_metrics = self.prometheus_client.get_historical_metric_data(self.api_service_name)
+            if recent_metrics is not None and len(recent_metrics) > 10:
+                # Predict next 5 minutes
+                forecast = self.forecaster.predict(recent_metrics)
+                if any(forecast > self.latency_threshold * 1.5): # Predicted spike
+                    anomalies["predicted_load_spike"] = {
+                        "forecast": forecast.tolist(),
+                        "threshold": self.latency_threshold * 1.5
+                    }
+                    logger.warning("predictive_anomaly_detected", forecast_max=forecast.max())
 
         # 4. ML-Driven Anomaly Detection
         if self.anomaly_detection_enabled:

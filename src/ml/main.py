@@ -1,6 +1,7 @@
 import asyncio
 
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
 from src.ml.graphql.schema import get_context, schema
@@ -15,7 +16,6 @@ except ImportError:
 
 setup_logging()
 
-from fastapi.responses import ORJSONResponse
 
 app = FastAPI(
     title="BS-Opt ML Service",

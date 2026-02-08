@@ -17,18 +17,21 @@ def benchmark_serialization():
     
     # 1. Standard JSON
     start = time.time()
-    for _ in range(100): json.dumps(data)
+    for _ in range(100):
+        json.dumps(data)
     print(f"  - json: {time.time() - start:.4f}s")
     
     # 2. orjson
     start = time.time()
-    for _ in range(100): orjson.dumps(data)
+    for _ in range(100):
+        orjson.dumps(data)
     print(f"  - orjson: {time.time() - start:.4f}s")
     
     # 3. msgspec
     encoder = msgspec.json.Encoder()
     start = time.time()
-    for _ in range(100): encoder.encode(data)
+    for _ in range(100):
+        encoder.encode(data)
     print(f"  - msgspec: {time.time() - start:.4f}s")
 
 def benchmark_memory_access():
@@ -39,13 +42,15 @@ def benchmark_memory_access():
     # Standard Dict
     d = {f"sym_{i}": 1.0 for i in range(1000)}
     start = time.time()
-    for i in range(n): _ = d[f"sym_{i % 1000}"]
+    for i in range(n):
+        _ = d[f"sym_{i % 1000}"]
     print(f"  - Dict Lookup: {time.time() - start:.4f}s")
     
     # Vectorized Access potential
     shm = np.zeros(1000, dtype=np.float64)
     start = time.time()
-    for i in range(n): _ = shm[i % 1000]
+    for i in range(n):
+        _ = shm[i % 1000]
     print(f"  - Vectorized Read: {time.time() - start:.4f}s")
 
 def verify_hardware():

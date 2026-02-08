@@ -82,7 +82,7 @@ class SharedMemoryManager:
                 try:
                     shm.close()
                     shm.unlink()
-                except:
+                except Exception:
                     pass
             self.all_segments.clear()
             self.available_segments.clear()

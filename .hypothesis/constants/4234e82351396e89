@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/blockchain/defi_options.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.01, 1.2, 100, 'Web3 initialized', '__main__', '_amount', '_local_nonce', 'address', 'aggregate3', 'allowFailure', 'baseFeePerGas', 'big', 'blockchain_tx_error', 'bool', 'buy', 'bytes', 'callData', 'calls', 'components', 'constant', 'ether', 'from', 'function', 'gas', 'get_price', 'inputs', 'internalType', 'latest', 'maxFeePerGas', 'maxPriorityFeePerGas', 'multicall_failed', 'name', 'nonce', 'outputs', 'price', 'returnData', 'slippage_check', 'stateMutability', 'status', 'success', 'target', 'time', 'tuple[]', 'type', 'uint256', 'view', 'ws://', 'wss://']

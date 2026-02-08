@@ -8,6 +8,11 @@ import logging
 import random
 import time
 
+import numpy as np
+import pandas as pd
+
+from src.portfolio.engine import BacktestEngine
+
 from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
@@ -66,12 +71,6 @@ def execute_trade_task(self, order: dict):
     except Exception as e:
         logger.error(f"Trade execution error: {e}")
         return {"task_id": self.request.id, "status": "failed", "error": str(e)}
-
-
-import numpy as np
-import pandas as pd
-
-from src.portfolio.engine import BacktestEngine
 
 
 @celery_app.task(bind=True, queue="trading")

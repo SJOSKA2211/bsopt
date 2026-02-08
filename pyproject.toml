@@ -51,8 +51,18 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py312"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "ASYNC"]
+ignore = ["E501", "N806", "N803", "N812", "N818"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
 
 [tool.mypy]
 python_version = "3.13"

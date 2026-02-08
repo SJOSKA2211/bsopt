@@ -90,20 +90,10 @@ class MarketQuote:
     vega: float | Decimal | None = None
 
 
-try:
-    from numba import njit, prange
-except ImportError:
-    def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
-    prange = range
-
-@njit(cache=True, fastmath=True)
 def _svi_total_variance_jit(k, a, b, rho, m, sigma):
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
 
-@njit(cache=True, fastmath=True)
+
 def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     f_v = float(forward)
     k_v = strike
@@ -114,12 +104,9 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
 
     z_v = (nu / alpha) * f_k_one_minus_beta * log_f_k
     
-    # Handle ATM case
-    if abs(z_v) < 1e-8:
-        term2 = 1.0
-    else:
-        x_z = np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v * z_v) + z_v - rho) / (1.0 - rho))
-        term2 = z_v / x_z
+    # Handle ATM case vectorized
+    term2 = np.where(np.abs(z_v) < 1e-8, 1.0, 
+                     z_v / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)))
 
     term1 = alpha / (
         f_k_one_minus_beta
@@ -138,12 +125,9 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
 
     return term1 * term2 * term3
 
-@njit(parallel=True, cache=True, fastmath=True)
+
 def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu):
-    vols = np.empty_like(strikes)
-    for i in prange(len(strikes)):
-        vols[i] = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta, rho, nu)
-    return vols
+    return _sabr_implied_vol_jit(strikes, forward, maturity, alpha, beta, rho, nu)
 
 class SVIModel:
     """Stochastic Volatility Inspired (SVI) model."""
@@ -154,12 +138,6 @@ class SVIModel:
     def total_variance(self, k: float | np.ndarray) -> float | np.ndarray:
         """Calculate total variance w(k). k is log-moneyness."""
         p = self.params
-        if isinstance(k, np.ndarray):
-            # Apply JIT function over array
-            res = np.empty_like(k)
-            for i in range(len(k)):
-                res[i] = _svi_total_variance_jit(k[i], p.a, p.b, p.rho, p.m, p.sigma)
-            return res
         return _svi_total_variance_jit(k, p.a, p.b, p.rho, p.m, p.sigma)
 
     def implied_volatility(
@@ -217,7 +195,7 @@ class SABRModel:
         f_v = float(forward)
         k_v = np.atleast_1d(np.array(strike, dtype=float))
         
-        # OPTIMIZED: Parallel vectorized evaluation
+        # Vectorized evaluation
         vols = _sabr_implied_vol_batch_jit(
             k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu
         )
@@ -245,14 +223,11 @@ class CalibrationEngine:
         self.config = config or CalibrationConfig()
 
     def _svi_objective_function(self, params, k, market_vols, weights, maturity):
-        """Highly optimized objective function for SVI calibration."""
-        # Use JITed kernel directly to avoid object overhead
+        """Objective function for SVI calibration."""
         a, b, rho, m, sigma = params
         
-        # Calculate total variance using JIT kernel over the array k
-        w_v = np.empty_like(k)
-        for i in range(len(k)):
-            w_v[i] = _svi_total_variance_jit(k[i], a, b, rho, m, sigma)
+        # Calculate total variance vectorized
+        w_v = _svi_total_variance_jit(k, a, b, rho, m, sigma)
             
         # Convert total variance to implied volatility
         model_vols = np.sqrt(np.maximum(w_v / maturity, 1e-9))
@@ -387,7 +362,6 @@ class VolatilitySurface:
         t1, t2 = sorted_t[idx - 1], sorted_t[idx]
 
         # Calculate total variance at t1 and t2
-        # Since implied_volatility returns sigma, we square it and multiply by T
         vol1 = self.models[t1].implied_volatility(strike, self.forwards[t1], t1)
         vol2 = self.models[t2].implied_volatility(strike, self.forwards[t2], t2)
 

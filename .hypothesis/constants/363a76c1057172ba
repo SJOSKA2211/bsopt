@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/graphql/resolvers/option_service.py
+# hypothesis_version: 6.151.5
+
+[0.5, 100.0, 100, 'CALL', '_', 'expiry', 'price', 'strike', 'symbol', 'type']

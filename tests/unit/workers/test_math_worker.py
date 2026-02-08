@@ -17,9 +17,9 @@ with patch("src.workers.math_worker.get_settings", return_value=mock_settings):
     # Now we can safely import
     from src.workers.math_worker import health_check, recalibrate_symbol
 
-import pytest
+import pytest  # noqa: E402
 
-from src.pricing.models.heston_fft import HestonParams
+from src.pricing.models.heston_fft import HestonParams  # noqa: E402
 
 
 @pytest.fixture

@@ -66,7 +66,7 @@ class OIDCProvider:
         # Or if we're in a test environment (MOCK_JWKS setup)
         try:
             return jwt.decode(token, options={"verify_signature": False}, audience=self.audience)
-        except:
+        except Exception:
             pass
 
         # Fallback to secret (Legacy/POC)
@@ -85,7 +85,7 @@ class AuthRegistry:
         for provider in self.providers.values():
             try:
                 return await provider.verify(token)
-            except:
+            except Exception:
                 continue
         raise Exception("Invalid token")
 

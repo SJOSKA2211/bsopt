@@ -34,13 +34,14 @@ def test_metric_names_match_prd():
     # Counter strips _total suffix internally but exposes it.
     assert observability.TRAINING_ERRORS._name == 'ml_training_errors'
 
-    def test_trainer_updates_rmse():
-        """Verify that trainer updates ml_model_rmse Gauge."""
-        X = np.random.rand(10, 5)
-        y = np.random.randint(0, 2, 10)
-        trainer = InstrumentedTrainer(study_name="rmse_test")
-    
-        with patch("src.ml.tracker.MODEL_RMSE") as mock_rmse:        mock_labels = MagicMock()
+def test_trainer_updates_rmse():
+    """Verify that trainer updates ml_model_rmse Gauge."""
+    X = np.random.rand(10, 5)
+    y = np.random.randint(0, 2, 10)
+    trainer = InstrumentedTrainer(study_name="rmse_test")
+
+    with patch("src.ml.tracker.MODEL_RMSE") as mock_rmse:
+        mock_labels = MagicMock()
         mock_rmse.labels.return_value = mock_labels
         
         params = {"framework": "xgboost", "max_depth": 3}

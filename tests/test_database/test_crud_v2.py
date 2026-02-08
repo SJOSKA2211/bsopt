@@ -1,12 +1,13 @@
-import pytest
-import asyncio
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import uuid4
-from sqlalchemy import and_, func, select
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from src.database.models import Base, User, Portfolio, Position, MarketTick
+
 from src.database import crud
+from src.database.models import Base, MarketTick, Portfolio, Position
 
 # In-memory SQLite for high-speed testing
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"

@@ -3,8 +3,8 @@ Database Session Management (Neon Native)
 """
 
 import logging
-import time
 from collections.abc import AsyncGenerator, Generator
+from contextlib import asynccontextmanager, contextmanager
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -79,7 +79,9 @@ async def get_async_db() -> AsyncGenerator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         yield session
 
-from contextlib import asynccontextmanager, contextmanager
+async def set_user_context(session: AsyncSession, user_id: str):
+    """Sets the app.current_user_id in the Postgres session for RLS."""
+    await session.execute(text(f"SET LOCAL app.current_user_id = '{user_id}'"))
 
 
 @contextmanager

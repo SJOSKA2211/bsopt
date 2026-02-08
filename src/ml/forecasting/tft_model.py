@@ -147,7 +147,7 @@ class PriceTFTModel:
             logger.warning("quantization_failed", error=str(e))
             self._quantized_model = self.model
 
-    async def train(self, data: pd.DataFrame, **kwargs):
+    async def train_async(self, data: pd.DataFrame, **kwargs):
         """
         Implement TFT model training.
         """

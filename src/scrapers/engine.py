@@ -51,7 +51,7 @@ class ProxyRotator:
                         p["failures"] = h_data.get("failures", 0)
                         p["active"] = h_data.get("active", True)
                         p["latency"] = h_data.get("latency", 0.0)
-                    except:
+                    except Exception:
                         pass
 
         # Filter active proxies
@@ -100,7 +100,7 @@ class ProxyRotator:
                         "latency": proxy_obj["latency"]
                     })
                 )
-            except:
+            except Exception:
                 pass
 
 class NSEScraper:

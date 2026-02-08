@@ -1,12 +1,13 @@
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.orm import sessionmaker
 
 from src.database.crud import create_portfolio, create_user, get_user_by_email, get_user_portfolios
 from src.database.models import Base
+
 
 # Patch JSONB for SQLite
 @compiles(postgresql.JSONB, "sqlite")

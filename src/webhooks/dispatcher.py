@@ -3,7 +3,11 @@ import hmac
 import time
 from typing import Any
 
+import orjson
 import structlog
+
+from src.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
+from src.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 
@@ -46,9 +50,6 @@ async def _verify_signature(secret: str, payload: str, timestamp: int, signature
     # 3. Compare signatures (constant-time comparison to prevent timing attacks)
     return hmac.compare_digest(expected_signature, signature)
 
-from src.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
-from src.utils.http_client import HttpClientManager
-
 
 class WebhookDispatcher:
     def __init__(self, celery_app: Any, circuit_breaker: DistributedCircuitBreaker | InMemoryCircuitBreaker, dlq_task: Any):
@@ -62,7 +63,6 @@ class WebhookDispatcher:
         async def _dispatch():
             # Automatically sign the payload if a secret is provided and signature header is missing
             if secret and "X-Webhook-Signature" not in headers:
-                import orjson
                 # Use deterministic JSON serialization for consistent signatures
                 payload_str = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS).decode('utf-8')
                 signature_header = await _generate_signature(secret, payload_str)

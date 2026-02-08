@@ -1,9 +1,17 @@
 import os
+import warnings
 from typing import Any
 
 import numpy as np
 import structlog
 from scipy.stats import norm
+
+from src.pricing.models import BSParameters
+from src.pricing.quantum_backend import QuantumBackendManager
+
+# Filter deprecation warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit.*")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit_algorithms.*")
 
 try:
     import mlflow
@@ -27,54 +35,22 @@ try:
     from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
     QISKIT_AVAILABLE = True
 except ImportError:
-    class QuantumCircuit:
-        def __init__(self, *args): 
-            self.qregs = []
-            self.num_qubits = args[0] if isinstance(args[0], int) else 0
-        def add_register(self, r): 
-            self.qregs.append(r)
-            self.num_qubits += r.size
-        def depth(self): return 10
-        def size(self): return 0
-        def compose(self, *args, **kwargs): pass
-        def qubits(self): return []
-        def mcry(self, *args, **kwargs): pass
-        def x(self, *args): pass
-        @property
-        def data(self): return [1]
-    class QuantumRegister:
-        def __init__(self, size, name): self.size = size; self.name = name
-        def __getitem__(self, key): return key
-    class StatePreparation:
-        def __init__(self, *args): pass
-    class EstimationProblem:
-        def __init__(self, **kwargs): pass
-    class IterativeAmplitudeEstimation:
-        def __init__(self, **kwargs): pass
-        def estimate(self, problem):
-            class Result:
-                def __init__(self):
-                    self.estimation = 0.5
-                    self.confidence_interval = [0.49, 0.51]
-                    self.num_oracle_queries = 100
-            return Result()
-    class StatevectorSampler:
-        def __init__(self, *args, **kwargs): pass
+    # Use None for missing types to avoid misleading mocks
+    QuantumCircuit = None
+    QuantumRegister = None
+    transpile = None
+    StatePreparation = None
+    StatevectorSampler = None
+    EstimationProblem = None
+    IterativeAmplitudeEstimation = None
 
-import warnings
-
-from src.pricing.models import BSParameters
-from src.pricing.quantum_backend import QuantumBackendManager
-
-# Filter deprecation warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit.*")
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit_algorithms.*")
 
 logger = structlog.get_logger()
 
 class QuantumOptionPricer:
     """
     Quantum-accelerated option pricing using quantum amplitude estimation.
+    Uses Iterative Amplitude Estimation (IAE) for quadratic speedup.
     """
     
     def __init__(self, use_real_quantum: bool = False, backend_name: str = "aer_simulator"):
@@ -97,15 +73,19 @@ class QuantumOptionPricer:
                     from qiskit_aer import AerSimulator
                     self.backend = AerSimulator()
                 except ImportError:
-                    self.backend = MockClass()
+                    self.backend = None
         else:
-            self.backend = MockClass()
+            self.backend = None
             
         self.optimizer = QuantumCircuitOptimizer(backend=self.backend)
 
     def create_stock_price_distribution(
         self, S0: float, mu: float, sigma: float, T: float, num_qubits: int = 5
-    ) -> tuple[QuantumCircuit, np.ndarray]:
+    ) -> tuple[Any, np.ndarray]:
+        """Prepares the probability distribution of stock prices."""
+        if not QISKIT_AVAILABLE:
+            return None, np.array([])
+
         qr = QuantumRegister(num_qubits, 'price')
         qc = QuantumCircuit(qr)
 
@@ -120,15 +100,18 @@ class QuantumOptionPricer:
         probabilities = pdf / pdf.sum()
         amplitudes = np.sqrt(probabilities)
         
-        if QISKIT_AVAILABLE:
-            state_prep = StatePreparation(amplitudes.real.astype(float))
-            qc.compose(state_prep, qr, inplace=True)
+        state_prep = StatePreparation(amplitudes.real.astype(float))
+        qc.compose(state_prep, qr, inplace=True)
         
         return qc, prices
 
     def add_payoff_operator(
-        self, qc: QuantumCircuit, prices: np.ndarray, K: float, S0: float
+        self, qc: Any, prices: np.ndarray, K: float, S0: float
     ) -> None:
+        """Encodes the option payoff into an objective qubit."""
+        if not QISKIT_AVAILABLE:
+            return
+
         payoff_qubits = None
         for reg in qc.qregs:
             if reg.name == 'payoff':
@@ -151,34 +134,35 @@ class QuantumOptionPricer:
             else:
                 raise ValueError("Price register not found in circuit")
 
-        if QISKIT_AVAILABLE:
-            num_qubits = price_qubits.size
-            for i, price in enumerate(prices):
-                if price > K:
-                    payoff = price - K
-                    normalized_payoff = min(payoff / (S0 * 2.0), 1.0)
-                    angle = 2 * np.arcsin(np.sqrt(normalized_payoff))
-                    
-                    binary_state = format(i, f'0{num_qubits}b')
-                    x_indices = [j for j, bit in enumerate(reversed(binary_state)) if bit == '0']
-                            
-                    if x_indices:
-                        qc.x([price_qubits[idx] for idx in x_indices])
-                    
-                    qc.mcry(angle, price_qubits, payoff_qubits[0])
-                    
-                    if x_indices:
-                        qc.x([price_qubits[idx] for idx in x_indices])
+        num_qubits = price_qubits.size
+        # High-Fidelity encoding: map discrete prices to rotation angles
+        for i, price in enumerate(prices):
+            if price > K:
+                payoff = price - K
+                normalized_payoff = min(payoff / (S0 * 2.0), 1.0)
+                angle = 2 * np.arcsin(np.sqrt(normalized_payoff))
+                
+                binary_state = format(i, f'0{num_qubits}b')
+                x_indices = [j for j, bit in enumerate(reversed(binary_state)) if bit == '0']
+                        
+                if x_indices:
+                    qc.x([price_qubits[idx] for idx in x_indices])
+                
+                qc.mcry(angle, price_qubits, payoff_qubits[0])
+                
+                if x_indices:
+                    qc.x([price_qubits[idx] for idx in x_indices])
 
     def price_european_call_quantum(
         self, S0: float, K: float, T: float, r: float, sigma: float, num_qubits: int = 5
     ) -> dict[str, Any]:
-        qc, prices = self.create_stock_price_distribution(S0, r, sigma, T, num_qubits)
-        self.add_payoff_operator(qc, prices, K, S0)
-        
+        """Run Iterative Amplitude Estimation to calculate option price."""
         if not QISKIT_AVAILABLE:
             return self._math_fallback(S0, K, T, r, sigma)
 
+        qc, prices = self.create_stock_price_distribution(S0, r, sigma, T, num_qubits)
+        self.add_payoff_operator(qc, prices, K, S0)
+        
         payoff_qubit_index = 0
         current_idx = 0
         found = False
@@ -189,7 +173,8 @@ class QuantumOptionPricer:
                 break
             current_idx += reg.size
             
-        if not found: payoff_qubit_index = num_qubits
+        if not found:
+            payoff_qubit_index = num_qubits
 
         try:
             problem = EstimationProblem(state_preparation=qc, objective_qubits=[payoff_qubit_index])
@@ -197,17 +182,20 @@ class QuantumOptionPricer:
             iae = IterativeAmplitudeEstimation(epsilon_target=0.01, alpha=0.05, sampler=sampler)
             result = iae.estimate(problem)
             
+            # The result.estimation represents the probability of the objective qubit being |1>
+            # which maps to the expected payoff normalized by (S0 * 2.0)
             expected_payoff = result.estimation * (S0 * 2.0)
             option_price = np.exp(-r * T) * expected_payoff
             
-            # Theoretical speedup calculation based on query count
+            # Quadratic speedup factor compared to standard Monte Carlo (O(1/epsilon^2) vs O(1/epsilon))
             speedup = float(max(1.0, 1.0 / (0.01**2) / result.num_oracle_queries))
             
             return {
                 "price": float(option_price),
                 "confidence_interval": [float(v * S0 * 2.0) for v in result.confidence_interval],
                 "num_queries": result.num_oracle_queries,
-                "speedup_factor": speedup
+                "speedup_factor": speedup,
+                "backend": str(self.backend) if self.backend else "simulated"
             }
         except Exception as e:
             return self._math_fallback(S0, K, T, r, sigma, error=str(e))
@@ -224,15 +212,18 @@ class QuantumOptionPricer:
             "speedup_factor": 1.0,
             "backend": "analytical_fallback"
         }
-        if error: res["error"] = error
+        if error:
+            res["error"] = error
         return res
 
 class QuantumCircuitOptimizer:
     def __init__(self, backend: Any = None):
         self.backend = backend
         
-    def optimize_circuit(self, qc: QuantumCircuit) -> QuantumCircuit:
-        if not QISKIT_AVAILABLE: return qc
+    def optimize_circuit(self, qc: Any) -> Any:
+        """Optimize circuit for specific hardware or depth."""
+        if not QISKIT_AVAILABLE or qc is None:
+            return qc
         try:
             from qiskit.transpiler import PassManager
             from qiskit.transpiler.passes import (
@@ -242,22 +233,24 @@ class QuantumCircuitOptimizer:
             
             pm = PassManager([Optimize1qGatesDecomposition(), CommutativeCancellation()])
             
-            if self.backend and not isinstance(self.backend, MockClass):
+            if self.backend:
                 optimized_qc = transpile(qc, backend=self.backend, optimization_level=3)
             else:
                 optimized_qc = transpile(qc, optimization_level=3)
                 
             return pm.run(optimized_qc)
-        except:
+        except Exception:
             return qc
 
 class HybridQuantumClassicalPricer:
+    """Intelligently routes pricing requests between classical and quantum engines."""
     def __init__(self):
         self.quantum_pricer = QuantumOptionPricer(use_real_quantum=False)
         from src.pricing.monte_carlo import MonteCarloEngine
         self.classical_pricer = MonteCarloEngine()
         
     def price_option_adaptive(self, **params) -> dict[str, Any]:
+        """Adaptive routing based on complexity and accuracy requirements."""
         num_underlyings = params.get('num_underlyings', 1)
         accuracy_required = params.get('accuracy', 0.01)
         
@@ -280,13 +273,3 @@ class HybridQuantumClassicalPricer:
             if isinstance(res, tuple):
                 return {"price": res[0]}
             return res
-
-class MockClass:
-    def __init__(self, *args, **kwargs): pass
-    def run(self, *args, **kwargs):
-        class JobMock:
-            def result(self):
-                class ResultMock:
-                    def get_counts(self): return {"0": 100}
-                return ResultMock()
-        return JobMock()

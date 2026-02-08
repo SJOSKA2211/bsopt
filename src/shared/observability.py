@@ -1,13 +1,18 @@
 import gc
 import logging
 import os
+import random
 import time
+import uuid
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+import orjson
 import structlog
+from cachetools import LRUCache
 from fastapi import Request, Response
 from prometheus_client import REGISTRY, Counter, Gauge, Histogram, Summary, push_to_gateway
 
@@ -89,11 +94,6 @@ def tune_worker_resources():
         numba_threads=numba_threads
     )
 
-import uuid
-
-import orjson
-from cachetools import LRUCache
-
 _IP_CACHE = LRUCache(maxsize=1000)
 
 async def logging_middleware(request: Request, call_next: Callable) -> Response:
@@ -125,7 +125,6 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
 
     # Log sampling: only log 10% of successful (2xx) requests to reduce I/O overhead.
     # Always log errors (4xx, 5xx) and redirects (3xx).
-    import random
     should_log = True
     if 200 <= response.status_code < 300:
         if random.random() > 0.1: # 10% sampling rate
@@ -198,8 +197,6 @@ HESTON_PARAMS_FRESHNESS = Gauge('heston_params_freshness_seconds', 'Time since l
 ONNX_INFERENCE_LATENCY = Histogram('onnx_inference_latency_ms', 'Latency of ONNX inference in milliseconds')
 PRICING_SERVICE_DURATION = Histogram('pricing_service_duration_seconds', 'Time spent in PricingService methods', ['method'])
 ML_PROXY_PREDICT_LATENCY = Histogram('ml_proxy_predict_latency_seconds', 'Latency of ML model predictions via proxy')
-
-from concurrent.futures import ThreadPoolExecutor
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
 _METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="metrics_pusher")

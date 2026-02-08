@@ -7,7 +7,6 @@ import structlog
 from fastapi import Request, Response
 from prometheus_client import Counter, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
 
 logger = structlog.get_logger()
 

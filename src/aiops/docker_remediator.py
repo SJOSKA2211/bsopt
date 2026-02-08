@@ -1,13 +1,15 @@
+import subprocess
+from concurrent.futures import ThreadPoolExecutor
+
 import structlog
 import docker
-import subprocess
-import os
 
 logger = structlog.get_logger()
 
 class DockerRemediator:
     """
     Advanced Docker remediator supporting restarts and autonomous scaling.
+    OPTIMIZED: Non-blocking execution via thread pool.
     """
     def __init__(self):
         try:
@@ -16,38 +18,39 @@ class DockerRemediator:
         except Exception as e:
             logger.error("docker_remediator_init", status="failure", error=str(e))
             self.client = None
+        
+        self.executor = ThreadPoolExecutor(max_workers=4)
 
-    def restart_service(self, service_name: str) -> bool:
-        if not self.client: return False
+    def _run_cmd(self, cmd: list[str]) -> bool:
+        """Helper to run shell commands in the background."""
         try:
-            # Try to get by name (usually service_name_1 in compose)
-            container = self.client.containers.get(f"{service_name}-1")
-            container.restart()
-            logger.info("docker_remediator_restart", service=service_name, status="success")
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            logger.info("docker_remediator_cmd_success", cmd=cmd, output=result.stdout[:200])
             return True
-        except Exception:
-            # Fallback to shell if container name varies
-            try:
-                subprocess.run(["docker", "compose", "restart", service_name], check=True)
-                return True
-            except Exception as e:
-                logger.error("docker_remediator_restart_failed", service=service_name, error=str(e))
-                return False
+        except Exception as e:
+            logger.error("docker_remediator_cmd_failed", cmd=cmd, error=str(e))
+            return False
 
-    def scale_service(self, service_name: str, replicas: int) -> bool:
+    def restart_service(self, service_name: str):
+        """Restarts a service asynchronously."""
+        if self.client:
+            def _restart():
+                try:
+                    container = self.client.containers.get(f"{service_name}-1")
+                    container.restart()
+                    logger.info("docker_remediator_restart_sdk_success", service=service_name)
+                except Exception:
+                    self._run_cmd(["docker", "compose", "restart", service_name])
+            
+            self.executor.submit(_restart)
+        else:
+            self.executor.submit(self._run_cmd, ["docker", "compose", "restart", service_name])
+
+    def scale_service(self, service_name: str, replicas: int):
         """
-        Autonomous scaling via Docker Compose.
+        Autonomous scaling via Docker Compose (Asynchronous).
         """
         logger.warning("docker_remediator_scale_initiated", service=service_name, target_replicas=replicas)
-        try:
-            # Use docker-compose command directly for scaling
-            cmd = ["docker", "compose", "up", "-d", "--scale", f"{service_name}={replicas}", service_name]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            logger.info("docker_remediator_scale_success", service=service_name, output=result.stdout[:200])
-            return True
-        except subprocess.CalledProcessError as e:
-            logger.error("docker_remediator_scale_failed", service=service_name, error=e.stderr)
-            return False
-        except Exception as e:
-            logger.error("docker_remediator_scale_error", service=service_name, error=str(e))
-            return False
+        cmd = ["docker", "compose", "up", "-d", "--scale", f"{service_name}={replicas}", service_name]
+        self.executor.submit(self._run_cmd, cmd)
+        return True # Return true as task is submitted

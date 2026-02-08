@@ -1,3 +1,4 @@
+import importlib.util
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -8,11 +9,8 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-try:
-    import liburing
-    HAS_IO_URING = True
-except ImportError:
-    HAS_IO_URING = False
+
+HAS_IO_URING = importlib.util.find_spec("liburing") is not None
 
 class AsyncIOPersister:
     """
@@ -76,7 +74,7 @@ class SHMContextManager:
         self.shm_names = shm_names
         self.shm_objects = []
 
-    def __enter__(self) -> Generator[List[shared_memory.SharedMemory]]:
+    def __enter__(self) -> Generator[list[shared_memory.SharedMemory]]:
         try:
             for name in self.shm_names:
                 shm = shared_memory.SharedMemory(name=name)
@@ -91,7 +89,7 @@ class SHMContextManager:
         for shm in self.shm_objects:
             try:
                 shm.close()
-            except:
+            except Exception:
                 pass
         self.shm_objects.clear()
 

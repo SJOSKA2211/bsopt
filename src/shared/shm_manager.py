@@ -7,7 +7,7 @@ Uses msgspec for ultra-fast binary serialization.
 """
 
 from multiprocessing import shared_memory
-from typing import TypeVar, Generic
+from typing import TypeVar
 
 import msgspec
 import structlog
@@ -16,7 +16,7 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
-class SHMManager(Generic[T]):
+class SHMManager[T]:
     """
     Manages a shared memory block for a specific data type.
     """

@@ -17,15 +17,19 @@ def test_pyproject_toml_exists():
     assert os.path.exists("pyproject.toml")
 
 def test_dependencies_loadable():
+
     """Verify that core dependencies can be imported."""
-    try:
-        import minio
-        import mlflow
-        import numpy
-        import optuna
-        import pandas
-        import prometheus_client
-        import structlog
-        import xgboost
-    except ImportError as e:
-        pytest.fail(f"Failed to import core dependency: {e}")
+
+    import importlib
+
+    deps = ["minio", "mlflow", "numpy", "optuna", "pandas", "prometheus_client", "structlog", "xgboost"]
+
+    for dep in deps:
+
+        try:
+
+            importlib.import_module(dep)
+
+        except ImportError as e:
+
+            pytest.fail(f"Failed to import core dependency: {dep}. Error: {e}")

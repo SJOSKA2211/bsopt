@@ -1,157 +1,111 @@
 """
-Unified Mathematical Utilities - JIT Optimized
+Unified Mathematical Utilities - NumPy Optimized
 =============================================
 Consolidates critical numerical logic for cross-module consistency.
 """
 
-import math
-
 import numpy as np
+from scipy.special import erf
 
-try:
-    from numba import float64, njit, vectorize
-except ImportError:
-    def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
-    def vectorize(*args, **kwargs):
-        def decorator(func):
-            return np.vectorize(func)
-        return decorator
-    class NumbaType:
-        def __call__(self, *args):
-            return self
-    float64 = NumbaType()
 
-@vectorize([float64(float64)], cache=True, fastmath=True)
-def fast_normal_cdf(x: float) -> float:
-    """Vectorized fast approximation of the Normal CDF."""
-    return 0.5 * (1.0 + math.erf(x / 1.4142135623730951))
+def fast_normal_cdf(x):
+    """Vectorized approximation of the Normal CDF."""
+    return 0.5 * (1.0 + erf(x / 1.4142135623730951))
 
-@vectorize([float64(float64)], cache=True, fastmath=True)
-def fast_normal_pdf(x: float) -> float:
-    """Vectorized fast Normal PDF calculation."""
-    return math.exp(-0.5 * x**2) / 2.5066282746310005
+def fast_normal_pdf(x):
+    """Vectorized Normal PDF calculation."""
+    return np.exp(-0.5 * x**2) / 2.5066282746310005
 
-def scalar_normal_cdf(x: float) -> float:
-    """Scalar Normal CDF."""
-    return 0.5 * (1.0 + math.erf(x / 1.4142135623730951))
-
-def scalar_normal_pdf(x: float) -> float:
-    """Scalar Normal PDF."""
-    return math.exp(-0.5 * x**2) / 2.5066282746310005
-
-@njit(cache=True, fastmath=True)
 def calculate_d1_d2(s, k, t, sigma, r, q):
-    """Vectorized d1/d2 logic."""
+    """Unified d1/d2 logic. Handles scalars and arrays via broadcasting."""
+    s, k, t, sigma, r, q = np.broadcast_arrays(s, k, t, sigma, r, q)
     sqrt_t = np.sqrt(np.maximum(t, 1e-9))
     d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
-@njit(cache=True, fastmath=True)
 def calculate_price(s, k, t, sigma, r, q, is_call):
-    """Vectorized Black-Scholes pricing."""
-    d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
-    exp_qT = np.exp(-q * t)
-    exp_rT = np.exp(-r * t)
+    """Unified Black-Scholes pricing. Handles scalars and arrays."""
+    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     
-    cdf_d1 = fast_normal_cdf(d1)
-    cdf_d2 = fast_normal_cdf(d2)
+    # Handle t <= 0
+    t_positive = t > 0
+    prices = np.empty(s.shape, dtype=np.float64)
     
-    call_price = s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
-    put_price = k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
-    
-    # Handle T=0 payoff
-    if np.any(t <= 0):
-        call_payoff = np.maximum(s - k, 0.0)
-        put_payoff = np.maximum(k - s, 0.0)
-        call_price = np.where(t <= 0, call_payoff, call_price)
-        put_price = np.where(t <= 0, put_payoff, put_price)
+    # Positive time to expiry
+    if np.any(t_positive):
+        s_p = s[t_positive]
+        k_p = k[t_positive]
+        t_p = t[t_positive]
+        sig_p = sigma[t_positive]
+        r_p = r[t_positive]
+        q_p = q[t_positive]
+        is_call_p = is_call[t_positive]
+        
+        d1, d2 = calculate_d1_d2(s_p, k_p, t_p, sig_p, r_p, q_p)
+        cdf_d1 = fast_normal_cdf(d1)
+        cdf_d2 = fast_normal_cdf(d2)
+        
+        exp_qT = np.exp(-q_p * t_p)
+        exp_rT = np.exp(-r_p * t_p)
+        
+        price_call = s_p * exp_qT * cdf_d1 - k_p * exp_rT * cdf_d2
+        price_put = k_p * exp_rT * (1.0 - cdf_d2) - s_p * exp_qT * (1.0 - cdf_d1)
+        
+        prices[t_positive] = np.where(is_call_p, price_call, price_put)
+        
+    # Zero or negative time to expiry
+    t_zero = ~t_positive
+    if np.any(t_zero):
+        prices[t_zero] = np.where(is_call[t_zero], 
+                                  np.maximum(s[t_zero] - k[t_zero], 0.0),
+                                  np.maximum(k[t_zero] - s[t_zero], 0.0))
+        
+    # Return scalar if input was scalar
+    if prices.ndim == 0:
+        return float(max(prices, 0.0))
+    return prices
 
-    return np.where(is_call, call_price, put_price)
-
-@njit(cache=True, fastmath=True)
 def calculate_greeks(s, k, t, sigma, r, q, is_call):
-    """Vectorized Black-Scholes Greeks."""
-    d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
-    exp_qT = np.exp(-q * t)
-    exp_rT = np.exp(-r * t)
-    pdf_d1 = fast_normal_pdf(d1)
-    cdf_d1 = fast_normal_cdf(d1)
-    cdf_d2 = fast_normal_cdf(d2)
+    """Unified Black-Scholes Greeks. Handles scalars and arrays."""
+    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     
     sqrt_t = np.sqrt(np.maximum(t, 1e-9))
+    d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
+    
+    INV_SQRT2PI = 1.0 / 2.5066282746310005
+    
+    pdf_d1 = np.exp(-0.5 * d1**2) * INV_SQRT2PI
+    cdf_d1 = fast_normal_cdf(d1)
+    cdf_d2 = fast_normal_cdf(d2)
+    
+    exp_qT = np.exp(-q * t)
+    exp_rT = np.exp(-r * t)
     
     gamma = (pdf_d1 * exp_qT) / (s * sigma * sqrt_t)
     vega = s * exp_qT * pdf_d1 * sqrt_t / 100.0
     
-    delta_call = exp_qT * cdf_d1
-    delta_put = exp_qT * (cdf_d1 - 1.0)
-    delta = np.where(is_call, delta_call, delta_put)
+    # Delta
+    delta = np.where(is_call, exp_qT * cdf_d1, exp_qT * (cdf_d1 - 1.0))
     
-    rho_call = k * t * exp_rT * cdf_d2 / 100.0
-    rho_put = -k * t * exp_rT * (1.0 - cdf_d2) / 100.0
-    rho = np.where(is_call, rho_call, rho_put)
+    # Rho
+    rho = np.where(is_call, 
+                   k * t * exp_rT * cdf_d2 / 100.0,
+                   -k * t * exp_rT * (1.0 - cdf_d2) / 100.0)
     
+    # Theta
     theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
     theta_call = (theta_base - r * k * exp_rT * cdf_d2 + q * s * exp_qT * cdf_d1) / 365.0
     theta_put = (theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)) / 365.0
     theta = np.where(is_call, theta_call, theta_put)
     
-    return delta, gamma, theta, vega, rho
-
-@njit(cache=True, fastmath=True)
-def calculate_price_scalar(s, k, t, sigma, r, q, is_call):
-    """High-performance scalar pricing."""
-    if t <= 0:
-        return max(s - k, 0.0) if is_call else max(k - s, 0.0)
-        
-    sqrt_t = math.sqrt(t)
-    d1 = (math.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
-    d2 = d1 - sigma * sqrt_t
-    
-    exp_qT = math.exp(-q * t)
-    exp_rT = math.exp(-r * t)
-    
-    # Scalar CDF approximation
-    cdf_d1 = 0.5 * (1.0 + math.erf(d1 / 1.4142135623730951))
-    cdf_d2 = 0.5 * (1.0 + math.erf(d2 / 1.4142135623730951))
-    
-    if is_call:
-        return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
-    else:
-        return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
-
-@njit(cache=True, fastmath=True)
-def calculate_greeks_scalar(s, k, t, sigma, r, q, is_call):
-    """High-performance scalar greeks."""
-    t_safe = max(t, 1e-9)
-    sqrt_t = math.sqrt(t_safe)
-    d1 = (math.log(s / k) + (r - q + 0.5 * sigma**2) * t_safe) / (sigma * sqrt_t)
-    d2 = d1 - sigma * sqrt_t
-    
-    exp_qT = math.exp(-q * t)
-    exp_rT = math.exp(-r * t)
-    
-    pdf_d1 = math.exp(-0.5 * d1**2) / 2.5066282746310005
-    cdf_d1 = 0.5 * (1.0 + math.erf(d1 / 1.4142135623730951))
-    cdf_d2 = 0.5 * (1.0 + math.erf(d2 / 1.4142135623730951))
-    
-    gamma = (pdf_d1 * exp_qT) / (s * sigma * sqrt_t)
-    vega = s * exp_qT * pdf_d1 * sqrt_t / 100.0
-    
-    if is_call:
-        delta = exp_qT * cdf_d1
-        rho = k * t * exp_rT * cdf_d2 / 100.0
-        theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
-        theta = (theta_base - r * k * exp_rT * cdf_d2 + q * s * exp_qT * cdf_d1) / 365.0
-    else:
-        delta = exp_qT * (cdf_d1 - 1.0)
-        rho = -k * t * exp_rT * (1.0 - cdf_d2) / 100.0
-        theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
-        theta = (theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)) / 365.0
+    # Handle scalar return
+    if delta.ndim == 0:
+        return float(delta), float(gamma), float(theta), float(vega), float(rho)
         
     return delta, gamma, theta, vega, rho
 
+# Redundant scalar functions kept as aliases for backward compatibility but using unified logic
+calculate_price_scalar = calculate_price
+calculate_greeks_scalar = calculate_greeks
+calculate_d1_d2_scalar = calculate_d1_d2

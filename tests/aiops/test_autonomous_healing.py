@@ -1,10 +1,12 @@
+from unittest.mock import MagicMock, patch
+
+import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import MagicMock, patch
-import numpy as np
 
-from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 from src.aiops.remediators import RestartServiceRemediator, RetrainModelRemediator
+from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
+
 
 @pytest.fixture
 def mock_detector():

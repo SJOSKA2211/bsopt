@@ -1,15 +1,16 @@
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 import structlog
 from prometheus_api_client import PrometheusConnect
-from datetime import datetime, timedelta
 
 logger = structlog.get_logger()
 
-class PrometheusAdapter:
+class PrometheusClient:
     """
-    Advanced adapter for Prometheus that fetches multivariate system metrics
-    and returns them as Pandas DataFrames for anomaly and drift detection.
+    Advanced client for Prometheus that fetches multivariate system metrics
+    and returns them as NumPy arrays or DataFrames for anomaly and drift detection.
     """
     def __init__(self, url: str):
         self.url = url
@@ -25,73 +26,64 @@ class PrometheusAdapter:
             logger.error("prometheus_connectivity_failed", url=self.url, error=str(e))
             return False
 
-    def get_service_metrics(self, service: str, duration: str = "10m", step: str = "15s") -> pd.DataFrame:
-        """
-        Fetches a comprehensive set of metrics for a service as a DataFrame.
-        Includes latency, error rates, CPU, and memory.
-        """
-        logger.info("fetching_service_metrics", service=service, duration=duration)
-        
-        # Define queries
-        queries = {
-            "p95_latency": f'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{{service="{service}"}}[5m])) by (le))',
-            "error_rate": f'sum(rate(http_requests_total{{status=~"5..", service="{service}"}}[5m])) / sum(rate(http_requests_total{{service="{service}"}}[5m]))',
-            "cpu_usage": f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))',
-            "memory_usage": f'sum(container_memory_usage_bytes{{container="{service}"}})'
-        }
-        
-        df_dict = {}
-        
-        for name, query in queries.items():
-            try:
-                # Use get_metric_range_data for timeseries
-                end_time = datetime.now()
-                start_time = end_time - self._parse_duration(duration)
-                
-                result = self.prom.get_metric_range_data(
-                    metric_name=None, # Use custom query instead
-                    label_config=None,
-                    start_time=start_time,
-                    end_time=end_time,
-                    chunk_size=None,
-                    store_locally=False,
-                    custom_query=query
-                )
-                
-                if result:
-                    # result is a list of dicts, take the first one
-                    values = result[0].get("values", [])
-                    # values is [[timestamp, value], ...]
-                    if values:
-                        times = [v[0] for v in values]
-                        vals = [float(v[1]) for v in values]
-                        
-                        # Create a series indexed by timestamp
-                        # Round times to handle slight alignment issues
-                        series = pd.Series(vals, index=np.round(times).astype(int), name=name)
-                        df_dict[name] = series
-            except Exception as e:
-                logger.error("metric_fetch_failed", metric=name, error=str(e))
-                # Fill with 0.0 or NaN to maintain DataFrame structure
-                df_dict[name] = pd.Series(dtype=float)
+    def get_5xx_error_rate(self, service: str) -> float:
+        """Fetches the current 5xx error rate for a service."""
+        query = f'sum(rate(http_requests_total{{status=~"5..", service="{service}"}}[5m])) / sum(rate(http_requests_total{{service="{service}"}}[5m]))'
+        try:
+            result = self.prom.custom_query(query)
+            if result:
+                return float(result[0]['value'][1])
+            return 0.0
+        except Exception as e:
+            logger.error("error_rate_fetch_failed", error=str(e))
+            return 0.0
 
-        if not df_dict:
-            return pd.DataFrame()
+    def get_p95_latency(self, service: str) -> float:
+        """Fetches the 95th percentile latency for a service."""
+        query = f'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{{service="{service}"}}[5m])) by (le))'
+        try:
+            result = self.prom.custom_query(query)
+            if result:
+                return float(result[0]['value'][1])
+            return 0.0
+        except Exception as e:
+            logger.error("latency_fetch_failed", error=str(e))
+            return 0.0
 
-        # Join all series on timestamp
-        df = pd.DataFrame(df_dict).fillna(method='ffill').fillna(0.0)
-        df.index.name = "timestamp"
-        
-        logger.info("service_metrics_fetched", service=service, rows=len(df))
-        return df
+    def get_historical_metric_data(self, service: str, metric: str = "cpu_usage") -> np.ndarray:
+        """Fetches univariate historical data for a metric."""
+        query = f'sum(rate(container_cpu_usage_seconds_total{{container="{service}"}}[5m]))'
+        try:
+            result = self.prom.custom_query(query) # Simplified for now
+            if result:
+                # In a real implementation, we would fetch a range
+                return np.array([float(result[0]['value'][1])])
+            return np.array([])
+        except Exception as e:
+            logger.error("historical_data_fetch_failed", error=str(e))
+            return np.array([])
+
+    def get_historical_metric_data_multi(self, service: str) -> np.ndarray:
+        """Fetches multivariate historical data (CPU, Memory, Error Rate)."""
+        # Returns a [samples, features] array
+        try:
+            # Mocking range behavior for now since custom_query is used in this stub
+            cpu = self.get_historical_metric_data(service, "cpu")
+            return cpu.reshape(-1, 1) if cpu.size > 0 else np.array([])
+        except Exception as e:
+            logger.error("multivariate_data_fetch_failed", error=str(e))
+            return np.array([])
 
     def _parse_duration(self, duration: str) -> timedelta:
         """Simple duration parser (e.g. 1h, 10m)."""
         unit = duration[-1]
         val = int(duration[:-1])
-        if unit == 'h': return timedelta(hours=val)
-        if unit == 'm': return timedelta(minutes=val)
-        if unit == 's': return timedelta(seconds=val)
+        if unit == 'h':
+            return timedelta(hours=val)
+        if unit == 'm':
+            return timedelta(minutes=val)
+        if unit == 's':
+            return timedelta(seconds=val)
         return timedelta(minutes=10)
 
     async def get_latest_metrics_async(self, service: str = "api") -> pd.DataFrame:

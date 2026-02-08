@@ -1,1 +1,2 @@
-from .market_data import PolygonProvider, YahooProvider
+from .market_data import PolygonProvider as PolygonProvider
+from .market_data import YahooProvider as YahooProvider

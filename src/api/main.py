@@ -49,6 +49,13 @@ app.middleware("http")(logging_middleware)
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
     """Global exception handler."""
+    if isinstance(exc, HTTPException):
+        return ORJSONResponse(
+            status_code=exc.status_code,
+            content=exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)},
+            headers=getattr(exc, "headers", None)
+        )
+
     error_detail = str(exc)
     if settings.ENVIRONMENT != "prod": 
         import traceback
@@ -63,6 +70,7 @@ async def api_exception_handler(request: Request, exc: Exception):
     )
 
 app.add_exception_handler(Exception, api_exception_handler)
+app.add_exception_handler(HTTPException, api_exception_handler)
 
 # Dependency for Auth
 async def get_current_user(request: Request, db: Session = Depends(get_db)):

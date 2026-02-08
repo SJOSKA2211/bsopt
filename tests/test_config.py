@@ -228,10 +228,10 @@ def test_fallback_initialization_no_reload(monkeypatch):
     # The fallback tries: settings = Settings(...)
     # We want this to raise Exception so it goes to "Last resort"
     
-    def MockSettingsFail(*args, **kwargs):
+    def mock_settings_fail(*args, **kwargs):
         raise ValueError("Simulated failure in fallback Settings init")
         
-    monkeypatch.setattr(src.config, "Settings", MockSettingsFail)
+    monkeypatch.setattr(src.config, "Settings", mock_settings_fail)
     
     # Run initialization
     src.config._initialize_settings()

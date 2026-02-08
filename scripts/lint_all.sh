@@ -14,7 +14,7 @@ fi
 
 # Run Ruff
 echo "🕵️  Running Ruff..."
-ruff check .
+ruff check . --exclude get-pip.py --exclude mocks --exclude .venv --exclude node_modules --fix
 
 # Run Mypy (optional, can be slow)
 if [[ "$*" == *"--strict"* ]]; then

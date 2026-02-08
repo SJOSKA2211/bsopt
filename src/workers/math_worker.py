@@ -21,6 +21,8 @@ from src.shared.observability import (
     setup_logging,
     tune_gc,
 )
+from src.utils.distributed import RayOrchestrator
+from src.workers.ray_workers import MathActor
 
 # Optimized event loop
 try:
@@ -37,9 +39,6 @@ settings = get_settings()
 # Initialize missing references
 executor = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 async_redis_client = redis.from_url(settings.REDIS_URL)
-
-from src.utils.distributed import RayOrchestrator
-from src.workers.ray_workers import MathActor
 
 app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
 

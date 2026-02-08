@@ -55,33 +55,50 @@ class WasmModuleCache:
         return module
 
     @classmethod
-
     def map_wasm_memory(cls, instance: Any) -> np.ndarray:
-
         """Zero-copy memory view of the WASM heap."""
-
         try:
-
             # OPTIMIZED: WASM instances export a 'memory' object
-
             wasm_mem = instance.exports.memory
-
             # Map the raw linear memory to a NumPy array view
-
             # (Assuming f64 float64 layout for our pricing kernels)
-
             data_view = np.frombuffer(wasm_mem.buffer, dtype=np.float64)
-
             return data_view
-
         except Exception as e:
-
             logger.error("wasm_memory_mapping_failed", error=str(e))
-
             return np.empty(0)
 
+def get_wasm_instance() -> Any:
+    """
+    Singleton accessor for the WASM pricing instance.
+    Locates the module in the project tree and instantiates it.
+    """
+    from wasmer import Store, Instance
+    
+    # 1. Locate the WASM file
+    search_paths = [
+        "src/frontend/public/wasm/bsopt_wasm_bg.wasm",
+        "src/frontend/src/wasm/bsopt_wasm_bg.wasm",
+        "wasm/bsopt_wasm_bg.wasm"
+    ]
+    wasm_path = next((p for p in search_paths if os.path.exists(p)), None)
+    
+    if not wasm_path:
+        logger.error("wasm_module_not_found", searched=search_paths)
+        return None
 
+    try:
+        # 2. Setup wasmer environment
+        store = Store()
+        module = WasmModuleCache.get_module(store, wasm_path)
+        
+        # 3. Instantiate (No imports needed for pure math kernels)
+        instance = Instance(module)
+        logger.info("wasm_instance_created", path=wasm_path)
+        return instance
+    except Exception as e:
+        logger.error("wasm_instantiation_failed", error=str(e))
+        return None
 
 # Singleton accessor
-
 wasm_cache = WasmModuleCache()

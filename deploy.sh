@@ -2,7 +2,7 @@
 # ==============================================================================
 # BS-OPT Singularity Deployment Orchestrator v3.0
 # ==============================================================================
-# Neon-native, Fastify-proxied, Transformer-ready.
+# Postgres-native, Fastify-proxied, Transformer-ready.
 # ==============================================================================
 
 set -euo pipefail
@@ -14,7 +14,7 @@ readonly LOG_DIR="${SCRIPT_DIR}/logs"
 
 # Service tiers
 readonly TIER1_SERVICES="redis rabbitmq"
-readonly TIER2_SERVICES="api ml auth gateway" # Postgres is now Neon (Remote)
+readonly TIER2_SERVICES="api ml auth gateway" # Postgres (Remote)
 readonly TIER3_SERVICES="prometheus grafana"
 
 # --- LOGGING ---
@@ -23,10 +23,6 @@ success() { echo -e "\033[0;32m[$(date +'%Y-%m-%d %H:%M:%S')] [SUCCESS] $*\033[0
 error() { echo -e "\033[0;31m[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $*\033[0m"; }
 
 # --- CORE ---
-check_neon() {
-    log "Verifying Neon database connectivity..."
-    # We check this via the API during smoke tests to ensure the full chain is up
-}
 
 deploy() {
     log "Starting Singularity Deployment..."

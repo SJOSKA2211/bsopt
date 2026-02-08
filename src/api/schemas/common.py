@@ -6,7 +6,7 @@ Shared schemas for API responses and pagination.
 """
 
 from datetime import UTC, datetime
-from typing import Any, TypeVar, Generic
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -63,7 +63,7 @@ class SuccessResponse(BaseModel):
     )
 
 
-class DataResponse(BaseModel, Generic[T]):
+class DataResponse[T](BaseModel):
     """Standard response wrapper with data field."""
 
     success: bool = True
@@ -83,7 +83,7 @@ class PaginationMeta(BaseModel):
     has_prev: bool = Field(..., description="Whether there is a previous page")
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Paginated response wrapper."""
 
     items: list[T] = Field(..., description="List of items")

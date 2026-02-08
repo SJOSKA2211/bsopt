@@ -1,9 +1,15 @@
-import pytest
 import numpy as np
+
 from src.pricing.vol_surface import (
-    SVIModel, SABRModel, VolatilitySurface, SVIParameters, 
-    SABRParameters, CalibrationEngine, MarketQuote
+    CalibrationEngine,
+    MarketQuote,
+    SABRModel,
+    SABRParameters,
+    SVIModel,
+    SVIParameters,
+    VolatilitySurface,
 )
+
 
 def test_svi_model():
     params = SVIParameters(a=0.1, b=0.1, rho=-0.5, m=0.0, sigma=0.1)

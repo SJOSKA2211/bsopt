@@ -1,6 +1,7 @@
 import asyncio
 from typing import Any
 
+import mlflow
 import numpy as np
 import pandas as pd
 import structlog
@@ -11,11 +12,11 @@ from src.database import Base, get_async_db_context
 from src.database.models import ModelPrediction
 from src.ml.drift import DriftTrigger, PerformanceDriftMonitor
 from src.ml.indicators import (
-    _numba_adx,
-    _numba_atr,
-    _numba_bbands,
-    _numba_macd,
-    _numba_rsi,
+    get_adx,
+    get_atr,
+    get_bbands,
+    get_macd,
+    get_rsi,
 )
 from src.ml.scraper import MarketDataScraper
 from src.ml.trainer import InstrumentedTrainer
@@ -36,11 +37,17 @@ class AutonomousMLPipeline:
     def __init__(self, config: dict[str, Any]):
         setup_logging()
         self.config = config
+        
+        # 🚀 FORCE MLFLOW TO POSTGRES
+        self.db_url = config["db_url"]
+        tracking_uri = self.db_url.replace("postgresql+asyncpg", "postgresql")
+        mlflow.set_tracking_uri(tracking_uri)
+        logger.info("mlflow_tracking_configured", uri=tracking_uri)
+
         self.scraper = MarketDataScraper(
             api_key=config["api_key"], 
             provider=config.get("provider", "auto")
         )
-        self.db_url = config["db_url"]
         self.ticker = config["ticker"]
         self.study_name = config["study_name"]
         self.n_trials = config.get("n_trials", 50)
@@ -98,17 +105,17 @@ class AutonomousMLPipeline:
         vol = rolling_std(returns, window)
         df["volatility"] = np.concatenate([np.full(window - 1, np.nan), vol]) * np.sqrt(252 * 6.5 * 60)
         
-        df["RSI_14"] = _numba_rsi(closes, length=14)
-        macd, signal, hist = _numba_macd(closes, fast=12, slow=26, signal=9)
+        df["RSI_14"] = get_rsi(closes, length=14)
+        macd, signal, hist = get_macd(closes, fast=12, slow=26, signal=9)
         df["MACD_12_26_9"] = macd
         df["MACDs_12_26_9"] = signal
         df["MACDh_12_26_9"] = hist
-        lower, mid, upper = _numba_bbands(closes, length=20, std=2.0)
+        lower, mid, upper = get_bbands(closes, length=20, num_std=2.0)
         df["BBL_20_2.0"] = lower
         df["BBM_20_2.0"] = mid
         df["BBU_20_2.0"] = upper
-        df["ATR_14"] = _numba_atr(highs, lows, closes, length=14)
-        df["ADX_14"] = _numba_adx(highs, lows, closes, length=14)
+        df["ATR_14"] = get_atr(highs, lows, closes, length=14)
+        df["ADX_14"] = get_adx(highs, lows, closes, length=14)
         
         return df.dropna().copy()
 

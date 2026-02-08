@@ -11,24 +11,32 @@ class MockTensor:
         self.data = np.asarray(data)
         self.shape = self.data.shape
         self.size = self.data.size
-    def to(self, *args, **kwargs): return self
-    def float(self): return self
-    def dim(self): return len(self.shape)
-    def item(self): return float(self.data.flatten()[0]) if self.size > 0 else 0.1
-    def mean(self, *args, **kwargs): return MockTensor(np.mean(self.data, **kwargs))
-    def numpy(self): return self.data
+    def to(self, *args, **kwargs):
+        return self
+    def float(self):
+        return self
+    def dim(self):
+        return len(self.shape)
+    def item(self):
+        return float(self.data.flatten()[0]) if self.size > 0 else 0.1
+    def mean(self, *args, **kwargs):
+        return MockTensor(np.mean(self.data, **kwargs))
+    def numpy(self):
+        return self.data
     def __sub__(self, other): 
         other_data = other.data if isinstance(other, MockTensor) else np.asarray(other)
         return MockTensor(self.data - other_data)
-    def __pow__(self, other): return MockTensor(self.data ** other)
-    def __getitem__(self, idx): return MockTensor(self.data[idx])
-    def __len__(self): return len(self.data)
-    def __float__(self): return self.item() # 🚀 Critical fix for float(mock_tensor)
+    def __pow__(self, other):
+        return MockTensor(self.data ** other)
+    def __getitem__(self, idx):
+        return MockTensor(self.data[idx])
+    def __len__(self):
+        return len(self.data)
+    def __float__(self):
+        return self.item() # 🚀 Critical fix for float(mock_tensor)
 
-sys.modules["torch"] = MagicMock(Tensor=MockTensor, tensor=lambda x, **k: MockTensor(x), from_numpy=lambda x: MockTensor(x), no_grad=MagicMock)
-sys.modules["torch.nn"] = MagicMock(Module=MagicMock)
-sys.modules["torch.utils.data"] = MagicMock()
-sys.modules["torch.optim"] = MagicMock()
+# from src.aiops.transformer_detector import TransformerAnomalyDetector  # noqa: E402
+# 🚀 Moved import inside class or handled via dependency injection in tests
 
 from src.aiops.transformer_detector import TransformerAnomalyDetector
 

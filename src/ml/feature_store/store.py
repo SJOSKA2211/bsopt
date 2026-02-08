@@ -44,7 +44,8 @@ class InMemoryFeatureStore(FeatureStore):
         df = synthetic_gen.transform(df)
 
         for name in feature_names:
-            if name == "synthetic_ohlc": continue # Already handled
+            if name == "synthetic_ohlc":
+                continue # Already handled
             
             try:
                 feature = self.get_feature(name)

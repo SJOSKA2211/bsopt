@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/auth/server.py
+# hypothesis_version: 6.151.5
+
+[401, '/', '/auth', '/authorize', '/jwks', '/token', 'RS256', 'RSA', 'S256', 'auth', 'code', 'code_challenge', 'internal-key-01', 'issuer', 'jwks_uri', 'keys', 'kid', 'kty', 'public', 'sig', 'token', 'token_endpoint', 'use']

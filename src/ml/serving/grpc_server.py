@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import typing
 from concurrent import futures
 
 import grpc
@@ -22,6 +23,7 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
         self.xgb_model = xgb_model
         self.nn_ort_session = nn_ort_session
 
+    @typing.override
     async def Predict(self, request, context):
         start_time = time.perf_counter()
         model_type = request.model_type or "xgb"

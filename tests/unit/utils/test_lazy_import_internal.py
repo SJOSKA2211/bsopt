@@ -92,7 +92,8 @@ def test_lazy_import_module_attribute_error():
 
 def test_preload_modules():
     import_map = {"name": "os"}
-    class RealObject: pass
+    class RealObject:
+        pass
     obj = RealObject()
     preload_modules("os", import_map, ["name"], cache_module_override=obj)
     assert hasattr(obj, "name")
@@ -113,7 +114,8 @@ def test_get_import_stats_complex():
 
 def test_lazy_import_double_check():
     import_map = {"name": "os"}
-    class MockCache: pass
+    class MockCache:
+        pass
     cache = MockCache()
     cache.name = "already_here"
     
@@ -141,9 +143,9 @@ def test_lazy_import_circular_error_propagation(mocker):
     # The mocker fixture handles cleanup.
 
 def test_ml_init_logic():
-    import importlib
+    import importlib  # noqa: E402
 
-    import src.ml
+    import src.ml  # noqa: E402
     
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}):
         with patch('src.utils.lazy_import.preload_modules') as mock_preload: # Patch the actual function called

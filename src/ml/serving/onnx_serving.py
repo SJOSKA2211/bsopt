@@ -67,13 +67,16 @@ encoder = msgspec.json.Encoder()
 @app.on_event("startup")
 async def load_model():
     global model_server
+    import anyio
     # Prioritize quantized model if available
     quantized_path = os.getenv("ONNX_QUANTIZED_MODEL_PATH", "models/latest_pricing_int8.onnx")
     model_path = os.getenv("ONNX_MODEL_PATH", "models/latest_pricing.onnx")
     
-    final_path = quantized_path if os.path.exists(quantized_path) else model_path
+    quantized_exists = await anyio.to_thread.run_sync(os.path.exists, quantized_path)
+    final_path = quantized_path if quantized_exists else model_path
     
-    if os.path.exists(final_path):
+    final_exists = await anyio.to_thread.run_sync(os.path.exists, final_path)
+    if final_exists:
         logger.info("loading_onnx_model", path=final_path, is_quantized=(final_path == quantized_path))
         model_server = ONNXModelServer(final_path)
     else:

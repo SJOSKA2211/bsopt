@@ -140,8 +140,10 @@ class TestLazyImports:
                 pass
             
         threads = [threading.Thread(target=do_import) for _ in range(5)]
-        for t in threads: t.start()
-        for t in threads: t.join()
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
         
         assert len(results) == 5
         assert all(r is results[0] for r in results)

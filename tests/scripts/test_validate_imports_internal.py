@@ -22,8 +22,10 @@ class TestImportValidationInternal:
         # to avoid triggering the heavy loads during the validation loop logic test.
         mock_import = mocker.patch('importlib.import_module') # Changed to mocker.patch and removed 'with' statement
         mock_utils = MagicMock()
-        class MockLazyImportError(Exception): pass
-        class MockCircularImportError(Exception): pass
+        class MockLazyImportError(Exception):
+            pass
+        class MockCircularImportError(Exception):
+            pass
         mock_utils.LazyImportError = MockLazyImportError
         mock_utils.CircularImportError = MockCircularImportError
         
@@ -39,8 +41,10 @@ class TestImportValidationInternal:
     def test_validate_lazy_imports_failure(self, mock_structure, mocker): # Added mocker
         mock_import = mocker.patch('importlib.import_module') # Changed to mocker.patch and removed 'with' statement
         mock_utils = MagicMock()
-        class MockLazyImportError(Exception): pass
-        class MockCircularImportError(Exception): pass
+        class MockLazyImportError(Exception):
+            pass
+        class MockCircularImportError(Exception):
+            pass
         mock_utils.LazyImportError = MockLazyImportError
         mock_utils.CircularImportError = MockCircularImportError
         

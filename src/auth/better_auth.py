@@ -25,7 +25,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
     if not session:
          return None
          
-    if session.expiresAt < datetime.now():
+    if session.expires_at < datetime.now():
          return None
          
     # Link Better Auth user to Legacy User via Email

@@ -79,7 +79,7 @@ def mock_orchestrator_dependencies():
             "logger": mock_orchestrator_logger, # Yield the patched logger
         }
 
-from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+from src.aiops.aiops_orchestrator import AIOpsOrchestrator  # noqa: E402
 
 
 def test_orchestrator_init_all_enabled(mock_config, mock_orchestrator_dependencies):

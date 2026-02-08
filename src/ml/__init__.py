@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from src.utils.lazy_import import get_import_stats, lazy_import, preload_modules
 

@@ -1,9 +1,14 @@
 """
-Generated Protocol Buffer definitions.
-Auto-generated - do not edit manually.
 """
 try:
-    from .inference_pb2 import *
-    from .inference_pb2_grpc import *
+    from .inference_pb2 import InferenceRequest, InferenceResponse
+    from .inference_pb2_grpc import MLInferenceServicer, MLInferenceStub
+    
+    __all__ = [
+        "InferenceRequest",
+        "InferenceResponse",
+        "MLInferenceServicer",
+        "MLInferenceStub",
+    ]
 except ImportError:
-    pass
+    __all__ = []

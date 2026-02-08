@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/api/middleware/idempotency.py
+# hypothesis_version: 6.151.5
+
+[409, 500, 86400, 'HIT', 'LOCKED', 'PATCH', 'POST', 'PUT', 'X-Idempotency-Cache', 'X-Idempotency-Key', 'authorization', 'body', 'cache_hit', 'cached', 'conflict', 'content', 'content-type', 'headers', 'idempotency_conflict', 'read', 'skipped', 'status', 'status_code', 'uncached', 'utf-8']

@@ -23,12 +23,18 @@ async def run():
                     action = f"{action}_{sector}"
 
                 try:
+                    import anyio
                     body = await response.text()
                     fname = f"nse_ajax_{action}.html"
-                    with open(os.path.join(TEMP_DIR, fname), "w") as f:
-                        f.write(body)
+                    fpath = os.path.join(TEMP_DIR, fname)
+                    
+                    def write_file():
+                        with open(fpath, "w") as f:
+                            f.write(body)
+                            
+                    await anyio.to_thread.run_sync(write_file)
                     print(f"Saved {fname}")
-                except:
+                except Exception:
                     pass
 
         page.on("response", handle_response)

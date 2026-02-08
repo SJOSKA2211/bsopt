@@ -7,7 +7,13 @@ import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
-from torch.nn.parallel import DistributedDataParallel as DDP
+
+try:
+    from torch.nn.parallel import DistributedDataParallel as DDP  # noqa: N817
+    HAS_DDP = True
+except ImportError:
+    DDP = None
+    HAS_DDP = False
 from torch.utils.data import DataLoader, DistributedSampler, TensorDataset
 
 from src.ml.architectures.neural_network import OptionPricingNN

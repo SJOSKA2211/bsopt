@@ -1,7 +1,6 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from src.ml.training.train_v2 import TransformerAdapter, train_neural_network
 
+from src.ml.training.train_v2 import train_neural_network
 
 
 @patch("src.ml.training.train_v2.Trainer")

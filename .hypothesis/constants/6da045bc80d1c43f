@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/aiops/prometheus_adapter.py
+# hypothesis_version: 6.151.5
+
+[0.0, 'api', 'cpu', 'cpu_usage', 'h', 'latency_fetch_failed', 'm', 's', 'value']

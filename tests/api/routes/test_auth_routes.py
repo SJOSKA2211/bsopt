@@ -23,10 +23,14 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def mock_all():
-    m_auth = MagicMock(); m_auth.validate_token = AsyncMock(); m_auth.invalidate_token = AsyncMock()
+    m_auth = MagicMock()
+    m_auth.validate_token = AsyncMock()
+    m_auth.invalidate_token = AsyncMock()
     m_auth.create_token_pair.return_value = MagicMock(access_token="a", refresh_token="r", token_type="b", expires_in=1)
     app.dependency_overrides[get_auth_service] = lambda: m_auth
-    m_pwd = MagicMock(); m_pwd.validate_password.return_value = MagicMock(is_valid=True); m_pwd.verify_password.return_value = True
+    m_pwd = MagicMock()
+    m_pwd.validate_password.return_value = MagicMock(is_valid=True)
+    m_pwd.verify_password.return_value = True
     app.dependency_overrides[get_password_service] = lambda: m_pwd
     m_db = MagicMock()
     m_res = MagicMock()
@@ -47,14 +51,26 @@ def mock_all():
 
 def create_mock_user(**kwargs):
     u = MagicMock(spec=User)
-    u.id = uuid.uuid4(); u.email = "t@e.com"; u.tier = "free"; u.is_verified = True; u.is_active = True
-    u.is_mfa_enabled = False; u.mfa_secret = "s"; u.mfa_backup_codes = None; u.hashed_password = "h"
-    u.__table__ = MagicMock(); c = MagicMock(); c.name = "id"; u.__table__.columns = [c]
-    for k, v in kwargs.items(): setattr(u, k, v)
+    u.id = uuid.uuid4()
+    u.email = "t@e.com"
+    u.tier = "free"
+    u.is_verified = True
+    u.is_active = True
+    u.is_mfa_enabled = False
+    u.mfa_secret = "s"
+    u.mfa_backup_codes = None
+    u.hashed_password = "h"
+    u.__table__ = MagicMock()
+    c = MagicMock()
+    c.name = "id"
+    u.__table__.columns = [c]
+    for k, v in kwargs.items():
+        setattr(u, k, v)
     return u
 
 def test_login_flow(mock_all):
-    m_auth, _, m_db = mock_all; u = create_mock_user()
+    m_auth, _, m_db = mock_all
+    u = create_mock_user()
     m_auth.authenticate_user = AsyncMock(return_value=u)
     # Success
     assert client.post("/auth/login", json={"email": "t@e.com", "password": "Password123!"}).status_code == 200
@@ -63,12 +79,14 @@ def test_login_flow(mock_all):
     with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
         assert client.post("/auth/login", json={"email": "t@e.com", "password": "p", "mfa_code": "123456"}).status_code == 200
     # DB Fail
-    u.is_mfa_enabled = False; m_db.commit.side_effect = Exception("f")
+    u.is_mfa_enabled = False
+    m_db.commit.side_effect = Exception("f")
     assert client.post("/auth/login", json={"email": "t@e.com", "password": "p"}).status_code == 200
     m_db.rollback.assert_called()
 
 def test_logout_flow(mock_all):
-    m_auth, _, _ = mock_all; u = create_mock_user()
+    m_auth, _, _ = mock_all
+    u = create_mock_user()
     app.dependency_overrides[get_current_user] = lambda: u
     # Token logic (243)
     assert client.post("/auth/logout", headers={"Authorization": "Bearer tok"}).status_code == 200
@@ -86,7 +104,9 @@ def test_register_flow(mock_all):
         assert client.post("/auth/register", json=payload).status_code == 500
 
 def test_deps_exhaustive(mock_all):
-    m_auth, _, m_db = mock_all; req = MagicMock(); tok = MagicMock(user_id="123")
+    m_auth, _, m_db = mock_all
+    req = MagicMock()
+    tok = MagicMock(user_id="123")
     with patch("src.api.routes.auth.get_auth_service", return_value=m_auth):
         m_auth.validate_token.return_value = tok
         # Cache hit
@@ -101,7 +121,8 @@ def test_deps_exhaustive(mock_all):
             assert asyncio.run(get_current_user(req, token="t", db=m_db)) == u2
             assert ms.called
 def test_mfa_exhaustive(mock_all):
-    m_auth, _, m_db = mock_all; u = create_mock_user(mfa_secret="s", is_mfa_enabled=True)
+    m_auth, _, m_db = mock_all
+    u = create_mock_user(mfa_secret="s", is_mfa_enabled=True)
     app.dependency_overrides[get_current_active_user] = lambda: u
     with patch("src.api.routes.auth.get_auth_service", return_value=m_auth):
         m_auth.validate_token.return_value = MagicMock(user_id=str(u.id))
@@ -111,10 +132,14 @@ def test_mfa_exhaustive(mock_all):
     app.dependency_overrides.pop(get_current_active_user, None)
 
 def test_helpers_final(mock_all):
-    _, _, m_db = mock_all; create_mock_user(mfa_secret="e", mfa_backup_codes="h1")
+    _, _, m_db = mock_all
+    create_mock_user(mfa_secret="e", mfa_backup_codes="h1")
     with patch("src.api.routes.auth.send_transactional_email.delay") as md:
-        asyncio.run(_send_verification_email("a@b.com", "t")); assert md.called
-        md.reset_mock(); asyncio.run(_send_password_reset_email("a@b.com", "t")); assert md.called
+        asyncio.run(_send_verification_email("a@b.com", "t"))
+        assert md.called
+        md.reset_mock()
+        asyncio.run(_send_password_reset_email("a@b.com", "t"))
+        assert md.called
     with patch("src.api.routes.auth.AES256GCM") as mf:
         mf.return_value.decrypt.side_effect = Exception("f")
         h = hashlib.sha256(b"123").hexdigest()

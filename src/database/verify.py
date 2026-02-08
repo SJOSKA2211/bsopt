@@ -26,7 +26,7 @@ def verify_connection():
         print(f"Target: {safe_url}")
         
         if "sqlite" in db_url:
-            print("⚠️  WARNING: Using SQLite. Neon/Postgres is recommended for production.")
+            print("⚠️  WARNING: Using SQLite. PostgreSQL is recommended for production.")
         
         engine = create_engine(db_url)
         with engine.connect() as conn:

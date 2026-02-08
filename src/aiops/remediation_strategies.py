@@ -60,6 +60,25 @@ class AutonomousScalerStrategy(RemediationStrategy):
         if success:
             orchestrator.notify(f"AIOps: Autonomously scaled {service_name} to {target_replicas} replicas.", ["aiops", "remediation", "scale"])
 
+class ModelSwitchStrategy(RemediationStrategy):
+    """Strategy to hot-swap model implementations during drift or latency spikes."""
+    supported_types = ["data_drift", "performance_degradation", "model_instability", "predicted_load_spike"]
+    
+    def execute(self, orchestrator: Any, anomaly_data: dict[str, Any]):
+        from src.pricing.factory import PricingEngineFactory
+        
+        fallback_model = anomaly_data.get("fallback_model", "black_scholes")
+        current_model = anomaly_data.get("model", "unknown")
+        
+        logger.warning("remediation_model_switch_trigger", from_model=current_model, to_model=fallback_model)
+        
+        # Hot-swap the factory's default engine
+        PricingEngineFactory.set_default_engine(fallback_model)
+        
+        orchestrator.notify(
+            f"AIOps: Switched active model from {current_model} to {fallback_model} due to anomaly.", 
+            ["aiops", "remediation", "model_switch"]
+        )
 
 class RemediationRegistry:
     """Registry to map anomaly types to remediation strategies."""

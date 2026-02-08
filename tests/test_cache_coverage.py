@@ -246,7 +246,8 @@ async def test_redis_error_type_hit(monkeypatch):
     
     # Create a mock module that looks real
     mock_aioredis = types.ModuleType("redis.asyncio")
-    class RealError(Exception): pass
+    class RealError(Exception):
+        pass
     mock_aioredis.RedisError = RealError
     mock_aioredis.Redis = MagicMock()
     mock_aioredis.ConnectionPool = MagicMock()

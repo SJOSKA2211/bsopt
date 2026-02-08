@@ -7,26 +7,37 @@ import numpy as np
 
 # 🚀 BORDER CONTROL: Pre-emptive mocking
 class MockTensor(np.ndarray):
-    def __new__(cls, input_array): return np.asarray(input_array).view(cls)
-    def to(self, *args, **kwargs): return self
-    def float(self): return self
-    def dim(self): return len(self.shape)
-    def item(self): return float(self.flatten()[0]) if self.size > 0 else 0.1
+    def __new__(cls, input_array):
+        return np.asarray(input_array).view(cls)
+    def to(self, *args, **kwargs):
+        return self
+    def float(self):
+        return self
+    def dim(self):
+        return len(self.shape)
+    def item(self):
+        return float(self.flatten()[0]) if self.size > 0 else 0.1
     def mean(self, *args, **kwargs): 
         res = np.mean(self, **kwargs)
-        if isinstance(res, (np.ndarray, list)): return MockTensor(res)
+        if isinstance(res, (np.ndarray, list)):
+            return MockTensor(res)
         return MockTensor(np.array([res]))
-    def numpy(self): return np.asarray(self)
-    def backward(self): pass
-    def __sub__(self, other): return MockTensor(np.asarray(self) - np.asarray(other))
-    def __pow__(self, other): return MockTensor(np.asarray(self) ** other)
+    def numpy(self):
+        return np.asarray(self)
+    def backward(self):
+        pass
+    def __sub__(self, other):
+        return MockTensor(np.asarray(self) - np.asarray(other))
+    def __pow__(self, other):
+        return MockTensor(np.asarray(self) ** other)
 
-sys.modules["torch"] = MagicMock(Tensor=MockTensor, tensor=lambda x, **k: MockTensor(x), from_numpy=lambda x: MockTensor(x), no_grad=MagicMock)
-sys.modules["torch.nn"] = MagicMock(Module=MagicMock)
-sys.modules["torch.utils.data"] = MagicMock()
-sys.modules["torch.optim"] = MagicMock()
+# sys.modules["torch"] = MagicMock(Tensor=MockTensor, tensor=lambda x, **k: MockTensor(x), from_numpy=lambda x: MockTensor(x), no_grad=MagicMock, __version__="2.0.0", __config__=MagicMock())
+# sys.modules["torch"].__config__.show.return_value = ""
+# sys.modules["torch.nn"] = MagicMock(Module=MagicMock)
+# sys.modules["torch.utils.data"] = MagicMock()
+# sys.modules["torch.optim"] = MagicMock()
 
-from src.aiops.autoencoder_detector import AutoencoderDetector
+from src.aiops.autoencoder_detector import AutoencoderDetector  # noqa: E402
 
 
 class TestAutoencoderDetector(unittest.TestCase):

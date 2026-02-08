@@ -31,7 +31,8 @@ class OptionsDataValidator:
                 return False
             # Check for negative strikes (logical validation)
             for r in records:
-                if r.strike < 0: return False
+                if r.strike < 0:
+                    return False
             return True
         except Exception:
             return False

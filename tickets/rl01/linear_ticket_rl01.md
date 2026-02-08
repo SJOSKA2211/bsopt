@@ -1,24 +1,27 @@
 ---
 id: rl01
-title: Optimize RL Transformer Policy & Extractor
-status: Triage
+title: RL Policy Advancement
+status: Done
 priority: High
 project: bsopt
-created: 2026-02-06
-updated: 2026-02-06
+created: 2026-02-08
+updated: 2026-02-08
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
-labels: [rl, pytorch, optimization]
-assignee: Morty
+labels: [rl, deep-learning, sota]
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-The `TransformerSingularityExtractor` and `DecisionTransformer` in `transformer_policy.py` use inefficient tensor operations (manual interleaving, unsqueeze/squeeze in tight loops) and have "Singularity" slop.
+`offline_train.py` is a skeleton. GNN is basic.
 
 ## Solution
-1. Rename `TransformerSingularityExtractor` to `TransformerFeatureExtractor`.
-2. Optimize tensor interleaving in `DecisionTransformer.forward` using `torch.stack` and `reshape` instead of `zeros` + slice assignment.
-3. Remove "Singularity" and "SOTA" comments.
+1. Implement Return-to-go computation and trajectory loading in `offline_train.py`.
+2. Upgrade `gnn_policy.py` to use Graph Attention Layers (GAT) or Transformer-based graph layers.
+3. Ensure end-to-end training functionality for the Decision Transformer.
+
+# Discussion
+- 2026-02-08 Pickle Rick: Implemented full offline training loop for Decision Transformer. Upgraded GNN Feature Extractor to use GATConv (Graph Attention) for superior option surface modeling. Purged Jerry-level fallbacks.

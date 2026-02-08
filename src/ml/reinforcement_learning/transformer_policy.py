@@ -3,6 +3,8 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from stable_baselines3.td3.policies import TD3Policy
 
 
 class CausalSelfAttention(nn.Module):
@@ -157,9 +159,6 @@ class DecisionTransformer(nn.Module):
         state_preds = self.predict_state(x_reshaped[:, :, 2, :])
 
         return state_preds, action_preds, return_preds
-
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from stable_baselines3.td3.policies import TD3Policy
 
 
 class TransformerFeatureExtractor(BaseFeaturesExtractor):

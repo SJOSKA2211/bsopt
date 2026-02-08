@@ -1,6 +1,5 @@
 """
 Application configuration management.
-Neon and OAuth 2.0 optimized.
 """
 
 import structlog
@@ -18,8 +17,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
 
-    # Database Configuration (Neon Optimized)
-    # Neon uses 'postgresql://' strings. Ensure we handle pooled connections.
+    # Database Configuration
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
     DATABASE_MIN_POOL_SIZE: int = 10
     DATABASE_MAX_POOL_SIZE: int = 50
@@ -30,7 +28,7 @@ class Settings(BaseSettings):
     def validate_database_url(cls, v: str) -> str:
         if not v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
             if "sqlite" not in v:
-                raise ValueError("DATABASE_URL must be a PostgreSQL connection string for Neon integration.")
+                raise ValueError("DATABASE_URL must be a valid PostgreSQL connection string.")
         return v
 
     # Redis Configuration
@@ -76,6 +74,15 @@ class Settings(BaseSettings):
     JWT_PUBLIC_KEY: str | None = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    
+    # Authentication Policy
+    PASSWORD_MIN_LENGTH: int = 8
+    PASSWORD_REQUIRE_UPPERCASE: bool = True
+    PASSWORD_REQUIRE_LOWERCASE: bool = True
+    PASSWORD_REQUIRE_DIGIT: bool = True
+    PASSWORD_REQUIRE_SPECIAL: bool = True
+    REQUIRE_EMAIL_VERIFICATION: bool = True
+    MFA_ENCRYPTION_KEY: str = Field(default="kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU=", validation_alias="MFA_ENCRYPTION_KEY")
 
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300
@@ -136,10 +143,8 @@ class Settings(BaseSettings):
     # MLflow tracking URI
     @property
     def tracking_uri(self) -> str:
-        """Point MLflow to Postgres in production."""
-        if self.ENVIRONMENT == "prod":
-            return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
-        return "sqlite:///mlflow.db"
+        """Point MLflow to Postgres always."""
+        return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
 
     # Dask & Distributed
     DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = 1

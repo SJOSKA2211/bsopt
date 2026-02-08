@@ -95,16 +95,17 @@ class AsianOptionPricer:
         if T <= 1e-12:
             return float(max(S - K, 0.0) if is_call else max(K - S, 0.0)), 0.0
 
-        # JIT accelerated path generation
-        paths = jit_generate_paths(S, T, r, sigma, q, n_paths, params.n_observations)
+        # Use log paths to avoid redundant log/exp calls
+        from src.pricing.quant_utils import jit_generate_log_paths
+        log_paths = jit_generate_log_paths(S, T, r, sigma, q, n_paths, params.n_observations)
+        paths = np.exp(log_paths).T
         
-        # JIT accelerated payoff calculation
+        # Vectorized payoff calculation
         y_sim = _jit_arithmetic_asian_payoff(paths, K, r, T, is_call, is_fixed)
 
         if use_cv and is_fixed:
-            # For control variate, we still use the analytical geometric price
-            # But we can JIT the geometric payoff calculation too if needed.
-            geom_mean = np.exp(np.mean(np.log(paths[:, 1:]), axis=1))
+            # log_paths is (n_steps+1, n_paths). paths[:, 1:] corresponds to log_paths[1:, :].T
+            geom_mean = np.exp(np.mean(log_paths[1:, :], axis=0))
             geo_payoff = (
                 np.maximum(geom_mean - K, 0)
                 if is_call
@@ -121,77 +122,44 @@ class AsianOptionPricer:
         return float(np.mean(y_sim)), float(1.96 * np.std(y_sim) / np.sqrt(n_paths))
 
 
-from src.pricing.quant_utils import jit_generate_paths
-
-try:
-    from numba import njit, prange
-except ImportError:
-    def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
-    prange = range
-
-@njit(parallel=True, cache=True, fastmath=True)
 def _jit_arithmetic_asian_payoff(
     paths: np.ndarray, K: float, r: float, T: float, is_call: bool, is_fixed: bool
 ) -> np.ndarray:
-    n_paths = paths.shape[0]
-    payoffs = np.empty(n_paths, dtype=np.float64)
     exp_rt = np.exp(-r * T)
+    arith_mean = np.mean(paths[:, 1:], axis=1)
     
-    for i in prange(n_paths):
-        # Average excluding t=0 (spot)
-        arith_mean = np.mean(paths[i, 1:])
-        
-        if is_fixed:
-            if is_call:
-                payoffs[i] = max(arith_mean - K, 0.0)
-            else:
-                payoffs[i] = max(K - arith_mean, 0.0)
-        else: # Floating strike
-            if is_call:
-                payoffs[i] = max(paths[i, -1] - arith_mean, 0.0)
-            else:
-                payoffs[i] = max(arith_mean - paths[i, -1], 0.0)
+    if is_fixed:
+        if is_call:
+            payoffs = np.maximum(arith_mean - K, 0.0)
+        else:
+            payoffs = np.maximum(K - arith_mean, 0.0)
+    else: # Floating strike
+        if is_call:
+            payoffs = np.maximum(paths[:, -1] - arith_mean, 0.0)
+        else:
+            payoffs = np.maximum(arith_mean - paths[:, -1], 0.0)
                 
     return payoffs * exp_rt
 
-@njit(parallel=True, cache=True, fastmath=True)
 def _jit_lookback_payoff(
     paths: np.ndarray, K: float, r: float, T: float, is_call: bool, is_floating: bool
 ) -> np.ndarray:
-    n_paths = paths.shape[0]
-    payoffs = np.empty(n_paths, dtype=np.float64)
     exp_rt = np.exp(-r * T)
     
-    for i in prange(n_paths):
-        if is_floating:
-            if is_call:
-                # paths[:, -1] - np.min(paths, axis=1)
-                min_s = paths[i, 0]
-                for j in range(1, paths.shape[1]):
-                    if paths[i, j] < min_s: min_s = paths[i, j]
-                payoffs[i] = max(paths[i, -1] - min_s, 0.0)
-            else:
-                # np.max(paths, axis=1) - paths[:, -1]
-                max_s = paths[i, 0]
-                for j in range(1, paths.shape[1]):
-                    if paths[i, j] > max_s: max_s = paths[i, j]
-                payoffs[i] = max(max_s - paths[i, -1], 0.0)
-        else: # Fixed strike
-            if is_call:
-                # np.maximum(np.max(paths, axis=1) - K, 0)
-                max_s = paths[i, 0]
-                for j in range(1, paths.shape[1]):
-                    if paths[i, j] > max_s: max_s = paths[i, j]
-                payoffs[i] = max(max_s - K, 0.0)
-            else:
-                # np.maximum(K - np.min(paths, axis=1), 0)
-                min_s = paths[i, 0]
-                for j in range(1, paths.shape[1]):
-                    if paths[i, j] < min_s: min_s = paths[i, j]
-                payoffs[i] = max(K - min_s, 0.0)
+    if is_floating:
+        if is_call:
+            min_s = np.min(paths, axis=1)
+            payoffs = np.maximum(paths[:, -1] - min_s, 0.0)
+        else:
+            max_s = np.max(paths, axis=1)
+            payoffs = np.maximum(max_s - paths[:, -1], 0.0)
+    else: # Fixed strike
+        if is_call:
+            max_s = np.max(paths, axis=1)
+            payoffs = np.maximum(max_s - K, 0.0)
+        else:
+            min_s = np.min(paths, axis=1)
+            payoffs = np.maximum(K - min_s, 0.0)
                 
     return payoffs * exp_rt
 
@@ -201,8 +169,8 @@ class BarrierOptionPricer:
         params: ExoticParameters, option_type: str, barrier_type: BarrierType
     ) -> float:
         """
-        Implementation of the Reiner-Rubinstein (1991) analytical solution.
-        Supports standard barrier option types with exact closed-form math.
+        Implementation of Reiner-Rubinstein (1991) formulas.
+        Follows Haug (2007) Table 4-4 carefully.
         """
         S, K, T, r, q, sigma = (
             params.base_params.spot,
@@ -214,66 +182,79 @@ class BarrierOptionPricer:
         )
         H, R = params.barrier, params.rebate
         
+        # Validation
+        if "up" in barrier_type.value and H < S:
+            raise ValueError("Up-barrier must be above spot")
+        if "down" in barrier_type.value and H > S:
+            raise ValueError("Down-barrier must be below spot")
+
         if T <= 1e-12:
             payoff = max(S - K, 0.0) if option_type == "call" else max(K - S, 0.0)
             is_up = "up" in barrier_type.value
             is_out = "out" in barrier_type.value
             hit = (S >= H) if is_up else (S <= H)
-            return R if (is_out and hit) else (0.0 if (not is_out and not hit) else payoff)
+            return float(R if (is_out and hit) else (0.0 if (not is_out and not hit) else payoff))
 
         b = r - q
-        mu = (b - 0.5 * sigma**2) / sigma**2
-        lam = np.sqrt(mu**2 + 2 * r / sigma**2)
+        sig = max(sigma, 1e-12)
+        mu = (b - 0.5 * sig**2) / sig**2
+        lam = np.sqrt(mu**2 + 2 * r / sig**2)
         
+        phi = 1 if option_type == "call" else -1
+        eta = 1 if "down" in barrier_type.value else -1
+        
+        sqrt_T = np.sqrt(T)
+        sig_sqrt_T = sig * sqrt_T
+        
+        # Consistent RR/Haug components
+        x1 = np.log(S / K) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+        x2 = np.log(S / H) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+        y1 = np.log(H**2 / (S * K)) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+        y2 = np.log(H / S) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+
+        def _n(x):
+            return norm.cdf(x)
+        exp_br_T = np.exp((b - r) * T)
+        exp_r_T = np.exp(-r * T)
+        
+        A = phi * S * exp_br_T * _n(phi * x1) - phi * K * exp_r_T * _n(phi * (x1 - sig_sqrt_T))
+        B = phi * S * exp_br_T * _n(phi * x2) - phi * K * exp_r_T * _n(phi * (x2 - sig_sqrt_T))
+        C = phi * S * exp_br_T * (H / S)**(2 * (mu + 1)) * _n(eta * y1) - \
+            phi * K * exp_r_T * (H / S)**(2 * mu) * _n(eta * (y1 - sig_sqrt_T))
+        D = phi * S * exp_br_T * (H / S)**(2 * (mu + 1)) * _n(eta * y2) - \
+            phi * K * exp_r_T * (H / S)**(2 * mu) * _n(eta * (y2 - sig_sqrt_T))
+        
+        # Rebate components E and F
+        E = R * exp_r_T * (_n(eta * (x2 - sig_sqrt_T)) - (H / S)**(2 * mu) * _n(eta * (y2 - sig_sqrt_T)))
+        F = 0.0
+        if R != 0:
+            F = R * ((H/S)**(mu+lam) * _n(eta * (np.log(H/S) / sig_sqrt_T + lam * sig_sqrt_T)) + \
+                     (H/S)**(mu-lam) * _n(eta * (np.log(H/S) / sig_sqrt_T - lam * sig_sqrt_T)))
+
+        price = 0.0
         is_call = option_type == "call"
-        phi = 1 if is_call else -1
-        eta = 1 if "up" in barrier_type.value else -1
         
-        def _f_cdf(x): return norm.cdf(x)
+        # RR Dispatch (Haug Table 4-4)
+        if is_call:
+            if barrier_type == BarrierType.DOWN_AND_IN:
+                price = C if H <= K else A - B + D
+            elif barrier_type == BarrierType.DOWN_AND_OUT:
+                price = A - C if H <= K else B - D
+            elif barrier_type == BarrierType.UP_AND_IN:
+                price = A if H <= K else B - C + D
+            elif barrier_type == BarrierType.UP_AND_OUT:
+                price = 0.0 if H <= K else A - B + C - D
+        else: # Put
+            if barrier_type == BarrierType.DOWN_AND_IN:
+                price = A if H >= K else B - C + D
+            elif barrier_type == BarrierType.DOWN_AND_OUT:
+                price = 0.0 if H >= K else A - B + C - D
+            elif barrier_type == BarrierType.UP_AND_IN:
+                price = C if H >= K else A - B + D
+            elif barrier_type == BarrierType.UP_AND_OUT:
+                price = A - C if H >= K else B - D
 
-        # Standard components
-        d1 = (np.log(S / K) + (b + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        d2 = d1 - sigma * np.sqrt(T)
-        d3 = (np.log(S / H) + (b + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        d4 = d3 - sigma * np.sqrt(T)
-        d5 = (np.log(S / H) + (b - 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        d6 = d5 - sigma * np.sqrt(T)
-        d7 = (np.log(H**2 / (S * K)) + (b + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        d8 = d7 - sigma * np.sqrt(T)
-
-        # RR Components
-        A = phi * S * np.exp((b - r) * T) * _f_cdf(phi * d1) - phi * K * np.exp(-r * T) * _f_cdf(phi * d2)
-        B = phi * S * np.exp((b - r) * T) * _f_cdf(phi * d3) - phi * K * np.exp(-r * T) * _f_cdf(phi * d4)
-        C = phi * S * np.exp((b - r) * T) * (H / S)**(2 * (mu + 1)) * _f_cdf(eta * d7) - \
-            phi * K * np.exp(-r * T) * (H / S)**(2 * mu) * _f_cdf(eta * d8)
-        D = phi * S * np.exp((b - r) * T) * (H / S)**(2 * (mu + 1)) * _f_cdf(eta * d5) - \
-            phi * K * np.exp(-r * T) * (H / S)**(2 * mu) * _f_cdf(eta * d6)
-        R * np.exp(-r * T) * (_f_cdf(eta * d4) - (H / S)**(2 * mu) * _f_cdf(eta * d8))
-        R * ((H / S)**(mu + lam) * _f_cdf(eta * d3) + (H / S)**(mu - lam) * _f_cdf(eta * d4)) # Simplified rebate F
-
-        # Dispatch logic
-        if barrier_type == BarrierType.DOWN_AND_OUT:
-            if is_call:
-                return A - C if H < K else B - D
-            else:
-                return A - B + D - C if H < K else 0.0
-        elif barrier_type == BarrierType.DOWN_AND_IN:
-            if is_call:
-                return C if H < K else A - B + D
-            else:
-                return B - D + C if H < K else A
-        elif barrier_type == BarrierType.UP_AND_OUT:
-            if is_call:
-                return 0.0 if H < K else A - B + D - C
-            else:
-                return A - C if H > K else B - D
-        elif barrier_type == BarrierType.UP_AND_IN:
-            if is_call:
-                return A if H < K else B - D + C
-            else:
-                return C if H > K else A - B + D
-        
-        return A # Fallback to vanilla
+        return max(float(price + E + F), 0.0)
 
 
 class LookbackOptionPricer:
@@ -281,8 +262,8 @@ class LookbackOptionPricer:
     def _compute_running_extrema(paths: np.ndarray, observation_indices: np.ndarray, mode: str = "max") -> np.ndarray:
         """Helper to compute running extrema for Monte Carlo paths."""
         if mode == "max":
-            return np.maximum.accumulate(paths[:, observation_indices], axis=1)[:, -1]
-        return np.minimum.accumulate(paths[:, observation_indices], axis=1)[:, -1]
+            return np.max(paths[:, observation_indices], axis=1)
+        return np.min(paths[:, observation_indices], axis=1)
 
     @staticmethod
     def price_floating_strike_analytical(params: BSParameters, option_type: str) -> float:
@@ -294,15 +275,23 @@ class LookbackOptionPricer:
             params.volatility,
         )
         b = r - q
-        if T <= 1e-12: return 0.0
-        d1 = (b + 0.5 * sigma**2) * np.sqrt(T) / sigma
-        d2 = d1 - sigma * np.sqrt(T)
+        if T <= 1e-12:
+            return 0.0
+        
+        b_eff = b if abs(b) > 1e-12 else 1e-12
+        sig = max(sigma, 1e-12)
+        
+        def _n(x):
+            return norm.cdf(x)
+        
+        d1 = (b_eff + 0.5 * sig**2) * np.sqrt(T) / sig
+        d2 = d1 - sig * np.sqrt(T)
         if option_type == "call":
-            v = S * np.exp(-q * T) * norm.cdf(d1) - S * np.exp(-q * T) * (sigma**2 / (2 * b)) * norm.cdf(-d1) \
-                - S * np.exp(-r * T) * (1 - sigma**2 / (2 * b)) * norm.cdf(d2)
+            v = S * np.exp(-q * T) * _n(d1) - S * np.exp(-q * T) * (sig**2 / (2 * b_eff)) * _n(-d1) \
+                - S * np.exp(-r * T) * (1 - sig**2 / (2 * b_eff)) * _n(d2)
         else:
-            v = params.strike * np.exp(-r * T) * (1 + sigma**2 / (2 * b)) * norm.cdf(-d2) \
-                + S * np.exp(-q * T) * (sigma**2 / (2 * b)) * norm.cdf(d1) - S * np.exp(-q * T) * norm.cdf(-d1)
+            v = S * np.exp(-r * T) * (1 + sig**2 / (2 * b_eff)) * _n(-d2) \
+                + S * np.exp(-q * T) * (sig**2 / (2 * b_eff)) * _n(d1) - S * np.exp(-q * T) * _n(-d1)
         return float(v)
 
     @staticmethod
@@ -323,14 +312,26 @@ class LookbackOptionPricer:
         is_call = option_type == "call"
         is_floating = strike_type == StrikeType.FLOATING
 
-        # JIT accelerated path generation
-        paths = jit_generate_paths(S, T, r, sigma, q, n_paths, params.n_observations)
+        from src.pricing.quant_utils import jit_generate_log_paths
+        log_paths = jit_generate_log_paths(S, T, r, sigma, q, n_paths, params.n_observations)
         
-        # JIT accelerated payoff calculation
-        res = _jit_lookback_payoff(paths, K, r, T, is_call, is_floating)
+        # Optimized payoff calculation using log_paths to minimize exp() calls
+        exp_rt = np.exp(-r * T)
+        if is_floating:
+            if is_call:
+                res = (np.exp(log_paths[-1, :]) - np.exp(np.min(log_paths, axis=0))) * exp_rt
+            else:
+                res = (np.exp(np.max(log_paths, axis=0)) - np.exp(log_paths[-1, :])) * exp_rt
+        else: # Fixed strike
+            if is_call:
+                res = np.maximum(np.exp(np.max(log_paths, axis=0)) - K, 0.0) * exp_rt
+            else:
+                res = np.maximum(K - np.exp(np.min(log_paths, axis=0)), 0.0) * exp_rt
         
         return float(np.mean(res)), float(1.96 * np.std(res) / np.sqrt(n_paths))
 
+def _n(x):
+    return norm.cdf(x)
 
 class DigitalOptionPricer:
     @staticmethod
@@ -393,14 +394,14 @@ class DigitalOptionPricer:
 
 def price_exotic_option(exotic_type: str, params: ExoticParameters, option_type: str, **kwargs):
     """
-    Prices various exotic option types. Handles parameter parsing and dispatching.
+    Prices various exotic option types.
     """
     if exotic_type == "asian":
         asian_type_val = kwargs.get("asian_type", AsianType.GEOMETRIC)
         if asian_type_val == AsianType.GEOMETRIC:
             st_type = kwargs.get("strike_type", StrikeType.FIXED)
             return AsianOptionPricer.price_geometric_asian(params, option_type, st_type), None
-        else: # Arithmetic Asian uses Monte Carlo
+        else:
             return AsianOptionPricer.price_arithmetic_asian_mc(params, option_type, **kwargs)
 
     if exotic_type == "barrier":
@@ -416,14 +417,14 @@ def price_exotic_option(exotic_type: str, params: ExoticParameters, option_type:
 
     if exotic_type == "lookback":
         strike_type_val = kwargs.get("strike_type", StrikeType.FLOATING)
-        use_mc = kwargs.get("use_mc", True) # Default to Monte Carlo for lookback
+        use_mc = kwargs.get("use_mc", True)
 
         if strike_type_val == StrikeType.FLOATING and not use_mc:
             return LookbackOptionPricer.price_floating_strike_analytical(params.base_params, option_type), None
         else:
-            # Pass strike_type_val explicitly, remove from kwargs if present
-            kwargs.pop("strike_type", None)
-            return LookbackOptionPricer.price_lookback_mc(params, option_type, strike_type_val, **kwargs)
+            kwargs_copy = kwargs.copy()
+            kwargs_copy.pop("strike_type", None)
+            return LookbackOptionPricer.price_lookback_mc(params, option_type, strike_type_val, **kwargs_copy)
 
     if exotic_type == "digital":
         return (

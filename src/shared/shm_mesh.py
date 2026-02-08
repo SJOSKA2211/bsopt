@@ -27,12 +27,12 @@ class MarketTick(msgspec.Struct):
 
 class SharedMemoryRingBuffer:
     """
-    Ultra-high-performance Zero-Copy Ring Buffer using Shared Memory.
-    Optimized for NumPy views and msgspec serialization.
+    Ultra-high-performance Lock-Free Zero-Copy Ring Buffer.
+    Optimized for Single-Writer/Multi-Reader (SWMR) concurrency.
+    The first 8 bytes are the 'head' index (uint64).
     """
     def __init__(self, create: bool = False):
         self.shm_size = (TICK_SIZE * BUFFER_CAPACITY) + 8 
-        self._lock = Lock()
         self.shm = None
         self.buf = None
         
@@ -45,6 +45,7 @@ class SharedMemoryRingBuffer:
                 except FileNotFoundError:
                     pass
                 self.shm = shared_memory.SharedMemory(name=SHM_NAME, create=True, size=self.shm_size)
+                # Initialize head index to 0
                 self.shm.buf[:8] = struct.pack("q", 0)
             else:
                 try:
@@ -60,27 +61,26 @@ class SharedMemoryRingBuffer:
             # Create a numpy view of the entire tick buffer (skipping head index)
             self.data_view = np.frombuffer(self.buf, dtype=TICK_DTYPE, offset=8, count=BUFFER_CAPACITY)
             
-            logger.info("shm_buffer_initialized", name=SHM_NAME, size=self.shm_size, create=create)
+            logger.info("shm_buffer_initialized_lock_free", name=SHM_NAME, size=self.shm_size, create=create)
         except Exception as e:
             logger.error("shm_initialization_failed", error=str(e))
             raise
 
     def write_tick(self, symbol: str, price: float, volume: int, timestamp: float):
-        """Writer: Direct write into numpy view."""
-        with self._lock:
-            head = struct.unpack("q", self.buf[:8])[0]
-            idx = head % BUFFER_CAPACITY
-            
-            # Zero-copy write via numpy view
-            self.data_view[idx] = (symbol.encode('ascii')[:8], price, volume, timestamp)
-            
-            # Atomic head update
-            self.buf[:8] = struct.pack("q", head + 1)
+        """Writer: Direct write into numpy view with atomic index update."""
+        # 🚀 GOD MODE: No Lock. Single writer assumes exclusive access to the 'head' calculation.
+        current_head = struct.unpack("q", self.buf[:8])[0]
+        idx = current_head % BUFFER_CAPACITY
+        
+        # Zero-copy write via numpy view
+        self.data_view[idx] = (symbol.encode('ascii')[:8], price, volume, timestamp)
+        
+        # Atomic head update (Readers will see the new head and read the data)
+        self.buf[:8] = struct.pack("q", current_head + 1)
 
     def read_latest_view(self, last_head: int) -> tuple[np.ndarray, int]:
         """
-        Returns a zero-copy NumPy view of the new ticks in the ring buffer.
-        If the data wraps around the buffer capacity, returns a concatenated copy.
+        Reader: Lock-free polling of the head index.
         """
         current_head = struct.unpack("q", self.buf[:8])[0]
         if current_head <= last_head:

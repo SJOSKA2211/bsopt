@@ -11,12 +11,10 @@ import logging
 from pathlib import Path
 from typing import Any, cast
 
+import click
 import httpx
 
 logger = logging.getLogger(__name__)
-
-
-import click
 
 
 @click.group(name="auth")

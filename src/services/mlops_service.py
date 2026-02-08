@@ -67,23 +67,27 @@ class MLOpsService:
              raise ValueError(f"Invalid model version: {model_version}")
 
         # Initialization
-        if progress_callback: progress_callback("Initializing pipeline...")
+        if progress_callback:
+            progress_callback("Initializing pipeline...")
         time.sleep(1) # Mock
 
         # S3 Config
         if model_repo and model_repo.startswith("s3://"):
-             if progress_callback: progress_callback(f"Configuring S3 model repo: {model_repo}...")
+             if progress_callback:
+                 progress_callback(f"Configuring S3 model repo: {model_repo}...")
              os.environ["MLFLOW_ARTIFACT_ROOT"] = model_repo
              time.sleep(1)
 
         # K8s Generation
         if deploy_target == 'kubernetes':
-            if progress_callback: progress_callback("Preparing Kubernetes deployment manifests...")
+            if progress_callback:
+                progress_callback("Preparing Kubernetes deployment manifests...")
             self._generate_k8s_manifests(service_name, docker_image, model_repo, model_name, model_version)
             time.sleep(1)
 
         # Task Trigger
-        if progress_callback: progress_callback("Starting training task...")
+        if progress_callback:
+            progress_callback("Starting training task...")
         task = train_model_task.delay(model_type="xgboost")
         
         logger.info("mlops_pipeline_started", task_id=task.id, service=service_name)

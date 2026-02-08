@@ -111,4 +111,7 @@ python-multipart>=0.0.9
 ray[train]>=2.9.0
 qiskit>=1.0.0
 qiskit-aer>=0.13.0
+qiskit-algorithms>=0.3.0
 flatbuffers>=23.5.26
+gymnasium>=0.29.1
+scikit-learn>=1.4.0

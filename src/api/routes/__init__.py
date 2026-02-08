@@ -24,5 +24,6 @@ __all__ = [
     "ml_router",
     "users_router",
     "pricing_router",
-    "debug_router", # Added debug_router
+    "debug_router",
+    "system_router",
 ]

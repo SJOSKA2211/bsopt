@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/monitoring/mmd.py
+# hypothesis_version: 6.151.5
+
+[0.0, 0.05, 1.0, 2.0, 'sqeuclidean']

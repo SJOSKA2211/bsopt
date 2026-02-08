@@ -7,7 +7,7 @@ except ImportError:
     class App:
         def __init__(self, *args, **kwargs): pass
         def topic(self, *args, **kwargs): return MagicMock()
-        def Table(self, *args, **kwargs): return MagicMock()
+        def Table(self, *args, **kwargs): return MagicMock()  # noqa: N802
         def agent(self, *args, **kwargs): return lambda f: f
     from unittest.mock import MagicMock
 

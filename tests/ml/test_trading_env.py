@@ -49,7 +49,7 @@ def test_trading_env_reset():
 def test_trading_env_step():
     """Verify that step function processes actions and returns expected outputs."""
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment
-    
+
     mock_data_provider = MagicMock()
     # Mock data for steps
     mock_data = {
@@ -64,17 +64,18 @@ def test_trading_env_step():
     env = TradingEnvironment(data_provider=mock_data_provider)
     env.reset()
     
-    action = np.ones(10) * 0.5 # Buy 0.5 size for all
+    action = np.ones(10) * 0.01 # Target 1% weight for all (total 10%)
     obs, reward, terminated, truncated, info = env.step(action)
-    
+
     assert obs.shape == (100,)
     assert isinstance(reward, float)
     assert isinstance(terminated, bool)
     assert isinstance(truncated, bool)
     assert isinstance(info, dict)
     assert env.current_step == 1
-    assert np.allclose(env.positions, action)
-
+    # portfolio_value ~ 100000, price = 100, weight = 0.01 -> units = 10
+    assert np.allclose(env.positions, np.ones(10) * 10.0)
+    
 def test_trading_env_drawdown_truncation():
     """Verify that the environment truncates on excessive drawdown."""
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment

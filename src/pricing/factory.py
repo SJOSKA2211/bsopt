@@ -26,12 +26,19 @@ class PricingEngineFactory:
 
     _engines: dict[str, type[BasePricingEngine]] = {}
     _instances: dict[str, BasePricingEngine] = {}
+    _default_engine_override: str | None = None
+
+    @classmethod
+    def set_default_engine(cls, name: str | None):
+        """Dynamic override for the default engine (used for AIOps model switching)."""
+        cls._default_engine_override = name.lower() if name else None
+        logger.warning("pricing_factory_override_set", engine=name)
 
     @classmethod
     def register(cls, name: str, engine_cls: type[BasePricingEngine]):
-        """Register a new pricing engine."""
+        """Registers a pricing engine class."""
         cls._engines[name.lower()] = engine_cls
-        logger.debug("engine_registered", name=name)
+        logger.info("pricing_engine_registered", engine=name)
 
     @classmethod
     def get_engine(cls, name: str, execution_strategy: str | None = None) -> BasePricingEngine:
@@ -39,6 +46,10 @@ class PricingEngineFactory:
         Get an engine instance. 
         Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').
         """
+        # Apply global override if set and no specific strategy is forced
+        if cls._default_engine_override and execution_strategy is None:
+            name = cls._default_engine_override
+
         name = name.lower()
         
         # Check if we should override with WASM

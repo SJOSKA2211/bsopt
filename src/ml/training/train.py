@@ -7,8 +7,13 @@ import mlflow.xgboost
 import numpy as np
 import optuna
 import structlog
+import torch
+import torch.distributed as dist
 import xgboost as xgb
 from mlflow.tracking import MlflowClient
+from ray import tune
+from ray.tune.schedulers import ASHAScheduler
+from ray.tune.search.optuna import OptunaSearch
 from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold, TimeSeriesSplit, train_test_split
 
@@ -17,10 +22,6 @@ from src.ml.evaluation.metrics import calculate_regression_metrics
 from src.ml.training.data_gen import generate_synthetic_data_numba
 
 logger = structlog.get_logger(__name__)
-
-
-import torch
-import torch.distributed as dist
 
 
 def init_collective_backend():
@@ -83,11 +84,6 @@ def objective(trial: optuna.Trial, x_vals: np.ndarray, y_vals: np.ndarray, n_fol
     res = float(np.mean(scores))
     logger.debug("trial_complete", r2=res, params=param)
     return res
-
-
-from ray import tune
-from ray.tune.schedulers import ASHAScheduler
-from ray.tune.search.optuna import OptunaSearch
 
 
 async def run_hyperparameter_optimization(

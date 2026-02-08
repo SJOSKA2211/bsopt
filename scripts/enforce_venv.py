@@ -30,12 +30,11 @@ def check_venv():
         sys.exit(1)
 
     # Check for required performance libraries
-    try:
-        import msgspec
-        import numba
-    except ImportError as e:
-        print(f"⚠️ WARNING: Performance library missing: {e.name}.")
-        print("Engine requires numba and msgspec for optimized pricing.")
+    import importlib.util
+    for lib in ["msgspec", "numba"]:
+        if importlib.util.find_spec(lib) is None:
+            print(f"⚠️ WARNING: Performance library missing: {lib}.")
+            print("Engine requires numba and msgspec for optimized pricing.")
 
 if __name__ == "__main__":
     check_venv()

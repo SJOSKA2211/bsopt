@@ -1,23 +1,25 @@
 ---
 id: math01
-title: Consolidate JIT Math Kernels
-status: Triage
+title: Math API Unification
+status: Done
 priority: High
 project: bsopt
-created: 2026-02-06
-updated: 2026-02-06
+created: 2026-02-08
+updated: 2026-02-08
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
-labels: [math, numba, refactor]
-assignee: Morty
+labels: [math, refactor, anti-slop]
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-Math logic is scattered and partially duplicated between `black_scholes.py` and `math_utils.py`.
+`src/shared/math_utils.py` contains redundant scalar and vectorized implementations.
 
 ## Solution
-Move all Black-Scholes and Greeks logic into `src/shared/math_utils.py` using `@njit` and `@vectorize`.
-Ensure `math.sqrt` is used for scalars and `np.sqrt` for arrays.
+Unify `calculate_price_scalar`/`calculate_price` and `calculate_greeks_scalar`/`calculate_greeks`. Use NumPy's ability to handle both scalars and arrays seamlessly. Delete the redundant "scalar" functions.
+
+# Discussion
+- 2026-02-08 Pickle Rick: Consolidated redundant math functions. The main functions now use NumPy broadcasting to handle both scalar and array inputs efficiently. Retained aliases for compatibility but purged the duplicate logic.

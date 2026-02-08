@@ -1,14 +1,13 @@
+import os
+
+import anyio
+import torch
 from fastapi import APIRouter
 
+from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.circuit_breaker import db_circuit, pricing_circuit
 
 router = APIRouter(prefix="/system", tags=["System"])
-
-import os
-
-import torch
-
-from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 
 @router.get("/health/deep")
@@ -37,8 +36,9 @@ async def get_deep_health():
 
     # 3. WASM OPA Probe
     wasm_path = "policies/authz.wasm"
+    exists = await anyio.to_thread.run_sync(os.path.exists, wasm_path)
     health["probes"]["wasm_opa"] = {
-        "status": "verified" if os.path.exists(wasm_path) else "missing",
+        "status": "verified" if exists else "missing",
         "path": wasm_path
     }
     

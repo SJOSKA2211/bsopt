@@ -1,65 +1,66 @@
-# BS-OPT Phase 4: Singularity Consolidation 🥒
+# BSOpt Phase 4: Transcendence PRD
 
 ## HR Eng
 
-| Phase 4 Consolidation PRD |  | Summary: Bridging the gap between simulation and reality. Actual Quantum circuits, high-speed FlatBuffers, and Ray-scale distribution. |
+| Phase 4: Transcendence PRD |  | Summary: Achieving algorithmic and architectural supremacy through automated model switching, vectorized WASM memory mapping, and proactive resource orchestration. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: User **Intended audience**: Engineering | **Status**: Active **Created**: 2026-02-05 | **Self Link**: [Local] **Context**: Phase 3 Success |
+| **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 
 ## Introduction
 
-Phase 4 consolidates our algorithmic gains into a production-ready, distributed powerhouse. We are replacing the "slop" simulations with actual mathematical implementations of Quantum Amplitude Estimation and kernel-bypass network paths.
+Phase 3 gave us the hardware speed. Phase 4 gives us the wisdom. We are building a system that doesn't just run fast, but runs smart. It will sense drift, switch models on the fly, and pack data into WASM memory with zero Python overhead.
 
 ## Problem Statement
 
-**Current Process:** Quantum pricing is mocked. XDP ingestion is a raw socket simulation. Distributed training is non-existent (Ray missing).
-**Primary Users:** Quant Researchers, Cluster Administrators.
-**Pain Points:** Inaccurate simulations, high network jitter, non-scalable training.
-**Importance:** To outcompute the competition, we must leverage the hardware to its absolute limit—whether it's Qubits or Kernel-bypass NICs.
+**Current Process:** 
+- `wasm_engine.py` uses Python loops to prepare batch data (Slow slop).
+- `aiops` can scale services but cannot proactively switch models during drift or high latency.
+- `DockerRemediator` uses slow `subprocess` calls for scaling.
+- `map_wasm_memory` is a high-performance utility that isn't being used.
+
+**Primary Users:** Autonomous Trading Systems, Risk Orchestrators, The God Module.
+**Pain Points:** Synchronous bottlenecks in batch pricing, reactive-only healing, sub-optimal WASM performance.
+**Importance:** Efficiency is not just about throughput; it's about intelligence.
 
 ## Objective & Scope
 
-**Objective:** Consolidate, Scale, and Verify.
-**Ideal Outcome:** Actual Quantum simulations (via Qiskit), sub-microsecond XDP ingestion, and multi-node Ray training.
+**Objective:** Implement a proactive, zero-copy, model-adaptive architecture.
+**Ideal Outcome:** <10µs data preparation for WASM, automated model switching based on drift/latency, and API-driven proactive scaling.
 
 ### In-scope or Goals
-1.  **Quantum Realization**: Implement actual Qiskit circuits for Amplitude Estimation in `src/pricing/quantum_pricing.py`.
-2.  **FlatBuffers Mastery**: Generate and implement actual FlatBuffer schemas for `XDPIngester`.
-3.  **Ray Distribution**: Implement multi-node training in `src/ml/distributed_training.py` using the new `Trainer v2`.
-4.  **Coverage Singularity**: Achieve 96% line coverage on `src/pricing/` and `src/ml/`.
+-   **Vectorized WASM Interface**: Replace the Python loop in `WASMPricingEngine.batch_price_black_scholes` with vectorized NumPy stacking. Use `map_wasm_memory` for zero-copy transfers.
+-   **Model Switcher Strategy**: Implement `ModelSwitchStrategy` in `aiops/remediation_strategies.py` to route traffic to alternative models (e.g., from NN to XGBoost or Analytical) during drift.
+-   **Direct Docker/K8s Scaling**: Refactor `DockerRemediator` to use the `docker` Python SDK instead of `subprocess`.
+-   **Distributed Training Audit**: Ensure `resources_per_trial` in `distributed_training.py` is correctly utilizing multi-node clusters.
 
 ### Not-in-scope or Non-Goals
--   Building a quantum computer (out of scope for this dimension).
--   Rewriting Linux kernel drivers (use existing libxdp if possible, or high-fidelity simulation).
+-   Rewriting the core RL model logic.
+-   Changing the frontend.
 
 ## Product Requirements
 
 ### Critical User Journeys (CUJs)
-1.  **Quantum Pricing**: A researcher runs a Qiskit simulation and gets an option price with a 100x theoretical speedup.
-2.  **Distributed Training**: An admin starts a Ray cluster; training shards automatically across all nodes using NCCL.
-3.  **Zero-Copy Ingest**: UDP packets hit the NIC and appear in SHM via FlatBuffers with zero intermediate allocations.
+1.  **Transcendental Pricing**: A batch of 100,000 options is received. The system vectorizes the data into shared WASM memory in one operation. WASM processes the batch using SIMD. Total time: <5ms.
+2.  **Proactive Healing**: The Drift Detector senses a performance drop. The `ModelSwitchStrategy` instantly reroutes critical pricing requests to the verified Analytical fallback while the NN retrains in the background.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Qiskit Simulation | As a quant, I want to use actual quantum circuits for pricing. |
-| P0 | Ray Training | As a dev, I want to scale training across a 100-node cluster. |
-| P1 | FlatBuffer Schemas | As a HFT dev, I want zero-copy deserialization. |
-| P1 | 96% Coverage | As a God, I want no bugs. |
+| P0 | **Vectorized WASM Packing** | As a CPU, I want to copy contiguous blocks, not individual floats. |
+| P0 | **Model Switcher** | As a trader, I want accurate prices even if my neural network is having a bad day. |
+| P1 | **SDK Scaling** | As an orchestrator, I want to talk to the Docker daemon directly, not through a shell. |
+| P1 | **Zero-Copy WASM** | As a memory bus, I want to share data, not move it. |
+
+## Assumptions
+-   The environment has the `docker` Python SDK installed.
+-   WASM modules are compiled with SIMD support.
+
+## Risks & Mitigations
+-   **Risk**: Model switching overhead. **Mitigation**: Use a global atomic pointer or cached routing map.
+-   **Risk**: WASM memory alignment issues. **Mitigation**: Force 64-bit alignment in the NumPy buffer.
 
 ## Business Benefits/Impact/Metrics
-
-**Success Metrics:**
-
-| Metric | Current State | Future State | Impact |
-| :---- | :---- | :---- | :---- |
-| Training Throughput | 1 Node | Unlimited (Ray) | Faster Research |
-| Network Latency | ~50us | < 5us (XDP) | Lower Slippage |
-| Coverage | ~2.6% | > 96% | Absolute Trust |
-
-## Stakeholders / Owners
-
-| Name | Team/Org | Role | Note |
-| :---- | :---- | :---- | :---- |
-| Pickle Rick | Universal | Lead Architect | |
+-   **Metric**: WASM Batch Preparation Latency. **Target**: <10µs.
+-   **Metric**: System Availability (during drift). **Target**: 99.99%.
+-   **Metric**: Scaling Operation Speed. **Target**: <100ms.

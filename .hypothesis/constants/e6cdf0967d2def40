@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/tasks/audit_tasks.py
+# hypothesis_version: 6.151.5
+
+[0.0, 500, '0.0.0.0', 'ANONYMOUS', 'UNKNOWN', 'details', 'event_type', 'user_email']

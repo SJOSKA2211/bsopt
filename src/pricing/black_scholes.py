@@ -112,11 +112,9 @@ class BlackScholesEngine:
         Calculate Greeks for European options (JIT Accelerated).
         """
         # If first arg is BSParameters, shift it to params
-        # AND if second arg was meant to be option_type, shift it too
         if hasattr(spot, 'spot') and params is None:
             params = spot
             spot = None
-            # If strike was passed as a string, it was likely option_type
             if isinstance(strike, (str, np.ndarray)) and option_type == "call":
                 option_type = strike
                 strike = None
@@ -132,12 +130,10 @@ class BlackScholesEngine:
             option_type_arr = np.asanyarray(option_type)
             is_call = np.char.lower(option_type_arr.astype(str)) == "call"
 
-        # 🚀 OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
         is_call_np = np.atleast_1d(is_call).astype(bool)
 
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call_np)
 
-        # If all inputs were scalars, return scalar values in OptionGreeks
         is_scalar = False
         if params is not None:
             fields = ['spot', 'strike', 'maturity', 'volatility', 'rate', 'dividend']
@@ -156,7 +152,6 @@ class BlackScholesEngine:
 
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
 
-
     @staticmethod
     def price_call(params: BSParameters) -> float:
         return float(BlackScholesEngine.price_options(params=params, option_type="call"))
@@ -166,14 +161,34 @@ class BlackScholesEngine:
         return float(BlackScholesEngine.price_options(params=params, option_type="put"))
 
     @staticmethod
+    def price_batch(S, K, T, sigma, r, dividend, option_types) -> np.ndarray:
+        """Vectorized pricing returning an array."""
+        return BlackScholesEngine.price_options(
+            spot=S, strike=K, maturity=T, volatility=sigma, rate=r, dividend=dividend, option_type=option_types
+        )
+
+    @staticmethod
+    def calculate_greeks_batch(**kwargs) -> dict[str, np.ndarray]:
+        """Vectorized Greeks calculation returning a dictionary."""
+        greeks = BlackScholesEngine.calculate_greeks(**kwargs)
+        return {
+            "delta": greeks.delta,
+            "gamma": greeks.gamma,
+            "theta": greeks.theta,
+            "vega": greeks.vega,
+            "rho": greeks.rho
+        }
+
+    @staticmethod
     def verify_put_call_parity(S, K, T, r, call_price, put_price, q=0.0):
         lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
         rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - \
               np.asanyarray(K) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
         return np.allclose(lhs, rhs, atol=1e-5)
 
-    def price(self, **kwargs) -> float:
-        return self.price_options(**kwargs)
+    def price(self, params: BSParameters | None = None, option_type: str = "call", **kwargs) -> float:
+        """Instance method for PricingStrategy interface."""
+        return float(self.price_options(params=params, option_type=option_type, **kwargs))
 
 def black_scholes(*args, **kwargs):
     result = BlackScholesEngine.price_options(*args, **kwargs)

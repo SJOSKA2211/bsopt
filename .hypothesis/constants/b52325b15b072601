@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/trainer_v2.py
+# hypothesis_version: 6.151.5
+
+[0.0, 100, 'Default_Experiment', 'best_model.pt', 'cpu', 'criterion', 'cuda', 'device', 'epoch', 'history', 'metrics.json', 'model_class', 'model_state_dict', 'models/checkpoints', 'module', 'optimizer', 'optimizer_state_dict', 'total_time', 'train_loss', 'val_loss', 'w']

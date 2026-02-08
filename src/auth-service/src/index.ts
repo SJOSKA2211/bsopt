@@ -4,13 +4,18 @@ import { Hono } from 'hono'
 import { auth } from './auth'
 
 export const app = new Hono()
-const authApp = new Hono() // NEW LINE
 
-authApp.all('*', async (c) => { // NEW BLOCK START
-  return auth.handler(c.req.raw);
-}); // NEW BLOCK END
+app.on(['GET', 'POST'], '/api/auth/**', async (c) => {
+  let req = c.req.raw;
+  
+  if (c.req.path === '/api/auth/login' && c.req.method === 'POST') {
+    const url = new URL(req.url);
+    url.pathname = '/api/auth/sign-in/email';
+    req = new Request(url.toString(), req);
+  }
 
-app.route('/api/auth', authApp) // NEW LINE
+  return auth.handler(req);
+});
 
 app.get('/', (c) => c.text('Better Auth Service Running 🥒'))
 

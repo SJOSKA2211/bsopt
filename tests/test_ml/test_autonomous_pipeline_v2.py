@@ -1,8 +1,11 @@
-import pytest
-import pandas as pd
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import numpy as np
-from unittest.mock import MagicMock, patch, AsyncMock
+import pandas as pd
+import pytest
+
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+
 
 @pytest.fixture
 def pipeline_config():

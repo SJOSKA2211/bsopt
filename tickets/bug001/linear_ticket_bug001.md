@@ -1,7 +1,7 @@
 ---
 id: bug001
 title: "Fix TradingEnvironment asset purchase cost bug"
-status: Triage
+status: Done
 priority: Urgent
 project: project
 created: 2026-02-04

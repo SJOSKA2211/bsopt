@@ -45,7 +45,9 @@ class User(Base):
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
+    mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
     verification_token: Mapped[str | None] = mapped_column(String(255))
 
     # Relationships
@@ -231,8 +233,31 @@ class OAuth2Token(Base):
     def is_expired(self):
         return self.issued_at + self.expires_in < time.time()
 
-    def is_revoked(self):
-        return self.revoked
+    def __repr__(self) -> str:
+        return f"<OAuth2Token(id={self.client_id})>"
+
+
+# =============================================================================
+# BETTER AUTH MODELS
+# =============================================================================
+
+
+class BetterAuthSession(Base):
+    """Session storage for Better-Auth."""
+
+    __tablename__ = "better_auth_sessions"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ip_address: Mapped[str | None] = mapped_column(String(50))
+    user_agent: Mapped[str | None] = mapped_column(Text)
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self) -> str:
+        return f"<BetterAuthSession(token={self.token[:8]}...)>"
 
 
 # =============================================================================

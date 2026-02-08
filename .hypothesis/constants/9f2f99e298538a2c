@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/database/verify.py
+# hypothesis_version: 6.151.5
+
+['//', ':', '://', '@', 'SELECT 1', 'SELECT version()', 'SQLite', '__main__', 'postgres', 'sqlite']

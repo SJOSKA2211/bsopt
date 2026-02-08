@@ -46,7 +46,8 @@ def compare_models(model_name, challenger_run_id, champion_stage="Production"):
         return True
     else:
         reason = "Performance did not meet financial requirements"
-        if challenger_rmse >= champion_rmse: reason = "RMSE not improved"
+        if challenger_rmse >= champion_rmse:
+            reason = "RMSE not improved"
         logger.info("promotion_rejected", reason=reason)
         return False
 

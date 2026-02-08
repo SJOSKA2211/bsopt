@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/reinforcement_learning/decision_transformer.py
+# hypothesis_version: 6.151.5
+
+[1000, 1024, '-inf', 'gelu']

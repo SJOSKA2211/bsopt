@@ -32,7 +32,7 @@ class SHMContextManager:
         for shm in self.shm_objects:
             try:
                 shm.close()
-            except:
+            except Exception:
                 pass
         self.shm_objects.clear()
 

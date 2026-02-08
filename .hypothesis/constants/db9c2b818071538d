@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/utils/versioning.py
+# hypothesis_version: 6.151.5
+
+[4096, '%Y%m%d_%H%M%S', '*.csv', 'files', 'hash', 'name', 'rb', 'size', 'timestamp', 'version', 'w']

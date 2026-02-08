@@ -125,15 +125,22 @@ class MarketDataConsumer:
             self.consumer.close()
 
     async def _process_batch(self, batch: list[dict], callback: Callable):
-        """Process batch of messages efficiently."""
+        """Process batch of messages efficiently with backpressure."""
         start_time = time.time()
         try:
             # Check if callback explicitly handles batches
             if hasattr(callback, "_is_batch_aware") and getattr(callback, "_is_batch_aware"):
                 await callback(batch)
             else:
-                # Process in parallel for standard callbacks
-                tasks = [callback(msg) for msg in batch]
+                # 🚀 SLOP PREVENTION: Use a semaphore to limit concurrency
+                # Prevent event loop exhaustion during massive spikes
+                sem = asyncio.Semaphore(100) # Process max 100 concurrently
+                
+                async def sem_callback(msg):
+                    async with sem:
+                        await callback(msg)
+                
+                tasks = [sem_callback(msg) for msg in batch]
                 await asyncio.gather(*tasks)
             
             duration = time.time() - start_time

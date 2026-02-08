@@ -34,13 +34,13 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     """Successful login response."""
 
-    access_token: str = Field(..., description="JWT access token")
-    refresh_token: str = Field(..., description="JWT refresh token")
+    access_token: str | None = Field(None, description="JWT access token")
+    refresh_token: str | None = Field(None, description="JWT refresh token")
     token_type: str = "bearer"
-    expires_in: int = Field(..., description="Access token expiration in seconds")
-    user_id: str = Field(..., description="User ID")
-    email: str = Field(..., description="User email")
-    tier: str = Field(..., description="User subscription tier")
+    expires_in: int | None = Field(None, description="Access token expiration in seconds")
+    user_id: str | None = Field(None, description="User ID")
+    email: str | None = Field(None, description="User email")
+    tier: str | None = Field(None, description="User subscription tier")
     requires_mfa: bool = False
 
     model_config = ConfigDict(
@@ -144,12 +144,16 @@ class RegisterResponse(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    """Token response (for refresh)."""
+    """Successful token response."""
 
-    access_token: str = Field(..., description="New JWT access token")
-    refresh_token: str = Field(..., description="New JWT refresh token")
-    token_type: str = Field("bearer", description="Token type")
-    expires_in: int = Field(..., description="Access token expiration in seconds")
+    access_token: str | None = Field(default=None, description="JWT access token")
+    refresh_token: str | None = Field(default=None, description="JWT refresh token")
+    token_type: str = "bearer"
+    expires_in: int | None = Field(default=None, description="Access token expiration in seconds")
+    user_id: str | None = Field(default=None, description="User ID")
+    email: str | None = Field(default=None, description="User email")
+    tier: str | None = Field(default=None, description="User subscription tier")
+    requires_mfa: bool = False
 
 
 class RefreshTokenRequest(BaseModel):
@@ -172,7 +176,7 @@ class PasswordResetRequest(BaseModel):
     )
 
 
-class PasswordResetConfirm(BaseModel):
+class PasswordResetConfirmRequest(BaseModel):
     """Password reset confirmation."""
 
     token: str = Field(..., description="Password reset token from email")
@@ -249,14 +253,15 @@ class MFASetupResponse(BaseModel):
     """MFA setup response with secret and QR code."""
 
     secret: str = Field(..., description="TOTP secret key")
-    qr_code_uri: str = Field(..., description="URI for QR code generation")
-    backup_codes: list[str] = Field(..., description="Backup recovery codes")
+    provisioning_uri: str = Field(..., description="URI for QR code generation")
+    qr_code_uri: str | None = None
+    backup_codes: list[str] = Field(default_factory=list, description="Backup recovery codes")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "secret": "JBSWY3DPEHPK3PXP",
-                "qr_code_uri": (
+                "provisioning_uri": (
                     "otpauth://totp/BSOPT:user@example.com?" "secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
                 ),
                 "backup_codes": ["12345678", "23456789", "34567890"],

@@ -25,6 +25,7 @@ class PipelineConfig:
 class DataPipeline:
     """
     Data Pipeline for collecting and processing market data.
+    OPTIMIZED: Loads real data from Postgres.
     """
     def __init__(self, config: PipelineConfig):
         self.config = config
@@ -36,24 +37,54 @@ class DataPipeline:
         """
         logger.info("data_pipeline_start", symbols=self.config.symbols)
         
-        # In a real implementation, this would call scrapers
-        # For now, we simulate data collection
+        # In a real implementation, this would trigger scrapers or XDP ingest
+        # For now, we verify database connectivity and latest sample count
+        from src.database.pipeliner import db_engine
+        data = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
+        
         self.last_run_report = {
-            "samples_collected": self.config.min_samples,
-            "samples_valid": self.config.min_samples,
-            "output_path": self.config.output_dir,
-            "duration_seconds": 5.0,
-            "validation_rate": 1.0
+            "samples_available": len(data),
+            "symbols": self.config.symbols,
+            "duration_seconds": 1.0,
+            "status": "ready"
         }
-        logger.info("data_pipeline_completed", report=self.last_run_report)
+        logger.info("data_pipeline_status", report=self.last_run_report)
         return self.last_run_report
 
     def load_latest_data(self) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
         """
-        Load the latest collected data.
+        Load the latest collected data from Postgres.
         Returns: (X, y, feature_names, metadata)
         """
-        from src.ml.training.train import generate_synthetic_data
-        X, y, features = generate_synthetic_data(self.config.min_samples)
-        metadata = {"data_source": "synthetic_pipeline"}
-        return X, y, features, metadata
+        import asyncio
+        from src.database.pipeliner import db_engine
+        
+        # Run async fetch in a synchronous wrapper for legacy ML code
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            records = loop.run_until_complete(db_engine.fetch_training_data(self.config.symbols, self.config.max_samples))
+        finally:
+            loop.close()
+
+        if not records:
+            from src.ml.training.train import generate_synthetic_data
+            logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
+            return generate_synthetic_data(self.config.min_samples)
+
+        # Convert to NumPy
+        # X: strike, expiry_days, volatility, rate, dividend
+        # y: price (last)
+        feature_names = ["strike", "maturity", "implied_vol", "rate", "dividend"]
+        X = np.array([[
+            r["strike"], 
+            (r["expiry"] - r["time"]).total_seconds() / (365 * 24 * 3600) if hasattr(r["expiry"], "total_seconds") else 0.5,
+            r["implied_volatility"] or 0.2,
+            0.05, # Default rate if not in DB
+            0.01  # Default div if not in DB
+        ] for r in records])
+        
+        y = np.array([r["last"] for r in records])
+        
+        metadata = {"data_source": "postgres_vectorized", "count": len(records)}
+        return X, y, feature_names, metadata

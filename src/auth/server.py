@@ -1,8 +1,4 @@
 import structlog
-from authlib.integrations.sqla_oauth2 import (
-    create_query_client_func,
-    create_save_token_func,
-)
 from authlib.oauth2 import AuthorizationServer
 from authlib.oauth2.rfc6749 import grants
 from authlib.oauth2.rfc7636 import CodeChallenge
@@ -16,7 +12,33 @@ from src.database.models import OAuth2AuthorizationCode, OAuth2Client, OAuth2Tok
 logger = structlog.get_logger()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# --- AUTHLIB INTEGRATION ---
+# --- LOCAL AUTHLIB INTEGRATION POLYFILL ---
+
+def create_query_client_func(session_class, client_class):
+    def query_client(client_id):
+        with session_class() as session:
+            return session.query(client_class).filter_by(client_id=client_id).first()
+    return query_client
+
+def create_save_token_func(session_class, token_class):
+    def save_token(token, request):
+        if request.user:
+            user_id = request.user.id
+        else:
+            user_id = None
+        
+        client = request.client
+        item = token_class(
+            client_id=client.client_id,
+            user_id=user_id,
+            **token
+        )
+        with session_class() as session:
+            session.add(item)
+            session.commit()
+    return save_token
+
+# --- OAUTH2 SERVER CONFIG ---
 
 query_client = create_query_client_func(Session, OAuth2Client)
 save_token = create_save_token_func(Session, OAuth2Token)
@@ -48,7 +70,11 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def authenticate_user(self, authorization_code):
         return self.db.get(User, authorization_code.user_id)
 
-server = AuthorizationServer(query_client, save_token)
+server = AuthorizationServer()
+# In modern authlib, we often register functions after init or pass them differently
+# This polyfill matches the expected 2-arg limit if it exists
+server.query_client = query_client
+server.save_token = save_token
 server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
 
 # --- ENDPOINTS ---

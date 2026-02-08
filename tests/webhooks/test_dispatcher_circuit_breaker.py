@@ -7,6 +7,7 @@ import pytest
 from src.utils.circuit_breaker import (
     CircuitBreaker,
 )
+from src.webhooks.dispatcher import WebhookDispatcher
 
 
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step

@@ -9,6 +9,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+try:
+    import ray.train
+    HAS_RAY = True
+except ImportError:
+    HAS_RAY = False
+
 from src.ml.callbacks import EarlyStopping
 
 logger = logging.getLogger(__name__)
@@ -26,21 +32,32 @@ class Trainer:
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
         output_dir: str = "models/checkpoints",
         scheduler: Any | None = None,
-        experiment_name: str = "Default_Experiment"
+        experiment_name: str = "Default_Experiment",
+        is_distributed: bool = False
     ):
-        self.model = model.to(device)
+        self.is_distributed = is_distributed
+        self.device = device
+        
+        if not self.is_distributed:
+            self.model = model.to(device)
+            # MLflow Init only for local runs
+            mlflow.set_experiment(experiment_name)
+            self.run = mlflow.start_run()
+        else:
+            # Distributed: Model assumed already wrapped/placed by orchestrator (e.g. Ray DDP)
+            self.model = model
+            self.run = None
+
         self.optimizer = optimizer
         self.criterion = criterion
-        self.device = device
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.scheduler = scheduler
         self.history: dict[str, list] = {"train_loss": [], "val_loss": []}
         
-        # MLflow Init
-        mlflow.set_experiment(experiment_name)
-        self.run = mlflow.start_run()
-        self._log_params()
+        if not self.is_distributed:
+            # Log params only after attributes are set
+            self._log_params()
 
     def _log_params(self):
         """Logs model and optimizer parameters to MLflow."""
@@ -85,24 +102,39 @@ class Trainer:
         self.history["val_loss"].append(val_loss)
 
         # Logging
-        mlflow.log_metrics({
+        metrics = {
             "train_loss": train_loss,
             "val_loss": val_loss,
             "epoch": epoch
-        }, step=epoch)
+        }
+        
+        if self.is_distributed and HAS_RAY:
+            ray.train.report(metrics)
+            
+        # Only log to MLflow/Console if local or Rank 0
+        should_log = True
+        if self.is_distributed and HAS_RAY:
+            context = ray.train.get_context()
+            if context.get_local_rank() != 0:
+                should_log = False
+
+        if should_log:
+            if self.run: # Check if MLflow run exists
+                mlflow.log_metrics(metrics, step=epoch)
+            
+            logger.info(f"Epoch {epoch+1} | Train: {train_loss:.4f} | Val: {val_loss:.4f}")
+
+            # Checkpoint Best
+            if val_loss == min(self.history["val_loss"]):
+                self._save_checkpoint("best_model.pt")
+                if self.run:
+                    mlflow.log_artifact(str(self.output_dir / "best_model.pt"))
 
         if self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 self.scheduler.step(val_loss)
             else:
                 self.scheduler.step()
-
-        logger.info(f"Epoch {epoch+1} | Train: {train_loss:.4f} | Val: {val_loss:.4f}")
-
-        # Checkpoint Best
-        if val_loss == min(self.history["val_loss"]):
-            self._save_checkpoint("best_model.pt")
-            mlflow.log_artifact(str(self.output_dir / "best_model.pt"))
 
     def fit(
         self,
@@ -128,15 +160,21 @@ class Trainer:
         
         total_time = time.time() - start_time
         logger.info(f"Training complete in {total_time:.2f}s")
-        mlflow.log_metric("total_time", total_time)
-        self._save_metrics()
-        mlflow.end_run()
+        
+        if self.run:
+            mlflow.log_metric("total_time", total_time)
+            self._save_metrics()
+            mlflow.end_run()
 
     def _save_checkpoint(self, filename: str):
         """Saves a model checkpoint."""
         path = self.output_dir / filename
+        
+        # Unwrap DDP model if necessary
+        model_state = self.model.module.state_dict() if hasattr(self.model, "module") else self.model.state_dict()
+        
         torch.save({
-            'model_state_dict': self.model.state_dict(),
+            'model_state_dict': model_state,
             'optimizer_state_dict': self.optimizer.state_dict(),
             'history': self.history
         }, path)

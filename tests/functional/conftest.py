@@ -5,7 +5,7 @@ Fixtures for Functional Tests (Principles 27, 53, 93, 94)
 
 import uuid
 from datetime import UTC, datetime
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
@@ -49,11 +49,16 @@ def mock_db():
                 from sqlalchemy.exc import IntegrityError
                 raise IntegrityError("duplicate key", params={}, orig=None)
             
-            if getattr(obj, "id", None) is None: obj.id = uuid.uuid4()
-            if getattr(obj, "created_at", None) is None: obj.created_at = datetime.now(UTC)
-            if getattr(obj, "is_mfa_enabled", None) is None: obj.is_mfa_enabled = False
-            if getattr(obj, "is_active", None) is None: obj.is_active = True
-            if getattr(obj, "tier", None) is None: obj.tier = "free"
+            if getattr(obj, "id", None) is None:
+                obj.id = uuid.uuid4()
+            if getattr(obj, "created_at", None) is None:
+                obj.created_at = datetime.now(UTC)
+            if getattr(obj, "is_mfa_enabled", None) is None:
+                obj.is_mfa_enabled = False
+            if getattr(obj, "is_active", None) is None:
+                obj.is_active = True
+            if getattr(obj, "tier", None) is None:
+                obj.tier = "free"
             users[str(obj.id)] = obj
             users[obj.email] = obj
     
@@ -68,11 +73,14 @@ def mock_db():
                     import re
                     s = str(cond)
                     match = re.search(r"'(.*?)'", s)
-                    if match: mq._filter_val = match.group(1)
+                    if match:
+                        mq._filter_val = match.group(1)
                     else:
                         uuid_match = re.search(r"[0-9a-f-]{36}", s)
-                        if uuid_match: mq._filter_val = uuid_match.group(0)
-                except: pass
+                        if uuid_match:
+                            mq._filter_val = uuid_match.group(0)
+                except Exception:
+                    pass
             return mq
         mq.filter.side_effect = filter_se
         mq.first.side_effect = lambda: users.get(str(mq._filter_val))

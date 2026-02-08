@@ -1,13 +1,14 @@
+import importlib.util
 import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 # Mock onnxruntime if not available
-try:
-    import onnxruntime
-except ImportError:
+if importlib.util.find_spec("onnxruntime") is None:
     sys.modules["onnxruntime"] = MagicMock()
+else:
+    pass
 
 from src.api.schemas.ml import InferenceRequest
 from src.ml.serving.serve import predict, state

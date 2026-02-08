@@ -3,7 +3,7 @@ Blockchain Integration - DeFi, Oracles, IPFS
 Web3.py loads entire EVM bytecode on import (~150MB). Defer until needed.
 """
 import sys
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from src.utils.lazy_import import lazy_import
 

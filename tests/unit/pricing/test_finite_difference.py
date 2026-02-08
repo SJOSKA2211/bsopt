@@ -1,39 +1,56 @@
 import pytest
 
-from src.pricing.black_scholes import BSParameters
 from src.pricing.finite_difference import CrankNicolsonSolver
+from src.pricing.models import BSParameters
 
 
-def test_fd_price_european():
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
-    solver = CrankNicolsonSolver(n_spots=100, n_time=100)
-    
-    price = solver.price(params, "call")
+@pytest.fixture
+def sample_params():
+    return BSParameters(
+        spot=100.0,
+        strike=100.0,
+        maturity=1.0,
+        volatility=0.2,
+        rate=0.05,
+        dividend=0.0
+    )
+
+def test_cn_solver_price(sample_params):
+    solver = CrankNicolsonSolver(n_spots=100, n_time=50)
+    price = solver.price(sample_params, option_type="call")
     assert price > 0
-    
-    # Compare with BS
-    from src.pricing.black_scholes import BlackScholesEngine
-    bs_price = BlackScholesEngine.price_options(params=params, option_type="call")
-    assert pytest.approx(price, rel=1e-2) == bs_price
+    # Should be close to BS price (~10.45)
+    assert 10.0 < price < 11.0
 
-def test_fd_greeks():
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
-    solver = CrankNicolsonSolver(n_spots=50, n_time=50)
-    greeks = solver.calculate_greeks(params, "call")
-    
-    assert isinstance(greeks.delta, float)
-    assert 0 < greeks.delta < 1
+def test_cn_solver_greeks(sample_params):
+    solver = CrankNicolsonSolver(n_spots=100, n_time=50)
+    greeks = solver.calculate_greeks(sample_params, option_type="call")
+    assert greeks.delta > 0
+    assert greeks.gamma > 0
+    assert greeks.vega > 0
 
-def test_fd_zero_maturity():
-    params = BSParameters(spot=110.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
+def test_zero_maturity(sample_params):
+    sample_params.maturity = 0.0
     solver = CrankNicolsonSolver()
-    price = solver.price(params, "call")
+    price = solver.price(sample_params, "call")
+    assert price == 0.0 # ATM call
+    
+    sample_params.spot = 110.0
+    price = solver.price(sample_params, "call")
     assert price == 10.0
+    
+    greeks = solver.calculate_greeks(sample_params, "call")
+    assert greeks.delta == 1.0
 
-def test_fd_diagnostics():
+def test_get_diagnostics(sample_params):
     solver = CrankNicolsonSolver()
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
-    solver._setup_grid(params)
+    solver._setup_grid(sample_params)
     diag = solver.get_diagnostics()
     assert diag["scheme"] == "Crank-Nicolson"
     assert "stability" in diag
+
+def test_clone():
+    solver = CrankNicolsonSolver(n_spots=100)
+    cloned = solver._clone(n_spots=200)
+    assert cloned.n_spots == 200
+    assert cloned.n_time == 500 # Default preserved

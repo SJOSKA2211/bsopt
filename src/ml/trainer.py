@@ -4,13 +4,16 @@ from typing import Any
 
 import optuna
 import structlog
-from sklearn.model_selection import train_test_split
 
 from src.ml.evaluation.metrics import calculate_regression_metrics
 from src.ml.serving.quantization import ModelQuantizer
 from src.ml.strategies import get_strategy
 from src.ml.tracker import ExperimentTracker
-from src.ml.utils.distributed import train_xgboost_distributed
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 logger = structlog.get_logger()
 
@@ -25,6 +28,11 @@ class ModelTrainer:
         self.quantizer = ModelQuantizer()
         self.model = None
         self.best_params = {}
+        self.plt = plt
+
+    def push_metrics(self):
+        """Alias for tracker.push_to_gateway."""
+        self.tracker.push_to_gateway()
 
     def train_and_evaluate(self, X: Any, y: Any, params: dict[str, Any], feature_names: list[str] = None, dataset_metadata: dict[str, str] | None = None, base_model: Any | None = None, trial: optuna.Trial | None = None) -> float:
         """
@@ -34,7 +42,11 @@ class ModelTrainer:
         strategy = get_strategy(framework)
         
         try:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            # 🚀 SINGULARITY: Strict Temporal Split (No Shuffling)
+            # Prevent data leakage by slicing sequentially.
+            split_idx = int(len(X) * 0.8)
+            X_train, X_test = X[:split_idx], X[split_idx:]
+            y_train, y_test = y[:split_idx], y[split_idx:]
             
             if feature_names is None:
                 feature_names = [f"feature_{i}" for i in range(X.shape[1])]

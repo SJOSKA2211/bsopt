@@ -7,13 +7,9 @@ Ensures connection pooling and optimal timeout settings.
 """
 
 
-import httpx
-import structlog
-
-logger = structlog.get_logger(__name__)
-
 import asyncio
 
+import httpx
 import structlog
 
 logger = structlog.get_logger(__name__)

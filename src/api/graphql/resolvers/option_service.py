@@ -1,14 +1,12 @@
 from datetime import datetime
 
 import strawberry
-
-from src.data.router import MarketDataRouter
-
-router = MarketDataRouter()
-
 from strawberry.dataloader import DataLoader
 
+from src.data.router import MarketDataRouter
 from src.shared.shm_mesh import SharedMemoryRingBuffer
+
+router = MarketDataRouter()
 
 # Singleton SHM reader for DataLoaders
 _shm_reader = SharedMemoryRingBuffer(create=False)
@@ -71,8 +69,10 @@ async def search_options_paginated(
     # Filter
     filtered = []
     for contract in raw_chain:
-        if min_strike and contract["strike"] < min_strike: continue
-        if max_strike and contract["strike"] > max_strike: continue
+        if min_strike and contract["strike"] < min_strike:
+            continue
+        if max_strike and contract["strike"] > max_strike:
+            continue
         filtered.append(contract)
         
     # Sort for deterministic pagination

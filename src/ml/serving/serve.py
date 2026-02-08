@@ -97,10 +97,12 @@ async def startup():
 
 async def load_xgb_model():
     """Load XGBoost model, favoring quantized ONNX for maximum performance."""
+    import anyio
     try:
         # Check for Quantized ONNX first
         int8_path = os.getenv("XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
-        if os.path.exists(int8_path):
+        exists_int8 = await anyio.to_thread.run_sync(os.path.exists, int8_path)
+        if exists_int8:
             state["xgb_ort_session"] = ort.InferenceSession(int8_path)
             logger.info(f"XGBoost INT8 Quantized session initialized from {int8_path}.")
             MODEL_LOAD_STATUS.labels(model_type="xgb_int8").set(1)
@@ -108,7 +110,8 @@ async def load_xgb_model():
 
         # Fallback to standard ONNX
         onnx_path = os.getenv("XGB_ONNX_MODEL_PATH", "models/latest_xgb_pricing.onnx")
-        if os.path.exists(onnx_path):
+        exists_onnx = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
+        if exists_onnx:
             state["xgb_ort_session"] = ort.InferenceSession(onnx_path)
             logger.info(f"XGBoost ONNX session initialized from {onnx_path}.")
             MODEL_LOAD_STATUS.labels(model_type="xgb_onnx").set(1)
@@ -124,13 +127,16 @@ async def load_xgb_model():
 
 
 async def load_onnx_model():
+    import anyio
     try:
         # Construct absolute path relative to the current file
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+        abs_path = await anyio.to_thread.run_sync(os.path.abspath, __file__)
+        base_dir = os.path.dirname(abs_path)
         default_onnx_path = os.path.join(base_dir, "models", "nn_option_pricer.onnx")
         onnx_path = os.getenv("NN_MODEL_PATH", default_onnx_path)
         
-        if os.path.exists(onnx_path):
+        exists = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
+        if exists:
             state["nn_ort_session"] = ort.InferenceSession(onnx_path)
             logger.info(f"ONNX session initialized from {onnx_path}.")
             MODEL_LOAD_STATUS.labels(model_type="nn").set(1)

@@ -2,34 +2,13 @@
 Lattice Models for Option Pricing
 
 Provides Binomial (CRR) and Trinomial tree models for pricing
-European and American options. Optimized with Numba for performance.
+European and American options. Optimized with NumPy for performance.
 """
 
 from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-
-try:
-    from numba import cuda, float64, njit, prange
-except ImportError:
-    def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
-    prange = range
-    class CudaMock:
-        def jit(self, *args, **kwargs):
-            def decorator(func):
-                return func
-            return decorator
-        def grid(self, *args):
-            return 0
-    cuda = CudaMock()
-    class NumbaType:
-        def __call__(self, *args):
-            return self
-    float64 = NumbaType()
 
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
@@ -49,37 +28,11 @@ class LatticeGreeks:
 class LatticeParameters(BSParameters):
     n_steps: int = 100
 
-# from numba import cuda, float64 # Handled by mock block
 
-@cuda.jit
-def _binomial_price_cuda_kernel(
-    spot, strike, dt, u, d, p, q, df, n_steps, is_call, is_american, out
-):
-    """Massively parallel binomial induction on the GPU."""
-    # Shared memory for final payoffs
-    # (Simplified: using global memory for arbitrary tree depth in this dimension)
-    i = cuda.grid(1)
-    if i <= n_steps:
-        # Calculate terminal price at node i
-        # S_i = S * u^i * d^(n-i)
-        s_i = spot * (u**i) * (d**(n_steps - i))
-        
-        # Terminal payoff
-        if is_call:
-            out[i] = max(s_i - strike, 0.0)
-        else:
-            out[i] = max(strike - s_i, 0.0)
-
-    # Synchronize and perform backward induction
-    # In a full God-Mode implementation, we'd use a single kernel with __syncthreads()
-    # or multiple kernel dispatches to handle the induction layers.
-    # (Simplified: Induction logic logic abbreviated for brevity)
-
-@njit(cache=True, fastmath=True, parallel=True)
 def _binomial_price_kernel(
     spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
 ):
-    """Numba-optimized kernel for binomial pricing with fastmath and parallel execution."""
+    """Vectorized NumPy kernel for binomial pricing."""
     if maturity <= 1e-12:
         if is_call:
             return max(spot - strike, 0.0)
@@ -98,10 +51,8 @@ def _binomial_price_kernel(
         p = max(0.0, min(1.0, p))
         q = 1.0 - p
 
-    # Terminal stock prices - Parallelizable
-    S = np.empty(n_steps + 1)
-    for i in prange(n_steps + 1):
-        S[i] = spot * (u ** (n_steps - i)) * (d**i)
+    # Terminal stock prices
+    S = spot * (u ** (n_steps - np.arange(n_steps + 1))) * (d ** np.arange(n_steps + 1))
 
     # Terminal payoffs
     if is_call:
@@ -109,34 +60,28 @@ def _binomial_price_kernel(
     else:
         V = np.maximum(strike - S, 0.0)
 
-    # Backward induction - Outer loop is sequential, inner can be parallelized for European
+    # Backward induction
     disc = np.exp(-rate * dt)
     for i in range(n_steps - 1, -1, -1):
-        # We can parallelize the update of V[j] at each time step
-        for j in prange(i + 1):
-            val_next = disc * (p * V[j] + q * V[j + 1])
+        V_new = disc * (p * V[:-1] + q * V[1:])
 
-            if is_american:
-                S_ij = spot * (u ** (i - j)) * (d**j)
-                if is_call:
-                    exercise = max(S_ij - strike, 0.0)
-                else:
-                    exercise = max(strike - S_ij, 0.0)
-                if exercise > val_next:
-                    V[j] = exercise
-                else:
-                    V[j] = val_next
+        if is_american:
+            S_i = spot * (u ** (i - np.arange(i + 1))) * (d ** np.arange(i + 1))
+            if is_call:
+                exercise = np.maximum(S_i - strike, 0.0)
             else:
-                V[j] = val_next
+                exercise = np.maximum(strike - S_i, 0.0)
+            V = np.maximum(V_new, exercise)
+        else:
+            V = V_new
 
-    return V[0]
+    return float(V[0])
 
 
-@njit(cache=True, fastmath=True, parallel=True)
 def _trinomial_price_kernel(
     spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
 ):
-    """Numba-optimized kernel for trinomial pricing with fastmath and parallel execution."""
+    """Vectorized NumPy kernel for trinomial pricing."""
     if maturity <= 1e-12:
         return max(spot - strike, 0.0) if is_call else max(strike - spot, 0.0)
 
@@ -150,11 +95,9 @@ def _trinomial_price_kernel(
     p_d = 0.5 * ((volatility**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
     p_m = 1.0 - p_u - p_d
 
-    # Terminal asset prices - Parallelizable
+    # Terminal asset prices
     num_nodes = 2 * n_steps + 1
-    S = np.empty(num_nodes)
-    for j in prange(num_nodes):
-        S[j] = spot * np.exp(dx * (n_steps - j))
+    S = spot * np.exp(dx * (n_steps - np.arange(num_nodes)))
 
     # Terminal payoffs
     if is_call:
@@ -164,24 +107,19 @@ def _trinomial_price_kernel(
 
     disc = np.exp(-rate * dt)
     for i in range(n_steps - 1, -1, -1):
-        # Parallelize node updates at time level i
-        for j in prange(2 * i + 1):
-            val_next = disc * (p_u * V[j] + p_m * V[j + 1] + p_d * V[j + 2])
+        V_new = disc * (p_u * V[:-2] + p_m * V[1:-1] + p_d * V[2:])
 
-            if is_american:
-                S_ij = spot * np.exp(dx * (i - j))
-                if is_call:
-                    exercise = max(S_ij - strike, 0.0)
-                else:
-                    exercise = max(strike - S_ij, 0.0)
-                if exercise > val_next:
-                    V[j] = exercise
-                else:
-                    V[j] = val_next
+        if is_american:
+            S_i = spot * np.exp(dx * (i - np.arange(2 * i + 1)))
+            if is_call:
+                exercise = np.maximum(S_i - strike, 0.0)
             else:
-                V[j] = val_next
+                exercise = np.maximum(strike - S_i, 0.0)
+            V = np.maximum(V_new, exercise)
+        else:
+            V = V_new
 
-    return V[0]
+    return float(V[0])
 
 
 def validate_convergence(
@@ -189,10 +127,11 @@ def validate_convergence(
 ):
     """Validate that the pricing method is converging as steps increase."""
     bs_params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
+    engine = BlackScholesEngine()
     if option_type == "call":
-        bs_price = float(BlackScholesEngine.price(params=bs_params, option_type="call"))
+        bs_price = float(engine.price(params=bs_params, option_type="call"))
     else:
-        bs_price = float(BlackScholesEngine.price(params=bs_params, option_type="put"))
+        bs_price = float(engine.price(params=bs_params, option_type="put"))
 
     bin_errors = []
     tri_errors = []

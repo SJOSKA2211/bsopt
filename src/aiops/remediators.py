@@ -78,7 +78,6 @@ class RemediationPlanner:
         Plans a sequence of remediation actions.
         """
         a_type = anomaly.get("type", "generic")
-        score = anomaly.get("score", 0)
         
         actions = []
         

@@ -38,7 +38,8 @@ class AsyncLogDrain:
 
     async def _push_to_loki(self, batch):
         """Push batched logs to Loki using HTTP/2."""
-        if not batch: return
+        if not batch:
+            return
         
         streams = []
         streams.append({

@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/security/oauth2.py
+# hypothesis_version: 6.151.5
+
+[400, 401, 'Calculate new prices', 'Invalid token', 'Not authenticated', 'Read pricing data', 'Token has expired', 'WWW-Authenticate', 'admin', 'auth/token', 'bearer', 'client_credentials', 'exp', 'iat', 'jti', 'pricing:read', 'pricing:write', 'scopes', 'sub', 'type', 'user_id']

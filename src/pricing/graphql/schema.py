@@ -17,7 +17,8 @@ async def load_prices(keys: list[tuple]) -> list[float]:
         # key: (id, strike, underlying_symbol, expiry, option_type)
         _, strike, _, expiry, option_type = key
         T = (expiry - datetime.now()).days / 365.0
-        if T <= 0: T = 0.001
+        if T <= 0:
+            T = 0.001
         
         requests.append(PriceRequest(
             symbol="UNKNOWN",
@@ -39,7 +40,8 @@ async def load_greeks(keys: list[tuple]) -> list[dict[str, float]]:
     for key in keys:
         _, strike, _, expiry, option_type = key
         T = (expiry - datetime.now()).days / 365.0
-        if T <= 0: T = 0.001
+        if T <= 0:
+            T = 0.001
         
         requests.append(PriceRequest(
             symbol="UNKNOWN",

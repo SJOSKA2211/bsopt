@@ -280,7 +280,8 @@ class DeFiOptionsProtocol:
                 raise Exception(f"Transaction failed: {tx_hash.hex()}")
         except Exception as e:
             logger.error("blockchain_tx_error", error=str(e))
-            if hasattr(self, '_local_nonce'): delattr(self, '_local_nonce')
+            if hasattr(self, '_local_nonce'):
+                delattr(self, '_local_nonce')
             raise
 
 

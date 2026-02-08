@@ -37,9 +37,9 @@ from src.ml.training.train import load_or_collect_data, run_hyperparameter_optim
 logger = structlog.get_logger(__name__)
 
 # Constants
-TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", settings.MLFLOW_TRACKING_URI)
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", settings.tracking_uri)
 PROJECT_NAME = settings.PROJECT_NAME
-RESULTS_DIR = Path(settings.ML_RESULTS_DIR)
+RESULTS_DIR = Path("logs/results")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -59,12 +59,12 @@ class MLOrchestrator:
         self,
         model_type: str = "xgboost",
         use_real_data: bool = False,
-        n_samples: int = settings.ML_TRAINING_DEFAULT_SAMPLES,
-        test_size: float = settings.ML_TRAINING_TEST_SIZE,
-        random_state: int = settings.ML_TRAINING_RANDOM_STATE,
+        n_samples: int = getattr(settings, "ML_TRAINING_DEFAULT_SAMPLES", 1000),
+        test_size: float = getattr(settings, "ML_TRAINING_TEST_SIZE", 0.2),
+        random_state: int = getattr(settings, "ML_TRAINING_RANDOM_STATE", 42),
         xgb_params: dict[str, Any] | None = None,
         nn_params: dict[str, Any] | None = None,
-        promotion_threshold_r2: float = settings.ML_TRAINING_PROMOTE_THRESHOLD_R2,
+        promotion_threshold_r2: float = getattr(settings, "ML_TRAINING_PROMOTE_THRESHOLD_R2", 0.9),
         promote_to_production: bool = False,
     ) -> dict[str, Any]:
         """

@@ -52,7 +52,8 @@ def validate_lazy_imports(base_path: str):
     # Try to get exceptions from the target package's utils.lazy_import
     try:
         utils_mod_name = f"{package_name}.utils.lazy_import"
-        if utils_mod_name in sys.modules: del sys.modules[utils_mod_name]
+        if utils_mod_name in sys.modules:
+            del sys.modules[utils_mod_name]
         lazy_mod = importlib.import_module(utils_mod_name)
         LazyImportError = getattr(lazy_mod, 'LazyImportError', Exception)
         CircularImportError = getattr(lazy_mod, 'CircularImportError', Exception)
@@ -69,7 +70,8 @@ def validate_lazy_imports(base_path: str):
         for module_name, import_map in lazy_modules_info.items():
             print(f"Validating lazy imports for module: {module_name}")
             try:
-                if module_name in sys.modules: del sys.modules[module_name]
+                if module_name in sys.modules:
+                    del sys.modules[module_name]
                 parent_module = importlib.import_module(module_name)
             except Exception as e:
                 print(f"Error: Could not dynamically import parent module {module_name}: {e}")
