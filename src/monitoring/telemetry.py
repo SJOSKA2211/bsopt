@@ -17,6 +17,7 @@ logger = structlog.get_logger(__name__)
 T2T_LATENCY = Gauge("bsopt_t2t_latency_ns", "Tick-to-Trade Latency in Nanoseconds")
 INF_LATENCY = Gauge("bsopt_inference_latency_ns", "Inference Latency in Nanoseconds")
 OE_LATENCY = Gauge("bsopt_oe_latency_ns", "Order Entry Latency in Nanoseconds")
+RISK_VETOS = Gauge("bsopt_risk_vetos_total", "Total Orders Vetoed by Solenya Shield")
 
 class TelemetryEngine:
     """
@@ -55,6 +56,7 @@ class TelemetryEngine:
                 exec_data = self.execs.view[self._last_exec_head % EXEC_BUFFER_CAPACITY]
                 exec_ts = exec_data['exec_ts_ns']
                 order_id = exec_data['order_id']
+                status = exec_data['status']
                 
                 # 2. Find corresponding order
                 # For simplicity, we assume one-to-one mapping in recent orders
@@ -80,6 +82,10 @@ class TelemetryEngine:
                     T2T_LATENCY.set(t2t)
                     INF_LATENCY.set(inf)
                     OE_LATENCY.set(oe)
+                    
+                    if status == 0:
+                        RISK_VETOS.inc()
+                        logger.warning("risk_veto_detected", order_id=order_id)
                     
                     if t2t > 0:
                         logger.info("telemetry_snapshot", 

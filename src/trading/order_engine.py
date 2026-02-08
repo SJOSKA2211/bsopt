@@ -44,18 +44,26 @@ class OrderEngine:
                 qty = int(cmd['quantity'])
                 side = int(cmd['side'])
                 
-                # 🚀 BINARY FIRE: Mock high-performance gateway
-                # In prod, this would be a raw binary TCP/UDP packet
-                order_id = self._order_id_counter
-                self._order_id_counter += 1
+                # 🛡️ SOLENYA SHIELD: Silicon Risk Check
+                from src.trading.risk_kernels import _validate_order_kernel
+                is_safe = _validate_order_kernel(price, qty, side)
                 
-                logger.info("order_fired_silicon", 
-                            id=order_id, symbol=symbol, 
-                            side="BUY" if side > 0 else "SELL", 
-                            price=price, qty=qty)
-                
-                # Simulate instantaneous fill
-                self.execs.write_exec(order_id, price, qty, 1)
+                if is_safe:
+                    # 🚀 BINARY FIRE: Mock high-performance gateway
+                    order_id = self._order_id_counter
+                    self._order_id_counter += 1
+                    
+                    logger.info("order_fired_silicon", 
+                                id=order_id, symbol=symbol, 
+                                side="BUY" if side > 0 else "SELL", 
+                                price=price, qty=qty)
+                    
+                    # Simulate instantaneous fill
+                    self.execs.write_exec(order_id, price, qty, 1)
+                else:
+                    logger.warning("risk_violation_veto", symbol=symbol, price=price, qty=qty)
+                    # Write rejection status (0) to ExecutionBuffer
+                    self.execs.write_exec(-1, price, qty, 0)
                 
                 self._last_head += 1
             else:
