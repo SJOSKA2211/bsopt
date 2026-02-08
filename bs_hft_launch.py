@@ -33,6 +33,7 @@ def lock_memory():
         logger.warning("memory_lock_not_available", error=str(e))
 
 from src.trading.order_engine import OrderEngine
+from src.monitoring.telemetry import TelemetryEngine
 from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
 
 def launch_manifold():
@@ -87,6 +88,15 @@ def launch_manifold():
         target=oe.run,
         args=(7,),
         name="OrderEngine",
+        daemon=True
+    ).start()
+
+    # 5. Start Telemetry Engine (Core 8)
+    te = TelemetryEngine()
+    threading.Thread(
+        target=te.run,
+        args=(8,),
+        name="TelemetryEngine",
         daemon=True
     ).start()
     

@@ -1,5 +1,6 @@
 import os
 import struct
+import time
 from multiprocessing import Lock, shared_memory
 
 import msgspec
@@ -8,12 +9,13 @@ import structlog
 
 logger = structlog.get_logger()
 
-# Market Tick Structure: 8s (Symbol), d (Price), q (Volume), d (Timestamp) = 32 bytes
+# Market Tick Structure: 8s (Symbol), d (Price), q (Volume), d (Timestamp), q (receive_ts_ns) = 40 bytes
 TICK_DTYPE = np.dtype([
     ('symbol', 'S8'),
     ('price', 'f8'),
     ('volume', 'i8'),
-    ('timestamp', 'f8')
+    ('timestamp', 'f8'),
+    ('receive_ts_ns', 'i8')
 ])
 TICK_SIZE = TICK_DTYPE.itemsize
 BUFFER_CAPACITY = 100000 # 100k ticks
@@ -24,24 +26,27 @@ class MarketTick(msgspec.Struct):
     price: float
     volume: int
     timestamp: float
+    receive_ts_ns: int
 
-# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side: 1=Buy, -1=Sell) = 28 bytes
+# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), q (submit_ts_ns) = 36 bytes
 ORDER_DTYPE = np.dtype([
     ('symbol', 'S8'),
     ('price', 'f8'),
     ('quantity', 'i8'),
-    ('side', 'i4')
+    ('side', 'i4'),
+    ('submit_ts_ns', 'i8')
 ])
 ORDER_SIZE = ORDER_DTYPE.itemsize
 ORDER_BUFFER_CAPACITY = 1000
 SHM_ORDER_NAME = "order_command_buffer"
 
-# Execution Status: q (OrderID), d (FillPrice), q (FillQty), i (Status) = 28 bytes
+# Execution Status: q (OrderID), d (FillPrice), q (FillQty), i (Status), q (exec_ts_ns) = 36 bytes
 EXEC_DTYPE = np.dtype([
     ('order_id', 'i8'),
     ('fill_price', 'f8'),
     ('fill_qty', 'i8'),
-    ('status', 'i4')
+    ('status', 'i4'),
+    ('exec_ts_ns', 'i8')
 ])
 EXEC_SIZE = EXEC_DTYPE.itemsize
 EXEC_BUFFER_CAPACITY = 1000
@@ -58,7 +63,9 @@ class OrderBuffer:
 
     def write_order(self, symbol: str, price: float, qty: int, side: int):
         head = struct.unpack("q", self.buf[:8])[0]
-        self.view[head % ORDER_BUFFER_CAPACITY] = (symbol.encode('ascii')[:8], price, qty, side)
+        # Log submission time in nanoseconds
+        ts_ns = time.time_ns()
+        self.view[head % ORDER_BUFFER_CAPACITY] = (symbol.encode('ascii')[:8], price, qty, side, ts_ns)
         self.buf[:8] = struct.pack("q", head + 1)
 
 class ExecutionBuffer:
@@ -72,7 +79,9 @@ class ExecutionBuffer:
 
     def write_exec(self, order_id: int, price: float, qty: int, status: int):
         head = struct.unpack("q", self.buf[:8])[0]
-        self.view[head % EXEC_BUFFER_CAPACITY] = (order_id, price, qty, status)
+        # Log execution time in nanoseconds
+        ts_ns = time.time_ns()
+        self.view[head % EXEC_BUFFER_CAPACITY] = (order_id, price, qty, status, ts_ns)
         self.buf[:8] = struct.pack("q", head + 1)
 
 class SharedMemoryRingBuffer:
@@ -122,8 +131,11 @@ class SharedMemoryRingBuffer:
         current_head = struct.unpack("q", self.buf[:8])[0]
         idx = current_head % BUFFER_CAPACITY
         
+        # Log arrival time in nanoseconds
+        receive_ts_ns = time.time_ns()
+        
         # Zero-copy write via numpy view
-        self.data_view[idx] = (symbol.encode('ascii')[:8], price, volume, timestamp)
+        self.data_view[idx] = (symbol.encode('ascii')[:8], price, volume, timestamp, receive_ts_ns)
         
         # Atomic head update (Readers will see the new head and read the data)
         self.buf[:8] = struct.pack("q", current_head + 1)

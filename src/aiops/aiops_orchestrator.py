@@ -1,3 +1,4 @@
+import asyncio
 import time
 from typing import Any
 
@@ -61,7 +62,7 @@ class AIOpsOrchestrator:
 
         # Autoencoder initialization with logic for disabling
         ae_input_dim = config.get("autoencoder_input_dim")
-        if ae_input_dim is not None:
+        if ae_input_dim: # Changed from 'is not None' to allow 0 to disable
             self.autoencoder_detector = AutoencoderDetector(
                 input_dim=ae_input_dim,
                 latent_dim=config.get("autoencoder_latent_dim", 2),
@@ -215,7 +216,7 @@ class AIOpsOrchestrator:
                 except Exception as e:
                     logger.error("remediation_execution_failed", strategy=strategy_name, error=str(e))
 
-    def run(self, iterations: int = -1):
+    async def run(self, iterations: int = -1):
         iteration_count = 0
         while iterations == -1 or iteration_count < iterations:
             logger.info("aiops_orchestrator_loop", iteration=iteration_count)
@@ -233,4 +234,4 @@ class AIOpsOrchestrator:
             
             iteration_count += 1
             if iterations == -1 or iteration_count < iterations:
-                time.sleep(self.check_interval_seconds)
+                await asyncio.sleep(self.check_interval_seconds)

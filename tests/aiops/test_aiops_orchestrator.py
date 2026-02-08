@@ -33,7 +33,9 @@ def mock_orchestrator_dependencies():
         mock_if.return_value = MagicMock()
         mock_ae.return_value = MagicMock()
         mock_transformer.return_value = MagicMock()
-        mock_drift.return_value = MagicMock()
+        mock_drift_instance = MagicMock()
+        mock_drift_instance.detect_drift.return_value = (False, {})
+        mock_drift.return_value = mock_drift_instance
         mock_docker.return_value = MagicMock()
         mock_ml_trigger.return_value = MagicMock()
         mock_redis.return_value = MagicMock()
@@ -285,7 +287,9 @@ def test_remediate_anomalies_error_handling(mock_config, mock_orchestrator_depen
 
 def test_detect_anomalies_prometheus_multi_no_data(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
-    with patch.object(orchestrator.prometheus_client, "get_historical_metric_data_multi", return_value=None):
+    with patch.object(orchestrator.prometheus_client, "get_historical_metric_data_multi", return_value=None), \
+         patch.object(orchestrator.prometheus_client, "get_5xx_error_rate", return_value=0.0), \
+         patch.object(orchestrator.prometheus_client, "get_p95_latency", return_value=0.0):
         anomalies = orchestrator._detect_anomalies()
         assert "multivariate_anomaly" not in anomalies
         assert "data_drift" not in anomalies
