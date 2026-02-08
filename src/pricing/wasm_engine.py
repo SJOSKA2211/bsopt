@@ -81,9 +81,9 @@ class WASMPricingEngine(PricingStrategy):
 
         # OPTIMIZED: Vectorized packing into flat buffer
         # Stride = 7: spot, strike, time, vol, rate, div, is_call
-        input_data = np.column_stack([
+        input_data = np.ascontiguousarray(np.column_stack([
             S, K, T, sigma, r, q, is_call.astype(np.float64)
-        ]).ravel()
+        ]).ravel(), dtype=np.float64)
 
         # Call WASM batch function (returns flat array of results)
         raw_results = self.instance.batch_calculate_simd(input_data)

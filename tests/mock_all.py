@@ -3,86 +3,100 @@ import types
 from unittest.mock import AsyncMock, MagicMock
 
 
-# Simple Mocking Strategy
+# 🚀 ADVANCED HIERARCHICAL MOCKING
 def mock_module(name):
     if name not in sys.modules:
-        # For complex hierarchical mocks, use a dummy module if it's mlflow or lightning
-        if name in ["mlflow", "lightning", "lightning.pytorch"]:
-            m = types.ModuleType(name)
-            m.__path__ = []
-            sys.modules[name] = m
-        else:
-            m = MagicMock(_mock_name=name)
-            sys.modules[name] = m
+        # Check if parent is already mocked as MagicMock
+        parts = name.split('.')
+        for i in range(1, len(parts)):
+            parent = '.'.join(parts[:i])
+            if parent in sys.modules and isinstance(sys.modules[parent], MagicMock):
+                # If parent is a MagicMock, we should ensure the child is also accessible as attribute
+                child = parts[i]
+                m = MagicMock(_mock_name=name)
+                setattr(sys.modules[parent], child, m)
+                sys.modules[name] = m
+                return m
+
+        # Create a mock object that behaves like a package if it has submodules in MOCK_IF_MISSING
+        m = MagicMock(_mock_name=name)
+        m.__path__ = []
+        # Create a spec to satisfy find_spec calls
+        try:
+            import importlib.machinery
+            m.__spec__ = importlib.machinery.ModuleSpec(name, None)
+        except:
+            pass
+        sys.modules[name] = m
     return sys.modules[name]
 
 # Only mock what's ABSOLUTELY necessary and likely to be missing
 MOCK_IF_MISSING = [
     "cvxpy", "confluent_kafka", "confluent_kafka.admin", "confluent_kafka.schema_registry", 
-    "selectolax", "selectolax.lexbor", "dask", "cvxopt",
+    "confluent_kafka.schema_registry.avro",
+    "selectolax", "selectolax.lexbor", "dask", "dask.distributed", "cvxopt", "xgboost.dask",
     "stable_baselines3", "stable_baselines3.common", "stable_baselines3.common.torch_layers",
     "stable_baselines3.td3", "stable_baselines3.td3.policies", "stable_baselines3.common.buffers",
-    "gymnasium", "mlflow", "faker", "prometheus_api_client", "xgboost", 
-    "prefect", "lightning", "lightning.pytorch", "sendgrid", "sendgrid.helpers", "sendgrid.helpers.mail",
-    "rich", "rich.box", "rich.console",
+    "stable_baselines3.common.callbacks", "stable_baselines3.common.noise",
+    "gymnasium", "mlflow", "mlflow.tracking", "mlflow.pytorch", "mlflow.pyfunc", "mlflow.xgboost",
+    "faker", "prometheus_api_client", "xgboost", 
+    "prefect", "lightning", "lightning.pytorch", "lightning.pytorch.callbacks",
+    "sendgrid", "sendgrid.helpers", "sendgrid.helpers.mail",
+    "rich", "rich.box", "rich.console", "rich.panel", "rich.table", "rich.live", "rich.layout",
     "torch_geometric", "torch_geometric.nn", "torch_geometric.data",
-    "flwr"
+    "pytorch_forecasting", "pytorch_forecasting.data", "onnxruntime", "flwr",
+    "ray.tune", "ray.tune.schedulers", "ray.air"
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in God-Mode venv
 
+heavy_prefixes = ["faker", "mlflow", "stable_baselines3", "xgboost", "confluent_kafka", "lightning", "prefect", "dask", "cvxopt", "cvxpy", "flwr", "pytorch_forecasting", "onnxruntime", "ray.tune", "ray.air"]
+
 for mod in MOCK_IF_MISSING:
     try:
         # Don't try to import heavy ones, just mock
-        if mod in ["faker", "mlflow", "stable_baselines3", "xgboost", "confluent_kafka", "lightning", "prefect", "dask", "cvxopt", "cvxpy", "flwr"]:
-            raise ImportError
+        if any(mod.startswith(p) for p in heavy_prefixes):
+             raise ImportError
         if mod in sys.modules:
             continue
         __import__(mod)
-    except ImportError:
+    except (ImportError, Exception):
         m = mock_module(mod)
         # Specific attribute fixes for mocks
         if mod == "xgboost":
             m.DMatrix = MagicMock()
-        if mod == "confluent_kafka":
-            m.Consumer = MagicMock()
-            m.Producer = MagicMock()
-            m.KafkaError = MagicMock()
-            m.schema_registry = mock_module("confluent_kafka.schema_registry")
-        if mod == "lightning":
-            m.pytorch = mock_module("lightning.pytorch")
-            m.pytorch.callbacks = MagicMock()
-            sys.modules["lightning.pytorch.callbacks"] = m.pytorch.callbacks
+        if mod == "faker":
+            m.Faker = MagicMock(return_value=MagicMock())
         if mod == "mlflow":
             m.set_tracking_uri = MagicMock()
             m.start_run = MagicMock()
             m.end_run = MagicMock()
-            m.log_params = MagicMock()
-            m.log_metrics = MagicMock()
-            m.log_metric = MagicMock()
-            m.log_artifact = MagicMock()
-            # Handle submodules
-            m.xgboost = MagicMock()
-            m.pytorch = MagicMock()
-            m.pyfunc = MagicMock()
-            sys.modules["mlflow.xgboost"] = m.xgboost
-            sys.modules["mlflow.pytorch"] = m.pytorch
-            sys.modules["mlflow.pyfunc"] = m.pyfunc
-        if mod == "faker":
-            # Faker instance needs to be returned by Faker()
-            m.Faker = MagicMock()
-            m.Faker.return_value = MagicMock()
-        if mod == "rich":
-            m.box = MagicMock()
-            m.console = MagicMock()
-            sys.modules["rich.box"] = m.box
-            sys.modules["rich.console"] = m.console
-        if mod == "sendgrid":
-            m.helpers = mock_module("sendgrid.helpers")
-            m.helpers.mail = MagicMock()
-            sys.modules["sendgrid.helpers.mail"] = m.helpers.mail
 
-# Ensure torch mock has version if it ends up being mocked (though it should be installed)
+# Force Mock Ray (Heavy dependency)
+if "ray" not in sys.modules:
+    ray_mock = MagicMock(_mock_name="ray")
+    ray_mock.__path__ = []
+    ray_mock.init = MagicMock()
+    ray_mock.remote = lambda x: x # Decorator pass-through
+    ray_mock.get = MagicMock(return_value=None)
+    ray_mock.put = MagicMock()
+    ray_mock.shutdown = MagicMock()
+    ray_mock.is_initialized = MagicMock(return_value=False)
+    
+    # Submodules
+    ray_mock.train = MagicMock()
+    ray_mock.train.torch = MagicMock()
+    ray_mock.train.torch.prepare_model = MagicMock(side_effect=lambda x: x)
+    ray_mock.train.torch.prepare_data_loader = MagicMock(side_effect=lambda x: x)
+    ray_mock.train.report = MagicMock()
+    ray_mock.train.get_context = MagicMock()
+    ray_mock.train.get_context.return_value.get_local_rank.return_value = 0
+    
+    sys.modules["ray"] = ray_mock
+    sys.modules["ray.train"] = ray_mock.train
+    sys.modules["ray.train.torch"] = ray_mock.train.torch
+
+# Ensure torch mock has version if it ends up being mocked
 if "torch" in sys.modules and isinstance(sys.modules["torch"], MagicMock):
     sys.modules["torch"].__version__ = "2.0.0"
     sys.modules["torch"].__config__ = MagicMock()
@@ -121,30 +135,3 @@ else:
     numba_mock = MagicMock()
     numba_mock.jit = numba_mock.njit = jit_mock
     sys.modules["numba"] = numba_mock
-
-# Force Mock Ray (Heavy dependency)
-ray_mock = MagicMock()
-ray_mock.init = MagicMock()
-ray_mock.remote = lambda x: x # Decorator pass-through
-ray_mock.get = MagicMock(return_value=None)
-ray_mock.put = MagicMock()
-ray_mock.shutdown = MagicMock()
-ray_mock.is_initialized = MagicMock(return_value=False)
-
-# Mock submodules
-ray_mock.train = MagicMock()
-ray_mock.train.torch = MagicMock()
-ray_mock.train.torch.prepare_model = MagicMock(side_effect=lambda x: x)
-ray_mock.train.torch.prepare_data_loader = MagicMock(side_effect=lambda x: x)
-ray_mock.train.report = MagicMock()
-ray_mock.train.get_context = MagicMock()
-ray_mock.train.get_context.return_value.get_local_rank.return_value = 0
-
-ray_mock.tune = MagicMock()
-ray_mock.air = MagicMock()
-
-sys.modules["ray"] = ray_mock
-sys.modules["ray.train"] = ray_mock.train
-sys.modules["ray.train.torch"] = ray_mock.train.torch
-sys.modules["ray.tune"] = ray_mock.tune
-sys.modules["ray.air"] = ray_mock.air

@@ -19,17 +19,39 @@ def _heston_integrand_vectorized(v, k, alpha, T, r, v0, kappa, theta, sigma, rho
     sig = np.maximum(sigma, 1e-6)
     u = v_grid - (alpha + 1) * 1j
     
-    # Characteristic function calculation (vectorized across v and batch)
-    xi = kappa - sig * rho * u * 1j
-    d = np.sqrt(xi**2 + sig**2 * (u**2 + 1j * u))
-    g = (xi + d) / (xi - d)
+        # Characteristic function calculation (vectorized across v and batch)
     
-    exp_dT = np.exp(d * T)
+        xi = kappa - sig * rho * u * 1j
     
-    A = (kappa * theta / sig**2) * (
-        (xi + d) * T - 2.0 * np.log((1.0 - g * exp_dT) / (1.0 - g))
-    )
-    B = (v0 / sig**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
+        d = np.sqrt(xi**2 + sig**2 * (u**2 + 1j * u))
+    
+        g = (xi + d) / (xi - d)
+    
+        
+    
+        # 🚀 NUMERICAL STABILITY: Limit d*T to prevent exp overflow
+    
+        dT = d * T
+    
+        exp_dT = np.exp(np.clip(dT.real, -100, 100) + 1j * dT.imag)
+    
+        
+    
+        # Stable formulation for A and B
+    
+        # Use log1p for (1 - g*exp_dT) / (1 - g) if possible, but standard form with clipping
+    
+        g_exp_dT = g * exp_dT
+    
+        A = (kappa * theta / sig**2) * (
+    
+            (xi + d) * T - 2.0 * np.log(np.maximum(1e-12, (1.0 - g_exp_dT) / (1.0 - g)))
+    
+        )
+    
+        B = (v0 / sig**2) * (xi + d) * (1.0 - exp_dT) / (np.maximum(1e-12, 1.0 - g_exp_dT))
+    
+    
     
     phi = np.exp(A + B)
     
