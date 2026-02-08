@@ -51,7 +51,8 @@ def mock_all():
     from src.config import settings as mock_settings
     with patch("src.api.routes.auth.auth_service", m_auth), \
          patch("src.api.routes.auth.password_service", m_pwd), \
-         patch("src.api.routes.auth.settings", mock_settings):
+         patch("src.api.routes.auth.settings", mock_settings), \
+         patch("src.api.middleware.security.JWTAuthenticationMiddleware.dispatch", side_effect=lambda request, call_next: call_next(request)):
         yield m_auth, m_pwd, m_db
     app.dependency_overrides.clear()
 
