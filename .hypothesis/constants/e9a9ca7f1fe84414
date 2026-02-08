@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/__init__.py
+# hypothesis_version: 6.151.5
+
+['.aiops', '.api', '.audit', '.auth', '.config', '.database', '.ml', '.pricing', '.services', '.shared', '.streaming', '.utils', '.workers', '2.5.0', '__version__', 'aiops', 'api', 'audit', 'auth', 'config', 'database', 'ml', 'pricing', 'services', 'shared', 'streaming', 'utils', 'workers']

@@ -47,11 +47,14 @@ class BroadcastWorker:
             finally:
                 self.queue.task_done()
 
+from src.shared.eternal_ledger import EternalLedger
+
 class PersistenceWorker:
-    """The Scribe: Dedicated to high-throughput DB persistence."""
+    """The Scribe: Dedicated to high-throughput DB persistence and Binary Ledger."""
     def __init__(self):
         self.queue = asyncio.Queue(maxsize=1000)
         self.running = False
+        self.ledger = EternalLedger()
 
     async def run(self):
         from src.database.crud import bulk_insert_option_prices
@@ -60,6 +63,10 @@ class PersistenceWorker:
         while self.running:
             batch = await self.queue.get()
             try:
+                # 🚀 HOT PATH: Persistent Binary Logging (Zero-latency)
+                self.ledger.write_batch(batch)
+                
+                # 2. Historical DB Persistence (Asynchronous Scribe)
                 now_utc = datetime.now(UTC)
                 today_date = now_utc.date()
                 transformed = [
@@ -83,6 +90,7 @@ class PersistenceWorker:
                     }
                     for item in batch
                 ]
+                # Note: In a real singularity, we'd batch these even further
                 async with get_async_db_context() as db:
                     await bulk_insert_option_prices(db, transformed)
             except Exception as e:
