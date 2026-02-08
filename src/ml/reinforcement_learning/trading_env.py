@@ -6,21 +6,37 @@ from gymnasium import spaces
 
 logger = structlog.get_logger()
 
+import gymnasium as gym
+import numpy as np
+import structlog
+from gymnasium import spaces
+
+from .kernels import _calculate_reward_kernel, _fused_state_kernel
+
+logger = structlog.get_logger()
+
 class TradingEnvironment(gym.Env):
-    def __init__(self, data_provider=None, initial_balance=100000.0, transaction_cost=0.0001):
+    """
+    High-performance Trading Environment.
+    FUSED: Uses Numba silicon kernels for zero-allocation state and reward logic.
+    """
+    def __init__(self, data_provider=None, initial_balance=100000.0, transaction_cost=0.0001, window_size=5):
         super().__init__()
         self.data_provider = data_provider
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
+        self.window_size = window_size
         
         # Action space: target weights for 10 assets
         self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
         
-        # Observation space: 100 features
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(100,), dtype=np.float32)
+        # Observation space: 100 features * window_size
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(100 * window_size,), dtype=np.float32
+        )
         
-        # Pre-allocate observation buffer for zero-allocation construction
-        self._obs_buffer = np.zeros(100, dtype=np.float32)
+        # Silicon Buffers
+        self._window_buffer = np.zeros((window_size, 100), dtype=np.float32)
         
         self.reset()
 
@@ -30,6 +46,7 @@ class TradingEnvironment(gym.Env):
         self.positions = np.zeros(10, dtype=np.float32)
         self.current_step = 0
         self.portfolio_values = [self.initial_balance]
+        self._window_buffer.fill(0)
         
         if self.data_provider:
             self.market_data = self.data_provider.get_data_at_step(0)
@@ -39,51 +56,32 @@ class TradingEnvironment(gym.Env):
         return self._get_observation(), {}
 
     def _get_observation(self) -> np.ndarray:
-        """Constructs observation from market data and portfolio state."""
-        # 1. Portfolio state (11 dimensions)
-        self._obs_buffer[0] = self.balance / self.initial_balance
-        self._obs_buffer[1:11] = self.positions
+        """Fused state construction via silicon kernel."""
+        prices = self.market_data.get('prices', np.ones(10))
+        strikes = self.market_data.get('strikes', np.ones(10) * 100.0)
+        greeks = self.market_data.get('greeks', np.zeros(50)).ravel()
+        indicators = self.market_data.get('indicators', np.zeros(20))
         
-        # 2. Market prices (10 dimensions)
-        prices = self.market_data.get('prices')
-        # Fix: Use a fixed reference if strikes are missing to avoid log(1)=0
-        strikes = self.market_data.get('strikes', np.ones_like(prices) * 100.0)
+        # Ensure correct shapes for kernel
+        p = np.ascontiguousarray(prices[:10], dtype=np.float32)
+        k = np.ascontiguousarray(strikes[:10], dtype=np.float32)
+        g = np.ascontiguousarray(greeks[:50], dtype=np.float32)
+        ind = np.ascontiguousarray(indicators[:20], dtype=np.float32)
+        pos = np.ascontiguousarray(self.positions, dtype=np.float32)
         
-        # Efficient validation and log-return
-        p = np.maximum(prices, 1e-6)
-        k = np.maximum(strikes, 1e-6)
-        n_prices = min(len(p), 10)
-        self._obs_buffer[11:11+n_prices] = np.log(p[:n_prices] / k[:n_prices])
-
-        
-        # 3. Greeks (50 dimensions)
-        greeks = self.market_data.get('greeks')
-        if greeks is not None:
-            greeks_flat = greeks.ravel()
-            n_greeks = min(len(greeks_flat), 50)
-            self._obs_buffer[21:21+n_greeks] = np.tanh(greeks_flat[:n_greeks])
-        
-        # 4. Indicators (20 dimensions)
-        indicators = self.market_data.get('indicators')
-        if indicators is not None:
-            n_ind = min(len(indicators), 20)
-            self._obs_buffer[71:71+n_ind] = indicators[:n_ind]
-            
-        # Global sanity check
-        if not np.all(np.isfinite(self._obs_buffer)):
-            self._obs_buffer[~np.isfinite(self._obs_buffer)] = 0
-            
-        return self._obs_buffer.copy()
+        # 🔥 FUSION: Execute JIT kernel
+        return _fused_state_kernel(
+            float(self.balance), float(self.initial_balance),
+            pos, p, k, g, ind,
+            self._window_buffer, self.current_step, self.window_size
+        )
 
     def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict]:
         """Execute one step in the environment."""
         action = np.clip(action, self.action_space.low, self.action_space.high)
         
         # Get market state for current step
-        current_prices = self.market_data.get('prices')
-        if current_prices is None or len(current_prices) < 10:
-             current_prices = np.zeros(10) # Fallback
-        
+        current_prices = self.market_data.get('prices', np.zeros(10))
         p_safe = np.maximum(current_prices[:10], 1e-6)
         
         # Calculate current portfolio value for weight conversion
@@ -100,11 +98,7 @@ class TradingEnvironment(gym.Env):
         # Update state
         self.positions = target_units
         self.balance -= (transaction_costs + asset_costs)
-
         
-        if self.balance < -1e6: # Sanity limit
-            return self._get_observation(), -10.0, True, True, {}
-            
         # Advance time
         self.current_step += 1
         if self.data_provider and self.current_step < len(self.data_provider):
@@ -112,22 +106,22 @@ class TradingEnvironment(gym.Env):
         else:
             self.market_data = self._get_dummy_data()
             
-        # Portfolio valuation
-        new_prices = self.market_data.get("prices")
-        if new_prices is None:
-            new_prices = np.zeros(10)
+        # Portfolio valuation & Reward via Silicon Kernel
+        new_prices = np.ascontiguousarray(self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32)
+        prev_val = self.portfolio_values[-1]
         
-        portfolio_value = self.balance + np.sum(self.positions * new_prices[:10])
-        self.portfolio_values.append(portfolio_value)
+        # 🔥 FUSION: Reward Kernel
+        current_val, reward = _calculate_reward_kernel(
+            self.positions, new_prices, float(prev_val), float(self.balance)
+        )
         
-        # Reward & Limits
-        reward = self._calculate_reward(portfolio_value)
+        self.portfolio_values.append(current_val)
         
         terminated = bool(self.data_provider and self.current_step >= len(self.data_provider) - 1)
-        truncated = bool(portfolio_value <= self.initial_balance * 0.5)
+        truncated = bool(current_val <= self.initial_balance * 0.5)
         
-        return self._get_observation(), reward, terminated, truncated, {
-            'portfolio_value': portfolio_value,
+        return self._get_observation(), float(reward), terminated, truncated, {
+            'portfolio_value': current_val,
             'step': self.current_step
         }
 

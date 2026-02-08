@@ -23,41 +23,31 @@ setup_logging()
 logger = structlog.get_logger(__name__)
 tune_gc(mode="high_frequency") # Optimized for high-frequency trading workers
 
+from src.data.xdp_ingest import XDPIngester
+from src.shared.shm_mesh import SharedMemoryRingBuffer
+
 class IngestionWorker:
     """
-    Asynchronous ingestion worker that bridges Kafka to both Postgres AND 
-    the Zero-Copy Shared Memory Mesh for ultra-low latency internal paths.
+    Asynchronous ingestion worker that bridges Kafka to Postgres
+    and utilizes XDPIngester for ultra-low latency SHM updates.
     """
     def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
         # Initialize the high-performance SHM ring buffer
         self.shm_mesh = SharedMemoryRingBuffer(create=True)
+        # 🔥 FUSION: High-priority XDP Ingester for the hot path
+        self.xdp_ingester = XDPIngester(self.shm_mesh)
 
     async def _ingest_batch_callback(self, batch: list[dict]):
         """
-        Optimized batch processing:
-        1. Writes to Zero-Copy SHM Mesh for immediate consumption by Pricing/Trading.
-        2. Async bulk writes to Postgres for historical persistence.
+        Optimized batch processing for DB persistence.
+        SHM updates are handled in parallel by the XDPIngester thread.
         """
         from src.database.crud import bulk_insert_option_prices
         start_time = time.time()
         try:
-            # 1. Update Zero-Copy Shared Memory Mesh immediately (Off-load to thread to keep loop free)
-            current_time = time.time()
-            
-            def _write_shm():
-                for item in batch:
-                    self.shm_mesh.write_tick(
-                        symbol=item['symbol'],
-                        price=item['price'],
-                        volume=item.get('volume', 0),
-                        timestamp=current_time
-                    )
-            
-            await asyncio.to_thread(_write_shm)
-
-            # 2. Transformation for DB
+            # Transformation for DB
             now_utc = datetime.now(UTC)
             today_date = now_utc.date()
             
@@ -87,9 +77,33 @@ class IngestionWorker:
                 count = await bulk_insert_option_prices(db, transformed_batch)
             
             duration = time.time() - start_time
-            logger.info("ingestion_complete", shm_updates=len(batch), db_count=count, duration_ms=duration*1000)
+            logger.info("persistence_complete", db_count=count, duration_ms=duration*1000)
         except Exception as e:
-            logger.error("ingestion_batch_failed", error=str(e), duration_ms=(time.time() - start_time) * 1000)
+            logger.error("persistence_batch_failed", error=str(e), duration_ms=(time.time() - start_time) * 1000)
+
+    async def run(self):
+        self.running = True
+        
+        # Start the hot-path XDP ingester
+        logger.info("starting_xdp_ingester_thread")
+        self.xdp_ingester.start()
+        
+        retry_delay = 1
+        max_delay = 60
+
+        while self.running:
+            logger.info("ingestion_worker_iteration_start", retry_delay=retry_delay)
+            try:
+                await self.consumer.consume_messages(callback=self._ingest_batch_callback)
+                break
+            except Exception as e:
+                logger.error("ingestion_worker_crash", error=str(e), next_retry_s=retry_delay)
+                await asyncio.sleep(retry_delay)
+                retry_delay = min(max_delay, retry_delay * 2)
+        
+        self.xdp_ingester.stop()
+        self.shm_mesh.close()
+        logger.info("ingestion_worker_stop")
 
     _ingest_batch_callback._is_batch_aware = True
 

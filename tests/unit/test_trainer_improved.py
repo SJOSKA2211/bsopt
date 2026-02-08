@@ -17,8 +17,10 @@ class TestTrainer(unittest.TestCase):
         self.y = np.random.rand(100)
         self.params = {"framework": "sklearn", "n_estimators": 10}
         
-        with patch("src.ml.trainer.ExperimentTracker"), \
-             patch("src.ml.trainer.ModelQuantizer"):
+        with (
+            patch("src.ml.trainer.ExperimentTracker"),
+            patch("src.ml.trainer.ModelQuantizer")
+        ):
             self.trainer = ModelTrainer(study_name="test_study")
 
     @patch("src.ml.trainer.get_strategy")
