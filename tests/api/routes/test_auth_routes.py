@@ -102,7 +102,13 @@ def test_logout_flow(mock_all):
 def test_register_flow(mock_all):
     _, _, m_db = mock_all
     with patch("src.api.routes.auth._send_verification_email", AsyncMock()):
-        payload = {"email": "n@e.com", "password": "Password123!", "full_name": "New User"}
+        payload = {
+            "email": "n@e.com", 
+            "password": "Password123!", 
+            "password_confirm": "Password123!",
+            "full_name": "New User",
+            "accept_terms": True
+        }
         response = client.post("/api/v1/auth/register", json=payload)
         assert response.status_code == 201
         m_db.commit.side_effect = Exception("f")

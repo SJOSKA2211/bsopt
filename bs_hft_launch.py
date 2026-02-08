@@ -3,13 +3,20 @@ import os
 import sys
 import threading
 import time
+import asyncio
 import structlog
-from src.data.xdp_ingest import XDPIngester
+from src.streaming.ingestion_worker import IngestionWorker
 from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
 from src.config import settings
 
 logger = structlog.get_logger(__name__)
+
+def run_ingestion_worker(cpu_core: int):
+    """Bridge to run the async IngestionWorker in a dedicated pinned thread."""
+    worker = IngestionWorker()
+    # Pinned thread needs its own event loop
+    asyncio.run(worker.run(cpu_core=cpu_core))
 
 def lock_memory():
     """Lock process memory to prevent swapping (Requires root/CAP_IPC_LOCK)."""
@@ -35,10 +42,15 @@ def launch_manifold():
     # 1. Global Pre-flight
     lock_memory()
     
-    # 2. Start Ingester (Core 1)
-    # Note: XDPIngester starts its own thread internally
-    ingester = XDPIngester()
-    ingester.start(cpu_core=1)
+    # 2. Start Ingestion Swarm (Core 1)
+    # Handles DB, WebSockets, and SHM (via XDP)
+    ingest_thread = threading.Thread(
+        target=run_ingestion_worker,
+        args=(1,),
+        name="IngestSwarm",
+        daemon=True
+    )
+    ingest_thread.start()
     
     # 3. Start Agent (Core 2)
     agent = OnlineRLAgent(model_path="models/latest_td3.zip")

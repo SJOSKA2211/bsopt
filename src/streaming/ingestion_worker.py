@@ -36,8 +36,8 @@ class IngestionWorker:
     def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
-        self.shm_mesh = SharedMemoryRingBuffer(create=True)
-        self.xdp_ingester = XDPIngester(self.shm_mesh)
+        # XDPIngester now manages its own mesh internally for Core 1 isolation
+        self.xdp_ingester = XDPIngester()
 
     async def _ingest_batch_callback(self, batch: list[dict]):
         """
@@ -87,9 +87,9 @@ class IngestionWorker:
         except Exception as e:
             logger.error("ingestion_batch_failed", error=str(e))
 
-    async def run(self):
+    async def run(self, cpu_core: int = 1):
         self.running = True
-        self.xdp_ingester.start()
+        self.xdp_ingester.start(cpu_core=cpu_core)
         
         retry_delay = 1
         while self.running:
@@ -102,12 +102,7 @@ class IngestionWorker:
                 retry_delay = min(60, retry_delay * 2)
         
         self.xdp_ingester.stop()
-        self.shm_mesh.close()
         logger.info("ingestion_worker_stop")
-
-    def stop(self):
-        self.running = False
-        self.consumer.stop()
 
     def stop(self):
         self.running = False
