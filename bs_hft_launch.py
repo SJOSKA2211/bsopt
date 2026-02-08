@@ -35,6 +35,7 @@ def lock_memory():
 from src.trading.order_engine import OrderEngine
 from src.monitoring.telemetry import TelemetryEngine
 from src.shared.mesh_bridge import MeshBridge
+from src.ml.autonomous_refiner import AutonomousRefiner
 from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
 
 def launch_manifold():
@@ -103,18 +104,25 @@ def launch_manifold():
 
     # 6. Start Interdimensional Mesh Bridge (Cores 9 & 10)
     bridge = MeshBridge()
-    # Broadcaster mirrored to the cluster
     threading.Thread(
         target=bridge.run_broadcaster,
         args=(9,),
         name="MeshBroadcaster",
         daemon=True
     ).start()
-    # Listener for cluster-wide ticks
     threading.Thread(
         target=bridge.run_listener,
         args=(10,),
         name="MeshListener",
+        daemon=True
+    ).start()
+
+    # 7. Start Autonomous Refiner (Core 11)
+    refiner = AutonomousRefiner()
+    threading.Thread(
+        target=refiner.run,
+        args=(11,),
+        name="BrainForge",
         daemon=True
     ).start()
     

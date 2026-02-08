@@ -115,20 +115,22 @@ class PricingService:
             computation_time_ms=(time.perf_counter() - start_time) * 1000
         )
 
-        async def calculate_greeks(self, params: BSParameters, option_type: str) -> dict:
+            async def calculate_greeks(self, params: BSParameters, option_type: str) -> dict:
 
-            engine = PricingEngineFactory.get_engine("black_scholes")
+                engine = PricingEngineFactory.get_engine("black_scholes")
 
-            greeks = await run_sync(engine.calculate_greeks, params, option_type)
+                greeks = await run_sync(engine.calculate_greeks, params, option_type)
 
-            return greeks.__dict__
+                return greeks.__dict__
 
-    
+        
 
-        def clear_cache(self):
+            def clear_cache(self):
 
-            """Mock for test compatibility."""
+                """Mock for test compatibility."""
 
-            pass
+                pass
+
+        
 
     

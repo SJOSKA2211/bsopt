@@ -65,5 +65,36 @@ def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
     # Avoid division by zero
     running_max = np.maximum(running_max, 1e-9)
     
-    drawdown = (equity_curve - running_max) / running_max
-    return float(np.min(drawdown))
+class ModelScorecard:
+    """
+    Unified performance scorecard combining regression and financial metrics.
+    🚀 SINGULARITY: Holistic model evaluation.
+    """
+    def __init__(self, y_true: np.ndarray, y_pred: np.ndarray, returns: np.ndarray | None = None):
+        self.regression_metrics = calculate_regression_metrics(y_true, y_pred)
+        self.pricing_bias = calculate_pricing_bias(y_true, y_pred)
+        
+        if returns is not None:
+            self.sharpe_ratio = calculate_sharpe_ratio(returns)
+            self.max_drawdown = calculate_max_drawdown(np.cumsum(returns) + 1.0) # Cumulative equity
+        else:
+            self.sharpe_ratio = 0.0
+            self.max_drawdown = 0.0
+
+    def to_dict(self) -> dict:
+        return {
+            **self.regression_metrics,
+            "pricing_bias": self.pricing_bias,
+            "sharpe_ratio": self.sharpe_ratio,
+            "max_drawdown": self.max_drawdown,
+            "score": self.calculate_composite_score()
+        }
+
+    def calculate_composite_score(self) -> float:
+        """Calculates a single score representing overall model quality (0 to 1)."""
+        r2 = max(0, self.regression_metrics["r2"])
+        # Penalize bias and drawdown, reward Sharpe
+        sharpe_norm = min(max(self.sharpe_ratio / 3.0, 0), 1.0) # Assume 3.0 is excellent
+        mdd_penalty = min(abs(self.max_drawdown), 1.0)
+        
+        return float(0.4 * r2 + 0.4 * sharpe_norm + 0.2 * (1.0 - mdd_penalty))

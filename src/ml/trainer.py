@@ -5,10 +5,11 @@ from typing import Any
 import optuna
 import structlog
 
-from src.ml.evaluation.metrics import calculate_regression_metrics
+from src.ml.evaluation.metrics import ModelScorecard, calculate_regression_metrics
 from src.ml.serving.quantization import ModelQuantizer
 from src.ml.strategies import get_strategy
 from src.ml.tracker import ExperimentTracker
+from src.ml.utils.validation import WalkForwardValidator
 
 try:
     import matplotlib.pyplot as plt
@@ -22,13 +23,14 @@ class ModelTrainer:
     Orchestrates the training process using Strategy Pattern and dedicated Tracker.
     """
     
-    def __init__(self, study_name: str, storage: str = None, tracking_uri: str = None):
+    def __init__(self, study_name: str, storage: str = None, tracking_uri: str = None, n_splits: int = 1):
         self.tracker = ExperimentTracker(study_name, tracking_uri)
         self.storage = storage
         self.quantizer = ModelQuantizer()
         self.model = None
         self.best_params = {}
         self.plt = plt
+        self.n_splits = n_splits
 
     def push_metrics(self):
         """Alias for tracker.push_to_gateway."""
@@ -37,65 +39,80 @@ class ModelTrainer:
     def train_and_evaluate(self, X: Any, y: Any, params: dict[str, Any], feature_names: list[str] = None, dataset_metadata: dict[str, str] | None = None, base_model: Any | None = None, trial: optuna.Trial | None = None) -> float:
         """
         Trains a model using the specified strategy and evaluates regression performance.
+        🚀 SINGULARITY: Walk-Forward Temporal Validation.
         """
         framework = params.get("framework", "xgboost")
         strategy = get_strategy(framework)
         
         try:
-            # 🚀 SINGULARITY: Strict Temporal Split (No Shuffling)
-            # Prevent data leakage by slicing sequentially.
-            split_idx = int(len(X) * 0.8)
-            X_train, X_test = X[:split_idx], X[split_idx:]
-            y_train, y_test = y[:split_idx], y[split_idx:]
+            # 🚀 RIGOROUS: Walk-Forward Validation
+            validator = WalkForwardValidator(n_splits=self.n_splits)
+            splits = list(validator.split(X))
             
-            if feature_names is None:
-                feature_names = [f"feature_{i}" for i in range(X.shape[1])]
+            all_metrics = []
+            
+            for fold, (train_idx, test_idx) in enumerate(splits):
+                X_train, X_test = X[train_idx], X[test_idx]
+                y_train, y_test = y[train_idx], y[test_idx]
                 
-            with self.tracker.start_run(nested=True):
-                self.tracker.log_params(params)
-                
-                if dataset_metadata:
-                    self.tracker.set_tags(dataset_metadata)
-                
-                if base_model:
-                    self.tracker.set_tags({"warm_start": "true"})
-                
-                start_time = time.time()
-                
-                # Execute Strategy
-                model = strategy.train(X_train, y_train, X_test, y_test, params, base_model=base_model)
-                y_pred = strategy.predict(model, X_test)
-                
-                # 🚀 OPTIMIZATION: Use regression metrics
-                metrics = calculate_regression_metrics(y_test, y_pred)
-                duration = time.time() - start_time
-                
-                # Pruning based on R2 score
-                if trial:
-                    trial.report(metrics["r2"], step=1)
-                    if trial.should_prune():
-                        logger.info("trial_pruned", trial_id=trial.number)
-                        raise optuna.exceptions.TrialPruned()
-                
-                # Logging
-                self.tracker.log_metrics(metrics["mae"], metrics["rmse"], duration, framework)
-                self.tracker.log_dict(metrics, "metrics.json")
-                
-                # Post-processing (Quantization)
-                if framework == "pytorch":
-                    quantized_model = self.quantizer.quantize_dynamic(model)
-                    self.tracker.log_model(quantized_model, framework, "model_quantized")
-                
-                self.tracker.log_model(model, framework, "model")
-                
-                importance = strategy.get_feature_importance(model, feature_names)
-                if importance:
-                    self.tracker.log_feature_importance(importance, framework)
-                
-                self.model = model
-                logger.info("model_trained", framework=framework, r2=metrics["r2"])
-                
-                return float(metrics["r2"])
+                if feature_names is None:
+                    feature_names = [f"feature_{i}" for i in range(X.shape[1])]
+                    
+                with self.tracker.start_run(nested=True):
+                    self.tracker.set_tags({"fold": str(fold)})
+                    self.tracker.log_params(params)
+                    
+                    if dataset_metadata:
+                        self.tracker.set_tags(dataset_metadata)
+                    
+                    if base_model:
+                        self.tracker.set_tags({"warm_start": "true"})
+                    
+                    start_time = time.time()
+                    
+                    # Execute Strategy
+                    model = strategy.train(X_train, y_train, X_test, y_test, params, base_model=base_model)
+                    y_pred = strategy.predict(model, X_test)
+                    
+                    # 🚀 TRANSCENDENCE: Holistic Scorecard
+                    # For simplicity, we assume 'returns' is not available here, 
+                    # but could be passed if y was multi-column or via metadata.
+                    scorecard = ModelScorecard(y_test, y_pred)
+                    metrics = scorecard.to_dict()
+                    duration = time.time() - start_time
+                    
+                    all_metrics.append(metrics)
+                    
+                    # Logging
+                    self.tracker.log_metrics(metrics["mae"], metrics["rmse"], duration, framework)
+                    self.tracker.log_dict(metrics, f"metrics_fold_{fold}.json")
+                    
+                    if fold == len(splits) - 1:
+                        # Only log model for the last fold (the most recent data)
+                        if framework == "pytorch":
+                            quantized_model = self.quantizer.quantize_dynamic(model)
+                            self.tracker.log_model(quantized_model, framework, "model_quantized")
+                        
+                        self.tracker.log_model(model, framework, "model")
+                        
+                        importance = strategy.get_feature_importance(model, feature_names)
+                        if importance:
+                            self.tracker.log_feature_importance(importance, framework)
+                        
+                        self.model = model
+
+            # Aggregate R2 across folds
+            avg_r2 = np.mean([m["r2"] for m in all_metrics])
+            
+            # Pruning based on Average R2 score
+            if trial:
+                trial.report(avg_r2, step=1)
+                if trial.should_prune():
+                    logger.info("trial_pruned", trial_id=trial.number)
+                    raise optuna.exceptions.TrialPruned()
+            
+            logger.info("model_trained", framework=framework, avg_r2=avg_r2)
+            return float(avg_r2)
                 
         except optuna.exceptions.TrialPruned:
             raise

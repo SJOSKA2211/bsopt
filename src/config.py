@@ -83,6 +83,12 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(default="kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU=", validation_alias="MFA_ENCRYPTION_KEY")
+    
+    # Password Hashing
+    BCRYPT_ROUNDS: int = 12
+    ARGON2_TIME_COST: int = 3
+    ARGON2_MEMORY_COST: int = 65536
+    ARGON2_PARALLELISM: int = 4
 
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300
