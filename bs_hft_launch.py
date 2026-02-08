@@ -32,6 +32,9 @@ def lock_memory():
     except Exception as e:
         logger.warning("memory_lock_not_available", error=str(e))
 
+from src.trading.order_engine import OrderEngine
+from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
+
 def launch_manifold():
     """
     Orchestrates the high-frequency trading manifold.
@@ -41,6 +44,9 @@ def launch_manifold():
     
     # 1. Global Pre-flight
     lock_memory()
+    # Initialize lock-free buffers
+    _ = OrderBuffer(create=True)
+    _ = ExecutionBuffer(create=True)
     
     # 2. Initialize Ingestion Swarm
     worker = IngestionWorker()
@@ -72,6 +78,15 @@ def launch_manifold():
         target=agent.run, 
         args=(2,), 
         name="AgentEngine", 
+        daemon=True
+    ).start()
+
+    # 4. Start Order Engine (Core 7)
+    oe = OrderEngine()
+    threading.Thread(
+        target=oe.run,
+        args=(7,),
+        name="OrderEngine",
         daemon=True
     ).start()
     

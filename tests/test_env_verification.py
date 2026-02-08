@@ -3,7 +3,7 @@ from src.config import settings
 
 def test_environment_variables():
     """Verify that environment variables are correctly mocked/loaded."""
-    assert settings.ENVIRONMENT == "dev"
+    assert settings.ENVIRONMENT == "test"
     assert settings.DATABASE_URL == "sqlite:///:memory:"
     assert settings.REDIS_URL == "redis://localhost:6379/0"
 

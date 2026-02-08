@@ -25,6 +25,56 @@ class MarketTick(msgspec.Struct):
     volume: int
     timestamp: float
 
+# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side: 1=Buy, -1=Sell) = 28 bytes
+ORDER_DTYPE = np.dtype([
+    ('symbol', 'S8'),
+    ('price', 'f8'),
+    ('quantity', 'i8'),
+    ('side', 'i4')
+])
+ORDER_SIZE = ORDER_DTYPE.itemsize
+ORDER_BUFFER_CAPACITY = 1000
+SHM_ORDER_NAME = "order_command_buffer"
+
+# Execution Status: q (OrderID), d (FillPrice), q (FillQty), i (Status) = 28 bytes
+EXEC_DTYPE = np.dtype([
+    ('order_id', 'i8'),
+    ('fill_price', 'f8'),
+    ('fill_qty', 'i8'),
+    ('status', 'i4')
+])
+EXEC_SIZE = EXEC_DTYPE.itemsize
+EXEC_BUFFER_CAPACITY = 1000
+SHM_EXEC_NAME = "execution_status_buffer"
+
+class OrderBuffer:
+    """Lock-Free Order Command Buffer (Agent -> Engine)."""
+    def __init__(self, create: bool = False):
+        self.size = (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8
+        self.shm = shared_memory.SharedMemory(name=SHM_ORDER_NAME, create=create, size=self.size) if create else shared_memory.SharedMemory(name=SHM_ORDER_NAME)
+        self.buf = self.shm.buf
+        if create: self.buf[:8] = struct.pack("q", 0)
+        self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
+
+    def write_order(self, symbol: str, price: float, qty: int, side: int):
+        head = struct.unpack("q", self.buf[:8])[0]
+        self.view[head % ORDER_BUFFER_CAPACITY] = (symbol.encode('ascii')[:8], price, qty, side)
+        self.buf[:8] = struct.pack("q", head + 1)
+
+class ExecutionBuffer:
+    """Lock-Free Execution Status Buffer (Engine -> Agent)."""
+    def __init__(self, create: bool = False):
+        self.size = (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8
+        self.shm = shared_memory.SharedMemory(name=SHM_EXEC_NAME, create=create, size=self.size) if create else shared_memory.SharedMemory(name=SHM_EXEC_NAME)
+        self.buf = self.shm.buf
+        if create: self.buf[:8] = struct.pack("q", 0)
+        self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+
+    def write_exec(self, order_id: int, price: float, qty: int, status: int):
+        head = struct.unpack("q", self.buf[:8])[0]
+        self.view[head % EXEC_BUFFER_CAPACITY] = (order_id, price, qty, status)
+        self.buf[:8] = struct.pack("q", head + 1)
+
 class SharedMemoryRingBuffer:
     """
     Ultra-high-performance Lock-Free Zero-Copy Ring Buffer.

@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Any
 
@@ -6,7 +7,7 @@ import structlog
 
 from src.ml.reinforcement_learning.kernels import _calculate_reward_kernel, _fused_state_kernel
 from src.shared.observability import tune_gc
-from src.shared.shm_mesh import SHM_NAME, TICK_DTYPE, SharedMemoryRingBuffer
+from src.shared.shm_mesh import SHM_NAME, TICK_DTYPE, SharedMemoryRingBuffer, OrderBuffer, ExecutionBuffer
 
 try:
     from stable_baselines3 import TD3
@@ -20,6 +21,7 @@ class OnlineRLAgent:
     God-Mode Online RL Agent.
     Bypasses Kafka. Spins on the lock-free SHM Mesh.
     Uses fused JIT kernels for state construction.
+    Connects to the Order Engine via lock-free command buffers.
     """
     def __init__(self, 
                  model_path: str, 
@@ -37,9 +39,12 @@ class OnlineRLAgent:
         self._window_idx = 0
         self._prev_portfolio_value = initial_balance
         
-        # Initialize Mesh Reader
+        # Initialize Mesh Reader & Order Nervous System
         self._mesh = SharedMemoryRingBuffer(create=False)
+        self._orders = OrderBuffer(create=False)
+        self._execs = ExecutionBuffer(create=False)
         self._last_head = 0
+        self._last_exec_head = 0
         
         # Load the trained model
         if TD3 is not None:
@@ -124,15 +129,23 @@ class OnlineRLAgent:
             self._mesh.close()
 
     def _execute_action(self, action: np.ndarray, prices: np.ndarray):
-        """Execute trades against current balance."""
+        """Drop binary orders into the SHM Mesh."""
         # Convert weights to units
         portfolio_value = self._prev_portfolio_value
         target_units = (action * portfolio_value) / (prices + 1e-9)
         trades = target_units - self.positions
-        cost = np.sum(trades * prices)
         
-        self.balance -= cost
-        self.positions = target_units
+        # Drop orders for each non-trivial trade
+        for i in range(len(trades)):
+            qty = int(abs(trades[i]))
+            if qty > 0:
+                side = 1 if trades[i] > 0 else -1
+                # Write to lock-free OrderBuffer (Direct silicon path to Core 7)
+                self._orders.write_order(f"OPT_{i}", float(prices[i]), qty, side)
+                
+                # Optimistic local update
+                self.positions[i] = target_units[i]
+                self.balance -= float(trades[i] * prices[i])
 
 if __name__ == "__main__":
     # In prod, this would be started by the orchestrator

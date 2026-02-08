@@ -95,7 +95,7 @@ async def test_orchestrator_run_no_anomalies(mock_config, mock_orchestrator_depe
     with patch.object(orchestrator, "_detect_anomalies", return_value={}), \
          patch.object(orchestrator, "_remediate_anomalies") as mock_remediate:
         
-        await orchestrator.run()
+        await orchestrator.run(iterations=1)
         mock_remediate.assert_not_called()
         mock_orchestrator_dependencies["logger"].info.assert_any_call("aiops_cycle_completed", anomalies_found=0)
 
@@ -107,7 +107,7 @@ async def test_orchestrator_run_with_anomalies(mock_config, mock_orchestrator_de
     with patch.object(orchestrator, "_detect_anomalies", return_value=anomalies), \
          patch.object(orchestrator, "_remediate_anomalies") as mock_remediate:
         
-        await orchestrator.run()
+        await orchestrator.run(iterations=1)
         mock_remediate.assert_called_once_with(anomalies)
         mock_orchestrator_dependencies["logger"].warning.assert_any_call("anomalies_detected", count=1)
 
@@ -116,7 +116,7 @@ async def test_orchestrator_run_exception_handling(mock_config, mock_orchestrato
     orchestrator = AIOpsOrchestrator(mock_config)
     
     with patch.object(orchestrator, "_detect_anomalies", side_effect=Exception("Prometheus connection error")):
-        await orchestrator.run()
+        await orchestrator.run(iterations=1)
         mock_orchestrator_dependencies["logger"].error.assert_called_with("aiops_cycle_failed", error="Prometheus connection error")
 
 @pytest.mark.parametrize("error_rate, latency, expected_anomalies", [
