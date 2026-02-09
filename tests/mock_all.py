@@ -50,7 +50,7 @@ MOCK_IF_MISSING = [
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in God-Mode venv
 
-heavy_prefixes = ["faker", "mlflow", "stable_baselines3", "xgboost", "confluent_kafka", "lightning", "prefect", "dask", "cvxopt", "cvxpy", "flwr", "pytorch_forecasting", "onnxruntime", "ray.tune", "ray.air"]
+heavy_prefixes = ["faker", "mlflow", "stable_baselines3", "xgboost", "confluent_kafka", "lightning", "prefect", "dask", "cvxopt", "cvxpy", "flwr", "pytorch_forecasting", "onnxruntime", "ray.tune", "ray.air", "strawberry"]
 
 for mod in MOCK_IF_MISSING:
     try:

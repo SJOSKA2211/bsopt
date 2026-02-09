@@ -42,3 +42,6 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("JWT_SECRET", "test_secret_key_change_me_in_prod")
     monkeypatch.setenv("ENVIRONMENT", "test")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
+    monkeypatch.setenv("OMP_NUM_THREADS", "1")
+    monkeypatch.setenv("MKL_NUM_THREADS", "1")
+    monkeypatch.setenv("OPENBLAS_NUM_THREADS", "1")

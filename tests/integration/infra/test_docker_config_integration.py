@@ -30,5 +30,5 @@ def test_docker_neural_pricing_optimization():
     else:
         env_dict = env
         
-    assert env_dict.get("OMP_NUM_THREADS") == "1", "OMP_NUM_THREADS should be 1"
-    assert env_dict.get("MKL_NUM_THREADS") == "1", "MKL_NUM_THREADS should be 1"
+    assert env_dict.get("OMP_NUM_THREADS") == "4", "OMP_NUM_THREADS should be 4"
+    assert env_dict.get("MKL_NUM_THREADS") == "4", "MKL_NUM_THREADS should be 4"
