@@ -1,14 +1,9 @@
+import concurrent.futures
 from typing import Any
 
 import structlog
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
-
-logger = structlog.get_logger()
-
-import concurrent.futures
-
-import structlog
 
 logger = structlog.get_logger()
 

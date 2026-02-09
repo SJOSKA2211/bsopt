@@ -1,22 +1,25 @@
 ---
 id: api01
 title: Clean API Middleware & Responses
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [api, cleanup]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-`api/responses.py` and `middleware/idempotency.py` have "Optimized" slop.
+`api/responses.py` and `middleware/idempotency.py` had branding slop and emojis.
 
 ## Solution
 Remove branding fluff and emojis.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Scrubbed `src/api/main.py` and other api files. Removed "singularity achieved" message.

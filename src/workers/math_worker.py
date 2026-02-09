@@ -42,7 +42,7 @@ async_redis_client = redis.from_url(settings.REDIS_URL)
 
 app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
 
-# Initialize Ray Hive Mind
+# Initialize Ray Swarm
 # RayOrchestrator.init() -> Moved to lazy load
 # math_swarm = [MathActor.remote() for _ in range(os.cpu_count() or 2)]
 _math_swarm = None

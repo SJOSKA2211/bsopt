@@ -56,11 +56,10 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "ASYNC"]
 ignore = ["E501", "N806", "N803", "N812", "N818", "N802"]
-
-[tool.ruff.lint.exclude]
 per-file-ignores = {
     "get-pip.py" = ["E402"],
-    "src/protos/*" = ["N802"]
+    "src/protos/*" = ["N802"],
+    "tests/unit/**/*.py" = ["E402", "F401", "F811", "F821"]
 }
 
 
