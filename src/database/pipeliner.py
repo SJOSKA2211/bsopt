@@ -18,6 +18,22 @@ class VectorizedDBEngine:
         self._pool: asyncpg.Pool | None = None
         self._lock = asyncio.Lock()
 
+    async def connect(self):
+        """Initialize the connection pool if not already active."""
+        async with self._lock:
+            if not self._pool:
+                try:
+                    self._pool = await asyncpg.create_pool(
+                        self.dsn,
+                        min_size=2,
+                        max_size=10,
+                        command_timeout=60
+                    )
+                    logger.info("db_pipeliner_pool_initialized", dsn=self.dsn)
+                except Exception as e:
+                    logger.error("db_pipeliner_init_failed", error=str(e))
+                    raise
+
     async def fetch_training_data(self, symbols: list[str], limit: int = 10000) -> list[dict]:
         """
         High-speed retrieval of training data.

@@ -51,27 +51,22 @@ class DataPipeline:
         logger.info("data_pipeline_status", report=self.last_run_report)
         return self.last_run_report
 
-    def load_latest_data(self) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
+    async def load_latest_data(self) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
         """
         Load the latest collected data from Postgres.
         Returns: (X, y, feature_names, metadata)
         """
-        import asyncio
         from src.database.pipeliner import db_engine
         
-        # Run async fetch in a synchronous wrapper for legacy ML code
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            records = loop.run_until_complete(db_engine.fetch_training_data(self.config.symbols, self.config.max_samples))
-        finally:
-            loop.close()
+        # 🚀 OPTIMIZATION: Use native async fetch
+        records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
             from src.ml.training.train import generate_synthetic_data
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
             return generate_synthetic_data(self.config.min_samples)
 
+        # 🚀 ADVANCED FEATURE ENGINEERING TODO: Implement rolling stats and lag features here
         # Convert to NumPy
         # X: strike, expiry_days, volatility, rate, dividend
         # y: price (last)

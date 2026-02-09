@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/shared/shm_mesh.py
+# hypothesis_version: 6.151.5
+
+[1000, 100000, '\x00', 'ENVIRONMENT', 'S8', 'ascii', 'calc_ts_ns', 'data_view', 'delta', 'exec_ts_ns', 'f8', 'fill_price', 'fill_qty', 'gamma', 'i4', 'i8', 'order_command_buffer', 'order_id', 'price', 'prod', 'q', 'quantity', 'receive_ts_ns', 'rho', 'side', 'status', 'submit_ts_ns', 'symbol', 'theta', 'timestamp', 'vega', 'volume']
