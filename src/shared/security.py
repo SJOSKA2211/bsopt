@@ -32,9 +32,9 @@ def get_security_circuit():
             )
     return _security_circuit
 
-class OPAWASMEnforcer:
+class WASMOPAEnforcer:
     """
-    Experimental OPA enforcer using embedded WASM for low-latency evaluation.
+    OPA enforcer using embedded WASM for low-latency evaluation.
     """
     def __init__(self, wasm_path: str = "policies/authz.wasm"):
         self.wasm_path = wasm_path

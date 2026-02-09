@@ -16,7 +16,7 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-`distributed.py` and `shm_context.py` contain misleading marketing fluff ("Singularity", "SOTA") and stubbed features that don't work.
+`distributed.py` and `shm_context.py` contain misleading marketing fluff ("Optimized", "ADVANCED") and stubbed features that don't work.
 
 ## Solution
 1. Remove all branding slop and rocket emojis.

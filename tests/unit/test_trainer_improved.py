@@ -1,7 +1,8 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
+
 import numpy as np
-import sys
 
 # Mock dependencies before imports
 sys.modules["mlflow"] = MagicMock()
@@ -10,6 +11,7 @@ sys.modules["optuna.exceptions"] = MagicMock()
 sys.modules["optuna.pruners"] = MagicMock()
 
 from src.ml.trainer import ModelTrainer
+
 
 class TestTrainer(unittest.TestCase):
     def setUp(self):

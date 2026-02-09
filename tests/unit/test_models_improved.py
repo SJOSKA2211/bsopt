@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
-from src.pricing.models import BSParameters, OptionGreeks, HestonParams, global_model_pool
+
+from src.pricing.models import BSParameters, HestonParams, OptionGreeks, global_model_pool
+
 
 class TestModels(unittest.TestCase):
     def test_bs_parameters_validation(self):

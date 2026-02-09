@@ -2,7 +2,7 @@
 set -e
 
 # Deploy all database initialization scripts in order
-echo "🚀 Deploying full database schema..."
+echo " Deploying full database schema..."
 
 DB_HOST=${POSTGRES_HOST:-localhost}
 DB_PORT=${POSTGRES_PORT:-5432}

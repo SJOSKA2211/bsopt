@@ -6,7 +6,7 @@ if [ -f .env ]; then
     export $(cat .env | xargs)
 fi
 
-echo "🚀 Starting BS-Opt Development Setup..."
+echo " Starting BS-Opt Development Setup..."
 
 # 1. Enable BuildKit
 export DOCKER_BUILDKIT=1

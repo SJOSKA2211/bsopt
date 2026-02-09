@@ -7,7 +7,7 @@ from src.pricing.quantum_pricing import HybridQuantumClassicalPricer
 
 
 def run_benchmarks():
-    print("🚀 Starting E2E Quantum-Classical Pricing Benchmarks")
+    print(" Starting E2E Quantum-Classical Pricing Benchmarks")
     pricer = HybridQuantumClassicalPricer()
     
     # Parameters

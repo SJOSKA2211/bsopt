@@ -74,7 +74,7 @@ class WASMPricingEngine(PricingStrategy):
     def batch_price_black_scholes(self, S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, q: np.ndarray, is_call: np.ndarray) -> np.ndarray:
         """
         Processes a batch of options using WASM SIMD acceleration.
-        🚀 SINGULARITY: Zero-copy memory mapping.
+         OPTIMIZED: Zero-copy memory mapping.
         """
         if not self.instance:
             return np.array([])
@@ -85,7 +85,7 @@ class WASMPricingEngine(PricingStrategy):
             S, K, T, sigma, r, q, is_call.astype(np.float64)
         ]).ravel()
 
-        # 🚀 Use zero-copy mapping to write directly to WASM heap
+        #  Use zero-copy mapping to write directly to WASM heap
         from src.utils.wasm_loader import WasmModuleCache
         heap = WasmModuleCache.map_wasm_memory(self.instance)
         
@@ -154,7 +154,7 @@ class WASMPricingEngine(PricingStrategy):
     def batch_price_heston(self, spot: np.ndarray, strike: np.ndarray, time: np.ndarray, r: np.ndarray, params: Any) -> np.ndarray:
         """
         Rust/WASM Heston batch implementation.
-        🚀 SINGULARITY: Zero-copy memory mapping.
+         OPTIMIZED: Zero-copy memory mapping.
         """
         if not self.instance:
             return np.array([])

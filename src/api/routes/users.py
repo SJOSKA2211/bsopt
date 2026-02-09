@@ -1,5 +1,5 @@
 """
-User Management Routes (Singularity Refactored)
+User Management Routes (Optimized Refactored)
 """
 
 import math

@@ -96,7 +96,7 @@ class MarketDataProducer(Producer):
 
     async def produce_batch(self, batch: list[dict[str, Any]], topic: str):
         """
-        🚀 OPTIMIZATION: Batched ingestion with msgspec validation.
+         OPTIMIZATION: Batched ingestion with msgspec validation.
         """
         if not topic:
             return
@@ -116,7 +116,7 @@ class MarketDataProducer(Producer):
                     value=value,
                     on_delivery=self._delivery_callback
                 )
-            # 🚀 FLUSH BATCH
+            #  FLUSH BATCH
             self.producer.poll(0)
             logger.debug("kafka_batch_produced_msgspec", count=len(batch), topic=topic)
         except Exception as e:

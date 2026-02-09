@@ -19,7 +19,7 @@ from src.pricing.models.heston_fft import batch_heston_price_jit
     is_call=st.booleans()
 )
 def test_heston_fft_stability(spot, strike, maturity, rate, v0, kappa, theta, sigma, rho, is_call):
-    """🚀 Property-based testing for Heston stability."""
+    """ Property-based testing for Heston stability."""
     
     # Ensure Feller condition is satisfied or handle it
     # 2κθ > σ²

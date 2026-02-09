@@ -9,7 +9,7 @@ from src.api.main import app
 @pytest.mark.asyncio
 async def test_health_check():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # 🚀 SINGULARITY: Clean health path
+        #  OPTIMIZED: Clean health path
         response = await ac.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] in ["healthy", "degraded"]
@@ -26,7 +26,7 @@ async def test_pricing_rate_limit():
         # Mock cache to return None so it proceeds to pricing logic
         with patch("src.api.routes.pricing.pricing_cache.get_option_price", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
-            # 🚀 SINGULARITY: Standardized pricing path
+            #  OPTIMIZED: Standardized pricing path
             for _ in range(5):
                 response = await ac.post("/pricing/price", json=payload)
                 # We expect success or rate limit
@@ -35,7 +35,7 @@ async def test_pricing_rate_limit():
 @pytest.mark.asyncio
 async def test_error_response_format():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # 🚀 SINGULARITY: Standardized pricing path
+        #  OPTIMIZED: Standardized pricing path
         response = await ac.post("/pricing/price", json={})
     
     assert response.status_code == 422

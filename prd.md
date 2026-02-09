@@ -1,8 +1,8 @@
-# Singularity Pipeline Optimization PRD
+# Optimized Pipeline Optimization PRD
 
 ## HR Eng
 
-| Singularity Pipeline Optimization PRD |  | Summary: Total refactor of the ML pipeline to eliminate temporal leakage, centralize tracking, and optimize execution speed. |
+| Optimized Pipeline Optimization PRD |  | Summary: Total refactor of the ML pipeline to eliminate temporal leakage, centralize tracking, and optimize execution speed. |
 | :---- | :---- | :---- |
 | **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 

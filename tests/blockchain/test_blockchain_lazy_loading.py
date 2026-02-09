@@ -28,7 +28,7 @@ class TestBlockchainLazyLoading:
         """
         import src.blockchain
         
-        # 🚀 Mock web3 so the real import (triggered by lazy load) doesn't fail if not installed
+        #  Mock web3 so the real import (triggered by lazy load) doesn't fail if not installed
         sys.modules['web3'] = MagicMock()
         
         # Accessing DeFiOptionsProtocol should trigger import
@@ -44,6 +44,6 @@ class TestBlockchainLazyLoading:
         import src.blockchain
         exports = dir(src.blockchain)
         assert 'DeFiOptionsProtocol' in exports
-        # 🚀 Rick Fix: Removed non-existent exports from assertion
+        #  Rick Fix: Removed non-existent exports from assertion
         # Should not include private members
         assert '_import_map' not in exports

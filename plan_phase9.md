@@ -1,4 +1,4 @@
-# Singularity Phase 9 Implementation Plan (Core Audit)
+# Optimized Phase 9 Implementation Plan (Core Audit)
 
 ## Overview
 Sanitization and optimization of the system's entry points and core data ingestion layers. Goal is to remove "AI Slop" (hyperbolic comments, redundant code) and consolidate system utilities.
@@ -29,7 +29,7 @@ Remove defects and centralize thread management.
 #### 3. `bs_hft_launch.py`
 **Changes**:
 - Import and use `set_thread_affinity`.
-- Remove "Singularity" branding/comments.
+- Remove "Optimized" branding/comments.
 
 ## Phase 2: CLI Sanitization
 ### Overview

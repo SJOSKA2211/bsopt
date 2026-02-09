@@ -19,5 +19,5 @@ assignee: Morty
 `ray_workers.py` has redundant initialization and "Hive Mind" slop.
 
 ## Solution
-1. Remove all "Singularity" and "Hive Mind" comments.
+1. Remove all "Optimized" and "Hive Mind" comments.
 2. Optimize worker initialization to avoid unnecessary state sharing if not needed.

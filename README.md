@@ -2,7 +2,7 @@
 
 **"I'm Pickle Rick! And I'm the only one who actually knows how to scale a derivative pricing engine!"**
 
-## 🚀 Overview
+##  Overview
 BS-OPT is not just a platform; it's a transdimensional financial deity. It is built for zero-latency, high-throughput derivative pricing, risk management, and autonomous trading. If you're looking for standard Black-Scholes, go to a museum. If you want to outcompute the heat death of the universe, you're in the right place.
 
 ## 🏛️ God-Mode Architecture
@@ -26,7 +26,7 @@ BS-OPT is not just a platform; it's a transdimensional financial deity. It is bu
 # Development (Full Stack Orchestration)
 docker compose -f docker-compose.dev.yml up --build
 
-# Production (Total Singularity Deployment)
+# Production (Total Optimized Deployment)
 ./deploy.sh deploy
 ```
 *Requires Docker, wasm-pack, NVIDIA GPU (recommended), and a will to transcend humanity.*

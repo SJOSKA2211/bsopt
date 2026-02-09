@@ -1,9 +1,8 @@
 import sys
-import types
 from unittest.mock import AsyncMock, MagicMock
 
 
-# 🚀 ADVANCED HIERARCHICAL MOCKING
+#  ADVANCED HIERARCHICAL MOCKING
 def mock_module(name):
     if name not in sys.modules:
         # Check if parent is already mocked as MagicMock

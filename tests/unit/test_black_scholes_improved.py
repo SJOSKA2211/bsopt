@@ -1,6 +1,9 @@
 import unittest
+
 import numpy as np
+
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+
 
 class TestBlackScholes(unittest.TestCase):
     def setUp(self):
@@ -81,7 +84,8 @@ class TestBlackScholes(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_module_level_funcs(self):
-        from src.pricing.black_scholes import black_scholes, verify_put_call_parity as vpcp
+        from src.pricing.black_scholes import black_scholes
+        from src.pricing.black_scholes import verify_put_call_parity as vpcp
         # When called with kwargs, returns float directly
         res = black_scholes(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
         self.assertIsInstance(res, float)

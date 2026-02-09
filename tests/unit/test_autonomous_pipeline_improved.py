@@ -1,8 +1,9 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import pandas as pd
+
 import numpy as np
-import sys
+import pandas as pd
 
 # Mock dependencies before imports
 sys.modules["mlflow"] = MagicMock()
@@ -10,6 +11,7 @@ sys.modules["mlflow.pytorch"] = MagicMock()
 sys.modules["optuna"] = MagicMock()
 
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
+
 
 class TestAutonomousPipeline(unittest.TestCase):
     def setUp(self):

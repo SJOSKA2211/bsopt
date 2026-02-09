@@ -16,9 +16,9 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-`pipeliner.py` has "Singularity" slop and potential connection pooling inefficiencies.
+`pipeliner.py` has "Optimized" slop and potential connection pooling inefficiencies.
 
 ## Solution
-1. Remove all "Singularity" branding.
+1. Remove all "Optimized" branding.
 2. Optimize connection pooling setup.
 3. Ensure COPY logic is as fast as a portal gun.

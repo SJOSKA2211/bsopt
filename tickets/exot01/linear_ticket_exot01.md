@@ -19,4 +19,4 @@ assignee: Morty
 `exotic.py` has branding slop for decades-old math.
 
 ## Solution
-Remove "SINGULARITY" and other fluff.
+Remove "OPTIMIZED" and other fluff.

@@ -115,7 +115,7 @@ async def run_hyperparameter_optimization(
 
     logger.info("starting_distributed_hpo", n_trials=n_trials)
     
-    # 🚀 OPTIMIZATION: Resource-aware trial distribution
+    # Resource-aware trial distribution
     # CPU: 1 per trial allows maximum concurrency on the cluster.
     # GPU: 0 for XGBoost unless we force device='cuda'
     resources_per_trial = {"cpu": 1, "gpu": 0}
@@ -194,7 +194,7 @@ async def train(
     
     logger.info("starting_model_training", n_samples=len(x_vals), params=default_params, meta=meta)
     
-    # 🚀 SINGULARITY: Instrumented training with SOTA metrics
+    # Instrumented training with optimized metrics
     accuracy = trainer.train_and_evaluate(
         x_vals, y_vals, 
         params=default_params,

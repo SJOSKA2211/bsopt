@@ -60,7 +60,7 @@ def train_neural_network(n_samples: int = 10000, epochs: int = 10):
     
     train_loader, val_loader = get_dataloaders(n_samples)
     
-    # 🚀 OPTIMIZATION: Use TransformerAdapter instead of MLP
+    #  OPTIMIZATION: Use TransformerAdapter instead of MLP
     model = TransformerAdapter(input_dim=10, hidden_dim=64, output_dim=1)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)

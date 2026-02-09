@@ -114,4 +114,4 @@ async def health():
 
 @app.get("/")
 async def root():
-    return {"message": "BS-Opt Singularity API"}
+    return {"message": "BS-Opt Optimized API"}

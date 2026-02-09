@@ -19,4 +19,4 @@ assignee: Morty
 `src/ml/utils/validation.py` contains branding slop.
 
 ## Solution
-Remove "Singularity Refactored" and other marketing fluff from the codebase.
+Remove "Optimized Refactored" and other marketing fluff from the codebase.

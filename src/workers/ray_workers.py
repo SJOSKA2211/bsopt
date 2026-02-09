@@ -21,7 +21,7 @@ class MathActor:
         """Perform real mathematical calibration using silicon kernels."""
         start_time = time.time()
         
-        # 🚀 REAL WORK: Perform a batch of BS calculations
+        #  REAL WORK: Perform a batch of BS calculations
         from src.pricing.factory import PricingEngineFactory
         from src.pricing.models import BSParameters
         

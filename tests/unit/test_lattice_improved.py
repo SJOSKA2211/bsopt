@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
-from src.pricing.lattice import BinomialTreePricer, TrinomialTreePricer, BSParameters
+
+from src.pricing.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
+
 
 class TestLattice(unittest.TestCase):
     def setUp(self):

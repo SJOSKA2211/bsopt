@@ -1,11 +1,10 @@
 
 import os
 import time
-import torch
-import numpy as np
+
 import structlog
+
 from src.shared.eternal_ledger import EternalLedger
-from src.ml.reinforcement_learning.gnn_policy import GATTD3Policy
 from src.shared.observability import tune_gc
 
 logger = structlog.get_logger(__name__)

@@ -1,13 +1,13 @@
 
 import os
-import time
 import struct
+
 import structlog
-import numpy as np
-from src.shared.shm_mesh import SharedMemoryRingBuffer, GreeksBuffer, SHM_NAME
+
 from src.pricing.factory import PricingEngineFactory
 from src.pricing.models import BSParameters
 from src.shared.observability import tune_gc
+from src.shared.shm_mesh import SHM_NAME, GreeksBuffer, SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +36,6 @@ class GreekEngine:
         
         while True:
             # Poll tick head
-            import struct
             current_head = struct.unpack("q", self.mesh.buf[:8])[0]
             
             if current_head > self._last_head:
@@ -47,7 +46,7 @@ class GreekEngine:
                     symbol = tick['symbol'].decode().strip('\x00')
                     price = float(tick['price'])
                     
-                    # 🚀 VECTORIZED MATH: Calculate Greeks for this ticker
+                    #  VECTORIZED MATH: Calculate Greeks for this ticker
                     # In a true God-Mode pass, we'd do the entire surface at once
                     params = BSParameters(S=price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                     g = self.engine.calculate_greeks(params)

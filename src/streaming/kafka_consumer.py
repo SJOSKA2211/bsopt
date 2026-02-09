@@ -132,7 +132,7 @@ class MarketDataConsumer:
             if hasattr(callback, "_is_batch_aware") and getattr(callback, "_is_batch_aware"):
                 await callback(batch)
             else:
-                # 🚀 SLOP PREVENTION: Use a semaphore to limit concurrency
+                #  SLOP PREVENTION: Use a semaphore to limit concurrency
                 # Prevent event loop exhaustion during massive spikes
                 sem = asyncio.Semaphore(100) # Process max 100 concurrently
                 

@@ -78,7 +78,7 @@ class BlackScholesEngine:
             option_type_arr = np.asanyarray(option_type)
             is_call = np.char.lower(option_type_arr.astype(str)) == "call"
 
-        # 🚀 OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
+        #  OPTIMIZATION: Ensure is_call is a numpy boolean array for Numba stability
         is_call_np = np.atleast_1d(is_call).astype(bool)
 
         prices = calculate_price(S, K, T, sigma, r, q, is_call_np)

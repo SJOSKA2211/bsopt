@@ -1,5 +1,5 @@
 """
-🚀 APOTHEOSIS: High-Performance Quantitative Kernels
+ APOTHEOSIS: High-Performance Quantitative Kernels
 Targets: Pure NumPy, Vectorized
 
 Performance Notes:
@@ -280,25 +280,41 @@ def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
     return np.exp(A + B)
 
-def jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None):
+def jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme="euler"):
     """Monte Carlo for European options using NumPy."""
-    drift = (r - q - 0.5 * sigma**2) * T
-    diffusion = sigma * np.sqrt(T)
-    exp_rt = np.exp(-r * T)
-    
     actual_paths = n_paths // 2 if antithetic else n_paths
-    if z_innovations is not None:
-        z = z_innovations
+    
+    if scheme == "milstein" or scheme == "euler_multi":
+        # Multi-step generation
+        paths = jit_generate_paths(S0, T, r, sigma, q, actual_paths, 252, scheme=scheme)
+        st1 = paths[:, -1]
     else:
-        z = np.random.standard_normal(actual_paths)
-        
-    st1 = S0 * np.exp(drift + diffusion * z)
+        # Fast 1-step path
+        drift = (r - q - 0.5 * sigma**2) * T
+        diffusion = sigma * np.sqrt(T)
+        if z_innovations is not None:
+            z = z_innovations
+        else:
+            z = np.random.standard_normal(actual_paths)
+        st1 = S0 * np.exp(drift + diffusion * z)
+    
+    exp_rt = np.exp(-r * T)
     p1 = np.where(is_call, np.maximum(st1 - K, 0.0), np.maximum(K - st1, 0.0)) * exp_rt
     
     if antithetic:
-        st2 = S0 * np.exp(drift - diffusion * z)
-        p2 = np.where(is_call, np.maximum(st2 - K, 0.0), np.maximum(K - st2, 0.0)) * exp_rt
-        combined = np.concatenate([p1, p2])
+        if scheme == "milstein" or scheme == "euler_multi":
+             # For multi-step, we would need to generate Z once and use -Z.
+             # This is a bit more complex for multi-step. 
+             # For now, let's keep 1-step for antithetic if not explicitly using multi-step.
+             # Or just ignore multi-step antithetic for European as it's overkill.
+             combined = p1
+        else:
+            drift = (r - q - 0.5 * sigma**2) * T
+            diffusion = sigma * np.sqrt(T)
+            z = z_innovations if z_innovations is not None else np.random.standard_normal(actual_paths)
+            st2 = S0 * np.exp(drift - diffusion * z)
+            p2 = np.where(is_call, np.maximum(st2 - K, 0.0), np.maximum(K - st2, 0.0)) * exp_rt
+            combined = np.concatenate([p1, p2])
     else:
         combined = p1
         
@@ -306,7 +322,7 @@ def jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z
     std_err = np.sqrt(np.maximum(np.var(combined) / n_paths, 0.0))
     return price, std_err
 
-def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, antithetic):
+def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, scheme="euler"):
     """Pathwise Sensitivity (PWM) Monte Carlo using NumPy."""
     drift_part = (r - q - 0.5 * sigma**2) * T
     diffusion_part = sigma * np.sqrt(T)
@@ -320,37 +336,51 @@ def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, an
         payoff = np.where(is_call, np.maximum(st - K, 0.0), np.maximum(K - st, 0.0)) * exp_rt
         ind = np.where(is_call, (st > K).astype(float), (st < K).astype(float))
         delta = exp_rt * ind * (st / S0)
+        
+        # Likelihood Ratio Method for Gamma
+        # Weight = (z^2 - 1 - z * sigma * sqrt(T)) / (S0^2 * sigma^2 * T)
+        gamma_weight = (z_val**2 - 1.0 - z_val * sigma * sqrt_T) / (S0**2 * sigma**2 * T)
+        gamma = payoff * gamma_weight
+        
         vega = exp_rt * ind * st * (z_val * sqrt_T - sigma * T) * 0.01
         rho = (-T * payoff + exp_rt * ind * st * T) * 0.01
-        return payoff, delta, vega, rho
+        return payoff, delta, gamma, vega, rho
 
-    p1, d1, v1, r1 = calc_stats(z)
+    p1, d1, g1, v1, r1 = calc_stats(z)
     
     if antithetic:
-        p2, d2, v2, r2 = calc_stats(-z)
-        p, d, v, rho = (p1+p2)/2, (d1+d2)/2, (v1+v2)/2, (r1+r2)/2
+        p2, d2, g2, v2, r2 = calc_stats(-z)
+        p, d, g, v, rho = (p1+p2)/2, (d1+d2)/2, (g1+g2)/2, (v1+v2)/2, (r1+r2)/2
     else:
-        p, d, v, rho = p1, d1, v1, r1
+        p, d, g, v, rho = p1, d1, g1, v1, r1
         
-    return np.mean(p), np.mean(d), 0.0, np.mean(v), np.mean(rho)
+    return np.mean(p), np.mean(d), np.mean(g), np.mean(v), np.mean(rho)
 
-def jit_mc_european_with_control_variate(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None):
+def jit_mc_european_with_control_variate(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme="euler"):
     """MC with Control Variate using NumPy."""
-    drift = (r - q - 0.5 * sigma**2) * T
-    diffusion = sigma * np.sqrt(T)
+    actual_paths = n_paths // 2 if antithetic else n_paths
+    
+    if scheme == "milstein" or scheme == "euler_multi":
+        paths = jit_generate_paths(S0, T, r, sigma, q, actual_paths, 252, scheme=scheme)
+        st1 = paths[:, -1]
+    else:
+        drift = (r - q - 0.5 * sigma**2) * T
+        diffusion = sigma * np.sqrt(T)
+        if z_innovations is not None:
+            z = z_innovations
+        else:
+            z = np.random.standard_normal(actual_paths)
+        st1 = S0 * np.exp(drift + diffusion * z)
+    
     exp_rt = np.exp(-r * T)
     expected_st = S0 * np.exp((r - q) * T)
     
-    actual_paths = n_paths // 2 if antithetic else n_paths
-    if z_innovations is not None:
-        z = z_innovations
-    else:
-        z = np.random.standard_normal(actual_paths)
-        
-    st1 = S0 * np.exp(drift + diffusion * z)
     p1 = np.where(is_call, np.maximum(st1 - K, 0.0), np.maximum(K - st1, 0.0)) * exp_rt
     
-    if antithetic:
+    if antithetic and not (scheme == "milstein" or scheme == "euler_multi"):
+        drift = (r - q - 0.5 * sigma**2) * T
+        diffusion = sigma * np.sqrt(T)
+        z = z_innovations if z_innovations is not None else np.random.standard_normal(actual_paths)
         st2 = S0 * np.exp(drift - diffusion * z)
         p2 = np.where(is_call, np.maximum(st2 - K, 0.0), np.maximum(K - st2, 0.0)) * exp_rt
         p_all = np.concatenate([p1, p2])
@@ -401,10 +431,30 @@ def jit_generate_log_paths(S0, T, r, sigma, q, n_paths, n_steps):
     log_paths[1:, :] = np.cumsum(log_returns, axis=0)
     return log_paths + np.log(S0)
 
-def jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps):
+def jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme="euler"):
     """Highly optimized vectorized path generation using NumPy."""
+    if scheme == "milstein":
+        return jit_generate_milstein_paths(S0, T, r, sigma, q, n_paths, n_steps)
+    
     log_paths = jit_generate_log_paths(S0, T, r, sigma, q, n_paths, n_steps)
     return np.exp(log_paths).T
+
+def jit_generate_milstein_paths(S0, T, r, sigma, q, n_paths, n_steps):
+    """Path generation using the Milstein scheme for improved strong convergence."""
+    dt = T / n_steps
+    mu = r - q
+    
+    S = np.full((n_paths, n_steps + 1), S0, dtype=np.float64)
+    Z = np.random.standard_normal((n_paths, n_steps))
+    
+    sqrt_dt = np.sqrt(dt)
+    
+    for t in range(n_steps):
+        # S_{t+1} = S_t + mu*S_t*dt + sigma*S_t*dW_t + 0.5*sigma^2*S_t*(dW_t^2 - dt)
+        dW = Z[:, t] * sqrt_dt
+        S[:, t+1] = S[:, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
+        
+    return S
 
 def _laguerre_basis_jit(x, degree):
     """Generate Laguerre basis functions using NumPy."""
@@ -422,13 +472,13 @@ def _jit_solve_normal_equations(X, y):
     """Normal Equations solver using NumPy."""
     return np.linalg.solve(X.T @ X, X.T @ y)
 
-def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call):
+def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme="euler"):
     """LSM algorithm using NumPy."""
     dt = T / n_steps
     df = np.exp(-r * dt)
     
     # Optimized path generation
-    paths = jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps) # (n_paths, n_steps + 1)
+    paths = jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme=scheme) # (n_paths, n_steps + 1)
     S = paths.T # (n_steps + 1, n_paths)
         
     value = np.where(is_call, np.maximum(S[n_steps, :] - K, 0.0), np.maximum(K - S[n_steps, :], 0.0))

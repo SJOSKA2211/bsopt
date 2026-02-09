@@ -2,6 +2,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
 import structlog
+
 import docker
 
 logger = structlog.get_logger()

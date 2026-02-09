@@ -1,4 +1,4 @@
--- 🚀 Optimized Hierarchical Continuous Aggregates
+--  Optimized Hierarchical Continuous Aggregates
 -- Speeds up analytical queries by chaining aggregates.
 
 -- 1. Minute-level stats (Base Aggregate)

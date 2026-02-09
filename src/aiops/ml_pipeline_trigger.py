@@ -7,11 +7,8 @@ from src.ml.autonomous_pipeline import AutonomousMLPipeline
 logger = structlog.get_logger()
 
 import concurrent.futures
-from typing import Any
 
 import structlog
-
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 logger = structlog.get_logger()
 
@@ -24,7 +21,7 @@ class MLPipelineTrigger:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def trigger_retraining(self) -> bool:
-        """🚀 NON-BLOCKING: Triggers retraining in a background thread."""
+        """ NON-BLOCKING: Triggers retraining in a background thread."""
         logger.info("ml_pipeline_trigger_async", status="starting", config=self.config)
         
         def _run_pipeline():

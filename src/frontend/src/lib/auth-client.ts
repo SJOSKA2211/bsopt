@@ -1,5 +1,5 @@
 /**
- * High-performance OAuth2 Client for BSOPT Singularity.
+ * High-performance OAuth2 Client for BSOPT Optimized.
  * Implements Authorization Code flow with PKCE.
  */
 

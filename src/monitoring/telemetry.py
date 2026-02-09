@@ -1,15 +1,19 @@
 
 import os
-import time
 import struct
+
 import structlog
-import numpy as np
 from prometheus_client import Gauge, start_http_server
-from src.shared.shm_mesh import (
-    SharedMemoryRingBuffer, OrderBuffer, ExecutionBuffer,
-    BUFFER_CAPACITY, ORDER_BUFFER_CAPACITY, EXEC_BUFFER_CAPACITY
-)
+
 from src.shared.observability import tune_gc
+from src.shared.shm_mesh import (
+    BUFFER_CAPACITY,
+    EXEC_BUFFER_CAPACITY,
+    ORDER_BUFFER_CAPACITY,
+    ExecutionBuffer,
+    OrderBuffer,
+    SharedMemoryRingBuffer,
+)
 
 logger = structlog.get_logger(__name__)
 

@@ -16,7 +16,7 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-Scripts like `verify_god_mode.py`, `setup_pki.sh`, and `enforce_venv.py` are full of "Singularity" slop.
+Scripts like `verify_god_mode.py`, `setup_pki.sh`, and `enforce_venv.py` are full of "Optimized" slop.
 
 ## Solution
 1. Remove all rocket emojis and marketing text.

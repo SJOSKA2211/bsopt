@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 """
-BS-OPT Singularity Command-Line Interface
+BS-OPT Optimized Command-Line Interface
 =========================================
 Precision control for high-performance quantitative finance.
 """
 
 import asyncio
+import os
+import struct
+import time
 
 import click
 import structlog
 from rich import box
+from rich.align import Align
 from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 
 # Enforce Venv
 try:
@@ -23,14 +30,15 @@ except ImportError:
 
 from src.pricing.black_scholes import BSParameters
 from src.services.pricing_service import PricingService
+from src.shared.shm_mesh import ExecutionBuffer, OrderBuffer, SharedMemoryRingBuffer
 
 console = Console()
 logger = structlog.get_logger()
 
 @click.group()
-@click.version_option(version='3.0.0', prog_name='bsopt-singularity')
+@click.version_option(version='3.0.0', prog_name='bsopt-cli')
 def cli():
-    """🚀 God-Mode Control for the Black-Scholes Advanced Platform."""
+    """Command-Line Interface for the Black-Scholes Advanced Platform."""
     pass
 
 # ============================================================================
@@ -47,7 +55,7 @@ def cli():
 @click.option('--option-type', type=click.Choice(['call', 'put']), default='call')
 @click.option('--model', default='black_scholes')
 def price(spot, strike, maturity, volatility, rate, dividend, option_type, model):
-    """Price an option using the Singularity engine."""
+    """Price an option using the optimized engine."""
     params = BSParameters(spot=spot, strike=strike, maturity=maturity, volatility=volatility, rate=rate, dividend=dividend)
     service = PricingService()
     
@@ -63,7 +71,7 @@ def price(spot, strike, maturity, volatility, rate, dividend, option_type, model
     console.print(table)
 
 # ============================================================================
-# Singularity Commands
+# Maintenance Commands
 # ============================================================================
 
 @cli.command()
@@ -71,7 +79,7 @@ def price(spot, strike, maturity, volatility, rate, dividend, option_type, model
 @click.option('--shm-name', default='rl_weights', help='SHM segment for weights')
 def train_transformer(timesteps, shm_name):
     """Trigger a high-performance Transformer-RL training run."""
-    console.print(Panel("[bold magenta]🚀 INITIALIZING TRANSFORMER SINGULARITY TRAINING[/bold magenta]"))
+    console.print(Panel("[bold magenta]INITIALIZING TRANSFORMER TRAINING[/bold magenta]"))
     from src.ml.reinforcement_learning.train import train_td3
     
     with console.status("[bold cyan]Spinning up 8-head Attention Encoders..."):
@@ -82,18 +90,10 @@ def train_transformer(timesteps, shm_name):
     console.print(f"MLflow Run ID: [cyan]{result['run_id']}[/cyan]")
     console.print(f"Model saved to: [dim]{result['model_path']}[/dim]")
 
-import time
-import os
-import struct
-from rich.live import Live
-from rich.layout import Layout
-from rich.align import Align
-from rich.text import Text
-from src.shared.shm_mesh import SharedMemoryRingBuffer, OrderBuffer, ExecutionBuffer
 
 @cli.command()
 def monitor():
-    """🚀 THE SINGULARITY CONSOLE: Real-time high-performance monitoring."""
+    """THE CONSOLE: Real-time high-performance monitoring."""
     layout = Layout()
     layout.split_column(
         Layout(name="header", size=3),
@@ -110,7 +110,6 @@ def monitor():
     orders = OrderBuffer(create=False)
     execs = ExecutionBuffer(create=False)
     
-    last_mesh_head = 0
     
     def generate_dashboard():
         # 1. Pulse: SHM Mesh Activity
@@ -134,11 +133,10 @@ def monitor():
         # 3. Chronos: High-res Telemetry (Placeholder for T2T readout)
         chronos_text = Text("CHRONOS: T2T Latency\n", style="bold cyan")
         if e_head > 0:
-            last_e = execs.view[(e_head - 1) % 1000]
             # In a real run, we'd calculate the T2T from the ts_ns we added
-            chronos_text.append(f"Last T2T: ~450ns (Silicon Hot)\n", style="bold yellow")
+            chronos_text.append("Last T2T: ~450ns (Silicon Hot)\n", style="bold yellow")
 
-        layout["header"].update(Panel(Align.center(Text("🚀 BS-OPT SINGULARITY CONSOLE", style="bold white on blue")), box=box.SIMPLE))
+        layout["header"].update(Panel(Align.center(Text("BS-OPT CONSOLE", style="bold white on blue")), box=box.SIMPLE))
         layout["pulse"].update(Panel(pulse_text, title="PULSE (XDP/SHM)", border_style="green"))
         layout["brain"].update(Panel(brain_text, title="BRAIN (GAT/AGENT)", border_style="magenta"))
         layout["chronos"].update(Panel(chronos_text, title="CHRONOS (T2T)", border_style="cyan"))

@@ -34,7 +34,7 @@ impl RustPulse {
         let port = self.port;
 
         thread::spawn(move || {
-            // 🚀 SILICON LOCKDOWN: Pin to core (Linux specific)
+            //  SILICON LOCKDOWN: Pin to core (Linux specific)
             #[cfg(target_os = "linux")]
             unsafe {
                 let mut cpuset: libc::cpu_set_t = std::mem::zeroed();
@@ -66,7 +66,7 @@ impl RustPulse {
                 match socket.recv_from(&mut buf) {
                     Ok((n, _addr)) => {
                         if n >= 32 {
-                            // 🚀 RUST SPEED: Raw pointer mapping to SHM
+                            //  RUST SPEED: Raw pointer mapping to SHM
                             let receive_ts_ns = SystemTime::now()
                                 .duration_since(UNIX_EPOCH)
                                 .unwrap()

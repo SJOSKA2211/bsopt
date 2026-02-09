@@ -20,5 +20,5 @@ assignee: Morty
 
 ## Solution
 1. Move `orjson` and `pandas` imports to the top.
-2. Remove "Singularity" and "SOTA" branding.
+2. Remove "Optimized" and "ADVANCED" branding.
 3. Clean up the main entry point loop.

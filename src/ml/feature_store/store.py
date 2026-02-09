@@ -2,7 +2,7 @@ import pandas as pd
 import structlog
 
 from .base import Feature, FeatureStore
-from .features import LogReturnFeature, SyntheticOHLCFeature
+from .features import LogReturnFeature
 
 logger = structlog.get_logger()
 

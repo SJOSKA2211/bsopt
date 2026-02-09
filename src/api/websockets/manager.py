@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-import orjson
 import redis.asyncio as redis
 import structlog
 from fastapi import WebSocket
@@ -110,7 +109,7 @@ class ConnectionManager:
         if not connections:
             return
 
-        # 🚀 GOD MODE: Deliver to clients
+        #  GOD MODE: Deliver to clients
         by_protocol: dict[ProtocolType, list[WebSocket]] = {}
         for conn in connections:
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol

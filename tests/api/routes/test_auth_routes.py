@@ -1,5 +1,4 @@
 import asyncio
-import hashlib
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,14 +9,11 @@ from src.api.main import app
 from src.api.routes.auth import (
     _send_password_reset_email,
     _send_verification_email,
-    _verify_mfa_code,
     get_current_active_user,
     get_current_user,
 )
 from src.database import get_async_db, get_db
 from src.database.models import User
-from src.security.auth import auth_service
-from src.security.password import password_service
 
 client = TestClient(app)
 

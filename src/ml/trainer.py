@@ -5,7 +5,7 @@ from typing import Any
 import optuna
 import structlog
 
-from src.ml.evaluation.metrics import ModelScorecard, calculate_regression_metrics
+from src.ml.evaluation.metrics import ModelScorecard
 from src.ml.serving.quantization import ModelQuantizer
 from src.ml.strategies import get_strategy
 from src.ml.tracker import ExperimentTracker
@@ -39,13 +39,13 @@ class ModelTrainer:
     def train_and_evaluate(self, X: Any, y: Any, params: dict[str, Any], feature_names: list[str] = None, dataset_metadata: dict[str, str] | None = None, base_model: Any | None = None, trial: optuna.Trial | None = None) -> float:
         """
         Trains a model using the specified strategy and evaluates regression performance.
-        🚀 SINGULARITY: Walk-Forward Temporal Validation.
+         OPTIMIZED: Walk-Forward Temporal Validation.
         """
         framework = params.get("framework", "xgboost")
         strategy = get_strategy(framework)
         
         try:
-            # 🚀 RIGOROUS: Walk-Forward Validation
+            #  RIGOROUS: Walk-Forward Validation
             validator = WalkForwardValidator(n_splits=self.n_splits)
             splits = list(validator.split(X))
             
@@ -74,7 +74,7 @@ class ModelTrainer:
                     model = strategy.train(X_train, y_train, X_test, y_test, params, base_model=base_model)
                     y_pred = strategy.predict(model, X_test)
                     
-                    # 🚀 TRANSCENDENCE: Holistic Scorecard
+                    #  TRANSCENDENCE: Holistic Scorecard
                     # For simplicity, we assume 'returns' is not available here, 
                     # but could be passed if y was multi-column or via metadata.
                     scorecard = ModelScorecard(y_test, y_pred)

@@ -2,15 +2,11 @@ from enum import StrEnum
 from typing import Any
 
 import msgpack
-import orjson
-from google.protobuf.json_format import MessageToDict
-from google.protobuf.message import Message
-
-
 import msgspec
 import orjson
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
+
 
 class ProtocolType(StrEnum):
     JSON = "json"

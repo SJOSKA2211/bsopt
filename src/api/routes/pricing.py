@@ -1,5 +1,5 @@
 """
-Pricing Routes (Singularity Refactored)
+Pricing Routes (Optimized Refactored)
 """
 
 import structlog

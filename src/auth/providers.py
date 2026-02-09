@@ -43,7 +43,7 @@ class OIDCProvider:
         # Dynamic JWKS Verification
         jwks = await self.get_jwks()
         if jwks:
-            # 🚀 OPTIMIZATION: Extract kid from header and find matching key
+            #  OPTIMIZATION: Extract kid from header and find matching key
             try:
                 header = jwt.get_unverified_header(token)
                 kid = header.get("kid")

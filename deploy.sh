@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# BS-OPT Singularity Deployment Orchestrator v3.0
+# BS-OPT Optimized Deployment Orchestrator v3.0
 # ==============================================================================
 # Postgres-native, Fastify-proxied, Transformer-ready.
 # ==============================================================================
@@ -25,7 +25,7 @@ error() { echo -e "\033[0;31m[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $*\033[0m"; 
 # --- CORE ---
 
 deploy() {
-    log "Starting Singularity Deployment..."
+    log "Starting Optimized Deployment..."
     mkdir -p "$LOG_DIR"
     
     log "Step 1: Infrastructure (Tier 1)..."
@@ -44,7 +44,7 @@ deploy() {
 }
 
 run_smoke_tests() {
-    log "Running Singularity Smoke Tests..."
+    log "Running Optimized Smoke Tests..."
     local gateway_url="http://localhost:4000/health"
     
     # Wait for gateway
@@ -59,7 +59,7 @@ run_smoke_tests() {
         retries=$((retries+1))
     done
     
-    success "Singularity is online and healthy."
+    success "Optimized is online and healthy."
 }
 
 # --- ENTRY ---

@@ -1,5 +1,5 @@
 -- 📊 HYBRID DATA MESH & TFT SUPPORT SCHEMA
--- Optimized for high-frequency price data and SOTA model consumption
+-- Optimized for high-frequency price data and ADVANCED model consumption
 
 -- 1. Create Market Data Mesh Table
 -- This table stores normalized data from all sources (Polygon, Scrapers, etc.)

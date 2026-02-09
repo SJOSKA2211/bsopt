@@ -27,4 +27,4 @@ We need to understand the current state of the codebase, every function, and ide
 4. Output a `STRATEGY.md` document.
 
 # Discussion/Comments
-- 2026-02-06 Pickle Rick: Audit complete. `STRATEGY.md` generated. Found lack of Numba JIT in pricing engine and "Singularity" slop in ML.
+- 2026-02-06 Pickle Rick: Audit complete. `STRATEGY.md` generated. Found lack of Numba JIT in pricing engine and "Optimized" slop in ML.

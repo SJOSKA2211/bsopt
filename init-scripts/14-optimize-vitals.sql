@@ -1,4 +1,4 @@
--- 🚀 SINGULARITY: Absolute TimescaleDB Optimization
+--  OPTIMIZED: Absolute TimescaleDB Optimization
 -- Enforces tiered storage, continuous aggregation, and zero-latency refresh policies.
 
 -- 1. Enable Continuous Aggregates
@@ -13,7 +13,7 @@ SELECT add_continuous_aggregate_policy('daily_ohlcv_cagg',
     schedule_interval => INTERVAL '1 hour',
     if_not_exists => TRUE);
 
--- 3. Enforce Compression Policies (SOTA)
+-- 3. Enforce Compression Policies (ADVANCED)
 -- Compress options prices older than 1 day
 SELECT add_compression_policy('options_prices', INTERVAL '1 day', if_not_exists => TRUE);
 

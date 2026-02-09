@@ -19,4 +19,4 @@ assignee: Morty
 `defi_options.py` is infected with marketing buzzwords.
 
 ## Solution
-Remove all "Singularity" and "SOTA" comments from the blockchain integration module.
+Remove all "Optimized" and "ADVANCED" comments from the blockchain integration module.

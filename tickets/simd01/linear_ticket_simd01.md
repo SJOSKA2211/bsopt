@@ -19,4 +19,4 @@ assignee: Morty
 `simd_math.rs` has a rocket emoji in the header.
 
 ## Solution
-Remove the emoji and ensure the math is clearly documented as "Optimized" rather than "Singularity Accelerated".
+Remove the emoji and ensure the math is clearly documented as "Optimized" rather than "Optimized Accelerated".

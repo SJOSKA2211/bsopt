@@ -1,0 +1,4 @@
+# file: /home/kamau/bsopt/src/ml/training/train.py
+# hypothesis_version: 6.151.5
+
+[0.001, 0.2, 0.3, 0.5, 0.99, 1.0, 100, 1000, 10000, 'AAPL', 'MLFLOW_TRACKING_URI', 'MSFT', 'Production', 'SPY', '__main__', 'accuracy', 'best_params', 'best_r2', 'colsample_bytree', 'cpu', 'data/training', 'data_source', 'env://', 'eval_metric', 'framework', 'gloo', 'gpu', 'learning_rate', 'max', 'max_depth', 'mlruns', 'n_estimators', 'n_jobs', 'nccl', 'nccl_init_failed', 'objective', 'promoted', 'r2', 'random_state', 'reg:squarederror', 'rmse', 'run_id', 'subsample', 'synthetic', 'training_complete', 'trial_complete', 'unknown', 'xgboost']

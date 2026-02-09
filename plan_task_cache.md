@@ -24,7 +24,7 @@ Implement the cache and refactor the task logic.
 _STRATEGY_CACHE = {}
 
 def _get_cached_strategy(name: str):
-    """🚀 SINGULARITY: Worker-local engine caching."""
+    """ OPTIMIZED: Worker-local engine caching."""
     if name not in _STRATEGY_CACHE:
         _STRATEGY_CACHE[name] = PricingEngineFactory.get_strategy(name)
     return _STRATEGY_CACHE[name]

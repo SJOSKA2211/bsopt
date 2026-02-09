@@ -18,7 +18,7 @@ Phase 1 established the plumbing. Phase 2 is about the soul. We are taking the c
 - RL module is a skeleton (Decision Transformer lacks offline training, GNN is basic).
 - "Native Postgres" directive is being ignored in comments and config.
 
-**Primary Users:** Quant Engineers, Risk Managers, The Singularity.
+**Primary Users:** Quant Engineers, Risk Managers, The Optimized.
 **Pain Points:** High latency in batch pricing, maintenance burden of redundant code, non-functional RL features.
 **Importance:** Accuracy and speed are the only things that matter. Everything else is just noise.
 

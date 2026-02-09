@@ -1,8 +1,8 @@
-# BSOpt Phase 3: The Singularity PRD
+# BSOpt Phase 3: The Optimized PRD
 
 ## HR Eng
 
-| Phase 3: The Singularity PRD |  | Summary: Achieving sub-microsecond latency through true kernel-bypass (AF_XDP), a lock-free shared memory mesh, and JIT-optimized RL state construction. |
+| Phase 3: The Optimized PRD |  | Summary: Achieving sub-microsecond latency through true kernel-bypass (AF_XDP), a lock-free shared memory mesh, and JIT-optimized RL state construction. |
 | :---- | :---- | :---- |
 | **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 

@@ -40,7 +40,7 @@ async function start() {
 
   const port = process.env.PORT || 4000;
   await app.listen({ port, host: '0.0.0.0' });
-  logger.info(`🚀 Singularity Gateway ready at http://localhost:${port}/`);
+  logger.info(` Optimized Gateway ready at http://localhost:${port}/`);
 }
 
 start().catch(err => {

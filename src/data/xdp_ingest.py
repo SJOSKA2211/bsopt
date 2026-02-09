@@ -2,12 +2,10 @@ import os
 import socket
 import struct
 import threading
-from typing import Any
 
-import numpy as np
 import structlog
 
-from src.shared.shm_mesh import TICK_DTYPE, SharedMemoryRingBuffer
+from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -27,7 +25,7 @@ class XDPIngester:
         self._running = False
         self._pulse = None
         
-        # 🚀 RUST PULSE: Try to use the ultra-high-speed Rust extension
+        #  RUST PULSE: Try to use the ultra-high-speed Rust extension
         try:
             from src.shared.bsopt_pulse import RustPulse
             self._pulse = RustPulse(interface, port)
@@ -48,7 +46,7 @@ class XDPIngester:
             return
 
         try:
-            # 🚀 PYTHON FALLBACK
+            #  PYTHON FALLBACK
             # Use AF_INET/UDP for generic portability if AF_PACKET fails
             try:
                 self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
@@ -99,7 +97,7 @@ class XDPIngester:
                     )
             except (BlockingIOError, InterruptedError):
                 continue
-            except Exception as e:
+            except Exception:
                 # Non-critical error in loop
                 continue
 

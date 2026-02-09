@@ -1,7 +1,7 @@
 import os
 import struct
 import time
-from multiprocessing import Lock, shared_memory
+from multiprocessing import shared_memory
 
 import msgspec
 import numpy as np
@@ -58,7 +58,8 @@ class OrderBuffer:
         self.size = (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8
         self.shm = shared_memory.SharedMemory(name=SHM_ORDER_NAME, create=create, size=self.size) if create else shared_memory.SharedMemory(name=SHM_ORDER_NAME)
         self.buf = self.shm.buf
-        if create: self.buf[:8] = struct.pack("q", 0)
+        if create:
+            self.buf[:8] = struct.pack("q", 0)
         self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
 
     def write_order(self, symbol: str, price: float, qty: int, side: int):
@@ -74,7 +75,8 @@ class ExecutionBuffer:
         self.size = (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8
         self.shm = shared_memory.SharedMemory(name=SHM_EXEC_NAME, create=create, size=self.size) if create else shared_memory.SharedMemory(name=SHM_EXEC_NAME)
         self.buf = self.shm.buf
-        if create: self.buf[:8] = struct.pack("q", 0)
+        if create:
+            self.buf[:8] = struct.pack("q", 0)
         self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
 
     def write_exec(self, order_id: int, price: float, qty: int, status: int):
@@ -127,7 +129,7 @@ class SharedMemoryRingBuffer:
 
     def write_tick(self, symbol: str, price: float, volume: int, timestamp: float):
         """Writer: Direct write into numpy view with atomic index update."""
-        # 🚀 GOD MODE: No Lock. Single writer assumes exclusive access to the 'head' calculation.
+        #  GOD MODE: No Lock. Single writer assumes exclusive access to the 'head' calculation.
         current_head = struct.unpack("q", self.buf[:8])[0]
         idx = current_head % BUFFER_CAPACITY
         

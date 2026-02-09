@@ -67,7 +67,7 @@ class AuthManager:
         """
         try:
             with httpx.Client() as client:
-                # 🚀 OPTIMIZATION: Real OAuth2 Token endpoint
+                #  OPTIMIZATION: Real OAuth2 Token endpoint
                 response = client.post(
                     f"{self.api_base_url}/api/v1/auth/token",
                     data={
@@ -79,7 +79,7 @@ class AuthManager:
                 response.raise_for_status()
                 data = cast(dict[str, Any], response.json())
 
-            # 🚀 SECURITY: Set restricted permissions (600)
+            #  SECURITY: Set restricted permissions (600)
             self.token_file.touch(mode=0o600)
             with open(self.token_file, "w") as f:
                 json.dump(data, f)

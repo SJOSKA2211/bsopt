@@ -1,6 +1,9 @@
 import unittest
+
 import numpy as np
-from src.pricing.models.heston_fft import HestonModelFFT, batch_heston_price_jit, HestonParams
+
+from src.pricing.models.heston_fft import HestonModelFFT, HestonParams, batch_heston_price_jit
+
 
 class TestHestonFFT(unittest.TestCase):
     def setUp(self):

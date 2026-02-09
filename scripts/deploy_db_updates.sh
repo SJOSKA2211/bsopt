@@ -4,7 +4,7 @@ set -e
 # Deployment script for database updates
 # Usage: ./deploy_db_updates.sh
 
-echo "🚀 Deploying database updates..."
+echo " Deploying database updates..."
 
 if [ -z "$POSTGRES_HOST" ]; then
   echo "⚠️  POSTGRES_HOST is not set. Assuming local docker-compose environment or manual execution."

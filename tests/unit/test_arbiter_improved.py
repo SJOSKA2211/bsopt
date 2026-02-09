@@ -1,14 +1,17 @@
-from unittest.mock import MagicMock, patch
 import unittest
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 
 # Pre-emptive mock for wasmer before any imports
 mock_wasmer = MagicMock()
 import sys
+
 sys.modules["wasmer"] = mock_wasmer
 sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
-from src.pricing.arbiter import EngineArbiter, PricingRequest, PricingModel, BSParameters
+from src.pricing.arbiter import BSParameters, EngineArbiter, PricingModel, PricingRequest
+
 
 class TestArbiter(unittest.TestCase):
     def setUp(self):

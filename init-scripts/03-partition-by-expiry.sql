@@ -1,4 +1,4 @@
--- 🚀 DATABASE PERFORMANCE TUNING
+--  DATABASE PERFORMANCE TUNING
 -- Optimize options_prices hypertable by adding a space dimension on 'expiry'
 -- This improves query performance for specific option chains and enables 
 -- better data locality for maturity-based queries.

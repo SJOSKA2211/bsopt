@@ -1,6 +1,6 @@
--- 🚀 GOD-MODE DATABASE PERFORMANCE TUNING
+--  GOD-MODE DATABASE PERFORMANCE TUNING
 -- ============================================================================
--- SOTA Indexing Strategies for Option Pricing and High-Frequency Trading
+-- ADVANCED Indexing Strategies for Option Pricing and High-Frequency Trading
 -- ============================================================================
 
 -- 1. BRIN (Block Range Index) for High-Frequency Hypertables

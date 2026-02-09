@@ -1,6 +1,9 @@
 import unittest
+
 import numpy as np
+
 from src.aiops.data_drift_detector import DataDriftDetector
+
 
 class TestDataDriftDetector(unittest.TestCase):
     def test_detect_drift_univariate(self):

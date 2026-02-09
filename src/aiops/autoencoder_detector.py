@@ -16,7 +16,7 @@ class VAE(nn.Module):
         super().__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, 128),
-            nn.LeakyReLU(0.2), # 🚀 Better for gradients
+            nn.LeakyReLU(0.2), #  Better for gradients
             nn.Linear(128, 64),
             nn.LeakyReLU(0.2),
         )
@@ -52,7 +52,7 @@ class AutoencoderDetector:
         self.input_dim = input_dim
         self.latent_dim = latent_dim
         self.epochs = epochs
-        # 🚀 OPTIMIZATION: Use percentile instead of std dev for fat-tailed distributions
+        #  OPTIMIZATION: Use percentile instead of std dev for fat-tailed distributions
         self.threshold_percentile = threshold_percentile
         self.threshold_multiplier = threshold_multiplier
         self.verbose = verbose

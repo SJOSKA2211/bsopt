@@ -16,7 +16,7 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-`api/responses.py` and `middleware/idempotency.py` have "Singularity" slop.
+`api/responses.py` and `middleware/idempotency.py` have "Optimized" slop.
 
 ## Solution
 Remove branding fluff and emojis.

@@ -1,9 +1,17 @@
 import unittest
+
 import numpy as np
+
 from src.pricing.vol_surface import (
-    SVIModel, SVIParameters, SABRModel, SABRParameters, 
-    VolatilitySurface, MarketQuote, CalibrationEngine
+    CalibrationEngine,
+    MarketQuote,
+    SABRModel,
+    SABRParameters,
+    SVIModel,
+    SVIParameters,
+    VolatilitySurface,
 )
+
 
 class TestVolSurface(unittest.TestCase):
     def setUp(self):

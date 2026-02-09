@@ -19,7 +19,7 @@ _vault = AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) 
 def _produce_audit_log(producer: Any, topic: str, payload: dict[str, Any]):
     """Background task to produce audit logs to Kafka with delivery assurance."""
     try:
-        # 🚀 OPTIMIZATION: Encrypt PII fields at rest in Kafka/Loki
+        #  OPTIMIZATION: Encrypt PII fields at rest in Kafka/Loki
         if _vault:
             if "user_id" in payload:
                 payload["user_id"] = _vault.encrypt(str(payload["user_id"]).encode())

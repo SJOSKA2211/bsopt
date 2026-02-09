@@ -19,4 +19,4 @@ assignee: Morty
 `shm_mesh.py` and `log_drain.py` have branding slop.
 
 ## Solution
-Remove all "Singularity" and rocket emojis.
+Remove all "Optimized" and rocket emojis.

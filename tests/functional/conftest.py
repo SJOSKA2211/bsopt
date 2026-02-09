@@ -131,7 +131,7 @@ async def client(mock_db):
     app.dependency_overrides.clear()
 
 def validate_response(response, model):
-    """🚀 SINGULARITY: Strict Pydantic contract validation for functional tests."""
+    """ OPTIMIZED: Strict Pydantic contract validation for functional tests."""
     data = response.json()
     # Handle DataResponse/SuccessResponse wrapper if present
     if isinstance(data, dict) and "data" in data and hasattr(model, "model_validate"):

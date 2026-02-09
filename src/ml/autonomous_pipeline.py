@@ -38,7 +38,7 @@ class AutonomousMLPipeline:
         setup_logging()
         self.config = config
         
-        # 🚀 FORCE MLFLOW TO POSTGRES
+        #  FORCE MLFLOW TO POSTGRES
         self.db_url = config["db_url"]
         tracking_uri = self.db_url.replace("postgresql+asyncpg", "postgresql")
         mlflow.set_tracking_uri(tracking_uri)

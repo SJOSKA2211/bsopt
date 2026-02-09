@@ -1,5 +1,7 @@
 import unittest
+
 from src.ml.callbacks import EarlyStopping
+
 
 class TestCallbacks(unittest.TestCase):
     def test_early_stopping(self):

@@ -677,7 +677,7 @@ impl AmericanOptionsWASM {
 
             let n_itm = itm_indices.len();
             
-            // 🚀 OPTIMIZATION: Solve Normal Equations (A^T A) x = A^T y
+            //  OPTIMIZATION: Solve Normal Equations (A^T A) x = A^T y
             // Since we use 3 basis functions [1, x, x^2], A^T A is a 3x3 matrix.
             // This is drastically faster than QR decomposition on the full N_ITM x 3 matrix.
             

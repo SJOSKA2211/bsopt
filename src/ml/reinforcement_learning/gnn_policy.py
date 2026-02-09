@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GATConv, global_mean_pool
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
+from torch_geometric.nn import GATConv
+
 
 class GATFeaturesExtractor(BaseFeaturesExtractor):
     """
@@ -27,7 +28,7 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
 
     @torch.jit.export
     def forward_jit(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
-        """🚀 SILICON PATH: High-performance JIT-friendly forward pass."""
+        """ SILICON PATH: High-performance JIT-friendly forward pass."""
         x = F.elu(self.conv1(x, edge_index))
         x = F.elu(self.conv2(x, edge_index))
         x = self.conv3(x, edge_index)
@@ -48,3 +49,6 @@ class GATTD3Policy(TD3Policy):
         super().__init__(*args, **kwargs, 
                          features_extractor_class=GATFeaturesExtractor,
                          features_extractor_kwargs={"features_dim": 64})
+
+GNNFeatureExtractor = GATFeaturesExtractor
+SACGNNPolicy = GATTD3Policy

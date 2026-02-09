@@ -1,7 +1,7 @@
 # Codebase Optimization Strategy
 
 ## Overview
-The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It utilizes `FastAPI`, `XGBoost`, `Optuna`, `Ray`, and `Numba`. While the architecture shows "God Mode" aspirations (e.g., "Singularity" comments), there are inconsistencies, verbose patterns, and potential performance bottlenecks.
+The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It utilizes `FastAPI`, `XGBoost`, `Optuna`, `Ray`, and `Numba`. While the architecture shows "God Mode" aspirations (e.g., "Optimized" comments), there are inconsistencies, verbose patterns, and potential performance bottlenecks.
 
 ## Findings
 
@@ -19,7 +19,7 @@ The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It
 ### 2. `src/ml/training/train.py`
 - **Status**: Advanced but chaotic.
 - **Issues**:
-  - "SOTA" and "Singularity" comments add noise.
+  - "ADVANCED" and "Optimized" comments add noise.
   - Complex interaction between Ray Tune and Optuna might be overkill for smaller datasets.
   - `load_or_collect_data` logic needs to ensure it doesn't block the event loop in `train` (which is async).
 - **Plan**:
@@ -32,7 +32,7 @@ The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It
 - **Issues**:
   - `allow_origins=["*"]` is insecure.
   - Potential duplication between `verify_token` dependency and `JWTAuthenticationMiddleware`.
-  - "Singularity" health check message is unprofessional (though funny).
+  - "Optimized" health check message is unprofessional (though funny).
 - **Plan**:
   - Restrict CORS.
   - Audit Auth flow.

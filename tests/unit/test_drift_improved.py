@@ -1,6 +1,9 @@
 import unittest
+
 import numpy as np
-from src.ml.drift import PerformanceDriftMonitor, calculate_ks_test, calculate_psi, DriftTrigger
+
+from src.ml.drift import DriftTrigger, PerformanceDriftMonitor, calculate_ks_test, calculate_psi
+
 
 class TestDrift(unittest.TestCase):
     def test_performance_drift_monitor(self):

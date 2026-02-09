@@ -49,7 +49,7 @@ def setup_logging():
             _TIME_STAMPER,
             _LEVEL_ADDER,
             _CALLSITE_ADDER,
-            _off_heap_processor, # 🚀 Redirect high-freq logs
+            _off_heap_processor, #  Redirect high-freq logs
             _JSON_RENDERER,
         ],
         context_class=dict,

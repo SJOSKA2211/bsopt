@@ -1,10 +1,17 @@
 import unittest
-import numpy as np
+
 from src.pricing.exotic import (
-    AsianOptionPricer, BarrierOptionPricer, LookbackOptionPricer, 
-    DigitalOptionPricer, ExoticParameters, BSParameters, 
-    BarrierType, StrikeType, AsianType
+    AsianOptionPricer,
+    AsianType,
+    BarrierOptionPricer,
+    BarrierType,
+    BSParameters,
+    DigitalOptionPricer,
+    ExoticParameters,
+    LookbackOptionPricer,
+    StrikeType,
 )
+
 
 class TestExotic(unittest.TestCase):
     def setUp(self):

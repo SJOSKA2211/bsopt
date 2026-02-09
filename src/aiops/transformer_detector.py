@@ -84,7 +84,7 @@ class TransformerAnomalyDetector:
             
             reconstructed = self.model(x)
             
-            # 🚀 Rick Optimization: Per-feature error attribution
+            #  Rick Optimization: Per-feature error attribution
             # Mean squared error for each feature across the batch and window
             per_feature_loss = torch.mean((reconstructed - x)**2, dim=(0, 1))
             
@@ -123,7 +123,7 @@ class TransformerAnomalyDetector:
             # (Batch, Seq, Feat) -> Flatten batch/seq for scaling
             data_flat = train_data.reshape(-1, original_shape[-1])
             self.scaler.fit(data_flat)
-            # 🚀 Rick Fix: Ensure the transform doesn't change the total number of elements
+            #  Rick Fix: Ensure the transform doesn't change the total number of elements
             scaled_flat = self.scaler.transform(data_flat)
             scaled_data = scaled_flat.reshape(original_shape)
         else:

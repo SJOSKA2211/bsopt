@@ -1,4 +1,4 @@
--- 🚀 Optimized TimescaleDB Hypertables for Market Data
+--  Optimized TimescaleDB Hypertables for Market Data
 -- Converts standard tables to hypertables for time-series optimization.
 
 -- 1. Options Prices Hypertable

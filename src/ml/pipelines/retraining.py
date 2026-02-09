@@ -17,7 +17,7 @@ class NeuralGreeksRetrainer:
 
     async def _validate_data(self, data: Any) -> bool:
         """
-        🚀 OPTIMIZATION: Perform distributional shift analysis before retraining.
+         OPTIMIZATION: Perform distributional shift analysis before retraining.
         """
         drift_report = self.drift_detector.detect_drift(data)
         if drift_report.get("is_drift_detected", False):

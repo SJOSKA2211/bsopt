@@ -1,5 +1,5 @@
 """
-Machine Learning Routes (Singularity Refactored)
+Machine Learning Routes (Optimized Refactored)
 """
 
 from uuid import UUID

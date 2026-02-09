@@ -19,8 +19,8 @@ resources:
   env:
   ENVIRONMENT: production
   REDIS_URL: "redis://redis-master:6379/0"
-  # 🚀 SINGULARITY: Point to Postgres via Secrets
-  DATABASE_URL: "${POSTGRES_DATABASE_URL}"  # 🚀 SINGULARITY: Gateway and Subgraph configuration
+  #  OPTIMIZED: Point to Postgres via Secrets
+  DATABASE_URL: "${POSTGRES_DATABASE_URL}"  #  OPTIMIZED: Gateway and Subgraph configuration
   GATEWAY_PORT: 4000
   AUTH_SERVICE_URL: "http://bsopt-auth:3001"
   ML_SERVICE_URL: "http://bsopt-ml:8002"

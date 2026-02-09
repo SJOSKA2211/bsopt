@@ -21,7 +21,7 @@ class SharedExperienceBuffer:
         self.obs_dim = obs_dim
         self.act_dim = act_dim
         
-        # 🚀 Layout: [Head(8)] + [Obs(N*D)] + [Act(N*A)] + [Rew(N)] + [Next_Obs(N*D)]
+        #  Layout: [Head(8)] + [Obs(N*D)] + [Act(N*A)] + [Rew(N)] + [Next_Obs(N*D)]
         # Total size in bytes (float32 = 4 bytes)
         self.shm_size = (
             8 + 

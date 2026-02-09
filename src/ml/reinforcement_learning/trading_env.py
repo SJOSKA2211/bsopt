@@ -6,10 +6,7 @@ from gymnasium import spaces
 
 logger = structlog.get_logger()
 
-import gymnasium as gym
-import numpy as np
 import structlog
-from gymnasium import spaces
 
 from .kernels import _calculate_reward_kernel, _fused_state_kernel
 

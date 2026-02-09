@@ -32,7 +32,7 @@ def smoke_test_ray():
     # Note: This will attempt to use the 'EQTY' symbol which might not have real data,
     # but we want to see if the Ray actor is triggered and if it fails gracefully or succeeds.
     symbol = "TEST_SYMBOL"
-    print(f"🚀 Triggering calibration for {symbol}...")
+    print(f" Triggering calibration for {symbol}...")
     
     try:
         # We call the task function directly. It will use get_math_swarm() which uses MathActor.remote()

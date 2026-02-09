@@ -50,7 +50,7 @@ class SHMManager[T]:
         if len(packed) > self.size - 5:
             raise ValueError(f"Data size {len(packed)} exceeds SHM capacity")
 
-        # 🚀 ATOMIC: Acquire spin-lock
+        #  ATOMIC: Acquire spin-lock
         import time
         start = time.perf_counter()
         while self._shm.buf[0] != 0:
@@ -76,7 +76,7 @@ class SHMManager[T]:
         if not self._shm:
             self._shm = shared_memory.SharedMemory(name=self.name)
         
-        # 🚀 ATOMIC: Wait for unlock
+        #  ATOMIC: Wait for unlock
         import time
         while self._shm.buf[0] != 0:
             time.sleep(0)

@@ -7,7 +7,7 @@ USERS=100000
 SPAWN_RATE=1000
 RUN_TIME="10m"
 
-echo "🚀 Starting C100k WebSocket Stress Test..."
+echo " Starting C100k WebSocket Stress Test..."
 echo "Target: $TARGET_URL"
 echo "Users: $USERS"
 

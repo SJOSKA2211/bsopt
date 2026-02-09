@@ -10,12 +10,12 @@ from src.ml.utils.validation import WalkForwardValidator
 
 @pytest.fixture
 def sample_data():
-    """🚀 SINGULARITY: Structured synthetic data for TFT validation."""
+    """ OPTIMIZED: Structured synthetic data for TFT validation."""
     dates = pd.date_range(start="2023-01-01", periods=500, freq="h")
     symbols = ["AAPL", "GOOGL"]
     data = []
     for symbol in symbols:
-        # 🚀 SOTA: Sine wave + trend to test structural learning
+        #  ADVANCED: Sine wave + trend to test structural learning
         base_price = 100.0
         for i, date in enumerate(dates):
             price = base_price + 5 * np.sin(i / 24.0) + 0.01 * i + np.random.randn() * 0.1
@@ -30,7 +30,7 @@ def sample_data():
     return pd.DataFrame(data)
 
 def test_tft_temporal_validation(sample_data, tft_config):
-    """🚀 SINGULARITY: Test TFT with WalkForwardValidator."""
+    """ OPTIMIZED: Test TFT with WalkForwardValidator."""
     model = TFTModel(config=tft_config)
     validator = WalkForwardValidator(n_splits=3)
     

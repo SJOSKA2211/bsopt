@@ -15,7 +15,6 @@ except ImportError:
     TorchTrainer = None
     HAS_RAY_TRAIN = False
 
-from src.ml.trainer_v2 import Trainer
 
 logger = structlog.get_logger(__name__)
 
@@ -34,13 +33,11 @@ import ray
 import ray.train.torch
 import structlog
 import torch as th
-import torch.nn as nn
-from ray.train import ScalingConfig
 from torch.utils.data import DataLoader
 
+from src.config import settings
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
 from src.ml.reinforcement_learning.offline_train import TrajectoryDataset
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 

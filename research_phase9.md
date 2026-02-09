@@ -1,4 +1,4 @@
-# Research: Singularity Phase 9 (Entry Points & Core Audit)
+# Research: Optimized Phase 9 (Entry Points & Core Audit)
 
 **Date**: 2026-02-09
 
@@ -13,7 +13,7 @@ A comprehensive audit of the system entry points (`bs_cli.py`, `bs_hft_launch.py
 
 ## 3. Findings & Analysis
 - **Code Redundancy**: The `IngestionWorker` class in `src/streaming/ingestion_worker.py` defines the `stop()` method twice. This is sloppy and potentially dangerous if the implementations diverge.
-- **AI Slop & Hyperbole**: Both `bs_cli.py` and `bs_hft_launch.py` are riddled with "God-Mode" and "Singularity" comments that add no technical value. `bs_cli.py` also uses hardcoded placeholder strings for telemetry (e.g., "Last T2T: ~450ns (Silicon Hot)") rather than reading actual metrics.
+- **AI Slop & Hyperbole**: Both `bs_cli.py` and `bs_hft_launch.py` are riddled with "God-Mode" and "Optimized" comments that add no technical value. `bs_cli.py` also uses hardcoded placeholder strings for telemetry (e.g., "Last T2T: ~450ns (Silicon Hot)") rather than reading actual metrics.
 - **Performance Bottleneck**: The `SharedMemoryRingBuffer` in `src/shared/shm_mesh.py` uses `np.concatenate` for wrap-around reads. This copy operation negates the zero-copy advantages of shared memory for boundary conditions.
 - **Boilerplate Replication**: Thread affinity setting (`os.sched_setaffinity`) is wrapped in identical `try-except` blocks across multiple entry points. This should be centralized in a utility function.
 

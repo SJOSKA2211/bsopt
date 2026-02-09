@@ -16,14 +16,13 @@ if str(src) not in sys.path:
 if str(test_dir) not in sys.path:
     sys.path.insert(0, str(test_dir))
 
-# 🚀 CLEAR LAZY IMPORT CACHE
+#  CLEAR LAZY IMPORT CACHE
 if "src.utils.lazy_import" in sys.modules:
     import src.utils.lazy_import
     src.utils.lazy_import._failed_imports.clear()
 
-import importlib.util  # noqa: E402
 
-# 🚀 SINGULARITY: Inject mocks
+#  OPTIMIZED: Inject mocks
 try:
     import tests.mock_all
 except ImportError:

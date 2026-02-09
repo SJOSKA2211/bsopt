@@ -56,7 +56,7 @@ class SharedMemoryManager:
                 logger.warning("shm_pool_exhausted")
                 return None
             seg_name = self.available_segments.pop()
-            # 🚀 OPTIMIZATION: Verify segment health before handover
+            #  OPTIMIZATION: Verify segment health before handover
             try:
                 shm = self.all_segments[seg_name]
                 _ = shm.buf[0] # Test access

@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
-from src.shared.shm_mesh import SharedMemoryRingBuffer, MarketTick
+
+from src.shared.shm_mesh import SharedMemoryRingBuffer
+
 
 class TestSHMMesh(unittest.TestCase):
     def test_ring_buffer_lifecycle(self):

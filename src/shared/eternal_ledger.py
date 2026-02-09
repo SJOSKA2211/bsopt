@@ -1,11 +1,12 @@
 
-import os
 import mmap
+import os
 import struct
-import time
-import structlog
 from typing import Any
-from src.shared.shm_mesh import TICK_DTYPE, TICK_SIZE
+
+import structlog
+
+from src.shared.shm_mesh import TICK_SIZE
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +37,7 @@ class EternalLedger:
         logger.info("eternal_ledger_initialized", path=file_path, size_mb=self.file_size/1024/1024)
 
     def write_batch(self, batch: list[Any]):
-        """🚀 HOT PATH: Write raw binary data directly to mmap."""
+        """ HOT PATH: Write raw binary data directly to mmap."""
         for item in batch:
             if self._offset + self.entry_size > self.file_size:
                 # Wrap around or rotate? For singularity, we rotate or expand.

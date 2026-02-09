@@ -2,13 +2,13 @@
 Unified ML Training & Evaluation Pipeline
 =========================================
 
-🚀 SINGULARITY: One source of truth for model training, optimization, and evaluation.
+ OPTIMIZED: One source of truth for model training, optimization, and evaluation.
 Fixes fragmented training scripts and ensures rigorous temporal validation.
 """
 
 import asyncio
 import os
-from datetime import datetime, UTC
+from datetime import datetime
 from typing import Any
 
 import mlflow
@@ -20,7 +20,6 @@ from sqlalchemy import create_engine
 from src.config import get_settings
 from src.database import Base
 from src.ml.drift import DriftTrigger, PerformanceDriftMonitor
-from src.ml.evaluation.metrics import ModelScorecard
 from src.ml.scraper import MarketDataScraper
 from src.ml.trainer import ModelTrainer
 from src.shared.observability import push_metrics, setup_logging
@@ -120,7 +119,7 @@ class MLPipeline:
 
     async def _fetch_data(self) -> pd.DataFrame:
         """Unified data fetching with synthetic fallback."""
-        from datetime import datetime, timedelta
+        from datetime import timedelta
         end_date = datetime.now()
         start_date = end_date - timedelta(days=365)
         

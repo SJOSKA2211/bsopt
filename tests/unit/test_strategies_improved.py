@@ -1,14 +1,16 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
+
 import numpy as np
-import sys
 
 # Mock xgboost and dask
 sys.modules["xgboost"] = MagicMock()
 sys.modules["dask"] = MagicMock()
 sys.modules["dask.distributed"] = MagicMock()
 
-from src.ml.strategies import XGBoostStrategy, SklearnStrategy, PyTorchStrategy, get_strategy
+from src.ml.strategies import PyTorchStrategy, SklearnStrategy, XGBoostStrategy, get_strategy
+
 
 class TestStrategies(unittest.TestCase):
     def setUp(self):

@@ -18,7 +18,7 @@ from src.pricing.quant_utils import (
 )
 
 
-# 🚀 RICK: Use small arrays for faster JIT warmup in tests
+#  RICK: Use small arrays for faster JIT warmup in tests
 @pytest.fixture
 def sample_data():
     S = np.array([100.0, 110.0], dtype=np.float64)

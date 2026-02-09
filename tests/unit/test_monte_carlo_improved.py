@@ -1,6 +1,7 @@
 import unittest
-import numpy as np
-from src.pricing.monte_carlo import MonteCarloEngine, MCConfig, BSParameters
+
+from src.pricing.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
+
 
 class TestMonteCarlo(unittest.TestCase):
     def setUp(self):

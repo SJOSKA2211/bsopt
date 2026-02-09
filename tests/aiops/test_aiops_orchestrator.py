@@ -1,20 +1,12 @@
-import logging
-from unittest.mock import MagicMock, patch, ANY
+from unittest.mock import ANY, MagicMock, patch
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
-from src.aiops.autoencoder_detector import AutoencoderDetector
-from src.aiops.data_drift_detector import DataDriftDetector
-from src.aiops.docker_remediator import DockerRemediator
-from src.aiops.isolation_forest_detector import IsolationForestDetector
-from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
-from src.aiops.redis_remediator import RedisRemediator
-from src.aiops.transformer_detector import TransformerAnomalyDetector
 
-# 🚀 Mocking core dependencies to avoid initialization overhead and side effects
+
+#  Mocking core dependencies to avoid initialization overhead and side effects
 @pytest.fixture
 def mock_orchestrator_dependencies():
     with patch("src.aiops.aiops_orchestrator.PrometheusClient") as mock_prom, \
@@ -210,7 +202,7 @@ def test_detect_anomalies_ml_driven(mock_config, univariate_anomaly_detected, mu
         if orchestrator.autoencoder_detector: # Only set if autoencoder is enabled
             orchestrator.autoencoder_detector.fit_predict.return_value = np.array([-1]) if multivariate_anomaly_detected else np.array([1])
         
-        # 🚀 Configure Transformer Mock based on test parameters
+        #  Configure Transformer Mock based on test parameters
         if hasattr(orchestrator, "transformer_detector") and orchestrator.transformer_detector:
             orchestrator.transformer_detector.detect.return_value = {
                 "is_anomaly": multivariate_anomaly_detected, 
@@ -253,7 +245,7 @@ def test_detect_anomalies_transformer(mock_config, mock_orchestrator_dependencie
         orchestrator.isolation_forest_detector.fit_predict.return_value = np.array([1]) # No anomaly
         orchestrator.autoencoder_detector.fit_predict.return_value = np.array([1]) # No anomaly
         
-        # 🚀 Test Transformer Anomaly
+        #  Test Transformer Anomaly
         with patch.object(orchestrator.transformer_detector, "detect") as mock_detect:
             mock_detect.return_value = {"is_anomaly": True, "score": 0.1}
             anomalies = orchestrator._detect_anomalies()

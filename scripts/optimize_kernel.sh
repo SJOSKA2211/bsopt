@@ -8,7 +8,7 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-echo "🚀 Applying kernel optimizations for C100k..."
+echo " Applying kernel optimizations for C100k..."
 
 # 1. Increase Max Open Files (File Descriptors)
 # Default is often 1024. We need >100k for Nginx + Sockets.
@@ -49,7 +49,7 @@ if [ -f /sys/module/intel_idle/parameters/max_cstate ]; then
     echo 0 > /sys/module/intel_idle/parameters/max_cstate
 fi
 
-# 6. I/O Singularity: NVMe Optimization
+# 6. I/O Optimized: NVMe Optimization
 # Set scheduler to 'none' for NVMe drives (bypass kernel scheduling overhead)
 echo "⚡ Optimizing NVMe I/O paths..."
 for i in /sys/block/nvme*/queue/scheduler; do
@@ -61,7 +61,7 @@ done
 # 6. Low-Latency Tuning
 # Disable swap to prevent latency spikes
 swapoff -a
-# SOTA: Set memlock limits to prevent paging for high-performance workers
+# ADVANCED: Set memlock limits to prevent paging for high-performance workers
 ulimit -l unlimited
 
 # Optimize IRQ affinity for network cards (if available)

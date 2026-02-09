@@ -1,7 +1,9 @@
 import unittest
+
 import numpy as np
-import torch
+
 from src.aiops.transformer_detector import TransformerAnomalyDetector
+
 
 class TestTransformerDetectorReal(unittest.TestCase):
     def setUp(self):

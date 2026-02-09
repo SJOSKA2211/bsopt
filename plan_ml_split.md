@@ -29,7 +29,7 @@ Remove random shuffling and implement index-based splitting.
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
-    # 🚀 SINGULARITY: Strict Temporal Split (No Shuffling)
+    #  OPTIMIZED: Strict Temporal Split (No Shuffling)
     test_size = 0.2
     split_idx = int(len(X_scaled) * (1 - test_size))
     

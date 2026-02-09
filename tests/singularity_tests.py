@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from src.auth.service import AuthService
 from src.config import settings
 from src.database.models import Base, OAuth2Client
-from src.ml.reinforcement_learning.transformer_policy import TransformerSingularityExtractor
+from src.ml.reinforcement_learning.transformer_policy import TransformerOptimizedExtractor
 
 # --- DATABASE & AUTH TESTS ---
 
@@ -52,7 +52,7 @@ def test_auth_service_flow(db_session):
 def test_transformer_extractor_forward():
     # Obs space: [window=10, features=5]
     obs_space = spaces.Box(low=-1, high=1, shape=(10, 5))
-    extractor = TransformerSingularityExtractor(obs_space, features_dim=128)
+    extractor = TransformerOptimizedExtractor(obs_space, features_dim=128)
     
     # Batch of 4
     obs = torch.randn(4, 10, 5)
@@ -63,7 +63,7 @@ def test_transformer_extractor_forward():
 
 def test_transformer_extractor_unbatched():
     obs_space = spaces.Box(low=-1, high=1, shape=(5,))
-    extractor = TransformerSingularityExtractor(obs_space, features_dim=64)
+    extractor = TransformerOptimizedExtractor(obs_space, features_dim=64)
     
     obs = torch.randn(4, 5) # Batch of 4, but single step
     features = extractor(obs)
@@ -73,6 +73,6 @@ def test_transformer_extractor_unbatched():
 # --- CONFIG TESTS ---
 
 def test_settings_env_override():
-    assert settings.PROJECT_NAME == "BSOpt Singularity"
+    assert settings.PROJECT_NAME == "BSOpt Optimized"
     # Verify transient key generation doesn't crash
     assert "BEGIN RSA PRIVATE KEY" in settings.rsa_private_key

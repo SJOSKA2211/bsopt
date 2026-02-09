@@ -1,14 +1,17 @@
-
-import os
-import sys
-import threading
-import time
 import asyncio
+import os
+import threading
+
 import structlog
-from src.streaming.ingestion_worker import IngestionWorker
-from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
+
 from src.aiops.aiops_orchestrator import AIOpsOrchestrator
-from src.config import settings
+from src.ml.autonomous_refiner import AutonomousRefiner
+from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
+from src.monitoring.telemetry import TelemetryEngine
+from src.shared.mesh_bridge import MeshBridge
+from src.shared.shm_mesh import ExecutionBuffer, OrderBuffer
+from src.streaming.ingestion_worker import IngestionWorker
+from src.trading.order_engine import OrderEngine
 
 logger = structlog.get_logger(__name__)
 
@@ -32,18 +35,13 @@ def lock_memory():
     except Exception as e:
         logger.warning("memory_lock_not_available", error=str(e))
 
-from src.trading.order_engine import OrderEngine
-from src.monitoring.telemetry import TelemetryEngine
-from src.shared.mesh_bridge import MeshBridge
-from src.ml.autonomous_refiner import AutonomousRefiner
-from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
 
 def launch_manifold():
     """
     Orchestrates the high-frequency trading manifold.
     Assigns cores, locks memory, and starts the silicon swarm.
     """
-    logger.info("launching_solenya_manifold", version="1.0.0-Singularity")
+    logger.info("launching_solenya_manifold", version="1.0.0-Optimized")
     
     # 1. Global Pre-flight
     lock_memory()
@@ -151,7 +149,7 @@ def launch_manifold():
         orchestrator.run()
     except KeyboardInterrupt:
         logger.info("manifold_shutdown_initiated")
-        ingester.stop()
+        worker.stop()
         # Agent thread is daemon, will exit with main
 
 if __name__ == "__main__":

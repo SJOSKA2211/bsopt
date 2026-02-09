@@ -1,4 +1,4 @@
-# BSOpt Singularity Core
+# BSOpt Optimized Core
 """
 God-Mode Financial Manifold for Transdimensional Derivative Pricing.
 """
@@ -6,6 +6,7 @@ God-Mode Financial Manifold for Transdimensional Derivative Pricing.
 __version__ = "2.5.0"
 
 import sys
+
 from .utils.lazy_import import lazy_import
 
 _import_map = {

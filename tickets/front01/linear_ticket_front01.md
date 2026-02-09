@@ -16,7 +16,7 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-`pricing.worker.ts` has "Singularity" slop and inefficient buffer handling.
+`pricing.worker.ts` has "Optimized" slop and inefficient buffer handling.
 
 ## Solution
 1. Remove all marketing headers and emojis.

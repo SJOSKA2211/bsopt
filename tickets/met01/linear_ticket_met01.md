@@ -19,4 +19,4 @@ assignee: Morty
 `metrics.py` has branding slop and redundant comments.
 
 ## Solution
-Remove all "Singularity" and rocket emojis. Ensure the weighted RMSE logic is clear and efficient.
+Remove all "Optimized" and rocket emojis. Ensure the weighted RMSE logic is clear and efficient.

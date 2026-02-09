@@ -19,5 +19,5 @@ assignee: Morty
 `shared/security.py` has branding slop and stubbed WASM enforcement.
 
 ## Solution
-1. Remove "Singularity" and "SOTA" text.
+1. Remove "Optimized" and "ADVANCED" text.
 2. Clean up `WASMOPAEnforcer` to be a valid fallback or a properly documented placeholder.

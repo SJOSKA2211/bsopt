@@ -64,7 +64,7 @@ class TestOptimizedPricing(unittest.TestCase):
         np.testing.assert_array_almost_equal(calc_vols, vols, decimal=4)
 
     def test_wasm_simd_speedup(self):
-        """🚀 SINGULARITY: Verify WASM SIMD pricing if available."""
+        """ OPTIMIZED: Verify WASM SIMD pricing if available."""
         try:
             from src.wasm.engine import BlackScholesWASM
             engine = BlackScholesWASM()
@@ -78,7 +78,7 @@ class TestOptimizedPricing(unittest.TestCase):
             print(f"\n[FAIL] WASM SIMD Pricing failed: {e}")
 
     def test_lsm_american_accuracy(self):
-        """🚀 SINGULARITY: Verify Optimized LSM American Pricing."""
+        """ OPTIMIZED: Verify Optimized LSM American Pricing."""
         try:
             from src.wasm.engine import AmericanOptionsWASM
             engine = AmericanOptionsWASM()

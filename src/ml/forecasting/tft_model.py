@@ -110,7 +110,7 @@ class PriceTFTModel:
             trainer.fit(model, train_dataloaders=data["train_loader"])
             self.model = model
             
-            # 🚀 ADVANCED: Post-Training Static Quantization (Simulated for CPU)
+            #  ADVANCED: Post-Training Static Quantization (Simulated for CPU)
             self._quantize()
             
             # Log model artifact
@@ -135,7 +135,7 @@ class PriceTFTModel:
 
     def _quantize(self):
         """
-        🚀 OPTIMIZATION: Quantize model to INT8 for faster inference.
+         OPTIMIZATION: Quantize model to INT8 for faster inference.
         """
         logger.info("model_quantization_started")
         try:
@@ -201,7 +201,7 @@ class PriceTFTModel:
         if "price" not in data.columns and "close" in data.columns:
             data["price"] = data["close"]
             
-        # 🚀 OPTIMIZATION: Cached Dynamic Quantization for CPU inference speedup
+        #  OPTIMIZATION: Cached Dynamic Quantization for CPU inference speedup
         if quantize and not torch.cuda.is_available():
             if self._quantized_model is None:
                 logger.info("model_quantization_starting", type="dynamic_int8")

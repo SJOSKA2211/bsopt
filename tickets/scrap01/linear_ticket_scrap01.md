@@ -16,7 +16,7 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-`stealth.py` is not stealthy. It has emojis in the comments and "Singularity" branding.
+`stealth.py` is not stealthy. It has emojis in the comments and "Optimized" branding.
 
 ## Solution
 1. Remove all emojis and marketing fluff.

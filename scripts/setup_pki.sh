@@ -1,5 +1,5 @@
 #!/bin/bash
-# 🚀 SINGULARITY: Automated Internal PKI for Zero-Trust mTLS
+#  OPTIMIZED: Automated Internal PKI for Zero-Trust mTLS
 # Generates a Root CA and issues ephemeral certificates for platform services.
 
 set -e

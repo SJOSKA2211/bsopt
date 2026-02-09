@@ -73,7 +73,7 @@ def get_wasm_instance() -> Any:
     Singleton accessor for the WASM pricing instance.
     Locates the module in the project tree and instantiates it.
     """
-    from wasmer import Store, Instance
+    from wasmer import Instance, Store
     
     # 1. Locate the WASM file
     search_paths = [

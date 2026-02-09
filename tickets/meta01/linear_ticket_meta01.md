@@ -16,8 +16,8 @@ assignee: Morty
 # Description
 
 ## Problem to solve
-Stray "Singularity" strings remain in routes, config, and research docs.
+Stray "Optimized" strings remain in routes, config, and research docs.
 
 ## Solution
-1. Grep and replace all remaining "SINGULARITY" and "SOTA" occurrences in `src/`.
+1. Grep and replace all remaining "OPTIMIZED" and "ADVANCED" occurrences in `src/`.
 2. Ensure the "Refactored" headers are gone.

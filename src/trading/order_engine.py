@@ -1,10 +1,10 @@
 
 import os
-import time
+
 import structlog
-import numpy as np
-from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer, SHM_ORDER_NAME
+
 from src.shared.observability import tune_gc
+from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -49,7 +49,7 @@ class OrderEngine:
                 is_safe = _validate_order_kernel(price, qty, side)
                 
                 if is_safe:
-                    # 🚀 BINARY FIRE: Mock high-performance gateway
+                    #  BINARY FIRE: Mock high-performance gateway
                     order_id = self._order_id_counter
                     self._order_id_counter += 1
                     

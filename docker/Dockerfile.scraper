@@ -21,7 +21,7 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-# 🚀 SINGULARITY: Optimized performance flags
+#  OPTIMIZED: Optimized performance flags
 ENV PYTHON_JIT=all
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

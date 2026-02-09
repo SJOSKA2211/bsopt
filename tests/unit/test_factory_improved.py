@@ -1,6 +1,6 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import sys
 
 # Pre-emptive mock for wasmer before any imports
 mock_wasmer = MagicMock()
@@ -8,6 +8,7 @@ sys.modules["wasmer"] = mock_wasmer
 sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
 from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound
+
 
 class TestPricingFactory(unittest.TestCase):
     def setUp(self):

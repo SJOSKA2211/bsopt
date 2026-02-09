@@ -16,7 +16,7 @@ assignee: Pickle Rick
 # Description
 
 ## Problem to solve
-Coverage is at ~2%. Need 97% for the "Coverage Singularity".
+Coverage is at ~2%. Need 97% for the "Coverage Optimized".
 
 ## Solution
 1.  Focused on `src/pricing/` which was low coverage.

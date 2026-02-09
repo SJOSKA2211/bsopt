@@ -1,22 +1,25 @@
 import unittest
+
 import numpy as np
+
 from src.pricing.quant_utils import (
-    jit_generate_paths,
-    jit_generate_log_paths,
     batch_bs_price_jit,
     batch_greeks_jit,
-    vectorized_newton_raphson_iv_jit,
-    jit_lsm_american,
+    corrado_miller_initial_guess,
+    heston_char_func_jit,
     jit_cn_solver,
-    thomas_algorithm,
-    scalar_bs_price_jit,
-    scalar_greeks_jit,
+    jit_generate_log_paths,
+    jit_generate_paths,
+    jit_lsm_american,
     jit_mc_european_price,
     jit_mc_european_price_and_greeks,
     jit_mc_european_with_control_variate,
-    heston_char_func_jit,
-    corrado_miller_initial_guess
+    scalar_bs_price_jit,
+    scalar_greeks_jit,
+    thomas_algorithm,
+    vectorized_newton_raphson_iv_jit,
 )
+
 
 class TestQuantUtils(unittest.TestCase):
     def test_jit_generate_paths(self):

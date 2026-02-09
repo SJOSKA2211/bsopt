@@ -1,6 +1,6 @@
 ---
 id: parent
-title: [Epic] BSOpt Singularity Upgrade
+title: [Epic] BSOpt Optimized Upgrade
 status: Done
 priority: High
 project: bsopt
@@ -19,7 +19,7 @@ assignee: Pickle Rick
 The BSOpt project requires a massive upgrade including Neon backend, OAuth, code optimization, and RL improvements.
 
 ## Solution
-Execute the BSOpt Singularity Upgrade PRD.
+Execute the BSOpt Optimized Upgrade PRD.
 
 # Comments
 - **Neon Backend:** Configured `DATABASE_URL`, updated schema, created setup guide.

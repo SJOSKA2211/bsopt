@@ -8,7 +8,7 @@ from .providers import OIDCProvider, auth_registry
 
 logger = structlog.get_logger()
 
-# 🚀 INITIALIZATION: Register providers
+#  INITIALIZATION: Register providers
 # Internal Auth Server (Neon-backed)
 auth_registry.register(OIDCProvider(
     name="internal",
@@ -26,7 +26,7 @@ auth_registry.register(OIDCProvider(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="https://auth.bsopt.internal/protocol/openid-connect/token")
 
-# 🚀 BACKWARD COMPATIBILITY: Shims for legacy tests
+#  BACKWARD COMPATIBILITY: Shims for legacy tests
 jwks_cache = {}
 
 async def get_jwks():
@@ -49,7 +49,7 @@ async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) ->
         # Use registry to verify token from any registered issuer
         payload = await auth_registry.verify_any(token)
         
-        # 🚀 FIX: Populate request.state.user for downstream dependencies
+        #  FIX: Populate request.state.user for downstream dependencies
         class AuthenticatedUser:
             def __init__(self, payload):
                 self.id = payload.get("sub")

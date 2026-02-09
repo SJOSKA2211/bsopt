@@ -55,22 +55,48 @@ fi
 # 2. Start Infrastructure if not already running
 DOCKER_COMPOSE="docker compose -f docker-compose.dev.yml"
 RUNNING_SERVICES=$($DOCKER_COMPOSE ps --services --filter "status=running")
-if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]]; then
-    echo "🥒 Starting Infrastructure..."
-    ./scripts/start_infra.sh &
-    PID_INFRA=$!
+if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]] || [[ ! $RUNNING_SERVICES =~ "rabbitmq" ]]; then
+    echo "🥒 Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
+    $DOCKER_COMPOSE up -d --no-recreate postgres redis rabbitmq
 fi
+
 
 # 3. Wait for Infrastructure (Postgres, Redis, RabbitMQ)
 echo "⏳ Waiting for Infrastructure to be ready..."
 MAX_RETRIES=30
 RETRY_COUNT=0
 
-until (
-    $DOCKER_COMPOSE exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1 && \
-    $DOCKER_COMPOSE exec -T redis redis-cli ping | grep -q PONG > /dev/null 2>&1 && \
+check_infra_health() {
+    local status=0
+    local message=""
+
+    $DOCKER_COMPOSE exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        message+="Postgres not ready. "
+        status=1
+    fi
+
+    $DOCKER_COMPOSE exec -T redis redis-cli ping | grep -q PONG > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        message+="Redis not ready. "
+        status=1
+    fi
+
+    # Check RabbitMQ health
     $DOCKER_COMPOSE exec -T rabbitmq rabbitmq-diagnostics -q check_running > /dev/null 2>&1
-) || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+    if [ $? -ne 0 ]; then
+        message+="RabbitMQ not ready. "
+        status=1
+    fi
+
+    if [ $status -ne 0 ]; then
+        echo -n "$message"
+        return 1
+    fi
+    return 0
+}
+
+until check_infra_health || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
     printf "."
     sleep 1
     RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -86,6 +112,7 @@ echo -e "\n✅ Infrastructure is READY."
 # 3.5 Start Ray Cluster
 echo "🐝 Starting Ray Cluster..."
 if [ -d ".venv" ]; then
+
     source .venv/bin/activate
 fi
 
@@ -101,7 +128,7 @@ else
 fi
 
 # 4. Start App Services
-echo "🚀 Starting App Services..."
+echo " Starting App Services..."
 ./scripts/start_auth.sh &
 PID_AUTH=$!
 
@@ -151,5 +178,3 @@ fi
 echo "📡 Tailing logs in background (Ctrl-C to stop all)..."
 $DOCKER_COMPOSE logs -f --tail=0 &
 
-# Wait for all background processes
-wait

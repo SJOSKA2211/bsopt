@@ -68,7 +68,7 @@ def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
 class ModelScorecard:
     """
     Unified performance scorecard combining regression and financial metrics.
-    🚀 SINGULARITY: Holistic model evaluation.
+     OPTIMIZED: Holistic model evaluation.
     """
     def __init__(self, y_true: np.ndarray, y_pred: np.ndarray, returns: np.ndarray | None = None):
         self.regression_metrics = calculate_regression_metrics(y_true, y_pred)

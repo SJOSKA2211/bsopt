@@ -1,6 +1,6 @@
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import sys
 
 # Mock strawberry as a package with submodules
 strawberry = MagicMock()

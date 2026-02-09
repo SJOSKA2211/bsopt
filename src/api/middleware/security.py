@@ -475,7 +475,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
 
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            # 🚀 TEST BYPASS: Allow proceeding without token in test env to let dependency overrides work
+            # Allow proceeding without token in test env to let dependency overrides work
             if settings.ENVIRONMENT in ["dev", "test"]:
                 return await call_next(request)
             
@@ -487,11 +487,11 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
 
         token = auth_header.split(" ")[1]
         try:
-            # 🚀 TEST BYPASS: Allow dummy tokens in non-prod environments
+            # Allow dummy tokens in non-prod environments
             if settings.ENVIRONMENT in ["dev", "test"] and (token.startswith("legacy-") or token == "some_token"):
                 payload = {"sub": "legacy-id", "email": "test@example.com", "roles": ["free"]}
             else:
-                # 🚀 OPTIMIZATION: Verify against registry
+                # Optimized verification against registry
                 payload = await auth_registry.verify_any(token)
             
             # Populate state for downstream dependencies

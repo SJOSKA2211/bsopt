@@ -34,7 +34,7 @@ class AIOpsOrchestrator:
         self.prometheus_url = config["prometheus_url"]
         self.api_service_name = config["api_service_name"]
 
-        # 🚀 STATEFUL: Remediation tracking and cooldowns
+        #  STATEFUL: Remediation tracking and cooldowns
         self.active_remediations = {}
         self.remediation_cooldowns = {
             "retrain": 3600,  # 1 hour cooldown for retraining
@@ -91,7 +91,7 @@ class AIOpsOrchestrator:
         self.redis_remediator = RedisRemediator()
         self.redis_cache_pattern = config.get("redis_cache_pattern", "*")
 
-        # 🚀 Strategy Pattern Registry
+        #  Strategy Pattern Registry
         self.remediation_registry = RemediationRegistry()
         self._register_default_strategies()
 
@@ -105,11 +105,11 @@ class AIOpsOrchestrator:
     def _register_default_strategies(self):
         """Maps anomaly keys to specific remediation strategies."""
         restart = RestartServiceStrategy()
-        retrain = RetrainModelStrategy()
+        RetrainModelStrategy()
         purge = PurgeCacheStrategy()
         scale = AutonomousScalerStrategy()
         switch = ModelSwitchStrategy()
-        # 🚀 SILICON: Performance-specific remediation
+        #  SILICON: Performance-specific remediation
         silicon_reset = SiliconResetStrategy()
 
         self.remediation_registry.register("high_error_rate", restart)
@@ -143,7 +143,7 @@ class AIOpsOrchestrator:
                 "priority": "high"
             }
 
-        # 🚀 HIGH-RES: Tick-to-Trade Jitter Detection
+        #  HIGH-RES: Tick-to-Trade Jitter Detection
         t2t_latency = self.prometheus_client.get_custom_metric("bsopt_t2t_latency_ns")
         if t2t_latency > self.t2t_latency_threshold_ns:
             anomalies["jitter_anomaly"] = {
@@ -209,7 +209,7 @@ class AIOpsOrchestrator:
         return anomalies
 
     def _remediate_anomalies(self, anomalies: dict[str, Any]):
-        """🚀 Dynamic remediation dispatch with stateful cooldowns."""
+        """ Dynamic remediation dispatch with stateful cooldowns."""
         current_time = time.time()
         for anomaly_type, data in anomalies.items():
             strategies = self.remediation_registry.get_strategy(anomaly_type)

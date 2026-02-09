@@ -5,7 +5,7 @@ from src.ml.utils.validation import WalkForwardValidator
 
 def test_walk_forward_split():
     """Test that validator provides non-overlapping temporal splits."""
-    # 🚀 SINGULARITY: Larger dataset to satisfy TimeSeriesSplit requirements
+    #  OPTIMIZED: Larger dataset to satisfy TimeSeriesSplit requirements
     X = np.arange(1000).reshape(1000, 1)
     validator = WalkForwardValidator(n_splits=5)
     

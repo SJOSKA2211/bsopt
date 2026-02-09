@@ -1,4 +1,4 @@
--- 🚀 TimescaleDB Continuous Aggregates for High-Performance Analytics
+--  TimescaleDB Continuous Aggregates for High-Performance Analytics
 -- Replaces traditional Materialized Views with automatically refreshing aggregates.
 
 -- 1. Daily Market OHLCV

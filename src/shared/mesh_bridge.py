@@ -2,14 +2,14 @@
 import os
 import socket
 import struct
-import threading
+
 import structlog
-from src.shared.shm_mesh import SharedMemoryRingBuffer, TICK_DTYPE, TICK_SIZE
-from src.shared.observability import tune_gc
+
+from src.shared.shm_mesh import TICK_SIZE, SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
-# 🚀 SILICON SPEED: Pre-packed struct for UDP fire
+#  SILICON SPEED: Pre-packed struct for UDP fire
 # 8s (Symbol), d (Price), q (Volume), d (Timestamp), q (receive_ts_ns)
 TICK_STRUCT = struct.Struct("8s d q d q")
 
@@ -49,7 +49,7 @@ class MeshBridge:
                 # Mirror the batches to the network
                 view, new_head = self.mesh.read_latest_view(self._last_head)
                 for tick in view:
-                    # 🚀 ZERO-LATENCY FIRE
+                    #  ZERO-LATENCY FIRE
                     payload = TICK_STRUCT.pack(
                         tick['symbol'], tick['price'], tick['volume'], 
                         tick['timestamp'], tick['receive_ts_ns']

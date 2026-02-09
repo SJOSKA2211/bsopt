@@ -1,4 +1,4 @@
-# Research: Singularity Phase 7 (Scrapers & Exotics)
+# Research: Optimized Phase 7 (Scrapers & Exotics)
 
 **Date**: 2026-02-04
 
@@ -21,5 +21,5 @@ Audit of the scrapers and exotic pricing kernels identifies sub-optimal lookup l
 
 ## 5. Architecture Documentation
 - **Pattern**: Strategy Pattern for pricing types; Protocol-based scrapers.
-- **Singularity Status**: Incomplete in the exotic manifold.
+- **Optimized Status**: Incomplete in the exotic manifold.
 EOF

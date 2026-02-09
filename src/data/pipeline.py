@@ -58,7 +58,7 @@ class DataPipeline:
         """
         from src.database.pipeliner import db_engine
         
-        # 🚀 OPTIMIZATION: Use native async fetch
+        #  OPTIMIZATION: Use native async fetch
         records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
@@ -66,7 +66,7 @@ class DataPipeline:
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
             return generate_synthetic_data(self.config.min_samples)
 
-        # 🚀 ADVANCED FEATURE ENGINEERING TODO: Implement rolling stats and lag features here
+        #  ADVANCED FEATURE ENGINEERING TODO: Implement rolling stats and lag features here
         # Convert to NumPy
         # X: strike, expiry_days, volatility, rate, dividend
         # y: price (last)

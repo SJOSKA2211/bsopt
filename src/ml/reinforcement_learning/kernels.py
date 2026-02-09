@@ -1,10 +1,10 @@
 import numpy as np
 import structlog
-from numba import njit, prange
+from numba import njit
 
 logger = structlog.get_logger()
 
-# 🚀 SILICON KERNELS: JIT-fused state construction
+#  SILICON KERNELS: JIT-fused state construction
 # Targets AVX-512 and aggressive unrolling.
 
 @njit(cache=True, fastmath=True, error_model='numpy')

@@ -84,7 +84,7 @@ class SiliconResetStrategy(RemediationStrategy):
     """The Ultimate Reset: Re-pins the silicon swarm."""
     def execute(self, orchestrator: Any, data: dict[str, Any]):
         logger.warning("executing_silicon_reset", data=data)
-        orchestrator.notify(f"🚀 SILICON RESET: Critical jitter {data.get('metric')}ns", ["hft", "critical"])
+        orchestrator.notify(f" SILICON RESET: Critical jitter {data.get('metric')}ns", ["hft", "critical"])
         
         # In prod, this would trigger a container restart with re-pinning
         # or a direct call to XDPIngester.start() / OnlineAgent.run() to re-affinitize

@@ -1,15 +1,18 @@
 
 import os
-import time
-from typing import Any
 
 import numpy as np
-import torch
 import structlog
+import torch
 
 from src.ml.reinforcement_learning.kernels import _calculate_reward_kernel, _fused_state_kernel
 from src.shared.observability import tune_gc
-from src.shared.shm_mesh import SHM_NAME, TICK_DTYPE, SharedMemoryRingBuffer, OrderBuffer, ExecutionBuffer
+from src.shared.shm_mesh import (
+    SHM_NAME,
+    ExecutionBuffer,
+    OrderBuffer,
+    SharedMemoryRingBuffer,
+)
 
 logger = structlog.get_logger()
 
@@ -30,7 +33,7 @@ class OnlineRLAgent:
         self.positions = np.zeros(10, dtype=np.float32)
         self.window_size = window_size
         
-        # 🚀 SILICON BUFFERS
+        #  SILICON BUFFERS
         self._window_buffer = np.zeros((window_size, 100), dtype=np.float32)
         self._window_idx = 0
         self._prev_portfolio_value = initial_balance

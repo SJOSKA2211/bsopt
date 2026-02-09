@@ -1,5 +1,4 @@
 import asyncio
-import time
 from datetime import UTC, datetime
 
 import structlog
@@ -17,16 +16,14 @@ try:
 except ImportError:
     pass
 
-from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 setup_logging()
 logger = structlog.get_logger(__name__)
 tune_gc(mode="high_frequency") # Optimized for high-frequency trading workers
 
-from src.data.xdp_ingest import XDPIngester
-from src.shared.shm_mesh import SharedMemoryRingBuffer
-
 from src.api.websockets.manager import manager as ws_manager
+from src.data.xdp_ingest import XDPIngester
+
 
 class BroadcastWorker:
     """The Voice: Dedicated to zero-latency WebSocket broadcasting."""
@@ -49,6 +46,7 @@ class BroadcastWorker:
 
 from src.shared.eternal_ledger import EternalLedger
 
+
 class PersistenceWorker:
     """The Scribe: Dedicated to high-throughput DB persistence and Binary Ledger."""
     def __init__(self):
@@ -63,7 +61,7 @@ class PersistenceWorker:
         while self.running:
             batch = await self.queue.get()
             try:
-                # 🚀 HOT PATH: Persistent Binary Logging (Zero-latency)
+                #  HOT PATH: Persistent Binary Logging (Zero-latency)
                 self.ledger.write_batch(batch)
                 
                 # 2. Historical DB Persistence (Asynchronous Scribe)

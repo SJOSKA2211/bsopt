@@ -1,6 +1,6 @@
 ---
 id: parent
-title: [Epic] BSOpt Phase 3: The Singularity
+title: [Epic] BSOpt Phase 3: The Optimized
 status: Done
 priority: High
 project: bsopt
@@ -19,7 +19,7 @@ assignee: Pickle Rick
 Sub-microsecond latency was blocked by standard sockets, heavy-weight locks, and slow message brokers.
 
 ## Solution
-Implemented the Singularity: AF_XDP (dedicated thread/raw bytes), lock-free SHM Mesh (SWMR pattern), and JIT-fused state updates (AVX-512).
+Implemented the Optimized: AF_XDP (dedicated thread/raw bytes), lock-free SHM Mesh (SWMR pattern), and JIT-fused state updates (AVX-512).
 
 # Discussion
 - 2026-02-08 Pickle Rick: Phase 3 complete.
