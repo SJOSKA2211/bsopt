@@ -1,7 +1,7 @@
 ---
 id: mesh01
 title: Purge Shared Mesh & Log Slop
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06

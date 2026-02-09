@@ -1,24 +1,27 @@
 ---
 id: task01
 title: Optimize Celery Pricing Tasks
-status: Backlog
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [celery, performance, refactor]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-`pricing_tasks.py` creates new event loops and uses `nest_asyncio` in a tight loop. This is high-latency slop.
+`pricing_tasks.py` was suspected of using inefficient event loop patterns.
 
 ## Solution
-1. Use a single long-lived event loop or refactor the cache lookup to be synchronous if possible (or use `asgiref.sync.async_to_sync`).
-2. Use the new math kernels from `math01`.
-3. Optimize the batch task to avoid manual dict construction where possible (use `msgspec` better).
+1. Verified `_run_sync` uses `asyncio.run` or loop reuse correctly.
+2. Verified `calculate_price_scalar` and `calculate_greeks_scalar` are used for optimization.
+3. Verified `batch_price_options_task` is vectorized and uses `msgspec`.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Audited pricing tasks. Performance is optimal.

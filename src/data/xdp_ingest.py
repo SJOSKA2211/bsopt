@@ -16,7 +16,7 @@ SHM_NAME = "market_mesh_ring_buffer"
 
 class XDPIngester:
     """
-    God-Mode High-Performance Ingester.
+    High-Performance Ingester.
     Bridges Python to the high-performance Rust Pulse extension.
     """
     def __init__(self, interface: str = "eth0", port: int = 5555):

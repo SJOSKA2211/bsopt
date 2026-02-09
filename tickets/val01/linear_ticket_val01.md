@@ -1,7 +1,7 @@
 ---
 id: val01
 title: Clean Up Validation Utilities
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06

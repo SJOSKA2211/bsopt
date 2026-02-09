@@ -1,24 +1,27 @@
 ---
 id: neural01
 title: Implement Skeleton for Neural Pricing Engine
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, neural, innovation]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-XGBoost is limited for complex volatility surfaces. We need a Neural Network approach (e.g., Deep Hedging or Neural SDEs skeleton).
+Need a Neural Network approach for complex pricing.
 
 ## Solution
-1. Create `src/ml/models/neural_engine.py`.
-2. Implement a PyTorch-based skeleton for option pricing.
-3. Integrate with the `PricingEngineFactory`.
+1. Created `src/ml/models/neural_engine.py`.
+2. Implemented a PyTorch-based skeleton for option pricing with automatic differentiation for Greeks.
+3. Integrated with the `PricingEngineFactory`.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Verified implementation. Model uses `OptionPricingNN` architecture and supports autograd-based Greeks.

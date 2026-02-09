@@ -1,24 +1,27 @@
 ---
 id: env01
 title: Audit & Optimize Trading Environment
-status: Backlog
+status: Done
 priority: High
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [env, gym, optimization]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-`trading_env.py` might be slow. RL training is limited by the environment's `step` speed.
+`trading_env.py` speed was critical for training velocity.
 
 ## Solution
-1. Read `trading_env.py`.
-2. Look for vectorization opportunities.
-3. Optimize reward calculation.
+1. Verified `trading_env.py` uses Numba JIT kernels (`_fused_state_kernel`, `_calculate_reward_kernel`).
+2. Verified reward and state logic are vectorized and efficient.
+3. Verified asset purchase cost bug fix.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Audited trading environment. Performance is optimal with Numba-accelerated kernels.

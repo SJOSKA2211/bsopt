@@ -1,7 +1,7 @@
 ---
 id: bc01
 title: Purge Blockchain Module Slop
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06
