@@ -93,7 +93,7 @@ services:
       - rabbitmq
 
   postgres:
-    image: postgres:15-alpine
+    image: timescale/timescaledb:latest-pg15
     environment:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt

@@ -1,87 +1,71 @@
-# bsopt System Overhaul & Modernization PRD
+# Global Debugging and Coverage Improvement PRD (Pickle Rick Edition)
 
-## HR Eng
-
-| bsopt Overhaul PRD |  | Summary: A comprehensive structural and functional modernization of the bsopt platform, focusing on high-performance ML, secure OAuth architecture, and Neon integration. |
-| :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Local File] **Context**: System Overhaul |
-
-## Introduction
-
-The `bsopt` platform requires a transition from "Jerry-grade" prototypes to a "God-mode" production architecture. This overhaul targets the authentication layer, the reinforcement learning pipeline, and the database infrastructure.
+## Overview
+This Product Requirements Document (PRD) outlines the comprehensive initiative to stabilize, debug, and achieve >=97% code coverage for the `bsopt` codebase. This effort is critical for enhancing code quality, reliability, and developer efficiency.
 
 ## Problem Statement
+The current `bsopt` codebase exhibits:
+1.  **Low Code Coverage:** Significantly below industry best practices, leading to undetected bugs and regressions.
+2.  **Test Collection Errors:** Multiple critical errors preventing full test suite execution, hindering effective quality assurance.
+3.  **Stability Issues:** Identified bugs and inconsistencies across core components (Auth, RL, DB, ML pipeline).
+4.  **Developer Friction:** The unreliable testing environment and existing bugs impede rapid development and feature delivery.
 
-**Current Process:** 
-- Authentication is handled by a hardcoded Keycloak integration that lacks flexibility.
-- The RL agent uses a flat observation vector, missing critical temporal patterns.
-- Database connections are not optimized for serverless (Neon) scaling.
-- The codebase contains significant "AI Slop" (boilerplate and inefficient loops).
+## Goals
+- Achieve >=97% code coverage across all core `bsopt` modules.
+- Eliminate all test collection errors, allowing the full test suite to run successfully.
+- Resolve critical bugs and optimize key components as identified in the `task_state`.
+- Establish a robust and reliable testing framework.
 
-**Primary Users:** Quant researchers, automated trading systems.
-**Pain Points:** Rigid security, mediocre RL performance, technical debt.
-**Importance:** To maintain a competitive edge, the system must process data faster and learn more complex market dynamics.
+## Scope
+### In-Scope
+- Resolution of all `ImportError` and `SyntaxError` issues in test collection.
+- Implementation of necessary code aliases (e.g., GNN classes).
+- Fixing the `IndentationError` in `src/services/pricing_service.py` (already addressed in working tree).
+- Systematically increasing unit and integration test coverage.
+- Debugging and fixing known application-level bugs (e.g., `TradingEnvironment` asset purchase cost bug, `auth-service` 404 login issue, Kafka/Redis test environment dependencies).
+- Refactoring and optimizing the ML pipeline for performance and reliability.
+- **Backlog Liquidation & Slop Removal**: This specific task, while important for codebase hygiene, will be handled as a sub-task under the broader coverage improvement goal.
 
-## Objective & Scope
+### Out-of-Scope
+- Major architectural redesigns not directly related to debugging or coverage.
+- Implementation of new features not outlined in existing tasks.
 
-**Objective:** Transform `bsopt` into a secure, high-performance, and scalable platform with advanced temporal ML capabilities.
-**Ideal Outcome:** A system with a modular OAuth triad, Transformer-powered RL, and a serverless-optimized backend on Neon.
+## Key Deliverables
+1.  **Fully Executable Test Suite:** All `pytest` collection and execution errors resolved.
+2.  **Code Coverage Report:** Demonstrating >=97% coverage.
+3.  **Stabilized Core Components:** Verified through passing tests and functional validation.
+4.  **Cleaned Codebase:** Removal of "AI Slop" and irrelevant content (subsumed under this PRD's larger goal).
 
-### In-scope or Goals
-- Implement a modular OAuth2 triad (Auth Server, Client App, Resource Server).
-- Integrate Neon (Serverless Postgres) as the primary user and metadata store.
-- Implement a Transformer-based feature extractor for the RL agent.
-- Refactor the observation space in `TradingEnvironment` to support temporal sequences.
-- Conduct a global codebase audit to vectorize inefficient loops and prune slop.
-- Standardize technical rationale in comments.
+## Success Metrics
+- **Code Coverage:** >=97% (measured via `pytest --cov`).
+- **Test Pass Rate:** 100% for all existing and newly added tests.
+- **Zero Test Collection Errors:** `pytest --collect-only` runs without errors.
+- **Critical Bugs Resolved:** All identified critical bugs are fixed and verified.
 
-### Not-in-scope or Non-Goals
-- Full frontend rewrite (outside the Auth Client scope).
-- Live capital deployment logic (remains paper trading).
+## Timeline (Iterative Approach)
+This will be an iterative process, guided by the Rick Loop.
+- **Phase 1 (Current):** Resolve all test collection blockers (`c000_fix`).
+- **Phase 2:** Address remaining critical bugs.
+- **Phase 3:** Systematically increase test coverage.
+- **Phase 4:** Optimize ML pipeline and address remaining known issues.
 
-## Product Requirements
+## Dependencies
+- Active Python 3.13.0 environment.
+- `pytest` and `pytest-cov` for testing and coverage measurement.
+- Access to project codebase and Docker setup for environment replication.
 
-### Critical User Journeys (CUJs)
-1. **Secure API Access**: Client requests token from Internal Auth Server (backed by Neon) -> Resource Server validates token via public keys.
-2. **Temporal Model Training**: RL agent receives a sequence of 16 market states -> Transformer attention identifies trend shifts -> Agent executes optimal trade.
-3. **Cold-Start Data Retrieval**: API queries Neon via an optimized serverless pool, handling connection spikes gracefully.
+## Stakeholders
+- Pickle Rick (Agent)
+- Morty (Worker Agents)
+- User (Human Developer)
 
-### Functional Requirements
+## Risks
+- **Rogue Worker Actions:** Mortys may deviate from instructions, requiring frequent reconciliation.
+- **Interconnected Bugs:** Fixing one bug may expose others.
+- **Environmental Drift:** Inconsistencies between local and CI environments.
 
-| Priority | Requirement | User Story |
-| :---- | :---- | :---- |
-| P0 | **Modular OAuth System** | As a dev, I want a split-service auth setup for better security boundaries. |
-| P0 | **Transformer RL Feature Extractor** | As a researcher, I want the agent to attend to historical market context. |
-| P0 | **Neon Integration** | As an engineer, I want a database that scales to zero without losing performance. |
-| P1 | **Vectorization Purge** | As a maintainer, I want inefficient loops removed from core services. |
-
-## Assumptions
-
-- Neon connection URIs will be provided via environment variables.
-- The project's `.venv` is available for installing `authlib` and `transformers`.
-
-## Risks & Mitigations
-
-- **Risk**: Transformer training stability. -> **Mitigation**: Use smaller attention heads and pre-normalized states.
-- **Risk**: Connection overhead in serverless. -> **Mitigation**: Implement a dedicated pool with `sslmode=require` and short timeouts.
-
-## Tradeoff
-
-- **Simplicity vs. Performance**: Choosing a Transformer feature extractor over a simple MLP increases complexity but is necessary for temporal awareness.
-
-## Business Benefits/Impact/Metrics
-
-**Success Metrics:**
-
-| Metric | Current State | Future State | Savings/Impacts |
-| :---- | :---- | :---- | :---- |
-| Auth Latency | Baseline | -15% | Faster user onboarding |
-| Agent Return | Baseline | +10% | Better alpha generation |
-| Connection Leaks | Scattered | Zero | Higher system reliability |
-
-## Stakeholders / Owners
-
-| Name | Role |
-| :---- | :---- |
-| Pickle Rick | Lead Architect |
-| User | Product Owner |
+## Mitigation
+- Clear, atomic task definitions for workers.
+- Incremental commits and frequent verification.
+- Continuous monitoring of test results.
+- Automated environment checks.

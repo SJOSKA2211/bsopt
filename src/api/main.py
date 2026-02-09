@@ -110,7 +110,7 @@ app.include_router(graphql_app, prefix="/graphql")
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "singularity": "achieved"}
+    return {"status": "healthy"}
 
 @app.get("/")
 async def root():

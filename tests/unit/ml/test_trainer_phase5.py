@@ -19,7 +19,6 @@ class TestModelTrainerPhase5(unittest.TestCase):
         
         # Mock tracker to avoid MLflow calls
         with patch("src.ml.trainer.ExperimentTracker"), patch("src.ml.trainer.ModelQuantizer"):
-             patch("src.ml.trainer.ModelQuantizer"):
             self.trainer = ModelTrainer(study_name="test_study", n_splits=3)
 
     @patch("src.ml.trainer.get_strategy")
