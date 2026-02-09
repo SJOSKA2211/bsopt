@@ -1,4 +1,5 @@
 import sys
+print("DEBUG: mock_all.py start")
 from unittest.mock import AsyncMock, MagicMock
 
 
@@ -58,8 +59,11 @@ for mod in MOCK_IF_MISSING:
              raise ImportError
         if mod in sys.modules:
             continue
+        print(f"DEBUG: Attempting to import {mod}")
         __import__(mod)
-    except (ImportError, Exception):
+        print(f"DEBUG: Successfully imported {mod}")
+    except (ImportError, Exception) as e:
+        print(f"DEBUG: Failed to import {mod}: {e}")
         m = mock_module(mod)
         # Specific attribute fixes for mocks
         if mod == "xgboost":

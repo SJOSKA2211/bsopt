@@ -64,7 +64,33 @@ def calculate_max_drawdown(equity_curve: np.ndarray) -> float:
     running_max = np.maximum.accumulate(equity_curve)
     # Avoid division by zero
     running_max = np.maximum(running_max, 1e-9)
+    drawdown = (running_max - equity_curve) / running_max
+    return float(np.max(drawdown))
+
+
+def calculate_sortino_ratio(returns: np.ndarray, risk_free_rate: float = 0.0) -> float:
+    """
+    Calculate the annualized Sortino Ratio.
+    Uses only downside deviation (negative returns) for risk measurement.
+    """
+    if len(returns) < 2:
+        return 0.0
     
+    excess_returns = returns - risk_free_rate / 252
+    mean_excess = np.mean(excess_returns)
+    
+    # Downside deviation: std of negative returns only
+    negative_returns = excess_returns[excess_returns < 0]
+    if len(negative_returns) < 1:
+        return float("inf") if mean_excess > 0 else 0.0
+    
+    downside_std = np.std(negative_returns)
+    if downside_std < 1e-9:
+        return float("inf") if mean_excess > 0 else 0.0
+    
+    return float(mean_excess / downside_std * np.sqrt(252))
+
+
 class ModelScorecard:
     """
     Unified performance scorecard combining regression and financial metrics.
@@ -76,9 +102,11 @@ class ModelScorecard:
         
         if returns is not None:
             self.sharpe_ratio = calculate_sharpe_ratio(returns)
+            self.sortino_ratio = calculate_sortino_ratio(returns)
             self.max_drawdown = calculate_max_drawdown(np.cumsum(returns) + 1.0) # Cumulative equity
         else:
             self.sharpe_ratio = 0.0
+            self.sortino_ratio = 0.0
             self.max_drawdown = 0.0
 
     def to_dict(self) -> dict:
@@ -86,6 +114,7 @@ class ModelScorecard:
             **self.regression_metrics,
             "pricing_bias": self.pricing_bias,
             "sharpe_ratio": self.sharpe_ratio,
+            "sortino_ratio": self.sortino_ratio,
             "max_drawdown": self.max_drawdown,
             "score": self.calculate_composite_score()
         }

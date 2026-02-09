@@ -1,22 +1,25 @@
 ---
 id: exot01
 title: Clean Up Exotic Pricing Models
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [pricing, exotic, cleanup]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-`exotic.py` has branding slop for decades-old math.
+`exotic.py` had branding slop for decades-old math.
 
 ## Solution
-Remove "OPTIMIZED" and other fluff.
+Removed "OPTIMIZED" and other fluff.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Verified `src/pricing/exotic.py` is clean.

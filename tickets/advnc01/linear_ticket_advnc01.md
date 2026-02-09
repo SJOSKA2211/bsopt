@@ -1,16 +1,16 @@
 ---
 id: advnc01
 title: Advanced Model & Algorithm Updates
-status: Backlog
+status: Done
 priority: Medium
 project: bsopt
 created: 2026-02-06
-updated: 2026-02-06
+updated: 2026-02-09
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, research, innovation]
-assignee: Morty
+assignee: Pickle Rick
 ---
 
 # Description
@@ -19,6 +19,9 @@ assignee: Morty
 Advance the models and algorithms across the entire codebase.
 
 ## Solution
-1. Research state-of-the-art approaches relevant to the project's domain.
-2. Implement updates to models.
-3. Verify improvements.
+1. Upgraded Monte Carlo engine with Milstein scheme and Sobol Owen scrambling.
+2. Optimized Greeks with pathwise sensitivities (PWM/LRM).
+3. Verified high-performance WASM core with SIMD intrinsics.
+
+# Discussion
+- 2026-02-09 Pickle Rick: Fulfilled via major engine upgrades in mc01 and wasm01.
