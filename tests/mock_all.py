@@ -1,5 +1,4 @@
 import sys
-print("DEBUG: mock_all.py start")
 from unittest.mock import AsyncMock, MagicMock
 
 
@@ -45,7 +44,8 @@ MOCK_IF_MISSING = [
     "rich", "rich.box", "rich.console", "rich.panel", "rich.table", "rich.live", "rich.layout",
     "torch_geometric", "torch_geometric.nn", "torch_geometric.data",
     "pytorch_forecasting", "pytorch_forecasting.data", "pytorch_forecasting.metrics", "onnxruntime", "flwr",
-    "ray.tune", "ray.tune.schedulers", "ray.tune.search", "ray.tune.search.optuna", "ray.air"
+    "ray.tune", "ray.tune.schedulers", "ray.tune.search", "ray.tune.search.optuna", "ray.air",
+    "strawberry", "strawberry.types", "strawberry.fastapi", "strawberry.permission", "strawberry.types.info", "graphql",
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in God-Mode venv
@@ -59,11 +59,8 @@ for mod in MOCK_IF_MISSING:
              raise ImportError
         if mod in sys.modules:
             continue
-        print(f"DEBUG: Attempting to import {mod}")
         __import__(mod)
-        print(f"DEBUG: Successfully imported {mod}")
-    except (ImportError, Exception) as e:
-        print(f"DEBUG: Failed to import {mod}: {e}")
+    except (ImportError, Exception):
         m = mock_module(mod)
         # Specific attribute fixes for mocks
         if mod == "xgboost":
