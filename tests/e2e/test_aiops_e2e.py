@@ -69,7 +69,8 @@ def mock_e2e_dependencies():
             "PostGrafanaAnnotation": MockPostGrafanaAnnotation,
             "PushMetrics": MockPushMetrics,
         }
-def test_e2e_api_spike_remediation(mock_e2e_dependencies):
+@pytest.mark.asyncio
+async def test_e2e_api_spike_remediation(mock_e2e_dependencies):
     """
     Simulate an API spike (high 5xx error rate) and verify automated recovery
     (Docker service restart, Grafana annotation, Loki logs).
@@ -92,7 +93,7 @@ def test_e2e_api_spike_remediation(mock_e2e_dependencies):
     orchestrator = AIOpsOrchestrator(config)
     
     with patch('time.sleep'): # Mock sleep to speed up test
-        orchestrator.run(iterations=1) # Run one iteration
+        await orchestrator.run(iterations=1) # Run one iteration
     
     # Verify detection
     mock_e2e_dependencies["PrometheusClient"].return_value.get_5xx_error_rate.assert_called_once()
@@ -119,7 +120,8 @@ def test_e2e_api_spike_remediation(mock_e2e_dependencies):
     # Verify metrics push
     mock_e2e_dependencies["PushMetrics"].assert_called_once_with(job_name="aiops_orchestrator")
 
-def test_e2e_ml_drift_remediation(mock_e2e_dependencies):
+@pytest.mark.asyncio
+async def test_e2e_ml_drift_remediation(mock_e2e_dependencies):
     """
     Simulate ML data drift and verify automated recovery
     (ML pipeline retraining, Grafana annotation, Loki logs).
@@ -139,7 +141,7 @@ def test_e2e_ml_drift_remediation(mock_e2e_dependencies):
     orchestrator = AIOpsOrchestrator(config)
     
     with patch('time.sleep'):
-        orchestrator.run(iterations=1)
+        await orchestrator.run(iterations=1)
     
     # Verify detection
     mock_e2e_dependencies["DataDriftDetector"].return_value.detect_drift.assert_called_once()

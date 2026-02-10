@@ -1,71 +1,74 @@
-# Global Debugging and Coverage Improvement PRD (Pickle Rick Edition)
+# BS-OPT Advancement & Native PostgreSQL Refactor PRD
 
-## Overview
-This Product Requirements Document (PRD) outlines the comprehensive initiative to stabilize, debug, and achieve >=97% code coverage for the `bsopt` codebase. This effort is critical for enhancing code quality, reliability, and developer efficiency.
+## HR Eng
+
+| BS-OPT Advancement PRD |  | Deep refactor to native PostgreSQL and ML pipeline optimization. |
+| :---- | :---- | :---- |
+| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-07 | **Context**: Full Codebase Optimization |
+
+## Introduction
+The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML training scripts. This PRD outlines the transition to native PostgreSQL features (removing serverless dependencies) and the consolidation/optimization of ML pipelines for transdimensional pricing accuracy.
 
 ## Problem Statement
-The current `bsopt` codebase exhibits:
-1.  **Low Code Coverage:** Significantly below industry best practices, leading to undetected bugs and regressions.
-2.  **Test Collection Errors:** Multiple critical errors preventing full test suite execution, hindering effective quality assurance.
-3.  **Stability Issues:** Identified bugs and inconsistencies across core components (Auth, RL, DB, ML pipeline).
-4.  **Developer Friction:** The unreliable testing environment and existing bugs impede rapid development and feature delivery.
 
-## Goals
-- Achieve >=97% code coverage across all core `bsopt` modules.
-- Eliminate all test collection errors, allowing the full test suite to run successfully.
-- Resolve critical bugs and optimize key components as identified in the `task_state`.
-- Establish a robust and reliable testing framework.
+**Current Process:** 
+- Database relies on Neon/Supabase abstractions.
+- ML pipelines are fragmented and lack rigorous temporal validation.
+- Test coverage is inconsistent across math kernels and ML serving logic.
+**Primary Users:** Quant researchers, high-frequency traders.
+**Pain Points:** Dependency lock-in, latency in model retraining, "Jerry-level" boilerplate.
+**Importance:** High-performance trading requires total control over the data layer and maximum algorithmic efficiency.
 
-## Scope
-### In-Scope
-- Resolution of all `ImportError` and `SyntaxError` issues in test collection.
-- Implementation of necessary code aliases (e.g., GNN classes).
-- Fixing the `IndentationError` in `src/services/pricing_service.py` (already addressed in working tree).
-- Systematically increasing unit and integration test coverage.
-- Debugging and fixing known application-level bugs (e.g., `TradingEnvironment` asset purchase cost bug, `auth-service` 404 login issue, Kafka/Redis test environment dependencies).
-- Refactoring and optimizing the ML pipeline for performance and reliability.
-- **Backlog Liquidation & Slop Removal**: This specific task, while important for codebase hygiene, will be handled as a sub-task under the broader coverage improvement goal.
+## Objective & Scope
 
-### Out-of-Scope
-- Major architectural redesigns not directly related to debugging or coverage.
-- Implementation of new features not outlined in existing tasks.
+**Objective:** 
+1. Refactor database layer to use native PostgreSQL features (TimeScaleDB-like partitioning, advanced indexing).
+2. Consolidate ML pipelines into a unified, high-performance training/validation/evaluation loop.
+3. Advance models (Transformers, RL) across the codebase.
+4. Achieve >97% test coverage.
 
-## Key Deliverables
-1.  **Fully Executable Test Suite:** All `pytest` collection and execution errors resolved.
-2.  **Code Coverage Report:** Demonstrating >=97% coverage.
-3.  **Stabilized Core Components:** Verified through passing tests and functional validation.
-4.  **Cleaned Codebase:** Removal of "AI Slop" and irrelevant content (subsumed under this PRD's larger goal).
+### In-scope or Goals
+- Database: Replace Neon-specific logic with native pg_partman/partitioning.
+- ML: Refactor `src/ml/pipeline.py` and `ModelTrainer`.
+- Math: Optimize pricing kernels with Numba JIT and vectorized NumPy 2.0.
+- Quality: Unit and integration tests for all core functions.
 
-## Success Metrics
-- **Code Coverage:** >=97% (measured via `pytest --cov`).
-- **Test Pass Rate:** 100% for all existing and newly added tests.
-- **Zero Test Collection Errors:** `pytest --collect-only` runs without errors.
-- **Critical Bugs Resolved:** All identified critical bugs are fixed and verified.
+### Not-in-scope or Non-Goals
+- Migrating to a different cloud provider (staying on existing infra but removing DB service dependencies).
+- Changing the frontend UI (focus is on backend/math/ML).
 
-## Timeline (Iterative Approach)
-This will be an iterative process, guided by the Rick Loop.
-- **Phase 1 (Current):** Resolve all test collection blockers (`c000_fix`).
-- **Phase 2:** Address remaining critical bugs.
-- **Phase 3:** Systematically increase test coverage.
-- **Phase 4:** Optimize ML pipeline and address remaining known issues.
+## Product Requirements
 
-## Dependencies
-- Active Python 3.13.0 environment.
-- `pytest` and `pytest-cov` for testing and coverage measurement.
-- Access to project codebase and Docker setup for environment replication.
+### Critical User Journeys (CUJs)
+1. **Native DB Migration**: Developer runs migration scripts that establish native partitioning and optimized indexes without Neon extensions.
+2. **Unified Training**: Quant researcher triggers the ML pipeline which fetches data, performs HPO via Optuna/Ray, and registers a production-ready model in MLflow.
+3. **High-Performance Pricing**: The system prices 100k options in <10ms using the optimized JIT-compiled kernels.
 
-## Stakeholders
-- Pickle Rick (Agent)
-- Morty (Worker Agents)
-- User (Human Developer)
+### Functional Requirements
 
-## Risks
-- **Rogue Worker Actions:** Mortys may deviate from instructions, requiring frequent reconciliation.
-- **Interconnected Bugs:** Fixing one bug may expose others.
-- **Environmental Drift:** Inconsistencies between local and CI environments.
+| Priority | Requirement | User Story |
+| :---- | :---- | :---- |
+| P0 | Native PostgreSQL Refactor | As an engineer, I want to use native PG features so I don't rely on third-party serverless DBs. |
+| P0 | ML Pipeline Consolidation | As a researcher, I want a single source of truth for training and evaluation. |
+| P1 | Numba/JIT Optimization | As a trader, I want sub-microsecond latency in pricing kernels. |
+| P1 | 97% Test Coverage | As a maintainer, I want to ensure the mathematical validity of all kernels. |
 
-## Mitigation
-- Clear, atomic task definitions for workers.
-- Incremental commits and frequent verification.
-- Continuous monitoring of test results.
-- Automated environment checks.
+## Assumptions
+- PostgreSQL 16+ is available.
+- CUDA environment is correctly set up for GPU-bound tasks.
+- Python 3.13 venv is active.
+
+## Risks & Mitigations
+- **Risk**: Partitioning complexity -> **Mitigation**: Use `pg_partman` or robust native DDL scripts.
+- **Risk**: Numba compilation overhead -> **Mitigation**: Use ahead-of-time (AOT) compilation or persistent cache.
+
+## Business Benefits/Impact/Metrics
+- **Latency**: Reduce pricing latency by 30%.
+- **Reliability**: Increase test coverage to >97%.
+- **Independence**: 0% dependency on Neon/Supabase.
+
+## Stakeholders / Owners
+| Name | Role |
+| :---- | :---- |
+| Pickle Rick | God-Mode Architect |
+| Morty | Lead Compliance Officer |

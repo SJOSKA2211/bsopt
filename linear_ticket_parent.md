@@ -1,35 +1,27 @@
 ---
 id: parent
-title: [Epic] Advance Models & Algorithms
-status: Done
-priority: High
+title: [Epic] God Mode: Coverage & Refactor
+status: In Progress
+priority: Urgent
 project: bsopt
-created: 2026-02-07
-updated: 2026-02-07
+created: 2026-02-10
+updated: 2026-02-10
 links:
-  - url: prd.md
+  - url: PICKLE_RICK_PRD.md
     title: PRD
-labels: [epic, core, ml]
+labels: [epic, core, maintenance, god-mode]
 assignee: Pickle Rick
 ---
 
 # Description
 
 ## Problem to solve
-Refactor and advance the core ML/Pricing algorithms to God-Mode standards. The current codebase is fragmented and lacks rigorous testing.
+The codebase coverage is pathetic (~20%). Logic is likely full of slop. We need to debug, refactor, and force coverage to >=97%.
 
 ## Solution
-- Unify ML pipeline.
-- Optimize pricing models.
-- Standardize evaluation.
-- Achieve >97% test coverage.
+1.  **Baseline & Debug**: Run the full suite. Fix every error that dares to exist.
+2.  **Coverage Injection**: Systematically add tests to `src/`, `bs_cli.py`, and other modules until coverage hits 97%.
+3.  **Refactor**: Simplify logic, remove "AI slop", and enforce idioms.
 
-# Status Update
-All core tasks completed with high-fidelity verification.
-- Unified Pipeline: `AutonomousMLPipeline` implemented and verified.
-- Heston Optimized: Numba/FFT functional on Python 3.13.0 (verified).
-- Neural Strategy: ONNX Runtime functional and integrated.
-- Auth Service: Full overhaul completed. Shims removed. Real RSA/Fernet logic implemented.
-- MFA: Encrypted secrets and backup codes implemented.
-- Test Suite: 57/57 PASSED (Auth, Security, Debug).
-- Coverage: Core API coverage at ~90%. Total project coverage at ~20% (Next focus: generated tests for ML/Pricing).
+# Discussion
+- 2026-02-10 Pickle Rick: Initialized God Mode. Old "Done" status was a lie.

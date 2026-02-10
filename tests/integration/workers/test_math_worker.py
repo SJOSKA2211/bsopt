@@ -21,7 +21,7 @@ def event_loop():
 class TestMathWorkerIntegration:
     @patch('src.workers.math_worker.HestonCalibrator')
     @patch('src.workers.math_worker.MarketDataRouter')
-    @patch('src.workers.math_worker.redis_client', new_callable=AsyncMock)
+    @patch('src.workers.math_worker.async_redis_client', new_callable=AsyncMock)
     def test_recalibrate_symbol_flow(self, mock_redis, mock_router, mock_calibrator, event_loop):
         """Verify the recalibrate_symbol task stores data in Redis."""
         # 1. Setup mock market data

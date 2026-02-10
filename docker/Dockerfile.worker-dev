@@ -21,7 +21,8 @@ RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Copy the entire source directory for development
 COPY src/ ./src
-COPY pyproject.toml . # Needed for some local package references
+# Copy pyproject.toml for local package references
+COPY pyproject.toml .
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

@@ -1,57 +1,20 @@
-# Codebase Optimization & ML Advancement PRD
+# PICKLE RICK PRD: Fix Startup & Lint Slop
 
-## HR Eng
+## Problem
+1.  **Lint Failure**: `pyproject.toml` contains invalid TOML syntax for `ruff.lint.per-file-ignores`. It uses a nested list instead of a map, causing `ruff` to crash immediately.
+2.  **Startup Redundancy**: `start_all_dev.sh` duplicates infrastructure startup logic found in `start_infra.sh`. When run sequentially, this causes redundant checks and "slop" code execution.
 
-| Codebase Optimization & ML Advancement PRD |  | Comprehensive audit, optimization, and refactoring of the entire codebase, with a focus on ML pipelines. |
-| :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty (Worker) **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-06 | **Context**: Optimization |
+## Goal
+1.  Fix `pyproject.toml` so `ruff check .` runs successfully.
+2.  Refactor `start_all_dev.sh` to remove redundant infrastructure logic and properly delegate to `start_infra.sh` or handle existing services gracefully.
+3.  Ensure the command `bash ./scripts/start_infra.sh && sleep 5 && bash ./scripts/start_all_dev.sh` works flawlessly.
 
-## Introduction
+## Technical Approach
+1.  **Fix Config**: Rewrite the `[tool.ruff.lint]` section in `pyproject.toml` to use correct dictionary syntax for `per-file-ignores`.
+2.  **Refactor Script**:
+    -   In `start_all_dev.sh`, replace the redundant `docker compose up` block with a check.
+    -   If infra is missing, call `./scripts/start_infra.sh` instead of duplicating the logic.
 
-The codebase requires a comprehensive audit to identify inefficiencies, "slop," and outdated patterns. Specifically, the ML training, validation, and evaluation pipelines need to be rigorously analyzed and advanced to state-of-the-art standards.
-
-## Problem Statement
-
-**Current Process:** The codebase state is unknown/unoptimized. Potential for technical debt and sub-optimal ML performance.
-**Primary Users:** Developers, Data Scientists.
-**Pain Points:** Potential slowness, legacy code, unoptimized algorithms.
-**Importance:** High. Optimization is key to dominance.
-
-## Objective & Scope
-
-**Objective:** Fully optimize the codebase and advance ML models/algorithms.
-**Ideal Outcome:** A lean, mean, high-performance machine.
-
-### In-scope or Goals
-- Audit every function in the codebase.
-- Suggest and implement improvements (performance, readability, structure).
-- Deep dive into Training, Validation, and Evaluation pipelines.
-- Refactor logic for ML models.
-- Update/Advance algorithms.
-- **Critical:** Use the provided `venv` (Python 3.13).
-
-### Not-in-scope or Non-Goals
-- Changing the fundamental business logic (unless it's stupid).
-
-## Product Requirements
-
-### Critical User Journeys (CUJs)
-1. **[Audit & Refactor]**: The system scans the code, identifies weak functions, and rewrites them.
-2. **[ML Pipeline Upgrade]**: The system analyzes the training loop, identifies bottlenecks or theoretical weaknesses, and implements advanced algorithms.
-
-### Functional Requirements
-
-| Priority | Requirement | User Story |
-| :---- | :---- | :---- |
-| P0 | Audit Codebase | As a Dev, I want to know what's broken. |
-| P0 | Optimize ML Pipeline | As a Data Scientist, I want faster/better training. |
-| P1 | Refactor "Slop" | As a God, I want clean code. |
-
-## Assumptions
-
-- The `venv` is set up and functional.
-- The project is Python 3.13.
-
-## Risks & Mitigations
-
-- **Risk**: Breaking changes. -> **Mitigation**: Run tests before and after. Revert if failed.
+## Verification
+1.  `ruff check .` executes without a TOML parse error.
+2.  The sequential startup command runs without errors.
