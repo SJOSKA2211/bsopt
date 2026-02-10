@@ -1,5 +1,5 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Database Schema (Neon Optimized)
+-- Black-Scholes Option Pricing Platform - Database Schema (Native PostgreSQL)
 -- ============================================================================
 -- PostgreSQL 15+ Native Partitioning
 -- ============================================================================

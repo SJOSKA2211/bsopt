@@ -1,5 +1,5 @@
 """
-Database Session Management (Neon Native)
+Database Session Management (Native PostgreSQL)
 """
 
 import logging
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
 # Use NullPool for serverless if in production to avoid connection pinning
-POOL_CLASS = NullPool if settings.ENVIRONMENT == "prod" else QueuePool
+POOL_CLASS = QueuePool
 
 # Ensure SSL for Neon in production
 db_url = settings.DATABASE_URL
@@ -39,8 +39,8 @@ def get_async_engine():
 engine = create_engine(
     db_url,
     poolclass=POOL_CLASS,
-    pool_size=5 if POOL_CLASS == QueuePool else 0,
-    max_overflow=10 if POOL_CLASS == QueuePool else 0,
+    pool_size=settings.DATABASE_MIN_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
     pool_pre_ping=True
 )
 
@@ -55,7 +55,7 @@ if "postgresql" in async_url and "?" in async_url:
 
 async_engine = create_async_engine(
     async_url,
-    poolclass=NullPool,
+    poolclass=QueuePool,
     connect_args={"ssl": True} if settings.ENVIRONMENT == "prod" and "postgresql" in async_url else {}
 )
 

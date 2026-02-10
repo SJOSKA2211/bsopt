@@ -12,7 +12,7 @@ The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML traini
 ## Problem Statement
 
 **Current Process:** 
-- Database relies on Neon/Supabase abstractions.
+- Database uses native PostgreSQL features.
 - ML pipelines are fragmented and lack rigorous temporal validation.
 - Test coverage is inconsistent across math kernels and ML serving logic.
 **Primary Users:** Quant researchers, high-frequency traders.
