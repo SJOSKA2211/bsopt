@@ -10,7 +10,7 @@ authApp.all('*', async (c) => {
     return auth_1.auth.handler(c.req.raw);
 }); // NEW BLOCK END
 app.route('/api/auth', authApp); // NEW LINE
-app.get('/', (c) => c.text('Better Auth Service Running 🥒'));
+app.get('/', (c) => c.text('Better Auth Service Running '));
 app.get('/openapi.json', async (c) => {
     const openAPISchema = await auth_1.auth.api.generateOpenAPISchema();
     return c.json(openAPISchema);

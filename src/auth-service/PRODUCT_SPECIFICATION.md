@@ -22,7 +22,7 @@
 
 ### Health Check API
 
-*   **Given** the service is running, **when** a GET request is made to the `/` endpoint, **then** the response should be a `200 OK` with the text "Better Auth Service Running 🥒".
+*   **Given** the service is running, **when** a GET request is made to the `/` endpoint, **then** the response should be a `200 OK` with the text "Better Auth Service Running ".
 
 ## 4. Technical Requirements
 

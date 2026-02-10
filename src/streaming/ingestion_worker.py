@@ -98,7 +98,7 @@ class PersistenceWorker:
 
 class IngestionWorker:
     """
-    God-Mode Multi-Path Dispatcher.
+    Advanced Multi-Path Dispatcher.
     Splits ingestion into:
     1. Pulse (XDP/SHM) - Internal to XDPIngester
     2. Voice (WebSockets) - Dispatched to BroadcastWorker

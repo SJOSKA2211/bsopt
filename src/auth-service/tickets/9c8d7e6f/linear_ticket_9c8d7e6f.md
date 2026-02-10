@@ -12,7 +12,7 @@ links:
   - url: ./e5f6a7b8/linear_ticket_e5f6a7b8.md
     title: Preceding Ticket: Verify Test Suite and Coverage
 labels: documentation, reporting, process
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -25,6 +25,6 @@ Document the key bug fixes implemented and the strategies used to achieve the 96
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Ticket to document the outcomes of the debugging and coverage improvement tasks.
+- 2026-02-03 Joseph Kamau Maina: Ticket to document the outcomes of the debugging and coverage improvement tasks.
 - Linked to parent ticket: epic_debugging_coverage_parent.md
 - Linked to verification ticket: e5f6a7b8

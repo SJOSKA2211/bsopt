@@ -12,7 +12,7 @@ links:
   - url: /home/kamau/bsopt/coverage.xml
     title: Initial Coverage Report
 labels: research, coverage, meta
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

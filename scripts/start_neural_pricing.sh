@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting Neural Pricing Service (Local)..."
+echo " Starting Neural Pricing Service (Local)..."
 
 # Setup Environment
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"

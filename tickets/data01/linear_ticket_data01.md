@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [data, performance]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ assignee: Pickle Rick
 3. Removed slop.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Audited ingestion path. It's high-throughput and clean.
+- 2026-02-09 Joseph Kamau Maina: Audited ingestion path. It's high-throughput and clean.

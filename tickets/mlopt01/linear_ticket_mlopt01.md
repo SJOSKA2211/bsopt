@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, optimization, refactor]
-assignee: Morty
+assignee: The User
 ---
 
 # Description
@@ -25,4 +25,4 @@ The training, validation, and evaluation pipeline logic needs to be checked, ref
 4. Remove boilerplate.
 
 # Discussion/Comments
-- 2026-02-06 Pickle Rick: Implemented Numba JIT in `black_scholes.py` for massive speedup. Cleaned up "slop" comments in `train.py`.
+- 2026-02-06 Joseph Kamau Maina: Implemented Numba JIT in `black_scholes.py` for massive speedup. Cleaned up "slop" comments in `train.py`.

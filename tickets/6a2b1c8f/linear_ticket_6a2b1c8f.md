@@ -14,7 +14,7 @@ links:
   - url: ./plan_20260204.md
     title: Implementation Plan
 labels: [core, testing, infrastructure]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

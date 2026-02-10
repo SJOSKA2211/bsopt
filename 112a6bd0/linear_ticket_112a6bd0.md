@@ -10,7 +10,7 @@ links:
   - url: ../prd_phase4.md
     title: Phase 4 PRD
 labels: [core, optimization, quantum, distributed]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 # Description
 ## Problem to solve

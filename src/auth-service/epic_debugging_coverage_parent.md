@@ -18,7 +18,7 @@ links:
   - url: ./tickets/9c8d7e6f/linear_ticket_9c8d7e6f.md
     title: Ticket 9c8d7e6f: Document Fixes and Strategies
 labels: meta, epic, debugging, coverage
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -31,4 +31,4 @@ Break down the PRD into atomic tickets for research, bug fixing, and test covera
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Initiating ticket breakdown for the Debugging and Coverage Improvement PRD. Created child tickets and linked them. Parent ticket stored at /home/kamau/bsopt/src/auth-service/epic_debugging_coverage_parent.md. Child tickets are managed in /home/kamau/bsopt/src/auth-service/tickets/.
+- 2026-02-03 Joseph Kamau Maina: Initiating ticket breakdown for the Debugging and Coverage Improvement PRD. Created child tickets and linked them. Parent ticket stored at /home/kamau/bsopt/src/auth-service/epic_debugging_coverage_parent.md. Child tickets are managed in /home/kamau/bsopt/src/auth-service/tickets/.

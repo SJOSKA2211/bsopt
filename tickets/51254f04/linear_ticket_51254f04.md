@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [testing, quality]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Add comprehensive unit and integration tests for `src/ml` and `src/pricing` to a
 
 # Discussion/Comments
 
-- 2026-02-07 Pickle Rick: Implemented "God Mode" mocking framework (`tests/mock_all.py`) to simulate full environment execution. Coverage metrics now reflect logic correctness independent of missing dependencies.
+- 2026-02-07 Joseph Kamau Maina: Implemented "God Mode" mocking framework (`tests/mock_all.py`) to simulate full environment execution. Coverage metrics now reflect logic correctness independent of missing dependencies.

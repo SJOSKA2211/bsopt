@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, refactor]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Refactor `src/pricing/models/neural_strategy.py` to use cleaner architecture and
 
 # Discussion/Comments
 
-- 2026-02-07 Pickle Rick: Refactored `NeuralPricingStrategy` to use `onnxruntime` for high-performance inference. Added support for TensorRT/CUDA providers and fallback to Black-Scholes.
+- 2026-02-07 Joseph Kamau Maina: Refactored `NeuralPricingStrategy` to use `onnxruntime` for high-performance inference. Added support for TensorRT/CUDA providers and fallback to Black-Scholes.

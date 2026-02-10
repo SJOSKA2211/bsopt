@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting Celery Workers (Local)..."
+echo " Starting Celery Workers (Local)..."
 
 # Suppress warnings
 export RAY_IGNORE_UNSTABLE_API_WARNING=1

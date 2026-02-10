@@ -42,7 +42,7 @@ def _heston_integrand_vectorized(v, k, alpha, T, r, v0, kappa, theta, sigma, rho
 
 def batch_heston_price_jit(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out):
     """
-    God-Mode vectorized batch pricing. ZERO Python loops.
+    Advanced vectorized batch pricing. ZERO Python loops.
     """
     k = np.log(strikes / spots)
     # alpha = 1.5 for call, -2.5 for put usually, but let's stick to 1.5 and use parity

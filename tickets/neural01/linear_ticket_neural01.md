@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, neural, innovation]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ Need a Neural Network approach for complex pricing.
 3. Integrated with the `PricingEngineFactory`.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified implementation. Model uses `OptionPricingNN` architecture and supports autograd-based Greeks.
+- 2026-02-09 Joseph Kamau Maina: Verified implementation. Model uses `OptionPricingNN` architecture and supports autograd-based Greeks.

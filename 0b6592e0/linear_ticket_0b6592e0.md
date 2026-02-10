@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [backend, api, errors, stability]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,8 +23,8 @@ This task involves systematically identifying, reproducing, and performing root 
 
 # Discussion/Comments
 
-- 2026-02-04 Pickle Rick: Initial child ticket created for addressing backend API failures.
-- 2026-02-04 Pickle Rick: Implementation complete for:
+- 2026-02-04 Joseph Kamau Maina: Initial child ticket created for addressing backend API failures.
+- 2026-02-04 Joseph Kamau Maina: Implementation complete for:
     - Phase 1: Enhanced Error Handling & Logging in `src/api/main.py` and `src/auth/service.py` to provide more specific error messages and details.
     - Phase 2: Robust Batch Processing in `src/services/pricing_service.py` to make `/batch` endpoint resilient to individual option failures.
     - Phase 3: `PricingService` Error Propagation in `src/services/pricing_service.py` to ensure informative error messages from pricing engine factory and calculations.

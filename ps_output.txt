@@ -1,0 +1,535 @@
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0  23124  8468 ?        Ss   19:45   0:01 /sbin/init splash
+root           2  0.0  0.0      0     0 ?        S    19:45   0:00 [kthreadd]
+root           3  0.0  0.0      0     0 ?        S    19:45   0:00 [pool_workqueue_release]
+root           4  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-rcu_gp]
+root           5  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-sync_wq]
+root           6  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kvfree_rcu_reclaim]
+root           7  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-slub_flushwq]
+root           8  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-netns]
+root          10  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/0:0H-events_highpri]
+root          11  0.0  0.0      0     0 ?        I    19:45   0:00 [kworker/0:1-i915-unordered]
+root          13  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-mm_percpu_wq]
+root          15  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/0]
+root          16  0.0  0.0      0     0 ?        I    19:45   0:01 [rcu_preempt]
+root          17  0.0  0.0      0     0 ?        S    19:45   0:00 [rcub/0]
+root          18  0.0  0.0      0     0 ?        S    19:45   0:00 [rcu_exp_par_gp_kthread_worker/0]
+root          19  0.0  0.0      0     0 ?        S    19:45   0:00 [rcu_exp_gp_kthread_worker]
+root          20  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/0]
+root          21  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/0]
+root          22  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/0]
+root          23  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/1]
+root          24  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/1]
+root          25  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/1]
+root          26  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/1]
+root          28  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/1:0H-events_highpri]
+root          29  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/2]
+root          30  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/2]
+root          31  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/2]
+root          32  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/2]
+root          34  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/2:0H-events_highpri]
+root          35  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/3]
+root          36  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/3]
+root          37  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/3]
+root          38  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/3]
+root          40  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/3:0H-events_highpri]
+root          41  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/4]
+root          42  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/4]
+root          43  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/4]
+root          44  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/4]
+root          46  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/4:0H-acpi_thermal_pm]
+root          47  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/5]
+root          48  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/5]
+root          49  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/5]
+root          50  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/5]
+root          51  0.0  0.0      0     0 ?        I    19:45   0:00 [kworker/5:0-i915-unordered]
+root          52  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/5:0H-events_highpri]
+root          53  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/6]
+root          54  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/6]
+root          55  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/6]
+root          56  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/6]
+root          58  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/6:0H-events_highpri]
+root          59  0.0  0.0      0     0 ?        S    19:45   0:00 [cpuhp/7]
+root          60  0.0  0.0      0     0 ?        S    19:45   0:00 [idle_inject/7]
+root          61  0.0  0.0      0     0 ?        S    19:45   0:00 [migration/7]
+root          62  0.0  0.0      0     0 ?        S    19:45   0:00 [ksoftirqd/7]
+root          64  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/7:0H-events_highpri]
+root          65  0.0  0.0      0     0 ?        S    19:45   0:00 [kdevtmpfs]
+root          66  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-inet_frag_wq]
+root          67  0.0  0.0      0     0 ?        I    19:45   0:00 [rcu_tasks_kthread]
+root          68  0.0  0.0      0     0 ?        I    19:45   0:00 [rcu_tasks_rude_kthread]
+root          69  0.0  0.0      0     0 ?        I    19:45   0:00 [rcu_tasks_trace_kthread]
+root          70  0.0  0.0      0     0 ?        S    19:45   0:00 [kauditd]
+root          71  0.0  0.0      0     0 ?        S    19:45   0:00 [khungtaskd]
+root          72  0.0  0.0      0     0 ?        S    19:45   0:00 [oom_reaper]
+root          73  0.2  0.0      0     0 ?        I    19:45   0:05 [kworker/u32:2-kcryptd-253:0-1]
+root          74  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-writeback]
+root          75  0.0  0.0      0     0 ?        S    19:45   0:01 [kcompactd0]
+root          76  0.0  0.0      0     0 ?        SN   19:45   0:00 [ksmd]
+root          78  0.0  0.0      0     0 ?        SN   19:45   0:00 [khugepaged]
+root          79  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kblockd]
+root          80  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-blkcg_punt_bio]
+root          81  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kintegrityd]
+root          82  0.0  0.0      0     0 ?        S    19:45   0:01 [irq/9-acpi]
+root          84  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-tpm_dev_wq]
+root          85  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-ata_sff]
+root          86  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-edac-poller]
+root          87  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-devfreq_wq]
+root          88  0.0  0.0      0     0 ?        S    19:45   0:00 [watchdogd]
+root          90  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-quota_events_unbound]
+root          92  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/120-dmar0-prq]
+root          95  3.3  0.0      0     0 ?        S    19:45   1:08 [kswapd0]
+root          96  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kthrotld]
+root          97  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/123-pciehp]
+root          98  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/124-pciehp]
+root          99  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/125-pciehp]
+root         100  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-acpi_thermal_pm]
+root         101  0.3  0.0      0     0 ?        I    19:45   0:06 [kworker/u32:3-kcryptd-253:0-1]
+root         103  0.0  0.0      0     0 ?        S    19:45   0:00 [hwrng]
+root         104  0.0  0.0      0     0 ?        S    19:45   0:00 [scsi_eh_0]
+root         105  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-scsi_tmf_0]
+root         106  0.0  0.0      0     0 ?        S    19:45   0:00 [scsi_eh_1]
+root         107  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-scsi_tmf_1]
+root         108  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-mld]
+root         109  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/3:1H-i915_cleanup]
+root         110  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-ipv6_addrconf]
+root         111  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kstrp]
+root         118  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/1:1H-i915_cleanup]
+root         148  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/7:1H-kblockd]
+root         151  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/0:1H-i915_cleanup]
+root         193  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/6:1H-kblockd]
+root         194  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/2:1H-i915_cleanup]
+root         196  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/5:1H-i915_cleanup]
+root         199  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-ttm]
+root         200  0.0  0.0      0     0 ?        S    19:45   0:00 [card1-crtc0]
+root         201  0.0  0.0      0     0 ?        S    19:45   0:00 [card1-crtc1]
+root         202  0.0  0.0      0     0 ?        S    19:45   0:00 [card1-crtc2]
+root         214  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/4:2H-i915_cleanup]
+root         352  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kdmflush/253:0]
+root         353  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kcryptd_io-253:0-1]
+root         354  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-kcryptd-253:0-1]
+root         355  0.1  0.0      0     0 ?        S    19:45   0:02 [dmcrypt_write/253:0]
+root         391  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-worker]
+root         392  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-delalloc]
+root         393  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-flush_delalloc]
+root         394  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-cache]
+root         395  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-fixup]
+root         396  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-endio]
+root         397  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-endio-meta]
+root         398  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-rmw]
+root         399  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-endio-write]
+root         400  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-compressed-write]
+root         401  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-freespace-write]
+root         402  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-delayed-meta]
+root         403  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-btrfs-qgroup-rescan]
+root         404  0.0  0.0      0     0 ?        S    19:45   0:00 [btrfs-cleaner]
+root         405  0.7  0.0      0     0 ?        S    19:45   0:15 [btrfs-transaction]
+root         426  0.4  0.0      0     0 ?        I    19:45   0:08 [kworker/u32:4-kcryptd-253:0-1]
+root         427  0.5  0.0      0     0 ?        I    19:45   0:10 [kworker/u32:5-kcryptd-253:0-1]
+root         428  0.4  0.0      0     0 ?        I    19:45   0:09 [kworker/u32:6-kcryptd-253:0-1]
+root         430  0.4  0.0      0     0 ?        I    19:45   0:09 [kworker/u32:8-kcryptd-253:0-1]
+root         433  0.6  0.0      0     0 ?        I    19:45   0:12 [kworker/u32:10-btrfs-compressed-write]
+root         459  0.0  0.0      0     0 ?        S    19:45   0:00 [psimon]
+root         467  0.4  0.3 383276 55852 ?        Ss   19:45   0:09 /usr/lib/systemd/systemd-journald
+root         486  0.0  0.0  14832  3520 ?        Ss   19:45   0:00 /usr/lib/systemd/systemd-userdbd
+root         560  0.0  0.0      0     0 ?        S    19:45   0:00 [psimon]
+systemd+     567  0.0  0.0  24688  9884 ?        Ss   19:45   0:01 /usr/lib/systemd/systemd-resolved
+systemd+     568  0.0  0.0  89660  5900 ?        Ssl  19:45   0:00 /usr/lib/systemd/systemd-timesyncd
+root         576  0.0  0.0  37560  7160 ?        Ss   19:45   0:00 /usr/lib/systemd/systemd-udevd
+root         580  0.0  0.0      0     0 ?        S    19:45   0:00 [psimon]
+systemd+     582  0.0  0.0  23116  9484 ?        Ss   19:45   0:00 /usr/lib/systemd/systemd-networkd
+root         633  0.0  0.0      0     0 ?        I<   19:45   0:00 [kworker/R-cfg80211]
+root         645  0.7  0.0      0     0 ?        S    19:45   0:15 [irq/160-SYNA30B1:00]
+root         651  0.0  0.0      0     0 ?        S    19:45   0:01 [irq/162-iwlwifi:default_queue]
+root         652  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/163-iwlwifi:queue_1]
+root         653  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/164-iwlwifi:queue_2]
+root         654  0.0  0.0      0     0 ?        S    19:45   0:01 [irq/165-iwlwifi:queue_3]
+root         655  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/166-iwlwifi:queue_4]
+root         656  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/167-iwlwifi:queue_5]
+root         657  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/168-iwlwifi:queue_6]
+root         658  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/169-iwlwifi:queue_7]
+root         659  0.0  0.0      0     0 ?        S    19:45   0:01 [irq/170-iwlwifi:queue_8]
+root         660  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/171-iwlwifi:exception]
+root         663  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/161-ELAN2513:00]
+root         669  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/172-mei_me]
+root         699  0.1  0.0      0     0 ?        I<   19:45   0:03 [kworker/u33:2-rb_allocator]
+root         732  0.0  0.0      0     0 ?        S    19:45   0:00 [irq/173-AudioDSP]
+root         748  0.1  0.0      0     0 ?        I    19:45   0:03 [kworker/6:3-i915-unordered]
+dbus         753  0.0  0.0   8476  3768 ?        Ss   19:45   0:00 /usr/bin/dbus-broker-launch --scope system --audit
+dbus         755  0.0  0.0   5516  3796 ?        S    19:45   0:00 dbus-broker --log 10 --controller 9 --machine-id 97b724aa727143cea584351322a68668 --max-bytes 536870912 --max-fds 4096 --max-matches 16384 --audit
+avahi        757  0.0  0.0   6724  3844 ?        Ss   19:45   0:00 avahi-daemon: running [H8T3DJ4Y.local]
+root         758  0.0  0.0  10168  4540 ?        Ss   19:45   0:00 /usr/lib/bluetooth/bluetoothd
+root         759  0.0  0.0 308896  8804 ?        Ssl  19:45   0:00 /usr/lib/boltd
+root         760  0.0  0.0  17668  2456 ?        Ss   19:45   0:00 /usr/lib/iwd/iwd
+root         765  0.0  0.0   8208  3960 ?        Ss   19:45   0:00 bash /usr/bin/limine-snapper-watcher
+root         766  0.0  0.0  16000  5296 ?        Ss   19:45   0:00 /usr/lib/systemd/systemd-logind
+avahi        808  0.0  0.0   6576  1376 ?        S    19:45   0:00 avahi-daemon: chroot helper
+polkitd      816  0.0  0.0 381712  8320 ?        Ssl  19:45   0:00 /usr/lib/polkit-1/polkitd --no-debug --log-level=notice
+root         830  0.0  0.0   6688  3712 ?        S    19:45   0:00 inotifywait -q -m -e create -e delete --format %e|%f /.snapshots
+root         831  0.0  0.0   7692  1900 ?        S    19:45   0:00 bash /usr/bin/limine-snapper-watcher
+root         879  0.0  0.0  21804  7320 ?        Ss   19:45   0:00 /usr/bin/cupsd -l
+loki         880  0.7  0.4 1925264 76508 ?       Ssl  19:45   0:15 /usr/bin/loki -boltdb.dir /var/lib/loki/index -local.chunk-directory /var/lib/loki/chunks -config.file /etc/loki/loki.yaml
+kamau        885  0.0  0.0  24456 10368 ?        Ss   19:45   0:01 /usr/lib/systemd/systemd --user
+root         887  1.4  0.4 1927048 75016 ?       Ssl  19:45   0:28 /usr/bin/containerd
+root         890  0.0  0.0 158356  7916 ?        Ssl  19:45   0:00 /usr/bin/sddm
+kamau        899  0.0  0.0  22960  3668 ?        S    19:45   0:00 (sd-pam)
+root         906  0.0  0.0 207572 14932 ?        Ssl  19:45   0:00 /usr/bin/cups-browsed
+root         921  0.0  0.0 472916 11720 tty2     Ssl+ 19:45   0:00 /usr/lib/Xorg -nolisten tcp -background none -seat seat0 vt2 -auth /run/sddm/xauth_suJfRc -noreset -displayfd 16
+kamau        934  2.1  2.0 10472412 331588 ?     Ssl  19:45   0:43 openclaw-gateway
+root         947  0.0  0.0 317660 11340 ?        Ssl  19:45   0:00 /usr/lib/upowerd
+root         986  0.8  0.4 2631176 67468 ?       Ssl  19:45   0:16 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+root         993  0.0  0.0  81992  8676 ?        S    19:45   0:00 /usr/lib/sddm/sddm-helper --socket /tmp/sddm-auth-6ef2bb97-8b2d-4cf1-bc2c-6614924e917a --id 1 --start uwsm start -e -D Hyprland hyprland.desktop --user kamau --autologin
+root        1000  0.6  0.0      0     0 ?        I    19:46   0:12 [kworker/u32:17-kcryptd-253:0-1]
+kamau       1008  0.0  0.0 182420  9052 ?        SLsl 19:46   0:00 /usr/bin/gnome-keyring-daemon --foreground --components=pkcs11,secrets --control-directory=/run/user/1000/keyring
+kamau       1030  0.0  0.0   8032  3156 ?        Ss   19:46   0:00 /usr/bin/dbus-broker-launch --scope user
+kamau       1036  0.0  0.0   4848  3128 ?        S    19:46   0:00 dbus-broker --log 11 --controller 10 --machine-id 97b724aa727143cea584351322a68668 --max-bytes 100000000000000 --max-fds 25000000000000 --max-matches 5000000000
+kamau       1038  0.0  0.0   7560  3440 tty1     Ss+  19:46   0:00 /usr/bin/sh /usr/lib/uwsm/signal-handler.sh wayland-session-envelope@hyprland.desktop.target
+root        1286  0.0  0.0 1235336 9180 ?        Sl   19:46   0:01 /usr/bin/containerd-shim-runc-v2 -namespace moby -id db605d7af7b3a48ae994042b985c1e1b1d7d1189d65da446ac36b0510c460532 -address /run/containerd/containerd.sock
+70          1310  0.0  0.0 1137872 11520 ?       Ss   19:46   0:00 postgres -c shared_buffers=1GB -c max_connections=200 -c work_mem=16MB -c maintenance_work_mem=512MB -c effective_cache_size=3GB
+kamau       1338  0.0  0.0   5548  1752 ?        Ss   19:46   0:00 waitpid -e 1038
+kamau       1339  0.0  0.0  18360  4852 tty1     S+   19:46   0:00 systemctl --user start --wait wayland-session-envelope@hyprland.desktop.target
+root        1347  0.0  0.0 1418916 1692 ?        Sl   19:46   0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5432 -container-ip 172.19.0.2 -container-port 5432 -use-listen-fd
+root        1356  0.0  0.0 1418916 2296 ?        Sl   19:46   0:00 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5432 -container-ip 172.19.0.2 -container-port 5432 -use-listen-fd
+kamau       1452  0.0  0.0  15868  3836 ?        Ssl  19:46   0:00 /usr/bin/start-hyprland
+70          1457  0.0  0.0 1138092 3808 ?        Ss   19:46   0:00 postgres: checkpointer 
+70          1458  0.0  0.0 1138040 2476 ?        Ss   19:46   0:00 postgres: background writer 
+70          1460  0.0  0.0 1137976 2072 ?        Ss   19:46   0:00 postgres: walwriter 
+70          1461  0.0  0.0 1139624 4068 ?        Ss   19:46   0:00 postgres: autovacuum launcher 
+70          1462  0.0  0.0 1139588 3948 ?        Ss   19:46   0:00 postgres: TimescaleDB Background Worker Launcher 
+70          1463  0.0  0.0 1139588 3444 ?        Ss   19:46   0:00 postgres: logical replication launcher 
+70          1464  0.0  0.0 1142248 10360 ?       Ss   19:46   0:00 postgres: TimescaleDB Background Worker Scheduler for database 16384 
+70          1465  0.0  0.0 1142248 10380 ?       Ss   19:46   0:00 postgres: TimescaleDB Background Worker Scheduler for database 5 
+root        1470  0.3  0.0      0     0 ?        I    19:46   0:06 [kworker/u32:18-events_unbound]
+kamau       1473  3.6  0.2 837080 34900 ?        Sl   19:46   1:12 Hyprland --watchdog-fd 4
+kamau       1509  0.0  0.0 163692  5092 ?        Ssl  19:46   0:00 /usr/lib/dconf-service
+kamau       1515  0.0  0.0 107072 13004 ?        Sl   19:46   0:00 /usr/bin/mako
+kamau       1517  0.1  0.1 2278680 22208 ?       Sl   19:46   0:02 /usr/bin/waybar
+kamau       1522  0.0  0.0 514648  8744 ?        Sl   19:46   0:00 /usr/bin/swaybg -i /home/kamau/.config/omarchy/current/background -m fill
+kamau       1523  0.0  0.0      0     0 ?        Z    19:46   0:00 [uwsm-app] <defunct>
+kamau       1526  0.0  0.0      0     0 ?        Z    19:46   0:00 [uwsm-app] <defunct>
+kamau       1529  0.0  0.1 1518228 24940 ?       Sl   19:46   0:00 /usr/bin/swayosd-server
+kamau       1530  0.0  0.0 529024 10324 ?        Sl   19:46   0:00 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+kamau       1535  0.0  0.0      0     0 ?        Z    19:46   0:00 [uwsm-app] <defunct>
+kamau       1537  0.0  0.0      0     0 ?        Z    19:46   0:00 [uwsm-app] <defunct>
+kamau       1548  0.0  0.0 381632 10660 ?        Sl   19:46   0:00 Xwayland :1 -rootless -core -listenfd 59 -listenfd 60 -displayfd 105 -wm 102
+kamau       1563  0.0  0.0 380364  6352 ?        Ssl  19:46   0:00 /usr/lib/at-spi-bus-launcher
+kamau       1569  0.0  0.0   8032  3208 ?        S    19:46   0:00 /usr/bin/dbus-broker-launch --config-file=/usr/share/defaults/at-spi2/accessibility.conf --scope user
+kamau       1570  0.0  0.0   4196  2528 ?        S    19:46   0:00 dbus-broker --log 10 --controller 9 --machine-id 97b724aa727143cea584351322a68668 --max-bytes 100000000000000 --max-fds 6400000 --max-matches 5000000000
+kamau       1571  0.0  0.0 325456  8768 ?        Ssl  19:46   0:00 /usr/lib/gvfsd
+kamau       1579  0.0  0.0 323024  5708 ?        Sl   19:46   0:00 /usr/lib/gvfsd-fuse /run/user/1000/gvfs -f
+kamau       1586  0.0  0.0 168164  6300 ?        Ssl  19:46   0:00 /usr/lib/at-spi2-registryd --use-gnome-session
+kamau       1595  0.0  0.0   7692  5440 ?        Ss   19:46   0:00 bash /usr/bin/limine-snapper-notify
+kamau       1597  0.0  0.1 354100 21984 ?        Ssl  19:46   0:00 /usr/bin/fcitx5
+kamau       1603  0.1  0.2 1767948 42240 ?       Ssl  19:46   0:02 /usr/bin/walker --gapplication-service
+kamau       1606  1.8  0.3 2499572 55104 ?       Ssl  19:46   0:36 elephant
+kamau       1609  0.0  0.1  34080 17304 ?        Ss   19:46   0:00 /usr/bin/python3 /usr/bin/uwsm aux app-daemon
+kamau       1621  0.2  0.0 586456  7756 ?        S    19:46   0:04 journalctl --output=short-iso -b -p 3 -n0 -f
+kamau       1634  0.0  0.1  69532 27888 ?        Ss   19:46   0:00 /usr/bin/python3 /usr/share/system-config-printer/applet.py
+kamau       1672  0.0  0.0 892636 14216 ?        Ssl  19:46   0:00 /usr/lib/xdg-desktop-portal
+kamau       1677  0.0  0.0 305796  7460 ?        Ssl  19:46   0:00 /usr/lib/xdg-permission-store
+kamau       1682  0.0  0.0 760340  8112 ?        Ssl  19:46   0:00 /usr/lib/xdg-document-portal
+root        1688  0.0  0.0   2580  1920 ?        Ss   19:46   0:00 fusermount3 -o rw,nosuid,nodev,fsname=portal,auto_unmount,subtype=portal -- /run/user/1000/doc
+kamau       1691  0.0  0.0 529104 14496 ?        Ssl  19:46   0:00 /usr/lib/xdg-desktop-portal-gtk
+rtkit       1702  0.0  0.0  21760  3332 ?        SNsl 19:46   0:00 /usr/lib/rtkit-daemon
+kamau       1735  0.0  0.0   2692  1704 ?        S    19:46   0:00 wl-paste --watch echo clipboard-changed
+kamau       1757  0.0  0.0 498224 10212 ?        Ssl  19:46   0:00 /usr/lib/xdg-desktop-portal-hyprland
+root        1768  0.0  0.0 308816  8724 ?        Ssl  19:46   0:00 /usr/lib/power-profiles-daemon
+root        1889  0.0  0.0      0     0 ?        S<   19:46   0:00 [krfcommd]
+kamau       1917  0.0  0.0 167264  7388 ?        Ssl  19:46   0:00 /usr/lib/gvfsd-metadata
+kamau       1943  6.5  0.4 2523296 71264 ?       Sl   19:46   2:08 /usr/bin/ghostty --gtk-single-instance=true --working-directory=/home/kamau
+kamau       1992  0.0  0.0   9792  5876 pts/0    Ss   19:46   0:00 /usr/bin/bash --posix
+kamau       3737  0.2  0.1 10586476 29356 pts/0  SLl+ 19:47   0:05 node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       3815  5.7  2.2 27559660 361948 pts/0 SLl+ 19:47   1:48 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       4139  0.0  0.1 1548536 18084 pts/0   Sl+  19:47   0:00 npm run start:fresh
+kamau       4145  0.2  0.3 1778948 54816 pts/0   Sl+  19:47   0:04 npm exec @google-cloud/cloud-run-mcp
+kamau       4164  0.2  0.3 1786144 55708 pts/0   Sl+  19:47   0:05 npm exec chrome-devtools-mcp@latest
+kamau       4186  0.2  0.3 1781340 54612 pts/0   Sl+  19:47   0:04 npm exec firebase-tools@latest mcp
+kamau       4215  0.0  0.1 1449172 19148 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/gemini-cli-jules/mcp-server/dist/jules.js
+kamau       4235  0.0  0.2 1453344 33816 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/gemini-cli-security/mcp-server/dist/index.js
+kamau       4239  0.0  0.0 1281204 11656 pts/0   Sl+  19:47   0:00 /home/kamau/.gemini/extensions/gemini-cli-security/osv-scanner experimental-mcp
+kamau       4396  0.0  0.0 1462968 15428 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/gemini-kit/dist/kit-server.js
+kamau       4409  0.0  0.1 1449792 18620 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/google-adk-agent-extension/dist/google-adk-agent-extension.js
+kamau       4410  0.0  0.0 1442604 13592 pts/0   Sl+  19:47   0:00 node scripts/start.js --use-dot-names
+kamau       4416  0.0  0.0 1269612 5968 pts/0    Sl+  19:47   0:00 /home/kamau/.gemini/extensions/grafana/mcp-grafana
+kamau       4445  0.2  0.3 1779200 59248 pts/0   Sl+  19:47   0:04 npm exec @browserbasehq/mcp-server-browserbase
+kamau       4453  0.0  0.1 1459864 18708 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/nanobanana/mcp-server/dist/index.js
+kamau       4454  0.2  0.3 1778548 59176 pts/0   Sl+  19:47   0:04 npm exec @google-cloud/observability-mcp
+kamau       4468  0.0  0.2 1452888 34184 pts/0   Sl+  19:47   0:00 node /home/kamau/.gemini/extensions/self-command/dist/self_command.js
+kamau       4475  0.2  0.3 1780248 58728 pts/0   Sl+  19:47   0:04 npm exec @testsprite/testsprite-mcp@latest
+kamau       4643  0.0  0.1 1549048 18052 pts/0   Sl+  19:47   0:00 npm start
+kamau       4704  0.0  0.2 1692380 43696 pts/0   Sl+  19:47   0:01 node /home/kamau/.npm/_npx/e32f911d22db94fe/node_modules/.bin/cloud-run-mcp
+kamau       4723  0.0  0.1 1491620 20244 pts/0   Sl+  19:47   0:00 node /home/kamau/.npm/_npx/8ddf6bea01b2519d/node_modules/.bin/testsprite-mcp-plugin
+kamau       4753  0.1  0.3 1515744 62504 pts/0   Sl+  19:47   0:02 node /home/kamau/.npm/_npx/0d92b6951d3aaa1c/node_modules/.bin/observability-mcp
+kamau       4767  0.1  0.5 1575680 86048 pts/0   Sl+  19:47   0:03 node /home/kamau/.npm/_npx/cf6b606eb75dc450/node_modules/.bin/mcp-server-browserbase
+kamau       4774  0.2  0.4 10203620 77072 pts/0  Sl+  19:47   0:05 node /home/kamau/.npm/_npx/ba4f1959e38407b5/node_modules/.bin/firebase mcp
+kamau       4826  0.0  0.1 1614432 24020 pts/0   Sl+  19:47   0:01 node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/.bin/chrome-devtools-mcp
+kamau       4882  0.0  0.3 10049848 56892 ?      Ssl  19:47   0:01 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp/build/src/telemetry/watchdog/main.js --parent-pid=4826 --app-version=0.17.0 --os-type=3
+kamau       4900  0.1  0.5 1593660 81364 pts/0   Sl+  19:47   0:02 node /home/kamau/.gemini/extensions/google-workspace/workspace-server/dist/index.js --debug --use-dot-names
+kamau       4928  0.0  0.3 1507664 58420 pts/0   Sl+  19:47   0:01 node dist/mcp-server.js
+kamau       5261  0.0  0.0   9792  5868 pts/1    Ss   19:49   0:00 /usr/bin/bash --posix
+kamau       5656  0.0  0.0   9792  5700 pts/2    Ss   19:49   0:00 /usr/bin/bash --posix
+kamau       6051  0.0  0.0   9792  5700 pts/3    Ss   19:49   0:00 /usr/bin/bash --posix
+kamau       6417  0.2  0.1 10586792 26296 pts/3  SLl+ 19:49   0:04 node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       6464 22.0  4.5 27941304 742200 pts/3 SLl+ 19:49   6:31 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       6480  0.2  0.3 10586236 51816 pts/2  SLl+ 19:49   0:04 node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       6538  0.2  0.7 10586536 122924 pts/1 SLl+ 19:49   0:04 node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       6566  6.3  3.1 27695564 511184 pts/2 RLl+ 19:49   1:51 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       6893  0.0  0.1 1548528 18188 pts/3   Sl+  19:49   0:00 npm run start:fresh
+kamau       6910  0.2  0.2 1780456 47996 pts/3   Sl+  19:49   0:04 npm exec chrome-devtools-mcp@latest
+kamau       6929  0.2  0.2 1780364 46828 pts/3   Sl+  19:49   0:04 npm exec @google-cloud/cloud-run-mcp
+kamau       6983  0.2  0.3 1780880 51460 pts/3   Sl+  19:49   0:05 npm exec firebase-tools@latest mcp
+kamau       6995  0.0  0.1 1448964 18868 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-cli-jules/mcp-server/dist/jules.js
+kamau       7009  0.0  0.1 1453312 27536 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-cli-security/mcp-server/dist/index.js
+kamau       7018  0.0  0.0 1281460 14076 pts/3   Sl+  19:49   0:00 /home/kamau/.gemini/extensions/gemini-cli-security/osv-scanner experimental-mcp
+kamau       7044  0.0  0.0 1461936 15580 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-kit/dist/kit-server.js
+kamau       7084  0.0  0.1 1449732 18816 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/google-adk-agent-extension/dist/google-adk-agent-extension.js
+kamau       7126  0.0  0.0 1442604 13740 pts/3   Sl+  19:49   0:00 node scripts/start.js --use-dot-names
+kamau       7129  0.0  0.0 1269356 9100 pts/3    Sl+  19:49   0:00 /home/kamau/.gemini/extensions/grafana/mcp-grafana
+kamau       7182  0.0  0.1 1549048 18016 pts/3   Sl+  19:49   0:00 npm start
+kamau       7189  0.2  0.3 1780304 59920 pts/3   Sl+  19:49   0:04 npm exec @browserbasehq/mcp-server-browserbase
+kamau       7208  0.0  0.1 1459880 19128 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/nanobanana/mcp-server/dist/index.js
+kamau       7222  0.2  0.3 1780092 55876 pts/3   Sl+  19:49   0:04 npm exec @google-cloud/observability-mcp
+kamau       7241  0.0  0.2 1453292 33928 pts/3   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/self-command/dist/self_command.js
+kamau       7257  0.2  0.3 1780364 59496 pts/3   Sl+  19:49   0:04 npm exec @testsprite/testsprite-mcp@latest
+kamau       7348  7.9  4.6 27931100 747112 pts/1 SLl+ 19:49   2:19 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.local/share/mise/installs/node/25.2.1/bin/gemini
+kamau       7781  0.0  0.1 1548748 18072 pts/2   Sl+  19:49   0:00 npm run start:fresh
+kamau       7796  0.2  0.3 1780368 62720 pts/2   Sl+  19:49   0:04 npm exec chrome-devtools-mcp@latest
+kamau       7802  0.2  0.3 1779896 63332 pts/2   Sl+  19:49   0:05 npm exec @google-cloud/cloud-run-mcp
+kamau       7824  0.3  0.3 1781384 64520 pts/2   Sl+  19:49   0:05 npm exec firebase-tools@latest mcp
+kamau       7849  0.0  0.1 1448940 17920 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-cli-jules/mcp-server/dist/jules.js
+kamau       7871  0.0  0.2 1452748 34016 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-cli-security/mcp-server/dist/index.js
+kamau       7882  0.0  0.0 1282228 10032 pts/2   Sl+  19:49   0:00 /home/kamau/.gemini/extensions/gemini-cli-security/osv-scanner experimental-mcp
+kamau       7936  0.0  0.0 1462200 14556 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/gemini-kit/dist/kit-server.js
+kamau       7947  0.0  0.1 1548312 18228 pts/2   Sl+  19:49   0:00 npm start
+kamau       7968  0.0  0.1 1448956 18004 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/google-adk-agent-extension/dist/google-adk-agent-extension.js
+kamau       7971  0.0  0.0 1442604 14344 pts/2   Sl+  19:49   0:00 node scripts/start.js --use-dot-names
+kamau       7982  0.0  0.0 1269100 5332 pts/2    Sl+  19:49   0:00 /home/kamau/.gemini/extensions/grafana/mcp-grafana
+kamau       8024  0.2  0.3 1780784 63528 pts/2   Sl+  19:49   0:05 npm exec @browserbasehq/mcp-server-browserbase
+kamau       8054  0.0  0.1 1460172 17968 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/nanobanana/mcp-server/dist/index.js
+kamau       8064  0.2  0.3 1780364 64240 pts/2   Sl+  19:49   0:04 npm exec @google-cloud/observability-mcp
+kamau       8081  0.0  0.2 1452932 34108 pts/2   Sl+  19:49   0:00 node /home/kamau/.gemini/extensions/self-command/dist/self_command.js
+kamau       8085  0.2  0.3 1780224 62564 pts/2   Sl+  19:49   0:05 npm exec @testsprite/testsprite-mcp@latest
+kamau       8238  0.0  0.1 1614432 19284 pts/3   Sl+  19:49   0:01 node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/.bin/chrome-devtools-mcp
+kamau       8310  0.0  0.2 1693236 45260 pts/3   Sl+  19:49   0:01 node /home/kamau/.npm/_npx/e32f911d22db94fe/node_modules/.bin/cloud-run-mcp
+kamau       8336  0.0  0.3 10049848 56020 ?      Ssl  19:49   0:01 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp/build/src/telemetry/watchdog/main.js --parent-pid=8238 --app-version=0.17.0 --os-type=3
+kamau       8347  0.1  0.5 1574884 88360 pts/3   Sl+  19:49   0:03 node /home/kamau/.npm/_npx/cf6b606eb75dc450/node_modules/.bin/mcp-server-browserbase
+kamau       8412  0.3  0.4 10204956 72228 pts/3  Sl+  19:49   0:06 node /home/kamau/.npm/_npx/ba4f1959e38407b5/node_modules/.bin/firebase mcp
+kamau       8414  0.0  0.1 1491876 21376 pts/3   Sl+  19:49   0:00 node /home/kamau/.npm/_npx/8ddf6bea01b2519d/node_modules/.bin/testsprite-mcp-plugin
+kamau       8478  0.1  0.3 1516728 60856 pts/3   Sl+  19:49   0:02 node /home/kamau/.npm/_npx/0d92b6951d3aaa1c/node_modules/.bin/observability-mcp
+kamau       8741  0.0  0.4 1614052 66092 pts/2   Sl+  19:50   0:01 node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/.bin/chrome-devtools-mcp
+kamau       8758  0.0  0.2 1692852 47576 pts/2   Sl+  19:50   0:01 node /home/kamau/.npm/_npx/e32f911d22db94fe/node_modules/.bin/cloud-run-mcp
+kamau       8769  0.4  0.4 10205300 77320 pts/2  Sl+  19:50   0:07 node /home/kamau/.npm/_npx/ba4f1959e38407b5/node_modules/.bin/firebase mcp
+kamau       8772  0.1  0.4 1575440 70480 pts/2   Sl+  19:50   0:03 node /home/kamau/.npm/_npx/cf6b606eb75dc450/node_modules/.bin/mcp-server-browserbase
+kamau       8798  0.0  0.3 1491364 53224 pts/2   Sl+  19:50   0:00 node /home/kamau/.npm/_npx/8ddf6bea01b2519d/node_modules/.bin/testsprite-mcp-plugin
+kamau       8859  0.1  0.4 1516528 77076 pts/2   Sl+  19:50   0:03 node /home/kamau/.npm/_npx/0d92b6951d3aaa1c/node_modules/.bin/observability-mcp
+kamau       8881  0.0  0.3 10049204 55196 ?      Ssl  19:50   0:01 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp/build/src/telemetry/watchdog/main.js --parent-pid=8741 --app-version=0.17.0 --os-type=3
+kamau       8971  0.2  0.4 1593160 69656 pts/3   Sl+  19:50   0:04 node /home/kamau/.gemini/extensions/google-workspace/workspace-server/dist/index.js --debug --use-dot-names
+kamau       8984  0.0  0.1 1548524 18200 pts/1   Sl+  19:50   0:00 npm run start:fresh
+kamau       8993  0.2  0.3 1780360 57296 pts/1   Sl+  19:50   0:04 npm exec chrome-devtools-mcp@latest
+kamau       9044  0.2  0.3 1780228 56948 pts/1   Sl+  19:50   0:05 npm exec @google-cloud/cloud-run-mcp
+kamau       9070  0.0  0.2 1549056 39936 pts/1   Sl+  19:50   0:00 npm start
+kamau       9110  0.3  0.3 1781088 57780 pts/1   Sl+  19:50   0:05 npm exec firebase-tools@latest mcp
+kamau       9162  0.0  0.1 1448880 23132 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/gemini-cli-jules/mcp-server/dist/jules.js
+kamau       9167  0.0  0.2 1452776 35376 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/gemini-cli-security/mcp-server/dist/index.js
+kamau       9175  0.0  0.1 1281716 16852 pts/1   Sl+  19:50   0:00 /home/kamau/.gemini/extensions/gemini-cli-security/osv-scanner experimental-mcp
+kamau       9216  0.0  0.1 1462372 20464 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/gemini-kit/dist/kit-server.js
+kamau       9276  0.0  0.1 1449424 26944 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/google-adk-agent-extension/dist/google-adk-agent-extension.js
+kamau       9289  0.0  0.1 1442520 17432 pts/1   Sl+  19:50   0:00 node scripts/start.js --use-dot-names
+kamau       9297  0.0  0.0 1269100 10724 pts/1   Sl+  19:50   0:00 /home/kamau/.gemini/extensions/grafana/mcp-grafana
+kamau       9330  0.2  0.3 1782124 49628 pts/1   Sl+  19:50   0:04 npm exec @browserbasehq/mcp-server-browserbase
+kamau       9337  0.0  0.2 1459764 37888 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/nanobanana/mcp-server/dist/index.js
+kamau       9339  0.2  0.3 1780524 49748 pts/1   Sl+  19:50   0:05 npm exec @google-cloud/observability-mcp
+kamau       9358  0.0  0.1 1453308 31808 pts/1   Sl+  19:50   0:00 node /home/kamau/.gemini/extensions/self-command/dist/self_command.js
+kamau       9366  0.2  0.2 1781048 46856 pts/1   Sl+  19:50   0:04 npm exec @testsprite/testsprite-mcp@latest
+kamau       9592  0.2  0.5 1593416 86220 pts/2   Sl+  19:50   0:03 node /home/kamau/.gemini/extensions/google-workspace/workspace-server/dist/index.js --debug --use-dot-names
+kamau       9638  0.0  0.2 1614556 36212 pts/1   Sl+  19:50   0:01 node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/.bin/chrome-devtools-mcp
+kamau       9653  0.2  0.6 1573104 98968 pts/1   Sl+  19:50   0:04 node /home/kamau/.npm/_npx/cf6b606eb75dc450/node_modules/.bin/mcp-server-browserbase
+kamau       9659  0.0  0.2 1693728 47464 pts/1   Sl+  19:50   0:01 node /home/kamau/.npm/_npx/e32f911d22db94fe/node_modules/.bin/cloud-run-mcp
+kamau       9674  0.3  0.7 10207152 123448 pts/1 Sl+  19:50   0:06 node /home/kamau/.npm/_npx/ba4f1959e38407b5/node_modules/.bin/firebase mcp
+kamau       9684  0.0  0.2 1608820 41584 ?       Ssl  19:50   0:01 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node /home/kamau/.npm/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp/build/src/telemetry/watchdog/main.js --parent-pid=9638 --app-version=0.17.0 --os-type=3
+kamau       9705  0.1  0.5 1516428 96020 pts/1   Sl+  19:50   0:03 node /home/kamau/.npm/_npx/0d92b6951d3aaa1c/node_modules/.bin/observability-mcp
+kamau       9741  0.0  0.4 1491876 78196 pts/1   Sl+  19:50   0:00 node /home/kamau/.npm/_npx/8ddf6bea01b2519d/node_modules/.bin/testsprite-mcp-plugin
+kamau       9756  0.1  0.1 1507856 22892 pts/3   Sl+  19:50   0:02 node dist/mcp-server.js
+kamau       9837  0.2  0.9 1593916 152164 pts/1  Sl+  19:50   0:03 node /home/kamau/.gemini/extensions/google-workspace/workspace-server/dist/index.js --debug --use-dot-names
+kamau       9891  0.0  0.4 1507200 65004 pts/2   Sl+  19:50   0:01 node dist/mcp-server.js
+kamau       9938  0.0  0.6 1507716 100696 pts/1  Sl+  19:50   0:01 node dist/mcp-server.js
+kamau       9968  0.0  0.0   2700   936 ?        S    19:50   0:00 wl-copy
+kamau      10646  4.1  0.9 1461812232 148740 ?   Ssl  19:51   1:09 /usr/lib/electron39/electron --app=/usr/lib/antigravity/
+kamau      10649  0.0  0.1 33872628 21788 ?      S    19:51   0:00 /usr/lib/electron39/electron --type=zygote --no-zygote-sandbox
+kamau      10650  0.0  0.1 33872620 23804 ?      S    19:51   0:00 /usr/lib/electron39/electron --type=zygote
+kamau      10652  0.0  0.0 33872648 6712 ?       S    19:51   0:00 /usr/lib/electron39/electron --type=zygote
+kamau      10670  0.0  0.0 33568940 2532 ?       Sl   19:51   0:00 /usr/lib/electron39/chrome_crashpad_handler --monitor-self-annotation=ptype=crashpad-handler --no-rate-limit --database=/home/kamau/.config/Antigravity/Crashpad --annotation=_companyName=Google --annotation=_productName=Antigravity --annotation=_version=1.107.0 --annotation=lsb-release=Arch Linux --annotation=plat=Linux --annotation=prod=Electron --annotation=ver=39.5.1 --initial-client-fd=49 --shared-client-connection
+kamau      10705  5.3  0.4 34330352 67192 ?      Sl   19:51   1:29 /usr/lib/electron39/electron --type=zygote --no-zygote-sandbox
+kamau      10714  0.4  0.2 33976716 41828 ?      Sl   19:51   0:07 /proc/self/exe --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708989122997041
+kamau      10751 16.3  2.8 1463205752 467032 ?   Sl   19:51   4:32 /usr/lib/electron39/electron --type=zygote
+kamau      10763  0.0  0.5 1459653496 81812 ?    Sl   19:51   0:01 /usr/lib/electron39/electron --type=zygote
+kamau      10781  0.6  0.5 1461399748 94976 ?    Sl   19:51   0:11 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708991934122588
+root       10847  0.0  0.0      0     0 ?        D<   19:51   0:01 [kworker/u33:1+i915_flip]
+kamau      10851  0.9  0.4 1461457728 72324 ?    Sl   19:51   0:15 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708994745248135
+root       11222  0.6  0.0      0     0 ?        I    19:51   0:10 [kworker/u32:13-kcryptd-253:0-1]
+root       11223  0.3  0.0      0     0 ?        I    19:51   0:06 [kworker/u32:19-kcryptd-253:0-1]
+root       11226  0.3  0.0      0     0 ?        I    19:51   0:06 [kworker/u32:22-kcryptd-253:0-1]
+kamau      11227  6.2  1.8 1461401284 304244 ?   Sl   19:51   1:43 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --dns-result-order=ipv4first --experimental-network-inspection --inspect-port=0 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708995682289984
+kamau      11317 10.1  0.9 1461416524 147808 ?   Sl   19:51   2:48 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708996619331833
+kamau      11495  0.0  0.0   9796  5680 pts/4    Ss+  19:51   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      11520  0.0  0.0   9796  7136 pts/5    Ss   19:51   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      11550 14.9  4.1 5433444 667724 ?      Sl   19:51   4:07 /usr/lib/antigravity/extensions/antigravity/bin/language_server_linux_x64 --enable_lsp --extension_server_port 36293 --csrf_token f0890aaa-f831-40e6-9913-bea25d70e031 --random_port --workspace_id file_home_kamau_bsopt --cloud_code_endpoint https://daily-cloudcode-pa.googleapis.com --app_data_dir antigravity --parent_pipe_path /tmp/server_d4c2982b0d991f2a
+kamau      11959  0.0  0.0 1528316 7876 ?        Sl   19:51   0:00 docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server
+root       12278  0.0  0.0 1235336 8148 ?        Sl   19:51   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id e1ab2a9f31351b04d1be702ac90e093e1c5fd87ce7f8cfa748f02d1d86f6a1e1 -address /run/containerd/containerd.sock
+root       12301  0.0  0.0 1243180 7200 ?        Ssl  19:51   0:00 /server/github-mcp-server stdio
+kamau      12354  0.0  0.1 33996056 25372 ?      Sl   19:51   0:00 /proc/self/exe --type=utility --utility-sub-type=audio.mojom.AudioService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190708997556373682
+kamau      12576 13.6  1.8 1459697888 296944 ?   Sl   19:51   3:43 /usr/lib/electron39/electron --type=zygote
+kamau      13603  0.2  0.3 1459582308 56488 ?    Sl   19:53   0:03 /usr/lib/electron39/electron /usr/lib/antigravity/extensions/markdown-language-features/dist/serverWorkerMain --node-ipc --clientProcessId=11227
+kamau      14868  0.0  0.0   9796  5864 pts/6    Ss+  19:54   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      15298  0.2  0.3 1459615092 50712 ?    Sl   19:54   0:03 /usr/lib/electron39/electron /usr/lib/antigravity/extensions/json-language-features/server/dist/node/jsonServerMain --node-ipc --clientProcessId=11227
+kamau      16788  0.0  0.0   9796  6600 pts/7    Ss   19:56   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+root       17562  0.0  0.0      0     0 ?        I    19:56   0:00 [kworker/7:1-mm_percpu_wq]
+root       17713  0.0  0.0      0     0 ?        I    19:56   0:00 [kworker/4:0-i915-unordered]
+kamau      18199  0.0  0.2 1476359588 38588 ?    Sl   19:57   0:00 /usr/lib/electron39/electron /home/kamau/.antigravity/extensions/ms-azuretools.vscode-containers-2.3.0-universal/dist/dockerfile-language-server-nodejs/lib/server.js --node-ipc --node-ipc --clientProcessId=11227
+kamau      18200  0.0  0.1 1459582308 30376 ?    Sl   19:57   0:00 /usr/lib/electron39/electron /home/kamau/.antigravity/extensions/ms-azuretools.vscode-containers-2.3.0-universal/dist/compose-language-service/lib/server.js --node-ipc --node-ipc --clientProcessId=11227
+root       20805  0.6  0.0      0     0 ?        I    19:59   0:07 [kworker/u32:0-kcryptd-253:0-1]
+root       20806  0.4  0.0      0     0 ?        I    19:59   0:05 [kworker/u32:1-btrfs-endio-write]
+root       20807  0.3  0.0      0     0 ?        I    19:59   0:03 [kworker/u32:9-btrfs-endio-write]
+root       20809  0.4  0.0      0     0 ?        I    19:59   0:04 [kworker/u32:12-kcryptd-253:0-1]
+root       21538  0.0  0.0      0     0 ?        I    20:00   0:00 [kworker/1:1-i915-unordered]
+root       21809  0.0  0.0      0     0 ?        I    20:00   0:00 [kworker/0:2-events]
+root       24002  0.0  0.0      0     0 ?        I    20:02   0:00 [kworker/7:0-events]
+root       25755  0.1  0.0      0     0 ?        I    20:04   0:00 [kworker/6:1-i915-unordered]
+root       25996  0.0  0.0      0     0 ?        I    20:04   0:00 [kworker/3:2-kec_query]
+kamau      27816  0.0  0.0   9280  4660 pts/7    T    20:06   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      27819  0.0  0.2 1507492 37492 pts/7   Tl   20:06   0:00 npm run dev
+kamau      27866  0.1  0.4 12362528 66092 pts/7  Tl   20:06   0:01 node /home/kamau/bsopt/src/frontend/node_modules/.bin/vite
+root       28332  0.0  0.0      0     0 ?        I    20:06   0:00 [kworker/2:0-i915-unordered]
+kamau      28570  0.0  0.0   7560  5520 pts/8    Ss+  20:07   0:00 bash -c shopt -u promptvars nullglob extglob nocaseglob dotglob; { docker compose -f docker-compose.dev.yml up -d; }; __code=$?; pgrep -g 0 >/tmp/shell_pgrep_4bd7b115c884.tmp 2>&1; exit $__code;
+kamau      28572  0.0  0.0 1847816 10972 pts/8   Sl+  20:07   0:00 docker compose -f docker-compose.dev.yml up -d
+kamau      28596  0.2  0.1 1782836 16964 pts/8   Sl+  20:07   0:01 /usr/lib/docker/cli-plugins/docker-compose compose -f docker-compose.dev.yml up -d
+kamau      28666  0.5  0.6 1459582312 101212 ?   Sl   20:07   0:03 /usr/lib/electron39/electron --max-old-space-size=3072 /usr/lib/antigravity/extensions/node_modules/typescript/lib/tsserver.js --serverMode partialSemantic --useInferredProjectPerProjectRoot --disableAutomaticTypingAcquisition --cancellationPipeName /tmp/vscode-typescript1000/353bf14e0d2117d88751/tscancellation-04e3a2f2a336adc48356.tmp* --locale en --noGetErrOnBackgroundUpdate --canUseWatchEvents --validateDefaultNpmLocation --useNodeIpc
+kamau      28667  4.3  1.6 1459582312 263240 ?   Sl   20:07   0:31 /usr/lib/electron39/electron --max-old-space-size=3072 /usr/lib/antigravity/extensions/node_modules/typescript/lib/tsserver.js --useInferredProjectPerProjectRoot --enableTelemetry --cancellationPipeName /tmp/vscode-typescript1000/353bf14e0d2117d88751/tscancellation-08725f5e7c355c394fde.tmp* --locale en --noGetErrOnBackgroundUpdate --canUseWatchEvents --validateDefaultNpmLocation --useNodeIpc
+kamau      28688  0.1  0.4 1459582308 68780 ?    Sl   20:07   0:00 /usr/lib/electron39/electron /usr/lib/antigravity/extensions/node_modules/typescript/lib/typingsInstaller.js --globalTypingsCacheLocation /home/kamau/.cache/typescript/5.9 --enableTelemetry --typesMapLocation /usr/lib/antigravity/extensions/node_modules/typescript/lib/typesMap.json --validateDefaultNpmLocation
+kamau      28831  0.5  0.1 1992252 31744 pts/8   Sl+  20:07   0:03 /usr/lib/docker/cli-plugins/docker-buildx bake --file - --progress rawjson --metadata-file /tmp/compose-build-metadataFile-1c5f05e0-f3a1-44ff-8b05-17054063f2e2.json --allow fs.read=/home/kamau/bsopt --allow fs.read=/home/kamau/bsopt --allow fs.read=/home/kamau/bsopt --allow fs.read=/home/kamau/bsopt --allow fs.read=/home/kamau/bsopt --allow fs.read=/home/kamau/bsopt
+root       29231  0.5  0.0      0     0 ?        I    20:07   0:03 [kworker/u32:7-btrfs-compressed-write]
+root       31495  0.1  0.0      0     0 ?        I<   20:08   0:01 [kworker/u33:3-rb_allocator]
+kamau      31618  6.3  0.6 51325460 103332 ?     Ssl  20:09   0:38 /usr/lib/chromium/chromium --ozone-platform=wayland --ozone-platform-hint=wayland --enable-features=TouchpadOverscrollHistoryNavigation --load-extension=~/.local/share/omarchy/default/chromium/extensions/copy-url --disable-features=WaylandWpColorManagerV1 --remote-debugging-port=9222 --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --disable-fre --no-default-browser-check --no-first-run --auto-accept-browser-signin-for-tests --ash-no-nudges --disable-features=OfferMigrationToDiceUsers,OptGuideOnDeviceModel
+kamau      31633  0.0  0.0 50345560 3060 ?       Sl   20:09   0:00 /usr/lib/chromium/chrome_crashpad_handler --monitor-self --monitor-self-annotation=ptype=crashpad-handler --database=/home/kamau/.config/chromium/Crash Reports --annotation=channel=Arch Linux --annotation=lsb-release=Arch Linux --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=144.0.7559.132 --initial-client-fd=5 --shared-client-connection
+kamau      31635  0.0  0.0 50337348 2184 ?       S    20:09   0:00 /usr/lib/chromium/chrome_crashpad_handler --no-periodic-tasks --monitor-self-annotation=ptype=crashpad-handler --database=/home/kamau/.config/chromium/Crash Reports --annotation=channel=Arch Linux --annotation=lsb-release=Arch Linux --annotation=plat=Linux --annotation=prod=Chrome_Linux --annotation=ver=144.0.7559.132 --initial-client-fd=4 --shared-client-connection
+kamau      31639  0.0  0.1 50732528 26264 ?      S    20:09   0:00 /usr/lib/chromium/chromium --type=zygote --no-zygote-sandbox --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable
+kamau      31640  0.0  0.1 50732520 26080 ?      S    20:09   0:00 /usr/lib/chromium/chromium --type=zygote --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable
+kamau      31642  0.0  0.0 50732544 15708 ?      S    20:09   0:00 /usr/lib/chromium/chromium --type=zygote --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable
+kamau      31768  6.4  0.4 51197152 75188 ?      Sl   20:09   0:38 /usr/lib/chromium/chromium --type=gpu-process --ozone-platform=wayland --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAQAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --shared-files --metrics-shmem-handle=4,i,12853605983166855412,6084514264633617618,262144 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708988185955192
+kamau      31771  0.0  0.2 50744860 32856 ?      Sl   20:09   0:00 /usr/lib/chromium/chromium --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,17833972588404654769,14757285358832840789,524288 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708989122997041
+kamau      31786  0.0  0.1 50782640 24284 ?      Sl   20:09   0:00 /usr/lib/chromium/chromium --type=utility --utility-sub-type=storage.mojom.StorageService --lang=en-US --service-sandbox-type=utility --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,18010304736518640022,8825770282223563086,524288 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708990060038890
+kamau      31816  0.0  0.2 1459736312 38052 ?    Sl   20:09   0:00 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --remote-debugging-port=9222 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=6 --time-ticks-at-unix-epoch=-1770741904901656 --launch-time-ticks=1439322650 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,14314533253998863492,5906675195702668513,2097152 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708991934122588
+kamau      31822  0.2  0.3 1459745824 53872 ?    Sl   20:09   0:01 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --remote-debugging-port=9222 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=5 --time-ticks-at-unix-epoch=-1770741904901656 --launch-time-ticks=1439379994 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,13262812828324023136,17697311808676051423,2097152 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708990997080739
+kamau      31846  0.0  0.1 1461406464 31044 ?    Sl   20:09   0:00 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --extension-process --change-stack-guard-on-fork=enable --remote-debugging-port=9222 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=7 --time-ticks-at-unix-epoch=-1770741904901656 --launch-time-ticks=1439540233 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,12614088920012692519,2273585337627682658,2097152 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708992871164437
+kamau      31891  0.0  0.2 1459695372 33232 ?    Sl   20:09   0:00 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --remote-debugging-port=9222 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=8 --time-ticks-at-unix-epoch=-1770741904901656 --launch-time-ticks=1440156058 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,8891420298623884876,15701696747679192459,2097152 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708993808206286
+kamau      31963  0.0  0.1 1459694204 28540 ?    Sl   20:09   0:00 /usr/lib/chromium/chromium --type=renderer --crashpad-handler-pid=31633 --enable-crash-reporter=,Arch Linux --user-data-dir=/home/kamau/.gemini/antigravity-browser-profile --change-stack-guard-on-fork=enable --remote-debugging-port=9222 --ozone-platform=wayland --lang=en-US --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=9 --time-ticks-at-unix-epoch=-1770741904901656 --launch-time-ticks=1443949838 --shared-files=v8_context_snapshot_data:100 --metrics-shmem-handle=4,i,12918324547867925578,3655505371637039342,2097152 --field-trial-handle=3,i,9142554493186552870,5335471678519170688,262144 --enable-features=TouchpadOverscrollHistoryNavigation --disable-features=EyeDropper,OfferMigrationToDiceUsers,OptGuideOnDeviceModel --variations-seed-version --trace-process-track-uuid=3190708994745248135
+root       32110  0.0  0.0      0     0 ?        I    20:09   0:00 [kworker/4:1-events]
+kamau      32346  0.0  0.0   9796  8508 pts/9    Ss   20:09   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      33165  0.2  0.3 512744 60672 ?        Sl   20:09   0:01 /home/kamau/bsopt/temp_venv/bin/python /home/kamau/.antigravity/extensions/ms-python.python-2026.0.0-universal/python_files/run-jedi-language-server.py
+root       33168  0.0  0.0      0     0 ?        I    20:09   0:00 [kworker/3:0-events]
+root       33170  0.0  0.0      0     0 ?        I    20:09   0:00 [kworker/5:1-i915-unordered]
+kamau      33191  0.0  0.0 102152 11860 ?        S<sl 20:09   0:00 /usr/bin/pipewire
+kamau      33194  0.0  0.0 480324 14360 ?        S<sl 20:09   0:00 /usr/bin/wireplumber
+kamau      33196  0.0  0.0  98248  8904 ?        S<sl 20:09   0:00 /usr/bin/pipewire-pulse
+kamau      33519  5.8  1.6 1461412392 260300 ?   Rl   20:10   0:31 /usr/lib/electron39/electron --type=zygote
+kamau      33538  4.1  1.1 1461401164 182120 ?   Sl   20:10   0:22 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --dns-result-order=ipv4first --experimental-network-inspection --inspect-port=0 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190709017234252511
+kamau      33575  0.5  0.4 1461408244 75628 ?    Sl   20:10   0:03 /proc/self/exe --type=utility --utility-sub-type=node.mojom.NodeService --lang=en-US --service-sandbox-type=none --render-node-override=/dev/dri/renderD128 --crashpad-handler-pid=10670 --enable-crash-reporter=7d746c56-9508-4e77-a8d0-2d3f5b28ee09,no_channel --user-data-dir=/home/kamau/.config/Antigravity --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file --cors-schemes=vscode-webview,vscode-file --fetch-schemes=vscode-webview,vscode-file --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,6381873815081650696,2771424041005768554,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --trace-process-track-uuid=3190709018171294360
+kamau      33644  0.0  0.0   9796  8476 pts/10   Ss+  20:10   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      33655  0.0  0.0   9796  8488 pts/11   Ss+  20:10   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+kamau      33698  5.2  1.9 4048448 310532 ?      Sl   20:10   0:27 /usr/lib/antigravity/extensions/antigravity/bin/language_server_linux_x64 --enable_lsp --extension_server_port 43441 --csrf_token 5f5a6fc2-3cc0-4781-ad83-34ce64b8a70a --random_port --workspace_id file_home_kamau_comparison --cloud_code_endpoint https://daily-cloudcode-pa.googleapis.com --app_data_dir antigravity --parent_pipe_path /tmp/server_5951bca31cfce04f
+kamau      33950  0.3  0.3 835036 57072 ?        Sl   20:10   0:01 /home/kamau/.pyenv/versions/3.13.0/bin/python /home/kamau/.antigravity/extensions/ms-python.python-2026.0.0-universal/python_files/run-jedi-language-server.py
+root       34423  0.8  0.0      0     0 ?        I    20:10   0:04 [kworker/u32:11-btrfs-endio]
+root       34424  1.5  0.0      0     0 ?        I    20:10   0:08 [kworker/u32:14-kcryptd-253:0-1]
+root       34425  1.1  0.0      0     0 ?        I    20:10   0:05 [kworker/u32:15-btrfs-endio]
+kamau      34565  0.5  0.2 1184884 32772 ?       Sl   20:10   0:02 /home/kamau/.cache/ms-playwright-go/1.50.1/node /home/kamau/.cache/ms-playwright-go/1.50.1/package/cli.js run-driver
+kamau      34650  0.5  0.5 1476359528 91128 ?    Sl   20:10   0:03 /usr/lib/electron39/electron --max-old-space-size=3072 /usr/lib/antigravity/extensions/node_modules/typescript/lib/tsserver.js --serverMode partialSemantic --useInferredProjectPerProjectRoot --disableAutomaticTypingAcquisition --cancellationPipeName /tmp/vscode-typescript1000/c0d64b9cc1b9f21fabde/tscancellation-d38f72c64b1e22f59108.tmp* --locale en --noGetErrOnBackgroundUpdate --canUseWatchEvents --validateDefaultNpmLocation --useNodeIpc
+kamau      34651  1.2  0.9 1476359656 146448 ?   Sl   20:10   0:06 /usr/lib/electron39/electron --max-old-space-size=3072 /usr/lib/antigravity/extensions/node_modules/typescript/lib/tsserver.js --useInferredProjectPerProjectRoot --enableTelemetry --cancellationPipeName /tmp/vscode-typescript1000/c0d64b9cc1b9f21fabde/tscancellation-403133f7fa4382ff63ce.tmp* --locale en --noGetErrOnBackgroundUpdate --canUseWatchEvents --validateDefaultNpmLocation --useNodeIpc
+kamau      34690  0.2  0.5 1476359588 80912 ?    Sl   20:10   0:01 /usr/lib/electron39/electron /usr/lib/antigravity/extensions/node_modules/typescript/lib/typingsInstaller.js --globalTypingsCacheLocation /home/kamau/.cache/typescript/5.9 --enableTelemetry --typesMapLocation /usr/lib/antigravity/extensions/node_modules/typescript/lib/typesMap.json --validateDefaultNpmLocation
+root       35710  0.0  0.0      0     0 ?        I    20:11   0:00 [kworker/1:0-i915-unordered]
+root       36383  1.0  0.0      0     0 ?        I    20:11   0:04 [kworker/u32:16-kcryptd-253:0-1]
+kamau      36705  0.5  0.1 1184596 30904 ?       Sl   20:11   0:02 /home/kamau/.cache/ms-playwright-go/1.50.1/node /home/kamau/.cache/ms-playwright-go/1.50.1/package/cli.js run-driver
+root       36897  0.6  0.0      0     0 ?        I    20:11   0:03 [kworker/u32:20-kcryptd-253:0-1]
+root       36898  0.7  0.0      0     0 ?        I    20:11   0:03 [kworker/u32:21-kcryptd-253:0-1]
+root       37820  0.0  0.0      0     0 ?        I    20:11   0:00 [kworker/2:2-events]
+root       39027  0.0  0.0 1731204 5360 ?        Sl   20:12   0:00 runc --log /var/lib/docker/buildkit/executor/runc-log.json --log-format json run --bundle /var/lib/docker/buildkit/executor/l6wxj899njsqgmsnstegmrbyv --keep l6wxj899njsqgmsnstegmrbyv
+root       39041  0.0  0.0   2684   432 ?        Ss   20:12   0:00 /bin/sh -c pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+root       39070  8.5  1.0 263824 172524 ?       Sl   20:12   0:32 /opt/venv/bin/python /opt/venv/bin/pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+root       41162  0.0  0.0      0     0 ?        I    20:13   0:00 [kworker/7:2-i915-unordered]
+root       41217  0.3  0.0      0     0 ?        I    20:13   0:01 [kworker/u32:23-btrfs-endio-write]
+root       41218  0.1  0.0      0     0 ?        I    20:13   0:00 [kworker/u32:24-kcryptd-253:0-1]
+root       42915  0.0  0.0      0     0 ?        I    20:14   0:00 [kworker/0:0]
+root       43041  1.5  0.0      0     0 ?        I    20:14   0:04 [kworker/u32:25-btrfs-endio]
+kamau      43295  0.0  0.0   9796  8360 pts/13   Ss   20:14   0:00 /usr/bin/bash --init-file /usr/lib/antigravity/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration-bash.sh
+root       44293  0.0  0.0      0     0 ?        I    20:14   0:00 [kworker/4:2-i915-unordered]
+root       44509  0.0  0.0 1665668 6972 ?        Sl   20:14   0:00 runc --log /var/lib/docker/buildkit/executor/runc-log.json --log-format json run --bundle /var/lib/docker/buildkit/executor/ge06365f33eudi9065lvu2rac --keep ge06365f33eudi9065lvu2rac
+root       44523  0.0  0.0   2684   440 ?        Ss   20:14   0:00 /bin/sh -c pip install --default-timeout=1000 --no-cache-dir -r requirements.txt     && pip install --default-timeout=1000 --no-cache-dir playwright structlog
+root       44543 12.2  1.0 189064 172444 ?       R    20:14   0:30 /opt/venv/bin/python /opt/venv/bin/pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+root       44734  0.0  0.0      0     0 ?        I    20:14   0:00 [kworker/7:3]
+root       45453  0.0  0.0      0     0 ?        I    20:15   0:00 [kworker/3:1-events]
+root       45454  0.0  0.0      0     0 ?        I    20:15   0:00 [kworker/3:3]
+root       46706  0.0  0.0      0     0 ?        I<   20:16   0:00 [kworker/u33:0-rb_allocator]
+root       46959  0.0  0.0  15420  5140 ?        S    20:16   0:00 systemd-userwork: waiting...
+root       46969  0.0  0.0  19864  7488 pts/5    S+   20:16   0:00 sudo systemctl status docker
+kamau      46970  0.0  0.0   5584  3864 pts/5    S+   20:16   0:00 head -10
+root       47506  0.5  0.0      0     0 ?        I    20:16   0:00 [kworker/6:0-i915-unordered]
+root       47580  0.0  0.0      0     0 ?        I    20:17   0:00 [kworker/0:3-i915-unordered]
+root       47933  0.0  0.0  15420  4888 ?        S    20:17   0:00 systemd-userwork: waiting...
+root       48069  0.0  0.0  15420  5008 ?        S    20:17   0:00 systemd-userwork: waiting...
+root       48173  0.0  0.0  19864  7508 pts/7    S+   20:17   0:00 sudo systemctl restart docker
+kamau      48325  0.0  0.0   7560  5428 pts/14   Ss+  20:17   0:00 bash -c shopt -u promptvars nullglob extglob nocaseglob dotglob; { python3 -m venv .venv_313 && .venv_313/bin/pip install --upgrade pip && .venv_313/bin/pip install -r requirements.txt; }; __code=$?; pgrep -g 0 >/tmp/shell_pgrep_ec784f45a57c.tmp 2>&1; exit $__code;
+kamau      48495 30.9  1.7 290568 280420 pts/14  R+   20:17   0:24 /home/kamau/bsopt/.venv_313/bin/python3 .venv_313/bin/pip install -r requirements.txt
+kamau      48501  0.0  0.0   7560  5604 pts/15   Ss+  20:17   0:00 bash -c shopt -u promptvars nullglob extglob nocaseglob dotglob; { bash ./scripts/start_infra.sh && sleep 2 && bash ./scripts/start_all_dev.sh --no-tail; }; __code=$?; pgrep -g 0 >/tmp/shell_pgrep_61767a8799f7.tmp 2>&1; exit $__code;
+root       48567  0.0  0.0 1235592 9172 ?        Sl   20:17   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 4c83b89c5e5696ebb813f6ab13edb5994df49408534a05118bd5d254ed586b0c -address /run/containerd/containerd.sock
+root       48598  0.0  0.0 1235336 9108 ?        Sl   20:17   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 725c2154ff887db0ae9ccc78e86ebd7d5a67696a84ef530c79c986921ad9726a -address /run/containerd/containerd.sock
+999        48621  0.9  0.0  39376  7104 ?        Ssl  20:17   0:00 redis-server *:6379
+999        48629 18.1  0.9 3202800 159972 ?      Ssl  20:17   0:13 /opt/erlang/lib/erlang/erts-14.2.5.12/bin/beam.smp -W w -MBas ageffcbf -MHas ageffcbf -MBlmbcs 512 -MHlmbcs 512 -MMmcs 30 -pc unicode -P 1048576 -t 5000000 -stbt db -zdbbl 128000 -sbwt none -sbwtdcpu none -sbwtdio none -- -root /opt/erlang/lib/erlang -bindir /opt/erlang/lib/erlang/erts-14.2.5.12/bin -progname erl -- -home /var/lib/rabbitmq -- -pa  -noshell -noinput -s rabbit boot -boot start_sasl -syslog logger [] -syslog syslog_error_logger false -kernel prevent_overlapping_partitions false
+root       48647  0.0  0.0 1235336 9256 ?        Sl   20:17   0:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 5f6717088af34192876b9efb89a655ac5c8c3fc4ff167394468001cac806e7ff -address /run/containerd/containerd.sock
+70         48670  0.2  0.1 172724 23532 ?        Ss   20:17   0:00 postgres
+root       48705  0.0  0.0      0     0 ?        I    20:17   0:00 [kworker/1:2]
+root       48739  0.0  0.0 1418660 2752 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5672 -container-ip 172.18.0.2 -container-port 5672 -use-listen-fd
+root       48748  0.0  0.0 1484452 2768 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5672 -container-ip 172.18.0.2 -container-port 5672 -use-listen-fd
+root       48763  0.0  0.0 1410720 2796 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 15672 -container-ip 172.18.0.2 -container-port 15672 -use-listen-fd
+root       48769  0.0  0.0 1410720 2816 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 15672 -container-ip 172.18.0.2 -container-port 15672 -use-listen-fd
+root       48784  0.0  0.0 1484196 2712 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 6379 -container-ip 172.18.0.3 -container-port 6379 -use-listen-fd
+root       48790  0.0  0.0 1418916 2876 ?        Sl   20:17   0:00 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 6379 -container-ip 172.18.0.3 -container-port 6379 -use-listen-fd
+70         48883  0.0  0.0 172832  5044 ?        Ss   20:17   0:00 postgres: checkpointer 
+70         48884  0.0  0.0 172836  5832 ?        Ss   20:17   0:00 postgres: background writer 
+999        48889  0.0  0.0   2692  1728 ?        Ss   20:17   0:00 erl_child_setup 1024
+70         48890  0.0  0.0 172804  9220 ?        Ss   20:17   0:00 postgres: walwriter 
+70         48891  0.0  0.0 174376  7568 ?        Ss   20:17   0:00 postgres: autovacuum launcher 
+70         48892  0.0  0.0 174340  6896 ?        Ss   20:17   0:00 postgres: logical replication launcher 
+999        48923  0.0  0.0   2808  1940 ?        Ss   20:17   0:00 sh -s disksup
+999        48925  0.0  0.0   2556  1504 ?        Ss   20:17   0:00 /opt/erlang/lib/erlang/lib/os_mon-2.9.1/priv/bin/memsup
+999        48926  0.0  0.0   2688  1456 ?        Ss   20:17   0:00 /opt/erlang/lib/erlang/lib/os_mon-2.9.1/priv/bin/cpu_sup
+kamau      48927  0.0  0.0   7692  5692 pts/15   S+   20:17   0:00 bash ./scripts/start_all_dev.sh --no-tail
+999        49036  0.0  0.0   3656  1800 ?        Ss   20:17   0:00 /opt/erlang/lib/erlang/erts-14.2.5.12/bin/inet_gethost 4
+999        49037  0.0  0.0   3656  1496 ?        S    20:17   0:00 /opt/erlang/lib/erlang/erts-14.2.5.12/bin/inet_gethost 4
+999        49052  0.0  0.0   3660  1072 ?        S    20:17   0:00 /opt/erlang/lib/erlang/erts-14.2.5.12/bin/epmd -daemon
+999        49735  0.0  0.0   2808  1824 ?        Ss   20:17   0:00 /bin/sh -s rabbit_disk_monitor
+kamau      50370  0.0  0.0   7560  5512 pts/9    S+   20:18   0:00 bash cleanup_rick.sh
+kamau      50376  1.5  0.3 733208 63516 pts/15   Sl+  20:18   0:00 /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/core/src/ray/gcs/gcs_server --log_dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --config_list=eyJvYmplY3Rfc3BpbGxpbmdfY29uZmlnIjogIntcInR5cGVcIjogXCJmaWxlc3lzdGVtXCIsIFwicGFyYW1zXCI6IHtcImRpcmVjdG9yeV9wYXRoXCI6IFwiL3RtcC9yYXkvc2Vzc2lvbl8yMDI2LTAyLTEwXzIwLTE4LTE4XzUwMTU0MF81MDI3MVwifX0iLCAiaXNfZXh0ZXJuYWxfc3RvcmFnZV90eXBlX2ZzIjogdHJ1ZX0= --gcs_server_port=6380 --metrics-agent-port=33975 --node-ip-address=10.100.63.155 --session-name=session_2026-02-10_20-18-18_501540_50271 --ray-commit=0de211850589aea71f842873bc32574c702ab492 --stdout_filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/gcs_server.out --stderr_filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/gcs_server.err
+kamau      50429  3.3  0.5 563752 87124 pts/15   Sl+  20:18   0:01 /home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/autoscaler/_private/monitor.py --logs-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --gcs-address=10.100.63.155:6380 --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/monitor.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/monitor.err --monitor-ip=10.100.63.155
+kamau      50430  5.4  0.5 675972 90672 pts/15   Sl+  20:18   0:02 /home/kamau/.pyenv/versions/3.13.0/bin/python3 -m ray.util.client.server --address=10.100.63.155:6380 --host=10.100.63.155 --port=10001 --mode=proxy --runtime-env-agent-address=http://10.100.63.155:62499
+kamau      50431  6.3  0.7 613760 121876 pts/15  Sl+  20:18   0:02 /home/kamau/.pyenv/versions/3.13.0/bin/python3 /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/dashboard/dashboard.py --host=127.0.0.1 --port=8265 --port-retries=0 --temp-dir=/tmp/ray --log-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --session-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --gcs-address=10.100.63.155:6380 --cluster-id-hex=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --node-ip-address=10.100.63.155 --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard.err --modules-to-load=UsageStatsHead --disable-frontend
+kamau      50549  4.1  0.5 526224 84792 pts/15   Sl+  20:18   0:01 /home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/log_monitor.py --session-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --logs-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --gcs-address=10.100.63.155:6380 --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/log_monitor.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/log_monitor.err
+kamau      50550  1.1  0.1 1383648 22988 pts/15  Sl+  20:18   0:00 /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/core/src/ray/raylet/raylet --raylet_socket_name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/raylet --store_socket_name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/plasma_store --object_manager_port=0 --min_worker_port=10002 --max_worker_port=19999 --node_manager_port=0 --node_id=13d20f95003562c359200a52dddcf86855bbded2266dd8765e9205dc --node_ip_address=10.100.63.155 --maximum_startup_concurrency=2 --static_resource_list=node:10.100.63.155,1.0,node:__internal_head__,1.0,CPU,2,memory,1461930804,object_store_memory,626541772 --python_worker_command=/home/kamau/.pyenv/versions/3.13.0/bin/python3 /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/workers/setup_worker.py /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/workers/default_worker.py --node-ip-address=10.100.63.155 --node-manager-port=RAY_NODE_MANAGER_PORT_PLACEHOLDER --object-store-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/plasma_store --raylet-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/raylet --redis-address=None --metrics-agent-port=33975 --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --runtime-env-agent-port=62499 --gcs-address=10.100.63.155:6380 --session-name=session_2026-02-10_20-18-18_501540_50271 --temp-dir=/tmp/ray --webui= --cluster-id=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 RAY_WORKER_DYNAMIC_OPTION_PLACEHOLDER --java_worker_command=/home/kamau/.pyenv/versions/3.13.0/bin/python3 /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/workers/setup_worker.py -Dray.address=10.100.63.155:6380 -Dray.raylet.node-manager-port=RAY_NODE_MANAGER_PORT_PLACEHOLDER -Dray.object-store.socket-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/plasma_store -Dray.raylet.socket-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/raylet -Dray.redis.username= -Dray.redis.password= -Dray.node-ip=10.100.63.155 -Dray.home=/home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/../.. -Dray.logging.dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs -Dray.session-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 RAY_WORKER_DYNAMIC_OPTION_PLACEHOLDER io.ray.runtime.runner.worker.DefaultWorker --cpp_worker_command= --native_library_path=/home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/cpp/lib --temp_dir=/tmp/ray --session_dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --log_dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --resource_dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/runtime_resources --metrics-agent-port=33975 --metrics_export_port=61868 --runtime_env_agent_port=62499 --object_store_memory=626541772 --plasma_directory=/dev/shm --fallback_directory=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --ray-debugger-external=0 --gcs-address=10.100.63.155:6380 --session-name=session_2026-02-10_20-18-18_501540_50271 --labels= --cluster-id=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --stdout_filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/raylet.out --stderr_filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/raylet.err --head --num_prestart_python_workers=2 --dashboard_agent_command=/home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/dashboard/agent.py --node-ip-address=10.100.63.155 --metrics-export-port=61868 --grpc-port=33975 --listen-port=52365 --node-manager-port=RAY_NODE_MANAGER_PORT_PLACEHOLDER --object-store-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/plasma_store --raylet-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/raylet --temp-dir=/tmp/ray --session-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --log-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --session-name=session_2026-02-10_20-18-18_501540_50271 --gcs-address=10.100.63.155:6380 --cluster-id-hex=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard_agent.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard_agent.err --runtime_env_agent_command=/home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/runtime_env/agent/main.py --node-ip-address=10.100.63.155 --runtime-env-agent-port=62499 --gcs-address=10.100.63.155:6380 --cluster-id-hex=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --runtime-env-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/runtime_resources --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --log-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --temp-dir=/tmp/ray --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/runtime_env_agent.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/runtime_env_agent.err
+kamau      50582  8.3  0.7 3069104 124840 pts/15 Sl+  20:18   0:03 /home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/dashboard/agent.py --node-ip-address=10.100.63.155 --metrics-export-port=61868 --grpc-port=33975 --listen-port=52365 --node-manager-port=46637 --object-store-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/plasma_store --raylet-name=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/sockets/raylet --temp-dir=/tmp/ray --session-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271 --log-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --session-name=session_2026-02-10_20-18-18_501540_50271 --gcs-address=10.100.63.155:6380 --cluster-id-hex=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard_agent.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/dashboard_agent.err
+kamau      50584  3.8  0.5 1679936 83616 pts/15  Sl+  20:18   0:01 /home/kamau/.pyenv/versions/3.13.0/bin/python3 -u /home/kamau/.pyenv/versions/3.13.0/lib/python3.13/site-packages/ray/_private/runtime_env/agent/main.py --node-ip-address=10.100.63.155 --runtime-env-agent-port=62499 --gcs-address=10.100.63.155:6380 --cluster-id-hex=631ed3bc7a39575d634c8d00929343c3ef2b5e5174e3f4fa76348ea1 --runtime-env-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/runtime_resources --logging-rotate-bytes=536870912 --logging-rotate-backup-count=5 --log-dir=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs --temp-dir=/tmp/ray --stdout-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/runtime_env_agent.out --stderr-filepath=/tmp/ray/session_2026-02-10_20-18-18_501540_50271/logs/runtime_env_agent.err
+kamau      50647  0.0  0.0   7564  5608 pts/15   S+   20:18   0:00 /bin/bash ./scripts/start_auth.sh
+kamau      50649  0.0  0.0   7564  5532 pts/15   S+   20:18   0:00 /bin/bash ./scripts/start_frontend.sh
+kamau      50661  0.9  0.4 1548708 67476 pts/15  Sl+  20:18   0:00 npm run dev
+kamau      50662  0.9  0.4 1548400 67348 pts/15  Sl+  20:18   0:00 npm run dev
+kamau      50719  4.5  0.5 12403652 96244 pts/15 Sl+  20:18   0:01 node /home/kamau/bsopt/src/frontend/node_modules/.bin/vite
+kamau      50725  2.1  0.5 1491224 83752 pts/15  Sl+  20:18   0:00 node /home/kamau/bsopt/src/auth-service/node_modules/.bin/tsx watch src/index.ts
+kamau      50752 17.3  1.4 28564372 227572 pts/15 Sl+ 20:18   0:06 /home/kamau/.local/share/mise/installs/node/25.2.1/bin/node --require /home/kamau/bsopt/src/auth-service/node_modules/tsx/dist/preflight.cjs --import file:///home/kamau/bsopt/src/auth-service/node_modules/tsx/dist/loader.mjs src/index.ts
+kamau      50813  0.1  0.0 1236688 12008 pts/15  Sl+  20:18   0:00 /home/kamau/bsopt/src/auth-service/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.2 --ping
+kamau      50821  5.9  0.1 1239376 17252 pts/15  Sl+  20:18   0:02 /home/kamau/bsopt/src/auth-service/node_modules/@esbuild/linux-x64/bin/esbuild --service=0.27.2 --ping
+root       51037  1.2  0.0      0     0 ?        I    20:18   0:00 [kworker/u32:26-flush-btrfs-1]
+kamau      51570 24.1  0.0  13620 11220 pts/9    D+   20:18   0:01 grep -rIZl The God-Mode Financial Manifold . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=__pycache__ --exclude-dir=.gemini --exclude-dir=venv --exclude-dir=env --exclude-dir=.venv --exclude-dir=.venv_rick_312 --exclude=cleanup_rick.sh
+kamau      51571  0.0  0.0   5864  3924 pts/9    S+   20:18   0:00 xargs -0 sed -i s/The God-Mode Financial Manifold/High-Performance Financial Engine/g
+kamau      51622  2.2  0.1  35664 28252 ?        S    20:19   0:00 git fetch
+kamau      51623  0.0  0.0  10964  5400 ?        S    20:19   0:00 /usr/lib/git-core/git remote-https origin https://github.com/SJOSKA2211/bsopt.git
+kamau      51624  3.0  0.0  98372 15552 ?        S    20:19   0:00 /usr/lib/git-core/git-remote-https origin https://github.com/SJOSKA2211/bsopt.git
+kamau      51629  0.0  0.0   5600  3948 pts/15   S+   20:19   0:00 sleep 2
+root       51630  0.0  0.0      0     0 ?        I    20:19   0:00 [kworker/5:2]
+kamau      51640  400  0.0  11164  7424 pts/13   R+   20:19   0:00 ps aux

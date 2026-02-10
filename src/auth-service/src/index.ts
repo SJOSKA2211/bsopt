@@ -6,7 +6,7 @@ import { auth } from './auth'
 export const app = new Hono()
 
 // Health check
-app.get('/', (c) => c.text('Better Auth Service Running 🥒'))
+app.get('/', (c) => c.text('Better Auth Service Running '))
 
 // OpenAPI Schema
 app.get('/openapi.json', async (c) => {

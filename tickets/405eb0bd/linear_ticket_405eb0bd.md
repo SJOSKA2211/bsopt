@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, evaluation]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Implement strict metric calculation in `src/ml/evaluation/metrics.py` (RMSE, MAP
 
 # Discussion/Comments
 
-- 2026-02-07 Pickle Rick: Implemented `calculate_regression_metrics` with weighted RMSE, `calculate_pricing_bias`, `calculate_sharpe_ratio`, and `calculate_max_drawdown`.
+- 2026-02-07 Joseph Kamau Maina: Implemented `calculate_regression_metrics` with weighted RMSE, `calculate_pricing_bias`, `calculate_sharpe_ratio`, and `calculate_max_drawdown`.

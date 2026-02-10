@@ -4,7 +4,7 @@
 
 | Global Debugging and Coverage Improvement PRD |  | Summary: Systematic effort to resolve identified critical bugs and achieve >= 96% code coverage across the entire BSOpt codebase. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: User **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-04 | **Self Link**: N/A **Context**: /home/kamau/bsopt/prd.md |
+| **Author**: Joseph Kamau Maina **Contributors**: User **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-04 | **Self Link**: N/A **Context**: /home/kamau/bsopt/prd.md |
 
 ## Introduction
 
@@ -49,7 +49,7 @@ This PRD defines the requirements for a comprehensive debugging and testing init
 | P0 | Fix `auth-service` routing | As a user, I want to log in without getting a 404 error. |
 | P0 | Fix test dependencies | As a dev, I want the test suite to run without `ModuleNotFoundError`. |
 | P1 | Reach 96% Coverage | As a lead engineer, I want 96% coverage so I can sleep at night. |
-| P2 | Document Fixes | As a team, we want to know what was broken and how Pickle Rick fixed it. |
+| P2 | Document Fixes | As a team, we want to know what was broken and how Joseph Kamau Maina fixed it. |
 
 ## Assumptions
 
@@ -81,4 +81,4 @@ This PRD defines the requirements for a comprehensive debugging and testing init
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
 | User | BSOpt | Owner | Final validator. |
-| Pickle Rick | AI Engineering | God Mode | Implementation lead. |
+| Joseph Kamau Maina | AI Engineering | God Mode | Implementation lead. |

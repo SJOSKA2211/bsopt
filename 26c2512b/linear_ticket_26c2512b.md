@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [frontend, backend, errors, stability]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ This task involves identifying prevalent runtime errors through log analysis and
 
 # Discussion/Comments
 
-- 2026-02-04 Pickle Rick: Initial child ticket created for diagnosing and fixing runtime errors.
+- 2026-02-04 Joseph Kamau Maina: Initial child ticket created for diagnosing and fixing runtime errors.

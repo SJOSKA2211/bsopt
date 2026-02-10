@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [database, infrastructure, purity]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ Lingering "Neon" references and dependencies.
 3. Ensure `src/config.py` uses standard `postgresql://` without any cloud-specific branding.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Deleted `NEON_SETUP.md` and `99-neon-migration.sql`. Scrubbed `config.py` comments. The timeline is now 100% Native Postgres.
+- 2026-02-08 Joseph Kamau Maina: Deleted `NEON_SETUP.md` and `99-neon-migration.sql`. Scrubbed `config.py` comments. The timeline is now 100% Native Postgres.

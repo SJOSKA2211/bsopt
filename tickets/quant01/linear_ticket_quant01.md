@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [quantum, qiskit, phase4]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

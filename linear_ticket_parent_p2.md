@@ -10,7 +10,7 @@ links:
   - url: prd.md
     title: PRD
 labels: [epic, meta]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 # Description
 ## Problem to solve

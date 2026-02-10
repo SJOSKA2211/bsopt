@@ -14,7 +14,7 @@ links:
   - url: ./c4d5e6f7/linear_ticket_c4d5e6f7.md
     title: Related Ticket: Fix Bugs
 labels: coverage, testing, implementation
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -27,7 +27,7 @@ Write new unit and/or integration tests to increase the code coverage for target
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Ticket to implement tests to reach >= 96% coverage. Assumes research phase has identified target areas.
+- 2026-02-03 Joseph Kamau Maina: Ticket to implement tests to reach >= 96% coverage. Assumes research phase has identified target areas.
 - Linked to parent ticket: epic_debugging_coverage_parent.md
 - Linked to research ticket: f8e2a1b9
 - Related to bug fixing ticket: c4d5e6f7

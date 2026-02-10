@@ -4,7 +4,7 @@
 
 | Debugging and Coverage Improvement PRD |  | This PRD outlines the process for identifying and resolving bugs within the codebase, with a specific goal of achieving a minimum of 96% test coverage across the relevant modules. The objective is to enhance code quality, stability, and maintainability. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: [User] **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Link] **Context**: [Link] [**Visibility**](http://go/data-security-policy#data-classification): Need to know |
+| **Author**: Joseph Kamau Maina **Contributors**: [User] **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Link] **Context**: [Link] [**Visibility**](http://go/data-security-policy#data-classification): Need to know |
 
 ## Introduction
 
@@ -89,4 +89,4 @@ This document defines the requirements for a focused debugging effort aimed at r
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
 | [User] | [User's Team] | Requester | Will provide context and validation. |
-| Pickle Rick | AI Engineering | Implementation | Will drive the process, research, plan, and implement. |
+| Joseph Kamau Maina | AI Engineering | Implementation | Will drive the process, research, plan, and implement. |

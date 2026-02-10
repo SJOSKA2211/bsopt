@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [mlops, mlflow, postgres, refactor]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -29,4 +29,4 @@ MLflow is logging to local sqlite/files because `src/config.py` forces sqlite in
 3.  **Verify**: Ensure `train_all.py` runs without error (mocking the DB connection if needed, but the code change is the priority).
 
 # Discussion
-- 2026-02-08 Pickle Rick: Fixed. Config now returns postgres URI always. Pipeline enforces it. Neon references purged.
+- 2026-02-08 Joseph Kamau Maina: Fixed. Config now returns postgres URI always. Pipeline enforces it. Neon references purged.

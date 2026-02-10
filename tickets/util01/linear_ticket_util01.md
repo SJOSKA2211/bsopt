@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [utils, cleanup, performance]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ assignee: Pickle Rick
 2. Verified logic.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified clean.
+- 2026-02-09 Joseph Kamau Maina: Verified clean.

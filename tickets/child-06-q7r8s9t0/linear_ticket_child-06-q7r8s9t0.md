@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent-b17f8a9e.md
     title: Parent Ticket
 labels: [docker, frontend, debugging, source-maps, remote-debug]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Implement and configure source map generation for the `src/frontend` application
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for configuring frontend debugging (source maps and remote debugging) as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for configuring frontend debugging (source maps and remote debugging) as per the PRD.

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [observability, monitoring, logging]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ This task involves enhancing the application's logging mechanisms to capture mor
 
 # Discussion/Comments
 
-- 2026-02-04 Pickle Rick: Initial child ticket created for implementing enhanced logging and monitoring.
+- 2026-02-04 Joseph Kamau Maina: Initial child ticket created for implementing enhanced logging and monitoring.

@@ -14,7 +14,7 @@ links:
   - url: 63662017/plan_2026-02-03.md
     title: Python Virtual Environment Setup Implementation Plan
 labels: [environment, setup]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -31,5 +31,5 @@ This ticket covers the concrete steps to establish the virtual environment:
 This solution ensures that `bsopt` has its own clean dependency set, leading to a more stable and reproducible development and deployment process.
 
 # Discussion/Comments
-- 2026-02-03 Pickle Rick: Created child ticket for virtual environment setup.
-- 2026-02-03 Pickle Rick: Research completed. Key findings include confirmed presence of `requirements.txt` and documented standard commands for `venv` creation, activation, and dependency installation.
+- 2026-02-03 Joseph Kamau Maina: Created child ticket for virtual environment setup.
+- 2026-02-03 Joseph Kamau Maina: Research completed. Key findings include confirmed presence of `requirements.txt` and documented standard commands for `venv` creation, activation, and dependency installation.

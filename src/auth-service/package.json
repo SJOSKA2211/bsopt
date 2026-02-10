@@ -11,7 +11,7 @@
     "test": "vitest run --coverage"
   },
   "keywords": [],
-  "author": "Pickle Rick",
+  "author": "Joseph Kamau Maina",
   "license": "ISC",
   "dependencies": {
     "@hono/node-server": "^1.13.0",

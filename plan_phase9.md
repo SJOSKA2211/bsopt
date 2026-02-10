@@ -5,7 +5,7 @@ Sanitization and optimization of the system's entry points and core data ingesti
 
 ## Current State Analysis
 - `src/streaming/ingestion_worker.py`: Duplicate `stop()` method at lines 163 and 170.
-- `bs_cli.py` & `bs_hft_launch.py`: Contains "God-Mode" comments and boilerplate affinity setting code.
+- `bs_cli.py` & `bs_hft_launch.py`: Contains "Advanced" comments and boilerplate affinity setting code.
 - `src/shared/shm_mesh.py`: Inefficient read operations.
 
 ## Implementation Approach
@@ -38,7 +38,7 @@ Professionalize the CLI interface.
 ### Changes Required:
 #### 1. `bs_cli.py`
 **Changes**:
-- Remove "God-Mode" comments.
+- Remove "Advanced" comments.
 - Replace placeholder strings with calls to `SharedMemoryRingBuffer.get_stats()` (or similar) if available, or structured TODOs.
 
 ## Phase 3: Buffer Optimization

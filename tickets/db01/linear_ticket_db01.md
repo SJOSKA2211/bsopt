@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [database, postgres, optimization]
-assignee: Morty
+assignee: The User
 ---
 
 # Description

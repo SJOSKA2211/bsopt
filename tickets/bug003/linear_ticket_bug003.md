@@ -10,7 +10,7 @@ links:
   - url: ../../linear_ticket_parent.md
     title: Parent Ticket
 labels: bug, testing, python, auth-service
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

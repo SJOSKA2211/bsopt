@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [security, cleanup]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ assignee: Pickle Rick
 2. Cleaned up `WASMOPAEnforcer` (renamed from `OPAWASMEnforcer`).
 
 # Discussion
-- 2026-02-09 Pickle Rick: Renamed enforcer and cleaned up comments.
+- 2026-02-09 Joseph Kamau Maina: Renamed enforcer and cleaned up comments.

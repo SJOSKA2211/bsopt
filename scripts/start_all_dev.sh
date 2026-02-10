@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🥒 Pickle Rick's Dev Stack Launcher 🥒"
+echo " Joseph Kamau Maina's Dev Stack Launcher "
 
 # Project root (in case script is run from scripts/ dir)
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -56,7 +56,7 @@ fi
 DOCKER_COMPOSE="docker compose -f docker-compose.dev.yml"
 RUNNING_SERVICES=$($DOCKER_COMPOSE ps --services --filter "status=running")
 if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]] || [[ ! $RUNNING_SERVICES =~ "rabbitmq" ]]; then
-    echo "🥒 Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
+    echo " Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
     $DOCKER_COMPOSE up -d --no-recreate postgres redis rabbitmq
 fi
 
@@ -170,7 +170,7 @@ else
 fi
 
 if [ "$NO_TAIL" = true ]; then
-    echo "🥒 Services are running in background. Use 'docker compose logs -f' to tail."
+    echo " Services are running in background. Use 'docker compose logs -f' to tail."
     exit 0
 fi
 

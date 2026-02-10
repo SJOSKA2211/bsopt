@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting API (Local)..."
+echo " Starting API (Local)..."
 
 # Suppress Ray and Unstable API warnings
 export RAY_IGNORE_UNSTABLE_API_WARNING=1

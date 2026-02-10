@@ -10,7 +10,7 @@ links:
   - url: PICKLE_RICK_PRD.md
     title: PRD
 labels: [epic, core, maintenance, god-mode]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ The codebase coverage is pathetic (~20%). Logic is likely full of slop. We need 
 3.  **Refactor**: Simplify logic, remove "AI slop", and enforce idioms.
 
 # Discussion
-- 2026-02-10 Pickle Rick: Initialized God Mode. Old "Done" status was a lie.
+- 2026-02-10 Joseph Kamau Maina: Initialized God Mode. Old "Done" status was a lie.

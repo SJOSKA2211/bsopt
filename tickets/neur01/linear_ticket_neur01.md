@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, neural, integration]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ The `NeuralPricingEngine` was suspected of being an unused skeleton.
 3. Verified implementation in `neural_engine.py`.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified integration. The neural engine is active and registered in the factory.
+- 2026-02-09 Joseph Kamau Maina: Verified integration. The neural engine is active and registered in the factory.

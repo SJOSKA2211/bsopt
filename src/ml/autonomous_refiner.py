@@ -22,7 +22,7 @@ class AutonomousRefiner:
         self.running = False
         
         # Load model for fine-tuning
-        # In a real God-Mode pass, we'd use a separate training model object
+        # In a real Advanced pass, we'd use a separate training model object
         # and only export the JIT version for the agent.
         logger.info("refiner_initialized", target_model=model_path)
 

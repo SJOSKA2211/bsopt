@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent-b17f8a9e.md
     title: Parent Ticket
 labels: [documentation, dev-env, onboarding]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Create detailed documentation and step-by-step instructions for setting up, conf
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for documenting the containerized development environment setup as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for documenting the containerized development environment setup as per the PRD.

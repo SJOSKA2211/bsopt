@@ -12,7 +12,7 @@ logger = structlog.get_logger(__name__)
 
 class EternalLedger:
     """
-    God-Mode Zero-Copy Binary Persistence.
+    Advanced Zero-Copy Binary Persistence.
     Writes raw SHM ticks directly to a memory-mapped flat file.
     Designed for sub-microsecond logging.
     """
@@ -45,7 +45,7 @@ class EternalLedger:
                 self._offset = 0
             
             # For the ledger, we want the raw bytes. 
-            # In a real God-Mode pass, we'd copy directly from SHM memory addresses.
+            # In a real Advanced pass, we'd copy directly from SHM memory addresses.
             # Here we pack the dict back to bytes (until we implement raw SHM copy).
             try:
                 # 8s d q d q

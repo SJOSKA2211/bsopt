@@ -28,7 +28,7 @@ def compare_models(model_name, challenger_run_id, champion_stage="Production"):
     logger.info("challenger_metrics_loaded", rmse=challenger_rmse)
 
     # 3. Decision Logic (Advanced Financial Decisioning)
-    # Don't just check RMSE, Morty! Check if the model actually makes money.
+    # Don't just check RMSE, The User! Check if the model actually makes money.
     
     challenger_sharpe = challenger_run.data.metrics.get("sharpe_ratio", 0.0)
     champion_sharpe = champion_run.data.metrics.get("sharpe_ratio", 0.0)

@@ -1,7 +1,7 @@
 ---
 id: cov0002
 title: Coverage Injection
-status: Triage
+status: In Dev
 priority: High
 project: bsopt
 created: 2026-02-10
@@ -16,13 +16,11 @@ assignee: Pickle Rick
 # Description
 
 ## Problem to solve
-Coverage is likely below 97%. We need to systematically add tests for uncovered paths.
+Coverage is at 11.14%. `aiops/` is at 0%. We need to inject tests.
 
 ## Solution
-1.  Analyze `coverage.xml` / report.
-2.  Identify files with low coverage.
-3.  Write robust unit/integration tests for those files.
-4.  Repeat until total coverage >= 97%.
+Targeting `aiops/drift_detector.py` first.
 
 # Tasks
-- [ ] Achieve 97% coverage.
+- [ ] Write unit tests for `aiops/drift_detector.py`.
+- [ ] Verify coverage increase for `aiops/`.

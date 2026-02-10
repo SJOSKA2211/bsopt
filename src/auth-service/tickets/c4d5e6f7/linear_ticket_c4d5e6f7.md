@@ -12,7 +12,7 @@ links:
   - url: ./f8e2a1b9/linear_ticket_f8e2a1b9.md
     title: Preceding Ticket: Research
 labels: debugging, bug, fix
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -25,6 +25,6 @@ Implement fixes for the identified critical bugs, ensuring that the fixes addres
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Ticket to address critical bugs found during research. Assumes research phase has identified specific issues.
+- 2026-02-03 Joseph Kamau Maina: Ticket to address critical bugs found during research. Assumes research phase has identified specific issues.
 - Linked to parent ticket: epic_debugging_coverage_parent.md
 - Linked to research ticket: f8e2a1b9

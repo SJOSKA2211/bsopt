@@ -6,7 +6,7 @@ from src.config import get_settings
 
 
 def verify_connection():
-    print("🥒 BSOpt Database Verification Tool")
+    print(" BSOpt Database Verification Tool")
     print("-----------------------------------")
     
     try:

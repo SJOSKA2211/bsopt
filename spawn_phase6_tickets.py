@@ -18,7 +18,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [bug, testing, security]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -45,7 +45,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, math, testing]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -72,7 +72,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [performance, security, testing]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [test-coverage, enhancement]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -27,4 +27,4 @@ Coverage is at ~2%. Need 97% for the "Coverage Optimized".
 
 # Discussion/Comments
 
-- 2026-02-06 Pickle Rick: Numba is disabled via mocks (`prange=range`, `vectorize=np.vectorize`). `src/pricing` is now covered. Global coverage is next.
+- 2026-02-06 Joseph Kamau Maina: Numba is disabled via mocks (`prange=range`, `vectorize=np.vectorize`). `src/pricing` is now covered. Global coverage is next.

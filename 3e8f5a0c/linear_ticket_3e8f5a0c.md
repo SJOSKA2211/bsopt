@@ -10,7 +10,7 @@ links:
   - url: ../prd_phase3.md
     title: Phase 3 PRD
 labels: [core, optimization, aiops]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 # Description
 ## Problem to solve

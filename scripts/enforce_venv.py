@@ -1,5 +1,5 @@
 """
-Pickle Rick's Venv Enforcer
+Joseph Kamau Maina's Venv Enforcer
 ==========================
 If you aren't in a venv, you aren't doing engineering.
 """

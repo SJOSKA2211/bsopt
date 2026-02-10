@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [backend, performance, data-processing]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ This task focuses on identifying and optimizing performance bottlenecks within t
 
 # Discussion/Comments
 
-- 2026-02-04 Pickle Rick: Initial child ticket created for optimizing data processing performance.
+- 2026-02-04 Joseph Kamau Maina: Initial child ticket created for optimizing data processing performance.

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [pricing, exotic, cleanup]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ assignee: Pickle Rick
 Removed "OPTIMIZED" and other fluff.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified `src/pricing/exotic.py` is clean.
+- 2026-02-09 Joseph Kamau Maina: Verified `src/pricing/exotic.py` is clean.

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent-b17f8a9e.md
     title: Parent Ticket
 labels: [docker, network, inter-service]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Establish a custom Docker bridge network to facilitate seamless communication be
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for configuring the Docker network as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for configuring the Docker network as per the PRD.

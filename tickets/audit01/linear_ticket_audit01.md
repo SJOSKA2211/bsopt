@@ -12,7 +12,7 @@ links:
   - url: STRATEGY.md
     title: Audit Strategy
 labels: [audit, discovery]
-assignee: Morty
+assignee: The User
 ---
 
 # Description
@@ -27,4 +27,4 @@ We need to understand the current state of the codebase, every function, and ide
 4. Output a `STRATEGY.md` document.
 
 # Discussion/Comments
-- 2026-02-06 Pickle Rick: Audit complete. `STRATEGY.md` generated. Found lack of Numba JIT in pricing engine and "Optimized" slop in ML.
+- 2026-02-06 Joseph Kamau Maina: Audit complete. `STRATEGY.md` generated. Found lack of Numba JIT in pricing engine and "Optimized" slop in ML.

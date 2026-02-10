@@ -18,7 +18,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [performance, gateway]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -45,7 +45,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [performance, wasm, rust]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

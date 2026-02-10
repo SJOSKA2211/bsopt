@@ -4,7 +4,7 @@
 
 | Test Debugging and Coverage Improvement |  | Summary: Improve the test suite of the authentication service to achieve a minimum of 96% code coverage, ensuring stability and reliability. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Gemini CLI **Intended audience**: Engineering, QA | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Link] **Context**: [Link] **Visibility**: Need to know |
+| **Author**: Joseph Kamau Maina **Contributors**: Gemini CLI **Intended audience**: Engineering, QA | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Link] **Context**: [Link] **Visibility**: Need to know |
 
 ## Introduction
 

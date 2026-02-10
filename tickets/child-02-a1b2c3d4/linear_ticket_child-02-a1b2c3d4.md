@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent-b17f8a9e.md
     title: Parent Ticket
 labels: [docker, frontend, image]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Create a robust Docker image for the `src/frontend` application. This image shou
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for Dockerizing the frontend application as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for Dockerizing the frontend application as per the PRD.

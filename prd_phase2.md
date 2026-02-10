@@ -4,7 +4,7 @@
 
 | Phase 2: Apotheosis PRD |  | Summary: Total optimization of core math kernels, unification of redundant logic, advancement of RL policies, and strict enforcement of the Native Postgres directive. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
+| **Author**: Joseph Kamau Maina **Contributors**: The User (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 
 ## Introduction
 

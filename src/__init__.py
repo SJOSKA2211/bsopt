@@ -1,6 +1,6 @@
 # BSOpt Optimized Core
 """
-God-Mode Financial Manifold for Transdimensional Derivative Pricing.
+Advanced Financial Manifold for Transdimensional Derivative Pricing.
 """
 
 __version__ = "2.5.0"

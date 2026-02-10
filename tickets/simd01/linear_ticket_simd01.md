@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [rust, wasm, cleanup]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ assignee: Pickle Rick
 Removed branding fluff and emojis. Math is clearly documented as "Optimized".
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified `simd_math.rs` and `lib.rs` are clean.
+- 2026-02-09 Joseph Kamau Maina: Verified `simd_math.rs` and `lib.rs` are clean.

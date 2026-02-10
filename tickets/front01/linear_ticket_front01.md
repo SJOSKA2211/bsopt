@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [frontend, wasm, optimization]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ assignee: Pickle Rick
 3. Verified switch-case logic is clean.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Audited frontend pricing worker. It's efficient and professional.
+- 2026-02-09 Joseph Kamau Maina: Audited frontend pricing worker. It's efficient and professional.

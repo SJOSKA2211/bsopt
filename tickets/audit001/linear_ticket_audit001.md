@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [optimization, vectorization]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ Codebase contains potential "slop" (inefficient loops, non-vectorized operations
 Audit `src/ml` and `src/models`. Identify loops that can be replaced with Numba/Numpy vectorization. Refactor at least 3 critical paths.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Vectorized `src/pricing/lattice.py` (Binomial/Trinomial kernels). Added quantization to `tft_model.py`.
+- 2026-02-08 Joseph Kamau Maina: Vectorized `src/pricing/lattice.py` (Binomial/Trinomial kernels). Added quantization to `tft_model.py`.

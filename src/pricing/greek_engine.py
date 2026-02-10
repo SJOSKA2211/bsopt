@@ -47,7 +47,7 @@ class GreekEngine:
                     price = float(tick['price'])
                     
                     #  VECTORIZED MATH: Calculate Greeks for this ticker
-                    # In a true God-Mode pass, we'd do the entire surface at once
+                    # In a true Advanced pass, we'd do the entire surface at once
                     params = BSParameters(S=price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                     g = self.engine.calculate_greeks(params)
                     

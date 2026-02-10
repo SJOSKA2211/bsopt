@@ -48,7 +48,7 @@ MOCK_IF_MISSING = [
     "strawberry", "strawberry.types", "strawberry.fastapi", "strawberry.permission", "strawberry.types.info", "graphql",
 ]
 
-# Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in God-Mode venv
+# Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in Advanced venv
 
 heavy_prefixes = ["faker", "mlflow", "stable_baselines3", "xgboost", "confluent_kafka", "lightning", "prefect", "dask", "cvxopt", "cvxpy", "flwr", "pytorch_forecasting", "onnxruntime", "ray.tune", "ray.air", "strawberry"]
 

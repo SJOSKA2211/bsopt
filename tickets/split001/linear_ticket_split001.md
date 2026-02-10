@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, validation, leakage]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ Random shuffling in `train_test_split` causes temporal data leakage, invalidatin
 Refactor `src/ml/trainer.py` to use strict sequential slicing for train/test splits. Ensure data is sorted by time.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Replaced `train_test_split(shuffle=True)` with explicit array slicing. Temporal integrity restored.
+- 2026-02-08 Joseph Kamau Maina: Replaced `train_test_split(shuffle=True)` with explicit array slicing. Temporal integrity restored.

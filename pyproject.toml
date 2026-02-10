@@ -1,7 +1,7 @@
 [project]
 name = "bsopt"
 version = "2.5.0"
-description = "The God-Mode Financial Manifold for Transdimensional Derivative Pricing"
+description = "The Advanced Financial Manifold for Transdimensional Derivative Pricing"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

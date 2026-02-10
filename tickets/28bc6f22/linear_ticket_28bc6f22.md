@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [pricing, optimization]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Implement vectorized or JIT-compiled (Numba) versions of the Heston FFT pricing 
 
 # Discussion/Comments
 
-- 2026-02-07 Pickle Rick: Implemented `_heston_integrand_jit` and `batch_heston_price_jit` using Numba. Added FFT surface pricing O(N log N).
+- 2026-02-07 Joseph Kamau Maina: Implemented `_heston_integrand_jit` and `batch_heston_price_jit` using Numba. Added FFT surface pricing O(N log N).

@@ -1,5 +1,5 @@
 """
-Unified God-Mode ML Pipeline for BS-OPT
+Unified Advanced ML Pipeline for BS-OPT
 =======================================
 
 Consolidated pipeline for data ingestion, feature engineering, distributed HPO (Ray),

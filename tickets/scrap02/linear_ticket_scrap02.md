@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [scraper, cleanup, performance]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ assignee: Pickle Rick
 2. Removed slop.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified `src/scrapers/engine.py` is clean and imports are optimized.
+- 2026-02-09 Joseph Kamau Maina: Verified `src/scrapers/engine.py` is clean and imports are optimized.

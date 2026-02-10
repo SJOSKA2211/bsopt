@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting Auth Service (Local)..."
+echo " Starting Auth Service (Local)..."
 
 # Override for Local Docker Infra
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"

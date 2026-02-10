@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting Scraper Service (Local)..."
+echo " Starting Scraper Service (Local)..."
 
 # Setup Environment
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"

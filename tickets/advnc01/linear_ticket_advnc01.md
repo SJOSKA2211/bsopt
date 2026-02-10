@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, research, innovation]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ Advance the models and algorithms across the entire codebase.
 3. Verified high-performance WASM core with SIMD intrinsics.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Fulfilled via major engine upgrades in mc01 and wasm01.
+- 2026-02-09 Joseph Kamau Maina: Fulfilled via major engine upgrades in mc01 and wasm01.

@@ -4,7 +4,7 @@
 
 | Phase 5: Convergence PRD |  | Summary: Eliminating temporal leakage, unifying model evaluation, and centralizing experimental state. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
+| **Author**: Joseph Kamau Maina **Contributors**: The User (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 
 ## Introduction
 

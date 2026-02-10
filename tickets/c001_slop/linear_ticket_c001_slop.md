@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Epic
 labels: [cleanup, refactor, technical-debt]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

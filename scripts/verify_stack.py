@@ -34,7 +34,7 @@ def check_http(url, name):
         print(f"❌ {name} HTTP check failed: {e}")
         return False
 
-print("🥒 Pickle Rick's Stack Verification 🥒")
+print(" Joseph Kamau Maina's Stack Verification ")
 print("---------------------------------------")
 
 success = True
@@ -60,7 +60,7 @@ if neural_up:
 
 print("---------------------------------------")
 if success:
-    print("Wubba Lubba Dub Dub! The stack is operational. 🥒")
+    print("System check complete. The stack is operational. ")
     sys.exit(0)
 else:
     print("Jerry-work detected. Something is broken.")

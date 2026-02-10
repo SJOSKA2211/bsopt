@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [api, cleanup]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ assignee: Pickle Rick
 Remove branding fluff and emojis.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Scrubbed `src/api/main.py` and other api files. Removed "singularity achieved" message.
+- 2026-02-09 Joseph Kamau Maina: Scrubbed `src/api/main.py` and other api files. Removed "singularity achieved" message.

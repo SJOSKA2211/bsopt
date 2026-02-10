@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [rust, wasm, performance]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ We have a Rust/WASM core but didn't know if it was actually optimized.
 3. Removed branding fluff.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Audited WASM core. SIMD is properly implemented.
+- 2026-02-09 Joseph Kamau Maina: Audited WASM core. SIMD is properly implemented.

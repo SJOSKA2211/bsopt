@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent-b17f8a9e.md
     title: Parent Ticket
 labels: [docker, frontend, debugging, hot-reload]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Configure the `src/frontend` Docker container and its development server to supp
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for enabling frontend hot-reloading as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for enabling frontend hot-reloading as per the PRD.

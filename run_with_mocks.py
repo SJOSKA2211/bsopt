@@ -103,7 +103,7 @@ if __name__ == "__main__":
         from src.api.main import app
         import uvicorn
         
-        print("🥒 Starting API with Mocks on port 8000...")
+        print(" Starting API with Mocks on port 8000...")
         uvicorn.run(app, host="0.0.0.0", port=8000)
     except Exception as e:
         print(f"❌ Failed to start: {e}")

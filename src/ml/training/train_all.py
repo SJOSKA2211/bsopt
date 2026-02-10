@@ -3,7 +3,7 @@ Master Training Pipeline Entry Point
 ====================================
 
 Orchestrates the Autonomous ML Pipeline.
-Now uses the God-Mode `AutonomousMLPipeline` class.
+Now uses the Advanced `AutonomousMLPipeline` class.
 """
 
 import asyncio

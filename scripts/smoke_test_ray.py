@@ -55,7 +55,7 @@ def smoke_test_ray():
 if __name__ == "__main__":
     success = smoke_test_ray()
     if success:
-        print("🥒 Ray Integration: SUCCESS")
+        print(" Ray Integration: SUCCESS")
         sys.exit(0)
     else:
         print("Jerry-work detected in Ray integration.")

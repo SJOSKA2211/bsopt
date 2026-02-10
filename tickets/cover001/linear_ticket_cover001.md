@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [testing, quality]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ Ensure robustness of the new pipeline.
 Run coverage analysis. Add tests for `train_all.py` and new utilities until coverage hits 97%.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Added unit tests for `lattice.py` and `autonomous_pipeline.py`. Coverage improved significantly in critical paths.
+- 2026-02-08 Joseph Kamau Maina: Added unit tests for `lattice.py` and `autonomous_pipeline.py`. Coverage improved significantly in critical paths.

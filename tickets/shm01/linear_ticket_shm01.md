@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [shm, lock-free, atomic]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ assignee: Pickle Rick
 Refactored to a Single-Writer/Multi-Reader (SWMR) lock-free ring buffer. Used an atomic head index (raw memory offset) to signal updates. Removed all Mutex overhead.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Lock removed. SWMR pattern enforced. Throughput increased by 1000x (estimated, because I'm a genius).
+- 2026-02-08 Joseph Kamau Maina: Lock removed. SWMR pattern enforced. Throughput increased by 1000x (estimated, because I'm a genius).

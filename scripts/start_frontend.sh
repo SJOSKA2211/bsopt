@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Starting Frontend (Local)..."
+echo " Starting Frontend (Local)..."
 
 cd src/frontend
 

@@ -12,7 +12,7 @@ links:
   - url: ./f8e2a1b9/linear_ticket_f8e2a1b9.md
     title: Ticket f8e2a1b9: Research Areas
 labels: debugging, coverage, research
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -25,6 +25,6 @@ Investigate the current codebase (`src/auth.ts`, `src/db.ts`, `src/index.ts`, `t
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Reworking research for ticket f8e2a1b9 due to rejection. Focus on specific `file:line` references and objective data. The research document will be saved at: /home/kamau/bsopt/src/auth-service/research/f8e2a1b9_research_2026-02-03.md
+- 2026-02-03 Joseph Kamau Maina: Reworking research for ticket f8e2a1b9 due to rejection. Focus on specific `file:line` references and objective data. The research document will be saved at: /home/kamau/bsopt/src/auth-service/research/f8e2a1b9_research_2026-02-03.md
 - Linked to parent ticket: epic_debugging_coverage_parent.md
 - Linked to previous rejected research attempt (for context): N/A (previous attempt failed write)

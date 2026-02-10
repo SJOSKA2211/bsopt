@@ -18,7 +18,7 @@ logger = structlog.get_logger()
 
 class OnlineRLAgent:
     """
-    God-Mode Online RL Agent with Neural Plasticity.
+    Advanced Online RL Agent with Neural Plasticity.
     Bypasses SB3. Uses TorchScript for silicon-speed inference.
     Supports zero-downtime weight hot-swapping.
     """

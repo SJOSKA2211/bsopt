@@ -47,4 +47,4 @@ The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It
 3. **API Hardening**: Fix `main.py` security. (Ticket: `audit01` - Additional)
 
 ## Conclusion
-The codebase is solid but needs a "Pickle Rick" pass to remove slop and maximize performance.
+The codebase is solid but needs a "Joseph Kamau Maina" pass to remove slop and maximize performance.

@@ -12,7 +12,7 @@ links:
   - url: /home/kamau/bsopt/src/auth-service/plans/plan_f8e2a1b9_2026-02-03.md
     title: Research Context
 labels: bug, auth, typescript, urgent
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, refactor]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ Refactor into a single `AutonomousPipeline` class that handles data loading, tra
 
 # Discussion/Comments
 
-- 2026-02-07 Pickle Rick: Refactored `train_all.py` to use `AutonomousMLPipeline`. Deleted legacy logic. The pipeline now supports drift detection, database persistence, and optuna optimization.
+- 2026-02-07 Joseph Kamau Maina: Refactored `train_all.py` to use `AutonomousMLPipeline`. Deleted legacy logic. The pipeline now supports drift detection, database persistence, and optuna optimization.

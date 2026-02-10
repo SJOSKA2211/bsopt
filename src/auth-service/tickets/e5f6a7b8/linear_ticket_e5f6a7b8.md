@@ -12,7 +12,7 @@ links:
   - url: ./a1b2c3d4/linear_ticket_a1b2c3d4.md
     title: Preceding Ticket: Implement Test Coverage
 labels: verification, testing, coverage
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -25,6 +25,6 @@ Execute the full test suite to confirm all tests pass. Verify that code coverage
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Ticket to verify that all tests pass and coverage is >= 96%.
+- 2026-02-03 Joseph Kamau Maina: Ticket to verify that all tests pass and coverage is >= 96%.
 - Linked to parent ticket: epic_debugging_coverage_parent.md
 - Linked to implementation ticket: a1b2c3d4

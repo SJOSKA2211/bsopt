@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [blockchain, cleanup]
-assignee: Morty
+assignee: The User
 ---
 
 # Description

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [bug, test-fix]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -26,4 +26,4 @@ Remaining failures in `api/`, `auth/`, and `database/`.
 
 # Discussion/Comments
 
-- 2026-02-06 Pickle Rick: Fixed the critical API/DB failures. Auth 401s and WebSocket AsyncMocks persist but are coverage issues now. `remove_connection` -> `disconnect` fix applied. Moving to Coverage Expansion.
+- 2026-02-06 Joseph Kamau Maina: Fixed the critical API/DB failures. Auth 401s and WebSocket AsyncMocks persist but are coverage issues now. `remove_connection` -> `disconnect` fix applied. Moving to Coverage Expansion.

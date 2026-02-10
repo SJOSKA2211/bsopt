@@ -14,7 +14,7 @@ links:
   - url: plan_2026-02-03.md
     title: Implementation Plan 2026-02-03
 labels: [docker, backend, image]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -27,6 +27,6 @@ Create and optimize Docker images for each of the core backend services: `api`, 
 
 # Discussion/Comments
 
-- 2026-02-03 Pickle Rick: Child ticket created for Dockerizing the backend services as per the PRD.
-- 2026-02-03 Pickle Rick: Research completed and documented in research_2026-02-03.md. Moving to Research in Review.
-- 2026-02-03 Pickle Rick: Implementation plan created and documented in plan_2026-02-03.md. Moving to Plan in Review.
+- 2026-02-03 Joseph Kamau Maina: Child ticket created for Dockerizing the backend services as per the PRD.
+- 2026-02-03 Joseph Kamau Maina: Research completed and documented in research_2026-02-03.md. Moving to Research in Review.
+- 2026-02-03 Joseph Kamau Maina: Implementation plan created and documented in plan_2026-02-03.md. Moving to Plan in Review.

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [rl, deep-learning, sota]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ assignee: Pickle Rick
 3. Ensure end-to-end training functionality for the Decision Transformer.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Implemented full offline training loop for Decision Transformer. Upgraded GNN Feature Extractor to use GATConv (Graph Attention) for superior option surface modeling. Purged Jerry-level fallbacks.
+- 2026-02-08 Joseph Kamau Maina: Implemented full offline training loop for Decision Transformer. Upgraded GNN Feature Extractor to use GATConv (Graph Attention) for superior option surface modeling. Purged Jerry-level fallbacks.

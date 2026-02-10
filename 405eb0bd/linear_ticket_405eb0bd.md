@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [bug, test-fix]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -27,4 +27,4 @@ Fixed critical issues in `src/ml/`:
 
 # Discussion/Comments
 
-- 2026-02-06 Pickle Rick: Pivoted to fix ML/Trainer/TFT first as they were causing the most noise and Ray issues. API/Auth/DB will be handled in Batch 2. ML module imports are now stable.
+- 2026-02-06 Joseph Kamau Maina: Pivoted to fix ML/Trainer/TFT first as they were causing the most noise and Ray issues. API/Auth/DB will be handled in Batch 2. ML module imports are now stable.

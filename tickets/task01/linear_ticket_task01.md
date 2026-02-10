@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [celery, performance, refactor]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ assignee: Pickle Rick
 3. Verified `batch_price_options_task` is vectorized and uses `msgspec`.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Audited pricing tasks. Performance is optimal.
+- 2026-02-09 Joseph Kamau Maina: Audited pricing tasks. Performance is optimal.

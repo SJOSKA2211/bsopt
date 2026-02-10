@@ -12,7 +12,7 @@ links:
   - url: /home/kamau/bsopt/tests/ml/test_trading_env_advanced.py
     title: Failing Test Reference
 labels: bug, ml, rl, urgent
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description

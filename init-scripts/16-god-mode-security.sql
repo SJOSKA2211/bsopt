@@ -1,5 +1,5 @@
 -- ============================================================================
--- God-Mode Security: RLS Policies & PL/pgSQL Auth
+-- Advanced Security: RLS Policies & PL/pgSQL Auth
 -- ============================================================================
 
 -- Enable pgcrypto for password hashing
@@ -98,5 +98,5 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DO $$
 BEGIN
-    RAISE NOTICE 'God-Mode Security implemented: RLS enabled, Auth functions created.';
+    RAISE NOTICE 'Advanced Security implemented: RLS enabled, Auth functions created.';
 END $$;

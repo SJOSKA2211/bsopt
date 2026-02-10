@@ -15,7 +15,7 @@ TICK_STRUCT = struct.Struct("8s d q d q")
 
 class MeshBridge:
     """
-    God-Mode Inter-Node SHM Mirror.
+    Advanced Inter-Node SHM Mirror.
     Uses high-speed UDP Multicast to synchronize SHM across machines.
     """
     def __init__(self, multicast_group: str = "239.0.0.1", port: int = 9999):

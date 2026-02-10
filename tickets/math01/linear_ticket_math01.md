@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [math, refactor, anti-slop]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -22,4 +22,4 @@ assignee: Pickle Rick
 Unify `calculate_price_scalar`/`calculate_price` and `calculate_greeks_scalar`/`calculate_greeks`. Use NumPy's ability to handle both scalars and arrays seamlessly. Delete the redundant "scalar" functions.
 
 # Discussion
-- 2026-02-08 Pickle Rick: Consolidated redundant math functions. The main functions now use NumPy broadcasting to handle both scalar and array inputs efficiently. Retained aliases for compatibility but purged the duplicate logic.
+- 2026-02-08 Joseph Kamau Maina: Consolidated redundant math functions. The main functions now use NumPy broadcasting to handle both scalar and array inputs efficiently. Retained aliases for compatibility but purged the duplicate logic.

@@ -28,7 +28,7 @@ class TrajectoryDataset(Dataset):
 
 def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
     """
-    God-Mode Offline training for Decision Transformer.
+    Advanced Offline training for Decision Transformer.
     """
     logger.info("offline_training_started", dataset=dataset_path)
     

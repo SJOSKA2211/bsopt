@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [env, gym, optimization]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -24,4 +24,4 @@ assignee: Pickle Rick
 3. Verified asset purchase cost bug fix.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Audited trading environment. Performance is optimal with Numba-accelerated kernels.
+- 2026-02-09 Joseph Kamau Maina: Audited trading environment. Performance is optimal with Numba-accelerated kernels.

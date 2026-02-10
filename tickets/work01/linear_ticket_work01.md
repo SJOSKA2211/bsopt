@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ray, distributed, optimization]
-assignee: Pickle Rick
+assignee: Joseph Kamau Maina
 ---
 
 # Description
@@ -23,4 +23,4 @@ assignee: Pickle Rick
 2. Cleaned up comments.
 
 # Discussion
-- 2026-02-09 Pickle Rick: Verified and cleaned up worker files.
+- 2026-02-09 Joseph Kamau Maina: Verified and cleaned up worker files.

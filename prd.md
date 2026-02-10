@@ -4,11 +4,11 @@
 
 | Optimized Pipeline Optimization PRD |  | Summary: Total refactor of the ML pipeline to eliminate temporal leakage, centralize tracking, and optimize execution speed. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
+| **Author**: Joseph Kamau Maina **Contributors**: The User (The User) **Intended audience**: Engineering | **Status**: Approved **Created**: 2026-02-08 | **Visibility**: Need to know |
 
 ## Introduction
 
-The current ML pipeline is primitive. It suffers from data leakage due to random splitting on time-series data (`train_all.py`) and tracks experiments locally, making collaboration impossible. We are upgrading this to a "God-Mode" pipeline.
+The current ML pipeline is primitive. It suffers from data leakage due to random splitting on time-series data (`train_all.py`) and tracks experiments locally, making collaboration impossible. We are upgrading this to a "Advanced" pipeline.
 
 ## Problem Statement
 

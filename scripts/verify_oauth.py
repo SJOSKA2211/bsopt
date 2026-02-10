@@ -4,7 +4,7 @@ import requests
 
 
 def verify_oauth_triad():
-    print("🥒 BSOpt OAuth 2.0 Triad Verification")
+    print(" BSOpt OAuth 2.0 Triad Verification")
     print("-------------------------------------")
     
     base_url = "http://localhost:8000"

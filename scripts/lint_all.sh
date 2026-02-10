@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🥒 Pickle Rick's Linting Engine 🥒"
+echo " Joseph Kamau Maina's Linting Engine "
 
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
