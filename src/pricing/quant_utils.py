@@ -1,21 +1,25 @@
 """
  APOTHEOSIS: High-Performance Quantitative Kernels
-Targets: Pure NumPy, Vectorized
+Targets: Numba JIT, Parallel, Vectorized
 
 Performance Notes:
-- Optimized for vectorized NumPy operations.
-- Parallelism provided by NumPy's underlying BLAS/LAPACK.
+- Optimized for hardware-aware execution.
+- Parallelism provided by Numba's multi-threading.
 """
 
 import numpy as np
+from numba import njit, prange
 from scipy.special import erf
 
 from src.shared.math_utils import (
     calculate_d1_d2,
     calculate_d1_d2_scalar,
+    fast_normal_cdf,
+    fast_normal_pdf,
 )
 
 
+@njit(cache=True, fastmath=True)
 def corrado_miller_initial_guess(
     market_price: np.ndarray,
     spot: np.ndarray,
@@ -23,26 +27,36 @@ def corrado_miller_initial_guess(
     maturity: np.ndarray,
     rate: np.ndarray,
     dividend: np.ndarray,
-    option_type: np.ndarray,
+    is_call: np.ndarray,
 ) -> np.ndarray:
     """
     Fast initial guess for Implied Volatility using Corrado-Miller approximation.
-    Vectorized with NumPy.
     """
-    X = strike * np.exp(-rate * maturity)
-    val = 2.5066282746310005 / (np.sqrt(maturity) * (spot + X))
+    n = len(market_price)
+    sigma = np.empty(n, dtype=np.float64)
+    
+    INV_SQRT_PI = 1.0 / np.sqrt(np.pi)
+    FACTOR = 2.5066282746310005
+    
+    for i in prange(n):
+        X = strike[i] * np.exp(-rate[i] * maturity[i])
+        val = FACTOR / (np.sqrt(maturity[i]) * (spot[i] + X))
 
-    exp_qt = np.exp(-dividend * maturity)
-    intrinsic = np.where(option_type == 0,
-                         np.maximum(spot * exp_qt - X, 0.0),
-                         np.maximum(X - spot * exp_qt, 0.0))
+        exp_qt = np.exp(-dividend[i] * maturity[i])
+        if is_call[i]:
+            intrinsic = max(spot[i] * exp_qt - X, 0.0)
+        else:
+            intrinsic = max(X - spot[i] * exp_qt, 0.0)
 
-    term = market_price - intrinsic / 2.0
-    sigma = val * (term + np.sqrt(np.maximum(term**2 - intrinsic**2 / np.pi, 0.0)))
+        term = market_price[i] - intrinsic / 2.0
+        # inner = term**2 - intrinsic**2 * INV_SQRT_PI**2
+        inner = term**2 - intrinsic**2 / np.pi
+        sigma[i] = val * (term + np.sqrt(max(inner, 0.0)))
 
     return np.clip(sigma, 0.001, 5.0)
 
 
+@njit(cache=True, fastmath=True, parallel=True)
 def batch_bs_price_jit(
     S: np.ndarray,
     K: np.ndarray,
@@ -50,50 +64,40 @@ def batch_bs_price_jit(
     sigma: np.ndarray,
     r: np.ndarray,
     q: np.ndarray,
-    is_call: np.ndarray,
-    out: np.ndarray | None = None
+    is_call: np.ndarray
 ) -> np.ndarray:
     """
-    Batch pricing for options using NumPy.
+    Batch pricing for options using Numba.
     """
-    if out is None:
-        prices = np.empty(S.shape, dtype=np.float64)
-    else:
-        prices = out
+    n = len(S)
+    prices = np.empty(n, dtype=np.float64)
+    
+    for i in prange(n):
+        if T[i] < 1e-7:
+            if is_call[i]:
+                prices[i] = max(S[i] - K[i], 0.0)
+            else:
+                prices[i] = max(K[i] - S[i], 0.0)
+        else:
+            sig_sqrt_t = sigma[i] * np.sqrt(T[i])
+            d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i]**2) * T[i]) / sig_sqrt_t
+            d2 = d1 - sig_sqrt_t
 
-    t_mask = T < 1e-7
-    prices[t_mask] = np.where(is_call[t_mask],
-                              np.maximum(S[t_mask] - K[t_mask], 0.0),
-                              np.maximum(K[t_mask] - S[t_mask], 0.0))
+            nd1 = fast_normal_cdf(d1)
+            nd2 = fast_normal_cdf(d2)
 
-    not_t_mask = ~t_mask
-    if np.any(not_t_mask):
-        S_n = S[not_t_mask]
-        K_n = K[not_t_mask]
-        T_n = T[not_t_mask]
-        sig_n = sigma[not_t_mask]
-        r_n = r[not_t_mask]
-        q_n = q[not_t_mask]
-        is_call_n = is_call[not_t_mask]
+            exp_qt = np.exp(-q[i] * T[i])
+            exp_rt = np.exp(-r[i] * T[i])
 
-        sig_sqrt_t = sig_n * np.sqrt(T_n)
-        d1 = (np.log(S_n / K_n) + (r_n - q_n + 0.5 * sig_n**2) * T_n) / sig_sqrt_t
-        d2 = d1 - sig_sqrt_t
-
-        nd1 = 0.5 * (1.0 + erf(d1 / np.sqrt(2.0)))
-        nd2 = 0.5 * (1.0 + erf(d2 / np.sqrt(2.0)))
-
-        exp_qt = np.exp(-q_n * T_n)
-        exp_rt = np.exp(-r_n * T_n)
-
-        p_call = np.maximum(S_n * exp_qt * nd1 - K_n * exp_rt * nd2, 0.0)
-        p_put = np.maximum(K_n * exp_rt * (1.0 - nd2) - S_n * exp_qt * (1.0 - nd1), 0.0)
-
-        prices[not_t_mask] = np.where(is_call_n, p_call, p_put)
+            if is_call[i]:
+                prices[i] = max(S[i] * exp_qt * nd1 - K[i] * exp_rt * nd2, 0.0)
+            else:
+                prices[i] = max(K[i] * exp_rt * (1.0 - nd2) - S[i] * exp_qt * (1.0 - nd1), 0.0)
 
     return prices
 
 
+@njit(cache=True, fastmath=True, parallel=True)
 def batch_greeks_jit(
     S: np.ndarray,
     K: np.ndarray,
@@ -101,57 +105,52 @@ def batch_greeks_jit(
     sigma: np.ndarray,
     r: np.ndarray,
     q: np.ndarray,
-    is_call: np.ndarray,
-    out_delta: np.ndarray | None = None,
-    out_gamma: np.ndarray | None = None,
-    out_vega: np.ndarray | None = None,
-    out_theta: np.ndarray | None = None,
-    out_rho: np.ndarray | None = None
+    is_call: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Batch greeks calculation using NumPy.
+    Batch greeks calculation using Numba.
     """
-    Ti = np.maximum(T, 1e-7)
-    sqrt_T = np.sqrt(Ti)
-    d1, d2 = calculate_d1_d2(S, K, Ti, sigma, r, q)
+    n = len(S)
+    delta = np.empty(n, dtype=np.float64)
+    gamma = np.empty(n, dtype=np.float64)
+    vega = np.empty(n, dtype=np.float64)
+    theta = np.empty(n, dtype=np.float64)
+    rho = np.empty(n, dtype=np.float64)
+    
+    INV_SQRT2PI = 1.0 / 2.5066282746310005
 
-    inv_sqrt_2pi = 1.0 / 2.5066282746310005
-    pdf_d1 = np.exp(-0.5 * d1**2) * inv_sqrt_2pi
-    cdf_d1 = 0.5 * (1.0 + erf(d1 / np.sqrt(2.0)))
-    cdf_d2 = 0.5 * (1.0 + erf(d2 / np.sqrt(2.0)))
+    for i in prange(n):
+        Ti = max(T[i], 1e-7)
+        sqrt_T = np.sqrt(Ti)
+        
+        sig_sqrt_t = sigma[i] * sqrt_T
+        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i]**2) * Ti) / sig_sqrt_t
+        d2 = d1 - sig_sqrt_t
 
-    exp_qt = np.exp(-q * Ti)
-    exp_rt = np.exp(-r * Ti)
+        pdf_d1 = np.exp(-0.5 * d1**2) * INV_SQRT2PI
+        cdf_d1 = fast_normal_cdf(d1)
+        cdf_d2 = fast_normal_cdf(d2)
 
-    is_c = is_call.astype(np.float64)
-    is_p = 1.0 - is_c
+        exp_qt = np.exp(-q[i] * Ti)
+        exp_rt = np.exp(-r[i] * Ti)
 
-    delta = is_c * (exp_qt * cdf_d1) + is_p * (exp_qt * (cdf_d1 - 1.0))
-    gamma = (exp_qt * pdf_d1) / (S * sigma * sqrt_T)
-    vega = (S * exp_qt * pdf_d1 * sqrt_T) * 0.01
+        gamma[i] = (exp_qt * pdf_d1) / (S[i] * sigma[i] * sqrt_T)
+        vega[i] = (S[i] * exp_qt * pdf_d1 * sqrt_T) * 0.01
+        
+        common_theta = -(S[i] * pdf_d1 * sigma[i] * exp_qt) / (2 * sqrt_T)
 
-    common_theta = -(S * pdf_d1 * sigma * exp_qt) / (2 * sqrt_T)
-    call_theta = (common_theta - r * K * exp_rt * cdf_d2 + q * S * exp_qt * cdf_d1) / 365.0
-    put_theta = (common_theta + r * K * exp_rt * (1.0 - cdf_d2) - q * S * exp_qt * (1.0 - cdf_d1)) / 365.0
-    theta = is_c * call_theta + is_p * put_theta
-
-    call_rho = (K * Ti * exp_rt * cdf_d2) * 0.01
-    put_rho = (-K * Ti * exp_rt * (1.0 - cdf_d2)) * 0.01
-    rho = is_c * call_rho + is_p * put_rho
-
-    if out_delta is not None:
-        out_delta[:] = delta
-    if out_gamma is not None:
-        out_gamma[:] = gamma
-    if out_vega is not None:
-        out_vega[:] = vega
-    if out_theta is not None:
-        out_theta[:] = theta
-    if out_rho is not None:
-        out_rho[:] = rho
+        if is_call[i]:
+            delta[i] = exp_qt * cdf_d1
+            theta[i] = (common_theta - r[i] * K[i] * exp_rt * cdf_d2 + q[i] * S[i] * exp_qt * cdf_d1) / 365.0
+            rho[i] = (K[i] * Ti * exp_rt * cdf_d2) * 0.01
+        else:
+            delta[i] = exp_qt * (cdf_d1 - 1.0)
+            theta[i] = (common_theta + r[i] * K[i] * exp_rt * (1.0 - cdf_d2) - q[i] * S[i] * exp_qt * (1.0 - cdf_d1)) / 365.0
+            rho[i] = (-K[i] * Ti * exp_rt * (1.0 - cdf_d2)) * 0.01
 
     return delta, gamma, vega, theta, rho
 
+@njit(cache=True, fastmath=True)
 def thomas_algorithm(lower: np.ndarray, diag: np.ndarray, upper: np.ndarray, rhs: np.ndarray) -> np.ndarray:
     """Solves tridiagonal system Ax = rhs using Thomas algorithm."""
     n = len(diag)
@@ -176,11 +175,12 @@ def thomas_algorithm(lower: np.ndarray, diag: np.ndarray, upper: np.ndarray, rhs
         
     return x
 
+@njit(cache=True, fastmath=True)
 def jit_cn_solver(
     s_grid: np.ndarray, strike: float, maturity: float, rate: float, 
     volatility: float, dividend: float, is_call: bool, n_time: int
 ) -> np.ndarray:
-    """Crank-Nicolson solver using NumPy."""
+    """Crank-Nicolson solver using Numba."""
     M = len(s_grid) - 1
     dt = maturity / n_time
     dS = s_grid[1] - s_grid[0]
@@ -223,55 +223,51 @@ def jit_cn_solver(
         
     return V
 
+@njit(cache=True, fastmath=True)
 def vectorized_newton_raphson_iv_jit(
     market_prices: np.ndarray, spots: np.ndarray, strikes: np.ndarray,
     maturities: np.ndarray, rates: np.ndarray, dividends: np.ndarray,
     is_call: np.ndarray, sigma: np.ndarray, tolerance: float = 1e-8, max_iterations: int = 100
 ) -> np.ndarray:
-    """Newton-Raphson loop for IV recovery using NumPy."""
-    sigma = sigma.copy()
-    active = np.ones(len(market_prices), dtype=bool)
-    inv_sqrt_2pi = 1.0 / 2.5066282746310005
+    """Newton-Raphson loop for IV recovery using Numba."""
+    n = len(market_prices)
+    res_sigma = sigma.copy()
+    INV_SQRT2PI = 1.0 / 2.5066282746310005
 
-    for _ in range(max_iterations):
-        if not np.any(active):
-            break
+    for i in prange(n):
+        for _ in range(max_iterations):
+            Ti = max(maturities[i], 1e-7)
+            sqrt_T = np.sqrt(Ti)
             
-        S, K, T, r, q = spots[active], strikes[active], maturities[active], rates[active], dividends[active]
-        sig = sigma[active]
-        Ti = np.maximum(T, 1e-7)
-        sqrt_T = np.sqrt(Ti)
-        
-        d1 = (np.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / (sig * sqrt_T)
-        d2 = d1 - sig * sqrt_T
-        nd1 = 0.5 * (1.0 + erf(d1 / np.sqrt(2.0)))
-        nd2 = 0.5 * (1.0 + erf(d2 / np.sqrt(2.0)))
-        
-        exp_qt = np.exp(-q * Ti)
-        exp_rt = np.exp(-r * Ti)
-        
-        price = np.where(is_call[active],
-                         S * exp_qt * nd1 - K * exp_rt * nd2,
-                         K * exp_rt * (1.0 - nd2) - S * exp_qt * (1.0 - nd1))
-        
-        pdf_d1 = np.exp(-0.5 * d1**2) * inv_sqrt_2pi
-        vega = S * exp_qt * pdf_d1 * sqrt_T
-        
-        diff = price - market_prices[active]
-        
-        # Check tolerance
-        newly_inactive = np.abs(diff) < tolerance
-        active_indices = np.where(active)[0]
-        active[active_indices[newly_inactive]] = False
-        
-        if np.any(~newly_inactive):
-            sigma[active] -= np.clip(diff[~newly_inactive] / np.maximum(vega[~newly_inactive], 1e-12), -0.5, 0.5)
-            sigma[active] = np.clip(sigma[active], 1e-4, 5.0)
+            sig = res_sigma[i]
+            d1 = (np.log(spots[i] / strikes[i]) + (rates[i] - dividends[i] + 0.5 * sig**2) * Ti) / (sig * sqrt_T)
+            d2 = d1 - sig * sqrt_T
+            nd1 = fast_normal_cdf(d1)
+            nd2 = fast_normal_cdf(d2)
             
-    return sigma
+            exp_qt = np.exp(-dividends[i] * Ti)
+            exp_rt = np.exp(-rates[i] * Ti)
+            
+            if is_call[i]:
+                price = spots[i] * exp_qt * nd1 - strikes[i] * exp_rt * nd2
+            else:
+                price = strikes[i] * exp_rt * (1.0 - nd2) - spots[i] * exp_qt * (1.0 - nd1)
+            
+            diff = price - market_prices[i]
+            if abs(diff) < tolerance:
+                break
+                
+            pdf_d1 = np.exp(-0.5 * d1**2) * INV_SQRT2PI
+            vega = spots[i] * exp_qt * pdf_d1 * sqrt_T
+            
+            res_sigma[i] -= np.clip(diff / max(vega, 1e-12), -0.5, 0.5)
+            res_sigma[i] = max(min(res_sigma[i], 5.0), 1e-4)
+            
+    return res_sigma
 
+@njit(cache=True, fastmath=True)
 def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
-    """Heston characteristic function using NumPy."""
+    """Heston characteristic function."""
     xi = kappa - sigma * rho * u * 1j
     d = np.sqrt(xi**2 + sigma**2 * (u**2 + 1j * u))
     g = (xi + d) / (xi - d)
@@ -280,16 +276,15 @@ def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
     return np.exp(A + B)
 
+@njit(cache=True, fastmath=True)
 def jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme="euler"):
-    """Monte Carlo for European options using NumPy."""
+    """Monte Carlo for European options using Numba."""
     actual_paths = n_paths // 2 if antithetic else n_paths
     
     if scheme == "milstein" or scheme == "euler_multi":
-        # Multi-step generation
         paths = jit_generate_paths(S0, T, r, sigma, q, actual_paths, 252, scheme=scheme)
         st1 = paths[:, -1]
     else:
-        # Fast 1-step path
         drift = (r - q - 0.5 * sigma**2) * T
         diffusion = sigma * np.sqrt(T)
         if z_innovations is not None:
@@ -299,31 +294,34 @@ def jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z
         st1 = S0 * np.exp(drift + diffusion * z)
     
     exp_rt = np.exp(-r * T)
-    p1 = np.where(is_call, np.maximum(st1 - K, 0.0), np.maximum(K - st1, 0.0)) * exp_rt
+    if is_call:
+        p1 = np.maximum(st1 - K, 0.0) * exp_rt
+    else:
+        p1 = np.maximum(K - st1, 0.0) * exp_rt
     
     if antithetic:
         if scheme == "milstein" or scheme == "euler_multi":
-             # For multi-step, we would need to generate Z once and use -Z.
-             # This is a bit more complex for multi-step. 
-             # For now, let's keep 1-step for antithetic if not explicitly using multi-step.
-             # Or just ignore multi-step antithetic for European as it's overkill.
              combined = p1
         else:
             drift = (r - q - 0.5 * sigma**2) * T
             diffusion = sigma * np.sqrt(T)
             z = z_innovations if z_innovations is not None else np.random.standard_normal(actual_paths)
             st2 = S0 * np.exp(drift - diffusion * z)
-            p2 = np.where(is_call, np.maximum(st2 - K, 0.0), np.maximum(K - st2, 0.0)) * exp_rt
-            combined = np.concatenate([p1, p2])
+            if is_call:
+                p2 = np.maximum(st2 - K, 0.0) * exp_rt
+            else:
+                p2 = np.maximum(K - st2, 0.0) * exp_rt
+            combined = np.concatenate((p1, p2))
     else:
         combined = p1
         
     price = np.mean(combined)
-    std_err = np.sqrt(np.maximum(np.var(combined) / n_paths, 0.0))
+    std_err = np.sqrt(max(np.var(combined) / n_paths, 0.0))
     return price, std_err
 
+@njit(cache=True, fastmath=True)
 def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, scheme="euler"):
-    """Pathwise Sensitivity (PWM) Monte Carlo using NumPy."""
+    """Pathwise Sensitivity (PWM) Monte Carlo using Numba."""
     drift_part = (r - q - 0.5 * sigma**2) * T
     diffusion_part = sigma * np.sqrt(T)
     sqrt_T, exp_rt = np.sqrt(T), np.exp(-r * T)
@@ -333,15 +331,16 @@ def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, an
     
     def calc_stats(z_val):
         st = S0 * np.exp(drift_part + diffusion_part * z_val)
-        payoff = np.where(is_call, np.maximum(st - K, 0.0), np.maximum(K - st, 0.0)) * exp_rt
-        ind = np.where(is_call, (st > K).astype(float), (st < K).astype(float))
+        if is_call:
+            payoff = np.maximum(st - K, 0.0) * exp_rt
+            ind = (st > K).astype(np.float64)
+        else:
+            payoff = np.maximum(K - st, 0.0) * exp_rt
+            ind = -(st < K).astype(np.float64)
+            
         delta = exp_rt * ind * (st / S0)
-        
-        # Likelihood Ratio Method for Gamma
-        # Weight = (z^2 - 1 - z * sigma * sqrt(T)) / (S0^2 * sigma^2 * T)
         gamma_weight = (z_val**2 - 1.0 - z_val * sigma * sqrt_T) / (S0**2 * sigma**2 * T)
         gamma = payoff * gamma_weight
-        
         vega = exp_rt * ind * st * (z_val * sqrt_T - sigma * T) * 0.01
         rho = (-T * payoff + exp_rt * ind * st * T) * 0.01
         return payoff, delta, gamma, vega, rho
@@ -356,108 +355,37 @@ def jit_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, an
         
     return np.mean(p), np.mean(d), np.mean(g), np.mean(v), np.mean(rho)
 
-def jit_mc_european_with_control_variate(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme="euler"):
-    """MC with Control Variate using NumPy."""
-    actual_paths = n_paths // 2 if antithetic else n_paths
-    
-    if scheme == "milstein" or scheme == "euler_multi":
-        paths = jit_generate_paths(S0, T, r, sigma, q, actual_paths, 252, scheme=scheme)
-        st1 = paths[:, -1]
-    else:
-        drift = (r - q - 0.5 * sigma**2) * T
-        diffusion = sigma * np.sqrt(T)
-        if z_innovations is not None:
-            z = z_innovations
-        else:
-            z = np.random.standard_normal(actual_paths)
-        st1 = S0 * np.exp(drift + diffusion * z)
-    
-    exp_rt = np.exp(-r * T)
-    expected_st = S0 * np.exp((r - q) * T)
-    
-    p1 = np.where(is_call, np.maximum(st1 - K, 0.0), np.maximum(K - st1, 0.0)) * exp_rt
-    
-    if antithetic and not (scheme == "milstein" or scheme == "euler_multi"):
-        drift = (r - q - 0.5 * sigma**2) * T
-        diffusion = sigma * np.sqrt(T)
-        z = z_innovations if z_innovations is not None else np.random.standard_normal(actual_paths)
-        st2 = S0 * np.exp(drift - diffusion * z)
-        p2 = np.where(is_call, np.maximum(st2 - K, 0.0), np.maximum(K - st2, 0.0)) * exp_rt
-        p_all = np.concatenate([p1, p2])
-        st_all = np.concatenate([st1, st2])
-    else:
-        p_all, st_all = p1, st1
-        
-    mu_p, mu_s = np.mean(p_all), np.mean(st_all)
-    cov_ps = np.mean(p_all * st_all) - mu_p * mu_s
-    var_s = np.var(st_all)
-    
-    beta = cov_ps / max(var_s, 1e-12)
-    price_cv = mu_p - beta * (mu_s - expected_st)
-    
-    var_p = np.var(p_all)
-    r2 = (cov_ps**2) / (max(var_p * var_s, 1e-12))
-    var_cv = var_p * (1.0 - min(r2, 0.999))
-    
-    return price_cv, np.sqrt(np.maximum(var_cv / n_paths, 0.0))
-
-def gpu_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic):
-    """GPU-accelerated MC using CuPy (optional)."""
-    try:
-        import cupy as cp
-    except ImportError:
-        return None
-        
-    drift, diffusion, exp_rt = (r - q - 0.5 * sigma**2) * T, sigma * np.sqrt(T), np.exp(-r * T)
-    actual_paths = n_paths // 2 if antithetic else n_paths
-    z = cp.random.standard_normal(actual_paths, dtype=cp.float32)
-    st1 = S0 * cp.exp(drift + diffusion * z)
-    p1 = cp.where(is_call, cp.maximum(st1 - K, 0.0), cp.maximum(K - st1, 0.0)) * exp_rt
-    if antithetic:
-        st2 = S0 * cp.exp(drift - diffusion * z)
-        p2 = cp.where(is_call, cp.maximum(st2 - K, 0.0), cp.maximum(K - st2, 0.0)) * exp_rt
-        combined = cp.concatenate([p1, p2])
-    else: 
-        combined = p1
-    return float(cp.mean(combined)), float(1.96 * np.sqrt(float(cp.var(combined)) / n_paths))
-
+@njit(cache=True, fastmath=True)
 def jit_generate_log_paths(S0, T, r, sigma, q, n_paths, n_steps):
-    """Generate log-paths: log(S_t)."""
+    """Generate log-paths."""
     dt = T / n_steps
     drift, diffusion = (r - q - 0.5 * sigma**2) * dt, sigma * np.sqrt(dt)
     Z = np.random.standard_normal((n_steps, n_paths))
     log_returns = drift + diffusion * Z
     log_paths = np.zeros((n_steps + 1, n_paths))
-    log_paths[1:, :] = np.cumsum(log_returns, axis=0)
+    for i in range(n_steps):
+        log_paths[i+1, :] = log_paths[i, :] + log_returns[i, :]
     return log_paths + np.log(S0)
 
+@njit(cache=True, fastmath=True)
 def jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme="euler"):
-    """Highly optimized vectorized path generation using NumPy."""
+    """Optimized path generation."""
     if scheme == "milstein":
-        return jit_generate_milstein_paths(S0, T, r, sigma, q, n_paths, n_steps)
+        dt = T / n_steps
+        mu = r - q
+        S = np.full((n_paths, n_steps + 1), S0, dtype=np.float64)
+        Z = np.random.standard_normal((n_paths, n_steps))
+        sqrt_dt = np.sqrt(dt)
+        for t in range(n_steps):
+            dW = Z[:, t] * sqrt_dt
+            S[:, t+1] = S[:, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
+        return S
     
     log_paths = jit_generate_log_paths(S0, T, r, sigma, q, n_paths, n_steps)
     return np.exp(log_paths).T
 
-def jit_generate_milstein_paths(S0, T, r, sigma, q, n_paths, n_steps):
-    """Path generation using the Milstein scheme for improved strong convergence."""
-    dt = T / n_steps
-    mu = r - q
-    
-    S = np.full((n_paths, n_steps + 1), S0, dtype=np.float64)
-    Z = np.random.standard_normal((n_paths, n_steps))
-    
-    sqrt_dt = np.sqrt(dt)
-    
-    for t in range(n_steps):
-        # S_{t+1} = S_t + mu*S_t*dt + sigma*S_t*dW_t + 0.5*sigma^2*S_t*(dW_t^2 - dt)
-        dW = Z[:, t] * sqrt_dt
-        S[:, t+1] = S[:, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
-        
-    return S
-
+@njit(cache=True, fastmath=True)
 def _laguerre_basis_jit(x, degree):
-    """Generate Laguerre basis functions using NumPy."""
     n = len(x)
     basis = np.ones((n, degree + 1), dtype=np.float64)
     if degree >= 1:
@@ -468,23 +396,25 @@ def _laguerre_basis_jit(x, degree):
         basis[:, 3] = (1.0 / 6.0) * (6.0 - 18.0 * x + 9.0 * x**2 - x**3)
     return basis
 
-def _jit_solve_normal_equations(X, y):
-    """Normal Equations solver using NumPy."""
-    return np.linalg.solve(X.T @ X, X.T @ y)
-
+@njit(cache=True, fastmath=True)
 def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme="euler"):
-    """LSM algorithm using NumPy."""
+    """LSM algorithm using Numba."""
     dt = T / n_steps
     df = np.exp(-r * dt)
+    paths = jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme=scheme)
+    S = paths.T
     
-    # Optimized path generation
-    paths = jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme=scheme) # (n_paths, n_steps + 1)
-    S = paths.T # (n_steps + 1, n_paths)
-        
-    value = np.where(is_call, np.maximum(S[n_steps, :] - K, 0.0), np.maximum(K - S[n_steps, :], 0.0))
+    if is_call:
+        value = np.maximum(S[n_steps, :] - K, 0.0)
+    else:
+        value = np.maximum(K - S[n_steps, :], 0.0)
     
     for t in range(n_steps - 1, 0, -1):
-        payoff_t = np.where(is_call, np.maximum(S[t, :] - K, 0.0), np.maximum(K - S[t, :], 0.0))
+        if is_call:
+            payoff_t = np.maximum(S[t, :] - K, 0.0)
+        else:
+            payoff_t = np.maximum(K - S[t, :], 0.0)
+            
         itm_mask = payoff_t > 0
         if not np.any(itm_mask):
             value *= df
@@ -492,46 +422,21 @@ def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme="e
             
         X_itm, Y_itm = S[t, itm_mask], value[itm_mask] * df
         basis = _laguerre_basis_jit(X_itm / S0, 3)
-        continuation_value = basis @ _jit_solve_normal_equations(basis, Y_itm)
+        
+        # Normal Equations solver
+        coeffs = np.linalg.solve(basis.T @ basis, basis.T @ Y_itm)
+        continuation_value = basis @ coeffs
         
         exercise = payoff_t[itm_mask] > continuation_value
         
-        # Get indices of ITM paths
         itm_indices = np.where(itm_mask)[0]
-        
-        # Update values
         value[itm_indices[exercise]] = payoff_t[itm_indices[exercise]]
         value[itm_indices[~exercise]] *= df
         value[~itm_mask] *= df
         
     return np.mean(value) * df
 
-def scalar_bs_price_jit(S, K, T, sigma, r, q, is_call):
-    """Scalar BS pricing using NumPy."""
-    if T < 1e-7:
-        return max(S - K, 0.0) if is_call else max(K - S, 0.0)
-    d1, d2 = calculate_d1_d2_scalar(S, K, T, sigma, r, q)
-    nd1, nd2 = 0.5 * (1.0 + erf(d1 / np.sqrt(2.0))), 0.5 * (1.0 + erf(d2 / np.sqrt(2.0)))
-    price = S * np.exp(-q * T) * nd1 - K * np.exp(-r * T) * nd2 if is_call else K * np.exp(-r * T) * (1.0 - nd2) - S * np.exp(-q * T) * (1.0 - nd1)
-    return max(price, 0.0)
-
-def scalar_greeks_jit(S, K, T, sigma, r, q, is_call):
-    """Scalar Greeks calculation using NumPy."""
-    Ti = max(T, 1e-7)
-    sqrt_T = np.sqrt(Ti)
-    d1, d2 = calculate_d1_d2_scalar(S, K, Ti, sigma, r, q)
-    inv_sqrt_2pi = 1.0 / 2.5066282746310005
-    pdf_d1 = np.exp(-0.5 * d1**2) * inv_sqrt_2pi
-    cdf_d1, cdf_d2 = 0.5 * (1.0 + erf(d1 / np.sqrt(2.0))), 0.5 * (1.0 + erf(d2 / np.sqrt(2.0)))
-    exp_qt, exp_rt = np.exp(-q * Ti), np.exp(-r * Ti)
-    if is_call:
-        delta, rho = exp_qt * cdf_d1, (K * Ti * exp_rt * cdf_d2) * 0.01
-        theta = (-(S * pdf_d1 * sigma * exp_qt) / (2 * sqrt_T) - r * K * exp_rt * cdf_d2 + q * S * exp_qt * cdf_d1) / 365.0
-    else:
-        delta, rho = exp_qt * (cdf_d1 - 1.0), (-K * Ti * exp_rt * (1.0 - cdf_d2)) * 0.01
-        theta = (-(S * pdf_d1 * sigma * exp_qt) / (2 * sqrt_T) + r * K * exp_rt * (1.0 - cdf_d2) - q * S * exp_qt * (1.0 - cdf_d1)) / 365.0
-    return delta, (exp_qt * pdf_d1) / (S * sigma * sqrt_T), (S * exp_qt * pdf_d1 * sqrt_T) * 0.01, theta, rho
-
 def warmup_jit():
-    """Dummy warmup for compatibility (not needed for Pure NumPy)."""
-    pass
+    """Warmup for Numba caches."""
+    dummy = np.array([100.0])
+    batch_bs_price_jit(dummy, dummy, dummy, dummy, dummy, dummy, np.array([True]))
