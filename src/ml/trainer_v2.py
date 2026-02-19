@@ -102,37 +102,52 @@ class Trainer:
         
         return total_loss / len(loader)
 
-    def validate(self, loader: DataLoader) -> float:
-        """Validates the model."""
+    def validate(self, loader: DataLoader) -> dict[str, float]:
+        """
+        Validates the model and calculates comprehensive metrics using ModelScorecard.
+        """
         self.model.eval()
         total_loss = 0.0
+        all_preds = []
+        all_targets = []
+        
+        from src.ml.evaluation.metrics import ModelScorecard
+        
         with torch.no_grad():
             for data, target in loader:
                 data, target = data.to(self.device), target.to(self.device)
                 output = self.model(data)
                 loss = self.criterion(output, target)
                 total_loss += loss.item()
-        return total_loss / len(loader)
+                
+                all_preds.append(output.cpu().numpy())
+                all_targets.append(target.cpu().numpy())
+        
+        avg_loss = total_loss / len(loader)
+        
+        # Concatenate all batches for full evaluation
+        y_true = np.concatenate(all_targets)
+        y_pred = np.concatenate(all_preds)
+        
+        # Calculate returns if target is 'log_return' (Simplified assumption for now)
+        # In production, we'd pass 'returns' explicitly to the score card.
+        scorecard = ModelScorecard(y_true, y_pred)
+        metrics = scorecard.to_dict()
+        metrics["loss"] = avg_loss
+        
+        return metrics
 
-    def _handle_epoch_end(self, epoch: int, train_loss: float, val_loss: float):
+    def _handle_epoch_end(self, epoch: int, metrics: dict[str, float]):
         """Processes logic at the end of each epoch."""
         # Sync metrics across all workers in distributed mode
         from src.ml.utils.distributed import sync_metrics
-        synced = sync_metrics({"train_loss": train_loss, "val_loss": val_loss})
-        train_loss, val_loss = synced["train_loss"], synced["val_loss"]
-
-        self.history["train_loss"].append(train_loss)
-        self.history["val_loss"].append(val_loss)
-
-        # Logging
-        metrics = {
-            "train_loss": train_loss,
-            "val_loss": val_loss,
-            "epoch": epoch
-        }
+        synced_metrics = sync_metrics(metrics)
         
+        self.history["train_loss"].append(synced_metrics.get("train_loss", 0.0))
+        self.history["val_loss"].append(synced_metrics["loss"])
+
         if self.is_distributed and HAS_RAY:
-            ray.train.report(metrics)
+            ray.train.report(synced_metrics)
             
         # Only log to MLflow/Console if local or Rank 0
         should_log = True
@@ -143,19 +158,25 @@ class Trainer:
 
         if should_log:
             if self.run: # Check if MLflow run exists
-                mlflow.log_metrics(metrics, step=epoch)
+                mlflow.log_metrics(synced_metrics, step=epoch)
             
-            logger.info(f"Epoch {epoch+1} | Train: {train_loss:.4f} | Val: {val_loss:.4f}")
+            logger.info(
+                f"Epoch {epoch+1} | "
+                f"Train Loss: {synced_metrics.get('train_loss', 0.0):.4f} | "
+                f"Val Loss: {synced_metrics['loss']:.4f} | "
+                f"RMSE: {synced_metrics.get('rmse', 0.0):.4f} | "
+                f"R2: {synced_metrics.get('r2', 0.0):.4f}"
+            )
 
-            # Checkpoint Best
-            if val_loss == min(self.history["val_loss"]):
+            # Checkpoint Best based on composite score or loss
+            if synced_metrics["loss"] == min(self.history["val_loss"]):
                 self._save_checkpoint("best_model.pt")
                 if self.run:
                     mlflow.log_artifact(str(self.output_dir / "best_model.pt"))
 
         if self.scheduler:
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                self.scheduler.step(val_loss)
+                self.scheduler.step(synced_metrics["loss"])
             else:
                 self.scheduler.step()
 
@@ -172,11 +193,12 @@ class Trainer:
 
         for epoch in range(epochs):
             train_loss = self.train_epoch(train_loader)
-            val_loss = self.validate(val_loader)
+            val_metrics = self.validate(val_loader)
+            val_metrics["train_loss"] = train_loss
             
-            self._handle_epoch_end(epoch, train_loss, val_loss)
+            self._handle_epoch_end(epoch, val_metrics)
 
-            early_stopping(val_loss)
+            early_stopping(val_metrics["loss"])
             if early_stopping.early_stop:
                 logger.info("Early stopping triggered")
                 break
