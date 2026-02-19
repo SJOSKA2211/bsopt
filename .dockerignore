@@ -1,5 +1,15 @@
+# Core ignores
 .git
 .gitignore
+.env*
+! .env.example
+README.md
+LICENSE
+Makefile
+PICKLE_RICK_PRD.md
+*.md
+
+# Python
 __pycache__
 *.pyc
 *.pyo
@@ -11,7 +21,6 @@ venv/
 .venv*/
 .venv_local/
 pip-log.txt
-pip-delete-this-directory.txt
 .tox/
 .coverage
 .coverage.*
@@ -21,28 +30,42 @@ coverage.xml
 *,cover
 .hypothesis/
 .pytest_cache/
+
+# Node
+node_modules/
+**/node_modules/
+npm-debug.log
+yarn-error.log
+
+# Logs and Temp
 *.log
+logs/
+tmp/
 .gemini/
 .gemini_security/
 backups/
-docs/
-htmlcov/
-tests/
-logs/
+
+# ML Artifacts
 mlflow.db
 mlruns/
 lightning_logs/
 results/
-tmp/
-*.gz
-*.tar
-**/node_modules
-**/target
-src/frontend/node_modules
-src/gateway/node_modules
-src/wasm/target
-# Do not ignore requirements files!
+models/
+
+# Documentation
+docs/
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Explicit Inclusions (Must be last to override ignores, but we must re-ignore node_modules inside src if we include src)
 !requirements*.txt
 !pyproject.toml
 !src/
 !docker/
+
+# Re-ignore node_modules specifically inside src just in case
+src/**/node_modules/
