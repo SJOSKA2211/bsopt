@@ -1,3 +1,4 @@
+from numba import njit, float64, complex128
 import numpy as np
 import structlog
 
@@ -5,40 +6,42 @@ from src.pricing.models import HestonParams
 
 logger = structlog.get_logger()
 
+@njit(complex128[:,:](float64[:], float64[:], float64, float64[:], float64[:], float64[:], float64[:], float64[:], float64[:], float64[:]), cache=True, fastmath=True)
+def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
+    """
+    Fused Numba kernel for the Heston Characteristic Function.
+    Avoids NumPy broadcasting overhead and uses machine-code complex math.
+    """
+    n_v = v.shape[0]
+    n_batch = k.shape[0]
+    res = np.zeros((n_v, n_batch), dtype=np.complex128)
+    
+    for i in range(n_v):
+        u_v = v[i] - (alpha + 1) * 1j
+        for j in range(n_batch):
+            xi = kappa[j] - sigma[j] * rho[j] * u_v * 1j
+            d = np.sqrt(xi**2 + sigma[j]**2 * (u_v**2 + 1j * u_v))
+            g = (xi + d) / (xi - d)
+            
+            exp_dT = np.exp(d * T[j])
+            G = (1.0 - g * exp_dT) / (1.0 - g)
+            
+            A = (kappa[j] * theta[j] / sigma[j]**2) * ((xi + d) * T[j] - 2.0 * np.log(G))
+            B = (v0[j] / sigma[j]**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
+            
+            phi = np.exp(A + B)
+            
+            num = np.exp(-1j * v[i] * k[j]) * phi
+            den = alpha**2 + alpha - v[i]**2 + 1j * (2 * alpha + 1) * v[i]
+            res[i, j] = num / den
+            
+    return res
+
 def _heston_integrand_vectorized(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     """
-    Vectorized Heston integrand using NumPy broadcasting.
+    Delegates to the JIT-compiled kernel.
     """
-    v_grid = v.reshape(-1, 1)
-    
-    sig = np.maximum(sigma, 1e-6)
-    u = v_grid - (alpha + 1) * 1j
-    
-    # Characteristic function calculation (vectorized across v and batch)
-    xi = kappa - sig * rho * u * 1j
-    d = np.sqrt(xi**2 + sig**2 * (u**2 + 1j * u))
-    g = (xi + d) / (xi - d)
-    
-    # Numerical stability
-    dT = d * T
-    exp_dT = np.exp(np.clip(dT.real, -100, 100) + 1j * dT.imag)
-    
-    g_exp_dT = g * exp_dT
-    
-    # Stable formulation for A and B
-    G = (1.0 - g_exp_dT) / np.maximum(1e-18, (1.0 - g))
-    
-    A = (kappa * theta / sig**2) * (
-        (xi + d) * T - 2.0 * np.log(np.maximum(1e-18, G))
-    )
-    B = (v0 / sig**2) * (xi + d) * (1.0 - exp_dT) / np.maximum(1e-18, 1.0 - g_exp_dT)
-    
-    phi = np.exp(A + B)
-    
-    num = np.exp(-1j * v_grid * k) * phi
-    den = alpha**2 + alpha - v_grid**2 + 1j * (2 * alpha + 1) * v_grid
-    
-    return np.real(num / den)
+    return np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho))
 
 def batch_heston_price_jit(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out):
     """
