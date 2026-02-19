@@ -27,19 +27,20 @@ async def get_tracemalloc_snapshot():
     snapshot = tracemalloc.take_snapshot()
     top_stats = snapshot.statistics('traceback') # Changed to 'traceback'
 
-    report = []
-    # Display more comprehensive traceback information
-    for stat in top_stats[:20]: # Display top 20 items
-        report.append({
+    # Display top 20 items with limited traceback depth for performance
+    report = [
+        {
             "size_kb": stat.size / 1024,
             "count": stat.count,
             "traceback": [
                 {"file": frame.filename, "line": frame.lineno}
-                for frame in stat.traceback # Iterate over all frames in the traceback
+                for frame in stat.traceback[:10]  # Limit depth
             ]
-        })
+        }
+        for stat in top_stats[:20]
+    ]
     
     return DataResponse(
-        data={"top_10_memory_allocations": report},
+        data={"top_memory_allocations": report},
         message="Tracemalloc snapshot taken successfully."
     )
