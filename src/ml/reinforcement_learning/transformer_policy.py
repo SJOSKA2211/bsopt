@@ -162,22 +162,31 @@ class DecisionTransformer(nn.Module):
 
 
 class TransformerFeatureExtractor(BaseFeaturesExtractor):
-    """Custom transformer feature extractor for RL."""
-    def __init__(self, observation_space, features_dim: int = 512, d_model: int = 256, nhead: int = 8, num_layers: int = 4):
+    """Custom transformer feature extractor for RL handling 2D time-series input."""
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 512, d_model: int = 128, nhead: int = 4, num_layers: int = 2):
         super().__init__(observation_space, features_dim)
-        self.d_model = d_model
-        input_dim = observation_space.shape[0]
-        self.embed = nn.Linear(input_dim, d_model)
+        # observation_space.shape is (window_size, 100)
+        self.window_size = observation_space.shape[0]
+        self.input_dim = observation_space.shape[1]
+        
+        self.embed = nn.Linear(self.input_dim, d_model)
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.window_size, d_model))
+        
         self.blocks = nn.Sequential(
             *[Block(d_model, nhead, n_positions=1024, attn_pdrop=0.1, resid_pdrop=0.1) for _ in range(num_layers)]
         )
+        self.ln = nn.LayerNorm(d_model)
         self.out = nn.Linear(d_model, features_dim)
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        # (batch, input_dim) -> (batch, 1, d_model)
-        x = self.embed(observations).unsqueeze(1)
+        # observations: (batch, window_size, 100)
+        x = self.embed(observations) + self.pos_embed # (batch, window_size, d_model)
         x = self.blocks(x)
-        return self.out(x.squeeze(1))
+        x = self.ln(x)
+        
+        # Take the latent of the *latest* token for RL policy
+        # Or we can use Global Average Pooling across the window
+        return self.out(x[:, -1, :])
 
 class TransformerTD3Policy(TD3Policy):
     """TD3 Policy with Transformer extractor."""

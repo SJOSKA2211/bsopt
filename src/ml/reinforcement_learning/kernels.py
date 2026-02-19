@@ -4,9 +4,6 @@ from numba import njit
 
 logger = structlog.get_logger()
 
-#  SILICON KERNELS: JIT-fused state construction
-# Targets AVX-512 and aggressive unrolling.
-
 @njit(cache=True, fastmath=True, error_model='numpy')
 def _fused_state_kernel(
     balance, initial_balance, 
@@ -15,9 +12,10 @@ def _fused_state_kernel(
     window_buffer, window_idx, window_size
 ):
     """
-    Fused kernel for state vector construction.
-    Fuses scaling, log-moneyness, and tanh-normalization.
+    Fused kernel for state matrix construction (2D).
+    Returns (window_size, 100) instead of flattened vector.
     """
+    # Create the current state vector (100 dims)
     state = np.zeros(100, dtype=np.float32)
     
     # 1. Portfolio (11 dims)
@@ -44,13 +42,14 @@ def _fused_state_kernel(
     idx = window_idx % window_size
     window_buffer[idx] = state
     
-    # Return flattened window (latest first)
-    # This involves a copy, but it's a contiguous block copy.
-    out = np.zeros(100 * window_size, dtype=np.float32)
+    # Return 2D window (ordered chronologically or latest-first)
+    # Let's go with Chronological for the Transformer (oldest to newest)
+    out = np.zeros((window_size, 100), dtype=np.float32)
     for i in range(window_size):
-        src_idx = (window_idx - i) % window_size
-        start = i * 100
-        out[start:start+100] = window_buffer[src_idx]
+        # Calculate index for chronologically ordered window (i steps ago from current)
+        # i=0 is oldest, i=window_size-1 is newest
+        src_idx = (window_idx - (window_size - 1 - i)) % window_size
+        out[i] = window_buffer[src_idx]
         
     return out
 

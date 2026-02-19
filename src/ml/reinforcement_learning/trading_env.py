@@ -27,9 +27,9 @@ class TradingEnvironment(gym.Env):
         # Action space: target weights for 10 assets
         self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
         
-        # Observation space: 100 features * window_size
+        # Observation space: (window_size, 100) for Transformer usage
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(100 * window_size,), dtype=np.float32
+            low=-np.inf, high=np.inf, shape=(window_size, 100), dtype=np.float32
         )
         
         # Silicon Buffers
