@@ -16,10 +16,11 @@ def test_trading_env_initialization():
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment
     
     mock_data_provider = MagicMock()
-    env = TradingEnvironment(data_provider=mock_data_provider)
+    window_size = 5
+    env = TradingEnvironment(data_provider=mock_data_provider, window_size=window_size)
     
     assert isinstance(env.observation_space, gym.spaces.Box)
-    assert env.observation_space.shape == (100,)
+    assert env.observation_space.shape == (window_size, 100)
     assert isinstance(env.action_space, gym.spaces.Box)
     assert env.action_space.shape == (10,)
     assert env.action_space.low.min() == -1.0
@@ -30,6 +31,7 @@ def test_trading_env_reset():
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment
     
     mock_data_provider = MagicMock()
+    window_size = 5
     # Mock initial data
     mock_data = {
         'prices': np.random.rand(10),
@@ -38,10 +40,10 @@ def test_trading_env_reset():
     }
     mock_data_provider.get_latest_data.return_value = mock_data
     
-    env = TradingEnvironment(data_provider=mock_data_provider)
+    env = TradingEnvironment(data_provider=mock_data_provider, window_size=window_size)
     obs, info = env.reset()
     
-    assert obs.shape == (100,)
+    assert obs.shape == (window_size, 100)
     assert isinstance(obs, np.ndarray)
     assert isinstance(info, dict)
     assert env.current_step == 0
@@ -51,6 +53,7 @@ def test_trading_env_step():
     from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
     mock_data_provider = MagicMock()
+    window_size = 5
     # Mock data for steps
     mock_data = {
         'prices': np.ones(10) * 100.0,
@@ -61,13 +64,13 @@ def test_trading_env_step():
     mock_data_provider.get_data_at_step.return_value = mock_data
     mock_data_provider.__len__.return_value = 100
     
-    env = TradingEnvironment(data_provider=mock_data_provider)
+    env = TradingEnvironment(data_provider=mock_data_provider, window_size=window_size)
     env.reset()
     
     action = np.ones(10) * 0.01 # Target 1% weight for all (total 10%)
     obs, reward, terminated, truncated, info = env.step(action)
 
-    assert obs.shape == (100,)
+    assert obs.shape == (window_size, 100)
     assert isinstance(reward, float)
     assert isinstance(terminated, bool)
     assert isinstance(truncated, bool)
