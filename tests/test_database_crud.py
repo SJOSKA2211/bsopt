@@ -13,7 +13,7 @@ async def test_user_crud(mock_db_session):
     mock_db_session.execute = AsyncMock()
     mock_db_session.commit = AsyncMock()
     mock_db_session.refresh = AsyncMock()
-    
+
     # Create
     user_data = {
         "email": "crud_test@example.com",
@@ -43,11 +43,11 @@ async def test_portfolio_crud(mock_db_session):
     mock_db_session.execute = AsyncMock()
     mock_db_session.commit = AsyncMock()
     mock_db_session.refresh = AsyncMock()
-    
+
     user_id = uuid4()
     # Mock the return value of create_portfolio (it doesn't actually call execute in crud.py, it calls add & commit)
     # Actually create_portfolio calls db.add(portfolio), await db.commit(), await db.refresh(portfolio)
-    
+
     portfolio = await crud.create_portfolio(mock_db_session, user_id, "Test Portfolio")
     assert portfolio.user_id == user_id
     assert portfolio.name == "Test Portfolio"

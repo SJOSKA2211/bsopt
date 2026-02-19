@@ -3,7 +3,9 @@ from tests.test_utils import assert_equal
 
 
 def test_password_validator():
-    validator = PasswordValidator(min_length=8, require_uppercase=True, require_digit=True)
+    validator = PasswordValidator(
+        min_length=8, require_uppercase=True, require_digit=True
+    )
 
     # Valid password - using something very unique to avoid pwned check
     result = validator.validate("XyZ_987_!!_Unique_2025")
@@ -58,14 +60,14 @@ def test_password_long_password():
     """Test handling of passwords longer than bcrypt's 72-byte limit."""
     service = PasswordService(rounds=4)
     long_password = "a" * 100
-    
+
     # Argon2 handles long passwords correctly without truncation
     hashed = service.hash_password(long_password)
     assert service.verify_password(long_password, hashed)
-    
+
     # Unlike bcrypt, Argon2 should NOT match if only the first 72 chars are the same
     same_start = ("a" * 72) + "different"
     assert not service.verify_password(same_start, hashed)
-    
+
     different_start = ("b" * 72) + "same_end"
     assert not service.verify_password(different_start, hashed)

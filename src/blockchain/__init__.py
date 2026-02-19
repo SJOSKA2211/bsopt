@@ -2,6 +2,7 @@
 Blockchain Integration - DeFi, Oracles, IPFS
 Web3.py loads entire EVM bytecode on import (~150MB). Defer until needed.
 """
+
 import sys
 from typing import TYPE_CHECKING
 
@@ -20,8 +21,10 @@ _import_map = {
     "defi_options": ".defi_options",
 }
 
+
 def __getattr__(name: str):
     return lazy_import(__name__, _import_map, name, sys.modules[__name__])
+
 
 def __dir__() -> list[str]:
     return sorted(__all__)

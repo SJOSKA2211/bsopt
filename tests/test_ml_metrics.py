@@ -93,10 +93,10 @@ def test_model_scorecard_no_returns():
     """ModelScorecard should work without returns data."""
     y_true = np.array([10.0, 20.0, 30.0])
     y_pred = np.array([11.0, 19.0, 31.0])
-    
+
     scorecard = ModelScorecard(y_true, y_pred)
     result = scorecard.to_dict()
-    
+
     assert "rmse" in result
     assert "mae" in result
     assert "sharpe_ratio" in result
@@ -111,12 +111,11 @@ def test_model_scorecard_with_returns():
     y_true = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
     y_pred = np.array([11.0, 19.0, 31.0, 39.0, 51.0])
     returns = np.array([0.01, -0.02, 0.03, 0.01, 0.02])
-    
+
     scorecard = ModelScorecard(y_true, y_pred, returns=returns)
     result = scorecard.to_dict()
-    
+
     assert result["sharpe_ratio"] != 0.0
     assert result["sortino_ratio"] != 0.0
     assert "score" in result
     assert 0 <= result["score"] <= 1
-

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/shared/tracing.py
-# hypothesis_version: 6.151.5
-
-['ENABLE_TRACING', 'ENV', 'development', 'false', 'http://tempo:4317', 'production', 'service.name', 'true']

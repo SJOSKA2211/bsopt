@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+# ==============================================================================
+# BS-OPT: THE GOD MODE STACK VERIFIER (v2.0)
+# ==============================================================================
+# I'm Pickle Riiiiick!🥒 *Belch.*
+# Validating the containerized manifold.
+# ==============================================================================
+
 import socket
 import sys
-
 import requests
-
+import time
 
 def check_port(host, port, name):
     try:
@@ -12,56 +18,57 @@ def check_port(host, port, name):
         result = sock.connect_ex((host, port))
         sock.close()
         if result == 0:
-            print(f"✅ {name} is UP ({host}:{port})")
+            print(f"✅ {name:<20} UP   tcp/{port}")
             return True
         else:
-            print(f"❌ {name} is DOWN ({host}:{port})")
+            print(f"❌ {name:<20} DOWN tcp/{port}")
             return False
     except Exception as e:
-        print(f"❌ {name} check failed: {e}")
+        print(f"❌ {name:<20} ERROR: {e}")
         return False
 
 def check_http(url, name):
     try:
         response = requests.get(url, timeout=2)
-        if response.status_code < 500: # 404/401 is technically "up"
-            print(f"✅ {name} HTTP is UP ({url} -> {response.status_code})")
+        if response.status_code < 500:
+            print(f"✅ {name:<20} UP   {url} -> {response.status_code}")
             return True
         else:
-            print(f"❌ {name} HTTP returned {response.status_code}")
+            print(f"❌ {name:<20} FAIL {url} -> {response.status_code}")
             return False
     except Exception as e:
-        print(f"❌ {name} HTTP check failed: {e}")
+        print(f"❌ {name:<20} ERROR: {e}")
         return False
 
-print(" Joseph Kamau Maina's Stack Verification ")
-print("---------------------------------------")
+print("\n🥒 Pickle Rick's Stack Verification 🥒")
+print("=======================================")
 
 success = True
 
-# 1. Infrastructure
+# 1. Infrastructure (Mapped Ports)
+print("\n[ Infrastructure ]")
 success &= check_port("localhost", 5432, "Postgres")
 success &= check_port("localhost", 6379, "Redis")
 success &= check_port("localhost", 5672, "RabbitMQ")
 
-# 2. Services (Check if they are running locally - User must have started them!)
-print("\nChecking App Services (Must be started manually via scripts/start_*.sh)...")
-api_up = check_port("localhost", 8000, "API")
-auth_up = check_port("localhost", 3001, "Auth Service")
-front_up = check_port("localhost", 5173, "Frontend")
-neural_up = check_port("localhost", 8001, "Neural Pricing")
+# 2. Services (Mapped Ports)
+print("\n[ App Services ]")
+success &= check_port("localhost", 8000, "API")
+success &= check_port("localhost", 3001, "Auth Service")
+success &= check_port("localhost", 5173, "Frontend")
+success &= check_port("localhost", 8001, "Neural Pricing")
+success &= check_port("localhost", 8002, "Scraper")
 
-if api_up:
-    success &= check_http("http://localhost:8000/health", "API Health")
-if auth_up:
-    success &= check_http("http://localhost:3001/", "Auth Root")
-if neural_up:
-    success &= check_http("http://localhost:8001/health", "Neural Pricing Health")
+# 3. Health Checks
+print("\n[ Health Checks ]")
+success &= check_http("http://localhost:8000/health", "API Health")
+success &= check_http("http://localhost:3001/health", "Auth Health")
+success &= check_http("http://localhost:8001/health", "Neural Health")
 
-print("---------------------------------------")
+print("=======================================")
 if success:
-    print("System check complete. The stack is operational. ")
+    print("✨ System is Solenya-tight. Wubba Lubba Dub Dub!")
     sys.exit(0)
 else:
-    print("Jerry-work detected. Something is broken.")
+    print("⚠️  Jerry-work detected. Run 'make logs' to diagnose.")
     sys.exit(1)

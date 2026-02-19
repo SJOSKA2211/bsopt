@@ -26,7 +26,6 @@ from fastapi.responses import ORJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from src.auth.providers import auth_registry
 from src.config import settings
 
 logger = logging.getLogger(__name__)
@@ -73,7 +72,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.content_type_options = content_type_options
         self.xss_protection = xss_protection
         self.referrer_policy = referrer_policy
-        self.permissions_policy = permissions_policy or self._default_permissions_policy()
+        self.permissions_policy = (
+            permissions_policy or self._default_permissions_policy()
+        )
         self.csp_directives = csp_directives or self._default_csp()
 
     def _default_permissions_policy(self) -> dict[str, list[str]]:
@@ -161,7 +162,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Cache control for sensitive endpoints
         if self._should_not_cache(request.url.path):
-            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+            response.headers["Cache-Control"] = (
+                "no-store, no-cache, must-revalidate, private"
+            )
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
 
@@ -228,7 +231,9 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     def _sign_token(self, token: str) -> str:
         """Sign a token with HMAC."""
-        signature = hmac.new(self.secret_key, token.encode(), hashlib.sha256).hexdigest()
+        signature = hmac.new(
+            self.secret_key, token.encode(), hashlib.sha256
+        ).hexdigest()
         return f"{token}.{signature}"
 
     def _verify_token(self, signed_token: str) -> bool:
@@ -417,7 +422,9 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
         # Clean old attempts
         if ip in self._failed_attempts:
-            self._failed_attempts[ip] = [t for t in self._failed_attempts[ip] if t > cutoff]
+            self._failed_attempts[ip] = [
+                t for t in self._failed_attempts[ip] if t > cutoff
+            ]
         else:
             self._failed_attempts[ip] = []
 
@@ -451,53 +458,53 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         return cast(Response, await call_next(request))
 
 
-class AuthenticatedUser:
-    def __init__(self, payload):
-        self.id = payload.get("sub")
-        roles = payload.get("realm_access", {}).get("roles", []) or payload.get("roles", [])
-        self.tier = "enterprise" if "admin" in roles else "free"
-        self.email = payload.get("email")
-
 class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     """
-    Middleware to verify JWT tokens in the Authorization header.
-    Populates request.state.user with the verified identity.
+    Consolidated JWT authentication middleware.
+    OPTIMIZED: Uses the central AuthService and native Postgres verification.
     """
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Exempt truly public paths
-        PUBLIC_PATHS = [
-            "/docs", "/redoc", "/openapi.json", "/health", "/", 
-            "/api/v1/auth/login", "/api/v1/auth/register", 
-            "/api/v1/auth/token"
-        ]
-        if request.url.path in PUBLIC_PATHS or any(p in request.url.path for p in ["/auth/password-reset", "/auth/verify-email", "/auth/refresh"]):
+        # Public path exemptions
+        path = request.url.path
+        if path in [
+            "/",
+            "/health",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+        ] or path.startswith(
+            ("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/oauth")
+        ):
             return await call_next(request)
+
+        from src.security.auth import auth_service
 
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            # Allow proceeding without token in test env to let dependency overrides work
+            # Allow proceeding without token in non-prod env for easier dev
             if settings.ENVIRONMENT in ["dev", "test"]:
                 return await call_next(request)
-            
+
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"detail": "Missing or invalid authentication credentials"},
+                content={"detail": "Authentication token missing"},
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
         token = auth_header.split(" ")[1]
         try:
-            # Allow dummy tokens in non-prod environments
-            if settings.ENVIRONMENT in ["dev", "test"] and (token.startswith("legacy-") or token == "some_token"):
-                payload = {"sub": "legacy-id", "email": "test@example.com", "roles": ["free"]}
-            else:
-                # Optimized verification against registry
-                payload = await auth_registry.verify_any(token)
-            
-            # Populate state for downstream dependencies
-            request.state.user = AuthenticatedUser(payload)
+            # Use central auth service for validation (checks signature and blacklist)
+            token_data = await auth_service.validate_token(token)
+
+            # Simple user object for the request state
+            # Downstream dependencies can use get_current_user for full DB record
+            request.state.user_id = token_data.user_id
+            request.state.user_email = token_data.email
+            request.state.user_tier = token_data.tier
+
         except Exception as e:
-            logger.warning(f"jwt_verification_failed: {str(e)} for path: {request.url.path}")
+            logger.warning("jwt_validation_failed", error=str(e), path=path)
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": f"Authentication failed: {str(e)}"},
@@ -505,8 +512,6 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             )
 
         return await call_next(request)
-
-
 
 
 class InputSanitizationMiddleware(BaseHTTPMiddleware):
@@ -522,7 +527,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
     # Compiled regex for high-performance pattern matching
     DANGEROUS_PATTERN_RE = re.compile(
         r"(<script|javascript:|onclick|onerror|onload|eval\(|document\.cookie|window\.location)",
-        re.IGNORECASE
+        re.IGNORECASE,
     )
 
     def __init__(
@@ -562,7 +567,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Optimization: Only check relevant content types for bodies if we were checking bodies
         # But for now we only check headers and query params which are fast.
-        
+
         issues = []
 
         if self.check_query_params:
@@ -578,7 +583,9 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         if issues:
             if self.log_suspicious:
                 client_host = request.client.host if request.client else "unknown"
-                logger.warning(f"Suspicious input detected from {client_host}: {issues}")
+                logger.warning(
+                    f"Suspicious input detected from {client_host}: {issues}"
+                )
             # Optionally reject the request
             # raise HTTPException(status_code=400, detail="Invalid input detected")
 

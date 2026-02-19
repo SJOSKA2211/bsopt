@@ -14,10 +14,19 @@ from .codec import ProtocolType, WebSocketCodec
 logger = structlog.get_logger()
 
 # Prometheus Metrics
-WEBSOCKET_CONNECTIONS_TOTAL = Counter('websocket_connections_total', 'Total number of WebSocket connections')
-WEBSOCKET_DISCONNECTIONS_TOTAL = Counter('websocket_disconnections_total', 'Total number of WebSocket disconnections')
-WEBSOCKET_ACTIVE_CONNECTIONS = Gauge('websocket_active_connections', 'Current number of active WebSocket connections')
-WEBSOCKET_MESSAGES_SENT_TOTAL = Counter('websocket_messages_sent_total', 'Total number of messages sent over WebSockets')
+WEBSOCKET_CONNECTIONS_TOTAL = Counter(
+    "websocket_connections_total", "Total number of WebSocket connections"
+)
+WEBSOCKET_DISCONNECTIONS_TOTAL = Counter(
+    "websocket_disconnections_total", "Total number of WebSocket disconnections"
+)
+WEBSOCKET_ACTIVE_CONNECTIONS = Gauge(
+    "websocket_active_connections", "Current number of active WebSocket connections"
+)
+WEBSOCKET_MESSAGES_SENT_TOTAL = Counter(
+    "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
+)
+
 
 @dataclass
 class ConnectionMetadata:
@@ -29,18 +38,19 @@ class ConnectionMetadata:
     def update_heartbeat(self):
         self.last_heartbeat = datetime.utcnow()
 
+
 class ConnectionManager:
     """
     High-performance WebSocket connection manager for C100k.
-    OPTIMIZED: Binary-aware delivery with minimal serialization overhead.
+    OPTIMIZED: O(1) connection management and binary-aware delivery.
     """
+
     def __init__(self):
-        # Store active connections: { "AAPL": [ws1, ws2], "GOOG": [ws3] }
-        self.active_connections: dict[str, list[WebSocket]] = {}
-        
+        # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
+        self.active_connections: dict[str, set[WebSocket]] = {}
+
         # Redis setup for cross-worker communication
         redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-        # 🔥 FUSION: Use raw bytes from Redis
         self.redis = redis.from_url(redis_url, encoding=None, decode_responses=False)
         self.pubsub = self.redis.pubsub()
         self._listener_task = None
@@ -50,9 +60,16 @@ class ConnectionManager:
         try:
             async for message in self.pubsub.listen():
                 if message["type"] == "message":
-                    symbol = message["channel"].decode('utf-8') if isinstance(message["channel"], bytes) else message["channel"]
+                    channel = message["channel"]
+                    symbol = (
+                        channel.decode("utf-8")
+                        if isinstance(channel, bytes)
+                        else channel
+                    )
                     raw_data = message["data"]
-                    await self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True)
+                    await self.broadcast_to_symbol(
+                        symbol, raw_data, from_redis=True, is_raw=True
+                    )
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -61,37 +78,40 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, symbol: str):
         """Accept connection and subscribe to symbol updates."""
         await websocket.accept()
-        
+
         # Start listener if not running
         if self._listener_task is None:
             self._listener_task = asyncio.create_task(self._listen_to_redis())
 
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
-             websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK) # Default to binary
+            websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK)
 
         if symbol not in self.active_connections:
-            self.active_connections[symbol] = []
+            self.active_connections[symbol] = set()
             await self.pubsub.subscribe(symbol)
-            
-        self.active_connections[symbol].append(websocket)
-        logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
+
+        self.active_connections[symbol].add(websocket)
+        logger.info(
+            "ws_connected", symbol=symbol, total=len(self.active_connections[symbol])
+        )
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
     def disconnect(self, websocket: WebSocket, symbol: str):
-        """Handle disconnection and cleanup."""
+        """Handle disconnection and cleanup in O(1)."""
         if symbol in self.active_connections:
-            if websocket in self.active_connections[symbol]:
-                self.active_connections[symbol].remove(websocket)
+            self.active_connections[symbol].discard(websocket)
             if not self.active_connections[symbol]:
+                # In production, we might want to delay unsubscribe to avoid thrashing
                 del self.active_connections[symbol]
-        
-        logger.info("ws_disconnected", symbol=symbol)
+
         WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.dec()
 
-    async def broadcast_to_symbol(self, symbol: str, message: Any, from_redis: bool = False, is_raw: bool = False):
+    async def broadcast_to_symbol(
+        self, symbol: str, message: Any, from_redis: bool = False, is_raw: bool = False
+    ):
         """
         Send message to all users watching a specific ticker.
         OPTIMIZED: Multi-protocol delivery with minimal serialization overhead.
@@ -122,22 +142,29 @@ class ConnectionManager:
             try:
                 # Optimized Encoding
                 if is_raw and proto == ProtocolType.MSGPACK:
-                    encoded = message # Pass-through bytes
+                    encoded = message  # Pass-through bytes
                 else:
-                    data = WebSocketCodec.decode(message, ProtocolType.MSGPACK) if is_raw else message
+                    data = (
+                        WebSocketCodec.decode(message, ProtocolType.MSGPACK)
+                        if is_raw
+                        else message
+                    )
                     encoded = WebSocketCodec.encode(data, proto)
-                
+
                 for conn in conns:
                     # Send as bytes regardless of protocol for maximum speed
                     tasks.append(conn.send_bytes(encoded))
-                
+
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:
-                logger.error("ws_encode_error", symbol=symbol, protocol=proto, error=str(e))
+                logger.error(
+                    "ws_encode_error", symbol=symbol, protocol=proto, error=str(e)
+                )
                 continue
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
+
 
 # Global manager instance for reuse across routes
 manager = ConnectionManager()

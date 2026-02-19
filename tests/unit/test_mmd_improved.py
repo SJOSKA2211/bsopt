@@ -25,13 +25,14 @@ class TestMMD(unittest.TestCase):
         baseline = np.random.randn(100, 5)
         current_no_drift = np.random.randn(100, 5)
         current_drift = np.random.randn(100, 5) + 2.0
-        
+
         is_drifted_no, mmd_no = detector.detect_drift(baseline, current_no_drift)
         is_drifted_yes, mmd_yes = detector.detect_drift(baseline, current_drift)
-        
+
         self.assertFalse(is_drifted_no)
         self.assertTrue(is_drifted_yes)
         self.assertGreater(mmd_yes, mmd_no)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

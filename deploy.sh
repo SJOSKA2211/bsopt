@@ -1,21 +1,26 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # ==============================================================================
-# BS-OPT Optimized Deployment Orchestrator v3.0
+# BS-OPT Optimized Deployment Orchestrator v5.0 (Full Profile Support)
 # ==============================================================================
-# Postgres-native, Fastify-proxied, Transformer-ready.
+# I'm Pickle Riiiiick!🥒 *Belch.*
 # ==============================================================================
 
 set -euo pipefail
 
 # --- CONFIG ---
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.prod.yml"
+readonly COMPOSE_FILE="${SCRIPT_DIR}/docker-compose.yml"
 readonly LOG_DIR="${SCRIPT_DIR}/logs"
 
-# Service tiers
-readonly TIER1_SERVICES="redis rabbitmq"
-readonly TIER2_SERVICES="api ml auth gateway" # Postgres (Remote)
-readonly TIER3_SERVICES="prometheus grafana"
+# Standardized Service Groups
+readonly CORE_INFRA="postgres redis rabbitmq"
+readonly CORE_APPS="auth-service api worker scraper neural-pricing frontend portfolio app-gateway"
+
+# Profile handling
+PROFILES=""
+[[ "$*" == *"--obs"* ]] && PROFILES="$PROFILES --profile observability"
+[[ "$*" == *"--proxy"* ]] && PROFILES="$PROFILES --profile proxy"
+[[ "$*" == *"--full"* ]] && PROFILES="$PROFILES --profile observability --profile proxy --profile hft"
 
 # --- LOGGING ---
 log() { echo -e "\033[0;34m[$(date +'%Y-%m-%d %H:%M:%S')] [INFO] $*\033[0m"; }
@@ -25,48 +30,63 @@ error() { echo -e "\033[0;31m[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $*\033[0m"; 
 # --- CORE ---
 
 deploy() {
-    log "Starting Optimized Deployment..."
+    log "Starting Unified Deployment (v5.0)... *belch*"
     mkdir -p "$LOG_DIR"
     
-    log "Step 1: Infrastructure (Tier 1)..."
-    docker compose -f "$COMPOSE_FILE" up -d $TIER1_SERVICES
+    log "Step 1: Infrastructure (Core)..."
+    docker compose -f "$COMPOSE_FILE" $PROFILES up -d $CORE_INFRA
     
-    log "Step 2: Building Subgraphs and Gateway..."
-    docker compose -f "$COMPOSE_FILE" build
+    # Wait for Postgres
+    log "Waiting for Postgres... *belch*"
+    local retries=0
+    until docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1; do
+        if [[ $retries -ge 12 ]]; then
+            error "Postgres health check timed out"
+            return 1
+        fi
+        log "Waiting for Postgres... ($((retries+1))/12)"
+        sleep 5
+        ((retries++))
+    done
+
+    log "Step 2: Building Images... Stand back, Morty."
+    docker compose -f "$COMPOSE_FILE" $PROFILES build
     
-    log "Step 3: Application Rollout (Tier 2)..."
-    docker compose -f "$COMPOSE_FILE" up -d $TIER2_SERVICES
+    log "Step 3: Rolling Out Applications..."
+    docker compose -f "$COMPOSE_FILE" $PROFILES up -d $CORE_APPS
     
-    log "Step 4: Observability (Tier 3)..."
-    docker compose -f "$COMPOSE_FILE" up -d $TIER3_SERVICES
-    
+    # Start Gateway if requested
+    if [[ "$PROFILES" == *"proxy"* ]]; then
+        log "Step 4: Launching Secure Gateway..."
+        docker compose -f "$COMPOSE_FILE" --profile proxy up -d gateway
+    fi
+
     run_smoke_tests
 }
 
 run_smoke_tests() {
-    log "Running Optimized Smoke Tests..."
-    local gateway_url="http://localhost:4000/health"
+    log "Running Smoke Tests... *belch*"
+    local api_url="http://localhost:8000/health"
     
-    # Wait for gateway
     local retries=0
-    while ! curl -s "$gateway_url" | grep -q "healthy"; do
+    until curl -s "$api_url" | grep -q "healthy"; do
         if [[ $retries -ge 10 ]]; then
-            error "Gateway health check timed out"
+            error "API health check timed out"
             return 1
         fi
-        log "Waiting for Gateway... ($((retries+1))/10)"
+        log "Waiting for API... ($((retries+1))/10)"
         sleep 5
-        retries=$((retries+1))
+        ((retries++))
     done
     
-    success "Optimized is online and healthy."
+    success "Pickle Rick's deployment is online and healthy. Wubba Lubba Dub Dub! 🥒"
 }
 
 # --- ENTRY ---
 case ${1:-help} in
-    deploy) deploy ;;
-    status) docker compose -f "$COMPOSE_FILE" ps ;;
-    logs) docker compose -f "$COMPOSE_FILE" logs -f ;;
-    down) docker compose -f "$COMPOSE_FILE" down ;;
-    *) echo "Usage: $0 {deploy|status|logs|down}" ;;
+    --prod|deploy) deploy ;;
+    status) docker compose -f "$COMPOSE_FILE" $PROFILES ps ;;
+    logs) docker compose -f "$COMPOSE_FILE" $PROFILES logs -f ;;
+    down) docker compose -f "$COMPOSE_FILE" $PROFILES down ;;
+    *) echo "Usage: $0 {deploy|status|logs|down} [--obs] [--proxy] [--full]" ;;
 esac

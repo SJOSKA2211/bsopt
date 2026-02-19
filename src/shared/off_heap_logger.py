@@ -10,12 +10,14 @@ LOG_SIZE = LOG_STRUCT.size
 LOG_BUFFER_CAPACITY = 10000
 SHM_LOG_NAME = "bsopt_off_heap_logs"
 
+
 class OffHeapLogger:
     """
     Zero-Latency Off-Heap Logger using Shared Memory.
     Bypasses standard Python logging I/O on the hot path by writing to a ring buffer.
     A background 'LogDrain' process is responsible for persisting these to disk/Loki.
     """
+
     def __init__(self, create: bool = False):
         self.shm_size = (LOG_SIZE * LOG_BUFFER_CAPACITY) + 8
         try:
@@ -26,33 +28,43 @@ class OffHeapLogger:
                     existing.unlink()
                 except FileNotFoundError:
                     pass
-                self.shm = shared_memory.SharedMemory(name=SHM_LOG_NAME, create=True, size=self.shm_size)
-                self.shm.buf[:8] = struct.pack("q", 0) # Head index
+                self.shm = shared_memory.SharedMemory(
+                    name=SHM_LOG_NAME, create=True, size=self.shm_size
+                )
+                self.shm.buf[:8] = struct.pack("q", 0)  # Head index
             else:
                 self.shm = shared_memory.SharedMemory(name=SHM_LOG_NAME)
-            
+
             self.buf = self.shm.buf
         except Exception:
             # Fallback to standard logging if SHM fails
             self.shm = None
 
     def log(self, event: str, **kwargs):
-        """Ultra-fast log write to shared memory."""
+        """Ultra-fast log write to shared memory. Aligned for atomic head update."""
         if not self.shm:
             return
 
+        # 1. Prepare Payload (Still serialized here, ideally offloaded to a pre-allocated pool)
+        # We limit to 1024 bytes to fit the fixed-size ring slot
+        payload_data = orjson.dumps({"event": event, **kwargs})[:1024]
+        payload_bytes = payload_data.ljust(1024, b"\x00")
+        timestamp = int(time.time() * 1000)
+
+        # 2. Lock-free slot calculation
         head = struct.unpack("q", self.buf[:8])[0]
         offset = 8 + (head % LOG_BUFFER_CAPACITY) * LOG_SIZE
-        
-        payload = orjson.dumps({"event": event, **kwargs})[:1024].ljust(1024, b'\x00')
-        timestamp = int(time.time() * 1000)
-        
-        self.buf[offset : offset + LOG_SIZE] = LOG_STRUCT.pack(timestamp, payload)
+
+        # 3. Write Data FIRST
+        self.buf[offset : offset + LOG_SIZE] = LOG_STRUCT.pack(timestamp, payload_bytes)
+
+        # 4. Atomic Head Update (Machine-word aligned write)
         self.buf[:8] = struct.pack("q", head + 1)
 
     def close(self):
         if self.shm:
             self.shm.close()
+
 
 # Global ultra-fast logger for the hot path
 omega_logger = OffHeapLogger()

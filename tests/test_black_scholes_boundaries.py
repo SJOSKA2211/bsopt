@@ -9,14 +9,24 @@ def test_zero_maturity():
     # ITM Call
     assert_equal(
         BlackScholesEngine.price_options(
-            spot=110, strike=100, maturity=0, volatility=0.2, rate=0.05, option_type="call"
+            spot=110,
+            strike=100,
+            maturity=0,
+            volatility=0.2,
+            rate=0.05,
+            option_type="call",
         ),
         10.0,
     )
     # OTM Call
     assert_equal(
         BlackScholesEngine.price_options(
-            spot=90, strike=100, maturity=0, volatility=0.2, rate=0.05, option_type="call"
+            spot=90,
+            strike=100,
+            maturity=0,
+            volatility=0.2,
+            rate=0.05,
+            option_type="call",
         ),
         0.0,
     )
@@ -24,7 +34,12 @@ def test_zero_maturity():
 
 def test_near_zero_volatility():
     price = BlackScholesEngine.price_options(
-        spot=100, strike=100, maturity=1.0, volatility=1e-9, rate=0.05, option_type="call"
+        spot=100,
+        strike=100,
+        maturity=1.0,
+        volatility=1e-9,
+        rate=0.05,
+        option_type="call",
     )
     # ATM call with zero vol and r=0.05 should be S - K*e^(-rT) = 100 - 100*e^-0.05 approx 4.877
     assert np.isclose(price, 4.877, atol=1e-3)
@@ -32,7 +47,12 @@ def test_near_zero_volatility():
 
 def test_high_volatility():
     price = BlackScholesEngine.price_options(
-        spot=100, strike=100, maturity=1.0, volatility=10.0, rate=0.05, option_type="call"
+        spot=100,
+        strike=100,
+        maturity=1.0,
+        volatility=10.0,
+        rate=0.05,
+        option_type="call",
     )
     # With extremely high vol, call price approaches spot price
     assert np.isclose(price, 100.0, atol=1e-3)
@@ -60,13 +80,20 @@ def test_vectorized_boundary_conditions():
 
 def test_invalid_parameters():
     # BSParameters __post_init__ raises ValueError("Spot, strike, and volatility must be non-negative")
-    with pytest.raises(ValueError, match="Spot, strike, and volatility must be non-negative"):
+    with pytest.raises(
+        ValueError, match="Spot, strike, and volatility must be non-negative"
+    ):
         BSParameters(spot=-1, strike=100, maturity=1, volatility=0.2, rate=0.05)
 
 
 def test_extreme_interest_rates():
     price_neg = BlackScholesEngine.price_options(
-        spot=100, strike=100, maturity=1.0, volatility=0.2, rate=-0.05, option_type="call"
+        spot=100,
+        strike=100,
+        maturity=1.0,
+        volatility=0.2,
+        rate=-0.05,
+        option_type="call",
     )
     price_pos = BlackScholesEngine.price_options(
         spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.5, option_type="call"

@@ -15,10 +15,10 @@ class TestTimeSeriesAnomalyDetector(unittest.TestCase):
     def test_train_success(self):
         detector = TimeSeriesAnomalyDetector()
         data = pd.DataFrame({"val": np.random.rand(10)})
-        
+
         detector.model = MagicMock()
         detector.scaler = MagicMock()
-        
+
         detector.train(data)
         self.assertTrue(detector.is_fitted)
         detector.model.fit.assert_called()
@@ -27,13 +27,13 @@ class TestTimeSeriesAnomalyDetector(unittest.TestCase):
         detector = TimeSeriesAnomalyDetector()
         data = pd.DataFrame({"val": np.random.rand(10)})
         detector.is_fitted = True
-        
+
         detector.model = MagicMock()
         detector.model.predict.return_value = np.array([-1, 1, 1, -1, 1, 1, 1, 1, 1, 1])
         detector.model.decision_function.return_value = np.zeros(10)
         detector.scaler = MagicMock()
         detector.scaler.transform.side_effect = lambda x: x
-        
+
         anomalies = detector.detect(data)
         self.assertEqual(len(anomalies), 2)
         indices = [a["index"] for a in anomalies]
@@ -53,5 +53,6 @@ class TestTimeSeriesAnomalyDetector(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             detector.detect(data)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,7 @@ def test_deprecated_wrapper_price():
     assert isinstance(prices, np.ndarray)
     assert prices[0] > 0
 
+
 def test_deprecated_wrapper_greeks():
     greeks = VectorizedBlackScholesEngine.calculate_greeks(100.0, 100.0, 1.0, 0.2, 0.05)
     assert isinstance(greeks, dict)

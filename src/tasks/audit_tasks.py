@@ -8,11 +8,12 @@ from src.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 
+
 @celery_app.task(name="audit_tasks.persist_audit_log", acks_late=True)
 def persist_audit_log(
     event_type: str,
     user_id: str | None,
-    user_email: str | None, # Already masked
+    user_email: str | None,  # Already masked
     source_ip: str | None,
     user_agent: str | None,
     request_path: str | None,
@@ -28,7 +29,7 @@ def persist_audit_log(
         audit_log = AuditLog(
             method=request_method or "UNKNOWN",
             path=request_path[:500] if request_path else "UNKNOWN",
-            status_code=0, # Default for async tasks
+            status_code=0,  # Default for async tasks
             user_id=user_id or "ANONYMOUS",
             client_ip=source_ip or "0.0.0.0",
             user_agent=user_agent[:500] if user_agent else "UNKNOWN",
@@ -36,8 +37,8 @@ def persist_audit_log(
             metadata_json={
                 "event_type": event_type,
                 "user_email": user_email,
-                "details": details
-            }
+                "details": details,
+            },
         )
         session.add(audit_log)
         session.commit()

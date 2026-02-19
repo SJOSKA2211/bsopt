@@ -10,8 +10,10 @@ from .base import Producer
 
 logger = structlog.get_logger()
 
+
 class MarketData(msgspec.Struct):
     """OPTIMIZED: High-performance typed schema for market data."""
+
     time: float
     symbol: str
     strike: float
@@ -23,6 +25,7 @@ class MarketData(msgspec.Struct):
     volume: int | None = None
     open_interest: int | None = None
 
+
 class MarketDataProducer(Producer):
     """
     High-throughput Kafka producer for real-time market data.
@@ -33,52 +36,48 @@ class MarketDataProducer(Producer):
     - Schema validation with Avro
     - Idempotence for exactly-once semantics
     """
+
     def __init__(
         self,
         bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092",
-        schema_registry_url: str = "http://schema-registry:8081"
+        schema_registry_url: str = "http://schema-registry:8081",
     ):
         self.config = {
-            'bootstrap.servers': bootstrap_servers,
-            'client.id': 'market-data-producer',
+            "bootstrap.servers": bootstrap_servers,
+            "client.id": "market-data-producer",
             # Low-latency performance tuning
-            'compression.type': 'lz4',
-            'linger.ms': 20,  # Optimized for balance between throughput and latency
-            'batch.size': 524288, # 512KB batches
-            'acks': '1', 
-            'max.in.flight.requests.per.connection': 5,
+            "compression.type": "lz4",
+            "linger.ms": 20,  # Optimized for balance between throughput and latency
+            "batch.size": 524288,  # 512KB batches
+            "acks": "1",
+            "max.in.flight.requests.per.connection": 5,
             # Reliability
-            'enable.idempotence': True,
-            'retries': 10,
-            'retry.backoff.ms': 100,
+            "enable.idempotence": True,
+            "retries": 10,
+            "retry.backoff.ms": 100,
             # Monitoring
-            'statistics.interval.ms': 60000,
+            "statistics.interval.ms": 60000,
         }
         self.producer = ConfluentProducer(self.config)
 
         # Schema Registry for Avro serialization
-        self.schema_registry = SchemaRegistryClient({'url': schema_registry_url})
+        self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
         # Define Avro schema for market data
         # Read the Avro schema from the file
         with open("src/streaming/schemas/market_data.avsc") as f:
             self.market_data_schema = f.read()
         self.avro_serializer = AvroSerializer(
-            self.schema_registry,
-            self.market_data_schema
+            self.schema_registry, self.market_data_schema
         )
 
-    async def produce(
-        self,
-        data: dict[str, Any],
-        **kwargs
-    ):
+    async def produce(self, data: dict[str, Any], **kwargs):
         """Produce market data message to Kafka."""
         topic = kwargs.get("topic")
         key = kwargs.get("key")
-        
+
         if not topic:
-             logger.error("kafka_produce_missing_topic")
-             return
+            logger.error("kafka_produce_missing_topic")
+            return
 
         try:
             # Serialize with Avro
@@ -86,9 +85,9 @@ class MarketDataProducer(Producer):
             # Produce to Kafka (async)
             self.producer.produce(
                 topic=topic,
-                key=key.encode('utf-8') if key else None,
+                key=key.encode("utf-8") if key else None,
                 value=value,
-                on_delivery=self._delivery_callback
+                on_delivery=self._delivery_callback,
             )
             self.producer.poll(0)
         except Exception as e:
@@ -96,29 +95,35 @@ class MarketDataProducer(Producer):
 
     async def produce_batch(self, batch: list[dict[str, Any]], topic: str):
         """
-         OPTIMIZATION: Batched ingestion with msgspec validation.
+        OPTIMIZATION: Batched ingestion with internal queue management.
         """
         if not topic:
             return
-            
+
         try:
             # 1. Zero-cost validation via msgspec
-            # This ensures all data in the batch matches the schema before processing
             validated_batch = [msgspec.convert(d, MarketData) for d in batch]
-            
-            for data in validated_batch:
-                # 2. Optimized Avro serialization (using dict conversion)
+
+            for i, data in enumerate(validated_batch):
+                # 2. Convert once to dict for Avro (Redundant but safe for now)
                 payload = msgspec.to_builtins(data)
                 value = self.avro_serializer(payload, None)
+                
                 self.producer.produce(
                     topic=topic,
-                    key=data.symbol.encode('utf-8'),
+                    key=data.symbol.encode("utf-8"),
                     value=value,
-                    on_delivery=self._delivery_callback
+                    on_delivery=self._delivery_callback,
                 )
-            #  FLUSH BATCH
+                
+                # OPTIMIZED: Trigger poll occasionally to handle delivery callbacks
+                # and maintain internal client health during large batches.
+                if i % 100 == 0:
+                    self.producer.poll(0)
+
+            # Final flush of the poll queue
             self.producer.poll(0)
-            logger.debug("kafka_batch_produced_msgspec", count=len(batch), topic=topic)
+            logger.debug("kafka_batch_produced", count=len(batch), topic=topic)
         except Exception as e:
             logger.error("kafka_batch_error", error=str(e), topic=topic)
 
@@ -131,7 +136,7 @@ class MarketDataProducer(Producer):
                 "kafka_message_delivered",
                 topic=msg.topic(),
                 partition=msg.partition(),
-                offset=msg.offset()
+                offset=msg.offset(),
             )
 
     def flush(self):

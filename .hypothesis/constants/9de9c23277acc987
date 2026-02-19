@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/shared/off_heap_logger.py
-# hypothesis_version: 6.151.5
-
-[b'\x00', 1000, 1024, 10000, 'bsopt_off_heap_logs', 'event', 'q', 'q 1024s']

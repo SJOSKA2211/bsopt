@@ -3,7 +3,9 @@ import numpy as np
 from src.shared.math_utils import calculate_price
 
 
-def generate_synthetic_data_numba(n_samples: int = 10000, random_state: int = 42) -> tuple[np.ndarray, np.ndarray, list[str]]:
+def generate_synthetic_data_numba(
+    n_samples: int = 10000, random_state: int = 42
+) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """
     Generate synthetic training data using NumPy-optimized Black-Scholes engine.
     """
@@ -22,17 +24,9 @@ def generate_synthetic_data_numba(n_samples: int = 10000, random_state: int = 42
     prices = calculate_price(S, K, T, sigma, r, q, is_call)
 
     # Construct features
-    X = np.column_stack([
-        S, 
-        K, 
-        T, 
-        is_call_int, 
-        S / K, 
-        np.log(S / K), 
-        np.sqrt(T), 
-        T * 365, 
-        sigma
-    ])
+    X = np.column_stack(
+        [S, K, T, is_call_int, S / K, np.log(S / K), np.sqrt(T), T * 365, sigma]
+    )
 
     feature_names = [
         "underlying_price",

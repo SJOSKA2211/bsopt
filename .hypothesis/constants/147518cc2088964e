@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/apply_optimizations.py
-# hypothesis_version: 6.151.5
-
-[500, '-U', '-d', '-f', '-h', '-p', '5432', 'DATABASE_URL', 'DB_PASSWORD', 'PGPASSWORD', '__main__', 'already exists', 'database_url_missing', 'optimizations_failed', 'psql', 'schema_file_missing']

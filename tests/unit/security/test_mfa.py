@@ -17,10 +17,12 @@ from src.security.mfa import MfaService
 def mfa_service():
     return MfaService()
 
+
 def test_mfa_secret_generation(mfa_service):
     secret = mfa_service.generate_secret()
     assert len(secret) == 32
     assert isinstance(secret, str)
+
 
 def test_mfa_provisioning_uri(mfa_service):
     secret = mfa_service.generate_secret()
@@ -29,11 +31,13 @@ def test_mfa_provisioning_uri(mfa_service):
     # Email might be encoded as test%40example.com
     assert "test%40example.com" in uri or "test@example.com" in uri
 
+
 def test_mfa_verification(mfa_service):
     import pyotp
+
     secret = mfa_service.generate_secret()
     totp = pyotp.totp.TOTP(secret)
     code = totp.now()
-    
+
     assert mfa_service.verify_code(secret, code) is True
     assert mfa_service.verify_code(secret, "000000") is False

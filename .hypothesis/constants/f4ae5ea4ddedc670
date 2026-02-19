@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/services/ml_service.py
-# hypothesis_version: 6.151.5
-
-[1.0, 300, 1000, ',', ':', 'ML_GRPC_POOL_SIZE', 'ML_SERVICE_GRPC_URLS', 'ml_predict', 'xgb']

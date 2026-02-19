@@ -18,5 +18,6 @@ async def test():
     finally:
         await scraper.shutdown()
 
+
 if __name__ == "__main__":
     asyncio.run(test())

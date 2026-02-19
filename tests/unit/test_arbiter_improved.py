@@ -10,7 +10,12 @@ import sys
 sys.modules["wasmer"] = mock_wasmer
 sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
-from src.pricing.arbiter import BSParameters, EngineArbiter, PricingModel, PricingRequest
+from src.pricing.arbiter import (
+    BSParameters,
+    EngineArbiter,
+    PricingModel,
+    PricingRequest,
+)
 
 
 class TestArbiter(unittest.TestCase):
@@ -18,7 +23,7 @@ class TestArbiter(unittest.TestCase):
         # Patch WASMPricingEngine to not try to load real WASM
         with patch("src.pricing.arbiter.WASMPricingEngine") as mock_wasm:
             mock_instance = mock_wasm.return_value
-            mock_instance.instance = None # Force fallback in arbiter
+            mock_instance.instance = None  # Force fallback in arbiter
             self.arbiter = EngineArbiter()
         self.params = BSParameters(
             spot=100.0,
@@ -26,7 +31,7 @@ class TestArbiter(unittest.TestCase):
             maturity=1.0,
             volatility=0.2,
             rate=0.05,
-            dividend=0.0
+            dividend=0.0,
         )
 
     def test_route_bs(self):
@@ -35,7 +40,11 @@ class TestArbiter(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_route_mc(self):
-        req = PricingRequest(params=self.params, model=PricingModel.MONTE_CARLO, engine_config={"n_paths": 1000})
+        req = PricingRequest(
+            params=self.params,
+            model=PricingModel.MONTE_CARLO,
+            engine_config={"n_paths": 1000},
+        )
         price = self.arbiter.route_request(req)
         self.assertGreater(price, 0)
 
@@ -54,5 +63,6 @@ class TestArbiter(unittest.TestCase):
         prices = self.arbiter.route_batch(S, K, T, sigma, r, is_call)
         self.assertEqual(len(prices), 2)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

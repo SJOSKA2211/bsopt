@@ -13,11 +13,13 @@ class ProtocolType(StrEnum):
     PROTO = "proto"
     MSGPACK = "msgpack"
 
+
 class WebSocketCodec:
     """
     Ultra-high-performance codec for multi-protocol serialization.
     FUSED: Uses msgspec for binary speed.
     """
+
     _msgpack_encoder = msgspec.msgpack.Encoder()
     _msgpack_decoder = msgspec.msgpack.Decoder()
 
@@ -38,11 +40,14 @@ class WebSocketCodec:
             raise ValueError(f"Unsupported protocol: {protocol}")
 
     @staticmethod
-    def decode(data: str | bytes, protocol: ProtocolType, message_type: Any | None = None) -> Any:
+    def decode(
+        data: str | bytes, protocol: ProtocolType, message_type: Any | None = None
+    ) -> Any:
         if protocol == ProtocolType.JSON:
             return orjson.loads(data)
         elif protocol == ProtocolType.MSGPACK:
-            return msgpack.unpackb(data)
+            # OPTIMIZED: Use pre-allocated msgspec decoder
+            return WebSocketCodec._msgpack_decoder.decode(data)
         elif protocol == ProtocolType.PROTO:
             # High-performance binary decoding
             if message_type is None:

@@ -1,4 +1,0 @@
-# file: /tmp/pytest-of-kamau/pytest-0/test_preload_modules_failure0/mock_package_preload_fail/__init__.py
-# hypothesis_version: 6.151.5
-
-['.fine', '.nonexistent', 'Broken', 'Working']

@@ -16,11 +16,13 @@ from src.pricing.models.heston_fft import batch_heston_price_jit
     theta=st.floats(min_value=0.01, max_value=0.5),
     sigma=st.floats(min_value=0.01, max_value=1.0),
     rho=st.floats(min_value=-0.9, max_value=0.9),
-    is_call=st.booleans()
+    is_call=st.booleans(),
 )
-def test_heston_fft_stability(spot, strike, maturity, rate, v0, kappa, theta, sigma, rho, is_call):
-    """ Property-based testing for Heston stability."""
-    
+def test_heston_fft_stability(
+    spot, strike, maturity, rate, v0, kappa, theta, sigma, rho, is_call
+):
+    """Property-based testing for Heston stability."""
+
     # Ensure Feller condition is satisfied or handle it
     # 2κθ > σ²
     if 2 * kappa * theta <= sigma**2:
@@ -41,7 +43,19 @@ def test_heston_fft_stability(spot, strike, maturity, rate, v0, kappa, theta, si
     out = np.empty(1, dtype=np.float64)
 
     # Execute JIT kernel
-    batch_heston_price_jit(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out)
+    batch_heston_price_jit(
+        spots,
+        strikes,
+        maturities,
+        rates,
+        v0s,
+        kappas,
+        thetas,
+        sigmas,
+        rhos,
+        is_calls,
+        out,
+    )
 
     price = out[0]
 
@@ -53,7 +67,7 @@ def test_heston_fft_stability(spot, strike, maturity, rate, v0, kappa, theta, si
     # Boundary: Intrinsic value bound
     intrinsic = max(spot - strike, 0) if is_call else max(strike - spot, 0)
     assert price >= intrinsic - 1e-4, f"Price {price} below intrinsic {intrinsic}"
-    
+
     # No-arbitrage bound
     if is_call:
         assert price <= spot + 1e-4

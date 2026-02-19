@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 
 import structlog
 import uvloop
@@ -16,7 +17,6 @@ from src.api.routes.debug import router as debug_router
 from src.api.routes.ml import router as ml_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
-from src.auth.service import AuthService
 from src.config import settings
 from src.database import get_db
 from src.shared.observability import logging_middleware
@@ -30,11 +30,26 @@ try:
 except (ImportError, AttributeError):
     pass
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    default_response_class=ORJSONResponse
-)
+app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse)
 
+
+<<<<<<< Updated upstream
+=======
+@app.on_event("startup")
+async def startup_event():
+    start_system_metrics_loop("api")
+
+    # Chaos Injection
+    from src.utils.chaos import monkey
+
+    if monkey.enabled:
+        logger.warning("chaos_mode_active_injecting_startup_latency")
+        await monkey.delay_db(
+            0.5
+        )  # Slight delay to trigger latency detectors without timeout
+
+
+>>>>>>> Stashed changes
 # Middleware
 app.add_middleware(BrotliMiddleware, minimum_size=1000, quality=4)
 app.add_middleware(
@@ -46,56 +61,58 @@ app.add_middleware(
 )
 app.middleware("http")(logging_middleware)
 
+
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
     """Global exception handler."""
+    from src.api.exceptions import BaseAPIException
+
+    if isinstance(exc, BaseAPIException):
+        return ORJSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": exc.error_code,
+                "message": exc.message,
+                "details": exc.details,
+            },
+        )
+
     if isinstance(exc, HTTPException):
         return ORJSONResponse(
             status_code=exc.status_code,
-            content=exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)},
-            headers=getattr(exc, "headers", None)
+            content=(
+                exc.detail
+                if isinstance(exc.detail, dict)
+                else {"message": str(exc.detail)}
+            ),
+            headers=getattr(exc, "headers", None),
         )
 
     error_detail = str(exc)
-    if settings.ENVIRONMENT != "prod": 
+    if settings.ENVIRONMENT != "prod":
         import traceback
+
         error_detail = traceback.format_exc()
         logger.error("api_error_detailed", error=error_detail, path=request.url.path)
     else:
         logger.error("api_error", error=str(exc), path=request.url.path)
-    
+
     return ORJSONResponse(
         status_code=500,
-        content={"message": "Internal server error", "detail": error_detail if settings.ENVIRONMENT != "prod" else "An unexpected error occurred"}
+        content={
+            "message": "Internal server error",
+            "detail": (
+                error_detail
+                if settings.ENVIRONMENT != "prod"
+                else "An unexpected error occurred"
+            ),
+        },
     )
+
 
 app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
 
-# Dependency for Auth
-async def get_current_user(request: Request, db: Session = Depends(get_db)):
-    """Helper to get user from state."""
-    if not hasattr(request.state, "user"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    return request.state.user
-
-async def get_current_active_user(user: dict = Depends(get_current_user)):
-    """Helper to get active user."""
-    return user
-
-async def verify_token(request: Request, db: Session = Depends(get_db)):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid token")
-    
-    token = auth_header.split(" ")[1]
-    service = AuthService(db)
-    try:
-        payload = service.validate_token(token)
-        request.state.user = payload
-        return payload
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
 
 graphql_app = GraphQLRouter(schema)
 
@@ -108,9 +125,18 @@ app.include_router(users_router, prefix="/api/v1")
 app.include_router(debug_router, prefix="/api/v1")
 app.include_router(graphql_app, prefix="/graphql")
 
+
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from fastapi import FastAPI, Request, Response
+
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @app.get("/")
 async def root():

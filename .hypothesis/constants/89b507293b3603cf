@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/crud.py
-# hypothesis_version: 6.151.5
-
-[0.0, 100, 1000, ', ', '0.00', 'add', 'ask', 'audit_logs', 'avg_fill_price', 'bid', 'cancelled_orders', 'client_ip', 'closed', 'created_at', 'current_price', 'days', 'delta', 'details', 'entry_date', 'entry_price', 'error', 'error_message', 'event_type', 'exit_date', 'exit_price', 'expiry', 'fill_rate', 'filled_orders', 'filled_price', 'filled_quantity', 'gamma', 'headers', 'hours', 'id', 'implied_volatility', 'last', 'limit', 'method', 'mid', 'open', 'open_interest', 'option_type', 'path', 'pending', 'portfolio_id', 'positions', 'price', 'quantity', 'query_params', 'realized_pnl', 'request_id', 'request_logs', 'request_method', 'request_path', 'response_time_ms', 'rho', 'side', 'source_ip', 'staging_market_ticks', 'status', 'status_code', 'strike', 'symbol', 'theta', 'time', 'total_orders', 'uid', 'user_agent', 'user_email', 'user_id', 'vega', 'volume']

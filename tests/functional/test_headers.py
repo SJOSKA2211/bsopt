@@ -12,6 +12,7 @@ async def test_header_content_type_json(client):
     response = await client.get("/health")
     assert response.headers.get("content-type").startswith("application/json")
 
+
 @pytest.mark.asyncio
 async def test_header_security_and_server_info(client):
     """64. Test Assertions: Check header values."""
@@ -21,7 +22,8 @@ async def test_header_security_and_server_info(client):
     assert response.headers.get("X-Frame-Options") == "DENY"
     # Ensure server info is not leaked or is generic
     server = response.headers.get("server", "").lower()
-    assert "uvicorn" in server or server == "" # Standard/Generic allowed
+    assert "uvicorn" in server or server == ""  # Standard/Generic allowed
+
 
 @pytest.mark.asyncio
 async def test_no_sensitive_cookies_set(client):

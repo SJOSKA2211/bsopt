@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/utils/shared_memory.py
-# hypothesis_version: 6.151.5
-
-[1024, 'cleaned_stale_shm', 'shm_pool_exhausted', 'shm_pool_init_failed', 'shm_release_invalid', 'shm_segment_corrupt']

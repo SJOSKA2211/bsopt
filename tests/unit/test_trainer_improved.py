@@ -18,10 +18,10 @@ class TestTrainer(unittest.TestCase):
         self.X = np.random.rand(100, 5)
         self.y = np.random.rand(100)
         self.params = {"framework": "sklearn", "n_estimators": 10}
-        
+
         with (
             patch("src.ml.trainer.ExperimentTracker"),
-            patch("src.ml.trainer.ModelQuantizer")
+            patch("src.ml.trainer.ModelQuantizer"),
         ):
             self.trainer = ModelTrainer(study_name="test_study")
 
@@ -32,9 +32,9 @@ class TestTrainer(unittest.TestCase):
         mock_strategy.train.return_value = MagicMock()
         mock_strategy.predict.return_value = np.random.rand(20)
         mock_get_strategy.return_value = mock_strategy
-        
+
         mock_metrics.return_value = {"mae": 0.1, "rmse": 0.2, "r2": 0.9}
-        
+
         r2 = self.trainer.train_and_evaluate(self.X, self.y, self.params)
         self.assertEqual(r2, 0.9)
         self.assertTrue(mock_strategy.train.called)
@@ -45,12 +45,13 @@ class TestTrainer(unittest.TestCase):
         mock_study.best_params = {"max_depth": 5}
         mock_study.best_value = 0.95
         mock_create_study.return_value = mock_study
-        
+
         objective = MagicMock()
         study = self.trainer.optimize(objective, n_trials=1)
-        
+
         self.assertEqual(study.best_value, 0.95)
         self.assertTrue(mock_study.optimize.called)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -97,22 +97,30 @@ def _svi_total_variance_jit(k, a, b, rho, m, sigma):
 def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     f_v = float(forward)
     k_v = strike
-    
+
     one_minus_beta = 1.0 - beta
     f_k_one_minus_beta = (f_v * k_v) ** (one_minus_beta / 2.0)
     log_f_k = np.log(f_v / k_v)
 
     z_v = (nu / alpha) * f_k_one_minus_beta * log_f_k
-    
+
     # Handle ATM case vectorized
-    term2 = np.where(np.abs(z_v) < 1e-8, 1.0, 
-                     z_v / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)))
+    term2 = np.where(
+        np.abs(z_v) < 1e-8,
+        1.0,
+        z_v
+        / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)),
+    )
 
     term1 = alpha / (
         f_k_one_minus_beta
-        * (1.0 + (one_minus_beta**2 / 24.0) * log_f_k**2 + (one_minus_beta**4 / 1920.0) * log_f_k**4)
+        * (
+            1.0
+            + (one_minus_beta**2 / 24.0) * log_f_k**2
+            + (one_minus_beta**4 / 1920.0) * log_f_k**4
+        )
     )
-    
+
     term3 = (
         1.0
         + (
@@ -128,6 +136,7 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
 
 def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu):
     return _sabr_implied_vol_jit(strikes, forward, maturity, alpha, beta, rho, nu)
+
 
 class SVIModel:
     """Stochastic Volatility Inspired (SVI) model."""
@@ -162,7 +171,9 @@ class SVIModel:
     def variance_derivative(self, k: float) -> float:
         """First derivative of total variance w.r.t k."""
         p_v = self.params
-        return float(p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2)))
+        return float(
+            p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2))
+        )
 
     def variance_second_derivative(self, k: float) -> float:
         """Second derivative of total variance w.r.t k."""
@@ -194,7 +205,7 @@ class SABRModel:
         p = self.params
         f_v = float(forward)
         k_v = np.atleast_1d(np.array(strike, dtype=float))
-        
+
         # Vectorized evaluation
         vols = _sabr_implied_vol_batch_jit(
             k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu
@@ -225,15 +236,17 @@ class CalibrationEngine:
     def _svi_objective_function(self, params, k, market_vols, weights, maturity):
         """Objective function for SVI calibration."""
         a, b, rho, m, sigma = params
-        
+
         # Calculate total variance vectorized
         w_v = _svi_total_variance_jit(k, a, b, rho, m, sigma)
-            
+
         # Convert total variance to implied volatility
         model_vols = np.sqrt(np.maximum(w_v / maturity, 1e-9))
         return (model_vols - market_vols) * weights
 
-    def calibrate_svi(self, quotes: list[MarketQuote]) -> tuple[SVIParameters, dict[str, Any]]:
+    def calibrate_svi(
+        self, quotes: list[MarketQuote]
+    ) -> tuple[SVIParameters, dict[str, Any]]:
         if not quotes:
             raise ValueError("No market quotes")
 
@@ -329,7 +342,9 @@ class VolatilitySurface:
     def add_slice(
         self, t_m: float, model: SVIModel | SABRModel, forward: float | Decimal
     ):
-        if self.models and not isinstance(model, type(next(iter(self.models.values())))):
+        if self.models and not isinstance(
+            model, type(next(iter(self.models.values())))
+        ):
             raise ValueError("Cannot mix model types")
         self.models[t_m] = model
         self.forwards[t_m] = float(forward)

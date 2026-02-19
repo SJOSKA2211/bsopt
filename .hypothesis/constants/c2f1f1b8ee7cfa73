@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/schemas/pricing.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1.0, 252, 'asian', 'barrier', 'black_scholes', 'call', 'digital', 'fixed', 'geometric', 'lookback', 'put']

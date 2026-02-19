@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/redis_remediator.py
-# hypothesis_version: 6.151.5
-
-[6379, 'failure', 'localhost', 'no_keys_found', 'success']

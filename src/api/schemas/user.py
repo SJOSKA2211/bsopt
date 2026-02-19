@@ -40,7 +40,7 @@ class UserResponse(BaseModel):
                 "created_at": "2024-01-01T00:00:00Z",
                 "last_login": "2024-01-15T10:30:00Z",
             }
-        }
+        },
     )
 
 
@@ -68,7 +68,9 @@ class UserStatsResponse(BaseModel):
     total_requests: int = Field(..., description="Total API requests")
     requests_today: int = Field(..., description="Requests made today")
     requests_this_month: int = Field(..., description="Requests made this month")
-    rate_limit_remaining: int = Field(..., description="Remaining requests in current window")
+    rate_limit_remaining: int = Field(
+        ..., description="Remaining requests in current window"
+    )
     rate_limit_reset: datetime = Field(..., description="When rate limit resets")
 
     model_config = ConfigDict(
@@ -86,17 +88,21 @@ class UserStatsResponse(BaseModel):
 
 class APIKeyCreateRequest(BaseModel):
     """Request to create a new API key."""
-    name: str = Field(..., min_length=1, max_length=100, description="Friendly name for the key")
+
+    name: str = Field(
+        ..., min_length=1, max_length=100, description="Friendly name for the key"
+    )
 
 
 class APIKeyResponse(BaseModel):
     """Response containing API key metadata."""
+
     id: str
     name: str
     prefix: str
     created_at: datetime
     last_used_at: datetime | None = None
-    raw_key: str | None = None # Only populated on creation
+    raw_key: str | None = None  # Only populated on creation
 
 
 class TierUpgradeRequest(BaseModel):
@@ -106,5 +112,7 @@ class TierUpgradeRequest(BaseModel):
     payment_method_id: str | None = Field(None, description="Payment method ID")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"target_tier": "pro", "payment_method_id": "pm_123456789"}}
+        json_schema_extra={
+            "example": {"target_tier": "pro", "payment_method_id": "pm_123456789"}
+        }
     )

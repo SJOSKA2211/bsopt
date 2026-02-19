@@ -1,4 +1,4 @@
-name: BS-Opt Application Pipeline
+name: BS-Opt Application Pipeline (Master Orchestration)
 
 on:
   push:
@@ -7,69 +7,46 @@ on:
     branches: [ main, master ]
 
 jobs:
-  linting:
+  docker-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Cache Docker layers
+        uses: actions/cache@v4
         with:
-          python-version: '3.13'
-      - name: Install dependencies
-        run: pip install ruff black
-      - name: Run Ruff
-        run: ruff check .
-      - name: Run Black
-        run: black --check .
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Build Images via Makefile
+        run: make build
 
-  security-scan:
+  quality-checks:
     runs-on: ubuntu-latest
+    needs: docker-build
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-      - name: Install dependencies
-        run: pip install pip-audit bandit
-      - name: Run pip-audit
+      - name: Lint, Format, and Security Scan via Makefile
         run: |
-          # Use non-zero exit code only on high/critical vulnerabilities
-          pip-audit -r requirements-api.txt -r requirements-auth.txt -r requirements_cli.txt || true
-      - name: Run Bandit
-        run: bandit -r src/
+          make lint
+          make format
+          make security-scan
 
   integration-tests:
     runs-on: ubuntu-latest
-    needs: [linting, security-scan]
+    needs: quality-checks
     steps:
       - uses: actions/checkout@v4
-      - name: Set up uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-      - name: Cache uv cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
-      - name: Install dependencies
-        run: |
-          uv pip install -r requirements-api.txt -r requirements-auth.txt pytest pytest-asyncio pytest-cov pytest-xdist httpx
-      - name: Run Integration Tests (Parallel)
-        run: |
-          # 🚀 SINGULARITY: Parallel test execution with xdist
-          PYTHONPATH=. uv run pytest -n auto tests/integration/
+      - name: Run Integration Tests via Makefile
+        run: make test-all
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [security-scan, linting, integration-tests]
+    needs: [quality-checks, integration-tests]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to Production
+      - name: Deploy via Orchestrator
         run: ./deploy.sh --prod

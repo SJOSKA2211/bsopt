@@ -35,18 +35,32 @@ class TestQuantUtils(unittest.TestCase):
         self.assertEqual(result.shape, (steps + 1, paths))
 
     def test_batch_bs_price_jit(self):
-        S, K, T, sigma, r, q = np.array([100.0]), np.array([100.0]), np.array([1.0]), np.array([0.2]), np.array([0.05]), np.array([0.0])
+        S, K, T, sigma, r, q = (
+            np.array([100.0]),
+            np.array([100.0]),
+            np.array([1.0]),
+            np.array([0.2]),
+            np.array([0.05]),
+            np.array([0.0]),
+        )
         is_call = np.array([True])
         price = batch_bs_price_jit(S, K, T, sigma, r, q, is_call)
         self.assertGreater(price[0], 0)
-        
+
         # Test T < 1e-7
         T_zero = np.array([0.0])
         price_zero = batch_bs_price_jit(S, K, T_zero, sigma, r, q, is_call)
         self.assertEqual(price_zero[0], 0.0)
 
     def test_batch_greeks_jit(self):
-        S, K, T, sigma, r, q = np.array([100.0]), np.array([100.0]), np.array([1.0]), np.array([0.2]), np.array([0.05]), np.array([0.0])
+        S, K, T, sigma, r, q = (
+            np.array([100.0]),
+            np.array([100.0]),
+            np.array([1.0]),
+            np.array([0.2]),
+            np.array([0.05]),
+            np.array([0.0]),
+        )
         is_call = np.array([True])
         delta, gamma, vega, theta, rho = batch_greeks_jit(S, K, T, sigma, r, q, is_call)
         self.assertGreater(delta[0], 0)
@@ -66,10 +80,18 @@ class TestQuantUtils(unittest.TestCase):
 
     def test_vectorized_newton_raphson_iv_jit(self):
         market_prices = np.array([10.45])
-        S, K, T, r, q = np.array([100.0]), np.array([100.0]), np.array([1.0]), np.array([0.05]), np.array([0.0])
+        S, K, T, r, q = (
+            np.array([100.0]),
+            np.array([100.0]),
+            np.array([1.0]),
+            np.array([0.05]),
+            np.array([0.0]),
+        )
         is_call = np.array([True])
         sigma_init = np.array([0.2])
-        iv = vectorized_newton_raphson_iv_jit(market_prices, S, K, T, r, q, is_call, sigma_init)
+        iv = vectorized_newton_raphson_iv_jit(
+            market_prices, S, K, T, r, q, is_call, sigma_init
+        )
         self.assertAlmostEqual(iv[0], 0.2, delta=0.1)
 
     def test_heston_char_func_jit(self):
@@ -81,11 +103,15 @@ class TestQuantUtils(unittest.TestCase):
         self.assertGreater(p, 0)
 
     def test_jit_mc_european_price_and_greeks(self):
-        res = jit_mc_european_price_and_greeks(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
+        res = jit_mc_european_price_and_greeks(
+            100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True
+        )
         self.assertEqual(len(res), 5)
 
     def test_jit_mc_european_with_control_variate(self):
-        p, s = jit_mc_european_with_control_variate(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
+        p, s = jit_mc_european_with_control_variate(
+            100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True
+        )
         self.assertGreater(p, 0)
 
     def test_jit_lsm_american(self):
@@ -106,11 +132,18 @@ class TestQuantUtils(unittest.TestCase):
         self.assertEqual(len(res_put), 5)
 
     def test_corrado_miller_initial_guess(self):
-        S, K, T, r, q = np.array([100.0]), np.array([100.0]), np.array([1.0]), np.array([0.05]), np.array([0.0])
+        S, K, T, r, q = (
+            np.array([100.0]),
+            np.array([100.0]),
+            np.array([1.0]),
+            np.array([0.05]),
+            np.array([0.0]),
+        )
         market_price = np.array([10.45])
-        option_type = np.array([0]) # Call
+        option_type = np.array([0])  # Call
         iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, option_type)
         self.assertGreater(iv[0], 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -16,10 +16,12 @@ from src.shared.observability import (
 
 logger = structlog.get_logger()
 
+
 class ExperimentTracker:
     """
     Handles all observability, logging, and metrics for ML training.
     """
+
     def __init__(self, study_name: str, tracking_uri: str = None):
         self.study_name = study_name
         if tracking_uri:
@@ -38,11 +40,13 @@ class ExperimentTracker:
         """Logs a dictionary as a JSON artifact."""
         mlflow.log_dict(dictionary, artifact_file)
 
-    def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str):
+    def log_metrics(
+        self, accuracy: float, rmse: float, duration: float, framework: str
+    ):
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("rmse", rmse)
         mlflow.log_metric("duration", duration)
-        
+
         TRAINING_DURATION.labels(framework=framework).observe(duration)
         MODEL_ACCURACY.labels(framework=framework).set(accuracy)
         MODEL_RMSE.labels(model_type=framework, dataset="validation").set(rmse)
@@ -62,7 +66,7 @@ class ExperimentTracker:
         elif framework == "pytorch":
             mlflow.pytorch.log_model(model, artifact_path)
         else:
-            mlflow.log_model(model, artifact_path) # Generic fallback
+            mlflow.log_model(model, artifact_path)  # Generic fallback
 
     def log_feature_importance(self, importance: dict[str, float], framework: str):
         plt.figure(figsize=(10, 6))
@@ -71,12 +75,12 @@ class ExperimentTracker:
         plt.barh(names, values)
         plt.title(f"Feature Importance ({framework})")
         plt.xlabel("Importance")
-        
+
         temp_dir = tempfile.mkdtemp()
         plot_path = os.path.join(temp_dir, "feature_importance.png")
         plt.savefig(plot_path)
         plt.close()
-        
+
         self.log_artifact(plot_path)
         os.remove(plot_path)
         os.rmdir(os.path.dirname(plot_path))

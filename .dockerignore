@@ -1,71 +1,95 @@
-# Core ignores
+# === Version Control ===
 .git
 .gitignore
-.env*
-! .env.example
-README.md
-LICENSE
-Makefile
-PICKLE_RICK_PRD.md
-*.md
+.github
 
-# Python
+# === Environments ===
+.env
+.env.*
+!.env.example
+.venv
+venv
+env
+
+# === Python ===
 __pycache__
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
-venv/
-.venv/
-.venv*/
-.venv_local/
-pip-log.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
-.pytest_cache/
-
-# Node
-node_modules/
-**/node_modules/
-npm-debug.log
-yarn-error.log
-
-# Logs and Temp
-*.log
-logs/
-tmp/
-.gemini/
-.gemini_security/
-backups/
-
-# ML Artifacts
-mlflow.db
-mlruns/
+.db
+.ipynb_checkpoints
+.pytest_cache
+.mypy_cache
+.hypothesis
 lightning_logs/
-results/
+mlruns/
 models/
 
-# Documentation
+# === Development Tools ===
+.vscode
+.idea
+.devcontainer
+.dockerignore
+Dockerfile*
+docker-compose*
+Makefile
+README.md
+LICENSE
+Jenkinsfile
+deploy.sh
+DOCKER_DEV_GUIDE.md
+
+# === Docs & Tests ===
 docs/
-htmlcov/
+tests/
+audit_report.md
+coverage_report.txt
+coverage.xml
+ml_unit_report*.txt
+ps_output.txt
 
-# Build artifacts
-dist/
-build/
-target/
-
-# Explicit Inclusions (Must be last to override ignores, but we must re-ignore node_modules inside src if we include src)
-!requirements*.txt
-!pyproject.toml
-!src/
-!docker/
-
-# Re-ignore node_modules specifically inside src just in case
-src/**/node_modules/
+# === Sessions & Backups ===
+sessions/
+backups/
+tickets/
+.gemini/
+.gemini_security/
+0b6592e0/
+112a6bd0/
+26c2512b/
+28bc6f22/
+347d6575/
+3e8f5a0c/
+405eb0bd/
+478d2bf2/
+4d05ef4c/
+51254f04/
+57972e27/
+5bf7ab49/
+60e176a0/
+621ebbdf/
+63796096/
+75b9a524/
+8cd14a65/
+9fa185e7/
+a001/
+aa8a7eae/
+b002/
+base0001/
+bc423913/
+c003/
+cf5e5b9f/
+cov0002/
+d004/
+e005/
+e5fc8af4/
+f006/
+infrastructure/
+init-scripts/
+logs/
+monitoring/
+protos/
+ref0003/
+scripts/
+src/frontend/node_modules/
+src/auth-service/node_modules/

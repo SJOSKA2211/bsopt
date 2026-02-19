@@ -12,6 +12,7 @@ def test_pricing_health():
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
+
 def test_pricing_graphql_dummy():
     client = TestClient(app)
     # Strawberry strips leading underscores? Or we should use camelCase.
@@ -20,6 +21,7 @@ def test_pricing_graphql_dummy():
     response = client.post("/graphql", json={"query": query})
     assert response.status_code == 200
     assert response.json()["data"]["dummy"] == "pricing"
+
 
 @pytest.mark.asyncio
 async def test_pricing_graphql_option_reference():
@@ -36,14 +38,16 @@ async def test_pricing_graphql_option_reference():
             }
         }
     """
-    rep = [{
-        "__typename": "Option",
-        "id": "test_opt",
-        "strike": 100.0,
-        "underlyingSymbol": "AAPL",
-        "expiry": expiry,
-        "optionType": "call"
-    }]
+    rep = [
+        {
+            "__typename": "Option",
+            "id": "test_opt",
+            "strike": 100.0,
+            "underlyingSymbol": "AAPL",
+            "expiry": expiry,
+            "optionType": "call",
+        }
+    ]
     response = client.post("/graphql", json={"query": query, "variables": {"rep": rep}})
     assert response.status_code == 200
     data = response.json()["data"]["_entities"][0]

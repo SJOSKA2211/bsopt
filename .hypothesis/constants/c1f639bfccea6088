@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/aiops_orchestrator.py
-# hypothesis_version: 6.151.5
-
-[0.05, 0.1, 0.5, 2.0, '*', 'aiops_orchestrator', 'anomalies_found', 'api_service_name', 'autoencoder_epochs', 'data_drift', 'error_rate_threshold', 'high_error_rate', 'high_latency', 'latency_threshold', 'ml_pipeline_config', 'multivariate_anomaly', 'no_anomalies_found', 'no_data', 'predicted_load_spike', 'prometheus_url', 'redis_cache_pattern', 'success', 'tft_config', 'univariate_anomaly']

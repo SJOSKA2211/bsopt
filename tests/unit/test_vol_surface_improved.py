@@ -22,7 +22,7 @@ class TestVolSurface(unittest.TestCase):
         model = SVIModel(self.svi_params)
         vol = model.implied_volatility(100.0, 100.0, 1.0)
         self.assertGreater(vol, 0)
-        
+
         # Test vectorized
         strikes = np.array([90.0, 100.0, 110.0])
         vols = model.implied_volatility(strikes, 100.0, 1.0)
@@ -36,10 +36,10 @@ class TestVolSurface(unittest.TestCase):
     def test_vol_surface(self):
         surface = VolatilitySurface()
         model1 = SVIModel(self.svi_params)
-        model2 = SVIModel(self.svi_params) # Same for simplicity
+        model2 = SVIModel(self.svi_params)  # Same for simplicity
         surface.add_slice(0.5, model1, 100.0)
         surface.add_slice(1.0, model2, 100.0)
-        
+
         # Test interpolation
         vol = surface.implied_volatility(100.0, 0.75)
         self.assertGreater(vol, 0)
@@ -55,5 +55,6 @@ class TestVolSurface(unittest.TestCase):
         self.assertIsInstance(params, SVIParameters)
         self.assertIn("rmse", diag)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

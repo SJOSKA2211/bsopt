@@ -1,4 +1,4 @@
-# file: /home/kamau/bsopt/src/security/__init__.py
-# hypothesis_version: 6.151.5
+# file: /home/h8t3dj4y/bsopt/src/security/__init__.py
+# hypothesis_version: 6.151.9
 
 ['AuditEvent', 'AuditLog', 'PasswordService', 'PasswordValidator', 'log_audit']

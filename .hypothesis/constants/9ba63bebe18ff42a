@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/remediation_strategies.py
-# hypothesis_version: 6.151.5
-
-['aiops', 'cache_inconsistency', 'data_drift', 'error_spike', 'high_latency', 'purge', 'remediation', 'restart', 'retrain', 'rollback', 'service', 'stale_data', 'sync_failure']

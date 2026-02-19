@@ -11,7 +11,7 @@ class TestMonteCarlo(unittest.TestCase):
             maturity=1.0,
             volatility=0.2,
             rate=0.05,
-            dividend=0.0
+            dividend=0.0,
         )
         self.config = MCConfig(n_paths=1000, seed=42)
         self.engine = MonteCarloEngine(self.config)
@@ -36,5 +36,6 @@ class TestMonteCarlo(unittest.TestCase):
         price, ci = engine.price_european(self.params, "call")
         self.assertGreater(price, 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

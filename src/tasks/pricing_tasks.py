@@ -26,6 +26,7 @@ from .celery_app import PricingTask, celery_app
 
 logger = structlog.get_logger(__name__)
 
+
 def _run_sync(coro):
     """
     Robust async execution in sync contexts without nest_asyncio slop.
@@ -38,6 +39,7 @@ def _run_sync(coro):
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(coro)
 
+
 # High-performance result structure for batch pricing.
 class PricingResult(msgspec.Struct):
     price: float
@@ -46,6 +48,7 @@ class PricingResult(msgspec.Struct):
     vega: float
     theta: float
     rho: float
+
 
 @celery_app.task(
     bind=True,
@@ -68,7 +71,9 @@ def price_option_task(
     use_cache: bool = True,
 ) -> dict[str, Any]:
     start_time = time.perf_counter()
-    logger.info("pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity)
+    logger.info(
+        "pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity
+    )
 
     if spot <= 0 or strike <= 0 or maturity <= 0 or volatility <= 0:
         raise ValueError("Invalid input parameters: all must be positive")
@@ -94,11 +99,15 @@ def price_option_task(
                     "computation_time_ms": round(computation_time, 3),
                 }
         except Exception as e:
-            logger.warning("cache_lookup_failed", error=str(e), action="computing_fresh")
+            logger.warning(
+                "cache_lookup_failed", error=str(e), action="computing_fresh"
+            )
 
     try:
         # OPTIMIZED: Direct JIT execution bypassing strategy object overhead
-        price = calculate_price_scalar(spot, strike, maturity, volatility, rate, dividend, is_call)
+        price = calculate_price_scalar(
+            spot, strike, maturity, volatility, rate, dividend, is_call
+        )
         delta, gamma, theta, vega, rho = calculate_greeks_scalar(
             spot, strike, maturity, volatility, rate, dividend, is_call
         )
@@ -120,9 +129,13 @@ def price_option_task(
 
         if use_cache and not cache_hit:
             try:
-                params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
+                params = BSParameters(
+                    spot, strike, maturity, volatility, rate, dividend
+                )
                 _run_sync(
-                    pricing_cache.set_option_price(params, option_type, "black_scholes", float(price))
+                    pricing_cache.set_option_price(
+                        params, option_type, "black_scholes", float(price)
+                    )
                 )
             except Exception as e:
                 logger.warning("cache_set_failed", error=str(e))
@@ -132,6 +145,7 @@ def price_option_task(
     except Exception as e:
         logger.error("pricing_error", error=str(e))
         raise
+
 
 @celery_app.task(
     bind=True,
@@ -151,32 +165,32 @@ def batch_price_options_task(
     start_time = time.perf_counter()
     count = len(options)
     logger.info("batch_pricing_start", count=count, vectorized=vectorized)
-    
+
     if not options:
         return {"prices": [], "count": 0, "computation_time_ms": 0}
 
     try:
         if vectorized:
             # Extract parameters into arrays for vectorization
-            spots = np.array([o['spot'] for o in options], dtype=np.float64)
-            strikes = np.array([o['strike'] for o in options], dtype=np.float64)
-            maturities = np.array([o['maturity'] for o in options], dtype=np.float64)
-            vols = np.array([o['volatility'] for o in options], dtype=np.float64)
-            rates = np.array([o['rate'] for o in options], dtype=np.float64)
-            divs = np.array([o.get('dividend', 0.0) for o in options], dtype=np.float64)
-            types = np.array([o.get('option_type', 'call') for o in options])
+            spots = np.array([o["spot"] for o in options], dtype=np.float64)
+            strikes = np.array([o["strike"] for o in options], dtype=np.float64)
+            maturities = np.array([o["maturity"] for o in options], dtype=np.float64)
+            vols = np.array([o["volatility"] for o in options], dtype=np.float64)
+            rates = np.array([o["rate"] for o in options], dtype=np.float64)
+            divs = np.array([o.get("dividend", 0.0) for o in options], dtype=np.float64)
+            types = np.array([o.get("option_type", "call") for o in options])
 
             # Perform vectorized pricing using JIT utilities
-            is_call = (types == "call")
+            is_call = types == "call"
             prices = calculate_price(
                 spots, strikes, maturities, vols, rates, divs, is_call
             )
-            
+
             # Perform vectorized greeks using JIT utilities
             deltas, gammas, thetas, vegas, rhos = calculate_greeks(
                 spots, strikes, maturities, vols, rates, divs, is_call
             )
-            
+
             # Format results
             # Optimized batch construction via msgspec
             results = [
@@ -186,40 +200,53 @@ def batch_price_options_task(
                     gamma=round(float(gammas[i]), 6),
                     vega=round(float(vegas[i]), 6),
                     theta=round(float(thetas[i]), 6),
-                    rho=round(float(rhos[i]), 6)
-                ) for i in range(count)
+                    rho=round(float(rhos[i]), 6),
+                )
+                for i in range(count)
             ]
-            
+
             # Convert to plain dicts for Celery/Kombu compatibility
             result_list = msgspec.to_builtins(results)
         else:
             # Fallback to sequential pricing using scalar JIT functions
             result_list = []
             for opt in options:
-                is_call = opt.get('option_type', 'call').lower() == "call"
+                is_call = opt.get("option_type", "call").lower() == "call"
                 price = calculate_price_scalar(
-                    opt['spot'], opt['strike'], opt['maturity'], 
-                    opt['volatility'], opt['rate'], opt.get('dividend', 0.0), is_call
+                    opt["spot"],
+                    opt["strike"],
+                    opt["maturity"],
+                    opt["volatility"],
+                    opt["rate"],
+                    opt.get("dividend", 0.0),
+                    is_call,
                 )
                 delta, gamma, theta, vega, rho = calculate_greeks_scalar(
-                    opt['spot'], opt['strike'], opt['maturity'], 
-                    opt['volatility'], opt['rate'], opt.get('dividend', 0.0), is_call
+                    opt["spot"],
+                    opt["strike"],
+                    opt["maturity"],
+                    opt["volatility"],
+                    opt["rate"],
+                    opt.get("dividend", 0.0),
+                    is_call,
                 )
-                result_list.append({
-                    "price": round(float(price), 4),
-                    "delta": round(float(delta), 6),
-                    "gamma": round(float(gamma), 6),
-                    "vega": round(float(vega), 6),
-                    "theta": round(float(theta), 6),
-                    "rho": round(float(rho), 6)
-                })
+                result_list.append(
+                    {
+                        "price": round(float(price), 4),
+                        "delta": round(float(delta), 6),
+                        "gamma": round(float(gamma), 6),
+                        "vega": round(float(vega), 6),
+                        "theta": round(float(theta), 6),
+                        "rho": round(float(rho), 6),
+                    }
+                )
 
         computation_time = (time.perf_counter() - start_time) * 1000
-        
+
         # Explicitly trigger GC for large batch tasks to free up memory immediately
         if count > 1000:
             gc.collect()
-            
+
         return {
             "task_id": self.request.id,
             "results": result_list,
@@ -230,6 +257,7 @@ def batch_price_options_task(
     except Exception as e:
         logger.error("batch_pricing_failed", error=str(e))
         raise
+
 
 @celery_app.task(
     bind=True,
@@ -249,6 +277,7 @@ def calculate_implied_volatility_task(
     logger.info("implied_vol_calc_start", option_type=option_type, price=price)
     iv = implied_volatility(price, spot, strike, maturity, rate, dividend, option_type)
     return {"implied_vol": iv}
+
 
 @celery_app.task(
     bind=True,

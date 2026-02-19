@@ -46,5 +46,6 @@ class TestPricingFactory(unittest.TestCase):
         self.assertEqual(type(engine).__name__, "MonteCarloEngine")
         PricingEngineFactory.set_default_engine(None)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/docker_remediator.py
-# hypothesis_version: 6.151.5
-
-['Container not found.', 'failure', 'found', 'not_found', 'success']

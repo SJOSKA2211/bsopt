@@ -14,11 +14,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 # --- LOCAL AUTHLIB INTEGRATION POLYFILL ---
 
+
 def create_query_client_func(session_class, client_class):
     def query_client(client_id):
         with session_class() as session:
             return session.query(client_class).filter_by(client_id=client_id).first()
+
     return query_client
+
 
 def create_save_token_func(session_class, token_class):
     def save_token(token, request):
@@ -26,22 +29,21 @@ def create_save_token_func(session_class, token_class):
             user_id = request.user.id
         else:
             user_id = None
-        
+
         client = request.client
-        item = token_class(
-            client_id=client.client_id,
-            user_id=user_id,
-            **token
-        )
+        item = token_class(client_id=client.client_id, user_id=user_id, **token)
         with session_class() as session:
             session.add(item)
             session.commit()
+
     return save_token
+
 
 # --- OAUTH2 SERVER CONFIG ---
 
 query_client = create_query_client_func(Session, OAuth2Client)
 save_token = create_save_token_func(Session, OAuth2Token)
+
 
 class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def save_authorization_code(self, code, request):
@@ -51,15 +53,19 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
             redirect_uri=request.redirect_uri,
             scope=request.scope,
             user_id=request.user.id,
-            code_challenge=request.data.get('code_challenge'),
-            code_challenge_method=request.data.get('code_challenge_method'),
+            code_challenge=request.data.get("code_challenge"),
+            code_challenge_method=request.data.get("code_challenge_method"),
         )
         self.db.add(auth_code)
         self.db.commit()
         return auth_code
 
     def query_authorization_code(self, code, client):
-        item = self.db.query(OAuth2AuthorizationCode).filter_by(code=code, client_id=client.client_id).first()
+        item = (
+            self.db.query(OAuth2AuthorizationCode)
+            .filter_by(code=code, client_id=client.client_id)
+            .first()
+        )
         if item and not item.is_expired():
             return item
 
@@ -70,6 +76,7 @@ class AuthorizationCodeGrant(grants.AuthorizationCodeGrant):
     def authenticate_user(self, authorization_code):
         return self.db.get(User, authorization_code.user_id)
 
+
 server = AuthorizationServer()
 # In modern authlib, we often register functions after init or pass them differently
 # This polyfill matches the expected 2-arg limit if it exists
@@ -79,6 +86,7 @@ server.register_grant(AuthorizationCodeGrant, [CodeChallenge(required=True)])
 
 # --- ENDPOINTS ---
 
+
 @router.post("/authorize")
 async def authorize(request: Request, db: Session = Depends(get_db)):
     """
@@ -87,11 +95,14 @@ async def authorize(request: Request, db: Session = Depends(get_db)):
     For this high-performance API, we expect a pre-authenticated session or credential.
     """
     # Placeholder for user authentication logic
-    user = db.query(User).first() # Dummy for now, would be replaced by real session/user
+    user = db.query(
+        User
+    ).first()  # Dummy for now, would be replaced by real session/user
     if not user:
         raise HTTPException(status_code=401, detail="User not authenticated")
-    
+
     return server.create_authorization_response(request, user)
+
 
 @router.post("/token")
 async def token(request: Request):
@@ -101,16 +112,17 @@ async def token(request: Request):
     """
     return server.create_token_response(request)
 
+
 @router.get("/jwks")
 async def jwks():
     """Exposes public keys for token verification."""
     from authlib.jose import JsonWebKey
-    
+
     key = JsonWebKey.import_key(
-        settings.rsa_public_key, 
-        {"kty": "RSA", "kid": "internal-key-01", "use": "sig"}
+        settings.rsa_public_key, {"kty": "RSA", "kid": "internal-key-01", "use": "sig"}
     )
     return {"keys": [key.as_dict()]}
+
 
 @router.get("/.well-known/openid-configuration")
 async def openid_configuration(request: Request):
@@ -124,5 +136,5 @@ async def openid_configuration(request: Request):
         "response_types_supported": ["code", "token"],
         "subject_types_supported": ["public"],
         "id_token_signing_alg_values_supported": ["RS256"],
-        "code_challenge_methods_supported": ["S256"]
+        "code_challenge_methods_supported": ["S256"],
     }

@@ -14,8 +14,16 @@ import orjson
 import structlog
 from cachetools import LRUCache
 from fastapi import Request, Response
-from prometheus_client import REGISTRY, Counter, Gauge, Histogram, Summary, push_to_gateway
+from prometheus_client import (
+    REGISTRY,
+    Counter,
+    Gauge,
+    Histogram,
+    Summary,
+    push_to_gateway,
+)
 
+from src.config import settings
 from src.shared.off_heap_logger import omega_logger
 
 # Pre-instantiate processors for performance
@@ -30,7 +38,10 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
     }
 )
 
-def _off_heap_processor(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+
+def _off_heap_processor(
+    logger: Any, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
     """Zero-latency redirect for high-frequency logs."""
     if event_dict.get("high_frequency") or event_dict.get("latency_sensitive"):
         # Remove the marker before logging to SHM
@@ -42,6 +53,7 @@ def _off_heap_processor(logger: Any, method_name: str, event_dict: dict[str, Any
         raise structlog.DropEvent
     return event_dict
 
+
 def setup_logging():
     """Configures structlog for JSON logging (Loki compliant) with optimized processors."""
     structlog.configure(
@@ -49,7 +61,7 @@ def setup_logging():
             _TIME_STAMPER,
             _LEVEL_ADDER,
             _CALLSITE_ADDER,
-            _off_heap_processor, #  Redirect high-freq logs
+            _off_heap_processor,  #  Redirect high-freq logs
             _JSON_RENDERER,
         ],
         context_class=dict,
@@ -57,6 +69,7 @@ def setup_logging():
         wrapper_class=structlog.BoundLogger,
         cache_logger_on_first_use=True,
     )
+
 
 def tune_gc(mode: str = "analytical"):
     """
@@ -70,8 +83,9 @@ def tune_gc(mode: str = "analytical"):
     else:
         # Standard balanced tuning for API gateway/services
         gc.set_threshold(50000, 10, 10)
-        
+
     structlog.get_logger().info("gc_tuned", mode=mode, thresholds=gc.get_threshold())
+
 
 def tune_worker_resources():
     """
@@ -80,41 +94,50 @@ def tune_worker_resources():
     """
     import os
 
-    
     cpu_count = os.cpu_count() or 1
     # Assign 50% of cores to Numba to leave room for Ray/Event Loop
     numba_threads = max(1, cpu_count // 2)
     os.environ["NUMBA_NUM_THREADS"] = str(numba_threads)
-    os.environ["MKL_NUM_THREADS"] = "1" # Force MKL to single thread to avoid nested parallel conflicts
+    os.environ["MKL_NUM_THREADS"] = (
+        "1"  # Force MKL to single thread to avoid nested parallel conflicts
+    )
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
-    
+
     structlog.get_logger().info(
-        "worker_resources_tuned", 
-        cpu_count=cpu_count, 
-        numba_threads=numba_threads
+        "worker_resources_tuned", cpu_count=cpu_count, numba_threads=numba_threads
     )
 
+
 _IP_CACHE = LRUCache(maxsize=1000)
+
 
 async def logging_middleware(request: Request, call_next: Callable) -> Response:
     """FastAPI middleware for structured logging of every request with optimized IP masking and tracing."""
     logger = structlog.get_logger("api_request")
     start_time = time.time()
-    
+
     # Trace Injection: Use existing ID or generate new one
+<<<<<<< Updated upstream
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+=======
+    request_id = (
+        request.headers.get("X-Correlation-ID")
+        or request.headers.get("X-Request-ID")
+        or str(uuid.uuid4())
+    )
+>>>>>>> Stashed changes
     request.state.request_id = request_id
-    
+
     response = await call_next(request)
-    
+
     duration = time.time() - start_time
-    
+
     # Mask client IP to protect PII with caching for performance
     raw_ip = request.client.host if request.client else "unknown"
     if raw_ip in _IP_CACHE:
         client_ip = _IP_CACHE[raw_ip]
     elif raw_ip != "unknown":
-        parts = raw_ip.split('.')
+        parts = raw_ip.split(".")
         if len(parts) == 4:
             client_ip = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
         else:
@@ -127,7 +150,11 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     # Always log errors (4xx, 5xx) and redirects (3xx).
     should_log = True
     if 200 <= response.status_code < 300:
+<<<<<<< Updated upstream
         if random.random() > 0.1: # 10% sampling rate
+=======
+        if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
+>>>>>>> Stashed changes
             should_log = False
 
     if should_log:
@@ -139,67 +166,160 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
             status_code=response.status_code,
             duration_ms=round(duration * 1000, 2),
             client_ip=client_ip,
-            sampled=True if 200 <= response.status_code < 300 else False
+            sampled=True if 200 <= response.status_code < 300 else False,
         )
-    
+
     # Propagate ID back to client
     response.headers["X-Request-ID"] = request_id
     return response
 
+<<<<<<< Updated upstream
+=======
+
+# System Metrics (Defined at module level to avoid registration leaks)
+PROCESS_CPU_USAGE = Gauge(
+    "process_cpu_usage_percent", "CPU usage of the current process", ["service"]
+)
+PROCESS_MEMORY_USAGE = Gauge(
+    "process_memory_usage_bytes", "RSS memory usage of the current process", ["service"]
+)
+
+
+>>>>>>> Stashed changes
 # System Metrics
 def update_system_metrics(service_name: str):
     """Capture real-time resource utilization for the current process."""
     try:
         import psutil
+
         process = psutil.Process()
+<<<<<<< Updated upstream
         # Note: interval=None makes it non-blocking (returns diff since last call)
         PROCESS_CPU_USAGE = Gauge('process_cpu_usage_percent', 'CPU usage of the current process', ['service'])
         PROCESS_MEMORY_USAGE = Gauge('process_memory_usage_bytes', 'RSS memory usage of the current process', ['service'])
         
         PROCESS_CPU_USAGE.labels(service=service_name).set(process.cpu_percent(interval=None))
+=======
+        PROCESS_CPU_USAGE.labels(service=service_name).set(
+            process.cpu_percent(interval=None)
+        )
+>>>>>>> Stashed changes
         PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
     except Exception:
         pass
 
+<<<<<<< Updated upstream
+=======
+
+def start_system_metrics_loop(service_name: str, interval: int = 15):
+    """Starts a background thread to periodically update system metrics."""
+
+    def _loop():
+        while True:
+            update_system_metrics(service_name)
+            time.sleep(interval)
+
+    executor = ThreadPoolExecutor(
+        max_workers=1, thread_name_prefix=f"metrics_{service_name}"
+    )
+    executor.submit(_loop)
+
+
+>>>>>>> Stashed changes
 # Common Metrics
-SCRAPE_DURATION = Summary('market_scrape_duration_seconds', 'Time spent scraping market data', ['api'])
-SCRAPE_ERRORS = Counter('market_scrape_errors_total', 'Total number of scrape errors', ['api', 'status_code'])
-TRAINING_DURATION = Histogram('ml_training_duration_seconds', 'Time spent in training', ['framework'])
-MODEL_ACCURACY = Gauge('ml_model_accuracy_score', 'Accuracy score of the latest model', ['framework'])
-MODEL_RMSE = Gauge('ml_model_rmse', 'Root Mean Squared Error of model', ['model_type', 'dataset'])
-DATA_DRIFT_SCORE = Gauge('ml_data_drift_score', 'PSI score for data drift')
-KS_TEST_SCORE = Gauge('ml_ks_test_p_value', 'P-value from Kolmogorov-Smirnov test')
-PERFORMANCE_DRIFT_ALERT = Gauge('ml_performance_drift_alert', 'Binary alert for performance drift')
-TRAINING_ERRORS = Counter('ml_training_errors_total', 'Total training failures', ['framework'])
+SCRAPE_DURATION = Summary(
+    "market_scrape_duration_seconds", "Time spent scraping market data", ["api"]
+)
+SCRAPE_ERRORS = Counter(
+    "market_scrape_errors_total",
+    "Total number of scrape errors",
+    ["api", "status_code"],
+)
+TRAINING_DURATION = Histogram(
+    "ml_training_duration_seconds", "Time spent in training", ["framework"]
+)
+MODEL_ACCURACY = Gauge(
+    "ml_model_accuracy_score", "Accuracy score of the latest model", ["framework"]
+)
+MODEL_RMSE = Gauge(
+    "ml_model_rmse", "Root Mean Squared Error of model", ["model_type", "dataset"]
+)
+DATA_DRIFT_SCORE = Gauge("ml_data_drift_score", "PSI score for data drift")
+KS_TEST_SCORE = Gauge("ml_ks_test_p_value", "P-value from Kolmogorov-Smirnov test")
+PERFORMANCE_DRIFT_ALERT = Gauge(
+    "ml_performance_drift_alert", "Binary alert for performance drift"
+)
+TRAINING_ERRORS = Counter(
+    "ml_training_errors_total", "Total training failures", ["framework"]
+)
 
 # Blockchain Metrics
-BLOCKCHAIN_RPC_LATENCY = Histogram('blockchain_rpc_latency_seconds', 'Latency of RPC calls', ['method'])
-BLOCKCHAIN_RPC_ERRORS = Counter('blockchain_rpc_errors_total', 'Total number of RPC errors', ['method'])
-BLOCKCHAIN_GAS_PRICE = Gauge('blockchain_gas_price_gwei', 'Current network gas price')
+BLOCKCHAIN_RPC_LATENCY = Histogram(
+    "blockchain_rpc_latency_seconds", "Latency of RPC calls", ["method"]
+)
+BLOCKCHAIN_RPC_ERRORS = Counter(
+    "blockchain_rpc_errors_total", "Total number of RPC errors", ["method"]
+)
+BLOCKCHAIN_GAS_PRICE = Gauge("blockchain_gas_price_gwei", "Current network gas price")
 
 # Proxy/Scraper Metrics
-PROXY_LATENCY = Histogram('proxy_latency_seconds', 'Latency of requests per proxy', ['proxy_url'])
-PROXY_FAILURES = Counter('proxy_failures_total', 'Total failures per proxy', ['proxy_url'])
+PROXY_LATENCY = Histogram(
+    "proxy_latency_seconds", "Latency of requests per proxy", ["proxy_url"]
+)
+PROXY_FAILURES = Counter(
+    "proxy_failures_total", "Total failures per proxy", ["proxy_url"]
+)
 
 # RL Agent Metrics
-RL_EPISODE_REWARD = Gauge('rl_episode_reward_total', 'Total reward per episode', ['agent_id'])
-RL_ACTION_VARIANCE = Gauge('rl_action_variance', 'Variance of actions taken by the RL agent', ['agent_id'])
-RL_PORTFOLIO_VALUE = Gauge('rl_portfolio_value_current', 'Current portfolio value tracked by RL agent', ['agent_id'])
+RL_EPISODE_REWARD = Gauge(
+    "rl_episode_reward_total", "Total reward per episode", ["agent_id"]
+)
+RL_ACTION_VARIANCE = Gauge(
+    "rl_action_variance", "Variance of actions taken by the RL agent", ["agent_id"]
+)
+RL_PORTFOLIO_VALUE = Gauge(
+    "rl_portfolio_value_current",
+    "Current portfolio value tracked by RL agent",
+    ["agent_id"],
+)
 
 
 # Heston Metrics
-HESTON_FELLER_MARGIN = Gauge('heston_feller_margin', 'Margin above Feller condition (2κθ - σ²)', ['symbol'])
-CALIBRATION_DURATION = Histogram('calibration_duration_seconds', 'Time spent in calibration', ['symbol'])
-HESTON_R_SQUARED = Gauge('heston_r_squared', 'R-squared coefficient of determination for Heston fit', ['symbol'])
-HESTON_PARAMS_FRESHNESS = Gauge('heston_params_freshness_seconds', 'Time since last successful calibration', ['symbol'])
+HESTON_FELLER_MARGIN = Gauge(
+    "heston_feller_margin", "Margin above Feller condition (2κθ - σ²)", ["symbol"]
+)
+CALIBRATION_DURATION = Histogram(
+    "calibration_duration_seconds", "Time spent in calibration", ["symbol"]
+)
+HESTON_R_SQUARED = Gauge(
+    "heston_r_squared",
+    "R-squared coefficient of determination for Heston fit",
+    ["symbol"],
+)
+HESTON_PARAMS_FRESHNESS = Gauge(
+    "heston_params_freshness_seconds",
+    "Time since last successful calibration",
+    ["symbol"],
+)
 
 # ONNX & Pricing Service Metrics
-ONNX_INFERENCE_LATENCY = Histogram('onnx_inference_latency_ms', 'Latency of ONNX inference in milliseconds')
-PRICING_SERVICE_DURATION = Histogram('pricing_service_duration_seconds', 'Time spent in PricingService methods', ['method'])
-ML_PROXY_PREDICT_LATENCY = Histogram('ml_proxy_predict_latency_seconds', 'Latency of ML model predictions via proxy')
+ONNX_INFERENCE_LATENCY = Histogram(
+    "onnx_inference_latency_ms", "Latency of ONNX inference in milliseconds"
+)
+PRICING_SERVICE_DURATION = Histogram(
+    "pricing_service_duration_seconds",
+    "Time spent in PricingService methods",
+    ["method"],
+)
+ML_PROXY_PREDICT_LATENCY = Histogram(
+    "ml_proxy_predict_latency_seconds", "Latency of ML model predictions via proxy"
+)
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
-_METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="metrics_pusher")
+_METRICS_EXECUTOR = ThreadPoolExecutor(
+    max_workers=2, thread_name_prefix="metrics_pusher"
+)
+
 
 def push_metrics(job_name: str):
     """
@@ -225,14 +345,16 @@ def push_metrics(job_name: str):
 # Persistent HTTP client for observability
 _observability_client: httpx.AsyncClient | None = None
 
+
 def get_obs_client() -> httpx.AsyncClient:
     global _observability_client
     if _observability_client is None:
         _observability_client = httpx.AsyncClient(
             timeout=5.0,
-            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5)
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
         )
     return _observability_client
+
 
 async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     """
@@ -240,7 +362,9 @@ async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     """
     grafana_url = os.environ.get("GRAFANA_URL")
     if not grafana_url:
-        structlog.get_logger().debug("grafana_annotation_skipped", reason="GRAFANA_URL not set")
+        structlog.get_logger().debug(
+            "grafana_annotation_skipped", reason="GRAFANA_URL not set"
+        )
         return False
 
     if tags is None:
@@ -253,12 +377,14 @@ async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     try:
         # Use orjson for faster serialization than the default json.dumps
         response = await client.post(
-            f"{grafana_url}/api/annotations", 
-            headers={"Content-Type": "application/json"}, 
-            content=orjson.dumps(payload)
+            f"{grafana_url}/api/annotations",
+            headers={"Content-Type": "application/json"},
+            content=orjson.dumps(payload),
         )
         response.raise_for_status()
-        structlog.get_logger().info("grafana_annotation_posted", status_code=response.status_code)
+        structlog.get_logger().info(
+            "grafana_annotation_posted", status_code=response.status_code
+        )
         return True
     except Exception as e:
         structlog.get_logger().error("grafana_annotation_failed", error=str(e))

@@ -29,7 +29,7 @@ def test_batch_greeks_vs_single():
         )
         option_type = "call" if is_call[i] else "put"
         expected = BlackScholesEngine.calculate_greeks_static(params, option_type)
-        
+
         assert np.isclose(delta[i], expected.delta)
         assert np.isclose(gamma[i], expected.gamma, rtol=1e-5)
         assert np.isclose(vega[i], expected.vega, rtol=1e-5)

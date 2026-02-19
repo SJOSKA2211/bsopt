@@ -3,7 +3,9 @@ from typing import Any
 import numpy as np
 
 
-def assert_equal(actual: Any, expected: Any, tolerance: float = 1e-7, message: str = ""):
+def assert_equal(
+    actual: Any, expected: Any, tolerance: float = 1e-7, message: str = ""
+):
     """
     Custom assertion helper to compare values with tolerance for floats
     and support for numpy arrays.

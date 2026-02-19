@@ -10,34 +10,31 @@ from src.utils.cache import get_redis
 
 logger = structlog.get_logger()
 
+
 def generate_key(request: Request, prefix: str) -> str:
-    """Generate a consistent cache key based on path and query params."""
-    # Create a deterministic key from query parameters
-    query_items = sorted(request.query_params.items())
-    query_str = "&".join(f"{k}={v}" for k, v in query_items)
+    """Generate a high-performance consistent cache key."""
+    # OPTIMIZED: Deterministic sorting of query params for stable hashing
+    params = sorted(request.query_params.items())
     
-    # Construct base key
-    base = f"{prefix}:{request.url.path}:{query_str}"
+    # Use blake2b for faster hashing than sha256
+    hasher = hashlib.blake2b(digest_size=16)
+    hasher.update(request.url.path.encode())
+    for k, v in params:
+        hasher.update(f"{k}:{v}".encode())
     
-    # Hash for safety and length
-    return f"{prefix}:{hashlib.sha256(base.encode()).hexdigest()}"
+    return f"{prefix}:{hasher.hexdigest()}"
 
 def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
     """
-    Decorator for FastAPI endpoints to cache responses in Redis.
-    Serialized using msgspec for performance.
+    Decorator for FastAPI endpoints with Response-aware caching.
     """
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Extract request object
-            request = next((arg for arg in args if isinstance(arg, Request)), None)
-            if not request:
-                request = kwargs.get('request')
+            # ... (Request extraction stays same)
+            request = next((arg for arg in args if isinstance(arg, Request)), None) or kwargs.get("request")
             
-            # If we can't find the request, skip caching (or raise)
             if not request:
-                logger.warning("cache_skipped_no_request_object", endpoint=func.__name__)
                 return await func(*args, **kwargs)
 
             redis = get_redis()
@@ -46,39 +43,28 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
 
             cache_key = generate_key(request, prefix)
 
-            # 1. Try Fetch
             try:
                 cached = await redis.get(cache_key)
                 if cached:
-                    logger.debug("api_cache_hit", key=cache_key)
-                    return Response(
-                        content=cached,
-                        media_type="application/json"
-                    )
-            except Exception as e:
-                logger.error("api_cache_read_error", error=str(e))
+                    return Response(content=cached, media_type="application/json", headers={"X-Cache": "HIT"})
+            except Exception:
+                pass
 
-            # 2. Compute
             response = await func(*args, **kwargs)
 
-            # 3. Cache (only if it's a valid response)
-            # Support both direct Pydantic models (msgspec friendly) and Response objects?
-            # For simplicity, we assume the endpoint returns data that FastAPI will serialize.
-            # BUT, standard FastAPI decorators serialize AFTER the function returns.
-            # To cache the *result*, we might need to handle serialization ourselves or cache the Pydantic model dump.
-            
-            # Implementation Choice: Cache the serialized JSON if possible.
-            # If the function returns a Pydantic model or dict, we serialize it.
+            # 3. Intelligent Caching
             try:
-                if hasattr(response, "json"): # Pydantic v2
-                    data = response.model_dump_json()
-                elif isinstance(response, dict) or isinstance(response, list):
+                data = None
+                if isinstance(response, Response):
+                    # OPTIMIZED: Capture body from Response objects
+                    data = response.body
+                elif hasattr(response, "model_dump_json"):
+                    data = response.model_dump_json().encode()
+                elif isinstance(response, (dict, list)):
                     data = msgspec.json.encode(response)
-                else:
-                    # Fallback or skip
-                    return response
-                
-                await redis.setex(cache_key, ttl, data)
+
+                if data:
+                    await redis.setex(cache_key, ttl, data)
             except Exception as e:
                 logger.error("api_cache_write_error", error=str(e))
 

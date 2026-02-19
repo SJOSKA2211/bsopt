@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/wasm_engine.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1.0, 200, 10000, 100000, 'black_scholes', 'call', 'crank_nicolson', 'fdm', 'heston', 'mc', 'monte_carlo']

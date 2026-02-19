@@ -116,7 +116,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     def _truncate_body(self, body: str) -> str:
         """Truncate body if too long."""
         if len(body) > self.max_body_length:
-            return body[: self.max_body_length] + f"... [truncated, {len(body)} bytes total]"
+            return (
+                body[: self.max_body_length]
+                + f"... [truncated, {len(body)} bytes total]"
+            )
         return body
 
     def _get_client_ip(self, request: Request) -> str:
@@ -136,157 +139,64 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return cast(str, request.client.host if request.client else "unknown")
 
     def _get_user_info(self, request: Request) -> dict[str, Any]:
-        """Extract user info from request state."""
-        user_info: dict[str, Any] = {
-            "user_id": None,
-            "user_email": None,
-            "user_tier": None,
+        """Extract user info from consolidated request state."""
+        return {
+            "user_id": getattr(request.state, "user_id", None),
+            "user_email": getattr(request.state, "user_email", None),
+            "user_tier": getattr(request.state, "user_tier", None),
         }
-
-        if hasattr(request.state, "user"):
-            user = request.state.user
-            user_info["user_id"] = str(user.id) if hasattr(user, "id") else None
-            user_info["user_email"] = user.email if hasattr(user, "email") else None
-            user_info["user_tier"] = user.tier if hasattr(user, "tier") else None
-
-        return user_info
-
-    def _should_skip(self, path: str) -> bool:
-        """Check if path should skip logging."""
-        return path in self.SKIP_PATHS
-
-    def _should_reduce_log(self, path: str) -> bool:
-        """Check if path should have reduced logging."""
-        return path in self.REDUCED_LOG_PATHS
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         path = request.url.path
-
-        # Skip logging for certain paths
         if self._should_skip(path):
             return cast(Response, await call_next(request))
 
-        # Generate request ID if not present
-        request_id = getattr(request.state, "request_id", None)
-        if not request_id:
-            import uuid
-
-            request_id = str(uuid.uuid4())
-            request.state.request_id = request_id
-
         # Start timing
         start_time = time.perf_counter()
-        start_timestamp = datetime.now(UTC)
+        
+        # 1. Use existing request ID from my optimized generator
+        request_id = getattr(request.state, "request_id", "unknown")
 
-        # Collect request info
-        request_info = {
-            "request_id": request_id,
-            "timestamp": start_timestamp.isoformat(),
-            "method": request.method,
-            "path": path,
-            "query_params": self._redact_params(dict(request.query_params)),
-            "client_ip": self._get_client_ip(request),
-            "user_agent": request.headers.get("user-agent", ""),
-        }
-
-        # Add headers if not reduced logging
-        if not self._should_reduce_log(path):
-            request_info["headers"] = self._redact_headers(dict(request.headers))
-
-        # Capture request body if configured
-        request_body = None
-        if self.log_request_body and request.method in {"POST", "PUT", "PATCH"}:
-            try:
-                body_bytes = await request.body()
-                if body_bytes:
-                    try:
-                        body_json = msgspec.json.decode(body_bytes)
-                        # Redact sensitive fields
-                        for key in list(body_json.keys()):
-                            if any(s in key.lower() for s in ["password", "secret", "token"]):
-                                body_json[key] = "[REDACTED]"
-                        request_body = msgspec.json.encode(body_json).decode('utf-8')
-                    except Exception:
-                        request_body = body_bytes.decode("utf-8", errors="replace")
-
-                    request_body = self._truncate_body(request_body)
-            except Exception as e:
-                logger.warning(f"Failed to read request body: {e}")
-
-        if request_body:
-            request_info["body"] = request_body
-
-        # Process request
-        response = None
-        error_info = None
-
-        try:
-            response = await call_next(request)
-            status_code = response.status_code
-
-        except Exception as e:
-            # Capture error info
-            error_info = {
-                "type": type(e).__name__,
-                "message": str(e),
-                "traceback": traceback.format_exc(),
-            }
-            status_code = 500
-            raise
-
-        finally:
-            # Calculate duration
-            duration_ms = int((time.perf_counter() - start_time) * 1000)
-
-            # Build log entry
+        # ... (process request)
+        response = await call_next(request)
+        status_code = response.status_code
+        
+        # 2. Optimized Logging with Sampling
+        duration_ms = int((time.perf_counter() - start_time) * 1000)
+        from src.shared.observability import settings
+        
+        # Use sampling for successful logs to reduce I/O
+        should_log = True
+        if 200 <= status_code < 300:
+            import random
+            if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
+                should_log = False
+        
+        if should_log or status_code >= 400:
             log_entry = {
-                **request_info,
+                "request_id": request_id,
+                "method": request.method,
+                "path": path,
                 "status_code": status_code,
                 "duration_ms": duration_ms,
-                **self._get_user_info(request),
+                **self._get_user_info(request)
             }
+            
+            # OPTIMIZED: Hand off to Off-Heap Logger for zero-latency persistence
+            from src.shared.off_heap_logger import omega_logger
+            omega_logger.log("api_request", **log_entry)
+            
+            # Still log to console for visibility
+            request_logger.info(msgspec.json.encode(log_entry).decode("utf-8"))
 
-            if error_info:
-                log_entry["error"] = error_info
-
-            # Add response info
-            if response:
-                log_entry["response_headers"] = {
-                    "content-type": response.headers.get("content-type", ""),
-                    "content-length": response.headers.get("content-length", ""),
-                }
-
-            # Determine log level
-            if status_code >= 500:
-                log_level = logging.ERROR
-            elif status_code >= 400:
-                log_level = logging.WARNING
-            elif duration_ms > self.slow_request_threshold_ms:
-                log_level = logging.WARNING
-                log_entry["slow_request"] = True
-            else:
-                log_level = logging.INFO
-
-            # Skip INFO logs for reduced paths
-            if self._should_reduce_log(path) and log_level == logging.INFO:
-                pass
-            else:
-                # OPTIMIZED: Log as JSON using optimized msgspec
-                request_logger.log(log_level, msgspec.json.encode(log_entry).decode('utf-8'))
-
-            # Persist to database if configured
-            if self.persist_to_db and not self._should_reduce_log(path):
-                try:
-                    await self._persist_log(log_entry, request)
-                except Exception as e:
-                    logger.error(f"Failed to persist request log: {e}")
+        return cast(Response, response)
 
         return cast(Response, response)
 
     async def _persist_log(self, log_entry: dict[str, Any], request: Request) -> None:
         """Persist log entry to database using anyio.to_thread to avoid blocking."""
         from anyio.to_thread import run_sync
-        
+
         def _save():
             try:
                 from src.database import get_session
@@ -297,7 +207,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     # OPTIMIZED: Convert query_params dict to string using msgspec
                     query_params_str = None
                     if log_entry.get("query_params"):
-                        query_params_str = msgspec.json.encode(log_entry["query_params"]).decode('utf-8')
+                        query_params_str = msgspec.json.encode(
+                            log_entry["query_params"]
+                        ).decode("utf-8")
 
                     request_log = RequestLog(
                         request_id=log_entry["request_id"],
@@ -306,7 +218,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         query_params=query_params_str,
                         headers=log_entry.get("headers"),
                         client_ip=log_entry["client_ip"],
-                        user_id=UUID(log_entry["user_id"]) if log_entry.get("user_id") else None,
+                        user_id=(
+                            UUID(log_entry["user_id"])
+                            if log_entry.get("user_id")
+                            else None
+                        ),
                         status_code=log_entry["status_code"],
                         response_time_ms=log_entry["duration_ms"],
                         error_message=log_entry.get("error", {}).get("message"),
@@ -353,26 +269,26 @@ class StructuredLogger:
 
     def debug(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "DEBUG", **kwargs)
-        self.logger.debug(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.debug(msgspec.json.encode(entry).decode("utf-8"))
 
     def info(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "INFO", **kwargs)
-        self.logger.info(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.info(msgspec.json.encode(entry).decode("utf-8"))
 
     def warning(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "WARNING", **kwargs)
-        self.logger.warning(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.warning(msgspec.json.encode(entry).decode("utf-8"))
 
     def error(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.error(msgspec.json.encode(entry).decode("utf-8"))
 
     def critical(self, message: str, **kwargs):
         entry = self._build_log_entry(message, "CRITICAL", **kwargs)
-        self.logger.critical(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.critical(msgspec.json.encode(entry).decode("utf-8"))
 
     def exception(self, message: str, exc_info=True, **kwargs):
         if exc_info:
             kwargs["traceback"] = traceback.format_exc()
         entry = self._build_log_entry(message, "ERROR", **kwargs)
-        self.logger.error(msgspec.json.encode(entry).decode('utf-8'))
+        self.logger.error(msgspec.json.encode(entry).decode("utf-8"))

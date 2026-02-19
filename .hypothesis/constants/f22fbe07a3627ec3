@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/bs_cli.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1000, 10000, 100000, '--dividend', '--maturity', '--model', '--option-type', '--rate', '--shm-name', '--spot', '--strike', '--timesteps', '--volatility', '3.0.0', 'BRAIN (GAT/AGENT)', 'BS-OPT CONSOLE', 'CHRONOS (T2T)', 'Execution Time', 'Field', 'Model', 'PULSE (XDP/SHM)', 'Theoretical Price', 'Total training steps', 'Value', '__main__', 'black_scholes', 'bold cyan', 'bold green', 'bold magenta', 'bold white on blue', 'bold yellow', 'brain', 'bsopt-cli', 'call', 'chronos', 'cyan', 'dim', 'footer', 'green', 'header', 'magenta', 'main', 'market_mesh', 'pulse', 'put', 'q', 'rl_weights']

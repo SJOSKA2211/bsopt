@@ -93,7 +93,9 @@ def collect_options_data_task(
         finally:
             loop.close()
 
-        logger.info("data_collection_completed", samples_valid=report.get('samples_valid', 0))
+        logger.info(
+            "data_collection_completed", samples_valid=report.get("samples_valid", 0)
+        )
 
         return {
             "task_id": self.request.id,
@@ -167,7 +169,9 @@ def validate_collected_data_task(
 
         # Check for outliers (values beyond 5 std)
         outlier_threshold = 5
-        outliers = ((target - target.mean()).abs() > outlier_threshold * target.std()).sum()
+        outliers = (
+            (target - target.mean()).abs() > outlier_threshold * target.std()
+        ).sum()
         validation_results["outliers"] = int(outliers)
 
         # Quality score
@@ -183,9 +187,9 @@ def validate_collected_data_task(
         validation_results["passed"] = quality_score >= 0.7
 
         logger.info(
-            "validation_complete", 
-            quality_score=quality_score, 
-            passed=validation_results['passed']
+            "validation_complete",
+            quality_score=quality_score,
+            passed=validation_results["passed"],
         )
 
         return {
@@ -282,37 +286,37 @@ def refresh_materialized_views_task(self) -> dict[str, Any]:
     Refreshes PostgreSQL materialized views for pre-aggregated statistics.
     """
     logger.info("refreshing_materialized_views_start")
-    
+
     from sqlalchemy import text
 
     from src.shared.db import get_db_session
-    
+
     db_session = get_db_session()
     try:
         # Refresh Market Stats
         db_session.execute(text("SELECT refresh_market_stats();"))
-        
+
         # Refresh Portfolio Summary
         db_session.execute(text("SELECT refresh_portfolio_summary();"))
-        
+
         # Refresh Trading Stats
         db_session.execute(text("SELECT refresh_trading_stats();"))
 
         # Refresh Model Drift Metrics
         db_session.execute(text("SELECT refresh_model_drift_metrics();"))
-        
+
         db_session.commit()
         logger.info("materialized_views_refreshed_successfully")
-        
+
         return {
             "status": "success",
             "views": [
-                "market_stats_mv", 
-                "portfolio_summary_mv", 
+                "market_stats_mv",
+                "portfolio_summary_mv",
                 "trading_stats_mv",
-                "model_drift_metrics_mv"
+                "model_drift_metrics_mv",
             ],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         logger.error("materialized_view_refresh_failed", error=str(e))
@@ -343,7 +347,9 @@ def scheduled_data_collection(self) -> dict[str, Any]:
     freshness = _check_data_freshness_internal()
 
     if freshness.get("needs_refresh", True):
-        logger.info("data_needs_refresh", reason=freshness.get("message", "Data too old"))
+        logger.info(
+            "data_needs_refresh", reason=freshness.get("message", "Data too old")
+        )
 
         # Trigger collection
         result = collect_options_data_task.apply_async()
@@ -357,7 +363,7 @@ def scheduled_data_collection(self) -> dict[str, Any]:
         }
 
     else:
-        logger.info("data_is_fresh", age_hours=freshness.get('age_hours', 0))
+        logger.info("data_is_fresh", age_hours=freshness.get("age_hours", 0))
         return {
             "task_id": self.request.id,
             "status": "skipped",
@@ -395,18 +401,19 @@ def run_full_data_pipeline_task(
 
     # OPTIMIZED: Use canvas (chains) instead of .get() within tasks
     # But for a quick fix, we'll keep the structure but note it should be a chain.
-    # Actually, we can't easily avoid .get() here without changing the return type 
+    # Actually, we can't easily avoid .get() here without changing the return type
     # to a chain/chord, which might break callers.
     # For now, I'll just warn and let it be, or use apply() which is local.
     # Wait, the error is specifically about .get() on an AsyncResult.
-    
+
     try:
         # Step 1: Collect data - Use apply() for local execution if we must have results
         # or better, refactor this task to be a chain in the caller.
         # Given this is a background task anyway, we'll use apply() to run it in the same worker
         # but this might block the worker thread.
-        
+
         from src.data.pipeline import DataPipeline, PipelineConfig, StorageBackend
+
         config = PipelineConfig(
             symbols=symbols or ["SPY", "AAPL"],
             min_samples=10000,
@@ -426,11 +433,12 @@ def run_full_data_pipeline_task(
         # Step 2: Validate data
         # (Moving validation logic here or calling a helper)
         # For brevity, I'll assume validation passes or just log it
-        
+
         # Step 3: Optionally trigger training
         training_task_id = None
         if train_after_collection:
             from .ml_tasks import train_model_task
+
             train_result = train_model_task.apply_async()
             training_task_id = train_result.id
 

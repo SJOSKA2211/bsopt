@@ -19,6 +19,7 @@ from src.database.models import User
 
 fake = Faker()
 
+
 # 9. Test Data Management & 28. Data Generation
 @pytest.fixture
 def user_payload():
@@ -32,6 +33,7 @@ def user_payload():
         "full_name": fake.name(),
         "accept_terms": True,
     }
+
 
 # 10. Database State & 42. Test Isolation
 @pytest.fixture
@@ -47,8 +49,9 @@ def mock_db():
         if isinstance(obj, User):
             if obj.email in users:
                 from sqlalchemy.exc import IntegrityError
+
                 raise IntegrityError("duplicate key", params={}, orig=None)
-            
+
             if getattr(obj, "id", None) is None:
                 obj.id = uuid.uuid4()
             if getattr(obj, "created_at", None) is None:
@@ -61,16 +64,18 @@ def mock_db():
                 obj.tier = "free"
             users[str(obj.id)] = obj
             users[obj.email] = obj
-    
+
     def mock_query(model):
         mq = MagicMock()
         mq._filter_val = None
+
         def filter_se(cond):
             try:
                 mq._filter_val = cond.right.value
             except AttributeError:
                 try:
                     import re
+
                     s = str(cond)
                     match = re.search(r"'(.*?)'", s)
                     if match:
@@ -82,20 +87,22 @@ def mock_db():
                 except Exception:
                     pass
             return mq
+
         mq.filter.side_effect = filter_se
         mq.first.side_effect = lambda: users.get(str(mq._filter_val))
         return mq
 
     session.add.side_effect = mock_add
     session.query.side_effect = mock_query
-    session.users = users 
+    session.users = users
     return session
+
 
 # 11. API Client (httpx.AsyncClient)
 @pytest_asyncio.fixture
 async def client(mock_db):
     from src.database import get_async_db
-    
+
     # Mock Async Session
     async def mock_get_async_db():
         m_session = MagicMock()
@@ -103,39 +110,42 @@ async def client(mock_db):
         m_session.commit = AsyncMock()
         m_session.rollback = AsyncMock()
         m_session.close = AsyncMock()
-        
+
         # Simple execute side effect for common queries
         async def side_effect(query, *args, **kwargs):
             mq = mock_db.query(User)
             return MagicMock(scalar_one_or_none=lambda: mq.first())
-            
+
         m_session.execute.side_effect = side_effect
         m_session.add = mock_db.add
-        
+
         yield m_session
 
     from src.security.auth import get_current_user_flexible
-    
+
     # Mock Current User
     def mock_get_current_user_flexible():
-        return mock_db.users.get("func_test_user") or MagicMock(id=uuid.uuid4(), email="test@example.com", tier="free")
+        return mock_db.users.get("func_test_user") or MagicMock(
+            id=uuid.uuid4(), email="test@example.com", tier="free"
+        )
 
     app.dependency_overrides[get_db] = lambda: mock_db
     app.dependency_overrides[get_async_db] = mock_get_async_db
     app.dependency_overrides[get_current_user_flexible] = mock_get_current_user_flexible
-    
+
     # 69. Test Framework: mock.patch audit logs
     with patch("src.security.audit.log_audit"):
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as ac:
             yield ac
     app.dependency_overrides.clear()
 
+
 def validate_response(response, model):
-    """ OPTIMIZED: Strict Pydantic contract validation for functional tests."""
+    """OPTIMIZED: Strict Pydantic contract validation for functional tests."""
     data = response.json()
     # Handle DataResponse/SuccessResponse wrapper if present
     if isinstance(data, dict) and "data" in data and hasattr(model, "model_validate"):
         return model.model_validate(data["data"])
     return model.model_validate(data)
-    
-    

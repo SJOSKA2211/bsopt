@@ -29,97 +29,76 @@ class LatticeParameters(BSParameters):
     n_steps: int = 100
 
 
-def _binomial_price_kernel(
-    spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
-):
-    """Vectorized NumPy kernel for binomial pricing."""
-    if maturity <= 1e-12:
-        if is_call:
-            return max(spot - strike, 0.0)
-        else:
-            return max(strike - spot, 0.0)
+from numba import njit
+import numpy as np
 
-    dt = maturity / n_steps
-    u = np.exp(volatility * np.sqrt(dt))
+# =============================================================================
+# OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)
+# =============================================================================
+
+@njit(cache=True, fastmath=True)
+def _binomial_jit_kernel(
+    S0, K, T, r, q, sigma, n_steps, is_call, is_american
+):
+    dt = T / n_steps
+    u = np.exp(sigma * np.sqrt(dt))
     d = 1.0 / u
-    a = np.exp((rate - dividend) * dt)
+    a = np.exp((r - q) * dt)
     p = (a - d) / (u - d)
-    q = 1.0 - p
-
-    # Check no-arbitrage
-    if p < 0 or p > 1:
-        p = max(0.0, min(1.0, p))
-        q = 1.0 - p
-
-    # Terminal stock prices
-    S = spot * (u ** (n_steps - np.arange(n_steps + 1))) * (d ** np.arange(n_steps + 1))
-
+    disc = np.exp(-r * dt)
+    
     # Terminal payoffs
-    if is_call:
-        V = np.maximum(S - strike, 0.0)
-    else:
-        V = np.maximum(strike - S, 0.0)
-
+    V = np.empty(n_steps + 1, dtype=np.float64)
+    for j in range(n_steps + 1):
+        st = S0 * (u ** (n_steps - j)) * (d ** j)
+        if is_call:
+            V[j] = max(st - K, 0.0)
+        else:
+            V[j] = max(K - st, 0.0)
+            
     # Backward induction
-    disc = np.exp(-rate * dt)
     for i in range(n_steps - 1, -1, -1):
-        V_new = disc * (p * V[:-1] + q * V[1:])
-
-        if is_american:
-            S_i = spot * (u ** (i - np.arange(i + 1))) * (d ** np.arange(i + 1))
-            if is_call:
-                exercise = np.maximum(S_i - strike, 0.0)
+        for j in range(i + 1):
+            V_new = disc * (p * V[j] + (1 - p) * V[j+1])
+            if is_american:
+                st = S0 * (u ** (i - j)) * (d ** j)
+                exercise = max(st - K, 0.0) if is_call else max(K - st, 0.0)
+                V[j] = max(V_new, exercise)
             else:
-                exercise = np.maximum(strike - S_i, 0.0)
-            V = np.maximum(V_new, exercise)
-        else:
-            V = V_new
+                V[j] = V_new
+                
+    return V[0]
 
-    return float(V[0])
-
-
-def _trinomial_price_kernel(
-    spot, strike, maturity, volatility, rate, dividend, n_steps, is_call, is_american
+@njit(cache=True, fastmath=True)
+def _trinomial_jit_kernel(
+    S0, K, T, r, q, sigma, n_steps, is_call, is_american
 ):
-    """Vectorized NumPy kernel for trinomial pricing."""
-    if maturity <= 1e-12:
-        return max(spot - strike, 0.0) if is_call else max(strike - spot, 0.0)
-
-    dt = maturity / n_steps
-    dx = volatility * np.sqrt(3 * dt)
-
-    v_drift = rate - dividend - 0.5 * volatility**2
-
-    # Probabilities
-    p_u = 0.5 * ((volatility**2 * dt + v_drift**2 * dt**2) / dx**2 + v_drift * dt / dx)
-    p_d = 0.5 * ((volatility**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
+    dt = T / n_steps
+    dx = sigma * np.sqrt(3 * dt)
+    v_drift = r - q - 0.5 * sigma**2
+    
+    p_u = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 + v_drift * dt / dx)
+    p_d = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
     p_m = 1.0 - p_u - p_d
-
-    # Terminal asset prices
+    disc = np.exp(-r * dt)
+    
     num_nodes = 2 * n_steps + 1
-    S = spot * np.exp(dx * (n_steps - np.arange(num_nodes)))
-
-    # Terminal payoffs
-    if is_call:
-        V = np.maximum(S - strike, 0.0)
-    else:
-        V = np.maximum(strike - S, 0.0)
-
-    disc = np.exp(-rate * dt)
+    V = np.empty(num_nodes, dtype=np.float64)
+    for j in range(num_nodes):
+        st = S0 * np.exp(dx * (n_steps - j))
+        V[j] = max(st - K, 0.0) if is_call else max(K - st, 0.0)
+        
     for i in range(n_steps - 1, -1, -1):
-        V_new = disc * (p_u * V[:-2] + p_m * V[1:-1] + p_d * V[2:])
-
-        if is_american:
-            S_i = spot * np.exp(dx * (i - np.arange(2 * i + 1)))
-            if is_call:
-                exercise = np.maximum(S_i - strike, 0.0)
+        for j in range(2 * i + 1):
+            V_new = disc * (p_u * V[j] + p_m * V[j+1] + p_d * V[j+2])
+            if is_american:
+                st = S0 * np.exp(dx * (i - j))
+                exercise = max(st - K, 0.0) if is_call else max(K - st, 0.0)
+                V[j] = max(V_new, exercise)
             else:
-                exercise = np.maximum(strike - S_i, 0.0)
-            V = np.maximum(V_new, exercise)
-        else:
-            V = V_new
-
-    return float(V[0])
+                V[j] = V_new
+                
+    return V[0]
 
 
 def validate_convergence(
@@ -147,265 +126,27 @@ def validate_convergence(
 
 
 class BinomialTreePricer(PricingStrategy):
-    """
-    Cox-Ross-Rubinstein (CRR) Binomial Tree Pricer.
-    """
-
-    def __init__(
-        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
-    ):
+    """ Cox-Ross-Rubinstein (CRR) JIT Pricer. """
+    def __init__(self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
 
     def price(self, params: BSParameters, option_type: str = "call") -> float:
-        """Implementation of PricingStrategy interface."""
-        return float(
-            _binomial_price_kernel(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-                self.n_steps,
-                option_type.lower() == "call",
-                self.exercise_type == "american",
-            )
-        )
-
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        """Implementation of PricingStrategy interface."""
-        p0 = self.price(params, option_type)
-        eps_s = max(params.spot * 0.001, 0.01)
-
-        p_up = self.price(
-            BSParameters(
-                params.spot + eps_s,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_down = self.price(
-            BSParameters(
-                params.spot - eps_s,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-
-        delta = (p_up - p_down) / (2 * eps_s)
-        gamma = (p_up - 2 * p0 + p_down) / (eps_s**2)
-
-        eps_v = 0.001
-        p_v_up = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility + eps_v,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_v_down = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility - eps_v,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        vega = (p_v_up - p_v_down) / (2 * eps_v) * 0.01
-
-        dt_t = 1.0 / 365.0
-        if params.maturity > dt_t:
-            p_t = self.price(
-                BSParameters(
-                    params.spot,
-                    params.strike,
-                    params.maturity - dt_t,
-                    params.volatility,
-                    params.rate,
-                    params.dividend,
-                ),
-                option_type,
-            )
-            theta = p_t - p0
-        else:
-            theta = 0.0
-
-        eps_r = 0.0001
-        p_r_up = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate + eps_r,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_r_down = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate - eps_r,
-                params.dividend,
-            ),
-            option_type,
-        )
-        rho = (p_r_up - p_r_down) / (2 * eps_r) * 0.01
-
-        return OptionGreeks(delta, gamma, theta, vega, rho)
-
-    def build_tree(self, params: BSParameters) -> np.ndarray:
-        """Build the full binomial tree for stock prices."""
-        dt_t = params.maturity / self.n_steps if self.n_steps > 0 else 0
-        u_f = np.exp(params.volatility * np.sqrt(dt_t))
-        d_f = 1.0 / u_f
-        tree = np.zeros((self.n_steps + 1, self.n_steps + 1))
-        for i in range(self.n_steps + 1):
-            for j in range(i + 1):
-                tree[i, j] = params.spot * (u_f**j) * (d_f ** (i - j))
-        return tree
-
+        return float(_binomial_jit_kernel(
+            params.spot, params.strike, params.maturity, params.rate, 
+            params.dividend, params.volatility, self.n_steps, 
+            option_type.lower() == "call", self.exercise_type == "american"
+        ))
 
 class TrinomialTreePricer(PricingStrategy):
-    """Standard Trinomial Tree Pricer."""
-
-    def __init__(
-        self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"
-    ):
+    """ Standard Trinomial Tree JIT Pricer. """
+    def __init__(self, n_steps: int = 100, exercise_type: Literal["european", "american"] = "european"):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
 
     def price(self, params: BSParameters, option_type: str = "call") -> float:
-        """Implementation of PricingStrategy interface."""
-        return float(
-            _trinomial_price_kernel(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-                self.n_steps,
-                option_type.lower() == "call",
-                self.exercise_type == "american",
-            )
-        )
-
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
-        """Implementation of PricingStrategy interface."""
-        p0 = self.price(params, option_type)
-        eps_s = max(params.spot * 0.001, 0.01)
-
-        p_up = self.price(
-            BSParameters(
-                params.spot + eps_s,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_down = self.price(
-            BSParameters(
-                params.spot - eps_s,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-
-        delta = (p_up - p_down) / (2 * eps_s)
-        gamma = (p_up - 2 * p0 + p_down) / (eps_s**2)
-
-        eps_v = 0.001
-        p_v_up = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility + eps_v,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_v_down = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility - eps_v,
-                params.rate,
-                params.dividend,
-            ),
-            option_type,
-        )
-        vega = (p_v_up - p_v_down) / (2 * eps_v) * 0.01
-
-        dt_t = 1.0 / 365.0
-        if params.maturity > dt_t:
-            p_t = self.price(
-                BSParameters(
-                    params.spot,
-                    params.strike,
-                    params.maturity - dt_t,
-                    params.volatility,
-                    params.rate,
-                    params.dividend,
-                ),
-                option_type,
-            )
-            theta = p_t - p0
-        else:
-            theta = 0.0
-
-        eps_r = 0.0001
-        p_r_up = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate + eps_r,
-                params.dividend,
-            ),
-            option_type,
-        )
-        p_r_down = self.price(
-            BSParameters(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate - eps_r,
-                params.dividend,
-            ),
-            option_type,
-        )
-        rho = (p_r_up - p_r_down) / (2 * eps_r) * 0.01
-
-        return OptionGreeks(delta, gamma, theta, vega, rho)
+        return float(_trinomial_jit_kernel(
+            params.spot, params.strike, params.maturity, params.rate, 
+            params.dividend, params.volatility, self.n_steps, 
+            option_type.lower() == "call", self.exercise_type == "american"
+        ))

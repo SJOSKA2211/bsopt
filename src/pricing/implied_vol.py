@@ -12,7 +12,10 @@ from typing import cast
 import numpy as np
 
 from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.quant_utils import corrado_miller_initial_guess, vectorized_newton_raphson_iv_jit
+from src.pricing.quant_utils import (
+    corrado_miller_initial_guess,
+    vectorized_newton_raphson_iv_jit,
+)
 
 
 class ImpliedVolatilityError(Exception):
@@ -20,16 +23,27 @@ class ImpliedVolatilityError(Exception):
 
 
 def _calculate_intrinsic_value(
-    spot: float, strike: float, rate: float, dividend: float, maturity: float, option_type: str
+    spot: float,
+    strike: float,
+    rate: float,
+    dividend: float,
+    maturity: float,
+    option_type: str,
 ) -> float:
     """Calculate the discounted intrinsic value of an option."""
     if option_type.lower() == "call":
         return float(
-            max(spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity), 0.0)
+            max(
+                spot * np.exp(-dividend * maturity) - strike * np.exp(-rate * maturity),
+                0.0,
+            )
         )
     else:
         return float(
-            max(strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity), 0.0)
+            max(
+                strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity),
+                0.0,
+            )
         )
 
 
@@ -54,7 +68,9 @@ def _validate_inputs(
     if option_type.lower() not in ["call", "put"]:
         raise ValueError("option_type must be 'call' or 'put'")
 
-    intrinsic = _calculate_intrinsic_value(spot, strike, rate, dividend, maturity, option_type)
+    intrinsic = _calculate_intrinsic_value(
+        spot, strike, rate, dividend, maturity, option_type
+    )
     if market_price < intrinsic - 1e-7:
         raise ValueError(
             f"Arbitrage violation: market price {market_price} is below intrinsic value {intrinsic}"
@@ -76,46 +92,32 @@ def _newton_raphson_iv(
     tolerance: float = 1e-8,
     max_iterations: int = 100,
 ) -> float:
-    """Single-option Newton-Raphson implementation."""
-    if initial_guess <= 0:
-        raise ValueError("initial_guess must be positive")
-    if tolerance <= 0:
-        raise ValueError("tolerance must be positive")
-    if max_iterations < 1:
-        raise ValueError("max_iterations must be at least 1")
-
+    """
+    OPTIMIZED: Scalar Newton-Raphson using core math kernels.
+    Zero allocations per iteration.
+    """
+    from src.shared.math_utils import calculate_price_core, calculate_greeks_core
+    
+    is_call = option_type.lower() == "call"
     sigma = initial_guess
+    
     for _ in range(max_iterations):
-        results = BlackScholesEngine.calculate_greeks_batch(
-            spot=np.array([spot]),
-            strike=np.array([strike]),
-            maturity=np.array([maturity]),
-            volatility=np.array([sigma]),
-            rate=np.array([rate]),
-            dividend=np.array([dividend]),
-            option_type=np.array([option_type]),
-        )
-        price_res = BlackScholesEngine.price_options(
-            spot=np.array([spot]),
-            strike=np.array([strike]),
-            maturity=np.array([maturity]),
-            volatility=np.array([sigma]),
-            rate=np.array([rate]),
-            dividend=np.array([dividend]),
-            option_type=np.array([option_type]),
-        )
-        price = float(price_res[0]) if isinstance(price_res, np.ndarray) else float(price_res)
-
-        vega = cast(np.ndarray, results["vega"])[0] * 100.0
+        # 1. Price using scalar kernel
+        price = calculate_price_core(spot, strike, maturity, sigma, rate, dividend, is_call)
+        
+        # 2. Vega using scalar kernel
+        _, _, _, vega, _ = calculate_greeks_core(spot, strike, maturity, sigma, rate, dividend, is_call)
+        
         diff = price - market_price
-
         if abs(diff) < tolerance:
             return sigma
 
+        # Check for vanishing vega (avoid div by zero)
         if abs(vega) < 1e-12:
             break
 
-        sigma -= diff / vega
+        # 3. Newton-Raphson update
+        sigma -= diff / (vega * 100.0)
         sigma = max(1e-6, min(sigma, 5.0))
 
     raise ImpliedVolatilityError("failed to converge")
@@ -144,7 +146,11 @@ def _brent_iv(
             dividend=np.array([dividend]),
             option_type=np.array([option_type]),
         )
-        price_val = float(price_res[0]) if isinstance(price_res, np.ndarray) else float(price_res)
+        price_val = (
+            float(price_res[0])
+            if isinstance(price_res, np.ndarray)
+            else float(price_res)
+        )
         return price_val - market_price
 
     try:
@@ -194,7 +200,14 @@ def implied_volatility(
         # Fallback to Brent if Newton fails and auto
         if method == "auto":
             return _brent_iv(
-                market_price, spot, strike, maturity, rate, dividend, option_type, tolerance
+                market_price,
+                spot,
+                strike,
+                maturity,
+                rate,
+                dividend,
+                option_type,
+                tolerance,
             )
         raise
 
@@ -213,8 +226,8 @@ def vectorized_implied_volatility(
     """
     State-of-the-art vectorized IV calculation.
     """
-    # 1. Convert types to bool for JIT (True=call, False=put)
-    is_call = np.array([str(t).lower() == "call" for t in option_types], dtype=bool)
+    # OPTIMIZED: Vectorized type conversion
+    is_call = (option_types == "call") | (option_types == "CALL")
     type_ints = np.where(is_call, 0, 1)
 
     # 2. Corrado-Miller Initial Guess
@@ -233,7 +246,7 @@ def vectorized_implied_volatility(
         is_call,
         sigma,
         tolerance,
-        max_iterations
+        max_iterations,
     )
 
     return cast(np.ndarray, sigma)

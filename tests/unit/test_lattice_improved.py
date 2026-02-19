@@ -11,14 +11,14 @@ class TestLattice(unittest.TestCase):
             maturity=1.0,
             volatility=0.2,
             rate=0.05,
-            dividend=0.01
+            dividend=0.01,
         )
 
     def test_binomial_pricer(self):
         pricer = BinomialTreePricer(n_steps=100, exercise_type="european")
         price = pricer.price(self.params, option_type="call")
         self.assertGreater(price, 0)
-        
+
         # American should be >= European
         am_pricer = BinomialTreePricer(n_steps=100, exercise_type="american")
         am_price = am_pricer.price(self.params, option_type="put")
@@ -40,5 +40,6 @@ class TestLattice(unittest.TestCase):
         tree = pricer.build_tree(self.params)
         self.assertEqual(tree.shape, (11, 11))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

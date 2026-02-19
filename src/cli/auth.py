@@ -22,9 +22,16 @@ def auth_group():
     """Authentication and session management."""
     pass
 
+
 @auth_group.command(name="login")
 @click.option("--client-id", required=True, help="OAuth2 Client ID")
-@click.option("--client-secret", required=True, prompt=True, hide_input=True, help="OAuth2 Client Secret")
+@click.option(
+    "--client-secret",
+    required=True,
+    prompt=True,
+    hide_input=True,
+    help="OAuth2 Client Secret",
+)
 def login_command(client_id: str, client_secret: str):
     """Log in to the BSOPT API."""
     manager = AuthManager()
@@ -34,6 +41,7 @@ def login_command(client_id: str, client_secret: str):
     except AuthenticationError as e:
         click.secho(str(e), fg="red")
 
+
 @auth_group.command(name="logout")
 def logout_command():
     """Log out from the BSOPT API."""
@@ -42,6 +50,7 @@ def logout_command():
         click.secho("Logged out successfully.", fg="green")
     else:
         click.secho("Already logged out.", fg="yellow")
+
 
 class AuthenticationError(Exception):
     """Exception raised for authentication failures."""
@@ -96,7 +105,9 @@ class AuthManager:
             raise AuthenticationError(f"Login failed: {error_detail}")
         except (httpx.RequestError, OSError) as e:
             logger.error(f"Connection error during login: {e}")
-            raise AuthenticationError(f"Could not connect to authentication server: {str(e)}")
+            raise AuthenticationError(
+                f"Could not connect to authentication server: {str(e)}"
+            )
 
     def logout(self) -> bool:
         """Clear stored authentication tokens."""

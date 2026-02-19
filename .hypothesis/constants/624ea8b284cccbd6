@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/portfolio/engine.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.001, 0.5, 0.95, 1.0, 100000.0, 100, 252, 'backtest_completed', 'backtest_started', 'commissions', 'completed', 'confidence_level', 'cum_pnl', 'df', 'duration_seconds', 'ema', 'equity_curve', 'es_95', 'final_value', 'fn', 'max_drawdown', 'mtm_pnl', 'option_price', 'params', 'prev_position', 'price_change', 'sharpe_ratio', 'single', 'status', 'target_position', 'total_return', 'trades', 'trades_count', 'underlying_price', 'var_95', 'window']

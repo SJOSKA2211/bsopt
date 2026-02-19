@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/database/__init__.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1000, 1800, '&', '?', 'Base', 'DEBUG', 'SELECT 1', 'SHOW ssl', '_invalidate_time', '_max_overflow', 'channel_binding=', 'checked_in', 'checked_out', 'command_timeout', 'connect_timeout', 'connected', 'create_tables', 'dev', 'dispose_engine', 'drop_tables', 'get_db', 'get_db_context', 'get_pool_status', 'get_session', 'health_check', 'invalidated', 'latency_ms', 'max_overflow', 'on', 'overflow', 'pool_size', 'postgresql://', 'require', 'ssl', 'sslmode', 'sslmode=', 'test', 'total_connections']

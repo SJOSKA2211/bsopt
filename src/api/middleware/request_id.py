@@ -8,7 +8,8 @@ Generates and tracks unique request IDs for:
 - Debugging and support
 """
 
-import uuid
+import secrets
+import time
 from collections.abc import Callable
 from typing import cast
 
@@ -16,8 +17,11 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+# ... (imports stay same)
+
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
+<<<<<<< Updated upstream
     """
     Add unique request ID to each request.
 
@@ -28,6 +32,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     """
 
     HEADER_NAME = "X-Request-ID"
+=======
+    # ... (header constants stay same)
+>>>>>>> Stashed changes
 
     def __init__(
         self,
@@ -37,22 +44,32 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
         self.header_name = header_name
-        self.generator = generator or (lambda: str(uuid.uuid4()))
+        # OPTIMIZED: Fast ID generator (Timestamp + Machine ID + Random)
+        # machine_id = os.getenv("HOSTNAME", "node")[:4]
+        self.generator = generator or (
+            lambda: f"{int(time.time()*1000):x}-{secrets.token_hex(4)}"
+        )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+<<<<<<< Updated upstream
         # Get existing request ID or generate new one
         request_id = request.headers.get(self.header_name)
+=======
+        # 1. Single lookup for performance
+        headers = request.headers
+        request_id = headers.get(self.header_name) or headers.get(self.ALT_HEADER_NAME)
+>>>>>>> Stashed changes
 
         if not request_id:
             request_id = self.generator()
 
-        # Store in request state
+        # 2. Store in state
         request.state.request_id = request_id
 
-        # Process request
+        # 3. Process
         response = cast(Response, await call_next(request))
 
-        # Add to response headers
+        # 4. Add to headers
         response.headers[self.header_name] = request_id
 
         return response

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/cli/portfolio.py
-# hypothesis_version: 6.151.5
-
-[0.0, 100, '.bsopt', 'call', 'current_price', 'current_value', 'delta', 'entry_value', 'gamma', 'greeks', 'pnl', 'pnl_percent', 'portfolio.json', 'put', 'r', 'rho', 'theta', 'total_current_value', 'total_entry_value', 'total_pnl', 'total_pnl_percent', 'vega', 'w']

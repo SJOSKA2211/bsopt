@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/middleware/logging.py
-# hypothesis_version: 6.151.5
-
-[400, 500, 1000, ',', '/docs', '/favicon.ico', '/health', '/metrics', '/openapi.json', '/redoc', 'CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'PATCH', 'POST', 'PUT', 'WARNING', 'X-Forwarded-For', 'X-Real-IP', '[REDACTED]', 'access_token', 'api_key', 'authorization', 'body', 'client_ip', 'content-length', 'content-type', 'cookie', 'duration_ms', 'email', 'error', 'headers', 'id', 'level', 'message', 'method', 'password', 'path', 'proxy-authorization', 'query_params', 'refresh_token', 'replace', 'request_id', 'requests', 'response_headers', 'secret', 'set-cookie', 'slow_request', 'status_code', 'tier', 'timestamp', 'token', 'traceback', 'type', 'unknown', 'user', 'user-agent', 'user_agent', 'user_email', 'user_id', 'user_tier', 'utf-8', 'x-api-key', 'x-auth-token', 'x-csrf-token']

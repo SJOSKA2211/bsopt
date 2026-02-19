@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/shared/observability.py
-# hypothesis_version: 6.151.4
-
-[5.0, 1000, 50000, '.', 'Content-Type', 'GRAFANA_URL', 'GRAFANA_URL not set', 'PUSHGATEWAY_URL', 'api', 'api_request', 'application/json', 'dataset', 'framework', 'gc_tuned', 'heston_feller_margin', 'heston_r_squared', 'iso', 'masked', 'method', 'metrics_push_failed', 'metrics_push_skipped', 'metrics_pushed', 'ml_data_drift_score', 'ml_ks_test_p_value', 'ml_model_rmse', 'model_type', 'no_gateway_url', 'request_processed', 'status_code', 'symbol', 'tags', 'text', 'time', 'unknown']

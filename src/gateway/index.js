@@ -1,46 +1,51 @@
 const Fastify = require('fastify');
-const proxy = require('@fastify/reply-from');
+const { ApolloGateway, IntrospectAndCompose } = require('@apollo/gateway');
+const { ApolloServer } = require('@apollo/server');
+const fastifyApollo = require('@as-integrations/fastify');
 const cors = require('@fastify/cors');
 const helmet = require('@fastify/helmet');
 const pino = require('pino');
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
-const subgraphs = {
-  options: process.env.OPTIONS_URL || 'http://localhost:8000',
-  pricing: process.env.PRICING_URL || 'http://localhost:8001',
-  ml: process.env.ML_URL || 'http://localhost:8002',
-  auth: process.env.AUTH_URL || 'http://localhost:3001'
-};
+const subgraphs = [
+  { name: 'api', url: process.env.API_URL || 'http://api:8000/graphql' },
+  { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://portfolio:8000/graphql' },
+  { name: 'neural-pricing', url: process.env.PRICING_URL || 'http://neural-pricing:8000/graphql' }
+];
 
-const app = Fastify({ logger: false });
+const gateway = new ApolloGateway({
+  supergraphSdl: new IntrospectAndCompose({
+    subgraphs,
+    pollIntervalInMs: 10000
+  }),
+  debug: process.env.DEBUG === 'true'
+});
+
+const server = new ApolloServer({
+  gateway,
+  logger
+});
+
+const app = Fastify();
 
 async function start() {
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors);
   
-  // Register proxy targets
-  for (const [name, url] of Object.entries(subgraphs)) {
-    await app.register(proxy, {
-      name,
-      base: url,
-      prefix: `/api/v1/${name}`
-    });
-  }
-
-  // Unified Route Handler
-  app.all('/api/v1/:service/*', (request, reply) => {
-    const { service } = request.params;
-    if (subgraphs[service]) {
-      reply.from(request.url.replace(`/api/v1/${service}`, ''));
-    } else {
-      reply.code(404).send({ error: 'Service not found' });
-    }
+  await server.start();
+  
+  // High-performance Apollo integration
+  await app.register(fastifyApollo(server), {
+    path: '/graphql'
   });
+
+  // Health check
+  app.get('/health', async () => ({ status: 'gateway_operational' }));
 
   const port = process.env.PORT || 4000;
   await app.listen({ port, host: '0.0.0.0' });
-  logger.info(` Optimized Gateway ready at http://localhost:${port}/`);
+  logger.info(` God Mode Federated Gateway ready at http://localhost:${port}/graphql`);
 }
 
 start().catch(err => {

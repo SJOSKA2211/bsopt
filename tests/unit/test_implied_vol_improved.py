@@ -23,8 +23,10 @@ class TestImpliedVol(unittest.TestCase):
         rates = np.array([0.05, 0.05])
         dividends = np.array([0.0, 0.0])
         option_types = np.array(["call", "call"])
-        
-        ivs = vectorized_implied_volatility(prices, spots, strikes, maturities, rates, dividends, option_types)
+
+        ivs = vectorized_implied_volatility(
+            prices, spots, strikes, maturities, rates, dividends, option_types
+        )
         self.assertEqual(len(ivs), 2)
         self.assertTrue(np.all(ivs > 0))
 
@@ -33,5 +35,6 @@ class TestImpliedVol(unittest.TestCase):
         with self.assertRaises(ValueError):
             implied_volatility(1.0, 100.0, 100.0, 1.0, 0.05)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

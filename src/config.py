@@ -8,9 +8,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
 
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
-    
+
     # Application Configuration
     PROJECT_NAME: str = "BSOpt"
     ENVIRONMENT: str = Field(default="dev")
@@ -26,24 +27,28 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        if not v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+        if not v.startswith("postgresql://") and not v.startswith(
+            "postgresql+asyncpg://"
+        ):
             if "sqlite" not in v:
-                raise ValueError("DATABASE_URL must be a valid PostgreSQL connection string.")
+                raise ValueError(
+                    "DATABASE_URL must be a valid PostgreSQL connection string."
+                )
         return v
 
     # Redis Configuration
     REDIS_URL: str = Field(validation_alias="REDIS_URL")
-    REDIS_HOST: str = "localhost"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     REDIS_PASSWORD: str | None = None
 
     # RabbitMQ Configuration
-    RABBITMQ_URL: str = "amqp://guest:guest@localhost:5672//"
+    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672//"
 
     # ML Serving Configuration
-    ML_SERVICE_GRPC_URL: str = "localhost:50051"
-    
+    ML_SERVICE_GRPC_URL: str = "worker:50051"
+
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
     PRICING_LARGE_BATCH_THRESHOLD: int = 1000
@@ -58,7 +63,7 @@ class Settings(BaseSettings):
     SENDGRID_API_KEY: str = "mock_key"
     DEFAULT_FROM_EMAIL: str = "noreply@bsopt.ai"
     DPA_EMAIL: str = "dpa@bsopt.ai"
-    
+
     # Rate Limiting Tiers
     RATE_LIMIT_FREE: int = 100
     RATE_LIMIT_PRO: int = 1000
@@ -74,7 +79,7 @@ class Settings(BaseSettings):
     JWT_PUBLIC_KEY: str | None = ""
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
+
     # Authentication Policy
     PASSWORD_MIN_LENGTH: int = 8
     PASSWORD_REQUIRE_UPPERCASE: bool = True
@@ -82,8 +87,11 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_DIGIT: bool = True
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
-    MFA_ENCRYPTION_KEY: str = Field(default="kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU=", validation_alias="MFA_ENCRYPTION_KEY")
-    
+    MFA_ENCRYPTION_KEY: str = Field(
+        default="kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU=",
+        validation_alias="MFA_ENCRYPTION_KEY",
+    )
+
     # Password Hashing
     BCRYPT_ROUNDS: int = 12
     ARGON2_TIME_COST: int = 3
@@ -96,9 +104,17 @@ class Settings(BaseSettings):
         "Safaricom": "SCOM",
         "KCB": "KCB",
         "Equity": "EQTY",
-        "Co-operative": "COOP"
+        "Co-operative": "COOP",
     }
-    NSE_SECTORS: list[str] = ["Banking", "Commercial", "Energy", "Insurance", "Investment", "Manufacturing", "Telecommunication"]
+    NSE_SECTORS: list[str] = [
+        "Banking",
+        "Commercial",
+        "Energy",
+        "Insurance",
+        "Investment",
+        "Manufacturing",
+        "Telecommunication",
+    ]
 
     @property
     def is_production(self) -> bool:
@@ -129,21 +145,25 @@ class Settings(BaseSettings):
         if not self._transient_keys:
             from cryptography.hazmat.primitives import serialization
             from cryptography.hazmat.primitives.asymmetric import rsa
-            
+
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             self._transient_keys["private"] = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.NoEncryption(),
             ).decode("utf-8")
-            
-            self._transient_keys["public"] = private_key.public_key().public_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PublicFormat.SubjectPublicKeyInfo
-            ).decode("utf-8")
-            
+
+            self._transient_keys["public"] = (
+                private_key.public_key()
+                .public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo,
+                )
+                .decode("utf-8")
+            )
+
             logger.warning("using_transient_rsa_keys", mode=self.ENVIRONMENT)
-            
+
         return self._transient_keys[key_type]
 
     # MLflow tracking URI
@@ -157,7 +177,10 @@ class Settings(BaseSettings):
     DASK_ARRAY_DEFAULT_CHUNKS_FRACTION: int = 10
 
     model_config = SettingsConfigDict(
-        env_file=(".env", ".env.test"), env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
+        env_file=(".env", ".env.test"),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
     )
 
     @field_validator("ENVIRONMENT")
@@ -169,7 +192,9 @@ class Settings(BaseSettings):
             raise ValueError(f"ENVIRONMENT must be one of {allowed}")
         return v_lower
 
+
 settings = Settings()
+
 
 def get_settings():
     """Returns the singleton settings instance."""

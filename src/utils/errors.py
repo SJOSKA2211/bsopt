@@ -14,37 +14,42 @@ from fastapi import HTTPException, status
 logger = logging.getLogger("audit")
 
 
+import asyncio
+import functools
+import time
+import traceback
+from collections.abc import Callable
+from typing import Any
+
+from src.api.exceptions import ServiceUnavailableException
+from src.shared.off_heap_logger import omega_logger
+
 def robust_pricing_task(error_return_value: Any = None):
     """
-    Decorator for pricing tasks to ensure they never crash the worker
-    and log comprehensive error details.
+    OPTIMIZED: Async-aware decorator for fail-safe task execution.
+    Logs to high-speed off-heap buffer to prevent I/O blocking.
     """
-
     def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            start_time = time.perf_counter()
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                duration = (time.perf_counter() - start_time) * 1000
-                logger.error(
-                    f"Pricing Task Failure: {func.__name__}\n"
-                    f"Error: {str(e)}\n"
-                    f"Duration: {duration:.2f}ms\n"
-                    f"Traceback: {traceback.format_exc()}",
-                    extra={"task": func.__name__, "error": str(e), "duration_ms": duration},
-                )
-                return error_return_value
-
-        return wrapper
-
+        if asyncio.iscoroutinefunction(func):
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs):
+                start = time.perf_counter()
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    ms = (time.perf_counter() - start) * 1000
+                    omega_logger.log("pricing_task_failed", task=func.__name__, error=str(e), ms=ms)
+                    return error_return_value
+            return wrapper
+        else:
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                start = time.perf_counter()
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    ms = (time.perf_counter() - start) * 1000
+                    omega_logger.log("pricing_task_failed_sync", task=func.__name__, error=str(e), ms=ms)
+                    return error_return_value
+            return wrapper
     return decorator
-
-
-class ServiceUnavailableException(HTTPException):
-    def __init__(self, service_name: str):
-        super().__init__(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Service '{service_name}' is currently unavailable. Please try again later.",
-        )

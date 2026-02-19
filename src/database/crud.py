@@ -15,12 +15,9 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import structlog
-from anyio.to_thread import run_sync
 from sqlalchemy import and_, func, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
-from src.security.password import password_service
 
 from .models import (
     AuditLog,
@@ -55,22 +52,26 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     return result.scalar_one_or_none()
 
 
-async def create_user(db: AsyncSession, email: str, password: str, full_name: str) -> User:
-    """Create a new user (Async)."""
-    hashed_password = await run_sync(password_service.hash_password, password)
-    verification_token = password_service.generate_reset_token()
-
-    db_user = User(
-        email=email,
-        hashed_password=hashed_password,
-        full_name=full_name,
-        verification_token=verification_token,
-        is_verified=False,
+async def create_user(
+    db: AsyncSession, email: str, password: str, full_name: str
+) -> User:
+    """Create a new user using Native Postgres Procedure (Async)."""
+    # OPTIMIZED: Hand off hashing to the database layer
+    result = await db.execute(
+        text("SELECT create_user(:email, :password)"),
+        {"email": email, "password": password},
     )
-    db.add(db_user)
+    user_id = result.scalar()
+
+    # Retrieve the created user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one()
+
+    # Set full name (not handled by the core procedure)
+    user.full_name = full_name
     await db.commit()
-    await db.refresh(db_user)
-    return db_user
+    await db.refresh(user)
+    return user
 
 
 async def get_user_with_portfolios(db: AsyncSession, user_id: UUID) -> User | None:
@@ -83,7 +84,9 @@ async def get_user_with_portfolios(db: AsyncSession, user_id: UUID) -> User | No
     return result.scalar_one_or_none()
 
 
-async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100) -> Sequence[User]:
+async def get_active_users_by_tier(
+    db: AsyncSession, tier: str, limit: int = 100
+) -> Sequence[User]:
     """Get active users by tier (Async)."""
     result = await db.execute(
         select(User)
@@ -96,7 +99,9 @@ async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100
 
 async def update_user_last_login(db: AsyncSession, user_id: UUID) -> None:
     """Update user's last login timestamp (Async)."""
-    await db.execute(update(User).where(User.id == user_id).values(last_login=func.now()))
+    await db.execute(
+        update(User).where(User.id == user_id).values(last_login=func.now())
+    )
     await db.commit()
 
 
@@ -121,14 +126,14 @@ async def get_portfolio_by_id(db: AsyncSession, portfolio_id: UUID) -> Portfolio
     return result.scalar_one_or_none()
 
 
-async def get_portfolio_with_open_positions(db: AsyncSession, portfolio_id: UUID) -> Portfolio | None:
+async def get_portfolio_with_open_positions(
+    db: AsyncSession, portfolio_id: UUID
+) -> Portfolio | None:
     """Get portfolio with only open positions (Async)."""
     # Use filtered selectinload to only fetch open positions from the DB
     result = await db.execute(
         select(Portfolio)
-        .options(
-            selectinload(Portfolio.positions).and_(Position.status == "open")
-        )
+        .options(selectinload(Portfolio.positions).and_(Position.status == "open"))
         .where(Portfolio.id == portfolio_id)
     )
     return result.scalar_one_or_none()
@@ -198,7 +203,9 @@ async def get_position_by_id(db: AsyncSession, position_id: UUID) -> Position | 
     return result.scalar_one_or_none()
 
 
-async def get_open_positions_by_portfolio(db: AsyncSession, portfolio_id: UUID) -> Sequence[Position]:
+async def get_open_positions_by_portfolio(
+    db: AsyncSession, portfolio_id: UUID
+) -> Sequence[Position]:
     """Get all open positions for a portfolio (Async)."""
     result = await db.execute(
         select(Position)
@@ -208,7 +215,9 @@ async def get_open_positions_by_portfolio(db: AsyncSession, portfolio_id: UUID) 
     return result.scalars().all()
 
 
-async def get_expiring_positions(db: AsyncSession, days_until_expiry: int = 7) -> Sequence[Position]:
+async def get_expiring_positions(
+    db: AsyncSession, days_until_expiry: int = 7
+) -> Sequence[Position]:
     """Get positions expiring soon (Async)."""
     expiry_threshold = date.today() + timedelta(days=days_until_expiry)
 
@@ -273,27 +282,31 @@ async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) ->
         return 0
 
     columns = [
-        "portfolio_id", "symbol", "strike", "expiry", "option_type", 
-        "quantity", "entry_price", "entry_date", "current_price", 
-        "exit_price", "exit_date", "realized_pnl", "status"
+        "portfolio_id",
+        "symbol",
+        "strike",
+        "expiry",
+        "option_type",
+        "quantity",
+        "entry_price",
+        "entry_date",
+        "current_price",
+        "exit_price",
+        "exit_date",
+        "realized_pnl",
+        "status",
     ]
 
     try:
         conn = await db.connection()
         raw_conn = await conn.get_raw_connection()
         driver_conn = raw_conn.driver_connection
-        
-        if hasattr(driver_conn, 'copy_records_to_table'):
-            records = [
-                tuple(row.get(k) for k in columns) 
-                for row in positions_data
-            ]
-            
+
+        if hasattr(driver_conn, "copy_records_to_table"):
+            records = [tuple(row.get(k) for k in columns) for row in positions_data]
+
             await driver_conn.copy_records_to_table(
-                "positions",
-                records=records,
-                columns=columns,
-                timeout=30
+                "positions", records=records, columns=columns, timeout=30
             )
             await db.commit()
             return len(positions_data)
@@ -309,7 +322,10 @@ async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) ->
 
 
 async def close_position(
-    db: AsyncSession, position_id: UUID, exit_price: Decimal, exit_date: datetime | None = None
+    db: AsyncSession,
+    position_id: UUID,
+    exit_price: Decimal,
+    exit_date: datetime | None = None,
 ) -> Position | None:
     """Close a position (Async)."""
     position = await get_position_by_id(db, position_id)
@@ -354,7 +370,10 @@ async def get_user_orders(
 async def get_pending_orders(db: AsyncSession, limit: int = 1000) -> Sequence[Order]:
     """Get all pending orders (Async)."""
     result = await db.execute(
-        select(Order).where(Order.status == "pending").order_by(Order.created_at).limit(limit)
+        select(Order)
+        .where(Order.status == "pending")
+        .order_by(Order.created_at)
+        .limit(limit)
     )
     return result.scalars().all()
 
@@ -422,7 +441,9 @@ async def update_order_status(
     if filled_price is not None:
         values["filled_price"] = filled_price
 
-    result = await db.execute(update(Order).where(Order.id == order_id).values(**values))
+    result = await db.execute(
+        update(Order).where(Order.id == order_id).values(**values)
+    )
     await db.commit()
     return bool(result.rowcount > 0)
 
@@ -435,7 +456,9 @@ async def update_order_status(
 async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
     """Get the production version of a model (Async)."""
     result = await db.execute(
-        select(MLModel).where(and_(MLModel.name == name, MLModel.is_production.is_(True)))
+        select(MLModel).where(
+            and_(MLModel.name == name, MLModel.is_production.is_(True))
+        )
     )
     return result.scalar_one_or_none()
 
@@ -443,7 +466,10 @@ async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
 async def get_latest_model_version(db: AsyncSession, name: str) -> MLModel | None:
     """Get the latest version of a model (Async)."""
     result = await db.execute(
-        select(MLModel).where(MLModel.name == name).order_by(MLModel.version.desc()).limit(1)
+        select(MLModel)
+        .where(MLModel.name == name)
+        .order_by(MLModel.version.desc())
+        .limit(1)
     )
     return result.scalar_one_or_none()
 
@@ -535,11 +561,12 @@ async def get_option_chain(
     if option_type:
         stmt = stmt.where(OptionPrice.option_type == option_type)
 
-    stmt = stmt.order_by(OptionPrice.strike, OptionPrice.time.desc()).distinct(OptionPrice.strike)
+    stmt = stmt.order_by(OptionPrice.strike, OptionPrice.time.desc()).distinct(
+        OptionPrice.strike
+    )
 
     result = await db.execute(stmt)
     return result.scalars().all()
-
 
 
 async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -> int:
@@ -551,31 +578,44 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
         return 0
 
     columns = [
-        "time", "symbol", "strike", "expiry", "option_type", 
-        "bid", "ask", "last", "volume", "open_interest", 
-        "implied_volatility", "delta", "gamma", "vega", "theta", "rho"
+        "time",
+        "symbol",
+        "strike",
+        "expiry",
+        "option_type",
+        "bid",
+        "ask",
+        "last",
+        "volume",
+        "open_interest",
+        "implied_volatility",
+        "delta",
+        "gamma",
+        "vega",
+        "theta",
+        "rho",
     ]
 
     try:
         conn = await db.connection()
         raw_conn = await conn.get_raw_connection()
         driver_conn = raw_conn.driver_connection
-        
-        if hasattr(driver_conn, 'copy_records_to_table'):
+
+        if hasattr(driver_conn, "copy_records_to_table"):
             records = [tuple(row.get(k) for k in columns) for row in prices_data]
-            
-            # OPTIMIZED: Staging table pattern
-            # 1. Create temporary staging table with same structure
-            await db.execute(text("CREATE TEMP TABLE staging_option_prices (LIKE options_prices INCLUDING ALL) ON COMMIT DROP"))
-            
+
+            # OPTIMIZED: Light staging table
+            await db.execute(
+                text(
+                    "CREATE TEMP TABLE staging_option_prices (LIKE options_prices) ON COMMIT DROP"
+                )
+            )
+
             # 2. Fast COPY into staging
             await driver_conn.copy_records_to_table(
-                "staging_option_prices",
-                records=records,
-                columns=columns,
-                timeout=30
+                "staging_option_prices", records=records, columns=columns, timeout=30
             )
-            
+
             # 3. UPSERT/INSERT from staging to main with conflict resolution
             col_list = ", ".join(columns)
             await db.execute(text(f"""
@@ -583,7 +623,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
                 SELECT {col_list} FROM staging_option_prices
                 ON CONFLICT DO NOTHING
             """))
-            
+
             await db.commit()
             return len(prices_data)
         else:
@@ -612,21 +652,22 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
         conn = await db.connection()
         raw_conn = await conn.get_raw_connection()
         driver_conn = raw_conn.driver_connection
-        
-        if hasattr(driver_conn, 'copy_records_to_table'):
+
+        if hasattr(driver_conn, "copy_records_to_table"):
             records = [tuple(row.get(k) for k in columns) for row in ticks_data]
-            
+
             # 1. Create temporary staging table
-            await db.execute(text("CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks INCLUDING ALL) ON COMMIT DROP"))
-            
+            await db.execute(
+                text(
+                    "CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks INCLUDING ALL) ON COMMIT DROP"
+                )
+            )
+
             # 2. Fast COPY
             await driver_conn.copy_records_to_table(
-                "staging_market_ticks",
-                records=records,
-                columns=columns,
-                timeout=30
+                "staging_market_ticks", records=records, columns=columns, timeout=30
             )
-            
+
             # 3. Safe Merge
             col_list = ", ".join(columns)
             await db.execute(text(f"""
@@ -634,7 +675,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
                 SELECT {col_list} FROM staging_market_ticks
                 ON CONFLICT DO NOTHING
             """))
-            
+
             await db.commit()
             return len(ticks_data)
         else:
@@ -656,17 +697,26 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         return 0
 
     columns = [
-        "id", "event_type", "user_id", "user_email", "source_ip",
-        "user_agent", "request_path", "request_method", "details", "created_at"
+        "id",
+        "event_type",
+        "user_id",
+        "user_email",
+        "source_ip",
+        "user_agent",
+        "request_path",
+        "request_method",
+        "details",
+        "created_at",
     ]
 
     try:
         conn = await db.connection()
         raw_conn = await conn.get_raw_connection()
         driver_conn = raw_conn.driver_connection
-        
-        if hasattr(driver_conn, 'copy_records_to_table'):
+
+        if hasattr(driver_conn, "copy_records_to_table"):
             import msgspec
+
             records = [
                 (
                     row.get("id", uuid4()),
@@ -677,17 +727,18 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
                     row.get("user_agent"),
                     row.get("request_path"),
                     row.get("request_method"),
-                    msgspec.json.encode(row.get("details", {})) if row.get("details") else None,
-                    row.get("created_at", datetime.now(UTC))
+                    (
+                        msgspec.json.encode(row.get("details", {}))
+                        if row.get("details")
+                        else None
+                    ),
+                    row.get("created_at", datetime.now(UTC)),
                 )
                 for row in logs_data
             ]
-            
+
             await driver_conn.copy_records_to_table(
-                "audit_logs",
-                records=records,
-                columns=columns,
-                timeout=30
+                "audit_logs", records=records, columns=columns, timeout=30
             )
             await db.commit()
             return len(logs_data)
@@ -710,18 +761,28 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
         return 0
 
     columns = [
-        "id", "request_id", "method", "path", "query_params",
-        "headers", "client_ip", "user_id", "status_code",
-        "response_time_ms", "error_message", "created_at"
+        "id",
+        "request_id",
+        "method",
+        "path",
+        "query_params",
+        "headers",
+        "client_ip",
+        "user_id",
+        "status_code",
+        "response_time_ms",
+        "error_message",
+        "created_at",
     ]
 
     try:
         conn = await db.connection()
         raw_conn = await conn.get_raw_connection()
         driver_conn = raw_conn.driver_connection
-        
-        if hasattr(driver_conn, 'copy_records_to_table'):
+
+        if hasattr(driver_conn, "copy_records_to_table"):
             import orjson
+
             records = [
                 (
                     row.get("id", uuid4()),
@@ -729,22 +790,23 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
                     row.get("method"),
                     row.get("path"),
                     row.get("query_params"),
-                    orjson.dumps(row.get("headers", {})) if row.get("headers") else None,
+                    (
+                        orjson.dumps(row.get("headers", {}))
+                        if row.get("headers")
+                        else None
+                    ),
                     row.get("client_ip"),
                     row.get("user_id"),
                     row.get("status_code"),
                     row.get("response_time_ms"),
                     row.get("error_message"),
-                    row.get("created_at", datetime.now(UTC))
+                    row.get("created_at", datetime.now(UTC)),
                 )
                 for row in logs_data
             ]
-            
+
             await driver_conn.copy_records_to_table(
-                "request_logs",
-                records=records,
-                columns=columns,
-                timeout=30
+                "request_logs", records=records, columns=columns, timeout=30
             )
             await db.commit()
             return len(logs_data)
@@ -770,9 +832,10 @@ async def get_portfolio_summary(db: AsyncSession, user_id: UUID) -> list[dict]:
     """
     try:
         from sqlalchemy import text
+
         result = await db.execute(
             text("SELECT * FROM portfolio_summary_mv WHERE user_id = :uid"),
-            {"uid": user_id}
+            {"uid": user_id},
         )
         return [dict(row._mapping) for row in result]
     except Exception as e:
@@ -787,28 +850,32 @@ async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
     """
     try:
         from sqlalchemy import text
+
         result = await db.execute(
             text("SELECT * FROM trading_stats_mv WHERE user_id = :uid"),
-            {"uid": user_id}
+            {"uid": user_id},
         )
         row = result.first()
-        
+
         if not row:
             return {
-                "total_orders": 0, "filled_orders": 0, "cancelled_orders": 0,
-                "fill_rate": 0, "avg_fill_price": 0.0
+                "total_orders": 0,
+                "filled_orders": 0,
+                "cancelled_orders": 0,
+                "fill_rate": 0,
+                "avg_fill_price": 0.0,
             }
-            
+
         data = dict(row._mapping)
         total = data["total_orders"]
         filled = data["filled_orders"]
-        
+
         return {
             "total_orders": total,
             "filled_orders": filled,
             "cancelled_orders": data["cancelled_orders"],
             "fill_rate": (filled / total * 100) if total > 0 else 0,
-            "avg_fill_price": float(data["avg_fill_price"] or 0)
+            "avg_fill_price": float(data["avg_fill_price"] or 0),
         }
     except Exception as e:
         logger.warning("trading_stats_mv_query_failed", error=str(e))
@@ -816,12 +883,15 @@ async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
         return {"error": "Stats temporarily unavailable"}
 
 
-async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) -> list[dict]:
+async def get_market_statistics(
+    db: AsyncSession, symbol: str, limit: int = 30
+) -> list[dict]:
     """
     Fetch pre-aggregated daily market statistics from the continuous aggregate.
     """
     try:
         from sqlalchemy import text
+
         result = await db.execute(
             text("""
                 SELECT 
@@ -833,12 +903,13 @@ async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) 
                 ORDER BY day DESC 
                 LIMIT :limit
             """),
-            {"symbol": symbol, "limit": limit}
+            {"symbol": symbol, "limit": limit},
         )
         return [dict(row._mapping) for row in result]
     except Exception as e:
         logger.error("market_stats_cagg_query_failed", error=str(e))
         return []
+
 
 async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list[dict]:
     """
@@ -846,6 +917,7 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
     """
     try:
         from sqlalchemy import text
+
         # Corrected interval binding
         result = await db.execute(
             text("""
@@ -857,7 +929,7 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
                 AND day > NOW() - (INTERVAL '1 day' * :days)
                 ORDER BY day ASC
             """),
-            {"symbol": symbol, "days": days}
+            {"symbol": symbol, "days": days},
         )
         return [dict(row._mapping) for row in result]
     except Exception as e:
@@ -872,6 +944,7 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
     """
     try:
         from sqlalchemy import text
+
         result = await db.execute(
             text("""
                 SELECT 
@@ -882,7 +955,7 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
                 AND bucket > NOW() - (INTERVAL '1 day' * :days)
                 ORDER BY bucket ASC
             """),
-            {"symbol": symbol, "days": days}
+            {"symbol": symbol, "days": days},
         )
         return [dict(row._mapping) for row in result]
     except Exception as e:
@@ -890,12 +963,15 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
         return []
 
 
-async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24) -> list[dict]:
+async def get_hourly_market_stats(
+    db: AsyncSession, symbol: str, hours: int = 24
+) -> list[dict]:
     """
     Fetch hourly market stats from continuous aggregates.
     """
     try:
         from sqlalchemy import text
+
         result = await db.execute(
             text("""
                 SELECT 
@@ -906,7 +982,7 @@ async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24
                 AND hour > NOW() - (INTERVAL '1 hour' * :hours)
                 ORDER BY hour ASC
             """),
-            {"symbol": symbol, "hours": hours}
+            {"symbol": symbol, "hours": hours},
         )
         return [dict(row._mapping) for row in result]
     except Exception as e:
@@ -914,19 +990,22 @@ async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24
         return []
 
 
-async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None) -> list[dict]:
+async def get_model_drift_metrics(
+    db: AsyncSession, model_id: UUID | None = None
+) -> list[dict]:
     """
     Fetch pre-aggregated drift metrics from the materialized view.
     """
     try:
         from sqlalchemy import text
+
         query = "SELECT * FROM model_drift_metrics_mv"
         params = {}
         if model_id:
             query += " WHERE model_id = :mid"
             params["mid"] = model_id
         query += " ORDER BY window_hour DESC LIMIT 100"
-        
+
         result = await db.execute(text(query), params)
         return [dict(row._mapping) for row in result]
     except Exception as e:

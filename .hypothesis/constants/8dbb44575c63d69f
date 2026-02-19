@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/models/heston_fft.py
-# hypothesis_version: 6.151.5
-
-[-2.5, 0.0, 1e-10, 1e-06, 0.25, 1.0, 1.5, 2.0, 3.0, 250.0, 1024, 2000]

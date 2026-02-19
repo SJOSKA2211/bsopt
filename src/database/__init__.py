@@ -27,21 +27,26 @@ if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
     separator = "&" if "?" in db_url else "?"
     db_url = f"{db_url}{separator}sslmode=require"
 
+# Ensure sync engine gets sync URL
+sync_url = db_url.replace("+asyncpg", "")
+
 # --- ENGINES ---
 def get_engine():
     """Returns the synchronous SQLAlchemy engine."""
     return engine
 
+
 def get_async_engine():
     """Returns the asynchronous SQLAlchemy engine."""
     return async_engine
 
+
 engine = create_engine(
-    db_url,
+    sync_url,
     poolclass=POOL_CLASS,
     pool_size=settings.DATABASE_MIN_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
-    pool_pre_ping=True
+    pool_pre_ping=True,
 )
 
 async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
@@ -55,18 +60,25 @@ if "postgresql" in async_url and "?" in async_url:
 
 async_engine = create_async_engine(
     async_url,
-    poolclass=QueuePool,
-    connect_args={"ssl": True} if settings.ENVIRONMENT == "prod" and "postgresql" in async_url else {}
+    connect_args=(
+        {"ssl": True}
+        if settings.ENVIRONMENT == "prod" and "postgresql" in async_url
+        else {}
+    ),
 )
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-AsyncSessionLocal = async_sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine, class_=AsyncSession, expire_on_commit=False
+)
 
 # --- DEPENDENCIES ---
+
 
 def get_session():
     """Alias for get_db for compatibility."""
     return get_db()
+
 
 def get_db() -> Generator[Session]:
     db = SessionLocal()
@@ -75,9 +87,11 @@ def get_db() -> Generator[Session]:
     finally:
         db.close()
 
+
 async def get_async_db() -> AsyncGenerator[AsyncSession]:
     async with AsyncSessionLocal() as session:
         yield session
+
 
 async def set_user_context(session: AsyncSession, user_id: str):
     """Sets the app.current_user_id in the Postgres session for RLS."""
@@ -92,12 +106,15 @@ def get_db_context():
     finally:
         db.close()
 
+
 @asynccontextmanager
 async def get_async_db_context():
     async with AsyncSessionLocal() as session:
         yield session
 
+
 # --- UTILITIES ---
+
 
 def health_check() -> bool:
     try:
@@ -108,10 +125,12 @@ def health_check() -> bool:
         logger.error(f"database_health_check_failed: {e}")
         return False
 
+
 def create_tables():
     if settings.ENVIRONMENT in ["dev", "test"]:
         Base.metadata.create_all(bind=engine)
         logger.info("database_tables_created")
+
 
 def dispose_engine():
     engine.dispose()

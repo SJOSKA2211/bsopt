@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/reinforcement_learning/offline_train.py
-# hypothesis_version: 6.151.5
-
-[0.0001, 0.01, 100, '__main__', 'actions', 'epoch_completed', 'rb', 'returns_to_go', 'rtg', 'states', 'timesteps']

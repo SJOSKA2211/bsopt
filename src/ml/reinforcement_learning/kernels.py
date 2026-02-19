@@ -4,12 +4,19 @@ from numba import njit
 
 logger = structlog.get_logger()
 
-@njit(cache=True, fastmath=True, error_model='numpy')
+
+@njit(cache=True, fastmath=True, error_model="numpy")
 def _fused_state_kernel(
-    balance, initial_balance, 
-    positions, prices, strikes, 
-    greeks, indicators,
-    window_buffer, window_idx, window_size
+    balance,
+    initial_balance,
+    positions,
+    prices,
+    strikes,
+    greeks,
+    indicators,
+    window_buffer,
+    window_idx,
+    window_size,
 ):
     """
     Fused kernel for state matrix construction (2D).
@@ -17,31 +24,31 @@ def _fused_state_kernel(
     """
     # Create the current state vector (100 dims)
     state = np.zeros(100, dtype=np.float32)
-    
+
     # 1. Portfolio (11 dims)
     state[0] = balance / initial_balance
     for i in range(10):
-        state[1+i] = positions[i]
-        
+        state[1 + i] = positions[i]
+
     # 2. Market (10 dims) - Log-Moneyness
     for i in range(10):
         p = max(prices[i], 1e-6)
         k = max(strikes[i], 1e-6)
-        state[11+i] = np.log(p / k)
-        
+        state[11 + i] = np.log(p / k)
+
     # 3. Greeks (50 dims) - Tanh Scaling
     for i in range(50):
-        state[21+i] = np.tanh(greeks[i])
-        
+        state[21 + i] = np.tanh(greeks[i])
+
     # 4. Indicators (20 dims)
     for i in range(20):
-        state[71+i] = indicators[i]
-        
+        state[71 + i] = indicators[i]
+
     # 5. Temporal Stacking (Circular Buffer)
     # Write to window buffer at current index
     idx = window_idx % window_size
     window_buffer[idx] = state
-    
+
     # Return 2D window (ordered chronologically or latest-first)
     # Let's go with Chronological for the Transformer (oldest to newest)
     out = np.zeros((window_size, 100), dtype=np.float32)
@@ -50,8 +57,9 @@ def _fused_state_kernel(
         # i=0 is oldest, i=window_size-1 is newest
         src_idx = (window_idx - (window_size - 1 - i)) % window_size
         out[i] = window_buffer[src_idx]
-        
+
     return out
+
 
 @njit(cache=True, fastmath=True)
 def _calculate_reward_kernel(positions, current_prices, prev_portfolio_value, balance):
@@ -59,7 +67,7 @@ def _calculate_reward_kernel(positions, current_prices, prev_portfolio_value, ba
     option_val = 0.0
     for i in range(10):
         option_val += positions[i] * current_prices[i]
-    
+
     current_val = balance + option_val
     ret = (current_val - prev_portfolio_value) / max(prev_portfolio_value, 1e-6)
     return current_val, ret

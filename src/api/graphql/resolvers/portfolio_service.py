@@ -1,8 +1,11 @@
-
 import strawberry
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+
+from src.database.models import Portfolio as DBPortfolio, Position as DBPosition
+from src.database import get_session
 
 @strawberry.type
 class Position:
@@ -11,28 +14,53 @@ class Position:
     quantity: int
     entry_price: float
 
+    @classmethod
+    def from_db(cls, db_pos: DBPosition):
+        return cls(
+            id=strawberry.ID(str(db_pos.id)),
+            contract_symbol=db_pos.contract_symbol,
+            quantity=db_pos.quantity,
+            entry_price=float(db_pos.entry_price)
+        )
+
 @strawberry.type
 class Portfolio:
     id: strawberry.ID
     user_id: str
     cash_balance: float
-    
+
     @strawberry.field
     async def positions(self) -> list[Position]:
-        logger.debug("dummy_positions_fetch", portfolio_id=self.id)
-        return [
-            Position(
-                id=strawberry.ID("pos_1"),
-                contract_symbol="AAPL_20260115_C_150",
-                quantity=10,
-                entry_price=5.50
-            )
-        ]
+        """Fetch real positions from DB."""
+        session = get_session()
+        try:
+            # RLS ensures we only see our own positions if session context is set
+            from sqlalchemy import select
+            result = session.execute(select(DBPosition).where(DBPosition.portfolio_id == self.id))
+            return [Position.from_db(p) for p in result.scalars()]
+        finally:
+            session.close()
 
 async def get_portfolio(id: str) -> Portfolio | None:
-    logger.debug("dummy_portfolio_fetch", portfolio_id=id)
-    return Portfolio(id=strawberry.ID(id), user_id="user_123", cash_balance=10000.0)
+    """Fetch real portfolio from DB."""
+    session = get_session()
+    try:
+        from sqlalchemy import select
+        result = session.execute(select(DBPortfolio).where(DBPortfolio.id == id))
+        db_port = result.scalar_one_or_none()
+        if db_port:
+            return Portfolio(
+                id=strawberry.ID(str(db_port.id)), 
+                user_id=str(db_port.user_id), 
+                cash_balance=float(db_port.cash_balance)
+            )
+        return None
+    finally:
+        session.close()
+
 
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
     logger.info("dummy_portfolio_create", user_id=user_id, name=name)
-    return Portfolio(id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash)
+    return Portfolio(
+        id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash
+    )

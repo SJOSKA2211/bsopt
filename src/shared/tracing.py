@@ -26,25 +26,33 @@ def setup_tracing(service_name: str):
     if os.getenv("ENABLE_TRACING", "false").lower() != "true":
         return
 
-    resource = Resource.create({
-        "service.name": service_name,
-        "deployment.environment": os.getenv("ENV", "production"),
-    })
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "deployment.environment": os.getenv("ENV", "production"),
+        }
+    )
 
-    provider = TracerProvider(resource=resource)
-    
-    # Export to Jaeger/Tempo via OTLP
-    otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://tempo:4317")
-    otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
-    
-    processor = BatchSpanProcessor(otlp_exporter)
-    provider.add_span_processor(processor)
+    try:
+        provider = TracerProvider(resource=resource)
 
-    # Optional: Console exporter for local debugging
-    if os.getenv("ENV") == "development":
-        provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+        # Export to Jaeger/Tempo via OTLP
+        otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://tempo:4317")
+        otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
 
-    trace.set_tracer_provider(provider)
+        processor = BatchSpanProcessor(otlp_exporter)
+        provider.add_span_processor(processor)
+
+        # Optional: Console exporter for local debugging
+        if os.getenv("ENV") == "development":
+            provider.add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+
+        trace.set_tracer_provider(provider)
+    except Exception as e:
+        # Fallback to no-op if tracing fails to initialize
+        import logging
+        logging.getLogger(__name__).warning(f"tracing_setup_failed: {e}")
+
 
 def instrument_app(app):
     """Instrument FastAPI application."""
@@ -53,8 +61,9 @@ def instrument_app(app):
         HTTPXClientInstrumentor().instrument()
         # Note: SQLAlchemy and Redis instrumentation should be called where the clients are created
         # or globally here if possible/safe.
-        # RedisInstrumentor().instrument() 
-        # SQLAlchemyInstrumentor().instrument(engine=engine) 
+        # RedisInstrumentor().instrument()
+        # SQLAlchemyInstrumentor().instrument(engine=engine)
+
 
 def instrument_celery():
     """Instrument Celery worker."""

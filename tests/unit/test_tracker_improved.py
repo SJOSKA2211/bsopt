@@ -37,10 +37,13 @@ class TestTracker(unittest.TestCase):
     @patch("src.ml.tracker.mlflow.log_artifact")
     @patch("src.ml.tracker.os.remove")
     @patch("src.ml.tracker.os.rmdir")
-    def test_log_feature_importance(self, mock_rmdir, mock_remove, mock_artifact, mock_savefig, mock_fig):
+    def test_log_feature_importance(
+        self, mock_rmdir, mock_remove, mock_artifact, mock_savefig, mock_fig
+    ):
         importance = {"f1": 0.5, "f2": 0.3}
         self.tracker.log_feature_importance(importance, "xgboost")
         self.assertTrue(mock_artifact.called)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -20,9 +20,12 @@ class TestTransformerDetector(unittest.TestCase):
         self.mock_model.train.return_value = self.mock_model
         self.mock_model.to.return_value = self.mock_model
 
-        with patch("src.aiops.transformer_detector.TimeSeriesTransformerEncoder", return_value=self.mock_model):
+        with patch(
+            "src.aiops.transformer_detector.TimeSeriesTransformerEncoder",
+            return_value=self.mock_model,
+        ):
             self.detector = TransformerAnomalyDetector(input_dim=10, threshold=0.1)
-        
+
         self.detector.scaler = MagicMock()
         self.detector.scaler.transform.side_effect = lambda x: x
         self.detector.scaler.fit.return_value = None
@@ -39,13 +42,15 @@ class TestTransformerDetector(unittest.TestCase):
             result = self.detector.detect(data)
             self.assertIn("is_anomaly", result)
             self.assertFalse(result["is_anomaly"])
-            self.assertEqual(result["culprit_index"], 0) # argmax of all equal values is 0
+            self.assertEqual(
+                result["culprit_index"], 0
+            )  # argmax of all equal values is 0
 
     def test_train_and_detect(self):
         train_data = np.random.rand(10, 10)
         self.detector.train_on_data(train_data, epochs=1)
         self.assertTrue(self.detector.is_fitted)
-        
+
         test_data = np.random.rand(5, 10)
         mock_loss = torch.full((10,), 0.05)
         with patch("src.aiops.transformer_detector.torch.mean", return_value=mock_loss):
@@ -55,12 +60,13 @@ class TestTransformerDetector(unittest.TestCase):
     def test_3d_data(self):
         train_data = np.random.rand(2, 5, 10)
         self.detector.train_on_data(train_data, epochs=1)
-        
+
         test_data = np.random.rand(1, 5, 10)
         mock_loss = torch.full((10,), 0.05)
         with patch("src.aiops.transformer_detector.torch.mean", return_value=mock_loss):
             result = self.detector.detect(test_data)
             self.assertFalse(result["is_anomaly"])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

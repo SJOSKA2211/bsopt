@@ -1,4 +1,3 @@
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,6 +12,7 @@ def mock_session():
         mock.return_value = session
         yield session
 
+
 def test_persist_audit_log_success(mock_session):
     persist_audit_log(
         event_type="LOGIN",
@@ -22,16 +22,17 @@ def test_persist_audit_log_success(mock_session):
         user_agent="RickBrowser",
         request_path="/login",
         request_method="POST",
-        details={"dimension": "C-137"}
+        details={"dimension": "C-137"},
     )
-    
+
     assert mock_session.add.called
     assert mock_session.commit.called
     assert mock_session.close.called
 
+
 def test_persist_audit_log_failure(mock_session):
     mock_session.commit.side_effect = Exception("DB Boom!")
-    
+
     # Should handle exception internally
     persist_audit_log(
         event_type="BOOM",
@@ -41,8 +42,8 @@ def test_persist_audit_log_failure(mock_session):
         user_agent=None,
         request_path=None,
         request_method=None,
-        details=None
+        details=None,
     )
-    
+
     assert mock_session.rollback.called
     assert mock_session.close.called

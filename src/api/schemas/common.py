@@ -26,7 +26,9 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type or title")
     message: str = Field(..., description="Human-readable error message")
-    details: list[ErrorDetail] | None = Field(None, description="Detailed error information")
+    details: list[ErrorDetail] | None = Field(
+        None, description="Detailed error information"
+    )
     request_id: str | None = Field(None, description="Request ID for support reference")
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -36,7 +38,11 @@ class ErrorResponse(BaseModel):
                 "error": "ValidationError",
                 "message": "Request validation failed",
                 "details": [
-                    {"field": "email", "message": "Invalid email format", "code": "invalid_format"}
+                    {
+                        "field": "email",
+                        "message": "Invalid email format",
+                        "code": "invalid_format",
+                    }
                 ],
                 "request_id": "abc123",
                 "timestamp": "2024-01-15T10:30:00Z",

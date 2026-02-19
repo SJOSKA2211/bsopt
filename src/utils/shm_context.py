@@ -12,11 +12,13 @@ logger = structlog.get_logger(__name__)
 
 HAS_IO_URING = importlib.util.find_spec("liburing") is not None
 
+
 class AsyncIOPersister:
     """
     Persistence utility for background disk I/O.
     Designed to minimize impact on the main processing thread.
     """
+
     def __init__(self, file_path: str):
         self.file_path = file_path
         self.fd = os.open(file_path, os.O_WRONLY | os.O_CREAT | os.O_DIRECT)
@@ -30,10 +32,12 @@ class AsyncIOPersister:
     def close(self):
         os.close(self.fd)
 
+
 class PersistentSHMMapper:
     """
     SharedMemory mapping utility with NUMA-awareness hints.
     """
+
     def __init__(self, shm_name: str, shape: tuple, dtype=np.float64, node_id: int = 0):
         self.shm_name = shm_name
         self.shape = shape
@@ -65,11 +69,13 @@ class PersistentSHMMapper:
             self._shm = None
             self._array = None
 
+
 class SHMContextManager:
     """
     Context manager for handling SharedMemory lifecycles in workers.
     Automatically closes shared memory blocks on exit.
     """
+
     def __init__(self, *shm_names: str):
         self.shm_names = shm_names
         self.shm_objects = []
@@ -93,8 +99,11 @@ class SHMContextManager:
                 pass
         self.shm_objects.clear()
 
+
 @contextmanager
-def map_shm_to_numpy(shm_name: str, shape: tuple, dtype=np.float64) -> Generator[np.ndarray]:
+def map_shm_to_numpy(
+    shm_name: str, shape: tuple, dtype=np.float64
+) -> Generator[np.ndarray]:
     """
     Helper to map a single SHM block to a numpy array.
     Using PersistentSHMMapper internally for consistent performance.

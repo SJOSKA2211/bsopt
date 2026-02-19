@@ -189,6 +189,9 @@ CREATE TABLE IF NOT EXISTS model_predictions (
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- OPTIMIZED: GIN Index for feature querying
+CREATE INDEX IF NOT EXISTS idx_model_predictions_features ON model_predictions USING GIN (input_features jsonb_path_ops);
+
 -- ============================================================================
 -- RATE_LIMITS TABLE
 -- ============================================================================
@@ -200,6 +203,32 @@ CREATE TABLE IF NOT EXISTS rate_limits (
     request_count INTEGER DEFAULT 1,
     PRIMARY KEY (user_id, endpoint, window_start)
 );
+
+-- OPTIMIZED: Index for fast cleanup of expired windows
+CREATE INDEX IF NOT EXISTS idx_rate_limits_window ON rate_limits(window_start);
+
+-- ============================================================================
+-- PARTITION MANAGEMENT
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION create_future_partitions(p_table text, p_start_date date, p_months int)
+RETURNS void AS $$
+DECLARE
+    v_start date := date_trunc('month', p_start_date);
+    v_end date;
+    v_partition_name text;
+    i int;
+BEGIN
+    FOR i IN 0..p_months-1 LOOP
+        v_start := date_trunc('month', p_start_date + (i || ' month')::interval);
+        v_end := date_trunc('month', v_start + interval '1 month');
+        v_partition_name := p_table || '_y' || to_char(v_start, 'YYYY') || 'm' || to_char(v_start, 'MM');
+        
+        EXECUTE format('CREATE TABLE IF NOT EXISTS %I PARTITION OF %I FOR VALUES FROM (%L) TO (%L)',
+            v_partition_name, p_table, v_start, v_end);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ============================================================================
 -- TRIGGER FOR AUTO-UPDATING updated_at

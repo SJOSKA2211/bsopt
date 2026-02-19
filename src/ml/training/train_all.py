@@ -16,12 +16,13 @@ from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 logger = structlog.get_logger()
 
+
 async def train_all():
     """
     Execute the unified autonomous pipeline.
     """
     settings = get_settings()
-    
+
     # Configuration for the pipeline
     config = {
         "api_key": os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY"),
@@ -32,12 +33,12 @@ async def train_all():
         "n_trials": int(os.getenv("N_TRIALS", "20")),
         "framework": os.getenv("FRAMEWORK", "xgboost"),
         "promotion_threshold": 0.85,
-        "use_warm_start": True
+        "use_warm_start": True,
     }
-    
+
     logger.info("initializing_autonomous_pipeline", config=config)
     pipeline = AutonomousMLPipeline(config)
-    
+
     try:
         study = await pipeline.run()
         if study:
@@ -47,6 +48,7 @@ async def train_all():
     except Exception as e:
         logger.critical("pipeline_fatal_error", error=str(e))
         raise
+
 
 if __name__ == "__main__":
     asyncio.run(train_all())

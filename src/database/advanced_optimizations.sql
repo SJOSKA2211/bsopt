@@ -48,12 +48,23 @@ CREATE TABLE IF NOT EXISTS model_drift_baselines (
 
 CREATE OR REPLACE FUNCTION update_drift_baseline()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_accuracy DOUBLE PRECISION;
 BEGIN
-    IF NEW.predicted_value IS NOT NULL AND NEW.actual_value IS NOT NULL THEN
-        -- If accuracy of last 100 predictions < 0.8, log a warning (simulated)
-        -- In reality, the ASHO handles this, but a DB-level trigger ensures data integrity.
-        NULL; 
+    -- OPTIMIZED: Calculate rolling accuracy for the model
+    SELECT AVG(CASE WHEN ABS(predicted_value - actual_value) / NULLIF(actual_value, 0) < 0.05 THEN 1 ELSE 0 END)
+    INTO v_accuracy
+    FROM predictions
+    WHERE model_id = NEW.model_id;
+
+    -- Update baseline if accuracy is high
+    IF v_accuracy > 0.95 THEN
+        INSERT INTO model_drift_baselines (model_id, baseline_accuracy, updated_at)
+        VALUES (NEW.model_id, v_accuracy, NOW())
+        ON CONFLICT (model_id) DO UPDATE 
+        SET baseline_accuracy = EXCLUDED.baseline_accuracy, updated_at = NOW();
     END IF;
+    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -68,3 +79,9 @@ ALTER TABLE market_ticks SET (
     timescaledb.compress_segmentby = 'symbol'
 );
 SELECT add_compression_policy('market_ticks', INTERVAL '1 day');
+
+-- 7. Data Retention Policies (OOM Protection)
+-- Keep raw ticks for 7 days, options prices for 30 days.
+SELECT add_retention_policy('market_ticks', INTERVAL '7 days', if_not_exists => TRUE);
+SELECT add_retention_policy('options_prices', INTERVAL '30 days', if_not_exists => TRUE);
+

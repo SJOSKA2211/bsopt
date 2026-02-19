@@ -82,7 +82,7 @@ class TestLaguerreBasis:
         assert_equal(basis[0, 0], 1.0)
         assert_equal(basis[0, 1], 0.0)
         assert_equal(basis[0, 2], -0.5)
-        assert abs(basis[0, 3] - (-2.0/3.0)) < 1e-10
+        assert abs(basis[0, 3] - (-2.0 / 3.0)) < 1e-10
 
     def test_laguerre_vectorized(self):
         """Test that Laguerre basis works with multiple values."""
@@ -107,7 +107,12 @@ class TestMonteCarloEngineBasics:
     def atm_params(self):
         """At-the-money option parameters."""
         return BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
     def test_engine_initialization(self, engine):
@@ -118,7 +123,9 @@ class TestMonteCarloEngineBasics:
 
     def test_reproducibility(self, atm_params):
         """Test that same seed produces same results."""
-        config = MCConfig(n_paths=10000, seed=42, antithetic=False, control_variate=False)
+        config = MCConfig(
+            n_paths=10000, seed=42, antithetic=False, control_variate=False
+        )
 
         engine1 = MonteCarloEngine(config)
         price1, _ = engine1.price_european(atm_params, "call")
@@ -162,7 +169,12 @@ class TestEuropeanPricing:
         from src.pricing.black_scholes import BlackScholesEngine
 
         params = BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         bs_price = BlackScholesEngine.price_call(params)
@@ -180,7 +192,12 @@ class TestEuropeanPricing:
         from src.pricing.black_scholes import BlackScholesEngine
 
         params = BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         bs_price = BlackScholesEngine.price_put(params)
@@ -193,7 +210,12 @@ class TestEuropeanPricing:
     def test_put_call_parity(self, engine):
         """Test that Monte Carlo satisfies put-call parity."""
         params = BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         call_price, _ = engine.price_european(params, "call")
@@ -211,19 +233,31 @@ class TestEuropeanPricing:
     def test_deep_itm_call(self, engine):
         """Test deep in-the-money call has high delta."""
         params = BSParameters(
-            spot=120.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=120.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         price, _ = engine.price_european(params, "call")
 
         # Deep ITM call should be worth at least intrinsic value
         intrinsic_value = params.spot - params.strike
-        assert price > intrinsic_value * 0.95  # Allow some margin for dividends/discounting
+        assert (
+            price > intrinsic_value * 0.95
+        )  # Allow some margin for dividends/discounting
 
     def test_deep_otm_put(self, engine):
         """Test deep out-of-the-money put has low value."""
         params = BSParameters(
-            spot=120.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=120.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         price, _ = engine.price_european(params, "put")
@@ -239,7 +273,12 @@ class TestVarianceReduction:
     def params(self):
         """Standard test parameters."""
         return BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
     def test_antithetic_reduces_variance(self, params):
@@ -248,7 +287,9 @@ class TestVarianceReduction:
         n_runs = 10
 
         # Without antithetic
-        config_no_av = MCConfig(n_paths=n_paths, antithetic=False, control_variate=False)
+        config_no_av = MCConfig(
+            n_paths=n_paths, antithetic=False, control_variate=False
+        )
         prices_no_av = []
         for seed in range(n_runs):
             config_no_av.seed = seed
@@ -278,12 +319,16 @@ class TestVarianceReduction:
         n_paths = 20000
 
         # Without control variates
-        config_no_cv = MCConfig(n_paths=n_paths, antithetic=False, control_variate=False, seed=42)
+        config_no_cv = MCConfig(
+            n_paths=n_paths, antithetic=False, control_variate=False, seed=42
+        )
         engine_no_cv = MonteCarloEngine(config_no_cv)
         _, ci_no_cv = engine_no_cv.price_european(params, "call")
 
         # With control variates
-        config_cv = MCConfig(n_paths=n_paths, antithetic=False, control_variate=True, seed=42)
+        config_cv = MCConfig(
+            n_paths=n_paths, antithetic=False, control_variate=True, seed=42
+        )
         engine_cv = MonteCarloEngine(config_cv)
         _, ci_cv = engine_cv.price_european(params, "call")
 
@@ -303,7 +348,12 @@ class TestAmericanPricing:
     def test_american_put_premium(self, engine):
         """Test that American put >= European put."""
         params = BSParameters(
-            spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=100.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         european_price, ci = engine.price_european(params, "put")
@@ -315,7 +365,12 @@ class TestAmericanPricing:
     def test_american_put_premium_itm(self, engine):
         """Test that ITM American put has higher premium."""
         params = BSParameters(
-            spot=80.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=80.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         european_price, _ = engine.price_european(params, "put")
@@ -345,7 +400,12 @@ class TestAmericanPricing:
     def test_american_intrinsic_value(self, engine):
         """Test that American option worth at least intrinsic value."""
         params = BSParameters(
-            spot=110.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=110.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         american_call = engine.price_american_lsm(params, "call")
@@ -354,7 +414,12 @@ class TestAmericanPricing:
         assert american_call >= intrinsic_call * 0.95  # Allow small margin
 
         params_put = BSParameters(
-            spot=90.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02
+            spot=90.0,
+            strike=100.0,
+            maturity=1.0,
+            volatility=0.2,
+            rate=0.05,
+            dividend=0.02,
         )
 
         american_put = engine.price_american_lsm(params_put, "put")

@@ -2,7 +2,11 @@ import unittest
 
 import numpy as np
 
-from src.pricing.models.heston_fft import HestonModelFFT, HestonParams, batch_heston_price_jit
+from src.pricing.models.heston_fft import (
+    HestonModelFFT,
+    HestonParams,
+    batch_heston_price_jit,
+)
 
 
 class TestHestonFFT(unittest.TestCase):
@@ -33,10 +37,23 @@ class TestHestonFFT(unittest.TestCase):
         rhos = np.array([-0.7, -0.7])
         is_calls = np.array([True, True])
         out = np.zeros(2)
-        
-        batch_heston_price_jit(spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out)
+
+        batch_heston_price_jit(
+            spots,
+            strikes,
+            maturities,
+            rates,
+            v0s,
+            kappas,
+            thetas,
+            sigmas,
+            rhos,
+            is_calls,
+            out,
+        )
         self.assertGreater(out[0], 0)
         self.assertGreater(out[0], out[1])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

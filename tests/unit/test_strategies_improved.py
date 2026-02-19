@@ -9,7 +9,12 @@ sys.modules["xgboost"] = MagicMock()
 sys.modules["dask"] = MagicMock()
 sys.modules["dask.distributed"] = MagicMock()
 
-from src.ml.strategies import PyTorchStrategy, SklearnStrategy, XGBoostStrategy, get_strategy
+from src.ml.strategies import (
+    PyTorchStrategy,
+    SklearnStrategy,
+    XGBoostStrategy,
+    get_strategy,
+)
 
 
 class TestStrategies(unittest.TestCase):
@@ -25,14 +30,22 @@ class TestStrategies(unittest.TestCase):
 
     def test_sklearn_strategy(self):
         s = SklearnStrategy()
-        model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
+        model = s.train(
+            self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10}
+        )
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)
 
     def test_pytorch_strategy(self):
         s = PyTorchStrategy()
-        model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"epochs": 1, "lr": 0.01})
+        model = s.train(
+            self.X_train,
+            self.y_train,
+            self.X_test,
+            self.y_test,
+            {"epochs": 1, "lr": 0.01},
+        )
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)
@@ -44,12 +57,15 @@ class TestStrategies(unittest.TestCase):
         mock_model.best_iteration = 5
         mock_model.predict.return_value = np.random.rand(20)
         mock_train.return_value = mock_model
-        
+
         s = XGBoostStrategy()
-        model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
+        model = s.train(
+            self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10}
+        )
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

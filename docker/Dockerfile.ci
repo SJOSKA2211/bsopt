@@ -1,32 +1,24 @@
-# Stage 1: Dependencies
-FROM python:3.12-slim AS dependencies
+# Stage 1: Builder (Optimized for CI/Test speed)
+FROM python:3.13-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv
+ENV PATH="/:/${PATH}"
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-# Create virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy project files for a complete install
+COPY pyproject.toml requirements.txt ./
 
-# Copy all requirements
-COPY requirements-api.txt requirements-auth.txt requirements_cli.txt ./
+# Lightning-fast dependency resolution
+# Install all extras [api, auth, ml, quant, distributed, dev]
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --no-cache -r requirements.txt \
+    && uv pip install --system --no-cache ".[api,auth,ml,quant,distributed,dev]"
 
-# Install all dependencies including test-specific ones
-# (Playwright browsers removed as we migrated to direct HTTP scraping)
-RUN pip install --no-cache-dir -r requirements-api.txt \
-    && pip install --no-cache-dir -r requirements-auth.txt \
-    && pip install --no-cache-dir -r requirements_cli.txt \
-    && pip install --no-cache-dir pytest pytest-cov pytest-asyncio pytest-mock httpx structlog
-
-# Stage 2: Final CI Image
-FROM python:3.12-slim
+# Stage 2: Final CI/Test Image
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -34,19 +26,21 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from dependencies stage
-COPY --from=dependencies /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application code
+# Copy the entire project for testing
 COPY . .
 
 # Set testing environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV BSOPT_TEST_MODE=1
+ENV PYTHONPATH=/app
 
-# Default command for CI
+# Default command for CI/Test runs
 CMD ["pytest", "--cov=src", "--cov-report=term-missing"]

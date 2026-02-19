@@ -6,11 +6,13 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class SharedMemoryManager:
     """
-    Manages a pool of pre-allocated shared memory segments to enable 
+    Manages a pool of pre-allocated shared memory segments to enable
     zero-allocation communication between processes.
     """
+
     _instance = None
     _lock = threading.Lock()
 
@@ -20,7 +22,7 @@ class SharedMemoryManager:
         self.available_segments: list[str] = []
         self.all_segments: dict[str, shared_memory.SharedMemory] = {}
         self._pool_lock = threading.Lock()
-        
+
         self._initialize_pool()
 
     @classmethod
@@ -42,33 +44,38 @@ class SharedMemoryManager:
                     logger.info("cleaned_stale_shm", segment=name)
                 except Exception:
                     pass
-                
-                shm = shared_memory.SharedMemory(name=name, create=True, size=self.segment_size)
+
+                shm = shared_memory.SharedMemory(
+                    name=name, create=True, size=self.segment_size
+                )
                 self.all_segments[name] = shm
                 self.available_segments.append(name)
             except Exception as e:
                 logger.error("shm_pool_init_failed", segment=name, error=str(e))
 
     def acquire(self) -> str | None:
-        """Acquires a segment from the pool with thread-safe pop."""
+        """Acquires a segment from the pool iteratively."""
         with self._pool_lock:
-            if not self.available_segments:
-                logger.warning("shm_pool_exhausted")
-                return None
-            seg_name = self.available_segments.pop()
-            #  OPTIMIZATION: Verify segment health before handover
-            try:
-                shm = self.all_segments[seg_name]
-                _ = shm.buf[0] # Test access
-                return seg_name
-            except Exception as e:
-                logger.error("shm_segment_corrupt", segment=seg_name, error=str(e))
-                return self.acquire() # Recursive attempt
+            while self.available_segments:
+                seg_name = self.available_segments.pop()
+                try:
+                    shm = self.all_segments[seg_name]
+                    # Probe health
+                    shm.buf[0] = shm.buf[0]
+                    return seg_name
+                except Exception as e:
+                    logger.error("shm_segment_corrupt", segment=seg_name, error=str(e))
+                    # Don't re-add corrupt segment to available
+
+            logger.warning("shm_pool_exhausted")
+            return None
 
     def release(self, name: str):
         """Releases a segment back to the pool."""
         with self._pool_lock:
             if name in self.all_segments and name not in self.available_segments:
+                # OPTIMIZED: Zero out buffer on release for security/consistency
+                self.all_segments[name].buf[:] = b"\x00" * self.segment_size
                 self.available_segments.append(name)
             else:
                 logger.warning("shm_release_invalid", segment=name)
@@ -76,19 +83,23 @@ class SharedMemoryManager:
     def get_segment(self, name: str) -> shared_memory.SharedMemory | None:
         return self.all_segments.get(name)
 
-    def cleanup(self):
+    def cleanup(self, unlink: bool = False):
+        """Close segment handles and optionally unlink (dangerous in multi-process)."""
         with self._pool_lock:
             for shm in self.all_segments.values():
                 try:
                     shm.close()
-                    shm.unlink()
+                    if unlink:
+                        shm.unlink()
                 except Exception:
                     pass
             self.all_segments.clear()
             self.available_segments.clear()
 
+
 # Global manager instance
 shm_manager = SharedMemoryManager.get_instance()
 
-# OPTIMIZED: Register cleanup with atexit to ensure segments are unlinked on process exit
-atexit.register(shm_manager.cleanup)
+# OPTIMIZED: Only close local handles on exit.
+# Global unlinking should be handled by the orchestrator/launcher.
+atexit.register(shm_manager.cleanup, unlink=False)

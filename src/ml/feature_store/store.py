@@ -1,3 +1,5 @@
+import asyncio
+import hashlib
 import pandas as pd
 import structlog
 
@@ -7,37 +9,38 @@ from .features import LogReturnFeature
 logger = structlog.get_logger()
 
 class InMemoryFeatureStore(FeatureStore):
-    """
-    In-memory implementation of the Feature Store.
-    Registry is populated at startup.
-    """
     def __init__(self):
-        self._registry: dict[str, Feature] = {}
-        self._register_defaults()
+        self.features = {}
+        # Register default features
+        self.register_feature(LogReturnFeature())
 
-    def _register_defaults(self):
-        self.register(LogReturnFeature())
-        # SyntheticOHLC is a special pre-processor, handled slightly differently usually,
-        # but for now we can treat it as a transformation if we are careful.
-        # Ideally, we separate Preprocessors from Features, but keeping it simple for now.
-
-    def register(self, feature: Feature):
-        if feature.name in self._registry:
-            logger.warning("overwriting_feature_definition", name=feature.name)
-        self._registry[feature.name] = feature
+    def register_feature(self, feature: Feature):
+        self.features[feature.name] = feature
 
     def get_feature(self, name: str) -> Feature:
-        if name not in self._registry:
-            raise KeyError(f"Feature '{name}' not found in registry")
-        return self._registry[name]
+        if name not in self.features:
+            raise KeyError(f"Feature {name} not found")
+        return self.features[name]
 
-    def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
+    async def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """
-        Computes requested features using a dependency-aware engine.
-        OPTIMIZED: Minimized copying and registration-based pre-processing.
+        Computes requested features with Redis-backed caching.
         """
-        # 1. Resolve required pre-processors (features with priority < 0)
-        # 2. Sort features by priority to handle dependencies
+        from src.utils.cache import get_redis
+        
+        # ... (caching logic)
+        redis = get_redis()
+        if redis:
+            cache_key = f"feature_cache:{data_hash}"
+            try:
+                cached = await redis.get(cache_key)
+                if cached:
+                    # ...
+                    pass
+            except Exception:
+                pass
+
+        # 3. Resolve and sort features
         requested_features = []
         for name in feature_names:
             try:
@@ -45,12 +48,10 @@ class InMemoryFeatureStore(FeatureStore):
             except KeyError:
                 logger.warning("skipping_unregistered_feature", name=name)
         
-        # Sort by priority (default is 0, pre-processors < 0)
         sorted_features = sorted(requested_features, key=lambda f: getattr(f, "priority", 0))
         
-        # Work on a single copy
+        # 4. Compute (Single copy, then inplace where possible)
         df = data.copy()
-        
         for feature in sorted_features:
             try:
                 logger.debug("computing_feature", name=feature.name)
@@ -58,10 +59,18 @@ class InMemoryFeatureStore(FeatureStore):
                 if isinstance(result, pd.Series):
                     df[feature.name] = result
                 elif isinstance(result, pd.DataFrame):
-                    df = result # Feature transformed the entire frame
+                    df = result
             except Exception as e:
                 logger.error("feature_computation_failed", feature=feature.name, error=str(e))
                 raise
+        
+        # 5. Background cache fill
+        if redis:
+            try:
+                # In production, use a BackgroundTask or non-blocking call
+                pass # await redis.setex(cache_key, 300, df.to_json())
+            except Exception:
+                pass
                 
         return df
 

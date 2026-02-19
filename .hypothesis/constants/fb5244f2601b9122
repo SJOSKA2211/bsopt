@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/streaming/kafka_producer.py
-# hypothesis_version: 6.151.5
-
-[100, 60000, 524288, '1', 'acks', 'batch.size', 'bootstrap.servers', 'client.id', 'compression.type', 'enable.idempotence', 'kafka_batch_error', 'kafka_produce_error', 'key', 'linger.ms', 'lz4', 'market-data-producer', 'r', 'retries', 'retry.backoff.ms', 'topic', 'url', 'utf-8']

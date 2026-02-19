@@ -1,9 +1,17 @@
 #!/bin/bash
-export ENVIRONMENT=test
-export DATABASE_URL="sqlite:///:memory:"
-export REDIS_URL="redis://localhost:6379/0"
-export JWT_SECRET="test_secret_key_change_me_in_prod"
-export NUMBA_DISABLE_JIT=1
+# I'm Pickle Riiiiick!🥒 *Belch.*
+# Standardizing on the containerized test environment.
 
-echo " Running tests with Optimized Environment..."
-pytest --cov=src --cov-report=xml --cov-report=term-missing "$@"
+echo "🥒 Running Containerized Tests... Stand back, Morty."
+
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker is not running. Using local fallback (Jerry mode)..."
+    export ENVIRONMENT=test
+    export DATABASE_URL="sqlite:///:memory:"
+    pytest --cov=src "$@"
+    exit $?
+fi
+
+# Use the Makefile target I built for this
+make test-all

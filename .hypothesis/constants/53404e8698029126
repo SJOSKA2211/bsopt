@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/routes/auth.py
-# hypothesis_version: 6.151.5
-
-[401, '/', '/auth', '/jwks', '/me', '/token', 'Authentication', 'Bearer', 'Not authenticated', 'RSA', 'access_token', 'expires_in', 'internal-key-01', 'issuer', 'jwks_uri', 'keys', 'kid', 'kty', 'scope', 'sig', 'token_endpoint', 'token_type', 'use', 'user']

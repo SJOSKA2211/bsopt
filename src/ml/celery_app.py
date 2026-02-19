@@ -13,11 +13,7 @@ logger = structlog.get_logger()
 BROKER_URL = "redis://localhost:6379/0"
 BACKEND_URL = "redis://localhost:6379/0"
 
-celery_app = Celery(
-    "bsopt_ml",
-    broker=BROKER_URL,
-    backend=BACKEND_URL
-)
+celery_app = Celery("bsopt_ml", broker=BROKER_URL, backend=BACKEND_URL)
 
 celery_app.conf.update(
     task_serializer="json",
@@ -27,25 +23,28 @@ celery_app.conf.update(
     enable_utc=True,
 )
 
+
 @celery_app.task(bind=True, name="ml.run_autonomous_pipeline")
 def run_pipeline_task(self, config: dict[str, Any]):
     """
     Celery task to run the autonomous ML pipeline.
     """
-    logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
+    logger.info(
+        "celery_task_started", task_id=self.request.id, ticker=config.get("ticker")
+    )
     try:
         pipeline = AutonomousMLPipeline(config)
         study = pipeline.run()
-        
+
         result = {
             "status": "success",
             "best_value": study.best_value,
             "best_params": study.best_params,
-            "task_id": self.request.id
+            "task_id": self.request.id,
         }
         logger.info("celery_task_completed", **result)
         return result
-        
+
     except Exception as e:
         logger.error("celery_task_failed", error=str(e), task_id=self.request.id)
         # Re-raise so Celery marks it as failed

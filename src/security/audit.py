@@ -107,6 +107,7 @@ def log_audit(
             from src.tasks.audit_tasks import (
                 persist_audit_log,  # Import here to avoid circular dependency
             )
+
             persist_audit_log.delay(
                 event_type=event.value,
                 user_id=str(user.id) if user else None,

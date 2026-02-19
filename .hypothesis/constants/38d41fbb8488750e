@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/data/pipeline.py
-# hypothesis_version: 6.151.5
-
-[1.0, 5.0, 1000, 10000, 'data/training', 'data_pipeline_start', 'data_source', 'database', 'duration_seconds', 'file', 'minio', 'output_path', 'samples_collected', 'samples_valid', 'synthetic_pipeline', 'validation_rate']

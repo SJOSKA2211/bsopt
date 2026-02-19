@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/schemas/ml.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.2, 1.0, 100.0, 365.0, 'days_to_expiry', 'example', 'implied_volatility', 'is_call', 'log_moneyness', 'moneyness', 'sqrt_time_to_expiry', 'strike', 'time_to_expiry', 'underlying_price']

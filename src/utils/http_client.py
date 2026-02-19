@@ -6,13 +6,13 @@ Provides a centralized, tuned, and persistent httpx.AsyncClient for service-to-s
 Ensures connection pooling and optimal timeout settings.
 """
 
-
 import asyncio
 
 import httpx
 import structlog
 
 logger = structlog.get_logger(__name__)
+
 
 class HttpClientManager:
     _client: httpx.AsyncClient | None = None
@@ -30,10 +30,10 @@ class HttpClientManager:
                 http2=True,
                 timeout=httpx.Timeout(10.0, connect=5.0),
                 limits=httpx.Limits(
-                    max_connections=5000, 
+                    max_connections=5000,
                     max_keepalive_connections=1000,
-                    keepalive_expiry=60.0
-                )
+                    keepalive_expiry=60.0,
+                ),
             )
         return cls._client
 
@@ -51,6 +51,7 @@ class HttpClientManager:
             await cls._client.aclose()
             cls._client = None
             logger.info("closed_shared_http_client")
+
 
 def get_http_client() -> httpx.AsyncClient:
     """Dependency injection helper."""

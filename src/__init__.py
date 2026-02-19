@@ -25,10 +25,12 @@ _import_map = {
     "workers": ".workers",
 }
 
+
 def __getattr__(name: str):
     if name in _import_map:
         return lazy_import(__name__, _import_map, name, sys.modules[__name__])
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 def __dir__():
     return sorted(list(_import_map.keys()) + ["__version__"])

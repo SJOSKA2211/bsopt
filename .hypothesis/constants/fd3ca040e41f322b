@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/shared/observability.py
-# hypothesis_version: 6.151.5
-
-[0.1, 5.0, 200, 300, 500, 1000, 50000, 100000, '.', '1', 'Content-Type', 'GRAFANA_URL', 'GRAFANA_URL not set', 'Latency of RPC calls', 'MKL_NUM_THREADS', 'NUMBA_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'PUSHGATEWAY_URL', 'agent_id', 'analytical', 'api', 'api_request', 'application/json', 'dataset', 'event', 'framework', 'gc_tuned', 'heston_feller_margin', 'heston_r_squared', 'high_frequency', 'iso', 'latency_sensitive', 'masked', 'method', 'metrics_pusher', 'ml_data_drift_score', 'ml_ks_test_p_value', 'ml_model_rmse', 'model_type', 'proxy_failures_total', 'proxy_url', 'request_processed', 'rl_action_variance', 'status_code', 'symbol', 'tags', 'text', 'time', 'unknown']

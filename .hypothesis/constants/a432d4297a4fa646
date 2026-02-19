@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/routes/__init__.py
-# hypothesis_version: 6.151.5
-
-['auth_router', 'debug_router', 'ml_router', 'pricing_router', 'users_router']

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/training/train_v2.py
-# hypothesis_version: 6.151.5
-
-[0.001, 1000, 4096, 10000, '__main__', 'best_model.pt']

@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 
@@ -10,7 +9,10 @@ class OptionPricingNN(nn.Module):
     """
 
     def __init__(
-        self, input_dim: int = 9, hidden_dims: list[int] = [128, 64, 32], num_classes: int = 1
+        self,
+        input_dim: int = 9,
+        hidden_dims: list[int] = [128, 64, 32],
+        num_classes: int = 1,
     ):
         super().__init__()
         layers = []

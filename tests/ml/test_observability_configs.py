@@ -18,6 +18,7 @@ def test_prometheus_rules_valid_yaml():
         except yaml.YAMLError:
             pytest.fail("Prometheus rules file is not valid YAML")
 
+
 def test_grafana_dashboard_valid_json():
     """Verify that Grafana dashboard file is valid JSON."""
     path = "src/shared/observability_configs/grafana_dashboard.json"

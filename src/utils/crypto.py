@@ -1,30 +1,54 @@
 import base64
 import os
+import struct
+import threading
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
 class AES256GCM:
     """
-    AES-256-GCM authenticated encryption for sensitive data.
-    Provides better security and performance than Fernet (AES-128-CBC).
+    AES-256-GCM authenticated encryption.
+    OPTIMIZED: High-speed nonce generation and raw byte paths.
     """
+
     def __init__(self, key_base64: str):
-        # Key must be 32 bytes for AES-256
         self.key = base64.urlsafe_b64decode(key_base64)
         if len(self.key) != 32:
-            # Fallback/Derive if key is wrong size (e.g. from legacy Fernet keys)
             import hashlib
+
             self.key = hashlib.sha256(self.key).digest()
         self.aesgcm = AESGCM(self.key)
 
-    def encrypt(self, data: bytes) -> str:
-        nonce = os.urandom(12) # Standard GCM nonce size
-        ciphertext = self.aesgcm.encrypt(nonce, data, None)
-        return base64.urlsafe_b64encode(nonce + ciphertext).decode('utf-8')
+        # High-speed Nonce State
+        self._nonce_prefix = os.urandom(8)
+        self._nonce_counter = 0
+        self._nonce_lock = threading.Lock()
 
-    def decrypt(self, token_base64: str) -> bytes:
-        data = base64.urlsafe_b64decode(token_base64)
+    def _get_next_nonce(self) -> bytes:
+        """Atomic fast nonce generator (Prefix + Counter)."""
+        with self._nonce_lock:
+            self._nonce_counter += 1
+            return self._nonce_prefix + struct.pack(
+                "!I", self._nonce_counter % 0xFFFFFFFF
+            )
+
+    def encrypt_raw(self, data: bytes) -> bytes:
+        """High-performance encryption returning raw bytes (Nonce + Tag + Cipher)."""
+        nonce = self._get_next_nonce()
+        ciphertext = self.aesgcm.encrypt(nonce, data, None)
+        return nonce + ciphertext
+
+    def encrypt(self, data: bytes) -> str:
+        """Standard encryption returning URL-safe Base64 string."""
+        return base64.urlsafe_b64encode(self.encrypt_raw(data)).decode("utf-8")
+
+    def decrypt_raw(self, data: bytes) -> bytes:
+        """High-performance decryption from raw bytes."""
         nonce = data[:12]
         ciphertext = data[12:]
         return self.aesgcm.decrypt(nonce, ciphertext, None)
+
+    def decrypt(self, token_base64: str) -> bytes:
+        """Standard decryption from URL-safe Base64 string."""
+        return self.decrypt_raw(base64.urlsafe_b64decode(token_base64))

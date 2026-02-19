@@ -66,20 +66,20 @@ impl RustPulse {
                 match socket.recv_from(&mut buf) {
                     Ok((n, _addr)) => {
                         if n >= 32 {
-                            //  RUST SPEED: Raw pointer mapping to SHM
+                            // OPTIMIZED: High-res monotonic timestamp
                             let receive_ts_ns = SystemTime::now()
                                 .duration_since(UNIX_EPOCH)
                                 .unwrap()
                                 .as_nanos() as i64;
 
                             let head_ptr = mmap.as_mut_ptr() as *mut i64;
-                            let current_head = unsafe { *head_ptr };
+                            // Use atomic ordering for the head pointer update
+                            let current_head = unsafe { (*(head_ptr as *const std::sync::atomic::AtomicI64)).load(Ordering::Relaxed) };
                             let idx = (current_head % 100000) as usize;
                             
                             let tick_ptr = unsafe { mmap.as_mut_ptr().add(8 + idx * 40) };
                             
                             unsafe {
-                                // Safety: We know buf[0..32] is initialized because n >= 32
                                 let init_buf = std::mem::transmute::<&[std::mem::MaybeUninit<u8>], &[u8]>(&buf[..32]);
                                 std::ptr::copy_nonoverlapping(init_buf.as_ptr(), tick_ptr, 32);
                                 std::ptr::copy_nonoverlapping(
@@ -87,12 +87,17 @@ impl RustPulse {
                                     tick_ptr.add(32),
                                     8
                                 );
-                                *head_ptr = current_head + 1;
+                                // Atomic release to ensure data is visible before head increment
+                                (*(head_ptr as *const std::sync::atomic::AtomicI64)).store(current_head + 1, Ordering::Release);
                             }
                         }
                     }
                     Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        thread::yield_now();
+                        // OPTIMIZED: Busy-wait with spin-loop hint
+                        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+                        unsafe { std::arch::x86_64::_mm_pause(); }
+                        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+                        thread::yield_now(); 
                     }
                     Err(_) => break,
                 }

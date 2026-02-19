@@ -15,7 +15,7 @@ ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS portfolios_user_isolation ON portfolios;
 CREATE POLICY portfolios_user_isolation ON portfolios
     FOR ALL
-    USING (user_id = current_setting('app.current_user_id')::UUID);
+    USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
 
 -- 2. Positions
 ALTER TABLE positions ENABLE ROW LEVEL SECURITY;
@@ -23,7 +23,7 @@ ALTER TABLE positions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS positions_user_isolation ON positions;
 CREATE POLICY positions_user_isolation ON positions
     FOR ALL
-    USING (portfolio_id IN (SELECT id FROM portfolios WHERE user_id = current_setting('app.current_user_id')::UUID));
+    USING (portfolio_id IN (SELECT id FROM portfolios WHERE user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID));
 
 -- 3. Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
@@ -31,7 +31,7 @@ ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS orders_user_isolation ON orders;
 CREATE POLICY orders_user_isolation ON orders
     FOR ALL
-    USING (user_id = current_setting('app.current_user_id')::UUID);
+    USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
 
 -- 4. Users (Self-service only)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -39,7 +39,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS users_self_isolation ON users;
 CREATE POLICY users_self_isolation ON users
     FOR ALL
-    USING (id = current_setting('app.current_user_id')::UUID);
+    USING (id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
 
 -- ============================================================================
 -- PL/pgSQL AUTHENTICATION FUNCTIONS
@@ -75,13 +75,26 @@ CREATE OR REPLACE FUNCTION authenticate_user_native(
     tier VARCHAR(20),
     is_active BOOLEAN
 ) AS $$
+DECLARE
+    v_user_id UUID;
 BEGIN
-    RETURN QUERY
-    SELECT u.id, u.email, u.tier, u.is_active
+    -- 1. Verify credentials and find user
+    SELECT u.id INTO v_user_id
     FROM users u
     WHERE u.email = p_email 
       AND u.hashed_password = crypt(p_password, u.hashed_password)
       AND u.is_active = TRUE;
+
+    IF v_user_id IS NOT NULL THEN
+        -- 2. ATOMIC: Update last login on successful match
+        UPDATE users SET last_login = NOW() WHERE id = v_user_id;
+        
+        -- 3. Return the user record
+        RETURN QUERY
+        SELECT u.id, u.email, u.tier, u.is_active
+        FROM users u
+        WHERE u.id = v_user_id;
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

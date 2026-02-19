@@ -19,6 +19,7 @@ if str(test_dir) not in sys.path:
 #  CLEAR LAZY IMPORT CACHE
 if "src.utils.lazy_import" in sys.modules:
     import src.utils.lazy_import
+
     src.utils.lazy_import._failed_imports.clear()
 
 
@@ -37,7 +38,9 @@ import pytest  # noqa: E402
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
     """Ensure environment variables are set for all tests."""
-    monkeypatch.setenv("DATABASE_URL", "postgresql://admin:password@localhost:5432/bsopt")
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql://admin:password@localhost:5432/bsopt"
+    )
     monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
     monkeypatch.setenv("JWT_SECRET", "test_secret_key_change_me_in_prod")
     monkeypatch.setenv("ENVIRONMENT", "test")

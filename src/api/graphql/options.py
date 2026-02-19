@@ -13,6 +13,7 @@ class Option:
     expiry: datetime
     option_type: str
 
+
 @strawberry.type
 class Query:
     @strawberry.field
@@ -25,8 +26,9 @@ class Query:
                 underlying_symbol="AAPL",
                 strike=150.0,
                 expiry=datetime(2026, 1, 15),
-                option_type="call"
+                option_type="call",
             )
         return None
+
 
 schema = Schema(query=Query)

@@ -563,23 +563,28 @@ impl HestonWASM {
     }
 
     pub fn price_call(&self, spot: f64, strike: f64, time: f64, r: f64, v0: f64, kappa: f64, theta: f64, sigma: f64, rho: f64) -> f64 {
+        let n_steps = 1000;
+        let u_max = 150.0;
+        let du = u_max / n_steps as f64;
         let mut sum = 0.0;
-        let du = 0.1;
-        let u_max = 100.0;
-        let mut u = 0.0001;
         
-        while u < u_max {
+        // OPTIMIZED: Simpson's Rule Integration
+        for i in 0..=n_steps {
+            let u = 0.0001 + i as f64 * du;
             let phi = self.char_func(u - 1.0, 0.0, time, r, v0, kappa, theta, sigma, rho);
             let phi_num = self.char_func(u, 0.0, time, r, v0, kappa, theta, sigma, rho);
             
             let term1_re = ((-u * strike.ln()).cos() * phi.1 + (-u * strike.ln()).sin() * phi.0) / u;
             let term2_re = ((-u * strike.ln()).cos() * phi_num.1 + (-u * strike.ln()).sin() * phi_num.0) / u;
             
-            sum += (term1_re - term2_re) * du;
-            u += du;
+            let weight = if i == 0 || i == n_steps { 1.0 } else if i % 2 == 1 { 4.0 } else { 2.0 };
+            sum += (term1_re - term2_re) * weight;
+            
+            // Adaptive Truncation: Stop if integrand is negligible
+            if i > 100 && (term1_re - term2_re).abs() < 1e-12 { break; }
         }
         
-        0.5 * (spot - strike * (-r * time).exp()) + sum / std::f64::consts::PI
+        0.5 * (spot - strike * (-r * time).exp()) + (sum * du / 3.0) / std::f64::consts::PI
     }
 
     fn char_func(&self, u: f64, _v: f64, t: f64, r: f64, v0: f64, kappa: f64, theta: f64, sigma: f64, rho: f64) -> (f64, f64) {

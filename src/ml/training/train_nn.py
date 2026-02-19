@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 
 try:
     from torch.nn.parallel import DistributedDataParallel as DDP  # noqa: N817
+
     HAS_DDP = True
 except ImportError:
     DDP = None
@@ -38,7 +39,9 @@ async def train_nn_distributed(epochs: int = 10, batch_size: int = 64):
     is_main = rank == 0
 
     # Load data (only on main or broadcast)
-    X, y, feature_names, _ = await load_or_collect_data(use_real_data=False, n_samples=20000)
+    X, y, feature_names, _ = await load_or_collect_data(
+        use_real_data=False, n_samples=20000
+    )
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -55,7 +58,9 @@ async def train_nn_distributed(epochs: int = 10, batch_size: int = 64):
     # Model
     model = OptionPricingNN(input_dim=len(feature_names))
     if world_size > 1:
-        model = DDP(model.to(rank), device_ids=[rank] if torch.cuda.is_available() else None)
+        model = DDP(
+            model.to(rank), device_ids=[rank] if torch.cuda.is_available() else None
+        )
 
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.MSELoss()
@@ -101,5 +106,6 @@ async def train_nn_distributed(epochs: int = 10, batch_size: int = 64):
 
 if __name__ == "__main__":
     import asyncio
+
     logging.basicConfig(level=logging.INFO)
     asyncio.run(train_nn_distributed())

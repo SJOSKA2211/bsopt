@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/training/data_gen.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1e-06, 0.01, 0.05, 0.1, 0.5, 0.7071067811865475, 1.0, 2.0, 150, 365, 10000, 'days_to_expiry', 'implied_volatility', 'is_call', 'log_moneyness', 'moneyness', 'sqrt_time_to_expiry', 'strike', 'time_to_expiry', 'underlying_price']

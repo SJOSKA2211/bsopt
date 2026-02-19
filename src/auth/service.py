@@ -10,6 +10,7 @@ from src.database.models import OAuth2Client
 
 logger = structlog.get_logger(__name__)
 
+
 class AuthService:
     """
     Core authentication and authorization service.
@@ -21,7 +22,11 @@ class AuthService:
 
     def verify_client(self, client_id: str, client_secret: str) -> OAuth2Client | None:
         """Verify client credentials."""
-        client = self.db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
+        client = (
+            self.db.query(OAuth2Client)
+            .filter(OAuth2Client.client_id == client_id)
+            .first()
+        )
         if client and client.verify_secret(client_secret):
             return client
         return None
@@ -34,16 +39,16 @@ class AuthService:
             "aud": "bsopt-api",
             "roles": scopes,
             "iat": int(time.time()),
-            "exp": int(time.time()) + settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            "exp": int(time.time()) + settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         }
-        
+
         # RSA signing using the private key from config
         token = jwt.encode(
-            {"alg": settings.JWT_ALGORITHM, "kid": "internal-key-01"}, 
-            payload, 
-            settings.rsa_private_key
+            {"alg": settings.JWT_ALGORITHM, "kid": "internal-key-01"},
+            payload,
+            settings.rsa_private_key,
         )
-        
+
         return token.decode("utf-8") if isinstance(token, bytes) else token
 
     def validate_token(self, token: str) -> dict:
@@ -52,12 +57,19 @@ class AuthService:
             payload = jwt.decode(token, settings.rsa_public_key)
             payload.validate()
             return payload
-        except JoseError as e: # Catch specific JWT exceptions
+        except JoseError as e:  # Catch specific JWT exceptions
             logger.warning("token_validation_failed_jwt_error", error=str(e))
-            raise HTTPException(status_code=401, detail=f"Invalid or expired token: {e.__class__.__name__}")
+            raise HTTPException(
+                status_code=401,
+                detail=f"Invalid or expired token: {e.__class__.__name__}",
+            )
         except Exception as e:
             logger.error("token_validation_failed_generic_error", error=str(e))
-            raise HTTPException(status_code=500, detail=f"Authentication service error: {e.__class__.__name__}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Authentication service error: {e.__class__.__name__}",
+            )
+
 
 def get_auth_service(db: Session):
     return AuthService(db)

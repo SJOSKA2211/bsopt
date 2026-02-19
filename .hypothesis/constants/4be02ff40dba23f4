@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/strategies.py
-# hypothesis_version: 6.151.5
-
-[0.01, 0.5, 100, 'cpu', 'cuda', 'dask_address', 'dask_xgboost', 'epochs', 'eval', 'framework', 'inf', 'lr', 'n_estimators', 'pytorch', 'sklearn', 'train', 'weight', 'xgboost']

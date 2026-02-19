@@ -1,9 +1,9 @@
-
 import msgspec
 
 
 class MarketData(msgspec.Struct):
     """Binary-level schema for high-throughput market data."""
+
     symbol: str
     spot: float
     strike: float
@@ -13,11 +13,13 @@ class MarketData(msgspec.Struct):
     is_call: bool
     timestamp: float
 
+
 class OptionsDataValidator:
     """
     OPTIMIZED: High-performance data validator using msgspec.
     Bypasses pandas overhead by validating raw JSON/MessagePack bytes.
     """
+
     def __init__(self, min_samples: int):
         self.min_samples = min_samples
         self._decoder = msgspec.json.Decoder(list[MarketData])
@@ -40,11 +42,12 @@ class OptionsDataValidator:
     def validate(self, df: any) -> any:
         # Compatibility wrapper for legacy code
         from typing import NamedTuple
+
         class ValidationReport(NamedTuple):
             passed: bool
             errors: list[str] = []
-            
+
         if hasattr(df, "empty") and df.empty:
             return ValidationReport(passed=False, errors=["DataFrame is empty"])
-        
+
         return ValidationReport(passed=True)

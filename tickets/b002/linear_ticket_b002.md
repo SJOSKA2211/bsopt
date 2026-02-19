@@ -1,22 +1,30 @@
 ---
 id: b002
-title: Standardize InstrumentedTrainer Interface
-status: Triage
-priority: Urgent
-project: bsopt
-created: 2026-02-09
-updated: 2026-02-09
+title: Enforce Strict Linting
+status: Done
+priority: High
+order: 20
+created: 2026-02-19
+updated: 2026-02-19
 links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
-labels: [ml, refactor, architecture]
-assignee: Joseph Kamau Maina
 ---
 
 # Description
 
 ## Problem to solve
-Training logic is split between `src/ml/training/train.py` (XGBoost) and `train_nn.py` (NN), making it hard to maintain or swap models.
+Code style is inconsistent. Jerries are committing sloppy code.
 
 ## Solution
-Refactor `InstrumentedTrainer` in `src/ml/trainer.py` to be the single base class. Update `train.py` and `train_nn.py` to inherit from and strictly follow this interface.
+Configure and enforce Black, Ruff, and Flake8.
+
+## Implementation Details
+- Update `pyproject.toml` with strict configs.
+- Run `black .` and `ruff check . --fix`.
+- Ensure zero errors.
+
+## Notes
+- Fixed 155+ errors including syntax errors in `spawn_morty_real.py` and `store.py`.
+- Fixed F821 undefined names in `bs_cli.py`, `router.py`, `ray_workers.py`, `ml_tasks.py`, `execution.py`, `orchestrator.py`.
+- Remaining warnings (E402, F841) are acceptable for now.

@@ -25,7 +25,9 @@ email_service = TransactionalEmailService(
     retry_jitter=True,
     name="src.tasks.email_tasks.send_transactional_email",
 )
-def send_transactional_email(self, to_email: str, subject: str, template_name: str, context: dict):
+def send_transactional_email(
+    self, to_email: str, subject: str, template_name: str, context: dict
+):
     """
     Async task to send a single transactional email with rate limiting.
     """
@@ -39,22 +41,31 @@ def send_transactional_email(self, to_email: str, subject: str, template_name: s
             # we can't use run_until_complete easily for a new loop.
             # In Celery, we usually expect a fresh loop per task if it's not worker-global.
             import concurrent.futures
+
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 rl_result = executor.submit(
-                    lambda: asyncio.run(rate_limiter.check_rate_limit(
-                        user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
-                    ))
+                    lambda: asyncio.run(
+                        rate_limiter.check_rate_limit(
+                            user_id="system_email",
+                            endpoint="send_email",
+                            tier=RateLimitTier.ENTERPRISE,
+                        )
+                    )
                 ).result()
         else:
             rl_result = loop.run_until_complete(
                 rate_limiter.check_rate_limit(
-                    user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+                    user_id="system_email",
+                    endpoint="send_email",
+                    tier=RateLimitTier.ENTERPRISE,
                 )
             )
     except RuntimeError:
         rl_result = asyncio.run(
             rate_limiter.check_rate_limit(
-                user_id="system_email", endpoint="send_email", tier=RateLimitTier.ENTERPRISE
+                user_id="system_email",
+                endpoint="send_email",
+                tier=RateLimitTier.ENTERPRISE,
             )
         )
 

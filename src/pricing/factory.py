@@ -6,7 +6,6 @@ Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).
 """
 
-
 import structlog
 
 from src.pricing.base import BasePricingEngine
@@ -14,9 +13,12 @@ from src.pricing.base import BasePricingEngine
 
 class PricingEngineNotFound(Exception):
     """Custom exception raised when a requested pricing engine is not found."""
+
     pass
 
+
 logger = structlog.get_logger(__name__)
+
 
 class PricingEngineFactory:
     """
@@ -41,9 +43,11 @@ class PricingEngineFactory:
         logger.info("pricing_engine_registered", engine=name)
 
     @classmethod
-    def get_engine(cls, name: str, execution_strategy: str | None = None) -> BasePricingEngine:
+    def get_engine(
+        cls, name: str, execution_strategy: str | None = None
+    ) -> BasePricingEngine:
         """
-        Get an engine instance. 
+        Get an engine instance.
         Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').
         """
         # Apply global override if set and no specific strategy is forced
@@ -51,10 +55,15 @@ class PricingEngineFactory:
             name = cls._default_engine_override
 
         name = name.lower()
-        
+
         # Check if we should override with WASM
         from src.pricing.wasm_engine import WASM_AVAILABLE
-        if execution_strategy == "wasm" or (WASM_AVAILABLE and execution_strategy is None and name in ["heston", "monte_carlo"]):
+
+        if execution_strategy == "wasm" or (
+            WASM_AVAILABLE
+            and execution_strategy is None
+            and name in ["heston", "monte_carlo"]
+        ):
             name = "wasm"
 
         if name in cls._instances:
@@ -78,19 +87,24 @@ class PricingEngineFactory:
         try:
             if name == "black_scholes":
                 from src.pricing.black_scholes import BlackScholesEngine
+
                 cls.register("black_scholes", BlackScholesEngine)
             elif name == "monte_carlo":
                 from src.pricing.monte_carlo import MonteCarloEngine
+
                 cls.register("monte_carlo", MonteCarloEngine)
             elif name == "wasm":
                 from src.pricing.wasm_engine import WASMPricingEngine
+
                 cls.register("wasm", WASMPricingEngine)
             elif name == "neural":
                 from src.ml.models.neural_engine import NeuralPricingEngine
+
                 cls.register("neural", NeuralPricingEngine)
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))
+
 
 # Auto-initialize with core engines
 PricingEngineFactory._lazy_load("black_scholes")

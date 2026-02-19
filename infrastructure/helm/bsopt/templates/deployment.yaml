@@ -1,26 +1,49 @@
+{{- range $serviceName, $config := .Values }}
+{{- if and (kindIs "map" $config) (hasKey $config "enabled") $config.enabled }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-api
+  name: {{ $.Release.Name }}-{{ $serviceName }}
+  labels:
+    app: {{ $.Release.Name }}-{{ $serviceName }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ $config.replicaCount | default $.Values.defaults.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: {{ $.Release.Name }}-{{ $serviceName }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: {{ $.Release.Name }}-{{ $serviceName }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        - name: {{ $serviceName }}
+          image: "{{ $config.image.repository }}:{{ $config.image.tag | default $.Values.defaults.image.tag }}"
+          imagePullPolicy: {{ $config.image.pullPolicy | default $.Values.defaults.image.pullPolicy }}
+          {{- if $config.service }}
           ports:
-            - containerPort: 8000
+            - containerPort: {{ $config.service.targetPort | default 8000 }}
+          {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml ($config.resources | default $.Values.defaults.resources) | nindent 12 }}
           env:
-            {{- range $key, $val := .Values.env }}
+            - name: ENVIRONMENT
+              value: {{ $.Values.global.environment | quote }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Release.Name }}-secrets
+                  key: DATABASE_URL
+            {{- if $config.env }}
+            {{- range $key, $val := $config.env }}
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}
+            {{- end }}
+          {{- if $config.healthcheck }}
+          livenessProbe:
+            {{- toYaml $config.healthcheck | nindent 12 }}
+          {{- end }}
+{{- end }}
+{{- end }}

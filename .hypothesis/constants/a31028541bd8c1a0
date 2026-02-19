@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/routes/users.py
-# hypothesis_version: 6.151.5
-
-[401, 404, '/me', '/users', 'Not authenticated', 'Profile updated', 'User not found', 'Users', 'sub', 'user']

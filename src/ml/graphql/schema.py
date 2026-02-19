@@ -16,10 +16,11 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
         results.append(15.5 + random.uniform(-0.5, 0.5))
     return results
 
+
 @strawberry.federation.type(keys=["id"])
 class Option:
     id: strawberry.ID
-    
+
     @strawberry.field
     async def fair_value(self, info: strawberry.Info) -> float:
         loader = info.context["fair_value_loader"]
@@ -34,15 +35,18 @@ class Option:
     def resolve_reference(cls, id: strawberry.ID):
         return cls(id=id)
 
+
 @strawberry.type
 class Query:
     @strawberry.field
     def _dummy_ml(self) -> str:
         return "ml"
 
+
 async def get_context():
     return {
         "fair_value_loader": DataLoader(load_fn=load_fair_values),
     }
+
 
 schema = Schema(query=Query, types=[Option])

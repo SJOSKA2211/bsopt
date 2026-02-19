@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/scrapers/stealth.py
-# hypothesis_version: 6.151.5
-
-['"Windows"', '1', '?0', '?1', 'Accept', 'Accept-Language', 'Sec-Ch-Ua', 'Sec-Ch-Ua-Mobile', 'Sec-Ch-Ua-Platform', 'Sec-Fetch-Dest', 'Sec-Fetch-Mode', 'Sec-Fetch-Site', 'Sec-Fetch-User', 'User-Agent', 'chrome110', 'chrome120', 'document', 'en-US,en;q=0.9', 'impersonated_request', 'navigate', 'none', 'safari15_5']

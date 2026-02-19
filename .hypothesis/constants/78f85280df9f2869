@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/distributed_training.py
-# hypothesis_version: 6.151.5
-
-[0.0001, 0.01, 100, 1000, 'CPU', 'GPU', '__main__', 'action_dim', 'actions', 'batch_size', 'dataset_path', 'dataset_size', 'dist_loss', 'epoch', 'epochs', 'loss', 'lr', 'max_ep_len', 'max_length', 'ray_train_missing', 'rb', 'rtg', 'state_dim', 'states', 'timesteps']

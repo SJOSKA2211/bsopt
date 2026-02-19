@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/black_scholes.py
-# hypothesis_version: 6.151.5
-
-[0.0, 1e-05, 'call', 'dividend', 'maturity', 'params', 'price', 'put', 'rate', 'spot', 'strike', 'volatility']

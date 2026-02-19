@@ -1,6 +1,7 @@
 """
 Machine Learning Routes (Optimized)
 """
+
 from uuid import UUID
 
 import structlog
@@ -16,19 +17,20 @@ from src.services.ml_service import MLService, get_ml_service
 router = APIRouter(prefix="/ml", tags=["Machine Learning"])
 logger = structlog.get_logger(__name__)
 
+
 @router.post("/predict")
 async def predict(
-    request: InferenceRequest, 
+    request: InferenceRequest,
     model_type: str = "xgb",
-    ml_service: MLService = Depends(get_ml_service)
+    ml_service: MLService = Depends(get_ml_service),
 ) -> DataResponse:
     """Predict option price using ML models."""
     return DataResponse(data=await ml_service.predict(request, model_type))
 
+
 @router.get("/drift-metrics")
 async def get_drift_metrics(
-    model_id: UUID | None = None,
-    db: Session = Depends(get_db)
+    model_id: UUID | None = None, db: Session = Depends(get_db)
 ) -> DataResponse:
     """Fetch model performance metrics."""
     return DataResponse(

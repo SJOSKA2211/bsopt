@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/routes/system.py
-# hypothesis_version: 6.151.5
-
-['/health/deep', '/status', '/system', 'System', 'available', 'circuits', 'connected', 'corrupted', 'cuda', 'database', 'degraded', 'device', 'error', 'failure_count', 'head', 'missing', 'operational', 'path', 'policies/authz.wasm', 'pricing', 'probes', 'shm_mesh', 'state', 'status', 'verified', 'wasm_opa']

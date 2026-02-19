@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/cli/auth.py
-# hypothesis_version: 6.151.5
-
-[384, '--client-id', '--client-secret', '.bsopt', 'Already logged out.', 'Login successful!', 'OAuth2 Client ID', 'OAuth2 Client Secret', 'Unknown error', 'access_token', 'auth', 'cli_auth_successful', 'cli_ctx', 'client_credentials', 'client_id', 'client_secret', 'detail', 'grant_type', 'green', 'login', 'logout', 'r', 'red', 'token.json', 'user', 'w', 'yellow']

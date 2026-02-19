@@ -11,12 +11,15 @@ sys.modules["strawberry.types"] = MagicMock()
 sys.modules["strawberry.federation"] = MagicMock()
 
 # Mock setup_logging and warmup_jit to avoid side effects
-with patch("src.shared.observability.setup_logging"), \
-     patch("src.shared.observability.logging_middleware"), \
-     patch("src.pricing.quant_utils.warmup_jit"), \
-     patch("src.shared.observability.tune_gc"), \
-     patch("strawberry.fastapi.GraphQLRouter"):
+with (
+    patch("src.shared.observability.setup_logging"),
+    patch("src.shared.observability.logging_middleware"),
+    patch("src.pricing.quant_utils.warmup_jit"),
+    patch("src.shared.observability.tune_gc"),
+    patch("strawberry.fastapi.GraphQLRouter"),
+):
     from src.pricing.main import app
+
 
 class TestPricingMain(unittest.TestCase):
     def test_app_setup(self):
@@ -25,5 +28,6 @@ class TestPricingMain(unittest.TestCase):
         routes = [r.path for r in app.routes]
         self.assertIn("/health", routes)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

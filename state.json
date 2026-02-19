@@ -1,10 +1,11 @@
 {
   "active": true,
-  "iteration": 1,
-  "started_at": "2026-02-09T10:05:00Z",
-  "task_description": "criticalthink use any available resources to achieve >=97% coverage while debugging the codebase and fixxing the error you encourter use all available skills to achieve this goal(go beyond and above) Refactoring: Improving the internal structure of code without changing its external behavior.",
-  "max_iterations": 0,
-  "max_time_minutes": 0,
-  "worker_timeout_seconds": 300,
-  "completion_promise": ""
+  "iteration": 6,
+  "current_ticket": "c003",
+  "started_at": "2026-02-19T10:00:00Z",
+  "task_description": "use any available resources(e.g., gemini skills, ...) to achieve >=98% coverage while debugging and optimizing the codebase, USE DOCKER CONTEINERS TO RUN THE TESTS, also FIX THE LINT, BLACK, AND RUFF ERRORS",
+  "max_iterations": 20,
+  "max_time_minutes": 120,
+  "worker_timeout_seconds": 1200,
+  "completion_promise": "TOTAL_PURIFICATION_COMPLETE"
 }

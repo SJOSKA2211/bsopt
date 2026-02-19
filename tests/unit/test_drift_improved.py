@@ -2,22 +2,31 @@ import unittest
 
 import numpy as np
 
-from src.ml.drift import DriftTrigger, PerformanceDriftMonitor, calculate_ks_test, calculate_psi
+from src.ml.drift import (
+    DriftTrigger,
+    PerformanceDriftMonitor,
+    calculate_ks_test,
+    calculate_psi,
+)
 
 
 class TestDrift(unittest.TestCase):
     def test_performance_drift_monitor(self):
-        monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1, higher_is_better=True)
+        monitor = PerformanceDriftMonitor(
+            window_size=3, threshold=0.1, higher_is_better=True
+        )
         # Add baseline
         monitor.add_metric(0.9)
         monitor.add_metric(0.92)
         monitor.add_metric(0.91)
-        
+
         # Test no drift
-        self.assertFalse(monitor.detect_drift(0.85)) # Baseline avg is 0.91. 0.85 is within 0.1? No, 0.91 - 0.1 = 0.81.
-        
+        self.assertFalse(
+            monitor.detect_drift(0.85)
+        )  # Baseline avg is 0.91. 0.85 is within 0.1? No, 0.91 - 0.1 = 0.81.
+
         # Test drift
-        self.assertTrue(monitor.detect_drift(0.7)) # 0.7 < 0.81
+        self.assertTrue(monitor.detect_drift(0.7))  # 0.7 < 0.81
 
     def test_calculate_ks_test(self):
         expected = np.random.randn(100)
@@ -36,9 +45,10 @@ class TestDrift(unittest.TestCase):
         trigger = DriftTrigger(config)
         ref = np.random.randn(100)
         curr = np.random.randn(100)
-        
+
         decision, reason = trigger.should_retrain(ref, curr, 0.9)
         self.assertIsInstance(decision, bool)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

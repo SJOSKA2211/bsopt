@@ -17,13 +17,13 @@ class TestSHMMesh(unittest.TestCase):
             rb.write_tick("AAPL", 150.0, 100, 1644321600.0)
             view, head = rb.read_latest_view(0)
             self.assertEqual(len(view), 1)
-            self.assertEqual(view[0]['symbol'].decode().strip('\x00'), "AAPL")
-            self.assertEqual(view[0]['price'], 150.0)
+            self.assertEqual(view[0]["symbol"].decode().strip("\x00"), "AAPL")
+            self.assertEqual(view[0]["price"], 150.0)
             self.assertEqual(head, 1)
-            
+
             # Delete view reference before closing
             del view
-    
+
             # Test msgspec reader
             ticks, head2 = rb.read_latest_msgspec(0)
             self.assertEqual(len(ticks), 1)
@@ -37,5 +37,6 @@ class TestSHMMesh(unittest.TestCase):
         # Small capacity for wrap test? No, it's fixed at 100k.
         pass
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

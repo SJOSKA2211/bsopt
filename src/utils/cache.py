@@ -26,21 +26,21 @@ logger = structlog.get_logger(__name__)
 
 _redis: Redis | None = None
 
+
 def get_redis() -> Redis | None:
     """Get or initialize the global Redis client instance."""
     global _redis
     if _redis is None:
         from src.config import settings
+
         try:
-            _redis = Redis.from_url(
-                settings.REDIS_URL,
-                decode_responses=False
-            )
+            _redis = Redis.from_url(settings.REDIS_URL, decode_responses=False)
             logger.info("redis_client_initialized", url=settings.REDIS_URL)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
             return None
     return _redis
+
 
 def generate_cache_key(prefix: str, **kwargs) -> str:
     """
@@ -69,7 +69,12 @@ class PricingCache:
             return None
 
     async def set_option_price(
-        self, params: BSParameters, option_type: str, method: str, price: float, ttl: int = 3600
+        self,
+        params: BSParameters,
+        option_type: str,
+        method: str,
+        price: float,
+        ttl: int = 3600,
     ):
         redis = get_redis()
         if redis is None:
@@ -82,7 +87,9 @@ class PricingCache:
             logger.error("cache_set_price_failed", error=str(e), key=key)
             return False
 
-    async def get_greeks(self, params: BSParameters, option_type: str) -> OptionGreeks | None:
+    async def get_greeks(
+        self, params: BSParameters, option_type: str
+    ) -> OptionGreeks | None:
         """Retrieve cached Greeks."""
         redis = get_redis()
         if redis is None:
@@ -99,7 +106,11 @@ class PricingCache:
             return None
 
     async def set_greeks(
-        self, params: BSParameters, option_type: str, greeks: OptionGreeks, ttl: int = 3600
+        self,
+        params: BSParameters,
+        option_type: str,
+        greeks: OptionGreeks,
+        ttl: int = 3600,
     ):
         """Cache Greeks."""
         redis = get_redis()
@@ -114,25 +125,27 @@ class PricingCache:
             return False
 
 
-def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None):
+def multi_layer_cache(
+    prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None
+):
     """
     Decorator for multi-layer caching with OPTIMIZED X-Fetch (Probabilistic Early Recomputation).
     Layer 1: Local In-Memory LRU
     Layer 2: Distributed Redis
     """
     l1_cache = TTLCache(maxsize=maxsize, ttl=ttl)
-    beta = 1.0 # X-Fetch coefficient (higher means more aggressive early refresh)
+    beta = 1.0  # X-Fetch coefficient (higher means more aggressive early refresh)
 
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             import math
             import random
-            
+
             key_params = kwargs.copy()
             for i, arg in enumerate(args[1:]):
                 key_params[f"arg_{i}"] = arg
-            
+
             cache_key = generate_cache_key(prefix, **key_params)
 
             # 1. L1 Check (with X-Fetch logic for local memory?)
@@ -143,7 +156,7 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
             # 2. L2 Check (Redis) with X-Fetch implementation
             redis = get_redis()
             cached_val = None
-            
+
             if redis:
                 try:
                     # OPTIMIZED: Fetch value AND remaining TTL
@@ -151,14 +164,23 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
                     pipe.get(cache_key)
                     pipe.pttl(cache_key)
                     cached_val, remaining_ms = await pipe.execute()
-                    
+
                     if cached_val:
                         # X-Fetch formula: now - (delta * beta * log(random())) > expiry
                         # delta is the time it took to compute (approximate here)
                         # We use a constant 'beta' and random jitter to trigger refresh
-                        delta_ms = 100 # Assume 100ms computation time average
-                        if remaining_ms > 0 and (remaining_ms - delta_ms * beta * math.log(random.random())) < 0:
-                            logger.info("x_fetch_triggered_early_refresh", key=cache_key)
+                        delta_ms = 100  # Assume 100ms computation time average
+                        if (
+                            remaining_ms > 0
+                            and (
+                                remaining_ms
+                                - delta_ms * beta * math.log(random.random())
+                            )
+                            < 0
+                        ):
+                            logger.info(
+                                "x_fetch_triggered_early_refresh", key=cache_key
+                            )
                         else:
                             val = msgspec.json.decode(cached_val)
                             if validation_model and isinstance(val, dict):
@@ -173,6 +195,7 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
                 result = await func(*args, **kwargs)
             else:
                 from anyio.to_thread import run_sync
+
                 result = await run_sync(func, *args, **kwargs)
 
             # 4. Update Caches
@@ -185,19 +208,24 @@ def multi_layer_cache(prefix: str, maxsize: int = 1000, ttl: int = 60, validatio
                     logger.warning("l2_cache_write_failed", error=str(e))
 
             return result
+
         return wrapper
+
     return decorator
+
 
 class RateLimitTier(StrEnum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"
 
+
 @dataclass
 class RateLimitConfig:
     requests_per_minute: int
     pricing_requests_per_minute: int
     burst_size: int
+
 
 RATE_LIMIT_CONFIGS = {
     RateLimitTier.FREE: RateLimitConfig(100, 50, 10),
@@ -210,19 +238,22 @@ pricing_cache = PricingCache()
 
 class RateLimiter:
     async def check_rate_limit(
-        self, user_id: str, endpoint: str, tier: RateLimitTier | str = RateLimitTier.FREE
+        self,
+        user_id: str,
+        endpoint: str,
+        tier: RateLimitTier | str = RateLimitTier.FREE,
     ) -> bool:
         redis = get_redis()
         if redis is None:
             return True
-            
+
         # Convert string to Enum if needed
         if isinstance(tier, str):
             try:
                 tier = RateLimitTier(tier.lower())
             except ValueError:
                 tier = RateLimitTier.FREE
-                
+
         config = RATE_LIMIT_CONFIGS[tier]
         limit = (
             config.pricing_requests_per_minute
@@ -273,8 +304,12 @@ async def warm_cache():
                         dividend=0.02,
                         option_type="call",
                     )
-                    tasks.append(pricing_cache.set_option_price(params, "call", "bs_unified", float(price)))
-    
+                    tasks.append(
+                        pricing_cache.set_option_price(
+                            params, "call", "bs_unified", float(price)
+                        )
+                    )
+
     if tasks:
         await asyncio.gather(*tasks)
     logger.info("warming_cache_complete", count=len(tasks))
@@ -290,12 +325,13 @@ class IdempotencyManager:
         """
         redis = get_redis()
         if redis is None:
-            return True # Fail open if redis is down
-        
+            return True  # Fail open if redis is down
+
         full_key = f"{self.PREFIX}{key}"
         # set with nx=True only sets if it doesn't exist
         result = await redis.set(full_key, "1", ex=ttl, nx=True)
         return bool(result)
+
 
 idempotency_manager = IdempotencyManager()
 
@@ -352,8 +388,10 @@ async def get_redis_client() -> Redis:
     redis = get_redis()
     if redis is None:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail="Redis client not initialized")
         return redis
+
 
 async def init_redis_cache(**kwargs):
     """Initialize the Redis cache during startup."""
@@ -365,6 +403,7 @@ async def init_redis_cache(**kwargs):
         except Exception as e:
             logger.error("redis_cache_init_failed", error=str(e))
 
+
 async def close_redis_cache():
     """Close the Redis client connection."""
     global _redis
@@ -375,4 +414,3 @@ async def close_redis_cache():
             logger.info("redis_cache_closed")
         except Exception as e:
             logger.error("redis_cache_close_failed", error=str(e))
-    

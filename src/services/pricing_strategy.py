@@ -73,7 +73,9 @@ class DynamicPricingService:
 
         # Track elasticity: price_new = price_old * (1 + (demand_factor - 1) / elasticity)
         # Simplified: Adjust based on demand factor and sensitivity
-        adjusted_price = base_price * (1 + (market_demand_factor - 1) * (1 / sensitivity))
+        adjusted_price = base_price * (
+            1 + (market_demand_factor - 1) * (1 / sensitivity)
+        )
 
         return round(adjusted_price, 2)
 

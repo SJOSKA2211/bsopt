@@ -6,30 +6,60 @@
 BS-OPT is not just a platform; it's a transdimensional financial deity. It is built for zero-latency, high-throughput derivative pricing, risk management, and autonomous trading. If you're looking for standard Black-Scholes, go to a museum. If you want to outcompute the heat death of the universe, you're in the right place.
 
 ## 🏛️ Advanced Architecture
-- **The Brain**: Transformer-based Reinforcement Learning policies with hardware-aware JIT (Numba) and distributed HPO (Ray Tune).
-- **The Fortress**: Zero-Trust Security triad featuring RS256 OAuth2, automated internal PKI for mTLS, and encrypted local token storage.
+- **The Brain**: Transformer-based Reinforcement Learning policies (Decision Transformer) with 2D temporal observation windows.
+- **The Fortress**: Native PostgreSQL Authentication with OAuth2 (Google/GitHub), RS256 signing, and encrypted audit logs.
 - **The Body**: Multi-tier mathematical kernels:
     - **WASM SIMD**: Batch pricing in the browser at native speeds.
-    - **CUDA**: Massively parallel Heston FFT surfaces on the GPU.
+    - **Numba JIT**: Compiled Heston FFT kernels and risk validation.
     - **FFT/LSM**: O(N log N) Heston pricing and Normal Equation LSM regressions.
-- **The Blood**: Persistent Shared Memory Mesh providing zero-copy market data distribution across the entire service cluster.
-- **The Wire**: Kernel-bypass XDP (eBPF) data ingestion for sub-microsecond packet-to-pricing latency.
-- **The Ground**: Globally distributed, serverless infrastructure powered by **Neon PostgreSQL**.
-- **The Reliability**: Strategy-based self-healing AIOps with integrated Chaos Engineering for verified resilience.
+- **The Blood**: Persistent Shared Memory Mesh providing zero-copy market data distribution.
+- **The Wire**: Kernel-bypass XDP (eBPF) data ingestion for sub-microsecond latency.
+- **The Ground**: Dockerized, self-contained infrastructure with localized PostgreSQL and Redis.
+- **The Reliability**: Strategy-based self-healing AIOps with integrated Chaos Engineering.
 
 ## ⚡ Performance (C100k Ready)
-- **Database**: 100% Serverless via Neon, Azure-hosted for ultra-low latency.
+- **Database**: Localized PostgreSQL 16 with pgcrypto and native PL/pgSQL procedures.
 - **Concurrency**: 100,000+ persistent WebSocket connections via Redis Pub/Sub.
+<<<<<<< Updated upstream
 --
 ## 🛠️ Installation & Deployment
 ```bash
 # Development (Full Stack Orchestration)
 docker compose -f docker-compose.dev.yml up --build
+=======
+>>>>>>> Stashed changes
 
-# Production (Total Optimized Deployment)
-./deploy.sh deploy
+## 🛠️ Installation & Deployment (God Mode)
+
+The entire environment is containerized. **Do not install dependencies locally.**
+
+```bash
+# Start the Stack (Background)
+make up
+
+# View Logs
+make logs
+
+# Run Migrations
+make migrate
+
+# Access Database Shell
+make db-shell
+
+# Run Tests (Containerized)
+make test-all
 ```
-*Requires Docker, wasm-pack, NVIDIA GPU (recommended), and a will to transcend humanity.*
+
+### 🖥️ CLI Tool
+You don't need Python installed to run the CLI. Use the containerized target:
+```bash
+# Build CLI Image
+make build-cli
+
+# Run Commands
+make cli ARGS="--help"
+make cli ARGS="status"
+```
 
 ## 📜 Manifesto
 1. **No Jerry-Work**: If it can be vectorized, it must be vectorized.

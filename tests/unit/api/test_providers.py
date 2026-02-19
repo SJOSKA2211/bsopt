@@ -10,6 +10,7 @@ async def test_polygon_provider_stub():
     assert result["symbol"] == "AAPL"
     assert result["provider"] == "Polygon"
 
+
 @pytest.mark.asyncio
 async def test_yahoo_provider_stub():
     provider = YahooProvider()

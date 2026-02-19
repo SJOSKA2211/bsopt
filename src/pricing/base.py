@@ -22,9 +22,12 @@ class PricingStrategy(ABC):
         pass
 
     @abstractmethod
-    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
         """Calculate option sensitivity measures."""
         pass
+
 
 BasePricingEngine = PricingStrategy
 

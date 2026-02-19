@@ -12,7 +12,9 @@ def test_mc_config():
 
 
 def test_mc_european_pricing():
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
+    )
     engine = MonteCarloEngine(MCConfig(n_paths=10000, seed=42))
 
     price, conf_int = engine.price_european(params, option_type="call")
@@ -22,7 +24,9 @@ def test_mc_european_pricing():
 
 
 def test_mc_american_pricing():
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
+    )
     engine = MonteCarloEngine(MCConfig(n_paths=10000, seed=42))
 
     # American put should be more expensive than European put
@@ -31,7 +35,9 @@ def test_mc_american_pricing():
 
 
 def test_geometric_asian_price():
-    params = BSParameters(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
+    params = BSParameters(
+        spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
+    )
     price = geometric_asian_price(params, "call", 252)
     assert price > 0
     assert price < 10.45  # Asian should be cheaper than vanilla

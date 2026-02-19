@@ -14,20 +14,23 @@ logger = structlog.get_logger(__name__)
 TICK_STRUCT = struct.Struct("8s d q d")
 SHM_NAME = "market_mesh_ring_buffer"
 
+
 class XDPIngester:
     """
     High-Performance Ingester.
     Bridges Python to the high-performance Rust Pulse extension.
     """
+
     def __init__(self, interface: str = "eth0", port: int = 5555):
         self.interface = interface
         self.port = port
         self._running = False
         self._pulse = None
-        
+
         #  RUST PULSE: Try to use the ultra-high-speed Rust extension
         try:
             from src.shared.bsopt_pulse import RustPulse
+
             self._pulse = RustPulse(interface, port)
             logger.info("using_rust_pulse_extension")
         except ImportError:
@@ -49,14 +52,18 @@ class XDPIngester:
             #  PYTHON FALLBACK
             # Use AF_INET/UDP for generic portability if AF_PACKET fails
             try:
-                self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
+                self.sock = socket.socket(
+                    socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)
+                )
                 self.sock.bind((self.interface, 0))
             except (AttributeError, PermissionError):
                 logger.warning("af_packet_failed_using_udp_fallback")
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.sock.bind(("", self.port))
 
-            self._thread = threading.Thread(target=self._run_loop, args=(cpu_core,), daemon=True)
+            self._thread = threading.Thread(
+                target=self._run_loop, args=(cpu_core,), daemon=True
+            )
             self._thread.start()
             logger.info("python_ingest_started", core=cpu_core)
         except Exception as e:
@@ -78,22 +85,28 @@ class XDPIngester:
 
         buf = bytearray(2048)
         # Offset 42 for Ethernet+IP+UDP header if using RAW AF_PACKET
-        offset = 42 if hasattr(socket, 'AF_PACKET') and self.sock and self.sock.family == socket.AF_PACKET else 0
-        
+        offset = (
+            42
+            if hasattr(socket, "AF_PACKET")
+            and self.sock
+            and self.sock.family == socket.AF_PACKET
+            else 0
+        )
+
         while self._running:
             try:
                 nbytes, _ = self.sock.recvfrom_into(buf)
                 if nbytes > offset:
-                    payload = buf[offset:offset+32]
+                    payload = buf[offset : offset + 32]
                     if len(payload) < 32:
                         continue
                     data = TICK_STRUCT.unpack(payload)
-                    
+
                     self._mesh.write_tick(
-                        symbol=data[0].decode('ascii', errors='ignore').strip('\x00'),
+                        symbol=data[0].decode("ascii", errors="ignore").strip("\x00"),
                         price=data[1],
                         volume=data[2],
-                        timestamp=data[3]
+                        timestamp=data[3],
                     )
             except (BlockingIOError, InterruptedError):
                 continue
@@ -107,13 +120,15 @@ class XDPIngester:
             self._thread.join(timeout=1.0)
         if self.sock:
             self.sock.close()
-        if hasattr(self, '_mesh'):
+        if hasattr(self, "_mesh"):
             self._mesh.close()
+
 
 if __name__ == "__main__":
     ingester = XDPIngester()
     ingester.start()
     import time
+
     try:
         while True:
             time.sleep(1)

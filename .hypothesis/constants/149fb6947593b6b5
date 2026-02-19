@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/data/xdp_ingest.py
-# hypothesis_version: 6.151.5
-
-[1.0, 2048, 5555, '\x00', '8s d q d', 'AF_PACKET', '__main__', '_mesh', 'ascii', 'eth0', 'ignore', 'ingest_start_failed']

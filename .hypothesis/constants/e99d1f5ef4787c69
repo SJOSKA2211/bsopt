@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/auth/service.py
-# hypothesis_version: 6.151.5
-
-['alg', 'aud', 'bsopt-api', 'exp', 'iat', 'internal-key-01', 'iss', 'kid', 'roles', 'sub', 'utf-8']

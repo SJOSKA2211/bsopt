@@ -21,12 +21,10 @@ class TestExotic(unittest.TestCase):
             maturity=1.0,
             volatility=0.2,
             rate=0.05,
-            dividend=0.0
+            dividend=0.0,
         )
         self.exotic_params = ExoticParameters(
-            base_params=self.base_params,
-            barrier=120.0,
-            rebate=5.0
+            base_params=self.base_params, barrier=120.0, rebate=5.0
         )
 
     def test_asian_geometric(self):
@@ -34,7 +32,9 @@ class TestExotic(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_asian_arithmetic_mc(self):
-        price, std_err = AsianOptionPricer.price_arithmetic_asian_mc(self.exotic_params, "call", n_paths=1000)
+        price, std_err = AsianOptionPricer.price_arithmetic_asian_mc(
+            self.exotic_params, "call", n_paths=1000
+        )
         self.assertGreater(price, 0)
 
     def test_barrier_analytical(self):
@@ -50,7 +50,9 @@ class TestExotic(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_digital_cash(self):
-        price = DigitalOptionPricer.price_cash_or_nothing(self.base_params, "call", payout=10.0)
+        price = DigitalOptionPricer.price_cash_or_nothing(
+            self.base_params, "call", payout=10.0
+        )
         self.assertGreater(price, 0)
 
     def test_barrier_all_types(self):
@@ -60,14 +62,16 @@ class TestExotic(unittest.TestCase):
                 self.exotic_params.barrier = 120.0
             else:
                 self.exotic_params.barrier = 80.0
-                
+
             price = BarrierOptionPricer.price_barrier_analytical(
                 self.exotic_params, "call", bt
             )
             self.assertGreaterEqual(price, 0)
 
     def test_lookback_floating_analytical(self):
-        price = LookbackOptionPricer.price_floating_strike_analytical(self.base_params, "call")
+        price = LookbackOptionPricer.price_floating_strike_analytical(
+            self.base_params, "call"
+        )
         self.assertGreater(price, 0)
 
     def test_digital_asset_or_nothing(self):
@@ -76,9 +80,16 @@ class TestExotic(unittest.TestCase):
 
     def test_price_exotic_option_dispatch(self):
         from src.pricing.exotic import price_exotic_option
-        p, _ = price_exotic_option("asian", self.exotic_params, "call", asian_type=AsianType.GEOMETRIC)
+
+        p, _ = price_exotic_option(
+            "asian", self.exotic_params, "call", asian_type=AsianType.GEOMETRIC
+        )
         self.assertGreater(p, 0)
-        
-        p2, _ = price_exotic_option("barrier", self.exotic_params, "call", barrier_type=BarrierType.UP_AND_OUT)
-if __name__ == '__main__':
+
+        p2, _ = price_exotic_option(
+            "barrier", self.exotic_params, "call", barrier_type=BarrierType.UP_AND_OUT
+        )
+
+
+if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/pricing/factory.py
-# hypothesis_version: 6.151.5
-
-['black_scholes', 'engine_registered', 'heston', 'lazy_load_failed', 'monte_carlo', 'wasm']

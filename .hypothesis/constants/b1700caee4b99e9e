@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/drift_detector.py
-# hypothesis_version: 6.151.5
-
-[0.01, 0.05, 'black_scholes', 'drift_detected', 'insufficient_data', 'market_price', 'max_relative_error', 'mean_relative_error', 'model_price', 'option_type', 'params', 'reason', 'sample_count', 'std_error', 'symbol', 'timestamp', 'wasm']

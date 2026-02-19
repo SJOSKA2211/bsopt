@@ -55,7 +55,9 @@ try:
     print("\nTest 4: Edge cases")
 
     # Zero maturity
-    params_zero = BSParameters(spot=105.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05)
+    params_zero = BSParameters(
+        spot=105.0, strike=100.0, maturity=0.0, volatility=0.2, rate=0.05
+    )
     solver_zero = CrankNicolsonSolver(
         n_spots=50,
         n_time=50,

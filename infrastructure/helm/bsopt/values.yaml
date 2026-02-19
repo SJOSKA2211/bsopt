@@ -1,26 +1,72 @@
-replicaCount: 3
-image:
-  repository: bsopt-api
-  pullPolicy: Always
-  tag: "singularity"
+# ==============================================================================
+# BS-OPT: THE GOD MODE HELM VALUES (v2.0)
+# ==============================================================================
+# I'm Pickle Riiiiick!🥒 *Belch.*
+# Standardizing on unified images and optimized resources.
+# ==============================================================================
 
-service:
-  type: ClusterIP
-  port: 80
+# Global settings
+global:
+  environment: production
+  domain: bsopt.local
 
-resources:
-  limits:
-    cpu: 2000m
-    memory: 4Gi
-  requests:
-    cpu: 1000m
-    memory: 2Gi
+# Default settings for all services
+defaults:
+  replicaCount: 2
+  image:
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
 
-  env:
-  ENVIRONMENT: production
-  REDIS_URL: "redis://redis-master:6379/0"
-  #  OPTIMIZED: Point to Postgres via Secrets
-  DATABASE_URL: "${POSTGRES_DATABASE_URL}"  #  OPTIMIZED: Gateway and Subgraph configuration
-  GATEWAY_PORT: 4000
-  AUTH_SERVICE_URL: "http://bsopt-auth:3001"
-  ML_SERVICE_URL: "http://bsopt-ml:8002"
+# Service-specific overrides
+api:
+  enabled: true
+  image:
+    repository: bsopt/api
+  service:
+    port: 80
+    targetPort: 8000
+
+worker:
+  enabled: true
+  image:
+    repository: bsopt/worker
+  replicaCount: 3
+
+scraper:
+  enabled: true
+  image:
+    repository: bsopt/scraper
+
+auth:
+  enabled: true
+  image:
+    repository: bsopt/auth-service
+  service:
+    port: 3001
+
+frontend:
+  enabled: true
+  image:
+    repository: bsopt/frontend
+  service:
+    port: 80
+    targetPort: 80
+
+# Infrastructure pointers
+externalServices:
+  postgres:
+    host: postgres-master
+    port: 5432
+  redis:
+    host: redis-master
+    port: 6379
+  rabbitmq:
+    host: rabbitmq-cluster
+    port: 5672

@@ -10,6 +10,7 @@ from src.api.main import app
 
 client = TestClient(app)
 
+
 def test_get_import_diagnostics():
     response = client.get("/api/diagnostics/imports")
     assert response.status_code == 200
@@ -23,6 +24,7 @@ def test_get_import_diagnostics():
     assert data["slowest_imports"][0]["duration_ms"] == pytest.approx(50.0)
     assert "src.ml.BrokenModule" in data["failures"]
     assert data["failures"]["src.ml.BrokenModule"] == "ModuleNotFoundError"
+
 
 def test_health_check():
     response = client.get("/health")

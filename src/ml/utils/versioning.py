@@ -36,7 +36,11 @@ def tag_dataset(data_dir: str, version_name: str | None = None):
 
     for file in data_path.glob("*.csv"):
         metadata["files"].append(
-            {"name": file.name, "hash": calculate_data_hash(str(file)), "size": file.stat().st_size}
+            {
+                "name": file.name,
+                "hash": calculate_data_hash(str(file)),
+                "size": file.stat().st_size,
+            }
         )
 
     version_file = data_path / f"version_{version}.json"

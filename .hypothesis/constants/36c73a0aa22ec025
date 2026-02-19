@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/tasks/ml_tasks.py
-# hypothesis_version: 6.151.5
-
-[0.95, 'AAPL', 'DATA_PROVIDER', 'DEFAULT_TICKER', 'DEMO_KEY', 'MLFLOW_TRACKING_URI', 'POLYGON_API_KEY', 'api_key', 'auto', 'best_params', 'best_r2', 'best_value', 'completed', 'db_url', 'error', 'failed', 'framework', 'http://mlflow:5000', 'metrics', 'ml', 'model_type', 'n_trials', 'no_drift_detected', 'optimized_path', 'promoted', 'provider', 'retrained', 'run_id', 'status', 'study_name', 'success', 'task_id', 'ticker', 'training_error', 'training_model_start', 'xgboost']

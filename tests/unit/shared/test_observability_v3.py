@@ -8,16 +8,19 @@ def test_setup_logging_idempotent():
     observability.setup_logging()
     assert True
 
+
 def test_tune_gc():
     # Should run without error
     observability.tune_gc(mode="high_throughput")
     observability.tune_gc(mode="analytical")
     assert True
 
+
 def test_tune_worker_resources():
     # Should run without error
     observability.tune_worker_resources()
     assert True
+
 
 @pytest.mark.asyncio
 async def test_get_obs_client():

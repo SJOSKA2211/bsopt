@@ -12,13 +12,13 @@ class TestAutoencoderDetector(unittest.TestCase):
     def setUp(self):
         self.input_dim = 5
         self.latent_dim = 2
-        
+
         self.mock_model = MagicMock(spec=nn.Module)
         # Return 3 values for VAE: recon, mu, logvar
         self.mock_model.return_value = (
-            torch.zeros((10, 5)), 
-            torch.zeros((10, 2)), 
-            torch.zeros((10, 2))
+            torch.zeros((10, 5)),
+            torch.zeros((10, 2)),
+            torch.zeros((10, 2)),
         )
         # Parameters must be real tensors for Adam
         p = nn.Parameter(torch.tensor([0.1]))
@@ -31,9 +31,9 @@ class TestAutoencoderDetector(unittest.TestCase):
                 input_dim=self.input_dim,
                 latent_dim=self.latent_dim,
                 epochs=1,
-                verbose=False
+                verbose=False,
             )
-        
+
         self.detector.threshold = 0.5
 
     def test_init(self):
@@ -71,5 +71,6 @@ class TestAutoencoderDetector(unittest.TestCase):
         predictions = self.detector.fit_predict(data)
         self.assertEqual(predictions.shape, (10,))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/api/schemas/common.py
-# hypothesis_version: 6.151.5
-
-[100, '123', '2.2.0', '2024-01-15T10:30:00Z', 'API version', 'Error message', 'Error type or title', 'Invalid email format', 'Items per page', 'List of items', 'Pagination metadata', 'Success message', 'T', 'ValidationError', 'abc123', 'checks', 'code', 'data', 'database', 'details', 'email', 'error', 'example', 'field', 'has_next', 'has_prev', 'healthy', 'id', 'invalid_format', 'items', 'latency_ms', 'message', 'page', 'page_size', 'pagination', 'rabbitmq', 'redis', 'request_id', 'status', 'success', 'timestamp', 'total', 'total_pages', 'version']

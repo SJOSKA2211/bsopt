@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/ml/reinforcement_learning/online_agent.py
-# hypothesis_version: 6.151.5
-
-[1e-09, 0.05, 0.1, 0.2, 100.0, 100, 100000, '__main__', 'agent_pinned_to_core', 'agent_pinning_failed', 'agent_stopped', 'black_scholes', 'model_load_failed', 'price']

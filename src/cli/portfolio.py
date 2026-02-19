@@ -96,11 +96,17 @@ class PortfolioManager:
         )
 
         if position.option_type == "call":
-            current_price = float(BlackScholesEngine.price(params=params, option_type="call"))
+            current_price = float(
+                BlackScholesEngine.price(params=params, option_type="call")
+            )
         else:
-            current_price = float(BlackScholesEngine.price(params=params, option_type="put"))
+            current_price = float(
+                BlackScholesEngine.price(params=params, option_type="put")
+            )
 
-        current_value = current_price * abs(position.quantity) * 100  # Assuming 100 multiplier
+        current_value = (
+            current_price * abs(position.quantity) * 100
+        )  # Assuming 100 multiplier
         entry_value = position.entry_price * abs(position.quantity) * 100
 
         pnl = (
@@ -131,7 +137,11 @@ class PortfolioManager:
             total_current_value += val["current_value"]
 
             # Simple delta sum (ignoring contract multiplier for simplicity in mock)
-            from src.pricing.black_scholes import BlackScholesEngine, BSParameters, OptionGreeks
+            from src.pricing.black_scholes import (
+                BlackScholesEngine,
+                BSParameters,
+                OptionGreeks,
+            )
 
             params = BSParameters(
                 spot=pos.spot,
@@ -149,7 +159,9 @@ class PortfolioManager:
             "pnl": {
                 "total_pnl": total_pnl,
                 "total_pnl_percent": (
-                    (total_pnl / total_entry_value * 100) if total_entry_value != 0 else 0
+                    (total_pnl / total_entry_value * 100)
+                    if total_entry_value != 0
+                    else 0
                 ),
                 "total_entry_value": total_entry_value,
                 "total_current_value": total_current_value,

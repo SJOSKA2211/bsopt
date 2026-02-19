@@ -10,8 +10,12 @@ from sendgrid.helpers.mail import Email, Mail, Personalization
 logger = logging.getLogger(__name__)
 
 # Metrics
-EMAILS_SENT_TOTAL = Counter("emails_sent_total", "Total emails sent", ["status", "type"])
-EMAIL_DELIVERY_TIME = Histogram("email_delivery_time_seconds", "Time taken to send email", ["type"])
+EMAILS_SENT_TOTAL = Counter(
+    "emails_sent_total", "Total emails sent", ["status", "type"]
+)
+EMAIL_DELIVERY_TIME = Histogram(
+    "email_delivery_time_seconds", "Time taken to send email", ["type"]
+)
 
 
 class TransactionalEmailService:
@@ -28,7 +32,8 @@ class TransactionalEmailService:
         template_dir = os.path.join(os.getcwd(), "src", "templates", "emails")
         os.makedirs(template_dir, exist_ok=True)
         self.jinja_env = Environment(
-            loader=FileSystemLoader(template_dir), autoescape=select_autoescape(["html", "xml"])
+            loader=FileSystemLoader(template_dir),
+            autoescape=select_autoescape(["html", "xml"]),
         )
 
     def _render_template(self, template_name: str, context: dict[str, Any]) -> str:
@@ -61,7 +66,9 @@ class TransactionalEmailService:
                     EMAILS_SENT_TOTAL.labels(status="success", type=email_type).inc()
                     return True
                 else:
-                    logger.error(f"SendGrid error: {response.status_code} - {response.body}")
+                    logger.error(
+                        f"SendGrid error: {response.status_code} - {response.body}"
+                    )
                     EMAILS_SENT_TOTAL.labels(status="error", type=email_type).inc()
                     return False
             except Exception as e:
@@ -91,10 +98,10 @@ class TransactionalEmailService:
 
             # Render specific content if needed or use global template
             # For simplicity, we use one template for the whole batch
-            html_content = self._render_template(template_name, recipient.get("context", {}))
-            message.content = (
-                html_content  # Note: In batch, usually use dynamic templates on SendGrid side
+            html_content = self._render_template(
+                template_name, recipient.get("context", {})
             )
+            message.content = html_content  # Note: In batch, usually use dynamic templates on SendGrid side
 
             message.add_personalization(p)
 

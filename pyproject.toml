@@ -3,56 +3,88 @@ name = "bsopt"
 version = "2.5.0"
 description = "The Advanced Financial Manifold for Transdimensional Derivative Pricing"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { text = "MIT" }
 dependencies = [
-    "numpy>=2.0.0",
-    "pandas>=2.2.0",
-    "scipy>=1.13.0",
-    "numba>=0.60.0",
-    "structlog>=24.1.0",
-    "orjson>=3.10.0",
+    "numpy>=1.26.4,<2.3",
+    "pandas>=2.3.3",
+    "scipy>=1.15.0",
+    "numba>=0.58.0",
+    "structlog>=25.5.0",
+    "orjson>=3.9.0",
     "msgspec>=0.18.0",
-    "ray[default]>=2.30.0",
-    "redis>=5.0.0",
-    "sqlalchemy[asyncio]>=2.0.0",
+    "pydantic>=2.4.0",
+    "pydantic-settings>=2.0.0",
+    "sqlalchemy[asyncio]>=2.0.45",
     "asyncpg>=0.29.0",
-    "pydantic-settings>=2.2.0",
+    "psycopg2-binary>=2.9.9",
+    "redis[hiredis]==5.2.0",
+    "python-dotenv>=1.0.0",
+    "httpx[http2]>=0.27.0",
+    "rich>=13.7.0",
 ]
 
 [project.optional-dependencies]
 api = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.30.0",
-    "httpx[http2]>=0.27.0",
-    "python-jose[cryptography]>=3.3.0",
-    "strawberry-graphql[fastapi]>=0.235.0",
+    "uvloop>=0.19.0",
+    "python-multipart>=0.0.9",
+    "strawberry-graphql[fastapi,federation]~=0.200",
+    "brotli-asgi>=1.4.0",
+    "gunicorn==22.0.0",
+]
+auth = [
+    "bcrypt==4.1.2",
+    "cryptography>=44.0.1",
+    "PyJWT==2.8.0",
+    "pyotp",
+    "pwnedpasswords",
+    "argon2-cffi",
+    "email-validator==2.1.1",
+    "authlib>=1.3.0",
 ]
 ml = [
+    "torch>=2.2.0",
+    "lightning>=2.2.0",
+    "pytorch-forecasting>=1.0.0",
+    "torch-geometric>=2.5.0",
     "xgboost>=2.0.0",
-    "scikit-learn>=1.5.0",
-    "mlflow>=2.13.0",
+    "scikit-learn>=1.4.0",
+    "mlflow>=2.11.0",
     "optuna>=3.6.0",
-    "ray[tune]>=2.30.0",
-    "qiskit>=1.1.0",
-    "qiskit-aer>=0.14.0",
+    "gymnasium>=0.29.1",
+    "stable-baselines3>=2.2.1",
 ]
-cli = [
-    "click>=8.1.0",
-    "rich>=13.7.0",
+quant = [
+    "qiskit>=1.0.0",
+    "qiskit-aer>=0.13.0",
+    "qiskit-algorithms>=0.3.0",
+    "wasmer>=1.1.0",
+    "wasmer-compiler-cranelift>=1.1.0",
+]
+distributed = [
+    "ray[default,train,tune]>=2.30.0",
+    "celery>=5.4.0",
+    "confluent-kafka>=2.3.0",
 ]
 dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.14.0",
     "pytest-xdist>=3.6.0",
+    "hypothesis>=6.90.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
     "pip-audit>=2.7.0",
+    "black==24.3.0",
+    "pyinstrument>=4.6.2",
 ]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "ASYNC"]
@@ -62,7 +94,6 @@ ignore = ["E501", "N806", "N803", "N812", "N818", "N802"]
 "get-pip.py" = ["E402"]
 "src/protos/*" = ["N802"]
 "tests/unit/**/*.py" = ["E402", "F401", "F811", "F821"]
-
 
 [tool.ruff.format]
 quote-style = "double"
@@ -77,9 +108,39 @@ strict = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
+minversion = "7.0"
+addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=src --cov-report=term-missing --durations=10 -p no:warnings"
 testpaths = ["tests"]
 pythonpath = ["src"]
+asyncio_mode = "auto"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Long-running tests",
+    "benchmark: Performance benchmarks",
+]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/test_*.py", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+precision = 2
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

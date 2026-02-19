@@ -1,4 +1,5 @@
 import asyncio
+import os
 from datetime import UTC, datetime
 
 import structlog
@@ -12,6 +13,7 @@ from src.streaming.kafka_consumer import MarketDataConsumer
 # Optimized event loop
 try:
     import uvloop
+
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ImportError:
     pass
@@ -19,7 +21,7 @@ except ImportError:
 
 setup_logging()
 logger = structlog.get_logger(__name__)
-tune_gc(mode="high_frequency") # Optimized for high-frequency trading workers
+tune_gc(mode="high_frequency")  # Optimized for high-frequency trading workers
 
 from src.api.websockets.manager import manager as ws_manager
 from src.data.xdp_ingest import XDPIngester
@@ -27,6 +29,7 @@ from src.data.xdp_ingest import XDPIngester
 
 class BroadcastWorker:
     """The Voice: Dedicated to zero-latency WebSocket broadcasting."""
+
     def __init__(self):
         self.queue = asyncio.Queue(maxsize=1000)
         self.running = False
@@ -37,18 +40,24 @@ class BroadcastWorker:
         while self.running:
             batch = await self.queue.get()
             try:
-                for item in batch:
-                    await ws_manager.broadcast_to_symbol(item['symbol'], item)
+                # OPTIMIZED: Parallel broadcast for the entire batch
+                tasks = [
+                    ws_manager.broadcast_to_symbol(item["symbol"], item)
+                    for item in batch
+                ]
+                await asyncio.gather(*tasks, return_exceptions=True)
             except Exception as e:
                 logger.error("broadcast_batch_failed", error=str(e))
             finally:
                 self.queue.task_done()
+
 
 from src.shared.eternal_ledger import EternalLedger
 
 
 class PersistenceWorker:
     """The Scribe: Dedicated to high-throughput DB persistence and Binary Ledger."""
+
     def __init__(self):
         self.queue = asyncio.Queue(maxsize=1000)
         self.running = False
@@ -56,45 +65,48 @@ class PersistenceWorker:
 
     async def run(self):
         from src.database.crud import bulk_insert_option_prices
+
         self.running = True
         logger.info("persistence_worker_active")
-        while self.running:
-            batch = await self.queue.get()
-            try:
-                #  HOT PATH: Persistent Binary Logging (Zero-latency)
-                self.ledger.write_batch(batch)
-                
-                # 2. Historical DB Persistence (Asynchronous Scribe)
-                now_utc = datetime.now(UTC)
-                today_date = now_utc.date()
-                transformed = [
-                    {
-                        "time": item.get('timestamp', now_utc),
-                        "symbol": item['symbol'],
-                        "strike": item.get('strike', 0.0),
-                        "expiry": item.get('expiry', today_date),
-                        "option_type": item.get('option_type', 'call'),
-                        "last": item['price'],
-                        "bid": item.get('bid', 0.0),
-                        "ask": item.get('ask', 0.0),
-                        "volume": item.get('volume', 0),
-                        "open_interest": item.get('open_interest', 0),
-                        "implied_volatility": item.get('implied_volatility', 0.0),
-                        "delta": item.get('delta'),
-                        "gamma": item.get('gamma'),
-                        "vega": item.get('vega'),
-                        "theta": item.get('theta'),
-                        "rho": item.get('rho')
-                    }
-                    for item in batch
-                ]
-                # Note: In a real singularity, we'd batch these even further
-                async with get_async_db_context() as db:
+
+        # OPTIMIZED: Maintain a single session context for the worker life
+        async with get_async_db_context() as db:
+            while self.running:
+                batch = await self.queue.get()
+                try:
+                    #  HOT PATH: Persistent Binary Logging (Zero-latency)
+                    self.ledger.write_batch(batch)
+
+                    # 2. Historical DB Persistence
+                    now_utc = datetime.now(UTC)
+                    today_date = now_utc.date()
+                    transformed = [
+                        {
+                            "time": item.get("timestamp", now_utc),
+                            "symbol": item["symbol"],
+                            "strike": item.get("strike", 0.0),
+                            "expiry": item.get("expiry", today_date),
+                            "option_type": item.get("option_type", "call"),
+                            "last": item["price"],
+                            "bid": item.get("bid", 0.0),
+                            "ask": item.get("ask", 0.0),
+                            "volume": item.get("volume", 0),
+                            "open_interest": item.get("open_interest", 0),
+                            "implied_volatility": item.get("implied_volatility", 0.0),
+                            "delta": item.get("delta"),
+                            "gamma": item.get("gamma"),
+                            "vega": item.get("vega"),
+                            "theta": item.get("theta"),
+                            "rho": item.get("rho"),
+                        }
+                        for item in batch
+                    ]
                     await bulk_insert_option_prices(db, transformed)
-            except Exception as e:
-                logger.error("persistence_batch_failed", error=str(e))
-            finally:
-                self.queue.task_done()
+                except Exception as e:
+                    logger.error("persistence_batch_failed", error=str(e))
+                finally:
+                    self.queue.task_done()
+
 
 class IngestionWorker:
     """
@@ -104,6 +116,7 @@ class IngestionWorker:
     2. Voice (WebSockets) - Dispatched to BroadcastWorker
     3. Scribe (Postgres) - Dispatched to PersistenceWorker
     """
+
     def __init__(self, topics: list[str] = ["market-data"]):
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
@@ -117,7 +130,7 @@ class IngestionWorker:
             self.broadcaster.queue.put_nowait(batch)
         except asyncio.QueueFull:
             pass
-            
+
         try:
             self.scribe.queue.put_nowait(batch)
         except asyncio.QueueFull:
@@ -159,26 +172,24 @@ class IngestionWorker:
         await self.scribe.run()
 
     def stop(self):
+        """Graceful shutdown of all subsystems."""
         self.running = False
         self.consumer.stop()
         self.broadcaster.running = False
         self.scribe.running = False
         self.xdp_ingester.stop()
+        logger.info("ingestion_worker_shutdown_complete")
 
-    def stop(self):
-        self.running = False
-        self.consumer.stop()
 
 # FastAPI for monitoring the worker
-app = FastAPI(
-    title="BS-Opt Ingestion Worker",
-    default_response_class=ORJSONResponse
-)
+app = FastAPI(title="BS-Opt Ingestion Worker", default_response_class=ORJSONResponse)
 worker = IngestionWorker()
+
 
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(worker.run())
+
 
 @app.get("/health")
 async def health():

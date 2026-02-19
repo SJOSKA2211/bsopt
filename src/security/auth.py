@@ -10,7 +10,6 @@ Secure JWT-based authentication with:
 """
 
 import hashlib
-import inspect
 import logging
 import secrets
 from dataclasses import dataclass
@@ -77,7 +76,18 @@ class TokenBlacklist:
     async def contains(self, jti: str) -> bool:
         if self._redis:
             return bool(await self._redis.exists(f"blacklist:{jti}"))
+<<<<<<< Updated upstream
         return jti in self._blacklist
+=======
+
+        # Check memory and self-clean if hit
+        exp = self._blacklist.get(jti)
+        if exp:
+            if exp > datetime.now(UTC):
+                return True
+            del self._blacklist[jti]  # Expired, remove
+        return False
+>>>>>>> Stashed changes
 
     async def cleanup(self):
         """Cleanup expired tokens from memory blacklist."""
@@ -85,7 +95,9 @@ class TokenBlacklist:
         # For memory, we could store (jti, exp) and filter here.
         pass
 
+
 token_blacklist = TokenBlacklist()
+
 
 async def get_token_from_header(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
@@ -97,20 +109,30 @@ async def get_token_from_header(
 
 class AuthService:
     @property
-    def private_key(self): return settings.rsa_private_key
+    def private_key(self):
+        return settings.rsa_private_key
+
     @property
-    def public_key(self): return settings.rsa_public_key
+    def public_key(self):
+        return settings.rsa_public_key
+
     @property
-    def algorithm(self): return settings.JWT_ALGORITHM
+    def algorithm(self):
+        return settings.JWT_ALGORITHM
+
     @property
-    def access_token_expire(self): return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    def access_token_expire(self):
+        return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+
     @property
-    def refresh_token_expire(self): return timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    def refresh_token_expire(self):
+        return timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     async def authenticate_user(
         self, db: Any, email: str, password: str, request: Request
     ) -> User | None:
         """Authenticate a user by email and password with timing attack protection."""
+<<<<<<< Updated upstream
         
         # Check if db.execute is an async function (AsyncSession)
         is_async = hasattr(db, 'execute') and inspect.iscoroutinefunction(db.execute)
@@ -121,10 +143,17 @@ class AuthService:
         else: # Fallback for sync session or MagicMock
              user = db.query(User).filter(User.email == email).first()
         
+=======
+
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+
+>>>>>>> Stashed changes
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
         user_exists = True
         if not user:
+<<<<<<< Updated upstream
             user_exists = False
             # Create a dummy user with a placeholder hashed password to ensure password verification always runs
             user = User(
@@ -137,11 +166,23 @@ class AuthService:
                 created_at=datetime.now(UTC)
             )
         
+=======
+            # Create a dummy hash to burn CPU time consistently
+            dummy_hash = password_service.hash_password(secrets.token_urlsafe(32))
+            await run_in_threadpool(
+                password_service.verify_password, password, dummy_hash
+            )
+            return None
+
+>>>>>>> Stashed changes
         # Always run password verification
-        password_matches = await run_in_threadpool(password_service.verify_password, password, user.hashed_password)
+        password_matches = await run_in_threadpool(
+            password_service.verify_password, password, user.hashed_password
+        )
 
         if not user_exists or not password_matches:
             return None
+<<<<<<< Updated upstream
             
         # Optimization: Rehash legacy passwords on successful login to migrate to Argon2id
         if password_service.needs_rehash(user.hashed_password):
@@ -149,6 +190,15 @@ class AuthService:
             user.hashed_password = await run_in_threadpool(password_service.hash_password, password)
             # Persisted by the commit in the calling login route
             
+=======
+
+        # Optimization: Rehash legacy passwords on successful login
+        if password_service.needs_rehash(user.hashed_password):
+            user.hashed_password = await run_in_threadpool(
+                password_service.hash_password, password
+            )
+
+>>>>>>> Stashed changes
         return user
 
     def create_token_pair(self, user_id: str, email: str, tier: str) -> TokenPair:
@@ -177,7 +227,9 @@ class AuthService:
         """Internal helper to create a JWT token."""
         to_encode = data.copy()
         expire = datetime.now(UTC) + expires_delta
-        to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
+        to_encode.update(
+            {"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)}
+        )
         return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def invalidate_token(self, token: str, request: Request) -> None:
@@ -209,7 +261,9 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-    async def validate_token(self, token: str | None = Depends(get_token_from_header)) -> TokenData:
+    async def validate_token(
+        self, token: str | None = Depends(get_token_from_header)
+    ) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
         token_data = self.decode_token(token)
@@ -217,8 +271,13 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Token revoked")
         return token_data
 
+
 auth_service = AuthService()
-def get_auth_service(): return auth_service
+
+
+def get_auth_service():
+    return auth_service
+
 
 async def verify_token_claims_only(
     token: str | None = Depends(get_token_from_header),
@@ -230,9 +289,10 @@ async def verify_token_claims_only(
     """
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     # decode_token already verifies signature, expiration and format
     return auth_service.decode_token(token)
+
 
 async def get_current_user(
     request: Request,
@@ -248,6 +308,7 @@ async def get_current_user(
 
     try:
         from src.utils.cache import db_cache
+
         cached_user_data = await db_cache.get_user(user_id)
         if cached_user_data:
             user = User(**cached_user_data)
@@ -265,6 +326,7 @@ async def get_current_user(
     request.state.user = user
     return user
 
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
@@ -276,6 +338,7 @@ async def get_current_active_user(
         )
     return user
 
+
 def require_tier(allowed_tiers: list):
     def decorator(user: User = Depends(get_current_active_user)):
         if user.tier not in allowed_tiers:
@@ -284,7 +347,9 @@ def require_tier(allowed_tiers: list):
                 detail="Insufficient subscription tier",
             )
         return user
+
     return decorator
+
 
 async def get_api_key(
     request: Request,
@@ -293,24 +358,25 @@ async def get_api_key(
 ) -> User | None:
     if not api_key:
         return None
-    
+
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    
+
     result = await db.execute(
-        select(APIKey).options(selectinload(APIKey.user)).where(
-            and_(APIKey.key_hash == key_hash, APIKey.is_active)
-        )
+        select(APIKey)
+        .options(selectinload(APIKey.user))
+        .where(and_(APIKey.key_hash == key_hash, APIKey.is_active))
     )
     key_record = result.scalar_one_or_none()
-    
+
     if not key_record:
         return None
-        
+
     key_record.last_used_at = datetime.now(UTC)
     await db.commit()
-    
+
     request.state.user = key_record.user
     return key_record.user
+
 
 async def get_current_user_flexible(
     request: Request,
@@ -322,6 +388,7 @@ async def get_current_user_flexible(
     # 1. API Key Auth (Programmatic)
     if api_key_user:
         return api_key_user
+<<<<<<< Updated upstream
         
     # 2. Better Auth Session (New Primary Auth)
     from src.auth.better_auth import get_current_user as get_better_auth_user
@@ -334,9 +401,11 @@ async def get_current_user_flexible(
         pass # Fallback to legacy JWT if Better Auth fails/missing
 
     # 3. Legacy JWT Auth (Migration Path)
+=======
+
+    # 2. Legacy JWT Auth
+>>>>>>> Stashed changes
     try:
         return await get_current_user(request, token, db, auth_service)
     except HTTPException:
         raise
-        
-    

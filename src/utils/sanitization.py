@@ -1,6 +1,8 @@
 import html
 import re
 
+# OPTIMIZED: Pre-compiled regex for alphanumeric cleaning
+_ALPHANUM_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
 def sanitize_alphanumeric(text: str) -> str:
     """
@@ -8,7 +10,8 @@ def sanitize_alphanumeric(text: str) -> str:
     """
     if not text:
         return text
-    return re.sub(r"[^a-zA-Z0-9_-]", "", text)
+    return _ALPHANUM_RE.sub("", text)
+
 
 def sanitize_string(text: str) -> str:
     """
@@ -16,14 +19,15 @@ def sanitize_string(text: str) -> str:
     """
     if not text:
         return text
-    
+
     # Escape HTML special characters
     clean_text = html.escape(text)
-    
+
     # Trim whitespace
     clean_text = clean_text.strip()
-    
+
     return clean_text
+
 
 def sanitize_email(email: str) -> str:
     """
@@ -33,6 +37,7 @@ def sanitize_email(email: str) -> str:
         return email
     return email.lower().strip()
 
+
 def mask_email(email: str) -> str:
     """
     Mask an email address for logging.
@@ -40,12 +45,12 @@ def mask_email(email: str) -> str:
     """
     if not email or "@" not in email:
         return email
-    
+
     try:
         name, domain = email.split("@")
         if len(name) <= 2:
             return f"{name[0]}***@{domain}"
-        
+
         return f"{name[0]}***{name[-1]}@{domain}"
     except Exception:
         return "****@****"

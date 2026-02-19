@@ -6,11 +6,13 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class WasmModuleCache:
     """
     OPTIMIZED: Persistence and caching for compiled WASM modules.
     Reduces instantiation latency by 100x by serializing the machine code.
     """
+
     _memory_cache: dict[str, Any] = {}
 
     @classmethod
@@ -20,7 +22,7 @@ class WasmModuleCache:
             return cls._memory_cache[wasm_path]
 
         from wasmer import Module
-        
+
         # 1. Check for serialized artifact on disk
         cache_path = f"{wasm_path}.compiled"
         if os.path.exists(cache_path):
@@ -39,9 +41,9 @@ class WasmModuleCache:
         logger.info("wasm_module_compiling", path=wasm_path)
         with open(wasm_path, "rb") as f:
             wasm_bytes = f.read()
-        
+
         module = Module(store, wasm_bytes)
-        
+
         # 3. Save for future dimensions
         try:
             serialized_bytes = module.serialize()
@@ -55,18 +57,31 @@ class WasmModuleCache:
         return module
 
     @classmethod
-    def map_wasm_memory(cls, instance: Any) -> np.ndarray:
-        """Zero-copy memory view of the WASM heap."""
+    def map_wasm_memory(
+        cls, instance: Any, offset: int = 0, size: int | None = None
+    ) -> np.ndarray:
+        """
+        Zero-copy memory view of a specific slice of the WASM heap.
+        WARNING: Manual memory management required. Offset/size must align with Rust exports.
+        """
         try:
-            # OPTIMIZED: WASM instances export a 'memory' object
             wasm_mem = instance.exports.memory
-            # Map the raw linear memory to a NumPy array view
-            # (Assuming f64 float64 layout for our pricing kernels)
-            data_view = np.frombuffer(wasm_mem.buffer, dtype=np.float64)
+            buffer = wasm_mem.buffer
+
+            # Map a specific window of the linear memory
+            # Default to full buffer if size is None
+            if size is None:
+                size = (len(buffer) - offset) // 8
+
+            # OPTIMIZED: Using frombuffer for zero-copy view
+            data_view = np.frombuffer(
+                buffer, dtype=np.float64, count=size, offset=offset
+            )
             return data_view
         except Exception as e:
             logger.error("wasm_memory_mapping_failed", error=str(e))
             return np.empty(0)
+
 
 def get_wasm_instance() -> Any:
     """
@@ -74,15 +89,15 @@ def get_wasm_instance() -> Any:
     Locates the module in the project tree and instantiates it.
     """
     from wasmer import Instance, Store
-    
+
     # 1. Locate the WASM file
     search_paths = [
         "src/frontend/public/wasm/bsopt_wasm_bg.wasm",
         "src/frontend/src/wasm/bsopt_wasm_bg.wasm",
-        "wasm/bsopt_wasm_bg.wasm"
+        "wasm/bsopt_wasm_bg.wasm",
     ]
     wasm_path = next((p for p in search_paths if os.path.exists(p)), None)
-    
+
     if not wasm_path:
         logger.error("wasm_module_not_found", searched=search_paths)
         return None
@@ -91,7 +106,7 @@ def get_wasm_instance() -> Any:
         # 2. Setup wasmer environment
         store = Store()
         module = WasmModuleCache.get_module(store, wasm_path)
-        
+
         # 3. Instantiate (No imports needed for pure math kernels)
         instance = Instance(module)
         logger.info("wasm_instance_created", path=wasm_path)
@@ -99,6 +114,7 @@ def get_wasm_instance() -> Any:
     except Exception as e:
         logger.error("wasm_instantiation_failed", error=str(e))
         return None
+
 
 # Singleton accessor
 wasm_cache = WasmModuleCache()

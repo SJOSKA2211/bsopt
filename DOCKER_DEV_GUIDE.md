@@ -7,7 +7,7 @@
 ## Quick Start
 To start the entire development environment:
 ```bash
-docker compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.yml up --build
 ```
 
 ## Services
@@ -20,6 +20,19 @@ docker compose -f docker-compose.dev.yml up --build
 | `postgres` | 5432 | 5432 | Database |
 | `redis` | 6379 | 6379 | Cache/Task Broker |
 | `rabbitmq` | 5672 | 5672 | Task Broker |
+
+## CLI Tool (Containerized)
+You can run the CLI tool without a local Python environment using the Makefile:
+```bash
+# Build the CLI image first
+make build-cli
+
+# Run a CLI command
+make cli ARGS="--help"
+
+# Example: Check system status
+make cli ARGS="status"
+```
 
 ## Hot-Reloading
 - **Frontend**: Enabled by default via Vite. Polling is enabled for compatibility with Docker volumes.

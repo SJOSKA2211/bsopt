@@ -5,6 +5,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 @strawberry.type
 class Order:
     id: strawberry.ID
@@ -18,29 +19,53 @@ class Order:
     created_at: datetime
     updated_at: datetime
 
+
+from src.trading.execution import OrderExecutor
+
+# Global executor instance (reuse connection pool)
+executor = OrderExecutor()
+
 async def create_order(
     portfolio_id: strawberry.ID,
     contract_symbol: str,
     side: str,
     quantity: int,
     order_type: str,
-    limit_price: float | None = None
+    limit_price: float | None = None,
 ) -> Order:
-    logger.info("dummy_order_create", portfolio_id=portfolio_id, symbol=contract_symbol, side=side)
+    """
+    Real-time order creation with pre-trade risk validation.
+    """
+    logger.info("order_request_received", symbol=contract_symbol, side=side)
+    
+    # 1. Dispatch to real executor (Solenya-hardened)
+    params = {
+        "contract_address": contract_symbol, # Assuming symbol is address for DeFi
+        "amount": quantity,
+        "side": side,
+        "price": limit_price or 0.0
+    }
+    
+    result = await executor.execute_order(params)
+    
+    # 2. Map execution result to GraphQL response
+    status = "OPEN" if result["status"] == "success" else "REJECTED"
+    reason = result.get("reason", "")
+    
     return Order(
-        id=strawberry.ID("order_123"),
+        id=strawberry.ID(result.get("tx_hash", "none")),
         portfolio_id=portfolio_id,
         contract_symbol=contract_symbol,
         side=side,
         quantity=quantity,
         order_type=order_type,
-        status="PENDING",
+        status=f"{status}: {reason}" if reason else status,
         limit_price=limit_price,
         created_at=datetime.now(),
-        updated_at=datetime.now()
+        updated_at=datetime.now(),
     )
+
 
 async def cancel_order(order_id: strawberry.ID) -> bool:
     logger.info("dummy_order_cancel", order_id=order_id)
     return True
-

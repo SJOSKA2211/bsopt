@@ -1,4 +1,0 @@
-# file: /home/kamau/bsopt/src/aiops/transformer_detector.py
-# hypothesis_version: 6.151.5
-
-[0.0, 0.001, 0.05, 0.1, 128, 1000, 'cpu', 'cuda', 'culprit_index', 'culprit_name', 'feature_errors', 'is_anomaly', 'score', 'unknown']

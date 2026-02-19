@@ -64,21 +64,21 @@ def generate_html_dashboard(summary_path: str, output_path: str) -> None:
             <h2>XGBoost Pricing Model</h2>
             <div class="metric-card">
                 <div>R2 Score</div>
-                <div class="metric-value">{summary['xgboost']['r2']:.4f}</div>
+                <div class="metric-value">{summary.get('xgboost', {}).get('r2', 'N/A')}</div>
             </div>
             <div class="metric-card">
                 <div>Mean Squared Error</div>
-                <div class="metric-value">{summary['xgboost']['mse']:.4f}</div>
+                <div class="metric-value">{summary.get('xgboost', {}).get('mse', 'N/A')}</div>
             </div>
 
             <h2>Neural Network Classifier</h2>
             <div class="metric-card">
                 <div>Accuracy</div>
-                <div class="metric-value">{summary['neural_network']['accuracy']:.4f}</div>
+                <div class="metric-value">{summary.get('neural_network', {}).get('accuracy', 'N/A')}</div>
             </div>
             <div class="metric-card">
                 <div>Precision</div>
-                <div class="metric-value">{summary['neural_network']['precision']:.4f}</div>
+                <div class="metric-value">{summary.get('neural_network', {}).get('precision', 'N/A')}</div>
             </div>
 
             <h2>Visualizations</h2>

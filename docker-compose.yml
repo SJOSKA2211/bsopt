@@ -1,25 +1,31 @@
-version: '3.8'
+name: bsopt
 
 services:
   # === Database Service ===
-  db:
+  postgres:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-bsopt}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
     ports:
       - "5432:5432"
     volumes:
+<<<<<<< Updated upstream
       - pgdata:/var/lib/postgresql/data
+=======
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./src/migrations:/migrations:ro
+>>>>>>> Stashed changes
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-bsopt}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d bsopt"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - bsopt-net
+      - bsopt-network
 
   # === Cache Service ===
   redis:
@@ -27,66 +33,428 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    networks:
-      - bsopt-net
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - bsopt-network
+
+  # === Message Broker ===
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bsopt-network
+
+  # === Auth Service ===
+  auth-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.auth-service
+      target: development
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-secret}
+      - BETTER_AUTH_URL=http://localhost:3001
+    volumes:
+      - ./src/auth-service:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bsopt-network
 
   # === API Service ===
   api:
     build:
       context: .
-      dockerfile: docker/Dockerfile.api-dev
+      dockerfile: docker/Dockerfile.api
+      target: development
+    shm_size: '1gb'
     volumes:
       - ./src:/app/src
       - ./pyproject.toml:/app/pyproject.toml
-      - ./tests:/app/tests
     ports:
       - "8000:8000"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
       - REDIS_URL=redis://redis:6379/0
       - INSIDE_DOCKER=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - bsopt-net
+      - bsopt-network
     command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # === Portfolio Service ===
+  portfolio:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+      target: development
+    volumes:
+      - ./src:/app/src
+      - ./pyproject.toml:/app/pyproject.toml
+    ports:
+      - "8003:8000"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bsopt-network
+    command: uvicorn src.portfolio.main:app --host 0.0.0.0 --port 8000 --reload
 
   # === Worker Service ===
   worker:
     build:
       context: .
-      dockerfile: docker/Dockerfile.worker-dev
+      dockerfile: docker/Dockerfile.worker
+      target: development
+    shm_size: '1gb'
     volumes:
       - ./src:/app/src
       - ./pyproject.toml:/app/pyproject.toml
+    ports:
+      - "50051:50051"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
       - REDIS_URL=redis://redis:6379/0
       - INSIDE_DOCKER=1
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A src.ml.celery_app inspect ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     depends_on:
-      db:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - bsopt-network
+    command: celery -A src.ml.celery_app worker -l info
+
+  # === Scraper Service ===
+  scraper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scraper
+      target: development
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - REDIS_URL=redis://redis:6379/0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - bsopt-net
-    command: celery -A src.worker.app worker --loglevel=info
+      - bsopt-network
+
+  # === Neural Pricing Service ===
+  neural-pricing:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.neural-pricing
+      target: development
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./src:/app/src
+    cpuset: "0-3"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - REDIS_URL=redis://redis:6379/0
+      - OMP_NUM_THREADS=4
+      - MKL_NUM_THREADS=4
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bsopt-network
+
+  # === App Gateway (Node.js Federation) ===
+  app-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app-gateway
+      target: development
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - LOG_LEVEL=debug
+      - API_URL=http://api:8000/graphql
+      - PORTFOLIO_URL=http://portfolio:8000/graphql
+      - PRICING_URL=http://neural-pricing:8000/graphql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api:
+        condition: service_started
+      portfolio:
+        condition: service_started
+      neural-pricing:
+        condition: service_started
+    networks:
+      - bsopt-network
+
+  # === Frontend Service ===
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      target: development
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      app-gateway:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - bsopt-network
+
+  # === [Specialized] Test Runner ===
+  test-runner:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ci
+    environment:
+      - ENVIRONMENT=test
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@postgres:5432/bsopt_test
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - bsopt-network
+    volumes:
+      - .:/app
+
+  # === [Specialized] Blockchain Service ===
+  geth:
+    profiles: ["blockchain"]
+    image: ethereum/client-go:stable
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    networks:
+      - bsopt-network
+
+  blockchain-worker:
+    profiles: ["blockchain"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      target: development
+    environment:
+      - BLOCKCHAIN_RPC_URL=http://geth:8545
+      - REDIS_URL=redis://redis:6379/0
+      - DEFI_CONTRACTS=${DEFI_CONTRACTS:-}
+    depends_on:
+      - geth
+      - redis
+    networks:
+      - bsopt-network
+    command: python src/blockchain/worker.py
+
+  # === [Specialized] Streaming Service ===
+  kafka-1:
+    profiles: ["streaming"]
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka-1:9092,CONTROLLER://kafka-1:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - bsopt-network
+
+  # === [Specialized] ML Compute Cluster ===
+  ray-head:
+    profiles: ["ml"]
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '2gb'
+    ports:
+      - "8265:8265" # Dashboard
+      - "10001:10001" # Ray Client
+    environment:
+      - RAY_REDIS_ADDRESS=redis:6379
+    networks:
+      - bsopt-network
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+
+  rl-training-worker:
+    profiles: ["ml"]
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '2gb'
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_ADDRESS=ray-head:6379
+    networks:
+      - bsopt-network
+    command: ray start --address=ray-head:6379 --block
+
+  # === [Specialized] MLOps Tracking Server ===
+  mlflow:
+    profiles: ["ml"]
+    image: ghcr.io/mlflow/mlflow:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:password@postgres:5432/bsopt
+      - MLFLOW_ARTIFACT_ROOT=/app/mlruns
+    volumes:
+      - ./mlruns:/app/mlruns
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bsopt-network
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:password@postgres:5432/bsopt --default-artifact-root /app/mlruns
+
+  # === [Specialized] HFT Manifold Launcher ===
+  manifold:
+    profiles: ["hft"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      target: production
+    shm_size: '4gb'
+    network_mode: host
+    cap_add:
+      - IPC_LOCK
+      - SYS_NICE
+    ulimits:
+      memlock: -1
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@localhost:5432/${POSTGRES_DB:-bsopt}
+      - REDIS_URL=redis://localhost:6379/0
+    command: python scripts/hft/bs_hft_launch.py
+
+  # === [Specialized] Reverse Proxy / Gateway ===
+  gateway:
+    profiles: ["proxy"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app-gateway
+      - auth-service
+    networks:
+      - bsopt-network
+
+  # === [Specialized] Observability Stack ===
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - bsopt-network
+
+  grafana:
+    profiles: ["observability"]
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - bsopt-network
 
 networks:
-  bsopt-net:
+  bsopt-network:
     driver: bridge
 
 volumes:
-  pgdata:
+  postgres_data:
+  redis_data:

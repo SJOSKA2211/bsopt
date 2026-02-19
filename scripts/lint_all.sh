@@ -1,8 +1,10 @@
 #!/bin/bash
-set -e
+# I'm Pickle Riiiiick!🥒 *Belch.*
+# Standardizing on the containerized linting environment.
 
-echo " Joseph Kamau Maina's Linting Engine "
+echo "🥒 Running Containerized Linting Engine... Stand back, Morty."
 
+<<<<<<< Updated upstream
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
@@ -10,16 +12,14 @@ cd "$PROJECT_ROOT"
 # Activate Virtual Environment
 if [ -d ".venv" ]; then
     source .venv/bin/activate
+=======
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "❌ Docker is not running. Fix it, Jerry!"
+    exit 1
+>>>>>>> Stashed changes
 fi
 
-# Run Ruff
-echo "🕵️  Running Ruff..."
-ruff check . --exclude get-pip.py --exclude mocks --exclude .venv --exclude node_modules --fix
-
-# Run Mypy (optional, can be slow)
-if [[ "$*" == *"--strict"* ]]; then
-    echo "🧠 Running Mypy..."
-    mypy src
-fi
-
-echo "✅ Linting complete. No slop detected."
+make lint
+make format
+make security-scan

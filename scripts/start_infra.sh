@@ -7,6 +7,6 @@ cd "$PROJECT_ROOT"
 
 # Start Infrastructure Services
 echo " Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
-docker compose -f docker-compose.dev.yml up -d postgres redis rabbitmq
+docker compose -f docker-compose.yml up -d postgres redis rabbitmq
 
 echo "✅ Infrastructure containers launched."

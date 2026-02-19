@@ -9,20 +9,22 @@ from .base import Producer
 
 logger = structlog.get_logger()
 
+
 class ZMQMarketDataProducer(Producer):
     """
     Ultra-low latency ZeroMQ producer for internal high-speed data paths.
     Uses PUSH/PULL pattern for fire-and-forget data distribution.
     Complements Kafka by providing a sub-millisecond bypass for critical paths.
     """
+
     def __init__(self, endpoint: str = "tcp://*:5555"):
         self.context = zmq.asyncio.Context()
         self.socket = self.context.socket(zmq.PUSH)
-        
+
         # Performance tuning for high-frequency data
         self.socket.setsockopt(zmq.SNDHWM, 10000)  # High water mark
-        self.socket.setsockopt(zmq.LINGER, 0)      # Don't wait on close
-        
+        self.socket.setsockopt(zmq.LINGER, 0)  # Don't wait on close
+
         try:
             self.socket.bind(endpoint)
             logger.info("zmq_producer_bound", endpoint=endpoint)
@@ -32,13 +34,15 @@ class ZMQMarketDataProducer(Producer):
 
     async def produce(self, data: dict[str, Any], **kwargs):
         """
-        Send market data via ZeroMQ with zero-copy-like speed using orjson.
+        Send market data via ZeroMQ with ZERO-COPY optimization.
         """
         try:
-            # key can be used for prefix-based filtering if switched to PUB/SUB
-            # For PUSH/PULL we just send the payload
+            # 1. Serialize to bytes (O(n))
             payload = orjson.dumps(data)
-            await self.socket.send(payload)
+            
+            # 2. Use zero-copy memoryview for transport (O(1))
+            # copy=False tells ZMQ to use the buffer directly
+            await self.socket.send(memoryview(payload), copy=False)
         except Exception as e:
             logger.error("zmq_send_error", error=str(e))
 
