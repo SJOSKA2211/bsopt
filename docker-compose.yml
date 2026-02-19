@@ -84,26 +84,6 @@ services:
       - bsopt-net
     command: celery -A src.worker.app worker --loglevel=info
 
-  # === Auth Service (Node.js) ===
-  auth-service:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.auth-service-dev
-    volumes:
-      - ./src/auth-service:/app
-      - /app/node_modules
-    ports:
-      - "3001:3001"
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-bsopt}
-      - NODE_ENV=development
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - bsopt-net
-    command: npm run dev
-
 networks:
   bsopt-net:
     driver: bridge
