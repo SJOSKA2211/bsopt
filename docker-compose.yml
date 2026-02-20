@@ -6,9 +6,9 @@ services:
     image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-bsopt}
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-JKmaish2025.}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"
     volumes:
@@ -63,8 +63,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-v8bR0s4CvUWMBm3lnMFHN2fyaFacEjMj8JVsCZGQCVo=}
+      - DATABASE_URL=${DATABASE_URL}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3001
     volumes:
       - ./src/auth-service:/app
@@ -95,7 +95,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - INSIDE_DOCKER=1
     healthcheck:
@@ -126,7 +126,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -157,7 +157,7 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - INSIDE_DOCKER=1
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
@@ -189,7 +189,7 @@ services:
     volumes:
       - ./src:/app/src
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -216,7 +216,7 @@ services:
       - ./src:/app/src
     cpuset: "0-3"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - OMP_NUM_THREADS=4
       - MKL_NUM_THREADS=4
@@ -292,7 +292,7 @@ services:
       dockerfile: docker/Dockerfile.ci
     environment:
       - ENVIRONMENT=test
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@postgres:5432/bsopt_test
+      - DATABASE_URL=${DATABASE_URL_TEST}
       - REDIS_URL=redis://redis:6379/1
     depends_on:
       postgres:
@@ -379,7 +379,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:JKmaish2025.@postgres:5432/bsopt
+      - MLFLOW_BACKEND_STORE_URI=${DATABASE_URL}
       - MLFLOW_ARTIFACT_ROOT=/app/mlruns
     volumes:
       - ./mlruns:/app/mlruns
@@ -388,7 +388,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:JKmaish2025.@postgres:5432/bsopt --default-artifact-root /app/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ${DATABASE_URL} --default-artifact-root /app/mlruns
 
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
@@ -407,7 +407,7 @@ services:
     volumes:
       - /dev/shm:/dev/shm
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-JKmaish2025.}@localhost:5432/${POSTGRES_DB:-bsopt}
+      - DATABASE_URL=${DATABASE_URL_LOCAL}
       - REDIS_URL=redis://localhost:6379/0
     command: python scripts/hft/bs_hft_launch.py
 
