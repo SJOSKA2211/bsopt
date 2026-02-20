@@ -50,11 +50,11 @@ const palette = {
   },
   
   background: {
-    default: '#0a0e27',   // Deep navy - Main background
-    paper: '#151a2e',     // Slightly lighter - Cards, surfaces
-    elevation1: '#1a1f38',
-    elevation2: '#1f2542',
-    elevation3: '#242a4c',
+    default: 'transparent', // Handled by global CSS gradient
+    paper: 'rgba(20, 25, 40, 0.45)', // Glassmorphic base
+    elevation1: 'rgba(26, 31, 56, 0.5)',
+    elevation2: 'rgba(31, 37, 66, 0.6)',
+    elevation3: 'rgba(36, 42, 76, 0.7)',
   },
   
   text: {
@@ -90,6 +90,7 @@ const palette = {
 
 const typography = {
   fontFamily: [
+    'Outfit',
     'Inter',
     '-apple-system',
     'BlinkMacSystemFont',
@@ -100,6 +101,7 @@ const typography = {
   
   // Monospace for numbers
   fontFamilyMonospace: [
+    '"JetBrains Mono"',
     'IBM Plex Mono',
     'Monaco',
     'Courier New',
@@ -155,20 +157,20 @@ const typography = {
   
   // Custom variants for financial data
   price: {
-    fontFamily: 'IBM Plex Mono, monospace',
+    fontFamily: '"JetBrains Mono", monospace',
     fontSize: '1.125rem',
     fontWeight: 600,
     letterSpacing: '0.01em',
   },
   
   percentage: {
-    fontFamily: 'IBM Plex Mono, monospace',
+    fontFamily: '"JetBrains Mono", monospace',
     fontSize: '0.875rem',
     fontWeight: 500,
   },
   
   ticker: {
-    fontFamily: 'IBM Plex Mono, monospace',
+    fontFamily: '"JetBrains Mono", monospace',
     fontSize: '0.75rem',
     fontWeight: 700,
     letterSpacing: '0.05em',
@@ -194,17 +196,17 @@ const components = {
       },
       body: {
         scrollbarWidth: 'thin',
-        scrollbarColor: `${alpha(palette.primary.main, 0.3)} ${palette.background.paper}`,
+        scrollbarColor: `rgba(80, 195, 247, 0.3) rgba(20, 20, 30, 0.5)`,
         '&::-webkit-scrollbar': {
           width: '8px',
           height: '8px',
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: alpha(palette.primary.main, 0.3),
+          backgroundColor: 'rgba(80, 195, 247, 0.3)',
           borderRadius: '4px',
         },
         '&::-webkit-scrollbar-track': {
-          backgroundColor: palette.background.paper,
+          backgroundColor: 'rgba(20, 20, 30, 0.5)',
         },
       },
     },
@@ -213,15 +215,16 @@ const components = {
   MuiButton: {
     styleOverrides: {
       root: {
-        borderRadius: 8,
+        borderRadius: 12,
         textTransform: 'none' as const,
         fontWeight: 600,
         padding: '10px 20px',
-        transition: 'all 0.2s ease-in-out',
+        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
+        backdropFilter: 'blur(8px)',
         
         '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: `0 8px 16px ${alpha(palette.primary.main, 0.3)}`,
+          transform: 'translateY(-2px) scale(1.02)',
+          boxShadow: `0 8px 24px ${alpha(palette.primary.main, 0.4)}`,
         },
       },
       
@@ -263,15 +266,17 @@ const components = {
   MuiCard: {
     styleOverrides: {
       root: {
-        borderRadius: 12,
+        borderRadius: 16,
         backgroundImage: 'none',
-        border: `1px solid ${alpha(palette.primary.main, 0.1)}`,
-        transition: 'all 0.3s ease-in-out',
+        backgroundColor: 'rgba(20, 25, 40, 0.45)', // Glassmorphism base
+        backdropFilter: 'blur(16px)',
+        border: `1px solid rgba(255, 255, 255, 0.08)`,
+        boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.3)`,
+        transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
         
         '&:hover': {
-          borderColor: alpha(palette.primary.main, 0.3),
-          boxShadow: `0 8px 32px ${alpha(palette.primary.main, 0.15)}`,
-          transform: 'translateY(-4px)',
+          transform: 'translateY(-4px) scale(1.01)',
+          boxShadow: `0 16px 48px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(79, 195, 247, 0.3)`,
         },
       },
     },
@@ -281,9 +286,12 @@ const components = {
     styleOverrides: {
       root: {
         backgroundImage: 'none',
+        backgroundColor: 'rgba(20, 25, 40, 0.45)',
+        backdropFilter: 'blur(16px)',
+        border: `1px solid rgba(255, 255, 255, 0.08)`,
       },
       rounded: {
-        borderRadius: 12,
+        borderRadius: 16,
       },
       elevation1: {
         backgroundColor: palette.background.elevation1,
@@ -367,9 +375,12 @@ const components = {
   MuiDialog: {
     styleOverrides: {
       paper: {
-        borderRadius: 16,
+        borderRadius: 24,
         backgroundImage: 'none',
-        border: `1px solid ${alpha(palette.primary.main, 0.2)}`,
+        backgroundColor: 'rgba(20, 25, 40, 0.75)',
+        backdropFilter: 'blur(24px)',
+        border: `1px solid rgba(255, 255, 255, 0.1)`,
+        boxShadow: `0 24px 64px 0 rgba(0, 0, 0, 0.6)`,
       },
     },
   },
