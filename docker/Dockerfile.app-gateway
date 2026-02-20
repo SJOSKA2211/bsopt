@@ -8,7 +8,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY src/gateway/package*.json ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY src/gateway/ ./
 
@@ -18,7 +18,7 @@ FROM node:20-alpine AS development
 WORKDIR /app
 
 COPY src/gateway/package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 COPY src/gateway/ .
 
@@ -34,7 +34,7 @@ WORKDIR /app
 RUN addgroup -S bsopt && adduser -S bsopt -G bsopt
 
 COPY --from=builder /app/package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --legacy-peer-deps
 
 COPY --from=builder /app/*.js ./
 COPY --from=builder /app/eslint.config.js ./
