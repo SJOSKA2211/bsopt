@@ -592,8 +592,92 @@ def jit_mc_european_with_control_variate(
     # In a true Rick-pass, we calculate the optimal beta inside the simulation loop
     return price_sim, std_err_sim / 5.0 # Simulated variance reduction
 
+@njit(cache=True, fastmath=True)
+def scalar_bs_price_jit(
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float,
+    is_call: bool,
+) -> float:
+    """
+    Scalar pricing for options using Numba.
+    """
+    if T < 1e-7:
+        if is_call:
+            return max(S - K, 0.0)
+        else:
+            return max(K - S, 0.0)
+    
+    sig_sqrt_t = sigma * np.sqrt(T)
+    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / sig_sqrt_t
+    d2 = d1 - sig_sqrt_t
+
+    nd1 = fast_normal_cdf(d1)
+    nd2 = fast_normal_cdf(d2)
+
+    exp_qt = np.exp(-q * T)
+    exp_rt = np.exp(-r * T)
+
+    if is_call:
+        return max(S * exp_qt * nd1 - K * exp_rt * nd2, 0.0)
+    else:
+        return max(K * exp_rt * (1.0 - nd2) - S * exp_qt * (1.0 - nd1), 0.0)
+
+
+@njit(cache=True, fastmath=True)
+def scalar_greeks_jit(
+    S: float,
+    K: float,
+    T: float,
+    sigma: float,
+    r: float,
+    q: float,
+    is_call: bool,
+) -> tuple[float, float, float, float, float]:
+    """
+    Scalar greeks calculation using Numba.
+    """
+    Ti = max(T, 1e-7)
+    sqrt_T = np.sqrt(Ti)
+
+    sig_sqrt_t = sigma * sqrt_T
+    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * Ti) / sig_sqrt_t
+    d2 = d1 - sig_sqrt_t
+
+    INV_SQRT2PI = 1.0 / 2.5066282746310005
+    pdf_d1 = np.exp(-0.5 * d1**2) * INV_SQRT2PI
+    cdf_d1 = fast_normal_cdf(d1)
+    cdf_d2 = fast_normal_cdf(d2)
+
+    exp_qt = np.exp(-q * Ti)
+    exp_rt = np.exp(-r * Ti)
+
+    gamma = (exp_qt * pdf_d1) / (S * sigma * sqrt_T)
+    vega = (S * exp_qt * pdf_d1 * sqrt_T) * 0.01
+
+    common_theta = -(S * pdf_d1 * sigma * exp_qt) / (2 * sqrt_T)
+
+    if is_call:
+        delta = exp_qt * cdf_d1
+        theta = (
+            common_theta - r * K * exp_rt * cdf_d2 + q * S * exp_qt * cdf_d1
+        ) / 365.0
+        rho = (K * Ti * exp_rt * cdf_d2) * 0.01
+    else:
+        delta = exp_qt * (cdf_d1 - 1.0)
+        theta = (
+            common_theta
+            + r * K * exp_rt * (1.0 - cdf_d2)
+            - q * S * exp_qt * (1.0 - cdf_d1)
+        ) / 365.0
+        rho = (-K * Ti * exp_rt * (1.0 - cdf_d2)) * 0.01
+
+    return delta, gamma, vega, theta, rho
+
+
 # Aliases for backward compatibility / missing implementations
 gpu_mc_european_price = jit_mc_european_price
-scalar_bs_price_jit = batch_bs_price_jit
-scalar_greeks_jit = batch_greeks_jit
 
