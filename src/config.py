@@ -9,7 +9,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = structlog.get_logger(__name__)
 
 
-DEFAULT_DEV_MFA_KEY = "kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU="  # sourcery skip: avoid-secret-in-code
+# sourcery skip: avoid-secret-in-code
+DEFAULT_DEV_MFA_KEY = "kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU="
 
 
 class Settings(BaseSettings):
