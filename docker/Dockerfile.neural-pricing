@@ -10,10 +10,11 @@ ENV UV_COMPILE_BYTECODE=1
 
 COPY pyproject.toml requirements.txt ./
 
-# Lightning-fast dependency resolution
+# Lightning-fast dependency resolution with increased retries
+ENV UV_RETRIES=10
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --no-cache -r requirements.txt
-
+    uv pip install --system -r requirements.txt || \
+    pip install -r requirements.txt
 
 # === Stage 2: Development ===
 FROM python:3.13-slim AS development

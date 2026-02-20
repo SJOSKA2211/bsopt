@@ -5,7 +5,7 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
 COPY pyproject.toml requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --no-cache -r requirements.txt
+    uv pip install --system -r requirements.txt
 
 FROM python:3.13-slim AS development
 WORKDIR /app
