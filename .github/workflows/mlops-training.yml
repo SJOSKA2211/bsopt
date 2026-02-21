@@ -8,6 +8,13 @@ on:
 jobs:
   containerized-training:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: bsopt
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ci_test_password
+      DATABASE_URL: postgresql://admin:ci_test_password@postgres:5432/bsopt
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
     steps:
       - uses: actions/checkout@v4
       - name: Free Disk Space (Ubuntu)
@@ -37,8 +44,6 @@ jobs:
           # Start the ML infrastructure and run the orchestrator
           docker compose --profile ml up -d ray-head rl-training-worker postgres redis
           docker compose --profile ml run --rm api python src/ml/pipelines/orchestrator.py --model-type xgboost --promote-to-production
-        env:
-          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
       - name: Teardown ML Cluster
         if: always()
         run: docker compose --profile ml down -v
