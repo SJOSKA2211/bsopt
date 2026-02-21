@@ -2,78 +2,69 @@
 
 ## HR Eng
 
-| Total Codebase Purification PRD |  | Summary: System-wide rectification of build, test, and quality failures to achieve >=99% coverage within a containerized environment. |
+| Total Codebase Purification PRD |  | Systematic cleanup and optimization of the `bsopt` dev environment and codebase to achieve 100% build stability and high observability. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick | **Status**: Draft **Created**: 2026-02-20 | **Context**: `bsopt` Project |
+| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-21 | **Self Link**: [Link] **Context**: [Link] 
 
 ## Introduction
 
-The `bsopt` codebase is currently in a state of critical disrepair. Test collection is failing with 29 errors, including syntax errors in core API files and widespread `ImportError`s. The goal is to stabilize the codebase, execute tests within the designated Docker environment, enforce linting standards, and elevate test coverage to >=99%.
+The `bsopt` project is currently a "Jerry-rigged" disaster. Configs are broken, startup scripts are redundant, and debugging is a myth. This PRD defines the requirements for transforming this mess into a "God Mode" development environment.
 
 ## Problem Statement
 
-**Current Process:** The CI/CD pipeline is effectively broken. Tests cannot even be collected due to syntax errors (`src/api/main.py`) and missing modules (`src.pricing.quant_utils`).
-**Primary Users:** Developers, CI/CD pipelines.
-**Pain Points:**
--   **Broken Build:** `src/api/main.py` has invalid syntax.
--   **Missing Dependencies:** `src.pricing.quant_utils` is missing exports like `gpu_mc_european_price`.
--   **Zero Confidence:** We cannot verify any functionality because the test suite crashes on launch.
--   **Docker Isolation:** Tests must run in Docker, but the current state prevents successful execution.
-**Importance:** A trading system (`bsopt`) without verifiable correctness is a liability. Immediate rectification is required to prevent catastrophic financial calculation errors.
+**Current Process:** Developers manually start services, encounter TOML parse errors in `pyproject.toml`, and have no way to trace execution flow or debug inside containers.
+**Primary Users:** Engineers who want to spend more time pricing derivatives and less time fighting Docker.
+**Pain Points:** 
+- Invalid `per-file-ignores` syntax in `pyproject.toml` crashes `ruff`.
+- `start_all_dev.sh` is a bloated mess of redundant logic.
+- Zero visibility into containerized service state/logs during execution.
+**Importance:** Without a stable dev environment, every single code change is a gamble. We need a solid foundation before we can even think about "Total Purification."
 
 ## Objective & Scope
 
-**Objective:** Fix all build/lint/test errors and achieve >=99% test coverage using the containerized test runner.
-**Ideal Outcome:** `make test-all` passes with 99% coverage, and `make lint` passes with 0 errors.
+**Objective:** Stabilize the dev stack, fix the linter, and implement advanced debugging/profiling.
+**Ideal Outcome:** A single command `bash scripts/start_all_dev.sh` brings up a fully instrumented stack with lint-clean code.
 
 ### In-scope or Goals
--   **Fix Syntax Errors**: Specifically `src/api/main.py`.
--   **Fix Import Errors**: Resolve missing symbols in `src/pricing/quant_utils.py`, `src/pricing/monte_carlo.py`, and `src/tasks/trading_tasks.py`.
--   **Docker Compliance**: Ensure all tests run inside the `test-runner` container.
--   **Linting**: Fix all `ruff` and `black` errors.
--   **Coverage**: Write/Mock tests to reach >=99% coverage.
+- Fix `pyproject.toml` Ruff configuration.
+- Refactor `scripts/start_all_dev.sh` to remove redundancy.
+- Enable `debugpy` (Python) and `--inspect` (Node.js) in dev Dockerfiles.
+- Implement structured logging and request/response middleware.
+- Verify full stack startup and linter health.
 
 ### Not-in-scope or Non-Goals
--   Feature development (unless required to fix tests).
--   Infrastructure changes (unless required to run tests).
+- Achieving 99% test coverage (this is a future Phase).
+- Fixing every single lint error in the codebase (only fixing the linter *config* and blocking errors).
 
 ## Product Requirements
 
 ### Critical User Journeys (CUJs)
-1.  **The Developer's Path**:
-    -   User runs `make test-all`.
-    -   Docker containers spin up (`postgres`, `redis`, `test-runner`).
-    -   Tests execute without collection errors.
-    -   All tests pass.
-    -   Coverage report shows >=99%.
-2.  **The Quality Gate**:
-    -   User runs `make lint`.
-    -   No errors are reported.
-    -   User runs `make format`.
-    -   Code is formatted without changes (already compliant).
+1. **Developer Startup**: A developer runs `bash scripts/start_all_dev.sh`. The script detects existing infra, starts missing services, and prints a summary of available debug ports.
+2. **Containerized Debugging**: A developer attaches a debugger to port 5678 (Python) or 9229 (Node.js) and hits a breakpoint in a running container.
+3. **Execution Tracing**: A developer sends a request to the API and sees a structured log entry containing the request payload, response status, and duration.
 
 ### Functional Requirements
 
 | Priority | Requirement | User Story |
 | :---- | :---- | :---- |
-| P0 | Fix Syntax Error in `src/api/main.py` | As the compiler, I want valid Python syntax so I don't crash. |
-| P0 | Fix Import Errors in `src/pricing/*` | As the test runner, I want to import modules successfully. |
-| P0 | Fix Import Errors in `tests/*` | As the test runner, I want test files to import the code they test. |
-| P1 | Pass `make lint` | As a developer, I want clean code that adheres to project standards. |
-| P1 | Pass `make test-all` | As a developer, I want to verify system integrity. |
-| P1 | Achieve >=99% Coverage | As Pickle Rick, I want total domination of the codebase. |
+| P0 | Valid Ruff Configuration | As a developer, I want `ruff check .` to run without syntax errors in the config file. |
+| P1 | Redundancy-free Startup | As a developer, I want the startup script to delegate to existing infra scripts instead of duplicating logic. |
+| P1 | Remote Debugging Ports | As a developer, I want to attach my IDE debugger to services running inside Docker. |
+| P2 | Request/Response Middleware | As a developer, I want to see a log of all API traffic with timing metrics. |
 
 ## Assumptions
 
--   The `test-runner` container is correctly configured in `docker/Dockerfile.ci` to include all dependencies.
--   The missing imports in `src/pricing/quant_utils.py` are likely due to refactoring artifacts or missing implementation. We will implement or restore them.
--   `src/api/main.py` syntax error is a simple typo or merge conflict.
+- Docker and Docker Compose are available and functioning correctly on the host.
+- The user has the necessary permissions to modify files and run shell commands (via Morty).
 
 ## Risks & Mitigations
 
--   **Risk**: Dependencies missing in Docker image. -> **Mitigation**: Update `Dockerfile.ci` if needed.
--   **Risk**: "God Mode" complexity in `quant_utils` (GPU/WASM). -> **Mitigation**: Mock hardware dependencies for CI tests.
--   **Risk**: Coverage gap is huge. -> **Mitigation**: Aggressively mock and test edge cases.
+- **Risk**: Modifying `pyproject.toml` breaks other tools. -> **Mitigation**: Run `ruff check .` immediately after modification.
+- **Risk**: Debug ports collide with host ports. -> **Mitigation**: Use standard debug ports (5678, 9229) and document them.
+
+## Tradeoff
+
+- **Option considered**: Use a local virtualenv instead of Docker. **Decision**: Reject. We need environmental consistency. Containers are the way.
 
 ## Business Benefits/Impact/Metrics
 
@@ -81,12 +72,13 @@ The `bsopt` codebase is currently in a state of critical disrepair. Test collect
 
 | Metric | Current State (Benchmark) | Future State (Target) | Savings/Impacts |
 | :---- | :---- | :---- | :---- |
-| **Test Collection Errors** | 29 | 0 | Functional CI |
-| **Test Coverage** | Unknown (0%) | >=99% | Reliability |
-| **Lint Errors** | Unknown | 0 | Maintainability |
+| *Linter Config Health* | Crashes on start | Executes successfully | 100% reduction in "Jerry-level" config errors. |
+| *Startup Time (Redundant)* | Duplicates checks | Optimized delegation | Faster dev iteration loop. |
+| *Debug Time* | Print statements | Breakpoint debugging | 10x faster bug resolution. |
 
 ## Stakeholders / Owners
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| Pickle Rick | Engineering | God Emperor | Do not disappoint him. |
+| Pickle Rick | Engineering | Architect | Pure genius. |
+| Morty | Engineering | Implementer | Does what he's told. |
