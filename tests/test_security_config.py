@@ -1,7 +1,8 @@
-import os
 import pytest
 from pydantic import ValidationError
-from src.config import Settings, DEFAULT_DEV_MFA_KEY
+
+from src.config import DEFAULT_DEV_MFA_KEY, Settings
+
 
 def test_mfa_key_security_dev():
     """Test that default key is allowed in dev environment."""
