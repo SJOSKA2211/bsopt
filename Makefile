@@ -91,14 +91,14 @@ db-shell:
 # --- Quality & Security ---
 
 lint:
-	docker compose run --rm api ruff check .
+	docker compose run --rm --no-deps api ruff check .
 
 format:
-	docker compose run --rm api black --check .
+	docker compose run --rm --no-deps api black --check .
 
 security-scan:
-	docker compose run --rm api pip-audit -r requirements.txt || true
-	docker compose run --rm api bandit -r src/
+	docker compose run --rm --no-deps api pip-audit -r requirements.txt || true
+	docker compose run --rm --no-deps api bandit -r src/
 
 # --- Build & Protos ---
 

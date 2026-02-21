@@ -43,7 +43,7 @@ jobs:
         run: |
           # Start the ML infrastructure and run the orchestrator
           docker compose --profile ml up -d ray-head rl-training-worker postgres redis
-          docker compose --profile ml run --rm api python src/ml/pipelines/orchestrator.py --model-type xgboost --promote-to-production
+          docker compose --profile ml run --rm api python -m src.ml.pipelines.orchestrator --model-type xgboost --promote-to-production
       - name: Teardown ML Cluster
         if: always()
         run: docker compose --profile ml down -v
