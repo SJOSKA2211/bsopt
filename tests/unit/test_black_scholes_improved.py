@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+
 
 @pytest.fixture
 def params():

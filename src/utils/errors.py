@@ -5,24 +5,16 @@ Robust Error Handling Utilities
 import functools
 import logging
 import time
-import traceback
 from collections.abc import Callable
 from typing import Any
-
-from fastapi import HTTPException, status
 
 logger = logging.getLogger("audit")
 
 
 import asyncio
-import functools
-import time
-import traceback
-from collections.abc import Callable
-from typing import Any
 
-from src.api.exceptions import ServiceUnavailableException
 from src.shared.off_heap_logger import omega_logger
+
 
 def robust_pricing_task(error_return_value: Any = None):
     """

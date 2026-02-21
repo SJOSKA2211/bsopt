@@ -4,8 +4,10 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-from src.database.models import Portfolio as DBPortfolio, Position as DBPosition
 from src.database import get_session
+from src.database.models import Portfolio as DBPortfolio
+from src.database.models import Position as DBPosition
+
 
 @strawberry.type
 class Position:

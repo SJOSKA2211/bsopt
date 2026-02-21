@@ -1,8 +1,9 @@
-from src.utils.resilience import retry_with_backoff
-from src.utils.http_client import HttpClientManager
-from src.scrapers.stealth import default_stealth_client
-from src.config import settings
 import structlog
+
+from src.config import settings
+from src.scrapers.stealth import default_stealth_client
+from src.utils.http_client import HttpClientManager
+from src.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
 

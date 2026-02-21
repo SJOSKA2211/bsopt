@@ -18,31 +18,25 @@ class BaseRemediator(ABC):
     def __init__(self, name: str, supported_types: list[str] | None = None):
         self.name = name
         self.supported_types = supported_types or ["generic"]
-<<<<<<< Updated upstream
-        self.last_run = 0
-        self.cooldown = 60 # Default cooldown in seconds
-=======
         self.last_run = 0.0
         self.cooldown = 300.0  # Default cooldown 5 mins
 
     def can_run(self) -> bool:
         """Check if cooldown has passed."""
         return (asyncio.get_event_loop().time() - self.last_run) >= self.cooldown
->>>>>>> Stashed changes
 
     @abstractmethod
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         """Execute the remediation action."""
         pass
 
-<<<<<<< Updated upstream
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """
         Optional post-remediation validation.
         Should return True if the system is 'healed'.
         """
         return True
-=======
+
     async def update_last_run(self):
         self.last_run = asyncio.get_event_loop().time()
 
@@ -69,7 +63,6 @@ class ClearRedisCacheRemediator(BaseRemediator):
         except Exception as e:
             logger.error("remediator_clear_cache_failed", error=str(e))
             return False
->>>>>>> Stashed changes
 
 
 class RestartServiceRemediator(BaseRemediator):

@@ -8,8 +8,9 @@
 
 import socket
 import sys
+
 import requests
-import time
+
 
 def check_port(host, port, name):
     try:
