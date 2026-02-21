@@ -7,7 +7,6 @@ Consolidates critical numerical logic for cross-module consistency with JIT acce
 import numpy as np
 from numba import njit
 
-
 # OPTIMIZED: Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
 INV_SQRT2PI = 0.3989422804014327

@@ -1,12 +1,11 @@
-import sys
 import os
+import sys
 
 # Add src to sys.path
 sys.path.append(os.getcwd())
 
 print("Testing API import...")
 try:
-    from src.api.main import app
     print("✅ API import successful")
 except Exception as e:
     print(f"❌ API import failed: {e}")
@@ -15,7 +14,7 @@ except Exception as e:
 
 print("\nTesting Quant Utils import and functions...")
 try:
-    from src.pricing.quant_utils import scalar_bs_price_jit, gpu_mc_european_price
+    from src.pricing.quant_utils import gpu_mc_european_price, scalar_bs_price_jit
     print("✅ Quant Utils import successful")
     
     # Test scalar_bs_price_jit

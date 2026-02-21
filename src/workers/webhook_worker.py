@@ -24,8 +24,9 @@ celery_app = Celery(
 # Initialize dispatcher outside task to reuse connections/circuit breaker state
 # In a real setup, this might be managed more dynamically or per worker process
 # For simplicity, we initialize once.
-from src.utils.lazy_import import lazy_import
 import sys
+
+from src.utils.lazy_import import lazy_import
 
 # Lazy Import Map
 _IMPORT_MAP = {

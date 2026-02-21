@@ -5,21 +5,16 @@ Handles asynchronous trading operations. Fully implemented with risk simulation.
 """
 
 import logging
-import random
 import time
-
-import numpy as np
-import pandas as pd
-
-from src.portfolio.engine import BacktestEngine
 
 from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 
-from src.utils.lazy_import import lazy_import
 import sys
+
+from src.utils.lazy_import import lazy_import
 
 # Lazy Import Map
 _IMPORT_MAP = {

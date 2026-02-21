@@ -1,6 +1,5 @@
 from typing import Any
 
-import cvxpy as cp
 import numpy as np
 import pandas as pd
 import ray
@@ -17,6 +16,7 @@ def _run_backtest_task(engine_instance, df, strategy_fn, params):
 
 
 from src.utils.distributed import RayOrchestrator
+
 
 def _get_quasi_diag(link):
     """Quasi-Diagonalization utility for HRP."""

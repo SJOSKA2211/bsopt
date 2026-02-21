@@ -14,16 +14,12 @@ from selectolax.lexbor import LexborHTMLParser
 
 from src.config import settings
 from src.scrapers.mesh_publisher import get_market_publisher
-<<<<<<< Updated upstream
-from src.shared.observability import PROXY_FAILURES, PROXY_LATENCY, setup_logging
-=======
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
     setup_logging,
     start_system_metrics_loop,
 )
->>>>>>> Stashed changes
 from src.utils.cache import get_redis
 from src.utils.circuit_breaker import nse_circuit
 from src.utils.http_client import HttpClientManager
@@ -398,45 +394,14 @@ class NSEScraper:
             logger.warning("batch_clean_failed", error=str(e))
             return [self._clean_data(i) for i in items]
 
-<<<<<<< Updated upstream
 async def main():
     """Scraper service entry point."""
-=======
-
-from fastapi import FastAPI
-
-app = FastAPI(title="NSE Scraper Service")
-app.add_middleware(ProfilingMiddleware)
-scraper_instance = NSEScraper()
-
-
-@app.get("/health")
-async def health_check():
-    return {
-        "status": "healthy",
-        "market": "NSE",
-        "timestamp": datetime.now().isoformat(),
-    }
-
-
-@app.on_event("startup")
-async def startup_event():
->>>>>>> Stashed changes
     setup_logging()
     
     scraper = NSEScraper()
     logger.info("scraper_service_active")
-<<<<<<< Updated upstream
-    
-=======
     start_system_metrics_loop("scraper")
-    # Start the background refresh loop
-    asyncio.create_task(background_refresh())
-
-
-async def background_refresh():
-    """Background loop to refresh the scraper cache."""
->>>>>>> Stashed changes
+    
     try:
         while True:
             try:
@@ -449,21 +414,7 @@ async def background_refresh():
     except asyncio.CancelledError:
         logger.info("scraper_service_stopping")
     finally:
-<<<<<<< Updated upstream
         await scraper.shutdown()
-=======
-        await scraper_instance.shutdown()
-
-
-async def main():
-    """Fallback main for manual execution."""
-    setup_logging()
-    logger.info("scraper_service_active_manual")
-    try:
-        await background_refresh()
-    except KeyboardInterrupt:
-        pass
->>>>>>> Stashed changes
 
 
 if __name__ == "__main__":

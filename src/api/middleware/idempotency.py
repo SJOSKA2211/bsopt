@@ -1,10 +1,11 @@
 import hashlib
-import structlog
+
 import msgspec
+import structlog
 from fastapi import Request, Response
+from starlette.concurrency import iterate_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import StreamingResponse
-from starlette.concurrency import iterate_in_threadpool
 
 logger = structlog.get_logger()
 

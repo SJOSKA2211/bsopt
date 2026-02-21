@@ -21,7 +21,6 @@ from starlette.types import ASGIApp
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-<<<<<<< Updated upstream
     """
     Add unique request ID to each request.
 
@@ -32,9 +31,6 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     """
 
     HEADER_NAME = "X-Request-ID"
-=======
-    # ... (header constants stay same)
->>>>>>> Stashed changes
 
     def __init__(
         self,
@@ -51,14 +47,8 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-<<<<<<< Updated upstream
         # Get existing request ID or generate new one
         request_id = request.headers.get(self.header_name)
-=======
-        # 1. Single lookup for performance
-        headers = request.headers
-        request_id = headers.get(self.header_name) or headers.get(self.ALT_HEADER_NAME)
->>>>>>> Stashed changes
 
         if not request_id:
             request_id = self.generator()

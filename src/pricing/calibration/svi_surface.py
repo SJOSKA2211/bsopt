@@ -5,10 +5,8 @@ from scipy.optimize import minimize
 logger = structlog.get_logger()
 
 
-from numba import njit
-import numpy as np
 import structlog
-from scipy.optimize import minimize
+from numba import njit
 
 logger = structlog.get_logger()
 

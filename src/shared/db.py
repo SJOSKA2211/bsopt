@@ -1,11 +1,13 @@
 import io
 from typing import Any
-from minio import Minio
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.asyncio import AsyncSession
-from anyio.to_thread import run_sync
 
-from src.database import SessionLocal, AsyncSessionLocal
+from anyio.to_thread import run_sync
+from minio import Minio
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
+
+from src.database import AsyncSessionLocal, SessionLocal
+
 
 def get_db_session() -> Session:
     """Creates a new sync database session (use with caution)."""

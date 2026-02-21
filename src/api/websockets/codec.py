@@ -1,7 +1,6 @@
 from enum import StrEnum
 from typing import Any
 
-import msgpack
 import msgspec
 import orjson
 from google.protobuf.json_format import MessageToDict

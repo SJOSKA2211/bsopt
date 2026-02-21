@@ -69,6 +69,7 @@ class ONNXModelServer:
 
 from contextlib import asynccontextmanager
 
+
 class ONNXModelServer:
     """
     Ultra-low latency model server using ONNX Runtime.

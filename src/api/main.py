@@ -1,13 +1,11 @@
 import asyncio
-from typing import Any
 
 import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import ORJSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
@@ -19,7 +17,6 @@ from src.api.routes.ml import router as ml_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
 from src.config import settings
-from src.database import get_db
 from src.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging

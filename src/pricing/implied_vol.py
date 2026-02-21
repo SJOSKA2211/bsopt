@@ -96,7 +96,7 @@ def _newton_raphson_iv(
     OPTIMIZED: Scalar Newton-Raphson using core math kernels.
     Zero allocations per iteration.
     """
-    from src.shared.math_utils import calculate_price_core, calculate_greeks_core
+    from src.shared.math_utils import calculate_greeks_core, calculate_price_core
     
     is_call = option_type.lower() == "call"
     sigma = initial_guess
