@@ -4,8 +4,9 @@ from typing import Any
 import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import ORJSONResponse
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
@@ -19,7 +20,7 @@ from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
 from src.config import settings
 from src.database import get_db
-from src.shared.observability import logging_middleware
+from src.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging
 logger = structlog.get_logger()
@@ -33,8 +34,6 @@ except (ImportError, AttributeError):
 app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse)
 
 
-<<<<<<< Updated upstream
-=======
 @app.on_event("startup")
 async def startup_event():
     start_system_metrics_loop("api")
@@ -49,7 +48,6 @@ async def startup_event():
         )  # Slight delay to trigger latency detectors without timeout
 
 
->>>>>>> Stashed changes
 # Middleware
 app.add_middleware(BrotliMiddleware, minimum_size=1000, quality=4)
 app.add_middleware(
@@ -125,9 +123,6 @@ app.include_router(users_router, prefix="/api/v1")
 app.include_router(debug_router, prefix="/api/v1")
 app.include_router(graphql_app, prefix="/graphql")
 
-
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from fastapi import FastAPI, Request, Response
 
 @app.get("/health")
 async def health():

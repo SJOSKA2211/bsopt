@@ -50,7 +50,11 @@ class ConnectionManager:
         self.active_connections: dict[str, set[WebSocket]] = {}
 
         # Redis setup for cross-worker communication
-        redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+        # Use service name 'redis' if running inside docker, otherwise 'localhost'
+        is_docker = os.getenv("INSIDE_DOCKER") == "1"
+        redis_fallback = "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
+        
+        redis_url = os.environ.get("REDIS_URL") or redis_fallback
         self.redis = redis.from_url(redis_url, encoding=None, decode_responses=False)
         self.pubsub = self.redis.pubsub()
         self._listener_task = None

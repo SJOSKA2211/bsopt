@@ -3,20 +3,34 @@
     "previewFeatures": true,
     "sessionRetention": {
       "enabled": true
-    }
+    },
+    "defaultApprovalMode": "plan",
+    "enablePromptCompletion": true
   },
   "ui": {
     "hideFooter": true,
     "showMemoryUsage": true,
     "footer": {
-      "hideContextPercentage": false
+      "hideContextPercentage": false,
+      "hideModelInfo": true
     },
-    "showModelInfoInChat": true
+    "showModelInfoInChat": true,
+    "inlineThinkingMode": "full",
+    "hideWindowTitle": true
   },
   "tools": {
     "autoAccept": true
   },
   "security": {
     "enablePermanentToolApproval": true
+  },
+  "ide": {
+    "enabled": true
+  },
+  "model": {
+    "disableLoopDetection": true
+  },
+  "experimental": {
+    "plan": true
   }
 }

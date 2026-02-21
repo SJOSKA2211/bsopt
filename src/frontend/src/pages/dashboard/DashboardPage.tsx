@@ -27,7 +27,7 @@ export const DashboardPage: React.FC = () => {
     <Container maxWidth="xl" sx={{ mt: 2, mb: 2 }}>
       <Grid container spacing={3}>
         {/* Real-Time Price Chart */}
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.1s' }}>
           <Paper
             data-testid="live-price-chart-paper"
             sx={{
@@ -49,7 +49,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* ML Predictions Widget */}
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.2s' }}>
           <Paper
             data-testid="ml-predictions-paper"
             sx={{
@@ -65,7 +65,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* Options Chain Section */}
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.3s' }}>
           <Paper
             data-testid="options-chain-container"
             sx={{
@@ -83,7 +83,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* Portfolio Summary Section */}
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.4s' }}>
           <Paper
             data-testid="portfolio-summary-container"
             sx={{
@@ -99,7 +99,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* Greeks Heatmap Summary */}
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.5s' }}>
           <Paper
             data-testid="greeks-heatmap-paper"
             sx={{
@@ -121,7 +121,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* 3D Volatility Surface */}
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.6s' }}>
           <Paper
             data-testid="volatility-surface-paper"
             sx={{
