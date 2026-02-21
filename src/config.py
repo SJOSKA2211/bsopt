@@ -19,6 +19,10 @@ _DEFAULT_DEV_MFA_KEY = os.environ.get(
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
 
+# sourcery skip: avoid-secret-in-code
+DEFAULT_DEV_MFA_KEY = "kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU="
+
+
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -99,6 +103,7 @@ class Settings(BaseSettings):
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
         default=_DEFAULT_DEV_MFA_KEY,
+        default=DEFAULT_DEV_MFA_KEY,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 
@@ -107,6 +112,20 @@ class Settings(BaseSettings):
     ARGON2_TIME_COST: int = 3
     ARGON2_MEMORY_COST: int = 65536
     ARGON2_PARALLELISM: int = 4
+
+    @model_validator(mode="after")
+    def validate_mfa_key_security(self) -> "Settings":
+        """Ensures that the default development key is not used in production."""
+        if (
+            self.ENVIRONMENT == "prod"
+            and self.MFA_ENCRYPTION_KEY == DEFAULT_DEV_MFA_KEY
+        ):
+            raise ValueError(
+                "CRITICAL SECURITY ERROR: You are using the default insecure "
+                "MFA_ENCRYPTION_KEY in production! Please set a secure random key "
+                "using 'MFA_ENCRYPTION_KEY' environment variable."
+            )
+        return self
 
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300

@@ -50,3 +50,18 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget -qO- http://localhost:4000/health || exit 1
 
 CMD ["node", "index.js"]
+# Production Dockerfile for App Gateway
+FROM node:18-alpine AS base
+WORKDIR /app
+COPY src/gateway/package*.json ./
+RUN npm ci --only=production
+COPY src/gateway .
+EXPOSE 4000
+CMD ["node", "server.js"]
+
+FROM base AS development
+RUN npm install
+CMD ["npm", "run", "dev"]
+
+FROM base AS production
+CMD ["node", "server.js"]
