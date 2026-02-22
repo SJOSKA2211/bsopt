@@ -102,7 +102,6 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
-        default=_DEFAULT_DEV_MFA_KEY,
         default=DEFAULT_DEV_MFA_KEY,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
