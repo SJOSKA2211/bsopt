@@ -6,15 +6,15 @@ Handles asynchronous trading operations. Fully implemented with risk simulation.
 
 import logging
 import time
+import sys
 
+from src.utils.lazy_import import lazy_import
 from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 
-import sys
 
-from src.utils.lazy_import import lazy_import
 
 # Lazy Import Map
 _IMPORT_MAP = {

@@ -7,12 +7,14 @@ on:
     branches: [ main, master ]
 
 jobs:
-  docker-build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -20,6 +22,7 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
+            
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
@@ -30,31 +33,30 @@ jobs:
           large-packages: true
           docker-images: false
           swap-storage: false
+          
+      - name: Setup Environment
+        run: |
+          cp .env.example .env
+          cp .env.test .env || echo "No .env.test found, continuing"
+          
       - name: Build Images via Makefile
         run: make build
+        
+      - name: Start Missing Dependencies
+        run: docker compose up -d postgres redis rabbitmq
 
-  quality-checks:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    steps:
-      - uses: actions/checkout@v4
       - name: Lint, Format, and Security Scan via Makefile
         run: |
           make lint
           make format
           make security-scan
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: quality-checks
-    steps:
-      - uses: actions/checkout@v4
+          
       - name: Run Integration Tests via Makefile
         run: make test-all
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [quality-checks, integration-tests]
+    needs: build-and-test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4

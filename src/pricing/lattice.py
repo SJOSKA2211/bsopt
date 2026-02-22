@@ -13,6 +13,7 @@ import numpy as np
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
 from .models import BSParameters
+from numba import njit
 
 
 @dataclass
@@ -29,7 +30,7 @@ class LatticeParameters(BSParameters):
     n_steps: int = 100
 
 
-from numba import njit
+
 
 # =============================================================================
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)

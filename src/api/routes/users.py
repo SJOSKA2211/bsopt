@@ -17,11 +17,12 @@ from src.api.schemas.common import (
 from src.api.schemas.user import UserResponse, UserUpdateRequest
 from src.database import get_db
 from src.database.models import User
+from src.api.deps import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-from src.api.deps import get_current_user
+
 
 
 @router.get("/me")

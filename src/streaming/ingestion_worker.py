@@ -9,6 +9,9 @@ from fastapi.responses import ORJSONResponse
 from src.database import get_async_db_context
 from src.shared.observability import setup_logging, tune_gc
 from src.streaming.kafka_consumer import MarketDataConsumer
+from src.api.websockets.manager import manager as ws_manager
+from src.data.xdp_ingest import XDPIngester
+from src.shared.eternal_ledger import EternalLedger
 
 # Optimized event loop
 try:
@@ -23,8 +26,7 @@ setup_logging()
 logger = structlog.get_logger(__name__)
 tune_gc(mode="high_frequency")  # Optimized for high-frequency trading workers
 
-from src.api.websockets.manager import manager as ws_manager
-from src.data.xdp_ingest import XDPIngester
+
 
 
 class BroadcastWorker:
@@ -52,7 +54,7 @@ class BroadcastWorker:
                 self.queue.task_done()
 
 
-from src.shared.eternal_ledger import EternalLedger
+
 
 
 class PersistenceWorker:
