@@ -3,10 +3,6 @@ import numpy as np
 import structlog
 from gymnasium import spaces
 
-logger = structlog.get_logger()
-
-import structlog
-
 from .kernels import _calculate_reward_kernel, _fused_state_kernel
 
 logger = structlog.get_logger()

@@ -32,7 +32,7 @@ class InMemoryFeatureStore(FeatureStore):
         # ... (caching logic)
         redis = get_redis()
         if redis:
-            cache_key = f"feature_cache:{data_hash}"
+            cache_key = f"feature_cache:{hash(tuple(feature_names))}"
             try:
                 cached = await redis.get(cache_key)
                 if cached:

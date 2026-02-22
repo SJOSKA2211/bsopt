@@ -7,13 +7,13 @@ import logging
 import time
 from collections.abc import Callable
 from typing import Any
+import asyncio
+from src.shared.off_heap_logger import omega_logger
 
 logger = logging.getLogger("audit")
 
 
-import asyncio
 
-from src.shared.off_heap_logger import omega_logger
 
 
 def robust_pricing_task(error_return_value: Any = None):

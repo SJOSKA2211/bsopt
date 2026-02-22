@@ -273,7 +273,7 @@ async def refresh(data: RefreshTokenRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email")
-async def verify_email(data: EmailVerificationRequest, db: Session = Depends(get_db)):
+async def verify_email_post(data: EmailVerificationRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.verification_token == data.token).first()
     if not user:
         raise ValidationException(message="Invalid or expired verification token")
@@ -577,4 +577,3 @@ async def oauth_callback(provider: str, code: str, db: Session = Depends(get_db)
         ),
         message=f"Logged in via {provider} successfully",
     )
-    return {"keys": [key.as_dict()]}
