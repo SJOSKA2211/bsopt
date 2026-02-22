@@ -7,6 +7,7 @@ import structlog
 
 from src.aiops.remediators import BaseRemediator, RemediationPlanner
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
+from src.ml.drift import calculate_ks_test, calculate_psi
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +59,6 @@ class SelfHealingOrchestrator:
             # 3. Intelligent Remediation Planning
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
-<<<<<<< Updated upstream
                 if actions:
                     logger.info("executing_remediation_plan", 
                                 anomaly_type=anomaly.get("type"), 
@@ -112,47 +112,6 @@ class SelfHealingOrchestrator:
             self.reference_data = current_data
             logger.info("drift_baseline_updated")
             
-=======
-                for action in actions:
-                    if action.can_run():
-                        logger.info(
-                            "executing_remediation",
-                            action=action.name,
-                            anomaly=anomaly.get("type"),
-                        )
-                        success = await action.remediate(anomaly)
-                        await action.update_last_run()
-
-                        self._record_history(action.name, anomaly, success)
-                    else:
-                        logger.debug("remediation_skipped_cooldown", action=action.name)
-
-        except Exception as e:
-            logger.error("self_healing_cycle_error", error=str(e))
-
-    def _record_history(self, action: str, anomaly: dict, success: bool):
-        self.history.append(
-            {
-                "timestamp": time.time(),
-                "action": action,
-                "anomaly": anomaly.get("type"),
-                "success": success,
-            }
-        )
-        if len(self.history) > self.max_history:
-            self.history.pop(0)
-
-    def _analyze_drift(self, current_data: pd.DataFrame) -> list[dict]:
-        drift_anomalies = []
-        
-        # Periodically update reference data (every 4 hours)
-        now = time.time()
-        if now - self.last_baseline_update > 14400:
-            self.reference_data = current_data
-            self.last_baseline_update = now
-            logger.info("drift_baseline_updated", timestamp=now)
-
->>>>>>> Stashed changes
         return drift_anomalies
 
     async def start(self, data_source: Any):

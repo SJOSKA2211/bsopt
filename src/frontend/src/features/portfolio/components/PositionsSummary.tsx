@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -32,9 +32,18 @@ export const PositionsSummary: React.FC = React.memo(() => {
   const theme = useTheme();
   const { data, isLoading, error } = usePortfolio();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
+  const [enrichedPositions, setEnrichedPositions] = useState<any[]>([]);
 
-  const enrichedPositions = useMemo(() => {
-    if (!data || !isWasmLoaded) return data?.positions || [];
+  useEffect(() => {
+    if (!data) {
+        setEnrichedPositions([]);
+        return;
+    }
+
+    if (!isWasmLoaded) {
+        setEnrichedPositions(data.positions || []);
+        return;
+    }
 
     const now = new Date();
     const rate = 0.05;
@@ -56,12 +65,17 @@ export const PositionsSummary: React.FC = React.memo(() => {
       };
     });
 
-    const results = batchCalculate(params);
+    batchCalculate(params).then(results => {
+        const enriched = data.positions.map((pos, i) => ({
+            ...pos,
+            theor_greeks: results[i]?.greeks
+        }));
+        setEnrichedPositions(enriched);
+    }).catch(err => {
+        console.error("WASM batch calculation failed", err);
+        setEnrichedPositions(data.positions || []);
+    });
 
-    return data.positions.map((pos, i) => ({
-      ...pos,
-      theor_greeks: results[i]?.greeks
-    }));
   }, [data, isWasmLoaded, batchCalculate]);
 
   if (isLoading) {

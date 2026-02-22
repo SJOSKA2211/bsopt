@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react/lib/core';
 import * as echarts from 'echarts/core';
 import { HeatmapChart } from 'echarts/charts';
@@ -41,6 +41,7 @@ interface OptionData {
 export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }) => {
   const theme = useTheme();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
+  const [processedData, setProcessedData] = useState<OptionData[]>([]);
 
   const { data: optionsData, isLoading, error } = useQuery<OptionData[]>({
     queryKey: ['options-chain', symbol, 'all'],
@@ -54,35 +55,53 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   });
 
   // Enrich data with WASM for Greeks if loaded
-  const processedData = useMemo(() => {
-    if (!optionsData || !isWasmLoaded) return optionsData || [];
+  useEffect(() => {
+    if (!optionsData) {
+      setProcessedData([]);
+      return;
+    }
 
-    // Generate all params for batch calculation
-    const params = optionsData.map(d => ({
-      spot: d.underlying_price,
-      strike: d.strike,
-      time: 30 / 365, // Mock time
-      vol: d.call_iv,
-      rate: 0.05,
-      div: 0.0,
-      is_call: true
-    }));
+    if (!isWasmLoaded) {
+      setProcessedData(optionsData);
+      return;
+    }
 
-    const results = batchCalculate(params);
+    const runCalculation = async () => {
+      // Generate all params for batch calculation
+      const params = optionsData.map(d => ({
+        spot: d.underlying_price,
+        strike: d.strike,
+        time: 30 / 365, // Mock time
+        vol: d.call_iv,
+        rate: 0.05,
+        div: 0.0,
+        is_call: true
+      }));
 
-    return optionsData.map((d, i) => {
-      const result = results[i];
-      if (result) {
-        return {
-          ...d,
-          call_delta: result.greeks.delta,
-          call_gamma: result.greeks.gamma,
-          call_vega: result.greeks.vega,
-          call_theta: result.greeks.theta,
-        };
+      try {
+        const results = await batchCalculate(params);
+
+        const newData = optionsData.map((d, i) => {
+          const result = results[i];
+          if (result) {
+            return {
+              ...d,
+              call_delta: result.greeks.delta,
+              call_gamma: result.greeks.gamma,
+              call_vega: result.greeks.vega,
+              call_theta: result.greeks.theta,
+            };
+          }
+          return d;
+        });
+        setProcessedData(newData);
+      } catch (err) {
+        console.error("WASM calculation failed", err);
+        setProcessedData(optionsData);
       }
-      return d;
-    });
+    };
+
+    runCalculation();
   }, [optionsData, isWasmLoaded, batchCalculate]);
 
   const chartOptions = useMemo(() => {
@@ -160,7 +179,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       }],
       backgroundColor: 'transparent'
     };
-  }, [optionsData, greek, theme]);
+  }, [processedData, greek, theme]);
 
   if (isLoading) {
     return (

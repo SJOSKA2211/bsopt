@@ -75,8 +75,13 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
       }
     }
 
-    const results = batchCalculate(params);
-    setSurfaceData(results.map(r => r.price));
+    // Await the promise
+    batchCalculate(params).then(results => {
+        setSurfaceData(results.map(r => r.price));
+    }).catch(err => {
+        console.error("Failed to calculate surface", err);
+    });
+
   }, [isLoaded, batchCalculate]);
 
   return (

@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IconButton, Tooltip, Stack, Typography } from '@mui/material';
 import { ShowChart } from '@mui/icons-material';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
+import type { OptionResult } from '../../../hooks/useWasmPricing';
 
 interface WasmGreeksCellProps {
   spot: number;
@@ -23,10 +24,13 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
   isCall,
 }) => {
   const { priceOption, isLoaded } = useWasmPricing();
+  const [result, setResult] = useState<OptionResult | null>(null);
 
-  const result = useMemo(() => {
-    if (!isLoaded) return null;
-    return priceOption({
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    let mounted = true;
+    priceOption({
       spot,
       strike,
       time,
@@ -34,7 +38,15 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
       rate,
       div,
       is_call: isCall,
+    }).then(res => {
+      if (mounted && res) {
+        setResult(res);
+      }
+    }).catch(err => {
+      console.error("WASM pricing failed", err);
     });
+
+    return () => { mounted = false; };
   }, [isLoaded, spot, strike, time, vol, rate, div, isCall, priceOption]);
 
   if (!isLoaded || !result) {
