@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from src.api.exceptions import (
     AuthenticationException,
+    ConflictException,
     NotFoundException,
     ValidationException,
 )
@@ -35,17 +36,9 @@ from src.api.schemas.common import DataResponse
 from src.config import settings
 from src.database import get_db
 from src.database.models import User
-<<<<<<< Updated upstream
 from src.security.auth import auth_service, get_current_active_user, get_current_user
-=======
-from src.security.auth import (
-    auth_service,
-    get_current_active_user,
-    get_current_user,
-    token_blacklist,
-)
->>>>>>> Stashed changes
 from src.security.password import password_service
+from src.utils.cache import idempotency_manager
 
 logger = logging.getLogger(__name__)
 
@@ -53,37 +46,12 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 async def _send_verification_email(email: str, token: str):
-<<<<<<< Updated upstream
     """Placeholder for email verification helper."""
     logger.info(f"Sending verification email to {email}")
 
 async def _send_password_reset_email(email: str, token: str):
     """Placeholder for password reset helper."""
     logger.info(f"Sending password reset email to {email}")
-=======
-    """Sends verification email using configured provider or logs for development."""
-    subject = "Verify your BSOPT Account"
-    link = f"{settings.CORS_ORIGINS[0]}/verify-email?token={token}"
-    body = f"Please verify your account by clicking: {link}"
-
-    if settings.SENDGRID_API_KEY == "mock_key":
-        logger.info("email_sent_mock", recipient=email, subject=subject, link=link)
-    else:
-        # In production, use SendGrid/SES here
-        logger.info("email_sent_prod", recipient=email, subject=subject)
-
-
-async def _send_password_reset_email(email: str, token: str):
-    """Sends password reset email using configured provider or logs for development."""
-    subject = "Reset your BSOPT Password"
-    link = f"{settings.CORS_ORIGINS[0]}/reset-password?token={token}"
-    body = f"Click here to reset your password: {link}"
->>>>>>> Stashed changes
-
-    if settings.SENDGRID_API_KEY == "mock_key":
-        logger.info("reset_email_sent_mock", recipient=email, subject=subject, link=link)
-    else:
-        logger.info("reset_email_sent_prod", recipient=email, subject=subject)
 
 
 @router.get("/verify-email")
@@ -147,7 +115,6 @@ async def register(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-<<<<<<< Updated upstream
     # Idempotency check
     if not await idempotency_manager.check_and_set(f"reg:{data.email}", ttl=300):
         raise ConflictException(message="Registration already in progress")
@@ -183,16 +150,6 @@ async def register(
     # Send verification email (background)
     background_tasks.add_task(_send_verification_email, user.email, user.verification_token)
     
-=======
-    # Idempotency check...
-
-    # ... (existing registration logic)
-
-    # Add token cleanup task occasionally
-    if secrets.randbelow(100) < 5:
-        background_tasks.add_task(token_blacklist.cleanup)
-
->>>>>>> Stashed changes
     return DataResponse(
         data={"id": str(user.id), "email": user.email},
         message="User created. Please verify your email.",
@@ -282,7 +239,7 @@ async def refresh(data: RefreshTokenRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email")
-async def verify_email(data: EmailVerificationRequest, db: Session = Depends(get_db)):
+async def verify_email_post(data: EmailVerificationRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.verification_token == data.token).first()
     if not user:
         raise ValidationException(message="Invalid or expired verification token")
@@ -498,89 +455,12 @@ async def openid_configuration(request: Request):
         "jwks_uri": f"{base_url}/api/v1/auth/jwks",
     }
 
-<<<<<<< Updated upstream
+
 @router.get("/jwks")
 async def jwks():
     from authlib.jose import JsonWebKey
     key = JsonWebKey.import_key(
         settings.rsa_public_key, 
         {"kty": "RSA", "kid": "internal-key-01", "use": "sig"}
-=======
-
-@router.get("/oauth/login/{provider}")
-async def oauth_login(provider: str, request: Request):
-    """Redirect to OAuth provider login page."""
-    if provider not in ["google", "github"]:
-        raise ValidationException(message="Unsupported OAuth provider")
-
-    # Mock redirect URL - in production, use authlib/starlette-auth
-    return {
-        "url": f"https://{provider}.com/oauth/authorize?client_id=MOCK&redirect_uri={request.base_url}api/v1/auth/oauth/callback/{provider}"
-    }
-
-
-@router.get("/oauth/callback/{provider}", response_model=DataResponse[TokenResponse])
-async def oauth_callback(provider: str, code: str, db: Session = Depends(get_db)):
-    """Handle OAuth callback and upsert user via native Postgres procedure."""
-    if provider not in ["google", "github"]:
-        raise ValidationException(message="Unsupported OAuth provider")
-
-    # 1. Exchange code for access token (Mocked)
-    access_token = f"mock_access_{secrets.token_hex(16)}"
-    refresh_token = f"mock_refresh_{secrets.token_hex(16)}"
-
-    # 2. Fetch user info from provider (Mocked)
-    email = (
-        f"user_{secrets.token_hex(4)}@gmail.com"
-        if provider == "google"
-        else f"git_{secrets.token_hex(4)}@github.com"
-    )
-    provider_id = secrets.token_hex(8)
-
-    # 3. Use Native Postgres Procedure to Upsert User
-    # We use raw SQL to call the procedure created in Migration 002
-    try:
-        result = db.execute(
-            text(
-                "SELECT upsert_oauth_user(:provider, :provider_id, :email, :access_token, :refresh_token, :expires_at)"
-            ),
-            {
-                "provider": provider,
-                "provider_id": provider_id,
-                "email": email,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "expires_at": datetime.now(UTC).replace(
-                    year=datetime.now(UTC).year + 1
-                ),  # Mock 1 year expiry
-            },
-        )
-        user_id = result.scalar()
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(f"oauth_upsert_failed: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to sync OAuth user with database"
-        )
-
-    # 4. Fetch the user model to create JWT
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise NotFoundException(message="User not found after OAuth sync")
-
-    tokens = auth_service.create_token_pair(str(user.id), user.email, user.tier)
-    return DataResponse(
-        data=TokenResponse(
-            access_token=tokens.access_token,
-            refresh_token=tokens.refresh_token,
-            token_type=tokens.token_type,
-            expires_in=tokens.expires_in,
-            user_id=str(user.id),
-            email=user.email,
-            tier=user.tier,
-        ),
-        message=f"Logged in via {provider} successfully",
->>>>>>> Stashed changes
     )
     return {"keys": [key.as_dict()]}

@@ -21,7 +21,7 @@ from src.database.models import User
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-from src.api.deps import get_current_user
+from src.security.auth import get_current_user
 
 
 @router.get("/me")

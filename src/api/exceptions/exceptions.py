@@ -29,6 +29,10 @@ class BaseAPIException(HTTPException):
         self.message = message or self.message
         self.details = details or self.details
 
+    @property
+    def error_code(self) -> str:
+        return self.error
+
 
 class NotFoundException(BaseAPIException):
     status_code = status.HTTP_404_NOT_FOUND

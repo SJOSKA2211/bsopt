@@ -117,15 +117,11 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     start_time = time.time()
 
     # Trace Injection: Use existing ID or generate new one
-<<<<<<< Updated upstream
-    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
-=======
     request_id = (
         request.headers.get("X-Correlation-ID")
         or request.headers.get("X-Request-ID")
         or str(uuid.uuid4())
     )
->>>>>>> Stashed changes
     request.state.request_id = request_id
 
     response = await call_next(request)
@@ -150,11 +146,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     # Always log errors (4xx, 5xx) and redirects (3xx).
     should_log = True
     if 200 <= response.status_code < 300:
-<<<<<<< Updated upstream
-        if random.random() > 0.1: # 10% sampling rate
-=======
         if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
->>>>>>> Stashed changes
             should_log = False
 
     if should_log:
@@ -173,8 +165,6 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     response.headers["X-Request-ID"] = request_id
     return response
 
-<<<<<<< Updated upstream
-=======
 
 # System Metrics (Defined at module level to avoid registration leaks)
 PROCESS_CPU_USAGE = Gauge(
@@ -185,7 +175,6 @@ PROCESS_MEMORY_USAGE = Gauge(
 )
 
 
->>>>>>> Stashed changes
 # System Metrics
 def update_system_metrics(service_name: str):
     """Capture real-time resource utilization for the current process."""
@@ -193,23 +182,13 @@ def update_system_metrics(service_name: str):
         import psutil
 
         process = psutil.Process()
-<<<<<<< Updated upstream
-        # Note: interval=None makes it non-blocking (returns diff since last call)
-        PROCESS_CPU_USAGE = Gauge('process_cpu_usage_percent', 'CPU usage of the current process', ['service'])
-        PROCESS_MEMORY_USAGE = Gauge('process_memory_usage_bytes', 'RSS memory usage of the current process', ['service'])
-        
-        PROCESS_CPU_USAGE.labels(service=service_name).set(process.cpu_percent(interval=None))
-=======
         PROCESS_CPU_USAGE.labels(service=service_name).set(
             process.cpu_percent(interval=None)
         )
->>>>>>> Stashed changes
         PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
     except Exception:
         pass
 
-<<<<<<< Updated upstream
-=======
 
 def start_system_metrics_loop(service_name: str, interval: int = 15):
     """Starts a background thread to periodically update system metrics."""
@@ -225,7 +204,6 @@ def start_system_metrics_loop(service_name: str, interval: int = 15):
     executor.submit(_loop)
 
 
->>>>>>> Stashed changes
 # Common Metrics
 SCRAPE_DURATION = Summary(
     "market_scrape_duration_seconds", "Time spent scraping market data", ["api"]
