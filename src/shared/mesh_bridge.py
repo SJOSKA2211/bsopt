@@ -59,11 +59,13 @@ class MeshBridge:
     def run_listener(self, cpu_core: int = 10):
         """Listens for batch packets and writes them to local SHM."""
         self.running = True
-        
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.multicast_group, self.port))
-        mreq = struct.pack("4sl", socket.inet_aton(self.multicast_group), socket.INADDR_ANY)
+        mreq = struct.pack(
+            "4sl", socket.inet_aton(self.multicast_group), socket.INADDR_ANY
+        )
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         # Buffer for MTU-sized packets

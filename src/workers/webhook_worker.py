@@ -32,31 +32,38 @@ from src.utils.lazy_import import lazy_import
 _IMPORT_MAP = {
     "get_redis": "src.utils.cache.get_redis",
     "DistributedCircuitBreaker": "src.utils.circuit_breaker.DistributedCircuitBreaker",
-    "InMemoryCircuitBreaker": "src.utils.circuit_breaker.InMemoryCircuitBreaker"
+    "InMemoryCircuitBreaker": "src.utils.circuit_breaker.InMemoryCircuitBreaker",
 }
+
 
 def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
 
+
 _webhook_dispatcher = None
+
 
 def get_webhook_dispatcher():
     global _webhook_dispatcher
     if _webhook_dispatcher is None:
         get_redis = _get_attr("get_redis")
         redis_client = get_redis()
-        
+
         if redis_client is None:
             InMemoryCircuitBreaker = _get_attr("InMemoryCircuitBreaker")
-            circuit_breaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
+            circuit_breaker = InMemoryCircuitBreaker(
+                failure_threshold=5, recovery_timeout=30
+            )
         else:
             DistributedCircuitBreaker = _get_attr("DistributedCircuitBreaker")
-            circuit_breaker = DistributedCircuitBreaker(name="webhook_dispatch", redis_client=redis_client)
+            circuit_breaker = DistributedCircuitBreaker(
+                name="webhook_dispatch", redis_client=redis_client
+            )
 
         _webhook_dispatcher = WebhookDispatcher(
             celery_app=celery_app,
             circuit_breaker=circuit_breaker,
-            dlq_task=send_to_dlq_task
+            dlq_task=send_to_dlq_task,
         )
     return _webhook_dispatcher
 

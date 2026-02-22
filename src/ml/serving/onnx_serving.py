@@ -75,17 +75,22 @@ class ONNXModelServer:
     Ultra-low latency model server using ONNX Runtime.
     OPTIMIZED: Memory pinning and concurrent execution.
     """
+
     def __init__(self, model_path: str):
         self.model_path = model_path
         sess_options = ort.SessionOptions()
         sess_options.intra_op_num_threads = os.cpu_count() or 4
         # OPTIMIZED: Enable memory pinning for faster H2D transfers
-        sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
-        
+        sess_options.add_session_config_entry(
+            "session.use_device_allocator_for_initializers", "1"
+        )
+
         # ... (providers logic stays same)
         providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-        
-        self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
+
+        self.session = ort.InferenceSession(
+            model_path, sess_options, providers=providers
+        )
         self.input_name = self.session.get_inputs()[0].name
         self.output_name = self.session.get_outputs()[0].name
 
@@ -96,6 +101,7 @@ class ONNXModelServer:
             features = features.astype(np.float32)
         return self.session.run([self.output_name], {self.input_name: features})[0]
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -103,16 +109,17 @@ async def lifespan(app: FastAPI):
     """
     global model_server
     import anyio
-    
+
     # Prioritize quantized model
     model_path = os.getenv("ONNX_MODEL_PATH", "models/latest_pricing.onnx")
     if await anyio.to_thread.run_sync(os.path.exists, model_path):
         logger.info("loading_onnx_model", path=model_path)
         model_server = ONNXModelServer(model_path)
-    
+
     yield
     # Cleanup logic if needed
     model_server = None
+
 
 app = FastAPI(title="BS-Opt ONNX Serving", lifespan=lifespan)
 

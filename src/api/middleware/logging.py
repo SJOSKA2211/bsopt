@@ -153,25 +153,26 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Start timing
         start_time = time.perf_counter()
-        
+
         # 1. Use existing request ID from my optimized generator
         request_id = getattr(request.state, "request_id", "unknown")
 
         # ... (process request)
         response = await call_next(request)
         status_code = response.status_code
-        
+
         # 2. Optimized Logging with Sampling
         duration_ms = int((time.perf_counter() - start_time) * 1000)
         from src.shared.observability import settings
-        
+
         # Use sampling for successful logs to reduce I/O
         should_log = True
         if 200 <= status_code < 300:
             import random
+
             if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
                 should_log = False
-        
+
         if should_log or status_code >= 400:
             log_entry = {
                 "request_id": request_id,
@@ -179,13 +180,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "path": path,
                 "status_code": status_code,
                 "duration_ms": duration_ms,
-                **self._get_user_info(request)
+                **self._get_user_info(request),
             }
-            
+
             # OPTIMIZED: Hand off to Off-Heap Logger for zero-latency persistence
             from src.shared.off_heap_logger import omega_logger
+
             omega_logger.log("api_request", **log_entry)
-            
+
             # Still log to console for visibility
             request_logger.info(msgspec.json.encode(log_entry).decode("utf-8"))
 

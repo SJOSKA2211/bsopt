@@ -99,12 +99,15 @@ class AsianOptionPricer:
         if T <= 1e-12:
             return float(max(S - K, 0.0) if is_call else max(K - S, 0.0)), 0.0
 
-        from src.pricing.quant_utils import fused_arithmetic_asian_payoff, jit_generate_log_paths
+        from src.pricing.quant_utils import (
+            fused_arithmetic_asian_payoff,
+            jit_generate_log_paths,
+        )
 
         log_paths = jit_generate_log_paths(
             S, T, r, sigma, q, n_paths, params.n_observations
         )
-        
+
         # OPTIMIZED: Fused kernel call (no large paths matrix allocation)
         y_sim = fused_arithmetic_asian_payoff(log_paths, K, r, T, is_call, is_fixed)
 
@@ -353,7 +356,10 @@ class LookbackOptionPricer:
         is_call = option_type == "call"
         is_floating = strike_type == StrikeType.FLOATING
 
-        from src.pricing.quant_utils import fused_lookback_payoff, jit_generate_log_paths
+        from src.pricing.quant_utils import (
+            fused_lookback_payoff,
+            jit_generate_log_paths,
+        )
 
         log_paths = jit_generate_log_paths(
             S, T, r, sigma, q, n_paths, params.n_observations

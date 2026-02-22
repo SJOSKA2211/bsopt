@@ -30,6 +30,7 @@ if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
 # Ensure sync engine gets sync URL
 sync_url = db_url.replace("+asyncpg", "")
 
+
 # --- ENGINES ---
 def get_engine():
     """Returns the synchronous SQLAlchemy engine."""

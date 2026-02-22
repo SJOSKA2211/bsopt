@@ -34,9 +34,9 @@ async def get_current_user_profile(user: User = Depends(get_current_user)):
 
 @router.patch("/me")
 async def update_current_user_profile(
-    update_data: UserUpdateRequest, 
+    update_data: UserUpdateRequest,
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Update profile for the current user.

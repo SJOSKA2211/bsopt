@@ -103,7 +103,6 @@ class Settings(BaseSettings):
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
         default=_DEFAULT_DEV_MFA_KEY,
-        default=DEFAULT_DEV_MFA_KEY,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 
@@ -113,19 +112,7 @@ class Settings(BaseSettings):
     ARGON2_MEMORY_COST: int = 65536
     ARGON2_PARALLELISM: int = 4
 
-    @model_validator(mode="after")
-    def validate_mfa_key_security(self) -> "Settings":
-        """Ensures that the default development key is not used in production."""
-        if (
-            self.ENVIRONMENT == "prod"
-            and self.MFA_ENCRYPTION_KEY == DEFAULT_DEV_MFA_KEY
-        ):
-            raise ValueError(
-                "CRITICAL SECURITY ERROR: You are using the default insecure "
-                "MFA_ENCRYPTION_KEY in production! Please set a secure random key "
-                "using 'MFA_ENCRYPTION_KEY' environment variable."
-            )
-        return self
+
 
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300

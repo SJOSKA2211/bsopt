@@ -20,7 +20,9 @@ def sanitize_path(base_dir: Path, user_path: str) -> Path:
 
     return full_path
 
+
 async def sanitize_path_async(base_dir: Path, user_path: str) -> Path:
     """Non-blocking path sanitization."""
     from anyio.to_thread import run_sync
+
     return await run_sync(sanitize_path, base_dir, user_path)

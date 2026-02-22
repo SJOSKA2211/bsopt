@@ -165,6 +165,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     response.headers["X-Request-ID"] = request_id
     return response
 
+
 # System Metrics (Defined at module level to avoid registration leaks)
 PROCESS_CPU_USAGE = Gauge(
     "process_cpu_usage_percent", "CPU usage of the current process", ["service"]
@@ -187,6 +188,7 @@ def update_system_metrics(service_name: str):
         PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
     except Exception:
         pass
+
 
 def start_system_metrics_loop(service_name: str, interval: int = 15):
     """Starts a background thread to periodically update system metrics."""

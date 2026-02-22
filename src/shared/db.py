@@ -13,14 +13,17 @@ def get_db_session() -> Session:
     """Creates a new sync database session (use with caution)."""
     return SessionLocal()
 
+
 async def get_async_db_session() -> AsyncSession:
     """Creates a new high-performance async database session."""
     return AsyncSessionLocal()
+
 
 class MinioStorage:
     """
     Client for MinIO storage with OPTIMIZED non-blocking execution.
     """
+
     def __init__(
         self, endpoint: str, access_key: str, secret_key: str, secure: bool = False
     ):
