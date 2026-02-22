@@ -14,7 +14,7 @@ COPY pyproject.toml requirements.txt ./
 
 # Lightning-fast dependency resolution
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+    uv pip install --system --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -r requirements.txt
 
 
 # === Stage 2: Development ===

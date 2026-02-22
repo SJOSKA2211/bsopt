@@ -76,10 +76,6 @@ class TokenBlacklist:
     async def contains(self, jti: str) -> bool:
         if self._redis:
             return bool(await self._redis.exists(f"blacklist:{jti}"))
-<<<<<<< Updated upstream
-        return jti in self._blacklist
-=======
-
         # Check memory and self-clean if hit
         exp = self._blacklist.get(jti)
         if exp:
@@ -87,7 +83,6 @@ class TokenBlacklist:
                 return True
             del self._blacklist[jti]  # Expired, remove
         return False
->>>>>>> Stashed changes
 
     async def cleanup(self):
         """Cleanup expired tokens from memory blacklist."""
@@ -132,9 +127,8 @@ class AuthService:
         self, db: Any, email: str, password: str, request: Request
     ) -> User | None:
         """Authenticate a user by email and password with timing attack protection."""
-<<<<<<< Updated upstream
-        
         # Check if db.execute is an async function (AsyncSession)
+        import inspect
         is_async = hasattr(db, 'execute') and inspect.iscoroutinefunction(db.execute)
         
         if is_async: 
@@ -142,39 +136,16 @@ class AuthService:
              user = result.scalar_one_or_none()
         else: # Fallback for sync session or MagicMock
              user = db.query(User).filter(User.email == email).first()
-        
-=======
-
-        result = await db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
-
->>>>>>> Stashed changes
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
         user_exists = True
         if not user:
-<<<<<<< Updated upstream
-            user_exists = False
-            # Create a dummy user with a placeholder hashed password to ensure password verification always runs
-            user = User(
-                email="nonexistent@example.com",
-                hashed_password=password_service.hash_password(secrets.token_urlsafe(32)), # Use a random hash
-                full_name="Dummy User",
-                tier="free",
-                is_active=False,
-                is_verified=False,
-                created_at=datetime.now(UTC)
-            )
-        
-=======
             # Create a dummy hash to burn CPU time consistently
             dummy_hash = password_service.hash_password(secrets.token_urlsafe(32))
             await run_in_threadpool(
                 password_service.verify_password, password, dummy_hash
             )
             return None
-
->>>>>>> Stashed changes
         # Always run password verification
         password_matches = await run_in_threadpool(
             password_service.verify_password, password, user.hashed_password
@@ -182,23 +153,11 @@ class AuthService:
 
         if not user_exists or not password_matches:
             return None
-<<<<<<< Updated upstream
-            
         # Optimization: Rehash legacy passwords on successful login to migrate to Argon2id
         if password_service.needs_rehash(user.hashed_password):
             logger.info("password_rehash_triggered_on_login", user_id=str(user.id), email=user.email)
             user.hashed_password = await run_in_threadpool(password_service.hash_password, password)
             # Persisted by the commit in the calling login route
-            
-=======
-
-        # Optimization: Rehash legacy passwords on successful login
-        if password_service.needs_rehash(user.hashed_password):
-            user.hashed_password = await run_in_threadpool(
-                password_service.hash_password, password
-            )
-
->>>>>>> Stashed changes
         return user
 
     def create_token_pair(self, user_id: str, email: str, tier: str) -> TokenPair:
@@ -388,8 +347,6 @@ async def get_current_user_flexible(
     # 1. API Key Auth (Programmatic)
     if api_key_user:
         return api_key_user
-<<<<<<< Updated upstream
-        
     # 2. Better Auth Session (New Primary Auth)
     from src.auth.better_auth import get_current_user as get_better_auth_user
     try:
@@ -401,10 +358,6 @@ async def get_current_user_flexible(
         pass # Fallback to legacy JWT if Better Auth fails/missing
 
     # 3. Legacy JWT Auth (Migration Path)
-=======
-
-    # 2. Legacy JWT Auth
->>>>>>> Stashed changes
     try:
         return await get_current_user(request, token, db, auth_service)
     except HTTPException:
