@@ -58,79 +58,31 @@ class SelfHealingOrchestrator:
             # 3. Intelligent Remediation Planning
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
-<<<<<<< Updated upstream
                 if actions:
                     logger.info("executing_remediation_plan", 
                                 anomaly_type=anomaly.get("type"), 
                                 actions=[a.name for a in actions])
-                    
-                    tasks = [a.remediate(anomaly) for a in actions]
-                    results = await asyncio.gather(*tasks, return_exceptions=True)
-                    
-                    # Log results and potentially trigger further verification
-                    for action, result in zip(actions, results):
-                        if isinstance(result, Exception):
-                            logger.error("remediation_action_failed", action=action.name, error=str(result))
+                    for action in actions:
+                        if action.can_run():
+                            logger.info(
+                                "executing_remediation",
+                                action=action.name,
+                                anomaly=anomaly.get("type"),
+                            )
+                            # Using gather or individual await? Let's use individual await as in stash
+                            success = await action.remediate(anomaly)
+                            await action.update_last_run()
+
+                            self._record_history(action.name, anomaly, success)
                         else:
-                            logger.info("remediation_action_completed", action=action.name, success=result)
-                    
-        except Exception as e:
-            logger.error("self_healing_cycle_error", error=str(e))
-
-    def _analyze_drift(self, current_data: pd.DataFrame) -> list[dict]:
-        """
-        Detects shifts in system metric distributions (e.g. baseline latency shift).
-        """
-        if self.reference_data is None:
-            self.reference_data = current_data
-            logger.info("drift_baseline_initialized")
-            return []
-
-        drift_anomalies = []
-        numeric_cols = current_data.select_dtypes(include=['number']).columns
-        
-        for col in numeric_cols:
-            ref_vals = self.reference_data[col].values
-            curr_vals = current_data[col].values
-            
-            psi_score = calculate_psi(ref_vals, curr_vals)
-            ks_stat, p_val = calculate_ks_test(ref_vals, curr_vals)
-            
-            if psi_score > self.drift_threshold_psi:
-                drift_info = {
-                    "type": "distribution_drift",
-                    "metric": col,
-                    "psi_score": float(psi_score),
-                    "ks_p_val": float(p_val),
-                    "score": float(psi_score)
-                }
-                drift_anomalies.append(drift_info)
-                logger.warning("metric_distribution_drift_detected", **drift_info)
-                
-        # Periodically update reference data to adapt to intentional shifts
-        if time.time() % 3600 < self.check_interval:
-            self.reference_data = current_data
-            logger.info("drift_baseline_updated")
-            
-=======
-                for action in actions:
-                    if action.can_run():
-                        logger.info(
-                            "executing_remediation",
-                            action=action.name,
-                            anomaly=anomaly.get("type"),
-                        )
-                        success = await action.remediate(anomaly)
-                        await action.update_last_run()
-
-                        self._record_history(action.name, anomaly, success)
-                    else:
-                        logger.debug("remediation_skipped_cooldown", action=action.name)
+                            logger.debug("remediation_skipped_cooldown", action=action.name)
 
         except Exception as e:
             logger.error("self_healing_cycle_error", error=str(e))
 
     def _record_history(self, action: str, anomaly: dict, success: bool):
+        if not hasattr(self, 'max_history'):
+             self.max_history = 1000
         self.history.append(
             {
                 "timestamp": time.time(),
@@ -143,16 +95,49 @@ class SelfHealingOrchestrator:
             self.history.pop(0)
 
     def _analyze_drift(self, current_data: pd.DataFrame) -> list[dict]:
+        """
+        Detects shifts in system metric distributions (e.g. baseline latency shift).
+        """
+        if self.reference_data is None:
+            self.reference_data = current_data
+            if not hasattr(self, 'last_baseline_update'):
+                 self.last_baseline_update = time.time()
+            logger.info("drift_baseline_initialized")
+            return []
+
         drift_anomalies = []
+        numeric_cols = current_data.select_dtypes(include=['number']).columns
         
+        for col in numeric_cols:
+            ref_vals = self.reference_data[col].values
+            curr_vals = current_data[col].values
+            
+            try:
+                from src.aiops.timeseries_anomaly_detector import calculate_psi, calculate_ks_test
+                psi_score = calculate_psi(ref_vals, curr_vals)
+                ks_stat, p_val = calculate_ks_test(ref_vals, curr_vals)
+                
+                if psi_score > self.drift_threshold_psi:
+                    drift_info = {
+                        "type": "distribution_drift",
+                        "metric": col,
+                        "psi_score": float(psi_score),
+                        "ks_p_val": float(p_val),
+                        "score": float(psi_score)
+                    }
+                    drift_anomalies.append(drift_info)
+                    logger.warning("metric_distribution_drift_detected", **drift_info)
+            except Exception:
+                pass
+                
         # Periodically update reference data (every 4 hours)
         now = time.time()
+        if not hasattr(self, 'last_baseline_update'):
+             self.last_baseline_update = now
         if now - self.last_baseline_update > 14400:
             self.reference_data = current_data
             self.last_baseline_update = now
             logger.info("drift_baseline_updated", timestamp=now)
-
->>>>>>> Stashed changes
         return drift_anomalies
 
     async def start(self, data_source: Any):

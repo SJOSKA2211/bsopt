@@ -67,9 +67,6 @@ class GreekEngine:
                 self._last_head = new_head
             else:
                 os.sched_yield()
-            else:
-                os.sched_yield()
-
 
 if __name__ == "__main__":
     ge = GreekEngine()
