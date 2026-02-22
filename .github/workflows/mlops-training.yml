@@ -14,6 +14,8 @@ jobs:
       POSTGRES_PASSWORD: ci_test_password
       DATABASE_URL: postgresql://admin:ci_test_password@postgres:5432/bsopt
       REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ci_test_jwt_secret
+      BETTER_AUTH_SECRET: ci_test_better_auth_secret
       MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
     steps:
       - uses: actions/checkout@v4
