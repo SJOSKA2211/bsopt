@@ -59,7 +59,7 @@ class TokenPair:
 
 class TokenBlacklist:
     def __init__(self) -> None:
-        self._blacklist: set = set()
+        self._blacklist: dict = {}
         self._redis = None
 
     async def initialize(self, redis_client=None):
@@ -71,7 +71,7 @@ class TokenBlacklist:
             if ttl > 0:
                 await self._redis.setex(f"blacklist:{jti}", ttl, "1")
         else:
-            self._blacklist.add(jti)
+            self._blacklist[jti] = exp
 
     async def contains(self, jti: str) -> bool:
         if self._redis:
@@ -87,8 +87,10 @@ class TokenBlacklist:
     async def cleanup(self):
         """Cleanup expired tokens from memory blacklist."""
         # Redis handles this automatically via TTL.
-        # For memory, we could store (jti, exp) and filter here.
-        pass
+        now = datetime.now(UTC)
+        expired = [jti for jti, exp in self._blacklist.items() if exp <= now]
+        for jti in expired:
+            del self._blacklist[jti]
 
 
 token_blacklist = TokenBlacklist()

@@ -121,6 +121,11 @@ async def lifespan(app: FastAPI):
     model_server = None
 
 
+# Module-level state
+model_server: ONNXModelServer | None = None
+decoder = msgspec.json.Decoder(PredictionRequest)
+encoder = msgspec.json.Encoder()
+
 app = FastAPI(title="BS-Opt ONNX Serving", lifespan=lifespan)
 
 
