@@ -36,30 +36,36 @@ def test_portfolio_relationships(db_engine):
         # Create User
         user_id = str(uuid4())
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO users (id, email, full_name, role)
             VALUES (:id, :email, 'Test User', 'trader')
-        """),
+        """
+            ),
             {"id": user_id, "email": "test@example.com"},
         )
 
         # Create Portfolio
         portfolio_id = str(uuid4())
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO portfolios (id, user_id, name)
             VALUES (:id, :user_id, 'Main Portfolio')
-        """),
+        """
+            ),
             {"id": portfolio_id, "user_id": user_id},
         )
 
         # Create Position
         position_id = str(uuid4())
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO positions (id, portfolio_id, symbol, quantity, avg_entry_price)
             VALUES (:id, :portfolio_id, 'AAPL', 10, 150.00)
-        """),
+        """
+            ),
             {"id": position_id, "portfolio_id": portfolio_id},
         )
 
@@ -67,13 +73,15 @@ def test_portfolio_relationships(db_engine):
 
         # Verify join
         result = conn.execute(
-            text("""
+            text(
+                """
             SELECT u.email, p.name, pos.symbol 
             FROM users u
             JOIN portfolios p ON u.id = p.user_id
             JOIN positions pos ON p.id = pos.portfolio_id
             WHERE u.id = :user_id
-        """),
+        """
+            ),
             {"user_id": user_id},
         )
 
@@ -97,23 +105,29 @@ def test_rls_enforcement(db_engine):
             conn.rollback()
 
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO users (id, email, role) VALUES (:id, 'a@test.com', 'trader')
-        """),
+        """
+            ),
             {"id": user_a},
         )
 
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO users (id, email, role) VALUES (:id, 'b@test.com', 'trader')
-        """),
+        """
+            ),
             {"id": user_b},
         )
 
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO portfolios (id, user_id, name) VALUES (:id, :uid, 'A Portfolio')
-        """),
+        """
+            ),
             {"id": str(uuid4()), "uid": user_a},
         )
 
