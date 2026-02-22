@@ -16,7 +16,7 @@ async def test_self_healing_cycle():
     mock_detector = AsyncMock()
     mock_remediator = AsyncMock()
     
-    orchestrator = SelfHealingOrchestrator(
+    _ = SelfHealingOrchestrator(
         detector=mock_detector,
         remediators=[mock_remediator],
         check_interval=1

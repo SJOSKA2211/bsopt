@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
+
 import structlog
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import QueuePool
 
 from src.config import settings
 
@@ -10,7 +12,6 @@ logger = structlog.get_logger(__name__)
 # --- Async Engine (Primary) ---
 async_engine = create_async_engine(
     settings.DATABASE_URL,
-    poolclass=QueuePool,
     pool_size=settings.DATABASE_MIN_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_POOL_SIZE,
     pool_pre_ping=True,  # Critical for long-lived connections
@@ -36,7 +37,7 @@ async def get_async_db():
 
 
 # --- Sync Engine (Legacy/Migrations/Celery) ---
-sync_engine = create_async_engine(
+sync_engine = create_engine(
     settings.DATABASE_URL.replace("+asyncpg", ""),  # Fallback to sync driver
     pool_size=5,
     max_overflow=10,
@@ -60,9 +61,6 @@ def get_session() -> Session:
     return SessionLocal()
 
 
-from contextlib import asynccontextmanager
-
-
 @asynccontextmanager
 async def get_async_db_context():
     """Async context manager for DB access outside FastAPI dependency injection."""
@@ -74,4 +72,4 @@ async def get_async_db_context():
 
 
 # Import base at end to avoid circular imports during init
-from .models import Base  # noqa: E402
+from .models import Base as Base  # noqa: E402

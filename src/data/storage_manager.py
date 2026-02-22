@@ -5,8 +5,6 @@ Storage Manager
 import asyncio
 import os
 
-from src.config import settings
-
 
 class StorageManager:
     """

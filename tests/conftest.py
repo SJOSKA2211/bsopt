@@ -30,7 +30,7 @@ if "src.utils.lazy_import" in sys.modules:
 try:
     import importlib.util
     if importlib.util.find_spec("tests.mock_all"):
-        import tests.mock_all
+        import tests.mock_all  # noqa: F401
 except ImportError:
     pass
 
