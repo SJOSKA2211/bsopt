@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from multiprocessing import shared_memory
+from typing import Any
 
 import numpy as np
 
