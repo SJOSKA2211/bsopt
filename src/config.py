@@ -112,8 +112,6 @@ class Settings(BaseSettings):
     ARGON2_MEMORY_COST: int = 65536
     ARGON2_PARALLELISM: int = 4
 
-
-
     # NSE Scraper Configuration
     NSE_CACHE_TTL: int = 300
     NSE_NAME_SYMBOL_MAP: dict[str, str] = {
