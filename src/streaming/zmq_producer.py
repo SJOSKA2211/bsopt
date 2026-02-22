@@ -39,7 +39,7 @@ class ZMQMarketDataProducer(Producer):
         try:
             # 1. Serialize to bytes (O(n))
             payload = orjson.dumps(data)
-            
+
             # 2. Use zero-copy memoryview for transport (O(1))
             # copy=False tells ZMQ to use the buffer directly
             await self.socket.send(memoryview(payload), copy=False)

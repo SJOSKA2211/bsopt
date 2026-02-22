@@ -13,24 +13,30 @@ INV_SQRT2PI = 0.3989422804014327
 CDF_P = 0.3275911
 CDF_A = np.array([0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429])
 
+
 @njit(cache=True, fastmath=True)
 def fast_normal_cdf(x):
     """
     High-precision rational approximation (A&S 7.1.26).
     OPTIMIZED: Horner's method and pre-computed constants.
     """
-    if x > 8.0: return 1.0
-    if x < -8.0: return 0.0
-    
+    if x > 8.0:
+        return 1.0
+    if x < -8.0:
+        return 0.0
+
     abs_x = abs(x) * INV_SQRT2
     t = 1.0 / (1.0 + CDF_P * abs_x)
-    
+
     # Horner's method for polynomial evaluation: a1*t + a2*t^2 + ...
     # poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))))
-    poly = t * (CDF_A[0] + t * (CDF_A[1] + t * (CDF_A[2] + t * (CDF_A[3] + t * CDF_A[4]))))
-    
+    poly = t * (
+        CDF_A[0] + t * (CDF_A[1] + t * (CDF_A[2] + t * (CDF_A[3] + t * CDF_A[4])))
+    )
+
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
+
 
 @njit(cache=True, fastmath=True)
 def fast_normal_pdf(x):
@@ -44,7 +50,7 @@ def calculate_d1_d2(s, k, t, sigma, r, q):
     # Handle zero sigma or maturity gracefully to avoid NaN
     if sigma <= 0 or t <= 0:
         return 0.0, 0.0
-    
+
     sqrt_t = np.sqrt(t)
     d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
     d2 = d1 - sigma * sqrt_t
@@ -104,13 +110,29 @@ def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_
 def calculate_price(s, k, t, sigma, r, q, is_call):
     """Unified Black-Scholes pricing. Vectorized via NumPy/Numba with Scalar Fast-Path."""
     # Handle scalar types explicitly
-    if np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call):
-        res = calculate_price_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
+    if (
+        np.isscalar(s)
+        and np.isscalar(k)
+        and np.isscalar(t)
+        and np.isscalar(sigma)
+        and np.isscalar(r)
+        and np.isscalar(q)
+        and np.isscalar(is_call)
+    ):
+        res = calculate_price_core(
+            float(s),
+            float(k),
+            float(t),
+            float(sigma),
+            float(r),
+            float(q),
+            bool(is_call),
+        )
         return float(max(res, 0.0))
 
     # Vectorized path
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    
+
     if s.size == 0:
         return np.array([], dtype=np.float64)
 
@@ -122,9 +144,9 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
         sigma.ravel().astype(np.float64),
         r.ravel().astype(np.float64),
         q.ravel().astype(np.float64),
-        is_call.ravel().astype(np.bool_)
+        is_call.ravel().astype(np.bool_),
     )
-    
+
     res = flat_res.reshape(original_shape)
     if res.size == 1:
         return float(max(res.item(), 0.0))
@@ -206,11 +228,27 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
 
 def calculate_greeks(s, k, t, sigma, r, q, is_call):
     """Unified Black-Scholes Greeks. Vectorized via Numba with Scalar Fast-Path."""
-    if np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call):
-        return calculate_greeks_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
+    if (
+        np.isscalar(s)
+        and np.isscalar(k)
+        and np.isscalar(t)
+        and np.isscalar(sigma)
+        and np.isscalar(r)
+        and np.isscalar(q)
+        and np.isscalar(is_call)
+    ):
+        return calculate_greeks_core(
+            float(s),
+            float(k),
+            float(t),
+            float(sigma),
+            float(r),
+            float(q),
+            bool(is_call),
+        )
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    
+
     if s.size == 0:
         empty = np.array([], dtype=np.float64)
         return empty, empty, empty, empty, empty
@@ -223,7 +261,7 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         sigma.ravel().astype(np.float64),
         r.ravel().astype(np.float64),
         q.ravel().astype(np.float64),
-        is_call.ravel().astype(np.bool_)
+        is_call.ravel().astype(np.bool_),
     )
 
     if s.size == 1:
@@ -232,7 +270,7 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
             float(g.item()),
             float(th.item()),
             float(v.item()),
-            float(rh.item())
+            float(rh.item()),
         )
 
     return (
@@ -240,7 +278,7 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         g.reshape(original_shape),
         th.reshape(original_shape),
         v.reshape(original_shape),
-        rh.reshape(original_shape)
+        rh.reshape(original_shape),
     )
 
 

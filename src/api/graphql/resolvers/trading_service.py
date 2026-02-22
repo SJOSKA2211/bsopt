@@ -25,6 +25,7 @@ from src.trading.execution import OrderExecutor
 # Global executor instance (reuse connection pool)
 executor = OrderExecutor()
 
+
 async def create_order(
     portfolio_id: strawberry.ID,
     contract_symbol: str,
@@ -37,21 +38,21 @@ async def create_order(
     Real-time order creation with pre-trade risk validation.
     """
     logger.info("order_request_received", symbol=contract_symbol, side=side)
-    
+
     # 1. Dispatch to real executor (Solenya-hardened)
     params = {
-        "contract_address": contract_symbol, # Assuming symbol is address for DeFi
+        "contract_address": contract_symbol,  # Assuming symbol is address for DeFi
         "amount": quantity,
         "side": side,
-        "price": limit_price or 0.0
+        "price": limit_price or 0.0,
     }
-    
+
     result = await executor.execute_order(params)
-    
+
     # 2. Map execution result to GraphQL response
     status = "OPEN" if result["status"] == "success" else "REJECTED"
     reason = result.get("reason", "")
-    
+
     return Order(
         id=strawberry.ID(result.get("tx_hash", "none")),
         portfolio_id=portfolio_id,

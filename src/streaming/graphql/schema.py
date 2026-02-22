@@ -48,24 +48,25 @@ class Subscription:
         OPTIMIZED: Low-latency polling of Shared Memory.
         """
         from src.shared.shm_mesh import SharedMemoryRingBuffer
+
         mesh = SharedMemoryRingBuffer(create=False)
         last_head = 0
-        
+
         while True:
             # OPTIMIZED: Yield multiple ticks in a single window if available
             slices, new_head = mesh.read_latest_slices(last_head)
             if slices:
                 for chunk in slices:
                     for tick in chunk:
-                        sym = tick['symbol'].decode('ascii').strip('\x00')
+                        sym = tick["symbol"].decode("ascii").strip("\x00")
                         if not symbols or sym in symbols:
                             yield MarketData(
                                 symbol=sym,
-                                last_price=tick['price'],
-                                volume=tick['volume']
+                                last_price=tick["price"],
+                                volume=tick["volume"],
                             )
                 last_head = new_head
-            
+
             # Sub-millisecond sleep to avoid CPU pinning in the resolver
             await asyncio.sleep(0.001)
 

@@ -51,6 +51,7 @@ def setup_tracing(service_name: str):
     except Exception as e:
         # Fallback to no-op if tracing fails to initialize
         import logging
+
         logging.getLogger(__name__).warning(f"tracing_setup_failed: {e}")
 
 
