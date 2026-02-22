@@ -1,8 +1,4 @@
 import numpy as np
-
-# =============================================================================
-# High-Performance Indicator Kernels (Pure NumPy)
-# =============================================================================
 from numba import njit
 
 # =============================================================================
@@ -22,7 +18,8 @@ def _ema_kernel(values: np.ndarray, span: int) -> np.ndarray:
             start_idx = i
             break
     
-    if start_idx == -1: return out
+    if start_idx == -1:
+        return out
     
     out[start_idx] = values[start_idx]
     for i in range(start_idx + 1, n):
@@ -39,21 +36,26 @@ def get_ema(values: np.ndarray, span: int) -> np.ndarray:
 def _rsi_kernel(prices: np.ndarray, length: int) -> np.ndarray:
     n = prices.shape[0]
     out = np.full(n, np.nan, dtype=np.float64)
-    if n <= length: return out
+    if n <= length:
+        return out
 
     # Calculate initial average gain/loss
     gains = 0.0
     losses = 0.0
     for i in range(1, length + 1):
         diff = prices[i] - prices[i-1]
-        if diff > 0: gains += diff
-        else: losses -= diff
+        if diff > 0:
+            gains += diff
+        else:
+            losses -= diff
     
     avg_gain = gains / length
     avg_loss = losses / length
     
-    if avg_loss == 0: out[length] = 100.0
-    else: out[length] = 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
+    if avg_loss == 0:
+        out[length] = 100.0
+    else:
+        out[length] = 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
 
     # Wilder's Smoothing
     for i in range(length + 1, n):
@@ -64,8 +66,10 @@ def _rsi_kernel(prices: np.ndarray, length: int) -> np.ndarray:
         avg_gain = (avg_gain * (length - 1) + gain) / length
         avg_loss = (avg_loss * (length - 1) + loss) / length
         
-        if avg_loss == 0: out[i] = 100.0
-        else: out[i] = 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
+        if avg_loss == 0:
+            out[i] = 100.0
+        else:
+            out[i] = 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
     return out
 
 def get_rsi(prices: np.ndarray, length: int = 14) -> np.ndarray:

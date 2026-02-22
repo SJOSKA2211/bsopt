@@ -36,7 +36,8 @@ async def _run_async_safe(coro):
     import asyncio
 
     try:
-        loop = asyncio.get_running_loop()
+        # Removed unused variable loop
+        asyncio.get_running_loop()
         return await coro
     except RuntimeError:
         return asyncio.run(coro)

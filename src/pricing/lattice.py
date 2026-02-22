@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+from numba import njit
 
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
@@ -28,8 +29,6 @@ class LatticeGreeks:
 class LatticeParameters(BSParameters):
     n_steps: int = 100
 
-
-from numba import njit
 
 # =============================================================================
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)

@@ -1,12 +1,7 @@
 import numpy as np
 import structlog
-from scipy.optimize import minimize
-
-logger = structlog.get_logger()
-
-
-import structlog
 from numba import njit
+from scipy.optimize import minimize
 
 logger = structlog.get_logger()
 
@@ -47,5 +42,8 @@ class SVISurface:
         S0: float, K: float, T: float, params: tuple[float, ...]
     ) -> float:
         k = np.log(K / S0)
-        total_variance = SVISurface.raw_svi(k, *params)
+        # Using _raw_svi_kernel as raw_svi logic seems to be what was intended by raw_svi call in original code,
+        # but original code had SVISurface.raw_svi which wasn't defined in the file provided.
+        # Assuming _raw_svi_kernel is the intended implementation.
+        total_variance = _raw_svi_kernel(np.array([k]), *params)[0]
         return np.sqrt(max(total_variance, 1e-6) / T)

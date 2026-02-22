@@ -70,7 +70,8 @@ def recalibrate_symbol(self, symbol: str) -> dict:
             # But let's stick to the Actor pattern if that's what the system uses.
 
             # Optimized: Submit to first idle actor
-            result = pool.submit(lambda a, v: a.run_calibration.remote(v, []), symbol)
+            # Removed unused variable result
+            pool.submit(lambda a, v: a.run_calibration.remote(v, []), symbol)
             # Wait for result
             # Since submit returns an ObjectRef, we need to fetch it?
             # ActorPool.submit returns void, it queues. get_next() returns result.

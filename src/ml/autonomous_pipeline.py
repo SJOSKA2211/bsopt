@@ -90,8 +90,9 @@ class AutonomousMLPipeline:
             df = df.sort_values("timestamp")
         
         closes = df["close"].values.astype(np.float64)
-        highs = df["high"].values.astype(np.float64)
-        lows = df["low"].values.astype(np.float64)
+        # Removed unused variables highs/lows to fix linting
+        # highs = df["high"].values.astype(np.float64)
+        # lows = df["low"].values.astype(np.float64)
 
         # 1. Log Returns (Vectorized)
         log_ret = np.zeros_like(closes)

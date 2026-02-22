@@ -19,8 +19,10 @@ def fast_normal_cdf(x):
     High-precision rational approximation (A&S 7.1.26).
     OPTIMIZED: Horner's method and pre-computed constants.
     """
-    if x > 8.0: return 1.0
-    if x < -8.0: return 0.0
+    if x > 8.0:
+        return 1.0
+    if x < -8.0:
+        return 0.0
     
     abs_x = abs(x) * INV_SQRT2
     t = 1.0 / (1.0 + CDF_P * abs_x)

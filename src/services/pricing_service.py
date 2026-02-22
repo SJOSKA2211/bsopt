@@ -78,7 +78,7 @@ class PricingService:
         for model, group in model_groups.items():
             try:
                 engine = PricingEngineFactory.get_engine(model)
-                indices = [item[0] for item in group]
+                # Removed unused variable indices
                 items = [item[1] for item in group]
 
                 # Extract parameters for vectorization

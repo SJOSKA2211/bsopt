@@ -1,5 +1,8 @@
+import os
 import sys
 from pathlib import Path
+
+import pytest  # noqa: E402
 
 # Force the project root into sys.path
 test_dir = Path(__file__).parent.absolute()
@@ -25,16 +28,11 @@ if "src.utils.lazy_import" in sys.modules:
 
 #  OPTIMIZED: Inject mocks
 try:
-    import tests.mock_all
+    import importlib.util
+    if importlib.util.find_spec("tests.mock_all"):
+        import tests.mock_all
 except ImportError:
-    try:
-        import mock_all
-    except ImportError:
-        pass
-
-import os
-
-import pytest  # noqa: E402
+    pass
 
 
 @pytest.fixture(autouse=True)

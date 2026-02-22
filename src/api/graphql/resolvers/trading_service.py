@@ -3,6 +3,8 @@ from datetime import datetime
 import strawberry
 import structlog
 
+from src.trading.execution import OrderExecutor
+
 logger = structlog.get_logger(__name__)
 
 
@@ -19,8 +21,6 @@ class Order:
     created_at: datetime
     updated_at: datetime
 
-
-from src.trading.execution import OrderExecutor
 
 # Global executor instance (reuse connection pool)
 executor = OrderExecutor()

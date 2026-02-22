@@ -2,18 +2,16 @@
 Robust Error Handling Utilities
 """
 
+import asyncio
 import functools
 import logging
 import time
 from collections.abc import Callable
 from typing import Any
 
-logger = logging.getLogger("audit")
-
-
-import asyncio
-
 from src.shared.off_heap_logger import omega_logger
+
+logger = logging.getLogger("audit")
 
 
 def robust_pricing_task(error_return_value: Any = None):

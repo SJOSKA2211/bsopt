@@ -6,6 +6,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
+from src.api.websockets.manager import manager as ws_manager
 from src.shared.observability import logging_middleware, setup_logging, tune_gc
 from src.streaming.graphql.schema import schema
 
@@ -54,9 +55,6 @@ app.include_router(graphql_app, prefix="/graphql")
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-
-
-from src.api.websockets.manager import manager as ws_manager
 
 
 @app.websocket("/marketdata/{symbol}")

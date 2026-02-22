@@ -4,7 +4,6 @@ import struct
 import structlog
 
 from src.pricing.factory import PricingEngineFactory
-from src.pricing.models import BSParameters
 from src.shared.observability import tune_gc
 from src.shared.shm_mesh import SHM_NAME, GreeksBuffer, SharedMemoryRingBuffer
 
@@ -26,7 +25,6 @@ class GreekEngine:
         self.engine = PricingEngineFactory.get_engine("black_scholes")
         
         # Pre-bind for hot loop speed
-        import struct
         self._struct_q = struct.Struct("q")
         self._head_mv = self.mesh.buf[:8]
 
@@ -65,8 +63,6 @@ class GreekEngine:
                         )
 
                 self._last_head = new_head
-            else:
-                os.sched_yield()
             else:
                 os.sched_yield()
 

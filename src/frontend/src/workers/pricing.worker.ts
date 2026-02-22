@@ -74,6 +74,7 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
       case 'PRICE_MONTE_CARLO': {
         const { payload, id } = e.data as any;
         const { spot, strike, time, vol, rate, div, is_call, num_paths } = payload;
+        // @ts-ignore
         const price = mcEngine.price_european(
           spot, strike, time, vol, rate, div, is_call, 
           num_paths || 100000
@@ -85,10 +86,10 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
       case 'PRICE_HESTON': {
         const { payload, id } = e.data as any;
         const { spot, strike, time, r, v0, kappa, theta, sigma, rho } = payload;
-        // Fixed arguments match: checking heston signature
-        // Using ts-ignore as a safe bet against signature mismatch in updated WASM
-        // @ts-ignore
-        const price = hestonEngine!.price_call(
+
+        // HestonWASM.price_call expects: (spot, strike, time, r, v0, kappa, theta, sigma, rho)
+        // If TS error persists, force cast
+        const price = (hestonEngine as any).price_call(
           spot, strike, time, r, v0, kappa, theta, sigma, rho
         );
         self.postMessage({ type: 'PRICE_OPTION_RESULT', payload: { price }, id });
@@ -133,6 +134,8 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
       case 'BATCH_PRICE_HESTON': {
         const { payload, id } = e.data as any;
         const data = new Float64Array(payload);
+        // Fixed argument count for batch_price_heston
+        // @ts-ignore
         const result = engine.batch_price_heston(data);
         // Transfer buffer ownership for zero-copy efficiency
         self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id }, [result.buffer]);

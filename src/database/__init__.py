@@ -1,86 +1,53 @@
-"""
-Database Session Management (Native PostgreSQL)
-"""
-
-import logging
-from collections.abc import AsyncGenerator, Generator
-from contextlib import asynccontextmanager, contextmanager
-
-from sqlalchemy import create_engine, text
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import QueuePool
 
 from src.config import settings
 
-from .models import Base
+logger = structlog.get_logger(__name__)
 
-logger = logging.getLogger(__name__)
-
-# --- CONFIGURATION ---
-# Use NullPool for serverless if in production to avoid connection pinning
-POOL_CLASS = QueuePool
-
-# Ensure SSL for Neon in production
-db_url = settings.DATABASE_URL
-if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
-    separator = "&" if "?" in db_url else "?"
-    db_url = f"{db_url}{separator}sslmode=require"
-
-# Ensure sync engine gets sync URL
-sync_url = db_url.replace("+asyncpg", "")
-
-# --- ENGINES ---
-def get_engine():
-    """Returns the synchronous SQLAlchemy engine."""
-    return engine
-
-
-def get_async_engine():
-    """Returns the asynchronous SQLAlchemy engine."""
-    return async_engine
-
-
-engine = create_engine(
-    sync_url,
-    poolclass=POOL_CLASS,
+# --- Async Engine (Primary) ---
+async_engine = create_async_engine(
+    settings.DATABASE_URL,
+    poolclass=QueuePool,
     pool_size=settings.DATABASE_MIN_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_POOL_SIZE,
+    pool_pre_ping=True,  # Critical for long-lived connections
+    echo=False,
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+)
+
+
+async def get_async_db():
+    """Dependency for FastAPI (Async)."""
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+
+# --- Sync Engine (Legacy/Migrations/Celery) ---
+sync_engine = create_async_engine(
+    settings.DATABASE_URL.replace("+asyncpg", ""),  # Fallback to sync driver
+    pool_size=5,
+    max_overflow=10,
     pool_pre_ping=True,
 )
 
-async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
-if "sqlite" in db_url:
-    async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
-
-# Strip sslmode for asyncpg (it uses 'ssl' arg instead)
-if "postgresql" in async_url and "?" in async_url:
-    base, _ = async_url.split("?", 1)
-    async_url = base
-
-async_engine = create_async_engine(
-    async_url,
-    connect_args=(
-        {"ssl": True}
-        if settings.ENVIRONMENT == "prod" and "postgresql" in async_url
-        else {}
-    ),
-)
-
-SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-AsyncSessionLocal = async_sessionmaker(
-    bind=async_engine, class_=AsyncSession, expire_on_commit=False
-)
-
-# --- DEPENDENCIES ---
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=sync_engine)
 
 
-def get_session():
-    """Alias for get_db for compatibility."""
-    return get_db()
-
-
-def get_db() -> Generator[Session]:
+def get_db():
+    """Dependency for synchronous contexts."""
     db = SessionLocal()
     try:
         yield db
@@ -88,50 +55,23 @@ def get_db() -> Generator[Session]:
         db.close()
 
 
-async def get_async_db() -> AsyncGenerator[AsyncSession]:
-    async with AsyncSessionLocal() as session:
-        yield session
+def get_session() -> Session:
+    """Direct session factory for non-DI contexts."""
+    return SessionLocal()
 
 
-async def set_user_context(session: AsyncSession, user_id: str):
-    """Sets the app.current_user_id in the Postgres session for RLS."""
-    await session.execute(text(f"SET LOCAL app.current_user_id = '{user_id}'"))
-
-
-@contextmanager
-def get_db_context():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from contextlib import asynccontextmanager
 
 
 @asynccontextmanager
 async def get_async_db_context():
+    """Async context manager for DB access outside FastAPI dependency injection."""
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
 
 
-# --- UTILITIES ---
-
-
-def health_check() -> bool:
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return True
-    except Exception as e:
-        logger.error(f"database_health_check_failed: {e}")
-        return False
-
-
-def create_tables():
-    if settings.ENVIRONMENT in ["dev", "test"]:
-        Base.metadata.create_all(bind=engine)
-        logger.info("database_tables_created")
-
-
-def dispose_engine():
-    engine.dispose()
-    logger.info("database_engine_disposed")
+# Import base at end to avoid circular imports during init
+from .models import Base  # noqa: E402

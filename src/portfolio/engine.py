@@ -6,6 +6,8 @@ import ray
 import structlog
 from scipy.cluster.hierarchy import linkage
 
+from src.utils.distributed import RayOrchestrator
+
 logger = structlog.get_logger()
 
 
@@ -13,9 +15,6 @@ logger = structlog.get_logger()
 def _run_backtest_task(engine_instance, df, strategy_fn, params):
     """Ray task for parallel backtest execution."""
     return engine_instance.run_vectorized(df, strategy_fn, params)
-
-
-from src.utils.distributed import RayOrchestrator
 
 
 def _get_quasi_diag(link):

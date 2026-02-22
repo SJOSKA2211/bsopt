@@ -31,7 +31,7 @@ def corrado_miller_initial_guess(
     n = len(market_price)
     sigma = np.empty(n, dtype=np.float64)
 
-    INV_SQRT_PI = 1.0 / np.sqrt(np.pi)
+    # Removed unused constant INV_SQRT_PI
     FACTOR = 2.5066282746310005
 
     for i in prange(n):
@@ -556,23 +556,27 @@ def fused_lookback_payoff(
             if is_call: # S_last - S_min
                 min_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] < min_log: min_log = log_paths[i, j]
+                    if log_paths[i, j] < min_log:
+                        min_log = log_paths[i, j]
                 p = np.exp(log_paths[n_steps-1, j]) - np.exp(min_log)
             else: # S_max - S_last
                 max_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] > max_log: max_log = log_paths[i, j]
+                    if log_paths[i, j] > max_log:
+                        max_log = log_paths[i, j]
                 p = np.exp(max_log) - np.exp(log_paths[n_steps-1, j])
         else: # Fixed Strike
             if is_call: # S_max - K
                 max_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] > max_log: max_log = log_paths[i, j]
+                    if log_paths[i, j] > max_log:
+                        max_log = log_paths[i, j]
                 p = np.exp(max_log) - K
             else: # K - S_min
                 min_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] < min_log: min_log = log_paths[i, j]
+                    if log_paths[i, j] < min_log:
+                        min_log = log_paths[i, j]
                 p = K - np.exp(min_log)
         
         payoffs[j] = max(p, 0.0) * exp_rt
@@ -680,4 +684,3 @@ def scalar_greeks_jit(
 
 # Aliases for backward compatibility / missing implementations
 gpu_mc_european_price = jit_mc_european_price
-

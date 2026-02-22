@@ -24,16 +24,21 @@ class InMemoryFeatureStore(FeatureStore):
         """
         Computes requested features with Redis-backed caching.
         """
+        import hashlib
+
         from src.utils.cache import get_redis
         
         # ... (caching logic)
         redis = get_redis()
+        data_hash = "" # Fallback
         if redis:
+            # Generate a consistent hash of the input dataframe for caching
+            data_hash = hashlib.sha256(pd.util.hash_pandas_object(data).values).hexdigest()
             cache_key = f"feature_cache:{data_hash}"
             try:
                 cached = await redis.get(cache_key)
                 if cached:
-                    # ...
+                    # In a real impl we would deserialize and check coverage
                     pass
             except Exception:
                 pass
@@ -66,7 +71,8 @@ class InMemoryFeatureStore(FeatureStore):
         if redis:
             try:
                 # In production, use a BackgroundTask or non-blocking call
-                pass # await redis.setex(cache_key, 300, df.to_json())
+                # await redis.setex(cache_key, 300, df.to_json())
+                pass
             except Exception:
                 pass
                 

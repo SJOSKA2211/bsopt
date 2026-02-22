@@ -115,15 +115,30 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_mfa_key_security(self) -> "Settings":
         """Ensures that the default development key is not used in production."""
-        if (
-            self.ENVIRONMENT == "prod"
-            and self.MFA_ENCRYPTION_KEY == DEFAULT_DEV_MFA_KEY
-        ):
-            raise ValueError(
-                "CRITICAL SECURITY ERROR: You are using the default insecure "
-                "MFA_ENCRYPTION_KEY in production! Please set a secure random key "
-                "using 'MFA_ENCRYPTION_KEY' environment variable."
-            )
+        if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
+            key = self.MFA_ENCRYPTION_KEY
+            # Block the default dev placeholder
+            if key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
+                raise ValueError(
+                    "CRITICAL: MFA_ENCRYPTION_KEY must not use the default "
+                    "development key in production. Set a secure key via "
+                    "the MFA_ENCRYPTION_KEY environment variable."
+                )
+            # Validate key strength: must be valid base64 and at least 32 bytes
+            try:
+                decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
+                if len(decoded) < 32:
+                    raise ValueError(
+                        "MFA_ENCRYPTION_KEY is too short. The decoded key must "
+                        "be at least 32 bytes (256 bits)."
+                    )
+            except Exception as e:
+                if "MFA_ENCRYPTION_KEY" in str(e):
+                    raise
+                raise ValueError(
+                    "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
+                    f"string of at least 32 bytes: {e}"
+                ) from e
         return self
 
     # NSE Scraper Configuration
@@ -219,35 +234,6 @@ class Settings(BaseSettings):
         if v_lower not in allowed:
             raise ValueError(f"ENVIRONMENT must be one of {sorted(allowed)}")
         return v_lower
-
-    @model_validator(mode="after")
-    def validate_mfa_key_security(self) -> "Settings":
-        """Block insecure MFA keys in production environments."""
-        if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
-            key = self.MFA_ENCRYPTION_KEY
-            # Block the default dev placeholder
-            if key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
-                raise ValueError(
-                    "CRITICAL: MFA_ENCRYPTION_KEY must not use the default "
-                    "development key in production. Set a secure key via "
-                    "the MFA_ENCRYPTION_KEY environment variable."
-                )
-            # Validate key strength: must be valid base64 and at least 32 bytes
-            try:
-                decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
-                if len(decoded) < 32:
-                    raise ValueError(
-                        "MFA_ENCRYPTION_KEY is too short. The decoded key must "
-                        "be at least 32 bytes (256 bits)."
-                    )
-            except Exception as e:
-                if "MFA_ENCRYPTION_KEY" in str(e):
-                    raise
-                raise ValueError(
-                    "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
-                    f"string of at least 32 bytes: {e}"
-                ) from e
-        return self
 
 
 settings = Settings()
