@@ -29,14 +29,13 @@ class WebSocketCodec:
                 data = MessageToDict(data, preserving_proto_field_name=True)
             # Returning bytes directly is faster for the WS layer
             return orjson.dumps(data)
-        elif protocol == ProtocolType.MSGPACK:
+        if protocol == ProtocolType.MSGPACK:
             return WebSocketCodec._msgpack_encoder.encode(data)
-        elif protocol == ProtocolType.PROTO:
+        if protocol == ProtocolType.PROTO:
             if not isinstance(data, Message):
                 raise ValueError("Data must be a Protobuf Message for PROTO protocol")
             return data.SerializeToString()
-        else:
-            raise ValueError(f"Unsupported protocol: {protocol}")
+        raise ValueError(f"Unsupported protocol: {protocol}")
 
     @staticmethod
     def decode(
@@ -44,15 +43,14 @@ class WebSocketCodec:
     ) -> Any:
         if protocol == ProtocolType.JSON:
             return orjson.loads(data)
-        elif protocol == ProtocolType.MSGPACK:
+        if protocol == ProtocolType.MSGPACK:
             # OPTIMIZED: Use pre-allocated msgspec decoder
             return WebSocketCodec._msgpack_decoder.decode(data)
-        elif protocol == ProtocolType.PROTO:
+        if protocol == ProtocolType.PROTO:
             # High-performance binary decoding
             if message_type is None:
                 raise ValueError("message_type required for PROTO decoding")
             message = message_type()
             message.ParseFromString(data)
             return message
-        else:
-            raise ValueError(f"Unsupported protocol: {protocol}")
+        raise ValueError(f"Unsupported protocol: {protocol}")

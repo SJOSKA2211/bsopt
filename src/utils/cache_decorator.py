@@ -68,7 +68,7 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
                     data = response.body
                 elif hasattr(response, "model_dump_json"):
                     data = response.model_dump_json().encode()
-                elif isinstance(response, (dict, list)):
+                elif isinstance(response, dict | list):
                     data = msgspec.json.encode(response)
 
                 if data:

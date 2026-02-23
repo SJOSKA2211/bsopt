@@ -72,7 +72,7 @@ def rehash_legacy_passwords(self):
     except Exception as e:
         logger.error(f"Rehash task failed: {e}")
         db_session.rollback()
-        raise self.retry(exc=e)
+        raise self.retry(exc=e) from e
     finally:
         db_session.close()
 

@@ -38,9 +38,9 @@ class WASMPricingEngine(PricingStrategy):
         # OPTIMIZED: Route to specialized WASM solvers based on model type (Task 3)
         if self.model in ["monte_carlo", "mc"]:
             return self.price_monte_carlo(params, option_type)
-        elif self.model in ["fdm", "crank_nicolson"]:
+        if self.model in ["fdm", "crank_nicolson"]:
             return self.price_american_cn(params, option_type)
-        elif self.model == "heston":
+        if self.model == "heston":
             # Heston requires specific parameters not in BSParameters directly
             # This would typically come from a symbol lookup, handled in PricingService
             return 0.0
@@ -55,15 +55,14 @@ class WASMPricingEngine(PricingStrategy):
                 params.rate,
                 params.dividend,
             )
-        else:
-            return self.instance.price_put(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-            )
+        return self.instance.price_put(
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+        )
 
     def calculate_greeks(
         self, params: BSParameters, option_type: str = "call"

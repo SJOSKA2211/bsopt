@@ -1,7 +1,7 @@
 import numpy as np
 import structlog
-from scipy.optimize import minimize
 from numba import njit
+from scipy.optimize import minimize
 
 logger = structlog.get_logger()
 

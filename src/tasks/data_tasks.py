@@ -321,7 +321,7 @@ def refresh_materialized_views_task(self) -> dict[str, Any]:
     except Exception as e:
         logger.error("materialized_view_refresh_failed", error=str(e))
         db_session.rollback()
-        raise self.retry(exc=e)
+        raise self.retry(exc=e) from e
     finally:
         db_session.close()
 
@@ -362,14 +362,13 @@ def scheduled_data_collection(self) -> dict[str, Any]:
             "timestamp": datetime.now().isoformat(),
         }
 
-    else:
-        logger.info("data_is_fresh", age_hours=freshness.get("age_hours", 0))
-        return {
-            "task_id": self.request.id,
-            "status": "skipped",
-            "reason": f"Data is {freshness.get('age_hours', 0):.1f} hours old",
-            "timestamp": datetime.now().isoformat(),
-        }
+    logger.info("data_is_fresh", age_hours=freshness.get("age_hours", 0))
+    return {
+        "task_id": self.request.id,
+        "status": "skipped",
+        "reason": f"Data is {freshness.get('age_hours', 0):.1f} hours old",
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 # =============================================================================

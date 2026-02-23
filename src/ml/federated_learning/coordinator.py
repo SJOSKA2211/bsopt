@@ -21,9 +21,8 @@ class FederatedLearningCoordinator:
         """Initialize the requested aggregation strategy."""
         if self.strategy_name == "FedAvg":
             return fl.server.strategy.FedAvg()
-        else:
-            logger.warning("unknown_strategy", strategy=self.strategy_name)
-            return fl.server.strategy.FedAvg()
+        logger.warning("unknown_strategy", strategy=self.strategy_name)
+        return fl.server.strategy.FedAvg()
 
     def start(self, num_rounds: int = 3):
         """Start the Flower server."""

@@ -450,10 +450,9 @@ def price_exotic_option(
                 AsianOptionPricer.price_geometric_asian(params, option_type, st_type),
                 None,
             )
-        else:
-            return AsianOptionPricer.price_arithmetic_asian_mc(
-                params, option_type, **kwargs
-            )
+        return AsianOptionPricer.price_arithmetic_asian_mc(
+            params, option_type, **kwargs
+        )
 
     if exotic_type == "barrier":
         barrier_type_str = kwargs.get("barrier_type")
@@ -482,12 +481,11 @@ def price_exotic_option(
                 ),
                 None,
             )
-        else:
-            kwargs_copy = kwargs.copy()
-            kwargs_copy.pop("strike_type", None)
-            return LookbackOptionPricer.price_lookback_mc(
-                params, option_type, strike_type_val, **kwargs_copy
-            )
+        kwargs_copy = kwargs.copy()
+        kwargs_copy.pop("strike_type", None)
+        return LookbackOptionPricer.price_lookback_mc(
+            params, option_type, strike_type_val, **kwargs_copy
+        )
 
     if exotic_type == "digital":
         return (

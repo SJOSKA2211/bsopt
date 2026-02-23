@@ -82,7 +82,7 @@ def recalibrate_symbol(self, symbol: str) -> dict:
 
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
-        raise self.retry(exc=e)
+        raise self.retry(exc=e) from e
 
 
 async def _recalibrate_symbol_async(self, symbol: str) -> dict:

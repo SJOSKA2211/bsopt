@@ -38,7 +38,7 @@ class PricingService:
             logger.error("pricing_engine_not_found", model=model, error=str(e))
             raise HTTPException(
                 status_code=400, detail=f"Invalid pricing model '{model}': {str(e)}"
-            )
+            ) from e
 
         try:
             price = await run_sync(engine.price, params, option_type)
@@ -46,7 +46,7 @@ class PricingService:
             logger.error("pricing_engine_calculation_error", model=model, error=str(e))
             raise HTTPException(
                 status_code=422, detail=f"Pricing calculation failed: {str(e)}"
-            )
+            ) from e
 
         return PriceResponse.model_construct(
             price=price,

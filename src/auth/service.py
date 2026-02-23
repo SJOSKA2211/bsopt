@@ -62,13 +62,13 @@ class AuthService:
             raise HTTPException(
                 status_code=401,
                 detail=f"Invalid or expired token: {e.__class__.__name__}",
-            )
+            ) from e
         except Exception as e:
             logger.error("token_validation_failed_generic_error", error=str(e))
             raise HTTPException(
                 status_code=500,
                 detail=f"Authentication service error: {e.__class__.__name__}",
-            )
+            ) from e
 
 
 def get_auth_service(db: Session):

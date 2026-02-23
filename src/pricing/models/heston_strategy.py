@@ -29,8 +29,7 @@ class HestonPricingStrategy(PricingStrategy):
 
         if option_type.lower() == "call":
             return model.price_call(params.spot, params.strike)
-        else:
-            return model.price_put(params.spot, params.strike)
+        return model.price_put(params.spot, params.strike)
 
     def calculate_greeks(
         self, params: BSParameters, option_type: str = "call", **kwargs

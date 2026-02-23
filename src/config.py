@@ -19,10 +19,6 @@ _DEFAULT_DEV_MFA_KEY = os.environ.get(
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
 
-# sourcery skip: avoid-secret-in-code
-DEFAULT_DEV_MFA_KEY = "kohPfvIxLq-vQaOw0uv9dLZmXWIrX29sLbuK84YRalU="
-
-
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -102,11 +98,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
-<<<<<<< fix-logging-middleware-session-usage-17744657986850606813
-        default=DEFAULT_DEV_MFA_KEY,
-=======
         default=_DEFAULT_DEV_MFA_KEY,
->>>>>>> main
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 

@@ -180,7 +180,7 @@ class PriceTFTModel:
         for key, (min_val, max_val) in allowed_params.items():
             if key in kwargs:
                 val = kwargs[key]
-                if not isinstance(val, (int, float)) or not (min_val <= val <= max_val):
+                if not isinstance(val, int | float) or not (min_val <= val <= max_val):
                     logger.warning("invalid_param_ignoring", key=key, value=val)
                     kwargs.pop(key)
 

@@ -11,10 +11,12 @@ class OptionPricingNN(nn.Module):
     def __init__(
         self,
         input_dim: int = 9,
-        hidden_dims: list[int] = [128, 64, 32],
+        hidden_dims: list[int] | None = None,
         num_classes: int = 1,
     ):
         super().__init__()
+        if hidden_dims is None:
+            hidden_dims = [128, 64, 32]
         layers = []
         last_dim = input_dim
         for h in hidden_dims:

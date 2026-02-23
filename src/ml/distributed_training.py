@@ -3,10 +3,10 @@ from typing import Any
 import ray
 import ray.train.torch
 import structlog
-import torch
+import torch as th
 import torch.nn as nn
 from ray.train import ScalingConfig
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 
 try:
     from ray.train.torch import TorchTrainer

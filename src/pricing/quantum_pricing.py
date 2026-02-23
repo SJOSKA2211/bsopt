@@ -295,16 +295,15 @@ class HybridQuantumClassicalPricer:
 
         if num_underlyings > 3 or accuracy_required < 0.01:
             return self.quantum_pricer.price_european_call_quantum(**clean_params)
-        else:
-            bs_params = BSParameters(
-                spot=float(params.get("S0", 100.0)),
-                strike=float(params.get("K", 100.0)),
-                maturity=float(params.get("T", 1.0)),
-                volatility=float(params.get("sigma", 0.2)),
-                rate=float(params.get("r", 0.05)),
-                dividend=float(params.get("q", 0.0)),
-            )
-            res = self.classical_pricer.price_european(bs_params)
-            if isinstance(res, tuple):
-                return {"price": res[0]}
-            return res
+        bs_params = BSParameters(
+            spot=float(params.get("S0", 100.0)),
+            strike=float(params.get("K", 100.0)),
+            maturity=float(params.get("T", 1.0)),
+            volatility=float(params.get("sigma", 0.2)),
+            rate=float(params.get("r", 0.05)),
+            dividend=float(params.get("q", 0.0)),
+        )
+        res = self.classical_pricer.price_european(bs_params)
+        if isinstance(res, tuple):
+            return {"price": res[0]}
+        return res

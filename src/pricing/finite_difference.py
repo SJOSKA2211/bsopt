@@ -64,8 +64,7 @@ class CrankNicolsonSolver(PricingStrategy):
         if self.maturity <= 1e-12:
             if self.option_type == "call":
                 return max(self.spot - self.strike, 0.0)
-            else:
-                return max(self.strike - self.spot, 0.0)
+            return max(self.strike - self.spot, 0.0)
 
         V = self._solve_pde()
         return float(np.interp(self.spot, self.s_grid, V))
@@ -101,8 +100,7 @@ class CrankNicolsonSolver(PricingStrategy):
         if self.maturity <= 1e-12:
             if self.option_type == "call":
                 return max(self.spot - self.strike, 0.0)
-            else:
-                return max(self.strike - self.spot, 0.0)
+            return max(self.strike - self.spot, 0.0)
 
         V = self._solve_pde()
         return float(np.interp(self.spot, self.s_grid, V))

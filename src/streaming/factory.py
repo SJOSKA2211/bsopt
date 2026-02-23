@@ -31,7 +31,7 @@ class StreamingFactory:
             endpoint = kwargs.get("endpoint", "tcp://*:5555")
             return ZMQMarketDataProducer(endpoint=endpoint)
 
-        elif backend == StreamingBackend.KAFKA:
+        if backend == StreamingBackend.KAFKA:
             kwargs.get(
                 "bootstrap_servers",
                 (

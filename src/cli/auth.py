@@ -102,12 +102,12 @@ class AuthManager:
             except (json.JSONDecodeError, AttributeError):
                 error_detail = str(e)
             logger.error(f"Authentication failed: {error_detail}")
-            raise AuthenticationError(f"Login failed: {error_detail}")
+            raise AuthenticationError(f"Login failed: {error_detail}") from e
         except (httpx.RequestError, OSError) as e:
             logger.error(f"Connection error during login: {e}")
             raise AuthenticationError(
                 f"Could not connect to authentication server: {str(e)}"
-            )
+            ) from e
 
     def logout(self) -> bool:
         """Clear stored authentication tokens."""

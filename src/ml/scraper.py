@@ -133,25 +133,24 @@ class MarketDataScraper:
                                             "volume",
                                         ]
                                     ]
-                                else:
-                                    logger.warning(
-                                        "scrape_empty",
-                                        ticker=ticker,
-                                        reason="No data in range",
-                                    )
-                                    if self.provider == "auto":
-                                        break
-                                    return pd.DataFrame(
-                                        columns=[
-                                            "timestamp",
-                                            "open",
-                                            "high",
-                                            "low",
-                                            "close",
-                                            "volume",
-                                        ]
-                                    )
-                            elif "Error Message" in data:
+                                logger.warning(
+                                    "scrape_empty",
+                                    ticker=ticker,
+                                    reason="No data in range",
+                                )
+                                if self.provider == "auto":
+                                    break
+                                return pd.DataFrame(
+                                    columns=[
+                                        "timestamp",
+                                        "open",
+                                        "high",
+                                        "low",
+                                        "close",
+                                        "volume",
+                                    ]
+                                )
+                            if "Error Message" in data:
                                 logger.error(
                                     "scrape_error",
                                     ticker=ticker,
@@ -251,13 +250,12 @@ class MarketDataScraper:
                             return df[
                                 ["timestamp", "open", "high", "low", "close", "volume"]
                             ]
-                        else:
-                            logger.warning(
-                                "scrape_api_error",
-                                ticker=ticker,
-                                status=data.get("status"),
-                                attempt=attempt,
-                            )
+                        logger.warning(
+                            "scrape_api_error",
+                            ticker=ticker,
+                            status=data.get("status"),
+                            attempt=attempt,
+                        )
                     elif response.status_code == 401:
                         SCRAPE_ERRORS.labels(api="polygon", status_code=401).inc()
                         raise Exception("401 Unauthorized: Invalid API Key.")
@@ -289,7 +287,7 @@ class MarketDataScraper:
                         continue
                     raise Exception(
                         f"Failed to fetch data for {ticker} after {self.max_retries} retries."
-                    )
+                    ) from e
 
         status_code = last_response.status_code if last_response else "No response"
         raise Exception(f"Failed to fetch data for {ticker}. Status: {status_code}")

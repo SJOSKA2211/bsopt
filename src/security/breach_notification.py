@@ -113,11 +113,10 @@ class BreachNotificationService:
                 f"Sent security notifications to {len(users)} users for incident {incident.id}"
             )
             return len(users)
-        else:
-            logger.error(
-                f"Failed to send batch security notifications for incident {incident.id}"
-            )
-            return 0
+        logger.error(
+            f"Failed to send batch security notifications for incident {incident.id}"
+        )
+        return 0
 
 
 breach_notification_service = BreachNotificationService()

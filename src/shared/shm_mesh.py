@@ -207,9 +207,8 @@ class SharedMemoryRingBuffer:
         if s < e:
             # Single slice - zero copy
             return [self.data_view[s:e]], current_head
-        else:
-            # Wrap around - return TWO slices to maintain zero-copy
-            return [self.data_view[s:], self.data_view[:e]], current_head
+        # Wrap around - return TWO slices to maintain zero-copy
+        return [self.data_view[s:], self.data_view[:e]], current_head
 
     def read_latest_msgspec(self, last_head: int) -> tuple[list[MarketTick], int]:
         """High-level reader using msgspec for speed."""

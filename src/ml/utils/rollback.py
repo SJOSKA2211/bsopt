@@ -59,9 +59,8 @@ def rollback_model(model_name: str, target_stage: str = "Production"):
             )
 
             return True
-        else:
-            logger.warning("No previous version found to rollback to.")
-            return False
+        logger.warning("No previous version found to rollback to.")
+        return False
 
     except Exception as e:
         logger.error(f"Rollback failed: {e}")

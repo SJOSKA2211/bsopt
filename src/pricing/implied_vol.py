@@ -38,13 +38,12 @@ def _calculate_intrinsic_value(
                 0.0,
             )
         )
-    else:
-        return float(
-            max(
-                strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity),
-                0.0,
-            )
+    return float(
+        max(
+            strike * np.exp(-rate * maturity) - spot * np.exp(-dividend * maturity),
+            0.0,
         )
+    )
 
 
 def _validate_inputs(
@@ -160,7 +159,7 @@ def _brent_iv(
     try:
         return float(brentq(obj, 1e-6, 5.0, xtol=tolerance))
     except Exception:
-        raise ImpliedVolatilityError("failed to converge")
+        raise ImpliedVolatilityError("failed to converge") from None
 
 
 def implied_volatility(
