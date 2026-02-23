@@ -25,7 +25,7 @@ def tag_dataset(data_dir: str, version_name: str | None = None):
     data_path = Path(data_dir)
     if not data_path.exists():
         logger.error(f"Data directory {data_dir} does not exist.")
-        return
+        return None
 
     version = version_name or datetime.now().strftime("%Y%m%d_%H%M%S")
     metadata: dict[str, Any] = {

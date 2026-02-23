@@ -228,7 +228,7 @@ class HestonCalibrator:
             from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 
             # Pre-filter to remove duplicates which can crash interpolators
-            coords = np.array(list(zip(m_coords, t_coords)))
+            coords = np.array(list(zip(m_coords, t_coords, strict=False)))
             _, unique_idx = np.unique(coords, axis=0, return_index=True)
             unique_coords = coords[unique_idx]
             unique_ivs = np.array(market_ivs)[unique_idx]

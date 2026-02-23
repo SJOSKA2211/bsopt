@@ -141,9 +141,7 @@ class MarketDataConsumer:
         start_time = time.time()
         try:
             # Check if callback explicitly handles batches
-            if hasattr(callback, "_is_batch_aware") and getattr(
-                callback, "_is_batch_aware"
-            ):
+            if hasattr(callback, "_is_batch_aware") and callback._is_batch_aware:
                 await callback(batch)
             else:
                 #  SLOP PREVENTION: Use a semaphore to limit concurrency

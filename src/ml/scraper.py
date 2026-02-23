@@ -54,7 +54,7 @@ class MarketDataScraper:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         final_results = {}
-        for ticker, result in zip(tickers, results):
+        for ticker, result in zip(tickers, results, strict=False):
             if isinstance(result, Exception):
                 logger.error("multi_scrape_failed", ticker=ticker, error=str(result))
                 final_results[ticker] = pd.DataFrame(
@@ -161,7 +161,7 @@ class MarketDataScraper:
                                 raise Exception(
                                     f"Alpha Vantage Error: {data['Error Message']}"
                                 )
-                            elif "Note" in data:  # Rate limit
+                            if "Note" in data:  # Rate limit
                                 logger.warning(
                                     "scrape_rate_limit",
                                     ticker=ticker,
@@ -170,10 +170,9 @@ class MarketDataScraper:
                                 if attempt < self.max_retries:
                                     await asyncio.sleep(0.1)
                                     continue
-                                else:
-                                    if self.provider == "auto":
-                                        break
-                                    raise Exception("Alpha Vantage rate limit reached.")
+                                if self.provider == "auto":
+                                    break
+                                raise Exception("Alpha Vantage rate limit reached.")
                         elif response.status_code == 401:
                             SCRAPE_ERRORS.labels(
                                 api="alpha_vantage", status_code=401
