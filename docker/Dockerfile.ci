@@ -12,6 +12,9 @@ ENV UV_RETRIES=10
 
 # Copy project files for a complete install
 COPY pyproject.toml requirements.txt ./
+# We need to copy the source code to allow pip install . to work properly
+# And we also need the rest of the files for the build context
+COPY . .
 
 # Lightning-fast dependency resolution
 # Install all extras [api, auth, ml, quant, distributed, dev]
