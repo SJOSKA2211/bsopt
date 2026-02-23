@@ -13,7 +13,8 @@ ENV UV_RETRIES=10
 # Copy project files for a complete install
 COPY pyproject.toml requirements.txt ./
 # We need to copy the source code to allow pip install . to work properly
-COPY src/ src/
+# And we also need the rest of the files for the build context
+COPY . .
 
 # Lightning-fast dependency resolution
 # Install all extras [api, auth, ml, quant, distributed, dev]
@@ -37,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy the entire project for testing (excluding what's already copied)
+# Copy the entire project for testing
 COPY . .
 
 # Set testing environment variables
