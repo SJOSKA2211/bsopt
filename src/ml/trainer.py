@@ -75,6 +75,7 @@ class ModelTrainer:
         study.optimize(objective, n_trials=n_trials)
         return study
 
+
 # Aliases for compatibility
 InstrumentedTrainer = ModelTrainer
 PyTorchTrainer = ModelTrainer

@@ -53,10 +53,12 @@ def test_insert_and_query_greeks(db_engine):
         implied_vol = 0.25
 
         conn.execute(
-            text("""
+            text(
+                """
             INSERT INTO option_greeks (time, contract_id, delta, gamma, theta, vega, rho, implied_vol)
             VALUES (:time, :contract_id, :delta, :gamma, :theta, :vega, :rho, :implied_vol)
-        """),
+        """
+            ),
             {
                 "time": timestamp,
                 "contract_id": contract_id,

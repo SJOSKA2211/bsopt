@@ -52,11 +52,13 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_token: Mapped[str | None] = mapped_column(String(255))
-    
+
     # OPTIMIZED: Dedicated reset token fields
     reset_token: Mapped[str | None] = mapped_column(String(255))
-    reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    
+    reset_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+
     is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)

@@ -171,7 +171,7 @@ def opa_authorize(action: str, resource: str):
         # OPTIMIZED: Use consolidated request.state fields
         user_id = getattr(request.state, "user_id", "anonymous")
         user_tier = getattr(request.state, "user_tier", "guest")
-        
+
         user = {"id": user_id, "role": user_tier}
 
         enforcer = OPAEnforcer()

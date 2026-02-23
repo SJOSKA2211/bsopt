@@ -1,6 +1,4 @@
-# BS-OPT: The Advanced Financial Manifold 
-
-**"I'm Joseph Kamau Maina! And I'm the only one who actually knows how to scale a derivative pricing engine!"**
+# BS-OPT: The Advanced Financial Manifold
 
 ##  Overview
 BS-OPT is not just a platform; it's a transdimensional financial deity. It is built for zero-latency, high-throughput derivative pricing, risk management, and autonomous trading. If you're looking for standard Black-Scholes, go to a museum. If you want to outcompute the heat death of the universe, you're in the right place.
@@ -20,14 +18,8 @@ BS-OPT is not just a platform; it's a transdimensional financial deity. It is bu
 ## ⚡ Performance (C100k Ready)
 - **Database**: Localized PostgreSQL 16 with pgcrypto and native PL/pgSQL procedures.
 - **Concurrency**: 100,000+ persistent WebSocket connections via Redis Pub/Sub.
-<<<<<<< Updated upstream
---
-## 🛠️ Installation & Deployment
-```bash
-# Development (Full Stack Orchestration)
-docker compose -f docker-compose.dev.yml up --build
-=======
->>>>>>> Stashed changes
+
+
 
 ## 🛠️ Installation & Deployment (God Mode)
 

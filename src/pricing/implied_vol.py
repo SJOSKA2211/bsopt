@@ -97,17 +97,21 @@ def _newton_raphson_iv(
     Zero allocations per iteration.
     """
     from src.shared.math_utils import calculate_greeks_core, calculate_price_core
-    
+
     is_call = option_type.lower() == "call"
     sigma = initial_guess
-    
+
     for _ in range(max_iterations):
         # 1. Price using scalar kernel
-        price = calculate_price_core(spot, strike, maturity, sigma, rate, dividend, is_call)
-        
+        price = calculate_price_core(
+            spot, strike, maturity, sigma, rate, dividend, is_call
+        )
+
         # 2. Vega using scalar kernel
-        _, _, _, vega, _ = calculate_greeks_core(spot, strike, maturity, sigma, rate, dividend, is_call)
-        
+        _, _, _, vega, _ = calculate_greeks_core(
+            spot, strike, maturity, sigma, rate, dividend, is_call
+        )
+
         diff = price - market_price
         if abs(diff) < tolerance:
             return sigma

@@ -108,14 +108,14 @@ class MarketDataProducer(Producer):
                 # 2. Convert once to dict for Avro (Redundant but safe for now)
                 payload = msgspec.to_builtins(data)
                 value = self.avro_serializer(payload, None)
-                
+
                 self.producer.produce(
                     topic=topic,
                     key=data.symbol.encode("utf-8"),
                     value=value,
                     on_delivery=self._delivery_callback,
                 )
-                
+
                 # OPTIMIZED: Trigger poll occasionally to handle delivery callbacks
                 # and maintain internal client health during large batches.
                 if i % 100 == 0:

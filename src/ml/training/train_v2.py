@@ -94,6 +94,7 @@ def train_with_cross_validation(n_samples: int = 10000, epochs: int = 5):
     logger.info(f"Cross-Validation Complete. Average Val Loss: {avg_performance:.4f}")
     return avg_performance
 
+
 train_neural_network = train_with_cross_validation
 
 if __name__ == "__main__":

@@ -40,19 +40,23 @@ import pytest  # noqa: E402
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
     """Ensure environment variables are set for all tests, prioritizing existing env."""
-    
+
     # Use service names 'postgres' and 'redis' if running inside docker, otherwise 'localhost'
     is_docker = os.getenv("INSIDE_DOCKER") == "1"
     db_host = "postgres" if is_docker else "localhost"
     redis_host = "redis" if is_docker else "localhost"
-    
+
     # Prioritize existing env vars (injected by Docker Compose)
-    db_url = os.getenv("DATABASE_URL") or f"postgresql://admin:password@{db_host}:5432/bsopt"
+    db_url = (
+        os.getenv("DATABASE_URL") or f"postgresql://admin:password@{db_host}:5432/bsopt"
+    )
     redis_url = os.getenv("REDIS_URL") or f"redis://{redis_host}:6379/0"
-    
+
     monkeypatch.setenv("DATABASE_URL", db_url)
     monkeypatch.setenv("REDIS_URL", redis_url)
-    monkeypatch.setenv("JWT_SECRET", os.getenv("JWT_SECRET", "test_secret_key_change_me_in_prod"))
+    monkeypatch.setenv(
+        "JWT_SECRET", os.getenv("JWT_SECRET", "test_secret_key_change_me_in_prod")
+    )
     monkeypatch.setenv("ENVIRONMENT", "test")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
     monkeypatch.setenv("OMP_NUM_THREADS", "1")
