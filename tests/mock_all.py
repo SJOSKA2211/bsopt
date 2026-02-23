@@ -89,6 +89,13 @@ MOCK_IF_MISSING = [
     "ray.tune.search.optuna",
     "ray.air",
     "graphql",
+    "torch",
+    "torch.nn",
+    "torch.optim",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "scikit-learn",
+    "sklearn",
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in Advanced venv
@@ -109,6 +116,8 @@ heavy_prefixes = [
     "onnxruntime",
     "ray.tune",
     "ray.air",
+    "torch",
+    "matplotlib",
 ]
 
 for mod in MOCK_IF_MISSING:
@@ -160,6 +169,12 @@ if "torch" in sys.modules and isinstance(sys.modules["torch"], MagicMock):
     sys.modules["torch"].__version__ = "2.0.0"
     sys.modules["torch"].__config__ = MagicMock()
     sys.modules["torch"].__config__.show.return_value = ""
+
+    # Add MockTensor for issubclass checks
+    class MockTensor:
+        pass
+
+    sys.modules["torch"].Tensor = MockTensor
 
 # Special handling for Redis (always mock to avoid network)
 r_client = MagicMock()
