@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from src.api.deps import get_current_user
+from src.security.auth import get_current_user
 from src.api.schemas.common import (
     DataResponse,
     PaginatedResponse,
