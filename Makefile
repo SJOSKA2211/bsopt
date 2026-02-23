@@ -20,7 +20,7 @@ help:
 	@echo ""
 	@echo "Quality & Security:"
 	@echo "  lint         - Run Ruff linting inside container"
-	@echo "  format       - Run Black formatting check"
+	@echo "  format       - Auto-format code with Ruff"
 	@echo "  security-scan - Run pip-audit and Bandit"
 	@echo ""
 	@echo "Build & Protos:"
@@ -94,7 +94,7 @@ lint:
 	docker compose --profile test run --rm --no-deps test-runner ruff check .
 
 format:
-	docker compose --profile test run --rm --no-deps test-runner black --check .
+	docker compose --profile test run --rm --no-deps test-runner ruff format .
 
 security-scan:
 	docker compose --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
@@ -157,4 +157,4 @@ cli:
 
 check-env:
 	@test -f .env || echo "WARNING: .env not found."
-	@test -f .env.test || echo "WARNING: .env.test not found.">>>>>>> Stashed changes
+	@test -f .env.test || echo "WARNING: .env.test not found."
