@@ -618,15 +618,11 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
 
             # 3. UPSERT/INSERT from staging to main with conflict resolution
             col_list = ", ".join(columns)
-            await db.execute(
-                text(
-                    f"""
+            await db.execute(text(f"""
                 INSERT INTO options_prices ({col_list})
                 SELECT {col_list} FROM staging_option_prices
                 ON CONFLICT DO NOTHING
-            """
-                )
-            )
+            """))
 
             await db.commit()
             return len(prices_data)
@@ -674,15 +670,11 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
 
             # 3. Safe Merge
             col_list = ", ".join(columns)
-            await db.execute(
-                text(
-                    f"""
+            await db.execute(text(f"""
                 INSERT INTO market_ticks ({col_list})
                 SELECT {col_list} FROM staging_market_ticks
                 ON CONFLICT DO NOTHING
-            """
-                )
-            )
+            """))
 
             await db.commit()
             return len(ticks_data)
@@ -901,8 +893,7 @@ async def get_market_statistics(
         from sqlalchemy import text
 
         result = await db.execute(
-            text(
-                """
+            text("""
                 SELECT 
                     symbol,
                     day as trade_date,
@@ -911,8 +902,7 @@ async def get_market_statistics(
                 WHERE symbol = :symbol 
                 ORDER BY day DESC 
                 LIMIT :limit
-            """
-            ),
+            """),
             {"symbol": symbol, "limit": limit},
         )
         return [dict(row._mapping) for row in result]
@@ -930,8 +920,7 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
 
         # Corrected interval binding
         result = await db.execute(
-            text(
-                """
+            text("""
                 SELECT 
                     day as time,
                     open, high, low, close, volume
@@ -939,8 +928,7 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
                 WHERE symbol = :symbol
                 AND day > NOW() - (INTERVAL '1 day' * :days)
                 ORDER BY day ASC
-            """
-            ),
+            """),
             {"symbol": symbol, "days": days},
         )
         return [dict(row._mapping) for row in result]
@@ -958,8 +946,7 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
         from sqlalchemy import text
 
         result = await db.execute(
-            text(
-                """
+            text("""
                 SELECT 
                     bucket as time,
                     avg_iv, min_iv, max_iv, stddev_iv
@@ -967,8 +954,7 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
                 WHERE symbol = :symbol
                 AND bucket > NOW() - (INTERVAL '1 day' * :days)
                 ORDER BY bucket ASC
-            """
-            ),
+            """),
             {"symbol": symbol, "days": days},
         )
         return [dict(row._mapping) for row in result]
@@ -987,8 +973,7 @@ async def get_hourly_market_stats(
         from sqlalchemy import text
 
         result = await db.execute(
-            text(
-                """
+            text("""
                 SELECT 
                     hour as time,
                     avg_price, total_volume, tick_count
@@ -996,8 +981,7 @@ async def get_hourly_market_stats(
                 WHERE symbol = :symbol
                 AND hour > NOW() - (INTERVAL '1 hour' * :hours)
                 ORDER BY hour ASC
-            """
-            ),
+            """),
             {"symbol": symbol, "hours": hours},
         )
         return [dict(row._mapping) for row in result]

@@ -36,7 +36,7 @@ async def _run_async_safe(coro):
     import asyncio
 
     try:
-        asyncio.get_running_loop()
+        loop = asyncio.get_running_loop()
         return await coro
     except RuntimeError:
         return asyncio.run(coro)
@@ -95,6 +95,8 @@ def monitor_drift_and_retrain_task(self):
         return {"status": "failed", "error": str(e)}
 
 
+
+
 @celery_app.task(bind=True, queue="ml")
 def optimize_model_task(self, model_path: str, output_path: str):
     """
@@ -115,12 +117,14 @@ def optimize_model_task(self, model_path: str, output_path: str):
         return {"status": "failed", "error": str(e)}
 
 
+
+
+
 @celery_app.task(bind=True, queue="ml")
 def hyperparameter_search_task(self, model_type: str = "xgboost"):
     """Dummy hyperparameter search task."""
     logger.info("hyperparameter_search_start", model_type=model_type)
     return {"status": "success", "best_params": {}}
-
 
 @celery_app.task(bind=True, queue="ml")
 def evaluate_model_task(self, model_uri: str, dataset_path: str):

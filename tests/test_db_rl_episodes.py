@@ -38,12 +38,10 @@ def test_insert_and_query_rl_episode(db_engine):
         config = {"learning_rate": 0.0003, "gamma": 0.99, "tau": 0.005}
 
         conn.execute(
-            text(
-                """
+            text("""
             INSERT INTO rl_episodes (agent_id, episode_reward, steps, hyperparameters)
             VALUES (:agent_id, :reward, :steps, :config)
-        """
-            ),
+        """),
             {
                 "agent_id": agent_id,
                 "reward": reward,

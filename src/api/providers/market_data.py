@@ -7,13 +7,11 @@ from src.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
 
-
 class PolygonProvider:
     """
     Polygon.io Data Provider.
     OPTIMIZED: Persistent connection pooling via HttpClientManager.
     """
-
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.POLYGON_API_KEY
         self.client = HttpClientManager.get_client()
@@ -32,13 +30,11 @@ class PolygonProvider:
         # Search implementation using real endpoint...
         return [{"symbol": query, "name": f"{query} Corp", "provider": "Polygon"}]
 
-
 class YahooProvider:
     """
     Yahoo Finance Provider.
     OPTIMIZED: Uses StealthHttpClient to avoid bot detection.
     """
-
     def __init__(self):
         self.stealth = default_stealth_client
 

@@ -51,21 +51,17 @@ class SelfHealingOrchestrator:
                 logger.info("system_health_nominal")
                 return
 
-            logger.warning(
-                "anomalies_and_drift_detected",
-                anomalies=len(anomalies),
-                drifts=len(drift_anomalies),
-            )
+            logger.warning("anomalies_and_drift_detected",
+                           anomalies=len(anomalies),
+                           drifts=len(drift_anomalies))
 
             # 3. Intelligent Remediation Planning
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
                 if actions:
-                    logger.info(
-                        "executing_remediation_plan",
-                        anomaly_type=anomaly.get("type"),
-                        actions=[a.name for a in actions],
-                    )
+                    logger.info("executing_remediation_plan",
+                                anomaly_type=anomaly.get("type"),
+                                actions=[a.name for a in actions])
                     for action in actions:
                         if action.can_run():
                             logger.info(
@@ -79,16 +75,14 @@ class SelfHealingOrchestrator:
 
                             self._record_history(action.name, anomaly, success)
                         else:
-                            logger.debug(
-                                "remediation_skipped_cooldown", action=action.name
-                            )
+                            logger.debug("remediation_skipped_cooldown", action=action.name)
 
         except Exception as e:
             logger.error("self_healing_cycle_error", error=str(e))
 
     def _record_history(self, action: str, anomaly: dict, success: bool):
-        if not hasattr(self, "max_history"):
-            self.max_history = 1000
+        if not hasattr(self, 'max_history'):
+             self.max_history = 1000
         self.history.append(
             {
                 "timestamp": time.time(),
@@ -106,24 +100,20 @@ class SelfHealingOrchestrator:
         """
         if self.reference_data is None:
             self.reference_data = current_data
-            if not hasattr(self, "last_baseline_update"):
-                self.last_baseline_update = time.time()
+            if not hasattr(self, 'last_baseline_update'):
+                 self.last_baseline_update = time.time()
             logger.info("drift_baseline_initialized")
             return []
 
         drift_anomalies = []
-        numeric_cols = current_data.select_dtypes(include=["number"]).columns
+        numeric_cols = current_data.select_dtypes(include=['number']).columns
 
         for col in numeric_cols:
             ref_vals = self.reference_data[col].values
             curr_vals = current_data[col].values
 
             try:
-                from src.aiops.timeseries_anomaly_detector import (
-                    calculate_ks_test,
-                    calculate_psi,
-                )
-
+                from src.aiops.timeseries_anomaly_detector import calculate_psi, calculate_ks_test
                 psi_score = calculate_psi(ref_vals, curr_vals)
                 ks_stat, p_val = calculate_ks_test(ref_vals, curr_vals)
 
@@ -133,7 +123,7 @@ class SelfHealingOrchestrator:
                         "metric": col,
                         "psi_score": float(psi_score),
                         "ks_p_val": float(p_val),
-                        "score": float(psi_score),
+                        "score": float(psi_score)
                     }
                     drift_anomalies.append(drift_info)
                     logger.warning("metric_distribution_drift_detected", **drift_info)
@@ -142,8 +132,8 @@ class SelfHealingOrchestrator:
 
         # Periodically update reference data (every 4 hours)
         now = time.time()
-        if not hasattr(self, "last_baseline_update"):
-            self.last_baseline_update = now
+        if not hasattr(self, 'last_baseline_update'):
+             self.last_baseline_update = now
         if now - self.last_baseline_update > 14400:
             self.reference_data = current_data
             self.last_baseline_update = now

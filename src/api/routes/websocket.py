@@ -22,7 +22,6 @@ async def market_data_ws(
     """
     # 1. Initialize Metadata FIRST
     from src.api.websockets.manager import ConnectionMetadata
-
     websocket.metadata = ConnectionMetadata(protocol=protocol)
 
     # 2. Connect to symbol-aware manager

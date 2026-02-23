@@ -6,15 +6,15 @@ Handles asynchronous trading operations. Fully implemented with risk simulation.
 
 import logging
 import time
-import sys
 
-from src.utils.lazy_import import lazy_import
 from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 
+import sys
 
+from src.utils.lazy_import import lazy_import
 
 # Lazy Import Map
 _IMPORT_MAP = {
@@ -22,13 +22,11 @@ _IMPORT_MAP = {
     "np": "numpy",
     "BacktestEngine": "src.portfolio.engine.BacktestEngine",
     "OrderExecutor": "src.trading.execution.OrderExecutor",
-    "validate_risk": "src.trading.risk_kernels._validate_order_kernel",
+    "validate_risk": "src.trading.risk_kernels._validate_order_kernel"
 }
-
 
 def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
-
 
 @celery_app.task(bind=True, queue="trading")
 def execute_trade_task(self, order: dict):
@@ -38,11 +36,10 @@ def execute_trade_task(self, order: dict):
     logger.info("executing_trade_task_started", symbol=order.get("symbol"))
 
     OrderExecutor = _get_attr("OrderExecutor")
-    executor = OrderExecutor()  # Reuses connection pool
+    executor = OrderExecutor() # Reuses connection pool
 
     try:
         import asyncio
-
         # Dispatch to real executor which handles risk and chain interaction
         result = asyncio.run(executor.execute_order(order))
 
@@ -51,13 +48,12 @@ def execute_trade_task(self, order: dict):
             "status": result["status"],
             "tx_hash": result.get("tx_hash"),
             "reason": result.get("reason"),
-            "timestamp": time.time(),
+            "timestamp": time.time()
         }
 
     except Exception as e:
         logger.error("trade_execution_failed", error=str(e))
         return {"status": "failed", "error": str(e)}
-
 
 @celery_app.task(bind=True, queue="trading")
 def check_risk_limits(self, portfolio_id: str):
@@ -65,11 +61,8 @@ def check_risk_limits(self, portfolio_id: str):
     logger.info("checking_risk_limits", portfolio_id=portfolio_id)
     return {"status": "success", "within_limits": True}
 
-
 @celery_app.task(bind=True, queue="trading")
-def backtest_strategy_task(
-    self, strategy: str, start_date: str, end_date: str, params: dict | None = None
-):
+def backtest_strategy_task(self, strategy: str, start_date: str, end_date: str, params: dict | None = None):
     """Vectorized backtest with lazy-loaded dependencies."""
     BacktestEngine = _get_attr("BacktestEngine")
     pd = _get_attr("pd")

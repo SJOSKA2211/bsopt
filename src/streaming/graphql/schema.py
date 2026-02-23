@@ -48,7 +48,6 @@ class Subscription:
         OPTIMIZED: Low-latency polling of Shared Memory.
         """
         from src.shared.shm_mesh import SharedMemoryRingBuffer
-
         mesh = SharedMemoryRingBuffer(create=False)
         last_head = 0
 
@@ -58,12 +57,12 @@ class Subscription:
             if slices:
                 for chunk in slices:
                     for tick in chunk:
-                        sym = tick["symbol"].decode("ascii").strip("\x00")
+                        sym = tick['symbol'].decode('ascii').strip('\x00')
                         if not symbols or sym in symbols:
                             yield MarketData(
                                 symbol=sym,
-                                last_price=tick["price"],
-                                volume=tick["volume"],
+                                last_price=tick['price'],
+                                volume=tick['volume']
                             )
                 last_head = new_head
 

@@ -13,7 +13,6 @@ router = APIRouter(prefix="/system", tags=["System"])
 # Global Probe Cache
 _shm_probe = None
 
-
 @router.get("/health/deep")
 async def get_deep_health():
     """High-fidelity stack probe with cached connections."""
@@ -27,13 +26,12 @@ async def get_deep_health():
 
         # Lock-free head check via pre-mapped buffer
         import struct
-
         head = struct.unpack("q", _shm_probe.buf[:8])[0]
         health["probes"]["shm_mesh"] = {"status": "connected", "head": head}
     except Exception as e:
         health["probes"]["shm_mesh"] = {"status": "corrupted", "error": str(e)}
         health["status"] = "degraded"
-        _shm_probe = None  # Reset on failure
+        _shm_probe = None # Reset on failure
 
     # 2. Lazy CUDA Probe
     if os.getenv("BSOPT_USE_GPU", "0") == "1":

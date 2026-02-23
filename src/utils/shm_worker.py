@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from multiprocessing import shared_memory
-from typing import Any
 
 import numpy as np
 
@@ -56,9 +55,7 @@ def _generic_shm_worker(
             shm_in, shm_out = shms[0], shms[1]
 
             inputs = np.ndarray(input_shape, dtype=input_dtype, buffer=shm_in.buf)
-            outputs = np.ndarray(
-                (input_shape[0],), dtype=output_dtype, buffer=shm_out.buf
-            )
+            outputs = np.ndarray((input_shape[0],), dtype=output_dtype, buffer=shm_out.buf)
 
             kernel_func(inputs, outputs, *args)
 

@@ -26,15 +26,11 @@ def test_option_contracts_table_exists(db_engine):
 def test_option_contracts_indices(db_engine):
     """Test that optimized indices exist for option_contracts."""
     with db_engine.connect() as conn:
-        result = conn.execute(
-            text(
-                """
+        result = conn.execute(text("""
             SELECT indexname FROM pg_indexes 
             WHERE tablename = 'option_contracts' 
             AND indexname IN ('ix_option_contracts_underlying_expiry_strike');
-        """
-            )
-        )
+        """))
         assert result.fetchone() is not None, "Optimized composite index is missing"
 
 
@@ -49,12 +45,10 @@ def test_insert_and_query_option(db_engine):
 
         # Insert a sample contract
         conn.execute(
-            text(
-                """
+            text("""
             INSERT INTO option_contracts (id, underlying, expiry, strike, option_type)
             VALUES (:id, :underlying, :expiry, :strike, :option_type)
-        """
-            ),
+        """),
             {
                 "id": "AAPL-20260116-C-150",
                 "underlying": "AAPL",
@@ -67,12 +61,10 @@ def test_insert_and_query_option(db_engine):
 
         # Query
         result = conn.execute(
-            text(
-                """
+            text("""
             SELECT * FROM option_contracts 
             WHERE underlying = 'AAPL' AND expiry = :expiry AND strike = :strike
-        """
-            ),
+        """),
             {"expiry": date(2026, 1, 16), "strike": 150.00},
         )
         row = result.fetchone()

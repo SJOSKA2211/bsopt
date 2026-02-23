@@ -52,6 +52,7 @@ async def _send_verification_email(email: str, token: str):
     """Sends verification email using configured provider or logs for development."""
     subject = "Verify your BSOPT Account"
     link = f"{settings.CORS_ORIGINS[0]}/verify-email?token={token}"
+    body = f"Please verify your account by clicking: {link}"
 
     if settings.SENDGRID_API_KEY == "mock_key":
         logger.info("email_sent_mock", recipient=email, subject=subject, link=link)
@@ -64,11 +65,10 @@ async def _send_password_reset_email(email: str, token: str):
     """Sends password reset email using configured provider or logs for development."""
     subject = "Reset your BSOPT Password"
     link = f"{settings.CORS_ORIGINS[0]}/reset-password?token={token}"
+    body = f"Click here to reset your password: {link}"
 
     if settings.SENDGRID_API_KEY == "mock_key":
-        logger.info(
-            "reset_email_sent_mock", recipient=email, subject=subject, link=link
-        )
+        logger.info("reset_email_sent_mock", recipient=email, subject=subject, link=link)
     else:
         logger.info("reset_email_sent_prod", recipient=email, subject=subject)
 
@@ -136,7 +136,6 @@ async def register(
 ):
     # Idempotency check
     from src.api.exceptions import ConflictException
-
     # We need idempotency_manager, but it's not imported. Let us skip the check or import it.
     # To keep the code valid, I will comment it out if it isn't defined, but wait, upstream had it:
     # `if not await idempotency_manager.check_and_set...`
@@ -163,7 +162,7 @@ async def register(
         full_name=data.full_name,
         is_active=True,
         is_verified=False,
-        verification_token=str(uuid.uuid4()),
+        verification_token=str(uuid.uuid4())
     )
     db.add(user)
     try:
@@ -172,14 +171,10 @@ async def register(
     except Exception as e:
         db.rollback()
         logger.error(f"registration_db_error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error during registration"
-        )
+        raise HTTPException(status_code=500, detail="Database error during registration")
 
     # Send verification email (background)
-    background_tasks.add_task(
-        _send_verification_email, user.email, user.verification_token
-    )
+    background_tasks.add_task(_send_verification_email, user.email, user.verification_token)
 
     # Add token cleanup task occasionally
     if secrets.randbelow(100) < 5:
@@ -273,7 +268,7 @@ async def refresh(data: RefreshTokenRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/verify-email")
-async def verify_email_post(data: EmailVerificationRequest, db: Session = Depends(get_db)):
+async def verify_email(data: EmailVerificationRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.verification_token == data.token).first()
     if not user:
         raise ValidationException(message="Invalid or expired verification token")
@@ -489,16 +484,14 @@ async def openid_configuration(request: Request):
         "jwks_uri": f"{base_url}/api/v1/auth/jwks",
     }
 
-
 @router.get("/jwks")
 async def jwks():
     from authlib.jose import JsonWebKey
-
     key = JsonWebKey.import_key(
-        settings.rsa_public_key, {"kty": "RSA", "kid": "internal-key-01", "use": "sig"}
+        settings.rsa_public_key,
+        {"kty": "RSA", "kid": "internal-key-01", "use": "sig"}
     )
     return {"keys": [key.as_dict()]}
-
 
 @router.get("/oauth/login/{provider}")
 async def oauth_login(provider: str, request: Request):
@@ -516,7 +509,6 @@ async def oauth_login(provider: str, request: Request):
 async def oauth_callback(provider: str, code: str, db: Session = Depends(get_db)):
     """Handle OAuth callback and upsert user via native Postgres procedure."""
     from sqlalchemy import text
-
     if provider not in ["google", "github"]:
         raise ValidationException(message="Unsupported OAuth provider")
 
@@ -577,3 +569,4 @@ async def oauth_callback(provider: str, code: str, db: Session = Depends(get_db)
         ),
         message=f"Logged in via {provider} successfully",
     )
+    return {"keys": [key.as_dict()]}

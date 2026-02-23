@@ -125,7 +125,6 @@ app.include_router(graphql_app, prefix="/graphql")
 async def health():
     return {"status": "healthy"}
 
-
 @app.get("/metrics")
 async def metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

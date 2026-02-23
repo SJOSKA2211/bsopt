@@ -57,26 +57,24 @@ class SHMManager[T]:
 
         # 2. Optimized Spin-Lock
         import time
-
         start = time.perf_counter()
         while mv[0] != 0:
             # OPTIMIZED: Use a combination of busy-wait and very short sleep
             # In a true Rick-pass, we'd use a machine-code 'pause' instruction
-            if time.perf_counter() - start > 0.05:  # 50ms timeout
+            if time.perf_counter() - start > 0.05: # 50ms timeout
                 logger.warning("shm_lock_contention_clearing", name=self.name)
-                mv[0] = 0  # Safety break
+                mv[0] = 0 # Safety break
                 break
             pass
 
-        mv[0] = 1  # LOCK
+        mv[0] = 1 # LOCK
         try:
             import struct
-
             # Header: [Lock(1), Length(4)]
             mv[1:5] = struct.pack("I", len(packed))
             mv[5 : 5 + len(packed)] = packed
         finally:
-            mv[0] = 0  # UNLOCK
+            mv[0] = 0 # UNLOCK
 
     def read(self) -> T:
         """Read from SHM with wait-free optimization."""
@@ -86,10 +84,9 @@ class SHMManager[T]:
         mv = self._shm.buf
         # Polling for unlock
         while mv[0] != 0:
-            pass  # Busy-wait for speed
+            pass # Busy-wait for speed
 
         import struct
-
         length = struct.unpack("I", mv[1:5])[0]
         # Zero-copy decode from buffer
         return self._decoder.decode(mv[5 : 5 + length])

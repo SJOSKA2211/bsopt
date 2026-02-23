@@ -77,8 +77,7 @@ async def test_graphql_mutation():
         response = await ac.post(
             "/graphql",
             headers=headers,
-            json={
-                "query": """
+            json={"query": """
                 mutation {
                     createPortfolio(userId: \"user1\", name: \"Test Portfolio\", initialCash: 10000.0) {
                         id
@@ -86,8 +85,7 @@ async def test_graphql_mutation():
                         cashBalance
                     }
                 }
-            """
-            },
+            """},
         )
         assert response.status_code == 200
         assert response.json()["data"]["createPortfolio"]["name"] == "Test Portfolio"

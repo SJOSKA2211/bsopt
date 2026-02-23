@@ -112,7 +112,7 @@ class AIOpsOrchestrator:
         self.redis_remediator = RedisRemediator(
             host=config.get("redis_host", "redis"),
             port=config.get("redis_port", 6379),
-            db=config.get("redis_db", 0),
+            db=config.get("redis_db", 0)
         )
         self.redis_cache_pattern = config.get("redis_cache_pattern", "*")
 
@@ -176,9 +176,7 @@ class AIOpsOrchestrator:
             }
 
         #  HIGH-RES: Tick-to-Trade Jitter Detection
-        t2t_latency = await self.prometheus_client.get_custom_metric(
-            "bsopt_t2t_latency_ns"
-        )
+        t2t_latency = await self.prometheus_client.get_custom_metric("bsopt_t2t_latency_ns")
         if t2t_latency > self.t2t_latency_threshold_ns:
             anomalies["jitter_anomaly"] = {
                 "metric": t2t_latency,
@@ -223,10 +221,8 @@ class AIOpsOrchestrator:
 
             # Multivariate
             if self.autoencoder_detector:
-                data_multi = (
-                    await self.prometheus_client.get_historical_metric_data_multi(
-                        self.api_service_name
-                    )
+                data_multi = await self.prometheus_client.get_historical_metric_data_multi(
+                    self.api_service_name
                 )
                 if data_multi is not None and len(data_multi) > 0:
                     preds_multi = self.autoencoder_detector.fit_predict(data_multi)

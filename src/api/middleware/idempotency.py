@@ -9,7 +9,6 @@ from starlette.responses import StreamingResponse
 
 logger = structlog.get_logger()
 
-
 async def _generate_fingerprint(request: Request) -> str:
     """Calculate a request fingerprint safely."""
     # Use existing fingerprint in state if available (from earlier middleware)
@@ -33,7 +32,6 @@ async def _generate_fingerprint(request: Request) -> str:
 
     return f"ctx:{hasher.hexdigest()}"
 
-
 class IdempotencyMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_client, expiry: int = 3600):
         super().__init__(app)
@@ -41,9 +39,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         self.expiry = expiry
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        if request.method not in ("POST", "PUT", "PATCH") and not request.headers.get(
-            "X-Idempotency-Key"
-        ):
+        if request.method not in ("POST", "PUT", "PATCH") and not request.headers.get("X-Idempotency-Key"):
             return await call_next(request)
 
         fingerprint = await _generate_fingerprint(request)
@@ -60,15 +56,13 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return Response(
                 content=data["content"],
                 status_code=data["status_code"],
-                headers=headers,
+                headers=headers
             )
 
         # 2. Acquire Lock (Simple SETNX)
         if not await self.redis.set(lock_key, "1", nx=True, ex=60):
             logger.warning("idempotency_lock_conflict", key=fingerprint)
-            return Response(
-                content='{"error": "Request already in progress"}', status_code=409
-            )
+            return Response(content='{"error": "Request already in progress"}', status_code=409)
 
         try:
             response = await call_next(request)
@@ -88,14 +82,12 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         "content": full_body.decode("utf-8", errors="ignore"),
                         "headers": dict(response.headers),
                     }
-                    await self.redis.set(
-                        cache_key, msgspec.json.encode(cache_data), ex=self.expiry
-                    )
+                    await self.redis.set(cache_key, msgspec.json.encode(cache_data), ex=self.expiry)
 
                 return Response(
                     content=full_body,
                     status_code=response.status_code,
-                    headers=dict(response.headers),
+                    headers=dict(response.headers)
                 )
 
             return response

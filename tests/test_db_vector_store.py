@@ -37,35 +37,29 @@ def test_vector_similarity_search(db_engine):
         target = [2.0] * 1536
 
         conn.execute(
-            text(
-                """
+            text("""
             INSERT INTO model_embeddings (model_id, version, embedding)
             VALUES ('model_a', 1, :embedding)
-        """
-            ),
+        """),
             {"embedding": str(vec_a)},
         )
 
         conn.execute(
-            text(
-                """
+            text("""
             INSERT INTO model_embeddings (model_id, version, embedding)
             VALUES ('model_b', 1, :embedding)
-        """
-            ),
+        """),
             {"embedding": str(vec_b)},
         )
         conn.commit()
 
         # Search for neighbor
         result = conn.execute(
-            text(
-                """
+            text("""
             SELECT model_id FROM model_embeddings
             ORDER BY embedding <-> :target
             LIMIT 1
-        """
-            ),
+        """),
             {"target": str(target)},
         )
         row = result.fetchone()
@@ -76,12 +70,8 @@ def test_vector_similarity_search(db_engine):
 def test_hnsw_index_exists(db_engine):
     """Test that HNSW index exists for embeddings."""
     with db_engine.connect() as conn:
-        result = conn.execute(
-            text(
-                """
+        result = conn.execute(text("""
             SELECT indexname FROM pg_indexes 
             WHERE tablename = 'model_embeddings' AND indexdef LIKE '%hnsw%';
-        """
-            )
-        )
+        """))
         assert result.fetchone() is not None, "HNSW index is missing"

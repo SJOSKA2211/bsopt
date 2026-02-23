@@ -119,7 +119,9 @@ class MarketDataRouter:
                 if isinstance(res, list):
                     results.extend(res)
                 elif isinstance(res, Exception):
-                    logger.warning("provider_search_partial_failure", error=str(res))
+                    logger.warning(
+                        "provider_search_partial_failure", error=str(res)
+                    )
 
             logger.info(
                 "market_search_completed", query=query, results_count=len(results)

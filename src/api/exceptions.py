@@ -27,18 +27,14 @@ class BaseAPIException(Exception):
         self.details = details
         super().__init__(self.message)
 
-
 class RiskVetoException(BaseAPIException):
     """Thrown when pre-trade risk checks (Solenya Shield) fail."""
-
     status_code = status.HTTP_403_FORBIDDEN
     error_code = "RiskVeto"
     message = "Order rejected by pre-trade risk engine."
 
-
 class ExposureLimitException(BaseAPIException):
     """Thrown when portfolio exposure limits are breached."""
-
     status_code = status.HTTP_400_BAD_REQUEST
     error_code = "ExposureLimitBreach"
     message = "Request would exceed portfolio exposure limits."

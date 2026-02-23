@@ -169,7 +169,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         should_log = True
         if 200 <= status_code < 300:
             import random
-
             if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
                 should_log = False
 
@@ -180,12 +179,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "path": path,
                 "status_code": status_code,
                 "duration_ms": duration_ms,
-                **self._get_user_info(request),
+                **self._get_user_info(request)
             }
 
             # OPTIMIZED: Hand off to Off-Heap Logger for zero-latency persistence
             from src.shared.off_heap_logger import omega_logger
-
             omega_logger.log("api_request", **log_entry)
 
             # Still log to console for visibility

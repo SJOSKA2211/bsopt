@@ -28,7 +28,6 @@ def check_port(host, port, name):
         print(f"❌ {name:<20} ERROR: {e}")
         return False
 
-
 def check_http(url, name):
     try:
         response = requests.get(url, timeout=2)
@@ -41,7 +40,6 @@ def check_http(url, name):
     except Exception as e:
         print(f"❌ {name:<20} ERROR: {e}")
         return False
-
 
 print("\n🥒 Pickle Rick's Stack Verification 🥒")
 print("=======================================")

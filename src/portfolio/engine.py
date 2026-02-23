@@ -34,14 +34,12 @@ def _get_quasi_diag(link):
         num_items = link[-1, 3]
     return sort_ix.tolist()
 
-
 def _get_cluster_var(cov, cluster_items):
     """Cluster variance utility for HRP."""
     cov_c = cov[np.ix_(cluster_items, cluster_items)]
     w = 1.0 / np.diag(cov_c)
     w /= w.sum()
     return np.dot(w.T, np.dot(cov_c, w))
-
 
 def _get_rec_bisec(cov, sort_ix):
     """Recursive bisection utility for HRP."""
@@ -64,7 +62,6 @@ def _get_rec_bisec(cov, sort_ix):
             w[c_right] *= 1 - alpha
     return w
 
-
 class PortfolioOptimizer:
     # ... (init and optimize_weights stay same)
 
@@ -82,13 +79,12 @@ class PortfolioOptimizer:
         weights = _get_rec_bisec(self.cov_matrix, sort_ix)
         return weights.sort_index().values
 
-
 class BacktestEngine:
     # ... (init stays same)
 
     def run_batch(self, scenarios: list[dict]) -> list[dict]:
         """Run multiple backtests in parallel using Ray Orchestrator."""
-        RayOrchestrator.init()  # Using central, Docker-aware init
+        RayOrchestrator.init() # Using central, Docker-aware init
 
         futures = []
         for s in scenarios:

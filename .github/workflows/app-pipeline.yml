@@ -11,10 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -22,7 +20,6 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-            
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
@@ -33,74 +30,14 @@ jobs:
           large-packages: true
           docker-images: false
           swap-storage: false
-          
-      - name: Setup Environment
-        run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
-          
-      - name: Build Images Sequentially
-        run: |
-          echo "=== Building API image ==="
-          docker compose build api
-          
-          echo "=== Building App Gateway image ==="
-          docker compose build app-gateway
-          
-          echo "=== Building Auth Service image ==="
-          docker compose build auth-service
-          
-          echo "=== Building Frontend image ==="
-          docker compose build frontend
-          
-          echo "=== Pruning dangling images to reclaim space ==="
-          docker image prune -f
-          docker builder prune -f --filter "until=5m" || true
-          
-          echo "=== Building Worker image ==="
-          docker compose build worker
-          
-          echo "=== Building Scraper image ==="
-          docker compose build scraper
-          
-          echo "=== Building Neural Pricing image ==="
-          docker compose build neural-pricing
-          
-          echo "=== Pruning again ==="
-          docker image prune -f
-          docker builder prune -f --filter "until=5m" || true
-          
-          echo "=== Building Portfolio image ==="
-          docker compose build portfolio
-          
-          echo "=== All images built ==="
-          docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+      - name: Build Images via Makefile
+        run: make build
 
   quality-checks:
     runs-on: ubuntu-latest
     needs: docker-build
     steps:
       - uses: actions/checkout@v4
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: false
-
-      - name: Setup Environment
-        run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
-
-      - name: Build API image only
-        run: docker compose build api
-
       - name: Lint, Format, and Security Scan via Makefile
         run: |
           make lint
@@ -112,35 +49,12 @@ jobs:
     needs: quality-checks
     steps:
       - uses: actions/checkout@v4
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: false
-
-      - name: Setup Environment
-        run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
-
-      - name: Build API image
-        run: docker compose build api
-
-      - name: Start Dependencies
-        run: docker compose up -d postgres redis rabbitmq
-
       - name: Run Integration Tests via Makefile
         run: make test-all
 
   deploy:
     runs-on: ubuntu-latest
-    needs: integration-tests
+    needs: [quality-checks, integration-tests]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4

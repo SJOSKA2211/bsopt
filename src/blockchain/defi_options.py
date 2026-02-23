@@ -1,8 +1,26 @@
 import asyncio
 import time
+
+from web3 import AsyncWeb3, Web3
+
+try:
+    from web3.providers import AsyncHTTPProvider, AsyncWebsocketProvider
+except ImportError:
+    # web3 v7+ compatibility
+
+    try:
+        from web3.providers import WebSocketProvider as AsyncWebsocketProvider
+    except ImportError:
+        pass
+
+
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+
 import structlog
 from eth_account import Account
-from web3 import AsyncWeb3, Web3
 
 from src.utils.cache import get_redis
 

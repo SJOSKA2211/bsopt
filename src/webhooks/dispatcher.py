@@ -84,18 +84,15 @@ class WebhookDispatcher:
             payload_bytes = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS)
 
             if secret and "X-Webhook-Signature" not in headers:
-                signature_header = await _generate_signature(
-                    secret, payload_bytes.decode("utf-8")
-                )
+                signature_header = await _generate_signature(secret, payload_bytes.decode("utf-8"))
                 headers["X-Webhook-Signature"] = signature_header
 
             client = HttpClientManager.get_client()
             # OPTIMIZED: Pass raw bytes directly to content
-            response = await client.post(
-                url,
-                content=payload_bytes,
-                headers={**headers, "Content-Type": "application/json"},
-            )
+            response = await client.post(url, content=payload_bytes, headers={
+                **headers,
+                "Content-Type": "application/json"
+            })
             response.raise_for_status()
             return response
 

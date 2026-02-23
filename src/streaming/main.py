@@ -8,7 +8,6 @@ from strawberry.fastapi import GraphQLRouter
 
 from src.shared.observability import logging_middleware, setup_logging, tune_gc
 from src.streaming.graphql.schema import schema
-from src.api.websockets.manager import manager as ws_manager
 
 # Optimized event loop
 try:
@@ -57,7 +56,7 @@ async def health():
     return {"status": "healthy"}
 
 
-
+from src.api.websockets.manager import manager as ws_manager
 
 
 @app.websocket("/marketdata/{symbol}")

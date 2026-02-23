@@ -47,16 +47,12 @@ def env_setup(monkeypatch):
     redis_host = "redis" if is_docker else "localhost"
 
     # Prioritize existing env vars (injected by Docker Compose)
-    db_url = (
-        os.getenv("DATABASE_URL") or f"postgresql://admin:password@{db_host}:5432/bsopt"
-    )
+    db_url = os.getenv("DATABASE_URL") or f"postgresql://admin:password@{db_host}:5432/bsopt"
     redis_url = os.getenv("REDIS_URL") or f"redis://{redis_host}:6379/0"
 
     monkeypatch.setenv("DATABASE_URL", db_url)
     monkeypatch.setenv("REDIS_URL", redis_url)
-    monkeypatch.setenv(
-        "JWT_SECRET", os.getenv("JWT_SECRET", "test_secret_key_change_me_in_prod")
-    )
+    monkeypatch.setenv("JWT_SECRET", os.getenv("JWT_SECRET", "test_secret_key_change_me_in_prod"))
     monkeypatch.setenv("ENVIRONMENT", "test")
     monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
     monkeypatch.setenv("OMP_NUM_THREADS", "1")

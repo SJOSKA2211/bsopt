@@ -53,7 +53,6 @@ class RayOrchestrator:
             detected_cpus = len(os.sched_getaffinity(0))
         except AttributeError:
             import multiprocessing
-
             detected_cpus = multiprocessing.cpu_count()
 
         default_cpus = (

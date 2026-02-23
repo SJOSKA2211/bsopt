@@ -24,19 +24,15 @@ def generate_key(request: Request, prefix: str) -> str:
 
     return f"{prefix}:{hasher.hexdigest()}"
 
-
 def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
     """
     Decorator for FastAPI endpoints with Response-aware caching.
     """
-
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # ... (Request extraction stays same)
-            request = next(
-                (arg for arg in args if isinstance(arg, Request)), None
-            ) or kwargs.get("request")
+            request = next((arg for arg in args if isinstance(arg, Request)), None) or kwargs.get("request")
 
             if not request:
                 return await func(*args, **kwargs)
@@ -50,11 +46,7 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
             try:
                 cached = await redis.get(cache_key)
                 if cached:
-                    return Response(
-                        content=cached,
-                        media_type="application/json",
-                        headers={"X-Cache": "HIT"},
-                    )
+                    return Response(content=cached, media_type="application/json", headers={"X-Cache": "HIT"})
             except Exception:
                 pass
 
@@ -77,7 +69,5 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
                 logger.error("api_cache_write_error", error=str(e))
 
             return response
-
         return wrapper
-
     return decorator

@@ -55,9 +55,7 @@ class User(Base):
 
     # OPTIMIZED: Dedicated reset token fields
     reset_token: Mapped[str | None] = mapped_column(String(255))
-    reset_token_expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True)
-    )
+    reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))

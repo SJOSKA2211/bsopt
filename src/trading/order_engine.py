@@ -23,12 +23,10 @@ class OrderEngine:
 
         # Pre-bind for hot loop speed
         import struct
-
         self._struct_q = struct.Struct("q")
         self._head_mv = self.orders.buf[:8]
 
         from src.trading.risk_kernels import _validate_order_kernel
-
         self._risk_check = _validate_order_kernel
 
     def run(self, cpu_core: int = 7):
@@ -50,20 +48,14 @@ class OrderEngine:
                 cmd = self.orders.view[self._last_head % 1000]
 
                 # 🛡️ SOLENYA SHIELD: Direct JIT call
-                if self._risk_check(
-                    float(cmd["price"]), int(cmd["quantity"]), int(cmd["side"])
-                ):
+                if self._risk_check(float(cmd["price"]), int(cmd["quantity"]), int(cmd["side"])):
                     #  BINARY FIRE
                     order_id = self._order_id_counter
                     self._order_id_counter += 1
 
-                    self.execs.write_exec(
-                        order_id, float(cmd["price"]), int(cmd["quantity"]), 1
-                    )
+                    self.execs.write_exec(order_id, float(cmd["price"]), int(cmd["quantity"]), 1)
                 else:
-                    self.execs.write_exec(
-                        -1, float(cmd["price"]), int(cmd["quantity"]), 0
-                    )
+                    self.execs.write_exec(-1, float(cmd["price"]), int(cmd["quantity"]), 0)
 
                 self._last_head += 1
             else:

@@ -394,7 +394,6 @@ class NSEScraper:
             logger.warning("batch_clean_failed", error=str(e))
             return [self._clean_data(i) for i in items]
 
-
 async def main():
     """Scraper service entry point."""
     setup_logging()
