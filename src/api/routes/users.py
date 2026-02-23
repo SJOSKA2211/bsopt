@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from src.security.auth import get_current_user
 from src.api.schemas.common import (
     DataResponse,
     PaginatedResponse,
@@ -18,6 +17,7 @@ from src.api.schemas.common import (
 from src.api.schemas.user import UserResponse, UserUpdateRequest
 from src.database import get_db
 from src.database.models import User
+from src.security.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

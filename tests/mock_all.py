@@ -25,7 +25,7 @@ def mock_module(name):
             import importlib.machinery
 
             m.__spec__ = importlib.machinery.ModuleSpec(name, None)
-        except:
+        except Exception:
             pass
         sys.modules[name] = m
     return sys.modules[name]
