@@ -633,8 +633,7 @@ def scalar_bs_price_jit(
     if T < 1e-7:
         if is_call:
             return max(S - K, 0.0)
-        else:
-            return max(K - S, 0.0)
+        return max(K - S, 0.0)
 
     sig_sqrt_t = sigma * np.sqrt(T)
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / sig_sqrt_t
@@ -648,8 +647,7 @@ def scalar_bs_price_jit(
 
     if is_call:
         return max(S * exp_qt * nd1 - K * exp_rt * nd2, 0.0)
-    else:
-        return max(K * exp_rt * (1.0 - nd2) - S * exp_qt * (1.0 - nd1), 0.0)
+    return max(K * exp_rt * (1.0 - nd2) - S * exp_qt * (1.0 - nd1), 0.0)
 
 
 @njit(cache=True, fastmath=True)

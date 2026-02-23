@@ -24,10 +24,12 @@ class MarketDataConsumer:
         self,
         bootstrap_servers: str = "localhost:9092",
         group_id: str = "market-data-consumers",
-        topics: list[str] = ["market-data"],
+        topics: list[str] | None = None,
         schema_registry_url: str = "http://localhost:8081",
         batch_size: int = 100,
     ):
+        if topics is None:
+            topics = ["market-data"]
         self.config = {
             "bootstrap.servers": bootstrap_servers,
             "group.id": group_id,

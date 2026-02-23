@@ -310,10 +310,9 @@ async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) ->
             )
             await db.commit()
             return len(positions_data)
-        else:
-            await db.execute(insert(Position), positions_data)
-            await db.commit()
-            return len(positions_data)
+        await db.execute(insert(Position), positions_data)
+        await db.commit()
+        return len(positions_data)
 
     except Exception as e:
         logger.error("positions_bulk_copy_failed", error=str(e))
@@ -630,11 +629,10 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
 
             await db.commit()
             return len(prices_data)
-        else:
-            # [FALLBACK]
-            await db.execute(insert(OptionPrice), prices_data)
-            await db.commit()
-            return len(prices_data)
+        # [FALLBACK]
+        await db.execute(insert(OptionPrice), prices_data)
+        await db.commit()
+        return len(prices_data)
 
     except Exception as e:
         logger.error("option_prices_bulk_copy_failed", error=str(e))
@@ -686,10 +684,9 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
 
             await db.commit()
             return len(ticks_data)
-        else:
-            await db.execute(insert(MarketTick), ticks_data)
-            await db.commit()
-            return len(ticks_data)
+        await db.execute(insert(MarketTick), ticks_data)
+        await db.commit()
+        return len(ticks_data)
 
     except Exception as e:
         logger.error("market_ticks_bulk_copy_failed", error=str(e))
@@ -750,10 +747,9 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
             )
             await db.commit()
             return len(logs_data)
-        else:
-            await db.execute(insert(AuditLog), logs_data)
-            await db.commit()
-            return len(logs_data)
+        await db.execute(insert(AuditLog), logs_data)
+        await db.commit()
+        return len(logs_data)
 
     except Exception as e:
         logger.error("audit_logs_bulk_copy_failed", error=str(e))
@@ -818,10 +814,9 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
             )
             await db.commit()
             return len(logs_data)
-        else:
-            await db.execute(insert(RequestLog), logs_data)
-            await db.commit()
-            return len(logs_data)
+        await db.execute(insert(RequestLog), logs_data)
+        await db.commit()
+        return len(logs_data)
 
     except Exception as e:
         logger.error("request_logs_bulk_copy_failed", error=str(e))

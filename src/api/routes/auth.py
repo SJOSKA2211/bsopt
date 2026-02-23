@@ -95,7 +95,7 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
         logger.error("verification_commit_failed", error=str(e))
         raise HTTPException(
             status_code=500, detail="Failed to update verification status"
-        )
+        ) from e
 
     return DataResponse(
         data={"email": user.email}, message="Email verified successfully"
@@ -174,7 +174,7 @@ async def register(
         logger.error(f"registration_db_error: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Database error during registration"
-        )
+        ) from e
 
     # Send verification email (background)
     background_tasks.add_task(
@@ -269,7 +269,7 @@ async def refresh(data: RefreshTokenRequest, db: Session = Depends(get_db)):
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
-        raise AuthenticationException(message=str(e))
+        raise AuthenticationException(message=str(e)) from e
 
 
 @router.post("/verify-email")
@@ -284,7 +284,7 @@ async def verify_email_post(data: EmailVerificationRequest, db: Session = Depend
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
     return {"message": "Email verified successfully"}
 
@@ -329,7 +329,7 @@ async def confirm_password_reset(
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
     return {"message": "Password reset successful"}
 
@@ -354,7 +354,7 @@ async def change_password(
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
     return {"message": "Password changed successfully"}
 
@@ -386,7 +386,7 @@ async def mfa_setup(
     except Exception as e:
         db.rollback()
         logger.error(f"mfa_setup_db_error: {str(e)}")
-        raise HTTPException(status_code=500, detail="DB error on mfa setup")
+        raise HTTPException(status_code=500, detail="DB error on mfa setup") from e
 
     totp = pyotp.TOTP(secret)
     provisioning_uri = totp.provisioning_uri(name=user.email, issuer_name="BSOPT")
@@ -414,10 +414,9 @@ async def mfa_verify(
             db.commit()
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
         return {"message": "MFA enabled successfully"}
-    else:
-        raise AuthenticationException(message="Invalid MFA code")
+    raise AuthenticationException(message="Invalid MFA code")
 
 
 @router.post("/mfa/disable")
@@ -437,10 +436,9 @@ async def mfa_disable(
             db.commit()
         except Exception as e:
             db.rollback()
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail=str(e)) from e
         return {"message": "MFA disabled successfully"}
-    else:
-        raise AuthenticationException(message="Invalid MFA code")
+    raise AuthenticationException(message="Invalid MFA code")
 
 
 def _verify_mfa_code(user: User, code: str, db: Session):
@@ -557,7 +555,7 @@ async def oauth_callback(provider: str, code: str, db: Session = Depends(get_db)
         logger.error(f"oauth_upsert_failed: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Failed to sync OAuth user with database"
-        )
+        ) from e
 
     # 4. Fetch the user model to create JWT
     user = db.query(User).filter(User.id == user_id).first()

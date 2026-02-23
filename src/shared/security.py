@@ -105,9 +105,8 @@ class OPAEnforcer:
                     authorized=result,
                 )
                 return result
-            else:
-                logger.error("opa_error", status_code=response.status_code)
-                return False
+            logger.error("opa_error", status_code=response.status_code)
+            return False
         except Exception as e:
             logger.error("opa_connection_failed", error=str(e))
             return False
@@ -191,7 +190,7 @@ def opa_authorize(action: str, resource: str):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Authorization service temporarily unavailable",
-            )
+            ) from e
 
         if not authorized:
             raise HTTPException(

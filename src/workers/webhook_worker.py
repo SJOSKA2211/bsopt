@@ -1,13 +1,13 @@
 import asyncio
 import os
+import sys
 
 import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
-from src.webhooks.dispatcher import WebhookDispatcher
-import sys
 from src.utils.lazy_import import lazy_import
+from src.webhooks.dispatcher import WebhookDispatcher
 
 # Optimized event loop
 try:
@@ -85,7 +85,7 @@ async def _process_webhook_core(task_self, webhook_data: dict):
         if "Circuit Breaker" in error_str and "OPEN" in error_str:
             # For circuit breaker, retry with a longer delay or send to DLQ
             logger.warning("webhook_worker_circuit_breaker_open", url=url)
-            raise task_self.retry(exc=e, countdown=60)  # Long delay
+            raise task_self.retry(exc=e, countdown=60) from e  # Long delay
 
         logger.error(
             "process_webhook_task_failed",
@@ -113,8 +113,7 @@ def process_webhook_task(self, webhook_data: dict):
             _process_webhook_core(self, webhook_data), loop
         )
         return future.result()
-    else:
-        return asyncio.run(_process_webhook_core(self, webhook_data))
+    return asyncio.run(_process_webhook_core(self, webhook_data))
 
 
 @celery_app.task

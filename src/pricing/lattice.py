@@ -9,11 +9,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+from numba import njit
 
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
 from .models import BSParameters
-from numba import njit
 
 
 @dataclass

@@ -1,5 +1,6 @@
 import asyncio
 import time
+
 import structlog
 from eth_account import Account
 from web3 import AsyncWeb3, Web3
@@ -205,8 +206,7 @@ class DeFiOptionsProtocol:
             if receipt["status"] == 1:
                 logger.info("option_purchase_success", tx_hash=tx_hash.hex())
                 return tx_hash.hex()
-            else:
-                raise Exception(f"Transaction failed: {tx_hash.hex()}")
+            raise Exception(f"Transaction failed: {tx_hash.hex()}")
         except Exception as e:
             logger.error("blockchain_tx_error", error=str(e))
             if hasattr(self, "_local_nonce"):

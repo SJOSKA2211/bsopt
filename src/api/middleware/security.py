@@ -409,9 +409,8 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
             block_until = self._temporary_blocks[ip]
             if datetime.now(UTC) < block_until:
                 return True
-            else:
-                # Block expired
-                del self._temporary_blocks[ip]
+            # Block expired
+            del self._temporary_blocks[ip]
 
         return False
 

@@ -184,9 +184,8 @@ class StrategyFactory:
 
         if ray_active and count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             return RayStrategy()
-        elif count > settings.PRICING_LARGE_BATCH_THRESHOLD:
+        if count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             return SHMStrategy()
-        elif WASM_AVAILABLE:
+        if WASM_AVAILABLE:
             return WASMStrategy()
-        else:
-            return SequentialStrategy()
+        return SequentialStrategy()

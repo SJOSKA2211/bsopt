@@ -36,8 +36,10 @@ class MarketDataConsumer:
         bootstrap_servers: str = "kafka-1:9092,kafka-2:9092,kafka-3:9092",
         schema_registry_url: str = "http://schema-registry:8081",
         group_id: str = "market-data-consumers",
-        topics: list[str] = ["market-data"],
+        topics: list[str] | None = None,
     ):
+        if topics is None:
+            topics = ["market-data"]
         self.config = {
             "bootstrap.servers": bootstrap_servers,
             "group.id": group_id,

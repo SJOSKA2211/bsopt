@@ -127,7 +127,7 @@ async def predict(raw_request: Request):
         )
     except Exception as e:
         logger.error("inference_failed", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/health")

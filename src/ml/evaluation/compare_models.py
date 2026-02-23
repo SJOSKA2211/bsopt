@@ -56,12 +56,11 @@ def compare_models(model_name, challenger_run_id, champion_stage="Production"):
             improvement=f"{improvement*100:.2f}%",
         )
         return True
-    else:
-        reason = "Improvement below statistical threshold (epsilon=2%)"
-        if challenger_score <= champion_score:
-            reason = "Challenger performance worse than champion"
-        logger.info("promotion_rejected", reason=reason)
-        return False
+    reason = "Improvement below statistical threshold (epsilon=2%)"
+    if challenger_score <= champion_score:
+        reason = "Challenger performance worse than champion"
+    logger.info("promotion_rejected", reason=reason)
+    return False
 
 
 if __name__ == "__main__":

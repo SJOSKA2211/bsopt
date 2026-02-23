@@ -225,9 +225,9 @@ class AuthService:
                 jti=payload.get("jti"),
             )
         except ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token has expired")
+            raise HTTPException(status_code=401, detail="Token has expired") from None
         except PyJWTError:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Invalid token") from None
 
     async def validate_token(
         self, token: str | None = Depends(get_token_from_header)

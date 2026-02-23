@@ -160,7 +160,7 @@ class SVIModel:
             raise ValueError("Maturity must be positive")
 
         # Handle array vs scalar for strike
-        if isinstance(strike, (list, np.ndarray)):
+        if isinstance(strike, list | np.ndarray):
             k = np.log(np.array(strike, dtype=float) / float(forward))
         else:
             k = np.log(float(strike) / float(forward))

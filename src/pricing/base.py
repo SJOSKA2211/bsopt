@@ -68,8 +68,7 @@ class PricingEngine:
         """Unified entry point for single option pricing."""
         if isinstance(self.strategy, PricingStrategy):
             return self.strategy.price(params, option_type)
-        elif isinstance(self.strategy, VectorizedPricingStrategy):
+        if isinstance(self.strategy, VectorizedPricingStrategy):
             # If strategy is VectorizedPricingStrategy, use its price_single method
             return self.strategy.price_single(params, option_type)
-        else:
-            raise TypeError("Unsupported pricing strategy type")
+        raise TypeError("Unsupported pricing strategy type")

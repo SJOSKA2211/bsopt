@@ -6,12 +6,12 @@ import structlog
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from src.database import get_async_db_context
-from src.shared.observability import setup_logging, tune_gc
-from src.streaming.kafka_consumer import MarketDataConsumer
 from src.api.websockets.manager import manager as ws_manager
 from src.data.xdp_ingest import XDPIngester
+from src.database import get_async_db_context
 from src.shared.eternal_ledger import EternalLedger
+from src.shared.observability import setup_logging, tune_gc
+from src.streaming.kafka_consumer import MarketDataConsumer
 
 # Optimized event loop
 try:
@@ -119,7 +119,9 @@ class IngestionWorker:
     3. Scribe (Postgres) - Dispatched to PersistenceWorker
     """
 
-    def __init__(self, topics: list[str] = ["market-data"]):
+    def __init__(self, topics: list[str] | None = None):
+        if topics is None:
+            topics = ["market-data"]
         self.consumer = MarketDataConsumer(topics=topics)
         self.running = False
         self.xdp_ingester = XDPIngester()

@@ -72,7 +72,7 @@ async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) ->
         return payload
     except Exception as e:
         logger.warning("token_verification_failed", error=str(e))
-        raise credentials_exception
+        raise credentials_exception from e
 
 
 # Role-Based Access Control (RBAC) Dependency

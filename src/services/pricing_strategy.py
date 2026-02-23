@@ -92,7 +92,7 @@ class DynamicPricingService:
         # Logic to stay competitive
         if avg_comp < 50:
             return PricingStrategy.PENETRATION
-        elif avg_comp > 200:
+        if avg_comp > 200:
             return PricingStrategy.PREMIUM
         return PricingStrategy.BASE
 

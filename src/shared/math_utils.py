@@ -63,8 +63,7 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
     if t <= 0:
         if is_call:
             return max(s - k, 0.0)
-        else:
-            return max(k - s, 0.0)
+        return max(k - s, 0.0)
 
     if sigma <= 0:
         # Zero volatility case: risk-free growth
@@ -73,8 +72,7 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
         forward = s * dq / df
         if is_call:
             return max(forward - k, 0.0) * df
-        else:
-            return max(k - forward, 0.0) * df
+        return max(k - forward, 0.0) * df
 
     d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
     cdf_d1 = fast_normal_cdf(d1)
@@ -85,8 +83,7 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
 
     if is_call:
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
-    else:
-        return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
+    return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
 
 @njit(cache=True, fastmath=True)

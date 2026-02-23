@@ -65,12 +65,11 @@ class TransactionalEmailService:
                 if response.status_code >= 200 and response.status_code < 300:
                     EMAILS_SENT_TOTAL.labels(status="success", type=email_type).inc()
                     return True
-                else:
-                    logger.error(
-                        f"SendGrid error: {response.status_code} - {response.body}"
-                    )
-                    EMAILS_SENT_TOTAL.labels(status="error", type=email_type).inc()
-                    return False
+                logger.error(
+                    f"SendGrid error: {response.status_code} - {response.body}"
+                )
+                EMAILS_SENT_TOTAL.labels(status="error", type=email_type).inc()
+                return False
             except Exception as e:
                 logger.error(f"Failed to send email to {to_email}: {e}")
                 EMAILS_SENT_TOTAL.labels(status="failed", type=email_type).inc()

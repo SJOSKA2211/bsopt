@@ -267,8 +267,7 @@ class MonteCarloEngine(PricingStrategy):
         if params.maturity <= 0:
             if is_call:
                 return max(params.spot - params.strike, 0.0)
-            else:
-                return max(params.strike - params.spot, 0.0)
+            return max(params.strike - params.spot, 0.0)
 
         return jit_lsm_american(
             S0=float(params.spot),

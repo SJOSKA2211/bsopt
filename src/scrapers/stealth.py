@@ -54,8 +54,7 @@ class StealthHttpClient:
             )
             logger.debug("stealth_request_complete", url=url, target=target)
             return response
-        else:
-            return await self.session.get(url, headers=headers, **kwargs)
+        return await self.session.get(url, headers=headers, **kwargs)
 
 
 # Default client instance

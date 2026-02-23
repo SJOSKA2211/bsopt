@@ -261,7 +261,7 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
     except Exception as e:
         PREDICTION_COUNT.labels(status="error", model_type=model_type).inc()
         logger.error(f"Inference processing error: {e}")
-        raise HTTPException(status_code=500, detail="Internal inference error")
+        raise HTTPException(status_code=500, detail="Internal inference error") from e
 
 
 @app.post(
@@ -373,7 +373,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
             len(request.requests)
         )
         logger.error(f"Batch inference processing error: {e}")
-        raise HTTPException(status_code=500, detail="Internal batch inference error")
+        raise HTTPException(status_code=500, detail="Internal batch inference error") from e
 
 
 @app.get("/metrics")
