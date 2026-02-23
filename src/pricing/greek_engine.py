@@ -4,7 +4,6 @@ import struct
 import structlog
 
 from src.pricing.factory import PricingEngineFactory
-from src.pricing.models import BSParameters
 from src.shared.observability import tune_gc
 from src.shared.shm_mesh import SHM_NAME, GreeksBuffer, SharedMemoryRingBuffer
 
@@ -24,9 +23,8 @@ class GreekEngine:
         self.greeks = GreeksBuffer(create=False)
         self._last_head = 0
         self.engine = PricingEngineFactory.get_engine("black_scholes")
-        
+
         # Pre-bind for hot loop speed
-        import struct
         self._struct_q = struct.Struct("q")
         self._head_mv = self.mesh.buf[:8]
 
@@ -47,14 +45,16 @@ class GreekEngine:
             if current_head > self._last_head:
                 # 1. Zero-copy batch read
                 slices, new_head = self.mesh.read_latest_slices(self._last_head)
-                
+
                 for chunk in slices:
                     # 2. Vectorized Batch Calculation
                     spots = chunk["price"]
                     # Call JIT-accelerated vectorized Greek kernel
                     # Note: We use a simplified constant for strike/maturity for demo
-                    deltas, gammas, thetas, vegas, rhos = self.engine.price_batch_greeks(
-                        spots, 100.0, 0.1, 0.2, 0.05, 0.0
+                    deltas, gammas, thetas, vegas, rhos = (
+                        self.engine.price_batch_greeks(
+                            spots, 100.0, 0.1, 0.2, 0.05, 0.0
+                        )
                     )
 
                     # 3. Write results back to Greeks Mesh
@@ -67,6 +67,7 @@ class GreekEngine:
                 self._last_head = new_head
             else:
                 os.sched_yield()
+
 
 if __name__ == "__main__":
     ge = GreekEngine()

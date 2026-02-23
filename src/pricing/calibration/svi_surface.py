@@ -1,25 +1,25 @@
 import numpy as np
 import structlog
 from scipy.optimize import minimize
-
-logger = structlog.get_logger()
-
-
-import structlog
 from numba import njit
 
 logger = structlog.get_logger()
 
+
 @njit(cache=True, fastmath=True)
-def _raw_svi_kernel(k: np.ndarray, a: float, b: float, rho: float, m: float, sigma: float) -> np.ndarray:
+def _raw_svi_kernel(
+    k: np.ndarray, a: float, b: float, rho: float, m: float, sigma: float
+) -> np.ndarray:
     """Vectorized JIT SVI formula."""
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
+
 
 class SVISurface:
     """
     SVI (Stochastic Volatility Inspired) surface parameterization.
     OPTIMIZED: Vectorized JIT kernels for calibration.
     """
+
     @staticmethod
     def fit_svi_slice(
         log_strikes: np.ndarray, total_variances: np.ndarray, T: float
@@ -31,7 +31,7 @@ class SVISurface:
             # Fast validation
             if b < 0 or abs(rho) >= 1 or (a + b * sigma * np.sqrt(1 - rho**2)) < 0:
                 return 1e10
-            
+
             # Vectorized kernel call (O(1) from Python)
             model_var = _raw_svi_kernel(log_strikes, a, b, rho, m, sigma)
             return np.sum((total_variances - model_var) ** 2)

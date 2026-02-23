@@ -88,10 +88,10 @@ class AutonomousMLPipeline:
         # OPTIMIZED: Assume sorted if coming from reliable source, otherwise sort once
         if not df.index.is_monotonic_increasing:
             df = df.sort_values("timestamp")
-        
+
         closes = df["close"].values.astype(np.float64)
-        highs = df["high"].values.astype(np.float64)
-        lows = df["low"].values.astype(np.float64)
+        df["high"].values.astype(np.float64)
+        df["low"].values.astype(np.float64)
 
         # 1. Log Returns (Vectorized)
         log_ret = np.zeros_like(closes)
@@ -100,6 +100,7 @@ class AutonomousMLPipeline:
 
         # 2. Optimized Volatility
         window = 20
+
         # Fast rolling std using NumPy
         def fast_rolling_std(x, w):
             c1 = np.cumsum(x)
@@ -110,7 +111,9 @@ class AutonomousMLPipeline:
 
         vol = fast_rolling_std(log_ret, window)
         # Pad with zeros to maintain length
-        df["volatility"] = np.concatenate([np.zeros(window), vol]) * np.sqrt(252 * 6.5 * 60)
+        df["volatility"] = np.concatenate([np.zeros(window), vol]) * np.sqrt(
+            252 * 6.5 * 60
+        )
 
         # 3. Indicators (Assume indicators.py is JIT-accelerated)
         df["RSI_14"] = get_rsi(closes, length=14)
@@ -131,7 +134,9 @@ class AutonomousMLPipeline:
                 "volume": int(v),
                 "side": None,
             }
-            for ts, c, v in zip(df["timestamp"], df["close"], df.get("volume", np.zeros(len(df))))
+            for ts, c, v in zip(
+                df["timestamp"], df["close"], df.get("volume", np.zeros(len(df)))
+            )
         ]
 
         async with get_async_db_context() as async_session:

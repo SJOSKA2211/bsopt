@@ -4,6 +4,7 @@ import re
 # OPTIMIZED: Pre-compiled regex for alphanumeric cleaning
 _ALPHANUM_RE = re.compile(r"[^a-zA-Z0-9_-]")
 
+
 def sanitize_alphanumeric(text: str) -> str:
     """
     Remove any characters that are not alphanumeric, underscores, or hyphens.

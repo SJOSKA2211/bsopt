@@ -43,16 +43,6 @@ class AsyncStorageManager:
                     logger.error("upload_to_vault_failed", key=remote_key, error=str(e))
                     raise
 
-    async def upload_file(self, local_path: str, remote_key: str):
-        """Asynchronous file upload."""
-        async with self.session.client("s3", endpoint_url=self.endpoint_url) as s3:
-            try:
-                logger.info("uploading_to_vault", key=remote_key)
-                await s3.upload_file(local_path, self.bucket_name, remote_key)
-                logger.info("upload_to_vault_success", key=remote_key)
-            except ClientError as e:
-                logger.error("upload_to_vault_failed", key=remote_key, error=str(e))
-                raise
 
     async def download_file(self, remote_key: str, local_path: str):
         """Asynchronous file download."""

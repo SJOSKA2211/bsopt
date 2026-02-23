@@ -31,7 +31,7 @@ def corrado_miller_initial_guess(
     n = len(market_price)
     sigma = np.empty(n, dtype=np.float64)
 
-    INV_SQRT_PI = 1.0 / np.sqrt(np.pi)
+    1.0 / np.sqrt(np.pi)
     FACTOR = 2.5066282746310005
 
     for i in prange(n):
@@ -222,7 +222,7 @@ def jit_cn_solver(
 
     diag_A = 1.0 - beta
     diag_B = 1.0 + beta
-    
+
     # Pre-allocate Thomas buffers
     lower_buf = -alpha[1:]
     upper_buf = -gamma[:-1]
@@ -516,6 +516,7 @@ def warmup_jit():
     dummy = np.array([100.0])
     batch_bs_price_jit(dummy, dummy, dummy, dummy, dummy, dummy, np.array([True]))
 
+
 @njit(cache=True, fastmath=True, parallel=True)
 def fused_arithmetic_asian_payoff(
     log_paths: np.ndarray, K: float, r: float, T: float, is_call: bool, is_fixed: bool
@@ -524,73 +525,97 @@ def fused_arithmetic_asian_payoff(
     n_steps, n_paths = log_paths.shape
     payoffs = np.empty(n_paths, dtype=np.float64)
     exp_rt = np.exp(-r * T)
-    
+
     for j in prange(n_paths):
         # Calculate arithmetic mean of exp(log_path)
         sum_s = 0.0
         for i in range(1, n_steps):
             sum_s += np.exp(log_paths[i, j])
         arith_mean = sum_s / (n_steps - 1)
-        
+
         if is_fixed:
             p = arith_mean - K if is_call else K - arith_mean
         else:
-            last_s = np.exp(log_paths[n_steps-1, j])
+            last_s = np.exp(log_paths[n_steps - 1, j])
             p = last_s - arith_mean if is_call else arith_mean - last_s
-            
+
         payoffs[j] = max(p, 0.0) * exp_rt
     return payoffs
 
+
 @njit(cache=True, fastmath=True, parallel=True)
 def fused_lookback_payoff(
-    log_paths: np.ndarray, K: float, r: float, T: float, is_call: bool, is_floating: bool
+    log_paths: np.ndarray,
+    K: float,
+    r: float,
+    T: float,
+    is_call: bool,
+    is_floating: bool,
 ) -> np.ndarray:
     """Fused kernel: exp() + extrema() + payoff."""
     n_steps, n_paths = log_paths.shape
     payoffs = np.empty(n_paths, dtype=np.float64)
     exp_rt = np.exp(-r * T)
-    
+
     for j in prange(n_paths):
         if is_floating:
             # Min/Max search in log space is same as in price space
-            if is_call: # S_last - S_min
+            if is_call:  # S_last - S_min
                 min_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] < min_log: min_log = log_paths[i, j]
-                p = np.exp(log_paths[n_steps-1, j]) - np.exp(min_log)
-            else: # S_max - S_last
+                    if log_paths[i, j] < min_log:
+                        min_log = log_paths[i, j]
+                p = np.exp(log_paths[n_steps - 1, j]) - np.exp(min_log)
+            else:  # S_max - S_last
                 max_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] > max_log: max_log = log_paths[i, j]
-                p = np.exp(max_log) - np.exp(log_paths[n_steps-1, j])
-        else: # Fixed Strike
-            if is_call: # S_max - K
+                    if log_paths[i, j] > max_log:
+                        max_log = log_paths[i, j]
+                p = np.exp(max_log) - np.exp(log_paths[n_steps - 1, j])
+        else:  # Fixed Strike
+            if is_call:  # S_max - K
                 max_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] > max_log: max_log = log_paths[i, j]
+                    if log_paths[i, j] > max_log:
+                        max_log = log_paths[i, j]
                 p = np.exp(max_log) - K
-            else: # K - S_min
+            else:  # K - S_min
                 min_log = log_paths[0, j]
                 for i in range(1, n_steps):
-                    if log_paths[i, j] < min_log: min_log = log_paths[i, j]
+                    if log_paths[i, j] < min_log:
+                        min_log = log_paths[i, j]
                 p = K - np.exp(min_log)
-        
+
         payoffs[j] = max(p, 0.0) * exp_rt
     return payoffs
 
+
 @njit(cache=True, fastmath=True)
 def jit_mc_european_with_control_variate(
-    S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme="euler"
+    S0,
+    K,
+    T,
+    r,
+    sigma,
+    q,
+    n_paths,
+    is_call,
+    antithetic,
+    z_innovations=None,
+    scheme="euler",
 ):
     """
     Monte Carlo with Black-Scholes Control Variate.
     """
     # 1. Standard simulation
-    price_sim, std_err_sim = jit_mc_european_price(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations, scheme)
-    
+    price_sim, std_err_sim = jit_mc_european_price(
+        S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations, scheme
+    )
+
     # 2. Control Variate Logic (Simplified for demonstration)
     # In a true Rick-pass, we calculate the optimal beta inside the simulation loop
-    return price_sim, std_err_sim / 5.0 # Simulated variance reduction
+    return price_sim, std_err_sim / 5.0  # Simulated variance reduction
+
 
 @njit(cache=True, fastmath=True)
 def scalar_bs_price_jit(
@@ -610,7 +635,7 @@ def scalar_bs_price_jit(
             return max(S - K, 0.0)
         else:
             return max(K - S, 0.0)
-    
+
     sig_sqrt_t = sigma * np.sqrt(T)
     d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / sig_sqrt_t
     d2 = d1 - sig_sqrt_t
@@ -680,4 +705,3 @@ def scalar_greeks_jit(
 
 # Aliases for backward compatibility / missing implementations
 gpu_mc_european_price = jit_mc_european_price
-

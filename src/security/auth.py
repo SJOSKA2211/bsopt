@@ -59,7 +59,7 @@ class TokenPair:
 
 class TokenBlacklist:
     def __init__(self) -> None:
-        self._blacklist: set = set()
+        self._blacklist: dict = {}
         self._redis = None
 
     async def initialize(self, redis_client=None):
@@ -71,7 +71,7 @@ class TokenBlacklist:
             if ttl > 0:
                 await self._redis.setex(f"blacklist:{jti}", ttl, "1")
         else:
-            self._blacklist.add(jti)
+            self._blacklist[jti] = exp
 
     async def contains(self, jti: str) -> bool:
         if self._redis:
@@ -87,8 +87,10 @@ class TokenBlacklist:
     async def cleanup(self):
         """Cleanup expired tokens from memory blacklist."""
         # Redis handles this automatically via TTL.
-        # For memory, we could store (jti, exp) and filter here.
-        pass
+        now = datetime.now(UTC)
+        expired = [jti for jti, exp in self._blacklist.items() if exp <= now]
+        for jti in expired:
+            del self._blacklist[jti]
 
 
 token_blacklist = TokenBlacklist()
@@ -129,13 +131,14 @@ class AuthService:
         """Authenticate a user by email and password with timing attack protection."""
         # Check if db.execute is an async function (AsyncSession)
         import inspect
-        is_async = hasattr(db, 'execute') and inspect.iscoroutinefunction(db.execute)
-        
-        if is_async: 
-             result = await db.execute(select(User).where(User.email == email))
-             user = result.scalar_one_or_none()
-        else: # Fallback for sync session or MagicMock
-             user = db.query(User).filter(User.email == email).first()
+
+        is_async = hasattr(db, "execute") and inspect.iscoroutinefunction(db.execute)
+
+        if is_async:
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalar_one_or_none()
+        else:  # Fallback for sync session or MagicMock
+            user = db.query(User).filter(User.email == email).first()
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
         user_exists = True
@@ -155,8 +158,14 @@ class AuthService:
             return None
         # Optimization: Rehash legacy passwords on successful login to migrate to Argon2id
         if password_service.needs_rehash(user.hashed_password):
-            logger.info("password_rehash_triggered_on_login", user_id=str(user.id), email=user.email)
-            user.hashed_password = await run_in_threadpool(password_service.hash_password, password)
+            logger.info(
+                "password_rehash_triggered_on_login",
+                user_id=str(user.id),
+                email=user.email,
+            )
+            user.hashed_password = await run_in_threadpool(
+                password_service.hash_password, password
+            )
             # Persisted by the commit in the calling login route
         return user
 
@@ -349,13 +358,14 @@ async def get_current_user_flexible(
         return api_key_user
     # 2. Better Auth Session (New Primary Auth)
     from src.auth.better_auth import get_current_user as get_better_auth_user
+
     try:
         # Check if we have a Better Auth session
         better_user = await get_better_auth_user(request, db)
         if better_user:
             return better_user
     except Exception:
-        pass # Fallback to legacy JWT if Better Auth fails/missing
+        pass  # Fallback to legacy JWT if Better Auth fails/missing
 
     # 3. Legacy JWT Auth (Migration Path)
     try:

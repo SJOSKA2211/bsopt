@@ -16,29 +16,6 @@ except ImportError:
     TorchTrainer = None
     HAS_RAY_TRAIN = False
 
-
-logger = structlog.get_logger(__name__)
-
-
-class MockRLDataset:
-    """Mock dataset for verifying distributed training scalability."""
-
-    def __init__(self, size: int = 1000):
-        self.size = size
-
-    def get_loader(self, batch_size: int = 32) -> DataLoader:
-        x = torch.randn(self.size, 10)
-        y = torch.randn(self.size, 1)
-        dataset = TensorDataset(x, y)
-        return DataLoader(dataset, batch_size=batch_size)
-
-
-import ray
-import ray.train.torch
-import structlog
-import torch as th
-from torch.utils.data import DataLoader
-
 from src.config import settings
 from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer
 from src.ml.reinforcement_learning.offline_train import TrajectoryDataset

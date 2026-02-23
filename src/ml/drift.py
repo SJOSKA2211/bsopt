@@ -103,10 +103,10 @@ def calculate_ks_test(
 
 
 def calculate_psi(
-    expected: np.ndarray, 
-    actual: np.ndarray | list, 
+    expected: np.ndarray,
+    actual: np.ndarray | list,
     buckets: int = 10,
-    bins: np.ndarray | None = None
+    bins: np.ndarray | None = None,
 ) -> float:
     """
     OPTIMIZED: Population Stability Index with pre-calculated bins.

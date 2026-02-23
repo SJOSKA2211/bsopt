@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager, contextmanager
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import QueuePool
 
 from src.config import settings
 
@@ -29,6 +29,7 @@ if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
 
 # Ensure sync engine gets sync URL
 sync_url = db_url.replace("+asyncpg", "")
+
 
 # --- ENGINES ---
 def get_engine():
