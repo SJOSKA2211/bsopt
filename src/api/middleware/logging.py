@@ -201,10 +201,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         def _save():
             try:
-                from src.database import get_session
+                from src.database import SessionLocal
                 from src.database.models import RequestLog
 
-                session = get_session()
+                session = SessionLocal()
                 try:
                     # OPTIMIZED: Convert query_params dict to string using msgspec
                     query_params_str = None

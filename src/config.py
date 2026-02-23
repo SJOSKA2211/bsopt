@@ -102,7 +102,11 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
+<<<<<<< fix-logging-middleware-session-usage-17744657986850606813
+        default=DEFAULT_DEV_MFA_KEY,
+=======
         default=_DEFAULT_DEV_MFA_KEY,
+>>>>>>> main
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 
