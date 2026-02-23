@@ -10,7 +10,11 @@ from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql.schema import schema
-from src.api.middleware.security import JWTAuthenticationMiddleware
+from src.api.middleware.security import (
+    InputSanitizationMiddleware,
+    JWTAuthenticationMiddleware,
+    SecurityHeadersMiddleware,
+)
 from src.api.routes.auth import router as auth_router
 from src.api.routes.debug import router as debug_router
 from src.api.routes.ml import router as ml_router
@@ -113,7 +117,13 @@ app.add_exception_handler(HTTPException, api_exception_handler)
 
 graphql_app = GraphQLRouter(schema)
 
+# Security Middleware (Order matters: executed from bottom to top of this list)
+# 1. JWT Auth (innermost - specific to routes)
 app.add_middleware(JWTAuthenticationMiddleware)
+# 2. Input Sanitization (logging only)
+app.add_middleware(InputSanitizationMiddleware)
+# 3. Security Headers (outermost - applies to all responses)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
