@@ -5,17 +5,17 @@ import type { Shadows } from '@mui/material/styles';
 import './types.d';
 
 // ============================================================================
-// COLOR PALETTE - Dark Mode Financial Theme
+// COLOR PALETTE - Light Financial Dashboard Theme
 // ============================================================================
 
 const palette = {
-  mode: 'dark' as const,
-  
+  mode: 'light' as const,
+
   primary: {
-    main: '#4fc3f7',      // Cyan 300 - Primary actions
+    main: '#2563eb',      // Blue 600 - Primary actions
     light: '#8bf6ff',
-    dark: '#0093c4',
-    contrastText: '#000',
+    dark: '#1d4ed8',
+    contrastText: '#fff',
   },
   
   secondary: {
@@ -50,17 +50,17 @@ const palette = {
   },
   
   background: {
-    default: 'transparent', // Handled by global CSS gradient
-    paper: 'rgba(20, 25, 40, 0.45)', // Glassmorphic base
-    elevation1: 'rgba(26, 31, 56, 0.5)',
-    elevation2: 'rgba(31, 37, 66, 0.6)',
-    elevation3: 'rgba(36, 42, 76, 0.7)',
+    default: '#f5f7fb',      // Soft light gray dashboard background
+    paper: '#ffffff',        // Cards / surfaces
+    elevation1: '#f9fafb',
+    elevation2: '#f3f4f6',
+    elevation3: '#e5e7eb',
   },
   
   text: {
-    primary: '#e3e8ef',   // Almost white
-    secondary: '#9ca3af', // Gray 400
-    disabled: '#6b7280',  // Gray 500
+    primary: '#0f172a',   // Slate 900
+    secondary: '#6b7280', // Gray 500
+    disabled: '#9ca3af',  // Gray 400
   },
   
   divider: alpha('#9ca3af', 0.12),
@@ -196,17 +196,17 @@ const components = {
       },
       body: {
         scrollbarWidth: 'thin',
-        scrollbarColor: `rgba(80, 195, 247, 0.3) rgba(20, 20, 30, 0.5)`,
+        scrollbarColor: `rgba(148, 163, 184, 0.8) rgba(249, 250, 251, 1)`,
         '&::-webkit-scrollbar': {
           width: '8px',
           height: '8px',
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(80, 195, 247, 0.3)',
+          backgroundColor: 'rgba(148, 163, 184, 0.8)',
           borderRadius: '4px',
         },
         '&::-webkit-scrollbar-track': {
-          backgroundColor: 'rgba(20, 20, 30, 0.5)',
+          backgroundColor: 'rgba(249, 250, 251, 1)',
         },
       },
     },
@@ -268,15 +268,14 @@ const components = {
       root: {
         borderRadius: 16,
         backgroundImage: 'none',
-        backgroundColor: 'rgba(20, 25, 40, 0.45)', // Glassmorphism base
-        backdropFilter: 'blur(16px)',
-        border: `1px solid rgba(255, 255, 255, 0.08)`,
-        boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.3)`,
+        backgroundColor: palette.background.paper,
+        border: `1px solid ${alpha('#e5e7eb', 1)}`,
+        boxShadow: `0 18px 45px rgba(15, 23, 42, 0.08)`,
         transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
         
         '&:hover': {
-          transform: 'translateY(-4px) scale(1.01)',
-          boxShadow: `0 16px 48px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(79, 195, 247, 0.3)`,
+          transform: 'translateY(-4px)',
+          boxShadow: `0 24px 60px rgba(15, 23, 42, 0.12)`,
         },
       },
     },
@@ -286,21 +285,20 @@ const components = {
     styleOverrides: {
       root: {
         backgroundImage: 'none',
-        backgroundColor: 'rgba(20, 25, 40, 0.45)',
-        backdropFilter: 'blur(16px)',
-        border: `1px solid rgba(255, 255, 255, 0.08)`,
+        backgroundColor: palette.background.paper,
+        border: `1px solid ${alpha('#e5e7eb', 1)}`,
       },
       rounded: {
         borderRadius: 16,
       },
       elevation1: {
-        backgroundColor: palette.background.elevation1,
+        backgroundColor: palette.background.paper,
       },
       elevation2: {
-        backgroundColor: palette.background.elevation2,
+        backgroundColor: palette.background.paper,
       },
       elevation3: {
-        backgroundColor: palette.background.elevation3,
+        backgroundColor: palette.background.paper,
       },
     },
   },
