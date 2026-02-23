@@ -28,6 +28,34 @@ async def predict(
     return DataResponse(data=await ml_service.predict(request, model_type))
 
 
+@router.get("/predictions")
+async def get_predictions(
+    symbol: str = "AAPL",
+    model_type: str = "xgb",
+    ml_service: MLService = Depends(get_ml_service),
+) -> DataResponse:
+    """
+    Convenience endpoint for the frontend dashboard.
+
+    The UI calls ``GET /api/v1/ml/predictions?symbol=...`` with a symbol only;
+    here we synthesize a reasonable ``InferenceRequest`` using that symbol and
+    delegate to the main ``/predict`` logic.
+    """
+    base_price = 100.0
+    req = InferenceRequest(
+        underlying_price=base_price,
+        strike=base_price,
+        time_to_expiry=1.0,
+        is_call=1,
+        moneyness=1.0,
+        log_moneyness=0.0,
+        sqrt_time_to_expiry=1.0,
+        days_to_expiry=365.0,
+        implied_volatility=0.2,
+    )
+    return DataResponse(data=await ml_service.predict(req, model_type))
+
+
 @router.get("/drift-metrics")
 async def get_drift_metrics(
     model_id: UUID | None = None, db: Session = Depends(get_db)

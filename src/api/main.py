@@ -14,6 +14,8 @@ from src.api.middleware.security import JWTAuthenticationMiddleware
 from src.api.routes.auth import router as auth_router
 from src.api.routes.debug import router as debug_router
 from src.api.routes.ml import router as ml_router
+from src.api.routes.options import router as options_router
+from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
 from src.config import settings
@@ -116,6 +118,8 @@ app.add_middleware(JWTAuthenticationMiddleware)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
 app.include_router(ml_router, prefix="/api/v1")
+app.include_router(options_router, prefix="/api/v1")
+app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(debug_router, prefix="/api/v1")
 app.include_router(graphql_app, prefix="/graphql")

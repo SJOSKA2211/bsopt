@@ -54,6 +54,7 @@ stable-baselines3>=2.2.1
 ray[default,train,tune]>=2.30.0
 celery>=5.4.0
 confluent-kafka>=2.3.0
+grpclib>=0.4.7
 
 # Quant Extra
 qiskit>=1.0.0

@@ -12,6 +12,9 @@ import {
   ListItemText,
   IconButton,
   useTheme,
+  Avatar,
+  Stack,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -23,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -54,11 +57,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         elevation={0}
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          bgcolor: 'rgba(20, 25, 40, 0.65)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: `1px solid rgba(255, 255, 255, 0.08)`,
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+          bgcolor: '#ffffff',
+          color: 'text.primary',
+          borderBottom: '1px solid #e5e7eb',
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.04)',
         }}
       >
         <Toolbar>
@@ -71,12 +73,22 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" className="text-gradient" sx={{ flexGrow: 1, fontWeight: '800', letterSpacing: '-0.02em' }}>
-            BS-Opt Trading Dashboard
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, fontWeight: 700, letterSpacing: '-0.03em' }}
+          >
+            BS-Opt
           </Typography>
-          <IconButton color="inherit">
-            <AccountCircle />
-          </IconButton>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="body2" color="text.secondary">
+              Good morning, Trader
+            </Typography>
+            <Avatar sx={{ bgcolor: theme.palette.primary.main }}>
+              <AccountCircle />
+            </Avatar>
+          </Stack>
         </Toolbar>
       </AppBar>
 
@@ -96,15 +108,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
-            bgcolor: 'rgba(20, 25, 40, 0.45)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRight: `1px solid rgba(255, 255, 255, 0.08)`,
+            bgcolor: '#ffffff',
+            borderRight: '1px solid #e5e7eb',
+            boxShadow: '8px 0 30px rgba(15, 23, 42, 0.04)',
           },
         }}
       >
         <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
+        <Box sx={{ overflow: 'auto', display: 'flex', flexDirection: 'column', height: '100%' }}>
           <List>
             {menuItems.map((item) => (
               <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
@@ -153,6 +164,24 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </ListItem>
             ))}
           </List>
+          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ px: 2.5, pb: 3 }}>
+            <Divider sx={{ mb: 2 }} />
+            <Box
+              sx={{
+                borderRadius: 3,
+                bgcolor: '#f3f4ff',
+                p: 2,
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                Upgrade to Pro
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                Unlock advanced analytics and reports.
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </Drawer>
 
@@ -163,9 +192,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1,
           height: '100vh',
           overflow: 'auto',
-          pt: 8,
-          pb: 2,
-          px: 2,
+          pt: 10,
+          pb: 3,
+          px: 3,
         }}
       >
         {children}
