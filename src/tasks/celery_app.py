@@ -29,10 +29,7 @@ logger = logging.getLogger(__name__)
 
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL")
 
-# Environment-driven configuration
-is_docker = os.environ.get("INSIDE_DOCKER") == "1"
-redis_fallback = "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
-REDIS_URL = os.environ.get("REDIS_URL") or redis_fallback
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 

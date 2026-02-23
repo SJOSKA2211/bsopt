@@ -1,7 +1,6 @@
 .coverage
 **/__pycache__/
 .env
-.env.test
 # Python
 *.py[cod]
 *$py.class

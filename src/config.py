@@ -2,21 +2,11 @@
 Application configuration management.
 """
 
-import base64
-import os
-
 import structlog
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
-
-# Loaded from environment; never hardcode the actual value in source.
-_DEFAULT_DEV_MFA_KEY = os.environ.get(
-    "_DEFAULT_DEV_MFA_KEY", "INSECURE_DEV_PLACEHOLDER"
-)
-
-_PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
 
 # sourcery skip: avoid-secret-in-code
@@ -102,7 +92,6 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = True
     MFA_ENCRYPTION_KEY: str = Field(
-        default=_DEFAULT_DEV_MFA_KEY,
         default=DEFAULT_DEV_MFA_KEY,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
@@ -147,14 +136,14 @@ class Settings(BaseSettings):
 
     @property
     def is_production(self) -> bool:
-        return self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS
+        return self.ENVIRONMENT == "prod"
 
     @property
     def rsa_private_key(self) -> str:
         """Returns the private key, ensuring it exists."""
         if self.JWT_PRIVATE_KEY:
             return self.JWT_PRIVATE_KEY
-        if self.is_production:
+        if self.ENVIRONMENT == "prod":
             raise ValueError("JWT_PRIVATE_KEY is missing in production")
         return self._get_transient_key("private")
 
@@ -163,7 +152,7 @@ class Settings(BaseSettings):
         """Returns the public key, ensuring it exists."""
         if self.JWT_PUBLIC_KEY:
             return self.JWT_PUBLIC_KEY
-        if self.is_production:
+        if self.ENVIRONMENT == "prod":
             raise ValueError("JWT_PUBLIC_KEY is missing in production")
         return self._get_transient_key("public")
 
@@ -215,40 +204,11 @@ class Settings(BaseSettings):
     @field_validator("ENVIRONMENT")
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        allowed = {"dev", "staging", "prod", "production", "test"}
+        allowed = ["dev", "staging", "prod", "test"]
         v_lower = v.lower()
         if v_lower not in allowed:
-            raise ValueError(f"ENVIRONMENT must be one of {sorted(allowed)}")
+            raise ValueError(f"ENVIRONMENT must be one of {allowed}")
         return v_lower
-
-    @model_validator(mode="after")
-    def validate_mfa_key_security(self) -> "Settings":
-        """Block insecure MFA keys in production environments."""
-        if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
-            key = self.MFA_ENCRYPTION_KEY
-            # Block the default dev placeholder
-            if key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
-                raise ValueError(
-                    "CRITICAL: MFA_ENCRYPTION_KEY must not use the default "
-                    "development key in production. Set a secure key via "
-                    "the MFA_ENCRYPTION_KEY environment variable."
-                )
-            # Validate key strength: must be valid base64 and at least 32 bytes
-            try:
-                decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
-                if len(decoded) < 32:
-                    raise ValueError(
-                        "MFA_ENCRYPTION_KEY is too short. The decoded key must "
-                        "be at least 32 bytes (256 bits)."
-                    )
-            except Exception as e:
-                if "MFA_ENCRYPTION_KEY" in str(e):
-                    raise
-                raise ValueError(
-                    "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
-                    f"string of at least 32 bytes: {e}"
-                ) from e
-        return self
 
 
 settings = Settings()

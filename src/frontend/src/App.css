@@ -1,78 +1,42 @@
-/* App Utilities */
-
-/* Glassmorphism primitives */
-.glass-panel {
-  background: rgba(20, 25, 40, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  border-radius: 16px;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
 }
 
-.glass-panel:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(79, 195, 247, 0.3);
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-/* Gradient Text */
-.text-gradient {
-  background: linear-gradient(135deg, #4fc3f7 0%, #ab47bc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-}
-
-.text-gradient-success {
-  background: linear-gradient(135deg, #66bb6a 0%, #2e7d32 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Micro animations */
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(79, 195, 247, 0.4);
-  }
-
-  70% {
-    box-shadow: 0 0 0 10px rgba(79, 195, 247, 0);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(79, 195, 247, 0);
-  }
-}
-
-.animate-pulse {
-  animation: pulse-glow 2s infinite;
-}
-
-@keyframes slide-up-fade {
+@keyframes logo-spin {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    transform: rotate(0deg);
   }
-
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-.slide-up {
-  animation: slide-up-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
 }
 
-/* Subtle glowing line for headers or separators */
-.glow-divider {
-  height: 1px;
-  width: 100%;
-  background: linear-gradient(90deg, transparent, rgba(79, 195, 247, 0.5), transparent);
-  border: none;
-  margin: 16px 0;
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
 }

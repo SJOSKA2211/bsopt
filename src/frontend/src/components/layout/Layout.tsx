@@ -11,6 +11,7 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
+  alpha,
   useTheme,
 } from '@mui/material';
 import {
@@ -51,14 +52,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Header */}
       <AppBar
         position="fixed"
-        elevation={0}
         sx={{
           zIndex: theme.zIndex.drawer + 1,
-          bgcolor: 'rgba(20, 25, 40, 0.65)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: `1px solid rgba(255, 255, 255, 0.08)`,
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+          bgcolor: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(8px)',
+          borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          boxShadow: 'none',
         }}
       >
         <Toolbar>
@@ -71,7 +70,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" className="text-gradient" sx={{ flexGrow: 1, fontWeight: '800', letterSpacing: '-0.02em' }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: 'primary.main' }}>
             BS-Opt Trading Dashboard
           </Typography>
           <IconButton color="inherit">
@@ -96,10 +95,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
-            bgcolor: 'rgba(20, 25, 40, 0.45)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            borderRight: `1px solid rgba(255, 255, 255, 0.08)`,
+            bgcolor: 'background.paper',
+            borderRight: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
           },
         }}
       >
@@ -116,17 +113,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                     justifyContent: drawerOpen ? 'initial' : 'center',
                     px: 2.5,
                     '&.Mui-selected': {
-                      backgroundColor: 'rgba(79, 195, 247, 0.15)',
-                      borderRight: `3px solid ${theme.palette.primary.main}`,
-                      borderRadius: '0 24px 24px 0',
-                      mr: 1,
-                      backdropFilter: 'blur(8px)',
-                      '& .MuiListItemIcon-root': {
-                        color: theme.palette.primary.main,
-                      },
-                      '&:hover': {
-                        backgroundColor: 'rgba(79, 195, 247, 0.25)',
-                      }
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        borderLeft: `4px solid ${theme.palette.primary.main}`,
+                        '& .MuiListItemIcon-root': {
+                            color: theme.palette.primary.main,
+                        },
                     },
                   }}
                 >
@@ -143,10 +134,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <ListItemText
                     primary={item.text}
                     sx={{
-                      opacity: drawerOpen ? 1 : 0,
-                      '& .MuiTypography-root': {
-                        fontWeight: location.pathname === item.path ? 'bold' : 'normal',
-                      }
+                        opacity: drawerOpen ? 1 : 0,
+                        '& .MuiTypography-root': {
+                            fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+                        }
                     }}
                   />
                 </ListItemButton>

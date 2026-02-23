@@ -23,7 +23,7 @@
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.5",
     "lightweight-charts": "^5.1.0",
-    "protobufjs": "^7.5.4",
+    "protobufjs": "^7.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.12.0",

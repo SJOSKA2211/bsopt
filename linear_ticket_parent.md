@@ -1,26 +1,27 @@
 ---
 id: parent
-title: [Epic] Total Codebase Purification
-status: Todo
-priority: High
-order: 0
-created: 2026-02-20
-updated: 2026-02-20
-links: []
+title: [Epic] God Mode: Coverage & Refactor
+status: In Progress
+priority: Urgent
+project: bsopt
+created: 2026-02-10
+updated: 2026-02-10
+links:
+  - url: PICKLE_RICK_PRD.md
+    title: PRD
+labels: [epic, core, maintenance, god-mode]
+assignee: Joseph Kamau Maina
 ---
 
 # Description
 
 ## Problem to solve
-The `bsopt` codebase is in a critical state of disrepair with broken builds, missing dependencies, syntax errors, and zero verifiable test coverage.
+The codebase coverage is pathetic (~20%). Logic is likely full of slop. We need to debug, refactor, and force coverage to >=97%.
 
 ## Solution
-Execute a systematic purification of the codebase, fixing all errors, enabling the Dockerized test runner, and achieving >=99% coverage.
+1.  **Baseline & Debug**: Run the full suite. Fix every error that dares to exist.
+2.  **Coverage Injection**: Systematically add tests to `src/`, `bs_cli.py`, and other modules until coverage hits 97%.
+3.  **Refactor**: Simplify logic, remove "AI slop", and enforce idioms.
 
-## Implementation Details
-- Fix `src/api/main.py` syntax.
-- Restore `src/pricing/quant_utils.py` exports.
-- Fix all `ImportError`s in tests.
-- Verify `make test-all` runs in Docker.
-- Achieve >=99% coverage.
-- Fix all linting errors.
+# Discussion
+- 2026-02-10 Joseph Kamau Maina: Initialized God Mode. Old "Done" status was a lie.
