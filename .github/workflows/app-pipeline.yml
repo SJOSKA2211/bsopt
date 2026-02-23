@@ -15,14 +15,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            
+      # Docker layer caching via actions/cache was previously configured
+      # with a path that never existed, which produced noisy warnings
+      # without any real benefit. The cache step has been removed to
+      # keep logs clean and avoid path validation errors.
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
