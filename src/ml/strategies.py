@@ -138,7 +138,7 @@ class SklearnStrategy(TrainingStrategy):
         self, model: Any, feature_names: list[str]
     ) -> dict[str, float] | None:
         importances = model.feature_importances_
-        return {name: float(imp) for name, imp in zip(feature_names, importances)}
+        return {name: float(imp) for name, imp in zip(feature_names, importances, strict=False)}
 
 
 class PyTorchStrategy(TrainingStrategy):

@@ -130,7 +130,7 @@ class DeFiOptionsProtocol:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         output = {}
-        for addr, res in zip(contract_addresses, results):
+        for addr, res in zip(contract_addresses, results, strict=False):
             if isinstance(res, float):
                 output[addr] = res
         return output

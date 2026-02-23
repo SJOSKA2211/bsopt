@@ -216,4 +216,4 @@ class HestonModelFFT:
         filtered_strikes = strikes[mask]
         filtered_prices = np.maximum(prices[mask], self.MIN_PRICE)
 
-        return dict(zip(filtered_strikes.tolist(), filtered_prices.tolist()))
+        return dict(zip(filtered_strikes.tolist(), filtered_prices.tolist(), strict=False))

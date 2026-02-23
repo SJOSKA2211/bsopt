@@ -135,7 +135,7 @@ class AutonomousMLPipeline:
                 "side": None,
             }
             for ts, c, v in zip(
-                df["timestamp"], df["close"], df.get("volume", np.zeros(len(df)))
+                df["timestamp"], df["close"], df.get("volume", np.zeros(len(df))), strict=False
             )
         ]
 
