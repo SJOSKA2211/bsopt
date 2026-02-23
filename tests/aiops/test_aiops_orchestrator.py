@@ -1,4 +1,4 @@
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
@@ -69,10 +69,6 @@ def mock_orchestrator_dependencies():
             "post_grafana_annotation": mock_notify,
             "logger": mock_logger,
         }
-
-
-# Starlette specific hack for AsyncMock if not available in old python
-from unittest.mock import AsyncMock
 
 
 @pytest.fixture
