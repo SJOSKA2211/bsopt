@@ -94,7 +94,7 @@ lint:
 	docker compose --profile test run --rm --no-deps test-runner ruff check .
 
 format:
-	docker compose --profile test run --rm --no-deps test-runner ruff format .
+	docker compose --profile test run --rm --no-deps test-runner ruff format --check .
 
 security-scan:
 	docker compose --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
