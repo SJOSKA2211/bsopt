@@ -14,7 +14,6 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
-import orjson
 import structlog
 from sqlalchemy import and_, func, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -767,6 +766,8 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
+            import orjson
+
             records = [
                 (
                     row.get("id") or uuid4(),
@@ -830,6 +831,8 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
+            import orjson
+
             records = [
                 (
                     row.get("id") or uuid4(),
