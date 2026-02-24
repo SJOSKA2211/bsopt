@@ -779,7 +779,7 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
                     row.get("request_path"),
                     row.get("request_method"),
                     (
-                        orjson.dumps(row.get("details", {}))
+                        orjson.dumps(row.get("details", {})).decode("utf-8")
                         if row.get("details")
                         else None
                     ),
@@ -841,7 +841,7 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
                     row.get("path"),
                     row.get("query_params"),
                     (
-                        orjson.dumps(row.get("headers", {}))
+                        orjson.dumps(row.get("headers", {})).decode("utf-8")
                         if row.get("headers")
                         else None
                     ),

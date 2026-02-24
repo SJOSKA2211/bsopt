@@ -95,7 +95,7 @@ async def test_bulk_inserts_optimized_paths():
     # Check details serialization
     # Index for details in audit_logs is 8
     # "id", "event_type", "user_id", "user_email", "source_ip", "user_agent", "request_path", "request_method", "details", "created_at"
-    assert isinstance(records[0][8], bytes) # Should be bytes (msgspec or orjson)
+    assert isinstance(records[0][8], str) # Should be string (decoded orjson)
 
     # Reset
     driver_conn.copy_records_to_table.reset_mock()
@@ -116,4 +116,4 @@ async def test_bulk_inserts_optimized_paths():
     # Check headers serialization
     # Index for headers is 5
     # "id", "request_id", "method", "path", "query_params", "headers", ...
-    assert isinstance(records[0][5], bytes) # Should be bytes (orjson)
+    assert isinstance(records[0][5], str) # Should be string (decoded orjson)
