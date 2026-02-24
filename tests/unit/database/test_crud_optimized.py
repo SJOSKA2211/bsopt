@@ -1,10 +1,13 @@
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-from src.database import crud
-from datetime import datetime, UTC
-from uuid import uuid4
+from datetime import UTC, datetime
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
+
+import pytest
+
+from src.database import crud
+
 
 @pytest.mark.asyncio
 async def test_bulk_inserts_optimized_paths():
