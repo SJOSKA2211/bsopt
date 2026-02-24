@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-import strawberry.federation
 from httpx import ASGITransport, AsyncClient
 
 from src.api.main import (
