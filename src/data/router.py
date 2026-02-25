@@ -93,9 +93,7 @@ class MarketDataRouter:
                 last_error = e
                 # Penalty for failure: Double the tracked latency
                 self._latency_map[provider_name] *= 2.0
-                logger.warning(
-                    "provider_failed_failing_over", provider=provider_name, error=str(e)
-                )
+                logger.warning("provider_failed_failing_over", provider=provider_name, error=str(e))
 
         raise last_error or Exception(f"No providers available for {symbol}")
 
@@ -111,9 +109,7 @@ class MarketDataRouter:
                 else self.yahoo.search(query)
             )
 
-            combined = await asyncio.gather(
-                poly_task, yahoo_task, return_exceptions=True
-            )
+            combined = await asyncio.gather(poly_task, yahoo_task, return_exceptions=True)
 
             for res in combined:
                 if isinstance(res, list):
@@ -121,9 +117,7 @@ class MarketDataRouter:
                 elif isinstance(res, Exception):
                     logger.warning("provider_search_partial_failure", error=str(res))
 
-            logger.info(
-                "market_search_completed", query=query, results_count=len(results)
-            )
+            logger.info("market_search_completed", query=query, results_count=len(results))
         except Exception as e:
             logger.error("market_search_failed", query=query, error=str(e))
         return results

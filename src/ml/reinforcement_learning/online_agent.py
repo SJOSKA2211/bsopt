@@ -26,9 +26,7 @@ class OnlineRLAgent:
     Supports zero-downtime weight hot-swapping.
     """
 
-    def __init__(
-        self, model_path: str, initial_balance: float = 100000, window_size: int = 16
-    ):
+    def __init__(self, model_path: str, initial_balance: float = 100000, window_size: int = 16):
         tune_gc()
         self.model_path = model_path.replace(".zip", ".pt")
         self.initial_balance = initial_balance
@@ -61,9 +59,7 @@ class OnlineRLAgent:
                 new_brain = torch.jit.load(self.model_path)
                 new_brain.eval()
                 # Warmup
-                _ = new_brain(
-                    torch.zeros((1, 100)), torch.zeros((2, 10), dtype=torch.long)
-                )
+                _ = new_brain(torch.zeros((1, 100)), torch.zeros((2, 10), dtype=torch.long))
                 self.brain = new_brain
                 self._last_brain_mtime = mtime
                 logger.info("silicon_brain_reloaded", path=self.model_path)
@@ -104,9 +100,7 @@ class OnlineRLAgent:
                         strikes = np.full(10, 100.0, dtype=np.float32)
 
                         engine = PricingEngineFactory.get_engine("black_scholes")
-                        params = BSParameters(
-                            S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05
-                        )
+                        params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                         g_vals = engine.calculate_greeks(params)
                         greeks = np.zeros(50, dtype=np.float32)
                         greeks[:5] = [

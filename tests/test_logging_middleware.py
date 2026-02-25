@@ -25,7 +25,7 @@ async def test_persist_log_correctly_uses_session_local():
         "client_ip": "127.0.0.1",
         "user_id": "00000000-0000-0000-0000-000000000000",
         "query_params": {"q": "test"},
-        "headers": {"header": "value"}
+        "headers": {"header": "value"},
     }
     request = MagicMock(spec=Request)
 
@@ -36,7 +36,7 @@ async def test_persist_log_correctly_uses_session_local():
     with patch("src.database.SessionLocal", return_value=mock_session) as mock_session_local:
         with patch("src.api.middleware.logging.logger") as mock_logger:
             with patch("src.database.models.RequestLog"):
-                 await middleware._persist_log(log_entry, request)
+                await middleware._persist_log(log_entry, request)
 
             # Verify that SessionLocal was instantiated
             mock_session_local.assert_called_once()

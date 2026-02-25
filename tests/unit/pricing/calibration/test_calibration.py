@@ -40,9 +40,7 @@ class TestHestonCalibrator:
 
         # Calibrate
         # Using popsize=5 and maxiter=10 for fast test, normally much higher
-        calibrated_params, metrics = calibrator.calibrate(
-            market_data, maxiter=10, popsize=5
-        )
+        calibrated_params, metrics = calibrator.calibrate(market_data, maxiter=10, popsize=5)
 
         assert metrics["success"]
         assert metrics["rmse"] < 0.1  # Loose threshold for fast/coarse optimization

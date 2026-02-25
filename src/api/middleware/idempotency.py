@@ -66,9 +66,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
         # 2. Acquire Lock (Simple SETNX)
         if not await self.redis.set(lock_key, "1", nx=True, ex=60):
             logger.warning("idempotency_lock_conflict", key=fingerprint)
-            return Response(
-                content='{"error": "Request already in progress"}', status_code=409
-            )
+            return Response(content='{"error": "Request already in progress"}', status_code=409)
 
         try:
             response = await call_next(request)
@@ -88,9 +86,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         "content": full_body.decode("utf-8", errors="ignore"),
                         "headers": dict(response.headers),
                     }
-                    await self.redis.set(
-                        cache_key, msgspec.json.encode(cache_data), ex=self.expiry
-                    )
+                    await self.redis.set(cache_key, msgspec.json.encode(cache_data), ex=self.expiry)
 
                 return Response(
                     content=full_body,

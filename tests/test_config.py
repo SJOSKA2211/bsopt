@@ -19,9 +19,7 @@ def test_settings_initialization():
         RABBITMQ_URL="amqp://guest:guest@localhost:5672//",
         JWT_SECRET="test-secret",
     )
-    assert_equal(
-        settings.PROJECT_NAME, "Black-Scholes Advanced Option Pricing Platform"
-    )
+    assert_equal(settings.PROJECT_NAME, "Black-Scholes Advanced Option Pricing Platform")
     assert settings.ENVIRONMENT in ["dev", "staging", "prod"]
 
 

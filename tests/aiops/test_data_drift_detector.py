@@ -12,9 +12,7 @@ class TestDataDriftDetector(unittest.TestCase):
         self.patcher_ks = patch("src.aiops.data_drift_detector.calculate_ks_test")
         self.patcher_psi_gauge = patch("src.aiops.data_drift_detector.PSI_DRIFT_STATUS")
         self.patcher_ks_gauge = patch("src.aiops.data_drift_detector.KS_DRIFT_STATUS")
-        self.patcher_overall_gauge = patch(
-            "src.aiops.data_drift_detector.OVERALL_DRIFT_STATUS"
-        )
+        self.patcher_overall_gauge = patch("src.aiops.data_drift_detector.OVERALL_DRIFT_STATUS")
         self.patcher_logger = patch("src.aiops.data_drift_detector.logger")
 
         self.mock_psi = self.patcher_psi.start()
@@ -43,9 +41,7 @@ class TestDataDriftDetector(unittest.TestCase):
     def test_detect_drift_mismatched_dimensions(self):
         ref = np.random.rand(10, 2)
         curr = np.random.rand(10, 3)
-        with self.assertRaisesRegex(
-            ValueError, "must have the same number of features"
-        ):
+        with self.assertRaisesRegex(ValueError, "must have the same number of features"):
             self.detector.detect_drift(ref, curr)
         self.mock_logger.info.assert_not_called()  # No logger calls on error
 

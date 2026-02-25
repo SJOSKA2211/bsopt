@@ -8,7 +8,6 @@ from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 
 @patch("src.aiops.self_healing_orchestrator.logger")
 class TestSelfHealingOrchestrator:
-
     def test_init(self, mock_logger):
         """Test initialization of SelfHealingOrchestrator."""
         mock_detector = MagicMock()

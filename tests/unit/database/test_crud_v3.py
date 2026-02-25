@@ -78,9 +78,7 @@ async def test_model_ops():
     db.execute.return_value = mock_res
 
     # get_latest
-    with patch(
-        "src.database.crud.get_latest_model_version", AsyncMock(return_value=mock_model)
-    ):
+    with patch("src.database.crud.get_latest_model_version", AsyncMock(return_value=mock_model)):
         res = await crud.create_model(db, "m1", "algo")
         assert res.version == "2"
 
@@ -141,9 +139,7 @@ async def test_closing_and_expiring():
         id=pos_id, entry_price=Decimal("100"), quantity=Decimal("10"), status="open"
     )
 
-    with patch(
-        "src.database.crud.get_position_by_id", AsyncMock(return_value=mock_pos)
-    ):
+    with patch("src.database.crud.get_position_by_id", AsyncMock(return_value=mock_pos)):
         res = await crud.close_position(db, pos_id, Decimal("110"))
         assert res.status == "closed"
         assert res.realized_pnl == Decimal("100")

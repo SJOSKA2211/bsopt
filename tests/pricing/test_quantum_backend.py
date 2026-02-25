@@ -27,9 +27,7 @@ class TestQuantumBackendManager:
 
         # Assertions
         mock_ibm_provider.assert_called_once_with(token="test_token")
-        mock_provider_instance.get_backend.assert_called_once_with(
-            "ibmq_qasm_simulator"
-        )
+        mock_provider_instance.get_backend.assert_called_once_with("ibmq_qasm_simulator")
         assert backend == mock_backend
 
     def test_get_backend_local(self):
@@ -45,7 +43,5 @@ class TestQuantumBackendManager:
         """Test error when token is missing for remote backend."""
         manager = QuantumBackendManager()
 
-        with pytest.raises(
-            ValueError, match="IBM_QUANTUM_TOKEN environment variable not set"
-        ):
+        with pytest.raises(ValueError, match="IBM_QUANTUM_TOKEN environment variable not set"):
             manager.get_backend(backend_name="ibmq_qasm_simulator")

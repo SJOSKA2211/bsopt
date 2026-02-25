@@ -37,9 +37,7 @@ def test_hypertables_exist(db_conn):
 
 def test_continuous_aggregates_exist(db_conn):
     with db_conn.cursor() as cur:
-        cur.execute(
-            "SELECT view_name FROM timescaledb_information.continuous_aggregates;"
-        )
+        cur.execute("SELECT view_name FROM timescaledb_information.continuous_aggregates;")
         views = [row[0] for row in cur.fetchall()]
         assert "options_daily_ohlc" in views
         assert "options_hourly_greeks" in views
@@ -125,12 +123,8 @@ def test_insert_and_aggregate(db_conn):
 
         # Continuous aggregates refresh asynchronously or on schedule.
         # We manually refresh for the test.
-        cur.execute(
-            "CALL refresh_continuous_aggregate('options_daily_ohlc', NULL, NULL);"
-        )
-        cur.execute(
-            "CALL refresh_continuous_aggregate('options_hourly_greeks', NULL, NULL);"
-        )
+        cur.execute("CALL refresh_continuous_aggregate('options_daily_ohlc', NULL, NULL);")
+        cur.execute("CALL refresh_continuous_aggregate('options_hourly_greeks', NULL, NULL);")
 
         # Check OHLC
         cur.execute(
@@ -189,9 +183,7 @@ def test_model_predictions_aggregate(db_conn):
             pred_data,
         )
 
-        cur.execute(
-            "CALL refresh_continuous_aggregate('model_daily_performance', NULL, NULL);"
-        )
+        cur.execute("CALL refresh_continuous_aggregate('model_daily_performance', NULL, NULL);")
 
         cur.execute(
             "SELECT model_id, mae, rmse FROM model_daily_performance WHERE model_id = %s;",

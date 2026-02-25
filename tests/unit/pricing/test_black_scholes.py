@@ -49,9 +49,7 @@ def test_price_options_vectorized():
 
 
 def test_calculate_greeks_scalar(sample_params):
-    greeks = BlackScholesEngine.calculate_greeks(
-        params=sample_params, option_type="call"
-    )
+    greeks = BlackScholesEngine.calculate_greeks(params=sample_params, option_type="call")
     assert hasattr(greeks, "delta")
     assert hasattr(greeks, "gamma")
     assert isinstance(greeks.delta, float)

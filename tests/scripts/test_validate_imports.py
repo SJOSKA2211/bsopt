@@ -5,9 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-VALIDATE_IMPORTS_SCRIPT = (
-    Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
-)
+VALIDATE_IMPORTS_SCRIPT = Path(__file__).parent.parent.parent / "scripts" / "validate_imports.py"
 os.chmod(VALIDATE_IMPORTS_SCRIPT, 0o755)
 
 
@@ -74,9 +72,7 @@ class TestImportValidationIntegration:
 
         result = run_validator_script(pkg_path)
         assert result.returncode == 0
-        assert (
-            "Validation successful: All lazy imports confirmed valid." in result.stdout
-        )
+        assert "Validation successful: All lazy imports confirmed valid." in result.stdout
 
     def test_broken_import_map(self, tmp_path):
         pkg_name, pkg_path = self.create_mock_package(tmp_path)

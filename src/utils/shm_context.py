@@ -101,9 +101,7 @@ class SHMContextManager:
 
 
 @contextmanager
-def map_shm_to_numpy(
-    shm_name: str, shape: tuple, dtype=np.float64
-) -> Generator[np.ndarray]:
+def map_shm_to_numpy(shm_name: str, shape: tuple, dtype=np.float64) -> Generator[np.ndarray]:
     """
     Helper to map a single SHM block to a numpy array.
     Using PersistentSHMMapper internally for consistent performance.

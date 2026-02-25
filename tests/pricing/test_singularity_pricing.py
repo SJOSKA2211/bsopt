@@ -20,14 +20,10 @@ def test_hybrid_pricer_routing():
     hybrid = HybridQuantumClassicalPricer()
 
     # 1. Classical routing (low dimensionality)
-    res_c = hybrid.price_option_adaptive(
-        S0=100, K=100, T=1, r=0.05, sigma=0.2, num_underlyings=1
-    )
+    res_c = hybrid.price_option_adaptive(S0=100, K=100, T=1, r=0.05, sigma=0.2, num_underlyings=1)
     # MonteCarloEngine returns a float or dict depending on implementation
     assert res_c is not None
 
     # 2. Quantum routing (high dimensionality)
-    res_q = hybrid.price_option_adaptive(
-        S0=100, K=100, T=1, r=0.05, sigma=0.2, num_underlyings=5
-    )
+    res_q = hybrid.price_option_adaptive(S0=100, K=100, T=1, r=0.05, sigma=0.2, num_underlyings=5)
     assert "speedup_factor" in res_q

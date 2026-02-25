@@ -17,9 +17,7 @@ async def db_session():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    AsyncSessionLocal = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
-    )
+    AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with AsyncSessionLocal() as session:
         yield session
     await engine.dispose()
@@ -28,9 +26,7 @@ async def db_session():
 @pytest.mark.asyncio
 async def test_user_crud(db_session):
     email = "test@example.com"
-    with patch(
-        "src.database.crud.password_service.hash_password", return_value="hashed"
-    ):
+    with patch("src.database.crud.password_service.hash_password", return_value="hashed"):
         user = await crud.create_user(db_session, email, "pass", "Full Name")
         assert user.email == email
 
@@ -48,15 +44,11 @@ async def test_portfolio_crud(db_session):
     db_session.add(user)
     await db_session.commit()
 
-    port = await crud.create_portfolio(
-        db_session, user.id, "Growth", Decimal("1000.00")
-    )
+    port = await crud.create_portfolio(db_session, user.id, "Growth", Decimal("1000.00"))
     assert port.name == "Growth"
     assert port.cash_balance == 1000.0
 
-    success = await crud.update_portfolio_cash(
-        db_session, port.id, Decimal("500.00"), "add"
-    )
+    success = await crud.update_portfolio_cash(db_session, port.id, Decimal("500.00"), "add")
     assert success is True
     await db_session.refresh(port)
     assert port.cash_balance == 1500.0

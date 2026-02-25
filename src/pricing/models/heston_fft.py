@@ -42,9 +42,7 @@ def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
             exp_dT = np.exp(d * T[j])
             G = (1.0 - g * exp_dT) / (1.0 - g)
 
-            A = (kappa[j] * theta[j] / sigma[j] ** 2) * (
-                (xi + d) * T[j] - 2.0 * np.log(G)
-            )
+            A = (kappa[j] * theta[j] / sigma[j] ** 2) * ((xi + d) * T[j] - 2.0 * np.log(G))
             B = (v0[j] / sigma[j] ** 2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
 
             phi = np.exp(A + B)
@@ -164,9 +162,7 @@ class HestonModelFFT:
         O(N log N) multi-strike pricing using vectorized FFT.
         """
         if self.params is None or self.r is None or self.T is None:
-            raise ValueError(
-                "Model must be initialized with params, r, and T for surface pricing."
-            )
+            raise ValueError("Model must be initialized with params, r, and T for surface pricing.")
 
         p = self.params
         alpha = 1.5
@@ -191,12 +187,7 @@ class HestonModelFFT:
         A = (p.kappa * p.theta / p.sigma**2) * (
             (xi + d) * self.T - 2.0 * np.log(np.maximum(1e-18, G))
         )
-        B = (
-            (p.v0 / p.sigma**2)
-            * (xi + d)
-            * (1.0 - exp_dT)
-            / np.maximum(1e-18, 1.0 - g_exp_dT)
-        )
+        B = (p.v0 / p.sigma**2) * (xi + d) * (1.0 - exp_dT) / np.maximum(1e-18, 1.0 - g_exp_dT)
 
         phi = np.exp(A + B)
         psi = (np.exp(-self.r * self.T) * phi) / (

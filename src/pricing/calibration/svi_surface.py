@@ -43,9 +43,7 @@ class SVISurface:
         return tuple(result.x)
 
     @staticmethod
-    def get_implied_vol(
-        S0: float, K: float, T: float, params: tuple[float, ...]
-    ) -> float:
+    def get_implied_vol(S0: float, K: float, T: float, params: tuple[float, ...]) -> float:
         k = np.log(K / S0)
         total_variance = SVISurface.raw_svi(k, *params)
         return np.sqrt(max(total_variance, 1e-6) / T)

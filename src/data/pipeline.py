@@ -45,9 +45,7 @@ class DataPipeline:
         # For now, we verify database connectivity and latest sample count
         from src.database.pipeliner import db_engine
 
-        data = await db_engine.fetch_training_data(
-            self.config.symbols, self.config.max_samples
-        )
+        data = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         self.last_run_report = {
             "samples_available": len(data),
@@ -68,9 +66,7 @@ class DataPipeline:
         from src.database.pipeliner import db_engine
 
         #  OPTIMIZATION: Use native async fetch
-        records = await db_engine.fetch_training_data(
-            self.config.symbols, self.config.max_samples
-        )
+        records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
             from src.ml.training.train import generate_synthetic_data
@@ -125,9 +121,7 @@ class DataPipeline:
         price_ma20 = pad_rolling(y_raw, 20)
 
         # Concatenate New Features
-        X = np.column_stack(
-            [X_base, iv_lag, price_lag, iv_ma5, iv_ma20, price_ma5, price_ma20]
-        )
+        X = np.column_stack([X_base, iv_lag, price_lag, iv_ma5, iv_ma20, price_ma5, price_ma20])
 
         feature_names += [
             "iv_lag1",

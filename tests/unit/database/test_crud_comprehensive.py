@@ -97,21 +97,15 @@ def test_portfolio_operations(db_session):
     assert crud.get_portfolio_with_open_positions(db_session, uuid.uuid4()) is None
 
     # update_portfolio_cash
-    success = crud.update_portfolio_cash(
-        db_session, portfolio.id, Decimal("500.00"), "add"
-    )
+    success = crud.update_portfolio_cash(db_session, portfolio.id, Decimal("500.00"), "add")
     assert success
     db_session.refresh(portfolio)
     assert portfolio.cash_balance == Decimal("1500.00")
 
-    success = crud.update_portfolio_cash(
-        db_session, portfolio.id, Decimal("2000.00"), "subtract"
-    )
+    success = crud.update_portfolio_cash(db_session, portfolio.id, Decimal("2000.00"), "subtract")
     assert not success  # Insufficient funds
 
-    success = crud.update_portfolio_cash(
-        db_session, portfolio.id, Decimal("500.00"), "subtract"
-    )
+    success = crud.update_portfolio_cash(db_session, portfolio.id, Decimal("500.00"), "subtract")
     assert success
     db_session.refresh(portfolio)
     assert portfolio.cash_balance == Decimal("1000.00")
@@ -276,9 +270,7 @@ def test_option_price_operations(db_session):
     db_session.add(op)
     db_session.commit()
 
-    fetched = crud.get_latest_option_price(
-        db_session, "AAPL", Decimal("150.00"), expiry, "call"
-    )
+    fetched = crud.get_latest_option_price(db_session, "AAPL", Decimal("150.00"), expiry, "call")
     assert fetched.symbol == "AAPL"
 
     # get_option_chain

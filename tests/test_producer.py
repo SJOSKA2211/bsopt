@@ -17,7 +17,6 @@ def test_producer_initialization():
         patch("streaming.producer.SchemaRegistryClient") as mock_sr_client,
         patch("streaming.producer.AvroSerializer") as mock_avro_serializer,
     ):
-
         from streaming.producer import MarketDataProducer
 
         producer = MarketDataProducer(
@@ -41,7 +40,6 @@ async def test_produce_market_data_success():
         patch("streaming.producer.SchemaRegistryClient"),
         patch("streaming.producer.AvroSerializer") as mock_avro_serializer,
     ):
-
         from streaming.producer import MarketDataProducer
 
         mock_instance = MagicMock()
@@ -87,7 +85,6 @@ def test_producer_delivery_callback():
         patch("streaming.producer.SchemaRegistryClient"),
         patch("streaming.producer.AvroSerializer"),
     ):
-
         from streaming.producer import MarketDataProducer
 
         producer = MarketDataProducer()
@@ -105,9 +102,7 @@ def test_producer_delivery_callback():
         # Test error callback
         with patch("streaming.producer.logger") as mock_logger:
             producer._delivery_callback("Kafka Error", mock_msg)
-            mock_logger.error.assert_called_with(
-                "kafka_delivery_failed", error="Kafka Error"
-            )
+            mock_logger.error.assert_called_with("kafka_delivery_failed", error="Kafka Error")
 
 
 def test_producer_flush():
@@ -116,7 +111,6 @@ def test_producer_flush():
         patch("streaming.producer.SchemaRegistryClient"),
         patch("streaming.producer.AvroSerializer"),
     ):
-
         from streaming.producer import MarketDataProducer
 
         mock_instance = MagicMock()
@@ -135,7 +129,6 @@ async def test_produce_exception():
         patch("streaming.producer.SchemaRegistryClient"),
         patch("streaming.producer.AvroSerializer") as mock_avro_serializer,
     ):
-
         from streaming.producer import MarketDataProducer
 
         mock_instance = MagicMock()

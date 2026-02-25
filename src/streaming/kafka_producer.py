@@ -66,9 +66,7 @@ class MarketDataProducer(Producer):
         # Read the Avro schema from the file
         with open("src/streaming/schemas/market_data.avsc") as f:
             self.market_data_schema = f.read()
-        self.avro_serializer = AvroSerializer(
-            self.schema_registry, self.market_data_schema
-        )
+        self.avro_serializer = AvroSerializer(self.schema_registry, self.market_data_schema)
 
     async def produce(self, data: dict[str, Any], **kwargs):
         """Produce market data message to Kafka."""

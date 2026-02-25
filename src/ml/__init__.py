@@ -82,10 +82,7 @@ def preload_critical_modules():
 
 
 # Auto-preload in production environments
-if (
-    os.getenv("ENVIRONMENT") == "production"
-    and os.getenv("PRELOAD_ML_MODULES") == "true"
-):
+if os.getenv("ENVIRONMENT") == "production" and os.getenv("PRELOAD_ML_MODULES") == "true":
     preload_critical_modules()
 
 

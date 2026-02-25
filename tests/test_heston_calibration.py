@@ -35,9 +35,7 @@ class TestHestonCalibration:
 
         calibrator = HestonCalibrator(risk_free_rate=r)
         # Use low iteration count for fast test
-        calibrated_params, metrics = calibrator.calibrate(
-            market_data, maxiter=5, popsize=5
-        )
+        calibrated_params, metrics = calibrator.calibrate(market_data, maxiter=5, popsize=5)
 
         assert metrics["success"]
         assert metrics["rmse"] < 0.1

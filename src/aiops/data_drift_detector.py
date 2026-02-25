@@ -10,12 +10,8 @@ logger = structlog.get_logger()
 PSI_DRIFT_STATUS = Gauge(
     "aiops_psi_drift_status", "1 if PSI drift detected, 0 otherwise", ["feature"]
 )
-KS_DRIFT_STATUS = Gauge(
-    "aiops_ks_drift_status", "1 if KS drift detected, 0 otherwise", ["feature"]
-)
-OVERALL_DRIFT_STATUS = Gauge(
-    "aiops_overall_drift_status", "1 if any drift detected, 0 otherwise"
-)
+KS_DRIFT_STATUS = Gauge("aiops_ks_drift_status", "1 if KS drift detected, 0 otherwise", ["feature"])
+OVERALL_DRIFT_STATUS = Gauge("aiops_overall_drift_status", "1 if any drift detected, 0 otherwise")
 
 
 class DataDriftDetector:
@@ -30,9 +26,7 @@ class DataDriftDetector:
             raise ValueError("Reference or current data cannot be empty.")
 
         if reference_data.shape[1] != current_data.shape[1]:
-            raise ValueError(
-                "Reference and current data must have the same number of features."
-            )
+            raise ValueError("Reference and current data must have the same number of features.")
 
         n_features = reference_data.shape[1]
         overall_drift_detected = False
@@ -44,9 +38,7 @@ class DataDriftDetector:
         # Handle univariate case (single feature)
         if n_features == 1:
             psi_score = calculate_psi(reference_data.flatten(), current_data.flatten())
-            _, ks_p_value = calculate_ks_test(
-                reference_data.flatten(), current_data.flatten()
-            )
+            _, ks_p_value = calculate_ks_test(reference_data.flatten(), current_data.flatten())
 
             psi_drift = psi_score >= self.psi_threshold
             ks_drift = ks_p_value <= self.ks_threshold

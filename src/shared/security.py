@@ -23,12 +23,8 @@ def get_security_circuit():
             # Fallback to InMemory if Redis is not available (e.g. startup or misconfig)
             from src.utils.circuit_breaker import InMemoryCircuitBreaker
 
-            logger.warning(
-                "security_circuit_fallback_in_memory", reason="redis_not_available"
-            )
-            _security_circuit = InMemoryCircuitBreaker(
-                failure_threshold=5, recovery_timeout=30
-            )
+            logger.warning("security_circuit_fallback_in_memory", reason="redis_not_available")
+            _security_circuit = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
         else:
             _security_circuit = DistributedCircuitBreaker(
                 name="security_opa",
@@ -84,9 +80,7 @@ class OPAEnforcer:
     def __init__(self, opa_url: str = "http://localhost:8181/v1/data/authz/allow"):
         self.opa_url = opa_url
 
-    async def is_authorized(
-        self, user: dict[str, Any], action: str, resource: str
-    ) -> bool:
+    async def is_authorized(self, user: dict[str, Any], action: str, resource: str) -> bool:
         """
         Query OPA to determine if the user is authorized for the given action and resource.
         """
@@ -142,9 +136,7 @@ class MTLSVerifier:
             return False
 
         if self.required_dn and self.required_dn != client_dn:
-            logger.warning(
-                "mtls_dn_mismatch", expected=self.required_dn, actual=client_dn
-            )
+            logger.warning("mtls_dn_mismatch", expected=self.required_dn, actual=client_dn)
             return False
 
         logger.info("mtls_verified", client_dn=client_dn)

@@ -29,9 +29,7 @@ def inputs():
 @pytest.mark.asyncio
 async def test_sequential_strategy(inputs):
     strategy = SequentialStrategy()
-    with patch(
-        "src.pricing.black_scholes.BlackScholesEngine.price_options"
-    ) as mock_price:
+    with patch("src.pricing.black_scholes.BlackScholesEngine.price_options") as mock_price:
         mock_price.side_effect = lambda *args, **kwargs: kwargs["out"].fill(10.5)
 
         prices = await strategy.execute(inputs)
@@ -74,9 +72,7 @@ async def test_shm_strategy_fallback(inputs):
         # Test fallback when SHM acquire fails
         strategy = SHMStrategy()
         with patch("src.utils.shared_memory.shm_manager.acquire", return_value=None):
-            with patch.object(
-                SequentialStrategy, "execute", new_callable=AsyncMock
-            ) as mock_seq:
+            with patch.object(SequentialStrategy, "execute", new_callable=AsyncMock) as mock_seq:
                 mock_seq.return_value = np.zeros(10)
                 await strategy.execute(inputs)
                 mock_seq.assert_called_once()
@@ -102,9 +98,7 @@ async def test_shm_strategy_success(inputs):
                 mock_cm.__enter__.return_value = [MagicMock(buf=bytearray(10000))]
                 mock_cm.__exit__.return_value = None
 
-                with patch(
-                    "src.utils.shm_worker.SHMContextManager", return_value=mock_cm
-                ):
+                with patch("src.utils.shm_worker.SHMContextManager", return_value=mock_cm):
                     prices = await strategy.execute(inputs)
                     # Result comes from the bytearray buffer (zeros)
                     assert len(prices) == 10

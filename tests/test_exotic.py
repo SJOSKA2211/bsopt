@@ -83,17 +83,13 @@ class TestAsianOptions:
 
     def test_geometric_asian_call_positive(self, asian_params):
         """Test that geometric Asian call has positive price."""
-        price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "call", StrikeType.FIXED
-        )
+        price = AsianOptionPricer.price_geometric_asian(asian_params, "call", StrikeType.FIXED)
         assert price > 0, "Geometric Asian call price must be positive"
         assert isinstance(price, float), "Price must be float type"
 
     def test_geometric_asian_put_positive(self, asian_params):
         """Test that geometric Asian put has positive price."""
-        price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "put", StrikeType.FIXED
-        )
+        price = AsianOptionPricer.price_geometric_asian(asian_params, "put", StrikeType.FIXED)
         assert price > 0, "Geometric Asian put price must be positive"
 
     def test_geometric_asian_atm_symmetry(self, asian_params):
@@ -103,12 +99,8 @@ class TestAsianOptions:
         For ATM options with q = 0, call ≈ put by put-call symmetry.
         With dividends, the relationship is modified.
         """
-        call_price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "call", StrikeType.FIXED
-        )
-        put_price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "put", StrikeType.FIXED
-        )
+        call_price = AsianOptionPricer.price_geometric_asian(asian_params, "call", StrikeType.FIXED)
+        put_price = AsianOptionPricer.price_geometric_asian(asian_params, "put", StrikeType.FIXED)
 
         # For ATM with dividends, call < put (dividend reduces call value)
         # This is a sanity check, not exact equality
@@ -135,9 +127,7 @@ class TestAsianOptions:
             rate=0.05,
             dividend=0.0,
         )
-        asian_params_benchmark = ExoticParameters(
-            base_params=params_benchmark, n_observations=252
-        )
+        asian_params_benchmark = ExoticParameters(base_params=params_benchmark, n_observations=252)
 
         call_price = AsianOptionPricer.price_geometric_asian(
             asian_params_benchmark, "call", StrikeType.FIXED
@@ -145,9 +135,7 @@ class TestAsianOptions:
 
         # Geometric Asian should be less than vanilla due to averaging
         vanilla_call = BlackScholesEngine.price_call(params_benchmark)
-        assert (
-            call_price < vanilla_call
-        ), "Geometric Asian < Vanilla (averaging reduces value)"
+        assert call_price < vanilla_call, "Geometric Asian < Vanilla (averaging reduces value)"
         assert 6.0 < call_price < 9.0, f"Expected ~7.5, got {call_price}"
 
     def test_arithmetic_asian_convergence(self, asian_params):
@@ -157,9 +145,7 @@ class TestAsianOptions:
         Use geometric Asian as benchmark (lower bound by AM-GM).
         """
         # Geometric price (lower bound)
-        geom_price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "call", StrikeType.FIXED
-        )
+        geom_price = AsianOptionPricer.price_geometric_asian(asian_params, "call", StrikeType.FIXED)
 
         # Arithmetic price with MC
         arith_price, ci = AsianOptionPricer.price_arithmetic_asian_mc(
@@ -172,9 +158,9 @@ class TestAsianOptions:
         )
 
         # AM-GM inequality: arithmetic >= geometric
-        assert (
-            arith_price > geom_price - ci
-        ), f"Arithmetic ({arith_price}) should be >= Geometric ({geom_price}) within CI"
+        assert arith_price > geom_price - ci, (
+            f"Arithmetic ({arith_price}) should be >= Geometric ({geom_price}) within CI"
+        )
 
         # Price should be reasonable (positive, within bounds)
         assert arith_price > 0, "Arithmetic Asian price must be positive"
@@ -210,15 +196,15 @@ class TestAsianOptions:
 
         # Variance reduction check
         variance_reduction = 1.0 - (ci_with_cv / ci_no_cv)
-        assert (
-            variance_reduction > 0.3
-        ), f"Control variate should reduce variance by >30%, got {variance_reduction:.1%}"
+        assert variance_reduction > 0.3, (
+            f"Control variate should reduce variance by >30%, got {variance_reduction:.1%}"
+        )
 
         # Prices should be similar (same underlying paths, different variance)
         # Relaxed check because CV is much more accurate than raw MC at 20k paths
-        assert (
-            abs(price_with_cv - price_no_cv) < 5 * ci_no_cv
-        ), "Prices with/without CV should agree within reasonable bounds"
+        assert abs(price_with_cv - price_no_cv) < 5 * ci_no_cv, (
+            "Prices with/without CV should agree within reasonable bounds"
+        )
 
     def test_arithmetic_asian_floating_strike(self, asian_params):
         """
@@ -260,9 +246,7 @@ class TestAsianOptions:
 
     def test_geometric_asian_float64_precision(self, asian_params):
         """Test that geometric Asian uses float64 precision."""
-        price = AsianOptionPricer.price_geometric_asian(
-            asian_params, "call", StrikeType.FIXED
-        )
+        price = AsianOptionPricer.price_geometric_asian(asian_params, "call", StrikeType.FIXED)
 
         # Price should be represented with float64 precision
         assert isinstance(price, float)
@@ -320,9 +304,9 @@ class TestBarrierOptions:
         parity_sum = uoc + uic
         parity_error = abs(parity_sum - vanilla)
 
-        assert (
-            parity_error < 1e-8
-        ), f"In-Out parity violated: UOC({uoc}) + UIC({uic}) = {parity_sum}, Vanilla = {vanilla}"
+        assert parity_error < 1e-8, (
+            f"In-Out parity violated: UOC({uoc}) + UIC({uic}) = {parity_sum}, Vanilla = {vanilla}"
+        )
 
     def test_barrier_in_out_parity_down_put(self, base_params):
         """
@@ -350,13 +334,11 @@ class TestBarrierOptions:
         parity_sum = dop + dip
         parity_error = abs(parity_sum - vanilla)
 
-        assert (
-            parity_error < 1e-8
-        ), f"In-Out parity violated: DOP + DIP = {parity_sum}, Vanilla = {vanilla}"
+        assert parity_error < 1e-8, (
+            f"In-Out parity violated: DOP + DIP = {parity_sum}, Vanilla = {vanilla}"
+        )
 
-    def test_barrier_knockout_cheaper_than_vanilla(
-        self, barrier_params_up, base_params
-    ):
+    def test_barrier_knockout_cheaper_than_vanilla(self, barrier_params_up, base_params):
         """
         Test that knock-out options are cheaper than vanilla.
         """
@@ -366,9 +348,9 @@ class TestBarrierOptions:
             barrier_params_up, "call", BarrierType.UP_AND_OUT
         )
 
-        assert (
-            uoc < vanilla_call
-        ), f"Knock-out ({uoc}) must be cheaper than vanilla ({vanilla_call})"
+        assert uoc < vanilla_call, (
+            f"Knock-out ({uoc}) must be cheaper than vanilla ({vanilla_call})"
+        )
         assert uoc >= 0, "Knock-out price must be non-negative"
 
     def test_barrier_knockin_positive(self, barrier_params_up):
@@ -384,26 +366,20 @@ class TestBarrierOptions:
         Test barrier option with rebate.
         """
         # Without rebate
-        params_no_rebate = ExoticParameters(
-            base_params=base_params, barrier=120.0, rebate=0.0
-        )
+        params_no_rebate = ExoticParameters(base_params=base_params, barrier=120.0, rebate=0.0)
         price_no_rebate = BarrierOptionPricer.price_barrier_analytical(
             params_no_rebate, "call", BarrierType.UP_AND_OUT
         )
 
         # With rebate
-        params_with_rebate = ExoticParameters(
-            base_params=base_params, barrier=120.0, rebate=5.0
-        )
+        params_with_rebate = ExoticParameters(base_params=base_params, barrier=120.0, rebate=5.0)
         price_with_rebate = BarrierOptionPricer.price_barrier_analytical(
             params_with_rebate, "call", BarrierType.UP_AND_OUT
         )
 
         # Haug's formulas for OUT options with rebate ARE just R*e^-rT in some cases.
         # This test check if rebate increases value.
-        assert (
-            price_with_rebate >= price_no_rebate
-        ), "Rebate should increase option value"
+        assert price_with_rebate >= price_no_rebate, "Rebate should increase option value"
 
     def test_barrier_all_eight_types(self, base_params):
         """
@@ -414,18 +390,10 @@ class TestBarrierOptions:
 
         # All 8 combinations
         results = [
-            BarrierOptionPricer.price_barrier_analytical(
-                up_params, "call", BarrierType.UP_AND_OUT
-            ),
-            BarrierOptionPricer.price_barrier_analytical(
-                up_params, "call", BarrierType.UP_AND_IN
-            ),
-            BarrierOptionPricer.price_barrier_analytical(
-                up_params, "put", BarrierType.UP_AND_OUT
-            ),
-            BarrierOptionPricer.price_barrier_analytical(
-                up_params, "put", BarrierType.UP_AND_IN
-            ),
+            BarrierOptionPricer.price_barrier_analytical(up_params, "call", BarrierType.UP_AND_OUT),
+            BarrierOptionPricer.price_barrier_analytical(up_params, "call", BarrierType.UP_AND_IN),
+            BarrierOptionPricer.price_barrier_analytical(up_params, "put", BarrierType.UP_AND_OUT),
+            BarrierOptionPricer.price_barrier_analytical(up_params, "put", BarrierType.UP_AND_IN),
             BarrierOptionPricer.price_barrier_analytical(
                 down_params, "call", BarrierType.DOWN_AND_OUT
             ),
@@ -509,17 +477,13 @@ class TestLookbackOptions:
 
     def test_floating_strike_call_always_itm(self, base_params):
         """Test that floating strike lookback call is always ITM."""
-        price = LookbackOptionPricer.price_floating_strike_analytical(
-            base_params, "call"
-        )
+        price = LookbackOptionPricer.price_floating_strike_analytical(base_params, "call")
         assert price > 5.0
         assert price < base_params.spot
 
     def test_floating_strike_put_always_itm(self, base_params):
         """Test that floating strike lookback put is always ITM."""
-        price = LookbackOptionPricer.price_floating_strike_analytical(
-            base_params, "put"
-        )
+        price = LookbackOptionPricer.price_floating_strike_analytical(base_params, "put")
         # Relaxed check for put as formula is sensitive
         assert price > 0.0
 
@@ -561,9 +525,7 @@ class TestLookbackOptions:
             dtype=np.float64,
         )
         observation_indices = np.arange(paths.shape[1], dtype=np.int64)
-        maxima = LookbackOptionPricer._compute_running_extrema(
-            paths, observation_indices, "max"
-        )
+        maxima = LookbackOptionPricer._compute_running_extrema(paths, observation_indices, "max")
         assert_equal(maxima[0], 115.0)
         assert_equal(maxima[1], 100.0)
 
@@ -578,9 +540,7 @@ class TestDigitalOptions:
 
     def test_cash_or_nothing_call_probability(self, base_params):
         """Test digital call probability."""
-        price = DigitalOptionPricer.price_cash_or_nothing(
-            base_params, "call", payout=1.0
-        )
+        price = DigitalOptionPricer.price_cash_or_nothing(base_params, "call", payout=1.0)
         discount = np.exp(-base_params.rate * base_params.maturity)
         implied_prob = price / discount
         assert 0.3 < implied_prob < 0.7
@@ -589,9 +549,7 @@ class TestDigitalOptions:
         """Test vanilla decomposition using digitals."""
         vanilla = BlackScholesEngine.price_call(base_params)
         asset_call = DigitalOptionPricer.price_asset_or_nothing(base_params, "call")
-        cash_call = DigitalOptionPricer.price_cash_or_nothing(
-            base_params, "call", payout=1.0
-        )
+        cash_call = DigitalOptionPricer.price_cash_or_nothing(base_params, "call", payout=1.0)
         reconstructed = asset_call - base_params.strike * cash_call
         assert abs(reconstructed - vanilla) < 1e-10
 
@@ -686,9 +644,7 @@ class TestEdgeCases:
             ),
             barrier=200.0,
         )
-        uoc = BarrierOptionPricer.price_barrier_analytical(
-            params, "call", BarrierType.UP_AND_OUT
-        )
+        uoc = BarrierOptionPricer.price_barrier_analytical(params, "call", BarrierType.UP_AND_OUT)
         vanilla = BlackScholesEngine.price_call(params.base_params)
         # Use a more relaxed tolerance for far barrier
         assert abs(uoc - vanilla) < vanilla * 0.1

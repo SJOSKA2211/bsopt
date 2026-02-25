@@ -17,9 +17,7 @@ async def test_xdp_ingester_throughput_benchmark():
 
     # We want to measure decoding and mesh writing speed
     num_ticks = 10000
-    tick_data = (
-        b'{"symbol": "AAPL", "price": 150.0, "volume": 100, "timestamp": 1644300000.0}'
-    )
+    tick_data = b'{"symbol": "AAPL", "price": 150.0, "volume": 100, "timestamp": 1644300000.0}'
 
     start_time = time.time()
     for _ in range(num_ticks):

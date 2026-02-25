@@ -27,9 +27,7 @@ def test_market_data_symbol_tagging(test_engine):
     indexes = inspector.get_indexes("market_ticks")
     # In SQLite, we check if symbol is in any index
     has_symbol_index = any("symbol" in idx["column_names"] for idx in indexes)
-    assert (
-        has_symbol_index
-    ), "symbol column should be indexed for TFT grouping performance"
+    assert has_symbol_index, "symbol column should be indexed for TFT grouping performance"
 
 
 def test_timescaledb_hypertable_status_mocked(test_engine):

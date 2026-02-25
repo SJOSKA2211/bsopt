@@ -3,19 +3,17 @@ from typing import Any
 import numpy as np
 
 
-def assert_equal(
-    actual: Any, expected: Any, tolerance: float = 1e-7, message: str = ""
-):
+def assert_equal(actual: Any, expected: Any, tolerance: float = 1e-7, message: str = ""):
     """
     Custom assertion helper to compare values with tolerance for floats
     and support for numpy arrays.
     """
-    if isinstance(actual, (float, np.float64, np.float32)) and isinstance(
-        expected, (float, int, np.float64, np.float32)
+    if isinstance(actual, float | np.float64 | np.float32) and isinstance(
+        expected, float | int | np.float64 | np.float32
     ):
         if not abs(actual - expected) < tolerance:
             raise AssertionError(
-                f"{message}: Expected {expected}, but got {actual} (diff={abs(actual-expected)})"
+                f"{message}: Expected {expected}, but got {actual} (diff={abs(actual - expected)})"
                 if message
                 else f"Expected {expected}, but got {actual}"
             )

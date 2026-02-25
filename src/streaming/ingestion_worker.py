@@ -27,8 +27,6 @@ logger = structlog.get_logger(__name__)
 tune_gc(mode="high_frequency")  # Optimized for high-frequency trading workers
 
 
-
-
 class BroadcastWorker:
     """The Voice: Dedicated to zero-latency WebSocket broadcasting."""
 
@@ -43,18 +41,12 @@ class BroadcastWorker:
             batch = await self.queue.get()
             try:
                 # OPTIMIZED: Parallel broadcast for the entire batch
-                tasks = [
-                    ws_manager.broadcast_to_symbol(item["symbol"], item)
-                    for item in batch
-                ]
+                tasks = [ws_manager.broadcast_to_symbol(item["symbol"], item) for item in batch]
                 await asyncio.gather(*tasks, return_exceptions=True)
             except Exception as e:
                 logger.error("broadcast_batch_failed", error=str(e))
             finally:
                 self.queue.task_done()
-
-
-
 
 
 class PersistenceWorker:

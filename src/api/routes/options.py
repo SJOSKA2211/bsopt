@@ -67,4 +67,3 @@ async def get_options_chain(
             )
 
     return DataResponse(data=rows)
-

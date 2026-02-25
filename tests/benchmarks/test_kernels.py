@@ -38,9 +38,7 @@ def test_benchmark_greeks_jit(benchmark, benchmark_data):
     S, K, T, sigma, r, q, is_call = benchmark_data
 
     # benchmark() handles timing, warm-up, and statistical analysis
-    delta, gamma, vega, theta, rho = benchmark(
-        batch_greeks_jit, S, K, T, sigma, r, q, is_call
-    )
+    delta, gamma, vega, theta, rho = benchmark(batch_greeks_jit, S, K, T, sigma, r, q, is_call)
 
     assert len(delta) == len(S)
     assert delta.dtype == np.float32

@@ -8,9 +8,7 @@ def test_bs_parameters_validation():
     BSParameters(100, 100, 1, 0.2, 0.05)
 
     # Negative spot
-    with pytest.raises(
-        ValueError, match="Spot, strike, and volatility must be non-negative"
-    ):
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be non-negative"):
         BSParameters(-100, 100, 1, 0.2, 0.05)
 
     # Negative maturity

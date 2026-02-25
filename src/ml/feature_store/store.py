@@ -21,9 +21,7 @@ class InMemoryFeatureStore(FeatureStore):
             raise KeyError(f"Feature {name} not found")
         return self.features[name]
 
-    async def compute_features(
-        self, data: pd.DataFrame, feature_names: list[str]
-    ) -> pd.DataFrame:
+    async def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """
         Computes requested features with Redis-backed caching.
         """
@@ -49,9 +47,7 @@ class InMemoryFeatureStore(FeatureStore):
             except KeyError:
                 logger.warning("skipping_unregistered_feature", name=name)
 
-        sorted_features = sorted(
-            requested_features, key=lambda f: getattr(f, "priority", 0)
-        )
+        sorted_features = sorted(requested_features, key=lambda f: getattr(f, "priority", 0))
 
         # 4. Compute (Single copy, then inplace where possible)
         df = data.copy()
@@ -64,9 +60,7 @@ class InMemoryFeatureStore(FeatureStore):
                 elif isinstance(result, pd.DataFrame):
                     df = result
             except Exception as e:
-                logger.error(
-                    "feature_computation_failed", feature=feature.name, error=str(e)
-                )
+                logger.error("feature_computation_failed", feature=feature.name, error=str(e))
                 raise
 
         # 5. Background cache fill

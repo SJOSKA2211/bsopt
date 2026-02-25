@@ -20,7 +20,6 @@ bs_params = st.builds(
 
 
 class TestPricingProperties:
-
     @given(bs_params)
     @settings(max_examples=100, deadline=None)
     def test_put_call_parity(self, params):
@@ -37,9 +36,9 @@ class TestPricingProperties:
             params.strike * np.exp(-params.rate * params.maturity)
         )
 
-        assert np.isclose(
-            lhs, rhs, atol=1e-5
-        ), f"Put-Call Parity violated: {lhs} != {rhs} for {params}"
+        assert np.isclose(lhs, rhs, atol=1e-5), (
+            f"Put-Call Parity violated: {lhs} != {rhs} for {params}"
+        )
 
     @given(bs_params)
     @settings(max_examples=100, deadline=None)
@@ -89,9 +88,9 @@ class TestPricingProperties:
                 "call",
             )
             # Relax tolerance for extreme values
-            assert np.isclose(
-                iv, params.volatility, atol=1e-3
-            ), f"IV mismatch: {iv} != {params.volatility} for price {price}"
+            assert np.isclose(iv, params.volatility, atol=1e-3), (
+                f"IV mismatch: {iv} != {params.volatility} for price {price}"
+            )
         except Exception:
             # IV calculation might fail for extreme parameters, which is acceptable in some contexts
             pass

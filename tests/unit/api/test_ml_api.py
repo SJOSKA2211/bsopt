@@ -39,9 +39,7 @@ def test_proxy_predict_success(valid_ml_payload):
 
 
 def test_proxy_predict_service_unavailable(valid_ml_payload):
-    with patch(
-        "httpx.AsyncClient.post", side_effect=httpx.RequestError("Connection failed")
-    ):
+    with patch("httpx.AsyncClient.post", side_effect=httpx.RequestError("Connection failed")):
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 503
         assert "unreachable" in response.json()["message"]
@@ -74,13 +72,12 @@ def test_proxy_predict_ml_service_generic_error(valid_ml_payload):
     }
     with patch("httpx.AsyncClient.post") as mock_post:
         mock_post.return_value = MagicMock(
-            status_code=500, json=lambda: mock_response  # Generic error
+            status_code=500,
+            json=lambda: mock_response,  # Generic error
         )
         response = client.post("/api/v1/ml/predict", json=valid_ml_payload)
         assert response.status_code == 500
-        assert (
-            "Something unexpected happened in ML service" in response.json()["message"]
-        )
+        assert "Something unexpected happened in ML service" in response.json()["message"]
 
 
 def test_proxy_predict_unexpected_error(valid_ml_payload):

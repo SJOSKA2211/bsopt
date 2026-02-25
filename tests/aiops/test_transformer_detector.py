@@ -42,9 +42,7 @@ class TestTransformerDetector(unittest.TestCase):
             result = self.detector.detect(data)
             self.assertIn("is_anomaly", result)
             self.assertFalse(result["is_anomaly"])
-            self.assertEqual(
-                result["culprit_index"], 0
-            )  # argmax of all equal values is 0
+            self.assertEqual(result["culprit_index"], 0)  # argmax of all equal values is 0
 
     def test_train_and_detect(self):
         train_data = np.random.rand(10, 10)

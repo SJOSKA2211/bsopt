@@ -22,7 +22,6 @@ def test_push_metrics_integration():
         patch("src.shared.observability.push_to_gateway") as mock_push,
         patch.dict("os.environ", {"PUSHGATEWAY_URL": "http://pushgateway:9091"}),
     ):
-
         observability.push_metrics(job_name="test_job")
 
         mock_push.assert_called_once()
@@ -81,7 +80,6 @@ def test_pipeline_updates_drift_score():
         patch("src.ml.drift.DATA_DRIFT_SCORE") as mock_drift_gauge,
         patch("src.ml.drift.KS_TEST_SCORE") as mock_ks_gauge,
     ):
-
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd
 

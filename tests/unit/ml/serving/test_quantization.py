@@ -27,9 +27,7 @@ def test_dynamic_quantization():
 def test_quantization_failure():
     model = SimpleNet()
     quantizer = ModelQuantizer()
-    with patch(
-        "torch.quantization.quantize_dynamic", side_effect=Exception("Quant fail")
-    ):
+    with patch("torch.quantization.quantize_dynamic", side_effect=Exception("Quant fail")):
         # Should return original model on failure
         res = quantizer.quantize_dynamic(model)
         assert res == model

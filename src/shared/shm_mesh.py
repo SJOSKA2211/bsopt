@@ -67,9 +67,7 @@ class OrderBuffer:
     def __init__(self, create: bool = False):
         self.size = (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8
         self.shm = (
-            shared_memory.SharedMemory(
-                name=SHM_ORDER_NAME, create=create, size=self.size
-            )
+            shared_memory.SharedMemory(name=SHM_ORDER_NAME, create=create, size=self.size)
             if create
             else shared_memory.SharedMemory(name=SHM_ORDER_NAME)
         )
@@ -100,18 +98,14 @@ class ExecutionBuffer:
     def __init__(self, create: bool = False):
         self.size = (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8
         self.shm = (
-            shared_memory.SharedMemory(
-                name=SHM_EXEC_NAME, create=create, size=self.size
-            )
+            shared_memory.SharedMemory(name=SHM_EXEC_NAME, create=create, size=self.size)
             if create
             else shared_memory.SharedMemory(name=SHM_EXEC_NAME)
         )
         self.buf = self.shm.buf
         if create:
             self.buf[:8] = struct.pack("q", 0)
-        self.view = np.frombuffer(
-            self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY
-        )
+        self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
 
     def write_exec(self, order_id: int, price: float, qty: int, status: int):
         head = struct.unpack("q", self.buf[:8])[0]

@@ -66,9 +66,7 @@ def test_autoencoder_detector_empty_data():
     threshold_multiplier = 2.0
     data = np.array([]).reshape(0, input_dim)
     detector = AutoencoderDetector(input_dim, latent_dim, epochs, threshold_multiplier)
-    with pytest.raises(
-        ValueError, match="Input data for Autoencoder must not be empty."
-    ):
+    with pytest.raises(ValueError, match="Input data for Autoencoder must not be empty."):
         detector.fit_predict(data)
 
 
@@ -80,9 +78,7 @@ def test_autoencoder_detector_not_fitted_predict_raises_error():
     threshold_multiplier = 2.0
     detector = AutoencoderDetector(input_dim, latent_dim, epochs, threshold_multiplier)
     data = np.random.rand(10, input_dim)
-    with pytest.raises(
-        RuntimeError, match="Autoencoder model has not been fitted yet."
-    ):
+    with pytest.raises(RuntimeError, match="Autoencoder model has not been fitted yet."):
         detector.predict(data)
 
 
@@ -118,7 +114,5 @@ def test_autoencoder_detector_predict_multivariate():
     detected_anomalies_count = np.sum(anomalies[num_predict_normal:] == -1)
     false_positives_count = np.sum(anomalies[:num_predict_normal] == -1)
 
-    assert detected_anomalies_count > (
-        num_predict_anomaly * 0.7
-    )  # Detect most true anomalies
+    assert detected_anomalies_count > (num_predict_anomaly * 0.7)  # Detect most true anomalies
     assert false_positives_count < (num_predict_normal * 0.1)  # Few false positives

@@ -31,9 +31,7 @@ def test_compression_policy_exists(db_engine):
                 "SELECT * FROM timescaledb_information.compression_settings WHERE hypertable_name = 'market_ticks';"
             )
         )
-        assert (
-            result.fetchone() is not None
-        ), "Compression not configured for market_ticks"
+        assert result.fetchone() is not None, "Compression not configured for market_ticks"
 
         # Check policy job
         result = conn.execute(

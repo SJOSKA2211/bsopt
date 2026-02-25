@@ -84,9 +84,7 @@ class PricingService:
                 # Extract parameters for vectorization
                 spots = np.array([o.spot for o in items], dtype=np.float64)
                 strikes = np.array([o.strike for o in items], dtype=np.float64)
-                maturities = np.array(
-                    [o.time_to_expiry for o in items], dtype=np.float64
-                )
+                maturities = np.array([o.time_to_expiry for o in items], dtype=np.float64)
                 vols = np.array([o.volatility for o in items], dtype=np.float64)
                 rates = np.array([o.rate for o in items], dtype=np.float64)
                 types = np.array([o.option_type for o in items])
@@ -107,9 +105,7 @@ class PricingService:
                 for k, (orig_idx, o) in enumerate(group):
                     results[orig_idx] = PriceResponse.model_construct(
                         price=(
-                            float(prices[k])
-                            if isinstance(prices, np.ndarray)
-                            else float(prices)
+                            float(prices[k]) if isinstance(prices, np.ndarray) else float(prices)
                         ),
                         spot=o.spot,
                         strike=o.strike,

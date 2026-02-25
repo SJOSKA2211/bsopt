@@ -67,9 +67,7 @@ class ArgoCDRollbackStrategy(RemediationStrategy):
         from src.aiops.argocd_remediator import ArgoCDRollbackRemediator
 
         remediator = ArgoCDRollbackRemediator()
-        logger.warning(
-            "remediation_argocd_rollback_trigger", app=anomaly_data.get("service")
-        )
+        logger.warning("remediation_argocd_rollback_trigger", app=anomaly_data.get("service"))
         remediator.remediate(anomaly_data)
         orchestrator.notify(
             f"AIOps: Triggered ArgoCD rollback for {anomaly_data.get('service')} due to regression.",
@@ -87,12 +85,8 @@ class AutonomousScalerStrategy(RemediationStrategy):
         current_replicas = anomaly_data.get("metrics", {}).get("replicas", 1)
         target_replicas = current_replicas + 1
 
-        logger.warning(
-            "remediation_scaling_trigger", service=service_name, target=target_replicas
-        )
-        success = orchestrator.docker_remediator.scale_service(
-            service_name, target_replicas
-        )
+        logger.warning("remediation_scaling_trigger", service=service_name, target=target_replicas)
+        success = orchestrator.docker_remediator.scale_service(service_name, target_replicas)
         if success:
             orchestrator.notify(
                 f"AIOps: Autonomously scaled {service_name} to {target_replicas} replicas.",

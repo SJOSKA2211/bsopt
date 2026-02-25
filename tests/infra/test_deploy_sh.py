@@ -59,9 +59,7 @@ def test_setup_env_creates_new_file():
         shutil.rmtree(temp_dir)
     os.makedirs(temp_dir, exist_ok=True)
 
-    subprocess.run(
-        [DEPLOY_SH, "setup-env"], capture_output=True, text=True, cwd=temp_dir
-    )
+    subprocess.run([DEPLOY_SH, "setup-env"], capture_output=True, text=True, cwd=temp_dir)
 
     env_file = os.path.join(temp_dir, ".env")
     assert os.path.exists(env_file)
@@ -78,9 +76,7 @@ def test_scaffold_configs_creates_directories_and_files():
         shutil.rmtree(temp_dir)
     os.makedirs(temp_dir, exist_ok=True)
 
-    subprocess.run(
-        [DEPLOY_SH, "scaffold-configs"], capture_output=True, text=True, cwd=temp_dir
-    )
+    subprocess.run([DEPLOY_SH, "scaffold-configs"], capture_output=True, text=True, cwd=temp_dir)
 
     assert os.path.isdir(os.path.join(temp_dir, "monitoring/prometheus"))
     assert os.path.exists(os.path.join(temp_dir, "docker/nginx/nginx.conf"))
@@ -146,8 +142,6 @@ def test_verify_deployment_health_checks():
 
 def test_verify_deployment_db_audit():
     """Verify that verify-deployment includes a DB audit step."""
-    result = subprocess.run(
-        [DEPLOY_SH, "verify-deployment"], capture_output=True, text=True
-    )
+    result = subprocess.run([DEPLOY_SH, "verify-deployment"], capture_output=True, text=True)
     assert "Auditing database extensions" in result.stdout
     assert "Database audit complete" in result.stdout

@@ -31,9 +31,7 @@ async def test_router_nse_market_flag():
 async def test_router_crypto_detection():
     # This is a placeholder as CCXT logic is omitted in the snippet but mentioned in PRD
     with patch("src.data.router.PolygonProvider") as mock_poly:
-        mock_poly.return_value.get_ticker_data = AsyncMock(
-            return_value={"price": 50000.0}
-        )
+        mock_poly.return_value.get_ticker_data = AsyncMock(return_value={"price": 50000.0})
         router = MarketDataRouter()
         result = await router.get_live_quote("BTC-USD")
         assert result["price"] == 50000.0
@@ -42,9 +40,7 @@ async def test_router_crypto_detection():
 @pytest.mark.asyncio
 async def test_router_polygon_success():
     with patch("src.data.router.PolygonProvider") as mock_poly:
-        mock_poly.return_value.get_ticker_data = AsyncMock(
-            return_value={"price": 150.0}
-        )
+        mock_poly.return_value.get_ticker_data = AsyncMock(return_value={"price": 150.0})
         router = MarketDataRouter()
 
         result = await router.get_live_quote("AAPL")
@@ -56,12 +52,8 @@ async def test_router_polygon_success():
 async def test_router_fallback_to_yahoo():
     with patch("src.data.router.PolygonProvider") as mock_poly:
         with patch("src.data.router.YahooProvider") as mock_yahoo:
-            mock_poly.return_value.get_ticker_data = AsyncMock(
-                side_effect=Exception("API limit")
-            )
-            mock_yahoo.return_value.get_ticker_data = AsyncMock(
-                return_value={"price": 155.0}
-            )
+            mock_poly.return_value.get_ticker_data = AsyncMock(side_effect=Exception("API limit"))
+            mock_yahoo.return_value.get_ticker_data = AsyncMock(return_value={"price": 155.0})
 
             router = MarketDataRouter()
             result = await router.get_live_quote("AAPL")

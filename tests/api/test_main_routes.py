@@ -39,9 +39,7 @@ def test_admin_only_success():
     from src.auth.security import RoleChecker, verify_token
 
     # Bypass verify_token and RoleChecker
-    app.dependency_overrides[verify_token] = lambda: {
-        "realm_access": {"roles": ["admin"]}
-    }
+    app.dependency_overrides[verify_token] = lambda: {"realm_access": {"roles": ["admin"]}}
     app.dependency_overrides[RoleChecker] = lambda: (lambda: True)
 
     with TestClient(app) as client:

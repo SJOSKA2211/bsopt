@@ -15,9 +15,7 @@ async def test_get_tracemalloc_snapshot_not_active():
     with (
         patch("tracemalloc.is_tracing", return_value=False),
         patch("src.api.main.verify_token", return_value={"id": "admin"}),
-        patch(
-            "src.api.middleware.security.JWTAuthenticationMiddleware.dispatch"
-        ) as mock_dispatch,
+        patch("src.api.middleware.security.JWTAuthenticationMiddleware.dispatch") as mock_dispatch,
     ):
 
         async def side_effect(request, call_next):
@@ -47,9 +45,7 @@ async def test_get_tracemalloc_snapshot_success():
     with (
         patch("tracemalloc.is_tracing", return_value=True),
         patch("tracemalloc.take_snapshot", return_value=mock_snapshot),
-        patch(
-            "src.api.middleware.security.JWTAuthenticationMiddleware.dispatch"
-        ) as mock_dispatch,
+        patch("src.api.middleware.security.JWTAuthenticationMiddleware.dispatch") as mock_dispatch,
     ):
 
         async def side_effect(request, call_next):

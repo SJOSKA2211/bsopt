@@ -43,15 +43,11 @@ class MarketDataProducer:
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
 
         # Load Avro schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "../shared/schemas/market_data.avsc"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "../shared/schemas/market_data.avsc")
         with open(schema_path) as f:
             self.market_data_schema = f.read()
 
-        self.avro_serializer = AvroSerializer(
-            self.schema_registry, self.market_data_schema
-        )
+        self.avro_serializer = AvroSerializer(self.schema_registry, self.market_data_schema)
 
     async def produce_market_data(self, topic: str, data: dict, key: str | None = None):
         """

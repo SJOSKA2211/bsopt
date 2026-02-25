@@ -87,9 +87,7 @@ class PricingCache:
             logger.error("cache_set_price_failed", error=str(e), key=key)
             return False
 
-    async def get_greeks(
-        self, params: BSParameters, option_type: str
-    ) -> OptionGreeks | None:
+    async def get_greeks(self, params: BSParameters, option_type: str) -> OptionGreeks | None:
         """Retrieve cached Greeks."""
         redis = get_redis()
         if redis is None:
@@ -172,15 +170,9 @@ def multi_layer_cache(
                         delta_ms = 100  # Assume 100ms computation time average
                         if (
                             remaining_ms > 0
-                            and (
-                                remaining_ms
-                                - delta_ms * beta * math.log(random.random())
-                            )
-                            < 0
+                            and (remaining_ms - delta_ms * beta * math.log(random.random())) < 0
                         ):
-                            logger.info(
-                                "x_fetch_triggered_early_refresh", key=cache_key
-                            )
+                            logger.info("x_fetch_triggered_early_refresh", key=cache_key)
                         else:
                             val = msgspec.json.decode(cached_val)
                             if validation_model and isinstance(val, dict):
@@ -305,9 +297,7 @@ async def warm_cache():
                         option_type="call",
                     )
                     tasks.append(
-                        pricing_cache.set_option_price(
-                            params, "call", "bs_unified", float(price)
-                        )
+                        pricing_cache.set_option_price(params, "call", "bs_unified", float(price))
                     )
 
     if tasks:
@@ -355,9 +345,7 @@ class DatabaseQueryCache:
         if redis is None:
             return False
         try:
-            await redis.setex(
-                f"{self.PREFIX}user:{user_id}", ttl, orjson.dumps(user_data)
-            )
+            await redis.setex(f"{self.PREFIX}user:{user_id}", ttl, orjson.dumps(user_data))
             return True
         except Exception as e:
             logger.error("db_cache_set_user_failed", error=str(e), user_id=user_id)

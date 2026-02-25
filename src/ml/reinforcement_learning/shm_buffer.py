@@ -43,9 +43,7 @@ class SharedExperienceBuffer:
                     existing.unlink()
                 except FileNotFoundError:
                     pass
-                self.shm = shared_memory.SharedMemory(
-                    name=name, create=True, size=self.shm_size
-                )
+                self.shm = shared_memory.SharedMemory(name=name, create=True, size=self.shm_size)
                 self.shm.buf[:8] = struct.pack("q", 0)  # Head index
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
@@ -62,9 +60,7 @@ class SharedExperienceBuffer:
                 (capacity, act_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
             offset += capacity * act_dim * 4
-            self.rew = np.ndarray(
-                capacity, dtype=np.float32, buffer=self.buf, offset=offset
-            )
+            self.rew = np.ndarray(capacity, dtype=np.float32, buffer=self.buf, offset=offset)
             offset += capacity * 4
             self.next_obs = np.ndarray(
                 (capacity, obs_dim), dtype=np.float32, buffer=self.buf, offset=offset

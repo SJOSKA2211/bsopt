@@ -28,9 +28,7 @@ def test_kafka_consumer_file_exists():
     """
     Test that the kafka_consumer.py file exists.
     """
-    assert os.path.exists(
-        CONSUMER_PATH
-    ), f"MarketDataConsumer file not found at {CONSUMER_PATH}"
+    assert os.path.exists(CONSUMER_PATH), f"MarketDataConsumer file not found at {CONSUMER_PATH}"
 
 
 def test_market_data_consumer_class_exists():
@@ -38,9 +36,7 @@ def test_market_data_consumer_class_exists():
     Test that the MarketDataConsumer class can be imported.
     This test will fail if the class is not yet defined or importable.
     """
-    assert (
-        MarketDataConsumer is not None
-    ), "MarketDataConsumer class is not defined or importable."
+    assert MarketDataConsumer is not None, "MarketDataConsumer class is not defined or importable."
 
 
 @patch("streaming.kafka_consumer.Consumer")
@@ -102,9 +98,7 @@ async def test_consume_messages_success(mock_consumer):
     )
 
     # Start consume_messages as a task
-    consume_task = asyncio.create_task(
-        consumer.consume_messages(mock_callback, batch_size=1)
-    )
+    consume_task = asyncio.create_task(consumer.consume_messages(mock_callback, batch_size=1))
 
     # Give the consumer a chance to run and process the message
     await asyncio.sleep(0.1)
@@ -148,18 +142,14 @@ async def test_consume_messages_kafka_error(mock_consumer):
     )
 
     with patch("streaming.kafka_consumer.logger") as mock_logger:
-        consume_task = asyncio.create_task(
-            consumer.consume_messages(mock_callback, batch_size=1)
-        )
+        consume_task = asyncio.create_task(consumer.consume_messages(mock_callback, batch_size=1))
         await asyncio.sleep(0.1)
         consumer.stop()
         await consume_task
 
     mock_consumer_instance.consume.assert_called()
     mock_callback.assert_not_called()
-    mock_logger.error.assert_called_once_with(
-        "kafka_consumer_error", error="Test Kafka Error"
-    )
+    mock_logger.error.assert_called_once_with("kafka_consumer_error", error="Test Kafka Error")
     mock_consumer_instance.close.assert_called_once()
 
 
@@ -171,9 +161,7 @@ async def test_stop_consumer(mock_consumer):
     """
     mock_consumer_instance = MagicMock()
     mock_consumer.return_value = mock_consumer_instance
-    mock_consumer_instance.consume.return_value = (
-        []
-    )  # Ensure consume doesn't block indefinitely
+    mock_consumer_instance.consume.return_value = []  # Ensure consume doesn't block indefinitely
 
     consumer = MarketDataConsumer(
         TEST_BOOTSTRAP_SERVERS, "http://mock-registry", TEST_GROUP_ID, TEST_TOPICS

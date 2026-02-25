@@ -23,7 +23,6 @@ def test_consumer_initialization(mock_schema_file):
         patch("streaming.kafka_consumer.SchemaRegistryClient"),
         patch("streaming.kafka_consumer.AvroDeserializer"),
     ):
-
         from streaming.kafka_consumer import MarketDataConsumer
 
         consumer = MarketDataConsumer(
@@ -36,9 +35,7 @@ def test_consumer_initialization(mock_schema_file):
         assert consumer.config["group.id"] == "test-group"
 
         mock_kafka_consumer.assert_called_once()
-        mock_kafka_consumer.return_value.subscribe.assert_called_once_with(
-            ["test-topic"]
-        )
+        mock_kafka_consumer.return_value.subscribe.assert_called_once_with(["test-topic"])
 
 
 @pytest.mark.asyncio
@@ -48,7 +45,6 @@ async def test_consume_messages_batch(mock_schema_file):
         patch("streaming.kafka_consumer.SchemaRegistryClient"),
         patch("streaming.kafka_consumer.AvroDeserializer") as mock_avro_deserializer,
     ):
-
         from streaming.kafka_consumer import MarketDataConsumer
 
         mock_instance = MagicMock()
@@ -86,9 +82,7 @@ async def test_consume_messages_batch(mock_schema_file):
         # We need a way to stop the infinite loop
         # The consumer runs until self.running is False
 
-        task = asyncio.create_task(
-            consumer.consume_messages(mock_callback, batch_size=2)
-        )
+        task = asyncio.create_task(consumer.consume_messages(mock_callback, batch_size=2))
 
         # Wait for processing
         for _ in range(10):
@@ -114,7 +108,6 @@ async def test_consumer_error_handling(mock_schema_file):
         patch("streaming.kafka_consumer.SchemaRegistryClient"),
         patch("streaming.kafka_consumer.AvroDeserializer") as mock_avro_deserializer,
     ):
-
         from confluent_kafka import KafkaError
 
         from streaming.kafka_consumer import MarketDataConsumer
@@ -139,9 +132,7 @@ async def test_consumer_error_handling(mock_schema_file):
             [[mock_eof_msg, mock_bad_msg]], itertools.repeat([])
         )
 
-        mock_avro_deserializer.return_value.side_effect = Exception(
-            "Deserialization failed"
-        )
+        mock_avro_deserializer.return_value.side_effect = Exception("Deserialization failed")
 
         consumer = MarketDataConsumer()
 
@@ -176,7 +167,6 @@ async def test_batch_processing_error(mock_schema_file):
         patch("streaming.kafka_consumer.SchemaRegistryClient"),
         patch("streaming.kafka_consumer.AvroDeserializer") as mock_avro_deserializer,
     ):
-
         from streaming.kafka_consumer import MarketDataConsumer
 
         mock_instance = MagicMock()
@@ -188,9 +178,7 @@ async def test_batch_processing_error(mock_schema_file):
 
         import itertools
 
-        mock_instance.consume.side_effect = itertools.chain(
-            [[mock_msg]], itertools.repeat([])
-        )
+        mock_instance.consume.side_effect = itertools.chain([[mock_msg]], itertools.repeat([]))
 
         # deserializer instance should be callable and return data
         mock_deserializer_instance = MagicMock()
@@ -203,9 +191,7 @@ async def test_batch_processing_error(mock_schema_file):
             raise Exception("Processing failed")
 
         with patch("streaming.kafka_consumer.logger") as mock_logger:
-            task = asyncio.create_task(
-                consumer.consume_messages(error_callback, batch_size=1)
-            )
+            task = asyncio.create_task(consumer.consume_messages(error_callback, batch_size=1))
             await asyncio.sleep(0.2)
             consumer.stop()
             try:

@@ -123,9 +123,7 @@ async def run_hyperparameter_optimization(
         """Inner trainable for Ray workers."""
         model = xgb.XGBRegressor(**config, n_jobs=1)
         # Use a simple split for the parallel trials
-        x_t, x_v, y_t, y_v = train_test_split(
-            x_vals, y_vals, test_size=0.2, shuffle=False
-        )
+        x_t, x_v, y_t, y_v = train_test_split(x_vals, y_vals, test_size=0.2, shuffle=False)
         model.fit(x_t, y_t)
         preds = model.predict(x_v)
         r2 = r2_score(y_v, preds)
@@ -198,9 +196,7 @@ async def train(
         study_name=f"Option_Pricing_{framework}", tracking_uri=tracking_uri
     )
 
-    x_vals, y_vals, features, meta = await load_or_collect_data(
-        use_real_data, n_samples
-    )
+    x_vals, y_vals, features, meta = await load_or_collect_data(use_real_data, n_samples)
 
     # Default parameters
     default_params = {
@@ -248,16 +244,12 @@ async def train(
             client.transition_model_version_stage(
                 name=model_name, version=result.version, stage="Production"
             )
-            logger.info(
-                "model_promoted_to_production", name=model_name, version=result.version
-            )
+            logger.info("model_promoted_to_production", name=model_name, version=result.version)
             promoted = True
         except Exception as e:
             logger.warning("model_promotion_failed", error=str(e))
 
-    logger.info(
-        "training_complete", accuracy=accuracy, promoted=promoted, run_id=run_id
-    )
+    logger.info("training_complete", accuracy=accuracy, promoted=promoted, run_id=run_id)
     return {"run_id": run_id, "accuracy": accuracy, "promoted": promoted}
 
 

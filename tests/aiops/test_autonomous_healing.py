@@ -21,7 +21,6 @@ def remediators():
 
 
 class TestAutonomousHealing:
-
     @pytest.mark.asyncio
     async def test_drift_detection_integration(self, mock_detector, remediators):
         """
@@ -39,9 +38,7 @@ class TestAutonomousHealing:
         # Create drifted data (higher mean)
         drifted_data = pd.DataFrame({"latency": np.random.normal(20, 1, 100)})
 
-        with patch(
-            "src.aiops.remediators.RestartServiceRemediator.remediate"
-        ) as mock_remediate:
+        with patch("src.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
             mock_remediate.return_value = True
             await orchestrator.run_cycle(drifted_data)
 
@@ -61,9 +58,7 @@ class TestAutonomousHealing:
         """
         Verify that the orchestrator correctly plans and executes actions for point anomalies.
         """
-        orchestrator = SelfHealingOrchestrator(
-            detector=mock_detector, remediators=remediators
-        )
+        orchestrator = SelfHealingOrchestrator(detector=mock_detector, remediators=remediators)
 
         anomaly = {
             "type": "latency_spike",
@@ -72,9 +67,7 @@ class TestAutonomousHealing:
         }
         mock_detector.detect.return_value = [anomaly]
 
-        with patch(
-            "src.aiops.remediators.RestartServiceRemediator.remediate"
-        ) as mock_remediate:
+        with patch("src.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
             mock_remediate.return_value = True
             await orchestrator.run_cycle(pd.DataFrame({"latency": [100]}))
 

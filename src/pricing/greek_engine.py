@@ -51,10 +51,8 @@ class GreekEngine:
                     spots = chunk["price"]
                     # Call JIT-accelerated vectorized Greek kernel
                     # Note: We use a simplified constant for strike/maturity for demo
-                    deltas, gammas, thetas, vegas, rhos = (
-                        self.engine.price_batch_greeks(
-                            spots, 100.0, 0.1, 0.2, 0.05, 0.0
-                        )
+                    deltas, gammas, thetas, vegas, rhos = self.engine.price_batch_greeks(
+                        spots, 100.0, 0.1, 0.2, 0.05, 0.0
                     )
 
                     # 3. Write results back to Greeks Mesh

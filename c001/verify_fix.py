@@ -24,9 +24,7 @@ try:
     print(f"✅ scalar_bs_price_jit result: {p}")
 
     # Test gpu_mc_european_price (CPU fallback)
-    p_mc, err = gpu_mc_european_price(
-        100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 1000, True, True
-    )
+    p_mc, err = gpu_mc_european_price(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 1000, True, True)
     print(f"✅ gpu_mc_european_price result: {p_mc} +/- {err}")
 
 except Exception as e:

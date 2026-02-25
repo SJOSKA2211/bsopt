@@ -57,9 +57,6 @@ async def health():
     return {"status": "healthy"}
 
 
-
-
-
 @app.websocket("/marketdata/{symbol}")
 async def websocket_marketdata(websocket: WebSocket, symbol: str):
     """

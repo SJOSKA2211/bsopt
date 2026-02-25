@@ -62,9 +62,7 @@ if "postgresql" in async_url and "?" in async_url:
 async_engine = create_async_engine(
     async_url,
     connect_args=(
-        {"ssl": True}
-        if settings.ENVIRONMENT == "prod" and "postgresql" in async_url
-        else {}
+        {"ssl": True} if settings.ENVIRONMENT == "prod" and "postgresql" in async_url else {}
     ),
 )
 

@@ -19,4 +19,3 @@ __all__ = [
     "get_current_user_flexible",
     "require_tier",
 ]
-

@@ -7,9 +7,7 @@ from src.config import settings
 from src.utils.cache import get_redis_client
 
 
-async def rate_limit(
-    request: Request, redis_client: redis.Redis = Depends(get_redis_client)
-):
+async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
     """
     Rate limiting dependency using Redis for distributed rate limiting.
     """
@@ -23,9 +21,7 @@ async def rate_limit(
 
     # Prefer user_id if authenticated, otherwise use IP
     user = getattr(request.state, "user", None)
-    identifier = (
-        str(user.id) if user else (request.client.host if request.client else "unknown")
-    )
+    identifier = str(user.id) if user else (request.client.host if request.client else "unknown")
     tier = getattr(user, "tier", "free") if user else "free"
 
     limit = settings.rate_limit_tiers.get(tier, 100)
@@ -67,9 +63,7 @@ async def rate_limit(
             headers={
                 "X-RateLimit-Limit": str(limit),
                 "X-RateLimit-Remaining": str(remaining),
-                "X-RateLimit-Reset": str(
-                    current_time + retry_after
-                ),  # Approximate reset time
+                "X-RateLimit-Reset": str(current_time + retry_after),  # Approximate reset time
                 "Retry-After": str(retry_after),
             },
         )
@@ -77,6 +71,4 @@ async def rate_limit(
     # Store rate limit info in request state for response headers if desired by middleware
     request.state.rate_limit_limit = limit
     request.state.rate_limit_remaining = remaining
-    request.state.rate_limit_reset = (
-        int(time.time()) + window
-    )  # Approximate next window start
+    request.state.rate_limit_reset = int(time.time()) + window  # Approximate next window start

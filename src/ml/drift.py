@@ -67,16 +67,12 @@ class PerformanceDriftMonitor:
                 higher_is_better=self.higher_is_better,
             )
         else:
-            logger.info(
-                "performance_check_passed", baseline=baseline, current=current_value
-            )
+            logger.info("performance_check_passed", baseline=baseline, current=current_value)
 
         return bool(is_drifted)
 
 
-def calculate_ks_test(
-    expected: np.ndarray, actual: np.ndarray | list
-) -> tuple[float, float]:
+def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[float, float]:
     """
     Calculates the Kolmogorov-Smirnov (KS) test between two distributions.
 

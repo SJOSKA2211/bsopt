@@ -34,9 +34,9 @@ def cached_endpoint(prefix: str = "api_cache", ttl: int = 60):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # ... (Request extraction stays same)
-            request = next(
-                (arg for arg in args if isinstance(arg, Request)), None
-            ) or kwargs.get("request")
+            request = next((arg for arg in args if isinstance(arg, Request)), None) or kwargs.get(
+                "request"
+            )
 
             if not request:
                 return await func(*args, **kwargs)

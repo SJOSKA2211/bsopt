@@ -50,9 +50,7 @@ class LatencyRemediator:
         query = "histogram_quantile(0.95, sum(rate(pricing_service_duration_seconds_bucket[5m])) by (le))"
 
         try:
-            resp = await client.get(
-                f"{self.prometheus_url}/api/v1/query", params={"query": query}
-            )
+            resp = await client.get(f"{self.prometheus_url}/api/v1/query", params={"query": query})
             resp.raise_for_status()
             data = resp.json()
 
