@@ -183,7 +183,7 @@ class NSEScraper:
             proxy=proxy_url,
             headers={"User-Agent": "BS-Opt/2.0"},
             timeout=10.0,
-            verify=False,
+            verify=True,
         )
 
     @nse_circuit
