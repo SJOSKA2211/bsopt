@@ -105,13 +105,37 @@ class MonteCarloEngine(PricingStrategy):
     def _calculate_greeks_fd(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """Fallback Finite Difference implementation."""
         seed = self.config.seed
+
+        # Optimization: Pre-generate random numbers to reuse across all pricing calls
+        # This significantly reduces computational overhead for finite difference
+        # and ensures Common Random Numbers (CRN) are used for better stability.
+        n_needed = self.config.n_paths // 2 if self.config.antithetic else self.config.n_paths
+        run_seed = seed if seed is not None else self.config.seed
+
+        if self.config.method == "sobol":
+            # For European options, dimension d=1 (time step)
+            z_innovations = self._generate_random_normals(n_needed, 1).flatten()
+        else:
+            # Standard MC uses global np.random inside JIT currently
+            # We generate them here to freeze them for all perturbations
+            np.random.seed(run_seed)
+            z_innovations = np.random.standard_normal(n_needed)
+
         ds = max(params.spot * 0.001, 0.01)
-        p_base, _ = self.price_european(params, option_type, seed=seed)
+        p_base, _ = self.price_european(
+            params, option_type, seed=seed, z_innovations=z_innovations
+        )
         p_plus, _ = self.price_european(
-            dataclasses.replace(params, spot=params.spot + ds), option_type, seed=seed
+            dataclasses.replace(params, spot=params.spot + ds),
+            option_type,
+            seed=seed,
+            z_innovations=z_innovations,
         )
         p_minus, _ = self.price_european(
-            dataclasses.replace(params, spot=params.spot - ds), option_type, seed=seed
+            dataclasses.replace(params, spot=params.spot - ds),
+            option_type,
+            seed=seed,
+            z_innovations=z_innovations,
         )
         delta = (p_plus - p_minus) / (2 * ds)
         gamma = (p_plus - 2 * p_base + p_minus) / (ds**2)
@@ -121,6 +145,7 @@ class MonteCarloEngine(PricingStrategy):
             dataclasses.replace(params, volatility=params.volatility + dvol),
             option_type,
             seed=seed,
+            z_innovations=z_innovations,
         )
         vega = (p_vol_plus - p_base) / (dvol * 100)
 
@@ -131,12 +156,16 @@ class MonteCarloEngine(PricingStrategy):
                 dataclasses.replace(params, maturity=params.maturity - dt),
                 option_type,
                 seed=seed,
+                z_innovations=z_innovations,
             )
             theta = p_theta - p_base
 
         dr = 0.0001
         p_rho_plus, _ = self.price_european(
-            dataclasses.replace(params, rate=params.rate + dr), option_type, seed=seed
+            dataclasses.replace(params, rate=params.rate + dr),
+            option_type,
+            seed=seed,
+            z_innovations=z_innovations,
         )
         rho = (p_rho_plus - p_base) / (dr * 100)
 
@@ -149,7 +178,11 @@ class MonteCarloEngine(PricingStrategy):
         )
 
     def price_european(
-        self, params: BSParameters, option_type: str = "call", seed: int | None = None
+        self,
+        params: BSParameters,
+        option_type: str = "call",
+        seed: int | None = None,
+        z_innovations: np.ndarray | None = None,
     ) -> tuple[float, float]:
         """
         Price European option using JIT-optimized Monte Carlo.
@@ -175,6 +208,7 @@ class MonteCarloEngine(PricingStrategy):
             self.config.n_paths >= settings.MONTE_CARLO_GPU_THRESHOLD
             and not self.config.control_variate
             and not self.config.method == "sobol"
+            and z_innovations is None
         ):
             gpu_res = gpu_mc_european_price(
                 S0=float(params.spot),
@@ -191,9 +225,8 @@ class MonteCarloEngine(PricingStrategy):
                 price, std_err = gpu_res
                 return float(price), float(1.96 * std_err)
 
-        # Generate quasi-random numbers if method is 'sobol'
-        z_innovations = None
-        if self.config.method == "sobol":
+        # Generate quasi-random numbers if method is 'sobol' and not provided
+        if z_innovations is None and self.config.method == "sobol":
             n_needed = self.config.n_paths // 2 if self.config.antithetic else self.config.n_paths
             # For European options, dimension d=1 (time step)
             # Flatten to 1D array for JIT consumption
