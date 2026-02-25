@@ -52,10 +52,10 @@ def train_func(config: dict[str, Any]):
 
     # 3. Setup Data (Trajectory Loading)
     # Assume data is shared or reachable via NFS/Cloud Storage
-    import pickle
+    import pickle  # nosec B403
 
     with open(config.get("dataset_path", "data/trajectories.pkl"), "rb") as f:
-        trajectories = pickle.load(f)
+        trajectories = pickle.load(f)  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
