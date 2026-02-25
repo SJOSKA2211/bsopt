@@ -44,10 +44,10 @@ class MCConfig:
             self.n_paths = 2 ** int(np.ceil(np.log2(self.n_paths)))
 
 
-class MonteCarloEngine(PricingStrategy):
+class MonteCarloEngine(PricingStrategy):  # optimized
     """
     Advanced Monte Carlo engine for option pricing.
-    Supports European and American options with variance reduction.
+    Supports European and American options with variance reduction techniques.
     """
 
     def __init__(self, config: MCConfig | None = None):
