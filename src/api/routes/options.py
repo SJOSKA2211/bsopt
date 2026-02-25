@@ -6,7 +6,7 @@ the UI can render without requiring a live market data feed.
 """
 
 from datetime import date, timedelta
-from typing import Any, List
+from typing import Any
 
 from fastapi import APIRouter, Query
 
@@ -22,7 +22,7 @@ async def get_options_chain(
 ) -> DataResponse:
     """Return a small synthetic options chain for the requested symbol."""
     today = date.today()
-    expiries: List[str] = []
+    expiries: list[str] = []
     if expiry in {"all", "week"}:
         expiries.append((today + timedelta(days=7)).isoformat())
     if expiry in {"all", "month"}:
@@ -35,7 +35,7 @@ async def get_options_chain(
     underlying_price = 120.0
     strikes = [110.0, 115.0, 120.0, 125.0, 130.0]
 
-    rows: List[dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     row_id = 0
     for exp in expiries:
         for strike in strikes:
