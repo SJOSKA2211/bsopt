@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { IconButton, Tooltip, Stack, Typography } from '@mui/material';
 import { ShowChart } from '@mui/icons-material';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
@@ -24,17 +24,23 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
 }) => {
   const { priceOption, isLoaded } = useWasmPricing();
 
-  const result = useMemo(() => {
-    if (!isLoaded) return null;
-    return priceOption({
-      spot,
-      strike,
-      time,
-      vol,
-      rate,
-      div,
-      is_call: isCall,
-    });
+  const [result, setResult] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    if (!isLoaded) return;
+    const fetch = async () => {
+      const res = await priceOption({
+        spot,
+        strike,
+        time,
+        vol,
+        rate,
+        div,
+        is_call: isCall,
+      });
+      setResult(res);
+    };
+    fetch();
   }, [isLoaded, spot, strike, time, vol, rate, div, isCall, priceOption]);
 
   if (!isLoaded || !result) {
@@ -45,6 +51,7 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
     );
   }
 
+  // @ts-ignore
   const { delta, gamma, vega, theta, rho } = result.greeks;
 
   return (
@@ -57,6 +64,7 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
           <Typography variant="caption">Vega: {vega.toFixed(4)}</Typography>
           <Typography variant="caption">Theta: {theta.toFixed(4)}</Typography>
           <Typography variant="caption">Rho: {rho.toFixed(4)}</Typography>
+          {/* @ts-ignore */}
           <Typography variant="caption">Theor. Price: ${result.price.toFixed(4)}</Typography>
         </Stack>
       }

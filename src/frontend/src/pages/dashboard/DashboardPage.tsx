@@ -73,7 +73,7 @@ const MiniLineChart = ({ color }: { color: string }) => (
 );
 
 export const DashboardPage: React.FC = () => {
-  const theme = useTheme();
+  // const theme = useTheme();
 
   const transactions = [
     { id: 1, label: 'Simon Pegg', date: 'Jul 28, 6:22 PM', amount: 44.00, type: 'Transfer', icon: <PersonIcon />, color: '#10b981' },
