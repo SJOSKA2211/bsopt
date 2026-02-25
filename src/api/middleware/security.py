@@ -585,15 +585,10 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 logger.warning(
                     f"Suspicious input detected from {client_host}: {issues}"
                 )
-
             # Reject the request
             return ORJSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content={
-                    "error": "invalid_input",
-                    "message": "Invalid input detected: potential security risk",
-                    "details": issues,
-                },
+                content={"detail": "Invalid input detected"},
             )
 
         return cast(Response, await call_next(request))
