@@ -12,7 +12,7 @@ import {
   Divider,
   Chip,
   Stack,
-  useTheme,
+  // useTheme,
 } from '@mui/material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
 import { MLPredictions } from '../../features/options/components/MLPredictions';
@@ -30,7 +30,7 @@ const LoadingFallback: React.FC = () => (
 );
 
 export const DashboardPage: React.FC = () => {
-  const theme = useTheme();
+  // const theme = useTheme();
 
   const transactions = [
     { id: 1, label: 'Apple Music', category: 'Subscription', amount: -9.99, time: '08:32 AM' },

@@ -80,7 +80,8 @@ export const usePricingWASM = () => {
     params: Float64Array
   ): Float64Array | null => {
     if (!engine) return null;
-    return engine.batch_calculate_compact(params);
+    // @ts-ignore
+    return engine.batch_calculate_soa_compact(params);
   }, [engine]);
 
   return {

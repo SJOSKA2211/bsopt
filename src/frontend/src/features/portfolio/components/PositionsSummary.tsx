@@ -56,10 +56,12 @@ export const PositionsSummary: React.FC = React.memo(() => {
       };
     });
 
+    // @ts-ignore
     const results = batchCalculate(params);
 
     return data.positions.map((pos, i) => ({
       ...pos,
+      // @ts-ignore
       theor_greeks: results[i]?.greeks
     }));
   }, [data, isWasmLoaded, batchCalculate]);

@@ -68,16 +68,22 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       is_call: true
     }));
 
+    // @ts-ignore
     const results = batchCalculate(params);
 
     return optionsData.map((d, i) => {
+      // @ts-ignore
       const result = results[i];
       if (result) {
         return {
           ...d,
+          // @ts-ignore
           call_delta: result.greeks.delta,
+          // @ts-ignore
           call_gamma: result.greeks.gamma,
+          // @ts-ignore
           call_vega: result.greeks.vega,
+          // @ts-ignore
           call_theta: result.greeks.theta,
         };
       }

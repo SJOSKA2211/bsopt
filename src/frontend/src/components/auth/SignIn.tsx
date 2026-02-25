@@ -16,7 +16,7 @@ export default function SignIn() {
       onSuccess: () => {
         alert("Signed in!");
       },
-      onError: (ctx) => {
+      onError: (ctx: { error: { message: string } }) => {
         alert(ctx.error.message);
       },
     });

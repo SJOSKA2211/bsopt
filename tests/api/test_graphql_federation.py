@@ -21,9 +21,7 @@ def patch_graphql_router():
     ):
         # Mimic the constructor but without context_getter
         def mock_init(schema, graphql_ide=False, *args, **kwargs):
-            return OriginalGraphQLRouter(
-                schema, graphql_ide=graphql_ide, *args, **kwargs
-            )
+            return OriginalGraphQLRouter(schema, graphql_ide=graphql_ide, *args, **kwargs)
 
         MockGraphQLRouter.side_effect = mock_init
         yield  # Correctly import app from src.api.main
@@ -45,9 +43,7 @@ async def test_graphql_query():
         response = await ac.post(
             "/graphql",
             headers=headers,
-            json={
-                "query": '{ option(contractSymbol: "SPY_CALL_400") { id contractSymbol } }'
-            },
+            json={"query": '{ option(contractSymbol: "SPY_CALL_400") { id contractSymbol } }'},
         )
         assert response.status_code == 200
         assert (

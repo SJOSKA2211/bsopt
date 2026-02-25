@@ -1,6 +1,6 @@
 // src/frontend/src/hooks/useWebSocket.ts (Optimized)
 import { useState, useEffect, useRef } from 'react';
-import { protobuf } from 'protobufjs';
+// import { protobuf } from 'protobufjs'; // Removed unused import causing build error
 
 interface WebSocketHookOptions {
   url: string;
