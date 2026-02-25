@@ -38,9 +38,7 @@ def test_gnn_feature_extractor_latency_benchmark():
     duration = time.perf_counter() - start_time
 
     avg_latency_ms = (duration / num_runs) * 1000
-    print(
-        f"\nGNN Inference Latency (50 nodes, fully connected): {avg_latency_ms:.2f} ms"
-    )
+    print(f"\nGNN Inference Latency (50 nodes, fully connected): {avg_latency_ms:.2f} ms")
 
     # We want sub-5ms for real-time arbitrage
     assert avg_latency_ms < 5.0
@@ -73,5 +71,5 @@ def test_gnn_throughput_massive_batch():
     features = extractor(x, edge_index, batch=batch)
     duration = time.perf_counter() - start_time
 
-    print(f"GNN Throughput ({num_graphs} graphs batch): {duration*1000:.2f} ms")
+    print(f"GNN Throughput ({num_graphs} graphs batch): {duration * 1000:.2f} ms")
     assert features.shape == (num_graphs, output_dim)

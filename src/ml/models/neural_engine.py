@@ -18,9 +18,9 @@ class NeuralPricingEngine(BasePricingEngine):
     def __init__(self, model_path: str | None = None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # Standard BS Inputs: Spot, Strike, Maturity, Volatility, Rate, Dividend (6)
-        self.model = OptionPricingNN(
-            input_dim=6, hidden_dims=[128, 128, 64], num_classes=1
-        ).to(self.device)
+        self.model = OptionPricingNN(input_dim=6, hidden_dims=[128, 128, 64], num_classes=1).to(
+            self.device
+        )
 
         if model_path:
             self.model.load_state_dict(torch.load(model_path, map_location=self.device))
@@ -91,9 +91,7 @@ class NeuralPricingEngine(BasePricingEngine):
         """
         if option_type.lower() != "call":
             # For now, simplistic implementation. Real version would handle puts via parity or separate output.
-            raise NotImplementedError(
-                "NeuralEngine currently only supports Call options directly."
-            )
+            raise NotImplementedError("NeuralEngine currently only supports Call options directly.")
 
         input_tensor = self._params_to_tensor(params)
         with torch.no_grad():
@@ -101,17 +99,13 @@ class NeuralPricingEngine(BasePricingEngine):
 
         return prediction.item()
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
         Calculate Greeks using PyTorch Autograd.
         This provides exact derivatives of the model's pricing function.
         """
         if option_type.lower() != "call":
-            raise NotImplementedError(
-                "NeuralEngine currently only supports Call options directly."
-            )
+            raise NotImplementedError("NeuralEngine currently only supports Call options directly.")
 
         input_tensor = self._params_to_tensor(params)
 
@@ -134,9 +128,7 @@ class NeuralPricingEngine(BasePricingEngine):
         # Since we just need one element, let's use the delta we just computed?
         # No, grads[0] is a tensor attached to the graph.
 
-        gamma_grad = torch.autograd.grad(grads[0], input_tensor, retain_graph=False)[0][
-            0
-        ]
+        gamma_grad = torch.autograd.grad(grads[0], input_tensor, retain_graph=False)[0][0]
         gamma = gamma_grad[0].item()
 
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)

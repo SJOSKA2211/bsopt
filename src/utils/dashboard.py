@@ -58,27 +58,27 @@ def generate_html_dashboard(summary_path: str, output_path: str) -> None:
     <body>
         <div class="container">
             <h1>ML Performance Dashboard</h1>
-            <p><strong>Generated At:</strong> {summary['timestamp']}</p>
-            <p><strong>Status:</strong> <span class="status">{summary['status'].upper()}</span></p>
+            <p><strong>Generated At:</strong> {summary["timestamp"]}</p>
+            <p><strong>Status:</strong> <span class="status">{summary["status"].upper()}</span></p>
 
             <h2>XGBoost Pricing Model</h2>
             <div class="metric-card">
                 <div>R2 Score</div>
-                <div class="metric-value">{summary.get('xgboost', {}).get('r2', 'N/A')}</div>
+                <div class="metric-value">{summary.get("xgboost", {}).get("r2", "N/A")}</div>
             </div>
             <div class="metric-card">
                 <div>Mean Squared Error</div>
-                <div class="metric-value">{summary.get('xgboost', {}).get('mse', 'N/A')}</div>
+                <div class="metric-value">{summary.get("xgboost", {}).get("mse", "N/A")}</div>
             </div>
 
             <h2>Neural Network Classifier</h2>
             <div class="metric-card">
                 <div>Accuracy</div>
-                <div class="metric-value">{summary.get('neural_network', {}).get('accuracy', 'N/A')}</div>
+                <div class="metric-value">{summary.get("neural_network", {}).get("accuracy", "N/A")}</div>
             </div>
             <div class="metric-card">
                 <div>Precision</div>
-                <div class="metric-value">{summary.get('neural_network', {}).get('precision', 'N/A')}</div>
+                <div class="metric-value">{summary.get("neural_network", {}).get("precision", "N/A")}</div>
             </div>
 
             <h2>Visualizations</h2>
@@ -94,7 +94,7 @@ def generate_html_dashboard(summary_path: str, output_path: str) -> None:
             </div>
 
             <p style="margin-top: 40px; font-size: 0.8em; color: #777;">
-                Tracking URI: {summary['mlflow_tracking_uri']}
+                Tracking URI: {summary["mlflow_tracking_uri"]}
             </p>
         </div>
     </body>

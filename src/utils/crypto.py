@@ -29,9 +29,7 @@ class AES256GCM:
         """Atomic fast nonce generator (Prefix + Counter)."""
         with self._nonce_lock:
             self._nonce_counter += 1
-            return self._nonce_prefix + struct.pack(
-                "!I", self._nonce_counter % 0xFFFFFFFF
-            )
+            return self._nonce_prefix + struct.pack("!I", self._nonce_counter % 0xFFFFFFFF)
 
     def encrypt_raw(self, data: bytes) -> bytes:
         """High-performance encryption returning raw bytes (Nonce + Tag + Cipher)."""

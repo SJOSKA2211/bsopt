@@ -14,9 +14,6 @@ from src.shared.off_heap_logger import omega_logger
 logger = logging.getLogger("audit")
 
 
-
-
-
 def robust_pricing_task(error_return_value: Any = None):
     """
     OPTIMIZED: Async-aware decorator for fail-safe task execution.
@@ -33,9 +30,7 @@ def robust_pricing_task(error_return_value: Any = None):
                     return await func(*args, **kwargs)
                 except Exception as e:
                     ms = (time.perf_counter() - start) * 1000
-                    omega_logger.log(
-                        "pricing_task_failed", task=func.__name__, error=str(e), ms=ms
-                    )
+                    omega_logger.log("pricing_task_failed", task=func.__name__, error=str(e), ms=ms)
                     return error_return_value
 
             return wrapper

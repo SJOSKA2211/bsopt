@@ -1,12 +1,15 @@
 from unittest.mock import patch
 
 import pytest
+import strawberry.federation
 from httpx import ASGITransport, AsyncClient
 
 from src.api.main import (
     GraphQLRouter as OriginalGraphQLRouter,
 )  # Import original for patching
 from src.api.main import app
+
+print("DEBUG: Strawberry Federation:", strawberry.federation)
 
 
 @pytest.fixture(autouse=True)

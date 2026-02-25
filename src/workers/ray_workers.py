@@ -35,14 +35,10 @@ class MathActor:
         start_time = time.perf_counter()
 
         # Dispatch to vectorized JIT kernel (O(1) from Python's perspective)
-        prices = self.engine.price_options(
-            spots, strikes, times, vols, rates, 0.0, "call"
-        )
+        prices = self.engine.price_options(spots, strikes, times, vols, rates, 0.0, "call")
 
         duration = (time.perf_counter() - start_time) * 1000
-        logger.debug(
-            "batch_calibration_complete", size=len(spots), ms=round(duration, 3)
-        )
+        logger.debug("batch_calibration_complete", size=len(spots), ms=round(duration, 3))
         return prices
 
 

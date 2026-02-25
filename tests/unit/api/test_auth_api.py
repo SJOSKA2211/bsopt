@@ -49,9 +49,7 @@ def test_login_success(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     with (
-        patch(
-            "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-        ),
+        patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user),
         patch("src.security.auth.auth_service.create_token_pair") as mock_tokens,
     ):
         mock_tokens.return_value = MagicMock(
@@ -79,9 +77,7 @@ def test_login_db_error_updating_last_login(mock_user):
     )  # Simulate DB error during commit
 
     with (
-        patch(
-            "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-        ),
+        patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user),
         patch("src.security.auth.auth_service.create_token_pair") as mock_tokens,
     ):
         mock_tokens.return_value = MagicMock(
@@ -115,9 +111,7 @@ def test_login_unverified(mock_user):
     mock_user.is_active = True  # Ensure active for this test
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-    ):
+    with patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user):
         payload = {"email": mock_user.email, "password": "password123"}
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 403
@@ -129,9 +123,7 @@ def test_login_inactive(mock_user):
     mock_user.is_verified = True  # Ensure verified for this test
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-    ):
+    with patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user):
         payload = {"email": mock_user.email, "password": "password123"}
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 403
@@ -144,9 +136,7 @@ def test_login_mfa_required(mock_user):
     mock_user.is_active = True
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-    ):
+    with patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user):
         payload = {"email": "auth_test@example.com", "password": "password123"}
         response = client.post("/api/v1/auth/login", json=payload)
         assert response.status_code == 200
@@ -161,9 +151,7 @@ def test_login_mfa_invalid_code(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     with (
-        patch(
-            "src.security.auth.auth_service.authenticate_user", return_value=mock_user
-        ),
+        patch("src.security.auth.auth_service.authenticate_user", return_value=mock_user),
         patch("src.api.routes.auth._verify_mfa_code", return_value=False),
     ):
         payload = {
@@ -236,9 +224,7 @@ def test_register_idempotency_conflict():
 def test_register_email_exists():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.filter.return_value.first.return_value = MagicMock(
-        spec=User
-    )
+    mock_db.query.return_value.filter.return_value.first.return_value = MagicMock(spec=User)
     payload = {
         "email": "existing@example.com",
         "password": "StrongPassword123!",
@@ -253,9 +239,7 @@ def test_register_email_exists():
 def test_register_db_error():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.commit.side_effect = Exception(
-        "DB error"
-    )  # Simulate DB error during user creation
+    mock_db.commit.side_effect = Exception("DB error")  # Simulate DB error during user creation
     with (
         patch(
             "src.security.password.password_service.validate_password",
@@ -331,10 +315,7 @@ def test_logout(mock_user):
             "/api/v1/auth/logout", headers={"Authorization": "Bearer some_token"}
         )
         assert response.status_code == 200
-        assert (
-            response.json()["message"]
-            == "Successfully logged out and session invalidated"
-        )
+        assert response.json()["message"] == "Successfully logged out and session invalidated"
         mock_invalidate_token.assert_called_once_with("some_token", ANY)
     app.dependency_overrides = {}
 
@@ -343,12 +324,8 @@ def test_refresh_token_success(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     with (
-        patch(
-            "src.security.auth.auth_service.validate_token", new_callable=AsyncMock
-        ) as mock_val,
-        patch(
-            "src.security.auth.auth_service.invalidate_token", new_callable=AsyncMock
-        ),
+        patch("src.security.auth.auth_service.validate_token", new_callable=AsyncMock) as mock_val,
+        patch("src.security.auth.auth_service.invalidate_token", new_callable=AsyncMock),
         patch(
             "src.security.auth.auth_service.create_token_pair",
             return_value=MagicMock(
@@ -359,9 +336,7 @@ def test_refresh_token_success(mock_user):
             ),
         ),
     ):
-        mock_val.return_value = MagicMock(
-            user_id=str(mock_user.id), token_type="refresh"
-        )
+        mock_val.return_value = MagicMock(user_id=str(mock_user.id), token_type="refresh")
         mock_db.query.return_value.filter.return_value.first.return_value = mock_user
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "old"})
         assert response.status_code == 200
@@ -371,9 +346,7 @@ def test_refresh_token_success(mock_user):
 def test_refresh_token_invalid_type():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.auth.auth_service.validate_token", new_callable=AsyncMock
-    ) as mock_val:
+    with patch("src.security.auth.auth_service.validate_token", new_callable=AsyncMock) as mock_val:
         mock_val.return_value = MagicMock(token_type="access")
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "token"})
         assert response.status_code == 401
@@ -384,12 +357,8 @@ def test_refresh_token_user_inactive(mock_user):
     mock_user.is_active = False
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.auth.auth_service.validate_token", new_callable=AsyncMock
-    ) as mock_val:
-        mock_val.return_value = MagicMock(
-            user_id=str(mock_user.id), token_type="refresh"
-        )
+    with patch("src.security.auth.auth_service.validate_token", new_callable=AsyncMock) as mock_val:
+        mock_val.return_value = MagicMock(user_id=str(mock_user.id), token_type="refresh")
         mock_db.query.return_value.filter.return_value.first.return_value = mock_user
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "token"})
         assert response.status_code == 401
@@ -410,9 +379,7 @@ def test_request_password_reset_nonexistent_user():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = None
-    response = client.post(
-        "/api/v1/auth/password-reset", json={"email": "notfound@example.com"}
-    )
+    response = client.post("/api/v1/auth/password-reset", json={"email": "notfound@example.com"})
     assert response.status_code == 200  # Always return 200 to prevent enumeration
     app.dependency_overrides = {}
 
@@ -423,9 +390,7 @@ def test_request_password_reset_db_error(mock_user):
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     mock_db.commit.side_effect = Exception("DB error on reset token save")
     with patch("src.api.routes.auth.BackgroundTasks.add_task", new_callable=MagicMock):
-        response = client.post(
-            "/api/v1/auth/password-reset", json={"email": mock_user.email}
-        )
+        response = client.post("/api/v1/auth/password-reset", json={"email": mock_user.email})
         assert (
             response.status_code == 200
         )  # Still returns 200, but error logged and rollback called
@@ -438,9 +403,7 @@ def test_request_password_reset_background_task_called(mock_user):
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     with patch("src.api.routes.auth.BackgroundTasks.add_task") as mock_add_task:
-        response = client.post(
-            "/api/v1/auth/password-reset", json={"email": mock_user.email}
-        )
+        response = client.post("/api/v1/auth/password-reset", json={"email": mock_user.email})
         assert response.status_code == 200
         mock_add_task.assert_called_once()
         assert mock_add_task.call_args[0][0].__name__ == "_send_password_reset_email"
@@ -457,9 +420,7 @@ def test_confirm_password_reset_success(mock_user):
             "src.security.password.password_service.validate_password",
             return_value=MagicMock(is_valid=True),
         ),
-        patch(
-            "src.security.password.password_service.hash_password", return_value="new"
-        ),
+        patch("src.security.password.password_service.hash_password", return_value="new"),
     ):
         payload = {
             "token": "tok",
@@ -504,9 +465,7 @@ def test_confirm_password_reset_db_error(mock_user):
             "src.security.password.password_service.validate_password",
             return_value=MagicMock(is_valid=True),
         ),
-        patch(
-            "src.security.password.password_service.hash_password", return_value="new"
-        ),
+        patch("src.security.password.password_service.hash_password", return_value="new"),
     ):
         payload = {
             "token": "tok",
@@ -524,16 +483,12 @@ def test_change_password_success(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     with (
-        patch(
-            "src.security.password.password_service.verify_password", return_value=True
-        ),
+        patch("src.security.password.password_service.verify_password", return_value=True),
         patch(
             "src.security.password.password_service.validate_password",
             return_value=MagicMock(is_valid=True),
         ),
-        patch(
-            "src.security.password.password_service.hash_password", return_value="new"
-        ),
+        patch("src.security.password.password_service.hash_password", return_value="new"),
     ):
         payload = {
             "current_password": "old",
@@ -551,9 +506,7 @@ def test_change_password_success(mock_user):
 def test_change_password_wrong_current(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch(
-        "src.security.password.password_service.verify_password", return_value=False
-    ):
+    with patch("src.security.password.password_service.verify_password", return_value=False):
         payload = {
             "current_password": "wrong",
             "new_password": "NewPassword123!",
@@ -569,9 +522,7 @@ def test_change_password_weak_password(mock_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     with (
-        patch(
-            "src.security.password.password_service.verify_password", return_value=True
-        ),
+        patch("src.security.password.password_service.verify_password", return_value=True),
         patch(
             "src.security.password.password_service.validate_password",
             return_value=MagicMock(is_valid=False, errors=["Too weak"]),
@@ -593,16 +544,12 @@ def test_change_password_db_error(mock_user):
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.commit.side_effect = Exception("DB error on password change")
     with (
-        patch(
-            "src.security.password.password_service.verify_password", return_value=True
-        ),
+        patch("src.security.password.password_service.verify_password", return_value=True),
         patch(
             "src.security.password.password_service.validate_password",
             return_value=MagicMock(is_valid=True),
         ),
-        patch(
-            "src.security.password.password_service.hash_password", return_value="new"
-        ),
+        patch("src.security.password.password_service.hash_password", return_value="new"),
     ):
         payload = {
             "current_password": "old",
@@ -694,9 +641,7 @@ def test_mfa_verify_backup_code_success(mock_user):
             mock_fernet_instance.decrypt.side_effect = Exception("Invalid token")
             mock_fernet.return_value = mock_fernet_instance
 
-            response = client.post(
-                "/api/v1/auth/mfa/verify", json={"code": backup_code}
-            )
+            response = client.post("/api/v1/auth/mfa/verify", json={"code": backup_code})
             assert response.status_code == 200
             assert mock_user.is_mfa_enabled is True
             assert mock_user.mfa_backup_codes == ""

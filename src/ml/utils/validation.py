@@ -22,9 +22,7 @@ class WalkForwardValidator:
         """
         n_samples = len(X)
         if n_samples < self.n_splits + 1:
-            raise ValueError(
-                f"Insufficient samples ({n_samples}) for {self.n_splits} splits."
-            )
+            raise ValueError(f"Insufficient samples ({n_samples}) for {self.n_splits} splits.")
 
         indices = np.arange(n_samples)
 

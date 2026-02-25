@@ -93,9 +93,7 @@ def collect_options_data_task(
         finally:
             loop.close()
 
-        logger.info(
-            "data_collection_completed", samples_valid=report.get("samples_valid", 0)
-        )
+        logger.info("data_collection_completed", samples_valid=report.get("samples_valid", 0))
 
         return {
             "task_id": self.request.id,
@@ -169,9 +167,7 @@ def validate_collected_data_task(
 
         # Check for outliers (values beyond 5 std)
         outlier_threshold = 5
-        outliers = (
-            (target - target.mean()).abs() > outlier_threshold * target.std()
-        ).sum()
+        outliers = ((target - target.mean()).abs() > outlier_threshold * target.std()).sum()
         validation_results["outliers"] = int(outliers)
 
         # Quality score
@@ -347,9 +343,7 @@ def scheduled_data_collection(self) -> dict[str, Any]:
     freshness = _check_data_freshness_internal()
 
     if freshness.get("needs_refresh", True):
-        logger.info(
-            "data_needs_refresh", reason=freshness.get("message", "Data too old")
-        )
+        logger.info("data_needs_refresh", reason=freshness.get("message", "Data too old"))
 
         # Trigger collection
         result = collect_options_data_task.apply_async()

@@ -20,9 +20,7 @@ def mock_call_next():
 @pytest.mark.asyncio
 async def test_security_headers(mock_call_next):
     middleware = SecurityHeadersMiddleware(MagicMock())
-    request = Request(
-        scope={"type": "http", "path": "/", "headers": [], "scheme": "https"}
-    )
+    request = Request(scope={"type": "http", "path": "/", "headers": [], "scheme": "https"})
     result = await middleware.dispatch(request, mock_call_next)
     assert "X-Content-Type-Options" in result.headers
 
@@ -30,9 +28,7 @@ async def test_security_headers(mock_call_next):
 @pytest.mark.asyncio
 async def test_csrf_protection_safe_methods(mock_call_next):
     middleware = CSRFMiddleware(MagicMock())
-    request = Request(
-        scope={"type": "http", "method": "GET", "path": "/", "headers": []}
-    )
+    request = Request(scope={"type": "http", "method": "GET", "path": "/", "headers": []})
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 200
 
@@ -40,9 +36,7 @@ async def test_csrf_protection_safe_methods(mock_call_next):
 @pytest.mark.asyncio
 async def test_csrf_protection_unsafe_method_missing_token(mock_call_next):
     middleware = CSRFMiddleware(MagicMock())
-    request = Request(
-        scope={"type": "http", "method": "POST", "path": "/", "headers": []}
-    )
+    request = Request(scope={"type": "http", "method": "POST", "path": "/", "headers": []})
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 403
 

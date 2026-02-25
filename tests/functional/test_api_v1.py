@@ -8,9 +8,7 @@ from src.api.main import app
 
 @pytest.mark.asyncio
 async def test_health_check():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         #  OPTIMIZED: Clean health path
         response = await ac.get("/health")
     assert response.status_code == 200
@@ -19,9 +17,7 @@ async def test_health_check():
 
 @pytest.mark.asyncio
 async def test_pricing_rate_limit():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         payload = {
             "spot": 100.0,
             "strike": 100.0,
@@ -48,9 +44,7 @@ async def test_pricing_rate_limit():
 
 @pytest.mark.asyncio
 async def test_error_response_format():
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         #  OPTIMIZED: Standardized pricing path
         response = await ac.post("/pricing/price", json={})
 

@@ -39,9 +39,7 @@ def test_arithmetic_asian_mc_floating_strike():
 def test_barrier_out_hit():
     # UP_AND_OUT, spot=100, barrier=210
     params = ExoticParameters(BSParameters(100, 100, 1.0, 0.05, 0.0, 0.2), barrier=210)
-    price, _ = price_exotic_option(
-        "barrier", params, "call", barrier_type=BarrierType.UP_AND_OUT
-    )
+    price, _ = price_exotic_option("barrier", params, "call", barrier_type=BarrierType.UP_AND_OUT)
     # Since H >= 2*S, it returns vanilla (heuristic)
     assert price > 0
 
@@ -49,9 +47,7 @@ def test_barrier_out_hit():
 def test_arithmetic_asian_mc_zero_vol_no_cv():
     # Zero vol makes cov matrix degenerate
     params = ExoticParameters(BSParameters(100, 100, 1.0, 0.05, 0.0, 0.0))
-    price, _ = AsianOptionPricer.price_arithmetic_asian_mc(
-        params, "call", use_control_variate=True
-    )
+    price, _ = AsianOptionPricer.price_arithmetic_asian_mc(params, "call", use_control_variate=True)
     assert price > 0
 
 
@@ -140,9 +136,7 @@ def test_barrier_analytical_down_in_hit():
 def test_lookback_mc_n_paths():
     # Pass n_paths to hit line 198
     params = ExoticParameters(BSParameters(100, 100, 1.0, 0.05, 0.0, 0.2))
-    price, _ = LookbackOptionPricer.price_lookback_mc(
-        params, "call", StrikeType.FIXED, n_paths=100
-    )
+    price, _ = LookbackOptionPricer.price_lookback_mc(params, "call", StrikeType.FIXED, n_paths=100)
     assert price > 0
 
 

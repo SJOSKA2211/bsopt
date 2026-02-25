@@ -23,9 +23,7 @@ class TestLazyImports:
         """Reset state before each test."""
         reset_import_stats()
         # Clear any cached imports from previous tests if they exist
-        modules_to_clear = [
-            mod for mod in sys.modules.keys() if mod.startswith("mock_package")
-        ]
+        modules_to_clear = [mod for mod in sys.modules.keys() if mod.startswith("mock_package")]
         for mod in modules_to_clear:
             if mod in sys.modules:
                 del sys.modules[mod]
@@ -128,9 +126,7 @@ class TestLazyImports:
             "_import_map = {'Slow': '.slow'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
-        (pkg_dir / "slow.py").write_text(
-            "import time\ntime.sleep(0.1)\nclass Slow: pass"
-        )
+        (pkg_dir / "slow.py").write_text("import time\ntime.sleep(0.1)\nclass Slow: pass")
 
         monkeypatch.syspath_prepend(str(tmp_path))
         import mock_package_thread

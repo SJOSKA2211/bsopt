@@ -19,8 +19,9 @@ COPY . .
 # Lightning-fast dependency resolution
 # Install all extras [api, auth, ml, quant, distributed, dev]
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --no-cache --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -r requirements.txt \
-    && uv pip install --system --no-cache ".[api,auth,ml,quant,distributed,dev]"
+    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple && \
+    uv pip install --system ".[api,auth,ml,quant,distributed,dev]"
 
 # Stage 2: Final CI/Test Image
 FROM python:3.13-slim

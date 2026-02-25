@@ -47,9 +47,7 @@ class DataNormalizer:
         return raw_data
 
     @staticmethod
-    def remove_outliers(
-        data: dict[str, Any], prev_price: float, threshold: float = 0.1
-    ) -> bool:
+    def remove_outliers(data: dict[str, Any], prev_price: float, threshold: float = 0.1) -> bool:
         """
         Simple outlier detection logic. Returns True if data is considered an outlier.
         """

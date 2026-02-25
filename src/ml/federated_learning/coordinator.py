@@ -10,9 +10,7 @@ class FederatedLearningCoordinator:
     Manages the central server and aggregation strategies.
     """
 
-    def __init__(
-        self, server_address: str = "0.0.0.0:8080", strategy_name: str = "FedAvg"
-    ):
+    def __init__(self, server_address: str = "0.0.0.0:8080", strategy_name: str = "FedAvg"):
         self.server_address = server_address
         self.strategy_name = strategy_name
         self.strategy = self._get_strategy()

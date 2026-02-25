@@ -108,8 +108,7 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     term2 = np.where(
         np.abs(z_v) < 1e-8,
         1.0,
-        z_v
-        / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)),
+        z_v / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)),
     )
 
     term1 = alpha / (
@@ -171,9 +170,7 @@ class SVIModel:
     def variance_derivative(self, k: float) -> float:
         """First derivative of total variance w.r.t k."""
         p_v = self.params
-        return float(
-            p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2))
-        )
+        return float(p_v.b * (p_v.rho + (k - p_v.m) / np.sqrt((k - p_v.m) ** 2 + p_v.sigma**2)))
 
     def variance_second_derivative(self, k: float) -> float:
         """Second derivative of total variance w.r.t k."""
@@ -207,9 +204,7 @@ class SABRModel:
         k_v = np.atleast_1d(np.array(strike, dtype=float))
 
         # Vectorized evaluation
-        vols = _sabr_implied_vol_batch_jit(
-            k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu
-        )
+        vols = _sabr_implied_vol_batch_jit(k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu)
 
         if np.isscalar(strike):
             return vols[0]
@@ -244,9 +239,7 @@ class CalibrationEngine:
         model_vols = np.sqrt(np.maximum(w_v / maturity, 1e-9))
         return (model_vols - market_vols) * weights
 
-    def calibrate_svi(
-        self, quotes: list[MarketQuote]
-    ) -> tuple[SVIParameters, dict[str, Any]]:
+    def calibrate_svi(self, quotes: list[MarketQuote]) -> tuple[SVIParameters, dict[str, Any]]:
         if not quotes:
             raise ValueError("No market quotes")
 
@@ -339,12 +332,8 @@ class VolatilitySurface:
         self.models: dict[float, SVIModel | SABRModel] = {}
         self.forwards: dict[float, float] = {}
 
-    def add_slice(
-        self, t_m: float, model: SVIModel | SABRModel, forward: float | Decimal
-    ):
-        if self.models and not isinstance(
-            model, type(next(iter(self.models.values())))
-        ):
+    def add_slice(self, t_m: float, model: SVIModel | SABRModel, forward: float | Decimal):
+        if self.models and not isinstance(model, type(next(iter(self.models.values())))):
             raise ValueError("Cannot mix model types")
         self.models[t_m] = model
         self.forwards[t_m] = float(forward)

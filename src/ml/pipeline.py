@@ -51,15 +51,11 @@ class MLPipeline:
 
         # Components
         self.scraper = MarketDataScraper(
-            api_key=self.config.get(
-                "api_key", os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY")
-            ),
+            api_key=self.config.get("api_key", os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY")),
             provider=self.config.get("provider", "auto"),
         )
         self.ticker = self.config.get("ticker", "AAPL")
-        self.study_name = self.config.get(
-            "study_name", f"god_mode_{self.ticker.lower()}"
-        )
+        self.study_name = self.config.get("study_name", f"god_mode_{self.ticker.lower()}")
         self.framework = self.config.get("framework", "xgboost")
 
         # Database
@@ -104,9 +100,7 @@ class MLPipeline:
 
         # 2. Drift Check
         if not force:
-            should_retrain, _ = self.drift_trigger.should_retrain(
-                df_featured["close"].values
-            )
+            should_retrain, _ = self.drift_trigger.should_retrain(df_featured["close"].values)
             if not should_retrain:
                 logger.info("pipeline_skipped_no_drift")
                 return None
@@ -165,9 +159,7 @@ class MLPipeline:
         df["target"] = (df["close"].shift(-1) > df["close"]).astype(int)
         df = df.iloc[:-1]
         features = [
-            c
-            for col in df.columns
-            if (c := str(col)) not in ["timestamp", "target", "ticker"]
+            c for col in df.columns if (c := str(col)) not in ["timestamp", "target", "ticker"]
         ]
         return (
             df[features].values,
@@ -178,9 +170,7 @@ class MLPipeline:
 
     async def _fetch_data(self) -> pd.DataFrame:
         """Ingest historical data."""
-        return await self.scraper.fetch_historical_data(
-            self.ticker, "2025-01-01", "2026-02-01"
-        )
+        return await self.scraper.fetch_historical_data(self.ticker, "2025-01-01", "2026-02-01")
 
     def _promote(self, model, score):
         """Register model in MLflow."""

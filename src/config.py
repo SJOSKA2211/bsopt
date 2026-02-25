@@ -12,9 +12,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = structlog.get_logger(__name__)
 
 # Loaded from environment; never hardcode the actual value in source.
-_DEFAULT_DEV_MFA_KEY = os.environ.get(
-    "_DEFAULT_DEV_MFA_KEY", "INSECURE_DEV_PLACEHOLDER"
-)
+_DEFAULT_DEV_MFA_KEY = os.environ.get("_DEFAULT_DEV_MFA_KEY", "INSECURE_DEV_PLACEHOLDER")
 
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
@@ -37,13 +35,9 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        if not v.startswith("postgresql://") and not v.startswith(
-            "postgresql+asyncpg://"
-        ):
+        if not v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
             if "sqlite" not in v:
-                raise ValueError(
-                    "DATABASE_URL must be a valid PostgreSQL connection string."
-                )
+                raise ValueError("DATABASE_URL must be a valid PostgreSQL connection string.")
         return v
 
     # Redis Configuration

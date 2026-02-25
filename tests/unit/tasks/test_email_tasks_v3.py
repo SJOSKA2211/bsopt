@@ -40,7 +40,5 @@ def test_send_transactional_email_success(mock_rate_limiter, mock_email_service)
 
 
 def test_send_batch_marketing_emails_success(mock_email_service):
-    res = send_batch_marketing_emails(
-        recipients=["a@b.com"], subject="S", template_name="t"
-    )
+    res = send_batch_marketing_emails(recipients=["a@b.com"], subject="S", template_name="t")
     assert res["status"] == "batch_sent"

@@ -52,9 +52,7 @@ class ConnectionManager:
         # Redis setup for cross-worker communication
         # Use service name 'redis' if running inside docker, otherwise 'localhost'
         is_docker = os.getenv("INSIDE_DOCKER") == "1"
-        redis_fallback = (
-            "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
-        )
+        redis_fallback = "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
 
         redis_url = os.environ.get("REDIS_URL") or redis_fallback
         self.redis = redis.from_url(redis_url, encoding=None, decode_responses=False)
@@ -67,15 +65,9 @@ class ConnectionManager:
             async for message in self.pubsub.listen():
                 if message["type"] == "message":
                     channel = message["channel"]
-                    symbol = (
-                        channel.decode("utf-8")
-                        if isinstance(channel, bytes)
-                        else channel
-                    )
+                    symbol = channel.decode("utf-8") if isinstance(channel, bytes) else channel
                     raw_data = message["data"]
-                    await self.broadcast_to_symbol(
-                        symbol, raw_data, from_redis=True, is_raw=True
-                    )
+                    await self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True)
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -98,9 +90,7 @@ class ConnectionManager:
             await self.pubsub.subscribe(symbol)
 
         self.active_connections[symbol].add(websocket)
-        logger.info(
-            "ws_connected", symbol=symbol, total=len(self.active_connections[symbol])
-        )
+        logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
@@ -151,9 +141,7 @@ class ConnectionManager:
                     encoded = message  # Pass-through bytes
                 else:
                     data = (
-                        WebSocketCodec.decode(message, ProtocolType.MSGPACK)
-                        if is_raw
-                        else message
+                        WebSocketCodec.decode(message, ProtocolType.MSGPACK) if is_raw else message
                     )
                     encoded = WebSocketCodec.encode(data, proto)
 
@@ -163,9 +151,7 @@ class ConnectionManager:
 
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:
-                logger.error(
-                    "ws_encode_error", symbol=symbol, protocol=proto, error=str(e)
-                )
+                logger.error("ws_encode_error", symbol=symbol, protocol=proto, error=str(e))
                 continue
 
         if tasks:

@@ -81,9 +81,7 @@ def test_generate_volatility_surface_task():
     maturities = [0.25, 0.5, 1.0]
 
     # Signature: (self, spot, strikes, maturities, rate, dividend=0.0, base_volatility=0.2)
-    result = generate_volatility_surface_task(
-        100.0, strikes, maturities, 0.05, 0.02, 0.2
-    )
+    result = generate_volatility_surface_task(100.0, strikes, maturities, 0.05, 0.02, 0.2)
 
     assert result["status"] == "completed"
     assert len(result["surface"]) == 3

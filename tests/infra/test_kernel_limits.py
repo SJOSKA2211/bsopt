@@ -13,9 +13,7 @@ def test_file_max_limit():
     # C100k requires significantly higher file descriptor limits
     file_max = get_sysctl("fs.file-max")
     assert file_max is not None
-    assert (
-        int(file_max) >= 200000
-    ), f"fs.file-max should be at least 200,000, got {file_max}"
+    assert int(file_max) >= 200000, f"fs.file-max should be at least 200,000, got {file_max}"
 
 
 def test_tcp_tw_reuse():
@@ -31,9 +29,7 @@ def test_somaxconn():
     # Prevents connection drops during traffic spikes
     somaxconn = get_sysctl("net.core.somaxconn")
     assert somaxconn is not None
-    assert (
-        int(somaxconn) >= 4096
-    ), f"net.core.somaxconn should be at least 4096, got {somaxconn}"
+    assert int(somaxconn) >= 4096, f"net.core.somaxconn should be at least 4096, got {somaxconn}"
 
 
 def test_ulimit_nofile():
@@ -41,6 +37,4 @@ def test_ulimit_nofile():
     import resource
 
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-    assert (
-        soft >= 65535
-    ), f"ulimit nofile soft limit should be at least 65535, got {soft}"
+    assert soft >= 65535, f"ulimit nofile soft limit should be at least 65535, got {soft}"

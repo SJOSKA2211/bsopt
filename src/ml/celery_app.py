@@ -29,9 +29,7 @@ def run_pipeline_task(self, config: dict[str, Any]):
     """
     Celery task to run the autonomous ML pipeline.
     """
-    logger.info(
-        "celery_task_started", task_id=self.request.id, ticker=config.get("ticker")
-    )
+    logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
     try:
         pipeline = AutonomousMLPipeline(config)
         study = pipeline.run()

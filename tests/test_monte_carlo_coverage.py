@@ -92,7 +92,6 @@ def test_price_european_zero_variance():
 
 
 def test_laguerre_basis_branches():
-
     x = np.array([1.0, 2.0])
 
     # Test degree=0 to hit degree>=1 False branch
@@ -115,7 +114,6 @@ def test_laguerre_basis_branches():
 
 
 def test_mc_price_instance_method():
-
     engine = MonteCarloEngine()
 
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
@@ -126,7 +124,6 @@ def test_mc_price_instance_method():
 
 
 def test_generate_random_normals_standard():
-
     engine = MonteCarloEngine(MCConfig(method="monte_carlo"))
 
     normals = engine._generate_random_normals(10, 5)
@@ -135,7 +132,6 @@ def test_generate_random_normals_standard():
 
 
 def test_price_american_lsm_simulation():
-
     # Use few paths/steps for speed, but enough to run logic
 
     engine = MonteCarloEngine(MCConfig(n_paths=100, n_steps=10, seed=42))
@@ -150,7 +146,6 @@ def test_price_american_lsm_simulation():
 
 
 def test_geometric_asian_call():
-
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
 
     price = geometric_asian_price(params, "call", 10)
@@ -159,7 +154,6 @@ def test_geometric_asian_call():
 
 
 def test_mc_config_sobol_generation():
-
     engine = MonteCarloEngine(MCConfig(method="sobol", n_paths=16, n_steps=10))
 
     normals = engine._generate_random_normals(16, 10)
@@ -168,7 +162,6 @@ def test_mc_config_sobol_generation():
 
 
 def test_price_american_lsm_put_itm():
-
     # Deep ITM Put
 
     engine = MonteCarloEngine(MCConfig(n_paths=1000, n_steps=10))
@@ -181,7 +174,6 @@ def test_price_american_lsm_put_itm():
 
 
 def test_price_american_lsm_call_itm():
-
     # Deep ITM Call
 
     engine = MonteCarloEngine(MCConfig(n_paths=1000, n_steps=10))
@@ -194,7 +186,6 @@ def test_price_american_lsm_call_itm():
 
 
 def test_price_european_control_variate():
-
     engine = MonteCarloEngine(MCConfig(control_variate=True, n_paths=5000))
 
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
@@ -205,18 +196,15 @@ def test_price_european_control_variate():
 
 
 def test_price_american_lsm_invalid_type_explicit():
-
     engine = MonteCarloEngine()
 
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
 
     with pytest.raises(ValueError, match="option_type must be 'call' or 'put'"):
-
         engine.price_american_lsm(params, "invalid")
 
 
 def test_price_european_antithetic_false():
-
     engine = MonteCarloEngine(MCConfig(antithetic=False, n_paths=1000))
 
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)

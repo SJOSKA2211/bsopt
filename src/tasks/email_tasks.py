@@ -25,9 +25,7 @@ email_service = TransactionalEmailService(
     retry_jitter=True,
     name="src.tasks.email_tasks.send_transactional_email",
 )
-def send_transactional_email(
-    self, to_email: str, subject: str, template_name: str, context: dict
-):
+def send_transactional_email(self, to_email: str, subject: str, template_name: str, context: dict):
     """
     Async task to send a single transactional email with rate limiting.
     """

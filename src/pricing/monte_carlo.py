@@ -59,9 +59,7 @@ class MonteCarloEngine(PricingStrategy):
         price, _ = self.price_european(params, option_type)
         return price
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
         OPTIMIZATION: Unified pathwise sensitivities.
         Calculates price and Greeks in a single pass where possible.
@@ -104,9 +102,7 @@ class MonteCarloEngine(PricingStrategy):
             rho=float(rho),
         )
 
-    def _calculate_greeks_fd(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def _calculate_greeks_fd(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """Fallback Finite Difference implementation."""
         seed = self.config.seed
         ds = max(params.spot * 0.001, 0.01)
@@ -198,11 +194,7 @@ class MonteCarloEngine(PricingStrategy):
         # Generate quasi-random numbers if method is 'sobol'
         z_innovations = None
         if self.config.method == "sobol":
-            n_needed = (
-                self.config.n_paths // 2
-                if self.config.antithetic
-                else self.config.n_paths
-            )
+            n_needed = self.config.n_paths // 2 if self.config.antithetic else self.config.n_paths
             # For European options, dimension d=1 (time step)
             # Flatten to 1D array for JIT consumption
             z_innovations = self._generate_random_normals(n_needed, 1).flatten()
@@ -253,9 +245,7 @@ class MonteCarloEngine(PricingStrategy):
 
         return self.rng.standard_normal((n_paths, n_steps))
 
-    def price_american_lsm(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> float:
+    def price_american_lsm(self, params: BSParameters, option_type: str = "call") -> float:
         """
         Price American option using JIT-optimized Longstaff-Schwartz Least Squares Monte Carlo.
         """
@@ -300,15 +290,12 @@ def geometric_asian_price(params: BSParameters, option_type: str, n_obs: int) ->
         raise ValueError("Number of observations must be positive.")
 
     T_prime = params.maturity * (n_obs + 1) / (2 * n_obs)
-    sigma_prime = params.volatility * np.sqrt(
-        (n_obs + 1) * (2 * n_obs + 1) / (6 * n_obs**2)
-    )
+    sigma_prime = params.volatility * np.sqrt((n_obs + 1) * (2 * n_obs + 1) / (6 * n_obs**2))
     mu_prime = params.rate - 0.5 * params.volatility**2 + 0.5 * sigma_prime**2
 
-    d1 = (
-        np.log(params.spot / params.strike)
-        + (mu_prime + 0.5 * sigma_prime**2) * T_prime
-    ) / (sigma_prime * np.sqrt(T_prime))
+    d1 = (np.log(params.spot / params.strike) + (mu_prime + 0.5 * sigma_prime**2) * T_prime) / (
+        sigma_prime * np.sqrt(T_prime)
+    )
     d2 = d1 - sigma_prime * np.sqrt(T_prime)
 
     if option_type == "call":

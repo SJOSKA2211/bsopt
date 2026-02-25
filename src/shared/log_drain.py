@@ -20,9 +20,7 @@ class AsyncLogDrain:
     Ensures that log persistence never touches the hot path.
     """
 
-    def __init__(
-        self, loki_url: str = None, batch_size: int = 1000, flush_interval: float = 5.0
-    ):
+    def __init__(self, loki_url: str = None, batch_size: int = 1000, flush_interval: float = 5.0):
         # ... (init stays same)
         self._semaphore = asyncio.Semaphore(5)  # Limit in-flight pushes
 
@@ -55,9 +53,7 @@ class AsyncLogDrain:
                     timestamp, payload = LOG_STRUCT.unpack(entry)
 
                     # Decoupled decoding
-                    self.queue.append(
-                        (timestamp, payload.decode("utf-8").rstrip("\x00"))
-                    )
+                    self.queue.append((timestamp, payload.decode("utf-8").rstrip("\x00")))
 
                 self.last_head = current_head
 

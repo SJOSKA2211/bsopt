@@ -8,6 +8,4 @@ def test_generated_protos_import():
 
         assert market_data_pb2 is not None
     except ImportError:
-        pytest.fail(
-            "Generated protobuf modules not found. Build system implementation required."
-        )
+        pytest.fail("Generated protobuf modules not found. Build system implementation required.")

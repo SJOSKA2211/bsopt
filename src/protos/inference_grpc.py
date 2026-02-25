@@ -14,7 +14,6 @@ from . import inference_pb2
 
 
 class MLInferenceBase(abc.ABC):
-
     @abc.abstractmethod
     async def Predict(
         self,
@@ -34,7 +33,6 @@ class MLInferenceBase(abc.ABC):
 
 
 class MLInferenceStub:
-
     def __init__(self, channel: grpclib.client.Channel) -> None:
         self.Predict = grpclib.client.UnaryUnaryMethod(
             channel,

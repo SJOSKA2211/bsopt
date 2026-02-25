@@ -22,9 +22,7 @@ def test_rehash_legacy_passwords_success(mock_db):
         mock_pw_service.return_value.needs_rehash.return_value = True
 
         # Use .run or .__wrapped__
-        orig_func = getattr(
-            rehash_legacy_passwords, "_orig_run", rehash_legacy_passwords
-        )
+        orig_func = getattr(rehash_legacy_passwords, "_orig_run", rehash_legacy_passwords)
 
         res = orig_func(MagicMock())  # self
         assert res["status"] == "completed"

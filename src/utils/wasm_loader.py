@@ -57,9 +57,7 @@ class WasmModuleCache:
         return module
 
     @classmethod
-    def map_wasm_memory(
-        cls, instance: Any, offset: int = 0, size: int | None = None
-    ) -> np.ndarray:
+    def map_wasm_memory(cls, instance: Any, offset: int = 0, size: int | None = None) -> np.ndarray:
         """
         Zero-copy memory view of a specific slice of the WASM heap.
         WARNING: Manual memory management required. Offset/size must align with Rust exports.
@@ -74,9 +72,7 @@ class WasmModuleCache:
                 size = (len(buffer) - offset) // 8
 
             # OPTIMIZED: Using frombuffer for zero-copy view
-            data_view = np.frombuffer(
-                buffer, dtype=np.float64, count=size, offset=offset
-            )
+            data_view = np.frombuffer(buffer, dtype=np.float64, count=size, offset=offset)
             return data_view
         except Exception as e:
             logger.error("wasm_memory_mapping_failed", error=str(e))

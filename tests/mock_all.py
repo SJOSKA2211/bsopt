@@ -206,9 +206,9 @@ redis_mock = MagicMock()
 redis_mock.from_url.return_value = r_client
 redis_mock.Redis.from_url.return_value = r_client
 redis_mock.Redis.return_value = r_client
-sys.modules["redis"] = sys.modules["redis.asyncio"] = sys.modules[
-    "redis.asyncio.client"
-] = redis_mock
+sys.modules["redis"] = sys.modules["redis.asyncio"] = sys.modules["redis.asyncio.client"] = (
+    redis_mock
+)
 
 import importlib.util  # noqa: E402
 

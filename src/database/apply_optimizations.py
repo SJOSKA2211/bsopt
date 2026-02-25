@@ -54,9 +54,7 @@ def apply_database_optimizations():
             schema_file,
         ]
 
-        logger.info(
-            "applying_optimizations", host=db_host, database=db_name, file=schema_file
-        )
+        logger.info("applying_optimizations", host=db_host, database=db_name, file=schema_file)
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)

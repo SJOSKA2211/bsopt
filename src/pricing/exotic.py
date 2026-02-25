@@ -66,13 +66,9 @@ class AsianOptionPricer:
         d2 = d1 - sigma_a * np.sqrt(T)
 
         if option_type == "call":
-            price = S * np.exp((b_a - r) * T) * norm.cdf(d1) - K * np.exp(
-                -r * T
-            ) * norm.cdf(d2)
+            price = S * np.exp((b_a - r) * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
         else:
-            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp(
-                (b_a - r) * T
-            ) * norm.cdf(-d1)
+            price = K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp((b_a - r) * T) * norm.cdf(-d1)
 
         return float(price)
 
@@ -104,9 +100,7 @@ class AsianOptionPricer:
             jit_generate_log_paths,
         )
 
-        log_paths = jit_generate_log_paths(
-            S, T, r, sigma, q, n_paths, params.n_observations
-        )
+        log_paths = jit_generate_log_paths(S, T, r, sigma, q, n_paths, params.n_observations)
 
         # OPTIMIZED: Fused kernel call (no large paths matrix allocation)
         y_sim = fused_arithmetic_asian_payoff(log_paths, K, r, T, is_call, is_fixed)
@@ -114,22 +108,14 @@ class AsianOptionPricer:
         if use_cv and is_fixed:
             # log_paths is (n_steps+1, n_paths). paths[:, 1:] corresponds to log_paths[1:, :].T
             geom_mean = np.exp(np.mean(log_paths[1:, :], axis=0))
-            geo_payoff = (
-                np.maximum(geom_mean - K, 0)
-                if is_call
-                else np.maximum(K - geom_mean, 0)
-            )
-            geo_price = AsianOptionPricer.price_geometric_asian(
-                params, option_type, strike_type
-            )
+            geo_payoff = np.maximum(geom_mean - K, 0) if is_call else np.maximum(K - geom_mean, 0)
+            geo_price = AsianOptionPricer.price_geometric_asian(params, option_type, strike_type)
             y_geo = geo_payoff * np.exp(-r * T)
             cov = np.cov(y_sim, y_geo)
             if cov[1, 1] > 1e-12:
                 beta = cov[0, 1] / cov[1, 1]
                 y_cv = y_sim - beta * (y_geo - geo_price)
-                return float(np.mean(y_cv)), float(
-                    1.96 * np.std(y_cv) / np.sqrt(n_paths)
-                )
+                return float(np.mean(y_cv)), float(1.96 * np.std(y_cv) / np.sqrt(n_paths))
 
         return float(np.mean(y_sim)), float(1.96 * np.std(y_sim) / np.sqrt(n_paths))
 
@@ -207,9 +193,7 @@ class BarrierOptionPricer:
             is_up = "up" in barrier_type.value
             is_out = "out" in barrier_type.value
             hit = (S >= H) if is_up else (S <= H)
-            return float(
-                R if (is_out and hit) else (0.0 if (not is_out and not hit) else payoff)
-            )
+            return float(R if (is_out and hit) else (0.0 if (not is_out and not hit) else payoff))
 
         b = r - q
         sig = max(sigma, 1e-12)
@@ -234,35 +218,26 @@ class BarrierOptionPricer:
         exp_br_T = np.exp((b - r) * T)
         exp_r_T = np.exp(-r * T)
 
-        A = phi * S * exp_br_T * _n(phi * x1) - phi * K * exp_r_T * _n(
-            phi * (x1 - sig_sqrt_T)
-        )
-        B = phi * S * exp_br_T * _n(phi * x2) - phi * K * exp_r_T * _n(
-            phi * (x2 - sig_sqrt_T)
-        )
-        C = phi * S * exp_br_T * (H / S) ** (2 * (mu + 1)) * _n(
-            eta * y1
-        ) - phi * K * exp_r_T * (H / S) ** (2 * mu) * _n(eta * (y1 - sig_sqrt_T))
-        D = phi * S * exp_br_T * (H / S) ** (2 * (mu + 1)) * _n(
-            eta * y2
-        ) - phi * K * exp_r_T * (H / S) ** (2 * mu) * _n(eta * (y2 - sig_sqrt_T))
+        A = phi * S * exp_br_T * _n(phi * x1) - phi * K * exp_r_T * _n(phi * (x1 - sig_sqrt_T))
+        B = phi * S * exp_br_T * _n(phi * x2) - phi * K * exp_r_T * _n(phi * (x2 - sig_sqrt_T))
+        C = phi * S * exp_br_T * (H / S) ** (2 * (mu + 1)) * _n(eta * y1) - phi * K * exp_r_T * (
+            H / S
+        ) ** (2 * mu) * _n(eta * (y1 - sig_sqrt_T))
+        D = phi * S * exp_br_T * (H / S) ** (2 * (mu + 1)) * _n(eta * y2) - phi * K * exp_r_T * (
+            H / S
+        ) ** (2 * mu) * _n(eta * (y2 - sig_sqrt_T))
 
         # Rebate components E and F
         E = (
             R
             * exp_r_T
-            * (
-                _n(eta * (x2 - sig_sqrt_T))
-                - (H / S) ** (2 * mu) * _n(eta * (y2 - sig_sqrt_T))
-            )
+            * (_n(eta * (x2 - sig_sqrt_T)) - (H / S) ** (2 * mu) * _n(eta * (y2 - sig_sqrt_T)))
         )
         F = 0.0
         if R != 0:
             F = R * (
-                (H / S) ** (mu + lam)
-                * _n(eta * (np.log(H / S) / sig_sqrt_T + lam * sig_sqrt_T))
-                + (H / S) ** (mu - lam)
-                * _n(eta * (np.log(H / S) / sig_sqrt_T - lam * sig_sqrt_T))
+                (H / S) ** (mu + lam) * _n(eta * (np.log(H / S) / sig_sqrt_T + lam * sig_sqrt_T))
+                + (H / S) ** (mu - lam) * _n(eta * (np.log(H / S) / sig_sqrt_T - lam * sig_sqrt_T))
             )
 
         price = 0.0
@@ -302,9 +277,7 @@ class LookbackOptionPricer:
         return np.min(paths[:, observation_indices], axis=1)
 
     @staticmethod
-    def price_floating_strike_analytical(
-        params: BSParameters, option_type: str
-    ) -> float:
+    def price_floating_strike_analytical(params: BSParameters, option_type: str) -> float:
         S, T, r, q, sigma = (
             params.spot,
             params.maturity,
@@ -361,9 +334,7 @@ class LookbackOptionPricer:
             jit_generate_log_paths,
         )
 
-        log_paths = jit_generate_log_paths(
-            S, T, r, sigma, q, n_paths, params.n_observations
-        )
+        log_paths = jit_generate_log_paths(S, T, r, sigma, q, n_paths, params.n_observations)
 
         # OPTIMIZED: Fused kernel call
         res = fused_lookback_payoff(log_paths, K, r, T, is_call, is_floating)
@@ -377,9 +348,7 @@ def _n(x):
 
 class DigitalOptionPricer:
     @staticmethod
-    def price_cash_or_nothing(
-        params: BSParameters, option_type: str, payout: float = 1.0
-    ) -> float:
+    def price_cash_or_nothing(params: BSParameters, option_type: str, payout: float = 1.0) -> float:
         S, K, T, r, q, sigma = (
             params.spot,
             params.strike,
@@ -415,7 +384,6 @@ class DigitalOptionPricer:
         digital_type: str = "cash",
         payout: float = 1.0,
     ) -> Any:
-
         S, K, T, r, q, sigma = (
             params.spot,
             params.strike,
@@ -436,9 +404,7 @@ class DigitalOptionPricer:
         return OptionGreeks(delta=delta, gamma=gamma, vega=vega, theta=0, rho=0)
 
 
-def price_exotic_option(
-    exotic_type: str, params: ExoticParameters, option_type: str, **kwargs
-):
+def price_exotic_option(exotic_type: str, params: ExoticParameters, option_type: str, **kwargs):
     """
     Prices various exotic option types.
     """
@@ -450,9 +416,7 @@ def price_exotic_option(
                 AsianOptionPricer.price_geometric_asian(params, option_type, st_type),
                 None,
             )
-        return AsianOptionPricer.price_arithmetic_asian_mc(
-            params, option_type, **kwargs
-        )
+        return AsianOptionPricer.price_arithmetic_asian_mc(params, option_type, **kwargs)
 
     if exotic_type == "barrier":
         barrier_type_str = kwargs.get("barrier_type")
@@ -464,9 +428,7 @@ def price_exotic_option(
             barrier_type = barrier_type_str
 
         return (
-            BarrierOptionPricer.price_barrier_analytical(
-                params, option_type, barrier_type
-            ),
+            BarrierOptionPricer.price_barrier_analytical(params, option_type, barrier_type),
             None,
         )
 

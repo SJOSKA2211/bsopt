@@ -65,9 +65,7 @@ async def test_streaming_e2e_flow():
         prev_price = analytics.price_history["AAPL"]
         log_return = np.log(price / prev_price)
 
-        new_vol = analytics._update_volatility(
-            "AAPL", log_return, market_data["timestamp"]
-        )
+        new_vol = analytics._update_volatility("AAPL", log_return, market_data["timestamp"])
         analytics.volatility_table["AAPL"] = new_vol
 
         assert new_vol > 0

@@ -82,16 +82,13 @@ def test_lazy_import_circular_reraise():
 
 
 def test_preload_modules():
-
     reset_import_stats()
     cache_module = MockModule()
     import_map = {"path": "os", "version": "sys"}
 
     with patch("importlib.import_module") as mock_import:
         mock_import.side_effect = [sys.modules["os"], sys.modules["sys"]]
-        preload_modules(
-            "src", import_map, ["path", "version"], cache_module_override=cache_module
-        )
+        preload_modules("src", import_map, ["path", "version"], cache_module_override=cache_module)
         assert hasattr(cache_module, "path")
         assert hasattr(cache_module, "version")
 
@@ -116,9 +113,7 @@ def test_preload_modules_failure():
     cache_module = MockModule()
     import_map = {"path": "os"}
 
-    with patch(
-        "src.utils.lazy_import.lazy_import", side_effect=Exception("Preload fail")
-    ):
+    with patch("src.utils.lazy_import.lazy_import", side_effect=Exception("Preload fail")):
         # Should not raise exception, just log warning
         preload_modules("src", import_map, ["path"], cache_module_override=cache_module)
 

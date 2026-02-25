@@ -8,9 +8,7 @@ from src.ml.pipelines.sentiment_ingest import SentimentIngestor
 
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_message():
-    with patch(
-        "src.ml.pipelines.sentiment_ingest.SentimentExtractor"
-    ) as mock_extractor:
+    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
         with patch("src.ml.pipelines.sentiment_ingest.Producer") as mock_producer:
             mock_extractor.return_value.get_sentiment_score.return_value = 0.75
             ingestor = SentimentIngestor(bootstrap_servers="localhost:9092")
@@ -22,17 +20,13 @@ async def test_sentiment_ingestor_process_message():
             }
             await ingestor.process_news_message(json.dumps(msg_data).encode("utf-8"))
 
-            mock_extractor.return_value.get_sentiment_score.assert_called_with(
-                "Apple is great."
-            )
+            mock_extractor.return_value.get_sentiment_score.assert_called_with("Apple is great.")
             assert mock_producer.return_value.produce.called
 
 
 @pytest.mark.asyncio
 async def test_process_empty_message():
-    with patch(
-        "src.ml.pipelines.sentiment_ingest.SentimentExtractor"
-    ) as mock_extractor:
+    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
         ingestor = SentimentIngestor()
         await ingestor.process_news_message(json.dumps({"text": ""}).encode("utf-8"))
         assert not mock_extractor.return_value.get_sentiment_score.called

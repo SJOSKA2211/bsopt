@@ -76,9 +76,7 @@ def batch_bs_price_jit(
                 prices[i] = max(K[i] - S[i], 0.0)
         else:
             sig_sqrt_t = sigma[i] * np.sqrt(T[i])
-            d1 = (
-                np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i] ** 2) * T[i]
-            ) / sig_sqrt_t
+            d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i] ** 2) * T[i]) / sig_sqrt_t
             d2 = d1 - sig_sqrt_t
 
             nd1 = fast_normal_cdf(d1)
@@ -90,9 +88,7 @@ def batch_bs_price_jit(
             if is_call[i]:
                 prices[i] = max(S[i] * exp_qt * nd1 - K[i] * exp_rt * nd2, 0.0)
             else:
-                prices[i] = max(
-                    K[i] * exp_rt * (1.0 - nd2) - S[i] * exp_qt * (1.0 - nd1), 0.0
-                )
+                prices[i] = max(K[i] * exp_rt * (1.0 - nd2) - S[i] * exp_qt * (1.0 - nd1), 0.0)
 
     return prices
 
@@ -124,9 +120,7 @@ def batch_greeks_jit(
         sqrt_T = np.sqrt(Ti)
 
         sig_sqrt_t = sigma[i] * sqrt_T
-        d1 = (
-            np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i] ** 2) * Ti
-        ) / sig_sqrt_t
+        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sigma[i] ** 2) * Ti) / sig_sqrt_t
         d2 = d1 - sig_sqrt_t
 
         pdf_d1 = np.exp(-0.5 * d1**2) * INV_SQRT2PI
@@ -144,9 +138,7 @@ def batch_greeks_jit(
         if is_call[i]:
             delta[i] = exp_qt * cdf_d1
             theta[i] = (
-                common_theta
-                - r[i] * K[i] * exp_rt * cdf_d2
-                + q[i] * S[i] * exp_qt * cdf_d1
+                common_theta - r[i] * K[i] * exp_rt * cdf_d2 + q[i] * S[i] * exp_qt * cdf_d1
             ) / 365.0
             rho[i] = (K[i] * Ti * exp_rt * cdf_d2) * 0.01
         else:
@@ -207,9 +199,7 @@ def jit_cn_solver(
     dt = maturity / n_time
     dS = s_grid[1] - s_grid[0]
 
-    V = np.where(
-        is_call, np.maximum(s_grid - strike, 0.0), np.maximum(strike - s_grid, 0.0)
-    )
+    V = np.where(is_call, np.maximum(s_grid - strike, 0.0), np.maximum(strike - s_grid, 0.0))
 
     sig2 = volatility**2
     mu = rate - dividend
@@ -272,10 +262,9 @@ def vectorized_newton_raphson_iv_jit(
             sqrt_T = np.sqrt(Ti)
 
             sig = res_sigma[i]
-            d1 = (
-                np.log(spots[i] / strikes[i])
-                + (rates[i] - dividends[i] + 0.5 * sig**2) * Ti
-            ) / (sig * sqrt_T)
+            d1 = (np.log(spots[i] / strikes[i]) + (rates[i] - dividends[i] + 0.5 * sig**2) * Ti) / (
+                sig * sqrt_T
+            )
             d2 = d1 - sig * sqrt_T
             nd1 = fast_normal_cdf(d1)
             nd2 = fast_normal_cdf(d2)
@@ -286,9 +275,7 @@ def vectorized_newton_raphson_iv_jit(
             if is_call[i]:
                 price = spots[i] * exp_qt * nd1 - strikes[i] * exp_rt * nd2
             else:
-                price = strikes[i] * exp_rt * (1.0 - nd2) - spots[i] * exp_qt * (
-                    1.0 - nd1
-                )
+                price = strikes[i] * exp_rt * (1.0 - nd2) - spots[i] * exp_qt * (1.0 - nd1)
 
             diff = price - market_prices[i]
             if abs(diff) < tolerance:
@@ -310,9 +297,7 @@ def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     d = np.sqrt(xi**2 + sigma**2 * (u**2 + 1j * u))
     g = (xi + d) / (xi - d)
     exp_dT = np.exp(d * T)
-    A = (kappa * theta / sigma**2) * (
-        (xi + d) * T - 2.0 * np.log((1.0 - g * exp_dT) / (1.0 - g))
-    )
+    A = (kappa * theta / sigma**2) * ((xi + d) * T - 2.0 * np.log((1.0 - g * exp_dT) / (1.0 - g)))
     B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
     return np.exp(A + B)
 
@@ -399,9 +384,7 @@ def jit_mc_european_price_and_greeks(
             ind = -(st < K).astype(np.float64)
 
         delta = exp_rt * ind * (st / S0)
-        gamma_weight = (z_val**2 - 1.0 - z_val * sigma * sqrt_T) / (
-            S0**2 * sigma**2 * T
-        )
+        gamma_weight = (z_val**2 - 1.0 - z_val * sigma * sqrt_T) / (S0**2 * sigma**2 * T)
         gamma = payoff * gamma_weight
         vega = exp_rt * ind * st * (z_val * sqrt_T - sigma * T) * 0.01
         rho = (-T * payoff + exp_rt * ind * st * T) * 0.01
@@ -448,9 +431,7 @@ def jit_generate_paths(S0, T, r, sigma, q, n_paths, n_steps, scheme="euler"):
         sqrt_dt = np.sqrt(dt)
         for t in range(n_steps):
             dW = Z[:, t] * sqrt_dt
-            S[:, t + 1] = S[:, t] * (
-                1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt)
-            )
+            S[:, t + 1] = S[:, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
         return S
 
     log_paths = jit_generate_log_paths(S0, T, r, sigma, q, n_paths, n_steps)
@@ -685,16 +666,12 @@ def scalar_greeks_jit(
 
     if is_call:
         delta = exp_qt * cdf_d1
-        theta = (
-            common_theta - r * K * exp_rt * cdf_d2 + q * S * exp_qt * cdf_d1
-        ) / 365.0
+        theta = (common_theta - r * K * exp_rt * cdf_d2 + q * S * exp_qt * cdf_d1) / 365.0
         rho = (K * Ti * exp_rt * cdf_d2) * 0.01
     else:
         delta = exp_qt * (cdf_d1 - 1.0)
         theta = (
-            common_theta
-            + r * K * exp_rt * (1.0 - cdf_d2)
-            - q * S * exp_qt * (1.0 - cdf_d1)
+            common_theta + r * K * exp_rt * (1.0 - cdf_d2) - q * S * exp_qt * (1.0 - cdf_d1)
         ) / 365.0
         rho = (-K * Ti * exp_rt * (1.0 - cdf_d2)) * 0.01
 

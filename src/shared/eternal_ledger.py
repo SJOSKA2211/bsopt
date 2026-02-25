@@ -17,9 +17,7 @@ class EternalLedger:
     Designed for sub-microsecond logging.
     """
 
-    def __init__(
-        self, file_path: str = "logs/eternal_ledger.bin", capacity: int = 1000000
-    ):
+    def __init__(self, file_path: str = "logs/eternal_ledger.bin", capacity: int = 1000000):
         self.file_path = file_path
         self.capacity = capacity
         self.entry_size = TICK_SIZE

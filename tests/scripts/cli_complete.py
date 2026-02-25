@@ -216,9 +216,7 @@ def whoami(ctx):
     help="Annualized volatility",
 )
 @click.option("--rate", type=float, required=True, help="Risk-free interest rate")
-@click.option(
-    "--dividend", type=float, default=0.0, help="Dividend yield (default: 0.0)"
-)
+@click.option("--dividend", type=float, default=0.0, help="Dividend yield (default: 0.0)")
 @click.option(
     "--method",
     type=click.Choice(["bs", "fdm", "mc", "all"]),
@@ -271,9 +269,7 @@ def price(
         if method == "all":
             _price_all_methods(params, option_type, output)
         else:
-            result = _price_single_method(
-                params, option_type, method, compute_greeks=True
-            )
+            result = _price_single_method(params, option_type, method, compute_greeks=True)
             _display_price_result(result, output)
 
     except ValueError as e:
@@ -293,9 +289,7 @@ def _price_single_method(
         else:
             price = BlackScholesEngine.price_put(params)
         greeks = (
-            BlackScholesEngine.calculate_greeks(params, option_type)
-            if compute_greeks
-            else None
+            BlackScholesEngine.calculate_greeks(params, option_type) if compute_greeks else None
         )
 
     elif method == "fdm":
@@ -350,9 +344,7 @@ def _price_all_methods(params: BSParameters, option_type: str, output: str):
         task = progress.add_task("[cyan]Computing prices...", total=len(methods))
         for method in methods:
             try:
-                results[method] = _price_single_method(
-                    params, option_type, method, True
-                )
+                results[method] = _price_single_method(params, option_type, method, True)
                 progress.advance(task)
             except Exception as e:
                 results[method] = {"error": str(e)}
@@ -518,9 +510,7 @@ def greeks(
             solver.solve()
             greeks_result = solver.get_greeks()
 
-        console.print(
-            f"\n[bold cyan]Option Greeks ({option_type.upper()})[/bold cyan]\n"
-        )
+        console.print(f"\n[bold cyan]Option Greeks ({option_type.upper()})[/bold cyan]\n")
 
         table = Table(box=box.ROUNDED, show_header=True)
         table.add_column("Greek", style="cyan", width=10)
@@ -530,8 +520,7 @@ def greeks(
         table.add_row(
             "Delta",
             f"{greeks_result.delta:>10.4f}",
-            "For $1 move in underlying, option moves $"
-            + f"{abs(greeks_result.delta):.4f}",
+            "For $1 move in underlying, option moves $" + f"{abs(greeks_result.delta):.4f}",
         )
         table.add_row(
             "Gamma",
@@ -662,9 +651,7 @@ def portfolio_list(ctx):
 )
 @click.option("--rate", type=float, required=True, help="Risk-free rate")
 @click.option("--dividend", type=float, default=0.0, help="Dividend yield")
-@click.option(
-    "--entry-price", type=float, required=True, help="Entry price per contract"
-)
+@click.option("--entry-price", type=float, required=True, help="Entry price per contract")
 @click.option("--spot", type=float, required=True, help="Current underlying price")
 @click.pass_context
 def portfolio_add(
@@ -755,9 +742,7 @@ def portfolio_pnl(ctx):
 
     pnl_color = "green" if pnl["total_pnl"] >= 0 else "red"
     pnl_table.add_row("P&L", f"[{pnl_color}]${pnl['total_pnl']:+,.2f}[/{pnl_color}]")
-    pnl_table.add_row(
-        "P&L %", f"[{pnl_color}]{pnl['total_pnl_percent']:+.2f}%[/{pnl_color}]"
-    )
+    pnl_table.add_row("P&L %", f"[{pnl_color}]{pnl['total_pnl_percent']:+.2f}%[/{pnl_color}]")
 
     console.print(pnl_table)
     console.print()

@@ -61,6 +61,4 @@ async def get_drift_metrics(
     model_id: UUID | None = None, db: Session = Depends(get_db)
 ) -> DataResponse:
     """Fetch model performance metrics."""
-    return DataResponse(
-        data=DriftMetricsResponse(metrics=get_model_drift_metrics(db, model_id))
-    )
+    return DataResponse(data=DriftMetricsResponse(metrics=get_model_drift_metrics(db, model_id)))

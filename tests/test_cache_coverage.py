@@ -291,7 +291,6 @@ async def test_redis_error_type_hit(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_init_redis_no_aioredis_direct(monkeypatch):
-
     # Simulate aioredis import failure
     monkeypatch.setattr("src.utils.cache.aioredis", None)
     # We don't need to reload, just call it if aioredis is checked

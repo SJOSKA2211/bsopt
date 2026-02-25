@@ -19,7 +19,6 @@ def test_structured_logger_full():
         patch("src.api.middleware.logging.logging.Logger.error") as mock_error,
         patch("src.api.middleware.logging.logging.Logger.critical") as mock_crit,
     ):
-
         sl.debug("dbg")
         sl.info("inf")
         sl.warning("wrn")
@@ -73,9 +72,7 @@ def test_request_logging_middleware_basic():
 
 def test_request_logging_malformed_json():
     app = FastAPI()
-    app.add_middleware(
-        RequestLoggingMiddleware, log_request_body=True, persist_to_db=False
-    )
+    app.add_middleware(RequestLoggingMiddleware, log_request_body=True, persist_to_db=False)
 
     @app.post("/malformed")
     async def malformed(request: Request):

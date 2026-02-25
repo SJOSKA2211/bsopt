@@ -46,9 +46,7 @@ async def startup_event():
 
     if monkey.enabled:
         logger.warning("chaos_mode_active_injecting_startup_latency")
-        await monkey.delay_db(
-            0.5
-        )  # Slight delay to trigger latency detectors without timeout
+        await monkey.delay_db(0.5)  # Slight delay to trigger latency detectors without timeout
 
 
 # Middleware
@@ -81,11 +79,7 @@ async def api_exception_handler(request: Request, exc: Exception):
     if isinstance(exc, HTTPException):
         return ORJSONResponse(
             status_code=exc.status_code,
-            content=(
-                exc.detail
-                if isinstance(exc.detail, dict)
-                else {"message": str(exc.detail)}
-            ),
+            content=(exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}),
             headers=getattr(exc, "headers", None),
         )
 
@@ -103,9 +97,7 @@ async def api_exception_handler(request: Request, exc: Exception):
         content={
             "message": "Internal server error",
             "detail": (
-                error_detail
-                if settings.ENVIRONMENT != "prod"
-                else "An unexpected error occurred"
+                error_detail if settings.ENVIRONMENT != "prod" else "An unexpected error occurred"
             ),
         },
     )

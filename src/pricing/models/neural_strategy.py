@@ -17,27 +17,21 @@ class NeuralPricingStrategy(PricingStrategy):
 
     def __init__(self, model_path: str | None = None):
         self.ort_session = None
-        path = model_path or os.path.join(
-            os.getcwd(), "results/ml/OptionPricer_NN.onnx"
-        )
+        path = model_path or os.path.join(os.getcwd(), "results/ml/OptionPricer_NN.onnx")
 
         if os.path.exists(path):
             try:
                 import onnxruntime as ort
 
                 sess_options = ort.SessionOptions()
-                sess_options.graph_optimization_level = (
-                    ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-                )
+                sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
                 # Prioritize high-performance providers
                 providers = [
                     "TensorrtExecutionProvider",
                     "CUDAExecutionProvider",
                     "CPUExecutionProvider",
                 ]
-                self.ort_session = ort.InferenceSession(
-                    path, sess_options, providers=providers
-                )
+                self.ort_session = ort.InferenceSession(path, sess_options, providers=providers)
                 logger.info(
                     "neural_pricing_model_loaded",
                     path=path,
@@ -47,15 +41,9 @@ class NeuralPricingStrategy(PricingStrategy):
                 # Pre-warm
                 input_shape = self.ort_session.get_inputs()[0].shape
                 # Handle dynamic batch size or fixed [1, 9]
-                b = (
-                    input_shape[0]
-                    if isinstance(input_shape[0], int) and input_shape[0] > 0
-                    else 1
-                )
+                b = input_shape[0] if isinstance(input_shape[0], int) and input_shape[0] > 0 else 1
                 dummy_in = np.zeros((b, input_shape[1]), dtype=np.float32)
-                self.ort_session.run(
-                    None, {self.ort_session.get_inputs()[0].name: dummy_in}
-                )
+                self.ort_session.run(None, {self.ort_session.get_inputs()[0].name: dummy_in})
             except Exception as e:
                 logger.warning("neural_pricing_load_failed", error=str(e))
         else:
@@ -93,9 +81,7 @@ class NeuralPricingStrategy(PricingStrategy):
         prediction = self.ort_session.run(None, {input_name: features})[0]
         return float(prediction[0][0])
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
         Greeks via Automatic Differentiation or Finite Differences.
         Neural models are differentiable, but ONNX inference is just the forward pass.

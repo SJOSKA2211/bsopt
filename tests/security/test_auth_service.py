@@ -46,9 +46,7 @@ async def test_authenticate_user_success():
     db.query.return_value.filter.return_value.first.return_value = user
 
     with patch("src.security.auth.password_service.verify_password", return_value=True):
-        with patch(
-            "src.security.auth.password_service.needs_rehash", return_value=False
-        ):
+        with patch("src.security.auth.password_service.needs_rehash", return_value=False):
             authenticated = await auth_service.authenticate_user(
                 db, "test@example.com", "pass", MagicMock()
             )
@@ -61,9 +59,7 @@ async def test_authenticate_user_fail_password():
     user = User(id=uuid.uuid4(), email="test@example.com", hashed_password="hashed")
     db.query.return_value.filter.return_value.first.return_value = user
 
-    with patch(
-        "src.security.auth.password_service.verify_password", return_value=False
-    ):
+    with patch("src.security.auth.password_service.verify_password", return_value=False):
         authenticated = await auth_service.authenticate_user(
             db, "test@example.com", "wrong", MagicMock()
         )
@@ -72,9 +68,7 @@ async def test_authenticate_user_fail_password():
 
 @pytest.mark.asyncio
 async def test_validate_token_revoked():
-    token = auth_service._create_token(
-        {"sub": "123", "jti": "revoked"}, timedelta(minutes=5)
-    )
+    token = auth_service._create_token({"sub": "123", "jti": "revoked"}, timedelta(minutes=5))
 
     with patch("src.security.auth.token_blacklist.contains", return_value=True):
         with pytest.raises(HTTPException) as exc:

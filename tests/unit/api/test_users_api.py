@@ -151,9 +151,7 @@ def test_delete_me_not_found(mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.filter.return_value.first.return_value = (
-        None  # User not found
-    )
+    mock_db.query.return_value.filter.return_value.first.return_value = None  # User not found
     response = client.delete("/api/v1/users/me")
     assert response.status_code == 404
     mock_db.commit.assert_not_called()
@@ -219,9 +217,7 @@ def test_list_users_empty(enterprise_user):
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
     mock_db.query.return_value.count.return_value = 0
-    mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = (
-        []
-    )
+    mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = []
     response = client.get("/api/v1/users")
     assert response.status_code == 200
     assert len(response.json()["items"]) == 0
@@ -236,9 +232,7 @@ def test_list_users_with_search(enterprise_user):
     mock_query = mock_db.query.return_value
     mock_filter = mock_query.filter.return_value
     mock_filter.count.return_value = 1
-    mock_filter.offset.return_value.limit.return_value.all.return_value = [
-        enterprise_user
-    ]
+    mock_filter.offset.return_value.limit.return_value.all.return_value = [enterprise_user]
 
     response = client.get("/api/v1/users?search=enterprise")
     assert response.status_code == 200
@@ -255,7 +249,6 @@ def test_get_user_by_id_insufficient_tier(mock_user):
 
 
 def test_list_users_with_tier_filter(enterprise_user, mock_user):
-
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
 
     mock_db = MagicMock()
@@ -282,7 +275,6 @@ def test_list_users_with_tier_filter(enterprise_user, mock_user):
 
 
 def test_list_users_with_is_active_filter(enterprise_user):
-
     app.dependency_overrides[get_current_active_user] = lambda: enterprise_user
 
     mock_db = MagicMock()

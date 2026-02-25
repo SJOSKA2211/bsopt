@@ -13,9 +13,7 @@ logger = structlog.get_logger()
 
 
 class MarketDataScraper:
-    def __init__(
-        self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3
-    ):
+    def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3):
         self.api_key = api_key
         self.provider = provider
         self.max_retries = max_retries
@@ -30,9 +28,7 @@ class MarketDataScraper:
         if not re.match(r"^[A-Z0-9.-]{1,20}$", ticker):
             raise ValueError(f"Invalid ticker symbol: {ticker}")
         date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-        if not re.match(date_pattern, start_date) or not re.match(
-            date_pattern, end_date
-        ):
+        if not re.match(date_pattern, start_date) or not re.match(date_pattern, end_date):
             raise ValueError("Invalid date format. Use YYYY-MM-DD.")
 
     def _redact_message(self, message: str) -> str:
@@ -47,10 +43,7 @@ class MarketDataScraper:
         """
         Fetch historical data for multiple tickers concurrently.
         """
-        tasks = [
-            self.fetch_historical_data(ticker, start_date, end_date)
-            for ticker in tickers
-        ]
+        tasks = [self.fetch_historical_data(ticker, start_date, end_date) for ticker in tickers]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         final_results = {}
@@ -97,9 +90,7 @@ class MarketDataScraper:
                                     if start_date <= date_str <= end_date:
                                         records.append(
                                             {
-                                                "timestamp": pd.Timestamp(
-                                                    date_str
-                                                ).value
+                                                "timestamp": pd.Timestamp(date_str).value
                                                 // 10**6,  # ms
                                                 "open": float(values["1. open"]),
                                                 "high": float(values["2. high"]),
@@ -113,9 +104,7 @@ class MarketDataScraper:
                                 if not df.empty:
                                     df = df.sort_values("timestamp")
                                     duration = time.time() - start_time
-                                    SCRAPE_DURATION.labels(api="alpha_vantage").observe(
-                                        duration
-                                    )
+                                    SCRAPE_DURATION.labels(api="alpha_vantage").observe(duration)
                                     logger.info(
                                         "scrape_success",
                                         ticker=ticker,
@@ -158,9 +147,7 @@ class MarketDataScraper:
                                 )
                                 if self.provider == "auto":
                                     break
-                                raise Exception(
-                                    f"Alpha Vantage Error: {data['Error Message']}"
-                                )
+                                raise Exception(f"Alpha Vantage Error: {data['Error Message']}")
                             if "Note" in data:  # Rate limit
                                 logger.warning(
                                     "scrape_rate_limit",
@@ -174,14 +161,10 @@ class MarketDataScraper:
                                     break
                                 raise Exception("Alpha Vantage rate limit reached.")
                         elif response.status_code == 401:
-                            SCRAPE_ERRORS.labels(
-                                api="alpha_vantage", status_code=401
-                            ).inc()
+                            SCRAPE_ERRORS.labels(api="alpha_vantage", status_code=401).inc()
                             if self.provider == "auto":
                                 break
-                            raise Exception(
-                                "401 Unauthorized: Invalid Alpha Vantage API Key."
-                            )
+                            raise Exception("401 Unauthorized: Invalid Alpha Vantage API Key.")
                         else:
                             SCRAPE_ERRORS.labels(
                                 api="alpha_vantage", status_code=response.status_code
@@ -198,9 +181,7 @@ class MarketDataScraper:
                             continue
 
                     except Exception as e:
-                        SCRAPE_ERRORS.labels(
-                            api="alpha_vantage", status_code="exception"
-                        ).inc()
+                        SCRAPE_ERRORS.labels(api="alpha_vantage", status_code="exception").inc()
                         logger.error(
                             "scrape_exception",
                             ticker=ticker,
@@ -246,9 +227,7 @@ class MarketDataScraper:
                                 attempt=attempt,
                                 api="polygon",
                             )
-                            return df[
-                                ["timestamp", "open", "high", "low", "close", "volume"]
-                            ]
+                            return df[["timestamp", "open", "high", "low", "close", "volume"]]
                         logger.warning(
                             "scrape_api_error",
                             ticker=ticker,
@@ -259,9 +238,7 @@ class MarketDataScraper:
                         SCRAPE_ERRORS.labels(api="polygon", status_code=401).inc()
                         raise Exception("401 Unauthorized: Invalid API Key.")
                     else:
-                        SCRAPE_ERRORS.labels(
-                            api="polygon", status_code=response.status_code
-                        ).inc()
+                        SCRAPE_ERRORS.labels(api="polygon", status_code=response.status_code).inc()
                         logger.warning(
                             "scrape_http_error",
                             ticker=ticker,

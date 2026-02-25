@@ -43,9 +43,7 @@ class PricingEngineFactory:
         logger.info("pricing_engine_registered", engine=name)
 
     @classmethod
-    def get_engine(
-        cls, name: str, execution_strategy: str | None = None
-    ) -> BasePricingEngine:
+    def get_engine(cls, name: str, execution_strategy: str | None = None) -> BasePricingEngine:
         """
         Get an engine instance.
         Execution strategy can be forced (e.g., 'wasm', 'jit', 'gpu').
@@ -60,9 +58,7 @@ class PricingEngineFactory:
         from src.pricing.wasm_engine import WASM_AVAILABLE
 
         if execution_strategy == "wasm" or (
-            WASM_AVAILABLE
-            and execution_strategy is None
-            and name in ["heston", "monte_carlo"]
+            WASM_AVAILABLE and execution_strategy is None and name in ["heston", "monte_carlo"]
         ):
             name = "wasm"
 

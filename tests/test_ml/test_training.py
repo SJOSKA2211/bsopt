@@ -6,9 +6,7 @@ from src.ml.training.train_v2 import train_neural_network
 @patch("src.ml.training.train_v2.Trainer")
 @patch("src.ml.training.train_v2.get_dataloaders")
 @patch("src.ml.training.train_v2.torch")
-@patch(
-    "src.ml.training.train_v2.TransformerAdapter"
-)  # Patch the class to avoid instantiation
+@patch("src.ml.training.train_v2.TransformerAdapter")  # Patch the class to avoid instantiation
 def test_train_neural_network(mock_adapter, mock_torch, mock_get_dl, mock_trainer):
     # Setup Dataloaders mock
     mock_get_dl.return_value = (MagicMock(), MagicMock())

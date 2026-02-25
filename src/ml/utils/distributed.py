@@ -39,9 +39,7 @@ def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     return Client(cluster), True
 
 
-def train_xgboost_distributed(
-    X, y, params: dict[str, Any], dask_address: str | None = None
-):
+def train_xgboost_distributed(X, y, params: dict[str, Any], dask_address: str | None = None):
     """
     Train XGBoost model using Dask for distributed execution.
     """

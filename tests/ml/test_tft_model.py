@@ -18,9 +18,7 @@ def sample_data():
         #  ADVANCED: Sine wave + trend to test structural learning
         base_price = 100.0
         for i, date in enumerate(dates):
-            price = (
-                base_price + 5 * np.sin(i / 24.0) + 0.01 * i + np.random.randn() * 0.1
-            )
+            price = base_price + 5 * np.sin(i / 24.0) + 0.01 * i + np.random.randn() * 0.1
             data.append(
                 {
                     "date": date,

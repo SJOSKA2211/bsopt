@@ -31,9 +31,9 @@ def test_quantum_pricing_aer_execution():
 
     print(f"Quantum Result: {result}")
 
-    assert (
-        "backend" not in result or result["backend"] != "analytical_fallback"
-    ), f"Pricer used fallback backend! Error: {result.get('error')}"
+    assert "backend" not in result or result["backend"] != "analytical_fallback", (
+        f"Pricer used fallback backend! Error: {result.get('error')}"
+    )
 
     assert "price" in result
     assert result["price"] > 0

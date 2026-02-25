@@ -14,9 +14,7 @@ class TimeSeriesAnomalyDetector:
     """
 
     def __init__(self, contamination: float = 0.05):
-        self.model = IsolationForest(
-            contamination=contamination, n_jobs=-1, random_state=42
-        )
+        self.model = IsolationForest(contamination=contamination, n_jobs=-1, random_state=42)
         self.scaler = StandardScaler()
         self.is_fitted = False
 

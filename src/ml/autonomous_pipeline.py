@@ -111,9 +111,7 @@ class AutonomousMLPipeline:
 
         vol = fast_rolling_std(log_ret, window)
         # Pad with zeros to maintain length
-        df["volatility"] = np.concatenate([np.zeros(window), vol]) * np.sqrt(
-            252 * 6.5 * 60
-        )
+        df["volatility"] = np.concatenate([np.zeros(window), vol]) * np.sqrt(252 * 6.5 * 60)
 
         # 3. Indicators (Assume indicators.py is JIT-accelerated)
         df["RSI_14"] = get_rsi(closes, length=14)
@@ -147,9 +145,7 @@ class AutonomousMLPipeline:
         self, df_featured: pd.DataFrame
     ) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, str]]:
         """Prepares X, y and metadata for training."""
-        df_featured["target"] = (
-            df_featured["close"].shift(-1) > df_featured["close"]
-        ).astype(int)
+        df_featured["target"] = (df_featured["close"].shift(-1) > df_featured["close"]).astype(int)
         df_featured = df_featured.iloc[:-1]
 
         exclude = ["timestamp", "target", "ticker"]
@@ -175,13 +171,9 @@ class AutonomousMLPipeline:
                 params = {
                     "n_estimators": trial.suggest_int("n_estimators", 50, 200),
                     "max_depth": trial.suggest_int("max_depth", 3, 10),
-                    "learning_rate": trial.suggest_float(
-                        "learning_rate", 0.001, 0.3, log=True
-                    ),
+                    "learning_rate": trial.suggest_float("learning_rate", 0.001, 0.3, log=True),
                     "subsample": trial.suggest_float("subsample", 0.6, 1.0),
-                    "colsample_bytree": trial.suggest_float(
-                        "colsample_bytree", 0.6, 1.0
-                    ),
+                    "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
                     "framework": "xgboost",
                 }
             elif self.framework == "sklearn":
@@ -229,9 +221,7 @@ class AutonomousMLPipeline:
                 client.transition_model_version_stage(
                     name=model_name, version=result.version, stage="Production"
                 )
-                logger.info(
-                    "mlflow_promotion_complete", name=model_name, version=result.version
-                )
+                logger.info("mlflow_promotion_complete", name=model_name, version=result.version)
             except Exception as e:
                 logger.error("mlflow_promotion_failed", error=str(e))
 
@@ -287,8 +277,8 @@ class AutonomousMLPipeline:
                     except Exception as e:
                         logger.warning("failed_to_load_base_model", error=str(e))
 
-            x_vals, y_vals, feature_names, dataset_metadata = (
-                self._prepare_training_data(df_featured)
+            x_vals, y_vals, feature_names, dataset_metadata = self._prepare_training_data(
+                df_featured
             )
             study = await self._train_and_optimize(
                 x_vals, y_vals, feature_names, dataset_metadata, base_model

@@ -73,8 +73,7 @@ def lazy_import(
     if attr_name not in import_map:
         available = ", ".join(sorted(import_map.keys()))
         raise AttributeError(
-            f"module {package_name!r} has no attribute {attr_name!r}. "
-            f"Available: {available}"
+            f"module {package_name!r} has no attribute {attr_name!r}. Available: {available}"
         )
 
     # Check if previously failed
@@ -123,7 +122,7 @@ def lazy_import(
                     "lazy_import_success",
                     package=package_name,
                     attribute=attr_name,
-                    duration=f"{elapsed*1000:.2f}ms",
+                    duration=f"{elapsed * 1000:.2f}ms",
                 )
                 return attr
         except CircularImportError:
@@ -137,11 +136,9 @@ def lazy_import(
                 package=package_name,
                 attribute=attr_name,
                 error=str(e),
-                duration=f"{elapsed*1000:.2f}ms",
+                duration=f"{elapsed * 1000:.2f}ms",
             )
-            raise LazyImportError(
-                f"Failed to import {attr_name} from {package_name}: {e}"
-            ) from e
+            raise LazyImportError(f"Failed to import {attr_name} from {package_name}: {e}") from e
 
 
 def get_import_stats() -> dict[str, Any]:
@@ -150,9 +147,7 @@ def get_import_stats() -> dict[str, Any]:
         "successful_imports": len(_import_times),
         "failed_imports": len(_failed_imports),
         "total_import_time": sum(_import_times.values()),
-        "slowest_imports": sorted(
-            _import_times.items(), key=lambda x: x[1], reverse=True
-        )[:10],
+        "slowest_imports": sorted(_import_times.items(), key=lambda x: x[1], reverse=True)[:10],
         "failures": {k: str(v) for k, v in _failed_imports.items()},
     }
 
@@ -183,11 +178,7 @@ def preload_modules(
 
     for attr_name in attributes:
         # Optimization: Skip preloading heavy ML modules for simple API instances
-        if (
-            current_service == "api"
-            and "ml" in package_name
-            and "core" not in attr_name
-        ):
+        if current_service == "api" and "ml" in package_name and "core" not in attr_name:
             continue
 
         try:

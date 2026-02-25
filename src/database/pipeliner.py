@@ -33,9 +33,7 @@ class VectorizedDBEngine:
                     logger.error("db_pipeliner_init_failed", error=str(e))
                     raise
 
-    async def fetch_training_data(
-        self, symbols: list[str], limit: int = 10000
-    ) -> list[dict]:
+    async def fetch_training_data(self, symbols: list[str], limit: int = 10000) -> list[dict]:
         """
         High-speed retrieval of training data.
         Returns a list of records as dictionaries.
@@ -55,9 +53,7 @@ class VectorizedDBEngine:
                 start_time = asyncio.get_event_loop().time()
                 records = await conn.fetch(query, symbols, limit)
                 duration = (asyncio.get_event_loop().time() - start_time) * 1000
-                logger.info(
-                    "db_fetch_success", rows=len(records), latency_ms=round(duration, 2)
-                )
+                logger.info("db_fetch_success", rows=len(records), latency_ms=round(duration, 2))
                 return [dict(r) for r in records]
             except Exception as e:
                 logger.error("db_fetch_failed", error=str(e))
@@ -80,9 +76,7 @@ class VectorizedDBEngine:
         async with self._pool.acquire() as conn:
             try:
                 start_time = asyncio.get_event_loop().time()
-                await conn.copy_records_to_table(
-                    table_name, records=records, columns=columns
-                )
+                await conn.copy_records_to_table(table_name, records=records, columns=columns)
                 duration = (asyncio.get_event_loop().time() - start_time) * 1000
                 logger.info(
                     "db_bulk_copy_success",

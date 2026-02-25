@@ -35,9 +35,7 @@ def mock_response():
 @pytest.mark.asyncio
 @patch("src.ml.scraper.HttpClientManager.get_client")
 @patch("src.ml.scraper.logger")
-async def test_fetch_historical_data_success(
-    mock_logger, mock_get_client, mock_response
-):
+async def test_fetch_historical_data_success(mock_logger, mock_get_client, mock_response):
     """Verify that the scraper correctly fetches and parses data."""
     mock_client = AsyncMock()
     mock_get_client.return_value = mock_client

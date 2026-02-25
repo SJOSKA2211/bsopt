@@ -40,9 +40,7 @@ class Query:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def market_data_stream(
-        self, symbols: list[str]
-    ) -> AsyncGenerator[MarketData]:
+    async def market_data_stream(self, symbols: list[str]) -> AsyncGenerator[MarketData]:
         """
         Real-time market data stream from the silicon mesh.
         OPTIMIZED: Low-latency polling of Shared Memory.
