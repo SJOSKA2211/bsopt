@@ -98,7 +98,7 @@ format:
 
 security-scan:
 	docker compose --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
-	docker compose --profile test run --rm --no-deps test-runner bandit -lll -r src/
+	docker compose --profile test run --rm --no-deps test-runner bandit -c pyproject.toml -r src/
 
 # --- Build & Protos ---
 

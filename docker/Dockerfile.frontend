@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # --- Stage 1: Builder (compile assets) ---
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY src/frontend/ ./
 RUN npm run build
 
 # --- Stage 2: Development ---
-FROM node:22-alpine AS development
+FROM node:20-alpine AS development
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ EXPOSE 5173
 CMD ["npx", "vite", "--host", "0.0.0.0"]
 
 # --- Stage 3: Production ---
-FROM node:22-alpine AS production
+FROM node:20-alpine AS production
 
 WORKDIR /app
 

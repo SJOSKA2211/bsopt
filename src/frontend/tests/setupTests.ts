@@ -13,6 +13,10 @@ vi.mock('lightweight-charts', () => ({
       setData: vi.fn(),
       update: vi.fn(),
     })),
+    addSeries: vi.fn(() => ({
+      setData: vi.fn(),
+      update: vi.fn(),
+    })),
     applyOptions: vi.fn(),
     timeScale: vi.fn(() => ({
       fitContent: vi.fn(),
@@ -22,6 +26,7 @@ vi.mock('lightweight-charts', () => ({
   })),
   ColorType: { Solid: 'solid' },
   CrosshairMode: { Normal: 0 },
+  CandlestickSeries: "CandlestickSeries",
 }));
 
 // Mock ResizeObserver which is used by lightweight-charts and echarts but not present in jsdom

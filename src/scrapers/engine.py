@@ -183,7 +183,6 @@ class NSEScraper:
             proxy=proxy_url,
             headers={"User-Agent": "BS-Opt/2.0"},
             timeout=10.0,
-            # We enforce certificate verification by default for security
             verify=True,
         )
 
