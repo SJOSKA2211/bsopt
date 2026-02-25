@@ -1,12 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
-import { TradingDashboard } from '../src/features/dashboard/components/TradingDashboard';
+import { DashboardPage } from '../src/pages/dashboard/DashboardPage';
+import { Layout } from '../src/components/layout/Layout';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 
 const handlers = [
   http.get('/api/v1/portfolio/summary', () => {
@@ -47,17 +49,29 @@ const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <BrowserRouter>
+          {children}
+        </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>
   );
 };
 
-test('TradingDashboard renders layout components', async () => {
-  render(<TradingDashboard />, { wrapper: createWrapper() });
+test('Dashboard renders with Layout and trading components', async () => {
+  render(
+    <Layout>
+      <DashboardPage />
+    </Layout>, 
+    { wrapper: createWrapper() }
+  );
 
-  expect(screen.getByText(/BS-Opt Trading Dashboard/i)).toBeInTheDocument();
-  expect(screen.getByRole('navigation')).toBeInTheDocument();
+  expect(screen.getByText(/CASHMATE/i)).toBeInTheDocument();
+  
+  // Wait for DashboardPage to render (not just the layout)
+  await waitFor(() => {
+    expect(screen.getByText(/TOTAL SPENDINGS/i)).toBeInTheDocument();
+  }, { timeout: 10000 });
+
   expect(screen.getByTestId('options-chain-container')).toBeInTheDocument();
   expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
   expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();

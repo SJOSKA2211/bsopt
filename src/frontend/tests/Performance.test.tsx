@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { TradingDashboard } from '../src/features/dashboard/components/TradingDashboard';
+import { DashboardPage } from '../src/pages/dashboard/DashboardPage';
 import { render, screen } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
@@ -17,10 +17,10 @@ const createWrapper = () => {
   );
 };
 
-test('TradingDashboard uses lazy loading for heavy components', async () => {
+test('Dashboard uses lazy loading for heavy components', async () => {
   // This test verifies that the dashboard renders and eventually shows the heavy components
   // which are loaded lazily.
-  render(<TradingDashboard />, { wrapper: createWrapper() });
+  render(<DashboardPage />, { wrapper: createWrapper() });
 
   // Initially should show loading fallbacks or at least not the components
   // Since we are in a test env, they might load fast, but we can check for their containers
