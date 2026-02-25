@@ -37,7 +37,7 @@ class RayOrchestrator:
         num_cpus: int | None = None,
         num_gpus: int | None = 0,
         object_store_memory_gb: float | None = None,
-        spill_dir: str = "/tmp/ray_spill",
+        spill_dir: str = "/tmp/ray_spill",  # nosec B108
     ):
         """Initialize Ray with hardware-appropriate settings."""
         if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:

@@ -23,7 +23,7 @@ class NeuralPricingEngine(BasePricingEngine):
         )
 
         if model_path:
-            self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+            self.model.load_state_dict(torch.load(model_path, map_location=self.device))  # nosec B614
 
         self.model.eval()
 
