@@ -343,11 +343,8 @@ def jit_mc_european_price(
         else:
             drift = (r - q - 0.5 * sigma**2) * T
             diffusion = sigma * np.sqrt(T)
-            z = (
-                z_innovations
-                if z_innovations is not None
-                else np.random.standard_normal(actual_paths)
-            )
+            # Use same z for antithetic (z_innovations or previously generated z)
+            # z is already defined in the first block
             st2 = S0 * np.exp(drift - diffusion * z)
             if is_call:
                 p2 = np.maximum(st2 - K, 0.0) * exp_rt
