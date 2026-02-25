@@ -27,7 +27,7 @@ export interface OptionResult {
 export const useWasmPricing = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const workerRef = useRef<Worker | null>(null);
-  const pendingRequests = useRef<Map<string, (resolve: any, reject: any) => void>>(new Map());
+  const pendingRequests = useRef<Map<string, { resolve: (val: any) => void; reject: (err: any) => void }>>(new Map());
 
   useEffect(() => {
     // Initialize Web Worker

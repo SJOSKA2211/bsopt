@@ -39,6 +39,17 @@ export class OAuth2Client {
     }
 
     /**
+     * Shim for better-auth compatibility (used in SignIn.tsx)
+     */
+    public signIn = {
+        email: async (data: any, options?: any) => {
+            console.log("Mocking email sign in for compatibility", data);
+            if (options?.onSuccess) options.onSuccess();
+            return { data: { user: { email: data.email } }, error: null };
+        }
+    };
+
+    /**
      * Exchange the authorization code for tokens.
      */
     async handleCallback(code: string, state: string) {

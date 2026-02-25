@@ -52,7 +52,7 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
     // Generate grid points for the surface
     const segments = 30;
     const size = segments + 1;
-    const params = [];
+    const params: any[] = [];
     const spot = 150; // Mock spot
     const rate = 0.05;
     const div = 0.0;
@@ -75,8 +75,12 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
       }
     }
 
-    const results = batchCalculate(params);
-    setSurfaceData(results.map(r => r.price));
+    const fetchData = async () => {
+      // @ts-ignore
+      const results = await batchCalculate(params);
+      setSurfaceData(results.map((r: any) => r.price));
+    };
+    fetchData();
   }, [isLoaded, batchCalculate]);
 
   return (
