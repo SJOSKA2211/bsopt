@@ -163,18 +163,12 @@ def test_ml_init_logic():
 
     import src.ml  # noqa: E402
 
-    with patch.dict(
-        os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}
-    ):
+    with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}):
         with patch(
             "src.utils.lazy_import.preload_modules"
         ) as mock_preload:  # Patch the actual function called
-            importlib.reload(
-                src.ml
-            )  # Reload to ensure the env var check is re-evaluated
-            mock_preload.assert_called_with(
-                "src.ml", src.ml._import_map, {"DataNormalizer"}
-            )
+            importlib.reload(src.ml)  # Reload to ensure the env var check is re-evaluated
+            mock_preload.assert_called_with("src.ml", src.ml._import_map, {"DataNormalizer"})
 
 
 def test_import_stack_cleanup_on_error():
@@ -429,9 +423,7 @@ def test_preload_classical_pricers(mocker):
     # because src.pricing imports src.utils.lazy_import at the top level.
     mock_preload_modules = mocker.patch("src.utils.lazy_import.preload_modules")
 
-    with patch.dict(
-        os.environ, {"ENVIRONMENT": "production", "PRELOAD_PRICING": "true"}
-    ):
+    with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_PRICING": "true"}):
         # Now import src.pricing. This will be its first import in this test,
         # and the module-level 'if' condition will be evaluated exactly once.
         import src.pricing
@@ -733,9 +725,7 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
             del sys.modules["my_pricing_pkg"]
 
 
-def test_lazy_import_full_module_path_starts_with_dot(
-    tmp_path, mocker
-):  # Added mocker fixture
+def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Added mocker fixture
     reset_import_stats()
     # Create a temporary package structure
     pkg_name = "my_package_temp"
@@ -769,9 +759,7 @@ def test_lazy_import_full_module_path_starts_with_dot(
         my_package_temp = importlib.import_module(pkg_name)
 
         # Test a relative import path that exists
-        res = lazy_import(
-            pkg_name, {"my_attr": ".submodule"}, "my_attr", my_package_temp
-        )
+        res = lazy_import(pkg_name, {"my_attr": ".submodule"}, "my_attr", my_package_temp)
         assert res == "mocked_relative_attr"
         assert hasattr(my_package_temp, "my_attr")
         assert my_package_temp.my_attr == "mocked_relative_attr"

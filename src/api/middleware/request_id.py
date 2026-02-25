@@ -43,7 +43,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         # OPTIMIZED: Fast ID generator (Timestamp + Machine ID + Random)
         # machine_id = os.getenv("HOSTNAME", "node")[:4]
         self.generator = generator or (
-            lambda: f"{int(time.time()*1000):x}-{secrets.token_hex(4)}"
+            lambda: f"{int(time.time() * 1000):x}-{secrets.token_hex(4)}"
         )
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:

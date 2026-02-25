@@ -143,7 +143,6 @@ async def test_distributed_circuit_breaker_fail():
 
 
 def test_pricing_circuit_global():
-
     # Use the global instance
 
     # Reset it first since it's global
@@ -160,18 +159,14 @@ def test_pricing_circuit_global():
     # pricing_circuit has threshold 10
 
     for _ in range(10):
-
         with pytest.raises(Exception, match="fail"):
-
             wrapped()
 
     with pytest.raises(Exception, match="Circuit Breaker is OPEN"):
-
         wrapped()
 
     @pytest.mark.asyncio
     async def test_distributed_circuit_breaker_helpers():
-
         mock_redis = AsyncMock()
 
         cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis)

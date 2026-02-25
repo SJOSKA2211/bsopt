@@ -57,20 +57,14 @@ class RayOrchestrator:
             detected_cpus = multiprocessing.cpu_count()
 
         default_cpus = (
-            min(detected_cpus, 2)
-            if os.getenv("ENVIRONMENT") in ["dev", "test"]
-            else detected_cpus
+            min(detected_cpus, 2) if os.getenv("ENVIRONMENT") in ["dev", "test"] else detected_cpus
         )
         env_cpus = os.getenv("RAY_NUM_CPUS")
         actual_cpus = (
-            int(env_cpus)
-            if env_cpus
-            else (num_cpus if num_cpus is not None else default_cpus)
+            int(env_cpus) if env_cpus else (num_cpus if num_cpus is not None else default_cpus)
         )
 
-        total_ram_gb = (
-            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024**3)
-        )
+        total_ram_gb = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / (1024**3)
         if object_store_memory_gb is None:
             limit = 0.1 if os.getenv("ENVIRONMENT") != "test" else 0.05
             object_store_memory = int(min(total_ram_gb * limit, 2.0) * 1024**3)

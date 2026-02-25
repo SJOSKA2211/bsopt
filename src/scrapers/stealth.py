@@ -49,9 +49,7 @@ class StealthHttpClient:
 
         if self._has_cffi:
             # OPTIMIZED: Synchronous-lookalike async call
-            response = await self.session.get(
-                url, headers=headers, impersonate=target, **kwargs
-            )
+            response = await self.session.get(url, headers=headers, impersonate=target, **kwargs)
             logger.debug("stealth_request_complete", url=url, target=target)
             return response
         return await self.session.get(url, headers=headers, **kwargs)

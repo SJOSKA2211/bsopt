@@ -65,11 +65,7 @@ class BatchPricingService:
         symbols = df["symbol"].to_numpy(dtype=object)
         models = np.full(
             len(df),
-            (
-                "black_scholes"
-                if method.lower() in ("bs", "black_scholes")
-                else method.lower()
-            ),
+            ("black_scholes" if method.lower() in ("bs", "black_scholes") else method.lower()),
             dtype=object,
         )
 
@@ -111,14 +107,12 @@ class BatchPricingService:
                         )
                     else:
                         # BS: [spot, strike, T, vol, r, q, is_call] (7 columns)
-                        input_shm = np.ndarray(
-                            (n, 7), dtype=np.float64, buffer=shm_in.buf
-                        )
+                        input_shm = np.ndarray((n, 7), dtype=np.float64, buffer=shm_in.buf)
                         for i, col in enumerate(cols):
                             input_shm[:, i] = df[col].to_numpy()
-                        input_shm[:, 6] = (
-                            df["option_type"].str.lower() == "call"
-                        ).astype(np.float64)
+                        input_shm[:, 6] = (df["option_type"].str.lower() == "call").astype(
+                            np.float64
+                        )
 
                         success = await pricing_service.price_batch_shm(
                             shm_in_name, shm_out_name, (n, 7), model=method.lower()

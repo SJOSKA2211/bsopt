@@ -38,8 +38,7 @@ class SHMWeightSyncCallback(BaseCallback):
             # In a true zero-copy system, we'd use cupy or shared CUDA memory
             with torch.no_grad():
                 state = {
-                    k: v.detach().cpu().numpy()
-                    for k, v in self.model.policy.state_dict().items()
+                    k: v.detach().cpu().numpy() for k, v in self.model.policy.state_dict().items()
                 }
             self.shm.write(state)
             logger.info("weights_synced_to_shm", step=self.num_timesteps)
@@ -60,16 +59,12 @@ def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3")
 
         policy_kwargs = dict(
             features_extractor_class=TransformerFeatureExtractor,
-            features_extractor_kwargs=dict(
-                features_dim=512, d_model=256, nhead=8, num_layers=4
-            ),
+            features_extractor_kwargs=dict(features_dim=512, d_model=256, nhead=8, num_layers=4),
             net_arch=dict(pi=[256, 256], qf=[256, 256]),
         )
 
         n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(
-            mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions)
-        )
+        action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
         try:
             model = TD3(

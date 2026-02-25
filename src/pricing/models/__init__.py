@@ -71,11 +71,7 @@ class BSParameters:
         _rate_arr = np.asanyarray(self.rate, dtype=np.float64)
         _dividend_arr = np.asanyarray(self.dividend, dtype=np.float64)
 
-        if (
-            np.any(_spot_arr < 0)
-            or np.any(_strike_arr < 0)
-            or np.any(_volatility_arr < 0)
-        ):
+        if np.any(_spot_arr < 0) or np.any(_strike_arr < 0) or np.any(_volatility_arr < 0):
             raise ValueError("Spot, strike, and volatility must be non-negative")
         if np.any(_maturity_arr < 0):
             raise ValueError("Maturity cannot be negative")
@@ -99,9 +95,7 @@ class OptionGreeks:
     def __getitem__(self, item):
         if isinstance(item, str):
             return getattr(self, item)
-        raise TypeError(
-            f"OptionGreeks indices must be strings, not {type(item).__name__}"
-        )
+        raise TypeError(f"OptionGreeks indices must be strings, not {type(item).__name__}")
 
     def __contains__(self, item):
         return hasattr(self, item)
@@ -121,7 +115,7 @@ class HestonParams:
         """Validate Feller condition and parameter bounds."""
         if not (2 * self.kappa * self.theta > self.sigma**2):
             raise ValueError(
-                f"Feller condition violated: 2κθ={2*self.kappa*self.theta:.4f} <= σ²={self.sigma**2:.4f}"
+                f"Feller condition violated: 2κθ={2 * self.kappa * self.theta:.4f} <= σ²={self.sigma**2:.4f}"
             )
 
         if not (-1 <= self.rho <= 1):

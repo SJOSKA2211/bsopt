@@ -99,9 +99,7 @@ class Mutation:
         return True
 
     @strawberry.mutation
-    async def create_portfolio(
-        self, user_id: str, name: str, initial_cash: float
-    ) -> Portfolio:
+    async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         return Portfolio(
             id=strawberry.ID(f"port_{random.randint(1000, 9999)}"),
             user_id=user_id,
@@ -113,9 +111,7 @@ class Mutation:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def portfolio_updates(
-        self, portfolio_id: strawberry.ID
-    ) -> AsyncGenerator[Portfolio]:
+    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio]:
         while True:
             yield Portfolio(
                 id=portfolio_id,

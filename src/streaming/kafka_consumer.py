@@ -62,13 +62,9 @@ class MarketDataConsumer:
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
         with open("src/streaming/schemas/market_data.avsc") as f:
             self.market_data_schema = f.read()
-        self.avro_deserializer = AvroDeserializer(
-            self.schema_registry, self.market_data_schema
-        )
+        self.avro_deserializer = AvroDeserializer(self.schema_registry, self.market_data_schema)
 
-    async def consume_messages(
-        self, callback: Callable[[dict], None], batch_size: int = 100
-    ):
+    async def consume_messages(self, callback: Callable[[dict], None], batch_size: int = 100):
         """
         Consume messages in adaptive batches and process with callback.
         Uses bulk fetching with dynamic batch sizing for high throughput.
@@ -82,9 +78,7 @@ class MarketDataConsumer:
         try:
             while self.running:
                 # Bulk fetch for efficiency
-                msgs = self.consumer.consume(
-                    num_messages=current_batch_size, timeout=0.1
-                )
+                msgs = self.consumer.consume(num_messages=current_batch_size, timeout=0.1)
 
                 if not msgs:
                     await asyncio.sleep(0.01)  # Yield
@@ -119,13 +113,9 @@ class MarketDataConsumer:
                     # If we processed too fast, increase batch size.
                     # If we processed too slow, decrease batch size.
                     if duration < target_duration * 0.8:
-                        current_batch_size = min(
-                            max_batch, int(current_batch_size * 1.2)
-                        )
+                        current_batch_size = min(max_batch, int(current_batch_size * 1.2))
                     elif duration > target_duration * 1.2:
-                        current_batch_size = max(
-                            min_batch, int(current_batch_size * 0.8)
-                        )
+                        current_batch_size = max(min_batch, int(current_batch_size * 0.8))
 
                     logger.debug(
                         "adaptive_batching",

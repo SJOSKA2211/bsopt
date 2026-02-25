@@ -77,9 +77,7 @@ def test_newton_raphson_iv(sample_data):
     market_prices = np.array([p1, p2])
 
     initial_sigma = np.array([0.5, 0.5])
-    iv = vectorized_newton_raphson_iv_jit(
-        market_prices, S, K, T, r, q, is_call, initial_sigma
-    )
+    iv = vectorized_newton_raphson_iv_jit(market_prices, S, K, T, r, q, is_call, initial_sigma)
     assert np.allclose(iv, 0.2, atol=1e-4)
 
 

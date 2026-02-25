@@ -20,9 +20,7 @@ class TestHestonParams:
             HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=1.5)
 
     def test_non_positive_params(self):
-        with pytest.raises(
-            ValueError, match="All parameters except rho must be positive"
-        ):
+        with pytest.raises(ValueError, match="All parameters except rho must be positive"):
             HestonParams(v0=-0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
 
 

@@ -39,9 +39,7 @@ def convert_assertions(file_path):
         f.write(content)
 
 
-test_files = [
-    f for f in os.listdir("tests") if f.startswith("test_") and f.endswith(".py")
-]
+test_files = [f for f in os.listdir("tests") if f.startswith("test_") and f.endswith(".py")]
 for f in test_files:
     print(f"Converting {f}...")
     convert_assertions(os.path.join("tests", f))

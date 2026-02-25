@@ -7,9 +7,7 @@ import pytest
 @pytest.fixture
 def db_connection():
     # Use 127.0.0.1 to avoid IPv6 issues on localhost, match password from docker-compose
-    db_url = os.environ.get(
-        "DATABASE_URL", "postgresql://admin:password@127.0.0.1:5432/bsopt"
-    )
+    db_url = os.environ.get("DATABASE_URL", "postgresql://admin:password@127.0.0.1:5432/bsopt")
     conn = psycopg2.connect(db_url)
     yield conn
     conn.close()

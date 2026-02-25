@@ -23,6 +23,4 @@ def test_readme_links_anti_freeze():
     with open("README.md") as f:
         content = f.read()
 
-    assert (
-        "docs/mlops/anti-freeze.md" in content
-    ), "README.md does not link to Anti-Freeze guide"
+    assert "docs/mlops/anti-freeze.md" in content, "README.md does not link to Anti-Freeze guide"

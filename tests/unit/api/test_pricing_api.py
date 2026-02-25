@@ -397,13 +397,9 @@ def test_calculate_greeks_cache_hit():
             "src.services.pricing_service.pricing_cache.get_greeks",
             new_callable=AsyncMock,
         ) as mock_get,
-        patch(
-            "src.services.pricing_service.PricingEngineFactory.get_strategy"
-        ) as mock_factory,
+        patch("src.services.pricing_service.PricingEngineFactory.get_strategy") as mock_factory,
     ):
-        mock_get.return_value = MagicMock(
-            delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02
-        )
+        mock_get.return_value = MagicMock(delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02)
         mock_factory.return_value.price.return_value = 10.5
         payload = {
             "spot": 100.0,

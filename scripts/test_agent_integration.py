@@ -28,9 +28,7 @@ def simulate_integration():
         # 2. Initialize Agent with mock config
         kafka_config = {"bootstrap.servers": "localhost:9092"}
         with patch("confluent_kafka.Consumer"), patch("confluent_kafka.Producer"):
-            agent = OnlineRLAgent(
-                model_path="mock_model.zip", kafka_config=kafka_config
-            )
+            agent = OnlineRLAgent(model_path="mock_model.zip", kafka_config=kafka_config)
 
             # 3. Simulate market data message
             market_data = {
@@ -55,9 +53,7 @@ def simulate_integration():
             assert latency_ms < 50, f"Latency {latency_ms}ms exceeds 50ms requirement"
 
             # 6. Verify transition storage
-            assert (
-                len(agent.experience_buffer) == 0
-            )  # First call doesn't store (needs next state)
+            assert len(agent.experience_buffer) == 0  # First call doesn't store (needs next state)
 
             # Second call should store the first transition
             agent.process_market_data(market_data)

@@ -53,9 +53,7 @@ async def test_pricing_empty_payload(client):
 @pytest.mark.asyncio
 async def test_register_missing_fields(client):
     """81. Test Edge Cases: Test missing fields."""
-    response = await client.post(
-        "/api/v1/auth/register", json={"email": "missing@test.com"}
-    )
+    response = await client.post("/api/v1/auth/register", json={"email": "missing@test.com"})
     assert response.status_code == 422
 
 

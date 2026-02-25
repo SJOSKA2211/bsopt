@@ -72,9 +72,7 @@ class HestonCalibrator:
                     # Map flexible field names
                     strike = float(d.get("strike", 0))
                     price = float(d.get("price", 0))
-                    spot = float(
-                        d.get("spot", strike)
-                    )  # Default spot to strike if missing
+                    spot = float(d.get("spot", strike))  # Default spot to strike if missing
 
                     # Handle Expiry/T
                     t_val = d.get("T") or d.get("maturity") or d.get("expiry")
@@ -98,15 +96,11 @@ class HestonCalibrator:
                             ask=float(d.get("ask", price * 1.01)),
                             volume=int(d.get("volume", 100)),
                             open_interest=int(d.get("open_interest", 1000)),
-                            option_type=str(
-                                d.get("option_type", d.get("type", "call"))
-                            ),
+                            option_type=str(d.get("option_type", d.get("type", "call"))),
                         )
                     )
                 except Exception as e:
-                    logger.warning(
-                        "skipping_malformed_option_data", error=str(e), data=d
-                    )
+                    logger.warning("skipping_malformed_option_data", error=str(e), data=d)
                     continue
         return options
 
@@ -125,9 +119,7 @@ class HestonCalibrator:
                 sess_options = ort.SessionOptions()
                 sess_options.intra_op_num_threads = 1
                 sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-                sess_options.graph_optimization_level = (
-                    ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-                )
+                sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
                 sess_options.enable_cpu_mem_arena = True
 
                 # Prioritize TensorRT then CUDA then CPU
@@ -162,9 +154,7 @@ class HestonCalibrator:
                     dummy_input = np.zeros((1, 1, 10, 10), dtype=np.float32)
                     if len(self.ort_session.get_inputs()[0].shape) == 2:
                         dummy_input = dummy_input.reshape(1, 100)
-                    self.ort_session.run(
-                        None, {self.ort_session.get_inputs()[0].name: dummy_input}
-                    )
+                    self.ort_session.run(None, {self.ort_session.get_inputs()[0].name: dummy_input})
                     logger.debug("neural_calibration_model_warmed_up")
                 except Exception as e:
                     logger.warning("neural_calibration_warmup_failed", error=str(e))
@@ -173,9 +163,7 @@ class HestonCalibrator:
         except Exception as e:
             logger.warning("neural_calibration_model_load_failed", error=str(e))
 
-    def _filter_liquid_options(
-        self, market_data: list[MarketOption]
-    ) -> list[MarketOption]:
+    def _filter_liquid_options(self, market_data: list[MarketOption]) -> list[MarketOption]:
         """Filter out illiquid options."""
         filtered = [
             opt
@@ -269,9 +257,7 @@ class HestonCalibrator:
             logger.warning("neural_calibration_failed", error=str(e))
             return None
 
-    def _weighted_objective(
-        self, params: np.ndarray, market_data: list[MarketOption]
-    ) -> float:
+    def _weighted_objective(self, params: np.ndarray, market_data: list[MarketOption]) -> float:
         """Vega-weighted RMSE objective function."""
         kappa, theta, sigma, rho, v0 = params
 
@@ -286,9 +272,7 @@ class HestonCalibrator:
 
         for opt in market_data:
             try:
-                model = HestonModelFFT(
-                    HestonParams(v0, kappa, theta, sigma, rho), self.r, opt.T
-                )
+                model = HestonModelFFT(HestonParams(v0, kappa, theta, sigma, rho), self.r, opt.T)
                 if opt.option_type == "call":
                     model_price = model.price_call(opt.spot, opt.strike)
                 else:
@@ -398,9 +382,7 @@ class HestonCalibrator:
             logger.error("heston_calibration_failed", symbol=symbol, error=str(e))
             raise
 
-    def calibrate_surface(
-        self, market_data: list[Any]
-    ) -> dict[float, tuple[float, ...]]:
+    def calibrate_surface(self, market_data: list[Any]) -> dict[float, tuple[float, ...]]:
         """Fit SVI parameters for each maturity slice."""
         from src.pricing.calibration.svi_surface import SVISurface
         from src.pricing.implied_vol import implied_volatility

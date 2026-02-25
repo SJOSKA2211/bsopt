@@ -22,9 +22,6 @@ from src.security.auth import get_current_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-
-
-
 @router.get("/me")
 async def get_current_user_profile(user: User = Depends(get_current_user)):
     """

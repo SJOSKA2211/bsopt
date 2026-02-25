@@ -34,11 +34,7 @@ class StreamingFactory:
         if backend == StreamingBackend.KAFKA:
             kwargs.get(
                 "bootstrap_servers",
-                (
-                    settings.RABBITMQ_URL
-                    if "kafka" in settings.RABBITMQ_URL
-                    else "localhost:9092"
-                ),
+                (settings.RABBITMQ_URL if "kafka" in settings.RABBITMQ_URL else "localhost:9092"),
             )  # fallback logic
             # Actually use defaults from kafka_producer if not provided
             return KafkaProducer(

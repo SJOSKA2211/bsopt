@@ -74,12 +74,8 @@ def test_arbitrage_detector():
     # Butterfly arbitrage: prices must be convex in K
     # 5, 10, 15 -> linear (free)
     # 5, 12, 15 -> not convex (arbitrage)
-    is_free, _ = detector.check_butterfly_arbitrage(
-        strikes, np.array([5.0, 10.0, 15.0])
-    )
+    is_free, _ = detector.check_butterfly_arbitrage(strikes, np.array([5.0, 10.0, 15.0]))
     assert is_free is True
 
-    is_free_2, _ = detector.check_butterfly_arbitrage(
-        strikes, np.array([5.0, 12.0, 15.0])
-    )
+    is_free_2, _ = detector.check_butterfly_arbitrage(strikes, np.array([5.0, 12.0, 15.0]))
     assert is_free_2 is False

@@ -64,9 +64,7 @@ class XGBoostStrategy(TrainingStrategy):
 
     def predict(self, model: Any, X: Any) -> Any:
         dtest = xgb.DMatrix(X)
-        y_pred_prob = model.predict(
-            dtest, iteration_range=(0, model.best_iteration + 1)
-        )
+        y_pred_prob = model.predict(dtest, iteration_range=(0, model.best_iteration + 1))
         return (y_pred_prob > 0.5).astype(int)
 
     def get_feature_importance(
@@ -94,9 +92,7 @@ class DaskXGBoostStrategy(TrainingStrategy):
         xgb_params = params.copy()
         xgb_params.pop("framework", None)
         dask_address = xgb_params.pop("dask_address", None)
-        return train_xgboost_distributed(
-            X_train, y_train, xgb_params, dask_address=dask_address
-        )
+        return train_xgboost_distributed(X_train, y_train, xgb_params, dask_address=dask_address)
 
     def predict(self, model: Any, X: Any) -> Any:
         dtest = xgb.DMatrix(X)

@@ -375,9 +375,7 @@ class BaseTaskWithRetry(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Handle task failure after all retries exhausted."""
-        logger.error(
-            f"Task {self.name}[{task_id}] failed after {self.max_retries} retries: {exc}"
-        )
+        logger.error(f"Task {self.name}[{task_id}] failed after {self.max_retries} retries: {exc}")
         # Could send to dead letter queue or alerting system here
 
 

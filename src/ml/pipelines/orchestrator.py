@@ -64,9 +64,7 @@ class MLOrchestrator:
         random_state: int = getattr(settings, "ML_TRAINING_RANDOM_STATE", 42),
         xgb_params: dict[str, Any] | None = None,
         nn_params: dict[str, Any] | None = None,
-        promotion_threshold_r2: float = getattr(
-            settings, "ML_TRAINING_PROMOTE_THRESHOLD_R2", 0.9
-        ),
+        promotion_threshold_r2: float = getattr(settings, "ML_TRAINING_PROMOTE_THRESHOLD_R2", 0.9),
         promote_to_production: bool = False,
     ) -> dict[str, Any]:
         """
@@ -128,14 +126,10 @@ class MLOrchestrator:
 
                 hidden_dims = cast(
                     list[int],
-                    nn_train_params.get(
-                        "hidden_dims", settings.ML_TRAINING_NN_HIDDEN_DIMS
-                    ),
+                    nn_train_params.get("hidden_dims", settings.ML_TRAINING_NN_HIDDEN_DIMS),
                 )
                 model = OptionPricingNN(input_dim=X.shape[1], hidden_dims=hidden_dims)
-                optimizer = torch.optim.Adam(
-                    model.parameters(), lr=nn_train_params["lr"]
-                )
+                optimizer = torch.optim.Adam(model.parameters(), lr=nn_train_params["lr"])
                 criterion = torch.nn.MSELoss()
 
                 model.train()
@@ -146,9 +140,7 @@ class MLOrchestrator:
                     for epoch in range(epochs):
                         optimizer.zero_grad()
                         output = model(torch.from_numpy(X_train_scaled).float())
-                        loss = criterion(
-                            output, torch.from_numpy(y_train).float().view(-1, 1)
-                        )
+                        loss = criterion(output, torch.from_numpy(y_train).float().view(-1, 1))
                         loss.backward()
                         optimizer.step()
                         mlflow.log_metric("loss", float(loss.item()), step=epoch)
@@ -169,11 +161,7 @@ class MLOrchestrator:
                 with torch.no_grad():
                     # Evaluate in thread
                     def _eval():
-                        return (
-                            model(torch.from_numpy(X_test_scaled).float())
-                            .numpy()
-                            .flatten()
-                        )
+                        return model(torch.from_numpy(X_test_scaled).float()).numpy().flatten()
 
                     y_pred = await run_sync(_eval)
 
@@ -236,9 +224,7 @@ class MLOrchestrator:
                                         "output": {0: "batch_size"},
                                     },
                                 )
-                                logger.info(
-                                    "model_exported_to_onnx", path=str(onnx_path)
-                                )
+                                logger.info("model_exported_to_onnx", path=str(onnx_path))
 
                                 # 6. Extreme Optimization: INT8 Quantization
                                 try:
@@ -248,8 +234,7 @@ class MLOrchestrator:
                                     )
 
                                     quantized_path = (
-                                        RESULTS_DIR
-                                        / f"{registered_model_name}_int8.onnx"
+                                        RESULTS_DIR / f"{registered_model_name}_int8.onnx"
                                     )
                                     quantize_dynamic(
                                         str(onnx_path),
@@ -260,26 +245,20 @@ class MLOrchestrator:
                                         "model_quantized_to_int8",
                                         path=str(quantized_path),
                                     )
-                                    mlflow.log_artifact(
-                                        str(quantized_path), "quantized_model"
-                                    )
+                                    mlflow.log_artifact(str(quantized_path), "quantized_model")
                                 except ImportError:
                                     logger.warning(
                                         "onnx_quantization_skipped",
                                         reason="onnxruntime-quantization not installed",
                                     )
                                 except Exception as e:
-                                    logger.error(
-                                        "onnx_quantization_failed", error=str(e)
-                                    )
+                                    logger.error("onnx_quantization_failed", error=str(e))
 
                                 mlflow.log_artifact(str(onnx_path), "onnx_model")
                             except Exception as e:
                                 logger.error("onnx_export_failed", error=str(e))
                     else:
-                        logger.warning(
-                            "model_version_not_found_for_promotion", run_id=run_id
-                        )
+                        logger.warning("model_version_not_found_for_promotion", run_id=run_id)
                 else:
                     logger.warning("no_active_run_for_promotion")
 
@@ -315,9 +294,7 @@ def train(model, samples, real_data):
 def optimize(samples, trials):
     """Run hyperparameter optimization."""
     result = asyncio.run(
-        run_hyperparameter_optimization(
-            use_real_data=False, n_samples=samples, n_trials=trials
-        )
+        run_hyperparameter_optimization(use_real_data=False, n_samples=samples, n_trials=trials)
     )
     click.echo(
         f"Optimization completed: {orjson.dumps(result, option=orjson.OPT_INDENT_2).decode('utf-8')}"

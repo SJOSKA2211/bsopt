@@ -82,9 +82,7 @@ class PrometheusClient:
 
             # Mocking range expansion for the verification suite
             current_val = float(result[0]["value"][1])
-            timestamps = [
-                int(time.time()) - i * 60 for i in range(60)
-            ]  # 1 hour of minutely data
+            timestamps = [int(time.time()) - i * 60 for i in range(60)]  # 1 hour of minutely data
             values = [current_val * (1 + np.random.normal(0, 0.05)) for _ in range(60)]
 
             df = pd.DataFrame(
@@ -100,9 +98,7 @@ class PrometheusClient:
             logger.error("metric_range_fetch_failed", error=str(e))
             return pd.DataFrame()
 
-    def get_historical_metric_data(
-        self, service: str, metric: str = "cpu_usage"
-    ) -> np.ndarray:
+    def get_historical_metric_data(self, service: str, metric: str = "cpu_usage") -> np.ndarray:
         """Fetches univariate historical data for a metric."""
         df = self.get_metric_range(service, "container_cpu_usage_seconds_total")
         return df["price"].values if not df.empty else np.array([])

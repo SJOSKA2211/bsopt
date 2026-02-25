@@ -126,9 +126,7 @@ class TradingEnvironment(gym.Env):
 
         self.portfolio_values.append(current_val)
 
-        terminated = bool(
-            self.data_provider and self.current_step >= len(self.data_provider) - 1
-        )
+        terminated = bool(self.data_provider and self.current_step >= len(self.data_provider) - 1)
         truncated = bool(current_val <= self.initial_balance * 0.5)
 
         return (

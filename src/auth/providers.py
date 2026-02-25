@@ -6,9 +6,7 @@ logger = structlog.get_logger()
 
 
 class OIDCProvider:
-    def __init__(
-        self, name: str, issuer_url: str, audience: str, public_key: str | None = None
-    ):
+    def __init__(self, name: str, issuer_url: str, audience: str, public_key: str | None = None):
         self.name = name
         self.issuer_url = issuer_url
         self.audience = audience
@@ -24,9 +22,7 @@ class OIDCProvider:
 
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.get(
-                    f"{self.issuer_url}/.well-known/jwks.json", timeout=5.0
-                )
+                resp = await client.get(f"{self.issuer_url}/.well-known/jwks.json", timeout=5.0)
                 if resp.status_code == 200:
                     self.jwks = resp.json()
                     return self.jwks
@@ -71,16 +67,12 @@ class OIDCProvider:
         # Fallback to lax verification for POC/Tests if header says RS256 but no key found
         # Or if we're in a test environment (MOCK_JWKS setup)
         try:
-            return jwt.decode(
-                token, options={"verify_signature": False}, audience=self.audience
-            )
+            return jwt.decode(token, options={"verify_signature": False}, audience=self.audience)
         except Exception:
             pass
 
         # Fallback to secret (Legacy/POC)
-        return jwt.decode(
-            token, key="secret", algorithms=["HS256"], audience=self.audience
-        )
+        return jwt.decode(token, key="secret", algorithms=["HS256"], audience=self.audience)
 
 
 class AuthRegistry:

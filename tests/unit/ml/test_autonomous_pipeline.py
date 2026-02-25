@@ -84,9 +84,7 @@ async def test_pipeline_run_success(mock_config, sample_df):
         mock_study.best_value = 0.85
         mock_study.best_params = {"n_estimators": 100}
 
-        with patch(
-            "src.ml.autonomous_pipeline.InstrumentedTrainer"
-        ) as mock_trainer_cls:
+        with patch("src.ml.autonomous_pipeline.InstrumentedTrainer") as mock_trainer_cls:
             mock_trainer = mock_trainer_cls.return_value
             mock_trainer.optimize = MagicMock(return_value=mock_study)
 

@@ -7,9 +7,7 @@ from src.ml.indicators import get_adx, get_atr, get_bbands, get_ema, get_macd, g
 
 class TestIndicators(unittest.TestCase):
     def setUp(self):
-        self.prices = np.array(
-            [100, 101, 102, 101, 100, 99, 98, 99, 100, 101], dtype=float
-        )
+        self.prices = np.array([100, 101, 102, 101, 100, 99, 98, 99, 100, 101], dtype=float)
         self.high = self.prices + 1
         self.low = self.prices - 1
         self.close = self.prices

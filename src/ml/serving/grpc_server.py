@@ -90,9 +90,7 @@ async def serve_grpc(xgb_model, nn_ort_session):
         ("grpc.default_compression_algorithm", grpc.Compression.Gzip),
         ("grpc.default_compression_level", grpc.CompressionLevel.High),
     ]
-    server = grpc.aio.server(
-        futures.ThreadPoolExecutor(max_workers=10), options=options
-    )
+    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10), options=options)
     inference_pb2_grpc.add_MLInferenceServicer_to_server(
         MLInferenceServicer(xgb_model, nn_ort_session), server
     )

@@ -34,9 +34,7 @@ class TestDockerRemediator:
         )
         mock_logger.info.assert_not_called()
 
-    def test_docker_remediator_restart_service_success(
-        self, mock_from_env, mock_logger
-    ):
+    def test_docker_remediator_restart_service_success(self, mock_from_env, mock_logger):
         """Test successful service restart."""
         mock_client = MagicMock()
         mock_from_env.return_value = mock_client
@@ -74,16 +72,12 @@ class TestDockerRemediator:
         mock_logger.warning.assert_not_called()
         mock_logger.error.assert_not_called()
 
-    def test_docker_remediator_restart_service_not_found(
-        self, mock_from_env, mock_logger
-    ):
+    def test_docker_remediator_restart_service_not_found(self, mock_from_env, mock_logger):
         """Test service restart when container is not found."""
         mock_client = MagicMock()
         mock_from_env.return_value = mock_client
 
-        mock_client.containers.get.side_effect = docker.errors.NotFound(
-            "Container not found"
-        )
+        mock_client.containers.get.side_effect = docker.errors.NotFound("Container not found")
 
         remediator = DockerRemediator()
         mock_logger.reset_mock()  # Reset logger calls after init
@@ -102,16 +96,12 @@ class TestDockerRemediator:
         mock_logger.info.assert_not_called()
         mock_logger.error.assert_not_called()
 
-    def test_docker_remediator_restart_service_get_failure(
-        self, mock_from_env, mock_logger
-    ):
+    def test_docker_remediator_restart_service_get_failure(self, mock_from_env, mock_logger):
         """Test service restart when container.get fails with a general exception."""
         mock_client = MagicMock()
         mock_from_env.return_value = mock_client
 
-        mock_client.containers.get.side_effect = Exception(
-            "Generic Docker error during get"
-        )
+        mock_client.containers.get.side_effect = Exception("Generic Docker error during get")
 
         remediator = DockerRemediator()
         mock_logger.reset_mock()  # Reset logger calls after init
@@ -139,9 +129,7 @@ class TestDockerRemediator:
         mock_container = MagicMock()
         mock_container.id = "abc123def456"
         mock_client.containers.get.return_value = mock_container
-        mock_container.restart.side_effect = Exception(
-            "Generic Docker error during restart"
-        )
+        mock_container.restart.side_effect = Exception("Generic Docker error during restart")
 
         remediator = DockerRemediator()
         mock_logger.reset_mock()  # Reset logger calls after init

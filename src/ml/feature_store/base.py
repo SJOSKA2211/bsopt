@@ -34,8 +34,6 @@ class FeatureStore(ABC):
         pass
 
     @abstractmethod
-    def compute_features(
-        self, data: pd.DataFrame, feature_names: list[str]
-    ) -> pd.DataFrame:
+    def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """Compute a set of features for the given dataset."""
         pass

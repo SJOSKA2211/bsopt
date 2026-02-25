@@ -79,9 +79,7 @@ class SelfHealingOrchestrator:
 
                             self._record_history(action.name, anomaly, success)
                         else:
-                            logger.debug(
-                                "remediation_skipped_cooldown", action=action.name
-                            )
+                            logger.debug("remediation_skipped_cooldown", action=action.name)
 
         except Exception as e:
             logger.error("self_healing_cycle_error", error=str(e))

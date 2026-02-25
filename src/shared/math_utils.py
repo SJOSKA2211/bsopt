@@ -30,9 +30,7 @@ def fast_normal_cdf(x):
 
     # Horner's method for polynomial evaluation: a1*t + a2*t^2 + ...
     # poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))))
-    poly = t * (
-        CDF_A[0] + t * (CDF_A[1] + t * (CDF_A[2] + t * (CDF_A[3] + t * CDF_A[4])))
-    )
+    poly = t * (CDF_A[0] + t * (CDF_A[1] + t * (CDF_A[2] + t * (CDF_A[3] + t * CDF_A[4]))))
 
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
@@ -186,9 +184,7 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
         rho = -k * t * exp_rT * (1.0 - cdf_d2) / 100.0
         theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
         theta = (
-            theta_base
-            + r * k * exp_rT * (1.0 - cdf_d2)
-            - q * s * exp_qT * (1.0 - cdf_d1)
+            theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)
         ) / 365.0
 
     return delta, gamma, theta, vega, rho

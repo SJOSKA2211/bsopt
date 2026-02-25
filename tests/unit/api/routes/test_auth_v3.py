@@ -58,9 +58,7 @@ async def test_mfa_setup_success(mock_db):
 @pytest.mark.asyncio
 async def test_mfa_verify_success(mock_db):
     data = MFAVerifyRequest(code="123456")
-    mock_user = User(
-        id=uuid4(), email="rick@c137.com", is_active=True, mfa_secret="secret"
-    )
+    mock_user = User(id=uuid4(), email="rick@c137.com", is_active=True, mfa_secret="secret")
     with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
         res = await mfa_verify(data, mock_user, mock_db)
         assert "Successfully" in res["message"] or "MFA" in res["message"]

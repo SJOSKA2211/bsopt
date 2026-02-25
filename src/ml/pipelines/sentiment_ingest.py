@@ -15,9 +15,7 @@ class SentimentIngestor:
     Ingests news/social media data, extracts sentiment, and publishes signals.
     """
 
-    def __init__(
-        self, bootstrap_servers: str = "localhost:9092", topic: str = "scraper.news"
-    ):
+    def __init__(self, bootstrap_servers: str = "localhost:9092", topic: str = "scraper.news"):
         self.bootstrap_servers = bootstrap_servers
         self.topic = topic
         self.consumer_group = "sentiment-ingestor"
@@ -82,10 +80,7 @@ class SentimentIngestor:
                     continue
                 if msg.error():
                     error = msg.error()
-                    if (
-                        hasattr(error, "code")
-                        and error.code() == KafkaError._PARTITION_EOF
-                    ):
+                    if hasattr(error, "code") and error.code() == KafkaError._PARTITION_EOF:
                         continue
 
                     logger.error("kafka_consumer_error", error=str(error))
@@ -129,9 +124,7 @@ class SentimentPipeline:
 
         try:
             # OPTIMIZED: Offload blocking NLP extraction to a thread pool
-            sentiment_score = await asyncio.to_thread(
-                self.extractor.get_sentiment_score, text
-            )
+            sentiment_score = await asyncio.to_thread(self.extractor.get_sentiment_score, text)
 
             logger.info("sentiment_extracted", symbol=symbol, score=sentiment_score)
 

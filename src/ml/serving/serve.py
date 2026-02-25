@@ -107,11 +107,7 @@ async def startup():
 
     asyncio.create_task(
         serve_grpc(
-            (
-                state["xgb_model"]
-                if state["xgb_ort_session"] is None
-                else state["xgb_ort_session"]
-            ),
+            (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
             state["nn_ort_session"],
         )
     )
@@ -123,9 +119,7 @@ async def load_xgb_model():
 
     try:
         # Check for Quantized ONNX first
-        int8_path = os.getenv(
-            "XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx"
-        )
+        int8_path = os.getenv("XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
         exists_int8 = await anyio.to_thread.run_sync(os.path.exists, int8_path)
         if exists_int8:
             state["xgb_ort_session"] = ort.InferenceSession(int8_path)
@@ -224,9 +218,7 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
                 df = pd.DataFrame([request.model_dump()])
                 prediction = state["xgb_model"].predict(df)[0]
             else:
-                raise HTTPException(
-                    status_code=503, detail="XGB model currently unavailable"
-                )
+                raise HTTPException(status_code=503, detail="XGB model currently unavailable")
 
         elif model_type == "nn":
             if state["nn_ort_session"] is None:
@@ -234,16 +226,14 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
                     status_code=503, detail="Neural Network model currently unavailable"
                 )
 
-            input_data = np.array(
-                list(request.model_dump().values()), dtype=np.float32
-            ).reshape(1, -1)
+            input_data = np.array(list(request.model_dump().values()), dtype=np.float32).reshape(
+                1, -1
+            )
             ort_inputs = {state["nn_ort_session"].get_inputs()[0].name: input_data}
             prediction = state["nn_ort_session"].run(None, ort_inputs)[0][0]
 
         else:
-            raise HTTPException(
-                status_code=400, detail=f"Unsupported model type: {model_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
 
         latency_ms = (time.perf_counter() - start_time) * 1000
         INFERENCE_LATENCY.labels(model_type=model_type).observe(latency_ms / 1000)
@@ -319,9 +309,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
                 preds = state["xgb_model"].predict(df)
                 predictions = [float(p) for p in preds]
             else:
-                raise HTTPException(
-                    status_code=503, detail="XGB model currently unavailable"
-                )
+                raise HTTPException(status_code=503, detail="XGB model currently unavailable")
 
         elif model_type == "nn":
             if state["nn_ort_session"] is None:
@@ -334,9 +322,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
             predictions = [float(p[0]) for p in preds]
 
         else:
-            raise HTTPException(
-                status_code=400, detail=f"Unsupported model type: {model_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
 
         total_latency_ms = (time.perf_counter() - start_time) * 1000
 
@@ -351,8 +337,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
             InferenceResponse(
                 price=p,
                 model_type=model_type,
-                latency_ms=total_latency_ms
-                / len(predictions),  # Approximate per-item latency
+                latency_ms=total_latency_ms / len(predictions),  # Approximate per-item latency
             )
             for p in predictions
         ]
@@ -364,14 +349,10 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
         )
 
     except HTTPException:
-        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(
-            len(request.requests)
-        )
+        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(len(request.requests))
         raise
     except Exception as e:
-        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(
-            len(request.requests)
-        )
+        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(len(request.requests))
         logger.error(f"Batch inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal batch inference error") from e
 

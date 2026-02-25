@@ -23,9 +23,7 @@ def test_log_audit_with_request():
     mock_request.method = "POST"
 
     with patch("src.security.audit.audit_logger") as mock_logger:
-        log_audit(
-            AuditEvent.SUSPICIOUS_ACTIVITY, request=mock_request, persist_to_db=False
-        )
+        log_audit(AuditEvent.SUSPICIOUS_ACTIVITY, request=mock_request, persist_to_db=False)
         assert mock_logger.info.called
         log_data = mock_logger.info.call_args[0][0]
         assert log_data["source_ip"] == "127.0.0.1"

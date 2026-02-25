@@ -10,9 +10,7 @@ def test_bs_parameters_validation():
     assert p.spot == 100
 
     # Invalid spot
-    with pytest.raises(
-        ValueError, match="Spot, strike, and volatility must be positive"
-    ):
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be positive"):
         BSParameters(0, 100, 1.0, 0.2, 0.05)
 
     # Invalid maturity
@@ -29,9 +27,7 @@ def test_bs_parameters_vectorized_validation():
     BSParameters(np.array([100, 110]), 100, 1.0, 0.2, 0.05)
 
     # Vectorized invalid
-    with pytest.raises(
-        ValueError, match="Spot, strike, and volatility must be positive"
-    ):
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be positive"):
         BSParameters(np.array([100, -1]), 100, 1.0, 0.2, 0.05)
 
 

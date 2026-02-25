@@ -8,9 +8,7 @@ from src.aiops.transformer_detector import TransformerAnomalyDetector
 class TestTransformerDetectorReal(unittest.TestCase):
     def setUp(self):
         self.input_dim = 5
-        self.detector = TransformerAnomalyDetector(
-            input_dim=self.input_dim, threshold=0.1
-        )
+        self.detector = TransformerAnomalyDetector(input_dim=self.input_dim, threshold=0.1)
 
     def test_train_and_detect(self):
         # Generate some normal training data

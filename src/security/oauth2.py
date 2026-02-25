@@ -78,9 +78,7 @@ class AuthService:
         """Authenticate a confidential client."""
         # Simple hash verification for client secret
         # In a real system, secrets should be hashed like passwords
-        result = await db.execute(
-            select(OAuth2Client).where(OAuth2Client.client_id == client_id)
-        )
+        result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
         client = result.scalar_one_or_none()
 
         if not client or not client.verify_secret(client_secret):
@@ -118,9 +116,7 @@ class AuthService:
         """Internal helper to create a JWT token."""
         to_encode = data.copy()
         expire = datetime.now(UTC) + expires_delta
-        to_encode.update(
-            {"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)}
-        )
+        to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
         return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def validate_token(
@@ -136,9 +132,7 @@ class AuthService:
             token_data = TokenData(
                 user_id=payload.get("user_id"),
                 client_id=(
-                    payload.get("sub")
-                    if payload.get("type") == "client_credentials"
-                    else None
+                    payload.get("sub") if payload.get("type") == "client_credentials" else None
                 ),
                 scopes=token_scopes,
                 exp=datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
@@ -152,9 +146,7 @@ class AuthService:
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Not enough permissions",
-                        headers={
-                            "WWW-Authenticate": f'Bearer scope="{security_scopes.scope_str}"'
-                        },
+                        headers={"WWW-Authenticate": f'Bearer scope="{security_scopes.scope_str}"'},
                     )
 
             return token_data

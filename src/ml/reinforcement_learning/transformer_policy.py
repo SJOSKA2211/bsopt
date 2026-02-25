@@ -29,17 +29,13 @@ class CausalSelfAttention(nn.Module):
         self.n_head = n_head
         self.register_buffer(
             "mask",
-            torch.tril(torch.ones(n_positions, n_positions)).view(
-                1, 1, n_positions, n_positions
-            ),
+            torch.tril(torch.ones(n_positions, n_positions)).view(1, 1, n_positions, n_positions),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, T, C = x.size()
 
-        k = (
-            self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
-        )  # (B, nh, T, hs)
+        k = self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)  # (B, nh, T, hs)
         q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
@@ -67,9 +63,7 @@ class Block(nn.Module):
         super().__init__()
         self.ln1 = nn.LayerNorm(n_embd)
         self.ln2 = nn.LayerNorm(n_embd)
-        self.attn = CausalSelfAttention(
-            n_embd, n_head, n_positions, attn_pdrop, resid_pdrop
-        )
+        self.attn = CausalSelfAttention(n_embd, n_head, n_positions, attn_pdrop, resid_pdrop)
         self.mlp = nn.Sequential(
             nn.Linear(n_embd, 4 * n_embd),
             nn.GELU(),
@@ -134,7 +128,6 @@ class DecisionTransformer(nn.Module):
         timesteps: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-
         batch_size, seq_length = states.shape[0], states.shape[1]
 
         if attention_mask is None:
@@ -158,9 +151,7 @@ class DecisionTransformer(nn.Module):
         # But for inference we usually want a_t given (R_t, s_t).
 
         # Interleave embeddings: (batch, 3 * seq_len, hidden_size)
-        stacked = torch.stack(
-            [returns_embeddings, state_embeddings, action_embeddings], dim=2
-        )
+        stacked = torch.stack([returns_embeddings, state_embeddings, action_embeddings], dim=2)
         token_embeddings = stacked.reshape(batch_size, seq_length * 3, self.hidden_size)
 
         token_embeddings = self.embed_ln(token_embeddings)
@@ -168,9 +159,7 @@ class DecisionTransformer(nn.Module):
         # Transformer forward
         # Adjust mask for 3 tokens per step
         # (batch, 3 * seq_len)
-        all_mask = torch.zeros(
-            (batch_size, seq_length * 3), dtype=torch.long, device=states.device
-        )
+        all_mask = torch.zeros((batch_size, seq_length * 3), dtype=torch.long, device=states.device)
         all_mask[:, ::3] = attention_mask
         all_mask[:, 1::3] = attention_mask
         all_mask[:, 2::3] = attention_mask

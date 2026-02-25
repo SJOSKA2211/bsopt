@@ -27,9 +27,7 @@ def test_api_container_user():
         )
         uid = result.stdout.strip()
         assert uid != "0", f"Container is running as root (uid={uid})"
-        assert (
-            uid == "1000"
-        ), f"Container is not running as the expected appuser (uid={uid})"
+        assert uid == "1000", f"Container is not running as the expected appuser (uid={uid})"
 
         # Check username
         result = subprocess.run(
@@ -39,9 +37,7 @@ def test_api_container_user():
             check=True,
         )
         username = result.stdout.strip()
-        assert (
-            username == "appuser"
-        ), f"Container username is {username}, expected appuser"
+        assert username == "appuser", f"Container username is {username}, expected appuser"
 
 
 def test_api_container_read_only_fs():

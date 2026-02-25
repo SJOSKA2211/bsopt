@@ -73,7 +73,6 @@ def test_trainer_prometheus_metrics_usage(sample_data):
         patch.object(observability.TRAINING_DURATION, "labels") as mock_duration_labels,
         patch.object(observability.MODEL_ACCURACY, "labels") as mock_accuracy_labels,
     ):
-
         mock_duration_observe = MagicMock()
         mock_duration_labels.return_value.observe = mock_duration_observe
 
@@ -92,9 +91,7 @@ def test_trainer_prometheus_metrics_usage(sample_data):
 
 def test_trainer_mlflow_uri():
     with patch("mlflow.set_tracking_uri") as mock_set_uri:
-        InstrumentedTrainer(
-            study_name="test_study", tracking_uri="http://localhost:5000"
-        )
+        InstrumentedTrainer(study_name="test_study", tracking_uri="http://localhost:5000")
         mock_set_uri.assert_called_once_with("http://localhost:5000")
 
 

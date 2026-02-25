@@ -85,9 +85,7 @@ async def test_redis_circuit_breaker_open_rejection():
     mock_redis = AsyncMock()
     mock_redis.get.side_effect = [b"OPEN", b"2000000000"]  # OPEN and not timed out
 
-    cb = DistributedCircuitBreaker(
-        name="test", redis_client=mock_redis, recovery_timeout=100
-    )
+    cb = DistributedCircuitBreaker(name="test", redis_client=mock_redis, recovery_timeout=100)
 
     async def some_func():
         return "ok"

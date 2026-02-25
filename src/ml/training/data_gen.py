@@ -24,9 +24,7 @@ def generate_synthetic_data_numba(
     prices = calculate_price(S, K, T, sigma, r, q, is_call)
 
     # Construct features
-    X = np.column_stack(
-        [S, K, T, is_call_int, S / K, np.log(S / K), np.sqrt(T), T * 365, sigma]
-    )
+    X = np.column_stack([S, K, T, is_call_int, S / K, np.log(S / K), np.sqrt(T), T * 365, sigma])
 
     feature_names = [
         "underlying_price",

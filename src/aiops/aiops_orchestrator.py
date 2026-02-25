@@ -50,18 +50,12 @@ class AIOpsOrchestrator:
         self.last_remediation_time = {}
         self.error_rate_threshold = config.get("error_rate_threshold", 0.05)
         self.latency_threshold = config.get("latency_threshold", 0.5)
-        self.t2t_latency_threshold_ns = config.get(
-            "t2t_latency_threshold_ns", 500000
-        )  # 500µs
-        self.isolation_forest_contamination = config.get(
-            "isolation_forest_contamination", 0.1
-        )
+        self.t2t_latency_threshold_ns = config.get("t2t_latency_threshold_ns", 500000)  # 500µs
+        self.isolation_forest_contamination = config.get("isolation_forest_contamination", 0.1)
 
         # ML Detection Flags
         self.anomaly_detection_enabled = config.get("anomaly_detection_enabled", True)
-        self.data_drift_detection_enabled = config.get(
-            "data_drift_detection_enabled", True
-        )
+        self.data_drift_detection_enabled = config.get("data_drift_detection_enabled", True)
         self.predictive_scaling_enabled = config.get("predictive_scaling_enabled", True)
 
         # Initialize Clients
@@ -86,9 +80,7 @@ class AIOpsOrchestrator:
                 input_dim=ae_input_dim,
                 latent_dim=config.get("autoencoder_latent_dim", 2),
                 epochs=config.get("autoencoder_epochs", 10),
-                threshold_multiplier=config.get(
-                    "autoencoder_threshold_multiplier", 2.0
-                ),
+                threshold_multiplier=config.get("autoencoder_threshold_multiplier", 2.0),
                 verbose=False,
             )
             # Transformer-based Detector
@@ -106,9 +98,7 @@ class AIOpsOrchestrator:
         )
 
         self.docker_remediator = DockerRemediator()
-        self.ml_pipeline_trigger = MLPipelineTrigger(
-            config=config.get("ml_pipeline_config", {})
-        )
+        self.ml_pipeline_trigger = MLPipelineTrigger(config=config.get("ml_pipeline_config", {}))
         self.redis_remediator = RedisRemediator(
             host=config.get("redis_host", "redis"),
             port=config.get("redis_port", 6379),
@@ -154,9 +144,7 @@ class AIOpsOrchestrator:
         anomalies = {}
 
         # 1. Threshold-based Error Rate Detection
-        error_rate = await self.prometheus_client.get_5xx_error_rate(
-            service=self.api_service_name
-        )
+        error_rate = await self.prometheus_client.get_5xx_error_rate(service=self.api_service_name)
         if error_rate > self.error_rate_threshold:
             anomalies["high_error_rate"] = {
                 "metric": error_rate,
@@ -164,9 +152,7 @@ class AIOpsOrchestrator:
             }
 
         # 2. Threshold-based Latency Detection
-        p95_latency = await self.prometheus_client.get_p95_latency(
-            service=self.api_service_name
-        )
+        p95_latency = await self.prometheus_client.get_p95_latency(service=self.api_service_name)
         if p95_latency > self.latency_threshold:
             anomalies["high_latency"] = {
                 "metric": p95_latency,
@@ -176,9 +162,7 @@ class AIOpsOrchestrator:
             }
 
         #  HIGH-RES: Tick-to-Trade Jitter Detection
-        t2t_latency = await self.prometheus_client.get_custom_metric(
-            "bsopt_t2t_latency_ns"
-        )
+        t2t_latency = await self.prometheus_client.get_custom_metric("bsopt_t2t_latency_ns")
         if t2t_latency > self.t2t_latency_threshold_ns:
             anomalies["jitter_anomaly"] = {
                 "metric": t2t_latency,
@@ -206,16 +190,12 @@ class AIOpsOrchestrator:
                         "threshold": self.latency_threshold * 1.5,
                         "fallback_model": "xgboost",  # Proactive lighter model
                     }
-                    logger.warning(
-                        "predictive_anomaly_detected", forecast_max=forecast.max()
-                    )
+                    logger.warning("predictive_anomaly_detected", forecast_max=forecast.max())
 
         # 4. ML-Driven Anomaly Detection
         if self.anomaly_detection_enabled:
             # Univariate
-            data = await self.prometheus_client.get_historical_metric_data(
-                self.api_service_name
-            )
+            data = await self.prometheus_client.get_historical_metric_data(self.api_service_name)
             if data is not None and len(data) > 0:
                 preds = self.isolation_forest_detector.fit_predict(data)
                 if -1 in preds:
@@ -223,28 +203,20 @@ class AIOpsOrchestrator:
 
             # Multivariate
             if self.autoencoder_detector:
-                data_multi = (
-                    await self.prometheus_client.get_historical_metric_data_multi(
-                        self.api_service_name
-                    )
+                data_multi = await self.prometheus_client.get_historical_metric_data_multi(
+                    self.api_service_name
                 )
                 if data_multi is not None and len(data_multi) > 0:
                     preds_multi = self.autoencoder_detector.fit_predict(data_multi)
                     if -1 in preds_multi:
-                        anomalies["multivariate_anomaly"] = {
-                            "status": "anomaly_detected"
-                        }
+                        anomalies["multivariate_anomaly"] = {"status": "anomaly_detected"}
 
                     # Transformer Check
                     if self.transformer_detector:
                         result = self.transformer_detector.detect(data_multi)
                         if result["is_anomaly"]:
-                            anomalies["transformer_anomaly"] = {
-                                "score": result["score"]
-                            }
-                            logger.warning(
-                                "transformer_anomaly_detected", score=result["score"]
-                            )
+                            anomalies["transformer_anomaly"] = {"score": result["score"]}
+                            logger.warning("transformer_anomaly_detected", score=result["score"])
 
         # 5. Data Drift Detection
         if self.data_drift_detection_enabled:
@@ -253,9 +225,7 @@ class AIOpsOrchestrator:
             )
             if data_multi is not None and len(data_multi) > 0:
                 # Mocking reference vs current for simplicity in this logic
-                drift_detected, info = self.data_drift_detector.detect_drift(
-                    data_multi, data_multi
-                )
+                drift_detected, info = self.data_drift_detector.detect_drift(data_multi, data_multi)
                 if drift_detected:
                     anomalies["data_drift"] = {
                         "drift_score": info.get("mmd_distance", 0),
@@ -276,9 +246,7 @@ class AIOpsOrchestrator:
 
                 # Check cooldowns
                 last_time = self.last_remediation_time.get(strategy_name, 0)
-                cooldown = self.config.get(
-                    f"{anomaly_type}_cooldown", 300
-                )  # Default 5m
+                cooldown = self.config.get(f"{anomaly_type}_cooldown", 300)  # Default 5m
 
                 if current_time - last_time < cooldown:
                     logger.debug(

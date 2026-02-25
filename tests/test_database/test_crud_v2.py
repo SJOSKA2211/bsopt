@@ -96,9 +96,7 @@ async def test_market_tick_ops():
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with async_session() as db_session:
         # MarketTick needs 'time'
-        tick = MarketTick(
-            time=datetime.now(UTC), symbol="BTC", price=50000.0, volume=1.5
-        )
+        tick = MarketTick(time=datetime.now(UTC), symbol="BTC", price=50000.0, volume=1.5)
         db_session.add(tick)
         await db_session.commit()
 

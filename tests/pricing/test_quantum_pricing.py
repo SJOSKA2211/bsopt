@@ -8,7 +8,6 @@ from src.pricing.quantum_pricing import QuantumOptionPricer
 
 
 class TestQuantumPricing:
-
     def test_create_stock_price_distribution_structure(self):
         """Verify the output is a QuantumCircuit with correct dimensions."""
         pricer = QuantumOptionPricer()
@@ -18,9 +17,7 @@ class TestQuantumPricing:
         T = 1.0
         num_qubits = 3
 
-        qc, prices = pricer.create_stock_price_distribution(
-            S0, mu, sigma, T, num_qubits
-        )
+        qc, prices = pricer.create_stock_price_distribution(S0, mu, sigma, T, num_qubits)
 
         assert isinstance(qc, QuantumCircuit)
         assert qc.num_qubits == num_qubits
@@ -35,9 +32,7 @@ class TestQuantumPricing:
         T = 1.0
         num_qubits = 4
 
-        qc, prices = pricer.create_stock_price_distribution(
-            S0, mu, sigma, T, num_qubits
-        )
+        qc, prices = pricer.create_stock_price_distribution(S0, mu, sigma, T, num_qubits)
 
         assert len(qc.data) > 0
         assert qc.depth() > 0
@@ -53,9 +48,7 @@ class TestQuantumPricing:
         T = 1.0
         num_qubits = 3
 
-        qc, prices = pricer.create_stock_price_distribution(
-            S0, mu, sigma, T, num_qubits
-        )
+        qc, prices = pricer.create_stock_price_distribution(S0, mu, sigma, T, num_qubits)
 
         initial_depth = qc.depth()
         pricer.add_payoff_operator(qc, prices, K, S0)
@@ -81,9 +74,7 @@ class TestQuantumPricing:
         bs_price = black_scholes(S0, K, T, sigma, r)["price"]
 
         # Call quantum pricing
-        result = pricer.price_european_call_quantum(
-            S0, K, T, r, sigma, num_qubits=num_qubits
-        )
+        result = pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits)
         assert "price" in result
         assert "confidence_interval" in result
         assert "speedup_factor" in result
@@ -180,9 +171,7 @@ class TestQuantumHardware:
     def test_quantum_pricer_hardware_init_mock(self, mocker):
         """Verify that QuantumOptionPricer attempts to use QuantumBackendManager when use_real_quantum is True."""
         # Mock QuantumBackendManager
-        mock_manager_class = mocker.patch(
-            "src.pricing.quantum_pricing.QuantumBackendManager"
-        )
+        mock_manager_class = mocker.patch("src.pricing.quantum_pricing.QuantumBackendManager")
         mock_manager_instance = mock_manager_class.return_value
         mock_backend = MagicMock()
         mock_manager_instance.get_backend.return_value = mock_backend
@@ -199,9 +188,7 @@ class TestQuantumHardware:
 
     def test_quantum_pricer_hardware_fallback_on_error(self, mocker):
         """Verify that the pricer falls back to AerSimulator if backend retrieval fails."""
-        mock_manager_class = mocker.patch(
-            "src.pricing.quantum_pricing.QuantumBackendManager"
-        )
+        mock_manager_class = mocker.patch("src.pricing.quantum_pricing.QuantumBackendManager")
         mock_manager_instance = mock_manager_class.return_value
         mock_manager_instance.get_backend.side_effect = Exception("Backend Error")
 

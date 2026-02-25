@@ -131,9 +131,7 @@ async def test_dispatcher_dlq_routing():
 
     with patch("httpx.AsyncClient") as MockAsyncClient:
         mock_client_instance = MockAsyncClient.return_value.__aenter__.return_value
-        mock_client_instance.post.side_effect = [
-            mock_response_fail
-        ] * 6  # 5 retries + 1 initial
+        mock_client_instance.post.side_effect = [mock_response_fail] * 6  # 5 retries + 1 initial
 
         url = "http://test.com/fail_to_dlq"
         payload = {"data": "dlq"}
@@ -195,12 +193,8 @@ async def test_dispatcher_request_error_retry():
     with patch("httpx.AsyncClient") as MockAsyncClient:
         mock_client_instance = MockAsyncClient.return_value.__aenter__.return_value
         mock_client_instance.post.side_effect = [
-            httpx.RequestError(
-                "Network error", request=httpx.Request("POST", "http://test.com")
-            ),
-            httpx.RequestError(
-                "Network error", request=httpx.Request("POST", "http://test.com")
-            ),
+            httpx.RequestError("Network error", request=httpx.Request("POST", "http://test.com")),
+            httpx.RequestError("Network error", request=httpx.Request("POST", "http://test.com")),
             AsyncMock(status_code=200),  # Third attempt succeeds
         ]
 

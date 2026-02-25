@@ -32,9 +32,7 @@ def test_dockerfile_ci_non_root_verification_skipped():
     Verification of Dockerfile.ci running as non-root user is skipped
     due to user instruction not to run or build Docker containers.
     """
-    pytest.skip(
-        "Docker container build and run explicitly skipped by user instruction."
-    )
+    pytest.skip("Docker container build and run explicitly skipped by user instruction.")
 
 
 def test_dockerfile_scraper_hardened():

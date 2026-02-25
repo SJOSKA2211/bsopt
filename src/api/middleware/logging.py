@@ -116,10 +116,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     def _truncate_body(self, body: str) -> str:
         """Truncate body if too long."""
         if len(body) > self.max_body_length:
-            return (
-                body[: self.max_body_length]
-                + f"... [truncated, {len(body)} bytes total]"
-            )
+            return body[: self.max_body_length] + f"... [truncated, {len(body)} bytes total]"
         return body
 
     def _get_client_ip(self, request: Request) -> str:
@@ -209,9 +206,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     # OPTIMIZED: Convert query_params dict to string using msgspec
                     query_params_str = None
                     if log_entry.get("query_params"):
-                        query_params_str = msgspec.json.encode(
-                            log_entry["query_params"]
-                        ).decode("utf-8")
+                        query_params_str = msgspec.json.encode(log_entry["query_params"]).decode(
+                            "utf-8"
+                        )
 
                     request_log = RequestLog(
                         request_id=log_entry["request_id"],
@@ -220,11 +217,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         query_params=query_params_str,
                         headers=log_entry.get("headers"),
                         client_ip=log_entry["client_ip"],
-                        user_id=(
-                            UUID(log_entry["user_id"])
-                            if log_entry.get("user_id")
-                            else None
-                        ),
+                        user_id=(UUID(log_entry["user_id"]) if log_entry.get("user_id") else None),
                         status_code=log_entry["status_code"],
                         response_time_ms=log_entry["duration_ms"],
                         error_message=log_entry.get("error", {}).get("message"),

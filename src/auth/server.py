@@ -95,9 +95,7 @@ async def authorize(request: Request, db: Session = Depends(get_db)):
     For this high-performance API, we expect a pre-authenticated session or credential.
     """
     # Placeholder for user authentication logic
-    user = db.query(
-        User
-    ).first()  # Dummy for now, would be replaced by real session/user
+    user = db.query(User).first()  # Dummy for now, would be replaced by real session/user
     if not user:
         raise HTTPException(status_code=401, detail="User not authenticated")
 

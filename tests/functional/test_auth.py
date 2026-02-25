@@ -75,9 +75,7 @@ async def test_protected_endpoint_valid_token(client, mock_db, user_payload):
     token = login_res.json()["data"]["access_token"]
 
     # Test
-    response = await client.get(
-        "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     # 47. Schema validation
     UserResponse(**response.json()["data"])

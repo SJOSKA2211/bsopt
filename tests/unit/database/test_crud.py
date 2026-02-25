@@ -28,9 +28,7 @@ async def db_session():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    AsyncSessionLocal = sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False
-    )
+    AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
     async with AsyncSessionLocal() as session:
         yield session
@@ -41,9 +39,7 @@ async def db_session():
 @pytest.mark.asyncio
 async def test_user_crud(db_session):
     # Create
-    user = await create_user(
-        db_session, "test@example.com", "Password123!", "Test User"
-    )
+    user = await create_user(db_session, "test@example.com", "Password123!", "Test User")
     assert user.email == "test@example.com"
     assert user.full_name == "Test User"
 
@@ -54,9 +50,7 @@ async def test_user_crud(db_session):
 
 @pytest.mark.asyncio
 async def test_portfolio_crud(db_session):
-    user = await create_user(
-        db_session, "test@example.com", "Password123!", "Test User"
-    )
+    user = await create_user(db_session, "test@example.com", "Password123!", "Test User")
     portfolio = await create_portfolio(db_session, user.id, "My Portfolio", 10000.0)
 
     assert portfolio.name == "My Portfolio"

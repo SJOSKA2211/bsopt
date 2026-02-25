@@ -30,9 +30,7 @@ class TestStrategies(unittest.TestCase):
 
     def test_sklearn_strategy(self):
         s = SklearnStrategy()
-        model = s.train(
-            self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10}
-        )
+        model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)
@@ -59,9 +57,7 @@ class TestStrategies(unittest.TestCase):
         mock_train.return_value = mock_model
 
         s = XGBoostStrategy()
-        model = s.train(
-            self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10}
-        )
+        model = s.train(self.X_train, self.y_train, self.X_test, self.y_test, {"n_estimators": 10})
         self.assertIsNotNone(model)
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)

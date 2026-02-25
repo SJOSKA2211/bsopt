@@ -58,7 +58,6 @@ async def test_recalibrate_symbol_async_success():
         patch("src.workers.math_worker.get_async_db_context", return_value=mock_db),
         patch("asyncio.get_event_loop") as mock_loop,
     ):
-
         # Mock executor result
         mock_loop.return_value.run_in_executor = AsyncMock(
             return_value=(mock_params, mock_metrics, mock_surface)
@@ -78,9 +77,7 @@ def test_calibration_worker_integration():
     mock_calibrator.calibrate.return_value = (MagicMock(), {"rmse": 0.01})
     mock_calibrator.calibrate_surface.return_value = {"1.0": [0.1]}
 
-    with patch(
-        "src.workers.math_worker.HestonCalibrator", return_value=mock_calibrator
-    ):
+    with patch("src.workers.math_worker.HestonCalibrator", return_value=mock_calibrator):
         params, metrics, surface = _calibration_worker({"data": "test"})
         assert metrics["rmse"] == 0.01
         assert "1.0" in surface
@@ -96,7 +93,6 @@ def test_recalibrate_symbol_task_failure():
         patch("ray.get", side_effect=Exception("Ray Exploded")),
         patch("asyncio.run") as mock_run,
     ):
-
         # Access the raw function directly from the task object's __wrapped__ attribute if it exists,
         # otherwise use the function itself. Celery tasks wrap the function.
         if hasattr(recalibrate_symbol, "__wrapped__"):

@@ -42,9 +42,7 @@ class MarketDataMeshProducer:
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
 
         # Load Mesh Schema
-        schema_path = os.path.join(
-            os.path.dirname(__file__), "schemas/market_data_mesh.avsc"
-        )
+        schema_path = os.path.join(os.path.dirname(__file__), "schemas/market_data_mesh.avsc")
         with open(schema_path) as f:
             self.mesh_schema = f.read()
 
@@ -69,9 +67,7 @@ class MarketDataMeshProducer:
             # Trigger send (non-blocking)
             self.producer.poll(0)
         except Exception as e:
-            logger.error(
-                "mesh_kafka_produce_error", error=str(e), symbol=data.get("symbol")
-            )
+            logger.error("mesh_kafka_produce_error", error=str(e), symbol=data.get("symbol"))
 
     def _delivery_callback(self, err, msg):
         if err:

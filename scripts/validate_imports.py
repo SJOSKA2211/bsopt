@@ -15,15 +15,11 @@ def _find_lazy_loaded_modules(base_path: str) -> dict[str, dict[str, str]]:
             if relative_path == ".":
                 full_module_name = package_name
             else:
-                full_module_name = (
-                    f"{package_name}.{relative_path.replace(os.sep, '.')}"
-                )
+                full_module_name = f"{package_name}.{relative_path.replace(os.sep, '.')}"
 
             init_file_path = os.path.join(root, "__init__.py")
             try:
-                spec = importlib.util.spec_from_file_location(
-                    full_module_name, init_file_path
-                )
+                spec = importlib.util.spec_from_file_location(full_module_name, init_file_path)
                 if spec and spec.loader:
                     module = importlib.util.module_from_spec(spec)
                     # Use a fresh sys.modules context for inspection if possible,
@@ -32,9 +28,7 @@ def _find_lazy_loaded_modules(base_path: str) -> dict[str, dict[str, str]]:
                     sys.modules[full_module_name] = module
                     try:
                         spec.loader.exec_module(module)
-                        if hasattr(module, "_import_map") and hasattr(
-                            module, "__getattr__"
-                        ):
+                        if hasattr(module, "_import_map") and hasattr(module, "__getattr__"):
                             lazy_modules[full_module_name] = module._import_map
                     except Exception:
                         pass
@@ -83,9 +77,7 @@ def validate_lazy_imports(base_path: str):
                     del sys.modules[module_name]
                 parent_module = importlib.import_module(module_name)
             except Exception as e:
-                print(
-                    f"Error: Could not dynamically import parent module {module_name}: {e}"
-                )
+                print(f"Error: Could not dynamically import parent module {module_name}: {e}")
                 broken_imports[f"{module_name} (parent module)"] = str(e)
                 continue
 
@@ -98,14 +90,10 @@ def validate_lazy_imports(base_path: str):
                     ImportError,
                     AttributeError,
                 ) as e:
-                    full_import_path = (
-                        f"{module_name}.{attr_name} (maps to {relative_path})"
-                    )
+                    full_import_path = f"{module_name}.{attr_name} (maps to {relative_path})"
                     broken_imports[full_import_path] = str(e)
                 except Exception as e:
-                    full_import_path = (
-                        f"{module_name}.{attr_name} (maps to {relative_path})"
-                    )
+                    full_import_path = f"{module_name}.{attr_name} (maps to {relative_path})"
                     broken_imports[full_import_path] = f"Unexpected error: {str(e)}"
 
         if broken_imports:

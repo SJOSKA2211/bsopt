@@ -46,9 +46,7 @@ class Trainer:
             try:
                 self.rank = ray.train.get_context().get_local_rank()
                 # Auto-detect device for Ray workers
-                self.device = (
-                    f"cuda:{self.rank}" if torch.cuda.is_available() else "cpu"
-                )
+                self.device = f"cuda:{self.rank}" if torch.cuda.is_available() else "cpu"
             except (ImportError, RuntimeError):
                 self.rank = 0
                 self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -168,7 +166,7 @@ class Trainer:
                 mlflow.log_metrics(synced_metrics, step=epoch)
 
             logger.info(
-                f"Epoch {epoch+1} | "
+                f"Epoch {epoch + 1} | "
                 f"Train Loss: {synced_metrics.get('train_loss', 0.0):.4f} | "
                 f"Val Loss: {synced_metrics['loss']:.4f} | "
                 f"RMSE: {synced_metrics.get('rmse', 0.0):.4f} | "

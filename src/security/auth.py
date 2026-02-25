@@ -145,9 +145,7 @@ class AuthService:
         if not user:
             # Create a dummy hash to burn CPU time consistently
             dummy_hash = password_service.hash_password(secrets.token_urlsafe(32))
-            await run_in_threadpool(
-                password_service.verify_password, password, dummy_hash
-            )
+            await run_in_threadpool(password_service.verify_password, password, dummy_hash)
             return None
         # Always run password verification
         password_matches = await run_in_threadpool(
@@ -163,9 +161,7 @@ class AuthService:
                 user_id=str(user.id),
                 email=user.email,
             )
-            user.hashed_password = await run_in_threadpool(
-                password_service.hash_password, password
-            )
+            user.hashed_password = await run_in_threadpool(password_service.hash_password, password)
             # Persisted by the commit in the calling login route
         return user
 
@@ -195,9 +191,7 @@ class AuthService:
         """Internal helper to create a JWT token."""
         to_encode = data.copy()
         expire = datetime.now(UTC) + expires_delta
-        to_encode.update(
-            {"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)}
-        )
+        to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
         return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def invalidate_token(self, token: str, request: Request) -> None:
@@ -229,9 +223,7 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token") from None
 
-    async def validate_token(
-        self, token: str | None = Depends(get_token_from_header)
-    ) -> TokenData:
+    async def validate_token(self, token: str | None = Depends(get_token_from_header)) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
         token_data = self.decode_token(token)

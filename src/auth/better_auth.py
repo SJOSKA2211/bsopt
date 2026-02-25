@@ -20,9 +20,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
         return None  # Return None instead of raising so flexible auth can fallback
 
     # Verify in DB
-    session = (
-        db.query(BetterAuthSession).filter(BetterAuthSession.token == token).first()
-    )
+    session = db.query(BetterAuthSession).filter(BetterAuthSession.token == token).first()
 
     if not session:
         return None

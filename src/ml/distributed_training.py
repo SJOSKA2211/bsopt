@@ -47,9 +47,7 @@ def train_func(config: dict[str, Any]):
     # Wrap for DDP
     model = ray.train.torch.prepare_model(model)
 
-    optimizer = th.optim.AdamW(
-        model.parameters(), lr=config.get("lr", 1e-4), weight_decay=1e-2
-    )
+    optimizer = th.optim.AdamW(model.parameters(), lr=config.get("lr", 1e-4), weight_decay=1e-2)
     criterion = nn.MSELoss()
 
     # 3. Setup Data (Trajectory Loading)
@@ -112,9 +110,7 @@ class BSOptDistributedTrainer:
             resources_per_worker={"CPU": 1, "GPU": 1 if self.use_gpu else 0},
         )
 
-        trainer = TorchTrainer(
-            train_func, train_loop_config=config, scaling_config=scaling_config
-        )
+        trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
 
         logger.info("starting_distributed_training", workers=self.num_workers)
         result = trainer.fit()

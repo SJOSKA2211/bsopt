@@ -7,18 +7,21 @@ on:
     branches: [ main, master ]
 
 jobs:
-  docker-build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker
+
+      - name: Enable BuildKit caching
+        run: |
+          echo "DOCKER_BUILDKIT=1" >> $GITHUB_ENV
+          echo "COMPOSE_DOCKER_CLI_BUILD=1" >> $GITHUB_ENV
         
-      # Docker layer caching via actions/cache was previously configured
-      # with a path that never existed, which produced noisy warnings
-      # without any real benefit. The cache step has been removed to
-      # keep logs clean and avoid path validation errors.
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
@@ -69,64 +72,17 @@ jobs:
           echo "=== Building Portfolio image ==="
           docker compose build portfolio
           
+          echo "=== Building test-runner image ==="
+          docker compose build test-runner
+          
           echo "=== All images built ==="
           docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
-
-  quality-checks:
-    runs-on: ubuntu-latest
-    needs: docker-build
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: false
-
-      - name: Setup Environment
-        run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
-
-      - name: Build API image only
-        run: docker compose build api
 
       - name: Lint, Format, and Security Scan via Makefile
         run: |
           make lint
           make format
           make security-scan
-
-  integration-tests:
-    runs-on: ubuntu-latest
-    needs: quality-checks
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: false
-          swap-storage: false
-
-      - name: Setup Environment
-        run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
-
-      - name: Build API image
-        run: docker compose build api
 
       - name: Start Dependencies
         run: docker compose up -d postgres redis rabbitmq
@@ -136,7 +92,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: integration-tests
+    needs: build-and-test
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4

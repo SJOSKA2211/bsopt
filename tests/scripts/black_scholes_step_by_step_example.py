@@ -34,9 +34,9 @@ def step_by_step_calculation():
     print(f"Spot Price (S):          {S:.2f}")
     print(f"Strike Price (K):        {K:.2f}")
     print(f"Time to Maturity (T):    {T:.2f} years")
-    print(f"Volatility (σ):          {sigma:.4f} ({sigma*100:.1f}%)")
-    print(f"Risk-Free Rate (r):      {r:.4f} ({r*100:.1f}%)")
-    print(f"Dividend Yield (q):      {q:.4f} ({q*100:.1f}%)")
+    print(f"Volatility (σ):          {sigma:.4f} ({sigma * 100:.1f}%)")
+    print(f"Risk-Free Rate (r):      {r:.4f} ({r * 100:.1f}%)")
+    print(f"Dividend Yield (q):      {q:.4f} ({q * 100:.1f}%)")
     print()
 
     # Step 1: Calculate intermediate terms
@@ -202,9 +202,7 @@ def step_by_step_calculation():
     # Step 11: Calculate Greeks - Theta (Call)
     print("STEP 11: CALCULATE GREEKS - THETA (CALL)")
     print("-" * 80)
-    print(
-        "Formula: Θ = [-S·n(d₁)·σ·e^(-qT)/(2√T) - r·K·e^(-rT)·N(d₂) + q·S·e^(-qT)·N(d₁)] / 365"
-    )
+    print("Formula: Θ = [-S·n(d₁)·σ·e^(-qT)/(2√T) - r·K·e^(-rT)·N(d₂) + q·S·e^(-qT)·N(d₁)] / 365")
     print()
 
     theta_term1 = -(S * n_d1 * sigma * discount_q) / (2 * sqrt_T)
@@ -246,9 +244,7 @@ def step_by_step_calculation():
     print("=" * 80)
     print()
 
-    params = BSParameters(
-        spot=S, strike=K, maturity=T, volatility=sigma, rate=r, dividend=q
-    )
+    params = BSParameters(spot=S, strike=K, maturity=T, volatility=sigma, rate=r, dividend=q)
     lib_call = BlackScholesEngine.price_call(params)
     lib_put = BlackScholesEngine.price_put(params)
     lib_greeks_call = BlackScholesEngine.calculate_greeks(params, "call")

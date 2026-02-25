@@ -15,9 +15,7 @@ logger = structlog.get_logger(__name__)
 # Initialize Audit Vault
 _vault_key = os.getenv("AUDIT_VAULT_KEY", "changeme_32byte_key_for_god_mode!")
 _vault = (
-    AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode())
-    if _vault_key
-    else None
+    AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) if _vault_key else None
 )
 
 
@@ -29,9 +27,7 @@ def _produce_audit_log(producer: Any, topic: str, payload: dict[str, Any]):
             if "user_id" in payload:
                 payload["user_id"] = _vault.encrypt(str(payload["user_id"]).encode())
             if "client_ip" in payload:
-                payload["client_ip"] = _vault.encrypt(
-                    str(payload["client_ip"]).encode()
-                )
+                payload["client_ip"] = _vault.encrypt(str(payload["client_ip"]).encode())
 
         producer.produce(
             topic,
@@ -89,17 +85,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
             if _vault:
                 # Encrypt sensitive fields
-                if (
-                    "user_email" in audit_payload
-                    and audit_payload["user_email"] != "anonymous"
-                ):
+                if "user_email" in audit_payload and audit_payload["user_email"] != "anonymous":
                     audit_payload["user_email"] = _vault.encrypt(
                         str(audit_payload["user_email"]).encode()
                     )
-                if (
-                    "client_ip" in audit_payload
-                    and audit_payload["client_ip"] != "unknown"
-                ):
+                if "client_ip" in audit_payload and audit_payload["client_ip"] != "unknown":
                     audit_payload["client_ip"] = _vault.encrypt(
                         str(audit_payload["client_ip"]).encode()
                     )

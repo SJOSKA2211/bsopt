@@ -63,9 +63,7 @@ class MeshBridge:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((self.multicast_group, self.port))
-        mreq = struct.pack(
-            "4sl", socket.inet_aton(self.multicast_group), socket.INADDR_ANY
-        )
+        mreq = struct.pack("4sl", socket.inet_aton(self.multicast_group), socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         # Buffer for MTU-sized packets
@@ -82,9 +80,7 @@ class MeshBridge:
                         # Unpack raw bytes from buffer
                         data = TICK_STRUCT.unpack(buf[i : i + TICK_SIZE])
                         self.mesh.write_tick(
-                            symbol=data[0]
-                            .decode("ascii", errors="ignore")
-                            .strip("\x00"),
+                            symbol=data[0].decode("ascii", errors="ignore").strip("\x00"),
                             price=data[1],
                             volume=data[2],
                             timestamp=data[3],

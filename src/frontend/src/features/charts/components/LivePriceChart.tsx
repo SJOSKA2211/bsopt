@@ -35,32 +35,32 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
       width: chartContainerRef.current.clientWidth,
       height: chartContainerRef.current.clientHeight,
       layout: {
-        background: { type: ColorType.Solid, color: theme.palette.background.paper },
+        background: { type: ColorType.Solid, color: '#0f172a' }, // Solid Slate 900
         textColor: theme.palette.text.secondary,
       },
       grid: {
-        vertLines: { color: alpha(theme.palette.divider, 0.1) },
-        horzLines: { color: alpha(theme.palette.divider, 0.1) },
+        vertLines: { color: alpha(theme.palette.divider, 0.05) },
+        horzLines: { color: alpha(theme.palette.divider, 0.05) },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
       },
       rightPriceScale: {
-        borderColor: alpha(theme.palette.divider, 0.2),
+        borderColor: alpha(theme.palette.divider, 0.1),
       },
       timeScale: {
-        borderColor: alpha(theme.palette.divider, 0.2),
+        borderColor: alpha(theme.palette.divider, 0.1),
         timeVisible: true,
         secondsVisible: false,
       },
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: theme.palette.success.main,
-      downColor: theme.palette.error.main,
+      upColor: '#10b981',
+      downColor: '#f43f5e',
       borderVisible: false,
-      wickUpColor: theme.palette.success.main,
-      wickDownColor: theme.palette.error.main,
+      wickUpColor: '#10b981',
+      wickDownColor: '#f43f5e',
     });
 
     // Mock historical data for now

@@ -45,9 +45,7 @@ class TestModelTrainerPhase5(unittest.TestCase):
 
     @patch("src.ml.trainer.ModelScorecard")
     @patch("src.ml.trainer.get_strategy")
-    def test_holistic_scorecard_integration(
-        self, mock_get_strategy, mock_scorecard_cls
-    ):
+    def test_holistic_scorecard_integration(self, mock_get_strategy, mock_scorecard_cls):
         """Verify that ModelScorecard is used for evaluation."""
         mock_strategy = MagicMock()
         mock_get_strategy.return_value = mock_strategy

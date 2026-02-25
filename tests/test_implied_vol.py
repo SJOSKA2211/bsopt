@@ -37,9 +37,7 @@ class TestRoundTrip:
 
         iv = implied_volatility(market_price, 100, 100, 1.0, 0.05, 0.02, "call")
 
-        assert_equal(
-            iv, vol_true, tolerance=1e-6, message=f"Failed to recover vol={vol_true}"
-        )
+        assert_equal(iv, vol_true, tolerance=1e-6, message=f"Failed to recover vol={vol_true}")
 
     @pytest.mark.parametrize("vol_true", [0.05, 0.15, 0.25, 0.40, 0.80])
     def test_round_trip_atm_put(self, vol_true):
@@ -49,9 +47,7 @@ class TestRoundTrip:
 
         iv = implied_volatility(market_price, 100, 100, 1.0, 0.05, 0.02, "put")
 
-        assert_equal(
-            iv, vol_true, tolerance=1e-6, message=f"Failed to recover vol={vol_true}"
-        )
+        assert_equal(iv, vol_true, tolerance=1e-6, message=f"Failed to recover vol={vol_true}")
 
     @pytest.mark.parametrize("moneyness", [0.8, 0.9, 1.0, 1.1, 1.2])
     def test_round_trip_various_strikes(self, moneyness):
@@ -65,9 +61,7 @@ class TestRoundTrip:
 
         iv = implied_volatility(market_price, spot, strike, 1.0, 0.05, 0.02, "call")
 
-        assert_equal(
-            iv, vol_true, tolerance=1e-5, message=f"Failed for moneyness={moneyness}"
-        )
+        assert_equal(iv, vol_true, tolerance=1e-5, message=f"Failed for moneyness={moneyness}")
 
 
 class TestEdgeCases:
@@ -127,9 +121,7 @@ class TestEdgeCases:
         market_price = BlackScholesEngine.price_call(params)
 
         if market_price > 1e-8:
-            iv = implied_volatility(
-                market_price, 100, 100, maturity, 0.05, 0.02, "call"
-            )
+            iv = implied_volatility(market_price, 100, 100, maturity, 0.05, 0.02, "call")
             # Relaxed tolerance for very short maturities
             assert_equal(iv, vol_true, tolerance=1e-3)
 
@@ -270,9 +262,7 @@ class TestMethodComparison:
         market_price = BlackScholesEngine.price_call(params)
 
         # Auto should give same result as Newton for good cases
-        iv_auto = implied_volatility(
-            market_price, 100, 100, 1.0, 0.05, 0.02, "call", method="auto"
-        )
+        iv_auto = implied_volatility(market_price, 100, 100, 1.0, 0.05, 0.02, "call", method="auto")
         iv_newton = implied_volatility(
             market_price, 100, 100, 1.0, 0.05, 0.02, "call", method="newton"
         )
@@ -335,9 +325,7 @@ class TestAccuracy:
         params = BSParameters(103.47, 98.23, 0.752, vol_true, 0.0423, 0.0187)
         market_price = BlackScholesEngine.price_call(params)
 
-        iv = implied_volatility(
-            market_price, 103.47, 98.23, 0.752, 0.0423, 0.0187, "call"
-        )
+        iv = implied_volatility(market_price, 103.47, 98.23, 0.752, 0.0423, 0.0187, "call")
 
         assert_equal(iv, vol_true, tolerance=0.0001)
 
@@ -396,16 +384,12 @@ class TestErrorHandling:
     def test_invalid_method(self):
         """Invalid method should raise ValueError."""
         with pytest.raises(ValueError, match="method must be"):
-            implied_volatility(
-                10.0, 100, 100, 1.0, 0.05, 0.02, "call", method="invalid"
-            )
+            implied_volatility(10.0, 100, 100, 1.0, 0.05, 0.02, "call", method="invalid")
 
     def test_negative_initial_guess(self):
         """Negative initial guess should raise ValueError."""
         with pytest.raises(ValueError, match="initial_guess must be positive"):
-            implied_volatility(
-                10.0, 100, 100, 1.0, 0.05, 0.02, "call", initial_guess=-0.5
-            )
+            implied_volatility(10.0, 100, 100, 1.0, 0.05, 0.02, "call", initial_guess=-0.5)
 
     def test_zero_initial_guess(self):
         """Zero initial guess should raise ValueError."""
@@ -420,9 +404,7 @@ class TestErrorHandling:
     def test_zero_max_iterations(self):
         """Zero max_iterations should raise ValueError."""
         with pytest.raises(ValueError, match="max_iterations must be at least 1"):
-            implied_volatility(
-                10.0, 100, 100, 1.0, 0.05, 0.02, "call", max_iterations=0
-            )
+            implied_volatility(10.0, 100, 100, 1.0, 0.05, 0.02, "call", max_iterations=0)
 
     def test_price_below_intrinsic_call(self):
         """Price below intrinsic value should raise arbitrage error."""

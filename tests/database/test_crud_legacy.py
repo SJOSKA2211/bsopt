@@ -79,9 +79,7 @@ async def test_update_portfolio_cash(mock_db):
     success = await crud.update_portfolio_cash(mock_db, pid, Decimal("100.00"), "add")
     assert success is True
 
-    success_sub = await crud.update_portfolio_cash(
-        mock_db, pid, Decimal("50.00"), "subtract"
-    )
+    success_sub = await crud.update_portfolio_cash(mock_db, pid, Decimal("50.00"), "subtract")
     assert success_sub is True
 
 
@@ -193,9 +191,7 @@ async def test_get_positions(mock_db):
 async def test_create_order(mock_db):
     mock_db.execute.return_value = mock_db.mock_result_cls()
 
-    order = await crud.create_order(
-        mock_db, uuid4(), uuid4(), "AAPL", "buy", 10, "market"
-    )
+    order = await crud.create_order(mock_db, uuid4(), uuid4(), "AAPL", "buy", 10, "market")
     assert order.symbol == "AAPL"
     assert order.status == "pending"
     mock_db.add.assert_called()

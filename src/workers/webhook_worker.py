@@ -51,9 +51,7 @@ def get_webhook_dispatcher():
 
         if redis_client is None:
             InMemoryCircuitBreaker = _get_attr("InMemoryCircuitBreaker")
-            circuit_breaker = InMemoryCircuitBreaker(
-                failure_threshold=5, recovery_timeout=30
-            )
+            circuit_breaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
         else:
             DistributedCircuitBreaker = _get_attr("DistributedCircuitBreaker")
             circuit_breaker = DistributedCircuitBreaker(
@@ -76,9 +74,7 @@ async def _process_webhook_core(task_self, webhook_data: dict):
     secret = webhook_data["secret"]
 
     try:
-        await dispatcher.dispatch_webhook(
-            url=url, payload=payload, headers=headers, secret=secret
-        )
+        await dispatcher.dispatch_webhook(url=url, payload=payload, headers=headers, secret=secret)
         logger.info("process_webhook_task_completed", url=url)
     except Exception as e:
         error_str = str(e)
@@ -99,9 +95,7 @@ async def _process_webhook_core(task_self, webhook_data: dict):
             raise task_self.retry(exc=e, countdown=retry_delay)
         except MaxRetriesExceededError:
             logger.error("process_webhook_task_max_retries", url=url)
-            send_to_dlq_task.delay(
-                webhook_data, reason=f"celery_max_retries: {error_str}"
-            )
+            send_to_dlq_task.delay(webhook_data, reason=f"celery_max_retries: {error_str}")
 
 
 @celery_app.task(bind=True, max_retries=5)
@@ -109,9 +103,7 @@ def process_webhook_task(self, webhook_data: dict):
     loop = asyncio.get_event_loop()
     if loop.is_running():
         # In a running loop (unlikely for pure Celery prefork, but good for safety)
-        future = asyncio.run_coroutine_threadsafe(
-            _process_webhook_core(self, webhook_data), loop
-        )
+        future = asyncio.run_coroutine_threadsafe(_process_webhook_core(self, webhook_data), loop)
         return future.result()
     return asyncio.run(_process_webhook_core(self, webhook_data))
 

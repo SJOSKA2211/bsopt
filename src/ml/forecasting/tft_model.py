@@ -38,9 +38,7 @@ class PriceTFTModel:
         # OPTIMIZED: Limit training data size to prevent OOM
         MAX_SAMPLES = 500000
         if len(data) > MAX_SAMPLES:
-            logger.warning(
-                "data_truncated_for_memory_safety", original=len(data), max=MAX_SAMPLES
-            )
+            logger.warning("data_truncated_for_memory_safety", original=len(data), max=MAX_SAMPLES)
             data = data.iloc[-MAX_SAMPLES:]
 
         data = data.copy()
@@ -70,9 +68,7 @@ class PriceTFTModel:
             static_categoricals=["symbol"],
             time_varying_known_reals=["time_idx"],
             time_varying_unknown_reals=["price"],
-            target_normalizer=GroupNormalizer(
-                groups=["symbol"], transformation="softplus"
-            ),
+            target_normalizer=GroupNormalizer(groups=["symbol"], transformation="softplus"),
             add_relative_time_idx=True,
             add_target_scales=True,
             add_encoder_length=True,

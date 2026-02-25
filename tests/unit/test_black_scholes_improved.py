@@ -38,9 +38,7 @@ def test_calculate_greeks(params):
     engine = BlackScholesEngine()
     greeks = engine.calculate_greeks(params=params, option_type="call")
     # Handle both scalar and array results (Numba might return 0-dim array)
-    delta = (
-        float(greeks.delta) if isinstance(greeks.delta, np.ndarray) else greeks.delta
-    )
+    delta = float(greeks.delta) if isinstance(greeks.delta, np.ndarray) else greeks.delta
     assert delta > 0
     assert delta < 1.0
 
@@ -108,9 +106,7 @@ def test_module_level_funcs(params):
     from src.pricing.black_scholes import verify_put_call_parity as vpcp
 
     # When called with kwargs, returns float directly
-    res = black_scholes(
-        spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
-    )
+    res = black_scholes(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)
     assert isinstance(res, float)
 
     # Test parity func

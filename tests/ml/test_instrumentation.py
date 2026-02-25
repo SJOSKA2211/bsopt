@@ -39,7 +39,6 @@ def test_trainer_new_prometheus_metrics(sample_data):
         patch("src.ml.trainer.TRAINING_DURATION") as mock_hist,
         patch("src.ml.trainer.MODEL_RMSE") as mock_rmse,
     ):
-
         mock_hist_labels = MagicMock()
         mock_hist.labels.return_value = mock_hist_labels
 
@@ -65,11 +64,8 @@ def test_trainer_error_metrics(sample_data):
 
     with (
         patch("src.ml.trainer.TRAINING_ERRORS") as mock_errors,
-        patch(
-            "src.ml.trainer.train_test_split", side_effect=Exception("Simulated crash")
-        ),
+        patch("src.ml.trainer.train_test_split", side_effect=Exception("Simulated crash")),
     ):
-
         mock_errors_labels = MagicMock()
         mock_errors.labels.return_value = mock_errors_labels
 
@@ -117,7 +113,6 @@ async def test_pipeline_scrape_execution():
         patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
         patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor"),
     ):
-
         mock_scraper = mock_scraper_cls.return_value
         mock_scraper.fetch_historical_data.side_effect = Exception("API Fail")
 
@@ -139,7 +134,6 @@ async def test_pipeline_scrape_execution():
         patch("src.ml.autonomous_pipeline.InstrumentedTrainer"),
         patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor"),
     ):
-
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd
 

@@ -123,9 +123,7 @@ class BlackScholesEngine:
 
     @staticmethod
     def price_call(params: BSParameters) -> float:
-        return float(
-            BlackScholesEngine.price_options(params=params, option_type="call")
-        )
+        return float(BlackScholesEngine.price_options(params=params, option_type="call"))
 
     @staticmethod
     def price_put(params: BSParameters) -> float:
@@ -159,9 +157,9 @@ class BlackScholesEngine:
     @staticmethod
     def verify_put_call_parity(S, K, T, r, call_price, put_price, q=0.0):
         lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
-        rhs = np.asanyarray(S) * np.exp(
-            -np.asanyarray(q) * np.asanyarray(T)
-        ) - np.asanyarray(K) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
+        rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - np.asanyarray(
+            K
+        ) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
         return np.allclose(lhs, rhs, atol=1e-5)
 
     @classmethod
@@ -169,9 +167,7 @@ class BlackScholesEngine:
         cls, params: BSParameters | None = None, option_type: str = "call", **kwargs
     ) -> float:
         """Class method for backward compatibility and PricingStrategy interface."""
-        return float(
-            cls.price_options(params=params, option_type=option_type, **kwargs)
-        )
+        return float(cls.price_options(params=params, option_type=option_type, **kwargs))
 
 
 def black_scholes(*args, **kwargs):
@@ -192,6 +188,4 @@ def verify_put_call_parity(
         return BlackScholesEngine.verify_put_call_parity(
             p.spot, p.strike, p.maturity, p.rate, cp, pp, p.dividend
         )
-    return BlackScholesEngine.verify_put_call_parity(
-        params_or_S, K, T, r, call_price, put_price, q
-    )
+    return BlackScholesEngine.verify_put_call_parity(params_or_S, K, T, r, call_price, put_price, q)

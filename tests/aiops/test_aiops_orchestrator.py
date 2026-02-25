@@ -13,9 +13,7 @@ def mock_orchestrator_dependencies():
         patch("src.aiops.aiops_orchestrator.PrometheusClient") as mock_prom,
         patch("src.aiops.aiops_orchestrator.IsolationForestDetector") as mock_if,
         patch("src.aiops.aiops_orchestrator.AutoencoderDetector") as mock_ae,
-        patch(
-            "src.aiops.aiops_orchestrator.TransformerAnomalyDetector"
-        ) as mock_transformer,
+        patch("src.aiops.aiops_orchestrator.TransformerAnomalyDetector") as mock_transformer,
         patch("src.aiops.aiops_orchestrator.DataDriftDetector") as mock_drift,
         patch("src.aiops.aiops_orchestrator.DockerRemediator") as mock_docker,
         patch("src.aiops.aiops_orchestrator.MLPipelineTrigger") as mock_ml_trigger,
@@ -23,18 +21,13 @@ def mock_orchestrator_dependencies():
         patch("src.aiops.aiops_orchestrator.post_grafana_annotation") as mock_notify,
         patch("src.aiops.aiops_orchestrator.logger") as mock_logger,
     ):
-
         # Ensure instances are returned correctly
         mock_prom_instance = MagicMock()
         mock_prom_instance.get_custom_metric = AsyncMock(return_value=0.0)
         mock_prom_instance.get_5xx_error_rate = AsyncMock(return_value=0.0)
         mock_prom_instance.get_p95_latency = AsyncMock(return_value=0.0)
-        mock_prom_instance.get_historical_metric_data = AsyncMock(
-            return_value=np.array([])
-        )
-        mock_prom_instance.get_historical_metric_data_multi = AsyncMock(
-            return_value=np.array([])
-        )
+        mock_prom_instance.get_historical_metric_data = AsyncMock(return_value=np.array([]))
+        mock_prom_instance.get_historical_metric_data_multi = AsyncMock(return_value=np.array([]))
         mock_prom_instance.get_metric_range = AsyncMock(return_value=np.array([]))
 
         mock_prom.return_value = mock_prom_instance
@@ -102,40 +95,29 @@ def test_orchestrator_init_all_enabled(mock_config, mock_orchestrator_dependenci
     assert orchestrator.remediation_registry is not None
 
 
-def test_orchestrator_init_autoencoder_disabled(
-    mock_config, mock_orchestrator_dependencies
-):
+def test_orchestrator_init_autoencoder_disabled(mock_config, mock_orchestrator_dependencies):
     mock_config["autoencoder_input_dim"] = 0  # Convention to disable
     orchestrator = AIOpsOrchestrator(mock_config)
     assert orchestrator.autoencoder_detector is None
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_run_no_anomalies(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_orchestrator_run_no_anomalies(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
 
     with (
-        patch.object(
-            orchestrator, "_detect_anomalies", new_callable=AsyncMock, return_value={}
-        ),
+        patch.object(orchestrator, "_detect_anomalies", new_callable=AsyncMock, return_value={}),
         patch.object(
             orchestrator, "_remediate_anomalies", new_callable=AsyncMock
         ) as mock_remediate,
     ):
-
         await orchestrator.run(iterations=1)
         mock_remediate.assert_not_called()
-        mock_orchestrator_dependencies["logger"].info.assert_any_call(
-            "no_anomalies_found"
-        )
+        mock_orchestrator_dependencies["logger"].info.assert_any_call("no_anomalies_found")
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_run_with_anomalies(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_orchestrator_run_with_anomalies(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
     anomalies = {"high_error_rate": {"metric": 0.2, "threshold": 0.1}}
 
@@ -150,7 +132,6 @@ async def test_orchestrator_run_with_anomalies(
             orchestrator, "_remediate_anomalies", new_callable=AsyncMock
         ) as mock_remediate,
     ):
-
         await orchestrator.run(iterations=1)
         mock_remediate.assert_called_once_with(anomalies)
         mock_orchestrator_dependencies["logger"].warning.assert_any_call(
@@ -159,9 +140,7 @@ async def test_orchestrator_run_with_anomalies(
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_run_exception_handling(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_orchestrator_run_exception_handling(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
 
     with patch.object(
@@ -222,9 +201,7 @@ async def test_detect_anomalies_prometheus_metrics(
     config_prometheus_only["data_drift_detection_enabled"] = False
     orchestrator = AIOpsOrchestrator(config_prometheus_only)
 
-    orchestrator.prometheus_client.get_5xx_error_rate = AsyncMock(
-        return_value=error_rate
-    )
+    orchestrator.prometheus_client.get_5xx_error_rate = AsyncMock(return_value=error_rate)
     orchestrator.prometheus_client.get_p95_latency = AsyncMock(return_value=latency)
 
     anomalies = await orchestrator._detect_anomalies()
@@ -339,10 +316,7 @@ async def test_detect_anomalies_ml_driven(
             np.array([-1]) if multivariate_anomaly_detected else np.array([1])
         )
 
-    if (
-        hasattr(orchestrator, "transformer_detector")
-        and orchestrator.transformer_detector
-    ):
+    if hasattr(orchestrator, "transformer_detector") and orchestrator.transformer_detector:
         orchestrator.transformer_detector.detect.return_value = {
             "is_anomaly": multivariate_anomaly_detected,
             "score": 0.1 if multivariate_anomaly_detected else 0.0,
@@ -358,15 +332,11 @@ async def test_detect_anomalies_ml_driven(
 
 
 @pytest.mark.asyncio
-async def test_detect_anomalies_ml_driven_no_data(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_detect_anomalies_ml_driven_no_data(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
     orchestrator.prometheus_client.get_5xx_error_rate = AsyncMock(return_value=0.01)
     orchestrator.prometheus_client.get_p95_latency = AsyncMock(return_value=0.01)
-    orchestrator.prometheus_client.get_historical_metric_data = AsyncMock(
-        return_value=np.array([])
-    )
+    orchestrator.prometheus_client.get_historical_metric_data = AsyncMock(return_value=np.array([]))
     orchestrator.prometheus_client.get_historical_metric_data_multi = AsyncMock(
         return_value=np.array([])
     )
@@ -376,9 +346,7 @@ async def test_detect_anomalies_ml_driven_no_data(
 
 
 @pytest.mark.asyncio
-async def test_detect_anomalies_transformer(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_detect_anomalies_transformer(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
     orchestrator.prometheus_client.get_5xx_error_rate = AsyncMock(return_value=0.01)
     orchestrator.prometheus_client.get_p95_latency = AsyncMock(return_value=0.01)
@@ -404,15 +372,11 @@ def test_orchestrator_notify(mock_config, mock_orchestrator_dependencies):
     message = "Test notification"
     tags = ["test", "tag"]
     orchestrator.notify(message, tags)
-    mock_orchestrator_dependencies["post_grafana_annotation"].assert_called_once_with(
-        message, tags
-    )
+    mock_orchestrator_dependencies["post_grafana_annotation"].assert_called_once_with(message, tags)
 
 
 @pytest.mark.asyncio
-async def test_remediate_anomalies_error_handling(
-    mock_config, mock_orchestrator_dependencies
-):
+async def test_remediate_anomalies_error_handling(mock_config, mock_orchestrator_dependencies):
     orchestrator = AIOpsOrchestrator(mock_config)
     anomalies = {"high_error_rate": {"metric": 0.2}}
 
@@ -432,9 +396,7 @@ async def test_detect_anomalies_prometheus_multi_no_data(
     mock_config, mock_orchestrator_dependencies
 ):
     orchestrator = AIOpsOrchestrator(mock_config)
-    orchestrator.prometheus_client.get_historical_metric_data_multi = AsyncMock(
-        return_value=None
-    )
+    orchestrator.prometheus_client.get_historical_metric_data_multi = AsyncMock(return_value=None)
     orchestrator.prometheus_client.get_5xx_error_rate = AsyncMock(return_value=0.0)
     orchestrator.prometheus_client.get_p95_latency = AsyncMock(return_value=0.0)
 
