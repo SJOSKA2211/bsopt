@@ -14,8 +14,9 @@ COPY requirements.txt ./
 
 # Install Python dependencies only in builder
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple -r requirements.txt \
-    && uv pip install --system playwright
+    uv pip install --system --no-cache torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system --no-cache -r requirements.txt && \
+    uv pip install --system --no-cache playwright
 
 
 # === Stage 2: Development ===
