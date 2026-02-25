@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
+import { expect, test, beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { DashboardPage } from '../src/pages/dashboard/DashboardPage';
 import { Layout } from '../src/components/layout/Layout';
 import { ThemeProvider } from '@mui/material/styles';
@@ -9,6 +9,20 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+
+// Mock heavy/complex components to isolate Dashboard rendering logic
+vi.mock('../src/features/options/components/GreeksHeatmap', () => ({
+  GreeksHeatmap: () => <div data-testid="greeks-heatmap-mock">Greeks Heatmap Mock</div>
+}));
+
+vi.mock('../src/features/options/components/VolatilitySurface3D', () => ({
+  VolatilitySurface3D: () => <div data-testid="volatility-surface-mock">Volatility Surface Mock</div>
+}));
+
+// Mock LivePriceChart if needed (though lightweight-charts is mocked globally)
+vi.mock('../src/features/charts/components/LivePriceChart', () => ({
+  LivePriceChart: () => <div data-testid="live-price-chart-mock">Live Price Chart Mock</div>
+}));
 
 const handlers = [
   http.get('/api/v1/portfolio/summary', () => {
@@ -45,7 +59,13 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const createWrapper = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
@@ -74,11 +94,18 @@ test('Dashboard renders with Layout and trading components', async () => {
 
   expect(screen.getByTestId('options-chain-container')).toBeInTheDocument();
   expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
+
+  // These papers contain the lazy loaded components
   expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
   expect(screen.getByTestId('greeks-heatmap-paper')).toBeInTheDocument();
   expect(screen.getByTestId('ml-predictions-paper')).toBeInTheDocument();
   expect(screen.getByTestId('volatility-surface-paper')).toBeInTheDocument();
   
+  // Wait for mocks to appear (proving they were loaded)
+  expect(await screen.findByTestId('greeks-heatmap-mock')).toBeInTheDocument();
+  expect(await screen.findByTestId('volatility-surface-mock')).toBeInTheDocument();
+  expect(await screen.findByTestId('live-price-chart-mock')).toBeInTheDocument();
+
   // Wait for portfolio summary to load
   expect(await screen.findByText(/Portfolio Overview/i)).toBeInTheDocument();
 });
