@@ -146,7 +146,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
     # Always log errors (4xx, 5xx) and redirects (3xx).
     should_log = True
     if 200 <= response.status_code < 300:
-        if random.random() > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
+        if random.random()  # nosec B311 > getattr(settings, "LOG_SAMPLING_RATE", 0.1):
             should_log = False
 
     if should_log:
