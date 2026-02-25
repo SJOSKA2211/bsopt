@@ -46,6 +46,7 @@ def enterprise_user():
         created_at=datetime.now(UTC),
     )
 
+
 @pytest.fixture
 def admin_user():
     return User(
@@ -87,7 +88,7 @@ def test_update_me_success(mock_publish_to_redis, mock_user):
     response = client.patch("/api/v1/users/me", json={"full_name": "Updated Name"})
     # Skip assertion if update logic fails due to missing deps
     if response.status_code == 500:
-         pytest.skip("Update logic failed (DB/Redis mock issues)")
+        pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 200
     assert response.json()["data"]["full_name"] == "Updated Name"
     # mock_publish_to_redis.assert_called_once()
@@ -106,7 +107,7 @@ def test_update_me_success_email(mock_publish_to_redis, mock_user):
     ]  # First call finds user, second finds no conflict
     response = client.patch("/api/v1/users/me", json={"email": "new_email@example.com"})
     if response.status_code == 500:
-         pytest.skip("Update logic failed (DB/Redis mock issues)")
+        pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 200
     assert response.json()["data"]["email"] == "new_email@example.com"
     app.dependency_overrides = {}
@@ -124,7 +125,7 @@ def test_update_me_no_changes(mock_user):
         json={"email": mock_user.email, "full_name": mock_user.full_name},
     )
     if response.status_code == 500:
-         pytest.skip("Update logic failed (DB/Redis mock issues)")
+        pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 200
     assert response.json()["data"]["full_name"] == mock_user.full_name
     # Ensure commit was NOT called as no changes were made
@@ -144,7 +145,7 @@ def test_update_me_email_conflict(mock_user):
     ]
     response = client.patch("/api/v1/users/me", json={"email": "taken@example.com"})
     if response.status_code == 500:
-         pytest.skip("Update logic failed (DB/Redis mock issues)")
+        pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 409
     app.dependency_overrides = {}
 
@@ -170,7 +171,7 @@ def test_delete_me_success(mock_publish_to_redis, mock_user):
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
     response = client.delete("/api/v1/users/me")
     if response.status_code == 500:
-         pytest.skip("Update logic failed (DB/Redis mock issues)")
+        pytest.skip("Update logic failed (DB/Redis mock issues)")
     assert response.status_code == 200
     mock_user.is_active = False  # Verify soft delete
     mock_db.commit.assert_called_once()
@@ -238,7 +239,7 @@ def test_list_users_admin(admin_user, mock_user):
     app.dependency_overrides[get_current_user] = lambda: admin_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.scalar.return_value = 2 # Fix scalar() mock
+    mock_db.query.return_value.scalar.return_value = 2  # Fix scalar() mock
     mock_db.query.return_value.count.return_value = 2
     mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = [
         admin_user,
@@ -255,7 +256,7 @@ def test_list_users_empty(admin_user):
     app.dependency_overrides[get_current_user] = lambda: admin_user
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    mock_db.query.return_value.scalar.return_value = 0 # Fix scalar() mock
+    mock_db.query.return_value.scalar.return_value = 0  # Fix scalar() mock
     mock_db.query.return_value.count.return_value = 0
     mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = []
     response = client.get("/api/v1/users")
@@ -359,6 +360,7 @@ def test_list_users_with_is_active_filter(enterprise_user):
     assert response.json()["items"][0]["is_active"] is True
 
     app.dependency_overrides = {}
+
 
 # Test that non-admin (even enterprise) cannot list users
 def test_list_users_enterprise_forbidden(enterprise_user):
