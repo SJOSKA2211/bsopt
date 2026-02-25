@@ -17,7 +17,7 @@ from src.api.schemas.common import (
 from src.api.schemas.user import UserResponse, UserUpdateRequest
 from src.database import get_db
 from src.database.models import User
-from src.security.auth import get_current_user
+from src.security.auth import get_current_user, require_tier
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -49,7 +49,12 @@ async def update_current_user_profile(
 
 
 @router.get("", response_model=PaginatedResponse[UserResponse])
-async def list_users(db: Session = Depends(get_db), page: int = 1, page_size: int = 20):
+async def list_users(
+    db: Session = Depends(get_db),
+    page: int = 1,
+    page_size: int = 20,
+    user: User = Depends(require_tier(["admin"])),
+):
     """
     List users (Admin only logic can be added via dependency).
     """
