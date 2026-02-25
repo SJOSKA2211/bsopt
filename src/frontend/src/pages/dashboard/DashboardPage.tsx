@@ -300,7 +300,7 @@ export const DashboardPage: React.FC = () => {
 
         <Grid size={{ xs: 12, lg: 8 }}>
           <Paper data-testid="options-chain-container" sx={{ p: 0, height: 600, overflow: 'hidden' }}>
-            <Typography variant="h6" sx={{ p: 3, pb: 0, fontWeight: 600 }}>Options Chain</Typography>
+            <Typography variant="h4" sx={{ p: 3, pb: 0, fontWeight: 600, fontSize: '1.25rem' }}>Options Chain</Typography>
             <Suspense fallback={<LoadingFallback />}>
               <OptionsChain symbol="AAPL" />
             </Suspense>
@@ -310,13 +310,13 @@ export const DashboardPage: React.FC = () => {
         <Grid size={{ xs: 12, lg: 4 }}>
           <Stack spacing={3}>
             <Paper data-testid="greeks-heatmap-paper" sx={{ p: 3, height: 285 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Greeks Delta</Typography>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 600, fontSize: '1.25rem' }}>Greeks Delta</Typography>
               <Suspense fallback={<LoadingFallback />}>
                 <GreeksHeatmap symbol="AAPL" greek="delta" />
               </Suspense>
             </Paper>
             <Paper data-testid="volatility-surface-paper" sx={{ p: 3, height: 285 }}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Volatility Surface</Typography>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 600, fontSize: '1.25rem' }}>Volatility Surface</Typography>
               <Suspense fallback={<LoadingFallback />}>
                 <VolatilitySurface3D symbol="AAPL" />
               </Suspense>
