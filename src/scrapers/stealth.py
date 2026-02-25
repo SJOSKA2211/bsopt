@@ -28,7 +28,7 @@ class StealthHttpClient:
     async def get(self, url: str, **kwargs) -> Any:
         """Perform request with synchronized browser impersonation."""
         # 1. Select impersonation target
-        target = random.choice(["chrome110", "chrome120", "safari15_5"])
+        target = random.choice(["chrome110", "chrome120", "safari15_5"])  # nosec B311
 
         # 2. Map headers to the specific target to avoid mismatches
         # This is a simplified map - in a true Rick-pass, we'd have full profiles
