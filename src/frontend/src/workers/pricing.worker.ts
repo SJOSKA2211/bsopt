@@ -76,7 +76,8 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
         const { spot, strike, time, vol, rate, div, is_call, num_paths } = payload;
         const price = mcEngine.price_european(
           spot, strike, time, vol, rate, div, is_call, 
-          num_paths || 100000
+          num_paths || 100000,
+          false // parallel execution flag (boolean)
         );
         self.postMessage({ type: 'PRICE_OPTION_RESULT', payload: { price }, id });
         break;
@@ -85,6 +86,7 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
       case 'PRICE_HESTON': {
         const { payload, id } = e.data as any;
         const { spot, strike, time, r, v0, kappa, theta, sigma, rho } = payload;
+        // @ts-ignore
         const price = hestonEngine!.price_call(
           spot, strike, time, r, v0, kappa, theta, sigma, rho
         );
@@ -106,7 +108,7 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
         // Assuming the WASM binding handles the array of objects or we map it here
         // Since we can't easily pass complex objects to raw WASM without Serde, 
         // we might iterate here or rely on the binding's ability to take a JsValue (array).
-        const result = engine.batch_calculate(payload);
+        const result = engine.batch_calculate_soa(payload);
         self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id });
         break;
       }
