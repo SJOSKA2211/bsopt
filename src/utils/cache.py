@@ -170,7 +170,7 @@ def multi_layer_cache(
                         delta_ms = 100  # Assume 100ms computation time average
                         if (
                             remaining_ms > 0
-                            and (remaining_ms - delta_ms * beta * math.log(random.random())) < 0
+                        and (remaining_ms - delta_ms * beta * math.log(random.random())) < 0  # nosec B311
                         ):
                             logger.info("x_fetch_triggered_early_refresh", key=cache_key)
                         else:

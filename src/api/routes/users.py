@@ -17,7 +17,7 @@ from src.api.schemas.common import (
 from src.api.schemas.user import UserResponse, UserUpdateRequest
 from src.database import get_db
 from src.database.models import User
-from src.security.auth import get_current_user
+from src.security.auth import get_current_user, require_tier
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -48,10 +48,14 @@ async def update_current_user_profile(
     return SuccessResponse(message="Profile updated")
 
 
-@router.get("", response_model=PaginatedResponse[UserResponse])
+@router.get(
+    "",
+    response_model=PaginatedResponse[UserResponse],
+    dependencies=[Depends(require_tier(["admin"]))],
+)
 async def list_users(db: Session = Depends(get_db), page: int = 1, page_size: int = 20):
     """
-    List users (Admin only logic can be added via dependency).
+    List users (Restricted to Admin tier).
     """
     total = db.query(func.count(User.id)).scalar()
     users = db.query(User).offset((page - 1) * page_size).limit(page_size).all()
