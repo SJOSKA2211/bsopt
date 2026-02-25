@@ -72,7 +72,7 @@ class ProxyRotator:
 
         # Prefer proxies with lower latency and fewer failures
         # Sort by (failures * 10.0 + latency)
-        active_proxies.sort(key=lambda x: (x["failures"] * 10.0 + x["latency"]))
+        active_proxies.sort(key=lambda x: x["failures"] * 10.0 + x["latency"])
 
         # Pick from top pool to keep things fresh
         pool_size = max(1, min(3, len(active_proxies)))
