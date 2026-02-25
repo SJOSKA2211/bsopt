@@ -58,9 +58,7 @@ async def test_detector_detect(detector):
     extreme_data = pd.DataFrame({"latency": [500.0], "errors": [1.0], "cpu": [100.0]})
     # Mock model predict since Isolation Forest is stochastic
     with patch.object(detector.model, "predict", return_value=np.array([-1])):
-        with patch.object(
-            detector.model, "decision_function", return_value=np.array([-0.5])
-        ):
+        with patch.object(detector.model, "decision_function", return_value=np.array([-0.5])):
             anomalies = detector.detect(extreme_data)
             assert len(anomalies) == 1
             assert anomalies[0]["score"] < 0
@@ -87,12 +85,8 @@ async def test_orchestrator_run_cycle(orchestrator, sample_metrics):
     )
 
     # Mock remediator to avoid actual sleep/tasks
-    with patch.object(
-        RestartServiceRemediator, "remediate", new_callable=AsyncMock
-    ) as mock_rem:
-        orchestrator.planner.plan = MagicMock(
-            return_value=[orchestrator.remediators[0]]
-        )
+    with patch.object(RestartServiceRemediator, "remediate", new_callable=AsyncMock) as mock_rem:
+        orchestrator.planner.plan = MagicMock(return_value=[orchestrator.remediators[0]])
 
         await orchestrator.run_cycle(sample_metrics)
 
@@ -123,9 +117,7 @@ def test_analyze_drift(orchestrator, sample_metrics):
 @pytest.mark.asyncio
 async def test_orchestrator_start_stop(orchestrator):
     mock_source = MagicMock()
-    mock_source.get_latest_metrics_async = AsyncMock(
-        return_value=pd.DataFrame({"a": [1]})
-    )
+    mock_source.get_latest_metrics_async = AsyncMock(return_value=pd.DataFrame({"a": [1]}))
 
     # Use a small check interval
     orchestrator.check_interval = 0.1

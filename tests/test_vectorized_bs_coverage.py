@@ -11,7 +11,7 @@ def test_vectorized_bs_scalar_greeks():
     )
     assert isinstance(res, OptionGreeks)
     # Due to np.atleast_1d fix, output is a 1-element array
-    assert isinstance(res.delta, (float, np.ndarray))
+    assert isinstance(res.delta, float | np.ndarray)
     if isinstance(res.delta, np.ndarray):
         assert res.delta.size == 1
 
@@ -32,6 +32,6 @@ def test_vectorized_bs_price_options_scalar():
         spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05
     )
     # Due to np.atleast_1d fix, output is a 1-element array
-    assert isinstance(res, (float, np.ndarray))
+    assert isinstance(res, float | np.ndarray)
     if isinstance(res, np.ndarray):
         assert res.size == 1

@@ -22,11 +22,7 @@ class AuthService:
 
     def verify_client(self, client_id: str, client_secret: str) -> OAuth2Client | None:
         """Verify client credentials."""
-        client = (
-            self.db.query(OAuth2Client)
-            .filter(OAuth2Client.client_id == client_id)
-            .first()
-        )
+        client = self.db.query(OAuth2Client).filter(OAuth2Client.client_id == client_id).first()
         if client and client.verify_secret(client_secret):
             return client
         return None

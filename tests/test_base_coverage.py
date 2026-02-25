@@ -13,9 +13,7 @@ class MockPricingStrategy(PricingStrategy):
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         return 10.0
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         return OptionGreeks(0, 0, 0, 0, 0)
 
 

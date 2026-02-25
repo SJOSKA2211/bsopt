@@ -36,11 +36,8 @@ def test_dependencies_loadable():
     ]
 
     for dep in deps:
-
         try:
-
             importlib.import_module(dep)
 
         except ImportError as e:
-
             pytest.fail(f"Failed to import core dependency: {dep}. Error: {e}")

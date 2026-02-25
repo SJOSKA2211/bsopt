@@ -11,9 +11,7 @@ from src.pricing.quantum_backend import QuantumBackendManager
 
 # Filter deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit.*")
-warnings.filterwarnings(
-    "ignore", category=DeprecationWarning, module="qiskit_algorithms.*"
-)
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="qiskit_algorithms.*")
 
 try:
     import mlflow
@@ -67,9 +65,7 @@ class QuantumOptionPricer:
     Uses Iterative Amplitude Estimation (IAE) for quadratic speedup.
     """
 
-    def __init__(
-        self, use_real_quantum: bool = False, backend_name: str = "aer_simulator"
-    ):
+    def __init__(self, use_real_quantum: bool = False, backend_name: str = "aer_simulator"):
         self.use_real_quantum = use_real_quantum
         self.backend_manager = QuantumBackendManager()
         self.backend = None
@@ -80,9 +76,7 @@ class QuantumOptionPricer:
 
                 if use_real_quantum:
                     if backend_name == "aer_simulator":
-                        backend_name = os.getenv(
-                            "QUANTUM_BACKEND", "ibmq_qasm_simulator"
-                        )
+                        backend_name = os.getenv("QUANTUM_BACKEND", "ibmq_qasm_simulator")
                     self.backend = self.backend_manager.get_backend(backend_name)
                 else:
                     self.backend = AerSimulator()
@@ -126,9 +120,7 @@ class QuantumOptionPricer:
 
         return qc, prices
 
-    def add_payoff_operator(
-        self, qc: Any, prices: np.ndarray, K: float, S0: float
-    ) -> None:
+    def add_payoff_operator(self, qc: Any, prices: np.ndarray, K: float, S0: float) -> None:
         """Encodes the option payoff into an objective qubit."""
         if not QISKIT_AVAILABLE:
             return
@@ -164,9 +156,7 @@ class QuantumOptionPricer:
                 angle = 2 * np.arcsin(np.sqrt(normalized_payoff))
 
                 binary_state = format(i, f"0{num_qubits}b")
-                x_indices = [
-                    j for j, bit in enumerate(reversed(binary_state)) if bit == "0"
-                ]
+                x_indices = [j for j, bit in enumerate(reversed(binary_state)) if bit == "0"]
 
                 if x_indices:
                     qc.x([price_qubits[idx] for idx in x_indices])
@@ -200,13 +190,9 @@ class QuantumOptionPricer:
             payoff_qubit_index = num_qubits
 
         try:
-            problem = EstimationProblem(
-                state_preparation=qc, objective_qubits=[payoff_qubit_index]
-            )
+            problem = EstimationProblem(state_preparation=qc, objective_qubits=[payoff_qubit_index])
             sampler = StatevectorSampler()
-            iae = IterativeAmplitudeEstimation(
-                epsilon_target=0.01, alpha=0.05, sampler=sampler
-            )
+            iae = IterativeAmplitudeEstimation(epsilon_target=0.01, alpha=0.05, sampler=sampler)
             result = iae.estimate(problem)
 
             # The result.estimation represents the probability of the objective qubit being |1>
@@ -219,9 +205,7 @@ class QuantumOptionPricer:
 
             return {
                 "price": float(option_price),
-                "confidence_interval": [
-                    float(v * S0 * 2.0) for v in result.confidence_interval
-                ],
+                "confidence_interval": [float(v * S0 * 2.0) for v in result.confidence_interval],
                 "num_queries": result.num_oracle_queries,
                 "speedup_factor": speedup,
                 "backend": str(self.backend) if self.backend else "simulated",
@@ -261,9 +245,7 @@ class QuantumCircuitOptimizer:
                 Optimize1qGatesDecomposition,
             )
 
-            pm = PassManager(
-                [Optimize1qGatesDecomposition(), CommutativeCancellation()]
-            )
+            pm = PassManager([Optimize1qGatesDecomposition(), CommutativeCancellation()])
 
             if self.backend:
                 optimized_qc = transpile(qc, backend=self.backend, optimization_level=3)

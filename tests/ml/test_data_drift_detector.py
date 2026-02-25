@@ -26,9 +26,7 @@ def test_data_drift_detector_no_drift():
     drift_detected, drift_info = detector.detect_drift(reference_data, current_data)
 
     assert not drift_detected
-    assert (
-        len(drift_info["feature_drifts"]) == 0
-    )  # No feature drifts should be detected
+    assert len(drift_info["feature_drifts"]) == 0  # No feature drifts should be detected
     # We can't directly check 'PSI' in drift_info for multivariate, but can check overall status
     assert not drift_info["overall_drift_detected"]
 
@@ -37,9 +35,7 @@ def test_data_drift_detector_psi_drift_detected():
     """Test with data showing significant PSI drift."""
     np.random.seed(42)
     reference_data = np.random.normal(loc=0, scale=1, size=(100, 1))
-    current_data = np.random.normal(
-        loc=2, scale=1, size=(100, 1)
-    )  # Clear shift for PSI
+    current_data = np.random.normal(loc=2, scale=1, size=(100, 1))  # Clear shift for PSI
 
     detector = DataDriftDetector(
         psi_threshold=0.1, ks_threshold=0.001

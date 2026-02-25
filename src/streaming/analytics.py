@@ -35,12 +35,8 @@ class VolatilityAggregationStream:
     def __init__(self, bootstrap_servers: str = "kafka://localhost:9092"):
         self.app = App("volatility-aggregator", broker=bootstrap_servers)
         self.market_data_topic = self.app.topic("market-data", partitions=16)
-        self.volatility_table = self.app.Table(
-            "volatility-1min-v2", default=float, partitions=16
-        )
-        self.price_history = self.app.Table(
-            "price-history-v2", default=float, partitions=16
-        )
+        self.volatility_table = self.app.Table("volatility-1min-v2", default=float, partitions=16)
+        self.price_history = self.app.Table("price-history-v2", default=float, partitions=16)
 
         # Micro-batching buffer
         self._buffer: dict[str, float] = {}

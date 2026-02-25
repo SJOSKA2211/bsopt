@@ -58,7 +58,6 @@ async def test_refresh_cache_success():
                     "src.scrapers.engine.run_sync",
                     side_effect=lambda f, *args: f(*args),
                 ):
-
                     mock_settings.NSE_CACHE_TTL = 0
                     mock_settings.NSE_NAME_SYMBOL_MAP = {"TEST": "TST"}
                     mock_settings.NSE_SECTORS = ["Banking"]

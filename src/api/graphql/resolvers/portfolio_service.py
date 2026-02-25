@@ -39,9 +39,7 @@ class Portfolio:
             # RLS ensures we only see our own positions if session context is set
             from sqlalchemy import select
 
-            result = session.execute(
-                select(DBPosition).where(DBPosition.portfolio_id == self.id)
-            )
+            result = session.execute(select(DBPosition).where(DBPosition.portfolio_id == self.id))
             return [Position.from_db(p) for p in result.scalars()]
         finally:
             session.close()
@@ -68,6 +66,4 @@ async def get_portfolio(id: str) -> Portfolio | None:
 
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
     logger.info("dummy_portfolio_create", user_id=user_id, name=name)
-    return Portfolio(
-        id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash
-    )
+    return Portfolio(id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash)

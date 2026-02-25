@@ -9,9 +9,7 @@ from src.pricing.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
 
 
 def test_factory_get_strategy():
-    assert isinstance(
-        PricingEngineFactory.get_strategy("black_scholes"), BlackScholesEngine
-    )
+    assert isinstance(PricingEngineFactory.get_strategy("black_scholes"), BlackScholesEngine)
 
     mc_strategy = PricingEngineFactory.get_strategy("monte_carlo")
     if WASM_AVAILABLE:
@@ -30,9 +28,7 @@ def test_factory_get_strategy():
         assert isinstance(fdm_strategy, CrankNicolsonSolver)
 
     # Case insensitivity
-    assert isinstance(
-        PricingEngineFactory.get_strategy("BLACK_SCHOLES"), BlackScholesEngine
-    )
+    assert isinstance(PricingEngineFactory.get_strategy("BLACK_SCHOLES"), BlackScholesEngine)
 
 
 def test_factory_invalid_model():

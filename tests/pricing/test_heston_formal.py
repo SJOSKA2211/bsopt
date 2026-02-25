@@ -18,9 +18,7 @@ from src.pricing.models.heston_fft import batch_heston_price_jit
     rho=st.floats(min_value=-0.9, max_value=0.9),
     is_call=st.booleans(),
 )
-def test_heston_fft_stability(
-    spot, strike, maturity, rate, v0, kappa, theta, sigma, rho, is_call
-):
+def test_heston_fft_stability(spot, strike, maturity, rate, v0, kappa, theta, sigma, rho, is_call):
     """Property-based testing for Heston stability."""
 
     # Ensure Feller condition is satisfied or handle it

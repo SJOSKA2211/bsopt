@@ -18,18 +18,12 @@ def prod_compose_config():
 def test_neural_pricing_resource_pinning(prod_compose_config):
     """Test that neural-pricing service has CPU pinning (cpuset) configured."""
     services = prod_compose_config.get("services", {})
-    assert (
-        "neural-pricing" in services
-    ), "neural-pricing service missing from prod compose"
+    assert "neural-pricing" in services, "neural-pricing service missing from prod compose"
 
     pricing_service = services["neural-pricing"]
     # Check for cpuset configuration (Kernel Bypass/Locality optimization)
-    assert (
-        "cpuset" in pricing_service
-    ), "cpuset (CPU pinning) not configured for neural-pricing"
-    assert (
-        pricing_service["cpuset"] == "0-1"
-    ), "neural-pricing should be pinned to specific cores"
+    assert "cpuset" in pricing_service, "cpuset (CPU pinning) not configured for neural-pricing"
+    assert pricing_service["cpuset"] == "0-1", "neural-pricing should be pinned to specific cores"
 
 
 def test_neural_pricing_thread_concurrency(prod_compose_config):
@@ -47,12 +41,8 @@ def test_neural_pricing_thread_concurrency(prod_compose_config):
                 env_dict[k] = v
         env = env_dict
 
-    assert (
-        env.get("OMP_NUM_THREADS") == "1"
-    ), "OMP_NUM_THREADS should be 1 to prevent contention"
-    assert (
-        env.get("MKL_NUM_THREADS") == "1"
-    ), "MKL_NUM_THREADS should be 1 to prevent contention"
+    assert env.get("OMP_NUM_THREADS") == "1", "OMP_NUM_THREADS should be 1 to prevent contention"
+    assert env.get("MKL_NUM_THREADS") == "1", "MKL_NUM_THREADS should be 1 to prevent contention"
 
 
 def test_model_quantization_env(prod_compose_config):
@@ -69,6 +59,4 @@ def test_model_quantization_env(prod_compose_config):
                 env_dict[k] = v
         env = env_dict
 
-    assert (
-        env.get("USE_QUANTIZED_MODELS") == "true"
-    ), "Model quantization should be enabled in prod"
+    assert env.get("USE_QUANTIZED_MODELS") == "true", "Model quantization should be enabled in prod"

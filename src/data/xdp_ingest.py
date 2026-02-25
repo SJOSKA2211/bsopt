@@ -52,18 +52,14 @@ class XDPIngester:
             #  PYTHON FALLBACK
             # Use AF_INET/UDP for generic portability if AF_PACKET fails
             try:
-                self.sock = socket.socket(
-                    socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800)
-                )
+                self.sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0800))
                 self.sock.bind((self.interface, 0))
             except (AttributeError, PermissionError):
                 logger.warning("af_packet_failed_using_udp_fallback")
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.sock.bind(("", self.port))
 
-            self._thread = threading.Thread(
-                target=self._run_loop, args=(cpu_core,), daemon=True
-            )
+            self._thread = threading.Thread(target=self._run_loop, args=(cpu_core,), daemon=True)
             self._thread.start()
             logger.info("python_ingest_started", core=cpu_core)
         except Exception as e:
@@ -87,9 +83,7 @@ class XDPIngester:
         # Offset 42 for Ethernet+IP+UDP header if using RAW AF_PACKET
         offset = (
             42
-            if hasattr(socket, "AF_PACKET")
-            and self.sock
-            and self.sock.family == socket.AF_PACKET
+            if hasattr(socket, "AF_PACKET") and self.sock and self.sock.family == socket.AF_PACKET
             else 0
         )
 

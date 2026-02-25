@@ -29,9 +29,7 @@ class AugmentedRLAgent:
         self.forecaster = PriceTFTModel(config=self.config.get("tft_config"))
         self.sentiment_extractor = SentimentExtractor()
 
-    async def act(
-        self, observation: np.ndarray, news_text: str | None = None
-    ) -> np.ndarray:
+    async def act(self, observation: np.ndarray, news_text: str | None = None) -> np.ndarray:
         """
         Multimodal action selection.
         1. Extract sentiment from news.

@@ -19,7 +19,8 @@ class IsolationForestDetector:
             )  # Matching test's error message
 
         self.model = IsolationForest(
-            contamination=self.contamination, random_state=42  # for reproducibility
+            contamination=self.contamination,
+            random_state=42,  # for reproducibility
         )
         return self.model.fit_predict(data)
 

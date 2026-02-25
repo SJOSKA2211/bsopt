@@ -40,13 +40,9 @@ async def test_pipeline_run(mock_config, mock_df):
     with patch("src.ml.autonomous_pipeline.create_engine"):
         with patch("src.ml.autonomous_pipeline.Base.metadata.create_all"):
             with patch("src.ml.autonomous_pipeline.MarketDataScraper") as MockScraper:
-                with patch(
-                    "src.ml.autonomous_pipeline.get_async_db_context"
-                ) as mock_db_ctx:
+                with patch("src.ml.autonomous_pipeline.get_async_db_context") as mock_db_ctx:
                     with patch("src.ml.autonomous_pipeline.DriftTrigger") as MockDrift:
-                        with patch(
-                            "src.ml.autonomous_pipeline.InstrumentedTrainer"
-                        ) as MockTrainer:
+                        with patch("src.ml.autonomous_pipeline.InstrumentedTrainer") as MockTrainer:
                             with patch(
                                 "src.database.crud.bulk_insert_market_ticks",
                                 new_callable=AsyncMock,
@@ -54,18 +50,15 @@ async def test_pipeline_run(mock_config, mock_df):
                                 with patch(
                                     "src.tasks.ml_tasks.optimize_model_task.delay"
                                 ) as mock_task:
-
                                     # Setup Scraper
                                     mock_scraper_instance = MockScraper.return_value
-                                    mock_scraper_instance.fetch_historical_data = (
-                                        AsyncMock(return_value=mock_df)
+                                    mock_scraper_instance.fetch_historical_data = AsyncMock(
+                                        return_value=mock_df
                                     )
 
                                     # Setup DB
                                     mock_session = AsyncMock()
-                                    mock_db_ctx.return_value.__aenter__.return_value = (
-                                        mock_session
-                                    )
+                                    mock_db_ctx.return_value.__aenter__.return_value = mock_session
 
                                     # Setup Drift
                                     mock_drift_instance = MockDrift.return_value
@@ -79,9 +72,7 @@ async def test_pipeline_run(mock_config, mock_df):
                                     mock_study = MagicMock()
                                     mock_study.best_value = 0.9
                                     mock_study.best_params = {"n_estimators": 100}
-                                    mock_trainer_instance.optimize.return_value = (
-                                        mock_study
-                                    )
+                                    mock_trainer_instance.optimize.return_value = mock_study
 
                                     pipeline = AutonomousMLPipeline(mock_config)
 

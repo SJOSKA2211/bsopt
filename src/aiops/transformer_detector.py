@@ -19,9 +19,7 @@ class TimeSeriesTransformerEncoder(nn.Module):
     ):
         super().__init__()
         self.embedding = nn.Linear(input_dim, d_model)
-        self.pos_encoder = nn.Parameter(
-            torch.zeros(1, 1000, d_model)
-        )  # Max seq len 1000
+        self.pos_encoder = nn.Parameter(torch.zeros(1, 1000, d_model))  # Max seq len 1000
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
@@ -30,9 +28,7 @@ class TimeSeriesTransformerEncoder(nn.Module):
             dropout=dropout,
             batch_first=True,
         )
-        self.transformer_encoder = nn.TransformerEncoder(
-            encoder_layer, num_layers=num_layers
-        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         self.decoder = nn.Linear(d_model, input_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -153,6 +149,6 @@ class TransformerAnomalyDetector:
             loss.backward()
             optimizer.step()
             if (epoch + 1) % 10 == 0:
-                print(f"Epoch {epoch+1} | Loss: {loss.item():.6f}")
+                print(f"Epoch {epoch + 1} | Loss: {loss.item():.6f}")
 
         self.model.eval()

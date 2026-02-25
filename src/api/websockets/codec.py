@@ -38,9 +38,7 @@ class WebSocketCodec:
         raise ValueError(f"Unsupported protocol: {protocol}")
 
     @staticmethod
-    def decode(
-        data: str | bytes, protocol: ProtocolType, message_type: Any | None = None
-    ) -> Any:
+    def decode(data: str | bytes, protocol: ProtocolType, message_type: Any | None = None) -> Any:
         if protocol == ProtocolType.JSON:
             return orjson.loads(data)
         if protocol == ProtocolType.MSGPACK:

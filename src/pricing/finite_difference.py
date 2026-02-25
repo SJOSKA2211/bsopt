@@ -34,7 +34,9 @@ class CrankNicolsonSolver(PricingStrategy):
         self.n_spots = n_spots
         self.n_time = n_time
         self.s_max_mult = s_max_mult
-        self.use_iterative = use_iterative  # Kept for API compatibility, but JIT uses Thomas algo (direct)
+        self.use_iterative = (
+            use_iterative  # Kept for API compatibility, but JIT uses Thomas algo (direct)
+        )
 
     def _setup_grid(self, params: BSParameters):
         """Initialize grid for a specific option."""
@@ -69,9 +71,7 @@ class CrankNicolsonSolver(PricingStrategy):
         V = self._solve_pde()
         return float(np.interp(self.spot, self.s_grid, V))
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """Implementation of PricingStrategy interface."""
         self._setup_grid(params)
         self.option_type = option_type.lower()
@@ -111,9 +111,7 @@ class CrankNicolsonSolver(PricingStrategy):
         """
         # Handle zero maturity case
         if self.maturity <= 1e-12:
-            delta = (
-                1.0 if (self.option_type == "call" and self.spot > self.strike) else 0.0
-            )
+            delta = 1.0 if (self.option_type == "call" and self.spot > self.strike) else 0.0
             if self.option_type == "put" and self.spot < self.strike:
                 delta = -1.0
             return OptionGreeks(delta, 0.0, 0.0, 0.0, 0.0)
@@ -153,10 +151,7 @@ class CrankNicolsonSolver(PricingStrategy):
         )
 
         vega = (
-            (
-                self.price(params_up, self.option_type)
-                - self.price(params_down, self.option_type)
-            )
+            (self.price(params_up, self.option_type) - self.price(params_down, self.option_type))
             / (2 * eps_vol)
             * 0.01
         )

@@ -17,9 +17,7 @@ async def mock_endpoint(request: Request):
 
 mock_redis_client = AsyncMock()
 
-app.add_middleware(
-    IdempotencyMiddleware, redis_client=mock_redis_client, expiry=10, lock_timeout=1
-)
+app.add_middleware(IdempotencyMiddleware, redis_client=mock_redis_client, expiry=10, lock_timeout=1)
 
 client = TestClient(app)
 

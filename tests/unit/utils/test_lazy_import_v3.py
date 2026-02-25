@@ -61,9 +61,7 @@ def test_preload_modules():
     mock_module = MagicMock()
     import_map = {"path": "os"}
 
-    lazy_import.preload_modules(
-        "os", import_map, ["path"], cache_module_override=mock_module
-    )
+    lazy_import.preload_modules("os", import_map, ["path"], cache_module_override=mock_module)
     assert hasattr(mock_module, "path")
 
 

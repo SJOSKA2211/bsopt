@@ -73,9 +73,7 @@ class TestRedisRemediator:
         )
         mock_logger.error.assert_not_called()
 
-    def test_redis_remediator_purge_cache_no_keys_found(
-        self, mock_redis_class, mock_logger
-    ):
+    def test_redis_remediator_purge_cache_no_keys_found(self, mock_redis_class, mock_logger):
         """Test purging cache when no keys match the pattern."""
         mock_redis_instance = MagicMock()
         mock_redis_class.return_value = mock_redis_instance

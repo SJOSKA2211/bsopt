@@ -10,18 +10,14 @@ class TestImportValidationInternal:
     @pytest.fixture
     def mock_structure(self, tmp_path):
         # Point to the REAL src directory to ensure coverage is recorded
-        project_root = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "..")
-        )
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         return os.path.join(project_root, "src")
 
     def test_find_lazy_loaded_modules(self, mock_structure):
         modules = _find_lazy_loaded_modules(str(mock_structure))
         assert "src.ml" in modules or "ml" in modules
 
-    def test_validate_lazy_imports_success(
-        self, mock_structure, mocker
-    ):  # Added mocker
+    def test_validate_lazy_imports_success(self, mock_structure, mocker):  # Added mocker
         # This will actually run against the real src/ but we mock import_module
         # to avoid triggering the heavy loads during the validation loop logic test.
         mock_import = mocker.patch(
@@ -49,9 +45,7 @@ class TestImportValidationInternal:
 
         validate_lazy_imports(str(mock_structure))
 
-    def test_validate_lazy_imports_failure(
-        self, mock_structure, mocker
-    ):  # Added mocker
+    def test_validate_lazy_imports_failure(self, mock_structure, mocker):  # Added mocker
         mock_import = mocker.patch(
             "importlib.import_module"
         )  # Changed to mocker.patch and removed 'with' statement

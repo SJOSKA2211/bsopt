@@ -44,9 +44,7 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     assert kwargs["verbose"] == 1
 
     # Verify training call
-    mock_td3.return_value.learn.assert_called_once_with(
-        total_timesteps=timesteps, callback=ANY
-    )
+    mock_td3.return_value.learn.assert_called_once_with(total_timesteps=timesteps, callback=ANY)
 
     # Verify model saving
     mock_td3.return_value.save.assert_called_with(model_path)
@@ -127,9 +125,7 @@ def test_main_function():
             from src.ml.reinforcement_learning.train import main
 
             main()
-            mock_train.assert_called_once_with(
-                total_timesteps=1000, model_path="test_model"
-            )
+            mock_train.assert_called_once_with(total_timesteps=1000, model_path="test_model")
 
 
 @patch("src.ml.reinforcement_learning.train.mlflow")

@@ -59,9 +59,7 @@ class ModelTrainer:
                 metrics = scorecard.to_dict()
                 scores.append(metrics["r2"])
 
-                self.tracker.log_metrics(
-                    metrics["mae"], metrics["rmse"], duration, framework
-                )
+                self.tracker.log_metrics(metrics["mae"], metrics["rmse"], duration, framework)
 
                 if fold == self.n_splits - 1:
                     self.model = model

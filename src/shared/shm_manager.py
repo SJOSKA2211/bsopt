@@ -33,9 +33,7 @@ class SHMManager[T]:
     def create(self):
         """Create the shared memory block."""
         try:
-            self._shm = shared_memory.SharedMemory(
-                name=self.name, create=True, size=self.size
-            )
+            self._shm = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
             logger.info("shm_created", name=self.name, size=self.size)
         except FileExistsError:
             self._shm = shared_memory.SharedMemory(name=self.name)

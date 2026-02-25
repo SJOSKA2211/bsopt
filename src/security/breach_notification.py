@@ -32,9 +32,7 @@ class BreachNotificationService:
         Report to Data Protection Authority within 72 hours.
         """
         # 1. GDPR Compliance Check
-        time_elapsed = (
-            datetime.now(UTC) - incident.detected_at.astimezone(UTC)
-        ).total_seconds()
+        time_elapsed = (datetime.now(UTC) - incident.detected_at.astimezone(UTC)).total_seconds()
         if time_elapsed > 72 * 3600:
             logger.critical(
                 f"GDPR VIOLATION: 72-hour notification deadline missed for incident {incident.id}"
@@ -67,17 +65,13 @@ class BreachNotificationService:
         )
 
         if success:
-            logger.info(
-                f"Successfully reported breach {incident.id} to DPA at {self.DPA_EMAIL}"
-            )
+            logger.info(f"Successfully reported breach {incident.id} to DPA at {self.DPA_EMAIL}")
         else:
             logger.error(f"Failed to report breach {incident.id} to DPA")
 
         return success
 
-    async def notify_affected_users(
-        self, incident: SecurityIncident, users: list[User]
-    ) -> int:
+    async def notify_affected_users(self, incident: SecurityIncident, users: list[User]) -> int:
         """
         Notify data subjects if there is a high risk to their rights and freedoms.
         GDPR Article 34 requirement.
@@ -113,9 +107,7 @@ class BreachNotificationService:
                 f"Sent security notifications to {len(users)} users for incident {incident.id}"
             )
             return len(users)
-        logger.error(
-            f"Failed to send batch security notifications for incident {incident.id}"
-        )
+        logger.error(f"Failed to send batch security notifications for incident {incident.id}")
         return 0
 
 

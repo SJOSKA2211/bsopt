@@ -89,9 +89,7 @@ class TestQuantUtils(unittest.TestCase):
         )
         is_call = np.array([True])
         sigma_init = np.array([0.2])
-        iv = vectorized_newton_raphson_iv_jit(
-            market_prices, S, K, T, r, q, is_call, sigma_init
-        )
+        iv = vectorized_newton_raphson_iv_jit(market_prices, S, K, T, r, q, is_call, sigma_init)
         self.assertAlmostEqual(iv[0], 0.2, delta=0.1)
 
     def test_heston_char_func_jit(self):
@@ -103,9 +101,7 @@ class TestQuantUtils(unittest.TestCase):
         self.assertGreater(p, 0)
 
     def test_jit_mc_european_price_and_greeks(self):
-        res = jit_mc_european_price_and_greeks(
-            100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True
-        )
+        res = jit_mc_european_price_and_greeks(100.0, 100.0, 1.0, 0.05, 0.2, 0.0, 100, True, True)
         self.assertEqual(len(res), 5)
 
     def test_jit_mc_european_with_control_variate(self):

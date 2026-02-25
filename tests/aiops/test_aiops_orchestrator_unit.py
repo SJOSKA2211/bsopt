@@ -21,9 +21,7 @@ def test_orchestrator_init(mock_config):
         with patch("src.aiops.aiops_orchestrator.IsolationForestDetector"):
             with patch("src.aiops.aiops_orchestrator.PriceTFTModel"):
                 with patch("src.aiops.aiops_orchestrator.AutoencoderDetector"):
-                    with patch(
-                        "src.aiops.aiops_orchestrator.TransformerAnomalyDetector"
-                    ):
+                    with patch("src.aiops.aiops_orchestrator.TransformerAnomalyDetector"):
                         orchestrator = AIOpsOrchestrator(mock_config)
                         assert orchestrator.prometheus_url == "http://prometheus:9090"
                         assert orchestrator.autoencoder_detector is not None
@@ -34,18 +32,12 @@ def test_detect_anomalies_high_error_rate(mock_config):
         with patch("src.aiops.aiops_orchestrator.IsolationForestDetector"):
             with patch("src.aiops.aiops_orchestrator.AutoencoderDetector"):
                 with patch("src.aiops.aiops_orchestrator.DataDriftDetector"):
-                    with patch(
-                        "src.aiops.aiops_orchestrator.TransformerAnomalyDetector"
-                    ):
+                    with patch("src.aiops.aiops_orchestrator.TransformerAnomalyDetector"):
                         mock_prom_instance = MockProm.return_value
                         # High error rate
-                        mock_prom_instance.get_5xx_error_rate.return_value = (
-                            0.1  # > 0.05
-                        )
+                        mock_prom_instance.get_5xx_error_rate.return_value = 0.1  # > 0.05
                         mock_prom_instance.get_p95_latency.return_value = 0.1  # < 0.5
-                        mock_prom_instance.get_historical_metric_data.return_value = (
-                            None
-                        )
+                        mock_prom_instance.get_historical_metric_data.return_value = None
 
                         orchestrator = AIOpsOrchestrator(mock_config)
                         anomalies = orchestrator._detect_anomalies()
@@ -58,9 +50,7 @@ def test_detect_anomalies_ml(mock_config):
     with patch("src.aiops.aiops_orchestrator.PrometheusClient") as MockProm:
         with patch("src.aiops.aiops_orchestrator.IsolationForestDetector") as MockIF:
             with patch("src.aiops.aiops_orchestrator.AutoencoderDetector") as MockAE:
-                with patch(
-                    "src.aiops.aiops_orchestrator.DataDriftDetector"
-                ) as MockDrift:
+                with patch("src.aiops.aiops_orchestrator.DataDriftDetector") as MockDrift:
                     with patch(
                         "src.aiops.aiops_orchestrator.TransformerAnomalyDetector"
                     ) as MockTrans:
@@ -124,9 +114,7 @@ def test_run_orchestrator(mock_config):
         with patch("src.aiops.aiops_orchestrator.IsolationForestDetector"):
             with patch("src.aiops.aiops_orchestrator.AutoencoderDetector"):
                 with patch("src.aiops.aiops_orchestrator.DataDriftDetector"):
-                    with patch(
-                        "src.aiops.aiops_orchestrator.TransformerAnomalyDetector"
-                    ):
+                    with patch("src.aiops.aiops_orchestrator.TransformerAnomalyDetector"):
                         with patch("src.aiops.aiops_orchestrator.push_metrics"):
                             mock_prom_instance = MockProm.return_value
                             mock_prom_instance.get_5xx_error_rate.return_value = 0.0

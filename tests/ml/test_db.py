@@ -47,9 +47,7 @@ def test_minio_storage(mock_minio):
     mock_client = MagicMock()
     mock_minio.return_value = mock_client
 
-    storage = MinioStorage(
-        endpoint="localhost:9000", access_key="user", secret_key="pass"
-    )
+    storage = MinioStorage(endpoint="localhost:9000", access_key="user", secret_key="pass")
 
     # Test bucket creation
     mock_client.bucket_exists.return_value = False

@@ -79,13 +79,11 @@ def sample_market_quotes():
     return quotes
 
 
-def assert_close(
-    actual: float, expected: float, rtol: float = 1e-5, atol: float = 1e-8
-):
+def assert_close(actual: float, expected: float, rtol: float = 1e-5, atol: float = 1e-8):
     """Assert two floats are close with relative and absolute tolerance"""
-    assert np.isclose(
-        actual, expected, rtol=rtol, atol=atol
-    ), f"Expected {expected}, got {actual} (diff: {abs(actual - expected)})"
+    assert np.isclose(actual, expected, rtol=rtol, atol=atol), (
+        f"Expected {expected}, got {actual} (diff: {abs(actual - expected)})"
+    )
 
 
 # ============================================================================
@@ -134,9 +132,7 @@ class TestSVIParameters:
 
     def test_natural_to_raw_conversion(self):
         """Test natural SVI parameterization conversion"""
-        natural = SVINaturalParameters(
-            delta=0.04, mu=0.0, rho=-0.4, omega=0.05, zeta=0.3
-        )
+        natural = SVINaturalParameters(delta=0.04, mu=0.0, rho=-0.4, omega=0.05, zeta=0.3)
 
         raw = natural.to_raw()
 
@@ -222,9 +218,7 @@ class TestSVIModel:
 
         # Numerical derivative for validation
         h = 1e-6
-        numerical_dw = (model.total_variance(k + h) - model.total_variance(k - h)) / (
-            2 * h
-        )
+        numerical_dw = (model.total_variance(k + h) - model.total_variance(k - h)) / (2 * h)
 
         assert_close(dw, numerical_dw, rtol=1e-4)
 
@@ -233,9 +227,7 @@ class TestSVIModel:
 
         # Numerical second derivative
         numerical_d2w = (
-            model.total_variance(k + h)
-            - 2 * model.total_variance(k)
-            + model.total_variance(k - h)
+            model.total_variance(k + h) - 2 * model.total_variance(k) + model.total_variance(k - h)
         ) / h**2
 
         assert_close(d2w, numerical_d2w, rtol=1e-3)
@@ -380,9 +372,7 @@ class TestSABRModel:
         maturity = 1.0
 
         # Very close to ATM
-        strikes = [
-            Decimal(str(100.0 + eps)) for eps in [-0.01, -0.001, 0.0, 0.001, 0.01]
-        ]
+        strikes = [Decimal(str(100.0 + eps)) for eps in [-0.01, -0.001, 0.0, 0.001, 0.01]]
 
         vols = [model.implied_volatility(K, forward, maturity) for K in strikes]
 
@@ -409,9 +399,7 @@ class TestCalibrationEngine:
     def test_svi_calibration_convergence(self, sample_market_quotes):
         """SVI calibration should converge on realistic data"""
         engine = CalibrationEngine(
-            CalibrationConfig(
-                method=OptimizationMethod.LBFGSB, max_iterations=500, multi_start=1
-            )
+            CalibrationConfig(method=OptimizationMethod.LBFGSB, max_iterations=500, multi_start=1)
         )
 
         params, diagnostics = engine.calibrate_svi(sample_market_quotes)
@@ -440,9 +428,7 @@ class TestCalibrationEngine:
     def test_sabr_calibration_convergence(self, sample_market_quotes):
         """SABR calibration should converge on realistic data"""
         engine = CalibrationEngine(
-            CalibrationConfig(
-                method=OptimizationMethod.LBFGSB, max_iterations=500, multi_start=1
-            )
+            CalibrationConfig(method=OptimizationMethod.LBFGSB, max_iterations=500, multi_start=1)
         )
 
         params, diagnostics = engine.calibrate_sabr(sample_market_quotes)
@@ -462,9 +448,7 @@ class TestCalibrationEngine:
         engine = CalibrationEngine()
 
         fixed_beta = 0.7
-        params, diagnostics = engine.calibrate_sabr(
-            sample_market_quotes, fix_beta=fixed_beta
-        )
+        params, diagnostics = engine.calibrate_sabr(sample_market_quotes, fix_beta=fixed_beta)
 
         # Beta should be exactly the fixed value
         assert_equal(params.beta, fixed_beta)
@@ -522,9 +506,7 @@ class TestCalibrationEngine:
         """Calibration with mixed maturities should raise error"""
         quotes = [
             MarketQuote(Decimal("100"), 0.25, 0.20, Decimal("100")),
-            MarketQuote(
-                Decimal("100"), 0.50, 0.20, Decimal("100")
-            ),  # Different maturity
+            MarketQuote(Decimal("100"), 0.50, 0.20, Decimal("100")),  # Different maturity
         ]
 
         engine = CalibrationEngine()
@@ -809,9 +791,9 @@ class TestIntegration:
             results = detector.check_svi_arbitrage(model)
 
             # Calibrated models should be arbitrage-free
-            assert results[
-                "is_arbitrage_free"
-            ], f"Maturity {T} has arbitrage: {results['violations']}"
+            assert results["is_arbitrage_free"], (
+                f"Maturity {T} has arbitrage: {results['violations']}"
+            )
 
     def test_performance_full_surface(self):
         """Test performance for full surface construction"""
@@ -850,9 +832,7 @@ class TestIntegration:
         total_time = time.time() - start
 
         # Performance target: <30s for full surface
-        assert (
-            total_time < 30.0
-        ), f"Surface construction took {total_time:.2f}s, target is <30s"
+        assert total_time < 30.0, f"Surface construction took {total_time:.2f}s, target is <30s"
 
     def test_sabr_vs_svi_comparison(self, sample_market_quotes):
         """Compare SABR and SVI calibration quality"""
@@ -860,9 +840,7 @@ class TestIntegration:
 
         # Calibrate both models
         svi_params, svi_diag = engine.calibrate_svi(sample_market_quotes)
-        sabr_params, sabr_diag = engine.calibrate_sabr(
-            sample_market_quotes, fix_beta=0.5
-        )
+        sabr_params, sabr_diag = engine.calibrate_sabr(sample_market_quotes, fix_beta=0.5)
 
         # Both should converge reasonably
         assert svi_diag["rmse"] < 0.10
@@ -929,12 +907,8 @@ class TestEdgeCases:
     def test_zero_vega_quotes(self):
         """Quotes with zero vega should be handled"""
         quotes = [
-            MarketQuote(
-                Decimal("100"), 0.25, 0.20, Decimal("100"), vega=Decimal("0.0")
-            ),
-            MarketQuote(
-                Decimal("105"), 0.25, 0.22, Decimal("100"), vega=Decimal("10.0")
-            ),
+            MarketQuote(Decimal("100"), 0.25, 0.20, Decimal("100"), vega=Decimal("0.0")),
+            MarketQuote(Decimal("105"), 0.25, 0.22, Decimal("100"), vega=Decimal("10.0")),
         ]
 
         engine = CalibrationEngine(CalibrationConfig(weighted_by_vega=True))
@@ -966,9 +940,7 @@ class TestPerformance:
         avg_time = elapsed / 10.0
 
         # Target: <100ms per check
-        assert (
-            avg_time < 0.1
-        ), f"Arbitrage check took {avg_time*1000:.1f}ms, target is <100ms"
+        assert avg_time < 0.1, f"Arbitrage check took {avg_time * 1000:.1f}ms, target is <100ms"
 
     def test_vol_lookup_performance(self, typical_svi_params):
         """Volatility lookup should be very fast"""
@@ -979,13 +951,11 @@ class TestPerformance:
         strikes = [Decimal(str(k)) for k in np.linspace(50, 150, 1000)]
 
         start = time.time()
-        _ = model.implied_volatility(
-            np.array([float(K) for K in strikes]), forward, maturity
-        )
+        _ = model.implied_volatility(np.array([float(K) for K in strikes]), forward, maturity)
         elapsed = time.time() - start
 
         # Should compute 1000 vols very fast (<10ms)
-        assert elapsed < 0.01, f"1000 vol calculations took {elapsed*1000:.1f}ms"
+        assert elapsed < 0.01, f"1000 vol calculations took {elapsed * 1000:.1f}ms"
 
 
 if __name__ == "__main__":

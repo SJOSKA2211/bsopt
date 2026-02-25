@@ -62,9 +62,7 @@ async def verify_token(request: Request, token: str = Depends(oauth2_scheme)) ->
             def __init__(self, payload):
                 self.id = payload.get("sub")
                 # Normalize roles across providers
-                roles = payload.get("realm_access", {}).get("roles", []) or payload.get(
-                    "roles", []
-                )
+                roles = payload.get("realm_access", {}).get("roles", []) or payload.get("roles", [])
                 self.tier = "enterprise" if "admin" in roles else "free"
                 self.email = payload.get("email")
 
@@ -82,9 +80,9 @@ class RoleChecker:
 
     def __call__(self, token_payload: dict = Depends(verify_token)):
         # Normalize role check
-        user_roles = token_payload.get("realm_access", {}).get(
+        user_roles = token_payload.get("realm_access", {}).get("roles", []) or token_payload.get(
             "roles", []
-        ) or token_payload.get("roles", [])
+        )
 
         if not set(self.allowed_roles).intersection(user_roles):
             logger.warning(

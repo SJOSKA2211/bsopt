@@ -3,9 +3,7 @@ from tests.test_utils import assert_equal
 
 
 def test_password_validator():
-    validator = PasswordValidator(
-        min_length=8, require_uppercase=True, require_digit=True
-    )
+    validator = PasswordValidator(min_length=8, require_uppercase=True, require_digit=True)
 
     # Valid password - using something very unique to avoid pwned check
     result = validator.validate("XyZ_987_!!_Unique_2025")

@@ -13,9 +13,7 @@ async def test_router_metrics_increment():
 
         # Get initial values
         try:
-            initial_count = ROUTING_COUNT.labels(
-                target="NSE", market="NSE"
-            )._value.get()
+            initial_count = ROUTING_COUNT.labels(target="NSE", market="NSE")._value.get()
             initial_success = SCRAPER_PARSE_SUCCESS.labels(market="NSE")._value.get()
         except AttributeError:
             initial_count = 0
@@ -24,11 +22,5 @@ async def test_router_metrics_increment():
         await router.get_live_quote("SCOM.NR")
 
         # Verify increments
-        assert (
-            ROUTING_COUNT.labels(target="NSE", market="NSE")._value.get()
-            == initial_count + 1
-        )
-        assert (
-            SCRAPER_PARSE_SUCCESS.labels(market="NSE")._value.get()
-            == initial_success + 1
-        )
+        assert ROUTING_COUNT.labels(target="NSE", market="NSE")._value.get() == initial_count + 1
+        assert SCRAPER_PARSE_SUCCESS.labels(market="NSE")._value.get() == initial_success + 1

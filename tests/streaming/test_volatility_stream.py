@@ -24,9 +24,9 @@ def test_volatility_stream_file_exists():
     """
     Test that the analytics.py file exists for VolatilityAggregationStream.
     """
-    assert os.path.exists(
-        VOLATILITY_STREAM_PATH
-    ), f"VolatilityAggregationStream file not found at {VOLATILITY_STREAM_PATH}"
+    assert os.path.exists(VOLATILITY_STREAM_PATH), (
+        f"VolatilityAggregationStream file not found at {VOLATILITY_STREAM_PATH}"
+    )
 
 
 def test_volatility_aggregation_stream_class_exists():
@@ -34,9 +34,9 @@ def test_volatility_aggregation_stream_class_exists():
     Test that the VolatilityAggregationStream class can be imported.
     This test will fail if the class is not yet defined or importable.
     """
-    assert (
-        VolatilityAggregationStream is not None
-    ), "VolatilityAggregationStream class is not defined or importable."
+    assert VolatilityAggregationStream is not None, (
+        "VolatilityAggregationStream class is not defined or importable."
+    )
 
 
 @patch("streaming.analytics.App")

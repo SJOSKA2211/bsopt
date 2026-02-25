@@ -72,9 +72,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.content_type_options = content_type_options
         self.xss_protection = xss_protection
         self.referrer_policy = referrer_policy
-        self.permissions_policy = (
-            permissions_policy or self._default_permissions_policy()
-        )
+        self.permissions_policy = permissions_policy or self._default_permissions_policy()
         self.csp_directives = csp_directives or self._default_csp()
 
     def _default_permissions_policy(self) -> dict[str, list[str]]:
@@ -162,9 +160,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # Cache control for sensitive endpoints
         if self._should_not_cache(request.url.path):
-            response.headers["Cache-Control"] = (
-                "no-store, no-cache, must-revalidate, private"
-            )
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
 
@@ -231,9 +227,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     def _sign_token(self, token: str) -> str:
         """Sign a token with HMAC."""
-        signature = hmac.new(
-            self.secret_key, token.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(self.secret_key, token.encode(), hashlib.sha256).hexdigest()
         return f"{token}.{signature}"
 
     def _verify_token(self, signed_token: str) -> bool:
@@ -421,9 +415,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
         # Clean old attempts
         if ip in self._failed_attempts:
-            self._failed_attempts[ip] = [
-                t for t in self._failed_attempts[ip] if t > cutoff
-            ]
+            self._failed_attempts[ip] = [t for t in self._failed_attempts[ip] if t > cutoff]
         else:
             self._failed_attempts[ip] = []
 
@@ -472,9 +464,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/redoc",
             "/openapi.json",
-        ] or path.startswith(
-            ("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/oauth")
-        ):
+        ] or path.startswith(("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/oauth")):
             return await call_next(request)
 
         from src.security.auth import auth_service
@@ -582,9 +572,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         if issues:
             if self.log_suspicious:
                 client_host = request.client.host if request.client else "unknown"
-                logger.warning(
-                    f"Suspicious input detected from {client_host}: {issues}"
-                )
+                logger.warning(f"Suspicious input detected from {client_host}: {issues}")
             # Reject the request
             return ORJSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,

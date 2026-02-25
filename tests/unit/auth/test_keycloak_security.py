@@ -29,16 +29,12 @@ def generate_rsa_keys():
     # Get n and e for JWKS
     numbers = public_key.public_numbers()
     n = (
-        base64.urlsafe_b64encode(
-            numbers.n.to_bytes((numbers.n.bit_length() + 7) // 8, "big")
-        )
+        base64.urlsafe_b64encode(numbers.n.to_bytes((numbers.n.bit_length() + 7) // 8, "big"))
         .decode("utf-8")
         .rstrip("=")
     )
     e = (
-        base64.urlsafe_b64encode(
-            numbers.e.to_bytes((numbers.e.bit_length() + 7) // 8, "big")
-        )
+        base64.urlsafe_b64encode(numbers.e.to_bytes((numbers.e.bit_length() + 7) // 8, "big"))
         .decode("utf-8")
         .rstrip("=")
     )
@@ -72,9 +68,7 @@ async def test_get_jwks_success():
 @pytest.mark.asyncio
 async def test_verify_token_success():
     payload = {"sub": "user123", "aud": "account", "realm_access": {"roles": ["admin"]}}
-    token = jwt.encode(
-        payload, PRIVATE_PEM, algorithm="RS256", headers={"kid": "test_kid"}
-    )
+    token = jwt.encode(payload, PRIVATE_PEM, algorithm="RS256", headers={"kid": "test_kid"})
 
     with patch("src.auth.security.get_jwks", return_value=MOCK_JWKS):
         verified_payload = await verify_token(token)

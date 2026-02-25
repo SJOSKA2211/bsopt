@@ -67,9 +67,7 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
         logger.info("epoch_completed", epoch=epoch, loss=epoch_loss / len(loader))
 
     th.save(model.state_dict(), "models/decision_transformer_offline.pt")
-    logger.info(
-        "offline_training_completed", path="models/decision_transformer_offline.pt"
-    )
+    logger.info("offline_training_completed", path="models/decision_transformer_offline.pt")
     return model
 
 

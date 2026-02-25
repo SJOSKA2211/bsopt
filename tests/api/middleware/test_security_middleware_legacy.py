@@ -65,9 +65,7 @@ def test_jwt_auth_missing():
 
 
 def test_jwt_auth_legacy_bypass():
-    response = client.get(
-        "/test_route_path", headers={"Authorization": "Bearer legacy-token"}
-    )
+    response = client.get("/test_route_path", headers={"Authorization": "Bearer legacy-token"})
     assert response.status_code == 200
     assert response.json()["message"] == "success"
 
@@ -78,9 +76,7 @@ async def test_jwt_auth_verify_fail():
         "src.api.middleware.security.auth_registry.verify_any",
         side_effect=Exception("Invalid"),
     ):
-        response = client.get(
-            "/test_route_path", headers={"Authorization": "Bearer bad-token"}
-        )
+        response = client.get("/test_route_path", headers={"Authorization": "Bearer bad-token"})
         assert response.status_code == 401
 
 

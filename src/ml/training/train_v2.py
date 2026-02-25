@@ -63,7 +63,7 @@ def train_with_cross_validation(n_samples: int = 10000, epochs: int = 5):
     fold_results = []
 
     for fold, (train_idx, val_idx) in enumerate(validator.split(X_indices)):
-        logger.info(f"Training Fold {fold+1}/{validator.get_n_splits()}")
+        logger.info(f"Training Fold {fold + 1}/{validator.get_n_splits()}")
 
         train_sub = Subset(dataset, train_idx)
         val_sub = Subset(dataset, val_idx)
@@ -79,8 +79,8 @@ def train_with_cross_validation(n_samples: int = 10000, epochs: int = 5):
             model=model,
             optimizer=optimizer,
             criterion=criterion,
-            experiment_name=f"BSOpt_MLOps_Fold_{fold+1}",
-            output_dir=f"models/checkpoints/fold_{fold+1}",
+            experiment_name=f"BSOpt_MLOps_Fold_{fold + 1}",
+            output_dir=f"models/checkpoints/fold_{fold + 1}",
         )
 
         trainer.fit(train_loader, val_loader, epochs=epochs)
@@ -88,7 +88,7 @@ def train_with_cross_validation(n_samples: int = 10000, epochs: int = 5):
         # Capture the best val loss for this fold
         best_val = min(trainer.history["val_loss"])
         fold_results.append(best_val)
-        logger.info(f"Fold {fold+1} Best Val Loss: {best_val:.4f}")
+        logger.info(f"Fold {fold + 1} Best Val Loss: {best_val:.4f}")
 
     avg_performance = np.mean(fold_results)
     logger.info(f"Cross-Validation Complete. Average Val Loss: {avg_performance:.4f}")

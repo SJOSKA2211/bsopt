@@ -82,9 +82,7 @@ class RayStrategy(ExecutionStrategy):
         q_ref = ray.put(inputs["dividends"])
         c_ref = ray.put(inputs["is_call"])
 
-        ray_future = _ray_worker_pricing.remote(
-            s_ref, k_ref, t_ref, v_ref, r_ref, q_ref, c_ref
-        )
+        ray_future = _ray_worker_pricing.remote(s_ref, k_ref, t_ref, v_ref, r_ref, q_ref, c_ref)
         return (
             await asyncio.wrap_future(ray_future)
             if asyncio.iscoroutine(ray_future)
@@ -129,9 +127,7 @@ class SHMStrategy(ExecutionStrategy):
 
             with SHMContextManager(shm_in_name) as shms:
                 shm_in = shms[0]
-                np.ndarray(input_data.shape, dtype=np.float64, buffer=shm_in.buf)[:] = (
-                    input_data[:]
-                )
+                np.ndarray(input_data.shape, dtype=np.float64, buffer=shm_in.buf)[:] = input_data[:]
 
             loop = asyncio.get_event_loop()
             success = await loop.run_in_executor(

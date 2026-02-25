@@ -110,9 +110,7 @@ def test_login_flow(mock_all):
     u.is_mfa_enabled = False
     m_db.commit.side_effect = Exception("f")
     assert (
-        client.post(
-            "/api/v1/auth/login", json={"email": "t@e.com", "password": "p"}
-        ).status_code
+        client.post("/api/v1/auth/login", json={"email": "t@e.com", "password": "p"}).status_code
         == 200
     )
     m_db.rollback.assert_called()
@@ -124,9 +122,7 @@ def test_logout_flow(mock_all):
     app.dependency_overrides[get_current_user] = lambda: u
     # Token logic (243)
     assert (
-        client.post(
-            "/api/v1/auth/logout", headers={"Authorization": "Bearer tok"}
-        ).status_code
+        client.post("/api/v1/auth/logout", headers={"Authorization": "Bearer tok"}).status_code
         == 200
     )
     m_auth.invalidate_token.assert_called()
@@ -162,9 +158,7 @@ def test_mfa_exhaustive(mock_all):
     app.dependency_overrides[get_current_active_user] = lambda: u
     with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
         assert (
-            client.post(
-                "/api/v1/auth/mfa/setup", headers={"Authorization": "Bearer t"}
-            ).status_code
+            client.post("/api/v1/auth/mfa/setup", headers={"Authorization": "Bearer t"}).status_code
             == 200
         )
         assert (

@@ -49,10 +49,8 @@ def test_newton_raphson_iv():
 
 def test_heston_char_func():
     # Just verify it doesn't crash and returns complex
-    res = quant_utils.heston_char_func_jit(
-        1.0 + 0.5j, 1.0, 0.05, 0.04, 2.0, 0.04, 0.3, -0.7
-    )
-    assert isinstance(res, (complex, np.complex128))
+    res = quant_utils.heston_char_func_jit(1.0 + 0.5j, 1.0, 0.05, 0.04, 2.0, 0.04, 0.3, -0.7)
+    assert isinstance(res, complex | np.complex128)
 
 
 def test_cn_solver():

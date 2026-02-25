@@ -41,7 +41,8 @@ class DecisionTransformer(nn.Module):
 
         # Predicting action
         self.predict_action = nn.Sequential(
-            nn.Linear(n_inner, action_dim), nn.Tanh()  # normalized action space
+            nn.Linear(n_inner, action_dim),
+            nn.Tanh(),  # normalized action space
         )
 
     def forward(self, states, actions, returns_to_go, timesteps):

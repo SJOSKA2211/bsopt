@@ -80,9 +80,7 @@ def test_vectorized_boundary_conditions():
 
 def test_invalid_parameters():
     # BSParameters __post_init__ raises ValueError("Spot, strike, and volatility must be non-negative")
-    with pytest.raises(
-        ValueError, match="Spot, strike, and volatility must be non-negative"
-    ):
+    with pytest.raises(ValueError, match="Spot, strike, and volatility must be non-negative"):
         BSParameters(spot=-1, strike=100, maturity=1, volatility=0.2, rate=0.05)
 
 

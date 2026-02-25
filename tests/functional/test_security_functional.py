@@ -45,9 +45,7 @@ async def test_security_cors_configuration(client):
         },
     )
     assert response.status_code == 200
-    assert (
-        response.headers.get("access-control-allow-origin") == "http://localhost:3000"
-    )
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
 
 
 @pytest.mark.asyncio

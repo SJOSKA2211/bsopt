@@ -26,9 +26,7 @@ class DeFiOptionsProtocol:
         cache_ttl: int = 10,
     ):
         self.rpc_url = rpc_url
-        self.w3 = AsyncWeb3(
-            Web3.AsyncHTTPProvider(rpc_url)
-        )  # Standardize on HTTP for now
+        self.w3 = AsyncWeb3(Web3.AsyncHTTPProvider(rpc_url))  # Standardize on HTTP for now
         self.private_key = private_key
         self.cache_ttl = cache_ttl
         self._price_cache: dict[str, dict] = {}
@@ -59,9 +57,7 @@ class DeFiOptionsProtocol:
             self._last_failure_time = time.time()
             logger.error("rpc_circuit_opened")
 
-    async def get_option_prices_batch(
-        self, contract_addresses: list[str]
-    ) -> dict[str, float]:
+    async def get_option_prices_batch(self, contract_addresses: list[str]) -> dict[str, float]:
         """
         Fetch multiple option prices using Multicall3.
         """
@@ -110,9 +106,7 @@ class DeFiOptionsProtocol:
                         # Update caches
                         self._price_cache[addr] = {"price": price, "time": now}
                         if redis:
-                            await redis.setex(
-                                f"defi_price:{addr}", self.cache_ttl, str(price)
-                            )
+                            await redis.setex(f"defi_price:{addr}", self.cache_ttl, str(price))
                     idx += 1
 
             self._failure_count = 0  # Reset on success
@@ -122,9 +116,7 @@ class DeFiOptionsProtocol:
             await self._handle_rpc_failure()
             return await self._get_option_prices_parallel(contract_addresses)
 
-    async def _get_option_prices_parallel(
-        self, contract_addresses: list[str]
-    ) -> dict[str, float]:
+    async def _get_option_prices_parallel(self, contract_addresses: list[str]) -> dict[str, float]:
         """Parallel execution fallback."""
         tasks = [self.get_option_price(addr) for addr in contract_addresses]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -196,9 +188,7 @@ class DeFiOptionsProtocol:
                 }
             )
 
-            signed_tx = self.w3.eth.account.sign_transaction(
-                transaction, self.private_key
-            )
+            signed_tx = self.w3.eth.account.sign_transaction(transaction, self.private_key)
             tx_hash = await self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
             receipt = await self.w3.eth.wait_for_transaction_receipt(tx_hash)

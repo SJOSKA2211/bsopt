@@ -83,9 +83,7 @@ def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_p
 @patch("src.shared.observability.datetime")
 @patch("src.shared.observability.httpx.post")
 @patch("src.shared.observability.os.environ.get")
-def test_post_grafana_annotation_payload_time(
-    mock_environ_get, mock_httpx_post, mock_datetime
-):
+def test_post_grafana_annotation_payload_time(mock_environ_get, mock_httpx_post, mock_datetime):
     """Test that the time in the payload is correctly formatted."""
     mock_environ_get.return_value = "http://localhost:3000"
     mock_httpx_post.return_value.status_code = 200

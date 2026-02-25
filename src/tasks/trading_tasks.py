@@ -15,8 +15,6 @@ from .celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 
-
-
 # Lazy Import Map
 _IMPORT_MAP = {
     "pd": "pandas",
@@ -76,9 +74,7 @@ def backtest_strategy_task(
     pd = _get_attr("pd")
     np = _get_attr("np")
 
-    logger.info(
-        f"Running vectorized backtest: {strategy} from {start_date} to {end_date}"
-    )
+    logger.info(f"Running vectorized backtest: {strategy} from {start_date} to {end_date}")
 
     try:
         engine = BacktestEngine()

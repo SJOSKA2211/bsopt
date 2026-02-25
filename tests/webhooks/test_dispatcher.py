@@ -36,10 +36,7 @@ async def test_verify_signature_valid():
     extracted_signature = sha256_part.split("=")[1]
 
     assert (
-        await _verify_signature(
-            secret, payload, extracted_timestamp, extracted_signature
-        )
-        is True
+        await _verify_signature(secret, payload, extracted_timestamp, extracted_signature) is True
     )
 
 
@@ -61,9 +58,7 @@ async def test_verify_signature_invalid_payload():
     invalid_payload = '{"id": "evt_test", "type": "event.wrong"}'
 
     assert (
-        await _verify_signature(
-            secret, invalid_payload, extracted_timestamp, extracted_signature
-        )
+        await _verify_signature(secret, invalid_payload, extracted_timestamp, extracted_signature)
         is False
     )
 
@@ -86,9 +81,7 @@ async def test_verify_signature_invalid_secret():
     invalid_secret = "wrong_secret"
 
     assert (
-        await _verify_signature(
-            invalid_secret, payload, extracted_timestamp, extracted_signature
-        )
+        await _verify_signature(invalid_secret, payload, extracted_timestamp, extracted_signature)
         is False
     )
 

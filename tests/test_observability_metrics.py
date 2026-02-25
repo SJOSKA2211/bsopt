@@ -30,9 +30,7 @@ def test_push_metrics_success(mock_logger, mock_environ_get, mock_push_to_gatewa
 @patch("src.shared.observability.push_to_gateway")
 @patch("src.shared.observability.os.environ.get")
 @patch("src.shared.observability.structlog.get_logger")
-def test_push_metrics_no_gateway_url(
-    mock_logger, mock_environ_get, mock_push_to_gateway
-):
+def test_push_metrics_no_gateway_url(mock_logger, mock_environ_get, mock_push_to_gateway):
     """Test pushing metrics is skipped when PUSHGATEWAY_URL is not set."""
     mock_environ_get.return_value = None  # No PUSHGATEWAY_URL
     mock_logger_instance = MagicMock()
@@ -65,7 +63,5 @@ def test_push_metrics_failure(mock_logger, mock_environ_get, mock_push_to_gatewa
     mock_push_to_gateway.assert_called_once_with(
         "http://localhost:9091", job=job_name, registry=REGISTRY
     )
-    mock_logger_instance.error.assert_called_once_with(
-        "metrics_push_failed", error="Push failed"
-    )
+    mock_logger_instance.error.assert_called_once_with("metrics_push_failed", error="Push failed")
     assert result is None

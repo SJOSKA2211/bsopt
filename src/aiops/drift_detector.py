@@ -20,9 +20,7 @@ class PricingDriftDetector:
         self.threshold = threshold
         self.factory = PricingEngineFactory()
 
-    async def check_drift(
-        self, symbol: str, window_minutes: int = 60
-    ) -> dict[str, Any]:
+    async def check_drift(self, symbol: str, window_minutes: int = 60) -> dict[str, Any]:
         """
         Analyzes the last N minutes of data for a symbol to detect pricing drift.
         """
@@ -37,9 +35,7 @@ class PricingDriftDetector:
             return {"drift_detected": False, "reason": "insufficient_data"}
 
         # 2. Calculate theoretical baseline using high-speed WASM engine
-        bs_engine = self.factory.get_strategy("wasm") or self.factory.get_strategy(
-            "black_scholes"
-        )
+        bs_engine = self.factory.get_strategy("wasm") or self.factory.get_strategy("black_scholes")
 
         errors = []
         for record in data:

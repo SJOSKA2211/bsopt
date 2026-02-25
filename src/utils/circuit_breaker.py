@@ -55,9 +55,7 @@ class InMemoryCircuitBreaker:
                         mechanism="in_memory",
                     )
                 else:
-                    raise Exception(
-                        f"Circuit Breaker '{self.name}' is OPEN. Request rejected."
-                    )
+                    raise Exception(f"Circuit Breaker '{self.name}' is OPEN. Request rejected.")
 
             try:
                 if asyncio.iscoroutinefunction(func):
@@ -70,9 +68,7 @@ class InMemoryCircuitBreaker:
                 if self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.CLOSED
                     self.failure_count = 0
-                    logger.info(
-                        "circuit_breaker_closed", name=self.name, mechanism="in_memory"
-                    )
+                    logger.info("circuit_breaker_closed", name=self.name, mechanism="in_memory")
 
                 return result
             except Exception as e:
@@ -151,9 +147,7 @@ class DistributedCircuitBreaker:
                 keys=self.keys, args=[now, self.recovery_timeout]
             )
             current_state = (
-                current_state.decode()
-                if isinstance(current_state, bytes)
-                else current_state
+                current_state.decode() if isinstance(current_state, bytes) else current_state
             )
 
             if current_state == "OPEN":
@@ -178,12 +172,8 @@ class DistributedCircuitBreaker:
 
                 failures = int(await self.redis_client.get(self.keys[1]) or 0)
                 if failures >= self.failure_threshold:
-                    await self.redis_client.set(
-                        self.keys[0], "OPEN", ex=self.recovery_timeout
-                    )
-                    logger.error(
-                        "circuit_breaker_opened", name=self.name, failures=failures
-                    )
+                    await self.redis_client.set(self.keys[0], "OPEN", ex=self.recovery_timeout)
+                    logger.error("circuit_breaker_opened", name=self.name, failures=failures)
 
                 raise e
 
@@ -216,21 +206,13 @@ class CircuitBreakerFactory:
 
 
 # Global instances initialized with sensible defaults
-pricing_circuit = CircuitBreakerFactory.create(
-    "pricing", failure_threshold=10, recovery_timeout=60
-)
-db_circuit = CircuitBreakerFactory.create(
-    "database", failure_threshold=5, recovery_timeout=30
-)
+pricing_circuit = CircuitBreakerFactory.create("pricing", failure_threshold=10, recovery_timeout=60)
+db_circuit = CircuitBreakerFactory.create("database", failure_threshold=5, recovery_timeout=30)
 ml_client_circuit = CircuitBreakerFactory.create(
     "ml_client", failure_threshold=5, recovery_timeout=30
 )
-nse_circuit = CircuitBreakerFactory.create(
-    "nse", failure_threshold=3, recovery_timeout=120
-)
-webhook_circuit = CircuitBreakerFactory.create(
-    "webhook", failure_threshold=5, recovery_timeout=30
-)
+nse_circuit = CircuitBreakerFactory.create("nse", failure_threshold=3, recovery_timeout=120)
+webhook_circuit = CircuitBreakerFactory.create("webhook", failure_threshold=5, recovery_timeout=30)
 
 
 async def initialize_circuits(redis_client: redis.Redis | None = None):
@@ -242,9 +224,7 @@ async def initialize_circuits(redis_client: redis.Redis | None = None):
         logger.info("upgrading_to_distributed_circuit_breakers")
         pricing_circuit = CircuitBreakerFactory.create("pricing", redis_client, 10, 60)
         db_circuit = CircuitBreakerFactory.create("database", redis_client, 5, 30)
-        ml_client_circuit = CircuitBreakerFactory.create(
-            "ml_client", redis_client, 5, 30
-        )
+        ml_client_circuit = CircuitBreakerFactory.create("ml_client", redis_client, 5, 30)
         nse_circuit = CircuitBreakerFactory.create("nse", redis_client, 3, 120)
     else:
         logger.info("retaining_in_memory_circuit_breakers")

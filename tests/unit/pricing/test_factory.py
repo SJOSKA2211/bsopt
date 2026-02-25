@@ -37,7 +37,5 @@ def test_wasm_override():
         # We need to mock the import or ensure it doesn't fail
         with patch("src.pricing.wasm_engine.WASMPricingEngine") as mock_wasm:
             PricingEngineFactory.register("wasm", mock_wasm)
-            engine = PricingEngineFactory.get_engine(
-                "heston", execution_strategy="wasm"
-            )
+            engine = PricingEngineFactory.get_engine("heston", execution_strategy="wasm")
             assert engine == PricingEngineFactory._instances["wasm"]

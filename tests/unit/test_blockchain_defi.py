@@ -29,9 +29,7 @@ async def test_defi_options_protocol_initialization(mock_web3_class, blockchain_
 @pytest.mark.asyncio
 @patch("src.blockchain.defi_options.AsyncWeb3")
 @patch("src.blockchain.defi_options.Web3")
-async def test_defi_options_buy_logic(
-    mock_web3_sync, mock_web3_class, blockchain_config
-):
+async def test_defi_options_buy_logic(mock_web3_sync, mock_web3_class, blockchain_config):
     mock_web3 = mock_web3_class.return_value
     mock_web3.eth.get_transaction_count = AsyncMock(return_value=10)
     mock_web3.eth.get_block = AsyncMock(return_value={"baseFeePerGas": 1000000000})
@@ -40,9 +38,7 @@ async def test_defi_options_buy_logic(
     mock_web3.eth.max_priority_fee = asyncio.Future()
     mock_web3.eth.max_priority_fee.set_result(2000000000)
 
-    mock_web3.eth.send_raw_transaction = AsyncMock(
-        return_value=MagicMock(hex=lambda: "tx_hash")
-    )
+    mock_web3.eth.send_raw_transaction = AsyncMock(return_value=MagicMock(hex=lambda: "tx_hash"))
     mock_web3.eth.wait_for_transaction_receipt = AsyncMock(return_value={"status": 1})
 
     # Mock account and signing
@@ -57,12 +53,8 @@ async def test_defi_options_buy_logic(
 
     # Mock the contract
     mock_contract = MagicMock()
-    mock_contract.functions.get_price.return_value.call = AsyncMock(
-        return_value=10**18
-    )  # 1 ETH
-    mock_contract.functions.buy.return_value.estimate_gas = AsyncMock(
-        return_value=100000
-    )
+    mock_contract.functions.get_price.return_value.call = AsyncMock(return_value=10**18)  # 1 ETH
+    mock_contract.functions.buy.return_value.estimate_gas = AsyncMock(return_value=100000)
     mock_contract.functions.buy.return_value.build_transaction = AsyncMock(
         return_value={"data": "0x123"}
     )

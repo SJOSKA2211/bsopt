@@ -17,9 +17,6 @@ def _run_backtest_task(engine_instance, df, strategy_fn, params):
     return engine_instance.run_vectorized(df, strategy_fn, params)
 
 
-
-
-
 def _get_quasi_diag(link):
     """Quasi-Diagonalization utility for HRP."""
     link = link.astype(int)
@@ -94,9 +91,7 @@ class BacktestEngine:
 
         futures = []
         for s in scenarios:
-            futures.append(
-                _run_backtest_task.remote(self, s["df"], s["fn"], s["params"])
-            )
+            futures.append(_run_backtest_task.remote(self, s["df"], s["fn"], s["params"]))
 
         return ray.get(futures)
 
@@ -115,9 +110,7 @@ class BacktestEngine:
         df = strategy_fn(df, params)
 
         if "target_position" not in df.columns:
-            raise ValueError(
-                "Strategy function must add 'target_position' column to DataFrame"
-            )
+            raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
         # 2. Vectorized P&L Calculation
         # Assuming target_position is number of contracts
@@ -126,9 +119,7 @@ class BacktestEngine:
 
         # Transaction costs (simulated)
         transaction_cost_pct = 0.001
-        df["commissions"] = np.abs(
-            df["trades"] * df["option_price"] * transaction_cost_pct
-        )
+        df["commissions"] = np.abs(df["trades"] * df["option_price"] * transaction_cost_pct)
 
         # Mark-to-market P&L
         df["price_change"] = df["option_price"].diff().fillna(0)
@@ -143,9 +134,7 @@ class BacktestEngine:
         total_return = (df["equity_curve"].iloc[-1] / self.initial_capital) - 1
 
         # Sharpe Ratio (annualized, assuming daily data)
-        sharpe = (
-            (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() > 0 else 0
-        )
+        sharpe = (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() > 0 else 0
 
         # Max Drawdown
         rolling_max = df["equity_curve"].cummax()
@@ -157,11 +146,7 @@ class BacktestEngine:
 
         # Historical VaR
         # Sort returns and find the percentile
-        var_95 = (
-            np.percentile(returns, (1 - confidence_level) * 100)
-            if not returns.empty
-            else 0.0
-        )
+        var_95 = np.percentile(returns, (1 - confidence_level) * 100) if not returns.empty else 0.0
 
         # Expected Shortfall (Average of returns worse than VaR)
         es_95 = returns[returns <= var_95].mean() if not returns.empty else 0.0

@@ -12,9 +12,7 @@ def test_prometheus_client_class_exists():
     """
     Test that the PrometheusClient class can be imported.
     """
-    assert (
-        PrometheusClient is not None
-    ), "PrometheusClient class is not defined or importable."
+    assert PrometheusClient is not None, "PrometheusClient class is not defined or importable."
 
 
 @patch("src.aiops.prometheus_adapter.PrometheusConnect")
@@ -27,9 +25,7 @@ def test_prometheus_client_init(mock_prometheus_connect):
 
     client = PrometheusClient(TEST_PROMETHEUS_URL)
 
-    mock_prometheus_connect.assert_called_once_with(
-        url=TEST_PROMETHEUS_URL, disable_ssl=True
-    )
+    mock_prometheus_connect.assert_called_once_with(url=TEST_PROMETHEUS_URL, disable_ssl=True)
     assert client.prom == mock_connect_instance
 
 
@@ -47,9 +43,7 @@ def test_check_connectivity_success(mock_logger, mock_prometheus_connect):
     client.check_connectivity()
 
     mock_connect_instance.all_metrics.assert_called_once()
-    mock_logger.info.assert_called_once_with(
-        "prometheus_connectivity_ok", url=TEST_PROMETHEUS_URL
-    )
+    mock_logger.info.assert_called_once_with("prometheus_connectivity_ok", url=TEST_PROMETHEUS_URL)
     mock_logger.error.assert_not_called()
 
 

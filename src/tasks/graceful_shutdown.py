@@ -52,9 +52,7 @@ class ShutdownManager:
         """Install signal handlers for SIGINT and SIGTERM."""
         loop = asyncio.get_event_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(
-                sig, lambda s=sig: asyncio.create_task(self.shutdown(s))
-            )
+            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(self.shutdown(s)))
 
 
 shutdown_manager = ShutdownManager()

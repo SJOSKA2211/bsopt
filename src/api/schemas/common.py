@@ -26,9 +26,7 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error type or title")
     message: str = Field(..., description="Human-readable error message")
-    details: list[ErrorDetail] | None = Field(
-        None, description="Detailed error information"
-    )
+    details: list[ErrorDetail] | None = Field(None, description="Detailed error information")
     request_id: str | None = Field(None, description="Request ID for support reference")
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

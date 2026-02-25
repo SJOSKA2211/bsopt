@@ -44,10 +44,7 @@ def test_security_headers_middleware():
 
     # Test sensitive path no-cache
     response = client.get("/api/v1/auth/test")
-    assert (
-        response.headers["Cache-Control"]
-        == "no-store, no-cache, must-revalidate, private"
-    )
+    assert response.headers["Cache-Control"] == "no-store, no-cache, must-revalidate, private"
 
 
 def test_csrf_middleware_get_success():
@@ -156,9 +153,7 @@ def test_csrf_middleware_failures():
 
 
 def test_ip_block_temp_block():
-    middleware = IPBlockMiddleware(
-        MagicMock(), max_failed_attempts=2, block_duration_minutes=1
-    )
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=2, block_duration_minutes=1)
     ip = "9.9.9.9"
 
     assert not middleware._is_blocked(ip)
@@ -173,9 +168,7 @@ def test_ip_block_temp_block():
 
 def test_security_headers_custom_policy():
     custom_policy = {"camera": ["https://example.com"]}
-    app = create_app_with_middleware(
-        SecurityHeadersMiddleware, permissions_policy=custom_policy
-    )
+    app = create_app_with_middleware(SecurityHeadersMiddleware, permissions_policy=custom_policy)
     client = TestClient(app)
     response = client.get("/")
     assert 'camera=("https://example.com")' in response.headers["Permissions-Policy"]
@@ -183,9 +176,7 @@ def test_security_headers_custom_policy():
 
 def test_ip_block_temp_block_expiration():
     # Use very short duration for test
-    middleware = IPBlockMiddleware(
-        MagicMock(), max_failed_attempts=1, block_duration_minutes=0
-    )
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=1, block_duration_minutes=0)
     ip = "9.9.9.9"
 
     # Force a block
@@ -217,9 +208,7 @@ def test_ip_block_temp_block_expiration():
 
 
 def test_ip_block_clean_old_attempts():
-    middleware = IPBlockMiddleware(
-        MagicMock(), max_failed_attempts=5, block_duration_minutes=10
-    )
+    middleware = IPBlockMiddleware(MagicMock(), max_failed_attempts=5, block_duration_minutes=10)
     ip = "8.8.8.8"
 
     with patch("src.api.middleware.security.datetime") as mock_datetime:

@@ -26,4 +26,3 @@ async def get_portfolio_summary() -> DataResponse:
         "positions": [],
     }
     return DataResponse(data=data)
-

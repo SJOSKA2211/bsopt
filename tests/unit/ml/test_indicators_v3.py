@@ -11,9 +11,7 @@ def test_numba_ema():
 
 
 def test_numba_rsi():
-    prices = np.array(
-        [10.0, 11.0, 12.0, 11.0, 10.0, 9.0, 8.0, 9.0, 10.0, 11.0], dtype=np.float64
-    )
+    prices = np.array([10.0, 11.0, 12.0, 11.0, 10.0, 9.0, 8.0, 9.0, 10.0, 11.0], dtype=np.float64)
     res = indicators._numba_rsi(prices, 3)
     assert len(res) == 10
     assert not np.isnan(res[-1])

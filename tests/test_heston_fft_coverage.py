@@ -99,9 +99,7 @@ def test_heston_price_put_error_fallback():
     from unittest.mock import patch
 
     # Patch the actual method on the instance to bypass cache and hit exception
-    with patch.object(
-        model, "characteristic_func", side_effect=Exception("mock error")
-    ):
+    with patch.object(model, "characteristic_func", side_effect=Exception("mock error")):
         price = model.price_put(100, 100)
         assert price >= model.MIN_PRICE
 
@@ -111,9 +109,7 @@ def test_heston_price_call_error_fallback():
     model = HestonModelFFT(params, r=0.05, T=1.0)
     from unittest.mock import patch
 
-    with patch.object(
-        model, "characteristic_func", side_effect=Exception("mock error")
-    ):
+    with patch.object(model, "characteristic_func", side_effect=Exception("mock error")):
         price = model.price_call(100, 100)
         assert price >= model.MIN_PRICE
 

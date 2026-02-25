@@ -64,9 +64,7 @@ class WASMPricingEngine(PricingStrategy):
             params.dividend,
         )
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         if not self.instance:
             raise RuntimeError("WASM instance not available")
 
@@ -105,9 +103,7 @@ class WASMPricingEngine(PricingStrategy):
 
         num_options = len(S)
         # Stride = 7: spot, strike, time, vol, rate, div, is_call
-        input_data = np.column_stack(
-            [S, K, T, sigma, r, q, is_call.astype(np.float64)]
-        ).ravel()
+        input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
         #  Use zero-copy mapping to write directly to WASM heap
         from src.utils.wasm_loader import WasmModuleCache
@@ -187,9 +183,7 @@ class WASMPricingEngine(PricingStrategy):
             n,
         )
 
-    def price_heston(
-        self, params: Any, spot: float, strike: float, time: float, r: float
-    ) -> float:
+    def price_heston(self, params: Any, spot: float, strike: float, time: float, r: float) -> float:
         """Rust/WASM Heston implementation."""
         if not self.instance:
             return 0.0
@@ -255,9 +249,7 @@ class WASMPricingEngine(PricingStrategy):
         sigma = np.full(num_options, params.sigma)
         rho = np.full(num_options, params.rho)
 
-        input_data = np.column_stack(
-            [spot, strike, time, r, v0, kappa, theta, sigma, rho]
-        ).ravel()
+        input_data = np.column_stack([spot, strike, time, r, v0, kappa, theta, sigma, rho]).ravel()
 
         from src.utils.wasm_loader import WasmModuleCache
 
@@ -284,9 +276,7 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return np.array([])
 
-        input_data = np.column_stack(
-            [S, K, T, sigma, r, q, is_call.astype(np.float64)]
-        ).ravel()
+        input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
         return self.instance.batch_price_monte_carlo(input_data, num_paths)
 
@@ -309,8 +299,6 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return np.array([])
 
-        input_data = np.column_stack(
-            [S, K, T, sigma, r, q, is_call.astype(np.float64)]
-        ).ravel()
+        input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
         return self.instance.batch_price_american(input_data, m, n)

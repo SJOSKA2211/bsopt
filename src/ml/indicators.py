@@ -129,24 +129,18 @@ def get_macd(
     return macd_line, signal_line, macd_hist
 
 
-def get_atr(
-    high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14
-) -> np.ndarray:
+def get_atr(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
     """Average True Range."""
     n = high.shape[0]
     tr = np.zeros(n, dtype=np.float64)
     tr[0] = high[0] - low[0]
 
     for i in range(1, n):
-        tr[i] = max(
-            high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1])
-        )
+        tr[i] = max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
     return get_ema(tr, length)
 
 
-def get_adx(
-    high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14
-) -> np.ndarray:
+def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
     """Average Directional Index."""
     n = high.shape[0]
     up_move = np.zeros(n, dtype=np.float64)
@@ -162,9 +156,7 @@ def get_adx(
     tr = np.zeros(n, dtype=np.float64)
     tr[0] = high[0] - low[0]
     for i in range(1, n):
-        tr[i] = max(
-            high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1])
-        )
+        tr[i] = max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
 
     smooth_tr = get_ema(tr, length)
     smooth_pos_dm = get_ema(pos_dm, length)

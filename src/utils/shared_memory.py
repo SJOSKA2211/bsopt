@@ -45,9 +45,7 @@ class SharedMemoryManager:
                 except Exception:
                     pass
 
-                shm = shared_memory.SharedMemory(
-                    name=name, create=True, size=self.segment_size
-                )
+                shm = shared_memory.SharedMemory(name=name, create=True, size=self.segment_size)
                 self.all_segments[name] = shm
                 self.available_segments.append(name)
             except Exception as e:

@@ -74,9 +74,7 @@ class PasswordValidator:
             else getattr(s, "PASSWORD_REQUIRE_SPECIAL", False)
         )
 
-    def validate(
-        self, password: str, email: str | None = None
-    ) -> PasswordValidationResult:
+    def validate(self, password: str, email: str | None = None) -> PasswordValidationResult:
         """
         Validate password strength.
 
@@ -93,9 +91,7 @@ class PasswordValidator:
 
         # 1. Length Check
         if len(password) < self.min_length:
-            errors.append(
-                f"Password must be at least {self.min_length} characters long"
-            )
+            errors.append(f"Password must be at least {self.min_length} characters long")
             suggestions.append("Use a longer password")
         else:
             strength_score += 20
@@ -329,9 +325,7 @@ class PasswordService:
 
         # Generate remaining characters
         remaining_length = length - len(required)
-        password_chars = required + [
-            secrets.choice(characters) for _ in range(remaining_length)
-        ]
+        password_chars = required + [secrets.choice(characters) for _ in range(remaining_length)]
 
         # Shuffle to avoid predictable positions
         secrets.SystemRandom().shuffle(password_chars)

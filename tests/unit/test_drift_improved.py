@@ -12,9 +12,7 @@ from src.ml.drift import (
 
 class TestDrift(unittest.TestCase):
     def test_performance_drift_monitor(self):
-        monitor = PerformanceDriftMonitor(
-            window_size=3, threshold=0.1, higher_is_better=True
-        )
+        monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1, higher_is_better=True)
         # Add baseline
         monitor.add_metric(0.9)
         monitor.add_metric(0.92)

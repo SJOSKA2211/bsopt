@@ -44,16 +44,12 @@ class MultivariateDriftDetector:
     def __init__(self, threshold: float = 0.05):
         self.threshold = threshold
 
-    def detect_drift(
-        self, baseline_x: np.ndarray, current_x: np.ndarray
-    ) -> tuple[bool, float]:
+    def detect_drift(self, baseline_x: np.ndarray, current_x: np.ndarray) -> tuple[bool, float]:
         """Detect drift between two multivariate samples."""
         mmd_val = calculate_mmd(baseline_x, current_x, sigma=1.0)
         is_drifted = mmd_val > self.threshold
 
         if is_drifted:
-            logger.warning(
-                "multivariate_drift_detected", mmd=mmd_val, threshold=self.threshold
-            )
+            logger.warning("multivariate_drift_detected", mmd=mmd_val, threshold=self.threshold)
 
         return is_drifted, mmd_val

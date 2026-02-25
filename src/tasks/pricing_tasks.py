@@ -71,9 +71,7 @@ def price_option_task(
     use_cache: bool = True,
 ) -> dict[str, Any]:
     start_time = time.perf_counter()
-    logger.info(
-        "pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity
-    )
+    logger.info("pricing_option_start", option_type=option_type, S=spot, K=strike, T=maturity)
 
     if spot <= 0 or strike <= 0 or maturity <= 0 or volatility <= 0:
         raise ValueError("Invalid input parameters: all must be positive")
@@ -99,15 +97,11 @@ def price_option_task(
                     "computation_time_ms": round(computation_time, 3),
                 }
         except Exception as e:
-            logger.warning(
-                "cache_lookup_failed", error=str(e), action="computing_fresh"
-            )
+            logger.warning("cache_lookup_failed", error=str(e), action="computing_fresh")
 
     try:
         # OPTIMIZED: Direct JIT execution bypassing strategy object overhead
-        price = calculate_price_scalar(
-            spot, strike, maturity, volatility, rate, dividend, is_call
-        )
+        price = calculate_price_scalar(spot, strike, maturity, volatility, rate, dividend, is_call)
         delta, gamma, theta, vega, rho = calculate_greeks_scalar(
             spot, strike, maturity, volatility, rate, dividend, is_call
         )
@@ -129,9 +123,7 @@ def price_option_task(
 
         if use_cache and not cache_hit:
             try:
-                params = BSParameters(
-                    spot, strike, maturity, volatility, rate, dividend
-                )
+                params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
                 _run_sync(
                     pricing_cache.set_option_price(
                         params, option_type, "black_scholes", float(price)
@@ -182,9 +174,7 @@ def batch_price_options_task(
 
             # Perform vectorized pricing using JIT utilities
             is_call = types == "call"
-            prices = calculate_price(
-                spots, strikes, maturities, vols, rates, divs, is_call
-            )
+            prices = calculate_price(spots, strikes, maturities, vols, rates, divs, is_call)
 
             # Perform vectorized greeks using JIT utilities
             deltas, gammas, thetas, vegas, rhos = calculate_greeks(

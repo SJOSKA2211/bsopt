@@ -46,16 +46,12 @@ def optimize_onnx_model(input_path: str, output_path: str):
     try:
         # Configure optimization options
         sess_options = ort.SessionOptions()
-        sess_options.graph_optimization_level = (
-            ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        )
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         sess_options.optimized_model_filepath = output_path
 
         # Creating a session with optimized_model_filepath set will trigger optimization and save the file
         # We use the 'CPUExecutionProvider' for general compatibility during optimization
-        ort.InferenceSession(
-            input_path, sess_options, providers=["CPUExecutionProvider"]
-        )
+        ort.InferenceSession(input_path, sess_options, providers=["CPUExecutionProvider"])
 
         logger.info(f"Successfully optimized and saved model to {output_path}")
     except Exception as e:

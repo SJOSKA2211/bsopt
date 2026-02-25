@@ -44,9 +44,7 @@ class TestAutonomousPipeline(unittest.TestCase):
         )
         # Mock indicators
         with (
-            patch(
-                "src.ml.autonomous_pipeline.get_rsi", return_value=np.random.rand(100)
-            ),
+            patch("src.ml.autonomous_pipeline.get_rsi", return_value=np.random.rand(100)),
             patch(
                 "src.ml.autonomous_pipeline.get_macd",
                 return_value=(
@@ -63,12 +61,8 @@ class TestAutonomousPipeline(unittest.TestCase):
                     np.random.rand(100),
                 ),
             ),
-            patch(
-                "src.ml.autonomous_pipeline.get_atr", return_value=np.random.rand(100)
-            ),
-            patch(
-                "src.ml.autonomous_pipeline.get_adx", return_value=np.random.rand(100)
-            ),
+            patch("src.ml.autonomous_pipeline.get_atr", return_value=np.random.rand(100)),
+            patch("src.ml.autonomous_pipeline.get_adx", return_value=np.random.rand(100)),
         ):
             df_feat = self.pipeline.generate_features(df)
             self.assertIn("RSI_14", df_feat.columns)

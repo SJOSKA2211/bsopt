@@ -37,9 +37,7 @@ def rehash_legacy_passwords(self):
             select(User)
             .where(
                 (User.hashed_password.notlike("$argon2id$%%"))
-                | (
-                    User.is_active
-                )  # Periodically check even argon2 for parameter updates
+                | (User.is_active)  # Periodically check even argon2 for parameter updates
             )
             .limit(batch_size)
         )
@@ -55,9 +53,7 @@ def rehash_legacy_passwords(self):
 
                 # Since we don't have the plain password here, we'll log them
                 # or mark them as 'pending_rehash'.
-                logger.info(
-                    "user_needs_password_rehash", user_id=str(user.id), email=user.email
-                )
+                logger.info("user_needs_password_rehash", user_id=str(user.id), email=user.email)
 
                 # If we had a 'must_rehash' flag in the User model, we'd set it here.
                 # user.must_rehash = True

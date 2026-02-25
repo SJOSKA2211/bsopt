@@ -52,9 +52,7 @@ async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     return result.scalar_one_or_none()
 
 
-async def create_user(
-    db: AsyncSession, email: str, password: str, full_name: str
-) -> User:
+async def create_user(db: AsyncSession, email: str, password: str, full_name: str) -> User:
     """Create a new user using Native Postgres Procedure (Async)."""
     # OPTIMIZED: Hand off hashing to the database layer
     result = await db.execute(
@@ -84,9 +82,7 @@ async def get_user_with_portfolios(db: AsyncSession, user_id: UUID) -> User | No
     return result.scalar_one_or_none()
 
 
-async def get_active_users_by_tier(
-    db: AsyncSession, tier: str, limit: int = 100
-) -> Sequence[User]:
+async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100) -> Sequence[User]:
     """Get active users by tier (Async)."""
     result = await db.execute(
         select(User)
@@ -99,9 +95,7 @@ async def get_active_users_by_tier(
 
 async def update_user_last_login(db: AsyncSession, user_id: UUID) -> None:
     """Update user's last login timestamp (Async)."""
-    await db.execute(
-        update(User).where(User.id == user_id).values(last_login=func.now())
-    )
+    await db.execute(update(User).where(User.id == user_id).values(last_login=func.now()))
     await db.commit()
 
 
@@ -386,10 +380,7 @@ async def get_user_orders(
 async def get_pending_orders(db: AsyncSession, limit: int = 1000) -> Sequence[Order]:
     """Get all pending orders (Async)."""
     result = await db.execute(
-        select(Order)
-        .where(Order.status == "pending")
-        .order_by(Order.created_at)
-        .limit(limit)
+        select(Order).where(Order.status == "pending").order_by(Order.created_at).limit(limit)
     )
     return result.scalars().all()
 
@@ -457,9 +448,7 @@ async def update_order_status(
     if filled_price is not None:
         values["filled_price"] = filled_price
 
-    result = await db.execute(
-        update(Order).where(Order.id == order_id).values(**values)
-    )
+    result = await db.execute(update(Order).where(Order.id == order_id).values(**values))
     await db.commit()
     return bool(result.rowcount > 0)
 
@@ -472,9 +461,7 @@ async def update_order_status(
 async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
     """Get the production version of a model (Async)."""
     result = await db.execute(
-        select(MLModel).where(
-            and_(MLModel.name == name, MLModel.is_production.is_(True))
-        )
+        select(MLModel).where(and_(MLModel.name == name, MLModel.is_production.is_(True)))
     )
     return result.scalar_one_or_none()
 
@@ -482,10 +469,7 @@ async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
 async def get_latest_model_version(db: AsyncSession, name: str) -> MLModel | None:
     """Get the latest version of a model (Async)."""
     result = await db.execute(
-        select(MLModel)
-        .where(MLModel.name == name)
-        .order_by(MLModel.version.desc())
-        .limit(1)
+        select(MLModel).where(MLModel.name == name).order_by(MLModel.version.desc()).limit(1)
     )
     return result.scalar_one_or_none()
 
@@ -577,9 +561,7 @@ async def get_option_chain(
     if option_type:
         stmt = stmt.where(OptionPrice.option_type == option_type)
 
-    stmt = stmt.order_by(OptionPrice.strike, OptionPrice.time.desc()).distinct(
-        OptionPrice.strike
-    )
+    stmt = stmt.order_by(OptionPrice.strike, OptionPrice.time.desc()).distinct(OptionPrice.strike)
 
     result = await db.execute(stmt)
     return result.scalars().all()
@@ -642,9 +624,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
 
             # OPTIMIZED: Light staging table
             await db.execute(
-                text(
-                    "CREATE TEMP TABLE staging_option_prices (LIKE options_prices) ON COMMIT DROP"
-                )
+                text("CREATE TEMP TABLE staging_option_prices (LIKE options_prices) ON COMMIT DROP")
             )
 
             # 2. Fast COPY into staging
@@ -932,9 +912,7 @@ async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
         return {"error": "Stats temporarily unavailable"}
 
 
-async def get_market_statistics(
-    db: AsyncSession, symbol: str, limit: int = 30
-) -> list[dict]:
+async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) -> list[dict]:
     """
     Fetch pre-aggregated daily market statistics from the continuous aggregate.
     """
@@ -1018,9 +996,7 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
         return []
 
 
-async def get_hourly_market_stats(
-    db: AsyncSession, symbol: str, hours: int = 24
-) -> list[dict]:
+async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24) -> list[dict]:
     """
     Fetch hourly market stats from continuous aggregates.
     """
@@ -1047,9 +1023,7 @@ async def get_hourly_market_stats(
         return []
 
 
-async def get_model_drift_metrics(
-    db: AsyncSession, model_id: UUID | None = None
-) -> list[dict]:
+async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None) -> list[dict]:
     """
     Fetch pre-aggregated drift metrics from the materialized view.
     """

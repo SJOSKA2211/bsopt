@@ -96,9 +96,7 @@ def test_isolation_forest_detector_not_fitted_predict_raises_error():
     """Test that predict raises an error if model is not fitted."""
     detector = IsolationForestDetector(contamination=0.1)
     data = np.array([1.0, 2.0]).reshape(-1, 1)
-    with pytest.raises(
-        RuntimeError, match="Isolation Forest model has not been fitted yet."
-    ):
+    with pytest.raises(RuntimeError, match="Isolation Forest model has not been fitted yet."):
         detector.predict(data)
 
 

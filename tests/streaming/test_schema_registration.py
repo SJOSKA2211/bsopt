@@ -41,9 +41,7 @@ def test_register_market_data_schema_script_interaction(mock_schema_registry_cli
     """
     mock_client_instance = MagicMock()
     mock_schema_registry_client.return_value = mock_client_instance
-    mock_client_instance.register_schema.return_value = (
-        1  # Simulate a successful registration
-    )
+    mock_client_instance.register_schema.return_value = 1  # Simulate a successful registration
 
     with open(SCHEMA_PATH) as f:
         expected_schema_str = f.read()
@@ -51,9 +49,7 @@ def test_register_market_data_schema_script_interaction(mock_schema_registry_cli
     register_schema(SCHEMA_PATH, TEST_SUBJECT_NAME, TEST_SCHEMA_REGISTRY_URL)
 
     # Assert that SchemaRegistryClient was instantiated with the correct URL
-    mock_schema_registry_client.assert_called_once_with(
-        {"url": TEST_SCHEMA_REGISTRY_URL}
-    )
+    mock_schema_registry_client.assert_called_once_with({"url": TEST_SCHEMA_REGISTRY_URL})
 
     # Assert that the register method was called on the client instance
     args, kwargs = mock_client_instance.register.call_args

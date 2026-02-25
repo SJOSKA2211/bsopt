@@ -35,13 +35,9 @@ class ONNXModelServer:
         sess_options = ort.SessionOptions()
         sess_options.intra_op_num_threads = os.cpu_count() or 4
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-        sess_options.graph_optimization_level = (
-            ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        )
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         # OPTIMIZED: Enable memory pinning for faster H2D transfers
-        sess_options.add_session_config_entry(
-            "session.use_device_allocator_for_initializers", "1"
-        )
+        sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
 
         # Prioritize GPU if available
         available_providers = ort.get_available_providers()
@@ -53,14 +49,10 @@ class ONNXModelServer:
         providers.append("CPUExecutionProvider")
 
         try:
-            self.session = ort.InferenceSession(
-                model_path, sess_options, providers=providers
-            )
+            self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
             self.input_name = self.session.get_inputs()[0].name
             self.output_name = self.session.get_outputs()[0].name
-            logger.info(
-                "onnx_session_initialized", model_path=model_path, providers=providers
-            )
+            logger.info("onnx_session_initialized", model_path=model_path, providers=providers)
         except Exception as e:
             logger.error("onnx_init_failed", error=str(e))
             raise
@@ -70,9 +62,8 @@ class ONNXModelServer:
         # Ensure correct type for the engine
         if features.dtype != np.float32:
             features = features.astype(np.float32)
-        return self.session.run(
-            [self.output_name], {self.input_name: features}
-        )[0]
+        return self.session.run([self.output_name], {self.input_name: features})[0]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -117,14 +108,10 @@ async def predict(raw_request: Request):
         latency = (time.perf_counter() - start_time) * 1000
         ONNX_INFERENCE_LATENCY.observe(latency)
 
-        response_data = PredictionResponse(
-            predictions=preds.flatten().tolist(), latency_ms=latency
-        )
+        response_data = PredictionResponse(predictions=preds.flatten().tolist(), latency_ms=latency)
 
         # Fast serialization
-        return Response(
-            content=encoder.encode(response_data), media_type="application/json"
-        )
+        return Response(content=encoder.encode(response_data), media_type="application/json")
     except Exception as e:
         logger.error("inference_failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e)) from e

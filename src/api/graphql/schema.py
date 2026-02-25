@@ -103,9 +103,7 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    async def create_portfolio(
-        self, user_id: str, name: str, initial_cash: float
-    ) -> Portfolio:
+    async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         from src.api.graphql.resolvers.portfolio_service import (
             create_portfolio as create_portfolio_svc,
         )

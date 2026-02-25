@@ -51,9 +51,7 @@ class OrderExecutor:
                 )
 
                 duration = (time.time() - start_time) * 1000
-                logger.info(
-                    "order_dispatched_real", tx_hash=tx_hash, latency_ms=duration
-                )
+                logger.info("order_dispatched_real", tx_hash=tx_hash, latency_ms=duration)
 
                 return {
                     "status": "dispatched",

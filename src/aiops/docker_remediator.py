@@ -28,9 +28,7 @@ class DockerRemediator:
         """Helper to run shell commands in the background."""
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            logger.info(
-                "docker_remediator_cmd_success", cmd=cmd, output=result.stdout[:200]
-            )
+            logger.info("docker_remediator_cmd_success", cmd=cmd, output=result.stdout[:200])
             return True
         except Exception as e:
             logger.error("docker_remediator_cmd_failed", cmd=cmd, error=str(e))
@@ -44,17 +42,13 @@ class DockerRemediator:
                 try:
                     container = self.client.containers.get(f"{service_name}-1")
                     container.restart()
-                    logger.info(
-                        "docker_remediator_restart_sdk_success", service=service_name
-                    )
+                    logger.info("docker_remediator_restart_sdk_success", service=service_name)
                 except Exception:
                     self._run_cmd(["docker", "compose", "restart", service_name])
 
             self.executor.submit(_restart)
         else:
-            self.executor.submit(
-                self._run_cmd, ["docker", "compose", "restart", service_name]
-            )
+            self.executor.submit(self._run_cmd, ["docker", "compose", "restart", service_name])
 
     def scale_service(self, service_name: str, replicas: int) -> bool:
         """

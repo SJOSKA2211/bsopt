@@ -19,9 +19,7 @@ def _sign_payload(secret: str, timestamp: int, payload: str) -> str:
     return h.hexdigest()
 
 
-async def _generate_signature(
-    secret: str, payload: str, timestamp: int | None = None
-) -> str:
+async def _generate_signature(secret: str, payload: str, timestamp: int | None = None) -> str:
     """
     Generates a Stripe-style HMAC-SHA256 signature for a webhook payload.
     Format: t=<timestamp>,sha256=<signature>
@@ -84,9 +82,7 @@ class WebhookDispatcher:
             payload_bytes = orjson.dumps(payload, option=orjson.OPT_SORT_KEYS)
 
             if secret and "X-Webhook-Signature" not in headers:
-                signature_header = await _generate_signature(
-                    secret, payload_bytes.decode("utf-8")
-                )
+                signature_header = await _generate_signature(secret, payload_bytes.decode("utf-8"))
                 headers["X-Webhook-Signature"] = signature_header
 
             client = HttpClientManager.get_client()
@@ -105,9 +101,7 @@ class WebhookDispatcher:
             # Check if it was a circuit breaker rejection
             error_str = str(e)
             if "Circuit Breaker" in error_str and "OPEN" in error_str:
-                logger.warning(
-                    "webhook_dispatch_skipped", url=url, reason="circuit_breaker_open"
-                )
+                logger.warning("webhook_dispatch_skipped", url=url, reason="circuit_breaker_open")
                 raise  # Re-raise to let Celery handle retry/DLQ
 
             logger.error("webhook_dispatch_failed", url=url, error=error_str)

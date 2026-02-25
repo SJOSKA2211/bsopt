@@ -67,9 +67,7 @@ def _validate_inputs(
     if option_type.lower() not in ["call", "put"]:
         raise ValueError("option_type must be 'call' or 'put'")
 
-    intrinsic = _calculate_intrinsic_value(
-        spot, strike, rate, dividend, maturity, option_type
-    )
+    intrinsic = _calculate_intrinsic_value(spot, strike, rate, dividend, maturity, option_type)
     if market_price < intrinsic - 1e-7:
         raise ValueError(
             f"Arbitrage violation: market price {market_price} is below intrinsic value {intrinsic}"
@@ -102,9 +100,7 @@ def _newton_raphson_iv(
 
     for _ in range(max_iterations):
         # 1. Price using scalar kernel
-        price = calculate_price_core(
-            spot, strike, maturity, sigma, rate, dividend, is_call
-        )
+        price = calculate_price_core(spot, strike, maturity, sigma, rate, dividend, is_call)
 
         # 2. Vega using scalar kernel
         _, _, _, vega, _ = calculate_greeks_core(
@@ -149,11 +145,7 @@ def _brent_iv(
             dividend=np.array([dividend]),
             option_type=np.array([option_type]),
         )
-        price_val = (
-            float(price_res[0])
-            if isinstance(price_res, np.ndarray)
-            else float(price_res)
-        )
+        price_val = float(price_res[0]) if isinstance(price_res, np.ndarray) else float(price_res)
         return price_val - market_price
 
     try:

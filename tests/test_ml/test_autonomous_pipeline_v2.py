@@ -37,9 +37,7 @@ def test_generate_features(pipeline_config):
 
         df = pd.DataFrame(
             {
-                "timestamp": pd.date_range(
-                    start="2023-01-01", periods=100, freq="1min"
-                ),
+                "timestamp": pd.date_range(start="2023-01-01", periods=100, freq="1min"),
                 "close": np.random.uniform(100, 110, 100),
                 "high": np.random.uniform(110, 115, 100),
                 "low": np.random.uniform(95, 100, 100),

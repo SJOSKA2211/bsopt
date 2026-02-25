@@ -27,9 +27,7 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
     default="onnx",
     help="Serving backend",
 )
-@click.option(
-    "--onnx-path", type=str, help="Path to ONNX model file (required for onnx backend)"
-)
+@click.option("--onnx-path", type=str, help="Path to ONNX model file (required for onnx backend)")
 def serve_model(
     model_name: str,
     model_version: str,
@@ -56,9 +54,7 @@ def serve_model(
 
         os.environ["ONNX_MODEL_PATH"] = onnx_path
         logger.info(f"Launching high-performance ONNX server on {host}:{port}")
-        uvicorn.run(
-            "src.ml.serving.onnx_serving:app", host=host, port=port, log_level="info"
-        )
+        uvicorn.run("src.ml.serving.onnx_serving:app", host=host, port=port, log_level="info")
 
     else:
         # Legacy MLflow subprocess serving
@@ -79,7 +75,5 @@ def serve_model(
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     serve_model()

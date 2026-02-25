@@ -41,9 +41,7 @@ class ProxyRotator:
 
     def __init__(self, proxies: list[str]):
         # Store metadata for each proxy
-        self.proxies = [
-            {"url": p, "failures": 0, "active": True, "latency": 0.0} for p in proxies
-        ]
+        self.proxies = [{"url": p, "failures": 0, "active": True, "latency": 0.0} for p in proxies]
         self._index = 0
         self.redis = get_redis()
 
@@ -88,9 +86,7 @@ class ProxyRotator:
         for p in self.proxies:
             if p["url"] == url:
                 p["latency"] = (p["latency"] * 0.7) + (latency * 0.3)  # EMA for latency
-                p["failures"] = max(
-                    0, p["failures"] - 1
-                )  # Reduce failure count on success
+                p["failures"] = max(0, p["failures"] - 1)  # Reduce failure count on success
                 await self._sync_health(p)
 
     async def report_failure(self, url: str):
@@ -138,9 +134,7 @@ class NSEScraper:
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
 
         # Pre-computed exact-match hash map
-        self._symbol_map = {
-            k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()
-        }
+        self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
         # Map from fully normalized name to symbol
         self._exact_symbol_map = {
             k.upper().strip(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()
@@ -241,8 +235,7 @@ class NSEScraper:
 
                 timestamp = datetime.now().isoformat()
                 tasks = [
-                    self._fetch_sector(client, nonce, sector)
-                    for sector in settings.NSE_SECTORS
+                    self._fetch_sector(client, nonce, sector) for sector in settings.NSE_SECTORS
                 ]
                 sector_results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -287,9 +280,7 @@ class NSEScraper:
         finally:
             self._refresh_future = None
 
-    async def _fetch_sector(
-        self, client: httpx.AsyncClient, nonce: str, sector: str
-    ) -> list[dict]:
+    async def _fetch_sector(self, client: httpx.AsyncClient, nonce: str, sector: str) -> list[dict]:
         """Fetch data for a specific sector via the WordPress AJAX endpoint."""
         payload = {"action": "display_prices", "security": nonce, "sector": sector}
         resp = await client.post(self.AJAX_URL, data=payload)

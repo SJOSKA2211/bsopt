@@ -50,9 +50,7 @@ class TestExotic(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_digital_cash(self):
-        price = DigitalOptionPricer.price_cash_or_nothing(
-            self.base_params, "call", payout=10.0
-        )
+        price = DigitalOptionPricer.price_cash_or_nothing(self.base_params, "call", payout=10.0)
         self.assertGreater(price, 0)
 
     def test_barrier_all_types(self):
@@ -63,15 +61,11 @@ class TestExotic(unittest.TestCase):
             else:
                 self.exotic_params.barrier = 80.0
 
-            price = BarrierOptionPricer.price_barrier_analytical(
-                self.exotic_params, "call", bt
-            )
+            price = BarrierOptionPricer.price_barrier_analytical(self.exotic_params, "call", bt)
             self.assertGreaterEqual(price, 0)
 
     def test_lookback_floating_analytical(self):
-        price = LookbackOptionPricer.price_floating_strike_analytical(
-            self.base_params, "call"
-        )
+        price = LookbackOptionPricer.price_floating_strike_analytical(self.base_params, "call")
         self.assertGreater(price, 0)
 
     def test_digital_asset_or_nothing(self):

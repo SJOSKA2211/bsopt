@@ -66,9 +66,7 @@ async def _send_password_reset_email(email: str, token: str):
     link = f"{settings.CORS_ORIGINS[0]}/reset-password?token={token}"
 
     if settings.SENDGRID_API_KEY == "mock_key":
-        logger.info(
-            "reset_email_sent_mock", recipient=email, subject=subject, link=link
-        )
+        logger.info("reset_email_sent_mock", recipient=email, subject=subject, link=link)
     else:
         logger.info("reset_email_sent_prod", recipient=email, subject=subject)
 
@@ -81,9 +79,7 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
         raise ValidationException(message="Invalid or expired verification token")
 
     if user.is_verified:
-        return DataResponse(
-            data={"email": user.email}, message="Email already verified"
-        )
+        return DataResponse(data={"email": user.email}, message="Email already verified")
 
     user.is_verified = True
     user.verification_token = None  # Clear token after use
@@ -93,13 +89,9 @@ async def verify_email(token: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         logger.error("verification_commit_failed", error=str(e))
-        raise HTTPException(
-            status_code=500, detail="Failed to update verification status"
-        ) from e
+        raise HTTPException(status_code=500, detail="Failed to update verification status") from e
 
-    return DataResponse(
-        data={"email": user.email}, message="Email verified successfully"
-    )
+    return DataResponse(data={"email": user.email}, message="Email verified successfully")
 
 
 @router.post("/forgot-password")
@@ -110,9 +102,7 @@ async def forgot_password(
     user = db.query(User).filter(User.email == email).first()
     if not user:
         # Don't reveal if user exists for security
-        return DataResponse(
-            data={}, message="If the email exists, a reset link has been sent"
-        )
+        return DataResponse(data={}, message="If the email exists, a reset link has been sent")
 
     # Generate proper reset token
     reset_token = str(uuid.uuid4())
@@ -126,9 +116,7 @@ async def forgot_password(
     return DataResponse(data={}, message="Password reset link sent")
 
 
-@router.post(
-    "/register", response_model=DataResponse[dict], status_code=status.HTTP_201_CREATED
-)
+@router.post("/register", response_model=DataResponse[dict], status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
@@ -172,14 +160,10 @@ async def register(
     except Exception as e:
         db.rollback()
         logger.error(f"registration_db_error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error during registration"
-        ) from e
+        raise HTTPException(status_code=500, detail="Database error during registration") from e
 
     # Send verification email (background)
-    background_tasks.add_task(
-        _send_verification_email, user.email, user.verification_token
-    )
+    background_tasks.add_task(_send_verification_email, user.email, user.verification_token)
 
     # Add token cleanup task occasionally
     if secrets.randbelow(100) < 5:
@@ -204,9 +188,7 @@ async def login(request: Request, data: LoginRequest, db: Session = Depends(get_
 
     if user.is_mfa_enabled:
         if not data.mfa_code:
-            return DataResponse(
-                data=TokenResponse(requires_mfa=True), message="MFA required"
-            )
+            return DataResponse(data=TokenResponse(requires_mfa=True), message="MFA required")
         # Verify MFA
         if not _verify_mfa_code(user, data.mfa_code, db):
             raise AuthenticationException(message="Invalid MFA code")
@@ -310,12 +292,8 @@ async def request_password_reset(
 
 
 @router.post("/password-reset/confirm")
-async def confirm_password_reset(
-    data: PasswordResetConfirmRequest, db: Session = Depends(get_db)
-):
-    user = (
-        db.query(User).filter(User.verification_token == f"reset:{data.token}").first()
-    )
+async def confirm_password_reset(data: PasswordResetConfirmRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.verification_token == f"reset:{data.token}").first()
     if not user:
         raise NotFoundException(message="Invalid or expired reset token")
 
@@ -340,9 +318,7 @@ async def change_password(
     user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
-    if not password_service.verify_password(
-        data.current_password, user.hashed_password
-    ):
+    if not password_service.verify_password(data.current_password, user.hashed_password):
         raise AuthenticationException(message="Invalid current password")
 
     val = password_service.validate_password(data.new_password)
@@ -360,9 +336,7 @@ async def change_password(
 
 
 @router.post("/mfa/setup", response_model=DataResponse[MFASetupResponse])
-async def mfa_setup(
-    user: User = Depends(get_current_active_user), db: Session = Depends(get_db)
-):
+async def mfa_setup(user: User = Depends(get_current_active_user), db: Session = Depends(get_db)):
     import pyotp
 
     secret = pyotp.random_base32()

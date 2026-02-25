@@ -30,9 +30,7 @@ async def test_sentiment_pipeline_processing(mock_extractor):
 
     assert result["symbol"] == "AAPL"
     assert result["sentiment"] == 0.5
-    mock_extractor.get_sentiment_score.assert_called_once_with(
-        "Market looks bullish today."
-    )
+    mock_extractor.get_sentiment_score.assert_called_once_with("Market looks bullish today.")
 
 
 @pytest.mark.asyncio
@@ -49,9 +47,7 @@ async def test_sentiment_pipeline_error_handling(mock_extractor):
     pipeline = SentimentPipeline()
     mock_extractor.get_sentiment_score.side_effect = Exception("Extraction failed")
 
-    result = await pipeline.process_scraper_message(
-        {"text": "faulty", "symbol": "AAPL"}
-    )
+    result = await pipeline.process_scraper_message({"text": "faulty", "symbol": "AAPL"})
     assert result["sentiment"] == 0.0
 
 

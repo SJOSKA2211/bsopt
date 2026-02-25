@@ -54,9 +54,7 @@ class TestMLPipelineTrigger:
         assert result
         mock_logger.info.assert_has_calls(
             [
-                call(
-                    "ml_pipeline_trigger", status="attempting_retraining", config=config
-                ),
+                call("ml_pipeline_trigger", status="attempting_retraining", config=config),
                 call(
                     "ml_pipeline_trigger",
                     status="success",

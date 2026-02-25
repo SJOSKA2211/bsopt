@@ -123,9 +123,7 @@ class TestMonteCarloEngineBasics:
 
     def test_reproducibility(self, atm_params):
         """Test that same seed produces same results."""
-        config = MCConfig(
-            n_paths=10000, seed=42, antithetic=False, control_variate=False
-        )
+        config = MCConfig(n_paths=10000, seed=42, antithetic=False, control_variate=False)
 
         engine1 = MonteCarloEngine(config)
         price1, _ = engine1.price_european(atm_params, "call")
@@ -245,9 +243,7 @@ class TestEuropeanPricing:
 
         # Deep ITM call should be worth at least intrinsic value
         intrinsic_value = params.spot - params.strike
-        assert (
-            price > intrinsic_value * 0.95
-        )  # Allow some margin for dividends/discounting
+        assert price > intrinsic_value * 0.95  # Allow some margin for dividends/discounting
 
     def test_deep_otm_put(self, engine):
         """Test deep out-of-the-money put has low value."""
@@ -287,9 +283,7 @@ class TestVarianceReduction:
         n_runs = 10
 
         # Without antithetic
-        config_no_av = MCConfig(
-            n_paths=n_paths, antithetic=False, control_variate=False
-        )
+        config_no_av = MCConfig(n_paths=n_paths, antithetic=False, control_variate=False)
         prices_no_av = []
         for seed in range(n_runs):
             config_no_av.seed = seed
@@ -319,16 +313,12 @@ class TestVarianceReduction:
         n_paths = 20000
 
         # Without control variates
-        config_no_cv = MCConfig(
-            n_paths=n_paths, antithetic=False, control_variate=False, seed=42
-        )
+        config_no_cv = MCConfig(n_paths=n_paths, antithetic=False, control_variate=False, seed=42)
         engine_no_cv = MonteCarloEngine(config_no_cv)
         _, ci_no_cv = engine_no_cv.price_european(params, "call")
 
         # With control variates
-        config_cv = MCConfig(
-            n_paths=n_paths, antithetic=False, control_variate=True, seed=42
-        )
+        config_cv = MCConfig(n_paths=n_paths, antithetic=False, control_variate=True, seed=42)
         engine_cv = MonteCarloEngine(config_cv)
         _, ci_cv = engine_cv.price_european(params, "call")
 

@@ -182,9 +182,7 @@ def update_system_metrics(service_name: str):
         import psutil
 
         process = psutil.Process()
-        PROCESS_CPU_USAGE.labels(service=service_name).set(
-            process.cpu_percent(interval=None)
-        )
+        PROCESS_CPU_USAGE.labels(service=service_name).set(process.cpu_percent(interval=None))
         PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
     except Exception:
         pass
@@ -198,9 +196,7 @@ def start_system_metrics_loop(service_name: str, interval: int = 15):
             update_system_metrics(service_name)
             time.sleep(interval)
 
-    executor = ThreadPoolExecutor(
-        max_workers=1, thread_name_prefix=f"metrics_{service_name}"
-    )
+    executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix=f"metrics_{service_name}")
     executor.submit(_loop)
 
 
@@ -219,17 +215,11 @@ TRAINING_DURATION = Histogram(
 MODEL_ACCURACY = Gauge(
     "ml_model_accuracy_score", "Accuracy score of the latest model", ["framework"]
 )
-MODEL_RMSE = Gauge(
-    "ml_model_rmse", "Root Mean Squared Error of model", ["model_type", "dataset"]
-)
+MODEL_RMSE = Gauge("ml_model_rmse", "Root Mean Squared Error of model", ["model_type", "dataset"])
 DATA_DRIFT_SCORE = Gauge("ml_data_drift_score", "PSI score for data drift")
 KS_TEST_SCORE = Gauge("ml_ks_test_p_value", "P-value from Kolmogorov-Smirnov test")
-PERFORMANCE_DRIFT_ALERT = Gauge(
-    "ml_performance_drift_alert", "Binary alert for performance drift"
-)
-TRAINING_ERRORS = Counter(
-    "ml_training_errors_total", "Total training failures", ["framework"]
-)
+PERFORMANCE_DRIFT_ALERT = Gauge("ml_performance_drift_alert", "Binary alert for performance drift")
+TRAINING_ERRORS = Counter("ml_training_errors_total", "Total training failures", ["framework"])
 
 # Blockchain Metrics
 BLOCKCHAIN_RPC_LATENCY = Histogram(
@@ -241,17 +231,11 @@ BLOCKCHAIN_RPC_ERRORS = Counter(
 BLOCKCHAIN_GAS_PRICE = Gauge("blockchain_gas_price_gwei", "Current network gas price")
 
 # Proxy/Scraper Metrics
-PROXY_LATENCY = Histogram(
-    "proxy_latency_seconds", "Latency of requests per proxy", ["proxy_url"]
-)
-PROXY_FAILURES = Counter(
-    "proxy_failures_total", "Total failures per proxy", ["proxy_url"]
-)
+PROXY_LATENCY = Histogram("proxy_latency_seconds", "Latency of requests per proxy", ["proxy_url"])
+PROXY_FAILURES = Counter("proxy_failures_total", "Total failures per proxy", ["proxy_url"])
 
 # RL Agent Metrics
-RL_EPISODE_REWARD = Gauge(
-    "rl_episode_reward_total", "Total reward per episode", ["agent_id"]
-)
+RL_EPISODE_REWARD = Gauge("rl_episode_reward_total", "Total reward per episode", ["agent_id"])
 RL_ACTION_VARIANCE = Gauge(
     "rl_action_variance", "Variance of actions taken by the RL agent", ["agent_id"]
 )
@@ -294,9 +278,7 @@ ML_PROXY_PREDICT_LATENCY = Histogram(
 )
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
-_METRICS_EXECUTOR = ThreadPoolExecutor(
-    max_workers=2, thread_name_prefix="metrics_pusher"
-)
+_METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="metrics_pusher")
 
 
 def push_metrics(job_name: str):
@@ -340,9 +322,7 @@ async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
     """
     grafana_url = os.environ.get("GRAFANA_URL")
     if not grafana_url:
-        structlog.get_logger().debug(
-            "grafana_annotation_skipped", reason="GRAFANA_URL not set"
-        )
+        structlog.get_logger().debug("grafana_annotation_skipped", reason="GRAFANA_URL not set")
         return False
 
     if tags is None:
@@ -360,9 +340,7 @@ async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
             content=orjson.dumps(payload),
         )
         response.raise_for_status()
-        structlog.get_logger().info(
-            "grafana_annotation_posted", status_code=response.status_code
-        )
+        structlog.get_logger().info("grafana_annotation_posted", status_code=response.status_code)
         return True
     except Exception as e:
         structlog.get_logger().error("grafana_annotation_failed", error=str(e))

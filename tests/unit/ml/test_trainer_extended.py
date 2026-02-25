@@ -81,9 +81,7 @@ def test_optimize(mock_tracker):
 def test_pytorch_wrapper(mock_tracker, dummy_data):
     X, y = dummy_data
     trainer = PyTorchTrainer(study_name="test_wrapper")
-    with patch.object(
-        ModelTrainer, "train_and_evaluate", return_value=0.9
-    ) as mock_train:
+    with patch.object(ModelTrainer, "train_and_evaluate", return_value=0.9) as mock_train:
         res = trainer.train(X, y, {"epochs": 1})
         assert res == 0.9
         mock_train.assert_called_once()
