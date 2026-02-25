@@ -82,7 +82,7 @@ class Mutation:
     ) -> Order:
         # Mock order creation
         return Order(
-            id=strawberry.ID(f"order_{random.randint(1000, 9999)  # nosec B311}"),
+            id=strawberry.ID(f"order_{random.randint(1000, 9999)}"),  # nosec B311
             portfolio_id=portfolio_id,
             contract_symbol=contract_symbol,
             side=side,
@@ -101,7 +101,7 @@ class Mutation:
     @strawberry.mutation
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
         return Portfolio(
-            id=strawberry.ID(f"port_{random.randint(1000, 9999)  # nosec B311}"),
+            id=strawberry.ID(f"port_{random.randint(1000, 9999)}"),  # nosec B311
             user_id=user_id,
             cash_balance=initial_cash,
             positions=[],
@@ -116,7 +116,7 @@ class Subscription:
             yield Portfolio(
                 id=portfolio_id,
                 user_id="user_123",
-                cash_balance=10000.0 + random.uniform(-100, 100)  # nosec B311,
+                cash_balance=10000.0 + random.uniform(-100, 100),  # nosec B311
                 positions=[],
             )
             await asyncio.sleep(1)
