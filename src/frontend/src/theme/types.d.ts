@@ -8,6 +8,13 @@ declare module '@mui/material/styles' {
       positive: string;
       negative: string;
       neutral: string;
+      accents: {
+        violet: string;
+        amber: string;
+        rose: string;
+        sky: string;
+        emerald: string;
+      };
       greeks: {
         delta: string;
         gamma: string;
@@ -25,6 +32,13 @@ declare module '@mui/material/styles' {
       positive?: string;
       negative?: string;
       neutral?: string;
+      accents?: {
+        violet?: string;
+        amber?: string;
+        rose?: string;
+        sky?: string;
+        emerald?: string;
+      };
       greeks?: {
         delta?: string;
         gamma?: string;

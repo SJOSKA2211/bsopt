@@ -5,93 +5,102 @@ import type { Shadows } from '@mui/material/styles';
 import './types.d';
 
 // ============================================================================
-// COLOR PALETTE - Light Financial Dashboard Theme
+// COLOR PALETTE - High-Fidelity Dark Financial Theme
 // ============================================================================
 
 const palette = {
-  mode: 'light' as const,
+  mode: 'dark' as const,
 
   primary: {
-    main: '#2563eb',      // Blue 600 - Primary actions
-    light: '#8bf6ff',
-    dark: '#1d4ed8',
+    main: '#10b981',      // Emerald 500 - Success/Primary
+    light: '#34d399',
+    dark: '#059669',
     contrastText: '#fff',
   },
   
   secondary: {
-    main: '#ab47bc',      // Purple 400 - Secondary actions
-    light: '#df78ef',
-    dark: '#790e8b',
-    contrastText: '#fff',
+    main: '#38bdf8',      // Sky 400 - Info/Secondary
+    light: '#7dd3fc',
+    dark: '#0ea5e9',
+    contrastText: '#0f172a',
   },
   
   success: {
-    main: '#66bb6a',      // Green 400 - Profits, gains
-    light: '#98ee99',
-    dark: '#338a3e',
+    main: '#10b981',
+    light: '#34d399',
+    dark: '#059669',
   },
   
   error: {
-    main: '#ef5350',      // Red 400 - Losses, errors
-    light: '#ff867c',
-    dark: '#b61827',
+    main: '#f43f5e',      // Rose 500
+    light: '#fb7185',
+    dark: '#e11d48',
   },
   
   warning: {
-    main: '#ffa726',      // Orange 400 - Warnings
-    light: '#ffd95b',
-    dark: '#c77800',
+    main: '#fbbf24',      // Amber 400
+    light: '#fcd34d',
+    dark: '#f59e0b',
   },
   
   info: {
-    main: '#42a5f5',      // Blue 400 - Info
-    light: '#80d6ff',
-    dark: '#0077c2',
+    main: '#38bdf8',
+    light: '#7dd3fc',
+    dark: '#0ea5e9',
   },
   
   background: {
-    default: '#f5f7fb',      // Soft light gray dashboard background
-    paper: '#ffffff',        // Cards / surfaces
-    elevation1: '#f9fafb',
-    elevation2: '#f3f4f6',
-    elevation3: '#e5e7eb',
+    default: '#020617',      // Deep Navy/Black
+    paper: 'rgba(15, 23, 42, 0.8)', // Semi-transparent Slate 900
+    elevation1: '#0f172a',
+    elevation2: '#1e293b',
+    elevation3: '#334155',
   },
   
   text: {
-    primary: '#0f172a',   // Slate 900
-    secondary: '#6b7280', // Gray 500
-    disabled: '#9ca3af',  // Gray 400
+    primary: '#f8fafc',   // Slate 50
+    secondary: '#94a3b8', // Slate 400
+    disabled: '#64748b',  // Slate 500
   },
   
-  divider: alpha('#9ca3af', 0.12),
+  divider: alpha('#94a3b8', 0.1),
   
   // Custom financial colors
   financial: {
-    bid: '#66bb6a',       // Green
-    ask: '#ef5350',       // Red
-    positive: '#66bb6a',
-    negative: '#ef5350',
-    neutral: '#9ca3af',
+    bid: '#10b981',
+    ask: '#f43f5e',
+    positive: '#10b981',
+    negative: '#f43f5e',
+    neutral: '#94a3b8',
     
+    // UI Accents from screenshot
+    accents: {
+      violet: '#a855f7',
+      amber: '#f59e0b',
+      rose: '#f43f5e',
+      sky: '#38bdf8',
+      emerald: '#10b981',
+    },
+
     // Greeks color scale
     greeks: {
-      delta: '#4fc3f7',
-      gamma: '#ab47bc',
-      vega: '#ffa726',
-      theta: '#ef5350',
-      rho: '#66bb6a',
+      delta: '#38bdf8',
+      gamma: '#a855f7',
+      vega: '#f59e0b',
+      theta: '#f43f5e',
+      rho: '#10b981',
     },
   },
 };
 
 // ============================================================================
-// TYPOGRAPHY - Financial Data Focused
+// TYPOGRAPHY - Modern Sans & Mono
 // ============================================================================
 
 const typography = {
   fontFamily: [
-    'Outfit',
     'Inter',
+    'Outfit',
     '-apple-system',
     'BlinkMacSystemFont',
     '"Segoe UI"',
@@ -99,115 +108,86 @@ const typography = {
     'sans-serif',
   ].join(','),
   
-  // Monospace for numbers
   fontFamilyMonospace: [
     '"JetBrains Mono"',
     'IBM Plex Mono',
-    'Monaco',
-    'Courier New',
     'monospace',
   ].join(','),
   
-  h1: {
-    fontSize: '2.5rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-    letterSpacing: '-0.01562em',
-  },
+  h1: { fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' },
+  h2: { fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.01em' },
+  h3: { fontSize: '1.75rem', fontWeight: 600, letterSpacing: '-0.01em' },
+  h4: { fontSize: '1.5rem', fontWeight: 600 },
+  h5: { fontSize: '1.25rem', fontWeight: 600 },
+  h6: { fontSize: '1rem', fontWeight: 600 },
   
-  h2: {
-    fontSize: '2rem',
-    fontWeight: 600,
-    lineHeight: 1.3,
-  },
+  body1: { fontSize: '1rem', lineHeight: 1.6 },
+  body2: { fontSize: '0.875rem', lineHeight: 1.6 },
   
-  h3: {
-    fontSize: '1.75rem',
-    fontWeight: 600,
-    lineHeight: 1.4,
-  },
+  subtitle1: { fontSize: '1rem', fontWeight: 500, color: '#f8fafc' },
+  subtitle2: { fontSize: '0.875rem', fontWeight: 500, color: '#94a3b8' },
+
+  caption: { fontSize: '0.75rem', fontWeight: 400, color: '#64748b' },
   
-  h4: {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    lineHeight: 1.4,
-  },
-  
-  h5: {
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    lineHeight: 1.5,
-  },
-  
-  h6: {
-    fontSize: '1rem',
-    fontWeight: 600,
-    lineHeight: 1.5,
-  },
-  
-  body1: {
-    fontSize: '1rem',
-    lineHeight: 1.5,
-  },
-  
-  body2: {
-    fontSize: '0.875rem',
-    lineHeight: 1.5,
-  },
-  
-  // Custom variants for financial data
   price: {
     fontFamily: '"JetBrains Mono", monospace',
     fontSize: '1.125rem',
     fontWeight: 600,
     letterSpacing: '0.01em',
   },
-  
-  percentage: {
-    fontFamily: '"JetBrains Mono", monospace',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-  },
-  
-  ticker: {
-    fontFamily: '"JetBrains Mono", monospace',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase' as const,
-  },
 };
 
 // ============================================================================
-// COMPONENT OVERRIDES
+// COMPONENT OVERRIDES - Glassmorphism & Modern UI
 // ============================================================================
 
 const components = {
   MuiCssBaseline: {
     styleOverrides: {
-      '*': {
-        margin: 0,
-        padding: 0,
-        boxSizing: 'border-box',
-      },
-      'html, body, #root': {
-        height: '100%',
-        width: '100%',
-      },
       body: {
+        backgroundColor: '#020617',
+        backgroundImage: `radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.08), transparent 45%), 
+                         radial-gradient(circle at 85% 10%, rgba(56, 189, 248, 0.1), transparent 45%)`,
+        backgroundAttachment: 'fixed',
+        color: '#f8fafc',
         scrollbarWidth: 'thin',
-        scrollbarColor: `rgba(148, 163, 184, 0.8) rgba(249, 250, 251, 1)`,
-        '&::-webkit-scrollbar': {
-          width: '8px',
-          height: '8px',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(148, 163, 184, 0.8)',
-          borderRadius: '4px',
-        },
-        '&::-webkit-scrollbar-track': {
-          backgroundColor: 'rgba(249, 250, 251, 1)',
-        },
+        scrollbarColor: `${alpha('#94a3b8', 0.2)} transparent`,
+        '&::-webkit-scrollbar': { width: '6px', height: '6px' },
+        '&::-webkit-scrollbar-thumb': { backgroundColor: alpha('#94a3b8', 0.2), borderRadius: '10px' },
+      },
+    },
+  },
+  
+  MuiPaper: {
+    styleOverrides: {
+      root: {
+        backgroundImage: 'none',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        backdropFilter: 'blur(16px)',
+        border: `1px solid ${alpha('#94a3b8', 0.1)}`,
+        borderRadius: 20,
+        boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+      },
+    },
+  },
+
+  MuiAppBar: {
+    styleOverrides: {
+      root: {
+        backgroundColor: 'transparent',
+        backgroundImage: 'none',
+        boxShadow: 'none',
+        borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}`,
+        backdropFilter: 'blur(12px)',
+      },
+    },
+  },
+
+  MuiDrawer: {
+    styleOverrides: {
+      paper: {
+        backgroundColor: '#020617',
+        borderRight: `1px solid ${alpha('#94a3b8', 0.08)}`,
       },
     },
   },
@@ -218,228 +198,49 @@ const components = {
         borderRadius: 12,
         textTransform: 'none' as const,
         fontWeight: 600,
-        padding: '10px 20px',
-        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
-        backdropFilter: 'blur(8px)',
-        
+        transition: 'all 0.2s ease-in-out',
         '&:hover': {
-          transform: 'translateY(-2px) scale(1.02)',
-          boxShadow: `0 8px 24px ${alpha(palette.primary.main, 0.4)}`,
+          transform: 'translateY(-1px)',
         },
       },
-      
-      sizeLarge: {
-        padding: '12px 24px',
-        fontSize: '1rem',
-      },
-      
-      sizeSmall: {
-        padding: '6px 12px',
-        fontSize: '0.875rem',
-      },
-    },
-    
-    variants: [
-      {
-        props: { variant: 'buy' as any },
-        style: {
-          backgroundColor: palette.success.main,
-          color: '#fff',
-          '&:hover': {
-            backgroundColor: palette.success.dark,
-          },
-        },
-      },
-      {
-        props: { variant: 'sell' as any },
-        style: {
-          backgroundColor: palette.error.main,
-          color: '#fff',
-          '&:hover': {
-            backgroundColor: palette.error.dark,
-          },
-        },
-      },
-    ],
-  },
-  
-  MuiCard: {
-    styleOverrides: {
-      root: {
-        borderRadius: 16,
-        backgroundImage: 'none',
-        backgroundColor: palette.background.paper,
-        border: `1px solid ${alpha('#e5e7eb', 1)}`,
-        boxShadow: `0 18px 45px rgba(15, 23, 42, 0.08)`,
-        transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease',
-        
+      containedPrimary: {
+        boxShadow: `0 8px 20px ${alpha('#10b981', 0.25)}`,
         '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: `0 24px 60px rgba(15, 23, 42, 0.12)`,
+          boxShadow: `0 12px 28px ${alpha('#10b981', 0.4)}`,
         },
       },
     },
   },
-  
-  MuiPaper: {
+
+  MuiListItemButton: {
     styleOverrides: {
       root: {
-        backgroundImage: 'none',
-        backgroundColor: palette.background.paper,
-        border: `1px solid ${alpha('#e5e7eb', 1)}`,
-      },
-      rounded: {
-        borderRadius: 16,
-      },
-      elevation1: {
-        backgroundColor: palette.background.paper,
-      },
-      elevation2: {
-        backgroundColor: palette.background.paper,
-      },
-      elevation3: {
-        backgroundColor: palette.background.paper,
-      },
-    },
-  },
-  
-  MuiChip: {
-    styleOverrides: {
-      root: {
-        borderRadius: 8,
-        fontWeight: 600,
-      },
-      colorSuccess: {
-        backgroundColor: alpha(palette.success.main, 0.15),
-        color: palette.success.light,
-        border: `1px solid ${alpha(palette.success.main, 0.3)}`,
-      },
-      colorError: {
-        backgroundColor: alpha(palette.error.main, 0.15),
-        color: palette.error.light,
-        border: `1px solid ${alpha(palette.error.main, 0.3)}`,
-      },
-    },
-  },
-  
-  MuiDataGrid: {
-    styleOverrides: {
-      root: {
-        border: `1px solid ${alpha(palette.primary.main, 0.1)}`,
         borderRadius: 12,
-        
-        '& .MuiDataGrid-cell': {
-          borderBottom: `1px solid ${alpha(palette.divider, 0.5)}`,
-        },
-        
-        '& .MuiDataGrid-columnHeaders': {
-          backgroundColor: palette.background.elevation1,
-          borderBottom: `2px solid ${palette.primary.main}`,
-        },
-        
-        '& .MuiDataGrid-row': {
-          '&:hover': {
-            backgroundColor: alpha(palette.primary.main, 0.05),
-          },
-          
-          '&.Mui-selected': {
-            backgroundColor: alpha(palette.primary.main, 0.1),
-            
-            '&:hover': {
-              backgroundColor: alpha(palette.primary.main, 0.15),
-            },
-          },
-        },
-      },
-    },
-  } as any,
-  
-  MuiTooltip: {
-    styleOverrides: {
-      tooltip: {
-        backgroundColor: palette.background.elevation3,
-        border: `1px solid ${alpha(palette.primary.main, 0.3)}`,
-        borderRadius: 8,
-        padding: '12px 16px',
-        fontSize: '0.875rem',
-        boxShadow: `0 4px 20px ${alpha('#000', 0.5)}`,
-      },
-      arrow: {
-        color: palette.background.elevation3,
-      },
-    },
-  },
-  
-  MuiDialog: {
-    styleOverrides: {
-      paper: {
-        borderRadius: 24,
-        backgroundImage: 'none',
-        backgroundColor: 'rgba(20, 25, 40, 0.75)',
-        backdropFilter: 'blur(24px)',
-        border: `1px solid rgba(255, 255, 255, 0.1)`,
-        boxShadow: `0 24px 64px 0 rgba(0, 0, 0, 0.6)`,
-      },
-    },
-  },
-  
-  MuiTextField: {
-    styleOverrides: {
-      root: {
-        '& .MuiOutlinedInput-root': {
-          borderRadius: 8,
-          
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: alpha(palette.primary.main, 0.5),
-          },
-          
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: palette.primary.main,
-            borderWidth: 2,
-          },
+        margin: '4px 8px',
+        '&.Mui-selected': {
+          backgroundColor: alpha('#10b981', 0.1),
+          color: '#10b981',
+          '& .MuiListItemIcon-root': { color: '#10b981' },
+          '&:hover': { backgroundColor: alpha('#10b981', 0.15) },
         },
       },
     },
   },
 };
-
-// ============================================================================
-// CUSTOM SHADOWS
-// ============================================================================
 
 const shadows: Shadows = [
   'none',
-  `0 2px 4px ${alpha('#000', 0.1)}`,
-  `0 4px 8px ${alpha('#000', 0.15)}`,
-  `0 8px 16px ${alpha('#000', 0.2)}`,
-  `0 12px 24px ${alpha('#000', 0.25)}`,
-  `0 16px 32px ${alpha('#000', 0.3)}`,
-  ...Array(19).fill(`0 20px 40px ${alpha('#000', 0.35)}`),
+  '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+  '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+  '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+  ...Array(21).fill('0 25px 50px -12px rgb(0 0 0 / 0.25)'),
 ] as Shadows;
-
-// ============================================================================
-// SHAPE
-// ============================================================================
-
-const shape = {
-  borderRadius: 12,
-};
-
-// ============================================================================
-// SPACING
-// ============================================================================
-
-const spacing = 8; // 8px grid system
-
-// ============================================================================
-// CREATE THEME
-// ============================================================================
 
 export const theme = createTheme({
   palette,
   typography,
   components,
   shadows,
-  shape,
-  spacing,
+  shape: { borderRadius: 20 },
+  spacing: 8,
 });
