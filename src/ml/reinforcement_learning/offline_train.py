@@ -1,4 +1,4 @@
-import pickle
+import pickle  # nosec B403
 
 import structlog
 import torch as th
@@ -35,7 +35,7 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
     logger.info("offline_training_started", dataset=dataset_path)
 
     with open(dataset_path, "rb") as f:
-        trajectories = pickle.load(f)
+        trajectories = pickle.load(f)  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)

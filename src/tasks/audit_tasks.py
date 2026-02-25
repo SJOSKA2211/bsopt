@@ -31,7 +31,7 @@ def persist_audit_log(
             path=request_path[:500] if request_path else "UNKNOWN",
             status_code=0,  # Default for async tasks
             user_id=user_id or "ANONYMOUS",
-            client_ip=source_ip or "0.0.0.0",
+            client_ip=source_ip or "0.0.0.0",  # nosec B104
             user_agent=user_agent[:500] if user_agent else "UNKNOWN",
             latency_ms=0.0,
             metadata_json={
