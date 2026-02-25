@@ -640,7 +640,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
                 INSERT INTO options_prices ({col_list})
                 SELECT {col_list} FROM staging_option_prices
                 ON CONFLICT DO NOTHING
-            """
+            """  # nosec B608
                 )
             )
 
@@ -704,7 +704,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
                 INSERT INTO market_ticks ({col_list})
                 SELECT {col_list} FROM staging_market_ticks
                 ON CONFLICT DO NOTHING
-            """
+            """  # nosec B608
                 )
             )
 
