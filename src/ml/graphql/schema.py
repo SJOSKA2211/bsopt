@@ -13,7 +13,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     for key in keys:
         # Mocking inference for now as we don't have a real batch inference endpoint
         # but using the service pattern.
-        results.append(15.5 + random.uniform(-0.5, 0.5)  # nosec B311)
+        results.append(15.5 + random.uniform(-0.5, 0.5))  # nosec B311
     return results
 
 
