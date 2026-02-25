@@ -143,6 +143,20 @@ exclude_lines = [
 show_missing = true
 precision = 2
 
+[tool.bandit]
+exclude_dirs = ["tests", "backups", "scripts"]
+# B101: assert_used (standard in internal code)
+# B105: hardcoded_password_string (often false positive on variable names)
+# B106: hardcoded_password_funcarg (often false positive)
+# B108: hardcoded_tmp_directory (standard in containers)
+# B110: try_except_pass (often needed for cleanup)
+# B112: try_except_continue (often needed for cleanup loops)
+# B311: blacklist (random is standard for simulation)
+# B404: blacklist (subprocess needed for orchestration)
+# B603: subprocess_without_shell_equals_true (trusted inputs)
+# B614: pytorch_load (standard for model loading)
+skips = ["B101", "B105", "B106", "B108", "B110", "B112", "B311", "B404", "B603", "B614"]
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"

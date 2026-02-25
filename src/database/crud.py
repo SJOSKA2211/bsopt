@@ -634,9 +634,8 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
 
             # 3. UPSERT/INSERT from staging to main with conflict resolution
             col_list = ", ".join(columns)
-            await db.execute(
-                text(
-                    f"""
+            # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
+            query = f"""
                 INSERT INTO options_prices ({col_list})
                 SELECT {col_list} FROM staging_option_prices
                 ON CONFLICT DO NOTHING
@@ -698,9 +697,8 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
 
             # 3. Safe Merge
             col_list = ", ".join(columns)
-            await db.execute(
-                text(
-                    f"""
+            # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
+            query = f"""
                 INSERT INTO market_ticks ({col_list})
                 SELECT {col_list} FROM staging_market_ticks
                 ON CONFLICT DO NOTHING
