@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   CssBaseline,
@@ -104,7 +104,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         <Box sx={{ overflowY: 'auto', flexGrow: 1, '&::-webkit-scrollbar': { display: 'none' } }}>
           <List disablePadding>
-            {navigationItems.map((item, index) => {
+            {navigationItems.map((item) => {
               if (item.type === 'header') {
                 return (
                   <Typography
