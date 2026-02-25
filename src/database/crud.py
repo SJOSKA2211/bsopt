@@ -303,7 +303,24 @@ async def bulk_create_positions(db: AsyncSession, positions_data: list[dict]) ->
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            records = [tuple(row.get(k) for k in columns) for row in positions_data]
+            records = [
+                (
+                    row.get("portfolio_id"),
+                    row.get("symbol"),
+                    row.get("strike"),
+                    row.get("expiry"),
+                    row.get("option_type"),
+                    row.get("quantity"),
+                    row.get("entry_price"),
+                    row.get("entry_date"),
+                    row.get("current_price"),
+                    row.get("exit_price"),
+                    row.get("exit_date"),
+                    row.get("realized_pnl"),
+                    row.get("status"),
+                )
+                for row in positions_data
+            ]
 
             await driver_conn.copy_records_to_table(
                 "positions", records=records, columns=columns, timeout=30
@@ -601,7 +618,27 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            records = [tuple(row.get(k) for k in columns) for row in prices_data]
+            records = [
+                (
+                    row.get("time"),
+                    row.get("symbol"),
+                    row.get("strike"),
+                    row.get("expiry"),
+                    row.get("option_type"),
+                    row.get("bid"),
+                    row.get("ask"),
+                    row.get("last"),
+                    row.get("volume"),
+                    row.get("open_interest"),
+                    row.get("implied_volatility"),
+                    row.get("delta"),
+                    row.get("gamma"),
+                    row.get("vega"),
+                    row.get("theta"),
+                    row.get("rho"),
+                )
+                for row in prices_data
+            ]
 
             # OPTIMIZED: Light staging table
             await db.execute(
@@ -656,7 +693,16 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            records = [tuple(row.get(k) for k in columns) for row in ticks_data]
+            records = [
+                (
+                    row.get("time"),
+                    row.get("symbol"),
+                    row.get("price"),
+                    row.get("volume"),
+                    row.get("side"),
+                )
+                for row in ticks_data
+            ]
 
             # 1. Create temporary staging table
             await db.execute(
@@ -720,11 +766,11 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            import msgspec
+            import orjson
 
             records = [
                 (
-                    row.get("id", uuid4()),
+                    row.get("id") or uuid4(),
                     row.get("event_type"),
                     row.get("user_id"),
                     row.get("user_email"),
@@ -733,7 +779,7 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
                     row.get("request_path"),
                     row.get("request_method"),
                     (
-                        msgspec.json.encode(row.get("details", {}))
+                        orjson.dumps(row.get("details", {})).decode("utf-8")
                         if row.get("details")
                         else None
                     ),
@@ -789,13 +835,13 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
 
             records = [
                 (
-                    row.get("id", uuid4()),
+                    row.get("id") or uuid4(),
                     row.get("request_id"),
                     row.get("method"),
                     row.get("path"),
                     row.get("query_params"),
                     (
-                        orjson.dumps(row.get("headers", {}))
+                        orjson.dumps(row.get("headers", {})).decode("utf-8")
                         if row.get("headers")
                         else None
                     ),
