@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useCallback, useSyncExternalStore } from 'react';
 
 // Interface matching the Rust structs
 export interface OptionParams {
@@ -28,7 +28,7 @@ export interface OptionResult {
 let sharedWorker: Worker | null = null;
 const pendingRequests = new Map<string, { resolve: (val: unknown) => void; reject: (err: unknown) => void }>();
 let isWorkerReady = false;
-const listeners = new Set<(ready: boolean) => void>();
+const listeners = new Set<() => void>();
 
 // Initialize worker (lazy)
 const getWorker = () => {
@@ -45,7 +45,7 @@ const getWorker = () => {
     if (type === 'INIT_SUCCESS') {
       isWorkerReady = true;
       console.log('WASM Worker initialized successfully');
-      listeners.forEach(listener => listener(true));
+      listeners.forEach(listener => listener());
       return;
     }
 
@@ -65,25 +65,22 @@ const getWorker = () => {
   return sharedWorker;
 };
 
+// External store subscription
+const subscribe = (callback: () => void) => {
+  listeners.add(callback);
+  return () => {
+    listeners.delete(callback);
+  };
+};
+
+const getSnapshot = () => isWorkerReady;
+
 export const useWasmPricing = () => {
-  const [isLoaded, setIsLoaded] = useState(isWorkerReady);
+  const isLoaded = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
     // Ensure worker is initialized
     getWorker();
-
-    if (isWorkerReady) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLoaded(true);
-      return;
-    }
-
-    const listener = (ready: boolean) => setIsLoaded(ready);
-    listeners.add(listener);
-
-    return () => {
-      listeners.delete(listener);
-    };
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,7 +89,6 @@ export const useWasmPricing = () => {
       const worker = getWorker();
       if (!worker || !isWorkerReady) {
         // Fallback or early return if worker not ready
-        // We could also queue requests here if we wanted to support "call before ready"
         resolve(null);
         return;
       }
