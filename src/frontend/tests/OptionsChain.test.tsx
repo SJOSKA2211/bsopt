@@ -54,13 +54,19 @@ const createWrapper = () => {
 test('OptionsChain fetches and displays data', async () => {
   render(<OptionsChain symbol="AAPL" />, { wrapper: createWrapper() });
 
-  // Expect a loading state initially (optional, but good practice)
-  // expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  // Verify accessibility labels
+  expect(screen.getByLabelText('Search by strike price')).toBeInTheDocument();
+  expect(screen.getByLabelText('Select pricing model')).toBeInTheDocument();
+  expect(screen.getByLabelText('Filter by expiration')).toBeInTheDocument();
 
   // Wait for the mock data to appear
   await waitFor(() => {
     expect(screen.getByText('Options Chain - AAPL')).toBeInTheDocument();
     expect(screen.getByText('$1.50')).toBeInTheDocument(); // call_bid
     expect(screen.getByText('100')).toBeInTheDocument(); // strike
+
+    // Verify Greeks cell button accessibility (might be multiple)
+    const greeksButtons = screen.queryAllByLabelText(/View Greeks details|Greeks calculation pending/);
+    expect(greeksButtons.length).toBeGreaterThan(0);
   }, { timeout: 2000 });
 });
