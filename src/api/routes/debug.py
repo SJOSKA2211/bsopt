@@ -1,11 +1,12 @@
 import tracemalloc
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.api.exceptions import (
     InternalServerException,  # Imported directly as it's a specific exception
 )
 from src.api.schemas.common import DataResponse, ErrorResponse
+from src.security.auth import require_tier
 
 router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
 
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
     "/tracemalloc_snapshot",
     response_model=DataResponse[dict],
     responses={500: {"model": ErrorResponse, "description": "Tracemalloc not active"}},
+    dependencies=[Depends(require_tier(["admin"]))],
 )
 async def get_tracemalloc_snapshot():
     """
