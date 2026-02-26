@@ -458,23 +458,36 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Public path exemptions
         path = request.url.path
-        if path in [
-            "/",
-            "/health",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-        ] or path.startswith(("/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/oauth")):
+        if (
+            path
+            in [
+                "/",
+                "/health",
+                "/docs",
+                "/redoc",
+                "/openapi.json",
+                "/api/v1/auth/verify-email",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/refresh",
+                "/api/v1/auth/password-reset",
+                "/api/v1/auth/password-reset/confirm",
+                "/api/v1/auth/jwks",
+            ]
+            or path.startswith(
+                (
+                    "/api/v1/auth/login",
+                    "/api/v1/auth/register",
+                    "/api/v1/auth/oauth",
+                    "/api/v1/auth/.well-known",
+                )
+            )
+        ):
             return await call_next(request)
 
         from src.security.auth import auth_service
 
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            # Allow proceeding without token in non-prod env for easier dev
-            if settings.ENVIRONMENT in ["dev", "test"]:
-                return await call_next(request)
-
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication token missing"},
