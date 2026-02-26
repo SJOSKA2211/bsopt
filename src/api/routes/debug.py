@@ -1,13 +1,18 @@
 import tracemalloc
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from src.api.exceptions import (
     InternalServerException,  # Imported directly as it's a specific exception
 )
 from src.api.schemas.common import DataResponse, ErrorResponse
+from src.security.auth import require_tier
 
-router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
+router = APIRouter(
+    prefix="/debug",
+    tags=["Debug & Diagnostics"],
+    dependencies=[Depends(require_tier(["admin"]))],
+)
 
 
 @router.get(
