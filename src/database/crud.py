@@ -635,6 +635,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
             # 3. UPSERT/INSERT from staging to main with conflict resolution
             col_list = ", ".join(columns)
             # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
+            # The query uses a staging table to merge data safely.
             query = f"""
                 INSERT INTO options_prices ({col_list})
                 SELECT {col_list} FROM staging_option_prices
@@ -697,6 +698,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
             # 3. Safe Merge
             col_list = ", ".join(columns)
             # nosec B608: col_list is constructed from hardcoded columns list, safe from injection
+            # Uses ON CONFLICT DO NOTHING to ignore duplicates during bulk load.
             query = f"""
                 INSERT INTO market_ticks ({col_list})
                 SELECT {col_list} FROM staging_market_ticks
