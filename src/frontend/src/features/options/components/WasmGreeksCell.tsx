@@ -45,7 +45,7 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
 
   if (!isLoaded || !result) {
     return (
-      <IconButton size="small" disabled>
+      <IconButton size="small" disabled aria-label="Greeks calculation pending">
         <ShowChart fontSize="small" color="disabled" />
       </IconButton>
     );
@@ -69,7 +69,7 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
         </Stack>
       }
     >
-      <IconButton size="small" color="primary">
+      <IconButton size="small" color="primary" aria-label="View Greeks details">
         <ShowChart fontSize="small" />
       </IconButton>
     </Tooltip>
