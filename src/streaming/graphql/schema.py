@@ -19,11 +19,11 @@ class Option:
 
     @strawberry.field
     def last_price(self) -> float:
-        return 15.0 + random.uniform(0, 1.0)  # nosec B311
+        return 15.0 + random.uniform(0, 1.0)
 
     @strawberry.field
     def volume(self) -> int:
-        return random.randint(100, 10000)  # nosec B311
+        return random.randint(100, 10000)
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):

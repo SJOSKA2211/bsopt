@@ -10,17 +10,22 @@ import {
   Avatar,
   List,
   ListItem,
+  ListItemText,
   Chip,
   Button,
+  Divider,
   CircularProgress,
 } from '@mui/material';
 import {
+  TrendingUp,
+  TrendingDown,
   MoreHoriz,
   Apple as AppleIcon,
   Storefront as StoreIcon,
   Subscriptions as SubsIcon,
   Person as PersonIcon,
   ShowChart as ChartIcon,
+  Layers as LayersIcon,
 } from '@mui/icons-material';
 
 // Lazy loaded trading components
@@ -68,7 +73,7 @@ const MiniLineChart = ({ color }: { color: string }) => (
 );
 
 export const DashboardPage: React.FC = () => {
-  const theme = useTheme();
+  // const theme = useTheme();
 
   const transactions = [
     { id: 1, label: 'Simon Pegg', date: 'Jul 28, 6:22 PM', amount: 44.00, type: 'Transfer', icon: <PersonIcon />, color: '#10b981' },
@@ -82,7 +87,7 @@ export const DashboardPage: React.FC = () => {
     <Box sx={{ maxWidth: 1400, mx: 'auto', pb: 8 }}>
       {/* Top Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box>
@@ -101,7 +106,7 @@ export const DashboardPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box>
@@ -120,7 +125,7 @@ export const DashboardPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <Paper sx={{ p: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Box>
@@ -143,7 +148,7 @@ export const DashboardPage: React.FC = () => {
       {/* Main Content Area */}
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {/* Left Column: Transactions */}
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid item xs={12} lg={4}>
           <Typography variant="h3" sx={{ mb: 2, fontWeight: 700 }}>
             Transactions
           </Typography>
@@ -194,7 +199,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* Right Column: Analytics Chart */}
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid item xs={12} lg={8}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h2" sx={{ fontWeight: 700 }}>
               $9,340.80 <Typography component="span" variant="body1" sx={{ color: 'text.disabled', ml: 1 }}>Spent</Typography>
@@ -231,7 +236,7 @@ export const DashboardPage: React.FC = () => {
           >
             {/* Mock Stacked Bar Chart */}
             <Stack direction="row" spacing={4} alignItems="flex-end" sx={{ height: '100%', px: 2, zIndex: 0 }}>
-              {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((month) => (
+              {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((month, i) => (
                 <Stack key={month} spacing={0.5} sx={{ flex: 1, alignItems: 'center' }}>
                   <Box sx={{ width: 12, display: 'flex', flexDirection: 'column-reverse', height: 250 + Math.random() * 80 }}>
                     <Box sx={{ height: '20%', bgcolor: 'primary.main', borderRadius: '0 0 4px 4px' }} />
@@ -272,7 +277,7 @@ export const DashboardPage: React.FC = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid item xs={12} lg={8}>
           <Paper data-testid="live-price-chart-paper" sx={{ p: 3, height: 500 }}>
             <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>Real-Time Market - AAPL</Typography>
             <Box sx={{ height: 400 }}>
@@ -283,7 +288,7 @@ export const DashboardPage: React.FC = () => {
           </Paper>
         </Grid>
         
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid item xs={12} lg={4}>
           <Stack spacing={3}>
             <Paper data-testid="ml-predictions-paper" sx={{ p: 0, height: 235, overflow: 'hidden' }}>
               <Suspense fallback={<LoadingFallback />}>
@@ -298,25 +303,25 @@ export const DashboardPage: React.FC = () => {
           </Stack>
         </Grid>
 
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid item xs={12} lg={8}>
           <Paper data-testid="options-chain-container" sx={{ p: 0, height: 600, overflow: 'hidden' }}>
-            <Typography variant="h4" sx={{ p: 3, pb: 0, fontWeight: 600, fontSize: '1.25rem' }}>Options Chain</Typography>
+            <Typography variant="h6" sx={{ p: 3, pb: 0, fontWeight: 600 }}>Options Chain</Typography>
             <Suspense fallback={<LoadingFallback />}>
               <OptionsChain symbol="AAPL" />
             </Suspense>
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 12, lg: 4 }}>
+        <Grid item xs={12} lg={4}>
           <Stack spacing={3}>
             <Paper data-testid="greeks-heatmap-paper" sx={{ p: 3, height: 285 }}>
-              <Typography variant="h4" sx={{ mb: 2, fontWeight: 600, fontSize: '1.25rem' }}>Greeks Delta</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Greeks Delta</Typography>
               <Suspense fallback={<LoadingFallback />}>
                 <GreeksHeatmap symbol="AAPL" greek="delta" />
               </Suspense>
             </Paper>
             <Paper data-testid="volatility-surface-paper" sx={{ p: 3, height: 285 }}>
-              <Typography variant="h4" sx={{ mb: 2, fontWeight: 600, fontSize: '1.25rem' }}>Volatility Surface</Typography>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Volatility Surface</Typography>
               <Suspense fallback={<LoadingFallback />}>
                 <VolatilitySurface3D symbol="AAPL" />
               </Suspense>

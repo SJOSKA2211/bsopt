@@ -73,8 +73,6 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = React.memo(({ o
         color={action === 'buy' ? 'primary' : 'secondary'}
         size="small" 
         onClick={handleClickOpen}
-        aria-label={`${action} ${type} option at strike $${option.strike}`}
-        title={`${action} ${type} option at strike $${option.strike}`}
       >
         {action.toUpperCase()}
       </Button>

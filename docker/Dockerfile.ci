@@ -4,6 +4,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv
 ENV PATH="/:/${PATH}"
 
 WORKDIR /app
+USER root
 
 # Enable bytecode compilation and extend network timeouts for large ML packages
 ENV UV_COMPILE_BYTECODE=1
@@ -27,6 +28,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.13-slim
 
 WORKDIR /app
+USER root
 
 # Install runtime library dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

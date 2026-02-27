@@ -42,9 +42,7 @@ test('QuickTradeButton shows confirmation dialog and executes trade', async () =
     { wrapper: createWrapper() }
   );
 
-  // Verify accessible label
-  const buyButton = screen.getByRole('button', { name: /buy call option at strike \$100/i });
-  expect(buyButton).toHaveAttribute('title', 'buy call option at strike $100');
+  const buyButton = screen.getByRole('button', { name: /buy/i });
   fireEvent.click(buyButton);
 
   // Expect confirmation dialog

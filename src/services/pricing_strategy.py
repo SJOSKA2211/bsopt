@@ -53,8 +53,8 @@ class DynamicPricingService:
             return "control"
 
         # Use a local random instance seeded with user_id for determinism without affecting global state
-        rng = random.Random(user_id)  # nosec B311
-        r = rng.random()  # nosec B311
+        rng = random.Random(user_id)
+        r = rng.random()
         cumulative = 0.0
         for variant, allocation in config["allocations"].items():
             cumulative += allocation

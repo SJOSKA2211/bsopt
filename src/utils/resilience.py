@@ -41,7 +41,7 @@ def retry_with_backoff(
                     # Exponential Backoff with Jitter
                     wait_time = initial_delay * (backoff_factor**attempt)
                     if jitter:
-                        wait_time *= 0.5 + random.random()  # nosec B311
+                        wait_time *= 0.5 + random.random()
 
                     logger.warning(
                         "retrying_operation",

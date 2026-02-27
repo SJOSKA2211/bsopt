@@ -6,13 +6,10 @@ import compression from 'vite-plugin-compression'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
-  // Use relative base for Netlify/CI previews unless CDN_URL is explicitly set
-  const isNetlify = process.env.NETLIFY === 'true';
-  const baseUrl = (isProd && !isNetlify) ? process.env.CDN_URL || 'https://cdn.bsopt.com/assets/' : '/';
   
   return {
     // CDN Setup: Set base path for assets in production
-    base: baseUrl,
+    base: isProd ? process.env.CDN_URL || 'https://cdn.bsopt.com/assets/' : '/',
     assetsInclude: ['**/*.wasm'],
     plugins: [
       react(),
