@@ -643,6 +643,7 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
             """  # nosec B608
             await db.execute(text(query))
 
+            await db.execute(text(query))
             await db.commit()
             return len(prices_data)
         # [FALLBACK]
@@ -706,6 +707,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
             """  # nosec B608
             await db.execute(text(query))
 
+            await db.execute(text(query))
             await db.commit()
             return len(ticks_data)
         await db.execute(insert(MarketTick), ticks_data)
