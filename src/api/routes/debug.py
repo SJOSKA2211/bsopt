@@ -8,7 +8,11 @@ from src.api.exceptions import (
 from src.api.schemas.common import DataResponse, ErrorResponse
 from src.security.auth import require_tier
 
-router = APIRouter(prefix="/debug", tags=["Debug & Diagnostics"])
+router = APIRouter(
+    prefix="/debug",
+    tags=["Debug & Diagnostics"],
+    dependencies=[Depends(require_tier(["admin"]))],
+)
 
 
 @router.get(
