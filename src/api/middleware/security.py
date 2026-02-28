@@ -458,28 +458,24 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Public path exemptions
         path = request.url.path
-        if (
-            path
-            in [
-                "/",
-                "/health",
-                "/docs",
-                "/redoc",
-                "/openapi.json",
-                "/api/v1/auth/verify-email",
-                "/api/v1/auth/forgot-password",
-                "/api/v1/auth/refresh",
-                "/api/v1/auth/password-reset",
-                "/api/v1/auth/password-reset/confirm",
-                "/api/v1/auth/jwks",
-            ]
-            or path.startswith(
-                (
-                    "/api/v1/auth/login",
-                    "/api/v1/auth/register",
-                    "/api/v1/auth/oauth",
-                    "/api/v1/auth/.well-known",
-                )
+        if path in [
+            "/",
+            "/health",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/api/v1/auth/verify-email",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/password-reset",
+            "/api/v1/auth/password-reset/confirm",
+            "/api/v1/auth/jwks",
+        ] or path.startswith(
+            (
+                "/api/v1/auth/login",
+                "/api/v1/auth/register",
+                "/api/v1/auth/oauth",
+                "/api/v1/auth/.well-known",
             )
         ):
             return await call_next(request)
