@@ -530,7 +530,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           placeholder="Search strike..."
           value={searchTerm}
           onChange={handleSearchChange}
-          inputProps={{ 'aria-label': 'Search by strike price' }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -547,7 +546,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           onChange={handleModelChange}
           size="small"
           sx={{ mr: 2 }}
-          aria-label="Select pricing model"
         >
           <ToggleButton value="black_scholes">BS</ToggleButton>
           <ToggleButton value="monte_carlo">MC</ToggleButton>
@@ -560,7 +558,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           exclusive
           onChange={handleExpiryChange}
           size="small"
-          aria-label="Filter by expiration"
         >
           <ToggleButton value="all">All</ToggleButton>
           <ToggleButton value="week">1W</ToggleButton>

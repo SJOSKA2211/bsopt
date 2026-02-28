@@ -19,7 +19,6 @@ router = APIRouter(
     "/tracemalloc_snapshot",
     response_model=DataResponse[dict],
     responses={500: {"model": ErrorResponse, "description": "Tracemalloc not active"}},
-    dependencies=[Depends(require_tier(["admin"]))],
 )
 async def get_tracemalloc_snapshot():
     """
