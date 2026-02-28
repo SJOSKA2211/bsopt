@@ -42,10 +42,11 @@ from src.security.auth import (
     token_blacklist,
 )
 from src.security.password import password_service
+from src.security.rate_limit import rate_limit
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)])
 
 
 async def _send_verification_email(email: str, token: str):
