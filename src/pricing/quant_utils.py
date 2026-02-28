@@ -318,70 +318,45 @@ def jit_mc_european_price(
 ):
     """Monte Carlo for European options using Numba."""
     actual_paths = n_paths // 2 if antithetic else n_paths
-    exp_rt = np.exp(-r * T)
 
-    # Complex schemes path (preserve original behavior)
     if scheme == "milstein" or scheme == "euler_multi":
         paths = jit_generate_paths(S0, T, r, sigma, q, actual_paths, 252, scheme=scheme)
         st1 = paths[:, -1]
-        if is_call:
-            p1 = np.maximum(st1 - K, 0.0) * exp_rt
-        else:
-            p1 = np.maximum(K - st1, 0.0) * exp_rt
-
-        # Original logic implies combined = p1 for these schemes (no explicit antithetic handling)
-        combined = p1
-        price = np.mean(combined)
-        std_err = np.sqrt(max(np.var(combined) / n_paths, 0.0))
-        return price, std_err
-
-    # Standard Euler path - Optimized
-    drift = (r - q - 0.5 * sigma**2) * T
-    diffusion = sigma * np.sqrt(T)
-
-    if z_innovations is not None:
-        z = z_innovations
     else:
-        z = np.random.standard_normal(actual_paths)
+        drift = (r - q - 0.5 * sigma**2) * T
+        diffusion = sigma * np.sqrt(T)
+        if z_innovations is not None:
+            z = z_innovations
+        else:
+            z = np.random.standard_normal(actual_paths)
+        st1 = S0 * np.exp(drift + diffusion * z)
+
+    exp_rt = np.exp(-r * T)
+    if is_call:
+        p1 = np.maximum(st1 - K, 0.0) * exp_rt
+    else:
+        p1 = np.maximum(K - st1, 0.0) * exp_rt
 
     if antithetic:
-        # Optimization: Reuse exp(diffusion * z) and avoid concatenation
-        # st1 = S0 * exp(drift) * exp(diff * z)
-        # st2 = S0 * exp(drift) / exp(diff * z)
-        drift_factor = S0 * np.exp(drift)
-        exp_diff_z = np.exp(diffusion * z)
-
-        st1 = drift_factor * exp_diff_z
-        st2 = drift_factor / exp_diff_z
-
-        if is_call:
-            p1 = np.maximum(st1 - K, 0.0) * exp_rt
-            p2 = np.maximum(st2 - K, 0.0) * exp_rt
+        if scheme == "milstein" or scheme == "euler_multi":
+            combined = p1
         else:
-            p1 = np.maximum(K - st1, 0.0) * exp_rt
-            p2 = np.maximum(K - st2, 0.0) * exp_rt
-
-        # Calculate statistics directly from p1 and p2 to avoid memory allocation
-        sum_p = np.sum(p1) + np.sum(p2)
-        sum_sq_p = np.sum(p1**2) + np.sum(p2**2)
-        n_total = 2 * actual_paths
-
-        price = sum_p / n_total
-        var = (sum_sq_p / n_total) - (price * price)
-        # Use n_total for consistency, falling back to n_paths if needed,
-        # but n_total is the actual sample size here.
-        std_err = np.sqrt(max(var / n_paths, 0.0))
-        return price, std_err
+            drift = (r - q - 0.5 * sigma**2) * T
+            diffusion = sigma * np.sqrt(T)
+            # Use same z for antithetic (z_innovations or previously generated z)
+            # z is already defined in the first block
+            st2 = S0 * np.exp(drift - diffusion * z)
+            if is_call:
+                p2 = np.maximum(st2 - K, 0.0) * exp_rt
+            else:
+                p2 = np.maximum(K - st2, 0.0) * exp_rt
+            combined = np.concatenate((p1, p2))
     else:
-        st1 = S0 * np.exp(drift + diffusion * z)
-        if is_call:
-            p1 = np.maximum(st1 - K, 0.0) * exp_rt
-        else:
-            p1 = np.maximum(K - st1, 0.0) * exp_rt
+        combined = p1
 
-        price = np.mean(p1)
-        std_err = np.sqrt(max(np.var(p1) / n_paths, 0.0))
-        return price, std_err
+    price = np.mean(combined)
+    std_err = np.sqrt(max(np.var(combined) / n_paths, 0.0))
+    return price, std_err
 
 
 @njit(cache=True, fastmath=True)

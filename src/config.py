@@ -73,15 +73,6 @@ class Settings(BaseSettings):
     RATE_LIMIT_PRO: int = 1000
     RATE_LIMIT_ENTERPRISE: int = 10000
 
-    @property
-    def rate_limit_tiers(self) -> dict[str, int]:
-        """Maps user tiers to their rate limits."""
-        return {
-            "free": self.RATE_LIMIT_FREE,
-            "pro": self.RATE_LIMIT_PRO,
-            "enterprise": self.RATE_LIMIT_ENTERPRISE,
-        }
-
     # CORS Configuration
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
