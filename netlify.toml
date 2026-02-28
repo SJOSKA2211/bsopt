@@ -1,7 +1,7 @@
 [build]
   base = "src/frontend"
   publish = "dist"
-  command = "npm install && npm run build"
+  command = "npm install -g pnpm && pnpm install && pnpm run build"
 
 [context.production.environment]
   NODE_VERSION = "20"
