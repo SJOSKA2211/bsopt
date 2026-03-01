@@ -13,7 +13,7 @@ interface WasmGreeksCellProps {
   isCall: boolean;
 }
 
-export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
+export const WasmGreeksCell = React.memo(({
   spot,
   strike,
   time,
@@ -21,7 +21,7 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
   rate,
   div,
   isCall,
-}) => {
+}: WasmGreeksCellProps) => {
   const { priceOption, isLoaded } = useWasmPricing();
 
   const [result, setResult] = React.useState<any>(null);
@@ -74,4 +74,4 @@ export const WasmGreeksCell: React.FC<WasmGreeksCellProps> = ({
       </IconButton>
     </Tooltip>
   );
-};
+});
