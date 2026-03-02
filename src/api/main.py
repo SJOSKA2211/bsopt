@@ -11,7 +11,9 @@ from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql.schema import schema
 from src.api.middleware.security import (
+    CSRFMiddleware,
     InputSanitizationMiddleware,
+    IPBlockMiddleware,
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -112,9 +114,13 @@ graphql_app = GraphQLRouter(schema)
 # Security Middleware (Order matters: executed from bottom to top of this list)
 # 1. JWT Auth (innermost - specific to routes)
 app.add_middleware(JWTAuthenticationMiddleware)
-# 2. Input Sanitization (logging only)
+# 2. CSRF Protection
+app.add_middleware(CSRFMiddleware)
+# 3. Input Sanitization (logging only)
 app.add_middleware(InputSanitizationMiddleware)
-# 3. Security Headers (outermost - applies to all responses)
+# 4. IP Blocking (reject bad IPs early)
+app.add_middleware(IPBlockMiddleware)
+# 5. Security Headers (outermost - applies to all responses)
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router, prefix="/api/v1")
