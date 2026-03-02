@@ -9,13 +9,20 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_DB: bsopt
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ci_test_password
+      DATABASE_URL: postgresql://admin:ci_test_password@postgres:5432/bsopt
+      DATABASE_URL_TEST: postgresql://admin:ci_test_password@postgres:5432/bsopt_test
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ci_test_jwt_secret
+      BETTER_AUTH_SECRET: ci_test_better_auth_secret
     steps:
       - uses: actions/checkout@v4
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
 
       - name: Enable BuildKit caching
         run: |
@@ -35,8 +42,16 @@ jobs:
           
       - name: Setup Environment
         run: |
-          cp .env.example .env || true
-          cp .env.test .env || echo "No .env.test found, continuing"
+          cat > .env << 'EOF'
+          POSTGRES_DB=bsopt
+          POSTGRES_USER=admin
+          POSTGRES_PASSWORD=ci_test_password
+          DATABASE_URL=postgresql://admin:ci_test_password@postgres:5432/bsopt
+          DATABASE_URL_TEST=postgresql://admin:ci_test_password@postgres:5432/bsopt_test
+          REDIS_URL=redis://redis:6379/0
+          JWT_SECRET=ci_test_jwt_secret
+          BETTER_AUTH_SECRET=ci_test_better_auth_secret
+          EOF
           
       - name: Build Images Sequentially
         run: |
