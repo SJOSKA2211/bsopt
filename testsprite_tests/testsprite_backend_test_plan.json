@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "get root info returns bsopt optimized api message",
+    "description": "Verify that a GET request to the root endpoint '/' returns a 200 status code with the message 'BS-Opt Optimized API' indicating the API is running and responding correctly."
+  },
+  {
+    "id": "TC002",
+    "title": "get health returns healthy status",
+    "description": "Verify that a GET request to the '/health' endpoint returns a 200 status code with a JSON body containing {\"status\": \"healthy\"}, confirming the API health check is operational."
+  },
+  {
+    "id": "TC003",
+    "title": "get metrics returns prometheus metrics text",
+    "description": "Verify that a GET request to the '/metrics' endpoint returns a 200 status code with Prometheus metrics in text format, ensuring observability metrics are exposed correctly."
+  },
+  {
+    "id": "TC004",
+    "title": "post auth register creates new user with jwt token",
+    "description": "Verify that a POST request to '/api/v1/auth/register' with valid email, password, and full_name creates a new user and returns a 201 status code with a user object containing a JWT token."
+  },
+  {
+    "id": "TC005",
+    "title": "post auth login returns access token for valid credentials",
+    "description": "Verify that a POST request to '/api/v1/auth/login' with valid email and password returns a 200 status code with an access_token and token_type bearer, allowing authenticated access."
+  },
+  {
+    "id": "TC006",
+    "title": "get auth me returns user profile with valid token",
+    "description": "Verify that a GET request to '/api/v1/auth/me' with a valid Authorization bearer token returns a 200 status code with the authenticated user's profile information."
+  },
+  {
+    "id": "TC007",
+    "title": "post pricing calculate returns option price and greeks",
+    "description": "Verify that a POST request to '/api/v1/pricing/calculate' with valid pricing parameters and Authorization bearer token returns a 200 status code with the calculated option price and greeks."
+  },
+  {
+    "id": "TC008",
+    "title": "get portfolio returns user portfolio",
+    "description": "Verify that a GET request to '/api/v1/portfolio' with a valid Authorization bearer token returns a 200 status code with the user's portfolio data."
+  },
+  {
+    "id": "TC009",
+    "title": "post portfolio positions adds new position",
+    "description": "Verify that a POST request to '/api/v1/portfolio/positions' with valid position data and Authorization bearer token returns a 201 status code with the created position."
+  },
+  {
+    "id": "TC010",
+    "title": "post graphql returns valid graphql response",
+    "description": "Verify that a POST request to '/graphql' with a valid GraphQL query or introspection query returns a 200 status code with the expected GraphQL response data."
+  }
+]

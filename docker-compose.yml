@@ -71,7 +71,7 @@ services:
       - ./src/auth-service:/app
       - /app/node_modules
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -131,6 +131,8 @@ services:
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -166,6 +168,8 @@ services:
       - INSIDE_DOCKER=1
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
       - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+      - JWT_SECRET=${JWT_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
       test: [ "CMD-SHELL", "celery -A src.ml.celery_app inspect ping" ]
       interval: 30s
@@ -195,6 +199,8 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 30s
@@ -218,12 +224,17 @@ services:
       - "8001:8000"
     volumes:
       - ./src:/app/src
-    cpuset: "0-3"
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - OMP_NUM_THREADS=4
       - MKL_NUM_THREADS=4
+      - JWT_SECRET=${JWT_SECRET}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -250,17 +261,17 @@ services:
       - PORTFOLIO_URL=http://portfolio:8000/graphql
       - PRICING_URL=http://neural-pricing:8000/graphql
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:4000/health" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
       portfolio:
-        condition: service_started
+        condition: service_healthy
       neural-pricing:
-        condition: service_started
+        condition: service_healthy
     networks:
       - bsopt-network
 
@@ -276,7 +287,7 @@ services:
       - ./src/frontend:/app
       - /app/node_modules
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5173/" ]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:5173/ || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
