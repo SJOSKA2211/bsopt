@@ -399,6 +399,9 @@ async def main():
             try:
                 await scraper._refresh_cache()
                 logger.info("scraper_loop_ok")
+                # Best Practice: Robust Healthcheck Heartbeat
+                with open("/tmp/scraper_heartbeat", "w") as f:
+                    f.write(str(time.time()))
             except Exception as e:
                 logger.error("scraper_loop_error", error=str(e))
 

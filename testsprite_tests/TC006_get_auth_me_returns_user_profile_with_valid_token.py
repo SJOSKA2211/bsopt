@@ -1,45 +1,62 @@
 import requests
 
+BASE_URL = "http://127.0.0.1:8000"
+
+
 def test_get_auth_me_returns_user_profile_with_valid_token():
-    base_url = "http://127.0.0.1:8000"
-    register_url = f"{base_url}/api/v1/auth/register"
-    login_url = f"{base_url}/api/v1/auth/login"
-    auth_me_url = f"{base_url}/api/v1/auth/me"
-    timeout = 30
+    register_url = f"{BASE_URL}/api/v1/auth/register"
+    login_url = f"{BASE_URL}/api/v1/auth/login"
+    auth_me_url = f"{BASE_URL}/api/v1/auth/me"
 
-    # Test user data
-    test_user = {
-        "email": "testuser_tc006@example.com",
-        "password": "TestPass123!",
-        "full_name": "Test User TC006"
+    test_email = "testuser_tc006@example.com"
+    test_password = "TestPassword123!"
+    test_full_name = "Test User TC006"
+
+    headers = {"Content-Type": "application/json"}
+
+    # Register new user
+    registration_payload = {
+        "email": test_email,
+        "password": test_password,
+        "full_name": test_full_name
     }
-
-    access_token = None
-
-    # Register the user
     try:
-        reg_resp = requests.post(register_url, json=test_user, timeout=timeout)
+        reg_resp = requests.post(register_url, json=registration_payload, headers=headers, timeout=30)
         if reg_resp.status_code not in (201, 409):
             reg_resp.raise_for_status()
-        # Login user
-        login_resp = requests.post(login_url, json={"email": test_user["email"], "password": test_user["password"]}, timeout=timeout)
-        login_resp.raise_for_status()
-        login_data = login_resp.json()
-        assert "access_token" in login_data, "access_token missing in login response"
-        assert login_data.get("token_type") == "bearer", "token_type is not bearer"
-        access_token = login_data["access_token"]
+    except Exception as e:
+        raise AssertionError(f"Registration failed unexpectedly: {e}")
 
-        headers = {"Authorization": f"Bearer {access_token}"}
-        auth_me_resp = requests.get(auth_me_url, headers=headers, timeout=timeout)
-        auth_me_resp.raise_for_status()
-        user_profile = auth_me_resp.json()
-        assert auth_me_resp.status_code == 200
-        assert isinstance(user_profile, dict), "User profile response is not a dict"
-        assert user_profile.get("email") == test_user["email"], "Returned user email does not match"
-        assert "full_name" in user_profile, "User profile missing full_name"
-    finally:
-        # Cleanup user by login token cannot delete user here - no delete endpoint given
-        # So no deletion is performed
-        pass
+    # Login with registered user credentials
+    login_payload = {"email": test_email, "password": test_password}
+    try:
+        login_resp = requests.post(login_url, json=login_payload, headers=headers, timeout=30)
+        login_resp.raise_for_status()
+    except Exception as e:
+        raise AssertionError(f"Login failed unexpectedly: {e}")
+
+    login_data = login_resp.json()
+    assert "access_token" in login_data and login_data.get("token_type") == "bearer", \
+        "Login response missing access_token or token_type 'bearer'"
+
+    token = login_data["access_token"]
+    auth_headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    # Call /api/v1/auth/me with valid token
+    try:
+        auth_me_resp = requests.get(auth_me_url, headers=auth_headers, timeout=30)
+    except Exception as e:
+        raise AssertionError(f"Request to /api/v1/auth/me failed: {e}")
+
+    assert auth_me_resp.status_code == 200, f"Expected status 200, got {auth_me_resp.status_code}"
+
+    user_profile = auth_me_resp.json()
+    assert isinstance(user_profile, dict), "User profile response is not a JSON object"
+    assert user_profile.get("email", "").lower() == test_email.lower(), "Returned user email does not match"
+
+    # No cleanup necessary (user created can remain)
+
 
 test_get_auth_me_returns_user_profile_with_valid_token()

@@ -8,8 +8,35 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    user: {
+        modelName: "users",
+        fields: {
+            emailVerified: "is_verified",
+            name: "full_name",
+            createdAt: "created_at",
+            updatedAt: "last_login" // Close enough for Better Auth's internal use
+        }
+    },
+    session: {
+        modelName: "sessions",
+        fields: {
+            userId: "user_id",
+            createdAt: "created_at",
+            updatedAt: "created_at" // SQL sessions table only has created_at
+        }
+    },
+    account: {
+        modelName: "oauth_accounts",
+    },
+    verification: {
+        modelName: "email_verification_tokens",
+    },
     plugins: [
         openAPI(),
     ],
-    basePath: '/api/auth' // NEW LINE
+    jwt: {
+        issuer: "bsopt-auth",
+        expiresIn: "7d"
+    },
+    basePath: '/api/auth'
 });

@@ -267,19 +267,22 @@ class OAuth2Token(Base):
 class BetterAuthSession(Base):
     """Session storage for Better-Auth."""
 
-    __tablename__ = "better_auth_sessions"
+    __tablename__ = "sessions"
 
-    id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ip_address: Mapped[str | None] = mapped_column(String(50))
     user_agent: Mapped[str | None] = mapped_column(Text)
-    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # updated_at is in models but not in basic SQL, making it optional
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship()
 
     def __repr__(self) -> str:
-        return f"<BetterAuthSession(token={self.token[:8]}...)>"
+        return f"<Session(token={self.token[:8]}...)>"
 
 
 # =============================================================================
