@@ -24,7 +24,7 @@ export const CalibrationHealth: React.FC<CalibrationHealthProps> = ({ metrics })
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>Calibration Engine Health</Typography>
         <Tooltip title="Real-time monitoring of Heston/SVI model fitting quality.">
-          <IconButton size="small"><InfoIcon fontSize="small" /></IconButton>
+          <IconButton size="small" aria-label="Calibration Engine Health Info"><InfoIcon fontSize="small" /></IconButton>
         </Tooltip>
       </Box>
 
