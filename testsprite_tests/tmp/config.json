@@ -8,12 +8,12 @@
     "projectName": "bsopt",
     "projectPath": "/home/h8t3dj4y/bsopt",
     "testIds": [],
-    "additionalInstruction": "Test the Vite React frontend. Server is running at http://localhost:5173. Test basic UI rendering, navigation, and core components.",
+    "additionalInstruction": "Test the FastAPI backend. Server is at http://127.0.0.1:8000. Focus on /health, /api/v1/auth (login, register), /api/v1/pricing, /api/v1/options, and /api/v1/portfolio endpoints.",
     "serverMode": "development",
     "envs": {
       "API_KEY": "sk-user-AIM9bPGnsy7hOyGY8YSra7U4c89W0z9KFWbqY9TdWIaMHbpB9JZ1hJMPwoagW-vTc2gu7X7b5YMlXkUyAXTPLzG6ULiUNHs2sNZE-X8JvFwarQtFkMdxFPBxoEoh7IxWXVU"
     }
   },
-  "serverPort": 42203,
-  "proxy": "http://0f6dae7e-6444-4c0e-8220-e54a72ac6cfa:tGoLr35eVksPHT3XSdWY9kBQpJsrzZPI@tun.testsprite.com:8080"
+  "serverPort": 43611,
+  "proxy": "http://48bb1dc2-fcdb-474a-8ade-111f1f2466cc:q9h285cVmqfu99WFTKk3ahujKLSnc3fU@tun.testsprite.com:8080"
 }

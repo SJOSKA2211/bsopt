@@ -1,7 +1,7 @@
 const Fastify = require('fastify');
 const { ApolloGateway, IntrospectAndCompose } = require('@apollo/gateway');
 const { ApolloServer } = require('@apollo/server');
-const fastifyApollo = require('@as-integrations/fastify');
+const { fastifyApollo } = require('@as-integrations/fastify');
 const cors = require('@fastify/cors');
 const helmet = require('@fastify/helmet');
 const pino = require('pino');
@@ -19,6 +19,18 @@ const gateway = new ApolloGateway({
     subgraphs,
     pollIntervalInMs: 10000
   }),
+  buildService({ url }) {
+    return new (require('@apollo/gateway').RemoteGraphQLDataSource)({
+      url,
+      willSendRequest({ request, context }) {
+        // Standard User-Agent to avoid early rejection
+        request.http.headers.set('user-agent', 'ApolloGateway/2.0');
+        if (context && context.headers && context.headers.authorization) {
+          request.http.headers.set('authorization', context.headers.authorization);
+        }
+      },
+    });
+  },
   debug: process.env.DEBUG === 'true'
 });
 
@@ -32,11 +44,12 @@ const app = Fastify();
 async function start() {
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors);
-  
+
   await server.start();
-  
-  // High-performance Apollo integration
-  await app.register(fastifyApollo(server), {
+
+  // High-performance Apollo integration (v2 syntax)
+  await app.register(fastifyApollo, {
+    apollo: server,
     path: '/graphql'
   });
 

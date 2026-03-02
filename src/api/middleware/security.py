@@ -197,6 +197,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         "/docs",
         "/redoc",
         "/openapi.json",
+        "/graphql",
     }
 
     # Cookie and header names
@@ -470,6 +471,8 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             "/api/v1/auth/password-reset",
             "/api/v1/auth/password-reset/confirm",
             "/api/v1/auth/jwks",
+            "/graphql",
+            "/metrics",
         ] or path.startswith(
             (
                 "/api/v1/auth/login",

@@ -10,6 +10,7 @@ from strawberry.federation import Schema
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
+    underlying_symbol: str = strawberry.federation.field(external=True)
 
 
 @strawberry.type
@@ -24,11 +25,11 @@ class Position:
         return Option(id=strawberry.ID(self.contract_symbol))
 
 
-@strawberry.type
+@strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
-    user_id: str
-    cash_balance: float
+    user_id: str = strawberry.federation.field(shareable=True)
+    cash_balance: float = strawberry.federation.field(shareable=True)
     positions: list[Position]
 
 

@@ -19,7 +19,14 @@ CREATE TABLE IF NOT EXISTS users (
     tier VARCHAR(20) DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'enterprise')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_login TIMESTAMPTZ,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    verification_token VARCHAR(255),
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMPTZ,
+    is_mfa_enabled BOOLEAN DEFAULT FALSE,
+    mfa_secret VARCHAR(255),
+    mfa_backup_codes TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
