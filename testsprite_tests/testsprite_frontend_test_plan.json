@@ -1,0 +1,806 @@
+[
+  {
+    "id": "TC001",
+    "title": "Home endpoint responds with the expected welcome message",
+    "description": "Verifies the root route loads successfully and shows the expected API welcome text.",
+    "category": "Lint Configuration Fix",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"BS-Opt Optimized API\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Metrics endpoint is reachable and shows Prometheus metrics text",
+    "description": "Verifies the metrics endpoint loads successfully in the browser and displays Prometheus-style metrics content.",
+    "category": "Startup Script: start_all_dev.sh Delegation",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/metrics\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# HELP\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# TYPE\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"process\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Auth login endpoint rejects browser GET and does not show metrics-like content",
+    "description": "Verifies the auth login endpoint is not accidentally serving metrics or other unexpected content when opened directly in a browser.",
+    "category": "Startup Script: start_all_dev.sh Delegation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /api/v1/auth/login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/api/v1/auth/login\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# HELP\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# TYPE\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Prometheus\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Metrics endpoint remains reachable after a refresh",
+    "description": "Verifies the metrics endpoint remains stable across a page refresh (basic availability check).",
+    "category": "Startup Script: start_all_dev.sh Delegation",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# HELP\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Enter\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/metrics\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# TYPE\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Unknown route does not masquerade as metrics",
+    "description": "Verifies a non-existent route does not return the metrics page content (guards against misrouting after startup changes).",
+    "category": "Startup Script: start_all_dev.sh Delegation",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /this-route-should-not-exist"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/this-route-should-not-exist\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# HELP\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# TYPE\" is not visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"404\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "GraphQL introspection succeeds after API login (valid credentials)",
+    "description": "Verifies a user can log in via the API UI and then successfully execute a GraphQL introspection request using the received bearer token.",
+    "category": "Developer Debugging Ports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the API documentation page for the authentication login endpoint."
+      },
+      {
+        "type": "action",
+        "description": "Type \"dev@example.com\" into the email field."
+      },
+      {
+        "type": "action",
+        "description": "Type \"password\" into the password field."
+      },
+      {
+        "type": "action",
+        "description": "Click the button to execute the login request."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"access_token\" is visible in the login response."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the API documentation page for the GraphQL endpoint."
+      },
+      {
+        "type": "action",
+        "description": "Type the Authorization header value in the format \"Bearer <access_token>\" using the token from the login response."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"__schema\" is visible in the GraphQL response."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "GraphQL endpoint returns visible error for malformed query body",
+    "description": "Verifies the GraphQL endpoint surfaces a user-visible error when a malformed request body is submitted via the UI.",
+    "category": "Developer Debugging Ports",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the API documentation page for the GraphQL endpoint."
+      },
+      {
+        "type": "action",
+        "description": "Type a clearly malformed GraphQL request body into the query/body field (for example, an incomplete JSON body or invalid GraphQL syntax)."
+      },
+      {
+        "type": "action",
+        "description": "Click the button to execute the GraphQL request."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"errors\" is visible in the GraphQL response."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Syntax\" is visible in the GraphQL response."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Pricing calculation succeeds and metrics endpoint is reachable",
+    "description": "Verifies a valid pricing calculation returns 200 and the metrics endpoint returns Prometheus-formatted output including a metric for pricing calculate duration.",
+    "category": "Request/Response Logging Middleware",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# HELP\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"/api/v1/pricing/calculate\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Metrics output shows Prometheus exposition format with metric families present",
+    "description": "Verifies /metrics returns a Prometheus exposition text with TYPE/HELP headers and at least one histogram/counter family present.",
+    "category": "Request/Response Logging Middleware",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the username/email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /metrics"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"# TYPE\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"prometheus\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Login with valid credentials and view current user profile",
+    "description": "Verifies a user can log in with email/password and then access the authenticated profile screen/info.",
+    "category": "Authentication",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Profile\" in the navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Profile\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Email\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Register a new account successfully",
+    "description": "Verifies a new user can register and sees a success state after submitting valid registration details.",
+    "category": "Authentication",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"newuser+e2e-01@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"New User\" into the full name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"P@ssw0rd\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Create account\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Account created\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign in\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Register then log in with the newly created account",
+    "description": "Verifies end-to-end that a newly registered user can immediately authenticate using the same credentials.",
+    "category": "Authentication",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"newuser+e2e-02@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"New User\" into the full name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"P@ssw0rd\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Create account\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" link"
+      },
+      {
+        "type": "action",
+        "description": "Type \"newuser+e2e-02@example.com\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"P@ssw0rd\" into the password field"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Login fails with wrong password",
+    "description": "Verifies the UI shows an error when a user attempts to log in with an invalid password.",
+    "category": "Authentication",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"wrong-password-123\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid credentials\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Registration fails when email is already registered",
+    "description": "Verifies the UI shows a clear error when trying to register with an existing email.",
+    "category": "Authentication",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Existing User\" into the full name field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"P@ssw0rd\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Create account\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email already registered\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Access profile page after login and confirm user identity info is displayed",
+    "description": "Verifies authenticated user identity information is visible on the profile page after a successful login.",
+    "category": "Authentication",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Profile\" in the navigation menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Full name\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Logout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Logout ends the authenticated session from the UI",
+    "description": "Verifies a logged-in user can log out and is returned to an unauthenticated state.",
+    "category": "Authentication",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Logout\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Sign in\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/login\""
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Form validation: registration requires email and password",
+    "description": "Verifies the registration form blocks submission and shows validation messages when required fields are missing.",
+    "category": "Authentication",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /register"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Create account\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Email is required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Password is required\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/register\""
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Health endpoint returns healthy status",
+    "description": "Verifies the service liveness endpoint responds successfully and shows a healthy status on the page.",
+    "category": "Health & Observability",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /health"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"status\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"healthy\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/health\""
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "GraphQL endpoint is reachable and returns schema data via introspection query",
+    "description": "Verifies the GraphQL endpoint responds successfully to an introspection query and returns visible schema-related data.",
+    "category": "GraphQL API Verification",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"IntrospectionQuery\" into the query input field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Run\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"__schema\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"types\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "GraphQL endpoint returns data for a safe, valid query",
+    "description": "Verifies a basic valid query can be executed and returns a data payload without showing an error state.",
+    "category": "GraphQL API Verification",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"query\" into the query input field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Run\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"data\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"errors\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "GraphQL invalid syntax query surfaces errors in the response view",
+    "description": "Verifies an invalid GraphQL query results in a visible error payload rather than silent failure.",
+    "category": "GraphQL API Verification",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"query {\" into the query input field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Run\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"errors\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Syntax\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "GraphQL unknown field query returns a validation error",
+    "description": "Verifies querying a non-existent field produces a clear GraphQL validation error in the UI response.",
+    "category": "GraphQL API Verification",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"query { definitelyNotARealRootField }\" into the query input field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Run\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"errors\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cannot query field\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "GraphQL malicious-looking query content does not crash the endpoint and returns errors safely",
+    "description": "Verifies the endpoint handles potentially malicious input safely by returning a structured error response and remaining usable.",
+    "category": "GraphQL API Verification",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"query { __schema { types { name } } } -- ' OR 1=1;\" into the query input field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Run\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"errors\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"data\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "GraphQL refresh token flow endpoint is accessible (skip if no UI exists)",
+    "description": "Verifies that a refresh-token endpoint is not testable via UI when there are no application routes, preventing false failures due to missing UI coverage.",
+    "category": "GraphQL API Verification",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /graphql"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"GraphQL\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Headers\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Authorization\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"refresh\" is not visible"
+      }
+    ]
+  }
+]
