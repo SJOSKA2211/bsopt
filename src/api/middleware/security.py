@@ -12,10 +12,11 @@ Comprehensive security middleware including:
 
 import hashlib
 import hmac
-import logging
 import os
 import re
 import secrets
+
+import structlog
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Literal, cast
@@ -28,7 +29,7 @@ from starlette.types import ASGIApp
 
 from src.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
