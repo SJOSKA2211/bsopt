@@ -11,7 +11,9 @@ from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql.schema import schema
 from src.api.middleware.security import (
+    CSRFMiddleware,
     InputSanitizationMiddleware,
+    IPBlockMiddleware,
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -68,11 +70,11 @@ async def api_exception_handler(request: Request, exc: Exception):
 
     if isinstance(exc, BaseAPIException):
         return ORJSONResponse(
-            status_code=exc.status_code,
+            status_code=getattr(exc, "status_code", 500),
             content={
-                "error": exc.error_code,
-                "message": exc.message,
-                "details": exc.details,
+                "error": getattr(exc, "error_code", getattr(exc, "error", "InternalServerError")),
+                "message": getattr(exc, "message", str(exc)),
+                "details": getattr(exc, "details", None),
             },
         )
 
@@ -103,6 +105,17 @@ async def api_exception_handler(request: Request, exc: Exception):
     )
 
 
+from fastapi.exceptions import RequestValidationError  # noqa: E402
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle FastAPI built-in validation errors."""
+    return ORJSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
+
 app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
 
@@ -112,9 +125,13 @@ graphql_app = GraphQLRouter(schema)
 # Security Middleware (Order matters: executed from bottom to top of this list)
 # 1. JWT Auth (innermost - specific to routes)
 app.add_middleware(JWTAuthenticationMiddleware)
-# 2. Input Sanitization (logging only)
+# 2. CSRF Protection
+app.add_middleware(CSRFMiddleware)
+# 3. Input Sanitization (logging only)
 app.add_middleware(InputSanitizationMiddleware)
-# 3. Security Headers (outermost - applies to all responses)
+# 4. IP Blocking (reject bad IPs early)
+app.add_middleware(IPBlockMiddleware)
+# 5. Security Headers (outermost - applies to all responses)
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router, prefix="/api/v1")

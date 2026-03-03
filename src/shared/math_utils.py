@@ -5,7 +5,7 @@ Consolidates critical numerical logic for cross-module consistency with JIT acce
 """
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 
 # OPTIMIZED: Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
@@ -84,12 +84,12 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
-    """Vectorized price calculation (JIT-compiled loop)."""
+    """Vectorized price calculation (JIT-compiled parallel loop)."""
     n = len(flat_s)
     flat_res = np.empty(n, dtype=np.float64)
-    for i in range(n):
+    for i in prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
             flat_k[i],
@@ -190,9 +190,9 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
     return delta, gamma, theta, vega, rho
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
-    """Vectorized Greeks calculation (JIT-compiled loop)."""
+    """Vectorized Greeks calculation (JIT-compiled parallel loop)."""
     n = len(flat_s)
     f_delta = np.empty(n, dtype=np.float64)
     f_gamma = np.empty(n, dtype=np.float64)
@@ -200,7 +200,7 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
     f_vega = np.empty(n, dtype=np.float64)
     f_rho = np.empty(n, dtype=np.float64)
 
-    for i in range(n):
+    for i in prange(n):
         d, g, th, v, rh = calculate_greeks_core(
             flat_s[i],
             flat_k[i],

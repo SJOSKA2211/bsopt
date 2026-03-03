@@ -39,9 +39,8 @@ Jenkinsfile
 deploy.sh
 DOCKER_DEV_GUIDE.md
 
-# === Docs & Tests ===
+# === Docs ===
 docs/
-tests/
 audit_report.md
 coverage_report.txt
 coverage.xml

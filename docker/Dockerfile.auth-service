@@ -35,7 +35,9 @@ WORKDIR /app
 RUN addgroup -S bsopt && adduser -S bsopt -G bsopt
 
 COPY --from=builder /app/package*.json ./
-RUN npm ci --omit=dev
+RUN apk add --no-cache python3 make g++ \
+    && npm ci --omit=dev \
+    && apk del python3 make g++
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src ./src
@@ -48,5 +50,7 @@ EXPOSE 3001
 ENV NODE_ENV=production
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -qO- http://localhost:3001/health || exit 1
+    CMD wget -qO- http://localhost:3001/ || exit 1
+
+CMD ["node", "dist/index.js"]
 

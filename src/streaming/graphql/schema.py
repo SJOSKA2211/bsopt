@@ -13,9 +13,9 @@ class MarketData:
     volume: int
 
 
-@strawberry.federation.type(keys=["id"])
+@strawberry.federation.type(keys=["id"], extend=True)
 class Option:
-    id: strawberry.ID
+    id: strawberry.ID = strawberry.federation.field(external=True)
 
     @strawberry.field
     def last_price(self) -> float:

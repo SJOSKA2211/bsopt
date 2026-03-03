@@ -17,9 +17,9 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     return results
 
 
-@strawberry.federation.type(keys=["id"])
+@strawberry.federation.type(keys=["id"], extend=True)
 class Option:
-    id: strawberry.ID
+    id: strawberry.ID = strawberry.federation.field(external=True)
 
     @strawberry.field
     async def fair_value(self, info: strawberry.Info) -> float:

@@ -1,40 +1,68 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Database Schema
--- ============================================================================
--- PostgreSQL 15 with TimescaleDB
--- ============================================================================
-
--- Create test database if it doesn't exist
-SELECT 'CREATE DATABASE bsopt_test'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'bsopt_test')\gexec
-
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
-
--- ============================================================================
--- USERS TABLE
+-- Black-Scholes Option Pricing Platform - Core Schema
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
     tier VARCHAR(20) DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'enterprise')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_login TIMESTAMPTZ,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    verification_token VARCHAR(255),
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMPTZ,
+    is_mfa_enabled BOOLEAN DEFAULT FALSE,
+    mfa_secret VARCHAR(255),
+    mfa_backup_codes TEXT
 );
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS oauth_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL,
+    provider_id VARCHAR(255) NOT NULL,
+    access_token TEXT,
+    refresh_token TEXT,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(provider, provider_id)
+);
+
+CREATE TABLE IF NOT EXISTS email_verification_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS oauth2_clients (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id VARCHAR(100) UNIQUE NOT NULL,
+    client_secret VARCHAR(255) NOT NULL,
+    redirect_uris TEXT[],
+    scopes TEXT[],
+    is_confidential BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_oauth2_client_id ON oauth2_clients(client_id);
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_tier_active ON users(tier, is_active);
-
-COMMENT ON TABLE users IS 'User accounts with tiered access (free, pro, enterprise)';
-
--- ============================================================================
--- OPTIONS_PRICES TABLE (TimescaleDB Hypertable)
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS options_prices (
     time TIMESTAMPTZ NOT NULL,
@@ -56,20 +84,6 @@ CREATE TABLE IF NOT EXISTS options_prices (
     PRIMARY KEY (time, symbol, strike, expiry, option_type)
 );
 
--- Convert to TimescaleDB hypertable
-SELECT create_hypertable('options_prices', 'time', if_not_exists => TRUE);
-
--- Indexes for options_prices
-CREATE INDEX IF NOT EXISTS idx_options_prices_symbol_time ON options_prices(symbol, time DESC);
-CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_time ON options_prices(expiry, time DESC);
-CREATE INDEX IF NOT EXISTS idx_options_prices_chain ON options_prices(symbol, expiry, option_type, strike, time DESC);
-
-COMMENT ON TABLE options_prices IS 'Time-series options market data (TimescaleDB hypertable)';
-
--- ============================================================================
--- MARKET_TICKS TABLE (TimescaleDB Hypertable for High-Frequency Data)
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS market_ticks (
     time TIMESTAMPTZ NOT NULL,
     symbol VARCHAR(20) NOT NULL,
@@ -78,14 +92,8 @@ CREATE TABLE IF NOT EXISTS market_ticks (
     side VARCHAR(4) -- 'buy' or 'sell'
 );
 
-CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_time ON market_ticks(symbol, time DESC);
-
--- ============================================================================
--- PORTFOLIOS TABLE
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS portfolios (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     cash_balance NUMERIC(15, 2) DEFAULT 0.00 CHECK (cash_balance >= 0),
@@ -96,14 +104,8 @@ CREATE TABLE IF NOT EXISTS portfolios (
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_created ON portfolios(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_name ON portfolios(user_id, name);
 
-COMMENT ON TABLE portfolios IS 'User portfolios for position tracking';
-
--- ============================================================================
--- POSITIONS TABLE
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS positions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
     symbol VARCHAR(20) NOT NULL,
     strike NUMERIC(12, 2),
@@ -127,14 +129,8 @@ CREATE INDEX IF NOT EXISTS idx_positions_portfolio_status ON positions(portfolio
 CREATE INDEX IF NOT EXISTS idx_positions_symbol_status ON positions(symbol, status);
 CREATE INDEX IF NOT EXISTS idx_positions_expiry_status ON positions(expiry, status);
 
-COMMENT ON TABLE positions IS 'Individual option positions (quantity > 0 = long, < 0 = short)';
-
--- ============================================================================
--- ORDERS TABLE
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS orders (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
     symbol VARCHAR(20) NOT NULL,
@@ -167,14 +163,8 @@ CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_a
 CREATE INDEX IF NOT EXISTS idx_orders_broker_lookup ON orders(broker, broker_order_id);
 CREATE INDEX IF NOT EXISTS idx_orders_symbol_status ON orders(symbol, status, created_at DESC);
 
-COMMENT ON TABLE orders IS 'Trading order management (market, limit, stop, stop_limit)';
-
--- ============================================================================
--- ML_MODELS TABLE
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS ml_models (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     algorithm VARCHAR(50) NOT NULL CHECK (algorithm IN ('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble')),
     version INTEGER NOT NULL CHECK (version > 0),
@@ -191,30 +181,19 @@ CREATE INDEX IF NOT EXISTS idx_ml_models_production ON ml_models(name, is_produc
 CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC);
 CREATE INDEX IF NOT EXISTS idx_ml_models_created_by ON ml_models(created_by);
 
-COMMENT ON TABLE ml_models IS 'ML model registry with versioning';
-
--- ============================================================================
--- MODEL_PREDICTIONS TABLE
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS model_predictions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
     input_features JSONB NOT NULL,
     predicted_price NUMERIC(12, 4) NOT NULL,
     actual_price NUMERIC(12, 4),
     prediction_error NUMERIC(12, 4),
+    actual_value NUMERIC,
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
-
-COMMENT ON TABLE model_predictions IS 'Prediction logs for ML model monitoring';
-
--- ============================================================================
--- RATE_LIMITS TABLE
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS rate_limits (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -226,11 +205,13 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 
 CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup ON rate_limits(user_id, endpoint, window_start);
 
-COMMENT ON TABLE rate_limits IS 'API rate limiting tracking by user and endpoint';
-
--- ============================================================================
--- TRIGGER FOR AUTO-UPDATING updated_at
--- ============================================================================
+CREATE TABLE IF NOT EXISTS request_logs (
+    created_at TIMESTAMPTZ NOT NULL, 
+    status_code INT, 
+    path TEXT, 
+    method TEXT, 
+    duration_ms DOUBLE PRECISION
+);
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -245,25 +226,3 @@ CREATE TRIGGER update_orders_updated_at
     BEFORE UPDATE ON orders
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
-
--- ============================================================================
--- COMPLETION
--- ============================================================================
-
--- Show all created tables
-DO $$
-BEGIN
-    RAISE NOTICE '========================================';
-    RAISE NOTICE 'DATABASE SCHEMA CREATION COMPLETE';
-    RAISE NOTICE '========================================';
-    RAISE NOTICE 'Tables created:';
-    RAISE NOTICE '  - users';
-    RAISE NOTICE '  - options_prices (TimescaleDB hypertable)';
-    RAISE NOTICE '  - portfolios';
-    RAISE NOTICE '  - positions';
-    RAISE NOTICE '  - orders';
-    RAISE NOTICE '  - ml_models';
-    RAISE NOTICE '  - model_predictions';
-    RAISE NOTICE '  - rate_limits';
-    RAISE NOTICE '========================================';
-END $$;
