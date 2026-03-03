@@ -1,0 +1,4 @@
+# file: /app/src/api/main.py
+# hypothesis_version: 6.151.9
+
+[0.5, 422, 500, 1000, '*', '/', '/api/v1', '/graphql', '/health', '/metrics', 'BS-Opt Optimized API', 'InternalServerError', 'api', 'api_error', 'api_error_detailed', 'body', 'detail', 'details', 'error', 'error_code', 'headers', 'healthy', 'http', 'message', 'prod', 'startup', 'status', 'status_code']

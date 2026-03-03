@@ -14,7 +14,7 @@ import {
   AutoGraph,
   Update,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, gql } from '@apollo/client';
 
 interface MLPredictionsProps {
   symbol: string;
@@ -29,61 +29,57 @@ interface PredictionData {
   lastUpdated: string;
 }
 
+const GET_ML_PREDICTION = gql`
+  query GetMLPrediction($symbol: String!) {
+    mlPrediction(symbol: $symbol) {
+      symbol
+      predictedPrice: predicted_price
+      confidenceInterval: confidence_interval
+      drift
+      modelName: model_name
+      lastUpdated: last_updated
+    }
+  }
+`;
+
 export const MLPredictions: React.FC<MLPredictionsProps> = React.memo(({ symbol }) => {
 
   const theme = useTheme();
 
-
-
-  const { data, isLoading, error } = useQuery<PredictionData>({
-
-    queryKey: ['ml-predictions', symbol],
-
-    queryFn: async () => {
-
-      const response = await fetch(`/api/v1/ml/predictions?symbol=${symbol}`);
-
-      if (!response.ok) {
-
-        throw new Error('Failed to fetch predictions');
-
-      }
-
-      return response.json();
-
-    },
-
-    refetchInterval: 10000,
-
+  const { data: gqlData, loading: isLoading, error } = useQuery(GET_ML_PREDICTION, {
+    variables: { symbol },
+    pollInterval: 10000,
   });
 
-
-
-    if (isLoading) {
-
-
-
-      return (
+  const data = gqlData?.mlPrediction;
 
 
 
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 200 }}>
+  if (isLoading) {
 
 
 
-          <CircularProgress size={30} aria-label="Loading predictions" />
+    return (
 
 
 
-        </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 200 }}>
 
 
 
-      );
+        <CircularProgress size={30} aria-label="Loading predictions" />
 
 
 
-    }
+      </Box>
+
+
+
+    );
+
+
+
+  }
 
 
 
