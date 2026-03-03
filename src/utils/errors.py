@@ -9,9 +9,12 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+from src.api.exceptions import ServiceUnavailableException
 from src.shared.off_heap_logger import omega_logger
 
 logger = logging.getLogger("audit")
+
+__all__ = ["robust_pricing_task", "ServiceUnavailableException"]
 
 
 def robust_pricing_task(error_return_value: Any = None):

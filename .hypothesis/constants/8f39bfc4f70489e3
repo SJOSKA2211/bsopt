@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/transformer_policy.py
+# hypothesis_version: 6.151.9
+
+[0.1, 1.0, 128, 512, 1024, 4096, '-inf', 'mask', 'relu']

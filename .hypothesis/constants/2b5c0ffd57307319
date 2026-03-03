@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/decision_transformer.py
+# hypothesis_version: 6.151.9
+
+[1000, 1024, '-inf', 'gelu']

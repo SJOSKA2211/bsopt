@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipelines/retraining.py
+# hypothesis_version: 6.151.9
+
+[10000, 'is_drift_detected', 'model_path', 'retraining_completed', 'retraining_failed', 'status', 'success']

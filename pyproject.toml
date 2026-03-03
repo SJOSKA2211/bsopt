@@ -3,12 +3,12 @@ name = "bsopt"
 version = "2.5.0"
 description = "The Advanced Financial Manifold for Transdimensional Derivative Pricing"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
     "numpy>=1.26.4,<2.3",
     "pandas>=2.3.3",
-    "scipy>=1.15.0",
+    "scipy<1.15.0",
     "numba>=0.58.0",
     "structlog>=25.5.0",
     "orjson>=3.9.0",
@@ -24,6 +24,8 @@ dependencies = [
     "rich>=13.7.0",
     "prometheus-client>=0.20.0",
     "prometheus_api_client>=0.5.0",
+    "eth_account",
+    "minio",
 ]
 
 [project.optional-dependencies]
@@ -87,7 +89,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "ASYNC"]
@@ -106,7 +108,7 @@ indent-style = "space"
 known-first-party = ["src"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 
@@ -121,6 +123,7 @@ markers = [
     "integration: Integration tests",
     "slow: Long-running tests",
     "benchmark: Performance benchmarks",
+    "performance: Performance tests",
 ]
 
 [tool.setuptools]

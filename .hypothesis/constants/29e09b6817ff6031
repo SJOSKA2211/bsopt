@@ -1,0 +1,4 @@
+# file: /app/src/ml/training/train_v2.py
+# hypothesis_version: 6.151.9
+
+[0.001, 4096, 5000, 10000, '__main__', 'val_loss']

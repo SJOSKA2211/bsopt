@@ -64,9 +64,9 @@ class RegisterRequest(BaseModel):
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
-    password_confirm: str | None = Field(None, description="Password confirmation")
+    password_confirm: str = Field(..., description="Password confirmation")
     full_name: str | None = Field(None, max_length=255, description="User's full name")
-    accept_terms: bool = Field(True, description="Accept terms and conditions")
+    accept_terms: bool = Field(..., description="Accept terms and conditions")
 
     @field_validator("password")
     @classmethod

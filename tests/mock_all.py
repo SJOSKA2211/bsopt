@@ -96,6 +96,7 @@ MOCK_IF_MISSING = [
     "matplotlib.pyplot",
     "scikit-learn",
     "sklearn",
+    "web3",
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in Advanced venv
@@ -106,7 +107,6 @@ heavy_prefixes = [
     "stable_baselines3",
     "xgboost",
     "confluent_kafka",
-    "lightning",
     "prefect",
     "dask",
     "cvxopt",
@@ -116,7 +116,6 @@ heavy_prefixes = [
     "onnxruntime",
     "ray.tune",
     "ray.air",
-    "torch",
     "matplotlib",
 ]
 
