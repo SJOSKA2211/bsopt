@@ -1,0 +1,4 @@
+# file: /app/src/streaming/graphql/schema.py
+# hypothesis_version: 6.151.9
+
+[0.001, 1.0, 15.0, 100, 10000, '\x00', 'ascii', 'id', 'market', 'price', 'symbol', 'volume']

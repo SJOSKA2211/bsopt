@@ -1,0 +1,4 @@
+# file: /app/src/utils/wasm_loader.py
+# hypothesis_version: 6.151.9
+
+['rb', 'wb']

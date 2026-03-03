@@ -122,6 +122,11 @@ class Option:
         res = await loader.load(key)
         return res["gamma"]
 
+    @strawberry.field
+    def iv(self) -> float:
+        """Implied Volatility - currently returning mock value"""
+        return 0.2
+
     @classmethod
     def resolve_reference(
         cls,

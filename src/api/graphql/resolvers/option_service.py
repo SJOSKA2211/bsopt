@@ -66,11 +66,24 @@ async def search_options_paginated(
     min_strike: float | None = None,
     max_strike: float | None = None,
     expiry: datetime | None = None,
+    expiry_bucket: str | None = None,
     limit: int = 100,
     cursor: str | None = None,
 ) -> tuple[list[Option], bool, str | None]:
     """Search for options with cursor-based pagination."""
-    # Fetch data (in real app, this would be a DB query with OFFSET or CURSOR)
+    # Handle expiry bucket mapping
+    if expiry_bucket and expiry_bucket != "all":
+        from datetime import date, timedelta
+
+        today = date.today()
+        if expiry_bucket == "week":
+            expiry = datetime.combine(today + timedelta(days=7), datetime.min.time())
+        elif expiry_bucket == "month":
+            expiry = datetime.combine(today + timedelta(days=30), datetime.min.time())
+        elif expiry_bucket == "quarter":
+            expiry = datetime.combine(today + timedelta(days=90), datetime.min.time())
+
+    # Fetch data
     raw_chain = await router.get_option_chain_snapshot(underlying)
 
     # Filter
@@ -80,6 +93,17 @@ async def search_options_paginated(
             continue
         if max_strike and contract["strike"] > max_strike:
             continue
+
+        # If expiry filter is active, only show that specific date or closer
+        if expiry:
+            contract_exp = (
+                datetime.fromisoformat(contract["expiry"])
+                if isinstance(contract["expiry"], str)
+                else contract["expiry"]
+            )
+            if contract_exp.date() > expiry.date():
+                continue
+
         filtered.append(contract)
 
     # Sort for deterministic pagination

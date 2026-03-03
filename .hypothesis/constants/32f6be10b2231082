@@ -1,0 +1,4 @@
+# file: /app/src/security/breach_notification.py
+# hypothesis_version: 6.151.9
+
+[3600, ', ', 'Unknown', 'Valued User', 'categories', 'compliance', 'consequences', 'contact_person', 'context', 'data_subjects', 'detected_at', 'email', 'incident_id', 'incident_type', 'measures', 'measures_taken', 'nature', 'recommendation', 'records_count', 'security', 'user_name']

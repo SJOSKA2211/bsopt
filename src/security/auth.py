@@ -223,14 +223,18 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token") from None
 
-    async def validate_token(self, token: str | None = Depends(get_token_from_header), request: Request = None) -> TokenData:
+    async def validate_token(
+        self, token: str | None = Depends(get_token_from_header), request: Request = None
+    ) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         # 1. Try Better Auth Session (Primary)
         from src.database import get_async_db
+
         async for db in get_async_db():
             from src.database.models import BetterAuthSession
+
             # Optimized session lookup with user join
             result = await db.execute(
                 select(BetterAuthSession)
@@ -247,7 +251,7 @@ class AuthService:
                         tier=user.tier,
                         token_type="session",
                         exp=session.expires_at,
-                        iat=session.created_at
+                        iat=session.created_at,
                     )
 
         # 2. Legacy JWT Fallback

@@ -1,5 +1,6 @@
-import requests
 import uuid
+
+import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 REGISTER_ENDPOINT = "/api/v1/auth/register"
@@ -8,14 +9,8 @@ TIMEOUT = 30
 
 def test_post_auth_register_creates_new_user_with_jwt_token():
     unique_email = f"testuser_{uuid.uuid4()}@example.com"
-    payload = {
-        "email": unique_email,
-        "password": "P@ssw0rd123!",
-        "full_name": "Test User"
-    }
-    headers = {
-        "Content-Type": "application/json"
-    }
+    payload = {"email": unique_email, "password": "P@ssw0rd123!", "full_name": "Test User"}
+    headers = {"Content-Type": "application/json"}
     response = None
     try:
         response = requests.post(
@@ -35,7 +30,9 @@ def test_post_auth_register_creates_new_user_with_jwt_token():
                 token_found = True
                 # Basic check: token is a non-empty string
                 token_value = json_response[key]
-                assert isinstance(token_value, str) and len(token_value) > 10, "JWT token missing or invalid"
+                assert isinstance(token_value, str) and len(token_value) > 10, (
+                    "JWT token missing or invalid"
+                )
                 break
         assert token_found, "JWT token not found in the user object"
     finally:

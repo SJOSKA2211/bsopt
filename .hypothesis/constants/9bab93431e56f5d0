@@ -1,0 +1,4 @@
+# file: /app/src/api/providers/market_data.py
+# hypothesis_version: 6.151.9
+
+[149.5, 150.0, 'DEMO_KEY', 'Polygon', 'Polygon (Mock)', 'Yahoo', 'name', 'price', 'provider', 'symbol']

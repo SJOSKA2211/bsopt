@@ -169,10 +169,10 @@ async def register(
     # Add token cleanup task occasionally
     if secrets.randbelow(100) < 5:
         background_tasks.add_task(token_blacklist.cleanup)
-    
+
     # Generate tokens for autologin
     tokens = auth_service.create_token_pair(str(user.id), user.email, user.tier)
-    
+
     return {
         "id": str(user.id),
         "email": user.email,
@@ -180,7 +180,7 @@ async def register(
         "access_token": tokens.access_token,
         "refresh_token": tokens.refresh_token,
         "token_type": tokens.token_type,
-        "message": "User created. Please verify your email."
+        "message": "User created. Please verify your email.",
     }
 
 

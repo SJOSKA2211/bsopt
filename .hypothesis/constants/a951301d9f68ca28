@@ -1,0 +1,4 @@
+# file: /app/src/webhooks/dispatcher.py
+# hypothesis_version: 6.151.9
+
+[300, 'Circuit Breaker', 'Content-Type', 'OPEN', 'X-Webhook-Signature', 'application/json', 'circuit_breaker_open', 'utf-8']

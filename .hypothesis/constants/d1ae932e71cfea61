@@ -1,0 +1,4 @@
+# file: /app/src/streaming/mesh_producer.py
+# hypothesis_version: 6.151.9
+
+[60000, 65536, 'SCHEMA_REGISTRY_URL', 'UNKNOWN', 'acks', 'all', 'batch.size', 'bootstrap.servers', 'client.id', 'compression.type', 'enable.idempotence', 'linger.ms', 'lz4', 'market-data-mesh', 'retries', 'symbol', 'url', 'utf-8']

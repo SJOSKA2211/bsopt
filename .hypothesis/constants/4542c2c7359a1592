@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/portfolio.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.35, 0.72, 1250.75, 25000.0, 150000.0, 175000.0, 201, 404, '/', '/portfolio', '/positions', '/summary', 'Portfolio', 'Position deleted', 'Position not found', 'balance', 'current_price', 'dailyPnL', 'dailyPnLPercent', 'entry_price', 'frozen_capital', 'id', 'message', 'pnl', 'positions', 'positionsCount', 'quantity', 'risk_score', 'symbol', 'totalValue']

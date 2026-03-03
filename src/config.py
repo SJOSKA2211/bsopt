@@ -209,11 +209,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_security_configs(self) -> "Settings":
         """Validate security-critical settings and apply environment defaults."""
-        
+
         # Enforce email verification in production by default if not set
         # Note: If it's already set in .env or environment, Pydantic preserves it.
         if self.is_production and self.ENVIRONMENT != "test":
-            # We don't want to silently change a False to True if the user 
+            # We don't want to silently change a False to True if the user
             # explicitly set it to False in prod, but we should at least warn.
             # However, usually we want a safe default.
             pass
@@ -227,7 +227,7 @@ class Settings(BaseSettings):
                     "development key in production. Set a secure key via "
                     "the MFA_ENCRYPTION_KEY environment variable."
                 )
-            
+
             try:
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
                 if len(decoded) < 32:
@@ -242,14 +242,14 @@ class Settings(BaseSettings):
                     "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
                     f"string of at least 32 bytes: {e}"
                 ) from e
-            
+
             # 2. Email Verification Security
             if not self.REQUIRE_EMAIL_VERIFICATION:
                 logger.warning(
                     "security_warning: email verification is DISABLED in production",
-                    environment=self.ENVIRONMENT
+                    environment=self.ENVIRONMENT,
                 )
-        
+
         return self
 
 

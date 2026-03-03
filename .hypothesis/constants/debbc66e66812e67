@@ -1,0 +1,4 @@
+# file: /app/src/tasks/trading_tasks.py
+# hypothesis_version: 6.151.9
+
+[0.2, 0.55, 5.0, 100.0, 'BacktestEngine', 'D', 'OrderExecutor', 'checking_risk_limits', 'completed', 'duration', 'duration_seconds', 'error', 'failed', 'max_drawdown', 'metrics', 'np', 'numpy', 'option_price', 'pandas', 'pd', 'reason', 'sharpe_ratio', 'status', 'strategy', 'success', 'symbol', 'task_id', 'timestamp', 'total_return', 'trades_count', 'trading', 'tx_hash', 'underlying_price', 'validate_risk', 'win_rate', 'within_limits']

@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/__init__.py
+# hypothesis_version: 6.151.9
+
+['auth_router', 'debug_router', 'ml_router', 'pricing_router', 'system_router', 'users_router']

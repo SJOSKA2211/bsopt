@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/auth.py
+# hypothesis_version: 6.151.9
+
+[100, 403, 500, ',', '/', '/auth', '/forgot-password', '/jwks', '/login', '/logout', '/me', '/mfa/disable', '/mfa/setup', '/mfa/verify', '/password-change', '/password-reset', '/refresh', '/register', '/verify-email', 'Account is disabled', 'Authentication', 'Authorization', 'BSOPT', 'Bearer ', 'Email not verified', 'Invalid MFA code', 'Invalid token type', 'Login successful', 'MFA not enabled', 'MFA not set up', 'MFA required', 'MFA setup initiated', 'RSA', 'Weak password', 'access_token', 'email', 'email_sent_mock', 'email_sent_prod', 'email_verified', 'expires_at', 'expires_in', 'full_name', 'github', 'google', 'id', 'internal-key-01', 'issuer', 'jwks_uri', 'keys', 'kid', 'kty', 'message', 'mock_key', 'provider', 'provider_id', 'refresh', 'refresh_token', 'requires_mfa', 'sig', 'tier', 'token_endpoint', 'token_type', 'url', 'use', 'user_id']

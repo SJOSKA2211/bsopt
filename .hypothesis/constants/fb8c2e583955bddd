@@ -1,0 +1,4 @@
+# file: /app/src/utils/sanitization.py
+# hypothesis_version: 6.151.9
+
+['****@****', '@', '[^a-zA-Z0-9_-]']

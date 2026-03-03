@@ -1,0 +1,4 @@
+# file: /app/src/workers/ray_workers.py
+# hypothesis_version: 6.151.9
+
+[0.0, 5.0, 500, 1000, 'SPY', '__main__', 'black_scholes', 'call', 'math_actor_ready', 'vectorized_bs', 'webhook_actor_ready']

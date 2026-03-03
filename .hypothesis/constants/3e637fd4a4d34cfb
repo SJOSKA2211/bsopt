@@ -1,0 +1,4 @@
+# file: /app/src/protos/__init__.py
+# hypothesis_version: 6.151.9
+
+['InferenceRequest', 'InferenceResponse', 'MLInferenceServicer', 'MLInferenceStub']

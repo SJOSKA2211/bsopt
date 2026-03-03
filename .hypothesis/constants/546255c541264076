@@ -1,0 +1,4 @@
+# file: /app/src/pricing/main.py
+# hypothesis_version: 6.151.9
+
+['/graphql', '/health', 'healthy', 'http', 'startup', 'status']

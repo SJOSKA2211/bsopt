@@ -1,0 +1,4 @@
+# file: /app/src/api/middleware/logging.py
+# hypothesis_version: 6.151.9
+
+[0.1, 200, 300, 400, 500, 1000, ',', '/docs', '/favicon.ico', '/health', '/metrics', '/openapi.json', '/redoc', 'CRITICAL', 'DEBUG', 'ERROR', 'INFO', 'LOG_SAMPLING_RATE', 'WARNING', 'X-Forwarded-For', 'X-Real-IP', '[REDACTED]', 'access_token', 'api_key', 'api_request', 'authorization', 'client_ip', 'cookie', 'duration_ms', 'error', 'headers', 'level', 'message', 'method', 'password', 'path', 'proxy-authorization', 'query_params', 'refresh_token', 'request_id', 'requests', 'secret', 'set-cookie', 'status_code', 'timestamp', 'token', 'traceback', 'unknown', 'user_email', 'user_id', 'user_tier', 'utf-8', 'x-api-key', 'x-auth-token', 'x-csrf-token']

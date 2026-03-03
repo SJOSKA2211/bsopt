@@ -1,0 +1,4 @@
+# file: /app/src/ml/serving/quantization.py
+# hypothesis_version: 6.151.9
+
+['quantization_failed']

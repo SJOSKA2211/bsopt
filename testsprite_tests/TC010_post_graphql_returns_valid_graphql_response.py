@@ -1,5 +1,6 @@
 import requests
 
+
 def test_post_graphql_returns_valid_graphql_response():
     base_url = "http://127.0.0.1:8000"
     graphql_url = f"{base_url}/graphql"
@@ -93,7 +94,7 @@ def test_post_graphql_returns_valid_graphql_response():
         assert False, f"Request to /graphql failed: {e}"
 
     assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
-    
+
     try:
         response_json = response.json()
     except ValueError:
@@ -102,8 +103,9 @@ def test_post_graphql_returns_valid_graphql_response():
     # Validate that 'data' key exists and contains '__schema'
     assert "data" in response_json, "'data' key missing in GraphQL response"
     assert "__schema" in response_json["data"], "'__schema' key missing in GraphQL response data"
-    
+
     # The response errors key may or may not be present, but introspection query should not have errors
     assert "errors" not in response_json, f"GraphQL errors found: {response_json.get('errors')}"
+
 
 test_post_graphql_returns_valid_graphql_response()
