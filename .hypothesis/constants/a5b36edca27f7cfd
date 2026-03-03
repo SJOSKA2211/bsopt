@@ -1,0 +1,4 @@
+# file: /app/src/ml/celery_app.py
+# hypothesis_version: 6.151.9
+
+['UTC', 'best_params', 'best_value', 'bsopt_ml', 'celery_task_failed', 'celery_task_started', 'json', 'status', 'success', 'task_id', 'ticker']

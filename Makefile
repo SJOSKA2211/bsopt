@@ -130,6 +130,10 @@ test-all:
 	@echo "🥒 Launching Containerized Test Suite (God Mode)..."
 	docker compose --profile test run --rm test-runner pytest tests/
 
+test-local:
+	@echo "🥒 Launching Local Test Suite (Bare Metal)... Stand back!"
+	PYTHONPATH=src python3 -m pytest tests/
+
 # --- Specialized ---
 
 manifold:

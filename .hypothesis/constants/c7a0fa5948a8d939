@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipelines/dag_neural_greeks.py
+# hypothesis_version: 6.151.9
+
+[100, 10000, '__main__']

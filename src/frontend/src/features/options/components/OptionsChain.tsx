@@ -23,14 +23,12 @@ import type {
 import {
   Search,
 } from '@mui/icons-material';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, gql } from '@apollo/client';
 
 // Custom components
 import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
-
-import { useQuery, gql } from '@apollo/client';
 
 // Types
 export interface OptionChainRow {

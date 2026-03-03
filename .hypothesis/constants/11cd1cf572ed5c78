@@ -1,0 +1,4 @@
+# file: /app/src/aiops/timeseries_anomaly_detector.py
+# hypothesis_version: 6.151.9
+
+[0.05, 'anomaly_detected', 'index', 'metrics', 'score', 'training_data_empty']
