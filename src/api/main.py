@@ -106,6 +106,8 @@ async def api_exception_handler(request: Request, exc: Exception):
 
 
 from fastapi.exceptions import RequestValidationError
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle FastAPI built-in validation errors."""

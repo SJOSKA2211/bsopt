@@ -15,13 +15,12 @@ import hmac
 import os
 import re
 import secrets
-
-import structlog
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Literal, cast
 from urllib.parse import urlparse
 
+import structlog
 from fastapi import Request, Response, status
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -194,6 +193,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS: set[str] = {
         "/api/v1/auth/*",
         "/api/v1/webhooks",
+        "/api/v1/pricing/*",
+        "/api/v1/portfolio/*",
         "/health",
         "/docs",
         "/redoc",
