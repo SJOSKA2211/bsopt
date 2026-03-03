@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/pricing.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.05, 0.2, 1.0, 100, '/batch', '/calculate', '/greeks', '/price', '/pricing', 'Pricing', '__dict__', 'black_scholes', 'call', 'greeks', 'k', 'model', 'model_dump', 'option_type', 'price', 'r', 'rate', 's', 'sigma', 'spot', 'strike', 'symbol', 't', 'time_to_expiry', 'volatility']

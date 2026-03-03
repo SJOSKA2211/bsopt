@@ -9,17 +9,29 @@ import {
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import { useWasmPricing } from '../../../hooks/useWasmPricing';
+import { useQuery, gql } from '@apollo/client';
 
-// Register the required components
-echarts.use([
-  HeatmapChart,
-  TooltipComponent,
-  GridComponent,
-  VisualMapComponent,
-  CanvasRenderer
-]);
+const GET_OPTIONS_FOR_HEATMAP = gql`
+  query GetOptionsForHeatmap($symbol: String!) {
+    marketData(symbol: $symbol) {
+      lastPrice
+    }
+    options(underlying: $symbol) {
+      edges {
+        node {
+          id
+          strike
+          expiry
+          optionType
+          iv
+          delta
+          gamma
+          # Add other greeks if available in schema
+        }
+      }
+    }
+  }
+`;
 
 interface GreeksHeatmapProps {
   symbol: string;
@@ -42,16 +54,41 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   const theme = useTheme();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const { data: optionsData, isLoading, error } = useQuery<OptionData[]>({
-    queryKey: ['options-chain', symbol, 'all'],
-    queryFn: async () => {
-      const response = await fetch(`/api/v1/options/chain?symbol=${symbol}&expiry=all`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch options data');
-      }
-      return response.json();
-    },
+  const { data: gqlData, loading: isLoading, error } = useQuery(GET_OPTIONS_FOR_HEATMAP, {
+    variables: { symbol },
   });
+
+  // Transform flat GraphQL nodes into aggregated OptionData
+  const optionsData = useMemo(() => {
+    if (!gqlData?.options?.edges) return [];
+
+    const nodes = gqlData.options.edges.map((e: any) => e.node);
+    const spot = gqlData.marketData?.lastPrice || 155.0;
+    const groups: Record<string, OptionData> = {};
+
+    nodes.forEach((node: any) => {
+      const key = `${node.strike}-${node.expiry}`;
+      if (!groups[key]) {
+        groups[key] = {
+          strike: node.strike,
+          expiry: node.expiry,
+          underlying_price: spot,
+          call_delta: 0, call_gamma: 0, call_iv: 0,
+          put_delta: 0, put_gamma: 0, put_iv: 0,
+        };
+      }
+
+      const isCall = node.optionType.toUpperCase() === 'CALL';
+      const prefix = isCall ? 'call_' : 'put_';
+
+      const target = groups[key] as any;
+      target[`${prefix}iv`] = node.iv;
+      target[`${prefix}delta`] = node.delta;
+      target[`${prefix}gamma`] = node.gamma;
+    });
+
+    return Object.values(groups);
+  }, [gqlData]);
 
   // Enrich data with WASM for Greeks if loaded
   const processedData = useMemo(() => {
@@ -100,7 +137,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     const data = processedData.map((d: OptionData) => {
       const strikeIdx = strikes.indexOf(d.strike);
       const expiryIdx = expiries.indexOf(d.expiry);
-      
+
       let value = 0;
       if (greek === 'delta') value = d.call_delta;
       else if (greek === 'gamma') value = d.call_gamma;
@@ -187,9 +224,9 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   return (
     <Box data-testid="greeks-heatmap-container" sx={{ width: '100%', height: '100%', minHeight: 400 }}>
       {chartOptions && (
-        <ReactECharts 
+        <ReactECharts
           echarts={echarts}
-          option={chartOptions} 
+          option={chartOptions}
           style={{ height: '100%', width: '100%' }}
           theme={theme.palette.mode === 'dark' ? 'dark' : undefined}
         />

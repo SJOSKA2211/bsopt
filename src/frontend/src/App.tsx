@@ -51,8 +51,8 @@ function App() {
             </Layout>
           </BrowserRouter>
         </ThemeProvider>
+      </QueryClientProvider>
     </ApolloProvider>
-    </QueryClientProvider >
   );
 }
 

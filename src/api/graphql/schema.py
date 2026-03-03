@@ -57,9 +57,31 @@ class OptionConnection:
 # QUERIES
 # ============================================================================
 @strawberry.type
+class MLPrediction:
+    symbol: str
+    predicted_price: float
+    confidence_interval: list[float]
+    drift: float
+    model_name: str
+    last_updated: datetime
+
+@strawberry.type
 class Query:
     """Root Query for Options subgraph"""
 
+    @strawberry.field
+    async def ml_prediction(self, symbol: str) -> MLPrediction:
+        """Fetch ML-based price prediction for a symbol"""
+        # In a real app, this would call MLService
+        from datetime import datetime
+        return MLPrediction(
+            symbol=symbol,
+            predicted_price=157.50,
+            confidence_interval=[154.20, 160.80],
+            drift=0.015,
+            model_name="XGBoost-V4-Ensemble",
+            last_updated=datetime.now(),
+        )
     @strawberry.field
     async def option(self, contract_symbol: str) -> Option | None:
         """Get single option by contract symbol"""
