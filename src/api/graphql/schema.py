@@ -65,6 +65,7 @@ class MLPrediction:
     model_name: str
     last_updated: datetime
 
+
 @strawberry.type
 class Query:
     """Root Query for Options subgraph"""
@@ -74,6 +75,7 @@ class Query:
         """Fetch ML-based price prediction for a symbol"""
         # In a real app, this would call MLService
         from datetime import datetime
+
         return MLPrediction(
             symbol=symbol,
             predicted_price=157.50,
@@ -82,6 +84,7 @@ class Query:
             model_name="XGBoost-V4-Ensemble",
             last_updated=datetime.now(),
         )
+
     @strawberry.field
     async def option(self, contract_symbol: str) -> Option | None:
         """Get single option by contract symbol"""
