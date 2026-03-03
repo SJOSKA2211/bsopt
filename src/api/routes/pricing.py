@@ -54,7 +54,7 @@ async def calculate(body: dict) -> dict:
     Convenience endpoint used by tests and demos.
     Maps {s, k, t, r, sigma, option_type, model} → {price, greeks}.
     """
-    from src.api.schemas.pricing import PriceRequest as PR
+    from src.api.schemas.pricing import PriceRequest as PR  # noqa: N817
 
     req = PR(
         spot=body.get("s", body.get("spot", 100)),

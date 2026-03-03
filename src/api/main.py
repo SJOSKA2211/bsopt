@@ -105,7 +105,7 @@ async def api_exception_handler(request: Request, exc: Exception):
     )
 
 
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError  # noqa: E402
 
 
 @app.exception_handler(RequestValidationError)
