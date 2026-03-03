@@ -1,0 +1,4 @@
+# file: /app/src/tasks/ml_tasks.py
+# hypothesis_version: 6.151.9
+
+[0.95, 'AutonomousMLPipeline', 'DEMO_KEY', 'ModelQuantizer', 'POLYGON_API_KEY', 'api_key', 'best_params', 'best_value', 'calc_metrics', 'collect_data', 'completed', 'db_url', 'error', 'failed', 'framework', 'metrics', 'ml', 'mlflow', 'n_trials', 'no_drift_detected', 'optimized_path', 'pandas', 'pd', 'promoted', 'retrained', 'run_hpo', 'run_id', 'status', 'study_name', 'success', 'target', 'task_id', 'train_fn', 'training_error', 'training_model_start', 'xgboost']

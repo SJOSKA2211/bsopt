@@ -22,6 +22,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "httpx[http2]>=0.27.0",
     "rich>=13.7.0",
+    "prometheus-client>=0.20.0",
+    "prometheus_api_client>=0.5.0",
 ]
 
 [project.optional-dependencies]
@@ -110,7 +112,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=src --cov-report=term-missing --durations=10 -p no:warnings"
+addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=src --cov-report=term-missing --durations=10 -p no:warnings --tb=native"
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"

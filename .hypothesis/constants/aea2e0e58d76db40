@@ -1,0 +1,4 @@
+# file: /app/src/workers/math_worker.py
+# hypothesis_version: 6.151.9
+
+['CELERY_BROKER_URL', 'CPU', 'calibration_error', 'failed', 'math_worker', 'no_data', 'ray_not_initialized', 'reason', 'status', 'success', 'symbol']

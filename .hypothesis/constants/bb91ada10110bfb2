@@ -1,0 +1,4 @@
+# file: /app/src/aiops/remediators.py
+# hypothesis_version: 6.151.9
+
+[0.0, 300.0, 'clear_cache', 'cpu_high', 'error_burst', 'generic', 'latency_spike', 'metrics', 'model_drift', 'restart_service', 'retrain_model', 'score', 'service', 'stale_data', 'type', 'unknown']

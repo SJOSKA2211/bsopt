@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
   // Use relative base for Netlify/CI previews unless CDN_URL is explicitly set
   const isNetlify = process.env.NETLIFY === 'true';
   const baseUrl = (isProd && !isNetlify) ? process.env.CDN_URL || 'https://cdn.bsopt.com/assets/' : '/';
-  
+
   return {
     // CDN Setup: Set base path for assets in production
     base: baseUrl,
@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
         '/graphql': {
-          target: 'http://localhost:8000',
+          target: 'http://localhost:4000',
           changeOrigin: true,
         },
         '/health': {
@@ -81,8 +81,8 @@ export default defineConfig(({ mode }) => {
       setupFiles: './tests/setupTests.ts',
       testTimeout: 15000,
       alias: {
-         // Handle CSS imports (modules and regular)
-         "\.(css|less|scss|sass)$": 'identity-obj-proxy',
+        // Handle CSS imports (modules and regular)
+        "\.(css|less|scss|sass)$": 'identity-obj-proxy',
       },
       server: {
         deps: {

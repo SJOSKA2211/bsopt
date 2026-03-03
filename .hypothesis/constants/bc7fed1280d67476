@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/system.py
+# hypothesis_version: 6.151.9
+
+['/health/deep', '/status', '/system', '0', '1', 'BSOPT_USE_GPU', 'System', 'available', 'circuits', 'connected', 'corrupted', 'cuda', 'database', 'degraded', 'device', 'disabled_by_config', 'error', 'failure_count', 'head', 'missing', 'operational', 'path', 'policies/authz.wasm', 'pricing', 'probes', 'q', 'shm_mesh', 'state', 'status', 'verified', 'wasm_opa']

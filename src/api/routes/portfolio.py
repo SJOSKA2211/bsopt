@@ -73,4 +73,3 @@ async def delete_position(position_id: str) -> dict:
         raise HTTPException(status_code=404, detail="Position not found")
     del _positions[position_id]
     return {"message": "Position deleted", "id": position_id}
-

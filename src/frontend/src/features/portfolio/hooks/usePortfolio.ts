@@ -1,16 +1,42 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, gql } from '@apollo/client';
+import { authClient } from '../../../lib/auth-client';
 import type { PortfolioData } from '../types';
 
-export const usePortfolio = () => {
-  return useQuery<PortfolioData>({
-    queryKey: ['portfolio-summary'],
-    queryFn: async () => {
-      const response = await fetch('/api/v1/portfolio/summary');
-      if (!response.ok) {
-        throw new Error('Failed to fetch portfolio summary');
+const GET_PORTFOLIO = gql`
+  query GetPortfolio($userId: String!) {
+    portfolio(userId: $userId) {
+      id
+      balance
+      frozen_capital
+      risk_score
+      totalValue: total_value
+      dailyPnL: daily_pnl
+      dailyPnLPercent: daily_pnl_percent
+      positionsCount: positions_count
+      positions {
+        id
+        contract_symbol
+        quantity
+        entryPrice: entry_price
       }
-      return response.json();
-    },
-    refetchInterval: 5000, // Refresh every 5 seconds
+    }
+  }
+`;
+
+export const usePortfolio = () => {
+  const { data: sessionData } = authClient.useSession();
+  const userId = sessionData?.user?.id || "user_123";
+
+  const { data, loading, error, refetch } = useQuery(GET_PORTFOLIO, {
+    variables: { userId },
+    pollInterval: 5000,
   });
+
+  return {
+    data: data?.portfolio as PortfolioData | undefined,
+    isLoading: loading,
+    isError: !!error,
+    error,
+    refetch,
+  };
 };

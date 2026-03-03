@@ -1,0 +1,4 @@
+# file: /app/src/pricing/execution_strategies.py
+# hypothesis_version: 6.151.9
+
+['dividends', 'is_call', 'maturities', 'rates', 'spots', 'strikes', 'vols']

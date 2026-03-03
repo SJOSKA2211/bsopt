@@ -1,0 +1,4 @@
+# file: /app/src/workers/webhook_worker.py
+# hypothesis_version: 6.151.9
+
+['CELERY_BROKER_URL', 'Circuit Breaker', 'OPEN', 'get_redis', 'headers', 'payload', 'secret', 'unknown_failure', 'url', 'webhook_dispatch', 'webhook_sent_to_dlq', 'webhook_worker']

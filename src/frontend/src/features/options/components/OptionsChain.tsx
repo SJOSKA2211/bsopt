@@ -30,6 +30,8 @@ import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
+import { useQuery, gql } from '@apollo/client';
+
 // Types
 export interface OptionChainRow {
   id: string;
@@ -56,6 +58,33 @@ export interface OptionChainRow {
   put_theor?: number;
 }
 
+const GET_OPTIONS_CHAIN = gql`
+  query GetOptionsChain($symbol: String!, $expiryBucket: String) {
+    marketData(symbol: $symbol) {
+      lastPrice
+    }
+    options(underlying: $symbol, expiryBucket: $expiryBucket) {
+      edges {
+        node {
+          id
+          strike
+          expiry
+          optionType
+          bid
+          ask
+          lastPrice
+          volume
+          openInterest
+          iv
+          price
+          delta
+          gamma
+        }
+      }
+    }
+  }
+`;
+
 interface OptionsChainProps {
   symbol: string;
   onOptionSelect?: (option: OptionChainRow) => void;
@@ -68,22 +97,55 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const [pricingModel, setModel] = useState<string>('black_scholes');
   const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
   const [enrichedResults, setEnrichedResults] = useState<any[]>([]);
-  
-  // Fetch options chain data
-  const { data: optionsData, isLoading } = useQuery({
-    queryKey: ['options-chain', symbol, expiryFilter],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/v1/options/chain?symbol=${symbol}&expiry=${expiryFilter}`
-      );
-      return response.json();
-    },
-    refetchInterval: 3000,
+
+  // Fetch options chain data via Federated GraphQL
+  const { data: gqlData, loading: isLoading } = useQuery(GET_OPTIONS_CHAIN, {
+    variables: { symbol, expiryBucket: expiryFilter },
+    pollInterval: 3000,
   });
 
-  // Handle WASM enrichment in an effect to avoid useMemo anti-pattern with async
+  // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
+  const optionsData = useMemo(() => {
+    if (!gqlData?.options?.edges) return [];
+
+    const nodes = gqlData.options.edges.map((e: any) => e.node);
+    const spot = gqlData.marketData?.lastPrice || 155.0;
+    const groups: Record<string, OptionChainRow> = {};
+
+    nodes.forEach((node: any) => {
+      const key = `${node.strike}-${node.expiry}`;
+      if (!groups[key]) {
+        groups[key] = {
+          id: key,
+          strike: node.strike,
+          expiry: node.expiry,
+          underlying_price: spot,
+          call_bid: 0, call_ask: 0, call_last: 0, call_volume: 0, call_oi: 0, call_iv: 0, call_delta: 0, call_gamma: 0,
+          put_bid: 0, put_ask: 0, put_last: 0, put_volume: 0, put_oi: 0, put_iv: 0, put_delta: 0, put_gamma: 0,
+        };
+      }
+
+      const isCall = node.optionType.toUpperCase() === 'CALL';
+      const prefix = isCall ? 'call_' : 'put_';
+
+      groups[key][`${prefix}bid` as keyof OptionChainRow] = node.bid;
+      groups[key][`${prefix}ask` as keyof OptionChainRow] = node.ask;
+      groups[key][`${prefix}last` as keyof OptionChainRow] = node.lastPrice;
+      groups[key][`${prefix}volume` as keyof OptionChainRow] = node.volume;
+      groups[key][`${prefix}oi` as keyof OptionChainRow] = node.openInterest;
+      groups[key][`${prefix}iv` as keyof OptionChainRow] = node.iv;
+      groups[key][`${prefix}delta` as keyof OptionChainRow] = node.delta;
+      groups[key][`${prefix}gamma` as keyof OptionChainRow] = node.gamma;
+      groups[key][`${prefix}theor` as keyof OptionChainRow] = node.price;
+    });
+
+    return Object.values(groups);
+  }, [gqlData]);
+
+  // Handle WASM enrichment in an effect
   useEffect(() => {
-    if (!optionsData || !isWasmLoaded) return;
+    if (!optionsData.length || !isWasmLoaded) return;
+    // ... remaining WASM logic untouched
 
     const runWasmEnrichment = async () => {
       const rate = 0.05;
@@ -128,7 +190,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       } else if (pricingModel === 'crank_nicolson') {
         results = await Promise.all(allParams.map(p => priceAmerican(p)));
       } else if (pricingModel === 'heston') {
-        results = await Promise.all(allParams.map(p => priceHeston({...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7})));
+        results = await Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
       }
 
       if (results) {
@@ -138,13 +200,13 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
 
     runWasmEnrichment();
   }, [optionsData, isWasmLoaded, pricingModel, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston]);
-  
+
   // Filter, sort and enrich data
   const processedData = useMemo(() => {
     if (!optionsData) return [];
-    
+
     let filtered = optionsData;
-    
+
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter((row: OptionChainRow) =>
@@ -177,7 +239,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const handleRowClick = React.useCallback((params: GridRowParams) => {
     onOptionSelect?.(params.row as OptionChainRow);
   }, [onOptionSelect]);
-  
+
   // Column definitions
   const columns: GridColDef[] = useMemo(() => [
     // CALL OPTIONS
@@ -234,7 +296,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         const row = params.row as OptionChainRow;
         const change = row.call_last - row.call_bid;
         const percentChange = (change / row.call_bid) * 100;
-        
+
         return (
           <Stack spacing={0.5}>
             <Typography variant="price" sx={{ fontWeight: 'bold' }}>
@@ -287,10 +349,10 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
         // Mocking time/rate/div for demo purposes
-        const timeToExpiry = 30 / 365; 
+        const timeToExpiry = 30 / 365;
         const rate = 0.05;
         const div = 0.0;
-        
+
         return (
           <WasmGreeksCell
             spot={row.underlying_price}
@@ -317,7 +379,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         />
       ),
     },
-    
+
     // STRIKE COLUMN (CENTER)
     {
       field: 'strike',
@@ -329,7 +391,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         const isATM = Math.abs(row.strike - row.underlying_price) < 1;
         const isITM_Call = row.strike < row.underlying_price;
         const isITM_Put = row.strike > row.underlying_price;
-        
+
         return (
           <Box
             sx={{
@@ -364,7 +426,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         );
       },
     },
-    
+
     // PUT OPTIONS
     {
       field: 'put_theor',
@@ -419,7 +481,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         const row = params.row as OptionChainRow;
         const change = row.put_last - row.put_bid;
         const percentChange = (change / row.put_bid) * 100;
-        
+
         return (
           <Stack spacing={0.5}>
             <Typography variant="price" sx={{ fontWeight: 'bold' }}>
@@ -502,7 +564,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       ),
     },
   ], [theme]);
-  
+
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header with filters */}
@@ -515,16 +577,16 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           Options Chain - {symbol}
           {isWasmLoaded && (
-            <Chip 
-              label="WASM Engine Active" 
-              size="small" 
-              color="success" 
-              variant="outlined" 
-              sx={{ ml: 2, height: 20, fontSize: '0.65rem' }} 
+            <Chip
+              label="WASM Engine Active"
+              size="small"
+              color="success"
+              variant="outlined"
+              sx={{ ml: 2, height: 20, fontSize: '0.65rem' }}
             />
           )}
         </Typography>
-        
+
         <TextField
           size="small"
           placeholder="Search strike..."
@@ -540,7 +602,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           }}
           sx={{ width: 200 }}
         />
-        
+
         <ToggleButtonGroup
           value={pricingModel}
           exclusive
@@ -568,7 +630,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           <ToggleButton value="quarter">3M</ToggleButton>
         </ToggleButtonGroup>
       </Stack>
-      
+
       {/* Options Chain Grid */}
       <Box sx={{ flex: 1 }}>
         <DataGrid
@@ -579,26 +641,26 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           onRowClick={handleRowClick}
           sx={{
             border: 'none',
-            
+
             '& .call-header': {
               backgroundColor: alpha(theme.palette.financial.positive, 0.1),
               borderBottom: `2px solid ${theme.palette.financial.positive}`,
             },
-            
+
             '& .put-header': {
               backgroundColor: alpha(theme.palette.financial.negative, 0.1),
               borderBottom: `2px solid ${theme.palette.financial.negative}`,
             },
-            
+
             '& .strike-header': {
               backgroundColor: alpha(theme.palette.primary.main, 0.15),
               borderBottom: `2px solid ${theme.palette.primary.main}`,
             },
-            
+
             '& .MuiDataGrid-cell': {
               borderRight: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
             },
-            
+
             '& .MuiDataGrid-row:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.05),
               cursor: 'pointer',

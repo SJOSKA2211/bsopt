@@ -1,0 +1,4 @@
+# file: /app/src/protos/inference_pb2_grpc.py
+# hypothesis_version: 6.151.9
+
+['1.76.0', 'Predict']

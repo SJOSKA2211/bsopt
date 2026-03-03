@@ -3,6 +3,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ApolloProvider } from '@apollo/client';
+import { apolloClient } from './lib/apollo-client';
 import { Box, CircularProgress } from '@mui/material';
 import { theme } from './theme';
 import { Layout } from './components/layout/Layout';
@@ -31,24 +33,26 @@ const PageLoader = () => (
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <Layout>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/market" element={<MarketPage />} />
-                <Route path="/portfolio" element={<PortfolioPage />} />
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/login" element={<SignIn />} />
-              </Routes>
-            </Suspense>
-          </Layout>
-        </BrowserRouter>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ApolloProvider client={apolloClient}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <BrowserRouter>
+            <Layout>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/market" element={<MarketPage />} />
+                  <Route path="/portfolio" element={<PortfolioPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/login" element={<SignIn />} />
+                </Routes>
+              </Suspense>
+            </Layout>
+          </BrowserRouter>
+        </ThemeProvider>
+    </ApolloProvider>
+    </QueryClientProvider >
   );
 }
 

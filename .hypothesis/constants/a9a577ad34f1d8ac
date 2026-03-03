@@ -1,0 +1,4 @@
+# file: /app/src/api/exceptions.py
+# hypothesis_version: 6.151.9
+
+['AuthenticationFailed', 'Conflict', 'ExposureLimitBreach', 'InternalServerError', 'NotFound', 'PermissionDenied', 'RiskVeto', 'ServiceUnavailable', 'ValidationError']

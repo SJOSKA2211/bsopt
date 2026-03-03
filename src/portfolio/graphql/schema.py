@@ -29,6 +29,13 @@ class Portfolio:
     id: strawberry.ID
     user_id: str = strawberry.federation.field(shareable=True)
     cash_balance: float = strawberry.federation.field(shareable=True)
+    balance: float = strawberry.federation.field(shareable=True)
+    frozen_capital: float = strawberry.federation.field(shareable=True)
+    risk_score: float = strawberry.federation.field(shareable=True)
+    total_value: float = strawberry.federation.field(shareable=True)
+    daily_pnl: float = strawberry.federation.field(shareable=True)
+    daily_pnl_percent: float = strawberry.federation.field(shareable=True)
+    positions_count: int = strawberry.federation.field(shareable=True)
     positions: list[Position]
 
 
@@ -55,7 +62,14 @@ class Query:
             return Portfolio(
                 id=strawberry.ID("port_123"),
                 user_id=user_id,
-                cash_balance=10000.0,
+                cash_balance=150000.0,
+                balance=150000.0,
+                frozen_capital=25000.0,
+                risk_score=0.35,
+                total_value=175000.0,
+                daily_pnl=1250.75,
+                daily_pnl_percent=0.72,
+                positions_count=1,
                 positions=[
                     Position(
                         id=strawberry.ID("pos_1"),

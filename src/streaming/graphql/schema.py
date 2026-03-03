@@ -22,8 +22,20 @@ class Option:
         return 15.0 + random.uniform(0, 1.0)  # nosec B311
 
     @strawberry.field
+    def bid(self) -> float:
+        return 14.8 + random.uniform(0, 0.5)  # nosec B311
+
+    @strawberry.field
+    def ask(self) -> float:
+        return 15.2 + random.uniform(0, 0.5)  # nosec B311
+
+    @strawberry.field
     def volume(self) -> int:
         return random.randint(100, 10000)  # nosec B311
+
+    @strawberry.field
+    def open_interest(self) -> int:
+        return random.randint(500, 50000)  # nosec B311
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):
@@ -35,6 +47,16 @@ class Query:
     @strawberry.field
     def _dummy_market(self) -> str:
         return "market"
+
+    @strawberry.field
+    def market_data(self, symbol: str) -> MarketData:
+        """Fetch latest spot price for an underlying symbol"""
+        # In a real app, this would read from the SHM mesh
+        return MarketData(
+            symbol=symbol,
+            last_price=155.0,
+            volume=1500000,
+        )
 
 
 @strawberry.type

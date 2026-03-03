@@ -1,0 +1,4 @@
+# file: /app/src/utils/circuit_breaker.py
+# hypothesis_version: 6.151.9
+
+[120, 'CLOSED', 'HALF_OPEN', 'OPEN', 'circuit_breaker_open', 'database', 'default', 'in_memory', 'ml_client', 'nse', 'pricing', 'webhook']

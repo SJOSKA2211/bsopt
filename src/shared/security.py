@@ -129,7 +129,12 @@ class MTLSVerifier:
         """
         # Bypass mTLS in local/dev environments
         from src.config import settings
-        if not settings.is_production and os.getenv("TESTING", "true") == "true" or settings.ENVIRONMENT != "prod":
+
+        if (
+            not settings.is_production
+            and os.getenv("TESTING", "true") == "true"
+            or settings.ENVIRONMENT != "prod"
+        ):
             return True
 
         # In a real mTLS setup, these headers are populated by the TLS terminator
@@ -167,7 +172,12 @@ def opa_authorize(action: str, resource: str):
         import os
 
         from src.config import settings
-        if not settings.is_production and os.getenv("TESTING", "true") == "true" or settings.ENVIRONMENT != "prod":
+
+        if (
+            not settings.is_production
+            and os.getenv("TESTING", "true") == "true"
+            or settings.ENVIRONMENT != "prod"
+        ):
             return
 
         # OPTIMIZED: Use consolidated request.state fields

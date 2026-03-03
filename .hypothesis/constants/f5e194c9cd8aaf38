@@ -1,0 +1,4 @@
+# file: /app/src/utils/errors.py
+# hypothesis_version: 6.151.9
+
+[1000, 'audit', 'pricing_task_failed']

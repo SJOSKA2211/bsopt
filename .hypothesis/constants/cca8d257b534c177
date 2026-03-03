@@ -1,0 +1,4 @@
+# file: /app/src/auth/providers.py
+# hypothesis_version: 6.151.9
+
+[5.0, 200, 'HS256', 'Invalid token', 'RS256', 'jwks_fetch_failed', 'keys', 'kid', 'secret', 'verify_signature']

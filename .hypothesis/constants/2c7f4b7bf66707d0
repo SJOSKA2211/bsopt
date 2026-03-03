@@ -1,0 +1,4 @@
+# file: /app/src/api/middleware/idempotency.py
+# hypothesis_version: 6.151.9
+
+[204, 409, 500, 3600, '1', 'HIT', 'PATCH', 'POST', 'PUT', 'X-Idempotency-Cache', 'X-Idempotency-Key', 'content', 'headers', 'idempotency_key', 'ignore', 'status_code', 'utf-8']

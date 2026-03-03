@@ -1,0 +1,4 @@
+# file: /app/src/pricing/arbiter.py
+# hypothesis_version: 6.151.9
+
+[1000, 'american', 'black_scholes', 'call', 'european', 'monte_carlo', 'put', 'quantum', 'wasm']

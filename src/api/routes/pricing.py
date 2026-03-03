@@ -67,7 +67,7 @@ async def calculate(body: dict) -> dict:
         symbol=body.get("symbol"),
     )
     params = req.to_bs_params()
-    
+
     # Calculate price
     result = await pricing_service.price_option(
         params=params,
@@ -92,6 +92,7 @@ async def calculate(body: dict) -> dict:
     # Convert price result struct to plain dict safely
     try:
         import msgspec
+
         data = msgspec.to_builtins(result)
     except Exception:
         try:
@@ -101,6 +102,3 @@ async def calculate(body: dict) -> dict:
 
     price = data.get("price") or 0.0
     return {"price": price, "greeks": greeks_data, **data}
-
-
-

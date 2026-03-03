@@ -1,0 +1,4 @@
+# file: /app/src/protos/market_data_pb2.py
+# hypothesis_version: 6.151.9
+
+['_TICKERUPDATE', 'market_data.proto', 'market_data_pb2']

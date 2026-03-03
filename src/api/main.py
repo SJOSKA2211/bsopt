@@ -116,6 +116,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": exc.errors(), "body": exc.body},
     )
 
+
 app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
 

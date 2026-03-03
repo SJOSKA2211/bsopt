@@ -1,0 +1,4 @@
+# file: /app/src/api/websockets/manager.py
+# hypothesis_version: 6.151.9
+
+['1', 'INSIDE_DOCKER', 'REDIS_URL', 'channel', 'data', 'message', 'metadata', 'redis://redis:6379/0', 'type', 'utf-8', 'ws_connected', 'ws_encode_error']

@@ -74,17 +74,20 @@ class Query:
         min_strike: float | None = None,
         max_strike: float | None = None,
         expiry: datetime | None = None,
+        expiry_bucket: str | None = None,
         first: int = 100,
         after: str | None = None,
     ) -> OptionConnection:
         """Search options with Relay-style pagination"""
         from src.api.graphql.resolvers.option_service import search_options_paginated
 
+        # If expiry_bucket is provided, it takes precedence over exact expiry
         results, has_next, next_cursor = await search_options_paginated(
             underlying=underlying,
             min_strike=min_strike,
             max_strike=max_strike,
             expiry=expiry,
+            expiry_bucket=expiry_bucket,
             limit=first,
             cursor=after,
         )
