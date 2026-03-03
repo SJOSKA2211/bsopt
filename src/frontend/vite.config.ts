@@ -51,6 +51,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
+      include: ['@apollo/client'],
       exclude: ['bsopt-wasm'] // Prevent Vite from trying to pre-bundle the WASM pkg
     },
     build: {
