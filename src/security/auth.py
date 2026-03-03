@@ -230,7 +230,7 @@ class AuthService:
         # 1. Try Better Auth Session (Primary)
         from src.database import get_async_db
         async for db in get_async_db():
-            from src.database.models import BetterAuthSession, User
+            from src.database.models import BetterAuthSession
             # Optimized session lookup with user join
             result = await db.execute(
                 select(BetterAuthSession)

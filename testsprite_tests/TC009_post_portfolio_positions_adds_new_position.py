@@ -1,68 +1,62 @@
 import requests
 
 BASE_URL = "http://127.0.0.1:8000"
-REGISTER_URL = f"{BASE_URL}/api/v1/auth/register"
-LOGIN_URL = f"{BASE_URL}/api/v1/auth/login"
-POSITIONS_URL = f"{BASE_URL}/api/v1/portfolio/positions"
-DELETE_POSITION_URL = f"{BASE_URL}/api/v1/portfolio/positions/{{id}}"
 TIMEOUT = 30
 
 def test_post_portfolio_positions_adds_new_position():
-    # Register a new user to get fresh credentials
-    register_payload = {
-        "email": "testuser_tc009@example.com",
-        "password": "P@ssw0rd123!",
-        "full_name": "Test User TC009"
+    # Step 1: Login to get access token
+    login_url = f"{BASE_URL}/api/v1/auth/login"
+    login_data = {
+        "email": "dev@example.com",
+        "password": "password"
     }
     try:
-        reg_resp = requests.post(REGISTER_URL, json=register_payload, timeout=TIMEOUT)
-        assert reg_resp.status_code == 201, f"Registration failed: {reg_resp.text}"
+        login_resp = requests.post(login_url, json=login_data, timeout=TIMEOUT)
+        assert login_resp.status_code == 200, f"Login failed: {login_resp.status_code} {login_resp.text}"
+        login_json = login_resp.json()
+        access_token = login_json.get("access_token")
+        token_type = login_json.get("token_type")
+        assert access_token and token_type == "bearer", "Invalid token response from login"
     except requests.RequestException as e:
-        assert False, f"Registration request failed: {e}"
-
-    # Login to get access token
-    login_payload = {
-        "email": register_payload["email"],
-        "password": register_payload["password"]
-    }
-    try:
-        login_resp = requests.post(LOGIN_URL, json=login_payload, timeout=TIMEOUT)
-        assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
-        login_data = login_resp.json()
-        access_token = login_data.get("access_token")
-        token_type = login_data.get("token_type")
-        assert access_token and token_type.lower() == "bearer", "Invalid token response"
-    except requests.RequestException as e:
-        assert False, f"Login request failed: {e}"
+        assert False, f"Login request failed: {str(e)}"
 
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
-    position_payload = {
+
+    # Step 2: POST a new position
+    post_url = f"{BASE_URL}/api/v1/portfolio/positions"
+    position_data = {
         "symbol": "AAPL",
         "quantity": 10,
         "entry_price": 150
     }
 
+    # Keep track of created position id to cleanup
     position_id = None
+
     try:
-        # Post new position
-        post_resp = requests.post(POSITIONS_URL, json=position_payload, headers=headers, timeout=TIMEOUT)
-        assert post_resp.status_code == 201, f"Create position failed: {post_resp.text}"
-        post_data = post_resp.json()
-        position_id = post_data.get("id")
-        assert position_id is not None, "Created position response missing 'id'"
-        assert post_data.get("symbol") == position_payload["symbol"], "Position symbol mismatch"
-        assert post_data.get("quantity") == position_payload["quantity"], "Position quantity mismatch"
-        assert post_data.get("entry_price") == position_payload["entry_price"], "Position entry_price mismatch"
+        post_resp = requests.post(post_url, json=position_data, headers=headers, timeout=TIMEOUT)
+        assert post_resp.status_code == 201, f"Expected 201 Created, got {post_resp.status_code}. Response: {post_resp.text}"
+        resp_json = post_resp.json()
+        # Validate that the created position contains expected fields
+        assert "id" in resp_json, "Response missing 'id' field for created position"
+        assert resp_json.get("symbol") == position_data["symbol"], "Symbol mismatch"
+        assert resp_json.get("quantity") == position_data["quantity"], "Quantity mismatch"
+        assert resp_json.get("entry_price") == position_data["entry_price"], "Entry price mismatch"
+        position_id = resp_json["id"]
+    except requests.RequestException as e:
+        assert False, f"POST /api/v1/portfolio/positions request failed: {str(e)}"
     finally:
-        # Clean up: delete created position if created
+        # Cleanup: Delete the created position if it exists
         if position_id:
             try:
-                del_resp = requests.delete(DELETE_POSITION_URL.format(id=position_id), headers=headers, timeout=TIMEOUT)
-                assert del_resp.status_code == 200, f"Delete position failed: {del_resp.text}"
-            except requests.RequestException:
-                pass  # best effort cleanup
+                delete_url = f"{BASE_URL}/api/v1/portfolio/positions/{position_id}"
+                del_resp = requests.delete(delete_url, headers=headers, timeout=TIMEOUT)
+                assert del_resp.status_code == 200, f"Failed to delete created position with id {position_id}, status: {del_resp.status_code}"
+            except requests.RequestException as e:
+                # Log error but don't fail test here
+                print(f"Warning: Cleanup delete request failed: {str(e)}")
 
 test_post_portfolio_positions_adds_new_position()

@@ -12,12 +12,13 @@ def test_get_health_returns_healthy_status():
         assert False, f"Request to /health failed: {e}"
 
     assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
+    
     try:
-        data = response.json()
+        json_data = response.json()
     except ValueError:
         assert False, "Response is not valid JSON"
 
-    assert "status" in data, "Response JSON does not contain 'status' key"
-    assert data["status"] == "healthy", f"Expected status 'healthy', got '{data['status']}'"
+    assert "status" in json_data, "Response JSON missing 'status' key"
+    assert json_data["status"] == "healthy", f"Expected status 'healthy', got {json_data['status']}"
 
 test_get_health_returns_healthy_status()

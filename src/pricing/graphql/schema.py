@@ -84,7 +84,7 @@ class Option:
     expiry: datetime = strawberry.federation.field(external=True)
     option_type: str = strawberry.federation.field(external=True)
 
-    @strawberry.field
+    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
     async def price(self, info: strawberry.Info) -> float:
         loader = info.context["price_loader"]
         key = (
@@ -96,7 +96,7 @@ class Option:
         )
         return await loader.load(key)
 
-    @strawberry.field
+    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
     async def delta(self, info: strawberry.Info) -> float:
         loader = info.context["greeks_loader"]
         key = (
@@ -109,7 +109,7 @@ class Option:
         res = await loader.load(key)
         return res["delta"]
 
-    @strawberry.field
+    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
     async def gamma(self, info: strawberry.Info) -> float:
         loader = info.context["greeks_loader"]
         key = (

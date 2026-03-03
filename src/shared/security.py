@@ -164,8 +164,9 @@ def opa_authorize(action: str, resource: str):
     """Dependency to enforce OPA authorization."""
 
     async def _authorize(request: Request):
-        from src.config import settings
         import os
+
+        from src.config import settings
         if not settings.is_production and os.getenv("TESTING", "true") == "true" or settings.ENVIRONMENT != "prod":
             return
 

@@ -2,29 +2,34 @@ import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 TIMEOUT = 30
+TEST_USER_EMAIL = "dev@example.com"
+TEST_USER_PASSWORD = "password"
+
 
 def test_post_pricing_calculate_returns_option_price_and_greeks():
-    # First, login to get an access token
+    # Step 1: Login to get access token
     login_url = f"{BASE_URL}/api/v1/auth/login"
     login_payload = {
-        "email": "dev@example.com",
-        "password": "password"
+        "email": TEST_USER_EMAIL,
+        "password": TEST_USER_PASSWORD
     }
     try:
         login_resp = requests.post(login_url, json=login_payload, timeout=TIMEOUT)
-        assert login_resp.status_code == 200, f"Login failed with status {login_resp.status_code}"
+        assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
         login_data = login_resp.json()
         access_token = login_data.get("access_token")
         token_type = login_data.get("token_type")
-        assert access_token and token_type == "bearer", "Missing or invalid access token"
+        assert access_token and token_type and token_type.lower() == "bearer", "Invalid access token or token type"
     except requests.RequestException as e:
-        assert False, f"Login request failed: {e}"
+        assert False, f"Login request failed: {str(e)}"
 
-    pricing_url = f"{BASE_URL}/api/v1/pricing/calculate"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
+
+    # Step 2: POST to /api/v1/pricing/calculate with valid parameters
+    pricing_url = f"{BASE_URL}/api/v1/pricing/calculate"
     pricing_payload = {
         "s": 100,
         "k": 100,
@@ -36,19 +41,17 @@ def test_post_pricing_calculate_returns_option_price_and_greeks():
     }
 
     try:
-        response = requests.post(pricing_url, json=pricing_payload, headers=headers, timeout=TIMEOUT)
-        assert response.status_code == 200, f"Expected status 200, got {response.status_code}"
-        data = response.json()
-        # Validate keys in response
-        assert "price" in data, "Response missing 'price'"
-        assert isinstance(data["price"], (int, float)), "'price' is not a number"
-        assert "greeks" in data, "Response missing 'greeks'"
-        greeks = data["greeks"]
-        assert isinstance(greeks, dict), "'greeks' is not an object"
-        # At least one greek key expected (can check common greek keys)
-        expected_greeks_keys = {"delta", "gamma", "theta", "vega", "rho"}
-        assert any(key in greeks for key in expected_greeks_keys), "None of the expected greeks found in response"
+        pricing_resp = requests.post(pricing_url, json=pricing_payload, headers=headers, timeout=TIMEOUT)
+        assert pricing_resp.status_code == 200, f"Pricing calculate failed: {pricing_resp.text}"
+        pricing_data = pricing_resp.json()
+        assert "price" in pricing_data and isinstance(pricing_data["price"], (int, float)), "Missing or invalid price in response"
+        assert "greeks" in pricing_data and isinstance(pricing_data["greeks"], dict), "Missing or invalid greeks in response"
+        # Optional: validate some of the greeks keys exist
+        greeks = pricing_data["greeks"]
+        required_greeks_keys = {"delta", "gamma", "theta", "vega", "rho"}
+        assert required_greeks_keys.issubset(greeks.keys()), f"Greeks keys missing: {required_greeks_keys - set(greeks.keys())}"
     except requests.RequestException as e:
-        assert False, f"Pricing calculate request failed: {e}"
+        assert False, f"Pricing calculate request failed: {str(e)}"
+
 
 test_post_pricing_calculate_returns_option_price_and_greeks()

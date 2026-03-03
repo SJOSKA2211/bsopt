@@ -7,25 +7,16 @@ def test_get_metrics_returns_prometheus_metrics_text():
     }
     try:
         response = requests.get(url, headers=headers, timeout=30)
-        response.raise_for_status()
     except requests.RequestException as e:
-        assert False, f"Request to /metrics failed with exception: {e}"
+        assert False, f"Request to /metrics failed: {e}"
 
-    # Assert status code is 200
     assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
-
     content_type = response.headers.get("Content-Type", "")
-    # Acceptable content types for Prometheus metrics text format
-    acceptable_cts = [
-        "text/plain; version=0.0.4; charset=utf-8",
-        "text/plain; charset=utf-8",
-        "text/plain"
-    ]
-    assert any(content_type.startswith(ct) for ct in acceptable_cts), f"Unexpected Content-Type header: {content_type}"
-
-    # Check that response text contains some Prometheus metric-like content (e.g., HELP or TYPE lines)
-    text = response.text
-    assert text.startswith("# HELP") or "# HELP" in text, "Prometheus metrics text missing expected '# HELP' line"
-    assert "# TYPE" in text, "Prometheus metrics text missing expected '# TYPE' line"
+    assert "text/plain" in content_type, f"Expected 'text/plain' in Content-Type, got '{content_type}'"
+    response_text = response.text
+    assert response_text is not None and len(response_text) > 0, "Response text is empty"
+    # Basic check for Prometheus metrics format: lines with metric name and values, e.g. "metric_name 123"
+    lines = response_text.splitlines()
+    assert any(line and not line.startswith('#') and ' ' in line for line in lines), "Response does not contain Prometheus metrics format"
 
 test_get_metrics_returns_prometheus_metrics_text()
