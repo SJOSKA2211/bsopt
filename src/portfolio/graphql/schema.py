@@ -10,7 +10,6 @@ from strawberry.federation import Schema
 @strawberry.federation.type(keys=["id"], extend=True)
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
-    underlying_symbol: str = strawberry.federation.field(external=True)
 
 
 @strawberry.type

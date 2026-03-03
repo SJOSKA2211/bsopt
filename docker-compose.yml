@@ -253,6 +253,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
+    command: uvicorn src.pricing.main:app --host 0.0.0.0 --port 8000
 
   # === App Gateway (Node.js Federation) ===
   app-gateway:
