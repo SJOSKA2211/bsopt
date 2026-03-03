@@ -64,9 +64,9 @@ class RegisterRequest(BaseModel):
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
-    password_confirm: str = Field(..., description="Password confirmation")
+    password_confirm: str | None = Field(None, description="Password confirmation")
     full_name: str | None = Field(None, max_length=255, description="User's full name")
-    accept_terms: bool = Field(..., description="Accept terms and conditions")
+    accept_terms: bool = Field(True, description="Accept terms and conditions")
 
     @field_validator("password")
     @classmethod
@@ -96,9 +96,9 @@ class RegisterRequest(BaseModel):
 
     @field_validator("password_confirm")
     @classmethod
-    def passwords_match(cls, v: str, info) -> str:
-        """Validate passwords match."""
-        if "password" in info.data and v != info.data["password"]:
+    def passwords_match(cls, v: str | None, info) -> str | None:
+        """Validate passwords match if confirmation is provided."""
+        if v is not None and "password" in info.data and v != info.data["password"]:
             raise ValueError("Passwords do not match")
         return v
 

@@ -44,6 +44,8 @@ _import_map = {
     "FederatedLearningCoordinator": ".federated_learning.coordinator",
     # Data (Lightweight - can preload)
     "DataNormalizer": ".data_loader",
+    # Celery
+    "celery_app": ".celery_app",
 }
 
 

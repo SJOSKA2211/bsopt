@@ -6,18 +6,19 @@ from src.shared import math_utils
 
 
 def test_fast_normal_cdf_scalar():
-    assert math.isclose(math_utils.scalar_normal_cdf(0.0), 0.5, rel_tol=1e-5)
-    assert math.isclose(math_utils.scalar_normal_cdf(100.0), 1.0, rel_tol=1e-5)
-    assert math.isclose(math_utils.scalar_normal_cdf(-100.0), 0.0, rel_tol=1e-5)
+    assert math.isclose(math_utils.fast_normal_cdf(0.0), 0.5, rel_tol=1e-5)
+    assert math.isclose(math_utils.fast_normal_cdf(100.0), 1.0, rel_tol=1e-5)
+    assert math.isclose(math_utils.fast_normal_cdf(-100.0), 0.0, rel_tol=1e-5)
 
 
 def test_fast_normal_pdf_scalar():
-    assert math.isclose(math_utils.scalar_normal_pdf(0.0), 0.39894228, rel_tol=1e-5)
+    assert math.isclose(math_utils.fast_normal_pdf(0.0), 0.39894228, rel_tol=1e-5)
 
 
 def test_vectorized_cdf():
     x = np.array([0.0, 100.0, -100.0])
-    y = math_utils.fast_normal_cdf(x)
+    v_cdf = np.vectorize(math_utils.fast_normal_cdf)
+    y = v_cdf(x)
     assert np.allclose(y, [0.5, 1.0, 0.0], atol=1e-5)
 
 

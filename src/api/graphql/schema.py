@@ -7,16 +7,16 @@ from strawberry.federation import Schema
 # ============================================================================
 # TYPE DEFINITIONS (Base Subgraph: Options)
 # ============================================================================
-@strawberry.federation.type(keys=["id"])
+@strawberry.federation.type(keys=["id"], shareable=True)
 class Option:
     """Federated Option type - provided by the Options subgraph"""
 
     id: strawberry.ID
-    contract_symbol: str
-    underlying_symbol: str
-    strike: float
-    expiry: datetime
-    option_type: str
+    contract_symbol: str = strawberry.federation.field(shareable=True)
+    underlying_symbol: str = strawberry.federation.field(shareable=True)
+    strike: float = strawberry.federation.field(shareable=True)
+    expiry: datetime = strawberry.federation.field(shareable=True)
+    option_type: str = strawberry.federation.field(shareable=True)
 
     # These fields are shared but owned by this subgraph
     # Pricing/ML/MarketData services will extend this type to add their fields
@@ -28,11 +28,11 @@ class Option:
         return await get_option(str(id))
 
 
-@strawberry.type
+@strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
-    name: str
-    cash_balance: float
+    name: str = strawberry.federation.field(shareable=True)
+    cash_balance: float = strawberry.federation.field(shareable=True)
 
 
 @strawberry.type
@@ -98,22 +98,6 @@ class Query:
 
 
 # ============================================================================
-# MUTATIONS
-# ============================================================================
-@strawberry.type
-class Mutation:
-    @strawberry.mutation
-    async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
-        from src.api.graphql.resolvers.portfolio_service import (
-            create_portfolio as create_portfolio_svc,
-        )
-
-        return await create_portfolio_svc(
-            user_id=strawberry.ID(user_id), name=name, initial_cash=initial_cash
-        )
-
-
-# ============================================================================
 # APOLLO FEDERATION - Subgraph Schema
 # ============================================================================
-schema = Schema(query=Query, mutation=Mutation, types=[Option, Portfolio])
+schema = Schema(query=Query, types=[Option, Portfolio])

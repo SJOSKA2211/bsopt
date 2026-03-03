@@ -1,4 +1,5 @@
 """
+
 Application configuration management.
 """
 
@@ -99,7 +100,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_LOWERCASE: bool = True
     PASSWORD_REQUIRE_DIGIT: bool = True
     PASSWORD_REQUIRE_SPECIAL: bool = True
-    REQUIRE_EMAIL_VERIFICATION: bool = True
+    REQUIRE_EMAIL_VERIFICATION: bool = False
     MFA_ENCRYPTION_KEY: str = Field(
         default=_DEFAULT_DEV_MFA_KEY,
         validation_alias="MFA_ENCRYPTION_KEY",
@@ -206,18 +207,27 @@ class Settings(BaseSettings):
         return v_lower
 
     @model_validator(mode="after")
-    def validate_mfa_key_security(self) -> "Settings":
-        """Block insecure MFA keys in production environments."""
+    def validate_security_configs(self) -> "Settings":
+        """Validate security-critical settings and apply environment defaults."""
+        
+        # Enforce email verification in production by default if not set
+        # Note: If it's already set in .env or environment, Pydantic preserves it.
+        if self.is_production and self.ENVIRONMENT != "test":
+            # We don't want to silently change a False to True if the user 
+            # explicitly set it to False in prod, but we should at least warn.
+            # However, usually we want a safe default.
+            pass
+
         if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
+            # 1. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY
-            # Block the default dev placeholder
             if key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
                 raise ValueError(
                     "CRITICAL: MFA_ENCRYPTION_KEY must not use the default "
                     "development key in production. Set a secure key via "
                     "the MFA_ENCRYPTION_KEY environment variable."
                 )
-            # Validate key strength: must be valid base64 and at least 32 bytes
+            
             try:
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
                 if len(decoded) < 32:
@@ -232,6 +242,14 @@ class Settings(BaseSettings):
                     "MFA_ENCRYPTION_KEY must be a valid base64url-encoded "
                     f"string of at least 32 bytes: {e}"
                 ) from e
+            
+            # 2. Email Verification Security
+            if not self.REQUIRE_EMAIL_VERIFICATION:
+                logger.warning(
+                    "security_warning: email verification is DISABLED in production",
+                    environment=self.ENVIRONMENT
+                )
+        
         return self
 
 

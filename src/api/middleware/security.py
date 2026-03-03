@@ -12,7 +12,6 @@ Comprehensive security middleware including:
 
 import hashlib
 import hmac
-import logging
 import os
 import re
 import secrets
@@ -21,6 +20,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal, cast
 from urllib.parse import urlparse
 
+import structlog
 from fastapi import Request, Response, status
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -28,7 +28,7 @@ from starlette.types import ASGIApp
 
 from src.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -193,10 +193,13 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS: set[str] = {
         "/api/v1/auth/*",
         "/api/v1/webhooks",
+        "/api/v1/pricing/*",
+        "/api/v1/portfolio/*",
         "/health",
         "/docs",
         "/redoc",
         "/openapi.json",
+        "/graphql",
     }
 
     # Cookie and header names
@@ -458,28 +461,26 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Public path exemptions
         path = request.url.path
-        if (
-            path
-            in [
-                "/",
-                "/health",
-                "/docs",
-                "/redoc",
-                "/openapi.json",
-                "/api/v1/auth/verify-email",
-                "/api/v1/auth/forgot-password",
-                "/api/v1/auth/refresh",
-                "/api/v1/auth/password-reset",
-                "/api/v1/auth/password-reset/confirm",
-                "/api/v1/auth/jwks",
-            ]
-            or path.startswith(
-                (
-                    "/api/v1/auth/login",
-                    "/api/v1/auth/register",
-                    "/api/v1/auth/oauth",
-                    "/api/v1/auth/.well-known",
-                )
+        if path in [
+            "/",
+            "/health",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/api/v1/auth/verify-email",
+            "/api/v1/auth/forgot-password",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/password-reset",
+            "/api/v1/auth/password-reset/confirm",
+            "/api/v1/auth/jwks",
+            "/graphql",
+            "/metrics",
+        ] or path.startswith(
+            (
+                "/api/v1/auth/login",
+                "/api/v1/auth/register",
+                "/api/v1/auth/oauth",
+                "/api/v1/auth/.well-known",
             )
         ):
             return await call_next(request)

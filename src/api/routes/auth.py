@@ -42,10 +42,11 @@ from src.security.auth import (
     token_blacklist,
 )
 from src.security.password import password_service
+from src.security.rate_limit import rate_limit
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)])
 
 
 async def _send_verification_email(email: str, token: str):
@@ -116,7 +117,7 @@ async def forgot_password(
     return DataResponse(data={}, message="Password reset link sent")
 
 
-@router.post("/register", response_model=DataResponse[dict], status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
@@ -168,13 +169,22 @@ async def register(
     # Add token cleanup task occasionally
     if secrets.randbelow(100) < 5:
         background_tasks.add_task(token_blacklist.cleanup)
-    return DataResponse(
-        data={"id": str(user.id), "email": user.email},
-        message="User created. Please verify your email.",
-    )
+    
+    # Generate tokens for autologin
+    tokens = auth_service.create_token_pair(str(user.id), user.email, user.tier)
+    
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "access_token": tokens.access_token,
+        "refresh_token": tokens.refresh_token,
+        "token_type": tokens.token_type,
+        "message": "User created. Please verify your email."
+    }
 
 
-@router.post("/login", response_model=DataResponse[TokenResponse])
+@router.post("/login", response_model=dict)
 async def login(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
     user = await auth_service.authenticate_user(db, data.email, data.password, request)
     if not user:
@@ -188,7 +198,7 @@ async def login(request: Request, data: LoginRequest, db: Session = Depends(get_
 
     if user.is_mfa_enabled:
         if not data.mfa_code:
-            return DataResponse(data=TokenResponse(requires_mfa=True), message="MFA required")
+            return {"requires_mfa": True, "message": "MFA required"}
         # Verify MFA
         if not _verify_mfa_code(user, data.mfa_code, db):
             raise AuthenticationException(message="Invalid MFA code")
@@ -202,18 +212,16 @@ async def login(request: Request, data: LoginRequest, db: Session = Depends(get_
         logger.warning(f"failed_to_update_last_login: {str(e)}")
 
     tokens = auth_service.create_token_pair(str(user.id), user.email, user.tier)
-    return DataResponse(
-        data=TokenResponse(
-            access_token=tokens.access_token,
-            refresh_token=tokens.refresh_token,
-            token_type=tokens.token_type,
-            expires_in=tokens.expires_in,
-            user_id=str(user.id),
-            email=user.email,
-            tier=user.tier,
-        ),
-        message="Login successful",
-    )
+    return {
+        "access_token": tokens.access_token,
+        "refresh_token": tokens.refresh_token,
+        "token_type": tokens.token_type,
+        "expires_in": tokens.expires_in,
+        "user_id": str(user.id),
+        "email": user.email,
+        "tier": user.tier,
+        "message": "Login successful",
+    }
 
 
 @router.post("/logout")

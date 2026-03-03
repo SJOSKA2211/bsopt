@@ -18,6 +18,7 @@ redis[hiredis]==5.2.0
 python-dotenv>=1.0.0
 httpx[http2]>=0.27.0
 rich>=13.7.0
+selectolax>=0.3.21
 
 # API Extra
 fastapi>=0.111.0
@@ -43,6 +44,8 @@ torch>=2.2.0
 lightning>=2.2.0
 pytorch-forecasting>=1.0.0
 torch-geometric>=2.5.0
+dask>=2024.2.0
+distributed>=2024.2.0
 xgboost>=2.0.0
 scikit-learn>=1.4.0
 mlflow>=2.11.0

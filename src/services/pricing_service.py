@@ -52,7 +52,7 @@ class PricingService:
             price=price,
             spot=params.spot,
             strike=params.strike,
-            time_to_expiry=params.time_to_expiry,
+            time_to_expiry=params.maturity,
             rate=params.rate,
             volatility=params.volatility,
             option_type=option_type,
@@ -136,7 +136,14 @@ class PricingService:
     async def calculate_greeks(self, params: BSParameters, option_type: str) -> dict:
         engine = PricingEngineFactory.get_engine("black_scholes")
         greeks = await run_sync(engine.calculate_greeks, params, option_type)
-        return greeks.__dict__
+        # OptionGreeks uses slots=True so __dict__ is empty; build from fields explicitly
+        return {
+            "delta": float(greeks.delta) if greeks.delta is not None else None,
+            "gamma": float(greeks.gamma) if greeks.gamma is not None else None,
+            "theta": float(greeks.theta) if greeks.theta is not None else None,
+            "vega": float(greeks.vega) if greeks.vega is not None else None,
+            "rho": float(greeks.rho) if greeks.rho is not None else None,
+        }
 
     def clear_cache(self):
         """Mock for test compatibility."""

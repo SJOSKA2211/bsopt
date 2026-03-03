@@ -5,18 +5,23 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_HTTP_TIMEOUT=300
 ENV UV_RETRIES=10
+RUN uv venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY pyproject.toml requirements.txt ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
 
 FROM python:3.13-slim AS development
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev gcc git curl \
     && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 EXPOSE 8000
@@ -30,8 +35,9 @@ RUN groupadd -r bsopt && useradd -r -g bsopt bsopt \
     libpq5 curl tini \
     && rm -rf /var/lib/apt/lists/* \
     && chown -R bsopt:bsopt /app
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY src/ ./src
 RUN chown -R bsopt:bsopt /app
 USER bsopt

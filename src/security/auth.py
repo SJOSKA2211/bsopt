@@ -223,9 +223,34 @@ class AuthService:
         except PyJWTError:
             raise HTTPException(status_code=401, detail="Invalid token") from None
 
-    async def validate_token(self, token: str | None = Depends(get_token_from_header)) -> TokenData:
+    async def validate_token(self, token: str | None = Depends(get_token_from_header), request: Request = None) -> TokenData:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
+
+        # 1. Try Better Auth Session (Primary)
+        from src.database import get_async_db
+        async for db in get_async_db():
+            from src.database.models import BetterAuthSession
+            # Optimized session lookup with user join
+            result = await db.execute(
+                select(BetterAuthSession)
+                .options(selectinload(BetterAuthSession.user))
+                .where(BetterAuthSession.token == token)
+            )
+            session = result.scalar_one_or_none()
+            if session and session.expires_at > datetime.now(UTC):
+                user = session.user
+                if user:
+                    return TokenData(
+                        user_id=str(user.id),
+                        email=user.email,
+                        tier=user.tier,
+                        token_type="session",
+                        exp=session.expires_at,
+                        iat=session.created_at
+                    )
+
+        # 2. Legacy JWT Fallback
         token_data = self.decode_token(token)
         if token_data.jti and await token_blacklist.contains(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")

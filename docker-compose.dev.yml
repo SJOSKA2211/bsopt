@@ -41,7 +41,8 @@ services:
     image: bsopt-frontend-dev
     build:
       context: .
-      dockerfile: docker/Dockerfile.frontend-dev
+      dockerfile: docker/Dockerfile.frontend
+      target: development
     ports:
       - "5173:5173"
     volumes:

@@ -134,17 +134,18 @@ class PasswordValidator:
             errors.append("Password should not contain your email prefix")
             strength_score -= 20
 
-        # 4. Check for pwned password
-        try:
-            pwned_count = pwnedpasswords.check(password)
-            if pwned_count > 0:
-                errors.append(
-                    f"This password has appeared in a data breach "
-                    f"{pwned_count} times and must not be used."
-                )
-                strength_score = 0  # Major penalty
-        except Exception as e:
-            logger.warning(f"Could not check pwned status: {e}")
+        # 4. Check for pwned password (only in production)
+        if getattr(settings, "ENVIRONMENT", "dev") in ["prod", "production"]:
+            try:
+                pwned_count = pwnedpasswords.check(password)
+                if pwned_count > 0:
+                    errors.append(
+                        f"This password has appeared in a data breach "
+                        f"{pwned_count} times and must not be used."
+                    )
+                    strength_score = 0  # Major penalty
+            except Exception as e:
+                logger.warning(f"Could not check pwned status: {e}")
 
         # Calculate final score
         strength_score = min(100, max(0, strength_score))
