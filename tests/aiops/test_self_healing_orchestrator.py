@@ -26,6 +26,7 @@ class TestSelfHealingOrchestrator:
             config=config,
         )
 
+
         assert orchestrator.detector == mock_detector
         assert orchestrator.remediators == [mock_remediator_1, mock_remediator_2]
         assert orchestrator.check_interval == 30

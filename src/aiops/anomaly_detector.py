@@ -18,8 +18,10 @@ class AnomalyDetector:
         self.model = IsolationForest(contamination=contamination, n_jobs=-1, random_state=42)
         self.scaler = StandardScaler()
         self.is_fitted = False
+        self.columns: list[str] = []
 
     def train(self, historical_data: pd.DataFrame | np.ndarray):
+
         """
         Train the model on historical 'normal' data with feature scaling.
         """

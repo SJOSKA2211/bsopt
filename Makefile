@@ -5,6 +5,9 @@
 # I'm Pickle Riiiiick!🥒 *Belch.*
 # ==============================================================================
 
+# Detect Docker Compose
+DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || (docker compose version >/dev/null 2>&1 && echo "docker compose") || (test -f ~/.local/bin/docker-compose && echo "~/.local/bin/docker-compose") || echo "docker compose")
+
 .PHONY: help up down build build-prod logs clean migrate db-shell lint format security-scan protos xdp test-all manifold cli proxy check-env
 
 # Default target
@@ -43,13 +46,13 @@ help:
 # --- Core Commands ---
 
 up:
-	docker compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 down:
-	docker compose down
+	$(DOCKER_COMPOSE) down
 
 build:
-	docker compose build
+	$(DOCKER_COMPOSE) build
 
 build-prod:
 	@echo "🥒 Building Production-ready images..."
@@ -68,7 +71,7 @@ logs:
 # --- Utility Commands ---
 
 clean:
-	docker compose down -v
+	$(DOCKER_COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
@@ -77,34 +80,34 @@ migrate:
 	@echo "  Phase 1: Initialization Scripts..."
 	@for file in init-scripts/*.sql; do \
 	        echo "    - Applying $$file..."; \
-	        docker compose exec -T postgres psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/$$(basename $$file); \
+	        $(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/$$(basename $$file); \
 	done
 	@echo "  Phase 2: Incremental Migrations..."
 	@for file in src/migrations/*.sql; do \
 	        echo "    - Applying $$file..."; \
-	        docker compose exec -T postgres psql -U admin -d bsopt -f /migrations/$$(basename $$file); \
+	        $(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -f /migrations/$$(basename $$file); \
 	done
 
 db-shell:
-	docker compose exec postgres psql -U admin -d bsopt
+	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
 # --- Quality & Security ---
 
 lint:
-	docker compose --profile test run --rm --no-deps test-runner ruff check .
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner ruff check .
 
 format:
-	docker compose --profile test run --rm --no-deps test-runner ruff format --check .
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner ruff format --check .
 
 security-scan:
-	docker compose --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
-	docker compose --profile test run --rm --no-deps test-runner bandit -c pyproject.toml -r src/
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner bandit -c pyproject.toml -r src/
 
 # --- Build & Protos ---
 
 protos:
 	@echo "🥒 Compiling Protocol Buffers..."
-	docker compose run --rm api python3 -m grpc_tools.protoc \
+	$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
 	        -I=protos --python_out=src/protos --pyi_out=src/protos --grpc_python_out=src/protos protos/*.proto
 	@# Fix relative imports
 	@docker compose run --rm api sed -i 's/^import \(.*_pb2\)/from . import \1/' src/protos/inference_pb2.py
@@ -128,7 +131,7 @@ wasm:
 
 test-all:
 	@echo "🥒 Launching Containerized Test Suite (God Mode)..."
-	docker compose --profile test run --rm test-runner pytest tests/
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest tests/
 
 test-local:
 	@echo "🥒 Launching Local Test Suite (Bare Metal)... Stand back!"
@@ -138,26 +141,26 @@ test-local:
 
 manifold:
 	@echo "🥒 Launching THE SOLENYA MANIFOLD..."
-	docker compose --profile hft up -d postgres redis rabbitmq
-	docker compose --profile hft run --rm manifold
+	$(DOCKER_COMPOSE) --profile hft up -d postgres redis rabbitmq
+	$(DOCKER_COMPOSE) --profile hft run --rm manifold
 
 proxy:
 	@echo "🥒 Launching stack with SECURE GATEWAY..."
-	docker compose --profile proxy up -d
+	$(DOCKER_COMPOSE) --profile proxy up -d
 
 # Launch the Observability Stack (Prometheus & Grafana)
 obs:
 	@echo "🥒 Launching THE ORACLE (Observability)... Stand back!"
-	docker compose --profile observability up -d
+	$(DOCKER_COMPOSE) --profile observability up -d
 
 # Launch the ML Cluster (Ray + MLflow)
 ml:
 	@echo "🥒 Launching THE BRAIN (ML Cluster)... Stand back!"
-	docker compose --profile ml up -d
+	$(DOCKER_COMPOSE) --profile ml up -d
 
 cli:
 	@echo "🥒 Launching Containerized CLI..."
-	@docker compose run --rm -v $$(pwd):/app -e DATABASE_URL=postgresql://admin:password@postgres:5432/bsopt api python scripts/bs_cli.py $$(ARGS)
+	@$(DOCKER_COMPOSE) run --rm -v $$(pwd):/app -e DATABASE_URL=postgresql://admin:password@postgres:5432/bsopt api python scripts/bs_cli.py $$(ARGS)
 
 check-env:
 	@test -f .env || echo "WARNING: .env not found."
