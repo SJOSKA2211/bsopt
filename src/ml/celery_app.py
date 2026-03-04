@@ -32,14 +32,14 @@ def run_pipeline_task(self, config: dict[str, Any]):
     try:
         pipeline = MLPipeline(config)
         import asyncio
-        study = asyncio.run(pipeline.run())
+        model = asyncio.run(pipeline.run())
 
         result = {
             "status": "success",
-            "best_value": study.best_value,
-            "best_params": study.best_params,
+            "model_promoted": model is not None,
             "task_id": self.request.id,
         }
+
         logger.info("celery_task_completed", **result)
         return result
 

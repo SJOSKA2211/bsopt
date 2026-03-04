@@ -9,18 +9,20 @@ import structlog
 from src.ml.evaluation.metrics import ModelScorecard
 from src.ml.strategies import get_strategy
 from src.ml.tracker import ExperimentTracker
+from src.ml.training.base import BaseTrainer
 from src.ml.utils.validation import WalkForwardValidator
 
 logger = structlog.get_logger()
 
 
-class ModelTrainer:
+class ModelTrainer(BaseTrainer):
     """
     Unified Model Trainer with Temporal Validation and Experiment Tracking.
     """
 
-    def __init__(self, study_name: str, tracking_uri: str = None, n_splits: int = 5):
-        self.tracker = ExperimentTracker(study_name, tracking_uri)
+    def __init__(self, study_name: str, tracking_uri: str | None = None, n_splits: int = 5):
+        super().__init__(study_name, tracking_uri)
+        self.tracker = ExperimentTracker(study_name, self.tracking_uri)
         self.n_splits = n_splits
         self.model = None
 

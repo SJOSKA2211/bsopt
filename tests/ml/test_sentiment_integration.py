@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from src.ml.pipelines.sentiment_ingest import SentimentPipeline
+from src.ml.sentiment_pipeline import SentimentPipeline
 
 
 @pytest.fixture
 def mock_extractor():
-    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock:
+    with patch("src.ml.sentiment_pipeline.SentimentExtractor") as mock:
         instance = mock.return_value
         instance.get_sentiment_score.return_value = 0.5
         yield instance

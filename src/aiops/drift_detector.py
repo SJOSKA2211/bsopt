@@ -6,7 +6,9 @@ import structlog
 from prometheus_client import Gauge
 
 from src.ml.drift import calculate_ks_test, calculate_psi
+from src.ml.monitoring.mmd import MultivariateDriftDetector
 from src.pricing.factory import PricingEngineFactory
+
 
 logger = structlog.get_logger()
 
@@ -29,6 +31,8 @@ class PricingDriftDetector:
         self.psi_threshold = psi_threshold
         self.ks_threshold = ks_threshold
         self.factory = PricingEngineFactory()
+        self.multivariate_detector = MultivariateDriftDetector(threshold=threshold)
+
 
     async def check_drift(self, symbol: str, current_data: np.ndarray, reference_data: np.ndarray | None = None) -> dict[str, Any]:
         """
@@ -39,27 +43,35 @@ class PricingDriftDetector:
         drift_detected = False
         reasons = []
 
-        # 2. Statistical Data Drift (PSI/KS)
+        # 2. Statistical Data Drift (PSI/KS / MMD)
         if reference_data is not None:
-            # Flatten for univariate check if necessary
-            ref = reference_data.flatten()
-            curr = current_data.flatten()
-            
-            psi_score = calculate_psi(ref, curr)
-            _, ks_p_value = calculate_ks_test(ref, curr)
-            
-            psi_drift = psi_score >= self.psi_threshold
-            ks_drift = ks_p_value <= self.ks_threshold
-            
-            PSI_DRIFT_STATUS.labels(feature=symbol).set(1 if psi_drift else 0)
-            KS_DRIFT_STATUS.labels(feature=symbol).set(1 if ks_drift else 0)
-            
-            if psi_drift:
-                drift_detected = True
-                reasons.append("PSI_DRIFT")
-            if ks_drift:
-                drift_detected = True
-                reasons.append("KS_DRIFT")
+            if current_data.ndim > 1 and current_data.shape[1] > 1:
+                # Multivariate detection
+                is_drifted, mmd_val = self.multivariate_detector.detect_drift(reference_data, current_data)
+                if is_drifted:
+                    drift_detected = True
+                    reasons.append(f"MMD_DRIFT({mmd_val:.4f})")
+            else:
+                # Univariate fallback
+                ref = reference_data.flatten()
+                curr = current_data.flatten()
+                
+                psi_score = calculate_psi(ref, curr)
+                _, ks_p_value = calculate_ks_test(ref, curr)
+                
+                psi_drift = psi_score >= self.psi_threshold
+                ks_drift = ks_p_value <= self.ks_threshold
+                
+                PSI_DRIFT_STATUS.labels(feature=symbol).set(1 if psi_drift else 0)
+                KS_DRIFT_STATUS.labels(feature=symbol).set(1 if ks_drift else 0)
+                
+                if psi_drift:
+                    drift_detected = True
+                    reasons.append("PSI_DRIFT")
+                if ks_drift:
+                    drift_detected = True
+                    reasons.append("KS_DRIFT")
+
 
         OVERALL_DRIFT_STATUS.set(1 if drift_detected else 0)
 

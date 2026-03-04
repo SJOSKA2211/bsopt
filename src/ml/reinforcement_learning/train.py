@@ -1,5 +1,6 @@
 import argparse
 import os
+from typing import Any
 
 import mlflow
 import mlflow.pytorch
@@ -16,6 +17,7 @@ from src.ml.reinforcement_learning.transformer_policy import (
     TransformerFeatureExtractor,
     TransformerTD3Policy,
 )
+from src.ml.training.base import BaseTrainer
 from src.shared.shm_manager import SHMManager
 
 logger = structlog.get_logger()
@@ -45,71 +47,88 @@ class SHMWeightSyncCallback(BaseCallback):
         return True
 
 
-def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3"):
-    mlflow.set_tracking_uri(settings.tracking_uri)
-    mlflow.set_experiment("rl_trading_core")
+class RLTrainer(BaseTrainer):
+    """
+    Unified RL Trainer for BS-OPT.
+    """
 
-    with mlflow.start_run() as run:
-        try:
-            env = TradingEnvironment()
-            eval_env = TradingEnvironment()
-        except Exception as e:
-            logger.error("env_setup_failed", error=str(e))
-            raise
+    def __init__(self, study_name: str, tracking_uri: str | None = None):
+        super().__init__(study_name, tracking_uri)
 
-        policy_kwargs = dict(
-            features_extractor_class=TransformerFeatureExtractor,
-            features_extractor_kwargs=dict(features_dim=512, d_model=256, nhead=8, num_layers=4),
-            net_arch=dict(pi=[256, 256], qf=[256, 256]),
-        )
+    def train_and_evaluate(
+        self,
+        total_timesteps: int = 10000,
+        model_path: str = "models/best_td3",
+    ) -> dict[str, Any]:
+        """
+        Executes RL training using TD3 with Transformer policy.
+        """
+        with mlflow.start_run() as run:
+            try:
+                env = TradingEnvironment()
+                eval_env = TradingEnvironment()
+            except Exception as e:
+                logger.error("env_setup_failed", error=str(e))
+                raise
 
-        n_actions = env.action_space.shape[-1]
-        action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
-
-        try:
-            model = TD3(
-                TransformerTD3Policy,
-                env,
-                action_noise=action_noise,
-                verbose=1,
-                policy_kwargs=policy_kwargs,
-                learning_rate=1e-4,
-                buffer_size=200000,
-                batch_size=256,
-                tau=0.005,
-                gamma=0.99,
+            policy_kwargs = dict(
+                features_extractor_class=TransformerFeatureExtractor,
+                features_extractor_kwargs=dict(features_dim=512, d_model=256, nhead=8, num_layers=4),
+                net_arch=dict(pi=[256, 256], qf=[256, 256]),
             )
-        except Exception as e:
-            logger.error("model_init_failed", error=str(e))
-            raise
 
-        eval_callback = EvalCallback(
-            eval_env,
-            best_model_save_path=model_path,
-            log_path="./logs/results/",
-            eval_freq=max(1, total_timesteps // 10),
-            deterministic=True,
-        )
+            n_actions = env.action_space.shape[-1]
+            action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
 
-        shm_callback = SHMWeightSyncCallback()
-        callback = CallbackList([eval_callback, shm_callback])
+            try:
+                model = TD3(
+                    TransformerTD3Policy,
+                    env,
+                    action_noise=action_noise,
+                    verbose=1,
+                    policy_kwargs=policy_kwargs,
+                    learning_rate=1e-4,
+                    buffer_size=200000,
+                    batch_size=256,
+                    tau=0.005,
+                    gamma=0.99,
+                )
+            except Exception as e:
+                logger.error("model_init_failed", error=str(e))
+                raise
 
-        logger.info("training_active", steps=total_timesteps)
-        try:
-            model.learn(total_timesteps=total_timesteps, callback=callback)
-        except Exception as e:
-            logger.error("training_error", error=str(e))
-            raise
+            eval_callback = EvalCallback(
+                eval_env,
+                best_model_save_path=model_path,
+                log_path="./logs/results/",
+                eval_freq=max(1, total_timesteps // 10),
+                deterministic=True,
+            )
 
-        try:
-            os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            model.save(model_path)
-            mlflow.pytorch.log_model(model.policy, "model")
-        except Exception as e:
-            logger.error("save_failed", error=str(e))
-            raise
+            shm_callback = SHMWeightSyncCallback()
+            callback = CallbackList([eval_callback, shm_callback])
 
-        return {"run_id": run.info.run_id, "model_path": model_path}
+            logger.info("training_active", steps=total_timesteps)
+            try:
+                model.learn(total_timesteps=total_timesteps, callback=callback)
+            except Exception as e:
+                logger.error("training_error", error=str(e))
+                raise
+
+            try:
+                os.makedirs(os.path.dirname(model_path), exist_ok=True)
+                model.save(model_path)
+                mlflow.pytorch.log_model(model.policy, "model")
+            except Exception as e:
+                logger.error("save_failed", error=str(e))
+                raise
+
+            return {"run_id": run.info.run_id, "model_path": model_path}
+
+
+def train_td3(total_timesteps: int = 10000, model_path: str = "models/best_td3"):
+    trainer = RLTrainer("rl_trading_core", tracking_uri=settings.tracking_uri)
+    return trainer.train_and_evaluate(total_timesteps=total_timesteps, model_path=model_path)
 
 
 def train_distributed(*args, **kwargs):
