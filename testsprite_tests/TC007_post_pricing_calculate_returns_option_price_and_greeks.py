@@ -42,7 +42,7 @@ def test_post_pricing_calculate_returns_option_price_and_greeks():
         )
         assert pricing_resp.status_code == 200, f"Pricing calculate failed: {pricing_resp.text}"
         pricing_data = pricing_resp.json()
-        assert "price" in pricing_data and isinstance(pricing_data["price"], (int, float)), (
+        assert "price" in pricing_data and isinstance(pricing_data["price"], int | float), (
             "Missing or invalid price in response"
         )
         assert "greeks" in pricing_data and isinstance(pricing_data["greeks"], dict), (

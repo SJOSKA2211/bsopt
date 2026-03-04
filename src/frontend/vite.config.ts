@@ -30,19 +30,19 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api/auth': {
-          target: 'http://localhost:3001',
+          target: process.env.AUTH_SERVICE_URL || 'http://auth-service:3001',
           changeOrigin: true,
         },
         '/api/v1': {
-          target: 'http://localhost:8000',
+          target: process.env.API_URL || 'http://api:8000',
           changeOrigin: true,
         },
         '/graphql': {
-          target: 'http://localhost:4000',
+          target: process.env.GATEWAY_URL || 'http://app-gateway:4000',
           changeOrigin: true,
         },
         '/health': {
-          target: 'http://localhost:8000',
+          target: process.env.API_URL || 'http://api:8000',
           changeOrigin: true,
         }
       },

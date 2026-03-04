@@ -35,7 +35,13 @@ class ModelTrainer:
         """
         Executes a full Walk-Forward validation loop.
         """
+        if not isinstance(params, dict):
+            raise ValueError("params must be a dictionary")
+
         framework = params.get("framework", "xgboost")
+        if framework not in ["xgboost", "pytorch"]:
+            raise ValueError(f"Unsupported framework: {framework}")
+
         strategy = get_strategy(framework)
 
         validator = WalkForwardValidator(n_splits=self.n_splits)

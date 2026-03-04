@@ -6,7 +6,9 @@ import torch.nn as nn
 import torch.optim as optim
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
+from torch.utils.data import DataLoader, TensorDataset
 
+from src.ml.callbacks import EarlyStopping
 from src.ml.utils.distributed import train_xgboost_distributed
 
 logger = structlog.get_logger()
@@ -158,42 +160,51 @@ class PyTorchStrategy(TrainingStrategy):
         base_model: Any | None = None,
     ) -> Any:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        epochs = params.get("epochs", 10)
-        lr = params.get("lr", 0.01)
+        epochs = params.get("epochs", 100)
+        lr = params.get("lr", 0.001)
+        batch_size = params.get("batch_size", 32)
+        patience = params.get("early_stopping_patience", 10)
 
-        X_train_t = torch.FloatTensor(X_train).to(device)
-        y_train_t = torch.FloatTensor(y_train).view(-1, 1).to(device)
-        X_test_t = torch.FloatTensor(X_test).to(device)
-        y_test_t = torch.FloatTensor(y_test).view(-1, 1).to(device)
+        # Prepare DataLoaders
+        train_ds = TensorDataset(torch.FloatTensor(X_train), torch.FloatTensor(y_train).view(-1, 1))
+        test_ds = TensorDataset(torch.FloatTensor(X_test), torch.FloatTensor(y_test).view(-1, 1))
+        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+        test_loader = DataLoader(test_ds, batch_size=batch_size)
 
         model = self.SimpleNet(X_train.shape[1]).to(device)
+        if base_model:
+            model.load_state_dict(base_model.state_dict())
+
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.BCELoss()
-
-        best_loss = float("inf")
-        patience = 5
-        trigger_times = 0
+        early_stopping = EarlyStopping(patience=patience)
 
         for epoch in range(epochs):
             model.train()
-            optimizer.zero_grad()
-            outputs = model(X_train_t)
-            loss = criterion(outputs, y_train_t)
-            loss.backward()
-            optimizer.step()
+            epoch_loss = 0.0
+            for batch_X, batch_y in train_loader:
+                batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                optimizer.zero_grad()
+                outputs = model(batch_X)
+                loss = criterion(outputs, batch_y)
+                loss.backward()
+                optimizer.step()
+                epoch_loss += loss.item()
 
             model.eval()
+            val_loss = 0.0
             with torch.no_grad():
-                val_outputs = model(X_test_t)
-                val_loss = criterion(val_outputs, y_test_t)
-                if val_loss < best_loss:
-                    best_loss = val_loss
-                    trigger_times = 0
-                else:
-                    trigger_times += 1
-                    if trigger_times >= patience:
-                        logger.info("early_stopping_triggered", epoch=epoch)
-                        break
+                for batch_X, batch_y in test_loader:
+                    batch_X, batch_y = batch_X.to(device), batch_y.to(device)
+                    val_outputs = model(batch_X)
+                    val_loss += criterion(val_outputs, batch_y).item()
+
+            val_loss /= len(test_loader)
+            early_stopping(val_loss)
+            if early_stopping.early_stop:
+                logger.info("early_stopping_triggered", epoch=epoch)
+                break
+
         return model
 
     def predict(self, model: Any, X: Any) -> Any:

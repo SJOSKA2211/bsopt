@@ -53,13 +53,25 @@ async def get_portfolio_summary() -> DataResponse:
 @router.post("/positions", status_code=201)
 async def add_position(payload: dict[str, Any]) -> dict:
     """Add a new position to the in-memory portfolio store."""
+    # Validate required fields
+    symbol = payload.get("symbol")
+    quantity = payload.get("quantity")
+    entry_price = payload.get("entry_price")
+
+    if not symbol or not isinstance(symbol, str):
+        raise HTTPException(status_code=422, detail="'symbol' is required and must be a string")
+    if quantity is None or not isinstance(quantity, int | float) or quantity <= 0:
+        raise HTTPException(status_code=422, detail="'quantity' must be a positive number")
+    if entry_price is None or not isinstance(entry_price, int | float) or entry_price <= 0:
+        raise HTTPException(status_code=422, detail="'entry_price' must be a positive number")
+
     position_id = str(uuid.uuid4())
     position = {
         "id": position_id,
-        "symbol": payload.get("symbol"),
-        "quantity": payload.get("quantity"),
-        "entry_price": payload.get("entry_price"),
-        "current_price": payload.get("entry_price"),
+        "symbol": symbol.upper().strip(),
+        "quantity": float(quantity),
+        "entry_price": float(entry_price),
+        "current_price": float(entry_price),
         "pnl": 0.0,
     }
     _positions[position_id] = position

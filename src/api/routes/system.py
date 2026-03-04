@@ -1,3 +1,4 @@
+import logging
 import os
 
 import anyio
@@ -8,6 +9,7 @@ from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.circuit_breaker import db_circuit, pricing_circuit
 
 router = APIRouter(prefix="/system", tags=["System"])
+logger = logging.getLogger(__name__)
 
 
 # Global Probe Cache
@@ -31,7 +33,8 @@ async def get_deep_health():
         head = struct.unpack("q", _shm_probe.buf[:8])[0]
         health["probes"]["shm_mesh"] = {"status": "connected", "head": head}
     except Exception as e:
-        health["probes"]["shm_mesh"] = {"status": "corrupted", "error": str(e)}
+        logger.error("shm_mesh_probe_failed", error=str(e))
+        health["probes"]["shm_mesh"] = {"status": "unavailable"}
         health["status"] = "degraded"
         _shm_probe = None  # Reset on failure
 

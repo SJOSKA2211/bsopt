@@ -57,8 +57,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-CSRF-Token",
+        "X-Request-ID",
+        "X-API-Key",
+        "Accept",
+    ],
 )
 app.middleware("http")(logging_middleware)
 
@@ -141,7 +148,8 @@ app.include_router(ml_router, prefix="/api/v1")
 app.include_router(options_router, prefix="/api/v1")
 app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
-app.include_router(debug_router, prefix="/api/v1")
+if settings.ENVIRONMENT not in ("prod", "production"):
+    app.include_router(debug_router, prefix="/api/v1")
 app.include_router(graphql_app, prefix="/graphql")
 
 
@@ -151,7 +159,14 @@ async def health():
 
 
 @app.get("/metrics")
-async def metrics():
+async def metrics(request: Request):
+    # Only allow internal/authenticated access to metrics
+    if settings.is_production:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            from fastapi.responses import ORJSONResponse
+
+            return ORJSONResponse(status_code=401, content={"detail": "Not authenticated"})
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 

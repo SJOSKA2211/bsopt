@@ -15,11 +15,25 @@ async def market_data_ws(
     websocket: WebSocket,
     symbol: str = Query(..., description="Ticker symbol to subscribe to"),
     protocol: ProtocolType = Query(ProtocolType.JSON),
+    token: str = Query(None, description="Bearer token for authentication"),
 ):
     """
     WebSocket endpoint for real-time market data.
     OPTIMIZED: Metadata-first connection to prevent protocol race conditions.
     """
+    # Authenticate the WebSocket connection
+    if not token:
+        await websocket.close(code=1008, reason="Authentication required")
+        return
+
+    try:
+        from src.security.auth import auth_service
+
+        await auth_service.validate_token(token)
+    except Exception:
+        await websocket.close(code=1008, reason="Invalid or expired token")
+        return
+
     # 1. Initialize Metadata FIRST
     from src.api.websockets.manager import ConnectionMetadata
 

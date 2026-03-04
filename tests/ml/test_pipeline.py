@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.pipeline import MLPipeline
 
 
 @pytest.fixture
@@ -37,12 +37,12 @@ def mock_df():
 
 @pytest.mark.asyncio
 async def test_pipeline_run(mock_config, mock_df):
-    with patch("src.ml.autonomous_pipeline.create_engine"):
-        with patch("src.ml.autonomous_pipeline.Base.metadata.create_all"):
-            with patch("src.ml.autonomous_pipeline.MarketDataScraper") as MockScraper:
-                with patch("src.ml.autonomous_pipeline.get_async_db_context") as mock_db_ctx:
-                    with patch("src.ml.autonomous_pipeline.DriftTrigger") as MockDrift:
-                        with patch("src.ml.autonomous_pipeline.InstrumentedTrainer") as MockTrainer:
+    with patch("src.ml.pipeline.create_engine"):
+        with patch("src.ml.pipeline.Base.metadata.create_all"):
+            with patch("src.ml.pipeline.MarketDataScraper") as MockScraper:
+                with patch("src.ml.pipeline.get_async_db_context") as mock_db_ctx:
+                    with patch("src.ml.pipeline.DriftTrigger") as MockDrift:
+                        with patch("src.ml.pipeline.InstrumentedTrainer") as MockTrainer:
                             with patch(
                                 "src.database.crud.bulk_insert_market_ticks",
                                 new_callable=AsyncMock,
@@ -74,7 +74,7 @@ async def test_pipeline_run(mock_config, mock_df):
                                     mock_study.best_params = {"n_estimators": 100}
                                     mock_trainer_instance.optimize.return_value = mock_study
 
-                                    pipeline = AutonomousMLPipeline(mock_config)
+                                    pipeline = MLPipeline(mock_config)
 
                                     # Run
                                     study = await pipeline.run()
@@ -82,12 +82,12 @@ async def test_pipeline_run(mock_config, mock_df):
                                     assert study == mock_study
                                     mock_bulk_insert.assert_called_once()
                                     mock_trainer_instance.optimize.assert_called_once()
-                                    mock_task.assert_called()  # promotion triggered
+                                    mock_task.assert_called()
 
 
 def test_feature_generation(mock_config, mock_df):
-    with patch("src.ml.autonomous_pipeline.create_engine"):
-        pipeline = AutonomousMLPipeline(mock_config)
+    with patch("src.ml.pipeline.create_engine"):
+        pipeline = MLPipeline(mock_config)
         df_featured = pipeline.generate_features(mock_df)
 
         assert "RSI_14" in df_featured.columns
@@ -100,8 +100,8 @@ def test_feature_generation(mock_config, mock_df):
 
 @pytest.mark.asyncio
 async def test_get_current_model_performance(mock_config):
-    with patch("src.ml.autonomous_pipeline.create_engine"):
-        pipeline = AutonomousMLPipeline(mock_config)
+    with patch("src.ml.pipeline.create_engine"):
+        pipeline = MLPipeline(mock_config)
         mock_session = AsyncMock()
 
         # Create a sync Mock for the result object
@@ -113,3 +113,4 @@ async def test_get_current_model_performance(mock_config):
 
         perf = await pipeline.get_current_model_performance(mock_session)
         assert perf == 0.85
+

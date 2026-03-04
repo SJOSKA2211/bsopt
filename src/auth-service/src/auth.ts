@@ -22,7 +22,9 @@ export const auth = betterAuth({
         fields: {
             userId: "user_id",
             createdAt: "created_at",
-            updatedAt: "created_at" // SQL sessions table only has created_at
+            updatedAt: "updated_at",
+            ipAddress: "ip_address",
+            userAgent: "user_agent"
         }
     },
     account: {

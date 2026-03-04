@@ -43,35 +43,30 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = React.memo(({ o
     setSnackbar((prev) => ({ ...prev, open: false }));
   }, []);
 
-  const handleConfirm = React.useCallback(() => {
+  const handleConfirm = React.useCallback(async () => {
     setLoading(true);
-    fetch('/api/v1/trades/execute', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ optionId: option.id, type, action, amount: 1 }),
-    })
-      .then(response => {
-        if (!response.ok) throw new Error('Trade failed');
-        return response.json();
-      })
-      .then(data => {
-        setSnackbar({ open: true, message: data.message || 'Trade executed successfully', severity: 'success' });
-        setOpen(false);
-      })
-      .catch(error => {
-        setSnackbar({ open: true, message: error.message || 'Trade execution failed', severity: 'error' });
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const { apiFetch } = await import('../../../lib/api-client');
+      const data = await apiFetch<{ message?: string }>('/api/v1/trades/execute', {
+        method: 'POST',
+        body: { optionId: option.id, type, action, amount: 1 },
       });
+      setSnackbar({ open: true, message: data.message || 'Trade executed successfully', severity: 'success' });
+      setOpen(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Trade execution failed';
+      setSnackbar({ open: true, message, severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
   }, [option.id, type, action]);
 
   return (
     <>
-      <Button 
-        variant={action === 'buy' ? 'contained' : 'outlined'} 
+      <Button
+        variant={action === 'buy' ? 'contained' : 'outlined'}
         color={action === 'buy' ? 'primary' : 'secondary'}
-        size="small" 
+        size="small"
         onClick={handleClickOpen}
         aria-label={`${action} ${type} option at strike $${option.strike}`}
         title={`${action} ${type} option at strike $${option.strike}`}

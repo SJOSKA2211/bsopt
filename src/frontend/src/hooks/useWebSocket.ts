@@ -2,6 +2,17 @@
 import { useState, useEffect, useRef } from 'react';
 // import { protobuf } from 'protobufjs'; // Removed unused import causing build error
 
+/**
+ * Derives a WebSocket URL from the current page origin.
+ * Uses wss:// for HTTPS pages, ws:// otherwise.
+ * Falls back to a provided URL if not in a browser context.
+ */
+export function getWebSocketUrl(path: string): string {
+  if (typeof window === 'undefined') return `ws://localhost:8000${path}`;
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}${path}`;
+}
+
 interface WebSocketHookOptions {
   url: string;
   symbols: string[];

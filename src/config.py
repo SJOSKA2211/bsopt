@@ -46,10 +46,17 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
-    REDIS_PASSWORD: str | None = None
+    REDIS_PASSWORD: str | None = Field(default=None, validation_alias="REDIS_PASSWORD")
 
     # RabbitMQ Configuration
-    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672//"
+    RABBITMQ_USER: str = Field(default="guest", validation_alias="RABBITMQ_USER")
+    RABBITMQ_PASSWORD: str = Field(default="guest", validation_alias="RABBITMQ_PASSWORD")
+    RABBITMQ_HOST: str = Field(default="rabbitmq", validation_alias="RABBITMQ_HOST")
+
+    @property
+    def RABBITMQ_URL(self) -> str:
+        """Constructs the RabbitMQ URL from credentials."""
+        return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}@{self.RABBITMQ_HOST}:5672//"
 
     # ML Serving Configuration
     ML_SERVICE_GRPC_URL: str = "worker:50051"
