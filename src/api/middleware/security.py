@@ -17,7 +17,7 @@ import re
 import secrets
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Literal, cast
+from typing import Any, Literal, cast
 from urllib.parse import urlparse
 
 import structlog
@@ -193,8 +193,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS: set[str] = {
         "/api/v1/auth/*",
         "/api/v1/webhooks",
-        "/api/v1/pricing/*",
-        "/api/v1/portfolio/*",
         "/health",
         "/docs",
         "/redoc",
@@ -365,12 +363,16 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
     - Known malicious IP ranges (optional)
     """
 
+    # Only trust forwarded headers from these IPs (e.g. reverse proxies)
+    TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
+
     def __init__(
         self,
         app: ASGIApp,
         blocked_ips: set[str] | None = None,
         max_failed_attempts: int = 10,
         block_duration_minutes: int = 30,
+        trusted_proxies: set[str] | None = None,
     ):
         super().__init__(app)
         self.blocked_ips = blocked_ips or set()
@@ -378,22 +380,23 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
         self.block_duration = timedelta(minutes=block_duration_minutes)
         self._failed_attempts: dict[str, list[datetime]] = {}
         self._temporary_blocks: dict[str, datetime] = {}
+        self.trusted_proxies = trusted_proxies or self.TRUSTED_PROXIES
 
     def _get_client_ip(self, request: Request) -> str:
-        """Get real client IP, considering proxies."""
-        # Check X-Forwarded-For header (trusted proxies only)
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            # Take the first IP (original client)
-            return forwarded.split(",")[0].strip()
+        """Get real client IP, only trusting forwarded headers from known proxies."""
+        direct_ip = request.client.host if request.client else "unknown"
 
-        # Check X-Real-IP header
-        real_ip = request.headers.get("X-Real-IP")
-        if real_ip:
-            return real_ip.strip()
+        # Only trust forwarded headers if the direct connection is from a trusted proxy
+        if direct_ip in self.trusted_proxies:
+            forwarded = request.headers.get("X-Forwarded-For")
+            if forwarded:
+                return forwarded.split(",")[0].strip()
 
-        # Fall back to direct connection
-        return request.client.host if request.client else "unknown"
+            real_ip = request.headers.get("X-Real-IP")
+            if real_ip:
+                return real_ip.strip()
+
+        return direct_ip
 
     def _is_blocked(self, ip: str) -> bool:
         """Check if IP is blocked."""
@@ -510,7 +513,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             logger.warning("jwt_validation_failed", error=str(e), path=path)
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"detail": f"Authentication failed: {str(e)}"},
+                content={"detail": "Authentication failed"},
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
@@ -538,11 +541,13 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         app: ASGIApp,
         check_query_params: bool = True,
         check_headers: bool = True,
+        check_body: bool = True,
         log_suspicious: bool = True,
     ):
         super().__init__(app)
         self.check_query_params = check_query_params
         self.check_headers = check_headers
+        self.check_body = check_body
         self.log_suspicious = log_suspicious
 
     def _contains_dangerous_pattern(self, value: str) -> bool:
@@ -567,6 +572,48 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 return f"Dangerous pattern in header '{header}'"
         return None
 
+    def _recursive_check_patterns(self, data: Any) -> str | None:
+        """Recursively check for dangerous patterns in nested data structures."""
+        if isinstance(data, str):
+            if self._contains_dangerous_pattern(data):
+                return f"Dangerous pattern in body value: {data[:50]}"
+        elif isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(key, str) and self._contains_dangerous_pattern(key):
+                    return f"Dangerous pattern in body key: {key}"
+                issue = self._recursive_check_patterns(value)
+                if issue:
+                    return issue
+        elif isinstance(data, list):
+            for item in data:
+                issue = self._recursive_check_patterns(item)
+                if issue:
+                    return issue
+        return None
+
+    async def _check_body(self, request: Request) -> str | None:
+        """Check the request body for dangerous patterns."""
+        if request.method not in ["POST", "PUT", "PATCH"]:
+            return None
+
+        content_type = request.headers.get("content-type", "")
+        if "application/json" not in content_type:
+            return None
+
+        try:
+            # We must read the body carefully to not consume it permanently
+            body = await request.body()
+            if not body:
+                return None
+
+            import json
+
+            data = json.loads(body)
+            return self._recursive_check_patterns(data)
+        except Exception:
+            # If it's invalid JSON, let the standard handlers catch it
+            return None
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Optimization: Only check relevant content types for bodies if we were checking bodies
         # But for now we only check headers and query params which are fast.
@@ -582,6 +629,20 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             issue = self._check_headers(request)
             if issue:
                 issues.append(issue)
+
+        if self.check_body:
+            # Read body and wrap call_next to ensure it can be read again
+            body = await request.body()
+
+            issue = await self._check_body(request)
+            if issue:
+                issues.append(issue)
+
+            # Define a proxy receive to allow call_next to read the body again
+            async def receive():
+                return {"type": "http.request", "body": body, "more_body": False}
+
+            request = Request(request.scope, receive=receive)
 
         if issues:
             if self.log_suspicious:

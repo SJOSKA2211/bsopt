@@ -12,12 +12,11 @@ async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_r
     Rate limiting dependency using Redis for distributed rate limiting.
     """
     if not redis_client:
-        # Fallback if Redis is not available, or raise an exception
-        # For now, we'll allow all requests but log a warning
-        request.state.rate_limit_remaining = 999999  # Unlimited
-        request.state.rate_limit_limit = 999999
-        request.state.rate_limit_reset = int(time.time() + 60)
-        return
+        # Fail closed: if Redis is unavailable, reject requests to prevent bypass
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service temporarily unavailable. Please try again later.",
+        )
 
     # Prefer user_id if authenticated, otherwise use IP
     user = getattr(request.state, "user", None)

@@ -112,7 +112,7 @@ async def forgot_password(
     db.commit()
 
     # Send email (Mocked)
-    background_tasks.add_task(_send_verification_email, user.email, reset_token)
+    background_tasks.add_task(_send_password_reset_email, user.email, reset_token)
 
     return DataResponse(data={}, message="Password reset link sent")
 

@@ -3,17 +3,16 @@ from typing import Any
 import structlog
 from celery import Celery
 
+from src.config import get_settings
 from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 # Initialize structured logger
 logger = structlog.get_logger()
 
-# Initialize Celery app
-# In production, these should be loaded from env vars
-BROKER_URL = "redis://localhost:6379/0"
-BACKEND_URL = "redis://localhost:6379/0"
+settings = get_settings()
 
-celery_app = Celery("bsopt_ml", broker=BROKER_URL, backend=BACKEND_URL)
+# Initialize Celery app
+celery_app = Celery("bsopt_ml", broker=settings.RABBITMQ_URL, backend=settings.REDIS_URL)
 
 celery_app.conf.update(
     task_serializer="json",

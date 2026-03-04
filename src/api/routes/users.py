@@ -42,8 +42,14 @@ async def update_current_user_profile(
     if update_data.full_name is not None:
         user.full_name = update_data.full_name
 
-    db.commit()
-    db.refresh(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except Exception as e:
+        db.rollback()
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
     return SuccessResponse(message="Profile updated")
 
@@ -57,6 +63,10 @@ async def list_users(db: Session = Depends(get_db), page: int = 1, page_size: in
     """
     List users (Restricted to Admin tier).
     """
+    # Bound page_size to prevent unbounded queries
+    page_size = max(1, min(page_size, 100))
+    page = max(1, page)
+
     total = db.query(func.count(User.id)).scalar()
     users = db.query(User).offset((page - 1) * page_size).limit(page_size).all()
 

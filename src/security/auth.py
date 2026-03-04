@@ -141,7 +141,6 @@ class AuthService:
             user = db.query(User).filter(User.email == email).first()
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
-        user_exists = True
         if not user:
             # Create a dummy hash to burn CPU time consistently
             dummy_hash = password_service.hash_password(secrets.token_urlsafe(32))
@@ -152,7 +151,7 @@ class AuthService:
             password_service.verify_password, password, user.hashed_password
         )
 
-        if not user_exists or not password_matches:
+        if not password_matches:
             return None
         # Optimization: Rehash legacy passwords on successful login to migrate to Argon2id
         if password_service.needs_rehash(user.hashed_password):
@@ -230,11 +229,10 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         # 1. Try Better Auth Session (Primary)
-        from src.database import get_async_db
+        from src.database import get_async_db_context
+        from src.database.models import BetterAuthSession
 
-        async for db in get_async_db():
-            from src.database.models import BetterAuthSession
-
+        async with get_async_db_context() as db:
             # Optimized session lookup with user join
             result = await db.execute(
                 select(BetterAuthSession)

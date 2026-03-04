@@ -8,6 +8,7 @@ temporal validation, and automated model promotion.
 
 import asyncio
 import os
+import re
 from typing import Any
 
 import mlflow
@@ -17,9 +18,11 @@ import ray
 import structlog
 from ray import tune
 from ray.tune.search.optuna import OptunaSearch
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 
 from src.config import get_settings
+from src.database import get_async_db_context
+from src.database.models import ModelPrediction
 from src.ml.drift import DriftTrigger, PerformanceDriftMonitor
 from src.ml.indicators import (
     get_adx,
@@ -45,6 +48,15 @@ class MLPipeline:
         self.settings = get_settings()
         self.config = config or {}
 
+        # 1. Validate Inputs (Security & QA)
+        self.ticker = str(self.config.get("ticker", "AAPL")).upper()
+        if not re.match(r"^[A-Z0-9.-]{1,20}$", self.ticker):
+            raise ValueError(f"Invalid ticker: {self.ticker}")
+
+        self.study_name = str(self.config.get("study_name", f"god_mode_{self.ticker.lower()}"))
+        if not re.match(r"^[a-zA-Z0-9_\-]{1,100}$", self.study_name):
+            raise ValueError(f"Invalid study_name: {self.study_name}")
+
         # MLflow Config
         self.tracking_uri = self.config.get("tracking_uri", self.settings.tracking_uri)
         mlflow.set_tracking_uri(self.tracking_uri)
@@ -54,15 +66,37 @@ class MLPipeline:
             api_key=self.config.get("api_key", os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY")),
             provider=self.config.get("provider", "auto"),
         )
-        self.ticker = self.config.get("ticker", "AAPL")
-        self.study_name = self.config.get("study_name", f"god_mode_{self.ticker.lower()}")
         self.framework = self.config.get("framework", "xgboost")
 
         # Database
-        self.engine = create_engine(self.settings.DATABASE_URL)
+        sync_url = self.settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+        self.engine = create_engine(sync_url)
 
         self.drift_trigger = DriftTrigger(self.config)
         self.performance_monitor = PerformanceDriftMonitor()
+
+    async def get_current_model_performance(self, session) -> float | None:
+        """Fetches the average accuracy of the current model from recent predictions."""
+        try:
+            result = (
+                await session.execute(
+                    select(
+                        func.avg(
+                            func.cast(
+                                (ModelPrediction.predicted_value > 0.5)
+                                == (ModelPrediction.actual_value > 0.5),
+                                np.float64,
+                            )
+                        )
+                    )
+                    .where(ModelPrediction.actual_value.isnot(None))
+                    .limit(100)
+                )
+            ).scalar()
+            return float(result) if result is not None else None
+        except Exception as e:
+            logger.warning("failed_to_fetch_performance", error=str(e))
+            return None
 
     def generate_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Vectorized feature engineering using pricing kernels."""
@@ -96,11 +130,24 @@ class MLPipeline:
 
         # 1. Fetch & Persist
         df = await self._fetch_data()
+        await self._persist_data(df)
         df_featured = self.generate_features(df)
 
         # 2. Drift Check
         if not force:
-            should_retrain, _ = self.drift_trigger.should_retrain(df_featured["close"].values)
+            async with get_async_db_context() as session:
+                current_perf = await self.get_current_model_performance(session)
+
+            # QA: Compare against historical baseline (df_featured itself if no other data)
+            # but ideally we store a reference distribution. For now, fix the 'itself' bug
+            # by splitting the current window if that's all we have.
+            mid = len(df_featured) // 2
+            reference_dist = df_featured["log_return"].values[:mid]
+            current_dist = df_featured["log_return"].values[mid:]
+
+            should_retrain, _ = self.drift_trigger.should_retrain(
+                reference_dist, current_dist, current_perf
+            )
             if not should_retrain:
                 logger.info("pipeline_skipped_no_drift")
                 return None
@@ -155,11 +202,12 @@ class MLPipeline:
         return results.get_best_result().config
 
     def _prepare_data(self, df: pd.DataFrame):
-        """Prepare tensors for training."""
-        df["target"] = (df["close"].shift(-1) > df["close"]).astype(int)
+        """Prepare tensors for training (Regression Target)."""
+        # FIX: Changed from classification (Up/Down) to regression (Next Log Return)
+        df["target"] = df["log_return"].shift(-1)
         df = df.iloc[:-1]
         features = [
-            c for col in df.columns if (c := str(col)) not in ["timestamp", "target", "ticker"]
+            str(col) for col in df.columns if str(col) not in ["timestamp", "target", "ticker"]
         ]
         return (
             df[features].values,
@@ -169,16 +217,60 @@ class MLPipeline:
         )
 
     async def _fetch_data(self) -> pd.DataFrame:
-        """Ingest historical data."""
-        return await self.scraper.fetch_historical_data(self.ticker, "2025-01-01", "2026-02-01")
+        """Ingest historical data with relative dates."""
+        from datetime import date, timedelta
+        end_date = date.today()
+        start_date = end_date - timedelta(days=self.config.get("trailing_days", 365))
+        return await self.scraper.fetch_historical_data(
+            self.ticker, start_date.isoformat(), end_date.isoformat()
+        )
+
+    async def _persist_data(self, df: pd.DataFrame):
+        """Internal helper to persist data with reduced allocation overhead."""
+        from src.database.crud import bulk_insert_market_ticks
+
+        market_data_records = [
+            {
+                "time": pd.to_datetime(ts, unit="s", utc=True),
+                "symbol": self.ticker,
+                "price": float(c),
+                "volume": int(v),
+                "side": None,
+            }
+            for ts, c, v in zip(
+                df["timestamp"], df["close"], df.get("volume", np.zeros(len(df))), strict=False
+            )
+        ]
+
+        async with get_async_db_context() as async_session:
+            if market_data_records:
+                await bulk_insert_market_ticks(async_session, market_data_records)
 
     def _promote(self, model, score):
         """Register model in MLflow."""
         name = f"PRICER_{self.ticker}_{self.framework}".upper()
         run = mlflow.active_run()
         if run:
-            mlflow.register_model(f"runs:/{run.info.run_id}/model", name)
-            logger.info("model_promoted", name=name, score=score)
+            # 1. Promote in MLflow
+            try:
+                result = mlflow.register_model(f"runs:/{run.info.run_id}/model", name)
+                client = mlflow.tracking.MlflowClient()
+                client.transition_model_version_stage(
+                    name=name, version=result.version, stage="Production"
+                )
+                logger.info("model_promoted", name=name, score=score, version=result.version)
+            except Exception as e:
+                logger.error("mlflow_promotion_failed", error=str(e))
+
+            # 2. Asynchronous ONNX Export
+            model_path = f"models/{self.study_name}_latest.onnx"
+            quantized_path = f"models/{self.study_name}_latest.int8.onnx"
+            try:
+                from src.tasks.ml_tasks import optimize_model_task
+
+                optimize_model_task.delay(model_path, quantized_path)
+            except Exception as e:
+                logger.error("onnx_export_failed", error=str(e))
 
 
 if __name__ == "__main__":

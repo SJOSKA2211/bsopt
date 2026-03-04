@@ -54,7 +54,6 @@ class User(Base):
     is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
-    verification_token: Mapped[str | None] = mapped_column(String(255))
 
     # Relationships
     portfolios: Mapped[list["Portfolio"]] = relationship(

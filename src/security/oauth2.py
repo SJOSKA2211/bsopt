@@ -58,11 +58,11 @@ class TokenPair:
 class AuthService:
     @property
     def private_key(self):
-        return settings.JWT_PRIVATE_KEY
+        return settings.rsa_private_key
 
     @property
     def public_key(self):
-        return settings.JWT_PUBLIC_KEY
+        return settings.rsa_public_key
 
     @property
     def algorithm(self):

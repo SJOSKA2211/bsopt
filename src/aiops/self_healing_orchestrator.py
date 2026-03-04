@@ -5,8 +5,15 @@ from typing import Any
 import pandas as pd
 import structlog
 
+from src.aiops.autoencoder_detector import AutoencoderDetector
+from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.remediators import BaseRemediator, RemediationPlanner
 from src.aiops.timeseries_anomaly_detector import TimeSeriesAnomalyDetector
+from src.ml.forecasting.tft_model import PriceTFTModel
+from src.shared.observability import (
+    post_grafana_annotation,
+    setup_logging,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -21,17 +28,39 @@ class SelfHealingOrchestrator:
         self,
         detector: TimeSeriesAnomalyDetector,
         remediators: list[BaseRemediator],
+        config: dict[str, Any] | None = None,
         check_interval: int = 10,
         drift_threshold_psi: float = 0.2,
     ):
+        setup_logging()
         self.detector = detector
         self.planner = RemediationPlanner(remediators)
         self.remediators = remediators
-        self.check_interval = check_interval
-        self.drift_threshold_psi = drift_threshold_psi
+        self.config = config or {}
+        self.check_interval = self.config.get("check_interval_seconds", check_interval)
+        self.drift_threshold_psi = self.config.get("data_drift_psi_threshold", drift_threshold_psi)
         self.is_running = False
         self.reference_data = None
         self.history = []
+
+        # Prometheus & Advanced Detectors
+        self.prometheus_url = self.config.get("prometheus_url")
+        self.prometheus_client = (
+            PrometheusClient(url=self.prometheus_url) if self.prometheus_url else None
+        )
+        self.api_service_name = self.config.get("api_service_name", "bsopt-api")
+
+        ae_input_dim = self.config.get("autoencoder_input_dim")
+        self.autoencoder_detector = (
+            AutoencoderDetector(input_dim=ae_input_dim) if ae_input_dim else None
+        )
+        self.forecaster = (
+            PriceTFTModel(config=self.config.get("tft_config"))
+            if self.config.get("predictive_scaling_enabled")
+            else None
+        )
+        self.max_history = 1000
+        self.last_baseline_update = time.time()
 
     async def run_cycle(self, current_data: pd.DataFrame):
         """
@@ -43,21 +72,25 @@ class SelfHealingOrchestrator:
             # 1. Point Anomaly Detection (Reactive)
             anomalies = await asyncio.to_thread(self.detector.detect, current_data)
 
-            # 2. Distribution Drift Analysis (Proactive)
+            # 2. System-wide Anomaly Detection (Prometheus-based)
+            system_anomalies = await self._detect_system_anomalies()
+
+            # 3. Distribution Drift Analysis (Proactive)
             drift_anomalies = self._analyze_drift(current_data)
-            all_anomalies = anomalies + drift_anomalies
+            all_anomalies = anomalies + system_anomalies + drift_anomalies
 
             if not all_anomalies:
                 logger.info("system_health_nominal")
                 return
 
             logger.warning(
-                "anomalies_and_drift_detected",
-                anomalies=len(anomalies),
-                drifts=len(drift_anomalies),
+                "anomalies_detected",
+                point=len(anomalies),
+                system=len(system_anomalies),
+                drift=len(drift_anomalies),
             )
 
-            # 3. Intelligent Remediation Planning
+            # 4. Intelligent Remediation Planning
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
                 if actions:
@@ -73,11 +106,15 @@ class SelfHealingOrchestrator:
                                 action=action.name,
                                 anomaly=anomaly.get("type"),
                             )
-                            # Using gather or individual await? Let's use individual await as in stash
                             success = await action.remediate(anomaly)
                             await action.update_last_run()
 
                             self._record_history(action.name, anomaly, success)
+                            if success:
+                                post_grafana_annotation(
+                                    f"Remediated {anomaly.get('type')} via {action.name}",
+                                    ["aiops", "remediation"],
+                                )
                         else:
                             logger.debug("remediation_skipped_cooldown", action=action.name)
 
@@ -147,6 +184,44 @@ class SelfHealingOrchestrator:
             self.last_baseline_update = now
             logger.info("drift_baseline_updated", timestamp=now)
         return drift_anomalies
+
+    async def _detect_system_anomalies(self) -> list[dict]:
+        """Scans Prometheus for system-level anomalies."""
+        if not self.prometheus_client:
+            return []
+
+        system_anomalies = []
+        try:
+            # 1. Error Rate
+            error_rate = await self.prometheus_client.get_5xx_error_rate(self.api_service_name)
+            if error_rate > self.config.get("error_rate_threshold", 0.05):
+                system_anomalies.append(
+                    {"type": "high_error_rate", "metric": error_rate, "severity": "high"}
+                )
+
+            # 2. Latency
+            p95_latency = await self.prometheus_client.get_p95_latency(self.api_service_name)
+            if p95_latency > self.config.get("latency_threshold", 0.5):
+                system_anomalies.append(
+                    {"type": "high_latency", "metric": p95_latency, "severity": "medium"}
+                )
+
+            # 3. Predictive (Forecasting)
+            if self.forecaster:
+                recent_df = await self.prometheus_client.get_metric_range(
+                    self.api_service_name, "container_cpu_usage_seconds_total"
+                )
+                if not recent_df.empty:
+                    forecast = self.forecaster.predict(recent_df)
+                    if forecast is not None and forecast.max() > 0.8:
+                        system_anomalies.append(
+                            {"type": "predicted_load_spike", "forecast_max": float(forecast.max())}
+                        )
+
+        except Exception as e:
+            logger.error("system_anomaly_detection_failed", error=str(e))
+
+        return system_anomalies
 
     async def start(self, data_source: Any):
         """Start the autonomous self-healing loop."""
