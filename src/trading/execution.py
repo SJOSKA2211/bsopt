@@ -27,15 +27,29 @@ class OrderExecutor:
             start_time = time.time()
             try:
                 # 1. Pre-Trade Risk Validation
-                from src.trading.risk_kernels import _validate_order_kernel
+                from src.trading.risk_kernels import (
+                    _validate_delta_exposure_kernel,
+                    _validate_order_kernel,
+                )
 
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
 
+                # Basic Order Validation
                 if not _validate_order_kernel(price, quantity, side):
-                    logger.warning("order_rejected_risk", params=params)
-                    return {"status": "rejected", "reason": "risk_limit_violation"}
+                    logger.warning("order_rejected_basic_risk", params=params)
+                    return {"status": "rejected", "reason": "basic_risk_limit_violation"}
+
+                # Portfolio-wide Delta Exposure Validation (Simplified)
+                # In prod, we'd fetch current_deltas from Redis/DB
+                import numpy as np
+                current_deltas = np.zeros(10) # Placeholder for current portfolio state
+                trade_delta = params.get("delta", 0.0) * quantity * side
+                
+                if not _validate_delta_exposure_kernel(current_deltas, trade_delta):
+                    logger.warning("order_rejected_delta_risk", params=params, delta=trade_delta)
+                    return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
 
                 # 2. Extract params for execution
                 contract_address = params.get("contract_address")

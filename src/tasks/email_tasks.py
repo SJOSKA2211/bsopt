@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 
+from src.config import get_settings
 from src.services.email_service import TransactionalEmailService
 from src.utils.cache import RateLimitTier, rate_limiter
 
@@ -9,10 +10,13 @@ from .celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
+settings = get_settings()
+
 # Initialize Email Service
+
 email_service = TransactionalEmailService(
     api_key=os.getenv("EMAIL_SERVICE_API_KEY", ""),
-    from_email=os.getenv("FROM_EMAIL", "no-reply@bsopt.com"),
+    from_email=settings.FROM_EMAIL,
 )
 
 

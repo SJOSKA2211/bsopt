@@ -3,7 +3,7 @@ Master Training Pipeline Entry Point
 ====================================
 
 Orchestrates the Autonomous ML Pipeline.
-Now uses the Advanced `AutonomousMLPipeline` class.
+Now uses the Advanced `MLPipeline` class.
 """
 
 import asyncio
@@ -12,7 +12,7 @@ import os
 import structlog
 
 from src.config import get_settings
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.pipeline import MLPipeline
 
 logger = structlog.get_logger()
 
@@ -37,7 +37,7 @@ async def train_all():
     }
 
     logger.info("initializing_autonomous_pipeline", config=config)
-    pipeline = AutonomousMLPipeline(config)
+    pipeline = MLPipeline(config)
 
     try:
         study = await pipeline.run()

@@ -39,8 +39,10 @@ class ModelTrainer:
             raise ValueError("params must be a dictionary")
 
         framework = params.get("framework", "xgboost")
-        if framework not in ["xgboost", "pytorch"]:
-            raise ValueError(f"Unsupported framework: {framework}")
+        from src.ml.strategies import STRATEGY_MAP
+        if framework not in STRATEGY_MAP:
+            raise ValueError(f"Unsupported framework: {framework}. Must be one of {list(STRATEGY_MAP.keys())}")
+
 
         strategy = get_strategy(framework)
 

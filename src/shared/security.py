@@ -77,8 +77,9 @@ class OPAEnforcer:
     Provides fine-grained authorization for the platform.
     """
 
-    def __init__(self, opa_url: str = "http://localhost:8181/v1/data/authz/allow"):
-        self.opa_url = opa_url
+    def __init__(self, opa_url: str | None = None):
+        from src.config import settings
+        self.opa_url = opa_url or settings.OPA_URL
 
     async def is_authorized(self, user: dict[str, Any], action: str, resource: str) -> bool:
         """
