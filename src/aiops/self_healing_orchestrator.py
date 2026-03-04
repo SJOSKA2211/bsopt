@@ -27,7 +27,7 @@ class SelfHealingOrchestrator:
 
     def __init__(
         self,
-        detector: TimeSeriesAnomalyDetector,
+        detector: AnomalyDetector,
         remediators: list[BaseRemediator],
         config: dict[str, Any] | None = None,
         check_interval: int = 10,
@@ -155,11 +155,6 @@ class SelfHealingOrchestrator:
             curr_vals = current_data[col].values
 
             try:
-                from src.aiops.timeseries_anomaly_detector import (
-                    calculate_ks_test,
-                    calculate_psi,
-                )
-
                 psi_score = calculate_psi(ref_vals, curr_vals)
                 ks_stat, p_val = calculate_ks_test(ref_vals, curr_vals)
 
