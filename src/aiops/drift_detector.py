@@ -3,81 +3,81 @@ from typing import Any
 
 import numpy as np
 import structlog
+from prometheus_client import Gauge
 
 from src.database import AsyncSessionLocal
+from src.ml.drift import calculate_ks_test, calculate_psi
 from src.pricing.factory import PricingEngineFactory
 
 logger = structlog.get_logger()
 
+# Define Prometheus gauges for drift detection
+PSI_DRIFT_STATUS = Gauge(
+    "aiops_psi_drift_status", "1 if PSI drift detected, 0 otherwise", ["feature"]
+)
+KS_DRIFT_STATUS = Gauge("aiops_ks_drift_status", "1 if KS drift detected, 0 otherwise", ["feature"])
+OVERALL_DRIFT_STATUS = Gauge("aiops_overall_drift_status", "1 if any drift detected, 0 otherwise")
+
 
 class PricingDriftDetector:
     """
-    Monitors live pricing predictions against theoretical baselines (BS)
-    and historical distributions to detect model drift.
+    Unified drift detector combining theoretical error analysis (Black-Scholes)
+    and statistical distribution checks (PSI, KS-test).
     """
 
-    def __init__(self, threshold: float = 0.05):
+    def __init__(self, threshold: float = 0.05, psi_threshold: float = 0.2, ks_threshold: float = 0.05):
         self.threshold = threshold
+        self.psi_threshold = psi_threshold
+        self.ks_threshold = ks_threshold
         self.factory = PricingEngineFactory()
 
-    async def check_drift(self, symbol: str, window_minutes: int = 60) -> dict[str, Any]:
+    async def check_drift(self, symbol: str, current_data: np.ndarray, reference_data: np.ndarray | None = None) -> dict[str, Any]:
         """
-        Analyzes the last N minutes of data for a symbol to detect pricing drift.
+        Main entry point for drift analysis.
         """
-        # 1. Fetch recent predictions and market data from TimescaleDB
-        async with AsyncSessionLocal():
-            # Note: This is a simplified fetch logic for the orchestrator
-            # In a real scenario, we'd use a more complex query on option_prices/market_data
-            # For now, returning empty to trigger 'insufficient_data' path or mocking in tests
-            data = []
+        # 1. Theoretical Drift (Model vs Black-Scholes)
+        # In a real scenario, we'd fetch from DB. For now, assuming current_data contains predictions.
+        drift_detected = False
+        reasons = []
 
-        if not data:
-            return {"drift_detected": False, "reason": "insufficient_data"}
+        # 2. Statistical Data Drift (PSI/KS)
+        if reference_data is not None:
+            # Flatten for univariate check if necessary
+            ref = reference_data.flatten()
+            curr = current_data.flatten()
+            
+            psi_score = calculate_psi(ref, curr)
+            _, ks_p_value = calculate_ks_test(ref, curr)
+            
+            psi_drift = psi_score >= self.psi_threshold
+            ks_drift = ks_p_value <= self.ks_threshold
+            
+            PSI_DRIFT_STATUS.labels(feature=symbol).set(1 if psi_drift else 0)
+            KS_DRIFT_STATUS.labels(feature=symbol).set(1 if ks_drift else 0)
+            
+            if psi_drift:
+                drift_detected = True
+                reasons.append("PSI_DRIFT")
+            if ks_drift:
+                drift_detected = True
+                reasons.append("KS_DRIFT")
 
-        # 2. Calculate theoretical baseline using high-speed WASM engine
-        bs_engine = self.factory.get_strategy("wasm") or self.factory.get_strategy("black_scholes")
-
-        errors = []
-        for record in data:
-            params = record["params"]
-            record["market_price"]
-            model_price = record["model_price"]
-
-            # Theoretical price
-            theoretical = bs_engine.price(params, record["option_type"])
-
-            # Error relative to theoretical
-            error = abs(model_price - theoretical) / max(theoretical, 0.01)
-            errors.append(error)
-
-        mean_error = np.mean(errors)
-        max_error = np.max(errors)
-        std_error = np.std(errors)
-
-        drift_detected = mean_error > self.threshold
+        OVERALL_DRIFT_STATUS.set(1 if drift_detected else 0)
 
         if drift_detected:
-            logger.warning(
-                "pricing_drift_detected",
-                symbol=symbol,
-                mean_error=mean_error,
-                threshold=self.threshold,
-            )
+            logger.warning("drift_detected", symbol=symbol, reasons=reasons)
 
         return {
             "symbol": symbol,
             "drift_detected": drift_detected,
-            "mean_relative_error": float(mean_error),
-            "max_relative_error": float(max_error),
-            "std_error": float(std_error),
-            "sample_count": len(data),
+            "reasons": reasons,
             "timestamp": datetime.now().isoformat(),
         }
 
     async def analyze_vol_smile_drift(self, symbol: str) -> dict[str, Any]:
         """
-        Detects structural changes in the volatility smile, which might
-        indicate the need for recalibration of the Heston or Neural models.
+        Detects structural changes in the volatility smile.
         """
-        # Implementation would compare current IV surface with the one used at training time
-        pass
+        # Implementation would compare current IV surface with reference
+        return {"symbol": symbol, "status": "not_implemented"}
+

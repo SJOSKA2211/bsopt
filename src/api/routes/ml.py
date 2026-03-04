@@ -41,6 +41,10 @@ async def get_predictions(
     here we synthesize a reasonable ``InferenceRequest`` using that symbol and
     delegate to the main ``/predict`` logic.
     """
+    symbol = symbol.strip().upper()
+    if not symbol.isalnum() or len(symbol) > 10:
+        return DataResponse(data={}, message="Invalid symbol")
+        
     base_price = 100.0
     req = InferenceRequest(
         underlying_price=base_price,

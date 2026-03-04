@@ -21,7 +21,7 @@ _IMPORT_MAP = {
     "train_fn": "src.ml.training.train.train",
     "run_hpo": "src.ml.training.train.run_hyperparameter_optimization",
     "collect_data": "src.ml.training.train.load_or_collect_data",
-    "AutonomousMLPipeline": "src.ml.autonomous_pipeline.AutonomousMLPipeline",
+    "MLPipeline": "src.ml.pipeline.MLPipeline",
     "ModelQuantizer": "src.ml.serving.quantization.ModelQuantizer",
     "calc_metrics": "src.ml.evaluation.metrics.calculate_regression_metrics",
 }
@@ -73,7 +73,7 @@ def train_model_task(
 @celery_app.task(bind=True, queue="ml")
 def monitor_drift_and_retrain_task(self):
     """Periodic task to monitor drift using lazy-loaded autonomous pipeline."""
-    AutonomousMLPipeline = _get_attr("AutonomousMLPipeline")
+    MLPipeline = _get_attr("MLPipeline")
     from src.config import settings
 
     try:
@@ -84,7 +84,7 @@ def monitor_drift_and_retrain_task(self):
             "n_trials": 10,
             "framework": "xgboost",
         }
-        pipeline = AutonomousMLPipeline(config)
+        pipeline = MLPipeline(config)
         study = asyncio.run(pipeline.run())
 
         if study:
@@ -93,6 +93,7 @@ def monitor_drift_and_retrain_task(self):
     except Exception as e:
         logger.error("drift_monitoring_task_failed", error=str(e))
         return {"status": "failed", "error": str(e)}
+
 
 
 @celery_app.task(bind=True, queue="ml")

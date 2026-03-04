@@ -1,10 +1,22 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import dotenv from "dotenv";
+dotenv.config();
 import { openAPI } from "better-auth/plugins"; // New Import
 
+if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required");
+}
+
+if (!process.env.BETTER_AUTH_SECRET && process.env.NODE_ENV === "production") {
+    throw new Error("BETTER_AUTH_SECRET is required in production");
+}
+
 export const auth = betterAuth({
-    database: new Pool({ connectionString: process.env.DATABASE_URL }),
+    database: new Pool({
+        connectionString: (process.env.DATABASE_URL || "").replace("postgresql+asyncpg://", "postgresql://")
+    }),
+    secret: process.env.BETTER_AUTH_SECRET || "development-secret-123", // Fallback for dev only
     emailAndPassword: {
         enabled: true
     },

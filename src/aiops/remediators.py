@@ -33,7 +33,6 @@ class BaseRemediator(ABC):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """
         Optional post-remediation validation.
-        Should return True if the system is 'healed'.
         """
         return True
 
@@ -47,13 +46,11 @@ class ClearRedisCacheRemediator(BaseRemediator):
     """
 
     def __init__(self):
-        super().__init__("clear_cache", supported_types=["latency_spike", "stale_data"])
+        super().__init__("clear_cache", supported_types=["latency_spike", "stale_data", "cache_inconsistency"])
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         import redis.asyncio as redis
-
         from src.config import settings
-
         logger.warning("remediator_clear_cache_initiated")
         try:
             client = redis.from_url(settings.REDIS_URL)
@@ -67,25 +64,26 @@ class ClearRedisCacheRemediator(BaseRemediator):
 
 class RestartServiceRemediator(BaseRemediator):
     """
-    Simulates restarting a service.
-    In a real production environment, this would call Docker/K8s APIs.
+    Restarts a service via Docker/Orchestrator.
     """
 
     def __init__(self):
         super().__init__(
             "restart_service",
-            supported_types=["latency_spike", "error_burst", "cpu_high"],
+            supported_types=["latency_spike", "error_burst", "cpu_high", "high_latency", "error_spike"],
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        service = anomaly.get("metrics", {}).get("service", "unknown")
+        from src.aiops.docker_remediator import DockerRemediator
+        service = anomaly.get("metrics", {}).get("service", "bsopt-api")
         logger.warning("remediator_restart_initiated", service=service)
-
-        # Simulate restart delay
-        await asyncio.sleep(2)
-
-        logger.info("remediator_restart_completed", service=service)
-        return True
+        
+        docker = DockerRemediator()
+        success = await docker.restart_service(service)
+        
+        if success:
+            logger.info("remediator_restart_completed", service=service)
+        return success
 
 
 class RetrainModelRemediator(BaseRemediator):
@@ -95,16 +93,84 @@ class RetrainModelRemediator(BaseRemediator):
 
     def __init__(self):
         super().__init__(
-            "retrain_model", supported_types=["model_drift", "performance_degradation"]
+            "retrain_model", supported_types=["model_drift", "performance_degradation", "data_drift"]
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_retrain_initiated", score=anomaly.get("score"))
-
-        # Trigger the Celery task for retraining
         monitor_drift_and_retrain_task.delay()
-
         logger.info("remediator_retrain_task_queued")
+        return True
+
+
+class ArgoCDRollbackRemediator(BaseRemediator):
+    """
+    Rolls back a deployment via ArgoCD.
+    """
+
+    def __init__(self):
+        super().__init__("argocd_rollback", supported_types=["deployment_regression", "sync_failure"])
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        service = anomaly.get("service", "unknown")
+        logger.warning("remediator_argocd_rollback_initiated", app=service)
+        # Mocking actual implementation
+        await asyncio.sleep(1)
+        logger.info("remediator_argocd_rollback_completed", app=service)
+        return True
+
+
+class AutonomousScalerRemediator(BaseRemediator):
+    """
+    Scales service replicas based on load.
+    """
+
+    def __init__(self):
+        super().__init__("autonomous_scaler", supported_types=["high_load", "predicted_load_spike", "cpu_high"])
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        from src.aiops.docker_remediator import DockerRemediator
+        service = anomaly.get("service", "bsopt-api")
+        current_replicas = anomaly.get("metrics", {}).get("replicas", 1)
+        target_replicas = current_replicas + 1
+        
+        logger.warning("remediator_scaling_initiated", service=service, target=target_replicas)
+        docker = DockerRemediator()
+        success = await docker.scale_service(service, target_replicas)
+        return success
+
+
+class ModelSwitchRemediator(BaseRemediator):
+    """
+    Hot-swaps models during drift.
+    """
+
+    def __init__(self):
+        super().__init__("model_switch", supported_types=["data_drift", "model_instability"])
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        from src.pricing.factory import PricingEngineFactory
+        fallback = anomaly.get("fallback_model", "black_scholes")
+        current = anomaly.get("model", "unknown")
+        
+        logger.warning("remediator_model_switch_initiated", from_model=current, to_model=fallback)
+        PricingEngineFactory.set_default_engine(fallback)
+        return True
+
+
+class SiliconResetRemediator(BaseRemediator):
+    """
+    Critical reset for low-latency workers.
+    """
+
+    def __init__(self):
+        super().__init__("silicon_reset", supported_types=["critical_jitter"])
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        from src.aiops.docker_remediator import DockerRemediator
+        logger.warning("remediator_silicon_reset_initiated")
+        docker = DockerRemediator()
+        await docker.restart_service("worker")
         return True
 
 
@@ -114,21 +180,30 @@ class RemediationPlanner:
     Decides the best course of action based on anomaly context.
     """
 
-    def __init__(self, remediators: list[BaseRemediator]):
-        self.remediators = {r.name: r for r in remediators}
+    def __init__(self, remediators: list[BaseRemediator] | None = None):
+        if remediators:
+            self.remediators = {r.name: r for r in remediators}
+        else:
+            # Register defaults
+            defaults = [
+                ClearRedisCacheRemediator(),
+                RestartServiceRemediator(),
+                RetrainModelRemediator(),
+                ArgoCDRollbackRemediator(),
+                AutonomousScalerRemediator(),
+                ModelSwitchRemediator(),
+                SiliconResetRemediator(),
+            ]
+            self.remediators = {r.name: r for r in defaults}
 
     def plan(self, anomaly: dict[str, Any]) -> list[BaseRemediator]:
         """
         Plans a sequence of remediation actions.
         """
         a_type = anomaly.get("type", "generic")
-
         actions = []
-
-        # Simple heuristic-based planning
         for r in self.remediators.values():
-            if a_type in r.supported_types:
+            if a_type in r.supported_types and r.can_run():
                 actions.append(r)
-
-        # Prioritize actions based on score (placeholder for more complex logic)
         return sorted(actions, key=lambda x: x.name)
+

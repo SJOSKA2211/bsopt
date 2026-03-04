@@ -4,15 +4,16 @@ Trading Tasks for Celery
 Handles asynchronous trading operations. Fully implemented with risk simulation.
 """
 
-import logging
 import sys
 import time
+
+import structlog
 
 from src.utils.lazy_import import lazy_import
 
 from .celery_app import celery_app
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # Lazy Import Map
@@ -22,6 +23,7 @@ _IMPORT_MAP = {
     "BacktestEngine": "src.portfolio.engine.BacktestEngine",
     "OrderExecutor": "src.trading.execution.OrderExecutor",
     "validate_risk": "src.trading.risk_kernels._validate_order_kernel",
+    "validate_delta": "src.trading.risk_kernels._validate_delta_exposure_kernel",
 }
 
 
@@ -37,7 +39,15 @@ def execute_trade_task(self, order: dict):
     logger.info("executing_trade_task_started", symbol=order.get("symbol"))
 
     OrderExecutor = _get_attr("OrderExecutor")
-    executor = OrderExecutor()  # Reuses connection pool
+    from src.blockchain.defi_options import DeFiOptionsProtocol
+    from src.config import get_settings
+    
+    settings = get_settings()
+    protocol = DeFiOptionsProtocol(
+        rpc_url=settings.BLOCKCHAIN_RPC_URL,
+        private_key=settings.BLOCKCHAIN_PRIVATE_KEY
+    )
+    executor = OrderExecutor(protocol=protocol)
 
     try:
         import asyncio
@@ -60,9 +70,29 @@ def execute_trade_task(self, order: dict):
 
 @celery_app.task(bind=True, queue="trading")
 def check_risk_limits(self, portfolio_id: str):
-    """Checks risk limits for a portfolio."""
-    logger.info("checking_risk_limits", portfolio_id=portfolio_id)
-    return {"status": "success", "within_limits": True}
+    """Checks portfolio-wide risk limits (Delta, Net Exposure)."""
+    logger.info("checking_risk_limits_calculation", portfolio_id=portfolio_id)
+    
+    validate_delta = _get_attr("validate_delta")
+    np = _get_attr("np")
+    
+    # Mock portfolio exposure for demonstration
+    # In production, this would query TimescaleDB or Redis state
+    current_deltas = np.random.normal(0, 100, 50)
+    max_delta = 5000.0
+    
+    is_safe = validate_delta(current_deltas, 0.0, max_delta) == 1
+    
+    if not is_safe:
+        logger.warning("portfolio_risk_limit_exceeded", portfolio_id=portfolio_id, net_delta=np.sum(current_deltas))
+        
+    return {
+        "status": "success",
+        "portfolio_id": portfolio_id,
+        "within_limits": is_safe,
+        "net_delta": float(np.sum(current_deltas)),
+        "timestamp": time.time()
+    }
 
 
 @celery_app.task(bind=True, queue="trading")

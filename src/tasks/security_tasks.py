@@ -8,8 +8,7 @@ Automated tasks for:
 - Auditing MFA configuration
 """
 
-import logging
-
+import structlog
 from sqlalchemy import select
 
 from src.database.models import User
@@ -17,7 +16,7 @@ from src.security.password import get_password_service
 from src.shared.db import get_db_session
 from src.tasks.celery_app import BaseTaskWithRetry, celery_app
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @celery_app.task(bind=True, base=BaseTaskWithRetry, queue="batch")
@@ -77,6 +76,35 @@ def rehash_legacy_passwords(self):
 def audit_mfa_secrets(self):
     """
     Audits the database for plaintext MFA secrets (Security Hardening).
+    Scans User table for secrets that don't match expected encrypted format.
     """
-    # Implementation for auditing/encrypting MFA secrets
-    pass
+    db_session = get_db_session()
+    try:
+        # 1. Fetch users with non-null MFA secrets
+        result = db_session.execute(
+            select(User).where(User.mfa_secret.isnot(None))
+        )
+        users = result.scalars().all()
+        
+        vulnerable_count = 0
+        for user in users:
+            # Heuristic: Encrypted secrets are usually longer and base64 encoded
+            # If it's short (e.g. 16-32 chars) and alphanumeric, it's likely plaintext
+            if len(user.mfa_secret) <= 32 and user.mfa_secret.isalnum():
+                vulnerable_count += 1
+                logger.warning(
+                    "plaintext_mfa_secret_detected",
+                    user_id=str(user.id),
+                    email=user.email
+                )
+        
+        return {
+            "status": "completed",
+            "users_audited": len(users),
+            "vulnerable_secrets_found": vulnerable_count,
+        }
+    except Exception as e:
+        logger.error(f"MFA audit task failed: {e}")
+        raise self.retry(exc=e) from e
+    finally:
+        db_session.close()

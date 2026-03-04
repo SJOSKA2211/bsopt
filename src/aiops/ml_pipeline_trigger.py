@@ -3,7 +3,7 @@ from typing import Any
 
 import structlog
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.pipeline import MLPipeline
 
 logger = structlog.get_logger()
 
@@ -23,8 +23,9 @@ class MLPipelineTrigger:
 
         def _run_pipeline():
             try:
-                pipeline = AutonomousMLPipeline(self.config)
-                pipeline.run()
+                pipeline = MLPipeline(self.config)
+                import asyncio
+                asyncio.run(pipeline.run())
                 logger.info("ml_pipeline_background_complete")
             except Exception as e:
                 logger.error("ml_pipeline_background_failed", error=str(e))

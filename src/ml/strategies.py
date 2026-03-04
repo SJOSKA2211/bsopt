@@ -4,6 +4,7 @@ import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.distributed as dist
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from torch.utils.data import DataLoader, TensorDataset
@@ -12,6 +13,22 @@ from src.ml.callbacks import EarlyStopping
 from src.ml.utils.distributed import train_xgboost_distributed
 
 logger = structlog.get_logger()
+
+
+def init_collective_backend():
+    """Initialize NCCL backend for multi-GPU training if available."""
+    if not torch.cuda.is_available():
+        return
+
+    try:
+        if not dist.is_initialized():
+            # Use 'gloo' as fallback for CPU or if NCCL fails
+            backend = "nccl" if torch.cuda.is_available() else "gloo"
+            dist.init_process_group(backend=backend, init_method="env://")
+            logger.info("dist_backend_initialized", backend=backend, world_size=dist.get_world_size())
+    except Exception as e:
+        logger.warning("dist_init_failed", error=str(e))
+
 
 
 class TrainingStrategy:
@@ -144,11 +161,16 @@ class PyTorchStrategy(TrainingStrategy):
         def __init__(self, input_dim: int):
             super().__init__()
             self.fc = nn.Sequential(
-                nn.Linear(input_dim, 16), nn.ReLU(), nn.Linear(16, 1), nn.Sigmoid()
+                nn.Linear(input_dim, 64),
+                nn.ReLU(),
+                nn.Linear(64, 32),
+                nn.ReLU(),
+                nn.Linear(32, 1) # Regression output
             )
 
         def forward(self, x):
             return self.fc(x)
+
 
     def train(
         self,
@@ -176,8 +198,9 @@ class PyTorchStrategy(TrainingStrategy):
             model.load_state_dict(base_model.state_dict())
 
         optimizer = optim.Adam(model.parameters(), lr=lr)
-        criterion = nn.BCELoss()
+        criterion = nn.MSELoss() # Changed to MSE for regression
         early_stopping = EarlyStopping(patience=patience)
+
 
         for epoch in range(epochs):
             model.train()
@@ -213,7 +236,8 @@ class PyTorchStrategy(TrainingStrategy):
         with torch.no_grad():
             X_t = torch.FloatTensor(X).to(device)
             outputs = model(X_t)
-            return (outputs.cpu().numpy() > 0.5).astype(int).flatten()
+            return outputs.cpu().numpy().flatten()
+
 
 
 STRATEGY_MAP = {

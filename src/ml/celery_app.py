@@ -4,7 +4,7 @@ import structlog
 from celery import Celery
 
 from src.config import get_settings
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.pipeline import MLPipeline
 
 # Initialize structured logger
 logger = structlog.get_logger()
@@ -30,8 +30,9 @@ def run_pipeline_task(self, config: dict[str, Any]):
     """
     logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
     try:
-        pipeline = AutonomousMLPipeline(config)
-        study = pipeline.run()
+        pipeline = MLPipeline(config)
+        import asyncio
+        study = asyncio.run(pipeline.run())
 
         result = {
             "status": "success",
