@@ -54,6 +54,20 @@ export interface OptionChainRow {
   underlying_price: number;
   call_theor?: number;
   put_theor?: number;
+  call_greeks_data?: {
+    delta: number;
+    gamma: number;
+    vega: number;
+    theta: number;
+    rho: number;
+  };
+  put_greeks_data?: {
+    delta: number;
+    gamma: number;
+    vega: number;
+    theta: number;
+    rho: number;
+  };
 }
 
 const GET_OPTIONS_CHAIN = gql`
@@ -203,23 +217,31 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const processedData = useMemo(() => {
     if (!optionsData) return [];
 
-    let filtered = optionsData;
+    let enriched = optionsData;
+
+    // ⚡ Bolt: Performance/Bugfix
+    // Enrich the FULL dataset matching `optionsData` with `enrichedResults` FIRST.
+    // Filtering first broke the 1-to-1 index mapping when `enrichedResults` was fetched
+    // for all options but applied to the smaller, filtered set.
+    if (isWasmLoaded && enrichedResults.length > 0) {
+      const half = optionsData.length;
+      enriched = optionsData.map((row: OptionChainRow, i: number) => ({
+        ...row,
+        call_theor: enrichedResults[i]?.price,
+        call_greeks_data: enrichedResults[i]?.greeks,
+        put_theor: enrichedResults[i + half]?.price,
+        put_greeks_data: enrichedResults[i + half]?.greeks,
+      }));
+    }
 
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter((row: OptionChainRow) =>
+      enriched = enriched.filter((row: OptionChainRow) =>
         row.strike.toString().includes(search)
       );
     }
 
-    if (!isWasmLoaded || enrichedResults.length === 0) return filtered;
-
-    const half = filtered.length;
-    return filtered.map((row: OptionChainRow, i: number) => ({
-      ...row,
-      call_theor: enrichedResults[i]?.price,
-      put_theor: enrichedResults[i + half]?.price,
-    }));
+    return enriched;
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
   const handleModelChange = React.useCallback((_: React.MouseEvent<HTMLElement> | null, value: string | null) => {
@@ -346,20 +368,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        // Mocking time/rate/div for demo purposes
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.call_iv}
-            rate={rate}
-            div={div}
-            isCall={true}
+            greeks={row.call_greeks_data}
+            price={row.call_theor}
           />
         );
       },
@@ -531,19 +544,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.put_iv}
-            rate={rate}
-            div={div}
-            isCall={false}
+            greeks={row.put_greeks_data}
+            price={row.put_theor}
           />
         );
       },
