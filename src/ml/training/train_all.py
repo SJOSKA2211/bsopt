@@ -40,11 +40,12 @@ async def train_all():
     pipeline = MLPipeline(config)
 
     try:
-        study = await pipeline.run()
-        if study:
-            logger.info("pipeline_success", best_value=study.best_value)
+        model = await pipeline.run()
+        if model:
+            logger.info("pipeline_success", model_promoted=True, framework=config["framework"])
         else:
             logger.info("pipeline_skipped_no_drift")
+
     except Exception as e:
         logger.critical("pipeline_fatal_error", error=str(e))
         raise

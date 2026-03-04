@@ -18,9 +18,6 @@ logger = structlog.get_logger(__name__)
 _IMPORT_MAP = {
     "mlflow": "mlflow",
     "pd": "pandas",
-    "train_fn": "src.ml.training.train.train",
-    "run_hpo": "src.ml.training.train.run_hyperparameter_optimization",
-    "collect_data": "src.ml.training.train.load_or_collect_data",
     "MLPipeline": "src.ml.pipeline.MLPipeline",
     "ModelQuantizer": "src.ml.serving.quantization.ModelQuantizer",
     "calc_metrics": "src.ml.evaluation.metrics.calculate_regression_metrics",
@@ -31,43 +28,36 @@ def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
 
 
-async def _run_async_safe(coro):
-    """Safely run an async coroutine from a potentially synchronous worker."""
-    import asyncio
-
-    try:
-        asyncio.get_running_loop()
-        return await coro
-    except RuntimeError:
-        return asyncio.run(coro)
-
-
 @celery_app.task(bind=True, queue="ml")
 def train_model_task(
     self,
+    ticker: str = "TSLA",
     model_type: str = "xgboost",
     hyperparams: dict | None = None,
 ):
-    """Async task to train an ML model with lazy-loaded dependencies."""
-    logger.info("training_model_start", model_type=model_type)
-    train_fn = _get_attr("train_fn")
+    """Async task to train an ML model using the unified pipeline."""
+    logger.info("training_model_start", ticker=ticker, model_type=model_type)
+    MLPipeline = _get_attr("MLPipeline")
 
     try:
-        # Call the actual training function
-        result_meta = asyncio.run(
-            train_fn(use_real_data=True, params=hyperparams, promote_threshold=0.95)
-        )
+        config = hyperparams or {}
+        config["ticker"] = ticker
+        config["framework"] = model_type
+        
+        pipeline = MLPipeline(config)
+        model = asyncio.run(pipeline.run(force=True))
 
         return {
             "task_id": self.request.id,
             "status": "completed",
-            "run_id": result_meta.get("run_id"),
-            "metrics": result_meta.get("metrics"),
-            "promoted": result_meta.get("promoted"),
+            "ticker": ticker,
+            "framework": model_type,
+            "promoted": model is not None,
         }
     except Exception as e:
         logger.error("training_error", error=str(e), task_id=self.request.id)
         return {"status": "failed", "error": str(e)}
+
 
 
 @celery_app.task(bind=True, queue="ml")
@@ -85,11 +75,12 @@ def monitor_drift_and_retrain_task(self):
             "framework": "xgboost",
         }
         pipeline = MLPipeline(config)
-        study = asyncio.run(pipeline.run())
+        model = asyncio.run(pipeline.run())
 
-        if study:
-            return {"status": "retrained", "best_value": study.best_value}
+        if model:
+            return {"status": "retrained", "model_class": model.__class__.__name__}
         return {"status": "no_drift_detected"}
+
     except Exception as e:
         logger.error("drift_monitoring_task_failed", error=str(e))
         return {"status": "failed", "error": str(e)}

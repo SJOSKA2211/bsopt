@@ -28,7 +28,7 @@ class BaseRemediator(ABC):
     @abstractmethod
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         """Execute the remediation action."""
-        pass
+        return False
 
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """
@@ -161,18 +161,52 @@ class ModelSwitchRemediator(BaseRemediator):
 
 class SiliconResetRemediator(BaseRemediator):
     """
-    Critical reset for low-latency workers.
+    Critical reset for low-latency workers (Direct Service Restart).
     """
 
     def __init__(self):
-        super().__init__("silicon_reset", supported_types=["critical_jitter"])
+        super().__init__("silicon_reset", supported_types=["critical_jitter", "worker_unresponsive"])
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.aiops.docker_remediator import DockerRemediator
         logger.warning("remediator_silicon_reset_initiated")
         docker = DockerRemediator()
-        await docker.restart_service("worker")
-        return True
+        success = await docker.restart_service("worker")
+        return success
+
+
+class KernelTuningRemediator(BaseRemediator):
+    """
+    Proactively tunes OS kernel parameters for low-latency processing.
+    Triggers the 'Vanguard' optimization script.
+    """
+
+    def __init__(self):
+        super().__init__("kernel_tuning", supported_types=["latency_spike", "system_jitter"])
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        logger.warning("remediator_kernel_tuning_initiated")
+        try:
+            # Executes the optimize_kernel.sh script.
+            # Requires sudo/root permissions or pre-configured NOPASSWD in sudoers.
+            proc = await asyncio.create_subprocess_exec(
+                "sudo",
+                "/app/scripts/optimize_kernel.sh",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
+
+            if proc.returncode == 0:
+                logger.info("remediator_kernel_tuning_successful", output=stdout.decode()[:100])
+                return True
+            else:
+                logger.error("remediator_kernel_tuning_failed", error=stderr.decode())
+                return False
+        except Exception as e:
+            logger.error("remediator_kernel_tuning_error", error=str(e))
+            return False
+
 
 
 class RemediationPlanner:
@@ -194,8 +228,10 @@ class RemediationPlanner:
                 AutonomousScalerRemediator(),
                 ModelSwitchRemediator(),
                 SiliconResetRemediator(),
+                KernelTuningRemediator(),
             ]
             self.remediators = {r.name: r for r in defaults}
+
 
     def plan(self, anomaly: dict[str, Any]) -> list[BaseRemediator]:
         """
