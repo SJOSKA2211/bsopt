@@ -2,9 +2,9 @@ from typing import Any
 
 import structlog
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.optim as optim
-import torch.distributed as dist
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from torch.utils.data import DataLoader, TensorDataset

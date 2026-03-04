@@ -271,7 +271,7 @@ class MLPipeline:
 
         market_data_records = [
             {
-                "time": pd.to_datetime(ts, unit="s", utc=True) if isinstance(ts, (int, float)) else pd.to_datetime(ts),
+                "time": pd.to_datetime(ts, unit="s", utc=True) if isinstance(ts, int | float) else pd.to_datetime(ts),
                 "symbol": self.ticker,
                 "price": float(c),
                 "volume": int(v),

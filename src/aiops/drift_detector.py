@@ -5,7 +5,6 @@ import numpy as np
 import structlog
 from prometheus_client import Gauge
 
-from src.database import AsyncSessionLocal
 from src.ml.drift import calculate_ks_test, calculate_psi
 from src.pricing.factory import PricingEngineFactory
 
