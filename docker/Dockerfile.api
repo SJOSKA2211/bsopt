@@ -9,8 +9,9 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml requirements.txt ./
-RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
 
 FROM python:3.13-slim AS development
 WORKDIR /app

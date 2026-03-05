@@ -1,6 +1,5 @@
 """
 Authentication Functional Tests (Refined Plan)
-==============================================
 """
 
 import pytest

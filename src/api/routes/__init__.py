@@ -1,6 +1,5 @@
 """
 API Routes
-==========
 
 Modular API route definitions:
 - Authentication routes

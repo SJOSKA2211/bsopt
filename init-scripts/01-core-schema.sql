@@ -2,12 +2,35 @@
 -- Black-Scholes Option Pricing Platform - Core Schema
 -- ============================================================================
 
+-- Custom Types for Optimization (ENUMs are faster and save space)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_tier') THEN
+        CREATE TYPE user_tier AS ENUM ('free', 'pro', 'enterprise');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_side') THEN
+        CREATE TYPE order_side AS ENUM ('buy', 'sell');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
+        CREATE TYPE order_status AS ENUM ('pending', 'filled', 'partially_filled', 'cancelled', 'rejected');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_type') THEN
+        CREATE TYPE order_type AS ENUM ('market', 'limit', 'stop', 'stop_limit');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'position_status') THEN
+        CREATE TYPE position_status AS ENUM ('open', 'closed');
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ml_algorithm') THEN
+        CREATE TYPE ml_algorithm AS ENUM ('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble');
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
     full_name VARCHAR(255),
-    tier VARCHAR(20) DEFAULT 'free' CHECK (tier IN ('free', 'pro', 'enterprise')),
+    tier user_tier DEFAULT 'free',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     last_login TIMESTAMPTZ,
     is_active BOOLEAN DEFAULT TRUE,
@@ -75,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_users_tier_active ON users(tier, is_active);
 
 CREATE TABLE IF NOT EXISTS options_prices (
     time TIMESTAMPTZ NOT NULL,
-    symbol VARCHAR(20) NOT NULL,
+    symbol TEXT NOT NULL,
     strike NUMERIC(12, 2) NOT NULL,
     expiry DATE NOT NULL,
     option_type VARCHAR(4) NOT NULL CHECK (option_type IN ('call', 'put')),
@@ -98,7 +121,7 @@ ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 500;
 
 CREATE TABLE IF NOT EXISTS market_ticks (
     time TIMESTAMPTZ NOT NULL,
-    symbol VARCHAR(20) NOT NULL,
+    symbol TEXT NOT NULL,
     price NUMERIC(15, 4) NOT NULL,
     volume INTEGER,
     side VARCHAR(4) -- 'buy' or 'sell'
@@ -125,7 +148,7 @@ CREATE INDEX IF NOT EXISTS idx_portfolios_user_name ON portfolios(user_id, name)
 CREATE TABLE IF NOT EXISTS positions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
-    symbol VARCHAR(20) NOT NULL,
+    symbol TEXT NOT NULL,
     strike NUMERIC(12, 2),
     expiry DATE,
     option_type VARCHAR(4) CHECK (option_type IS NULL OR option_type IN ('call', 'put')),
@@ -136,7 +159,7 @@ CREATE TABLE IF NOT EXISTS positions (
     exit_price NUMERIC(12, 4),
     exit_date TIMESTAMPTZ,
     realized_pnl NUMERIC(15, 2),
-    status VARCHAR(10) DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+    status position_status DEFAULT 'open',
     CONSTRAINT exit_price_requires_exit_date CHECK (
         (exit_price IS NULL AND exit_date IS NULL) OR
         (exit_price IS NOT NULL AND exit_date IS NOT NULL)
@@ -155,16 +178,16 @@ CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     portfolio_id UUID NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
-    symbol VARCHAR(20) NOT NULL,
+    symbol TEXT NOT NULL,
     strike NUMERIC(12, 2),
     expiry DATE,
     option_type VARCHAR(4) CHECK (option_type IS NULL OR option_type IN ('call', 'put')),
-    side VARCHAR(4) NOT NULL CHECK (side IN ('buy', 'sell')),
+    side order_side NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    order_type VARCHAR(15) NOT NULL CHECK (order_type IN ('market', 'limit', 'stop', 'stop_limit')),
+    order_type order_type NOT NULL,
     limit_price NUMERIC(12, 4),
     stop_price NUMERIC(12, 4),
-    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'filled', 'partially_filled', 'cancelled', 'rejected')),
+    status order_status DEFAULT 'pending',
     filled_quantity INTEGER DEFAULT 0,
     filled_price NUMERIC(12, 4),
     broker VARCHAR(50),
@@ -198,7 +221,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_symbol_status ON orders(symbol, status, cr
 CREATE TABLE IF NOT EXISTS ml_models (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
-    algorithm VARCHAR(50) NOT NULL CHECK (algorithm IN ('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble')),
+    algorithm ml_algorithm NOT NULL,
     version INTEGER NOT NULL CHECK (version > 0),
     hyperparameters JSONB,
     training_metrics JSONB,
@@ -224,7 +247,7 @@ CREATE TABLE model_predictions (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
-    symbol VARCHAR(20) NOT NULL,
+    symbol TEXT NOT NULL,
     input_features JSONB NOT NULL,
     predicted_price NUMERIC(12, 4) NOT NULL,
     actual_price NUMERIC(12, 4),
@@ -237,7 +260,8 @@ CREATE INDEX IF NOT EXISTS idx_model_predictions_symbol_time ON model_prediction
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
 
-CREATE TABLE IF NOT EXISTS rate_limits (
+-- High-throughput transient table: UNLOGGED for zero WAL overhead
+CREATE UNLOGGED TABLE IF NOT EXISTS rate_limits (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     endpoint VARCHAR(100) NOT NULL,
     window_start TIMESTAMPTZ NOT NULL,

@@ -1,6 +1,5 @@
 """
 Pricing Schemas (Optimized)
-==========================
 
 High-performance schemas using msgspec for ultra-low latency serialization.
 Fallback to Pydantic for complex validation if needed, but core paths use msgspec.

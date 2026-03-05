@@ -1,6 +1,5 @@
 """
 Heston Pricing Strategy Implementation
-======================================
 
 Standardized wrapper for the Heston Stochastic Volatility model.
 """

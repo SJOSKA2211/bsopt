@@ -1,6 +1,5 @@
 """
 Distributed Tracing Configuration (OpenTelemetry)
-=================================================
 
 Provides a centralized OpenTelemetry configuration for distributed tracing
 across FastAPI, Celery, and other services.

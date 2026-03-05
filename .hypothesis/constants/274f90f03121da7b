@@ -1,0 +1,4 @@
+# file: /app/src/ml/models/neural_engine.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.001, 128, 'call', 'cpu', 'cuda']

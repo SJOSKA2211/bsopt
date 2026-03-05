@@ -1,6 +1,5 @@
 """
 Common API Schemas
-==================
 
 Shared schemas for API responses and pagination.
 """

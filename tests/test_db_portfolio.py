@@ -35,6 +35,7 @@ def test_portfolio_relationships(db_engine):
 
         # Create User
         user_id = str(uuid4())
+        unique_email = f"test_{uuid4()}@example.com"
         conn.execute(
             text(
                 """
@@ -42,7 +43,7 @@ def test_portfolio_relationships(db_engine):
             VALUES (:id, :email, 'Test User', 'pro', 'hashed_pass_placeholder')
         """
             ),
-            {"id": user_id, "email": "test@example.com"},
+            {"id": user_id, "email": unique_email},
         )
 
         # Create Portfolio
@@ -87,63 +88,117 @@ def test_portfolio_relationships(db_engine):
 
         row = result.fetchone()
         assert row is not None
-        assert row.email == "test@example.com"
+        assert row.email == unique_email
         assert row.symbol == "AAPL"
 
 
 def test_rls_enforcement(db_engine):
     """Test that RLS prevents unauthorized access."""
     with db_engine.connect() as conn:
-        # Create two users
-        user_a = str(uuid4())
-        user_b = str(uuid4())
-
         try:
             conn.execute(text("TRUNCATE users CASCADE;"))
             conn.commit()
         except Exception:
             conn.rollback()
 
+        # Create two users
+        user_a = str(uuid4())
+        user_b = str(uuid4())
+
+        # Reset session context and set to a dummy admin or similar if needed
+        # Actually, for admin to insert a specific user ID, they need to BE that user or bypass RLS.
+        # Since we FORCE RLS, we must BE the user we are inserting for that specific row.
+        
+        # 1. Setup two users and portfolios
+        user_a = str(uuid4())
+        user_b = str(uuid4())
+        user_a_portfolio = str(uuid4())
+        user_b_portfolio = str(uuid4())
+
+        email_a = f"a_{uuid4()}@test.com"
+        email_b = f"b_{uuid4()}@test.com"
+
+        # To insert user_a, we must set context to user_a
+        conn.execute(text(f"SET app.current_user_id = '{user_a}'"))
         conn.execute(
             text(
                 """
-            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, 'a@test.com', 'pro', 'h1')
+            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, :email, 'pro', 'h1')
         """
             ),
-            {"id": user_a},
+            {"id": user_a, "email": email_a},
         )
 
+        # To insert user_b, we must set context to user_b
+        conn.execute(text(f"SET app.current_user_id = '{user_b}'"))
         conn.execute(
             text(
                 """
-            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, 'b@test.com', 'pro', 'h2')
+            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, :email, 'pro', 'h2')
         """
             ),
-            {"id": user_b},
+            {"id": user_b, "email": email_b},
         )
 
+        # To insert portfolios, we must follow similar logic
+        conn.execute(text(f"SET app.current_user_id = '{user_a}'"))
         conn.execute(
             text(
                 """
             INSERT INTO portfolios (id, user_id, name) VALUES (:id, :uid, 'A Portfolio')
         """
             ),
-            {"id": str(uuid4()), "uid": user_a},
+            {"id": user_a_portfolio, "uid": user_a},
+        )
+
+        conn.execute(text(f"SET app.current_user_id = '{user_b}'"))
+        conn.execute(
+            text(
+                """
+            INSERT INTO portfolios (id, user_id, name) VALUES (:id, :uid, 'B Portfolio')
+        """
+            ),
+            {"id": user_b_portfolio, "uid": user_b},
         )
 
         conn.commit()
 
-        # Simulate User B session within a transaction
-        with conn.begin():
-            conn.execute(text(f"SET LOCAL app.current_user_id = '{user_b}';"))
-            # User B should NOT see User A's portfolio
-            result = conn.execute(text("SELECT * FROM portfolios"))
-            rows = result.fetchall()
-            assert len(rows) == 0, "RLS failed: User B saw User A's portfolio"
+        # Reset session context
+        conn.execute(text("SET app.current_user_id = ''"))
 
-        # Simulate User A within a transaction
-        with conn.begin():
-            conn.execute(text(f"SET LOCAL app.current_user_id = '{user_a}';"))
-            result = conn.execute(text("SELECT * FROM portfolios"))
-            rows = result.fetchall()
-            assert len(rows) == 1, "RLS failed: User A could not see their own portfolio"
+        # Use a raw connection/cursor for RLS because SQLAlchemy session management 
+        # can conflict with manual transaction control for RLS variables.
+        raw_conn = conn.connection.driver_connection
+        
+        # Prepare a non-superuser role for testing RLS
+        # We use 'app_user' which we already created and granted permissions to.
+
+        # Reset session context
+        conn.execute(text("SET app.current_user_id = ''"))
+        conn.execute(text("RESET ROLE"))
+
+        # Simulate User B session
+        with raw_conn.cursor() as cur:
+            cur.execute("SET ROLE app_user;")
+            cur.execute(f"SET app.current_user_id = '{user_b}';")
+
+            # Verify RLS on portfolios
+            cur.execute("SELECT id FROM portfolios;")
+            rows = cur.fetchall()
+            print(f"\nDEBUG User B (app_user) saw portfolios: {[str(r[0]) for r in rows]}")
+            for r in rows:
+                assert str(r[0]) != user_a_portfolio, "RLS failure: User B saw User A's data"
+            assert len(rows) == 1, f"User B should see 1 portfolio, saw {len(rows)}"
+            cur.execute("RESET ROLE;")
+
+        # Simulate User A
+        with raw_conn.cursor() as cur:
+            cur.execute("SET ROLE app_user;")
+            cur.execute(f"SET app.current_user_id = '{user_a}';")
+            cur.execute("SELECT id FROM portfolios;")
+            rows = cur.fetchall()
+            print(f"DEBUG User A (app_user) saw portfolios: {[str(r[0]) for r in rows]}")
+            assert len(rows) == 1, "User A should see 1 portfolio"
+            assert str(rows[0][0]) == user_a_portfolio
+            cur.execute("RESET ROLE;")
+

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Black-Scholes Option Pricing Platform CLI - Complete Version
-=============================================================
 
 Full-featured command-line interface with authentication, portfolio management,
 and comprehensive option pricing tools.
@@ -57,9 +56,7 @@ from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
 console = Console()
 
 
-# ============================================================================
 # Global Context
-# ============================================================================
 
 
 class CLIContext:
@@ -97,9 +94,7 @@ def cli(ctx):
     ctx.obj["cli_ctx"] = CLIContext()
 
 
-# ============================================================================
 # Authentication Commands
-# ============================================================================
 
 
 @cli.group()
@@ -197,9 +192,7 @@ def whoami(ctx):
         console.print("[dim]Use 'bsopt auth login' to authenticate[/dim]\n")
 
 
-# ============================================================================
 # Price Command (Enhanced)
-# ============================================================================
 
 
 @cli.command()
@@ -428,9 +421,7 @@ def _display_comparison(results: dict[str, Any], output_format: str):
     console.print()
 
 
-# ============================================================================
 # Greeks Command
-# ============================================================================
 
 
 @cli.command()
@@ -551,9 +542,7 @@ def greeks(
         sys.exit(1)
 
 
-# ============================================================================
 # Portfolio Commands
-# ============================================================================
 
 
 @cli.group()
@@ -763,9 +752,7 @@ def portfolio_pnl(ctx):
     console.print()
 
 
-# ============================================================================
 # Config Commands
-# ============================================================================
 
 
 @cli.group()
@@ -889,9 +876,7 @@ def config_reset(ctx, scope: str, confirm: bool):
     console.print(f"[green]Configuration reset to defaults[/green] ({scope})")
 
 
-# ============================================================================
 # Additional Commands (from original CLI)
-# ============================================================================
 
 # Import remaining commands from the original implementation
 # These were already implemented: batch, serve, init_db, fetch_data,

@@ -88,10 +88,6 @@ class StreamingDataLoader:
                     for chunk in reader:
                         yield self._process_chunk(chunk)
             elif self.file_path.endswith(".parquet"):
-                # Parquet doesn't support chunked reading natively in Pandas as easily as CSV
-                # But PyArrow does. For simplicity, we'll assume memory mapping if possible
-                # or just load it if it fits, otherwise use pyarrow directly.
-                # Here we default to full load for parquet unless using pyarrow
                 df = pd.read_parquet(self.file_path)
                 # Simulate chunks
                 for i in range(0, len(df), self.chunk_size):
@@ -104,19 +100,42 @@ class StreamingDataLoader:
         """
         Normalize and feature engineer a chunk of data using the Feature Store.
         """
-        # Define standard features to compute
         required_features = ["log_return"]
-
-        # Use centralized Feature Store
-        # Synthetic OHLC is handled implicitly by the store's pre-processing logic for now
-        # or we can explicitly ask for it if we defined it as such.
-        # In our store implementation, we call SyntheticOHLCFeature transform automatically.
-
         try:
             processed_chunk = feature_store.compute_features(chunk, required_features)
             return processed_chunk
         except Exception as e:
             logger.error("chunk_processing_error", error=str(e))
-            # Return original chunk or raise depending on policy.
-            # Raising is safer for training integrity.
             raise e
+
+
+class DatabaseDataLoader:
+    """
+    God-Mode ML Data Loader: Fetches training data directly from revamped hypertables.
+    Uses the VectorizedDBEngine (Binary COPY/Fetch) for maximum throughput.
+    """
+
+    def __init__(self, chunk_size: int = 50000):
+        self.chunk_size = chunk_size
+
+    async def fetch_training_set(self, symbol: str, days: int = 30) -> pd.DataFrame:
+        """
+        Fetch a full training set for a symbol using high-speed binary retrieval.
+        """
+        from src.database.pipeliner import db_engine
+        
+        # Optimized query hitting our SIMD-compressed hypertables
+        query = f"SELECT * FROM options_prices WHERE symbol = '{symbol}' AND time > NOW() - INTERVAL '{days} days' LIMIT {self.chunk_size}"
+        
+        async with db_engine as db:
+            # We use generic_bulk_copy for speed if needed, but for retrieval 
+            # we use fetch_training_data which is already binary optimized.
+            data = await db.fetch_training_data([symbol], limit=self.chunk_size)
+            
+            if not data:
+                return pd.DataFrame()
+                
+            df = pd.DataFrame(data)
+            
+            # Apply feature store transformations in-memory
+            return await feature_store.compute_features(df, ["log_return"])

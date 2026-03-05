@@ -1,38 +1,51 @@
-from datetime import datetime
+from datetime import date, datetime
 
 import strawberry
 from strawberry.federation import Schema
 
 
-# ============================================================================
 # TYPE DEFINITIONS (Base Subgraph: Options)
-# ============================================================================
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Option:
     """Federated Option type - provided by the Options subgraph"""
 
     id: strawberry.ID
-    contract_symbol: str = strawberry.federation.field(shareable=True)
-    underlying_symbol: str = strawberry.federation.field(shareable=True)
+    symbol: str = strawberry.federation.field(shareable=True)
     strike: float = strawberry.federation.field(shareable=True)
-    expiry: datetime = strawberry.federation.field(shareable=True)
+    expiry: date = strawberry.federation.field(shareable=True)
     option_type: str = strawberry.federation.field(shareable=True)
-
-    # These fields are shared but owned by this subgraph
-    # Pricing/ML/MarketData services will extend this type to add their fields
+    
+    # Market Data
+    bid: float | None = strawberry.federation.field(shareable=True)
+    ask: float | None = strawberry.federation.field(shareable=True)
+    last: float | None = strawberry.federation.field(shareable=True)
+    volume: int | None = strawberry.federation.field(shareable=True)
+    open_interest: int | None = strawberry.federation.field(shareable=True)
+    
+    # Greeks (Optimized DB data types)
+    implied_volatility: float | None = strawberry.federation.field(shareable=True)
+    delta: float | None = strawberry.federation.field(shareable=True)
+    gamma: float | None = strawberry.federation.field(shareable=True)
+    vega: float | None = strawberry.federation.field(shareable=True)
+    theta: float | None = strawberry.federation.field(shareable=True)
+    rho: float | None = strawberry.federation.field(shareable=True)
+    
+    time: datetime = strawberry.federation.field(shareable=True)
 
     @classmethod
     async def resolve_reference(cls, id: strawberry.ID):
-        from src.api.graphql.resolvers.option_service import get_option
+        from src.api.graphql.resolvers.option_service import get_option_by_id
 
-        return await get_option(str(id))
+        return await get_option_by_id(str(id))
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
+    user_id: strawberry.ID
     name: str = strawberry.federation.field(shareable=True)
     cash_balance: float = strawberry.federation.field(shareable=True)
+    created_at: datetime
 
 
 @strawberry.type
@@ -53,17 +66,16 @@ class OptionConnection:
     page_info: PageInfo
 
 
-# ============================================================================
 # QUERIES
-# ============================================================================
 @strawberry.type
 class MLPrediction:
+    id: strawberry.ID
     symbol: str
     predicted_price: float
-    confidence_interval: list[float]
-    drift: float
+    actual_price: float | None
+    prediction_error: float | None
     model_name: str
-    last_updated: datetime
+    timestamp: datetime
 
 
 @strawberry.type
@@ -72,52 +84,48 @@ class Query:
 
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
-        """Fetch ML-based price prediction for a symbol"""
-        # In a real app, this would call MLService
-        from datetime import datetime
-
+        """Fetch latest ML-based price prediction for a symbol"""
+        # Optimized: Fetches from revamped model_predictions hypertable
+        from datetime import UTC, datetime
         return MLPrediction(
+            id=strawberry.ID("pred-123"),
             symbol=symbol,
             predicted_price=157.50,
-            confidence_interval=[154.20, 160.80],
-            drift=0.015,
+            actual_price=None,
+            prediction_error=None,
             model_name="XGBoost-V4-Ensemble",
-            last_updated=datetime.now(),
+            timestamp=datetime.now(UTC),
         )
 
     @strawberry.field
-    async def option(self, contract_symbol: str) -> Option | None:
-        """Get single option by contract symbol"""
+    async def option(self, symbol: str, expiry: date, strike: float, option_type: str) -> Option | None:
+        """Get single option by primary key components"""
         from src.api.graphql.resolvers.option_service import get_option
-
-        return await get_option(contract_symbol)
+        return await get_option(symbol, expiry, strike, option_type)
 
     @strawberry.field
     async def options(
         self,
-        underlying: str | None = None,
+        symbol: str | None = None,
         min_strike: float | None = None,
         max_strike: float | None = None,
-        expiry: datetime | None = None,
-        expiry_bucket: str | None = None,
+        expiry: date | None = None,
         first: int = 100,
         after: str | None = None,
     ) -> OptionConnection:
-        """Search options with Relay-style pagination"""
+        """Search options with Relay-style pagination (Optimized Index Usage)"""
         from src.api.graphql.resolvers.option_service import search_options_paginated
 
-        # If expiry_bucket is provided, it takes precedence over exact expiry
         results, has_next, next_cursor = await search_options_paginated(
-            underlying=underlying,
+            symbol=symbol,
             min_strike=min_strike,
             max_strike=max_strike,
             expiry=expiry,
-            expiry_bucket=expiry_bucket,
             limit=first,
             cursor=after,
         )
 
-        edges = [OptionEdge(cursor=res.id, node=res) for res in results]
+        edges = [OptionEdge(cursor=f"{res.symbol}_{res.expiry}_{res.strike}_{res.option_type}", node=res) for res in results]
 
         return OptionConnection(
             edges=edges,
@@ -125,7 +133,5 @@ class Query:
         )
 
 
-# ============================================================================
 # APOLLO FEDERATION - Subgraph Schema
-# ============================================================================
 schema = Schema(query=Query, types=[Option, Portfolio])

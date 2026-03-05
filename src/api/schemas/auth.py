@@ -1,6 +1,5 @@
 """
 Authentication Schemas
-======================
 
 Pydantic models for authentication endpoints.
 """

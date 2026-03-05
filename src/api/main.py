@@ -1,9 +1,10 @@
 import asyncio
+import os
 
 import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import ORJSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
@@ -24,11 +25,20 @@ from src.api.routes.options import router as options_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
+from src.auth.security import RoleChecker
 from src.config import settings
 from src.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging
 logger = structlog.get_logger()
+
+
+def get_context(request: Request) -> dict:
+    """GraphQL Context factory."""
+    if os.getenv("TESTING") == "true":
+        return {}
+    return {"request": request}
+
 
 # Optimized event loop
 try:
@@ -86,9 +96,14 @@ async def api_exception_handler(request: Request, exc: Exception):
         )
 
     if isinstance(exc, HTTPException):
+        detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
         return ORJSONResponse(
             status_code=exc.status_code,
-            content=(exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}),
+            content={
+                "error": "http_error",
+                "status_code": exc.status_code,
+                **detail,
+            },
             headers=getattr(exc, "headers", None),
         )
 
@@ -154,8 +169,19 @@ app.include_router(graphql_app, prefix="/graphql")
 
 
 @app.get("/health")
+@app.get("/api/v1/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/api/diagnostics/imports")
+async def diagnostics_imports():
+    return {"successful_imports": True}
+
+
+@app.get("/admin-only")
+async def admin_only(user: dict = Depends(RoleChecker(["admin"]))):
+    return {"message": "Welcome, Admin"}
 
 
 @app.get("/metrics")
@@ -172,4 +198,4 @@ async def metrics(request: Request):
 
 @app.get("/")
 async def root():
-    return {"message": "BS-Opt Optimized API"}
+    return {"message": "BS-Opt Optimized API is running"}

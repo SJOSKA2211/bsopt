@@ -1,16 +1,19 @@
 """
 Options data routes used by the frontend dashboard.
-
-These endpoints provide a lightweight, in-process mock options chain so that
-the UI can render without requiring a live market data feed.
+Optimized for high-performance database retrieval.
 """
 
 from datetime import date, timedelta
 from typing import Any
+from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
 
 from src.api.schemas.common import DataResponse
+from src.database import get_async_db
+from src.database.models import OptionPrice
 
 router = APIRouter(prefix="/options", tags=["Options"])
 
@@ -19,12 +22,66 @@ router = APIRouter(prefix="/options", tags=["Options"])
 async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
+    db: AsyncSession = Depends(get_async_db),
 ) -> DataResponse:
-    """Return a small synthetic options chain for the requested symbol."""
+    """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
+<<<<<<< HEAD
     if not symbol.isalnum() or len(symbol) > 10:
         return DataResponse(data=[], message="Invalid symbol format")
 
+=======
+    
+    # 1. Attempt real DB lookup
+    try:
+        stmt = select(OptionPrice).where(OptionPrice.symbol == symbol)
+        
+        # Simple date logic for expiry filters
+        today = date.today()
+        if expiry == "week":
+            stmt = stmt.where(OptionPrice.expiry <= today + timedelta(days=7))
+        elif expiry == "month":
+            stmt = stmt.where(OptionPrice.expiry <= today + timedelta(days=30))
+        elif expiry == "quarter":
+            stmt = stmt.where(OptionPrice.expiry <= today + timedelta(days=90))
+            
+        stmt = stmt.order_by(OptionPrice.expiry.asc(), OptionPrice.strike.asc())
+        
+        result = await db.execute(stmt)
+        prices = result.scalars().all()
+        
+        if prices:
+            return DataResponse(
+                data=[
+                    {
+                        "id": f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
+                        "symbol": p.symbol,
+                        "strike": float(p.strike),
+                        "expiry": p.expiry.isoformat(),
+                        "option_type": p.option_type,
+                        "bid": float(p.bid) if p.bid else 0.0,
+                        "ask": float(p.ask) if p.ask else 0.0,
+                        "last": float(p.last) if p.last else 0.0,
+                        "volume": p.volume,
+                        "open_interest": p.open_interest,
+                        "iv": p.implied_volatility,
+                        "delta": p.delta,
+                        "gamma": p.gamma,
+                        "vega": p.vega,
+                        "theta": p.theta,
+                        "rho": p.rho,
+                        "time": p.time.isoformat()
+                    }
+                    for p in prices
+                ],
+                message="Real-time manifold data"
+            )
+    except Exception as e:
+        # Fallback to synthetic if DB is empty/fails in dev
+        pass
+
+    # 2. Fallback: Synthetic data generation
+>>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)
     today = date.today()
     expiries: list[str] = []
     if expiry in {"all", "week"}:
@@ -40,34 +97,21 @@ async def get_options_chain(
     strikes = [110.0, 115.0, 120.0, 125.0, 130.0]
 
     rows: list[dict[str, Any]] = []
-    row_id = 0
     for exp in expiries:
         for strike in strikes:
-            moneyness = underlying_price / strike
-            row_id += 1
             rows.append(
                 {
-                    "id": f"{symbol}-{exp}-{strike}",
+                    "id": f"{symbol}-{exp}-{strike}-call",
                     "strike": strike,
                     "expiry": exp,
-                    "call_bid": max(1.0, (underlying_price - strike) * 0.4),
-                    "call_ask": max(1.2, (underlying_price - strike) * 0.45),
-                    "call_last": max(1.1, (underlying_price - strike) * 0.43),
-                    "call_volume": 100 * row_id,
-                    "call_oi": 500 * row_id,
-                    "call_iv": 0.25 + (moneyness - 1.0) * 0.02,
-                    "call_delta": 0.5 + (moneyness - 1.0) * 0.4,
-                    "call_gamma": 0.02,
-                    "put_bid": max(1.0, (strike - underlying_price) * 0.4),
-                    "put_ask": max(1.2, (strike - underlying_price) * 0.45),
-                    "put_last": max(1.1, (strike - underlying_price) * 0.43),
-                    "put_volume": 120 * row_id,
-                    "put_oi": 400 * row_id,
-                    "put_iv": 0.27 + (1.0 - moneyness) * 0.02,
-                    "put_delta": -0.5 + (1.0 - moneyness) * 0.4,
-                    "put_gamma": 0.02,
-                    "underlying_price": underlying_price,
+                    "option_type": "call",
+                    "bid": max(1.0, (underlying_price - strike) * 0.4),
+                    "ask": max(1.2, (underlying_price - strike) * 0.45),
+                    "last": max(1.1, (underlying_price - strike) * 0.43),
+                    "volume": 100,
+                    "iv": 0.25,
+                    "delta": 0.5,
                 }
             )
 
-    return DataResponse(data=rows)
+    return DataResponse(data=rows, message="Synthetic fallback data")

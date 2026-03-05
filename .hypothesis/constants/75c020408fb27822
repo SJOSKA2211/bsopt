@@ -1,0 +1,4 @@
+# file: /app/src/aiops/anomaly_detector.py
+# hypothesis_version: 6.151.9
+
+[-0.5, 0.001, 0.05, 0.1, 0.2, 0.5, 128, 1000, 'autoencoder', 'contamination', 'cpu', 'cuda', 'culprit_index', 'index', 'input_dim', 'is_anomaly', 'isolation_forest', 'latent_dim', 'outlier', 'reconstruction_error', 'score', 'sequence_anomaly', 'sum', 'threshold', 'transformer', 'type']

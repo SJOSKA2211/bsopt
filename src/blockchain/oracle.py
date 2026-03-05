@@ -1,7 +1,6 @@
-import asyncio
 import structlog
+
 from src.utils.cache import get_redis
-from src.scrapers.mesh_publisher import get_market_publisher
 
 logger = structlog.get_logger(__name__)
 

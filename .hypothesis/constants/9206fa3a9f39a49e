@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipelines/sentiment_ingest.py
+# hypothesis_version: 6.151.9
+
+[0.0, 1.0, 'bootstrap.servers', 'group.id', 'invalid_json_message', 'localhost:9092', 'news_feed', 'sentiment_group', 'sentiment_score', 'sentiment_scores', 'symbol', 'text', 'timestamp', 'utf-8']

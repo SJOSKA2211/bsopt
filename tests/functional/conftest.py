@@ -1,6 +1,5 @@
 """
 Fixtures for Functional Tests (Principles 27, 53, 93, 94)
-======================================================
 """
 
 import uuid

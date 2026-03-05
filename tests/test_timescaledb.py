@@ -4,8 +4,6 @@ from datetime import UTC, datetime, timedelta
 import psycopg2
 import pytest
 
-from tests.test_utils import assert_equal
-
 # Use environment variable or fallback to default
 DATABASE_URL = os.getenv("DATABASE_URL_SYNC", "postgresql://admin:29a47839acf362c9ebb5679a@postgres:5432/bsopt")
 
@@ -99,7 +97,6 @@ def test_model_predictions_aggregate(db_conn):
 
         # Verify drift metrics view (which replaced the old model_daily_performance cagg)
         cur.execute("SELECT * FROM model_drift_metrics_mv;")
-        rows = cur.fetchall()
         # Since model_id is NULL, they might not show up if the view groups by model_id
         # Let's check the view definition or insert a dummy model
         

@@ -1,0 +1,4 @@
+# file: /app/src/blockchain/defi_options.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 1.2, 137, 'UNKNOWN', 'Web3 initialized', '__main__', '_amount', 'address', 'aggregate3', 'allowFailure', 'baseFeePerGas', 'big', 'blockchain_tx_error', 'bool', 'buy', 'bytes', 'callData', 'calls', 'components', 'constant', 'ether', 'from', 'function', 'gas', 'get_price', 'get_price()', 'inputs', 'internalType', 'latest', 'maxFeePerGas', 'maxPriorityFeePerGas', 'multicall_failed', 'name', 'nonce', 'outputs', 'price', 'returnData', 'rpc_circuit_opened', 'slippage_check', 'stateMutability', 'status', 'success', 'symbol', 'target', 'time', 'tuple[]', 'type', 'uint256', 'view']

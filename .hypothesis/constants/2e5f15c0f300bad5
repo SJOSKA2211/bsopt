@@ -1,0 +1,4 @@
+# file: /app/src/blockchain/oracle.py
+# hypothesis_version: 6.151.9
+
+['oracle_feed_updated']

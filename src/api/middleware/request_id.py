@@ -1,6 +1,5 @@
 """
 Request ID Middleware
-=====================
 
 Generates and tracks unique request IDs for:
 - Request tracing across services

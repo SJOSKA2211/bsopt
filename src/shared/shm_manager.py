@@ -1,6 +1,5 @@
 """
 Shared Memory Context Manager
-=============================
 
 Enables zero-copy data sharing across processes using multiprocessing.shared_memory.
 Uses msgspec for ultra-fast binary serialization.

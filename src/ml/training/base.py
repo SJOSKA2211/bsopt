@@ -1,6 +1,5 @@
 """
 Unified Base Trainer for BS-OPT
-===============================
 Provides shared functionality for MLflow tracking, logging, and experiment management.
 """
 

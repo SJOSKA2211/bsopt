@@ -1,6 +1,5 @@
 """
 Breach Notification Service
-===========================
 
 Service for handling data breach notifications as required by GDPR.
 """

@@ -35,9 +35,7 @@ from src.pricing.vol_surface import (
 )
 from tests.test_utils import assert_equal
 
-# ============================================================================
 # Test Fixtures and Utilities
-# ============================================================================
 
 
 @pytest.fixture
@@ -86,9 +84,7 @@ def assert_close(actual: float, expected: float, rtol: float = 1e-5, atol: float
     )
 
 
-# ============================================================================
 # SVI Model Tests
-# ============================================================================
 
 
 class TestSVIParameters:
@@ -251,9 +247,7 @@ class TestSVIModel:
             model.implied_volatility(Decimal("100.0"), Decimal("100.0"), 0.0)
 
 
-# ============================================================================
 # SABR Model Tests
-# ============================================================================
 
 
 class TestSABRParameters:
@@ -388,9 +382,7 @@ class TestSABRModel:
             model.implied_volatility(Decimal("100.0"), Decimal("100.0"), 0.0)
 
 
-# ============================================================================
 # Calibration Engine Tests
-# ============================================================================
 
 
 class TestCalibrationEngine:
@@ -522,9 +514,7 @@ class TestCalibrationEngine:
             engine.calibrate_svi([])
 
 
-# ============================================================================
 # Arbitrage Detection Tests
-# ============================================================================
 
 
 class TestArbitrageDetector:
@@ -604,9 +594,7 @@ class TestArbitrageDetector:
         assert results["num_violations"] > 0
 
 
-# ============================================================================
 # Volatility Surface Tests
-# ============================================================================
 
 
 class TestVolatilitySurface:
@@ -725,9 +713,7 @@ class TestVolatilitySurface:
             surface.implied_volatility(Decimal("100.0"), 0.5)
 
 
-# ============================================================================
 # Integration Tests
-# ============================================================================
 
 
 class TestIntegration:
@@ -850,9 +836,7 @@ class TestIntegration:
         # But SABR provides more financial interpretation
 
 
-# ============================================================================
 # Edge Case Tests
-# ============================================================================
 
 
 class TestEdgeCases:
@@ -919,9 +903,7 @@ class TestEdgeCases:
         assert diag["rmse"] is not None
 
 
-# ============================================================================
 # Performance Benchmarks
-# ============================================================================
 
 
 class TestPerformance:

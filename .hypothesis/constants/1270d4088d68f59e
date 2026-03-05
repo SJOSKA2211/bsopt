@@ -1,0 +1,4 @@
+# file: /app/src/trading/risk_kernels.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 10000.0, 1000]

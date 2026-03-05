@@ -23,6 +23,13 @@ __all__ = [
     "SABRModel",
     # Quantum Methods (Heavy!)
     "QuantumOptionPricer",
+    # High-Performance Kernels (quant_utils)
+    "batch_bs_price_jit",
+    "batch_greeks_jit",
+    "scalar_bs_price_jit",
+    "scalar_greeks_jit",
+    "jit_cn_solver",
+    "vectorized_newton_raphson_iv_jit",
 ]
 
 if TYPE_CHECKING:
@@ -31,6 +38,14 @@ if TYPE_CHECKING:
     from .calibration.svi_surface import SVISurface
     from .models.heston_fft import HestonModelFFT
     from .monte_carlo import MonteCarloEngine
+    from .quant_utils import (
+        batch_bs_price_jit,
+        batch_greeks_jit,
+        jit_cn_solver,
+        scalar_bs_price_jit,
+        scalar_greeks_jit,
+        vectorized_newton_raphson_iv_jit,
+    )
     from .quantum_pricing import QuantumOptionPricer
     from .vol_surface import SABRModel
 
@@ -45,6 +60,13 @@ _import_map = {
     "SABRModel": ".vol_surface",
     # Quantum (Very slow - always lazy)
     "QuantumOptionPricer": ".quantum_pricing",
+    # Kernels
+    "batch_bs_price_jit": ".quant_utils",
+    "batch_greeks_jit": ".quant_utils",
+    "scalar_bs_price_jit": ".quant_utils",
+    "scalar_greeks_jit": ".quant_utils",
+    "jit_cn_solver": ".quant_utils",
+    "vectorized_newton_raphson_iv_jit": ".quant_utils",
 }
 
 

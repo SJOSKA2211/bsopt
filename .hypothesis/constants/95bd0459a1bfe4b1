@@ -1,0 +1,4 @@
+# file: /app/src/ml/autonomous_pipeline.py
+# hypothesis_version: 6.151.9
+
+['AAPL', 'ADX_14', 'ATR_14', 'BBL', 'BBM', 'BBU', 'MACD_12_26_9', 'RSI_14', 'api_key', 'auto', 'close', 'db_url', 'framework', 'high', 'low', 'n_trials', 'sqlite:///:memory:', 'study_name', 'ticker', 'xgboost']

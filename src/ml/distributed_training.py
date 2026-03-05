@@ -45,6 +45,7 @@ def train_func(config: dict[str, Any]):
     )
 
     # Wrap for DDP
+    import ray.train.torch
     model = ray.train.torch.prepare_model(model)
 
     optimizer = th.optim.AdamW(model.parameters(), lr=config.get("lr", 1e-4), weight_decay=1e-2)

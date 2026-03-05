@@ -1,6 +1,5 @@
 """
 OAuth2 Authentication Service (Async)
-=====================================
 
 Refactored to support full OAuth2 flows:
 - Authorization Code (for user-facing apps)

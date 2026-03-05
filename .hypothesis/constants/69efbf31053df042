@@ -1,0 +1,4 @@
+# file: /app/src/utils/chaos.py
+# hypothesis_version: 6.151.9
+
+[2.0, '1', 'BSOPT_CHAOS_MODE']

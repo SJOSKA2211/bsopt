@@ -1,6 +1,5 @@
 """
 HTTP Header and Cookie Functional Tests (Principles 64, 79, 95)
-============================================================
 """
 
 import pytest

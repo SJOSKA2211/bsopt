@@ -6,11 +6,11 @@ from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.schemas.common import DataResponse
 from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
-from src.database import get_db
+from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
 from src.services.ml_service import MLService, get_ml_service
 
@@ -21,11 +21,12 @@ logger = structlog.get_logger(__name__)
 @router.post("/predict")
 async def predict(
     request: InferenceRequest,
+    symbol: str = "UNKNOWN",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
 ) -> DataResponse:
     """Predict option price using ML models."""
-    return DataResponse(data=await ml_service.predict(request, model_type))
+    return DataResponse(data=await ml_service.predict(request, model_type, symbol))
 
 
 @router.get("/predictions")
@@ -36,10 +37,6 @@ async def get_predictions(
 ) -> DataResponse:
     """
     Convenience endpoint for the frontend dashboard.
-
-    The UI calls ``GET /api/v1/ml/predictions?symbol=...`` with a symbol only;
-    here we synthesize a reasonable ``InferenceRequest`` using that symbol and
-    delegate to the main ``/predict`` logic.
     """
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
@@ -57,12 +54,14 @@ async def get_predictions(
         days_to_expiry=365.0,
         implied_volatility=0.2,
     )
-    return DataResponse(data=await ml_service.predict(req, model_type))
+    return DataResponse(data=await ml_service.predict(req, model_type, symbol))
 
 
 @router.get("/drift-metrics")
 async def get_drift_metrics(
-    model_id: UUID | None = None, db: Session = Depends(get_db)
+    model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
 ) -> DataResponse:
-    """Fetch model performance metrics."""
-    return DataResponse(data=DriftMetricsResponse(metrics=get_model_drift_metrics(db, model_id)))
+    """Fetch model performance metrics (Async Optimized)."""
+    # Note: CRUD method name assumed to be aligned with async pattern
+    metrics = await get_model_drift_metrics(db, model_id)
+    return DataResponse(data=DriftMetricsResponse(metrics=metrics))

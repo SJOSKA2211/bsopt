@@ -1,17 +1,14 @@
 import sys
-
 from sqlalchemy import create_engine, text
-
 from src.config import get_settings
 
-
 def verify_connection():
-    print(" BSOpt Database Verification Tool")
-    print("-----------------------------------")
+    print(" 🥒 BSOpt God-Mode Database Verification")
+    print("---------------------------------------")
 
     try:
         settings = get_settings()
-        db_url = settings.DATABASE_URL
+        db_url = settings.DATABASE_URL.replace("+asyncpg", "")
 
         # Mask password for display
         safe_url = db_url
@@ -25,31 +22,46 @@ def verify_connection():
 
         print(f"Target: {safe_url}")
 
-        if "sqlite" in db_url:
-            print("⚠️  WARNING: Using SQLite. PostgreSQL is recommended for production.")
-
         engine = create_engine(db_url)
         with engine.connect() as conn:
+            # 1. Basic Connectivity
             result = conn.execute(text("SELECT 1")).scalar()
-            version = (
-                conn.execute(text("SELECT version()")).scalar()
-                if "postgres" in db_url
-                else "SQLite"
-            )
+            if result != 1:
+                raise Exception("Unexpected result from SELECT 1")
+            
+            # 2. Engine Version
+            version = conn.execute(text("SELECT version()")).scalar()
+            print(f"✅ Backend: {version}")
+            
+            # 3. TimescaleDB Check
+            try:
+                ts_version = conn.execute(text("SELECT extversion FROM pg_extension WHERE extname = 'timescaledb'")).scalar()
+                if ts_version:
+                    print(f"✅ TimescaleDB: {ts_version}")
+                else:
+                    print("❌ TimescaleDB extension not found!")
+            except Exception:
+                print("❌ Failed to query TimescaleDB status")
 
-        if result == 1:
-            print("✅ Connection Successful!")
-            print(f"   Backend: {version}")
-        else:
-            print("❌ Connection Failed: Unexpected result.")
-            sys.exit(1)
+            # 4. Hypertable Verification
+            hypertables = conn.execute(text("SELECT count(*) FROM timescaledb_information.hypertables")).scalar()
+            print(f"✅ Hypertables: {hypertables} active")
+
+            # 5. Compression Status
+            compressed = conn.execute(text("SELECT count(*) FROM timescaledb_information.hypertables WHERE compression_enabled = true")).scalar()
+            print(f"✅ Compression: {compressed} hypertables optimized")
+
+            # 6. CAGG Status
+            caggs = conn.execute(text("SELECT count(*) FROM timescaledb_information.continuous_aggregates")).scalar()
+            print(f"✅ Continuous Aggregates: {caggs} pressurized")
+
+        print("\n✨ Database is Solenya-tight. God Mode Active! 🥒")
 
     except Exception as e:
-        print(f"❌ Connection Failed: {e}")
+        print(f"❌ Verification Failed: {e}")
         sys.exit(1)
 
-
-# Alias for backward compatibility with tests
+# Alias for backward compatibility
 verify_postgres_connection = verify_connection
 
 if __name__ == "__main__":

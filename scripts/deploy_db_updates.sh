@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e
 
-# Deployment script for database updates
-# Usage: ./deploy_db_updates.sh
+# ==============================================================================
+# BS-OPT: THE GOD MODE DB UPDATER (v2.0)
+# ==============================================================================
+# Applies incremental optimizations and schema refreshes.
+# ==============================================================================
 
-echo "🚀 Deploying database updates..."
+echo "🥒 Pressurizing the Manifold (Incremental Updates)..."
 
-# Default values for local dev
 DB_HOST=${POSTGRES_HOST:-localhost}
 DB_PORT=${POSTGRES_PORT:-5432}
-DB_USER=${POSTGRES_USER:-postgres}
+DB_USER=${POSTGRES_USER:-admin}
 DB_NAME=${POSTGRES_DATABASE:-bsopt}
 
 if [ -z "$POSTGRES_PASSWORD" ]; then
@@ -17,11 +19,8 @@ if [ -z "$POSTGRES_PASSWORD" ]; then
     exit 1
 fi
 
-echo "📍 Target Database: $DB_HOST:$DB_PORT/$DB_NAME"
-
-# Check if psql is installed
 if ! command -v psql &> /dev/null; then
-    echo "❌ ERROR: 'psql' command not found. Please install postgresql-client."
+    echo "❌ ERROR: 'psql' command not found."
     exit 1
 fi
 
@@ -40,18 +39,24 @@ trap cleanup EXIT
 # Apply optimization scripts in order
 SCRIPTS=(
     "init-scripts/05-indexes.sql"
+    "init-scripts/06-compression-retention.sql"
     "init-scripts/07-continuous-aggregates.sql"
     "init-scripts/08-materialized-views.sql"
+    "init-scripts/09-security.sql"
 )
 
 for script in "${SCRIPTS[@]}"; do
     if [ -f "$script" ]; then
-        echo "  ➡️ Applying $script..."
+        echo "  🥒 Applying $script..."
         psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$script"
     else
         echo "  ⚠️  Warning: $script not found, skipping."
     fi
 done
 
-echo "✅ Database optimized and materialized views created successfully."
-echo "🎉 Database deployment complete."
+# Force a maintenance pass
+echo "🚀 Running Maintenance Pass..."
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "VACUUM ANALYZE;"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT refresh_all_continuous_aggregates();"
+
+echo "✅ Manifold pressurized and optimized. Solenya-tight! 🥒"

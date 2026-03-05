@@ -27,30 +27,36 @@ class PrometheusClient:
             return True
         except Exception as e:
             logger.error("prometheus_connectivity_failed", url=self.url, error=str(e))
-            return False
+            raise
 
     def get_5xx_error_rate(self, service: str) -> float:
         """Fetches the current 5xx error rate for a service."""
+        if not service:
+            raise ValueError("Service name cannot be empty")
+
         query = f'sum(rate(http_requests_total{{status=~"5..", service="{service}"}}[5m])) / sum(rate(http_requests_total{{service="{service}"}}[5m]))'
         try:
-            result = self.prom.custom_query(query)
+            result = self.prom.custom_query(query=query)
             if result:
                 return float(result[0]["value"][1])
             return 0.0
         except Exception as e:
-            logger.error("error_rate_fetch_failed", error=str(e))
+            logger.error("fetch_5xx_failed", service=service, error=str(e), query=query)
             return 0.0
 
     def get_p95_latency(self, service: str) -> float:
         """Fetches the 95th percentile latency for a service."""
+        if not service:
+            raise ValueError("Service name cannot be empty")
+
         query = f'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{{service="{service}"}}[5m])) by (le))'
         try:
-            result = self.prom.custom_query(query)
+            result = self.prom.custom_query(query=query)
             if result:
                 return float(result[0]["value"][1])
             return 0.0
         except Exception as e:
-            logger.error("latency_fetch_failed", error=str(e))
+            logger.error("fetch_p95_failed", service=service, error=str(e), query=query)
             return 0.0
 
     def get_metric_range(

@@ -33,9 +33,7 @@ from .models import (
 
 logger = structlog.get_logger()
 
-# =============================================================================
 # USER OPERATIONS
-# =============================================================================
 
 
 async def get_user_by_id(db: AsyncSession, user_id: UUID) -> User | None:
@@ -93,8 +91,8 @@ async def get_active_users_by_tier(db: AsyncSession, tier: str, limit: int = 100
 
 
 async def update_user_last_login(db: AsyncSession, user_id: UUID) -> None:
-    """Update user's last login timestamp (Async)."""
-    await db.execute(update(User).where(User.id == user_id).values(last_login=func.now()))
+    """Update user's last login timestamp using native procedure (Async)."""
+    await db.execute(text("SELECT update_last_login_native(:uid)"), {"uid": user_id})
     await db.commit()
 
 
@@ -104,9 +102,7 @@ async def update_user_tier(db: AsyncSession, user_id: UUID, tier: str) -> None:
     await db.commit()
 
 
-# =============================================================================
 # PORTFOLIO OPERATIONS
-# =============================================================================
 
 
 async def get_portfolio_by_id(db: AsyncSession, portfolio_id: UUID) -> Portfolio | None:
@@ -185,9 +181,7 @@ async def update_portfolio_cash(
     return bool(result.rowcount > 0)
 
 
-# =============================================================================
 # POSITION OPERATIONS
-# =============================================================================
 
 
 async def get_position_by_id(db: AsyncSession, position_id: UUID) -> Position | None:
@@ -352,9 +346,7 @@ async def close_position(
     return position
 
 
-# =============================================================================
 # ORDER OPERATIONS
-# =============================================================================
 
 
 async def get_order_by_id(db: AsyncSession, order_id: UUID) -> Order | None:
@@ -452,9 +444,7 @@ async def update_order_status(
     return bool(result.rowcount > 0)
 
 
-# =============================================================================
 # ML MODEL OPERATIONS
-# =============================================================================
 
 
 async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
@@ -520,9 +510,7 @@ async def set_production_model(db: AsyncSession, model_id: UUID) -> bool:
     return True
 
 
-# =============================================================================
 # OPTION PRICE OPERATIONS
-# =============================================================================
 
 
 async def get_latest_option_price(
@@ -845,9 +833,7 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
         raise
 
 
-# =============================================================================
 # AGGREGATION QUERIES
-# =============================================================================
 
 
 async def get_portfolio_summary(db: AsyncSession, user_id: UUID) -> list[dict]:
@@ -920,8 +906,8 @@ async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) 
                 SELECT 
                     symbol,
                     day as trade_date,
-                    open, high, low, close, volume
-                FROM daily_ohlcv_cagg 
+                    high, low, avg_price, volume
+                FROM daily_stats_chained_cagg 
                 WHERE symbol = :symbol 
                 ORDER BY day DESC 
                 LIMIT :limit
@@ -937,7 +923,7 @@ async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) 
 
 async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list[dict]:
     """
-    Fetch daily OHLCV data from TimescaleDB continuous aggregate.
+    Fetch daily stats data from TimescaleDB continuous aggregate.
     """
     try:
         from sqlalchemy import text
@@ -948,8 +934,8 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
                 """
                 SELECT 
                     day as time,
-                    open, high, low, close, volume
-                FROM daily_ohlcv_cagg
+                    high, low, avg_price, volume
+                FROM daily_stats_chained_cagg
                 WHERE symbol = :symbol
                 AND day > NOW() - (INTERVAL '1 day' * :days)
                 ORDER BY day ASC
@@ -1003,8 +989,8 @@ async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24
                 """
                 SELECT 
                     hour as time,
-                    avg_price, total_volume, tick_count
-                FROM hourly_stats_cagg
+                    avg_price, volume as total_volume, count as tick_count
+                FROM hourly_stats_chained_cagg
                 WHERE symbol = :symbol
                 AND hour > NOW() - (INTERVAL '1 hour' * :hours)
                 ORDER BY hour ASC

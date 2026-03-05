@@ -208,7 +208,7 @@ class QuantumOptionPricer:
 
             logger.info(
                 "quantum_pricing_success",
-                symbol=params.get("symbol", "N/A") if 'params' in locals() else "N/A",
+                symbol=locals().get("params", {}).get("symbol", "N/A"),
                 price=round(float(option_price), 4),
                 speedup=round(speedup, 2),
             )

@@ -1,6 +1,5 @@
 """
 API Schemas
-===========
 
 Pydantic models for request/response validation:
 - Authentication schemas

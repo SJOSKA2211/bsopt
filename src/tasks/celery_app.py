@@ -1,6 +1,5 @@
 """
 Celery Application Configuration - Production Optimized
-=========================================================
 
 Optimized for:
 - High throughput with priority queues
@@ -23,9 +22,7 @@ from kombu import Exchange, Queue
 
 logger = logging.getLogger(__name__)
 
-# =============================================================================
 # Environment Configuration
-# =============================================================================
 
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL")
 
@@ -36,9 +33,7 @@ REDIS_URL = os.environ.get("REDIS_URL") or redis_fallback
 
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
 
-# =============================================================================
 # Exchange and Queue Definitions
-# =============================================================================
 
 # Exchanges for different priority levels
 default_exchange = Exchange("default", type="direct")
@@ -101,9 +96,7 @@ task_queues = (
     ),
 )
 
-# =============================================================================
 # Celery Application
-# =============================================================================
 
 celery_app = Celery(
     "bsopt",
@@ -118,9 +111,7 @@ celery_app = Celery(
     ],
 )
 
-# =============================================================================
 # Celery Configuration
-# =============================================================================
 
 celery_app.conf.update(
     # Serialization
@@ -265,9 +256,7 @@ celery_app.conf.update(
 )
 
 
-# =============================================================================
 # Signal Handlers for Monitoring
-# =============================================================================
 
 
 @signals.task_prerun.connect
@@ -300,9 +289,7 @@ def worker_shutdown_handler(sender, **kw):
     logger.info(f"Worker shutting down: {sender}")
 
 
-# =============================================================================
 # Built-in Tasks
-# =============================================================================
 
 
 @celery_app.task(bind=True, queue="pricing", priority=1)
@@ -356,9 +343,7 @@ def refresh_pricing_cache(self):
         return {"status": "failed", "error": str(e)}
 
 
-# =============================================================================
 # Task Base Classes with Retry Logic
-# =============================================================================
 
 
 class BaseTaskWithRetry(Task):
@@ -437,9 +422,7 @@ celery_app.MLTask = MLTask  # type: ignore
 celery_app.TradingTask = TradingTask  # type: ignore
 
 
-# =============================================================================
 # Main Entry Point
-# =============================================================================
 
 if __name__ == "__main__":
     celery_app.start()

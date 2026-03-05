@@ -1,6 +1,5 @@
 """
 CLI Authentication Manager
-==========================
 
 Handles user login, logout, and token management for the CLI.
 Stores tokens securely in the user's home directory.

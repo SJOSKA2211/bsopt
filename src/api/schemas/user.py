@@ -1,6 +1,5 @@
 """
 User Schemas
-============
 
 Pydantic models for user management endpoints.
 """

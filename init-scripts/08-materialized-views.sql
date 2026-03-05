@@ -5,6 +5,7 @@
 -- 1. Market Stats (Leveraging Continuous Aggregates for performance)
 -- Note: daily_stats_chained_cagg already provides OHLCV
 DROP MATERIALIZED VIEW IF EXISTS market_stats_mv;
+DROP VIEW IF EXISTS market_stats_view;
 CREATE VIEW market_stats_view AS 
 SELECT symbol, day as trade_date, low, high, avg_price, volume as total_volume 
 FROM daily_stats_chained_cagg;
@@ -74,3 +75,22 @@ WITH NO DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_latest_vol_surface_unique 
 ON latest_vol_surface (symbol, expiry, strike, option_type);
+
+-- 6. Performance Diagnostics (Query Bottleneck Detection)
+CREATE OR REPLACE VIEW pg_stat_sluggish_queries AS
+SELECT 
+    (total_exec_time / 1000 / 60) as total_min, 
+    (total_exec_time / calls) as avg_ms, 
+    query 
+FROM pg_stat_statements 
+ORDER BY total_exec_time DESC 
+LIMIT 20;
+
+-- 7. Index Size Diagnostic
+CREATE OR REPLACE VIEW pg_stat_index_sizes AS
+SELECT
+    schemaname, relname, indexrelname,
+    pg_size_pretty(pg_relation_size(pg_index.indexrelid)) AS index_size
+FROM pg_stat_user_indexes
+JOIN pg_index ON pg_stat_user_indexes.indexrelid = pg_index.indexrelid
+WHERE pg_relation_size(pg_index.indexrelid) > 1024 * 1024; -- Only check indexes > 1MB

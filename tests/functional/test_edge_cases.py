@@ -1,6 +1,5 @@
 """
 Edge Case Functional Tests (Principles 31, 49, 57, 73, 81, 89, 97)
-==============================================================
 """
 
 import pytest

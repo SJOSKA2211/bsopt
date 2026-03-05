@@ -1,6 +1,5 @@
 """
 Security Tasks - Background Security Hardening
-==============================================
 
 Automated tasks for:
 - Rehashing legacy Bcrypt passwords to Argon2id

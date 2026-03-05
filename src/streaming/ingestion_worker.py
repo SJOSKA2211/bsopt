@@ -1,5 +1,4 @@
 import asyncio
-import os
 from datetime import UTC, datetime
 
 import structlog
@@ -8,7 +7,7 @@ from fastapi.responses import ORJSONResponse
 
 from src.api.websockets.manager import manager as ws_manager
 from src.data.xdp_ingest import XDPIngester
-from src.database import get_async_db_context
+from src.database.pipeliner import db_engine
 from src.shared.eternal_ledger import EternalLedger
 from src.shared.observability import setup_logging, tune_gc
 from src.streaming.kafka_consumer import MarketDataConsumer
@@ -50,7 +49,7 @@ class BroadcastWorker:
 
 
 class PersistenceWorker:
-    """The Scribe: Dedicated to high-throughput DB persistence and Binary Ledger."""
+    """The Scribe: Dedicated to high-throughput DB persistence using Vectorized COPY."""
 
     def __init__(self):
         self.queue = asyncio.Queue(maxsize=1000)
@@ -58,44 +57,38 @@ class PersistenceWorker:
         self.ledger = EternalLedger()
 
     async def run(self):
-        from src.database.crud import bulk_insert_option_prices
-
         self.running = True
         logger.info("persistence_worker_active")
 
-        # OPTIMIZED: Maintain a single session context for the worker life
-        async with get_async_db_context() as db:
+        # OPTIMIZED: Use our new God-Mode Vectorized Engine (Binary COPY)
+        async with db_engine as db:
             while self.running:
                 batch = await self.queue.get()
                 try:
-                    #  HOT PATH: Persistent Binary Logging (Zero-latency)
+                    # 1. HOT PATH: Persistent Binary Ledger (Zero-latency local disk)
                     self.ledger.write_batch(batch)
 
-                    # 2. Historical DB Persistence
+                    # 2. Historical DB Persistence (Binary COPY protocol)
                     now_utc = datetime.now(UTC)
                     today_date = now_utc.date()
+                    
+                    # Convert to tuples for asyncpg COPY
                     transformed = [
-                        {
-                            "time": item.get("timestamp", now_utc),
-                            "symbol": item["symbol"],
-                            "strike": item.get("strike", 0.0),
-                            "expiry": item.get("expiry", today_date),
-                            "option_type": item.get("option_type", "call"),
-                            "last": item["price"],
-                            "bid": item.get("bid", 0.0),
-                            "ask": item.get("ask", 0.0),
-                            "volume": item.get("volume", 0),
-                            "open_interest": item.get("open_interest", 0),
-                            "implied_volatility": item.get("implied_volatility", 0.0),
-                            "delta": item.get("delta"),
-                            "gamma": item.get("gamma"),
-                            "vega": item.get("vega"),
-                            "theta": item.get("theta"),
-                            "rho": item.get("rho"),
-                        }
+                        (
+                            item.get("timestamp", now_utc),
+                            item["symbol"],
+                            item.get("strike", 0.0),
+                            item.get("expiry", today_date),
+                            item.get("option_type", "call"),
+                            item["price"],
+                            item.get("delta"),
+                            item.get("gamma"),
+                            item.get("implied_volatility", 0.0)
+                        )
                         for item in batch
                     ]
-                    await bulk_insert_option_prices(db, transformed)
+                    
+                    await db.insert_prices_vectorized(transformed)
                 except Exception as e:
                     logger.error("persistence_batch_failed", error=str(e))
                 finally:
@@ -132,40 +125,20 @@ class IngestionWorker:
         except asyncio.QueueFull:
             pass
 
-    async def run_dispatcher(self, cpu_core: int):
-        """Pure dispatcher: Kafka -> Queues."""
+    async def run(self):
+        """Unified entry point for starting all components."""
         self.running = True
-        try:
-            os.sched_setaffinity(0, {cpu_core})
-            logger.info("dispatcher_pinned", core=cpu_core)
-        except Exception:
-            pass
-
+        # Launch specialized threads/tasks
+        asyncio.create_task(self.scribe.run())
+        asyncio.create_task(self.broadcaster.run())
+        
+        # Start consuming (blocking)
         while self.running:
             try:
                 await self.consumer.consume_messages(callback=self._dispatch_batch)
-                break
             except Exception as e:
                 logger.error("dispatcher_crash", error=str(e))
                 await asyncio.sleep(1)
-
-    async def run_broadcaster(self, cpu_core: int):
-        """Voice: Dedicated thread for WS broadcasting."""
-        try:
-            os.sched_setaffinity(0, {cpu_core})
-            logger.info("broadcaster_pinned", core=cpu_core)
-        except Exception:
-            pass
-        await self.broadcaster.run()
-
-    async def run_scribe(self, cpu_core: int):
-        """Scribe: Dedicated thread for DB persistence."""
-        try:
-            os.sched_setaffinity(0, {cpu_core})
-            logger.info("scribe_pinned", core=cpu_core)
-        except Exception:
-            pass
-        await self.scribe.run()
 
     def stop(self):
         """Graceful shutdown of all subsystems."""
