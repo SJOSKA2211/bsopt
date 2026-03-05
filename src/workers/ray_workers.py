@@ -68,4 +68,10 @@ if __name__ == "__main__":
     # Local test
     RayOrchestrator.init()
     actor = MathActor.remote()
-    print(ray.get(actor.run_calibration.remote("SPY", [])))
+    spots = np.array([100.0])
+    strikes = np.array([100.0])
+    times = np.array([1.0])
+    vols = np.array([0.2])
+    rates = np.array([0.05])
+    result = ray.get(actor.calibrate_batch.remote(spots, strikes, times, vols, rates))
+    logger.info("manual_calibration_result", result=result)

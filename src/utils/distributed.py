@@ -107,5 +107,5 @@ class RayOrchestrator:
 
 if __name__ == "__main__":
     RayOrchestrator.init()
-    print(f"Ray Nodes: {ray.nodes()}")
+    logger.info("ray_nodes_detected", nodes=ray.nodes())
     RayOrchestrator.shutdown()
