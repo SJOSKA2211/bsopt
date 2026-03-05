@@ -59,6 +59,10 @@ export interface OptionChainRow {
   underlying_price: number;
   call_theor?: number;
   put_theor?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  call_model_greeks?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  put_model_greeks?: any;
 }
 
 const GET_OPTIONS_CHAIN = gql`
@@ -95,12 +99,14 @@ interface OptionsChainProps {
 
 export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
   const theme = useTheme();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore - palette expansion defined in theme index
   const qfd = theme.palette.financial?.qfd;
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
   const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [enrichedResults, setEnrichedResults] = useState<any[]>([]);
   const [lastSpot, setLastSpot] = useState<number>(0);
 
@@ -114,9 +120,12 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const { tick } = useMarketData(symbol);
 
   useEffect(() => {
+
     if (tick?.lastPrice) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastSpot(tick.lastPrice);
     } else if (gqlData?.marketData?.lastPrice) {
+
       setLastSpot(gqlData.marketData.lastPrice);
     }
   }, [tick, gqlData]);
@@ -125,10 +134,12 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nodes = gqlData.options.edges.map((e: any) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     nodes.forEach((node: any) => {
       const key = `${node.strike}-${node.expiry}`;
       if (!groups[key]) {
@@ -236,6 +247,8 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       ...row,
       call_theor: enrichedResults[i]?.price,
       put_theor: enrichedResults[i + half]?.price,
+      call_model_greeks: enrichedResults[i]?.greeks,
+      put_model_greeks: enrichedResults[i + half]?.greeks,
     }));
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
@@ -371,19 +384,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.call_iv}
-            rate={rate}
-            div={div}
-            isCall={true}
+            price={row.call_theor}
+            greeks={row.call_model_greeks}
           />
         );
       },
@@ -578,19 +583,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.put_iv}
-            rate={rate}
-            div={div}
-            isCall={false}
+            price={row.put_theor}
+            greeks={row.put_model_greeks}
           />
         );
       },
