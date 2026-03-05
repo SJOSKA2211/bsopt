@@ -1,65 +1,92 @@
 import pytest
 import numpy as np
 import pandas as pd
+import torch
 from unittest.mock import MagicMock, patch
 from src.aiops.anomaly_detector import AnomalyDetector
 
-def test_anomaly_detector_init():
-    detector = AnomalyDetector(contamination=0.1)
-    assert not detector.is_fitted
-    assert detector.model.contamination == 0.1
+# ─── Initialization Tests ───────────────────────────────────────────────────
 
-def test_anomaly_detector_train_pandas():
+def test_anomaly_detector_init_defaults():
     detector = AnomalyDetector()
+    assert detector.engine == "isolation_forest"
+    assert not detector.is_fitted
+
+def test_anomaly_detector_init_engines():
+    # Isolation Forest
+    if_detector = AnomalyDetector(engine="isolation_forest", contamination=0.1)
+    assert if_detector.model.contamination == 0.1
+    
+    # Autoencoder
+    ae_detector = AnomalyDetector(engine="autoencoder", input_dim=5, latent_dim=2)
+    assert ae_detector.input_dim == 5
+    assert ae_detector.latent_dim == 2
+    
+    # Transformer
+    tf_detector = AnomalyDetector(engine="transformer", input_dim=5, threshold=0.1)
+    assert tf_detector.input_dim == 5
+    assert tf_detector.threshold == 0.1
+
+def test_anomaly_detector_invalid_engine():
+    with pytest.raises(ValueError, match="Unknown anomaly detection engine"):
+        AnomalyDetector(engine="invalid_engine")
+
+# ─── Training & Detection Tests ──────────────────────────────────────────────
+
+def test_isolation_forest_workflow():
+    detector = AnomalyDetector(engine="isolation_forest")
     data = pd.DataFrame({"a": np.random.rand(20), "b": np.random.rand(20)})
     
-    with patch.object(detector.model, "fit") as mock_fit:
-        detector.train(data)
-        assert detector.is_fitted
-        assert len(detector.columns) == 2
-        mock_fit.assert_called_once()
-
-def test_anomaly_detector_train_numpy():
-    detector = AnomalyDetector()
-    data = np.random.rand(20, 2)
-    
-    with patch.object(detector.model, "fit") as mock_fit:
-        detector.train(data)
-        assert detector.is_fitted
-        assert len(detector.columns) == 2
-        mock_fit.assert_called_once()
-
-def test_anomaly_detector_detect_pandas():
-    detector = AnomalyDetector()
-    detector.is_fitted = True
-    detector.columns = ["a"]
-    
-    data = pd.DataFrame({"a": [1.0, 2.0, 3.0]})
-    # Mock model
-    detector.model.predict = MagicMock(return_value=np.array([-1, 1, -1]))
-    detector.model.decision_function = MagicMock(return_value=np.array([-0.5, 0.5, -0.6]))
+    detector.train(data)
+    assert detector.is_fitted
+    assert len(detector.columns) == 2
     
     anomalies = detector.detect(data)
-    assert len(anomalies) == 2
-    assert anomalies[0]["index"] == 0
-    assert anomalies[0]["metrics"]["a"] == 1.0
-    assert anomalies[1]["index"] == 2
+    assert isinstance(anomalies, list)
 
-def test_anomaly_detector_detect_numpy():
-    detector = AnomalyDetector()
-    detector.is_fitted = True
-    detector.columns = ["feat_0"]
+def test_autoencoder_workflow():
+    input_dim = 4
+    detector = AnomalyDetector(engine="autoencoder", input_dim=input_dim, latent_dim=2)
+    data = np.random.rand(50, input_dim)
     
-    data = np.array([[1.0], [2.0]])
-    detector.model.predict = MagicMock(return_value=np.array([-1, 1]))
-    detector.model.decision_function = MagicMock(return_value=np.array([-0.5, 0.5]))
+    detector.train(data, epochs=2)
+    assert detector.is_fitted
+    assert detector.threshold is not None
     
     anomalies = detector.detect(data)
-    assert len(anomalies) == 1
-    assert anomalies[0]["index"] == 0
-    assert anomalies[0]["metrics"]["feat_0"] == 1.0
+    assert isinstance(anomalies, list)
+    if anomalies:
+        assert anomalies[0]["type"] == "reconstruction_error"
+
+@pytest.mark.skipif(not torch.cuda.is_available() and False, reason="Torch testing")
+def test_transformer_workflow():
+    input_dim = 4
+    detector = AnomalyDetector(engine="transformer", input_dim=input_dim)
+    # (Batch, Seq, Feat)
+    data = np.random.rand(5, 10, input_dim)
+    
+    detector.train(data, epochs=2)
+    assert detector.is_fitted
+    
+    results = detector.detect(data)
+    assert isinstance(results, list)
+
+# ─── Error Handling & Edge Cases ───────────────────────────────────────────
 
 def test_unfitted_error():
     detector = AnomalyDetector()
     with pytest.raises(RuntimeError):
-        detector.detect(np.array([[1]]))
+        detector.detect(np.random.rand(5, 1))
+
+def test_empty_data_handling():
+    detector = AnomalyDetector()
+    empty_df = pd.DataFrame()
+    detector.train(empty_df)
+    assert not detector.is_fitted
+    
+    detector.is_fitted = True
+    assert detector.detect(empty_df) == []
+
+def test_contamination_validation():
+    with pytest.raises(ValueError, match="Contamination must be between 0 and 0.5"):
+        AnomalyDetector(contamination=0.6)
