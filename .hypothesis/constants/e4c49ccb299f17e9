@@ -1,0 +1,4 @@
+# file: /app/src/database/__init__.py
+# hypothesis_version: 6.151.9
+
+['&', '+asyncpg', '?', 'SELECT 1', 'dev', 'postgresql', 'postgresql://', 'prod', 'sqlite', 'sqlite+aiosqlite://', 'sqlite://', 'ssl', 'sslmode', 'test', 'user_id']

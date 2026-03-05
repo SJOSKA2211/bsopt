@@ -59,7 +59,7 @@ class ClearRedisCacheRemediator(BaseRemediator):
             logger.info("remediator_clear_cache_completed")
             return True
         except Exception as e:
-            logger.error("remediator_clear_cache_failed", error=str(e))
+            logger.error("remediator_clear_cache_failed", error=str(e), exc_info=True)
             return False
 
 
@@ -225,7 +225,7 @@ class DatabasePoolRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_db_pool_recovery_initiated")
         try:
-            from src.database.session import engine
+            from src.database import engine
 
             # Dispose all connections in the pool, forcing new ones to be created
             engine.dispose()
@@ -248,7 +248,7 @@ class DatabasePoolRemediator(BaseRemediator):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """Verify that the pool is accepting new connections."""
         try:
-            from src.database.session import engine
+            from src.database import engine
 
             async with engine.connect() as conn:
                 await conn.execute("SELECT 1")
@@ -291,7 +291,8 @@ class RabbitMQCongestionRemediator(BaseRemediator):
 
             from src.config import settings
 
-            connection = await aio_pika.connect_robust(settings.CELERY_BROKER_URL)
+            broker_url = f"amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASSWORD}@{settings.RABBITMQ_HOST}:5672/"
+            connection = await aio_pika.connect_robust(broker_url)
             channel = await connection.channel()
 
             if action == "purge_dlq":
@@ -316,7 +317,7 @@ class RabbitMQCongestionRemediator(BaseRemediator):
             await connection.close()
             return True
         except Exception as e:
-            logger.error("remediator_rabbitmq_congestion_failed", error=str(e))
+            logger.error("remediator_rabbitmq_congestion_failed", error=str(e), exc_info=True)
             return False
 
 

@@ -1,0 +1,4 @@
+# file: /app/src/aiops/docker_remediator.py
+# hypothesis_version: 6.151.9
+
+[200, '--scale', '-d', '^[a-z0-9-]+$', 'api', 'app-gateway', 'compose', 'docker', 'failure', 'frontend', 'neural-pricing', 'portfolio', 'postgres', 'rabbitmq', 'redis', 'restart', 'scraper', 'success', 'up', 'worker']

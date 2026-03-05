@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1772702610487" clover="3.2.0">
-  <project timestamp="1772702610487" name="All files">
+<coverage generated="1772705505981" clover="3.2.0">
+  <project timestamp="1772705505982" name="All files">
     <metrics statements="43" coveredstatements="43" conditionals="30" coveredconditionals="29" methods="4" coveredmethods="4" elements="77" coveredelements="76" complexity="0" loc="43" ncloc="43" packages="1" files="3" classes="3"/>
     <file name="auth.ts" path="/app/src/auth.ts">
       <metrics statements="6" coveredstatements="6" conditionals="10" coveredconditionals="9" methods="0" coveredmethods="0"/>

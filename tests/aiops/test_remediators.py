@@ -1,5 +1,6 @@
 import pytest
 import asyncio
+import redis.asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.aiops.remediators import (
     ClearRedisCacheRemediator,
@@ -15,7 +16,8 @@ async def test_clear_redis_remediator():
     remediator = ClearRedisCacheRemediator()
     
     with patch("redis.asyncio.from_url") as mock_redis:
-        mock_client = AsyncMock()
+        mock_client = MagicMock()
+        mock_client.flushdb = AsyncMock()
         mock_redis.return_value = mock_client
         
         success = await remediator.remediate({"type": "latency_spike"})
@@ -28,7 +30,7 @@ async def test_restart_service_remediator_success():
     
     with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
         mock_docker = MagicMock()
-        mock_docker.restart_service = MagicMock()
+        mock_docker.restart_service = AsyncMock(return_value=True)
         mock_docker_cls.return_value = mock_docker
         
         success = await remediator.remediate({"metrics": {"service": "api"}})
@@ -96,7 +98,7 @@ async def test_remediation_planner():
 async def test_db_pool_remediator_success():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.session.engine") as mock_engine:
+    with patch("src.database.engine") as mock_engine:
         mock_engine.dispose = MagicMock()
 
         success = await remediator.remediate(
@@ -110,7 +112,7 @@ async def test_db_pool_remediator_success():
 async def test_db_pool_remediator_critical_pressure():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.session.engine") as mock_engine:
+    with patch("src.database.engine") as mock_engine:
         mock_engine.dispose = MagicMock()
 
         success = await remediator.remediate(
@@ -123,7 +125,7 @@ async def test_db_pool_remediator_critical_pressure():
 async def test_db_pool_remediator_failure():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.session.engine") as mock_engine:
+    with patch("src.database.engine") as mock_engine:
         mock_engine.dispose.side_effect = Exception("Connection refused")
 
         success = await remediator.remediate({"type": "db_pool_exhaustion"})
@@ -179,7 +181,7 @@ async def test_rabbitmq_congestion_remediator_restart_consumers():
 
         with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
             mock_docker = MagicMock()
-            mock_docker.restart_service = MagicMock()
+            mock_docker.restart_service = AsyncMock(return_value=True)
             mock_docker_cls.return_value = mock_docker
 
             success = await remediator.remediate({

@@ -7,26 +7,27 @@ import {
   Stack,
   alpha,
   useTheme,
-  Avatar,
-  List,
-  ListItem,
   Chip,
   Button,
   CircularProgress,
   LinearProgress,
 } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useMotion } from '../../hooks/useMotion';
 import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  ShowChart as ChartIcon,
-  WaterfallChart as GreeksIcon,
-  Bolt as MLIcon,
-  AccountBalance as PortfolioIcon,
-  CallMade as CallIcon,
-  CallReceived as PutIcon,
+  GreeksIcon,
+  MLIcon,
+  PortfolioIcon,
   Zap,
   Globe,
   Layers,
+  TrendingUp,
+} from '../../components/common/Icons'; // Assuming these exist or using Mui icons
+import {
+  TrendingUp as TrendingUpIcon,
+  WaterfallChart as GreeksIconMui,
+  Bolt as MLIconMui,
+  AccountBalance as PortfolioIconMui,
 } from '@mui/icons-material';
 
 // Lazy loaded trading components
@@ -45,15 +46,10 @@ const OptionsChain = lazy(() =>
 const GreeksHeatmap = lazy(() =>
   import('../../features/options/components/GreeksHeatmap').then(m => ({ default: m.GreeksHeatmap }))
 );
-const VolatilitySurface3D = lazy(() =>
-  import('../../features/options/components/VolatilitySurface3D').then(m => ({
-    default: m.VolatilitySurface3D,
-  }))
-);
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={28} aria-label="Loading component" />
+    <CircularProgress size={28} />
   </Box>
 );
 
@@ -84,338 +80,421 @@ const KpiCard: React.FC<KpiCardProps> = ({
   greek = 'Δ',
 }) => {
   const theme = useTheme();
-  const qfd = theme.palette.financial?.qfd;
+  const { variants } = useMotion();
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        position: 'relative',
-        overflow: 'hidden',
-        height: '100%',
-        background: alpha(theme.palette.background.paper, 0.4),
-        backdropFilter: 'blur(30px) saturate(180%)',
-        border: `0.5px solid ${alpha(accentColor, 0.2)}`,
-        '&:hover': {
-          borderColor: accentColor,
-          boxShadow: `0 0 30px ${alpha(accentColor, 0.15)}`,
-          '& .card-icon': {
-            transform: 'scale(1.1) rotate(5deg)',
-            color: accentColor,
-          },
-          '& .greek-overlay': {
-            opacity: 0.15,
-            transform: 'scale(1.1)',
-          }
-        }
-      }}
+    <motion.div
+      variants={variants.glassCard}
+      whileHover="hover"
+      style={{ height: '100%' }}
     >
-      {/* Iridescent Border Line */}
-      <Box
+      <Paper
+        className="qfd-glass"
+        elevation={0}
         sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: 2,
-          background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
-          opacity: 0.8
-        }}
-      />
-
-      {/* Background Greek Character */}
-      <Typography
-        className="greek-overlay"
-        sx={{
-          position: 'absolute',
-          bottom: -20,
-          right: -10,
-          fontSize: '120px',
-          fontWeight: 900,
-          color: accentColor,
-          opacity: 0.05,
-          fontFamily: 'Outfit, sans-serif',
-          zIndex: 0,
-          transition: 'all 0.4s ease',
-          pointerEvents: 'none',
+          p: 3,
+          position: 'relative',
+          overflow: 'hidden',
+          height: '100%',
+          borderRadius: 4,
+          border: `0.5px solid ${alpha(accentColor, 0.2)}`,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.4)}, ${alpha(theme.palette.background.paper, 0.1)})`,
+          backdropFilter: 'blur(30px) saturate(180%)',
+          '&:hover': {
+            borderColor: accentColor,
+            boxShadow: `0 0 40px ${alpha(accentColor, 0.2)}`,
+            '& .card-icon': {
+              transform: 'scale(1.2) rotate(10deg)',
+              color: accentColor,
+            },
+            '& .greek-overlay': {
+              opacity: 0.2,
+              transform: 'scale(1.2) rotate(-5deg)',
+            }
+          }
         }}
       >
-        {greek}
-      </Typography>
+        {/* Iridescent Top Beam */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: 3,
+            background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+            filter: 'blur(1px)',
+          }}
+        />
 
-      <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              fontWeight: 800,
-              letterSpacing: '0.15em',
-              fontFamily: 'Outfit, sans-serif'
-            }}
-          >
-            {label}
-          </Typography>
-          <Box
-            className="card-icon"
-            sx={{
-              color: alpha(accentColor, 0.7),
-              transition: 'all 0.3s ease',
-              display: 'flex'
-            }}
-          >
-            {icon}
+        {/* Large Greek Glyph background */}
+        <Typography
+          className="greek-overlay"
+          sx={{
+            position: 'absolute',
+            bottom: -30,
+            right: -20,
+            fontSize: '140px',
+            fontWeight: 900,
+            color: accentColor,
+            opacity: 0.04,
+            transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        >
+          {greek}
+        </Typography>
+
+        <Stack spacing={2.5} sx={{ position: 'relative', zIndex: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography
+              variant="overline"
+              sx={{
+                color: alpha(theme.palette.text.primary, 0.5),
+                fontWeight: 900,
+                letterSpacing: '0.2em',
+                fontSize: '0.65rem'
+              }}
+            >
+              {label}
+            </Typography>
+            <Box
+              className="card-icon"
+              sx={{
+                color: alpha(accentColor, 0.6),
+                transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                display: 'flex',
+                fontSize: 24
+              }}
+            >
+              {icon}
+            </Box>
+          </Stack>
+
+          <Box>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 900,
+                fontFamily: 'JetBrains Mono',
+                fontSize: '1.85rem',
+                letterSpacing: '-0.02em',
+                mb: 0.5
+              }}
+            >
+              {value}
+            </Typography>
+
+            <Stack direction="row" spacing={1} alignItems="center">
+              {subValue && (
+                <Box
+                  sx={{
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 1,
+                    bgcolor: alpha(positive ? theme.palette.success.main : neutral ? theme.palette.text.disabled : theme.palette.error.main, 0.1),
+                    border: `1px solid ${alpha(positive ? theme.palette.success.main : neutral ? theme.palette.text.disabled : theme.palette.error.main, 0.2)}`,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 900,
+                      color: positive ? theme.palette.success.main : neutral ? theme.palette.text.secondary : theme.palette.error.main,
+                      fontFamily: 'JetBrains Mono'
+                    }}
+                  >
+                    {subValue}
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
           </Box>
-        </Stack>
 
-        <Box>
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 800,
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '1.75rem',
-              color: theme.palette.text.primary,
-              letterSpacing: '-0.02em'
-            }}
-          >
-            {value}
-          </Typography>
-
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
-            {subValue && (
-              <Chip
-                size="small"
-                label={subValue}
-                variant="filled"
+          {progress !== undefined && (
+            <Box>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
                 sx={{
-                  height: 20,
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  bgcolor: alpha(positive ? theme.palette.success.main : neutral ? theme.palette.text.disabled : theme.palette.error.main, 0.1),
-                  color: positive ? theme.palette.success.main : neutral ? theme.palette.text.secondary : theme.palette.error.main,
-                  border: 'none',
-                  fontFamily: 'JetBrains Mono'
+                  height: 6,
+                  borderRadius: 3,
+                  bgcolor: alpha(accentColor, 0.05),
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 3,
+                    background: `linear-gradient(90deg, ${accentColor}, ${alpha(accentColor, 0.5)})`,
+                    boxShadow: `0 0 10px ${alpha(accentColor, 0.5)}`
+                  },
                 }}
               />
-            )}
-            {positive !== undefined && (
-              <Typography variant="caption" sx={{ color: positive ? 'success.main' : 'error.main', fontWeight: 700 }}>
-                {positive ? '↑' : '↓'}
-              </Typography>
-            )}
-          </Stack>
-        </Box>
-
-        {progress !== undefined && (
-          <Box>
-            <LinearProgress
-              variant="determinate"
-              value={progress}
-              sx={{
-                height: 4,
-                borderRadius: 2,
-                bgcolor: alpha(accentColor, 0.1),
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 2,
-                  background: `linear-gradient(90deg, ${accentColor}, ${alpha(accentColor, 0.5)})`,
-                },
-              }}
-            />
-          </Box>
-        )}
-      </Stack>
-    </Paper>
+            </Box>
+          )}
+        </Stack>
+      </Paper>
+    </motion.div>
   );
 };
+
 
 // ---------------------------------------------------------------------------
 // Dashboard Page – Quantum Financial Deity Evolution
 // ---------------------------------------------------------------------------
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
+  const { variants } = useMotion();
   const [activeTime, setActiveTime] = React.useState('1M');
+  // @ts-ignore
   const qfd = theme.palette.financial?.qfd;
 
   return (
-    <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8 }}>
+    <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>
       {/* ---- Divine Header ---- */}
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
-        sx={{ mb: 6, mt: 2 }}
-        spacing={2}
-      >
-        <Box>
-          <Typography
-            variant="h2"
-            sx={{
-              fontWeight: 900,
-              mb: 0.5,
-              fontFamily: 'Outfit, sans-serif',
-              letterSpacing: '-0.04em'
-            }}
-          >
-            Welcome,{' '}
-            <Box
-              component="span"
+      <motion.div variants={variants.slideUp} initial="initial" animate="animate">
+        <Stack
+          direction={{ xs: 'column', lg: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', lg: 'center' }}
+          sx={{ mb: 8 }}
+          spacing={4}
+        >
+          <Box>
+            <Typography
+              variant="h1"
               sx={{
-                background: `linear-gradient(135deg, ${qfd?.quantum}, ${qfd?.nebula})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                fontWeight: 950,
+                fontSize: { xs: '2.5rem', md: '3.5rem' },
+                mb: 1,
+                fontFamily: 'Outfit',
+                letterSpacing: '-0.05em',
+                lineHeight: 1
               }}
             >
-              Arch-Quant
-            </Box>
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-              The Quantum Field is stable. All systems operational.
+              Salutations,{' '}
+              <Box
+                component="span"
+                sx={{
+                  background: `linear-gradient(135deg, ${qfd?.quantum ?? '#00FFFF'}, ${qfd?.nebula ?? '#7B68EE'} 50%, ${qfd?.electrum ?? '#D4AF37'})`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundSize: '200% auto',
+                  animation: 'shimmer 4s linear infinite',
+                  '@keyframes shimmer': {
+                    '0%': { backgroundPosition: '0% center' },
+                    '100%': { backgroundPosition: '200% center' },
+                  }
+                }}
+              >
+                Arch-Quant
+              </Box>
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Chip label="mTLS Secured" size="small" icon={<Globe sx={{ fontSize: '12px !important' }} />} sx={{ height: 20, fontSize: '10px', fontWeight: 700 }} />
-              <Chip label="Real-time BS-WASM" size="small" icon={<Layers sx={{ fontSize: '12px !important' }} />} sx={{ height: 20, fontSize: '10px', fontWeight: 700 }} />
-            </Box>
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ opacity: 0.8 }}>
+              <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                Quantum synchronization complete.
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Chip
+                  label="P-8 mTLS"
+                  size="small"
+                  variant="outlined"
+                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.quantum ?? '#00FFFF', 0.3), color: qfd?.quantum }}
+                />
+                <Chip
+                  label="SHM-LOW-LAT"
+                  size="small"
+                  variant="outlined"
+                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.nebula ?? '#7B68EE', 0.3), color: qfd?.nebula }}
+                />
+              </Stack>
+            </Stack>
+          </Box>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="text"
+              startIcon={<Globe sx={{ fontSize: 18 }} />}
+              sx={{
+                fontWeight: 800,
+                color: 'text.secondary',
+                px: 3,
+                '&:hover': { color: 'text.primary', bgcolor: alpha('#fff', 0.05) }
+              }}
+            >
+              Network
+            </Button>
+            <Button
+              variant="contained"
+              disableElevation
+              startIcon={<Zap />}
+              sx={{
+                fontWeight: 900,
+                px: 4,
+                py: 1.5,
+                borderRadius: 3,
+                bgcolor: qfd?.quantum ?? '#00FFFF',
+                color: '#000',
+                '&:hover': {
+                  bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.8),
+                  boxShadow: `0 0 30px ${alpha(qfd?.quantum ?? '#00FFFF', 0.4)}`
+                }
+              }}
+            >
+              INITIATE EXECUTION
+            </Button>
           </Stack>
-        </Box>
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<GreeksIcon />}
-            sx={{
-              borderColor: alpha(qfd?.nebula ?? '#7B68EE', 0.5),
-              color: qfd?.nebula,
-              '&:hover': { borderColor: qfd?.nebula, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.05) }
-            }}
-          >
-            Analytics
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<Zap />}
-            color="primary"
-            sx={{ boxShadow: `0 0 20px ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}` }}
-          >
-            Execute Trade
-          </Button>
         </Stack>
-      </Stack>
+      </motion.div>
 
       {/* ---- Quantum KPI Grid ---- */}
-      <Grid container spacing={3} sx={{ mb: 6 }}>
-        <Grid item xs={12} md={4}>
-          <KpiCard
-            label="Total Value"
-            value="$1,248,392.42"
-            subValue="+$42,109 (3.4%)"
-            positive
-            icon={<PortfolioIcon />}
-            accentColor={qfd?.quantum ?? '#00FFFF'}
-            greek="Σ"
-          />
+      <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
+        <Grid container spacing={3} sx={{ mb: 8 }}>
+          <Grid item xs={12} md={4}>
+            <KpiCard
+              label="Portfolio Oracle"
+              value="$1,248,392.42"
+              subValue="+$42,109 (3.4%)"
+              positive
+              icon={<PortfolioIconMui />}
+              accentColor={qfd?.quantum ?? '#00FFFF'}
+              greek="Π"
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <KpiCard
+              label="Systemic Gamma"
+              value="342.18"
+              subValue="-12.4 today"
+              icon={<GreeksIconMui />}
+              accentColor={qfd?.nebula ?? '#7B68EE'}
+              greek="Γ"
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <KpiCard
+              label="Predictive Accuracy"
+              value="98.2%"
+              subValue="Model: Heston-XL"
+              icon={<MLIconMui />}
+              accentColor={qfd?.electrum ?? '#D4AF37'}
+              progress={98}
+              greek="Φ"
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <KpiCard
-            label="Active Gamma"
-            value="342.18"
-            subValue="-12.4 today"
-            icon={<GreeksIcon />}
-            accentColor={qfd?.nebula ?? '#7B68EE'}
-            greek="Γ"
-          />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <KpiCard
-            label="ML Confidence"
-            value="98.2%"
-            subValue="Calibration Optimal"
-            icon={<MLIcon />}
-            accentColor={qfd?.electrum ?? '#D4AF37'}
-            progress={98}
-            greek="Ψ"
-          />
-        </Grid>
-      </Grid>
+      </motion.div>
 
-      {/* ---- Trading Cockpit ---- */}
-      <Grid container spacing={3}>
-        {/* Main Chart Section */}
-        <Grid item xs={12} lg={8}>
-          <Paper sx={{ p: 4, height: 600, display: 'flex', flexDirection: 'column' }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 800 }}>Market Trajectory</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Live feed from direct exchange bridge</Typography>
+
+      {/* ---- Intelligence Cluster ---- */}
+      <Grid container spacing={4}>
+        {/* Main Observation Deck */}
+        <Grid item xs={12} xl={8}>
+          <motion.div variants={variants.slideUp} initial="initial" animate="animate">
+            <Paper
+              className="qfd-glass"
+              sx={{
+                p: 4,
+                height: 650,
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 6,
+                border: `1px solid ${alpha('#fff', 0.05)}`
+              }}
+            >
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.03em' }}>Temporal Trajectory</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>Live market telemetry from SHM Ringbuffer</Typography>
+                </Box>
+                <Stack direction="row" spacing={1} sx={{ bgcolor: alpha('#000', 0.2), p: 0.5, borderRadius: 3 }}>
+                  {['1H', '4H', '1D', '1W', 'ALL'].map((t) => (
+                    <Button
+                      key={t}
+                      size="small"
+                      variant={t === activeTime ? 'contained' : 'text'}
+                      onClick={() => setActiveTime(t)}
+                      sx={{
+                        minWidth: 50,
+                        height: 32,
+                        borderRadius: 2,
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        ...(t === activeTime ? {
+                          bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.2),
+                          color: qfd?.quantum,
+                          border: `1px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}`
+                        } : {
+                          color: 'text.secondary'
+                        })
+                      }}
+                    >
+                      {t}
+                    </Button>
+                  ))}
+                </Stack>
+              </Stack>
+              <Box sx={{ flexGrow: 1, border: `1px solid ${alpha('#fff', 0.03)}`, borderRadius: 4, overflow: 'hidden' }}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <LivePriceChart symbol="SPX" />
+                </Suspense>
               </Box>
-              <Stack direction="row" spacing={1} sx={{ bgcolor: alpha('#f8fafc', 0.05), p: 0.5, borderRadius: 2 }}>
-                {['1H', '4H', '1D', '1W', 'ALL'].map((t) => (
-                  <Button
-                    key={t}
-                    size="small"
-                    variant={t === activeTime ? 'contained' : 'text'}
-                    onClick={() => setActiveTime(t)}
-                    sx={{
-                      minWidth: 48,
-                      height: 32,
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      ...(t !== activeTime && { color: 'text.secondary' })
-                    }}
-                  >
-                    {t}
-                  </Button>
-                ))}
-              </Stack>
+            </Paper>
+          </motion.div>
+        </Grid>
+
+
+        {/* Cognitive Sidebars */}
+        <Grid item xs={12} xl={4}>
+          <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
+            <Stack spacing={4}>
+              <motion.div variants={variants.slideUp}>
+                <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1) }}>
+                      <MLIconMui sx={{ color: qfd?.electrum, fontSize: 20 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 900 }}>Neural Inference</Typography>
+                  </Stack>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <MLPredictions symbol="SPX" />
+                  </Suspense>
+                </Paper>
+              </motion.div>
+              <motion.div variants={variants.slideUp}>
+                <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.1) }}>
+                      <GreeksIconMui sx={{ color: qfd?.nebula, fontSize: 20 }} />
+                    </Box>
+                    <Typography variant="h6" sx={{ fontWeight: 900 }}>Greeks Surface</Typography>
+                  </Stack>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <GreeksHeatmap symbol="SPX" greek="delta" />
+                  </Suspense>
+                </Paper>
+              </motion.div>
             </Stack>
-            <Box sx={{ flexGrow: 1, minHeight: 400 }}>
-              <Suspense fallback={<LoadingFallback />}>
-                <LivePriceChart symbol="SPX" />
-              </Suspense>
-            </Box>
-          </Paper>
+          </motion.div>
         </Grid>
 
-        {/* Intelligence Sidebar */}
-        <Grid item xs={12} lg={4}>
-          <Stack spacing={3}>
-            <Paper sx={{ p: 3, height: 285 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                <MLIcon sx={{ color: qfd?.electrum, fontSize: 20 }} />
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Neural Inference</Typography>
-              </Stack>
-              <Suspense fallback={<LoadingFallback />}>
-                <MLPredictions symbol="SPX" />
-              </Suspense>
-            </Paper>
-            <Paper sx={{ p: 3, height: 285 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                <GreeksIcon sx={{ color: qfd?.quantum, fontSize: 20 }} />
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Greeks Surface</Typography>
-              </Stack>
-              <Suspense fallback={<LoadingFallback />}>
-                <GreeksHeatmap symbol="SPX" greek="delta" />
-              </Suspense>
-            </Paper>
-          </Stack>
-        </Grid>
 
-        {/* Options Engine */}
+        {/* Transdimensional Matrix (Options) */}
         <Grid item xs={12}>
-          <Paper sx={{ height: 600, overflow: 'hidden' }}>
-            <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 4, pb: 2 }}>
-              <Layers sx={{ color: theme.palette.primary.main }} />
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 800 }}>Strategic Options Matrix</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Real-time WASM BS calculation with SIMD acceleration</Typography>
-              </Box>
-            </Stack>
-            <Suspense fallback={<LoadingFallback />}>
-              <OptionsChain symbol="SPX" />
-            </Suspense>
-          </Paper>
+          <motion.div variants={variants.slideUp} initial="initial" animate="animate">
+            <Paper
+              className="qfd-glass"
+              sx={{
+                height: 700,
+                overflow: 'hidden',
+                borderRadius: 6,
+                border: `1px solid ${alpha('#fff', 0.05)}`
+              }}
+            >
+              <Suspense fallback={<LoadingFallback />}>
+                <OptionsChain symbol="SPX" />
+              </Suspense>
+            </Paper>
+          </motion.div>
         </Grid>
+
       </Grid>
     </Box>
   );

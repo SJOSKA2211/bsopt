@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/websocket.py
+# hypothesis_version: 6.151.9
+
+[1008, '/ws/market-data', 'type', 'websocket.disconnect', 'ws_route_error']
