@@ -24,6 +24,9 @@ import {
   AccountBalance as PortfolioIcon,
   CallMade as CallIcon,
   CallReceived as PutIcon,
+  Zap,
+  Globe,
+  Layers,
 } from '@mui/icons-material';
 
 // Lazy loaded trading components
@@ -55,7 +58,7 @@ const LoadingFallback = () => (
 );
 
 // ---------------------------------------------------------------------------
-// KPI Card – trading-domain summary stat
+// KPI Card – QFD Enhanced
 // ---------------------------------------------------------------------------
 interface KpiCardProps {
   label: string;
@@ -65,7 +68,8 @@ interface KpiCardProps {
   neutral?: boolean;
   icon: React.ReactNode;
   accentColor: string;
-  progress?: number; // 0–100
+  progress?: number;
+  greek?: string;
 }
 
 const KpiCard: React.FC<KpiCardProps> = ({
@@ -77,486 +81,340 @@ const KpiCard: React.FC<KpiCardProps> = ({
   icon,
   accentColor,
   progress,
+  greek = 'Δ',
 }) => {
   const theme = useTheme();
+  const qfd = theme.palette.financial?.qfd;
+
   return (
     <Paper
-      className="stat-card"
+      elevation={0}
       sx={{
         p: 3,
         position: 'relative',
         overflow: 'hidden',
         height: '100%',
-        border: `1px solid ${alpha(accentColor, 0.15)}`,
+        background: alpha(theme.palette.background.paper, 0.4),
+        backdropFilter: 'blur(30px) saturate(180%)',
+        border: `0.5px solid ${alpha(accentColor, 0.2)}`,
+        '&:hover': {
+          borderColor: accentColor,
+          boxShadow: `0 0 30px ${alpha(accentColor, 0.15)}`,
+          '& .card-icon': {
+            transform: 'scale(1.1) rotate(5deg)',
+            color: accentColor,
+          },
+          '& .greek-overlay': {
+            opacity: 0.15,
+            transform: 'scale(1.1)',
+          }
+        }
       }}
     >
-      {/* Background glow */}
+      {/* Iridescent Border Line */}
       <Box
         sx={{
           position: 'absolute',
-          top: -30,
-          right: -30,
-          width: 100,
-          height: 100,
-          borderRadius: '50%',
-          bgcolor: alpha(accentColor, 0.08),
-          filter: 'blur(24px)',
-          pointerEvents: 'none',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: 2,
+          background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+          opacity: 0.8
         }}
       />
-      {/* Greek overlay character */}
-      <Box className="greek-bg-overlay" sx={{ fontSize: 80, color: accentColor }}>
-        {label === 'Portfolio P&L' ? 'Δ' : label === 'Options Premium' ? 'Θ' : 'Γ'}
-      </Box>
 
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-        <Box>
+      {/* Background Greek Character */}
+      <Typography
+        className="greek-overlay"
+        sx={{
+          position: 'absolute',
+          bottom: -20,
+          right: -10,
+          fontSize: '120px',
+          fontWeight: 900,
+          color: accentColor,
+          opacity: 0.05,
+          fontFamily: 'Outfit, sans-serif',
+          zIndex: 0,
+          transition: 'all 0.4s ease',
+          pointerEvents: 'none',
+        }}
+      >
+        {greek}
+      </Typography>
+
+      <Stack spacing={2} sx={{ position: 'relative', zIndex: 1 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography
             variant="caption"
-            sx={{ color: 'text.disabled', fontWeight: 700, letterSpacing: '0.1em' }}
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 800,
+              letterSpacing: '0.15em',
+              fontFamily: 'Outfit, sans-serif'
+            }}
           >
             {label}
           </Typography>
+          <Box
+            className="card-icon"
+            sx={{
+              color: alpha(accentColor, 0.7),
+              transition: 'all 0.3s ease',
+              display: 'flex'
+            }}
+          >
+            {icon}
+          </Box>
+        </Stack>
+
+        <Box>
           <Typography
             variant="h3"
-            sx={{ fontWeight: 800, my: 0.75, fontFamily: '"JetBrains Mono", monospace', fontSize: '1.6rem' }}
+            sx={{
+              fontWeight: 800,
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '1.75rem',
+              color: theme.palette.text.primary,
+              letterSpacing: '-0.02em'
+            }}
           >
             {value}
           </Typography>
-          {subValue && (
-            <Chip
-              size="small"
-              label={subValue}
-              color={positive ? 'success' : neutral ? 'default' : 'error'}
-              sx={{ height: 22, fontSize: '0.68rem', fontWeight: 700 }}
-            />
-          )}
-          {progress !== undefined && (
-            <Box sx={{ mt: 1.5 }}>
-              <LinearProgress
-                variant="determinate"
-                value={progress}
+
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+            {subValue && (
+              <Chip
+                size="small"
+                label={subValue}
+                variant="filled"
                 sx={{
-                  height: 6,
-                  borderRadius: 3,
-                  bgcolor: alpha(accentColor, 0.12),
-                  '& .MuiLinearProgress-bar': {
-                    borderRadius: 3,
-                    background: `linear-gradient(90deg, ${accentColor}, ${alpha(accentColor, 0.6)})`,
-                  },
+                  height: 20,
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  bgcolor: alpha(positive ? theme.palette.success.main : neutral ? theme.palette.text.disabled : theme.palette.error.main, 0.1),
+                  color: positive ? theme.palette.success.main : neutral ? theme.palette.text.secondary : theme.palette.error.main,
+                  border: 'none',
+                  fontFamily: 'JetBrains Mono'
                 }}
               />
-              <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5, display: 'block' }}>
-                Win rate: {progress}%
+            )}
+            {positive !== undefined && (
+              <Typography variant="caption" sx={{ color: positive ? 'success.main' : 'error.main', fontWeight: 700 }}>
+                {positive ? '↑' : '↓'}
               </Typography>
-            </Box>
-          )}
+            )}
+          </Stack>
         </Box>
-        <Avatar
-          sx={{
-            bgcolor: alpha(accentColor, 0.12),
-            color: accentColor,
-            width: 44,
-            height: 44,
-            border: `1px solid ${alpha(accentColor, 0.2)}`,
-          }}
-        >
-          {icon}
-        </Avatar>
+
+        {progress !== undefined && (
+          <Box>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 4,
+                borderRadius: 2,
+                bgcolor: alpha(accentColor, 0.1),
+                '& .MuiLinearProgress-bar': {
+                  borderRadius: 2,
+                  background: `linear-gradient(90deg, ${accentColor}, ${alpha(accentColor, 0.5)})`,
+                },
+              }}
+            />
+          </Box>
+        )}
       </Stack>
     </Paper>
   );
 };
 
 // ---------------------------------------------------------------------------
-// Mini sparkline
-// ---------------------------------------------------------------------------
-const MiniSparkline: React.FC<{ color: string; up: boolean }> = ({ color, up }) => (
-  <Box sx={{ height: 36, mt: 1.5, position: 'relative', overflow: 'hidden' }}>
-    <svg width="100%" height="100%" viewBox="0 0 100 36" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`grad-${color}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {up ? (
-        <>
-          <path d="M0 30 L10 26 L25 18 L40 22 L55 12 L70 16 L85 6 L100 2" fill="none" stroke={color} strokeWidth="1.5" />
-          <path d="M0 30 L10 26 L25 18 L40 22 L55 12 L70 16 L85 6 L100 2 L100 36 L0 36Z" fill={`url(#grad-${color})`} />
-        </>
-      ) : (
-        <>
-          <path d="M0 6 L10 10 L25 8 L40 16 L55 14 L70 22 L85 20 L100 28" fill="none" stroke={color} strokeWidth="1.5" />
-          <path d="M0 6 L10 10 L25 8 L40 16 L55 14 L70 22 L85 20 L100 28 L100 36 L0 36Z" fill={`url(#grad-${color})`} />
-        </>
-      )}
-    </svg>
-  </Box>
-);
-
-// ---------------------------------------------------------------------------
-// Recent trades mock
-// ---------------------------------------------------------------------------
-const RECENT_TRADES = [
-  { id: 1, symbol: 'AAPL', type: 'CALL', strike: '$185', exp: '21 Mar', qty: 5, pnl: +840.0, dir: true },
-  { id: 2, symbol: 'SPY', type: 'PUT', strike: '$470', exp: '21 Mar', qty: 10, pnl: -320.0, dir: false },
-  { id: 3, symbol: 'QQQ', type: 'CALL', strike: '$400', exp: '18 Apr', qty: 8, pnl: +1120.0, dir: true },
-  { id: 4, symbol: 'NVDA', type: 'CALL', strike: '$480', exp: '28 Mar', qty: 3, pnl: +2640.0, dir: true },
-  { id: 5, symbol: 'TSLA', type: 'PUT', strike: '$250', exp: '18 Apr', qty: 6, pnl: -180.0, dir: false },
-];
-
-const TIME_FILTERS = ['1D', '1W', '1M', '3M', '1Y'];
-
-// ---------------------------------------------------------------------------
-// Dashboard Page
+// Dashboard Page – Quantum Financial Deity Evolution
 // ---------------------------------------------------------------------------
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   const [activeTime, setActiveTime] = React.useState('1M');
+  const qfd = theme.palette.financial?.qfd;
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: 'auto', pb: 8 }}>
-      {/* ---- Page header ---- */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+    <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8 }}>
+      {/* ---- Divine Header ---- */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        sx={{ mb: 6, mt: 2 }}
+        spacing={2}
+      >
         <Box>
           <Typography
             variant="h2"
-            className="slide-up"
-            sx={{ fontWeight: 800, mb: 0.5 }}
+            sx={{
+              fontWeight: 900,
+              mb: 0.5,
+              fontFamily: 'Outfit, sans-serif',
+              letterSpacing: '-0.04em'
+            }}
           >
-            Good morning,{' '}
+            Welcome,{' '}
             <Box
               component="span"
               sx={{
-                background: 'linear-gradient(135deg, #10b981, #38bdf8)',
+                background: `linear-gradient(135deg, ${qfd?.quantum}, ${qfd?.nebula})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
               }}
             >
-              Trader
+              Arch-Quant
             </Box>
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-            Your quantitative options terminal — March 2, 2026
-          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+              The Quantum Field is stable. All systems operational.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip label="mTLS Secured" size="small" icon={<Globe sx={{ fontSize: '12px !important' }} />} sx={{ height: 20, fontSize: '10px', fontWeight: 700 }} />
+              <Chip label="Real-time BS-WASM" size="small" icon={<Layers sx={{ fontSize: '12px !important' }} />} sx={{ height: 20, fontSize: '10px', fontWeight: 700 }} />
+            </Box>
+          </Stack>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<ChartIcon />}
-          sx={{ px: 3, py: 1.25, fontSize: '0.9rem' }}
-          onClick={() => { }}
-        >
-          Quick Trade
-        </Button>
+        <Stack direction="row" spacing={2}>
+          <Button
+            variant="outlined"
+            startIcon={<GreeksIcon />}
+            sx={{
+              borderColor: alpha(qfd?.nebula ?? '#7B68EE', 0.5),
+              color: qfd?.nebula,
+              '&:hover': { borderColor: qfd?.nebula, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.05) }
+            }}
+          >
+            Analytics
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Zap />}
+            color="primary"
+            sx={{ boxShadow: `0 0 20px ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}` }}
+          >
+            Execute Trade
+          </Button>
+        </Stack>
       </Stack>
 
-      {/* ---- KPI Cards ---- */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
+      {/* ---- Quantum KPI Grid ---- */}
+      <Grid container spacing={3} sx={{ mb: 6 }}>
+        <Grid item xs={12} md={4}>
           <KpiCard
-            label="Portfolio P&L"
-            value="+$12,340"
-            subValue="+8.4% YTD"
+            label="Total Value"
+            value="$1,248,392.42"
+            subValue="+$42,109 (3.4%)"
             positive
-            icon={<TrendingUpIcon />}
-            accentColor={theme.palette.success.main}
+            icon={<PortfolioIcon />}
+            accentColor={qfd?.quantum ?? '#00FFFF'}
+            greek="Σ"
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <KpiCard
-            label="Options Premium"
-            value="$4,892"
-            subValue="-$210 today"
+            label="Active Gamma"
+            value="342.18"
+            subValue="-12.4 today"
             icon={<GreeksIcon />}
-            accentColor={theme.palette.secondary.main}
+            accentColor={qfd?.nebula ?? '#7B68EE'}
+            greek="Γ"
           />
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid item xs={12} md={4}>
           <KpiCard
-            label="Win Rate"
-            value="73.2%"
+            label="ML Confidence"
+            value="98.2%"
+            subValue="Calibration Optimal"
             icon={<MLIcon />}
-            accentColor={theme.palette.financial?.accents?.violet ?? '#a855f7'}
-            progress={73}
+            accentColor={qfd?.electrum ?? '#D4AF37'}
+            progress={98}
+            greek="Ψ"
           />
         </Grid>
       </Grid>
 
-      {/* ---- Main content: Trades + Chart ---- */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Recent trades */}
-        <Grid size={{ xs: 12, lg: 4 }}>
-          <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-            Recent Trades
-          </Typography>
-          <Paper sx={{ overflow: 'hidden' }}>
-            <List disablePadding>
-              {RECENT_TRADES.map((trade, i) => (
-                <ListItem
-                  key={trade.id}
-                  className={trade.dir ? 'trade-indicator-bullish' : 'trade-indicator-bearish'}
-                  sx={{
-                    py: 1.75,
-                    px: 3,
-                    display: 'block',
-                    borderBottom:
-                      i < RECENT_TRADES.length - 1
-                        ? `1px solid ${alpha(theme.palette.divider, 0.5)}`
-                        : 'none',
-                    transition: 'background 0.15s ease',
-                    '&:hover': { bgcolor: alpha('#94a3b8', 0.04) },
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar
-                      sx={{
-                        bgcolor: alpha(trade.dir ? '#10b981' : '#f43f5e', 0.1),
-                        color: trade.dir ? 'success.main' : 'error.main',
-                        width: 38,
-                        height: 38,
-                        border: `1px solid ${alpha(trade.dir ? '#10b981' : '#f43f5e', 0.2)}`,
-                      }}
-                    >
-                      {trade.dir ? <CallIcon fontSize="small" /> : <PutIcon fontSize="small" />}
-                    </Avatar>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                          {trade.symbol}
-                        </Typography>
-                        <Chip
-                          label={trade.type}
-                          size="small"
-                          color={trade.dir ? 'success' : 'error'}
-                          sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }}
-                        />
-                      </Stack>
-                      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                        {trade.strike} · Exp {trade.exp} · Qty {trade.qty}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 700,
-                          fontFamily: '"JetBrains Mono", monospace',
-                          color: trade.pnl > 0 ? 'success.main' : 'error.main',
-                        }}
-                      >
-                        {trade.pnl > 0 ? '+' : ''}${Math.abs(trade.pnl).toFixed(2)}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                        P&L
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Analytics chart */}
-        <Grid size={{ xs: 12, lg: 8 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Box>
-              <Typography variant="h3" sx={{ fontWeight: 800, fontFamily: '"JetBrains Mono", monospace' }}>
-                $48,392
-                <Typography
-                  component="span"
-                  variant="body1"
-                  sx={{ color: 'text.disabled', ml: 1.5, fontFamily: 'Inter, sans-serif' }}
-                >
-                  Portfolio Value
-                </Typography>
-              </Typography>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: 16 }} />
-                <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
-                  +$3,240 this week
-                </Typography>
-              </Stack>
-            </Box>
-            <Stack direction="row" spacing={0.5}>
-              {TIME_FILTERS.map((t) => (
-                <Button
-                  key={t}
-                  size="small"
-                  variant={t === activeTime ? 'contained' : 'text'}
-                  onClick={() => setActiveTime(t)}
-                  sx={{
-                    minWidth: 44,
-                    height: 32,
-                    fontSize: '0.75rem',
-                    color: t === activeTime ? 'white' : 'text.disabled',
-                    ...(t !== activeTime && {
-                      '&:hover': { color: 'text.primary', bgcolor: alpha('#94a3b8', 0.06) },
-                    }),
-                  }}
-                >
-                  {t}
-                </Button>
-              ))}
-            </Stack>
-          </Stack>
-
-          <Paper sx={{ height: 400, p: 4 }}>
-            {/* Stacked performance bar chart (aesthetic) */}
-            <Stack
-              direction="row"
-              spacing={2}
-              alignItems="flex-end"
-              sx={{ height: '100%', px: 1 }}
-            >
-              {['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((month, idx) => {
-                const total = 160 + Math.sin(idx * 0.9) * 60 + idx * 12;
-                return (
-                  <Stack key={month} spacing={0} sx={{ flex: 1, alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        width: '100%',
-                        maxWidth: 28,
-                        display: 'flex',
-                        flexDirection: 'column-reverse',
-                        height: total,
-                        borderRadius: '6px 6px 0 0',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'opacity 0.2s ease',
-                        '&:hover': { opacity: 0.85 },
-                      }}
-                    >
-                      <Box sx={{ height: '22%', bgcolor: 'primary.main' }} />
-                      <Box sx={{ height: '18%', bgcolor: 'secondary.main' }} />
-                      <Box sx={{ height: '28%', bgcolor: 'warning.main' }} />
-                      <Box sx={{ height: '32%', bgcolor: alpha('#a855f7', 0.8) }} />
-                    </Box>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.disabled', fontWeight: 600, mt: 1, fontSize: '0.65rem' }}
-                    >
-                      {month}
-                    </Typography>
-                  </Stack>
-                );
-              })}
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* ---- Trading widgets ---- */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-        <ChartIcon sx={{ color: 'primary.main' }} />
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Trading Overview
-        </Typography>
-        <Chip
-          label="LIVE"
-          size="small"
-          sx={{
-            bgcolor: alpha('#10b981', 0.12),
-            color: 'success.main',
-            border: `1px solid ${alpha('#10b981', 0.25)}`,
-            fontWeight: 700,
-            fontSize: '0.6rem',
-            letterSpacing: '0.08em',
-            height: 20,
-          }}
-        />
-      </Stack>
-
+      {/* ---- Trading Cockpit ---- */}
       <Grid container spacing={3}>
-        {/* Main chart */}
-        <Grid size={{ xs: 12, lg: 8 }}>
-          <Paper data-testid="live-price-chart-paper" sx={{ p: 3, height: 500 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                Real-Time · AAPL
-              </Typography>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <Box className="live-dot" />
-                <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600, fontSize: '0.7rem' }}>
-                  LIVE
-                </Typography>
+        {/* Main Chart Section */}
+        <Grid item xs={12} lg={8}>
+          <Paper sx={{ p: 4, height: 600, display: 'flex', flexDirection: 'column' }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 800 }}>Market Trajectory</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Live feed from direct exchange bridge</Typography>
+              </Box>
+              <Stack direction="row" spacing={1} sx={{ bgcolor: alpha('#f8fafc', 0.05), p: 0.5, borderRadius: 2 }}>
+                {['1H', '4H', '1D', '1W', 'ALL'].map((t) => (
+                  <Button
+                    key={t}
+                    size="small"
+                    variant={t === activeTime ? 'contained' : 'text'}
+                    onClick={() => setActiveTime(t)}
+                    sx={{
+                      minWidth: 48,
+                      height: 32,
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      ...(t !== activeTime && { color: 'text.secondary' })
+                    }}
+                  >
+                    {t}
+                  </Button>
+                ))}
               </Stack>
             </Stack>
-            <Box sx={{ height: 400 }}>
+            <Box sx={{ flexGrow: 1, minHeight: 400 }}>
               <Suspense fallback={<LoadingFallback />}>
-                <LivePriceChart symbol="AAPL" />
+                <LivePriceChart symbol="SPX" />
               </Suspense>
             </Box>
           </Paper>
         </Grid>
 
-        {/* Sidebar widgets */}
-        <Grid size={{ xs: 12, lg: 4 }}>
+        {/* Intelligence Sidebar */}
+        <Grid item xs={12} lg={4}>
           <Stack spacing={3}>
-            <Paper data-testid="ml-predictions-paper" sx={{ height: 235, overflow: 'hidden' }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 2, pb: 0 }}>
-                <MLIcon sx={{ color: 'secondary.main', fontSize: 18 }} />
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  ML Predictions
-                </Typography>
+            <Paper sx={{ p: 3, height: 285 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                <MLIcon sx={{ color: qfd?.electrum, fontSize: 20 }} />
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Neural Inference</Typography>
               </Stack>
               <Suspense fallback={<LoadingFallback />}>
-                <MLPredictions symbol="AAPL" />
+                <MLPredictions symbol="SPX" />
               </Suspense>
             </Paper>
-            <Paper data-testid="portfolio-summary-container" sx={{ height: 235, overflow: 'hidden' }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 2, pb: 0 }}>
-                <PortfolioIcon sx={{ color: 'primary.main', fontSize: 18 }} />
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  Portfolio Summary
-                </Typography>
+            <Paper sx={{ p: 3, height: 285 }}>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                <GreeksIcon sx={{ color: qfd?.quantum, fontSize: 20 }} />
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>Greeks Surface</Typography>
               </Stack>
               <Suspense fallback={<LoadingFallback />}>
-                <PortfolioSummary />
+                <GreeksHeatmap symbol="SPX" greek="delta" />
               </Suspense>
             </Paper>
           </Stack>
         </Grid>
 
-        {/* Options chain */}
-        <Grid size={{ xs: 12, lg: 8 }}>
-          <Paper data-testid="options-chain-container" sx={{ height: 600, overflow: 'hidden' }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 3, pb: 1.5 }}>
-              <ChartIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                Options Chain
-              </Typography>
-              <Chip label="AAPL" size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: alpha('#10b981', 0.1), color: 'success.main' }} />
+        {/* Options Engine */}
+        <Grid item xs={12}>
+          <Paper sx={{ height: 600, overflow: 'hidden' }}>
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 4, pb: 2 }}>
+              <Layers sx={{ color: theme.palette.primary.main }} />
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 800 }}>Strategic Options Matrix</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>Real-time WASM BS calculation with SIMD acceleration</Typography>
+              </Box>
             </Stack>
             <Suspense fallback={<LoadingFallback />}>
-              <OptionsChain symbol="AAPL" />
+              <OptionsChain symbol="SPX" />
             </Suspense>
           </Paper>
-        </Grid>
-
-        {/* Greeks + Vol surface */}
-        <Grid size={{ xs: 12, lg: 4 }}>
-          <Stack spacing={3}>
-            <Paper data-testid="greeks-heatmap-paper" sx={{ p: 3, height: 285 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-                <GreeksIcon sx={{ color: theme.palette.financial?.greeks?.delta ?? '#38bdf8', fontSize: 18 }} />
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>Greeks · Delta</Typography>
-              </Stack>
-              <Suspense fallback={<LoadingFallback />}>
-                <GreeksHeatmap symbol="AAPL" greek="delta" />
-              </Suspense>
-            </Paper>
-            <Paper data-testid="volatility-surface-paper" sx={{ p: 3, height: 285 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, mb: 2 }}>
-                Volatility Surface
-              </Typography>
-              <Suspense fallback={<LoadingFallback />}>
-                <VolatilitySurface3D symbol="AAPL" />
-              </Suspense>
-            </Paper>
-          </Stack>
         </Grid>
       </Grid>
     </Box>
