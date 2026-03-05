@@ -5,6 +5,8 @@ from src.aiops.remediators import (
     ClearRedisCacheRemediator,
     RestartServiceRemediator,
     KernelTuningRemediator,
+    DatabasePoolRemediator,
+    RabbitMQCongestionRemediator,
     RemediationPlanner
 )
 
@@ -64,3 +66,116 @@ async def test_remediation_planner():
     anomaly_drift = {"type": "model_drift"}
     actions_drift = planner.plan(anomaly_drift)
     assert "retrain_model" in [a.name for a in actions_drift]
+
+
+@pytest.mark.asyncio
+async def test_db_pool_remediator_success():
+    remediator = DatabasePoolRemediator()
+
+    with patch("src.database.session.engine") as mock_engine:
+        mock_engine.dispose = MagicMock()
+
+        success = await remediator.remediate(
+            {"type": "db_pool_exhaustion", "metrics": {"pool_utilization": 0.5}}
+        )
+        assert success is True
+        mock_engine.dispose.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_db_pool_remediator_critical_pressure():
+    remediator = DatabasePoolRemediator()
+
+    with patch("src.database.session.engine") as mock_engine:
+        mock_engine.dispose = MagicMock()
+
+        success = await remediator.remediate(
+            {"type": "db_pool_exhaustion", "metrics": {"pool_utilization": 0.95}}
+        )
+        assert success is True
+
+
+@pytest.mark.asyncio
+async def test_db_pool_remediator_failure():
+    remediator = DatabasePoolRemediator()
+
+    with patch("src.database.session.engine") as mock_engine:
+        mock_engine.dispose.side_effect = Exception("Connection refused")
+
+        success = await remediator.remediate({"type": "db_pool_exhaustion"})
+        assert success is False
+
+
+@pytest.mark.asyncio
+async def test_rabbitmq_congestion_remediator_purge_dlq():
+    remediator = RabbitMQCongestionRemediator()
+
+    with patch("aio_pika.connect_robust") as mock_connect:
+        mock_channel = AsyncMock()
+        mock_queue = AsyncMock()
+        mock_channel.declare_queue.return_value = mock_queue
+        mock_conn = AsyncMock()
+        mock_conn.channel.return_value = mock_channel
+        mock_connect.return_value = mock_conn
+
+        success = await remediator.remediate({
+            "metrics": {"queue": "ml_tasks", "suggested_action": "purge_dlq"}
+        })
+        assert success is True
+        mock_channel.declare_queue.assert_called_once_with("ml_tasks.dlq", passive=True)
+        mock_queue.purge.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_rabbitmq_congestion_remediator_increase_prefetch():
+    remediator = RabbitMQCongestionRemediator()
+
+    with patch("aio_pika.connect_robust") as mock_connect:
+        mock_channel = AsyncMock()
+        mock_conn = AsyncMock()
+        mock_conn.channel.return_value = mock_channel
+        mock_connect.return_value = mock_conn
+
+        success = await remediator.remediate({
+            "metrics": {"queue": "pricing", "suggested_action": "increase_prefetch"}
+        })
+        assert success is True
+        mock_channel.set_qos.assert_called_once_with(prefetch_count=50)
+
+
+@pytest.mark.asyncio
+async def test_rabbitmq_congestion_remediator_restart_consumers():
+    remediator = RabbitMQCongestionRemediator()
+
+    with patch("aio_pika.connect_robust") as mock_connect:
+        mock_channel = AsyncMock()
+        mock_conn = AsyncMock()
+        mock_conn.channel.return_value = mock_channel
+        mock_connect.return_value = mock_conn
+
+        with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
+            mock_docker = MagicMock()
+            mock_docker.restart_service = AsyncMock(return_value=True)
+            mock_docker_cls.return_value = mock_docker
+
+            success = await remediator.remediate({
+                "metrics": {"queue": "scraper", "suggested_action": "restart_consumers"}
+            })
+            assert success is True
+            mock_docker.restart_service.assert_called_once_with("worker")
+
+
+@pytest.mark.asyncio
+async def test_planner_includes_new_remediators():
+    planner = RemediationPlanner()
+
+    # DatabasePoolRemediator should respond to db_pool_exhaustion
+    db_anomaly = {"type": "db_pool_exhaustion"}
+    db_actions = planner.plan(db_anomaly)
+    assert "db_pool_recovery" in [a.name for a in db_actions]
+
+    # RabbitMQCongestionRemediator should respond to queue_backpressure
+    rmq_anomaly = {"type": "queue_backpressure"}
+    rmq_actions = planner.plan(rmq_anomaly)
+    assert "rabbitmq_congestion" in [a.name for a in rmq_actions]
+

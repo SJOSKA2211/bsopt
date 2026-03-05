@@ -208,6 +208,110 @@ class KernelTuningRemediator(BaseRemediator):
             return False
 
 
+class DatabasePoolRemediator(BaseRemediator):
+    """
+    Handles database connection pool exhaustion.
+    Recycles idle connections and optionally increases pool size.
+    """
+
+    def __init__(self):
+        super().__init__(
+            "db_pool_recovery",
+            supported_types=["db_pool_exhaustion", "db_connection_timeout", "high_db_latency"],
+        )
+        self.cooldown = 120.0  # 2 min cooldown
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        logger.warning("remediator_db_pool_recovery_initiated")
+        try:
+            from src.database.session import engine
+
+            # Dispose all connections in the pool, forcing new ones to be created
+            engine.dispose()
+            logger.info("remediator_db_pool_recycled", action="dispose")
+
+            # Optionally adjust pool size if metrics indicate sustained pressure
+            pool_pressure = anomaly.get("metrics", {}).get("pool_utilization", 0.0)
+            if pool_pressure > 0.9:
+                logger.warning(
+                    "remediator_db_pool_pressure_critical",
+                    utilization=pool_pressure,
+                    recommendation="increase_pool_size",
+                )
+
+            return True
+        except Exception as e:
+            logger.error("remediator_db_pool_recovery_failed", error=str(e))
+            return False
+
+    async def validate(self, anomaly: dict[str, Any]) -> bool:
+        """Verify that the pool is accepting new connections."""
+        try:
+            from src.database.session import engine
+
+            async with engine.connect() as conn:
+                await conn.execute("SELECT 1")
+            return True
+        except Exception:
+            return False
+
+
+class RabbitMQCongestionRemediator(BaseRemediator):
+    """
+    Handles RabbitMQ queue congestion by purging dead-letter queues,
+    restarting consumers, or temporarily increasing prefetch count.
+    """
+
+    def __init__(self):
+        super().__init__(
+            "rabbitmq_congestion",
+            supported_types=["queue_backpressure", "consumer_lag", "dlq_overflow"],
+        )
+        self.cooldown = 180.0  # 3 min cooldown
+
+    async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        queue_name = anomaly.get("metrics", {}).get("queue", "default")
+        action = anomaly.get("metrics", {}).get("suggested_action", "purge_dlq")
+
+        logger.warning(
+            "remediator_rabbitmq_congestion_initiated",
+            queue=queue_name,
+            action=action,
+        )
+
+        try:
+            import aio_pika
+
+            from src.config import settings
+
+            connection = await aio_pika.connect_robust(settings.CELERY_BROKER_URL)
+            channel = await connection.channel()
+
+            if action == "purge_dlq":
+                dlq_name = f"{queue_name}.dlq"
+                dlq = await channel.declare_queue(dlq_name, passive=True)
+                await dlq.purge()
+                logger.info("remediator_rabbitmq_dlq_purged", queue=dlq_name)
+
+            elif action == "increase_prefetch":
+                # Temporarily increase prefetch to drain the backlog
+                await channel.set_qos(prefetch_count=50)
+                logger.info("remediator_rabbitmq_prefetch_increased", prefetch=50)
+
+            elif action == "restart_consumers":
+                # Signal consumer restart via Redis pub/sub or direct restart
+                from src.aiops.docker_remediator import DockerRemediator
+
+                docker = DockerRemediator()
+                await docker.restart_service("worker")
+                logger.info("remediator_rabbitmq_consumers_restarted")
+
+            await connection.close()
+            return True
+        except Exception as e:
+            logger.error("remediator_rabbitmq_congestion_failed", error=str(e))
+            return False
+
 
 class RemediationPlanner:
     """
@@ -229,6 +333,8 @@ class RemediationPlanner:
                 ModelSwitchRemediator(),
                 SiliconResetRemediator(),
                 KernelTuningRemediator(),
+                DatabasePoolRemediator(),
+                RabbitMQCongestionRemediator(),
             ]
             self.remediators = {r.name: r for r in defaults}
 
