@@ -30,7 +30,7 @@ def train_neural_network(n_samples: int = 100, epochs: int = 1) -> Path:
     Main entry point for training the neural network,
     as expected by test_training.py.
     """
-    adapter = TransformerAdapter()
+    _adapter = TransformerAdapter()
     
     train_loader, val_loader = get_dataloaders(n_samples)
     

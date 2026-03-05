@@ -25,6 +25,7 @@ class _FakeBase:
 Base = _FakeBase()
 
 # Re-export or import expected symbols for `@patch`
+# ruff: noqa: E402
 from src.ml.drift import DriftTrigger
 from src.ml.indicators import get_adx, get_atr, get_bbands, get_macd, get_rsi
 from src.ml.scraper import MarketDataScraper

@@ -40,12 +40,6 @@ async def test_check_drift_theoretical(mock_db_context):
     mock_session = AsyncMock()
     mock_db_context.return_value.__aenter__.return_value = mock_session
     
-    # Mocking some records with high error
-    records = [
-        {"market_price": 100.0, "model_price": 110.0}, # 10% error
-        {"market_price": 100.0, "model_price": 108.0}, # 8% error
-    ]
-    
     # Assuming we implement the fetch logic in the source, we mock it here
     with patch("src.aiops.drift_detector.PricingDriftDetector.check_drift", new_callable=AsyncMock) as mock_check:
         mock_check.return_value = {
