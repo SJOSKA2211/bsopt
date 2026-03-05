@@ -11,6 +11,9 @@ CREATE INDEX IF NOT EXISTS idx_ml_models_hyperparams_gin ON ml_models USING GIN 
 CREATE INDEX IF NOT EXISTS idx_ml_models_metrics_gin ON ml_models USING GIN (training_metrics jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_features_gin ON model_predictions USING GIN (input_features jsonb_path_ops);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_mesh_metadata_gin ON market_data_mesh USING GIN (metadata jsonb_path_ops);
+CREATE INDEX IF NOT EXISTS idx_mesh_market ON market_data_mesh (market);
+CREATE INDEX IF NOT EXISTS idx_mesh_source_type ON market_data_mesh (source_type);
 
 -- Partial indexes for common error logging
 CREATE INDEX IF NOT EXISTS idx_request_logs_errors ON request_logs (status_code, created_at DESC) WHERE status_code >= 400;
