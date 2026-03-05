@@ -1,4 +1,5 @@
 import asyncio
+import redis.asyncio as redis
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -51,8 +52,6 @@ class ClearRedisCacheRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        import redis.asyncio as redis
-
         from src.config import settings
 
         logger.warning("remediator_clear_cache_initiated")

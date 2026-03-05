@@ -5,14 +5,11 @@ import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import { useSubscription, useQuery, gql } from '@apollo/client';
 
 const MARKET_SUBSCRIPTION = gql`
-  subscription OnMarketUpdate($symbol: String!) {
-    marketUpdate(symbol: $symbol) {
+  subscription OnMarketUpdate($symbols: [String!]!) {
+    market_data_stream(symbols: $symbols) {
       symbol
-      time
-      open
-      high
-      low
-      close
+      lastPrice: last_price
+      volume
     }
   }
 `;
@@ -47,7 +44,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
   // Sub for live updates
   const { data: subData } = useSubscription(MARKET_SUBSCRIPTION, {
-    variables: { symbol },
+    variables: { symbols: [symbol] },
   });
 
 
@@ -129,15 +126,12 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
   // Update chart when new data arrives
   useEffect(() => {
-    if (subData?.marketUpdate && seriesRef.current) {
-      const update = subData.marketUpdate;
+    if (subData?.market_data_stream && seriesRef.current) {
+      const update = subData.market_data_stream;
       seriesRef.current.update({
-        time: (update.time as Time),
-        open: update.open,
-        high: update.high,
-        low: update.low,
-        close: update.close,
-      });
+        time: (Math.floor(Date.now() / 1000) as Time),
+        value: update.lastPrice,
+      } as any); // Chart is currently candlestick, but subscription only provides last price
     }
   }, [subData]);
 

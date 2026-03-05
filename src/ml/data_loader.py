@@ -124,18 +124,51 @@ class DatabaseDataLoader:
         """
         from src.database.pipeliner import db_engine
         
-        # Optimized query hitting our SIMD-compressed hypertables
-        query = f"SELECT * FROM options_prices WHERE symbol = '{symbol}' AND time > NOW() - INTERVAL '{days} days' LIMIT {self.chunk_size}"
-        
         async with db_engine as db:
-            # We use generic_bulk_copy for speed if needed, but for retrieval 
-            # we use fetch_training_data which is already binary optimized.
             data = await db.fetch_training_data([symbol], limit=self.chunk_size)
             
             if not data:
                 return pd.DataFrame()
                 
             df = pd.DataFrame(data)
-            
-            # Apply feature store transformations in-memory
             return await feature_store.compute_features(df, ["log_return"])
+
+
+class AIOpsDataLoader:
+    """
+    Optimized loader for system metrics and audit logs.
+    Fetches from revamped audit_logs and request_logs hypertables.
+    """
+
+    def __init__(self, limit: int = 10000):
+        self.limit = limit
+
+    async def fetch_system_metrics(self, hours: int = 1) -> pd.DataFrame:
+        """
+        Fetch latency and status code metrics for anomaly detection.
+        """
+        from src.database.pipeliner import db_engine
+        
+        # Optimized query using TimescaleDB hyper-functions for bucketing
+        query = f"""
+            SELECT 
+                time_bucket('1 minute', created_at) AS bucket,
+                AVG(duration_ms) as avg_latency,
+                COUNT(*) FILTER (WHERE status_code >= 400) as error_count,
+                COUNT(*) as total_requests
+            FROM request_logs
+            WHERE created_at > NOW() - INTERVAL '{hours} hours'
+            GROUP BY bucket
+            ORDER BY bucket ASC
+            LIMIT {self.limit}
+        """
+        
+        async with db_engine as db:
+            if not db._pool:
+                await db.connect()
+            
+            async with db._pool.acquire() as conn:
+                records = await conn.fetch(query)
+                if not records:
+                    return pd.DataFrame()
+                return pd.DataFrame(records)
