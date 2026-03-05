@@ -69,7 +69,9 @@ class DataPipeline:
         records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
-            from src.ml.training.data_gen import generate_synthetic_data_numba as generate_synthetic_data
+            from src.ml.training.data_gen import (
+                generate_synthetic_data_numba as generate_synthetic_data,
+            )
 
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
             return generate_synthetic_data(self.config.min_samples)

@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
 
+
 # Need a fake Base for the test's `patch("...Base.metadata.create_all")`
 class _FakeMetadata:
     def create_all(self, *args: Any, **kwargs: Any) -> None:

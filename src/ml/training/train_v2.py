@@ -4,7 +4,6 @@ Train V2 — expected by test_training.py.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
