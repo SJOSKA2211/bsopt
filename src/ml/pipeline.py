@@ -168,7 +168,9 @@ class MLPipeline:
             x_vals, y_vals, best_config, feature_names=features, dataset_metadata=meta
         )
 
-        promote_threshold = self.config.get("promote_threshold", self.settings.ML_TRAINING_PROMOTE_THRESHOLD_R2)
+        promote_threshold = self.config.get(
+            "promote_threshold", self.settings.ML_TRAINING_PROMOTE_THRESHOLD_R2
+        )
         if avg_score > promote_threshold:
             self._promote(trainer.model, avg_score)
 
@@ -181,7 +183,7 @@ class MLPipeline:
             ray.init(ignore_reinit_error=True)
 
         framework = self.config.get("framework", "xgboost")
-        
+
         if framework == "xgboost":
             search_space = {
                 "n_estimators": tune.randint(50, 500),
@@ -226,15 +228,16 @@ class MLPipeline:
         features = [
             str(col) for col in df.columns if str(col) not in ["timestamp", "target", "ticker"]
         ]
-        
+
         # Scaling for NN
         if self.config.get("framework") == "nn":
             from sklearn.preprocessing import StandardScaler
+
             scaler = StandardScaler()
             X = scaler.fit_transform(df[features].values)
         else:
             X = df[features].values
-            
+
         return (
             X,
             df["target"].values,
@@ -245,6 +248,7 @@ class MLPipeline:
     async def _fetch_data(self) -> pd.DataFrame:
         """Ingest historical data."""
         from datetime import date, timedelta
+
         end_date = date.today()
         start_date = end_date - timedelta(days=self.config.get("trailing_days", 365))
         return await self.scraper.fetch_historical_data(
@@ -254,12 +258,13 @@ class MLPipeline:
     async def _get_synthetic_data(self) -> pd.DataFrame:
         """Generates synthetic fallback data."""
         from src.ml.training.data_gen import generate_synthetic_data_numba
+
         n_samples = self.config.get("synthetic_samples", 1000)
         x, y, cols = generate_synthetic_data_numba(n_samples=n_samples)
-        
+
         # Map to DataFrame structure expected by generate_features
         df = pd.DataFrame(x, columns=cols)
-        df["close"] = y # In synthetic, y is typically the price or target
+        df["close"] = y  # In synthetic, y is typically the price or target
         df["timestamp"] = np.arange(len(df))
         df["high"] = df["close"] * 1.01
         df["low"] = df["close"] * 0.99
@@ -307,10 +312,10 @@ class MLPipeline:
             quantized_path = f"models/{self.study_name}_latest.int8.onnx"
             try:
                 from src.tasks.ml_tasks import optimize_model_task
+
                 optimize_model_task.delay(model_path, quantized_path)
             except Exception as e:
                 logger.error("onnx_export_failed", error=str(e))
-
 
 
 if __name__ == "__main__":

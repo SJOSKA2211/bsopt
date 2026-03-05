@@ -5,6 +5,7 @@ import pytest
 from src.aiops.drift_detector import PricingDriftDetector
 
 
+
 @pytest.mark.asyncio
 @patch("src.aiops.drift_detector.get_async_db_context")
 async def test_check_drift_theoretical(mock_db_context):
@@ -27,6 +28,7 @@ async def test_check_drift_theoretical(mock_db_context):
         result = await detector.check_drift()
         assert result["drift_detected"] is True
         assert result["mean_relative_error"] > 0.05
+
 
 
 @pytest.mark.asyncio

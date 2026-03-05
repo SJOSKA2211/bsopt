@@ -12,8 +12,10 @@ logger = structlog.get_logger()
 
 # ─── Neural Network Components ──────────────────────────────────────────────
 
+
 class VAE(nn.Module):
     """Variational Autoencoder for robust anomaly detection."""
+
     def __init__(self, input_dim, latent_dim):
         super().__init__()
         self.encoder = nn.Sequential(
@@ -45,14 +47,22 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, logvar)
         return self.decoder(z), mu, logvar
 
+
 class TimeSeriesTransformerEncoder(nn.Module):
     """Transformer-based encoder for sequential metric analysis."""
-    def __init__(self, input_dim, d_model=64, nhead=4, num_layers=2, dim_feedforward=128, dropout=0.1):
+
+    def __init__(
+        self, input_dim, d_model=64, nhead=4, num_layers=2, dim_feedforward=128, dropout=0.1
+    ):
         super().__init__()
         self.embedding = nn.Linear(input_dim, d_model)
         self.pos_encoder = nn.Parameter(torch.zeros(1, 1000, d_model))
         encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            batch_first=True,
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         self.decoder = nn.Linear(d_model, input_dim)
@@ -63,7 +73,9 @@ class TimeSeriesTransformerEncoder(nn.Module):
         x = self.transformer_encoder(x)
         return self.decoder(x)
 
+
 # ─── Unified Anomaly Detector ───────────────────────────────────────────────
+
 
 class AnomalyDetector:
     """
@@ -72,18 +84,17 @@ class AnomalyDetector:
     - autoencoder: Deep learning based reconstruction error.
     - transformer: Sequential pattern based anomalies.
     """
+
     def __init__(self, engine: str = "isolation_forest", **kwargs):
         self.engine = engine
         self.scaler = StandardScaler()
         self.is_fitted = False
         self.columns = []
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        
+
         if engine == "isolation_forest":
             self.model = IsolationForest(
-                contamination=kwargs.get("contamination", 0.05),
-                n_jobs=-1,
-                random_state=42
+                contamination=kwargs.get("contamination", 0.05), n_jobs=-1, random_state=42
             )
         elif engine == "autoencoder":
             self.input_dim = kwargs.get("input_dim")
@@ -123,7 +134,7 @@ class AnomalyDetector:
 
         if self.engine == "isolation_forest":
             self.model.fit(scaled_features)
-        
+
         elif self.engine == "autoencoder":
             tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
             dataloader = DataLoader(TensorDataset(tensor_data), batch_size=32, shuffle=True)
@@ -133,11 +144,12 @@ class AnomalyDetector:
                     inputs = batch[0]
                     self.optimizer.zero_grad()
                     recon, mu, logvar = self.model(inputs)
-                    loss = nn.functional.mse_loss(recon, inputs, reduction="sum") + \
-                           -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+                    loss = nn.functional.mse_loss(
+                        recon, inputs, reduction="sum"
+                    ) + -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
                     loss.backward()
                     self.optimizer.step()
-            
+
             # Calculate threshold (95th percentile)
             self.model.eval()
             with torch.no_grad():
@@ -149,7 +161,7 @@ class AnomalyDetector:
             tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
             if tensor_data.dim() == 2:
                 tensor_data = tensor_data.unsqueeze(0)
-            
+
             self.model.train()
             for _ in range(epochs):
                 self.optimizer.zero_grad()
@@ -182,13 +194,15 @@ class AnomalyDetector:
             scaled_features = self.scaler.transform(features)
 
         anomalies = []
-        
+
         if self.engine == "isolation_forest":
             preds = self.model.predict(scaled_features)
             scores = self.model.decision_function(scaled_features)
             indices = np.where(preds == -1)[0]
             for idx in indices:
-                anomalies.append({"index": int(idx), "score": float(scores[idx]), "type": "outlier"})
+                anomalies.append(
+                    {"index": int(idx), "score": float(scores[idx]), "type": "outlier"}
+                )
 
         elif self.engine == "autoencoder":
             self.model.eval()
@@ -198,7 +212,13 @@ class AnomalyDetector:
                 errors = torch.mean((recon - tensor_data) ** 2, dim=1).cpu().numpy()
                 indices = np.where(errors > self.threshold)[0]
                 for idx in indices:
-                    anomalies.append({"index": int(idx), "score": float(errors[idx]), "type": "reconstruction_error"})
+                    anomalies.append(
+                        {
+                            "index": int(idx),
+                            "score": float(errors[idx]),
+                            "type": "reconstruction_error",
+                        }
+                    )
 
         elif self.engine == "transformer":
             self.model.eval()
@@ -210,13 +230,14 @@ class AnomalyDetector:
                 per_feature_loss = torch.mean((recon - tensor_data) ** 2, dim=(0, 1))
                 total_loss = float(per_feature_loss.mean().item())
                 if self.threshold is not None and total_loss > self.threshold:
-
                     culprit_idx = int(torch.argmax(per_feature_loss).item())
-                    anomalies.append({
-                        "is_anomaly": True,
-                        "score": total_loss,
-                        "culprit_index": culprit_idx,
-                        "type": "sequence_anomaly"
-                    })
+                    anomalies.append(
+                        {
+                            "is_anomaly": True,
+                            "score": total_loss,
+                            "culprit_index": culprit_idx,
+                            "type": "sequence_anomaly",
+                        }
+                    )
 
         return anomalies

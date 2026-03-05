@@ -46,12 +46,15 @@ class ClearRedisCacheRemediator(BaseRemediator):
     """
 
     def __init__(self):
-        super().__init__("clear_cache", supported_types=["latency_spike", "stale_data", "cache_inconsistency"])
+        super().__init__(
+            "clear_cache", supported_types=["latency_spike", "stale_data", "cache_inconsistency"]
+        )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         import redis.asyncio as redis
 
         from src.config import settings
+
         logger.warning("remediator_clear_cache_initiated")
         try:
             client = redis.from_url(settings.REDIS_URL)
@@ -71,17 +74,24 @@ class RestartServiceRemediator(BaseRemediator):
     def __init__(self):
         super().__init__(
             "restart_service",
-            supported_types=["latency_spike", "error_burst", "cpu_high", "high_latency", "error_spike"],
+            supported_types=[
+                "latency_spike",
+                "error_burst",
+                "cpu_high",
+                "high_latency",
+                "error_spike",
+            ],
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.aiops.docker_remediator import DockerRemediator
+
         service = anomaly.get("metrics", {}).get("service", "bsopt-api")
         logger.warning("remediator_restart_initiated", service=service)
-        
+
         docker = DockerRemediator()
         success = await docker.restart_service(service)
-        
+
         if success:
             logger.info("remediator_restart_completed", service=service)
         return success
@@ -94,7 +104,8 @@ class RetrainModelRemediator(BaseRemediator):
 
     def __init__(self):
         super().__init__(
-            "retrain_model", supported_types=["model_drift", "performance_degradation", "data_drift"]
+            "retrain_model",
+            supported_types=["model_drift", "performance_degradation", "data_drift"],
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
@@ -110,7 +121,9 @@ class ArgoCDRollbackRemediator(BaseRemediator):
     """
 
     def __init__(self):
-        super().__init__("argocd_rollback", supported_types=["deployment_regression", "sync_failure"])
+        super().__init__(
+            "argocd_rollback", supported_types=["deployment_regression", "sync_failure"]
+        )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         service = anomaly.get("service", "unknown")
@@ -127,14 +140,17 @@ class AutonomousScalerRemediator(BaseRemediator):
     """
 
     def __init__(self):
-        super().__init__("autonomous_scaler", supported_types=["high_load", "predicted_load_spike", "cpu_high"])
+        super().__init__(
+            "autonomous_scaler", supported_types=["high_load", "predicted_load_spike", "cpu_high"]
+        )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.aiops.docker_remediator import DockerRemediator
+
         service = anomaly.get("service", "bsopt-api")
         current_replicas = anomaly.get("metrics", {}).get("replicas", 1)
         target_replicas = current_replicas + 1
-        
+
         logger.warning("remediator_scaling_initiated", service=service, target=target_replicas)
         docker = DockerRemediator()
         success = await docker.scale_service(service, target_replicas)
@@ -151,9 +167,10 @@ class ModelSwitchRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.pricing.factory import PricingEngineFactory
+
         fallback = anomaly.get("fallback_model", "black_scholes")
         current = anomaly.get("model", "unknown")
-        
+
         logger.warning("remediator_model_switch_initiated", from_model=current, to_model=fallback)
         PricingEngineFactory.set_default_engine(fallback)
         return True
@@ -165,10 +182,13 @@ class SiliconResetRemediator(BaseRemediator):
     """
 
     def __init__(self):
-        super().__init__("silicon_reset", supported_types=["critical_jitter", "worker_unresponsive"])
+        super().__init__(
+            "silicon_reset", supported_types=["critical_jitter", "worker_unresponsive"]
+        )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.aiops.docker_remediator import DockerRemediator
+
         logger.warning("remediator_silicon_reset_initiated")
         docker = DockerRemediator()
         success = await docker.restart_service("worker")
@@ -180,6 +200,7 @@ class KernelTuningRemediator(BaseRemediator):
     Proactively tunes OS kernel parameters for low-latency processing.
     Triggers the 'Vanguard' optimization script.
     """
+
     SCRIPT_PATH = "/app/scripts/optimize_kernel.sh"
 
     def __init__(self):
@@ -346,7 +367,6 @@ class RemediationPlanner:
             ]
             self.remediators = {r.name: r for r in defaults}
 
-
     def plan(self, anomaly: dict[str, Any]) -> list[BaseRemediator]:
         """
         Plans a sequence of remediation actions.
@@ -357,4 +377,3 @@ class RemediationPlanner:
             if a_type in r.supported_types and r.can_run():
                 actions.append(r)
         return sorted(actions, key=lambda x: x.name)
-

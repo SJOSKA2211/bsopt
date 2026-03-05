@@ -25,6 +25,7 @@ class MLPipelineTrigger:
             try:
                 pipeline = MLPipeline(self.config)
                 import asyncio
+
                 asyncio.run(pipeline.run())
                 logger.info("ml_pipeline_background_complete")
             except Exception as e:
