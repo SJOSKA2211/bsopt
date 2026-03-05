@@ -22,35 +22,48 @@ GRANT USAGE ON SCHEMA public TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
 
--- 3. Row Level Security (RLS)
+-- 3. Row Level Security (RLS) Performance Optimized
+
+-- Helper function to get current user ID from session context
+CREATE OR REPLACE FUNCTION get_current_user_id() RETURNS UUID AS $$
+BEGIN
+    RETURN NULLIF(current_setting('app.current_user_id', true), '')::UUID;
+EXCEPTION WHEN others THEN
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql STABLE;
 
 -- 1. Portfolios
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS portfolios_user_isolation ON portfolios;
 CREATE POLICY portfolios_user_isolation ON portfolios
     FOR ALL
-    USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
+    USING (user_id = get_current_user_id());
 
--- 2. Positions
+-- 2. Positions (Optimized with EXISTS)
 ALTER TABLE positions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS positions_user_isolation ON positions;
 CREATE POLICY positions_user_isolation ON positions
     FOR ALL
-    USING (portfolio_id IN (SELECT id FROM portfolios WHERE user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID));
+    USING (EXISTS (
+        SELECT 1 FROM portfolios p 
+        WHERE p.id = portfolio_id 
+        AND p.user_id = get_current_user_id()
+    ));
 
 -- 3. Orders
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS orders_user_isolation ON orders;
 CREATE POLICY orders_user_isolation ON orders
     FOR ALL
-    USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
+    USING (user_id = get_current_user_id());
 
 -- 4. Users (Self-service only)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS users_self_isolation ON users;
 CREATE POLICY users_self_isolation ON users
     FOR ALL
-    USING (id = NULLIF(current_setting('app.current_user_id', true), '')::UUID);
+    USING (id = get_current_user_id());
 
 -- PL/pgSQL AUTHENTICATION FUNCTIONS
 

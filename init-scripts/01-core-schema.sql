@@ -84,14 +84,17 @@ CREATE TABLE IF NOT EXISTS options_prices (
     last NUMERIC(12, 4),
     volume INTEGER,
     open_interest INTEGER,
-    implied_volatility NUMERIC(8, 6),
-    delta NUMERIC(8, 6),
-    gamma NUMERIC(8, 6),
-    vega NUMERIC(8, 6),
-    theta NUMERIC(8, 6),
-    rho NUMERIC(8, 6),
+    implied_volatility DOUBLE PRECISION,
+    delta DOUBLE PRECISION,
+    gamma DOUBLE PRECISION,
+    vega DOUBLE PRECISION,
+    theta DOUBLE PRECISION,
+    rho DOUBLE PRECISION,
     PRIMARY KEY (time, symbol, strike, expiry, option_type)
 );
+
+-- Increase statistics target for symbol column for better query planning in large datasets
+ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 500;
 
 CREATE TABLE IF NOT EXISTS market_ticks (
     time TIMESTAMPTZ NOT NULL,
@@ -208,7 +211,9 @@ CREATE INDEX IF NOT EXISTS idx_ml_models_production ON ml_models(name, is_produc
 CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC);
 CREATE INDEX IF NOT EXISTS idx_ml_models_created_by ON ml_models(created_by);
 
-CREATE TABLE IF NOT EXISTS model_predictions (
+DROP TABLE IF EXISTS model_predictions CASCADE;
+CREATE TABLE model_predictions (
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
     input_features JSONB NOT NULL,
@@ -216,9 +221,11 @@ CREATE TABLE IF NOT EXISTS model_predictions (
     actual_price NUMERIC(12, 4),
     prediction_error NUMERIC(12, 4),
     actual_value NUMERIC,
-    timestamp TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (id, timestamp)
 );
+
+SELECT create_hypertable('model_predictions', 'timestamp', if_not_exists => TRUE);
+SELECT set_chunk_time_interval('model_predictions', INTERVAL '7 days');
 
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
@@ -240,6 +247,44 @@ CREATE TABLE IF NOT EXISTS request_logs (
     method VARCHAR(10), 
     duration_ms REAL
 );
+
+CREATE TABLE IF NOT EXISTS model_drift_baselines (
+    model_id UUID PRIMARY KEY REFERENCES ml_models(id) ON DELETE CASCADE,
+    baseline_accuracy DOUBLE PRECISION,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE OR REPLACE FUNCTION update_drift_baseline()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_accuracy DOUBLE PRECISION;
+BEGIN
+    -- Calculate rolling accuracy for the model (predictions from the last 24h)
+    SELECT AVG(CASE WHEN ABS(predicted_price - actual_price) / NULLIF(actual_price, 0) < 0.05 THEN 1 ELSE 0 END)
+    INTO v_accuracy
+    FROM model_predictions
+    WHERE model_id = NEW.model_id
+      AND timestamp >= NOW() - INTERVAL '24 hours'
+      AND actual_price IS NOT NULL;
+
+    -- Update baseline if accuracy is statistically significant
+    IF v_accuracy IS NOT NULL AND v_accuracy > 0.90 THEN
+        INSERT INTO model_drift_baselines (model_id, baseline_accuracy, updated_at)
+        VALUES (NEW.model_id, v_accuracy, NOW())
+        ON CONFLICT (model_id) DO UPDATE 
+        SET baseline_accuracy = EXCLUDED.baseline_accuracy, updated_at = NOW();
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_update_drift_baseline ON model_predictions;
+CREATE TRIGGER trigger_update_drift_baseline
+    AFTER UPDATE OF actual_price ON model_predictions
+    FOR EACH ROW
+    WHEN (NEW.actual_price IS NOT NULL)
+    EXECUTE FUNCTION update_drift_baseline();
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

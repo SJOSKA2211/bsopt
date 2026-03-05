@@ -18,10 +18,40 @@ class MathActor:
     """
 
     def __init__(self):
+        from src.pricing.calibration.engine import HestonCalibrator
         from src.pricing.factory import PricingEngineFactory
 
         self.engine = PricingEngineFactory.get_engine("black_scholes")
-        logger.info("math_actor_ready", engine="vectorized_bs")
+        self.calibrator = HestonCalibrator()
+        logger.info("math_actor_ready", engine="vectorized_bs+heston")
+
+    async def run_calibration(self, symbol: str, market_data: list) -> dict:
+        """Asynchronous Heston Calibration for a single symbol."""
+        start_time = time.perf_counter()
+        try:
+            # Note: calibrate is CPU-bound, but since this is a Ray Actor,
+            # it's better to be async-native to allow other concurrent calls if needed.
+            # However, for true CPU parallelism, we rely on Ray's multiple actors.
+            params, metrics = self.calibrator.calibrate(market_data, symbol=symbol)
+            
+            duration = (time.perf_counter() - start_time) * 1000
+            logger.info("calibration_complete", symbol=symbol, ms=round(duration, 3))
+            
+            return {
+                "symbol": symbol,
+                "status": "success",
+                "params": {
+                    "kappa": params.kappa,
+                    "theta": params.theta,
+                    "sigma": params.sigma,
+                    "rho": params.rho,
+                    "v0": params.v0,
+                },
+                "metrics": metrics,
+            }
+        except Exception as e:
+            logger.error("calibration_failed", symbol=symbol, error=str(e))
+            return {"symbol": symbol, "status": "failed", "error": str(e)}
 
     async def calibrate_batch(
         self,

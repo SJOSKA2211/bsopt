@@ -54,8 +54,7 @@ fi
 
 # 2. Start Infrastructure if not already running
 DOCKER_COMPOSE="docker compose -f docker-compose.dev.yml"
-# Check using default docker-compose.yml as we deploy infra there
-RUNNING_SERVICES=$(docker compose -f docker-compose.yml ps --services --filter "status=running")
+RUNNING_SERVICES=$($DOCKER_COMPOSE ps --services --filter "status=running")
 if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]] || [[ ! $RUNNING_SERVICES =~ "rabbitmq" ]]; then
     echo " Starting Infrastructure via start_infra.sh..."
     ./scripts/start_infra.sh

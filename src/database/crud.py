@@ -56,19 +56,18 @@ async def create_user(db: AsyncSession, email: str, password: str, full_name: st
     """Create a new user using Native Postgres Procedure (Async)."""
     # OPTIMIZED: Hand off hashing to the database layer
     result = await db.execute(
-        text("SELECT create_user(:email, :password)"),
-        {"email": email, "password": password},
+        text("SELECT register_user_native(:email, :password, :full_name)"),
+        {"email": email, "password": password, "full_name": full_name},
     )
     user_id = result.scalar()
 
     # Retrieve the created user
     result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one()
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise ValueError("Failed to retrieve created user")
 
-    # Set full name (not handled by the core procedure)
-    user.full_name = full_name
-    await db.commit()
-    await db.refresh(user)
     return user
 
 

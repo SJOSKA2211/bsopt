@@ -5,6 +5,8 @@ from typing import Any
 import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
+from src.config import settings
+from src.trading.risk_kernels import IncrementalDeltaTracker
 
 logger = structlog.get_logger(__name__)
 
@@ -18,6 +20,8 @@ class OrderExecutor:
     def __init__(self, protocol: DeFiOptionsProtocol):
         self.protocol = protocol
         self._execution_lock = asyncio.Lock()
+        # OPTIMIZED: Incremental tracker to avoid O(N) delta summation
+        self._delta_tracker = IncrementalDeltaTracker(max_net_delta=settings.MAX_NET_DELTA)
 
     async def execute_order(
         self, params: dict[str, Any], max_slippage_pct: float = 0.5
@@ -27,32 +31,29 @@ class OrderExecutor:
             start_time = time.time()
             try:
                 # 1. Pre-Trade Risk Validation
-                from src.trading.risk_kernels import (
-                    _validate_delta_exposure_kernel,
-                    _validate_order_kernel,
-                )
+                from src.trading.risk_kernels import _validate_order_kernel
 
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
 
-                # Basic Order Validation
+                # Basic Order Validation (Fat-finger)
                 if not _validate_order_kernel(price, quantity, side):
                     logger.warning("order_rejected_basic_risk", params=params)
                     return {"status": "rejected", "reason": "basic_risk_limit_violation"}
 
-                # Portfolio-wide Delta Exposure Validation (Simplified)
-                # In prod, we'd fetch current_deltas from Redis/DB
-                import numpy as np
-
-                current_deltas = np.zeros(10)  # Placeholder for current portfolio state
+                # 2. Portfolio-wide Delta Exposure Validation (Incremental O(1))
                 trade_delta = params.get("delta", 0.0) * quantity * side
-
-                if not _validate_delta_exposure_kernel(current_deltas, trade_delta):
-                    logger.warning("order_rejected_delta_risk", params=params, delta=trade_delta)
+                if not self._delta_tracker.validate_and_update(trade_delta):
+                    logger.warning(
+                        "order_rejected_delta_risk",
+                        params=params,
+                        delta=trade_delta,
+                        current_total=self._delta_tracker.current_net_delta,
+                    )
                     return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
 
-                # 2. Extract params for execution
+                # 3. Extract params for execution
                 contract_address = params.get("contract_address")
 
                 # 2. Check Circuit Breaker

@@ -30,6 +30,47 @@ def _validate_order_kernel(
     return 1
 
 
+class IncrementalDeltaTracker:
+    """
+    Stateful tracker for portfolio-wide delta exposure.
+    Maintains O(1) running total for sub-microsecond validation.
+    """
+
+    def __init__(self, initial_delta: float = 0.0, max_net_delta: float = 10000.0):
+        self.current_net_delta = initial_delta
+        self.max_net_delta = max_net_delta
+
+    def validate_and_update(self, trade_delta: float) -> bool:
+        """
+        Sub-microsecond validation with state update.
+        """
+        ok, new_delta = _validate_incremental_delta_kernel(
+            self.current_net_delta, trade_delta, self.max_net_delta
+        )
+        if ok:
+            self.current_net_delta = new_delta
+            return True
+        return False
+
+    def reset(self, new_delta: float):
+        """Periodic full-sync to prevent drift."""
+        self.current_net_delta = new_delta
+
+
+@njit(cache=True)
+def _validate_incremental_delta_kernel(
+    current_net_delta: float, trade_delta: float, max_net_delta: float = 10000.0
+) -> tuple[int, float]:
+    """
+    O(1) incremental delta check.
+    Returns: (1 if OK else 0, new_net_delta)
+    """
+    new_net_delta = current_net_delta + trade_delta
+    if abs(new_net_delta) > max_net_delta:
+        return 0, current_net_delta
+    return 1, new_net_delta
+
+
 @njit(cache=True)
 def _validate_delta_exposure_kernel(
     current_deltas: np.ndarray, trade_delta: float, max_net_delta: float = 10000.0
