@@ -3,7 +3,7 @@
 -- ============================================================================
 
 -- Compression Policies
-ALTER TABLE options_prices SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol', timescaledb.compress_orderby = 'time DESC');
+ALTER TABLE options_prices SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol, strike, expiry', timescaledb.compress_orderby = 'time DESC');
 SELECT add_compression_policy('options_prices', INTERVAL '1 day', if_not_exists => TRUE);
 
 ALTER TABLE market_ticks SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol', timescaledb.compress_orderby = 'time DESC');
