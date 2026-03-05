@@ -1,6 +1,5 @@
 """
 Redis Caching Strategy
-======================
 
 Implements a multi-layer caching strategy using Redis to improve API performance.
 Optimized for 1000+ concurrent users with connection pooling and keepalive.
@@ -235,36 +234,71 @@ class RateLimiter:
         endpoint: str,
         tier: RateLimitTier | str = RateLimitTier.FREE,
     ) -> bool:
+        # 1. Primary: Redis (Fastest)
         redis = get_redis()
-        if redis is None:
-            return True
+        if redis:
+            # Convert string to Enum if needed
+            if isinstance(tier, str):
+                try:
+                    tier = RateLimitTier(tier.lower())
+                except ValueError:
+                    tier = RateLimitTier.FREE
 
-        # Convert string to Enum if needed
-        if isinstance(tier, str):
+            config = RATE_LIMIT_CONFIGS[tier]
+            limit = (
+                config.pricing_requests_per_minute
+                if "price" in endpoint.lower()
+                else config.requests_per_minute
+            )
+            key = f"rl:{user_id}:{endpoint}"
+            now = int(time.time())
+            window = now // 60
+            full_key = f"{key}:{window}"
             try:
-                tier = RateLimitTier(tier.lower())
-            except ValueError:
-                tier = RateLimitTier.FREE
+                pipe = redis.pipeline()
+                pipe.incr(full_key)
+                pipe.expire(full_key, 120)
+                results = await pipe.execute()
+                if results[0] <= (limit + config.burst_size):
+                    return True
+            except Exception as e:
+                logger.warning("redis_rate_limit_check_failed_falling_back", error=str(e), user_id=user_id)
 
-        config = RATE_LIMIT_CONFIGS[tier]
-        limit = (
-            config.pricing_requests_per_minute
-            if "price" in endpoint.lower()
-            else config.requests_per_minute
-        )
-        key = f"rl:{user_id}:{endpoint}"
-        now = int(time.time())
-        window = now // 60
-        full_key = f"{key}:{window}"
+        # 2. Secondary: Optimized Postgres Unlogged Table (Highly Robust)
+        # Prevents total bypass if Redis is unavailable or during cold restarts.
         try:
-            pipe = redis.pipeline()
-            pipe.incr(full_key)
-            pipe.expire(full_key, 120)
-            results = await pipe.execute()
-            return bool(results[0] <= (limit + config.burst_size))
+            from src.database import get_async_db_context
+            from sqlalchemy import text
+            from datetime import datetime, UTC
+            
+            # Simple window-based check mirroring Redis logic
+            now = datetime.now(UTC)
+            window_start = now.replace(second=0, microsecond=0)
+            
+            async with get_async_db_context() as db:
+                # Optimized native query for unlogged rate_limits table
+                stmt = text("""
+                    INSERT INTO rate_limits (user_id, endpoint, window_start, request_count)
+                    VALUES (:uid, :ep, :ws, 1)
+                    ON CONFLICT (user_id, endpoint, window_start) 
+                    DO UPDATE SET request_count = rate_limits.request_count + 1
+                    RETURNING request_count;
+                """)
+                result = await db.execute(stmt, {"uid": user_id, "ep": endpoint, "ws": window_start})
+                count = result.scalar()
+                await db.commit()
+                
+                # Use default free tier limits for DB fallback safety if config not resolved
+                db_limit = 100 
+                if isinstance(tier, RateLimitTier):
+                    config = RATE_LIMIT_CONFIGS[tier]
+                    db_limit = config.pricing_requests_per_minute if "price" in endpoint.lower() else config.requests_per_minute
+                
+                return bool(count <= db_limit)
+                
         except Exception as e:
-            logger.error("rate_limit_check_failed", error=str(e), user_id=user_id)
-            return True
+            logger.error("db_rate_limit_fallback_failed", error=str(e), user_id=user_id)
+            return True # Fail open
 
 
 rate_limiter = RateLimiter()

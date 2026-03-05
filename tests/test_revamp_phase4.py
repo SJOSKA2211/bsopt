@@ -1,7 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from src.pricing.quantum_pricing import QuantumOptionPricer, QISKIT_AVAILABLE
+
 from src.ml.distributed_training import BSOptDistributedTrainer
+from src.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
+
 
 class TestRevampPhase4:
     def test_quantum_pricer_speedup_calculation(self):

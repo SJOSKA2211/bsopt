@@ -1,0 +1,4 @@
+# file: /app/src/database/models.py
+# hypothesis_version: 6.151.9
+
+[100, 255, 500, '0.00', 'APIKey', 'BetterAuthAccount', 'BetterAuthSession', 'CASCADE', 'OAuth2Client', 'Portfolio', 'Position', 'SET NULL', 'User', 'all, delete-orphan', 'api_keys', 'audit_logs', 'better_auth_accounts', 'better_auth_sessions', 'buy', 'cancelled', 'closed', 'ensemble', 'enterprise', 'filled', 'free', 'lightgbm', 'limit', 'market', 'market_ticks', 'medium', 'metadata', 'ml_algorithm', 'ml_models', 'ml_models.id', 'model_predictions', 'name', 'neural_network', 'oauth2_clients', 'oauth_clients', 'open', 'options_prices', 'order_side', 'order_status', 'order_type', 'orders', 'partially_filled', 'pending', 'portfolio', 'portfolios', 'portfolios.id', 'position_status', 'positions', 'pro', 'random_forest', 'rejected', 'request_logs', 'security_incidents', 'sell', 'stop', 'stop_limit', 'svm', 'user', 'user_id', 'user_tier', 'users', 'users.id', 'version', 'xgboost']

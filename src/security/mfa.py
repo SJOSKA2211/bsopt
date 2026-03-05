@@ -1,6 +1,5 @@
 """
 MFA Service
-===========
 
 Handles Multi-Factor Authentication using Time-based One-Time Passwords (TOTP).
 """

@@ -1,6 +1,8 @@
 import asyncio
+
 import structlog
 from redis.asyncio import Redis
+
 from src.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)

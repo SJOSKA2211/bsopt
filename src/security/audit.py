@@ -1,6 +1,5 @@
 """
 Audit Logging Service
-=====================
 
 Provides structured logging for critical security and business events.
 Supports both file logging and database persistence.

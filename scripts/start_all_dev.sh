@@ -53,7 +53,7 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # 2. Start Infrastructure if not already running
-DOCKER_COMPOSE="docker compose -f docker-compose.dev.yml"
+DOCKER_COMPOSE="docker-compose -f docker-compose.dev.yml"
 RUNNING_SERVICES=$($DOCKER_COMPOSE ps --services --filter "status=running")
 if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]] || [[ ! $RUNNING_SERVICES =~ "rabbitmq" ]]; then
     echo " Starting Infrastructure via start_infra.sh..."
@@ -76,7 +76,8 @@ check_infra_health() {
         status=1
     fi
 
-    $DOCKER_COMPOSE exec -T redis redis-cli ping | grep -q PONG > /dev/null 2>&1
+    [ -f .env ] && source .env
+    $DOCKER_COMPOSE exec -T redis sh -c "redis-cli -a \"\${REDIS_PASSWORD:-bsopt_redis_secret}\" ping 2>/dev/null" | grep -q PONG > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         message+="Redis not ready. "
         status=1

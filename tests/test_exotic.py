@@ -1,6 +1,5 @@
 """
 Comprehensive Unit Tests for Exotic Options Pricing Module
-===========================================================
 
 Test Coverage:
 --------------
@@ -31,9 +30,7 @@ from src.pricing.exotic import (
 )
 from tests.test_utils import assert_equal
 
-# ============================================================================
 # Fixtures
-# ============================================================================
 
 
 @pytest.fixture
@@ -73,9 +70,7 @@ def lookback_params(base_params):
     return ExoticParameters(base_params=base_params, n_observations=252)
 
 
-# ============================================================================
 # Test Asian Options
-# ============================================================================
 
 
 class TestAsianOptions:
@@ -252,9 +247,7 @@ class TestAsianOptions:
         assert isinstance(price, float)
 
 
-# ============================================================================
 # Test Barrier Options
-# ============================================================================
 
 
 class TestBarrierOptions:
@@ -467,9 +460,7 @@ class TestBarrierOptions:
         assert uoc < 5.0
 
 
-# ============================================================================
 # Test Lookback Options
-# ============================================================================
 
 
 class TestLookbackOptions:
@@ -530,9 +521,7 @@ class TestLookbackOptions:
         assert_equal(maxima[1], 100.0)
 
 
-# ============================================================================
 # Test Digital Options
-# ============================================================================
 
 
 class TestDigitalOptions:
@@ -562,9 +551,7 @@ class TestDigitalOptions:
         assert abs(call_greeks.vega) > 0
 
 
-# ============================================================================
 # Test Unified Interface
-# ============================================================================
 
 
 class TestUnifiedInterface:
@@ -623,9 +610,7 @@ class TestUnifiedInterface:
             price_exotic_option("invalid_class", asian_params, "call")
 
 
-# ============================================================================
 # Test Edge Cases
-# ============================================================================
 
 
 class TestEdgeCases:

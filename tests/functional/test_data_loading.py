@@ -1,6 +1,5 @@
 """
 Data Loading Functional Tests (Principles 62, 70, 78, 86)
-======================================================
 """
 
 import json

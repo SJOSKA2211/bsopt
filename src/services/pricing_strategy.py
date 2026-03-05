@@ -1,6 +1,5 @@
 """
 Dynamic Pricing Engine
-======================
 
 Implements dynamic pricing algorithms for SaaS tiers including:
 - A/B Testing of pricing strategies

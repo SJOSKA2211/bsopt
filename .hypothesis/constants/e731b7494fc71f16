@@ -1,0 +1,4 @@
+# file: /app/src/database/models.py
+# hypothesis_version: 6.151.9
+
+[100, 255, 500, '0.00', 'CASCADE', 'OAuth2Client', 'Portfolio', 'Position', 'SET NULL', 'User', 'all, delete-orphan', 'audit_logs', 'free', 'market_ticks', 'metadata', 'ml_models', 'ml_models.id', 'model_predictions', 'name', 'oauth2_clients', 'oauth_clients', 'open', 'options_prices', 'orders', 'pending', 'portfolio', 'portfolios', 'portfolios.id', 'positions', 'request_logs', 'user', 'user_id', 'users', 'users.id', 'version']

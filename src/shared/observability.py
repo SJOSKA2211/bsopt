@@ -163,6 +163,7 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
 
     # Propagate ID back to client
     response.headers["X-Request-ID"] = request_id
+    response.headers["X-Response-Time"] = str(round(duration * 1000, 2))
     return response
 
 

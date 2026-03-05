@@ -1,6 +1,5 @@
 """
 Pricing Tasks for Celery - Production Optimized
-=================================================
 """
 
 import asyncio

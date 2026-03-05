@@ -1,6 +1,5 @@
 """
 Password Security Module
-========================
 
 Secure password handling with:
 - Bcrypt hashing with configurable rounds

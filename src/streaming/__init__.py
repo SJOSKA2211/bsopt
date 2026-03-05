@@ -3,9 +3,7 @@ from typing import TYPE_CHECKING
 
 from src.utils.lazy_import import lazy_import, preload_modules
 
-# ============================================================================
 # PUBLIC API
-# ============================================================================
 __all__ = [
     # Kafka
     "MarketDataProducer",

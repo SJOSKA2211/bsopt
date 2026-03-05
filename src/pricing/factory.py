@@ -1,6 +1,5 @@
 """
 Pricing Engine Factory (Refactored)
-==================================
 
 Implements a hardware-aware Strategy Pattern for option pricing.
 Supports dynamic registration and execution strategy selection (JIT, WASM, GPU).

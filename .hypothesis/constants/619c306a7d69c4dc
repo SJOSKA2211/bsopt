@@ -1,0 +1,4 @@
+# file: /app/src/api/graphql/resolvers/option_service.py
+# hypothesis_version: 6.151.9
+
+[0.5, 100.0, 100, 'CALL', '_', 'all', 'expiry', 'month', 'price', 'quarter', 'strike', 'symbol', 'type', 'week']

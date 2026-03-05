@@ -1,6 +1,5 @@
 """
 Security Module
-===============
 
 Comprehensive security implementation for the BSOPT platform:
 - JWT authentication with access and refresh tokens

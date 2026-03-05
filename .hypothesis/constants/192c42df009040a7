@@ -1,0 +1,4 @@
+# file: /app/src/ml/trainer_v2.py
+# hypothesis_version: 6.151.9
+
+[0.0, 'Experiment', 'best_model.pt', 'metrics.json', 'train_loss', 'val_loss']

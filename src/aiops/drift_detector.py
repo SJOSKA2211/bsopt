@@ -5,6 +5,7 @@ import numpy as np
 import structlog
 from prometheus_client import Gauge
 
+from src.database import get_async_db_context
 from src.ml.drift import calculate_ks_test, calculate_psi
 from src.ml.monitoring.mmd import MultivariateDriftDetector
 from src.pricing.factory import PricingEngineFactory
@@ -88,9 +89,33 @@ class PricingDriftDetector:
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def analyze_vol_smile_drift(self, symbol: str) -> dict[str, Any]:
+    def calculate_statistical_drift(self, reference_data: np.ndarray, current_data: np.ndarray) -> tuple[bool, dict[str, float]]:
+        """
+        Calculates PSI and KS-Test for univariate drift.
+        """
+        ref = reference_data.flatten()
+        curr = current_data.flatten()
+        
+        psi_score = calculate_psi(ref, curr)
+        _, ks_p_value = calculate_ks_test(ref, curr)
+        
+        drift = psi_score >= self.psi_threshold or ks_p_value <= self.ks_threshold
+        
+        metrics = {
+            "psi": float(psi_score),
+            "ks_p_value": float(ks_p_value)
+        }
+        
+        return drift, metrics
+
+    async def analyze_vol_smile_drift(self, symbol: str) -> dict[str, Any] | None:
         """
         Detects structural changes in the volatility smile.
         """
         # Implementation would compare current IV surface with reference
+<<<<<<< HEAD
         return {"symbol": symbol, "status": "not_implemented"}
+=======
+        return None
+
+>>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)

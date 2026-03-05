@@ -4,9 +4,7 @@ from typing import TYPE_CHECKING
 
 from src.utils.lazy_import import get_import_stats, lazy_import, preload_modules
 
-# ============================================================================
 # PUBLIC API
-# ============================================================================
 __all__ = [
     # Forecasting
     "PriceTFTModel",
@@ -20,9 +18,7 @@ __all__ = [
     "DataNormalizer",
 ]
 
-# ============================================================================
 # TYPE HINTS (Static Analysis Only - Zero Runtime Cost)
-# ============================================================================
 if TYPE_CHECKING:
     from .data_loader import DataNormalizer
     from .federated_learning.coordinator import FederatedLearningCoordinator
@@ -30,9 +26,7 @@ if TYPE_CHECKING:
     from .reinforcement_learning.trading_env import TradingEnvironment
     from .rl.augmented_agent import AugmentedRLAgent
 
-# ============================================================================
 # LAZY IMPORT MAPPING
-# ============================================================================
 _import_map = {
     # Forecasting (PyTorch-based)
     "PriceTFTModel": ".forecasting.tft_model",
@@ -49,9 +43,7 @@ _import_map = {
 }
 
 
-# ============================================================================
 # RUNTIME LAZY LOADING
-# ============================================================================
 def __getattr__(name: str):
     """
     PEP 562: Module-level __getattr__ for lazy imports.
@@ -69,9 +61,7 @@ def __dir__() -> list[str]:
     return sorted(__all__)
 
 
-# ============================================================================
 # PRODUCTION PRELOADING
-# ============================================================================
 def preload_critical_modules():
     """
     Preload lightweight modules in production for faster first request.
@@ -88,9 +78,7 @@ if os.getenv("ENVIRONMENT") == "production" and os.getenv("PRELOAD_ML_MODULES") 
     preload_critical_modules()
 
 
-# ============================================================================
 # DIAGNOSTICS
-# ============================================================================
 def get_ml_import_stats():
     """Get import statistics for ML module."""
     return get_import_stats()

@@ -1,6 +1,5 @@
 """
 Data Collection Tasks for Celery
-=================================
 
 Asynchronous data collection tasks for:
 - Options data collection from yfinance
@@ -20,9 +19,7 @@ from .celery_app import MLTask, celery_app
 logger = structlog.get_logger(__name__)
 
 
-# =============================================================================
 # Data Collection Tasks
-# =============================================================================
 
 
 @celery_app.task(
@@ -279,52 +276,41 @@ def check_data_freshness_task(self) -> dict[str, Any]:
 )
 def refresh_materialized_views_task(self) -> dict[str, Any]:
     """
-    Refreshes PostgreSQL materialized views for pre-aggregated statistics.
+    Refreshes PostgreSQL continuous aggregates and standard materialized views.
     """
-    logger.info("refreshing_materialized_views_start")
+    logger.info("refreshing_all_views_start")
 
     from sqlalchemy import text
+    from src.database import SessionLocal
 
-    from src.shared.db import get_db_session
-
-    db_session = get_db_session()
+    db_session = SessionLocal()
     try:
-        # Refresh Market Stats
-        db_session.execute(text("SELECT refresh_market_stats();"))
+        # 1. Refresh all Continuous Aggregates (TimescaleDB)
+        # Uses our revamped native procedure from 09-security.sql
+        db_session.execute(text("CALL refresh_all_continuous_aggregates();"))
 
-        # Refresh Portfolio Summary
-        db_session.execute(text("SELECT refresh_portfolio_summary();"))
-
-        # Refresh Trading Stats
-        db_session.execute(text("SELECT refresh_trading_stats();"))
-
-        # Refresh Model Drift Metrics
-        db_session.execute(text("SELECT refresh_model_drift_metrics();"))
+        # 2. Refresh Standard Materialized Views
+        db_session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary_mv;"))
+        db_session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY trading_stats_mv;"))
+        db_session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY model_drift_metrics_mv;"))
+        db_session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY latest_vol_surface;"))
 
         db_session.commit()
-        logger.info("materialized_views_refreshed_successfully")
+        logger.info("all_views_refreshed_successfully")
 
         return {
             "status": "success",
-            "views": [
-                "market_stats_mv",
-                "portfolio_summary_mv",
-                "trading_stats_mv",
-                "model_drift_metrics_mv",
-            ],
             "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
-        logger.error("materialized_view_refresh_failed", error=str(e))
+        logger.error("view_refresh_failed", error=str(e))
         db_session.rollback()
         raise self.retry(exc=e) from e
     finally:
         db_session.close()
 
 
-# =============================================================================
 # Periodic Data Collection
-# =============================================================================
 
 
 @celery_app.task(
@@ -365,9 +351,7 @@ def scheduled_data_collection(self) -> dict[str, Any]:
     }
 
 
-# =============================================================================
 # Data Pipeline Chain
-# =============================================================================
 
 
 @celery_app.task(

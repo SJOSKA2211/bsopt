@@ -1,6 +1,5 @@
 """
 Unified Resilience and Retry Utilities
-======================================
 Provides standard decorators for robust error handling and backoff.
 """
 

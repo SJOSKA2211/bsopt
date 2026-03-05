@@ -1,6 +1,5 @@
 """
 API Middleware
-==============
 
 Production-grade middleware for:
 - Security headers

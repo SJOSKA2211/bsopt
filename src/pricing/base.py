@@ -1,6 +1,5 @@
 """
 Core Pricing Engine Interfaces
-==============================
 
 Defines standard interfaces for all pricing models to ensure modularity,
 testability, and consistent patterns across the platform.

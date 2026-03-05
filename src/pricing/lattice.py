@@ -30,9 +30,7 @@ class LatticeParameters(BSParameters):
     n_steps: int = 100
 
 
-# =============================================================================
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)
-# =============================================================================
 
 
 @njit(cache=True, fastmath=True)

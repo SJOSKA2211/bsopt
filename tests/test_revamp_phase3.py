@@ -1,9 +1,11 @@
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+
 import pytest
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+
+from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.blockchain.nonce_manager import NonceManager
 from src.blockchain.oracle import OracleManager
-from src.blockchain.defi_options import DeFiOptionsProtocol
+
 
 class TestRevampPhase3:
     @pytest.mark.asyncio

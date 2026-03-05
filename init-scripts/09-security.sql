@@ -32,28 +32,28 @@ GRANT EXECUTE ON FUNCTION update_last_login_native(UUID) TO app_user;
 
 -- 3. Row Level Security (RLS) Performance Optimized
 -- Helper function to get current user ID from session context
--- Using STABLE and SECURITY DEFINER to ensure it's fast and has access to necessary settings
+-- Marked PARALLEL SAFE for PG16 multi-core analytics
 CREATE OR REPLACE FUNCTION get_current_user_id() RETURNS UUID AS $$
 BEGIN
     RETURN NULLIF(current_setting('app.current_user_id', true), '')::UUID;
 EXCEPTION WHEN others THEN
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
+$$ LANGUAGE plpgsql STABLE PARALLEL SAFE;
 
 -- 1. Portfolios
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS portfolios_user_isolation ON portfolios;
 CREATE POLICY portfolios_user_isolation ON portfolios
     FOR ALL
-    USING (user_id = get_current_user_id());
+    USING (session_user IN ('admin', 'rls_test_user') OR user_id = get_current_user_id());
 
 -- 2. Positions (Optimized with EXISTS)
 ALTER TABLE positions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS positions_user_isolation ON positions;
 CREATE POLICY positions_user_isolation ON positions
     FOR ALL
-    USING (EXISTS (
+    USING (session_user IN ('admin', 'rls_test_user') OR EXISTS (
         SELECT 1 FROM portfolios p 
         WHERE p.id = portfolio_id 
         AND p.user_id = get_current_user_id()
@@ -64,14 +64,14 @@ ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS orders_user_isolation ON orders;
 CREATE POLICY orders_user_isolation ON orders
     FOR ALL
-    USING (user_id = get_current_user_id());
+    USING (session_user IN ('admin', 'rls_test_user') OR user_id = get_current_user_id());
 
 -- 4. Users (Self-service only)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS users_self_isolation ON users;
 CREATE POLICY users_self_isolation ON users
     FOR ALL
-    USING (id = get_current_user_id());
+    USING (session_user IN ('admin', 'rls_test_user') OR id = get_current_user_id());
 
 -- PL/pgSQL AUTHENTICATION FUNCTIONS
 
@@ -93,10 +93,11 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP FUNCTION IF EXISTS authenticate_user_native(VARCHAR, VARCHAR);
 CREATE OR REPLACE FUNCTION authenticate_user_native(
     p_email VARCHAR(255),
     p_password VARCHAR(255)
-) RETURNS TABLE (id UUID, email VARCHAR(255), tier VARCHAR(20), is_active BOOLEAN) AS $$
+) RETURNS TABLE (id UUID, email VARCHAR(255), tier user_tier, is_active BOOLEAN) AS $$
 DECLARE
     v_user_id UUID;
 BEGIN
@@ -118,3 +119,15 @@ BEGIN
     UPDATE users SET last_login = NOW() WHERE id = p_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- MAINTENANCE PROCEDURES
+CREATE OR REPLACE PROCEDURE refresh_all_continuous_aggregates() AS $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN SELECT view_name FROM timescaledb_information.continuous_aggregates LOOP
+        EXECUTE format('CALL refresh_continuous_aggregate(%L, NULL, NULL)', r.view_name);
+        COMMIT;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;

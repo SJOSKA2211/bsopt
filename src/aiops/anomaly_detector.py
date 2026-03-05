@@ -93,8 +93,17 @@ class AnomalyDetector:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         if engine == "isolation_forest":
+            contamination = kwargs.get("contamination", 0.05)
+            if not (0 < contamination <= 0.5):
+                raise ValueError("Contamination must be between 0 and 0.5")
             self.model = IsolationForest(
+<<<<<<< HEAD
                 contamination=kwargs.get("contamination", 0.05), n_jobs=-1, random_state=42
+=======
+                contamination=contamination,
+                n_jobs=-1,
+                random_state=42
+>>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)
             )
         elif engine == "autoencoder":
             self.input_dim = kwargs.get("input_dim")
@@ -179,11 +188,17 @@ class AnomalyDetector:
             raise RuntimeError("Model must be trained before detection.")
 
         if isinstance(data, pd.DataFrame):
-            features = data.select_dtypes(include=[np.number]).values
+            numeric_df = data.select_dtypes(include=[np.number])
+            if numeric_df.empty:
+                return []
+            features = numeric_df.values
         else:
             features = data
             if features.ndim == 1:
                 features = features.reshape(-1, 1)
+
+        if features.shape[0] == 0:
+            return []
 
         # Scaling
         if self.engine == "transformer" and features.ndim == 3:

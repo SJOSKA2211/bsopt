@@ -1,6 +1,5 @@
 """
 CLI Portfolio Manager
-=====================
 
 Handles local portfolio management for the CLI.
 """

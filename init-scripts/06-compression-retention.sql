@@ -42,7 +42,7 @@ SELECT add_compression_policy('request_logs', INTERVAL '3 days', if_not_exists =
 -- Compress model predictions after they are no longer being actively updated with actual_price
 ALTER TABLE model_predictions SET (
     timescaledb.compress,
-    timescaledb.compress_segmentby = 'model_id'
+    timescaledb.compress_segmentby = 'model_id, symbol'
 );
 -- We skip compression policy for model_predictions if they are frequently updated late, 
 -- but usually 1 day is safe for most financial predictions.

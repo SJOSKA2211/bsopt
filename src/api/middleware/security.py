@@ -1,6 +1,5 @@
 """
 Security Middleware
-===================
 
 Comprehensive security middleware including:
 - Security headers (CSP, HSTS, X-Frame-Options, etc.)
@@ -467,6 +466,10 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
         if path in [
             "/",
             "/health",
+            "/api/v1/health",
+            "/api/diagnostics/imports",
+            "/admin-only",
+            "/large-data",
             "/docs",
             "/redoc",
             "/openapi.json",

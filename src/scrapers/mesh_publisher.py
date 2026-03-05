@@ -1,6 +1,5 @@
 """
 Market Mesh Publisher
-=====================
 
 Writes real-time scraped market data to shared memory for zero-copy access.
 """

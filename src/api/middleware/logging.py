@@ -1,6 +1,5 @@
 """
 Request Logging Middleware
-==========================
 
 Comprehensive request/response logging with:
 - Structured JSON logging

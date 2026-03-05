@@ -1,6 +1,5 @@
 """
 JWT Authentication Service (Async)
-==================================
 
 Secure JWT-based authentication with:
 - Async database operations using AsyncSession
@@ -303,6 +302,9 @@ async def get_current_user(
             return user
     except Exception as e:
         logger.warning(f"Cache lookup failed: {e}")
+
+    from src.database import set_user_context
+    await set_user_context(db, user_id)
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()

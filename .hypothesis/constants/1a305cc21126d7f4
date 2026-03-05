@@ -1,0 +1,4 @@
+# file: /app/src/aiops/self_healing_orchestrator.py
+# hypothesis_version: 6.151.9
+
+[0.05, 0.2, 0.5, 0.8, 1000, 14400, 'action', 'aiops', 'anomalies_detected', 'anomaly', 'api_service_name', 'autoencoder', 'bsopt-api', 'distribution_drift', 'error_rate_threshold', 'forecast_max', 'high', 'high_error_rate', 'high_latency', 'invalid_data_format', 'ks_p_val', 'last_baseline_update', 'latency_threshold', 'loop_iteration_error', 'max_history', 'medium', 'metric', 'number', 'predicted_load_spike', 'prometheus_url', 'psi_score', 'remediation', 'score', 'severity', 'success', 'tft_config', 'timestamp', 'type']

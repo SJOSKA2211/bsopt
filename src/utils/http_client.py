@@ -1,6 +1,5 @@
 """
 HTTP Client Utility
-===================
 
 Provides a centralized, tuned, and persistent httpx.AsyncClient for service-to-service communication.
 Ensures connection pooling and optimal timeout settings.

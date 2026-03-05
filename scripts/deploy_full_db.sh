@@ -1,12 +1,17 @@
 #!/bin/bash
 set -e
 
-# Deploy all database initialization scripts in order
-echo "🚀 Deploying full database schema..."
+# ==============================================================================
+# BS-OPT: THE GOD MODE DB DEPLOYER (v2.0)
+# ==============================================================================
+# Orchestrates full initialization, incremental migrations, and fine-tuning.
+# ==============================================================================
+
+echo "🥒 Launching Full-Scale Manifold Deployment..."
 
 DB_HOST=${POSTGRES_HOST:-localhost}
 DB_PORT=${POSTGRES_PORT:-5432}
-DB_USER=${POSTGRES_USER:-postgres}
+DB_USER=${POSTGRES_USER:-admin}
 DB_NAME=${POSTGRES_DATABASE:-bsopt}
 
 if [ -z "$POSTGRES_PASSWORD" ]; then
@@ -31,10 +36,23 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Execute scripts in strict alphanumeric order
+# Phase 1: Core Initialization
+echo "🚀 Phase 1: Core Initialization..."
 for script in $(find init-scripts/ -name "*.sql" | sort); do
-    echo "📜 Running $script..."
+    echo "  📜 Running $script..."
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$script"
 done
 
-echo "✅ Full database deployment complete."
+# Phase 2: Incremental Migrations
+echo "🚀 Phase 2: Structural Migrations..."
+for script in $(find src/migrations/ -name "*.sql" | sort); do
+    echo "  📜 Applying $script..."
+    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$script"
+done
+
+# Phase 3: Final Fine-Tuning (Pressurizing)
+echo "🚀 Phase 3: Manifold Fine-Tuning..."
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "VACUUM (ANALYZE, VERBOSE);"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT refresh_all_continuous_aggregates();"
+
+echo "✅ Full database deployment and optimization complete. Solenya-tight! 🥒"

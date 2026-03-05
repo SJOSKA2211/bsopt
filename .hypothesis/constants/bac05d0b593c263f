@@ -1,0 +1,4 @@
+# file: /app/src/workers/math_worker.py
+# hypothesis_version: 6.151.9
+
+['CELERY_BROKER_URL', 'CPU', 'failed', 'kappa', 'math_worker', 'metrics', 'no_data', 'params', 'reason', 'rho', 'sigma', 'status', 'success', 'symbol', 'theta', 'v0']

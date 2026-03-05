@@ -1,6 +1,5 @@
 """
 CLI Configuration Manager
-========================
 
 Manages CLI-specific settings and preferences.
 """

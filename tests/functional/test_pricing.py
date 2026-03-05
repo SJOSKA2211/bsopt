@@ -1,6 +1,5 @@
 """
 Pricing Engine Functional Tests (Refined Plan)
-==============================================
 """
 
 import pytest

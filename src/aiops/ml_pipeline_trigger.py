@@ -1,26 +1,27 @@
-import concurrent.futures
 from typing import Any
 
 import structlog
 
-from src.ml.pipeline import MLPipeline
+from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 logger = structlog.get_logger()
 
 
 class MLPipelineTrigger:
     """
-    Triggers ML retraining pipelines in the background.
+    Triggers ML retraining pipelines.
     """
 
     def __init__(self, config: dict[str, Any]):
+        if "ticker" not in config or "framework" not in config:
+            raise ValueError("ML Pipeline config must contain 'ticker' and 'framework'")
         self.config = config
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
     def trigger_retraining(self) -> bool:
-        """NON-BLOCKING: Triggers retraining in a background thread."""
-        logger.info("ml_pipeline_trigger_async", status="starting", config=self.config)
+        """Triggers retraining pipeline."""
+        logger.info("ml_pipeline_trigger", status="attempting_retraining", config=self.config)
 
+<<<<<<< HEAD
         def _run_pipeline():
             try:
                 pipeline = MLPipeline(self.config)
@@ -34,3 +35,22 @@ class MLPipelineTrigger:
         # Submit to executor and return immediately
         self.executor.submit(_run_pipeline)
         return True
+=======
+        try:
+            pipeline = AutonomousMLPipeline(self.config)
+            pipeline.run()
+            logger.info(
+                "ml_pipeline_trigger",
+                status="success",
+                message="ML retraining pipeline triggered successfully.",
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                "ml_pipeline_trigger",
+                status="failure",
+                error=str(e),
+                message="Failed to trigger ML retraining pipeline.",
+            )
+            return False
+>>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)

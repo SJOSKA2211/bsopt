@@ -1,8 +1,8 @@
-import mlflow
-import mlflow.pytorch
 import pickle  # nosec B403
 import time
 
+import mlflow
+import mlflow.pytorch
 import structlog
 import torch as th
 import torch.nn as nn

@@ -8,12 +8,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     method VARCHAR(10) NOT NULL,
     path TEXT NOT NULL,
     status_code SMALLINT NOT NULL,
-    user_id UUID NOT NULL,
+    user_id UUID, -- Optimized to match users.id type
     client_ip INET NOT NULL,
     user_agent TEXT NOT NULL,
     latency_ms REAL NOT NULL,
     metadata JSONB
-);
+) WITH (FILLFACTOR = 100);
 
 SELECT create_hypertable('audit_logs', 'time', if_not_exists => TRUE);
 

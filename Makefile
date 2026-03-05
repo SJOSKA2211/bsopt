@@ -35,6 +35,7 @@ help:
 	@echo "  test-all     - Run ALL tests in specialized test-runner"
 	@echo "  migrate      - Run full database migration sequence"
 	@echo "  db-shell     - Open a psql shell to the database"
+	@echo "  db-optimize  - Run vacuum and manual TimescaleDB chunk compression"
 	@echo ""
 	@echo "Specialized Clusters:"
 	@echo "  manifold     - Launch the HFT Silicon Swarm (Privileged)"
@@ -90,6 +91,13 @@ migrate:
 
 db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
+
+db-optimize:
+	@echo "🥒 Pressurizing the Manifold (Database Optimization)..."
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "VACUUM (ANALYZE, VERBOSE);"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "REINDEX TABLE CONCURRENTLY orders; REINDEX TABLE CONCURRENTLY positions;"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT compress_chunk(c) FROM show_chunks('options_prices') c WHERE NOT is_compression_enabled(c);"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT compress_chunk(c) FROM show_chunks('market_ticks') c WHERE NOT is_compression_enabled(c);"
 
 # --- Quality & Security ---
 
