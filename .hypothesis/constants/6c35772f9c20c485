@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/train.py
+# hypothesis_version: 6.151.9
+
+[0.0001, 0.005, 0.1, 0.99, 256, 512, 1024, 5000, 10000, 200000, '--output', '--timesteps', './logs/results/', '__main__', 'env_setup_failed', 'model', 'model_init_failed', 'model_path', 'models/best_td3', 'models/td3_final', 'rl_trading_core', 'rl_weights', 'run_id', 'save_failed', 'training_active', 'training_error']

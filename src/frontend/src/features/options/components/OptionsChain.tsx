@@ -22,13 +22,18 @@ import type {
 } from '@mui/x-data-grid';
 import {
   Search,
+  Zap,
+  TrendingUp,
+  TrendingDown,
 } from '@mui/icons-material';
 import { useQuery, gql } from '@apollo/client';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Custom components
 import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
+import { useMarketData } from '../../../hooks/useMarketData';
 
 // Types
 export interface OptionChainRow {
@@ -90,24 +95,38 @@ interface OptionsChainProps {
 
 export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
   const theme = useTheme();
+  // @ts-ignore - palette expansion defined in theme index
+  const qfd = theme.palette.financial?.qfd;
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
   const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
   const [enrichedResults, setEnrichedResults] = useState<any[]>([]);
+  const [lastSpot, setLastSpot] = useState<number>(0);
 
   // Fetch options chain data via Federated GraphQL
   const { data: gqlData, loading: isLoading } = useQuery(GET_OPTIONS_CHAIN, {
     variables: { symbol, expiryBucket: expiryFilter },
-    pollInterval: 3000,
+    pollInterval: 10000,
   });
+
+  // Subscribe to real-time spot updates
+  const { tick } = useMarketData(symbol);
+
+  useEffect(() => {
+    if (tick?.lastPrice) {
+      setLastSpot(tick.lastPrice);
+    } else if (gqlData?.marketData?.lastPrice) {
+      setLastSpot(gqlData.marketData.lastPrice);
+    }
+  }, [tick, gqlData]);
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
 
     const nodes = gqlData.options.edges.map((e: any) => e.node);
-    const spot = gqlData.marketData?.lastPrice || 155.0;
+    const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
     nodes.forEach((node: any) => {
@@ -138,12 +157,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     });
 
     return Object.values(groups);
-  }, [gqlData]);
+  }, [gqlData, lastSpot]);
 
   // Handle WASM enrichment in an effect
   useEffect(() => {
     if (!optionsData.length || !isWasmLoaded) return;
-    // ... remaining WASM logic untouched
 
     const runWasmEnrichment = async () => {
       const rate = 0.05;
@@ -183,7 +201,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       if (pricingModel === 'black_scholes') {
         results = await batchCalculate(allParams);
       } else if (pricingModel === 'monte_carlo') {
-        // Run MC for each row (OPTIMIZED: parallelized in worker)
         results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
       } else if (pricingModel === 'crank_nicolson') {
         results = await Promise.all(allParams.map(p => priceAmerican(p)));
@@ -249,7 +266,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          sx={{ fontStyle: 'italic', color: 'text.secondary' }}
+          sx={{ fontStyle: 'italic', color: alpha(theme.palette.text.secondary, 0.7), fontSize: '0.8rem' }}
         >
           ${params.value?.toFixed(2) || '---'}
         </Typography>
@@ -263,8 +280,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          color="financial.bid"
-          sx={{ fontWeight: 'bold' }}
+          sx={{ fontWeight: 'bold', color: theme.palette.success.main }}
         >
           ${params.value?.toFixed(2)}
         </Typography>
@@ -278,8 +294,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          color="financial.ask"
-          sx={{ fontWeight: 'bold' }}
+          sx={{ fontWeight: 'bold', color: theme.palette.error.main }}
         >
           ${params.value?.toFixed(2)}
         </Typography>
@@ -296,16 +311,20 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         const percentChange = (change / row.call_bid) * 100;
 
         return (
-          <Stack spacing={0.5}>
-            <Typography variant="price" sx={{ fontWeight: 'bold' }}>
+          <Stack spacing={0}>
+            <Typography variant="price" sx={{ fontWeight: 800 }}>
               ${params.value?.toFixed(2)}
             </Typography>
-            <Chip
-              label={`${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}%`}
-              size="small"
-              color={percentChange >= 0 ? 'success' : 'error'}
-              sx={{ height: 20, fontSize: '0.7rem' }}
-            />
+            <Typography
+              variant="caption"
+              sx={{
+                color: percentChange >= 0 ? 'success.main' : 'error.main',
+                fontSize: '0.65rem',
+                fontWeight: 800
+              }}
+            >
+              {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(1)}%
+            </Typography>
           </Stack>
         );
       },
@@ -313,18 +332,24 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     {
       field: 'call_volume',
       headerName: 'Vol',
-      width: 80,
+      width: 70,
       headerClassName: 'call-header',
-      valueFormatter: (value: number) =>
-        value?.toLocaleString(),
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
+          {params.value?.toLocaleString()}
+        </Typography>
+      )
     },
     {
       field: 'call_oi',
       headerName: 'OI',
-      width: 80,
+      width: 70,
       headerClassName: 'call-header',
-      valueFormatter: (value: number) =>
-        value?.toLocaleString(),
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
+          {params.value?.toLocaleString()}
+        </Typography>
+      )
     },
     {
       field: 'call_iv',
@@ -333,7 +358,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title="Implied Volatility">
-          <Typography variant="percentage">
+          <Typography variant="percentage" sx={{ color: qfd?.electrum, opacity: 0.9 }}>
             {(params.value * 100).toFixed(1)}%
           </Typography>
         </Tooltip>
@@ -346,7 +371,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        // Mocking time/rate/div for demo purposes
         const timeToExpiry = 30 / 365;
         const rate = 0.05;
         const div = 0.0;
@@ -366,8 +390,8 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     },
     {
       field: 'call_action',
-      headerName: 'Action',
-      width: 100,
+      headerName: ' ',
+      width: 60,
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => (
         <QuickTradeButton
@@ -398,28 +422,43 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              position: 'relative',
               backgroundColor: isATM
-                ? alpha(theme.palette.primary.main, 0.2)
+                ? alpha(qfd?.quantum ?? '#00FFFF', 0.15)
                 : 'transparent',
-              borderLeft: isITM_Call ? `3px solid ${theme.palette.financial.positive}` : 'none',
-              borderRight: isITM_Put ? `3px solid ${theme.palette.financial.positive}` : 'none',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 3,
+                bgcolor: isITM_Call ? theme.palette.success.main : 'transparent',
+                opacity: 0.5
+              },
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 3,
+                bgcolor: isITM_Put ? theme.palette.error.main : 'transparent',
+                opacity: 0.5
+              }
             }}
           >
             <Typography
               variant="h6"
-              fontWeight="bold"
-              color={isATM ? 'primary.main' : 'text.primary'}
+              sx={{
+                fontWeight: 900,
+                fontFamily: 'JetBrains Mono',
+                color: isATM ? qfd?.quantum : 'text.primary',
+                fontSize: '1rem'
+              }}
             >
               ${params.value}
             </Typography>
-            {isATM && (
-              <Chip
-                label="ATM"
-                size="small"
-                color="primary"
-                sx={{ ml: 1, height: 20 }}
-              />
-            )}
           </Box>
         );
       },
@@ -434,7 +473,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          sx={{ fontStyle: 'italic', color: 'text.secondary' }}
+          sx={{ fontStyle: 'italic', color: alpha(theme.palette.text.secondary, 0.7), fontSize: '0.8rem' }}
         >
           ${params.value?.toFixed(2) || '---'}
         </Typography>
@@ -448,8 +487,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          color="financial.bid"
-          sx={{ fontWeight: 'bold' }}
+          sx={{ fontWeight: 'bold', color: theme.palette.success.main }}
         >
           ${params.value?.toFixed(2)}
         </Typography>
@@ -463,8 +501,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant="price"
-          color="financial.ask"
-          sx={{ fontWeight: 'bold' }}
+          sx={{ fontWeight: 'bold', color: theme.palette.error.main }}
         >
           ${params.value?.toFixed(2)}
         </Typography>
@@ -481,16 +518,20 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         const percentChange = (change / row.put_bid) * 100;
 
         return (
-          <Stack spacing={0.5}>
-            <Typography variant="price" sx={{ fontWeight: 'bold' }}>
+          <Stack spacing={0}>
+            <Typography variant="price" sx={{ fontWeight: 800 }}>
               ${params.value?.toFixed(2)}
             </Typography>
-            <Chip
-              label={`${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}%`}
-              size="small"
-              color={percentChange >= 0 ? 'success' : 'error'}
-              sx={{ height: 20, fontSize: '0.7rem' }}
-            />
+            <Typography
+              variant="caption"
+              sx={{
+                color: percentChange >= 0 ? 'success.main' : 'error.main',
+                fontSize: '0.65rem',
+                fontWeight: 800
+              }}
+            >
+              {percentChange >= 0 ? '+' : ''}{percentChange.toFixed(1)}%
+            </Typography>
           </Stack>
         );
       },
@@ -498,18 +539,24 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     {
       field: 'put_volume',
       headerName: 'Vol',
-      width: 80,
+      width: 70,
       headerClassName: 'put-header',
-      valueFormatter: (value: number) =>
-        value?.toLocaleString(),
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
+          {params.value?.toLocaleString()}
+        </Typography>
+      )
     },
     {
       field: 'put_oi',
       headerName: 'OI',
-      width: 80,
+      width: 70,
       headerClassName: 'put-header',
-      valueFormatter: (value: number) =>
-        value?.toLocaleString(),
+      renderCell: (params: GridRenderCellParams) => (
+        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
+          {params.value?.toLocaleString()}
+        </Typography>
+      )
     },
     {
       field: 'put_iv',
@@ -518,7 +565,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title="Implied Volatility">
-          <Typography variant="percentage">
+          <Typography variant="percentage" sx={{ color: qfd?.electrum, opacity: 0.9 }}>
             {(params.value * 100).toFixed(1)}%
           </Typography>
         </Tooltip>
@@ -550,8 +597,8 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     },
     {
       field: 'put_action',
-      headerName: 'Action',
-      width: 100,
+      headerName: ' ',
+      width: 60,
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => (
         <QuickTradeButton
@@ -561,44 +608,97 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         />
       ),
     },
-  ], [theme]);
+  ], [theme, qfd]);
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box
+      component={motion.div}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+    >
       {/* Header with filters */}
       <Stack
         direction="row"
         spacing={2}
         alignItems="center"
-        sx={{ p: 2, borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}
+        sx={{ p: 3, borderBottom: `0.5px solid ${alpha(theme.palette.divider, 0.1)}`, background: alpha(theme.palette.background.paper, 0.2) }}
       >
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Options Chain - {symbol}
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ flexGrow: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', fontFamily: 'Outfit' }}>
+            OptX Matrix: {symbol}
+          </Typography>
+          <AnimatePresence mode="wait">
+            <Box
+              key={lastSpot}
+              component={motion.div}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.1),
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 2,
+                border: `1px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.2)}`
+              }}
+            >
+              <Typography
+                variant="price"
+                sx={{
+                  fontWeight: 900,
+                  color: qfd?.quantum,
+                  fontSize: '0.9rem'
+                }}
+              >
+                ${lastSpot.toFixed(2)}
+              </Typography>
+              {tick?.lastPrice && tick.lastPrice > (gqlData?.marketData?.lastPrice || 0) ?
+                <TrendingUp sx={{ fontSize: 14, color: 'success.main' }} /> :
+                <TrendingDown sx={{ fontSize: 14, color: 'error.main' }} />
+              }
+            </Box>
+          </AnimatePresence>
           {isWasmLoaded && (
             <Chip
-              label="WASM Engine Active"
+              label="WASM SIMD"
               size="small"
-              color="success"
-              variant="outlined"
-              sx={{ ml: 2, height: 20, fontSize: '0.65rem' }}
+              icon={<Zap sx={{ fontSize: '12px !important' }} />}
+              sx={{
+                height: 20,
+                fontSize: '0.65rem',
+                fontWeight: 900,
+                bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1),
+                color: qfd?.electrum,
+                border: `1px solid ${alpha(qfd?.electrum ?? '#D4AF37', 0.2)}`
+              }}
             />
           )}
-        </Typography>
+        </Stack>
 
         <TextField
           size="small"
-          placeholder="Search strike..."
+          placeholder="Filter strike..."
           value={searchTerm}
           onChange={handleSearchChange}
-          inputProps={{ 'aria-label': 'Search by strike price' }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search />
+                <Search sx={{ fontSize: 18, opacity: 0.5 }} />
               </InputAdornment>
             ),
           }}
-          sx={{ width: 200 }}
+          sx={{
+            width: 180,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 3,
+              bgcolor: alpha('#f8fafc', 0.05)
+            }
+          }}
         />
 
         <ToggleButtonGroup
@@ -606,13 +706,23 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           exclusive
           onChange={handleModelChange}
           size="small"
-          sx={{ mr: 2 }}
-          aria-label="Select pricing model"
+          sx={{
+            bgcolor: alpha('#f8fafc', 0.05),
+            borderRadius: 3,
+            p: 0.5,
+            '& .MuiToggleButton-root': {
+              border: 'none',
+              borderRadius: '8px !important',
+              px: 1.5,
+              fontSize: '0.7rem',
+              fontWeight: 800
+            }
+          }}
         >
           <ToggleButton value="black_scholes">BS</ToggleButton>
           <ToggleButton value="monte_carlo">MC</ToggleButton>
           <ToggleButton value="crank_nicolson">CN</ToggleButton>
-          <ToggleButton value="heston">Heston</ToggleButton>
+          <ToggleButton value="heston">HES</ToggleButton>
         </ToggleButtonGroup>
 
         <ToggleButtonGroup
@@ -620,17 +730,27 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           exclusive
           onChange={handleExpiryChange}
           size="small"
-          aria-label="Filter by expiration"
+          sx={{
+            bgcolor: alpha('#f8fafc', 0.05),
+            borderRadius: 3,
+            p: 0.5,
+            '& .MuiToggleButton-root': {
+              border: 'none',
+              borderRadius: '8px !important',
+              px: 1.5,
+              fontSize: '0.7rem',
+              fontWeight: 800
+            }
+          }}
         >
-          <ToggleButton value="all">All</ToggleButton>
+          <ToggleButton value="all">ALL</ToggleButton>
           <ToggleButton value="week">1W</ToggleButton>
           <ToggleButton value="month">1M</ToggleButton>
-          <ToggleButton value="quarter">3M</ToggleButton>
         </ToggleButtonGroup>
       </Stack>
 
       {/* Options Chain Grid */}
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, position: 'relative' }}>
         <DataGrid
           rows={processedData}
           columns={columns}
@@ -639,30 +759,41 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           onRowClick={handleRowClick}
           sx={{
             border: 'none',
-
+            '& .MuiDataGrid-columnHeaders': {
+              bgcolor: alpha('#020617', 0.4),
+              minHeight: '40px !important'
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 900,
+              fontSize: '0.7rem',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              opacity: 0.6
+            },
             '& .call-header': {
-              backgroundColor: alpha(theme.palette.financial.positive, 0.1),
-              borderBottom: `2px solid ${theme.palette.financial.positive}`,
+              borderBottom: `2px solid ${alpha(theme.palette.success.main, 0.3)}`,
             },
-
             '& .put-header': {
-              backgroundColor: alpha(theme.palette.financial.negative, 0.1),
-              borderBottom: `2px solid ${theme.palette.financial.negative}`,
+              borderBottom: `2px solid ${alpha(theme.palette.error.main, 0.3)}`,
             },
-
             '& .strike-header': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.15),
-              borderBottom: `2px solid ${theme.palette.primary.main}`,
+              borderBottom: `2px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}`,
             },
-
-            '& .MuiDataGrid-cell': {
-              borderRight: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+            '& .MuiDataGrid-row': {
+              minHeight: '52px !important',
+              transition: 'all 0.2s ease',
+              borderBottom: `0.5px solid ${alpha(theme.palette.divider, 0.05)}`
             },
-
             '& .MuiDataGrid-row:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.05),
+              backgroundColor: alpha(qfd?.quantum ?? '#00FFFF', 0.03),
+              boxShadow: `inset 0 0 15px ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)}`,
               cursor: 'pointer',
             },
+            '& .MuiDataGrid-cell': {
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center'
+            }
           }}
           initialState={{
             pagination: { paginationModel: { pageSize: 20 } },
@@ -673,3 +804,5 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     </Box>
   );
 });
+
+export default OptionsChain;

@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipeline.py
+# hypothesis_version: 6.151.9
+
+[0.0001, 0.001, 0.01, 0.3, 0.5, 0.99, 1.01, 100, 200, 365, 500, 1000, 'AAPL', 'ADX_14', 'ATR_14', 'BBL', 'BBM', 'BBU', 'DEMO_KEY', 'MACD', 'MACD_Signal', 'Production', 'RSI_14', 'TSLA', '^[A-Z0-9.-]{1,20}$', '__main__', 'api_key', 'auto', 'batch_size', 'close', 'epochs', 'framework', 'high', 'learning_rate', 'log_return', 'low', 'lr', 'max', 'max_depth', 'mean_score', 'model_promoted', 'n_estimators', 'n_trials', 'nn', 'onnx_export_failed', 'pipeline_initiated', 'postgresql://', 'price', 'promote_threshold', 'provider', 's', 'side', 'study_name', 'symbol', 'synthetic_samples', 'target', 'ticker', 'time', 'timestamp', 'tracking_uri', 'trailing_days', 'unified_ml_pipeline', 'volume', 'xgboost']

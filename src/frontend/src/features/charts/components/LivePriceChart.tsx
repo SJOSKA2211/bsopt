@@ -2,7 +2,33 @@ import React, { useEffect, useRef } from 'react';
 import { Box, useTheme, alpha } from '@mui/material';
 import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
-import { useWebSocket } from '../../../hooks/useWebSocket';
+import { useSubscription, useQuery, gql } from '@apollo/client';
+
+const MARKET_SUBSCRIPTION = gql`
+  subscription OnMarketUpdate($symbol: String!) {
+    marketUpdate(symbol: $symbol) {
+      symbol
+      time
+      open
+      high
+      low
+      close
+    }
+  }
+`;
+
+const GET_HISTORICAL_DATA = gql`
+  query GetHistoricalData($symbol: String!) {
+    historicalData(symbol: $symbol) {
+      time
+      open
+      high
+      low
+      close
+    }
+  }
+`;
+
 
 interface LivePriceChartProps {
   symbol: string;
@@ -14,19 +40,16 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
-  // Hook into real-time data
-  const { data: wsData } = useWebSocket<{
-    symbol: string;
-    time: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-  }>({
-    url: 'ws://localhost:1234/marketdata',
-    symbols: [symbol],
-    enabled: true
-  }); // Placeholder URL
+  // Fetch historical data
+  const { data: historicalData, loading: histLoading } = useQuery(GET_HISTORICAL_DATA, {
+    variables: { symbol },
+  });
+
+  // Sub for live updates
+  const { data: subData } = useSubscription(MARKET_SUBSCRIPTION, {
+    variables: { symbol },
+  });
+
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -63,23 +86,32 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
       wickDownColor: '#f43f5e',
     });
 
-    // Mock historical data for now
-    const data = [];
-    const now = new Date();
-    for (let i = 0; i < 100; i++) {
-      const time = new Date(now.getTime() - (100 - i) * 60000);
-      data.push({
-        time: (Math.floor(time.getTime() / 1000) as Time),
-        open: 150 + Math.random() * 10,
-        high: 165 + Math.random() * 10,
-        low: 145 + Math.random() * 10,
-        close: 155 + Math.random() * 10,
-      });
+    // Set historical data when loaded
+    if (historicalData?.historicalData) {
+      candleSeries.setData(historicalData.historicalData.map((d: any) => ({
+        ...d,
+        time: (d.time as Time)
+      })));
+    } else {
+      // Mock historical data if query fails or is empty for demo
+      const data = [];
+      const now = new Date();
+      for (let i = 0; i < 100; i++) {
+        const time = new Date(now.getTime() - (100 - i) * 60000);
+        data.push({
+          time: (Math.floor(time.getTime() / 1000) as Time),
+          open: 150 + Math.random() * 10,
+          high: 165 + Math.random() * 10,
+          low: 145 + Math.random() * 10,
+          close: 155 + Math.random() * 10,
+        });
+      }
+      candleSeries.setData(data);
     }
-    candleSeries.setData(data);
 
     chartRef.current = chart;
     seriesRef.current = candleSeries;
+
 
     const handleResize = () => {
       if (chartContainerRef.current && chartRef.current) {
@@ -97,16 +129,18 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
   // Update chart when new data arrives
   useEffect(() => {
-    if (wsData && wsData.symbol === symbol && seriesRef.current) {
+    if (subData?.marketUpdate && seriesRef.current) {
+      const update = subData.marketUpdate;
       seriesRef.current.update({
-        time: (wsData.time as Time),
-        open: wsData.open,
-        high: wsData.high,
-        low: wsData.low,
-        close: wsData.close,
+        time: (update.time as Time),
+        open: update.open,
+        high: update.high,
+        low: update.low,
+        close: update.close,
       });
     }
-  }, [wsData, symbol]);
+  }, [subData]);
+
 
   return (
     <Box

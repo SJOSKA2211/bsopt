@@ -1,0 +1,4 @@
+# file: /app/src/tasks/email_tasks.py
+# hypothesis_version: 6.151.9
+
+[100, 'batch_sent', 'count', 'send_email', 'sent', 'status', 'system_email', 'to']

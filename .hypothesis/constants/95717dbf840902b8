@@ -1,0 +1,4 @@
+# file: /app/src/tasks/security_tasks.py
+# hypothesis_version: 6.151.9
+
+['$argon2id$%%', 'batch', 'batch_processed', 'completed', 'status', 'users_audited']
