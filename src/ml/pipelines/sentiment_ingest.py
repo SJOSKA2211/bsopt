@@ -13,8 +13,12 @@ logger = structlog.get_logger(__name__)
 try:
     from confluent_kafka import Consumer, Producer
 except ImportError:
-    class Producer: pass
-    class Consumer: pass
+
+    class Producer:
+        pass
+
+    class Consumer:
+        pass
 
 class SentimentExtractor:
     def get_sentiment_score(self, text: str) -> float:

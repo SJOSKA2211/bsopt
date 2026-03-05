@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    import torch
+    import torch  # noqa: F401
 except ImportError:
     pass
 
