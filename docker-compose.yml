@@ -386,8 +386,6 @@ services:
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
-    environment:
-      - RAY_REDIS_ADDRESS=redis:6379
     networks:
       - bsopt-network
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
