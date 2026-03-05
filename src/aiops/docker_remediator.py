@@ -38,11 +38,6 @@ class DockerRemediator:
             logger.error("docker_remediator_init", status="failure", error=str(e))
             self.client = None
 
-        self.executor = ThreadPoolExecutor(max_workers=4)
-        try:
-            self.loop = asyncio.get_event_loop()
-        except RuntimeError:
-            self.loop = asyncio.new_event_loop()
 
     async def _run_cmd(self, cmd: list[str]) -> bool:
         """Helper to run shell commands in the background."""
@@ -68,31 +63,26 @@ class DockerRemediator:
             return False
         return True
 
-    def restart_service(self, service_name: str):
+    async def restart_service(self, service_name: str) -> bool:
         """Restarts a service asynchronously."""
         if not self._validate_service(service_name):
-            return
+            return False
 
-        def _restart():
-            try:
-                if self.client:
-                    # Explicitly use bsopt prefix to prevent attacking arbitrary containers
-                    container = self.client.containers.get(f"bsopt-{service_name}-1")
-                    container.restart()
-                    logger.info("docker_remediator_restart_sdk_success", service=service_name)
-                    return
-            except Exception:
-                pass
-            
-            # Fallback to compose CLI
-            asyncio.run_coroutine_threadsafe(
-                self._run_cmd(["docker", "compose", "restart", service_name]),
-                self.loop
-            )
+        try:
+            if self.client:
+                # Explicitly use bsopt prefix to prevent attacking arbitrary containers
+                container = await asyncio.to_thread(self.client.containers.get, f"bsopt-{service_name}-1")
+                await asyncio.to_thread(container.restart)
+                logger.info("docker_remediator_restart_sdk_success", service=service_name)
+                return True
+        except Exception as e:
+            logger.warning("docker_remediator_restart_sdk_failed", service=service_name, error=str(e))
+        
+        # Fallback to compose CLI
+        return await self._run_cmd(["docker", "compose", "restart", service_name])
 
-        self.executor.submit(_restart)
 
-    def scale_service(self, service_name: str, replicas: int) -> bool:
+    async def scale_service(self, service_name: str, replicas: int) -> bool:
         """
         Autonomous scaling (Asynchronous).
         Prioritizes Docker SDK for direct scaling if possible.
@@ -125,17 +115,5 @@ class DockerRemediator:
             service_name,
         ]
 
-        if self.client:
-            def _scale():
-                asyncio.run_coroutine_threadsafe(
-                    self._run_cmd(cmd),
-                    self.loop
-                )
-            self.executor.submit(_scale)
-        else:
-            asyncio.run_coroutine_threadsafe(
-                self._run_cmd(cmd),
-                self.loop
-            )
+        return await self._run_cmd(cmd)
 
-        return True
