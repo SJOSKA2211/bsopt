@@ -36,3 +36,7 @@ CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_time ON options_prices(expi
 CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_time ON market_ticks(symbol, time DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_user_time ON audit_logs (user_id, time DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_path_time ON audit_logs (path, time DESC);
+
+-- Specialized indexes for data audit tracking
+CREATE INDEX IF NOT EXISTS idx_data_audit_table_time ON data_audit_logs (table_name, time DESC);
+CREATE INDEX IF NOT EXISTS idx_data_audit_user_time ON data_audit_logs (user_id, time DESC);

@@ -25,11 +25,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
-    ip_address VARCHAR(50),
+    ip_address INET,
     user_agent TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- AUDIT: Track user changes
+DROP TRIGGER IF EXISTS audit_users ON users;
+CREATE TRIGGER audit_users
+    AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
 
 CREATE TABLE IF NOT EXISTS oauth_accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -104,6 +110,12 @@ CREATE TABLE IF NOT EXISTS portfolios (
     UNIQUE(user_id, name)
 );
 
+-- AUDIT: Track portfolio changes
+DROP TRIGGER IF EXISTS audit_portfolios ON portfolios;
+CREATE TRIGGER audit_portfolios
+    AFTER INSERT OR UPDATE OR DELETE ON portfolios
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
+
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_created ON portfolios(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_name ON portfolios(user_id, name);
 
@@ -160,6 +172,12 @@ CREATE TABLE IF NOT EXISTS orders (
     )
 );
 
+-- AUDIT: Track order changes
+DROP TRIGGER IF EXISTS audit_orders ON orders;
+CREATE TRIGGER audit_orders
+    AFTER INSERT OR UPDATE OR DELETE ON orders
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
+
 CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_portfolio_created ON orders(portfolio_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
@@ -179,6 +197,12 @@ CREATE TABLE IF NOT EXISTS ml_models (
     is_production BOOLEAN DEFAULT FALSE,
     UNIQUE(name, version)
 );
+
+-- AUDIT: Track model changes
+DROP TRIGGER IF EXISTS audit_ml_models ON ml_models;
+CREATE TRIGGER audit_ml_models
+    AFTER INSERT OR UPDATE OR DELETE ON ml_models
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
 
 CREATE INDEX IF NOT EXISTS idx_ml_models_production ON ml_models(name, is_production);
 CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC);
@@ -210,10 +234,10 @@ CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup ON rate_limits(user_id, endpoi
 
 CREATE TABLE IF NOT EXISTS request_logs (
     created_at TIMESTAMPTZ NOT NULL, 
-    status_code INT, 
+    status_code SMALLINT, 
     path TEXT, 
-    method TEXT, 
-    duration_ms DOUBLE PRECISION
+    method VARCHAR(10), 
+    duration_ms REAL
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
