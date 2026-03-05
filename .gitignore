@@ -80,3 +80,6 @@ job_log*.txt
 full_log.txt
 failed_log.txt
 ci_quality_logs.txt
+
+# Test artifacts
+.hypothesis/
