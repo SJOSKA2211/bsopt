@@ -180,6 +180,7 @@ class KernelTuningRemediator(BaseRemediator):
     Proactively tunes OS kernel parameters for low-latency processing.
     Triggers the 'Vanguard' optimization script.
     """
+    SCRIPT_PATH = "/app/scripts/optimize_kernel.sh"
 
     def __init__(self):
         super().__init__("kernel_tuning", supported_types=["latency_spike", "system_jitter"])
@@ -187,11 +188,11 @@ class KernelTuningRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_kernel_tuning_initiated")
         try:
-            # Executes the optimize_kernel.sh script.
+            # Executes the optimize_kernel.sh script with absolute path.
             # Requires sudo/root permissions or pre-configured NOPASSWD in sudoers.
             proc = await asyncio.create_subprocess_exec(
                 "sudo",
-                "/app/scripts/optimize_kernel.sh",
+                self.SCRIPT_PATH,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -268,10 +269,16 @@ class RabbitMQCongestionRemediator(BaseRemediator):
             supported_types=["queue_backpressure", "consumer_lag", "dlq_overflow"],
         )
         self.cooldown = 180.0  # 3 min cooldown
+        self.allowed_queues = {"default", "ml_tasks", "pricing", "scraper", "trading"}
+        self.allowed_actions = {"purge_dlq", "increase_prefetch", "restart_consumers"}
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         queue_name = anomaly.get("metrics", {}).get("queue", "default")
         action = anomaly.get("metrics", {}).get("suggested_action", "purge_dlq")
+
+        if queue_name not in self.allowed_queues or action not in self.allowed_actions:
+            logger.error("remediator_rabbitmq_forbidden", queue=queue_name, action=action)
+            return False
 
         logger.warning(
             "remediator_rabbitmq_congestion_initiated",
