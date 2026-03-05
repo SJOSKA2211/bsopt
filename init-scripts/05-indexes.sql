@@ -22,8 +22,8 @@ CREATE INDEX IF NOT EXISTS idx_positions_active ON positions (portfolio_id, symb
 CREATE INDEX IF NOT EXISTS idx_users_active_pro ON users (tier) WHERE is_active = TRUE AND is_verified = TRUE;
 
 -- 4. Advanced Indexes for Options Chain
--- Use GIST for 2D-like queries on time and strike if needed, but B-Tree is often faster for exact symbol + range time
-CREATE INDEX IF NOT EXISTS idx_options_prices_gist_time_strike ON options_prices USING GIST (time, strike);
+-- Use SP-GiST for 2D-like queries on time and strike (Better for sparse spatial data like options chains)
+CREATE INDEX IF NOT EXISTS idx_options_prices_spgist_strike_time ON options_prices USING SPGIST (strike, time);
 
 -- Composite INCLUDE index for lightning-fast options chain lookups (Index-Only Scans)
 DROP INDEX IF EXISTS idx_options_prices_chain;
@@ -31,20 +31,8 @@ CREATE INDEX idx_options_prices_chain
 ON options_prices (symbol, expiry, strike, option_type)
 INCLUDE (bid, ask, last, implied_volatility, delta, gamma, vega, theta, rho);
 
--- 5. Pattern-Specific Lookup Indexes
-CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_only ON options_prices (expiry DESC);
-CREATE INDEX IF NOT EXISTS idx_mesh_symbol_time ON market_data_mesh (symbol, time DESC);
-
--- Specialized index for market_ticks with price ranges (Index-Only scan candidate)
-CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_price_time ON market_ticks (symbol, price, time DESC) INCLUDE (volume);
-
--- 6. Maintenance & Audit Indexes
-CREATE INDEX IF NOT EXISTS idx_options_prices_symbol_time ON options_prices(symbol, time DESC);
-CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_time ON options_prices(expiry, time DESC);
-CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_time ON market_ticks(symbol, time DESC);
-CREATE INDEX IF NOT EXISTS idx_audit_user_time ON audit_logs (user_id, time DESC);
-CREATE INDEX IF NOT EXISTS idx_audit_path_time ON audit_logs (path, time DESC);
-
--- Specialized indexes for data audit tracking
-CREATE INDEX IF NOT EXISTS idx_data_audit_table_time ON data_audit_logs (table_name, time DESC);
-CREATE INDEX IF NOT EXISTS idx_data_audit_user_time ON data_audit_logs (user_id, time DESC);
+-- 5. Planner Statistics Optimization (Help query planner with high-cardinality financial data)
+ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 1000;
+ALTER TABLE options_prices ALTER COLUMN strike SET STATISTICS 1000;
+ALTER TABLE market_ticks ALTER COLUMN symbol SET STATISTICS 1000;
+ALTER TABLE model_predictions ALTER COLUMN model_id SET STATISTICS 500;

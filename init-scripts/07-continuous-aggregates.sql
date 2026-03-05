@@ -7,7 +7,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS minute_stats_cagg WITH (timescaledb.conti
 SELECT symbol, time_bucket('1 minute', time) AS bucket, AVG(last) AS avg_price, MAX(last) AS high, MIN(last) AS low, SUM(volume) AS volume, COUNT(*) AS count 
 FROM options_prices GROUP BY symbol, bucket WITH NO DATA;
 
-SELECT add_continuous_aggregate_policy('minute_stats_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '1 minute', if_not_exists => TRUE);
+SELECT add_continuous_aggregate_policy('minute_stats_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '5 minutes', if_not_exists => TRUE);
 ALTER MATERIALIZED VIEW minute_stats_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('minute_stats_cagg', compress_after => INTERVAL '2 hours', if_not_exists => TRUE);
 
@@ -53,7 +53,7 @@ SELECT symbol, time_bucket('1 minute', time) AS bucket,
        first(price, time) as open, MAX(price) as high, MIN(price) as low, last(price, time) as close, SUM(volume) as volume
 FROM market_ticks GROUP BY symbol, bucket WITH NO DATA;
 
-SELECT add_continuous_aggregate_policy('market_ticks_1m_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '1 minute', if_not_exists => TRUE);
+SELECT add_continuous_aggregate_policy('market_ticks_1m_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '5 minutes', if_not_exists => TRUE);
 ALTER MATERIALIZED VIEW market_ticks_1m_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('market_ticks_1m_cagg', compress_after => INTERVAL '2 hours', if_not_exists => TRUE);
 

@@ -77,9 +77,12 @@ async_engine = create_async_engine(
     pool_timeout=settings.DATABASE_POOL_TIMEOUT,
     pool_pre_ping=True,
     pool_recycle=1800,
-    connect_args=(
-        {"ssl": True} if settings.is_production and "postgresql" in async_url else {}
-    ),
+    connect_args={
+        "ssl": True if settings.is_production and "postgresql" in async_url else False,
+        "statement_cache_size": 0,  # CRITICAL: Disable for PgBouncer Transaction Mode
+        "prepared_statement_cache_size": 0,
+        "command_timeout": 60,
+    },
 )
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)

@@ -22,7 +22,8 @@ SELECT
     MAX(pos.entry_date) as last_activity 
 FROM portfolios p 
 LEFT JOIN positions pos ON p.id = pos.portfolio_id 
-GROUP BY p.user_id, p.id, p.name, p.cash_balance;
+GROUP BY p.user_id, p.id, p.name, p.cash_balance
+WITH NO DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_portfolio_summary_id ON portfolio_summary_mv(portfolio_id);
 CREATE INDEX IF NOT EXISTS idx_portfolio_summary_user ON portfolio_summary_mv(user_id);
@@ -36,7 +37,8 @@ SELECT
     COUNT(id) FILTER (WHERE status = 'cancelled') as cancelled_orders, 
     AVG(filled_price) FILTER (WHERE status = 'filled') as avg_fill_price 
 FROM orders 
-GROUP BY user_id;
+GROUP BY user_id
+WITH NO DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_trading_stats_user_id ON trading_stats_mv(user_id);
 
@@ -51,10 +53,11 @@ SELECT
 FROM model_predictions 
 WHERE actual_price IS NOT NULL 
   AND timestamp >= NOW() - INTERVAL '24 hours' 
-GROUP BY model_id, DATE_TRUNC('hour', timestamp);
+GROUP BY model_id, DATE_TRUNC('hour', timestamp)
+WITH NO DATA;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_drift_metrics_id_hour ON model_drift_metrics_mv(model_id, window_hour);
 
--- 5. Latest Volatility Surface (Feed for Heston/Pricing models)
+-- 5. Latest Volatility Surface (Skip-Scan candidate for high-volume hypertables)
 CREATE MATERIALIZED VIEW IF NOT EXISTS latest_vol_surface
 AS
 SELECT DISTINCT ON (symbol, expiry, strike, option_type)
@@ -66,7 +69,8 @@ SELECT DISTINCT ON (symbol, expiry, strike, option_type)
     last as price,
     time
 FROM options_prices
-ORDER BY symbol, expiry, strike, option_type, time DESC;
+ORDER BY symbol, expiry, strike, option_type, time DESC
+WITH NO DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_latest_vol_surface_unique 
 ON latest_vol_surface (symbol, expiry, strike, option_type);
