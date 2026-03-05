@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS market_data_mesh (
     volume BIGINT CHECK (volume >= 0),
     source_type TEXT NOT NULL,
     metadata JSONB
-);
+) WITH (FILLFACTOR = 100);
 
 SELECT create_hypertable('market_data_mesh', 'time', if_not_exists => TRUE);
 SELECT add_dimension('market_data_mesh', 'symbol', number_partitions => 4, if_not_exists => TRUE);

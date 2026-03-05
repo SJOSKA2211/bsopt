@@ -72,7 +72,7 @@ async def test_bulk_inserts_all():
 async def test_model_ops():
     db = AsyncMock()
     model_id = uuid4()
-    mock_model = MLModel(id=model_id, name="m1", version="1")
+    mock_model = MLModel(id=model_id, name="m1", version=1)
     mock_res = MagicMock()
     mock_res.scalar_one_or_none.return_value = mock_model
     db.execute.return_value = mock_res
@@ -80,7 +80,7 @@ async def test_model_ops():
     # get_latest
     with patch("src.database.crud.get_latest_model_version", AsyncMock(return_value=mock_model)):
         res = await crud.create_model(db, "m1", "algo")
-        assert res.version == "2"
+        assert res.version == 2
 
     # set_prod
     await crud.set_production_model(db, model_id)

@@ -477,27 +477,23 @@ async def create_model(
     db: AsyncSession,
     name: str,
     algorithm: str,
-    model_type: str = "equity_options",
-    artifact_uri: str = "s3://models/null",
+    model_artifact_url: str = "s3://models/null",
     created_by: UUID | None = None,
     hyperparameters: dict | None = None,
     training_metrics: dict | None = None,
-    model_artifact_url: str | None = None,
 ) -> MLModel:
     """Create a new model version (Async)."""
     latest = await get_latest_model_version(db, name)
-    version = str(int(latest.version) + 1) if latest else "1"
+    version = (latest.version + 1) if latest else 1
 
     model = MLModel(
         name=name,
         algorithm=algorithm,
         version=version,
-        model_type=model_type,
-        artifact_uri=artifact_uri,
+        model_artifact_url=model_artifact_url,
         created_by=created_by,
         hyperparameters=hyperparameters,
         training_metrics=training_metrics,
-        model_artifact_url=model_artifact_url,
     )
     db.add(model)
     await db.commit()

@@ -39,13 +39,12 @@ class CausalSelfAttention(nn.Module):
         q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
-        # Causal Attention
-        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        att = att.masked_fill(self.mask[:, :, :T, :T] == 0, float("-inf"))
-        att = F.softmax(att, dim=-1)
-        att = self.attn_drop(att)
+        # 🔥 FLASH ATTENTION: Optimized kernel
+        # causal mask handled by is_causal=True
+        y = F.scaled_dot_product_attention(
+            q, k, v, attn_mask=None, dropout_p=self.attn_drop.p if self.training else 0, is_causal=True
+        )
 
-        y = att @ v
         y = y.transpose(1, 2).contiguous().view(B, T, C)
         y = self.resid_drop(self.proj(y))
         return y

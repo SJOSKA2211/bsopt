@@ -1,4 +1,7 @@
+import mlflow
+import mlflow.pytorch
 import pickle  # nosec B403
+import time
 
 import structlog
 import torch as th
@@ -30,44 +33,82 @@ class TrajectoryDataset(Dataset):
 
 def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
     """
-    Advanced Offline training for Decision Transformer.
+    Advanced Offline training for Decision Transformer (v2).
+    Uses AMP, torch.compile, and detailed MLflow tracking.
     """
-    logger.info("offline_training_started", dataset=dataset_path)
+    logger.info("offline_training_started_v2", dataset=dataset_path)
 
     with open(dataset_path, "rb") as f:
         trajectories = pickle.load(f)  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
 
-    model = DecisionTransformer(state_dim=100, action_dim=10)
+    device = th.device("cuda" if th.cuda.is_available() else "cpu")
+    model = DecisionTransformer(state_dim=100, action_dim=10).to(device)
+
+    # 🔥 ACCELERATION: torch.compile (requires PyTorch 2.0+)
+    if hasattr(th, "compile") and device.type == "cuda":
+        try:
+            model = th.compile(model)
+            logger.info("model_compiled_successfully")
+        except Exception as e:
+            logger.warning("torch_compile_failed_falling_back", error=str(e))
+
     optimizer = th.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     criterion = nn.MSELoss()
+    scaler = th.amp.GradScaler("cuda", enabled=(device.type == "cuda"))
 
-    model.train()
-    for epoch in range(epochs):
-        epoch_loss = 0
-        for batch in loader:
-            optimizer.zero_grad()
+    with mlflow.start_run(run_name="DT_v2_Offline_Training"):
+        mlflow.log_params({"epochs": epochs, "batch_size": batch_size, "device": str(device)})
 
-            # Predict actions based on state and return-to-go
-            # model(states, actions, returns_to_go, timesteps)
-            _, action_preds, _ = model(
-                batch["states"],
-                th.zeros_like(batch["actions"]),  # Masked actions for prediction
-                batch["rtg"],
-                batch["timesteps"],
-            )
+        model.train()
+        for epoch in range(epochs):
+            epoch_loss = 0
+            start_time = time.time()
 
-            loss = criterion(action_preds, batch["actions"])
-            loss.backward()
-            optimizer.step()
-            epoch_loss += loss.item()
+            for batch in loader:
+                # Move to device
+                states = batch["states"].to(device)
+                actions = batch["actions"].to(device)
+                rtg = batch["rtg"].to(device)
+                timesteps = batch["timesteps"].to(device)
 
-        logger.info("epoch_completed", epoch=epoch, loss=epoch_loss / len(loader))
+                optimizer.zero_grad(set_to_none=True)
 
-    th.save(model.state_dict(), "models/decision_transformer_offline.pt")
-    logger.info("offline_training_completed", path="models/decision_transformer_offline.pt")
+                # 🔥 AMP: Automatic Mixed Precision
+                with th.amp.autocast("cuda", enabled=(device.type == "cuda")):
+                    _, action_preds, _ = model(
+                        states,
+                        th.zeros_like(actions),  # Masked actions for prediction
+                        rtg,
+                        timesteps,
+                    )
+                    loss = criterion(action_preds, actions)
+
+                scaler.scale(loss).backward()
+                
+                # Gradient Clipping for stability
+                scaler.unscale_(optimizer)
+                th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                
+                scaler.step(optimizer)
+                scaler.update()
+
+                epoch_loss += loss.item()
+
+            duration = time.time() - start_time
+            avg_loss = epoch_loss / len(loader)
+            
+            mlflow.log_metric("loss", avg_loss, step=epoch)
+            mlflow.log_metric("epoch_duration", duration, step=epoch)
+            
+            logger.info("epoch_completed", epoch=epoch, loss=avg_loss, duration=round(duration, 2))
+
+        mlflow.pytorch.log_model(model, "decision_transformer_v2")
+        th.save(model.state_dict(), "models/decision_transformer_v2.pt")
+        logger.info("offline_training_completed_v2", path="models/decision_transformer_v2.pt")
+
     return model
 
 

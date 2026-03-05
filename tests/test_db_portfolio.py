@@ -38,8 +38,8 @@ def test_portfolio_relationships(db_engine):
         conn.execute(
             text(
                 """
-            INSERT INTO users (id, email, full_name, role)
-            VALUES (:id, :email, 'Test User', 'trader')
+            INSERT INTO users (id, email, full_name, tier, hashed_password)
+            VALUES (:id, :email, 'Test User', 'pro', 'hashed_pass_placeholder')
         """
             ),
             {"id": user_id, "email": "test@example.com"},
@@ -62,7 +62,7 @@ def test_portfolio_relationships(db_engine):
         conn.execute(
             text(
                 """
-            INSERT INTO positions (id, portfolio_id, symbol, quantity, avg_entry_price)
+            INSERT INTO positions (id, portfolio_id, symbol, quantity, entry_price)
             VALUES (:id, :portfolio_id, 'AAPL', 10, 150.00)
         """
             ),
@@ -107,7 +107,7 @@ def test_rls_enforcement(db_engine):
         conn.execute(
             text(
                 """
-            INSERT INTO users (id, email, role) VALUES (:id, 'a@test.com', 'trader')
+            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, 'a@test.com', 'pro', 'h1')
         """
             ),
             {"id": user_a},
@@ -116,7 +116,7 @@ def test_rls_enforcement(db_engine):
         conn.execute(
             text(
                 """
-            INSERT INTO users (id, email, role) VALUES (:id, 'b@test.com', 'trader')
+            INSERT INTO users (id, email, tier, hashed_password) VALUES (:id, 'b@test.com', 'pro', 'h2')
         """
             ),
             {"id": user_b},
@@ -133,20 +133,17 @@ def test_rls_enforcement(db_engine):
 
         conn.commit()
 
-        # Simulate User B session
-        # Note: In real app we set current_user_id in session variable or role
-        # For testing RLS, we need to SET ROLE or SET app.current_user_id
-        # We assume the policy uses `current_setting('app.current_user_id')`
+        # Simulate User B session within a transaction
+        with conn.begin():
+            conn.execute(text(f"SET LOCAL app.current_user_id = '{user_b}';"))
+            # User B should NOT see User A's portfolio
+            result = conn.execute(text("SELECT * FROM portfolios"))
+            rows = result.fetchall()
+            assert len(rows) == 0, "RLS failed: User B saw User A's portfolio"
 
-        conn.execute(text(f"SET app.current_user_id = '{user_b}';"))
-
-        # User B should NOT see User A's portfolio
-        result = conn.execute(text("SELECT * FROM portfolios"))
-        rows = result.fetchall()
-        assert len(rows) == 0, "RLS failed: User B saw User A's portfolio"
-
-        # Simulate User A
-        conn.execute(text(f"SET app.current_user_id = '{user_a}';"))
-        result = conn.execute(text("SELECT * FROM portfolios"))
-        rows = result.fetchall()
-        assert len(rows) == 1, "RLS failed: User A could not see their own portfolio"
+        # Simulate User A within a transaction
+        with conn.begin():
+            conn.execute(text(f"SET LOCAL app.current_user_id = '{user_a}';"))
+            result = conn.execute(text("SELECT * FROM portfolios"))
+            rows = result.fetchall()
+            assert len(rows) == 1, "RLS failed: User A could not see their own portfolio"

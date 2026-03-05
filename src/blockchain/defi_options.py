@@ -5,6 +5,8 @@ import structlog
 from eth_account import Account
 from web3 import AsyncWeb3, Web3
 
+from src.blockchain.nonce_manager import NonceManager
+from src.blockchain.oracle import OracleManager
 from src.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
@@ -13,25 +15,55 @@ logger = structlog.get_logger(__name__)
 class DeFiOptionsProtocol:
     """
     DeFi options interaction protocol using Multicall3 and JSON-RPC batching.
-    OPTIMIZED: Fused contract calls and hardened circuit breakers.
+    OPTIMIZED: Fused contract calls, hardened circuit breakers, and Redis nonce management.
     """
 
     MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11"
-    # ... (ABI stays same)
+    MULTICALL_ABI = [
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {"internalType": "address", "name": "target", "type": "address"},
+                        {"internalType": "bool", "name": "allowFailure", "type": "bool"},
+                        {"internalType": "bytes", "name": "callData", "type": "bytes"},
+                    ],
+                    "internalType": "struct Multicall3.Call3[]",
+                    "name": "calls",
+                    "type": "tuple[]",
+                }
+            ],
+            "name": "aggregate3",
+            "outputs": [
+                {
+                    "components": [
+                        {"internalType": "bool", "name": "success", "type": "bool"},
+                        {"internalType": "bytes", "name": "returnData", "type": "bytes"},
+                    ],
+                    "internalType": "struct Multicall3.Result[]",
+                    "name": "returnData",
+                    "type": "tuple[]",
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function",
+        }
+    ]
 
     def __init__(
         self,
         rpc_url: str = "wss://polygon-mainnet.g.alchemy.com/v2/your-api-key",
         private_key: str | None = None,
         cache_ttl: int = 10,
+        chain_id: int = 137,
     ):
         self.rpc_url = rpc_url
-        self.w3 = AsyncWeb3(Web3.AsyncHTTPProvider(rpc_url))  # Standardize on HTTP for now
+        self.w3 = AsyncWeb3(Web3.AsyncHTTPProvider(rpc_url))
         self.private_key = private_key
         self.cache_ttl = cache_ttl
+        self.chain_id = chain_id
         self._price_cache: dict[str, dict] = {}
 
-        self._nonce_lock = asyncio.Lock()
         self._failure_threshold = 5
         self._failure_count = 0
         self._last_failure_time = 0.0
@@ -40,9 +72,13 @@ class DeFiOptionsProtocol:
         if private_key:
             self.account = Account.from_key(private_key)
             self.address = self.account.address
+            self.nonce_manager = NonceManager(self.address, self.chain_id)
         else:
             self.account = None
             self.address = None
+            self.nonce_manager = None
+
+        self.oracle = OracleManager(cache_ttl=self.cache_ttl)
 
         # Pre-instantiate multicall contract
         self.multicall = self.w3.eth.contract(
@@ -56,6 +92,16 @@ class DeFiOptionsProtocol:
             self._circuit_open = True
             self._last_failure_time = time.time()
             logger.error("rpc_circuit_opened")
+
+    async def _check_circuit(self):
+        """Check if circuit is open and should be half-opened."""
+        if self._circuit_open:
+            if time.time() - self._last_failure_time > 60:  # 1 minute cooldown
+                self._circuit_open = False
+                self._failure_count = 0
+                logger.info("rpc_circuit_half_opened")
+            else:
+                raise Exception("Blockchain RPC circuit is OPEN. Request rejected.")
 
     async def get_option_prices_batch(self, contract_addresses: list[str]) -> dict[str, float]:
         """
@@ -127,12 +173,27 @@ class DeFiOptionsProtocol:
                 output[addr] = res
         return output
 
+    async def _get_chain_price(self, contract_address: str, abi: list) -> float:
+        """Fallback on-chain price fetch."""
+        contract = self.w3.eth.contract(
+            address=Web3.to_checksum_address(contract_address), abi=abi
+        )
+        price_wei = await contract.functions.get_price().call()
+        return float(Web3.from_wei(price_wei, "ether"))
+
     async def buy_option(
-        self, contract_address: str, amount: int, max_slippage: float = 0.01
+        self,
+        contract_address: str,
+        amount: int,
+        max_slippage: float = 0.01,
+        params: dict | None = None,
     ) -> str:
         """
         Execute a purchase transaction with EIP-1559 gas and slippage protection.
         """
+        if params is None:
+            params = {}
+
         if not self.private_key:
             raise ValueError("Private key required for transactions.")
 
@@ -155,17 +216,24 @@ class DeFiOptionsProtocol:
         ]
 
         try:
-            # 1. Price check for slippage
+            # 0. Instantiate contract for both price check and transaction building
             contract = self.w3.eth.contract(
                 address=Web3.to_checksum_address(contract_address), abi=abi
             )
-            current_price_wei = await contract.functions.get_price().call()
-            expected_price = float(Web3.from_wei(current_price_wei, "ether"))
+
+            # 1. Price check for slippage via Hybrid Oracle
+            expected_price = await self.oracle.get_price(
+                params.get("symbol", "UNKNOWN"),
+                contract_address,
+                lambda addr: self._get_chain_price(addr, abi),
+            )
 
             logger.info("slippage_check", expected=expected_price, amount=amount)
 
             # 2. Build EIP-1559 Transaction
-            nonce = await self._get_next_nonce()
+            nonce = await self.nonce_manager.get_next_nonce(
+                lambda: self.w3.eth.get_transaction_count(self.address)
+            )
 
             latest_block = await self.w3.eth.get_block("latest")
             base_fee = latest_block["baseFeePerGas"]
@@ -199,8 +267,10 @@ class DeFiOptionsProtocol:
             raise Exception(f"Transaction failed: {tx_hash.hex()}")
         except Exception as e:
             logger.error("blockchain_tx_error", error=str(e))
-            if hasattr(self, "_local_nonce"):
-                delattr(self, "_local_nonce")
+            if self.nonce_manager:
+                await self.nonce_manager.reset(
+                    lambda: self.w3.eth.get_transaction_count(self.address)
+                )
             raise
 
 
