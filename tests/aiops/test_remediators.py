@@ -15,10 +15,10 @@ from src.aiops.remediators import (
 async def test_clear_redis_remediator():
     remediator = ClearRedisCacheRemediator()
     
-    with patch("redis.asyncio.from_url") as mock_redis:
+    with patch("src.aiops.remediators.redis.from_url") as mock_from_url:
         mock_client = MagicMock()
         mock_client.flushdb = AsyncMock()
-        mock_redis.return_value = mock_client
+        mock_from_url.return_value = mock_client
         
         success = await remediator.remediate({"type": "latency_spike"})
         assert success is True

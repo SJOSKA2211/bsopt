@@ -388,6 +388,9 @@ services:
       - "10001:10001" # Ray Client
     networks:
       - bsopt-network
+    volumes:
+      - ./:/app
+    working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
 
   rl-training-worker:
@@ -400,6 +403,9 @@ services:
       - RAY_ADDRESS=ray-head:6379
     networks:
       - bsopt-network
+    volumes:
+      - ./:/app
+    working_dir: /app
     command: ray start --address=ray-head:6379 --block
 
   # === [Specialized] MLOps Tracking Server ===
