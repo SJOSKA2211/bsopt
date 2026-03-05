@@ -23,17 +23,41 @@ async def test_clear_redis_remediator():
         mock_client.flushdb.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_restart_service_remediator():
+async def test_restart_service_remediator_success():
     remediator = RestartServiceRemediator()
     
     with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
         mock_docker = MagicMock()
-        mock_docker.restart_service = AsyncMock(return_value=True)
+        mock_docker.restart_service = MagicMock()
         mock_docker_cls.return_value = mock_docker
         
-        success = await remediator.remediate({"metrics": {"service": "test-service"}})
+        success = await remediator.remediate({"metrics": {"service": "api"}})
         assert success is True
-        mock_docker.restart_service.assert_called_once_with("test-service")
+        mock_docker.restart_service.assert_called_once_with("api")
+
+@pytest.mark.asyncio
+async def test_docker_remediator_invalid():
+    from src.aiops.docker_remediator import DockerRemediator
+    remediator = DockerRemediator()
+    
+    # Should reject non-allowlisted service
+    assert remediator._validate_service("malicious-container") is False
+    # Should reject malformed service
+    assert remediator._validate_service("api; rm -rf /") is False
+    # Should accept allowlisted service
+    assert remediator._validate_service("worker") is True
+
+@pytest.mark.asyncio
+async def test_docker_remediator_scale_bounds():
+    from src.aiops.docker_remediator import DockerRemediator
+    remediator = DockerRemediator()
+    remediator.loop = MagicMock()
+    remediator.executor = MagicMock()
+    
+    # Scale too high should fail
+    assert await remediator.scale_service("api", 100) is False
+    # Scale too low should fail
+    assert await remediator.scale_service("api", 0) is False
 
 @pytest.mark.asyncio
 async def test_kernel_tuning_remediator():
@@ -155,7 +179,7 @@ async def test_rabbitmq_congestion_remediator_restart_consumers():
 
         with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
             mock_docker = MagicMock()
-            mock_docker.restart_service = AsyncMock(return_value=True)
+            mock_docker.restart_service = MagicMock()
             mock_docker_cls.return_value = mock_docker
 
             success = await remediator.remediate({
@@ -163,6 +187,22 @@ async def test_rabbitmq_congestion_remediator_restart_consumers():
             })
             assert success is True
             mock_docker.restart_service.assert_called_once_with("worker")
+
+@pytest.mark.asyncio
+async def test_rabbitmq_congestion_remediator_forbidden():
+    remediator = RabbitMQCongestionRemediator()
+    
+    # Forbidden queue
+    success = await remediator.remediate({
+        "metrics": {"queue": "unknown_queue", "suggested_action": "purge_dlq"}
+    })
+    assert success is False
+    
+    # Forbidden action
+    success = await remediator.remediate({
+        "metrics": {"queue": "default", "suggested_action": "delete_everything"}
+    })
+    assert success is False
 
 
 @pytest.mark.asyncio

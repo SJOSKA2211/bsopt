@@ -22,9 +22,15 @@ declare module '@mui/material/styles' {
         theta: string;
         rho: string;
       };
+      qfd: {
+        nebula: string;
+        quantum: string;
+        electrum: string;
+        iridescent: string;
+      };
     };
   }
-  
+
   interface PaletteOptions {
     financial?: {
       bid?: string;
@@ -46,21 +52,27 @@ declare module '@mui/material/styles' {
         theta?: string;
         rho?: string;
       };
+      qfd?: {
+        nebula?: string;
+        quantum?: string;
+        electrum?: string;
+        iridescent?: string;
+      };
     };
   }
-  
+
   interface TypeBackground {
     elevation1?: string;
     elevation2?: string;
     elevation3?: string;
   }
-  
+
   interface TypographyVariants {
     price: React.CSSProperties;
     percentage: React.CSSProperties;
     ticker: React.CSSProperties;
   }
-  
+
   interface TypographyVariantsOptions {
     price?: React.CSSProperties;
     percentage?: React.CSSProperties;

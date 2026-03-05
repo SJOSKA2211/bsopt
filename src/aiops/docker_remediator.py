@@ -1,11 +1,27 @@
+import asyncio
+import re
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
+import docker
 import structlog
 
-import docker
-
 logger = structlog.get_logger()
+
+ALLOWED_SERVICES = {
+    "api",
+    "worker",
+    "redis",
+    "postgres",
+    "rabbitmq",
+    "neural-pricing",
+    "portfolio",
+    "scraper",
+    "app-gateway",
+    "frontend",
+}
+
+SERVICE_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
 
 
 class DockerRemediator:
@@ -23,32 +39,58 @@ class DockerRemediator:
             self.client = None
 
         self.executor = ThreadPoolExecutor(max_workers=4)
-
-    def _run_cmd(self, cmd: list[str]) -> bool:
-        """Helper to run shell commands in the background."""
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            logger.info("docker_remediator_cmd_success", cmd=cmd, output=result.stdout[:200])
+            self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+
+    async def _run_cmd(self, cmd: list[str]) -> bool:
+        """Helper to run shell commands in the background."""
+        # Note: cmd is a list, reducing shell injection risks.
+        try:
+            # Wrap in to_thread since subprocess.run is blocking
+            result = await asyncio.to_thread(
+                subprocess.run, cmd, capture_output=True, text=True, check=True
+            )
+            logger.info("docker_remediator_cmd_success", cmd=" ".join(cmd), output=result.stdout[:200])
             return True
         except Exception as e:
-            logger.error("docker_remediator_cmd_failed", cmd=cmd, error=str(e))
+            logger.error("docker_remediator_cmd_failed", cmd=" ".join(cmd), error=str(e))
             return False
+
+    def _validate_service(self, service_name: str) -> bool:
+        """Validates service name against allowlist and format."""
+        if service_name not in ALLOWED_SERVICES:
+            logger.error("docker_remediator_invalid_service", service=service_name)
+            return False
+        if not SERVICE_NAME_REGEX.match(service_name):
+            logger.error("docker_remediator_invalid_format", service=service_name)
+            return False
+        return True
 
     def restart_service(self, service_name: str):
         """Restarts a service asynchronously."""
-        if self.client:
+        if not self._validate_service(service_name):
+            return
 
-            def _restart():
-                try:
-                    container = self.client.containers.get(f"{service_name}-1")
+        def _restart():
+            try:
+                if self.client:
+                    # Explicitly use bsopt prefix to prevent attacking arbitrary containers
+                    container = self.client.containers.get(f"bsopt-{service_name}-1")
                     container.restart()
                     logger.info("docker_remediator_restart_sdk_success", service=service_name)
-                except Exception:
-                    self._run_cmd(["docker", "compose", "restart", service_name])
+                    return
+            except Exception:
+                pass
+            
+            # Fallback to compose CLI
+            asyncio.run_coroutine_threadsafe(
+                self._run_cmd(["docker", "compose", "restart", service_name]),
+                self.loop
+            )
 
-            self.executor.submit(_restart)
-        else:
-            self.executor.submit(self._run_cmd, ["docker", "compose", "restart", service_name])
+        self.executor.submit(_restart)
 
     def scale_service(self, service_name: str, replicas: int) -> bool:
         """
@@ -61,48 +103,39 @@ class DockerRemediator:
             target_replicas=replicas,
         )
 
+        if not self._validate_service(service_name):
+            return False
+            
+        # Ensure replicas is a sane integer
+        try:
+            replicas = int(replicas)
+            if replicas < 1 or replicas > 5:
+                logger.error("docker_remediator_invalid_scale", count=replicas)
+                return False
+        except (ValueError, TypeError):
+            return False
+
+        cmd = [
+            "docker",
+            "compose",
+            "up",
+            "-d",
+            "--scale",
+            f"{service_name}={replicas}",
+            service_name,
+        ]
+
         if self.client:
-
             def _scale():
-                try:
-                    # In a docker-compose environment, we can't easily "scale" a single service
-                    # via SDK as compose handles service state. However, we can use labels
-                    # to find containers belonging to the service and manage them.
-                    # For simplicity and correctness in compose, we stick to the compose CLI
-                    # but use the SDK if we were in a swarm or direct mode.
-                    # Since this project uses Docker Compose, the CLI is actually the "right" way
-                    # to keep the state in sync.
-                    # BUT the PRD asks for SDK. I will implement a "Swarm-ready" or "Label-aware" scale.
-
-                    # RICK OPTIMIZATION: If we are in Dev/Local, CLI is fine.
-                    # If we have a swarm, we use SDK.
-                    self._run_cmd(
-                        [
-                            "docker",
-                            "compose",
-                            "up",
-                            "-d",
-                            "--scale",
-                            f"{service_name}={replicas}",
-                            service_name,
-                        ]
-                    )
-                except Exception as e:
-                    logger.error("docker_remediator_scale_failed", error=str(e))
-
+                asyncio.run_coroutine_threadsafe(
+                    self._run_cmd(cmd),
+                    self.loop
+                )
             self.executor.submit(_scale)
         else:
-            self.executor.submit(
-                self._run_cmd,
-                [
-                    "docker",
-                    "compose",
-                    "up",
-                    "-d",
-                    "--scale",
-                    f"{service_name}={replicas}",
-                    service_name,
-                ],
+            asyncio.run_coroutine_threadsafe(
+                self._run_cmd(cmd),
+                self.loop
             )
 
         return True
