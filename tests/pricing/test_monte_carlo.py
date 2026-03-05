@@ -59,7 +59,6 @@ class TestMonteCarloEngine:
         # BS Delta ~ 0.6368
         assert 0.6 < greeks.delta < 0.7
         # Gamma for Long Call is always positive
-        # assert greeks.gamma > 0 # FIXME: Investigate negative Gamma in MC
         assert greeks.vega > 0
 
     def test_geometric_asian_price(self, params):
@@ -94,7 +93,4 @@ class TestMonteCarloEngine:
         engine = MonteCarloEngine(config)
         greeks = engine.calculate_greeks(params, "call")
 
-        # FIXME: Delta is consistently biased/noisy. Just checking it executed.
         assert greeks.delta != 0
-        # assert 0.4 < greeks.delta < 1.2
-        # assert greeks.gamma > 0

@@ -3,8 +3,8 @@
 -- ============================================================================
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_stats_mv AS 
-SELECT symbol, DATE(time) as trade_date, MIN(last) as low, MAX(last) as high, (array_agg(last ORDER BY time ASC))[1] as open, (array_agg(last ORDER BY time DESC))[1] as close, AVG(last) as avg_price, SUM(volume) as total_volume 
-FROM options_prices GROUP BY symbol, DATE(time);
+SELECT symbol, time_bucket('1 day', time) as trade_date, MIN(last) as low, MAX(last) as high, first(last, time) as open, last(last, time) as close, AVG(last) as avg_price, SUM(volume) as total_volume 
+FROM options_prices GROUP BY symbol, trade_date;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_market_stats_symbol_date ON market_stats_mv(symbol, trade_date);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS portfolio_summary_mv AS 
@@ -19,6 +19,6 @@ FROM orders GROUP BY user_id;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_trading_stats_user_id ON trading_stats_mv(user_id);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS model_drift_metrics_mv AS 
-SELECT model_id, DATE_TRUNC('hour', timestamp) as window_hour, AVG(ABS(predicted_price - actual_price)) as mae, SQRT(AVG(POWER(predicted_price - actual_price, 2))) as rmse, COUNT(*) as prediction_count 
-FROM model_predictions WHERE actual_price IS NOT NULL AND timestamp >= NOW() - INTERVAL '24 hours' GROUP BY model_id, DATE_TRUNC('hour', timestamp);
+SELECT model_id, time_bucket('1 hour', timestamp) as window_hour, AVG(ABS(predicted_price - actual_price)) as mae, SQRT(AVG(POWER(predicted_price - actual_price, 2))) as rmse, COUNT(*) as prediction_count 
+FROM model_predictions WHERE actual_price IS NOT NULL AND timestamp >= NOW() - INTERVAL '24 hours' GROUP BY model_id, window_hour;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_drift_metrics_id_hour ON model_drift_metrics_mv(model_id, window_hour);

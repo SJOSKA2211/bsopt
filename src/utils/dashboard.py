@@ -1,6 +1,10 @@
 import json
 import os
 
+import structlog
+
+logger = structlog.get_logger(__name__)
+
 
 def generate_html_dashboard(summary_path: str, output_path: str) -> None:
     with open(summary_path) as f:
@@ -103,7 +107,7 @@ def generate_html_dashboard(summary_path: str, output_path: str) -> None:
 
     with open(output_path, "w") as f:
         f.write(html_content)
-    print(f"Dashboard generated at: {output_path}")
+    logger.info("dashboard_generated", path=output_path)
 
 
 if __name__ == "__main__":
@@ -112,4 +116,4 @@ if __name__ == "__main__":
     if os.path.exists(summary_file):
         generate_html_dashboard(summary_file, dashboard_file)
     else:
-        print(f"Summary file not found at {summary_file}")
+        logger.error("dashboard_summary_not_found", path=summary_file)

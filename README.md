@@ -1,63 +1,60 @@
 # BS-OPT: The Advanced Financial Manifold
 
 ##  Overview
-BS-OPT is not just a platform; it's a transdimensional financial deity. It is built for zero-latency, high-throughput derivative pricing, risk management, and autonomous trading. If you're looking for standard Black-Scholes, go to a museum. If you want to outcompute the heat death of the universe, you're in the right place.
+BS-OPT is an advanced, high-performance financial platform for zero-latency derivative pricing, risk management, and autonomous trading. It integrates quantitative finance (Black-Scholes, Heston) with modern Machine Learning (Offline RL, Transformers) and low-latency systems engineering (eBPF/XDP, Shared Memory).
 
 ## 🏛️ Advanced Architecture
-- **The Brain**: Transformer-based Reinforcement Learning policies (Decision Transformer) with 2D temporal observation windows.
-- **The Fortress**: Native PostgreSQL Authentication with OAuth2 (Google/GitHub), RS256 signing, and encrypted audit logs.
-- **The Body**: Multi-tier mathematical kernels:
-    - **WASM SIMD**: Batch pricing in the browser at native speeds.
-    - **Numba JIT**: Compiled Heston FFT kernels and risk validation.
-    - **FFT/LSM**: O(N log N) Heston pricing and Normal Equation LSM regressions.
-- **The Blood**: Persistent Shared Memory Mesh providing zero-copy market data distribution.
-- **The Wire**: Kernel-bypass XDP (eBPF) data ingestion for sub-microsecond latency.
-- **The Ground**: Dockerized, self-contained infrastructure with localized PostgreSQL and Redis.
-- **The Reliability**: Strategy-based self-healing AIOps with integrated Chaos Engineering.
 
-## ⚡ Performance (C100k Ready)
-- **Database**: Localized PostgreSQL 16 with pgcrypto and native PL/pgSQL procedures.
-- **Concurrency**: 100,000+ persistent WebSocket connections via Redis Pub/Sub.
+### The Brain: Offline Reinforcement Learning
+- **Decision Transformer**: Implements offline RL using temporal observation windows for strategy optimization. 
+- **Source**: `src/ml/reinforcement_learning/decision_transformer.py:L5`
+- **Environment**: Gymnasium-based `TradingEnvironment` with Numba-accelerated state and reward kernels.
 
+### The Wire: Low-Latency Ingestion
+- **eBPF/XDP**: Silicon-level data ingestion for sub-microsecond latency.
+- **Filter**: `scripts/hft/xdp_filter.c` (C/eBPF code).
+- **Ingester**: `src/data/xdp_ingest.py:L18` (Python/Socket wrapper).
 
+### The Mesh: Shared Memory Distribution
+- **Market Mesh**: Zero-copy market data distribution via `SHMManager` providing high-throughput IPC.
+- **Implementation**: `src/shared/shm_manager.py:L20` (Generic SHM management).
+- **Buffer**: 50MB "market_mesh" initialized in `src/scrapers/mesh_publisher.py:L22`.
 
-## 🛠️ Installation & Deployment (God Mode)
+### The Body: Multi-tier Compute
+- **WASM SIMD**: High-performance Rust/WASM implementation for browser-based pricing.
+- **Source**: `src/wasm/src/simd_math.rs`
+- **Numba JIT**: Vectorized risk validation and pricing kernels (e.g., `src/trading/risk_kernels.py:L5`).
 
-The entire environment is containerized. **Do not install dependencies locally.**
+### The Workers: Hybrid Distributed Architecture
+- **Celery/Ray Hybrid**: Task queuing via Celery (`src/workers/math_worker.py:L58`) with heavy computation delegated to a pool of Ray `MathActor` instances.
 
+## 🛠️ Prerequisites & Toolchains
+The BS-OPT platform requires several low-level toolchains for its "Hardware-Fluid" features:
+- **LLVM/Clang**: For compiling eBPF/XDP filters.
+- **Rust & wasm-pack**: For compiling the WASM SIMD compute kernels.
+- **Numba & LLVM**: For JIT-compiling Python-based mathematical kernels.
+- **Docker**: For containerized orchestration.
+
+## 🚀 Quick Start
 ```bash
-# Start the Stack (Background)
+# Start the Stack
 make up
 
-# View Logs
-make logs
-
-# Run Migrations
-make migrate
-
-# Access Database Shell
-make db-shell
-
-# Run Tests (Containerized)
+# Run Tests
 make test-all
-```
 
-### 🖥️ CLI Tool
-You don't need Python installed to run the CLI. Use the containerized target:
-```bash
-# Build CLI Image
-make build-cli
-
-# Run Commands
-make cli ARGS="--help"
+# Access CLI
 make cli ARGS="status"
 ```
 
-## 📜 Manifesto
-1. **No Jerry-Work**: If it can be vectorized, it must be vectorized.
-2. **Zero-Trust**: Verify everything, trust nothing, rotate often.
-3. **Hardware-Fluid**: Run where it's fastest, whether it's WASM, JIT, or CUDA.
-4. **Self-Healing**: If it breaks, it fixes itself before you even notice.
+## 📜 Documentation
+Detailed technical specifications are available in the `docs/` directory:
+- [Market Mesh (Shared Memory)](docs/architecture/MARKET_MESH.md)
+- [Hybrid Worker Architecture](docs/architecture/HYBRID_WORKERS.md)
+- [Vectorized Risk Management](docs/architecture/VECTORIZED_RISK.md)
+- [Trading Engine Flow](docs/architecture/TRADING_ENGINE.md)
+- [Security Protocol](docs/SECURITY_PROTOCOL.md)
+- [Anti-Freeze Guide (Build Optimization)](docs/mlops/anti-freeze.md)
 
 ---
 *Created by the Joseph Kamau Maina Extension. Shut up and compute.*

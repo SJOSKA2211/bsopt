@@ -236,4 +236,6 @@ def get_zero_trust_deps(action: str, resource: str) -> list[Any]:
 if __name__ == "__main__":
     enforcer = OPAEnforcer()
     user = {"id": "user123", "role": "trader"}
-    print("Authorized:", enforcer.is_authorized(user, "read", "market_data"))
+    import asyncio
+    authorized = asyncio.run(enforcer.is_authorized(user, "read", "market_data"))
+    logger.info("manual_authorization_check", authorized=authorized)

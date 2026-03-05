@@ -2,7 +2,27 @@
 -- Black-Scholes Option Pricing Platform - Security Rules
 -- ============================================================================
 
--- ROW LEVEL SECURITY (RLS)
+-- 1. Schema Hardening
+-- Revoke all permissions on the public schema from the public role
+REVOKE ALL ON SCHEMA public FROM public;
+GRANT USAGE ON SCHEMA public TO public; -- Allow usage, but not creation
+
+-- 2. RBAC
+-- Dedicated application user with limited privileges
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'app_user') THEN
+        CREATE ROLE app_user WITH LOGIN PASSWORD 'app_secret_placeholder';
+    END IF;
+END
+$$;
+
+GRANT CONNECT ON DATABASE bsopt TO app_user;
+GRANT USAGE ON SCHEMA public TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
+
+-- 3. Row Level Security (RLS)
 
 -- 1. Portfolios
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
