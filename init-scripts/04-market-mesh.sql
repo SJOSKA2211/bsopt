@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS market_data_mesh (
 );
 
 SELECT create_hypertable('market_data_mesh', 'time', if_not_exists => TRUE);
+SELECT add_dimension('market_data_mesh', 'symbol', number_partitions => 4, if_not_exists => TRUE);
