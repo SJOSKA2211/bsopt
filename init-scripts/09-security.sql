@@ -5,9 +5,8 @@
 -- 1. Schema Hardening
 -- Revoke all permissions on the public schema from the public role
 REVOKE ALL ON SCHEMA public FROM public;
-GRANT USAGE ON SCHEMA public TO public; -- Allow usage, but not creation
 
--- 2. RBAC
+-- 2. RBAC (Role Based Access Control)
 -- Dedicated application user with limited privileges
 DO $$
 BEGIN
@@ -22,16 +21,25 @@ GRANT USAGE ON SCHEMA public TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
 
--- 3. Row Level Security (RLS) Performance Optimized
+-- Ensure future tables created by the migrations or admin are accessible to app_user
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO app_user;
 
+-- Revoke high-risk utility functions from app_user
+REVOKE ALL ON FUNCTION register_user_native(VARCHAR, VARCHAR, VARCHAR) FROM app_user;
+GRANT EXECUTE ON FUNCTION authenticate_user_native(VARCHAR, VARCHAR) TO app_user;
+GRANT EXECUTE ON FUNCTION update_last_login_native(UUID) TO app_user;
+
+-- 3. Row Level Security (RLS) Performance Optimized
 -- Helper function to get current user ID from session context
+-- Using STABLE and SECURITY DEFINER to ensure it's fast and has access to necessary settings
 CREATE OR REPLACE FUNCTION get_current_user_id() RETURNS UUID AS $$
 BEGIN
     RETURN NULLIF(current_setting('app.current_user_id', true), '')::UUID;
 EXCEPTION WHEN others THEN
     RETURN NULL;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER;
 
 -- 1. Portfolios
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;

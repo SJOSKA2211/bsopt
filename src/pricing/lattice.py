@@ -13,7 +13,7 @@ from numba import njit
 
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
-from .models import BSParameters
+from .models import BSParameters, OptionGreeks
 
 
 @dataclass
@@ -121,7 +121,71 @@ def validate_convergence(
     return {"binomial_errors": bin_errors, "trinomial_errors": tri_errors}
 
 
-class BinomialTreePricer(PricingStrategy):
+class LatticePricer(PricingStrategy):
+    """Base class for lattice models providing common Greeks implementation."""
+
+    def calculate_greeks(
+        self, params: BSParameters, option_type: str = "call"
+    ) -> OptionGreeks:
+        """
+        Calculate Greeks using finite difference approximation.
+        Suitable for lattice models where closed-form derivatives are unavailable.
+        """
+        s = params.spot
+        k = params.strike
+        t = params.maturity
+        v = params.volatility
+        r = params.rate
+        q = params.dividend
+
+        # Shifts for finite difference
+        # ds: 0.1% shift, dv: 0.1% shift, dr: 0.1% shift, dt: 1 day
+        ds = s * 0.001 if s != 0 else 0.001
+        dv = 0.001
+        dr = 0.001
+        dt = 1.0 / 365.0
+
+        # Spot-based Greeks (Delta, Gamma)
+        p = self.price(params, option_type)
+        p_up = self.price(BSParameters(s + ds, k, t, v, r, q), option_type)
+        p_down = self.price(BSParameters(s - ds, k, t, v, r, q), option_type)
+
+        delta = (p_up - p_down) / (2 * ds)
+        gamma = (p_up - 2 * p + p_down) / (ds**2)
+
+        # Vega
+        p_v_up = self.price(BSParameters(s, k, t, v + dv, r, q), option_type)
+        p_v_down = self.price(
+            BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type
+        )
+        vega = (p_v_up - p_v_down) / (2 * dv)
+
+        # Theta (using backward difference - change in price as time passes)
+        if t > dt:
+            p_t_minus = self.price(BSParameters(s, k, t - dt, v, r, q), option_type)
+            theta = (p_t_minus - p) / dt
+        else:
+            # For very short maturity, use forward difference
+            p_t_plus = self.price(BSParameters(s, k, t + 0.0001, v, r, q), option_type)
+            theta = -(p_t_plus - p) / 0.0001
+
+        # Rho
+        p_r_up = self.price(BSParameters(s, k, t, v, r + dr, q), option_type)
+        p_r_down = self.price(
+            BSParameters(s, k, t, v, max(0, r - dr), q), option_type
+        )
+        rho = (p_r_up - p_r_down) / (dr * 2)
+
+        return OptionGreeks(
+            delta=float(delta),
+            gamma=float(gamma),
+            theta=float(theta),
+            vega=float(vega),
+            rho=float(rho),
+        )
+
+
+class BinomialTreePricer(LatticePricer):
     """Cox-Ross-Rubinstein (CRR) JIT Pricer."""
 
     def __init__(
@@ -148,7 +212,7 @@ class BinomialTreePricer(PricingStrategy):
         )
 
 
-class TrinomialTreePricer(PricingStrategy):
+class TrinomialTreePricer(LatticePricer):
     """Standard Trinomial Tree JIT Pricer."""
 
     def __init__(

@@ -224,9 +224,6 @@ CREATE TABLE model_predictions (
     PRIMARY KEY (id, timestamp)
 );
 
-SELECT create_hypertable('model_predictions', 'timestamp', if_not_exists => TRUE);
-SELECT set_chunk_time_interval('model_predictions', INTERVAL '7 days');
-
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
 
