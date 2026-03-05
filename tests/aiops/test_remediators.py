@@ -15,34 +15,37 @@ from src.aiops.remediators import (
 @pytest.mark.asyncio
 async def test_clear_redis_remediator():
     remediator = ClearRedisCacheRemediator()
-    
+
     with patch("src.aiops.remediators.redis.from_url") as mock_from_url:
         mock_client = MagicMock()
         mock_client.flushdb = AsyncMock()
         mock_from_url.return_value = mock_client
-        
+
         success = await remediator.remediate({"type": "latency_spike"})
         assert success is True
         mock_client.flushdb.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_restart_service_remediator_success():
     remediator = RestartServiceRemediator()
-    
+
     with patch("src.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
         mock_docker = MagicMock()
         mock_docker.restart_service = AsyncMock(return_value=True)
         mock_docker_cls.return_value = mock_docker
-        
+
         success = await remediator.remediate({"metrics": {"service": "api"}})
         assert success is True
         mock_docker.restart_service.assert_called_once_with("api")
 
+
 @pytest.mark.asyncio
 async def test_docker_remediator_invalid():
     from src.aiops.docker_remediator import DockerRemediator
+
     remediator = DockerRemediator()
-    
+
     # Should reject non-allowlisted service
     assert remediator._validate_service("malicious-container") is False
     # Should reject malformed service
@@ -50,40 +53,44 @@ async def test_docker_remediator_invalid():
     # Should accept allowlisted service
     assert remediator._validate_service("worker") is True
 
+
 @pytest.mark.asyncio
 async def test_docker_remediator_scale_bounds():
     from src.aiops.docker_remediator import DockerRemediator
+
     remediator = DockerRemediator()
     remediator.loop = MagicMock()
     remediator.executor = MagicMock()
-    
+
     # Scale too high should fail
     assert await remediator.scale_service("api", 100) is False
     # Scale too low should fail
     assert await remediator.scale_service("api", 0) is False
 
+
 @pytest.mark.asyncio
 async def test_kernel_tuning_remediator():
     remediator = KernelTuningRemediator()
-    
+
     with patch("asyncio.create_subprocess_exec") as mock_exec:
         mock_proc = AsyncMock()
         mock_proc.communicate.return_value = (b"OK", b"")
         mock_proc.returncode = 0
         mock_exec.return_value = mock_proc
-        
+
         success = await remediator.remediate({})
         assert success is True
         mock_exec.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_remediation_planner():
     planner = RemediationPlanner()
-    
+
     # Should suggest clear_cache for latency_spike
     anomaly = {"type": "latency_spike"}
     actions = planner.plan(anomaly)
-    
+
     action_names = [a.name for a in actions]
     assert "clear_cache" in action_names
     assert "restart_service" in action_names
@@ -145,9 +152,9 @@ async def test_rabbitmq_congestion_remediator_purge_dlq():
         mock_conn.channel.return_value = mock_channel
         mock_connect.return_value = mock_conn
 
-        success = await remediator.remediate({
-            "metrics": {"queue": "ml_tasks", "suggested_action": "purge_dlq"}
-        })
+        success = await remediator.remediate(
+            {"metrics": {"queue": "ml_tasks", "suggested_action": "purge_dlq"}}
+        )
         assert success is True
         mock_channel.declare_queue.assert_called_once_with("ml_tasks.dlq", passive=True)
         mock_queue.purge.assert_called_once()
@@ -163,9 +170,9 @@ async def test_rabbitmq_congestion_remediator_increase_prefetch():
         mock_conn.channel.return_value = mock_channel
         mock_connect.return_value = mock_conn
 
-        success = await remediator.remediate({
-            "metrics": {"queue": "pricing", "suggested_action": "increase_prefetch"}
-        })
+        success = await remediator.remediate(
+            {"metrics": {"queue": "pricing", "suggested_action": "increase_prefetch"}}
+        )
         assert success is True
         mock_channel.set_qos.assert_called_once_with(prefetch_count=50)
 
@@ -185,26 +192,27 @@ async def test_rabbitmq_congestion_remediator_restart_consumers():
             mock_docker.restart_service = AsyncMock(return_value=True)
             mock_docker_cls.return_value = mock_docker
 
-            success = await remediator.remediate({
-                "metrics": {"queue": "scraper", "suggested_action": "restart_consumers"}
-            })
+            success = await remediator.remediate(
+                {"metrics": {"queue": "scraper", "suggested_action": "restart_consumers"}}
+            )
             assert success is True
             mock_docker.restart_service.assert_called_once_with("worker")
+
 
 @pytest.mark.asyncio
 async def test_rabbitmq_congestion_remediator_forbidden():
     remediator = RabbitMQCongestionRemediator()
-    
+
     # Forbidden queue
-    success = await remediator.remediate({
-        "metrics": {"queue": "unknown_queue", "suggested_action": "purge_dlq"}
-    })
+    success = await remediator.remediate(
+        {"metrics": {"queue": "unknown_queue", "suggested_action": "purge_dlq"}}
+    )
     assert success is False
-    
+
     # Forbidden action
-    success = await remediator.remediate({
-        "metrics": {"queue": "default", "suggested_action": "delete_everything"}
-    })
+    success = await remediator.remediate(
+        {"metrics": {"queue": "default", "suggested_action": "delete_everything"}}
+    )
     assert success is False
 
 
@@ -221,4 +229,3 @@ async def test_planner_includes_new_remediators():
     rmq_anomaly = {"type": "queue_backpressure"}
     rmq_actions = planner.plan(rmq_anomaly)
     assert "rabbitmq_congestion" in [a.name for a in rmq_actions]
-

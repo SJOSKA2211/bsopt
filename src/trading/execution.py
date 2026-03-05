@@ -44,9 +44,10 @@ class OrderExecutor:
                 # Portfolio-wide Delta Exposure Validation (Simplified)
                 # In prod, we'd fetch current_deltas from Redis/DB
                 import numpy as np
-                current_deltas = np.zeros(10) # Placeholder for current portfolio state
+
+                current_deltas = np.zeros(10)  # Placeholder for current portfolio state
                 trade_delta = params.get("delta", 0.0) * quantity * side
-                
+
                 if not _validate_delta_exposure_kernel(current_deltas, trade_delta):
                     logger.warning("order_rejected_delta_risk", params=params, delta=trade_delta)
                     return {"status": "rejected", "reason": "delta_exposure_limit_violation"}

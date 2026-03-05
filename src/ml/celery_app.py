@@ -32,6 +32,7 @@ def run_pipeline_task(self, config: dict[str, Any]):
     try:
         pipeline = MLPipeline(config)
         import asyncio
+
         model = asyncio.run(pipeline.run())
 
         result = {

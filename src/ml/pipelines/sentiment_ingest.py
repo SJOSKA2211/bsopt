@@ -1,6 +1,7 @@
 """
 Sentiment Ingestion Pipeline — expected by test_sentiment_pipeline.py.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,6 +21,7 @@ except ImportError:
     class Consumer:
         pass
 
+
 class SentimentExtractor:
     def get_sentiment_score(self, text: str) -> float:
         return 0.0
@@ -29,13 +31,12 @@ class SentimentIngestor:
     def __init__(self, bootstrap_servers: str = "localhost:9092") -> None:
         self.bootstrap_servers = bootstrap_servers
         self.extractor = SentimentExtractor()
-        
+
         # In a real scenario these would connect to Kafka
         self.producer = Producer({"bootstrap.servers": self.bootstrap_servers})
-        self.consumer = Consumer({
-            "bootstrap.servers": self.bootstrap_servers,
-            "group.id": "sentiment_group"
-        })
+        self.consumer = Consumer(
+            {"bootstrap.servers": self.bootstrap_servers, "group.id": "sentiment_group"}
+        )
 
     async def process_news_message(self, message: bytes) -> None:
         try:
@@ -49,12 +50,12 @@ class SentimentIngestor:
             return
 
         score = self.extractor.get_sentiment_score(text)
-        
+
         # Produce processed result
         output = {
             "symbol": data.get("symbol"),
             "sentiment_score": score,
-            "timestamp": data.get("timestamp")
+            "timestamp": data.get("timestamp"),
         }
         self.producer.produce("sentiment_scores", json.dumps(output).encode("utf-8"))
 

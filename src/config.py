@@ -62,9 +62,7 @@ class Settings(BaseSettings):
     ML_SERVICE_GRPC_URL: str = "worker:50051"
 
     # Security Configuration
-    OPA_URL: str = Field(
-        default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL"
-    )
+    OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
 
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
