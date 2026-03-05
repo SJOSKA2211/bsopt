@@ -10,8 +10,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession, 
     async_sessionmaker, 
-    create_async_engine,
-    AsyncAdaptedQueuePool
+    create_async_engine
 )
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
@@ -25,7 +24,6 @@ logger = logging.getLogger(__name__)
 # --- CONFIGURATION ---
 # Use optimized pooling for PostgreSQL 16
 POOL_CLASS = QueuePool
-ASYNC_POOL_CLASS = AsyncAdaptedQueuePool
 
 # Ensure SSL for production environments
 db_url = settings.DATABASE_URL
@@ -71,7 +69,6 @@ if "postgresql" in async_url and "?" in async_url:
 # Optimized Async Engine
 async_engine = create_async_engine(
     async_url,
-    poolclass=ASYNC_POOL_CLASS,
     pool_size=settings.DATABASE_MIN_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
     pool_timeout=settings.DATABASE_POOL_TIMEOUT,

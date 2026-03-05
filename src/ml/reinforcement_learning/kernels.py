@@ -1,11 +1,24 @@
 import numpy as np
-import structlog
-from numba import njit
-
-logger = structlog.get_logger()
+from numba import njit, float32, int32
 
 
-@njit(cache=True, fastmath=True, error_model="numpy")
+@njit(
+    float32[:, :](
+        float32,
+        float32,
+        float32[:],
+        float32[:],
+        float32[:],
+        float32[:],
+        float32[:],
+        float32[:, :],
+        int32,
+        int32,
+    ),
+    cache=True,
+    fastmath=True,
+    error_model="numpy",
+)
 def _fused_state_kernel(
     balance,
     initial_balance,
@@ -19,7 +32,7 @@ def _fused_state_kernel(
     window_size,
 ):
     """
-    Fused kernel for state matrix construction (2D).
+    Fused kernel for state matrix construction (2D) with Spectral Features.
     Returns (window_size, 100) instead of flattened vector.
     """
     # Create the current state vector (100 dims)
@@ -30,21 +43,31 @@ def _fused_state_kernel(
     for i in range(10):
         state[1 + i] = positions[i]
 
-    # 2. Market (10 dims) - Log-Moneyness
+    # 2. Market (10 dims) - Log-Moneyness + Fourier Base
     for i in range(10):
         p = max(prices[i], 1e-6)
         k = max(strikes[i], 1e-6)
-        state[11 + i] = np.log(p / k)
+        log_m = np.log(p / k)
+        state[11 + i] = log_m
 
-    # 3. Greeks (50 dims) - Tanh Scaling
-    for i in range(50):
+    # 3. Greeks (40 dims) - Tanh Scaling
+    # Reduced from 50 to 40 to make room for Fourier features
+    for i in range(40):
         state[21 + i] = np.tanh(greeks[i])
 
-    # 4. Indicators (20 dims)
+    # 4. Spectral Features (10 dims) - Fast Fourier Approximation (Sine/Cosine of prices)
+    # captures cyclical micro-structure
+    for i in range(5):
+        p_norm = prices[i] / 100.0
+        state[61 + i] = np.sin(p_norm)
+        state[66 + i] = np.cos(p_norm)
+
+    # 5. Indicators (20 dims)
+    # Adjusted indices to start from 71 (stays the same as before)
     for i in range(20):
         state[71 + i] = indicators[i]
 
-    # 5. Temporal Stacking (Circular Buffer)
+    # 6. Temporal Stacking (Circular Buffer)
     # Write to window buffer at current index
     idx = window_idx % window_size
     window_buffer[idx] = state

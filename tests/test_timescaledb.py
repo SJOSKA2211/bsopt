@@ -1,3 +1,4 @@
+import os
 from datetime import UTC, datetime, timedelta
 
 import psycopg2
@@ -5,7 +6,8 @@ import pytest
 
 from tests.test_utils import assert_equal
 
-DATABASE_URL = "postgresql://admin:changeme@localhost:5434/bsopt"
+# Use environment variable or fallback to default
+DATABASE_URL = os.getenv("DATABASE_URL_SYNC", "postgresql://admin:29a47839acf362c9ebb5679a@postgres:5432/bsopt")
 
 
 def is_db_available():
@@ -33,165 +35,88 @@ def test_hypertables_exist(db_conn):
         hypertables = [row[0] for row in cur.fetchall()]
         assert "options_prices" in hypertables
         assert "model_predictions" in hypertables
+        assert "market_ticks" in hypertables
 
 
 def test_continuous_aggregates_exist(db_conn):
     with db_conn.cursor() as cur:
         cur.execute("SELECT view_name FROM timescaledb_information.continuous_aggregates;")
         views = [row[0] for row in cur.fetchall()]
-        assert "options_daily_ohlc" in views
-        assert "options_hourly_greeks" in views
-        assert "model_daily_performance" in views
+        # Updated to match revamped CAGG names
+        assert "minute_stats_cagg" in views
+        assert "hourly_stats_chained_cagg" in views
+        assert "daily_stats_chained_cagg" in views
+        assert "greeks_drift_cagg" in views
 
 
 def test_insert_and_aggregate(db_conn):
     with db_conn.cursor() as cur:
         # Clear existing data for test symbol
         cur.execute("DELETE FROM options_prices WHERE symbol = 'TEST_AAPL';")
-
-        # Insert some test data
+        
         now = datetime.now(UTC)
-        test_data = [
-            (
-                now - timedelta(hours=2),
-                "TEST_AAPL",
-                150.0,
-                "2025-12-20",
-                "call",
-                10.0,
-                10.5,
-                10.2,
-                100,
-                1000,
-                0.25,
-                0.5,
-                0.05,
-                0.1,
-                -0.02,
-                0.01,
-            ),
-            (
-                now - timedelta(hours=1),
-                "TEST_AAPL",
-                150.0,
-                "2025-12-20",
-                "call",
-                11.0,
-                11.5,
-                11.2,
-                200,
-                1100,
-                0.26,
-                0.51,
-                0.06,
-                0.11,
-                -0.03,
-                0.02,
-            ),
-            (
-                now,
-                "TEST_AAPL",
-                150.0,
-                "2025-12-20",
-                "call",
-                12.0,
-                12.5,
-                12.2,
-                300,
-                1200,
-                0.27,
-                0.52,
-                0.07,
-                0.12,
-                -0.04,
-                0.03,
-            ),
-        ]
+        # Insert test data into the SAME minute bucket to ensure aggregation works as expected
+        bucket_time = now.replace(second=0, microsecond=0) - timedelta(minutes=5)
+        
+        cur.execute("""
+            INSERT INTO options_prices (time, symbol, strike, expiry, option_type, last, volume, implied_volatility, delta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (bucket_time + timedelta(seconds=1), 'TEST_AAPL', 150.00, '2026-06-19', 'call', 10.50, 100, 0.25, 0.55))
+        
+        cur.execute("""
+            INSERT INTO options_prices (time, symbol, strike, expiry, option_type, last, volume, implied_volatility, delta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (bucket_time + timedelta(seconds=2), 'TEST_AAPL', 150.00, '2026-06-19', 'call', 11.00, 200, 0.26, 0.56))
 
-        query = """
-        INSERT INTO options_prices (
-            time, symbol, strike, expiry, option_type,
-            bid, ask, last, volume, open_interest,
-            implied_volatility, delta, gamma, vega, theta, rho
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-        """
-        cur.executemany(query, test_data)
-
-        # Verify insertion
-        cur.execute("SELECT count(*) FROM options_prices WHERE symbol = 'TEST_AAPL';")
-        assert_equal(cur.fetchone()[0], 3)
-
-        # Continuous aggregates refresh asynchronously or on schedule.
-        # We manually refresh for the test.
-        cur.execute("CALL refresh_continuous_aggregate('options_daily_ohlc', NULL, NULL);")
-        cur.execute("CALL refresh_continuous_aggregate('options_hourly_greeks', NULL, NULL);")
-
-        # Check OHLC
-        cur.execute(
-            "SELECT symbol, open, high, low, close, total_volume "
-            "FROM options_daily_ohlc WHERE symbol = 'TEST_AAPL';"
-        )
-        ohlc = cur.fetchone()
-        assert ohlc is not None
-        assert_equal(ohlc[0], "TEST_AAPL")
-        assert_equal(float(ohlc[1]), 10.2)  # First last price
-        assert_equal(float(ohlc[2]), 12.2)  # Max last price
-        assert_equal(float(ohlc[3]), 10.2)  # Min last price
-        assert_equal(float(ohlc[4]), 12.2)  # Last last price
-        assert_equal(ohlc[5], 600)  # Sum of volumes (100+200+300)
+        # Manually refresh the aggregate
+        cur.execute("CALL refresh_continuous_aggregate('minute_stats_cagg', NULL, NULL);")
+        
+        # Verify aggregation
+        cur.execute("SELECT symbol, avg_price, volume FROM minute_stats_cagg WHERE symbol = 'TEST_AAPL';")
+        row = cur.fetchone()
+        assert row is not None
+        assert row[0] == 'TEST_AAPL'
+        assert float(row[1]) == 10.75
+        assert row[2] == 300
 
 
 def test_model_predictions_aggregate(db_conn):
     with db_conn.cursor() as cur:
-        # Create a dummy model
-        cur.execute(
-            "INSERT INTO users (email, hashed_password) "
-            "VALUES ('test@example.com', 'pass') ON CONFLICT DO NOTHING;"
-        )
-        cur.execute("SELECT id FROM users WHERE email = 'test@example.com';")
-        user_id = cur.fetchone()[0]
-
-        cur.execute(
-            """
-            INSERT INTO ml_models (name, algorithm, version, created_by, is_production)
-            VALUES ('test_model', 'xgboost', 1, %s, true)
-            ON CONFLICT (name, version) DO UPDATE SET is_production = true
-            RETURNING id;
-        """,
-            (user_id,),
-        )
-        model_id = cur.fetchone()[0]
-
-        # Clear existing predictions for this model
-        cur.execute("DELETE FROM model_predictions WHERE model_id = %s;", (model_id,))
-
-        # Insert predictions
+        # Clear existing
+        cur.execute("DELETE FROM model_predictions;")
+        
         now = datetime.now(UTC)
-        pred_data = [
-            (now - timedelta(minutes=10), model_id, "{}", 100.0, 105.0, -5.0),
-            (now - timedelta(minutes=5), model_id, "{}", 110.0, 108.0, 2.0),
-        ]
+        # Insert predictions
+        cur.execute("""
+            INSERT INTO model_predictions (timestamp, symbol, predicted_price, actual_price, model_id, input_features)
+            VALUES (%s, %s, %s, %s, NULL, '{}')
+        """, (now - timedelta(hours=2), 'AAPL', 150.00, 151.00))
+        
+        cur.execute("""
+            INSERT INTO model_predictions (timestamp, symbol, predicted_price, actual_price, model_id, input_features)
+            VALUES (%s, %s, %s, %s, NULL, '{}')
+        """, (now - timedelta(hours=1), 'AAPL', 155.00, 154.00))
 
-        cur.executemany(
-            """
-            INSERT INTO model_predictions (
-                timestamp, model_id, input_features, predicted_price,
-                actual_price, prediction_error
-            )
-            VALUES (%s, %s, %s, %s, %s, %s);
-        """,
-            pred_data,
-        )
+        # Verify drift metrics view (which replaced the old model_daily_performance cagg)
+        cur.execute("SELECT * FROM model_drift_metrics_mv;")
+        rows = cur.fetchall()
+        # Since model_id is NULL, they might not show up if the view groups by model_id
+        # Let's check the view definition or insert a dummy model
+        
+        cur.execute("""
+            INSERT INTO ml_models (id, name, algorithm, version, model_artifact_url) 
+            VALUES (%s, %s, %s, %s, %s) 
+            ON CONFLICT (name, version) DO UPDATE SET id = EXCLUDED.id, model_artifact_url = EXCLUDED.model_artifact_url
+        """, ('00000000-0000-0000-0000-000000000001', 'test_model', 'xgboost', 1, 'http://test'))
+        
+        cur.execute("""
+            INSERT INTO model_predictions (timestamp, symbol, predicted_price, actual_price, model_id, input_features)
+            VALUES (%s, %s, %s, %s, %s, '{}')
+        """, (now - timedelta(minutes=30), 'AAPL', 100.00, 102.00, '00000000-0000-0000-0000-000000000001'))
 
-        cur.execute("CALL refresh_continuous_aggregate('model_daily_performance', NULL, NULL);")
-
-        cur.execute(
-            "SELECT model_id, mae, rmse FROM model_daily_performance WHERE model_id = %s;",
-            (model_id,),
-        )
-        perf = cur.fetchone()
-        assert perf is not None
-        # MAe = (5 + 2) / 2 = 3.5
-        # RMSE = sqrt((25 + 4) / 2) = sqrt(14.5) ≈ 3.8078865
-        assert_equal(float(perf[1]), 3.5)
-        assert_equal(pytest.approx(float(perf[2]), 0.001), 3.8078865)
+        cur.execute("REFRESH MATERIALIZED VIEW model_drift_metrics_mv;")
+        
+        cur.execute("SELECT mae FROM model_drift_metrics_mv WHERE model_id = '00000000-0000-0000-0000-000000000001';")
+        row = cur.fetchone()
+        assert row is not None
+        assert float(row[0]) == 2.0  # abs(100 - 102)

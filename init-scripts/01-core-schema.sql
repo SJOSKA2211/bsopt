@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     mfa_backup_codes TEXT
-);
+) WITH (FILLFACTOR = 90);
 
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_agent TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+) WITH (FILLFACTOR = 90);
 
 -- AUDIT: Track user changes
 DROP TRIGGER IF EXISTS audit_users ON users;
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS options_prices (
     theta DOUBLE PRECISION,
     rho DOUBLE PRECISION,
     PRIMARY KEY (time, symbol, strike, expiry, option_type)
-);
+) WITH (FILLFACTOR = 100);
 
 -- Increase statistics target for symbol column for better query planning in large datasets
 ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 500;
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS market_ticks (
     price NUMERIC(15, 4) NOT NULL,
     volume INTEGER,
     side VARCHAR(4) -- 'buy' or 'sell'
-);
+) WITH (FILLFACTOR = 100);
 
 CREATE TABLE IF NOT EXISTS portfolios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS portfolios (
     cash_balance NUMERIC(15, 2) DEFAULT 0.00 CHECK (cash_balance >= 0),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, name)
-);
+) WITH (FILLFACTOR = 90);
 
 -- AUDIT: Track portfolio changes
 DROP TRIGGER IF EXISTS audit_portfolios ON portfolios;
@@ -141,6 +141,10 @@ CREATE TABLE IF NOT EXISTS positions (
         (exit_price IS NULL AND exit_date IS NULL) OR
         (exit_price IS NOT NULL AND exit_date IS NOT NULL)
     )
+) WITH (
+    FILLFACTOR = 90,
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
 );
 
 CREATE INDEX IF NOT EXISTS idx_positions_portfolio_status ON positions(portfolio_id, status);
@@ -173,6 +177,10 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT stop_order_requires_stop_price CHECK (
         (order_type != 'stop' AND order_type != 'stop_limit') OR stop_price IS NOT NULL
     )
+) WITH (
+    FILLFACTOR = 90,
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
 );
 
 -- AUDIT: Track order changes
@@ -216,14 +224,16 @@ CREATE TABLE model_predictions (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
+    symbol VARCHAR(20) NOT NULL,
     input_features JSONB NOT NULL,
     predicted_price NUMERIC(12, 4) NOT NULL,
     actual_price NUMERIC(12, 4),
     prediction_error NUMERIC(12, 4),
     actual_value NUMERIC,
     PRIMARY KEY (id, timestamp)
-);
+) WITH (FILLFACTOR = 100);
 
+CREATE INDEX IF NOT EXISTS idx_model_predictions_symbol_time ON model_predictions(symbol, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
 
@@ -242,8 +252,8 @@ CREATE TABLE IF NOT EXISTS request_logs (
     status_code SMALLINT, 
     path TEXT, 
     method VARCHAR(10), 
-    duration_ms REAL
-);
+    duration_ms DOUBLE PRECISION
+) WITH (FILLFACTOR = 100);
 
 CREATE TABLE IF NOT EXISTS model_drift_baselines (
     model_id UUID PRIMARY KEY REFERENCES ml_models(id) ON DELETE CASCADE,

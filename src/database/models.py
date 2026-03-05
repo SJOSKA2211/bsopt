@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM Models for BSOPT Platform (Neon Optimized)
+SQLAlchemy ORM Models for BSOPT Platform (Optimized for PG16 + TimescaleDB)
 """
 
 import time
@@ -18,6 +18,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Double,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -46,23 +47,16 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_token: Mapped[str | None] = mapped_column(String(255))
-
-    # OPTIMIZED: Dedicated reset token fields
     reset_token: Mapped[str | None] = mapped_column(String(255))
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
     is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
 
-    # Relationships
     portfolios: Mapped[list["Portfolio"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     oauth_clients: Mapped[list["OAuth2Client"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    api_keys: Mapped[list["APIKey"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 
@@ -71,33 +65,7 @@ class User(Base):
 
 
 # =============================================================================
-# API KEY MODEL
-# =============================================================================
-
-
-class APIKey(Base):
-    __tablename__ = "api_keys"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    key_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
-    key_prefix: Mapped[str] = mapped_column(String(8), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-
-    user: Mapped["User"] = relationship(back_populates="api_keys")
-
-    def __repr__(self) -> str:
-        return f"<APIKey(name={self.name}, prefix={self.key_prefix})>"
-
-
-# =============================================================================
-# AUDIT LOG MODEL
+# AUDIT & LOGGING (Hypertables)
 # =============================================================================
 
 
@@ -113,216 +81,28 @@ class AuditLog(Base):
     user_id: Mapped[str] = mapped_column(Text, nullable=False)
     client_ip: Mapped[str] = mapped_column(Text, nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, nullable=False)
-    latency_ms: Mapped[float] = mapped_column(Numeric, nullable=False)
+    latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
     metadata_json: Mapped[dict | None] = mapped_column("metadata", JSON)
-
-    def __repr__(self) -> str:
-        return f"<AuditLog(user_id={self.user_id}, path={self.path})>"
 
 
 class RequestLog(Base):
-    """Detailed API request logs."""
-
     __tablename__ = "request_logs"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    path: Mapped[str] = mapped_column(String(255), nullable=False)
-    method: Mapped[str] = mapped_column(String(10), nullable=False)
-    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
-    latency_ms: Mapped[float] = mapped_column(Numeric, nullable=False)
-
-
-class SecurityIncident(Base):
-    """Security incident tracking."""
-
-    __tablename__ = "security_incidents"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    severity: Mapped[str] = mapped_column(String(20), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-
-    # GDPR Specific Fields
-    detected_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    nature_of_breach: Mapped[str | None] = mapped_column(Text)
-    approximate_number_data_subjects: Mapped[int | None] = mapped_column(Integer)
-    approximate_number_records: Mapped[int | None] = mapped_column(Integer)
-    data_categories_affected: Mapped[list[str] | None] = mapped_column(JSON)
-    likely_consequences: Mapped[str | None] = mapped_column(Text)
-    measures_taken: Mapped[str | None] = mapped_column(Text)
+    status_code: Mapped[int | None] = mapped_column(Integer)
+    path: Mapped[str | None] = mapped_column(Text)
+    method: Mapped[str | None] = mapped_column(Text)
+    duration_ms: Mapped[float | None] = mapped_column(Double)
 
 
 # =============================================================================
-# OAUTH2 CLIENT MODEL
-# =============================================================================
-
-
-class OAuth2Client(Base):
-    """OAuth2 Client Registry."""
-
-    __tablename__ = "oauth2_clients"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    client_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
-    client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
-    redirect_uris: Mapped[list[str] | None] = mapped_column(JSON)
-    scopes: Mapped[list[str] | None] = mapped_column(JSON)
-    grant_types: Mapped[list[str] | None] = mapped_column(JSON)
-    response_types: Mapped[list[str] | None] = mapped_column(JSON)
-    is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-
-    user: Mapped["User"] = relationship(back_populates="oauth_clients")
-
-    def verify_secret(self, secret: str) -> bool:
-        return self.client_secret == secret
-
-    def check_redirect_uri(self, redirect_uri):
-        if not self.redirect_uris:
-            return False
-        return redirect_uri in self.redirect_uris
-
-    def check_client_secret(self, client_secret):
-        return self.client_secret == client_secret
-
-    def check_endpoint_auth_method(self, method, endpoint):
-        if endpoint == "token":
-            if self.is_confidential:
-                return method in ["client_secret_basic", "client_secret_post"]
-            return method == "none"
-        return True
-
-    @property
-    def client_metadata(self):
-        return {
-            "redirect_uris": self.redirect_uris,
-            "scopes": self.scopes,
-            "grant_types": self.grant_types,
-            "response_types": self.response_types,
-        }
-
-    def __repr__(self) -> str:
-        return f"<OAuth2Client(id={self.client_id})>"
-
-
-class OAuth2AuthorizationCode(Base):
-    """Temporary codes for Authorization Code flow."""
-
-    __tablename__ = "oauth2_auth_codes"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    code: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    client_id: Mapped[str] = mapped_column(String(48))
-    redirect_uri: Mapped[str] = mapped_column(Text)
-    scope: Mapped[str] = mapped_column(Text)
-    nonce: Mapped[str | None] = mapped_column(Text)
-    auth_time: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=lambda: int(time.time())
-    )
-    code_challenge: Mapped[str | None] = mapped_column(Text)
-    code_challenge_method: Mapped[str | None] = mapped_column(String(48))
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-
-    def is_expired(self):
-        return self.auth_time + 300 < time.time()
-
-
-class OAuth2Token(Base):
-    """Access and Refresh tokens."""
-
-    __tablename__ = "oauth2_tokens"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    client_id: Mapped[str] = mapped_column(String(48))
-    token_type: Mapped[str] = mapped_column(String(40))
-    access_token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    refresh_token: Mapped[str | None] = mapped_column(String(255), index=True)
-    scope: Mapped[str] = mapped_column(Text)
-    issued_at: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=lambda: int(time.time())
-    )
-    expires_in: Mapped[int] = mapped_column(Integer, nullable=False)
-    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-
-    def is_expired(self):
-        return self.issued_at + self.expires_in < time.time()
-
-    def __repr__(self) -> str:
-        return f"<OAuth2Token(id={self.client_id})>"
-
-
-# =============================================================================
-# BETTER AUTH MODELS
-# =============================================================================
-
-
-class BetterAuthSession(Base):
-    """Session storage for Better-Auth."""
-
-    __tablename__ = "sessions"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    ip_address: Mapped[str | None] = mapped_column(String(50))
-    user_agent: Mapped[str | None] = mapped_column(Text)
-    user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    # updated_at is in models but not in basic SQL, making it optional
-    updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-
-    user: Mapped["User"] = relationship()
-
-    def __repr__(self) -> str:
-        return f"<Session(token={self.token[:8]}...)>"
-
-
-# =============================================================================
-# OPTIONS PRICES MODEL (Partitioned)
-# =============================================================================
-
-
-class OptionPrice(Base):
-    """Time-series options market data."""
-
-    __tablename__ = "options_prices"
-
-    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    symbol: Mapped[str] = mapped_column(String(20), primary_key=True)
-    strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), primary_key=True)
-    expiry: Mapped[date] = mapped_column(Date, primary_key=True)
-    option_type: Mapped[str] = mapped_column(String(4), primary_key=True)
-
-    bid: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    ask: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    last: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    volume: Mapped[int | None] = mapped_column(Integer)
-    open_interest: Mapped[int | None] = mapped_column(Integer)
-    implied_volatility: Mapped[Decimal | None] = mapped_column(Numeric(8, 6))
-
-    def __repr__(self) -> str:
-        return f"<OptionPrice({self.symbol} @ {self.time})>"
-
-
-# =============================================================================
-# PORTFOLIO MODEL
+# PORTFOLIO & TRADING
 # =============================================================================
 
 
 class Portfolio(Base):
-    """User portfolios."""
-
     __tablename__ = "portfolios"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -340,18 +120,8 @@ class Portfolio(Base):
 
     __table_args__ = (UniqueConstraint("user_id", "name"),)
 
-    def __repr__(self) -> str:
-        return f"<Portfolio(name={self.name})>"
-
-
-# =============================================================================
-# TRADING MODELS
-# =============================================================================
-
 
 class Position(Base):
-    """Trading positions."""
-
     __tablename__ = "positions"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -359,30 +129,22 @@ class Position(Base):
         ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False
     )
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
-    quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
-    average_price: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
-
-    # Missing fields inferred from CRUD
-    entry_price: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
-    current_price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-    exit_price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-    realized_pnl: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-    status: Mapped[str] = mapped_column(String(20), default="open")
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    entry_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     entry_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    current_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    exit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     exit_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    realized_pnl: Mapped[Decimal | None] = mapped_column(Numeric(15, 2))
+    status: Mapped[str] = mapped_column(String(10), default="open")
     strike: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     expiry: Mapped[date | None] = mapped_column(Date)
     option_type: Mapped[str | None] = mapped_column(String(4))
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
 
-    def __repr__(self) -> str:
-        return f"<Position(symbol={self.symbol}, quantity={self.quantity})>"
-
 
 class Order(Base):
-    """Trade orders."""
-
     __tablename__ = "orders"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -393,133 +155,126 @@ class Order(Base):
         ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False
     )
     symbol: Mapped[str] = mapped_column(String(20), nullable=False)
-    side: Mapped[str] = mapped_column(String(10), nullable=False)  # buy/sell
-    order_type: Mapped[str] = mapped_column(String(20), nullable=False)
-    status: Mapped[str] = mapped_column(String(20), default="pending")
-    quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), nullable=False)
-    price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-
-    # Advanced order fields
-    limit_price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-    stop_price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
-    filled_quantity: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0"))
-    filled_price: Mapped[Decimal | None] = mapped_column(Numeric(15, 4))
     strike: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     expiry: Mapped[date | None] = mapped_column(Date)
     option_type: Mapped[str | None] = mapped_column(String(4))
-
+    side: Mapped[str] = mapped_column(String(4), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    order_type: Mapped[str] = mapped_column(String(15), nullable=False)
+    limit_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    stop_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    filled_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    filled_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     broker: Mapped[str | None] = mapped_column(String(50))
     broker_order_id: Mapped[str | None] = mapped_column(String(100))
-
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    def __repr__(self) -> str:
-        return f"<Order(symbol={self.symbol}, status={self.status})>"
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # =============================================================================
-# MARKET & ML MODELS
+# MARKET DATA (Hypertables)
 # =============================================================================
+
+
+class OptionPrice(Base):
+    __tablename__ = "options_prices"
+
+    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    symbol: Mapped[str] = mapped_column(String(20), primary_key=True)
+    strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), primary_key=True)
+    expiry: Mapped[date] = mapped_column(Date, primary_key=True)
+    option_type: Mapped[str] = mapped_column(String(4), primary_key=True)
+
+    bid: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    ask: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    last: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    volume: Mapped[int | None] = mapped_column(Integer)
+    open_interest: Mapped[int | None] = mapped_column(Integer)
+    
+    # OPTIMIZED: Using Double Precision for Greeks
+    implied_volatility: Mapped[float | None] = mapped_column(Double)
+    delta: Mapped[float | None] = mapped_column(Double)
+    gamma: Mapped[float | None] = mapped_column(Double)
+    vega: Mapped[float | None] = mapped_column(Double)
+    theta: Mapped[float | None] = mapped_column(Double)
+    rho: Mapped[float | None] = mapped_column(Double)
 
 
 class MarketTick(Base):
-    """Real-time market ticks."""
-
     __tablename__ = "market_ticks"
 
     time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     symbol: Mapped[str] = mapped_column(String(20), primary_key=True)
     price: Mapped[Decimal] = mapped_column(Numeric(15, 4), nullable=False)
     volume: Mapped[int | None] = mapped_column(Integer)
+    side: Mapped[str | None] = mapped_column(String(4))
 
-    def __repr__(self) -> str:
-        return f"<MarketTick(symbol={self.symbol}, price={self.price})>"
+
+# =============================================================================
+# ML & PREDICTIONS
+# =============================================================================
 
 
 class MLModel(Base):
-    """Registry of trained ML models."""
-
     __tablename__ = "ml_models"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    version: Mapped[str] = mapped_column(String(20), nullable=False)
-    model_type: Mapped[str] = mapped_column(String(50), nullable=False)
     algorithm: Mapped[str] = mapped_column(String(50), nullable=False)
-    artifact_uri: Mapped[str] = mapped_column(String(255), nullable=False)
-    model_artifact_url: Mapped[str | None] = mapped_column(String(255))  # Alias for crud compat
-    metrics: Mapped[dict | None] = mapped_column(JSON)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
     hyperparameters: Mapped[dict | None] = mapped_column(JSON)
     training_metrics: Mapped[dict | None] = mapped_column(JSON)
-    created_by: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True))
-    is_production: Mapped[bool] = mapped_column(Boolean, default=False)
+    model_artifact_url: Mapped[str | None] = mapped_column(String(500))
+    created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    is_production: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    def __repr__(self) -> str:
-        return f"<MLModel(name={self.name}, version={self.version})>"
+    __table_args__ = (UniqueConstraint("name", "version"),)
 
 
 class ModelPrediction(Base):
-    """Predictions generated by ML models."""
-
     __tablename__ = "model_predictions"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    model_id: Mapped[UUID] = mapped_column(
-        ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    symbol: Mapped[str] = mapped_column(String(20), nullable=False)
-    prediction_time: Mapped[datetime] = mapped_column(
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), default=uuid4)
+    model_id: Mapped[UUID | None] = mapped_column(ForeignKey("ml_models.id", ondelete="SET NULL"))
+    input_features: Mapped[dict] = mapped_column(JSON, nullable=False)
+    predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    actual_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    prediction_error: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    actual_value: Mapped[Decimal | None] = mapped_column(Numeric)
+
+
+class ModelDriftBaseline(Base):
+    __tablename__ = "model_drift_baselines"
+
+    model_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ml_models.id", ondelete="CASCADE"), primary_key=True
+    )
+    baseline_accuracy: Mapped[float | None] = mapped_column(Double)
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    predicted_value: Mapped[float] = mapped_column(Numeric, nullable=False)
-    actual_value: Mapped[float | None] = mapped_column(Numeric)
-    confidence: Mapped[float | None] = mapped_column(Numeric)
-
-    def __repr__(self) -> str:
-        return f"<ModelPrediction(symbol={self.symbol}, value={self.predicted_value})>"
 
 
 # =============================================================================
-# RATE LIMIT MODEL
+# OAUTH & SECURITY
 # =============================================================================
 
 
-class RateLimit(Base):
-    """API rate limiting tracking."""
-
-    __tablename__ = "rate_limits"
-
-    user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
-    )
-    endpoint: Mapped[str] = mapped_column(String(100), primary_key=True)
-    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    request_count: Mapped[int] = mapped_column(Integer, default=1)
-
-
-# =============================================================================
-# PRICING CALIBRATION MODEL
-# =============================================================================
-
-
-class CalibrationResult(Base):
-    """Stores results of pricing model calibration."""
-
-    __tablename__ = "calibration_results"
+class OAuth2Client(Base):
+    __tablename__ = "oauth2_clients"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    symbol: Mapped[str] = mapped_column(String(20), nullable=False)
-    v0: Mapped[float] = mapped_column(Numeric, nullable=False)
-    kappa: Mapped[float] = mapped_column(Numeric, nullable=False)
-    theta: Mapped[float] = mapped_column(Numeric, nullable=False)
-    sigma: Mapped[float] = mapped_column(Numeric, nullable=False)
-    rho: Mapped[float] = mapped_column(Numeric, nullable=False)
-    rmse: Mapped[float] = mapped_column(Numeric, nullable=False)
-    r_squared: Mapped[float] = mapped_column(Numeric, nullable=False)
-    num_options: Mapped[int] = mapped_column(Integer, nullable=False)
-    svi_params: Mapped[dict | None] = mapped_column(JSON)
+    client_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
+    redirect_uris: Mapped[list[str] | None] = mapped_column(JSON)
+    scopes: Mapped[list[str] | None] = mapped_column(JSON)
+    is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
-    def __repr__(self) -> str:
-        return f"<CalibrationResult(symbol={self.symbol}, rmse={self.rmse})>"
+    user: Mapped["User"] = relationship(back_populates="oauth_clients")

@@ -64,6 +64,7 @@ class OrderExecutor:
                     contract_address=contract_address,
                     amount=quantity,
                     max_slippage=max_slippage_pct / 100.0,
+                    params=params,
                 )
 
                 duration = (time.time() - start_time) * 1000

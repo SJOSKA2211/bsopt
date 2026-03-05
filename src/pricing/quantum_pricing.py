@@ -190,18 +190,28 @@ class QuantumOptionPricer:
             payoff_qubit_index = num_qubits
 
         try:
+            # OPTIMIZED: Modern QAE with high-precision target
             problem = EstimationProblem(state_preparation=qc, objective_qubits=[payoff_qubit_index])
             sampler = StatevectorSampler()
-            iae = IterativeAmplitudeEstimation(epsilon_target=0.01, alpha=0.05, sampler=sampler)
+            
+            # 🥒 God-Mode: Using IAE for O(1/epsilon) convergence vs O(1/epsilon^2) for MC
+            iae = IterativeAmplitudeEstimation(epsilon_target=0.005, alpha=0.05, sampler=sampler)
             result = iae.estimate(problem)
 
-            # The result.estimation represents the probability of the objective qubit being |1>
-            # which maps to the expected payoff normalized by (S0 * 2.0)
             expected_payoff = result.estimation * (S0 * 2.0)
             option_price = np.exp(-r * T) * expected_payoff
 
-            # Quadratic speedup factor compared to standard Monte Carlo (O(1/epsilon^2) vs O(1/epsilon))
-            speedup = float(max(1.0, 1.0 / (0.01**2) / result.num_oracle_queries))
+            # Real quadratic speedup: num_samples_equivalent = 1 / epsilon^2
+            # samples_saved = num_samples_equivalent - result.num_oracle_queries
+            mc_equivalent_samples = 1.0 / (0.005**2)
+            speedup = float(mc_equivalent_samples / result.num_oracle_queries)
+
+            logger.info(
+                "quantum_pricing_success",
+                symbol=params.get("symbol", "N/A") if 'params' in locals() else "N/A",
+                price=round(float(option_price), 4),
+                speedup=round(speedup, 2),
+            )
 
             return {
                 "price": float(option_price),
