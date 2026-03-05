@@ -9,6 +9,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { theme } from './theme';
 import { Layout } from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
+import { QuantumField } from './components/common/QuantumField';
 
 // Lazy load pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
@@ -37,6 +38,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          <QuantumField />
           <BrowserRouter>
             <Layout>
               <Suspense fallback={<PageLoader />}>

@@ -6,10 +6,11 @@ import pandas as pd
 import structlog
 
 from src.aiops.anomaly_detector import AnomalyDetector
-from src.aiops.autoencoder_detector import AutoencoderDetector
 from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.remediators import BaseRemediator, RemediationPlanner
 from src.ml.drift import calculate_ks_test, calculate_psi
+from src.ml.forecasting.tft_model import PriceTFTModel
+
 
 from src.shared.observability import (
     post_grafana_annotation,
@@ -53,8 +54,9 @@ class SelfHealingOrchestrator:
 
         ae_input_dim = self.config.get("autoencoder_input_dim")
         self.autoencoder_detector = (
-            AutoencoderDetector(input_dim=ae_input_dim) if ae_input_dim else None
+            AnomalyDetector(engine="autoencoder", input_dim=ae_input_dim) if ae_input_dim else None
         )
+
         self.forecaster = (
             PriceTFTModel(config=self.config.get("tft_config"))
             if self.config.get("predictive_scaling_enabled")
