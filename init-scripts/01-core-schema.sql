@@ -209,14 +209,15 @@ CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC
 CREATE INDEX IF NOT EXISTS idx_ml_models_created_by ON ml_models(created_by);
 
 CREATE TABLE IF NOT EXISTS model_predictions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID NOT NULL DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
     input_features JSONB NOT NULL,
     predicted_price NUMERIC(12, 4) NOT NULL,
     actual_price NUMERIC(12, 4),
     prediction_error NUMERIC(12, 4),
     actual_value NUMERIC,
-    timestamp TIMESTAMPTZ DEFAULT NOW()
+    timestamp TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (id, timestamp)
 );
 
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
