@@ -1,8 +1,9 @@
-import pytest
+
 import numpy as np
 import pandas as pd
+import pytest
 import torch
-from unittest.mock import MagicMock, patch
+
 from src.aiops.anomaly_detector import AnomalyDetector
 
 # ─── Initialization Tests ───────────────────────────────────────────────────

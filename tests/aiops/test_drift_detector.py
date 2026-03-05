@@ -1,7 +1,10 @@
-import pytest
-import numpy as np
 from unittest.mock import AsyncMock, patch
+
+import numpy as np
+import pytest
+
 from src.aiops.drift_detector import PricingDriftDetector
+
 
 @pytest.mark.asyncio
 async def test_pricing_drift_detector_init():
