@@ -26,7 +26,6 @@ class TestSelfHealingOrchestrator:
             config=config,
         )
 
-
         assert orchestrator.detector == mock_detector
         assert orchestrator.remediators == [mock_remediator_1, mock_remediator_2]
         assert orchestrator.check_interval == 30
@@ -96,11 +95,13 @@ class TestSelfHealingOrchestrator:
             "api_service_name": "test-api",
             "error_rate_threshold": 0.05,
         }
-        orchestrator = SelfHealingOrchestrator(detector=mock_detector, remediators=[], config=config)
+        orchestrator = SelfHealingOrchestrator(
+            detector=mock_detector, remediators=[], config=config
+        )
 
         mock_prom = MagicMock()
         mock_prom.get_5xx_error_rate = AsyncMock(return_value=0.1)  # Above threshold
-        mock_prom.get_p95_latency = AsyncMock(return_value=0.2)   # Below default threshold 0.5
+        mock_prom.get_p95_latency = AsyncMock(return_value=0.2)  # Below default threshold 0.5
         orchestrator.prometheus_client = mock_prom
 
         anomalies = await orchestrator._detect_system_anomalies()
@@ -117,4 +118,3 @@ class TestSelfHealingOrchestrator:
 
         assert orchestrator.is_running is False
         mock_logger.info.assert_any_call("self_healing_orchestrator_stopped")
-

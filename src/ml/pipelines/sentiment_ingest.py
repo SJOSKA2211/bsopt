@@ -1,6 +1,7 @@
 """
 Sentiment Ingestion Pipeline — expected by test_sentiment_pipeline.py.
 """
+
 from __future__ import annotations
 
 import structlog

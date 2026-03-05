@@ -1,6 +1,7 @@
 """
 Trainer V2 — expected by test_singularity_models.py and test_training.py.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

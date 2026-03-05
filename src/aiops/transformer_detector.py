@@ -10,6 +10,7 @@ the sequence) is used as the anomaly score.
 Designed to run on CPU without heavy dependencies; PyTorch is used only during
 training / inference.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -166,6 +167,7 @@ class TransformerAnomalyDetector:
 # ---------------------------------------------------------------------------
 # Internal PyTorch model (defined here to avoid circular imports)
 # ---------------------------------------------------------------------------
+
 
 class _TransformerAutoencoder:
     """Lazy-imported after torch is confirmed present."""

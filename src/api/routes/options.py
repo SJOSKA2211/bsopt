@@ -24,7 +24,7 @@ async def get_options_chain(
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
         return DataResponse(data=[], message="Invalid symbol format")
-        
+
     today = date.today()
     expiries: list[str] = []
     if expiry in {"all", "week"}:

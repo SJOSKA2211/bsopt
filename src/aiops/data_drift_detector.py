@@ -4,6 +4,7 @@ DataDriftDetector — statistical drift detection for feature distributions.
 Supports both univariate and multivariate data using PSI (Population Stability
 Index) and the KS (Kolmogorov–Smirnov) two-sample test.
 """
+
 from __future__ import annotations
 
 from typing import Any

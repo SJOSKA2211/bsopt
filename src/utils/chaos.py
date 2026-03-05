@@ -42,7 +42,7 @@ class ChaosMonkey:
         logger.error("chaos_injecting_db_latency", seconds=seconds)
         async with get_async_db_context() as session:
             # OPTIMIZED: Using pg_sleep to simulate heavy load or network congestion
-            await session.execute(text(f"SELECT pg_sleep({seconds})"))
+            await session.execute(text("SELECT pg_sleep(:seconds)"), {"seconds": seconds})
 
     def partition_network(self, service_url: str):
         """Block traffic to a service URL (simulated)."""

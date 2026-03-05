@@ -43,7 +43,7 @@ def train_model_task(
         config = hyperparams or {}
         config["ticker"] = ticker
         config["framework"] = model_type
-        
+
         pipeline = MLPipeline(config)
         model = asyncio.run(pipeline.run(force=True))
 
@@ -57,7 +57,6 @@ def train_model_task(
     except Exception as e:
         logger.error("training_error", error=str(e), task_id=self.request.id)
         return {"status": "failed", "error": str(e)}
-
 
 
 @celery_app.task(bind=True, queue="ml")
@@ -84,7 +83,6 @@ def monitor_drift_and_retrain_task(self):
     except Exception as e:
         logger.error("drift_monitoring_task_failed", error=str(e))
         return {"status": "failed", "error": str(e)}
-
 
 
 @celery_app.task(bind=True, queue="ml")
