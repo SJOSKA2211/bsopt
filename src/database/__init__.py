@@ -7,7 +7,12 @@ from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession, 
+    async_sessionmaker, 
+    create_async_engine,
+    AsyncAdaptedQueuePool
+)
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 
@@ -18,12 +23,13 @@ from .models import Base
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
-# Use NullPool for serverless if in production to avoid connection pinning
+# Use optimized pooling for PostgreSQL 16
 POOL_CLASS = QueuePool
+ASYNC_POOL_CLASS = AsyncAdaptedQueuePool
 
-# Ensure SSL for Neon in production
+# Ensure SSL for production environments
 db_url = settings.DATABASE_URL
-if settings.ENVIRONMENT == "prod" and "sslmode" not in db_url:
+if settings.is_production and "sslmode" not in db_url:
     separator = "&" if "?" in db_url else "?"
     db_url = f"{db_url}{separator}sslmode=require"
 
@@ -42,12 +48,15 @@ def get_async_engine():
     return async_engine
 
 
+# Optimized Sync Engine
 engine = create_engine(
     sync_url,
     poolclass=POOL_CLASS,
     pool_size=settings.DATABASE_MIN_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
+    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
     pool_pre_ping=True,
+    pool_recycle=1800,  # Recycle connections after 30 minutes
 )
 
 async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
@@ -59,10 +68,17 @@ if "postgresql" in async_url and "?" in async_url:
     base, _ = async_url.split("?", 1)
     async_url = base
 
+# Optimized Async Engine
 async_engine = create_async_engine(
     async_url,
+    poolclass=ASYNC_POOL_CLASS,
+    pool_size=settings.DATABASE_MIN_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
+    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+    pool_pre_ping=True,
+    pool_recycle=1800,
     connect_args=(
-        {"ssl": True} if settings.ENVIRONMENT == "prod" and "postgresql" in async_url else {}
+        {"ssl": True} if settings.is_production and "postgresql" in async_url else {}
     ),
 )
 
@@ -94,6 +110,7 @@ async def get_async_db() -> AsyncGenerator[AsyncSession]:
 
 async def set_user_context(session: AsyncSession, user_id: str):
     """Sets the app.current_user_id in the Postgres session for RLS."""
+    # STABLE: uses our optimized RLS function/policy
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
     )
@@ -128,7 +145,8 @@ def health_check() -> bool:
 
 
 def create_tables():
-    if settings.ENVIRONMENT in ["dev", "test"]:
+    # Only create if not in prod/prod-like unless specifically needed
+    if not settings.is_production or settings.ENVIRONMENT == "test":
         Base.metadata.create_all(bind=engine)
         logger.info("database_tables_created")
 

@@ -29,8 +29,9 @@ class Settings(BaseSettings):
 
     # Database Configuration
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
-    DATABASE_MIN_POOL_SIZE: int = 10
-    DATABASE_MAX_POOL_SIZE: int = 50
+    DATABASE_MIN_POOL_SIZE: int = 5
+    DATABASE_MAX_POOL_SIZE: int = 20
+    DATABASE_POOL_TIMEOUT: int = 30
     SLOW_QUERY_THRESHOLD_MS: int = 100
 
     @field_validator("DATABASE_URL")
@@ -67,6 +68,7 @@ class Settings(BaseSettings):
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
     PRICING_LARGE_BATCH_THRESHOLD: int = 1000
+    MAX_NET_DELTA: float = 10000.0
 
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
