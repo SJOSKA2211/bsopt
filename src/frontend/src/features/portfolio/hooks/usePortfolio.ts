@@ -1,4 +1,4 @@
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, useSubscription, gql } from '@apollo/client';
 import { authClient } from '../../../lib/auth-client';
 import type { PortfolioData } from '../types';
 
@@ -23,13 +23,41 @@ const GET_PORTFOLIO = gql`
   }
 `;
 
+const PORTFOLIO_UPDATES = gql`
+  subscription OnPortfolioUpdate($portfolioId: ID!) {
+    portfolioUpdates(portfolioId: $portfolioId) {
+      id
+      balance
+      frozen_capital
+      risk_score
+      total_value
+      daily_pnl
+      daily_pnl_percent
+      positions_count
+    }
+  }
+`;
+
 export const usePortfolio = () => {
   const { data: sessionData } = authClient.useSession();
   const userId = sessionData?.user?.id || "user_123";
 
+  // Initial fetch and polling fallback
   const { data, loading, error, refetch } = useQuery(GET_PORTFOLIO, {
     variables: { userId },
-    pollInterval: 5000,
+    pollInterval: 10000, // Increased poll interval since we have subscriptions
+  });
+
+  const portfolioId = data?.portfolio?.id;
+
+  // Real-time updates via WebSocket
+  useSubscription(PORTFOLIO_UPDATES, {
+    variables: { portfolioId },
+    skip: !portfolioId,
+    onData: ({ data: subData }) => {
+      // Apollo Cache will automatically merge this if the __typename and id match
+      console.log('Portfolio real-time update received:', subData.data?.portfolioUpdates);
+    }
   });
 
   return {
