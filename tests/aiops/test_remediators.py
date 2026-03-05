@@ -1,15 +1,16 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-import asyncio
-import redis.asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
+
 from src.aiops.remediators import (
     ClearRedisCacheRemediator,
-    RestartServiceRemediator,
-    KernelTuningRemediator,
     DatabasePoolRemediator,
+    KernelTuningRemediator,
     RabbitMQCongestionRemediator,
-    RemediationPlanner
+    RemediationPlanner,
+    RestartServiceRemediator,
 )
+
 
 @pytest.mark.asyncio
 async def test_clear_redis_remediator():

@@ -1,10 +1,10 @@
 import asyncio
 import re
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
+
+import structlog
 
 import docker
-import structlog
 
 logger = structlog.get_logger()
 
