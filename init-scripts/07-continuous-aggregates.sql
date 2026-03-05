@@ -36,3 +36,26 @@ SELECT symbol, time_bucket('15 minutes', time) AS bucket, AVG(implied_volatility
 FROM options_prices GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('iv_surface_cagg', start_offset => INTERVAL '1 day', end_offset => INTERVAL '15 minutes', schedule_interval => INTERVAL '15 minutes', if_not_exists => TRUE);
+
+-- 6. Market Ticks OHLCV (1 minute)
+CREATE MATERIALIZED VIEW IF NOT EXISTS market_ticks_1m_cagg WITH (timescaledb.continuous) AS
+SELECT symbol, time_bucket('1 minute', time) AS bucket, 
+       first(price, time) as open, MAX(price) as high, MIN(price) as low, last(price, time) as close, SUM(volume) as volume
+FROM market_ticks GROUP BY symbol, bucket WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('market_ticks_1m_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '1 minute', if_not_exists => TRUE);
+
+-- 6b. Market Ticks OHLCV (1 hour, chained)
+CREATE MATERIALIZED VIEW IF NOT EXISTS market_ticks_1h_cagg WITH (timescaledb.continuous) AS
+SELECT symbol, time_bucket('1 hour', bucket) AS hour, 
+       first(open, bucket) as open, MAX(high) as high, MIN(low) as low, last(close, bucket) as close, SUM(volume) as volume
+FROM market_ticks_1m_cagg GROUP BY symbol, hour WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('market_ticks_1h_cagg', start_offset => INTERVAL '1 day', end_offset => INTERVAL '1 hour', schedule_interval => INTERVAL '10 minutes', if_not_exists => TRUE);
+
+-- 7. Market Data Mesh Daily Aggregates
+CREATE MATERIALIZED VIEW IF NOT EXISTS market_mesh_daily_cagg WITH (timescaledb.continuous) AS
+SELECT symbol, time_bucket('1 day', time) AS bucket, AVG(close) AS avg_close, SUM(volume) AS total_volume, STDDEV(close) as volatility
+FROM market_data_mesh GROUP BY symbol, bucket WITH NO DATA;
+
+SELECT add_continuous_aggregate_policy('market_mesh_daily_cagg', start_offset => INTERVAL '7 days', end_offset => INTERVAL '1 day', schedule_interval => INTERVAL '1 hour', if_not_exists => TRUE);
