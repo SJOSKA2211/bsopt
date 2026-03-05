@@ -38,7 +38,6 @@ class DockerRemediator:
             logger.error("docker_remediator_init", status="failure", error=str(e))
             self.client = None
 
-
     async def _run_cmd(self, cmd: list[str]) -> bool:
         """Helper to run shell commands in the background."""
         # Note: cmd is a list, reducing shell injection risks.
@@ -47,7 +46,9 @@ class DockerRemediator:
             result = await asyncio.to_thread(
                 subprocess.run, cmd, capture_output=True, text=True, check=True
             )
-            logger.info("docker_remediator_cmd_success", cmd=" ".join(cmd), output=result.stdout[:200])
+            logger.info(
+                "docker_remediator_cmd_success", cmd=" ".join(cmd), output=result.stdout[:200]
+            )
             return True
         except Exception as e:
             logger.error("docker_remediator_cmd_failed", cmd=" ".join(cmd), error=str(e))
@@ -71,16 +72,19 @@ class DockerRemediator:
         try:
             if self.client:
                 # Explicitly use bsopt prefix to prevent attacking arbitrary containers
-                container = await asyncio.to_thread(self.client.containers.get, f"bsopt-{service_name}-1")
+                container = await asyncio.to_thread(
+                    self.client.containers.get, f"bsopt-{service_name}-1"
+                )
                 await asyncio.to_thread(container.restart)
                 logger.info("docker_remediator_restart_sdk_success", service=service_name)
                 return True
         except Exception as e:
-            logger.warning("docker_remediator_restart_sdk_failed", service=service_name, error=str(e))
-        
+            logger.warning(
+                "docker_remediator_restart_sdk_failed", service=service_name, error=str(e)
+            )
+
         # Fallback to compose CLI
         return await self._run_cmd(["docker", "compose", "restart", service_name])
-
 
     async def scale_service(self, service_name: str, replicas: int) -> bool:
         """
@@ -95,7 +99,7 @@ class DockerRemediator:
 
         if not self._validate_service(service_name):
             return False
-            
+
         # Ensure replicas is a sane integer
         try:
             replicas = int(replicas)
@@ -116,4 +120,3 @@ class DockerRemediator:
         ]
 
         return await self._run_cmd(cmd)
-

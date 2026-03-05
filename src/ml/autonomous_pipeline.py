@@ -5,6 +5,7 @@ This module exposes the `AutonomousMLPipeline` class expected by
 `test_autonomous_pipeline_improved.py`, mapping its methods to the core
 implementations or providing the expected API surface.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -19,8 +20,10 @@ class _FakeMetadata:
     def create_all(self, *args: Any, **kwargs: Any) -> None:
         pass
 
+
 class _FakeBase:
     metadata = _FakeMetadata()
+
 
 Base = _FakeBase()
 

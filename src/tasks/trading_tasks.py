@@ -41,11 +41,10 @@ def execute_trade_task(self, order: dict):
     OrderExecutor = _get_attr("OrderExecutor")
     from src.blockchain.defi_options import DeFiOptionsProtocol
     from src.config import get_settings
-    
+
     settings = get_settings()
     protocol = DeFiOptionsProtocol(
-        rpc_url=settings.BLOCKCHAIN_RPC_URL,
-        private_key=settings.BLOCKCHAIN_PRIVATE_KEY
+        rpc_url=settings.BLOCKCHAIN_RPC_URL, private_key=settings.BLOCKCHAIN_PRIVATE_KEY
     )
     executor = OrderExecutor(protocol=protocol)
 
@@ -72,26 +71,30 @@ def execute_trade_task(self, order: dict):
 def check_risk_limits(self, portfolio_id: str):
     """Checks portfolio-wide risk limits (Delta, Net Exposure)."""
     logger.info("checking_risk_limits_calculation", portfolio_id=portfolio_id)
-    
+
     validate_delta = _get_attr("validate_delta")
     np = _get_attr("np")
-    
+
     # Mock portfolio exposure for demonstration
     # In production, this would query TimescaleDB or Redis state
     current_deltas = np.random.normal(0, 100, 50)
     max_delta = 5000.0
-    
+
     is_safe = validate_delta(current_deltas, 0.0, max_delta) == 1
-    
+
     if not is_safe:
-        logger.warning("portfolio_risk_limit_exceeded", portfolio_id=portfolio_id, net_delta=np.sum(current_deltas))
-        
+        logger.warning(
+            "portfolio_risk_limit_exceeded",
+            portfolio_id=portfolio_id,
+            net_delta=np.sum(current_deltas),
+        )
+
     return {
         "status": "success",
         "portfolio_id": portfolio_id,
         "within_limits": is_safe,
         "net_delta": float(np.sum(current_deltas)),
-        "timestamp": time.time()
+        "timestamp": time.time(),
     }
 
 

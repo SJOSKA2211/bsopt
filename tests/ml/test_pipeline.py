@@ -113,4 +113,3 @@ async def test_get_current_model_performance(mock_config):
 
         perf = await pipeline.get_current_model_performance(mock_session)
         assert perf == 0.85
-

@@ -79,6 +79,7 @@ class OPAEnforcer:
 
     def __init__(self, opa_url: str | None = None):
         from src.config import settings
+
         self.opa_url = opa_url or settings.OPA_URL
 
     async def is_authorized(self, user: dict[str, Any], action: str, resource: str) -> bool:

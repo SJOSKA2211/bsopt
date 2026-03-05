@@ -81,11 +81,9 @@ def audit_mfa_secrets(self):
     db_session = get_db_session()
     try:
         # 1. Fetch users with non-null MFA secrets
-        result = db_session.execute(
-            select(User).where(User.mfa_secret.isnot(None))
-        )
+        result = db_session.execute(select(User).where(User.mfa_secret.isnot(None)))
         users = result.scalars().all()
-        
+
         vulnerable_count = 0
         for user in users:
             # Heuristic: Encrypted secrets are usually longer and base64 encoded
@@ -93,11 +91,9 @@ def audit_mfa_secrets(self):
             if len(user.mfa_secret) <= 32 and user.mfa_secret.isalnum():
                 vulnerable_count += 1
                 logger.warning(
-                    "plaintext_mfa_secret_detected",
-                    user_id=str(user.id),
-                    email=user.email
+                    "plaintext_mfa_secret_detected", user_id=str(user.id), email=user.email
                 )
-        
+
         return {
             "status": "completed",
             "users_audited": len(users),
