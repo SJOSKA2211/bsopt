@@ -211,19 +211,25 @@ for m in [
 ]:
     setattr(r_client, m, AsyncMock())
 
-# Ensure pipeline also works
-pipe_mock = MagicMock()
-pipe_mock.execute = AsyncMock(return_value=[None, 0])
-# Pipeline methods return self for chaining
-for m in ["get", "set", "setex", "publish", "incr", "expire", "delete", "pttl", "exists"]:
-    setattr(pipe_mock, m, MagicMock(return_value=pipe_mock))
-
-r_client.pipeline = MagicMock(return_value=pipe_mock)
-
 # register_script returns an object that when called returns a coroutine
-script_mock = MagicMock()
-script_mock.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
-r_client.register_script = MagicMock(return_value=script_mock)
+# Using a class to ensure it's callable and awaitable mock-friendly
+class MockScript:
+    def __init__(self, result=b"CLOSED"):
+        self.result = result
+    def __call__(self, *args, **kwargs):
+        return AsyncMock(return_value=self.result)()
+
+r_client.register_script = MagicMock(side_effect=lambda *args, **kwargs: MockScript())
+
+# Ensure pipeline also works
+class MockPipeline:
+    def __init__(self):
+        self.execute = AsyncMock(return_value=[None, 0])
+    def __getattr__(self, name):
+        # Chaining
+        return lambda *args, **kwargs: self
+
+r_client.pipeline = MagicMock(side_effect=lambda *args, **kwargs: MockPipeline())
 
 redis_mock = MagicMock()
 redis_mock.from_url.return_value = r_client

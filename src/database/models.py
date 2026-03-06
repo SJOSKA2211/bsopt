@@ -4,7 +4,7 @@ SQLAlchemy ORM Models for BSOPT Platform (Optimized for PG16 + TimescaleDB)
 
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import uuid4
+from uuid import uuid4, UUID as UUID_TYPE
 
 from sqlalchemy import (
     Boolean,
@@ -41,7 +41,7 @@ OrderStatus = ENUM(
     create_type=False,
 )
 OrderType = ENUM("market", "limit", "stop", "stop_limit", name="order_type", create_type=False)
-PositionStatus = ENUM("open", "closed", name="position_status", create_type=False)
+PositionStatus = ENUM("open", "closed", "liquidated", name="position_status", create_type=False)
 OptionType = ENUM("call", "put", name="option_type", create_type=False)
 MLAlgorithm = ENUM(
     "xgboost",
@@ -61,7 +61,7 @@ MLAlgorithm = ENUM(
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255))
@@ -97,20 +97,26 @@ class User(Base):
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
 
 
+# LOGGING & AUDIT (Hypertables)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    method: Mapped[str] = mapped_column(Text, nullable=False)
-    path: Mapped[str] = mapped_column(Text, nullable=False)
-    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
-    user_id: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True))
-    client_ip: Mapped[str] = mapped_column(Text, nullable=False)
-    user_agent: Mapped[str] = mapped_column(Text, nullable=False)
-    latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
-    metadata_json: Mapped[dict | None] = mapped_column("metadata", JSONB)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
+    user_id: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    resource: Mapped[str | None] = mapped_column(String(100))
+    path: Mapped[str | None] = mapped_column(Text)
+    method: Mapped[str | None] = mapped_column(String(10))
+    status_code: Mapped[int | None] = mapped_column(Integer)
+    payload: Mapped[dict | None] = mapped_column("payload", JSONB)
+    ip_address: Mapped[str | None] = mapped_column(String(45))
+    user_agent: Mapped[str | None] = mapped_column(Text)
+    latency_ms: Mapped[float | None] = mapped_column(Double)
 
 
 class RequestLog(Base):
@@ -119,6 +125,7 @@ class RequestLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
     status_code: Mapped[int | None] = mapped_column(Integer)
     path: Mapped[str | None] = mapped_column(Text)
     method: Mapped[str | None] = mapped_column(Text)
@@ -131,8 +138,8 @@ class RequestLog(Base):
 class Portfolio(Base):
     __tablename__ = "portfolios"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -150,8 +157,8 @@ class Portfolio(Base):
 class Position(Base):
     __tablename__ = "positions"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    portfolio_id: Mapped[UUID] = mapped_column(
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    portfolio_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False
     )
     symbol: Mapped[str] = mapped_column(String, nullable=False)
@@ -173,11 +180,11 @@ class Position(Base):
 class Order(Base):
     __tablename__ = "orders"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    portfolio_id: Mapped[UUID] = mapped_column(
+    portfolio_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("portfolios.id", ondelete="CASCADE"), nullable=False
     )
     symbol: Mapped[str] = mapped_column(String, nullable=False)
@@ -241,14 +248,14 @@ class MarketTick(Base):
 class MLModel(Base):
     __tablename__ = "ml_models"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     algorithm: Mapped[str] = mapped_column(MLAlgorithm, nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
     training_metrics: Mapped[dict | None] = mapped_column(JSONB)
     model_artifact_url: Mapped[str | None] = mapped_column(String(500))
-    created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_by: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_production: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -261,8 +268,8 @@ class ModelPrediction(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), default=uuid4)
-    model_id: Mapped[UUID | None] = mapped_column(ForeignKey("ml_models.id", ondelete="SET NULL"))
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
+    model_id: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("ml_models.id", ondelete="SET NULL"))
     symbol: Mapped[str] = mapped_column(String, nullable=False)
     input_features: Mapped[dict] = mapped_column(JSONB, nullable=False)
     predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
@@ -274,7 +281,7 @@ class ModelPrediction(Base):
 class ModelDriftBaseline(Base):
     __tablename__ = "model_drift_baselines"
 
-    model_id: Mapped[UUID] = mapped_column(
+    model_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("ml_models.id", ondelete="CASCADE"), primary_key=True
     )
     baseline_accuracy: Mapped[float | None] = mapped_column(Double)
@@ -287,14 +294,14 @@ class ModelDriftBaseline(Base):
 class OAuth2Client(Base):
     __tablename__ = "oauth2_clients"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     client_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_uris: Mapped[list[str] | None] = mapped_column(JSONB)
     scopes: Mapped[list[str] | None] = mapped_column(JSONB)
     is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
 
     user: Mapped["User"] = relationship(back_populates="oauth_clients")
 
@@ -302,8 +309,8 @@ class OAuth2Client(Base):
 class APIKey(Base):
     __tablename__ = "api_keys"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -321,7 +328,7 @@ class BetterAuthSession(Base):
     __tablename__ = "better_auth_sessions"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
@@ -338,7 +345,7 @@ class BetterAuthAccount(Base):
     __tablename__ = "better_auth_accounts"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[UUID_TYPE] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     account_id: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -354,7 +361,7 @@ class BetterAuthAccount(Base):
 class SecurityIncident(Base):
     __tablename__ = "security_incidents"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     detected_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -386,12 +393,21 @@ class OptionContract(Base):
 class RLEpisode(Base):
     __tablename__ = "rl_episodes"
 
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     agent_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     episode_reward: Mapped[float] = mapped_column(Double, nullable=False)
     steps: Mapped[int] = mapped_column(Integer, nullable=False)
     hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RateLimit(Base):
+    __tablename__ = "rate_limits"
+
+    user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+    endpoint: Mapped[str] = mapped_column(String(255), primary_key=True)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    request_count: Mapped[int] = mapped_column(Integer, default=1)
 
 
 try:
@@ -400,8 +416,8 @@ try:
     class ModelEmbedding(Base):
         __tablename__ = "model_embeddings"
 
-        id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-        model_id: Mapped[UUID] = mapped_column(
+        id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+        model_id: Mapped[UUID_TYPE] = mapped_column(
             ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
         )
         version: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -410,39 +426,12 @@ try:
             DateTime(timezone=True), server_default=func.now()
         )
 except ImportError:
-    # pgvector not available, skip ModelEmbedding
-    pass
-
-
-class RateLimit(Base):
-    __tablename__ = "rate_limits"
-
-    user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    endpoint: Mapped[str] = mapped_column(String(255), primary_key=True)
-    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    request_count: Mapped[int] = mapped_column(Integer, default=1)
-
-
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    action: Mapped[str] = mapped_column(String(100), nullable=False)
-    resource: Mapped[str | None] = mapped_column(String(100))
-    payload: Mapped[dict | None] = mapped_column(JSONB)
-    ip_address: Mapped[str | None] = mapped_column(String(45))
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), index=True
-    )
-
-except ImportError:
-    # Fallback if pgvector not installed
+    # pgvector not available, fallback to JSONB
     class ModelEmbedding(Base):  # type: ignore
         __tablename__ = "model_embeddings"
 
-        id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-        model_id: Mapped[UUID] = mapped_column(
+        id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+        model_id: Mapped[UUID_TYPE] = mapped_column(
             ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
         )
         version: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -450,26 +439,3 @@ except ImportError:
         created_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), server_default=func.now()
         )
-
-
-class RateLimit(Base):
-    __tablename__ = "rate_limits"
-
-    user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    endpoint: Mapped[str] = mapped_column(String(255), primary_key=True)
-    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    request_count: Mapped[int] = mapped_column(Integer, default=1)
-
-
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-
-    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    action: Mapped[str] = mapped_column(String(100), nullable=False)
-    resource: Mapped[str | None] = mapped_column(String(100))
-    payload: Mapped[dict | None] = mapped_column(JSONB)
-    ip_address: Mapped[str | None] = mapped_column(String(45))
-    timestamp: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), index=True
-    )
