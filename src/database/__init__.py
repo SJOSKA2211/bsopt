@@ -257,9 +257,13 @@ def create_tables():
 
         engine = get_engine()
         with engine.connect() as conn:
+            # 0. In test mode, we might want a clean slate?
+            # For now, just ensure extensions and types exist.
+
             # 1. Enable extensions
             try:
                 conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
+                # pgvector extension
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
                 conn.commit()
             except Exception as e:
@@ -283,6 +287,7 @@ def create_tables():
             ]
             for name, values in enums:
                 try:
+                    # Case-insensitive check
                     res = conn.execute(
                         text("SELECT 1 FROM pg_type WHERE typname = :name"), {"name": name}
                     )
@@ -294,8 +299,12 @@ def create_tables():
                     logger.warning(f"failed_to_create_enum_{name}", error=str(e))
 
         # 3. Create Tables
-        Base.metadata.create_all(bind=engine)
-        logger.info("database_tables_created")
+        # metadata.create_all is idempotent for tables, but not for all types
+        try:
+            Base.metadata.create_all(bind=engine)
+            logger.info("database_tables_created")
+        except Exception as e:
+            logger.error("database_metadata_creation_failed", error=str(e))
 
 
 async def dispose_engine():
