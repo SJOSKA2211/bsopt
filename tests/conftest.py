@@ -57,3 +57,23 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("OMP_NUM_THREADS", "1")
     monkeypatch.setenv("MKL_NUM_THREADS", "1")
     monkeypatch.setenv("OPENBLAS_NUM_THREADS", "1")
+
+
+@pytest.fixture
+def api_client():
+    """Returns a FastAPI TestClient."""
+    from fastapi.testclient import TestClient
+
+    from src.api.main import app
+
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+def mock_db_session(mocker):
+    """Returns a mocked SQLAlchemy Session."""
+    from sqlalchemy.orm import Session
+
+    session = mocker.MagicMock(spec=Session)
+    return session
