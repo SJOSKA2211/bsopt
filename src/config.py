@@ -27,12 +27,14 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
 
-    # Database Configuration
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
     DATABASE_MIN_POOL_SIZE: int = 2
-    DATABASE_MAX_POOL_SIZE: int = 8
+    DATABASE_MAX_POOL_SIZE: int = 20
     DATABASE_POOL_TIMEOUT: int = 30
+    DATABASE_POOL_RECYCLE: int = 1800
+    DATABASE_POOL_PRE_PING: bool = True
     SLOW_QUERY_THRESHOLD_MS: int = 100
+    PGBOUNCER_ENABLED: bool = Field(default=False, validation_alias="PGBOUNCER_ENABLED")
 
     @field_validator("DATABASE_URL")
     @classmethod
