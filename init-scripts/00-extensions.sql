@@ -14,4 +14,18 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS vector;
--- CREATE EXTENSION IF NOT EXISTS pg_repack; -- For reorganizing tables without locking
+-- Common Enums
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'option_type') THEN
+        CREATE TYPE option_type AS ENUM ('call', 'put');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_side') THEN
+        CREATE TYPE order_side AS ENUM ('buy', 'sell');
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'position_status') THEN
+        CREATE TYPE position_status AS ENUM ('open', 'closed', 'liquidated');
+    END IF;
+END $$;

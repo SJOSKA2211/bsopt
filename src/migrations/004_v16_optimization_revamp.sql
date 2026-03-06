@@ -4,13 +4,20 @@
 -- ============================================================================
 
 -- 1. Optimize Greeks Data Types (Numeric -> Double Precision for speed)
-ALTER TABLE options_prices 
-    ALTER COLUMN implied_volatility TYPE DOUBLE PRECISION,
-    ALTER COLUMN delta TYPE DOUBLE PRECISION,
-    ALTER COLUMN gamma TYPE DOUBLE PRECISION,
-    ALTER COLUMN vega TYPE DOUBLE PRECISION,
-    ALTER COLUMN theta TYPE DOUBLE PRECISION,
-    ALTER COLUMN rho TYPE DOUBLE PRECISION;
+-- (Idempotent: Only alter if not already double precision)
+DO $$
+BEGIN
+    IF (SELECT data_type FROM information_schema.columns 
+        WHERE table_name = 'options_prices' AND column_name = 'implied_volatility') = 'numeric' THEN
+        ALTER TABLE options_prices 
+            ALTER COLUMN implied_volatility TYPE DOUBLE PRECISION,
+            ALTER COLUMN delta TYPE DOUBLE PRECISION,
+            ALTER COLUMN gamma TYPE DOUBLE PRECISION,
+            ALTER COLUMN vega TYPE DOUBLE PRECISION,
+            ALTER COLUMN theta TYPE DOUBLE PRECISION,
+            ALTER COLUMN rho TYPE DOUBLE PRECISION;
+    END IF;
+END $$;
 
 -- 2. Turn model_predictions into a Hypertable (if data exists, use migrate_data => true)
 -- Note: This requires dropping the existing PK if it's not on timestamp
@@ -50,26 +57,9 @@ ALTER TABLE positions FORCE ROW LEVEL SECURITY;
 ALTER TABLE orders FORCE ROW LEVEL SECURITY;
 ALTER TABLE users FORCE ROW LEVEL SECURITY;
 
--- 7. Native ENUM Standard (v2.5)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'option_type') THEN
-        CREATE TYPE option_type AS ENUM ('call', 'put');
-    END IF;
-END $$;
+-- 7. Native ENUM Standard (v2.5) - Handled in init-scripts
+-- Native ENUM conversion was causing issues with views, so we moved it to Phase 1.
 
--- Convert existing columns to use the new ENUM (with explicit cast)
--- options_prices
-ALTER TABLE options_prices 
-    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
-
--- positions
-ALTER TABLE positions 
-    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
-
--- orders
-ALTER TABLE orders 
-    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
 
 -- 8. Aggressive Autovacuum Tuning (v2.5)
 ALTER TABLE users SET (
