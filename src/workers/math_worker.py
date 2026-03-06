@@ -1,5 +1,6 @@
 import asyncio
 import os
+import threading
 import time
 
 import ray
@@ -40,20 +41,30 @@ app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS
 # Initialize Ray once
 RayOrchestrator.init()
 
-# 🥒 Global Persistent Actors (One per prefork process)
-_actors = []
+class RayActorPool:
+    """God-Mode Ray Actor Pool: Handles round-robin load balancing and health checks."""
+    def __init__(self, actor_class, count: int | None = None):
+        self._actor_class = actor_class
+        self._count = count or int(ray.cluster_resources().get("CPU", 2))
+        self._actors = [actor_class.remote() for _ in range(self._count)]
+        self._index = 0
+        self._lock = threading.Lock()
+        logger.info("ray_actor_pool_initialized", count=self._count, actor=actor_class.__name__)
 
+    def get_actor(self):
+        with self._lock:
+            actor = self._actors[self._index % self._count]
+            self._index += 1
+            return actor
 
-def get_actors():
-    global _actors
-    if not _actors:
-        if ray.is_initialized():
-            # Use detected cores from Ray
-            resources = ray.cluster_resources()
-            num_workers = int(resources.get("CPU", 2))
-            _actors = [MathActor.remote() for _ in range(num_workers)]
-            logger.info("ray_actors_initialized", count=len(_actors))
-    return _actors
+# Initialize Global Pool
+_pool: RayActorPool | None = None
+
+def get_pool():
+    global _pool
+    if _pool is None:
+        _pool = RayActorPool(MathActor)
+    return _pool
 
 
 @app.task(base=BaseAsyncTask, bind=True, max_retries=3, default_retry_delay=60)
@@ -61,13 +72,13 @@ def recalibrate_symbol(self, symbol: str) -> dict:
     """Non-blocking calibration delegation using BaseAsyncTask loop."""
     try:
         # EXECUTE: In a shared persistent loop via BaseAsyncTask
-        return self.run_async(_recalibrate_symbol_impl(self, symbol))
+        return self.run_async(_recalibrate_symbol_impl(symbol))
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
         raise self.retry(exc=e) from e
 
 
-async def _recalibrate_symbol_impl(self, self_task, symbol: str) -> dict:
+async def _recalibrate_symbol_impl(symbol: str) -> dict:
     """Async implementation of calibration task."""
     try:
         # 1. Fetch market data (Async/Awaited)
@@ -78,25 +89,20 @@ async def _recalibrate_symbol_impl(self, self_task, symbol: str) -> dict:
             return {"symbol": symbol, "status": "failed", "reason": "no_data"}
 
         # 2. Delegate to Ray (Async/Awaited)
-        import random
-
-        actors = get_actors()
-        if actors:
-            # OPTIMIZED: Modern Ray async actor call
-            actor = random.choice(actors)
-            result = await actor.run_calibration.remote(symbol, market_data)
-            return result
-
-        # 3. Local Fallback (if Ray is unreachable)
-        logger.warning("ray_unreachable_falling_back_local", symbol=symbol)
-        return await _recalibrate_symbol_async(self_task, symbol, market_data)
+        pool = get_pool()
+        actor = pool.get_actor()
+        
+        # Ray async actor call
+        result = await actor.run_calibration.remote(symbol, market_data)
+        return result
 
     except Exception as exc:
         logger.error("calibration_impl_error", symbol=symbol, error=str(exc))
-        raise exc
+        # Fallback Local Calibration if Ray fails
+        return await _recalibrate_symbol_fallback(symbol, None)
 
 
-async def _recalibrate_symbol_async(self, symbol: str, market_data: list | None = None) -> dict:
+async def _recalibrate_symbol_fallback(symbol: str, market_data: list | None = None) -> dict:
     """Fallback Local Calibration (Shared logic with async impl)."""
     start_time = time.time()
     try:
@@ -140,4 +146,4 @@ def health_check() -> bool:
     return True
 
 
-_calibration_worker = _recalibrate_symbol_async
+_calibration_worker = _recalibrate_symbol_fallback

@@ -61,8 +61,15 @@ def env_setup(monkeypatch):
 
 @pytest.fixture(scope="session", autouse=True)
 def startup_session():
-    """Session-wide initialization."""
+    """Session-wide initialization with robust retries."""
     import os
+    import time
+
+    import sqlalchemy
+    print(f"DEBUG: sqlalchemy is mock: {hasattr(sqlalchemy, '__mock_name__') or 'mock' in str(type(sqlalchemy))}")
+    print(f"DEBUG: sqlalchemy path: {sqlalchemy.__file__ if hasattr(sqlalchemy, '__file__') else 'N/A'}")
+
+    from sqlalchemy import create_engine, text
 
     from src.config import settings
 
@@ -70,44 +77,49 @@ def startup_session():
     test_db_url = os.getenv(
         "DATABASE_URL_TEST", "postgresql://admin:password@postgres:5432/bsopt_test"
     )
+    # Patch settings.DATABASE_URL
     settings.DATABASE_URL = test_db_url
 
-    # Wait for DB to be ready with retries
-    import time
+    print(f"DEBUG: Initializing tests with DB: {settings.DATABASE_URL}")
 
-    from sqlalchemy import create_engine, text
-
-    from src.database import create_tables
-    from src.utils.cache import init_redis_cache
-
-    print(f"DEBUG: DATABASE_URL value: {settings.DATABASE_URL}")
-
-    engine = create_engine(settings.DATABASE_URL)
-    max_retries = 30
+    # 1. Wait for Postgres to accept connections
+    engine = create_engine(test_db_url, pool_pre_ping=True)
+    max_retries = 120
+    connected = False
     for i in range(max_retries):
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
+                connected = True
+                print("DEBUG: Postgres is ready.")
                 break
-        except Exception:
-            if i == max_retries - 1:
-                raise
+        except Exception as e:
+            if i % 10 == 0:
+                print(f"DEBUG: Waiting for Postgres... ({e})")
             time.sleep(1)
 
-    # Create tables for tests
-    create_tables()
+    if not connected:
+        pytest.exit("Could not connect to Postgres after 120 seconds", returncode=1)
 
-    # Init Redis mock/client (running sync wrapper if needed)
+    # 2. Database tables are already created by init-scripts in docker-compose
+    # Skip create_tables() to save time and avoid concurrent creation issues
+    print("DEBUG: Skipping redundant create_tables().")
+
+    # 3. Init Redis mock/client
     import asyncio
+
+    from src.utils.cache import init_redis_cache
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    
+
     loop.run_until_complete(init_redis_cache())
+    print("DEBUG: Redis cache initialized.")
 
     yield
+
 
 
 @pytest.fixture

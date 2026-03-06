@@ -6,6 +6,7 @@ import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
+from src.utils.celery import BaseAsyncTask
 from src.utils.lazy_import import lazy_import
 from src.webhooks.dispatcher import WebhookDispatcher
 
@@ -98,14 +99,9 @@ async def _process_webhook_core(task_self, webhook_data: dict):
             send_to_dlq_task.delay(webhook_data, reason=f"celery_max_retries: {error_str}")
 
 
-@celery_app.task(bind=True, max_retries=5)
+@celery_app.task(base=BaseAsyncTask, bind=True, max_retries=5)
 def process_webhook_task(self, webhook_data: dict):
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        # In a running loop (unlikely for pure Celery prefork, but good for safety)
-        future = asyncio.run_coroutine_threadsafe(_process_webhook_core(self, webhook_data), loop)
-        return future.result()
-    return asyncio.run(_process_webhook_core(self, webhook_data))
+    return self.run_async(_process_webhook_core(self, webhook_data))
 
 
 @celery_app.task
