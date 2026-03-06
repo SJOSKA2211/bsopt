@@ -409,6 +409,9 @@ try:
         created_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), server_default=func.now()
         )
+except ImportError:
+    # pgvector not available, skip ModelEmbedding
+    pass
 
 
 class RateLimit(Base):

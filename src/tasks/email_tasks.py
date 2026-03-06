@@ -16,7 +16,7 @@ settings = get_settings()
 
 email_service = TransactionalEmailService(
     api_key=os.getenv("EMAIL_SERVICE_API_KEY", ""),
-    from_email=settings.FROM_EMAIL,
+    from_email=settings.DEFAULT_FROM_EMAIL,
 )
 
 

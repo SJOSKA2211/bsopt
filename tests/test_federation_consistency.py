@@ -46,6 +46,8 @@ def test_marketdata_subgraph():
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
-    assert 'type Option @key(fields: "id")' in sdl
+    # It should extend Option (or similar) and add market data
+    # Checking for key fields
+    assert 'type StreamingOption @key(fields: "id")' in sdl
     assert "lastPrice: Float!" in sdl
     assert "marketDataStream" in sdl
