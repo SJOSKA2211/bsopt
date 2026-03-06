@@ -77,7 +77,7 @@ def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     disc = np.exp(-r * dt)
 
     num_nodes = 2 * n_steps + 1
-    V = np.empty(num_nodes, dtype=np.float64)
+    V = np.zeros(num_nodes)
     for j in range(num_nodes):
         st = S0 * np.exp(dx * (n_steps - j))
         V[j] = max(st - K, 0.0) if is_call else max(K - st, 0.0)
