@@ -37,25 +37,14 @@ if [ -z "$POSTGRES_PASSWORD" ]; then
     exit 1
 fi
 
-# Detect environment: Local vs Docker
+# Detect environment: Prefer Docker if container is running
 USE_DOCKER=false
-if ! command -v psql &> /dev/null; then
-    if docker ps | grep -q "bsopt-postgres-1"; then
-        log "  🥒 Local 'psql' not found. Using 'docker exec' fallback..."
-        USE_DOCKER=true
-    else
-        log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
-        exit 1
-    fi
-else
-    # Auto-detect port from Docker if not specified
-    if [ "$DB_PORT" = "5432" ] && docker ps | grep -q "bsopt-postgres-1"; then
-        DETECTED_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' bsopt-postgres-1 2>/dev/null || echo "5432")
-        if [ "$DETECTED_PORT" != "5432" ] && [ -n "$DETECTED_PORT" ]; then
-            log "  🥒 Auto-detected Docker port: $DETECTED_PORT (Overriding $DB_PORT)"
-            DB_PORT=$DETECTED_PORT
-        fi
-    fi
+if docker ps | grep -q "bsopt-postgres-1"; then
+    log "  🥒 Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
+    USE_DOCKER=true
+elif ! command -v psql &> /dev/null; then
+    log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
+    exit 1
 fi
 
 query_sql() {
