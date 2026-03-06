@@ -50,6 +50,7 @@ def run_pipeline_task(self, config: dict[str, Any]):
         raise e
     finally:
         import asyncio
+
         try:
             asyncio.run(pipeline.shutdown())
         except Exception:

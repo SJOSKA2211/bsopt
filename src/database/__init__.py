@@ -132,9 +132,7 @@ def get_async_engine() -> AsyncEngine:
         _async_engine = create_async_engine(
             async_url,
             connect_args={
-                "ssl": (
-                    True if settings.is_production and "postgresql" in async_url else False
-                ),
+                "ssl": (True if settings.is_production and "postgresql" in async_url else False),
                 "server_settings": {"application_name": app_name},
                 "statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
                 "prepared_statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,

@@ -669,9 +669,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
 
             # 1. Create temporary staging table (Lean: No indexes/constraints)
             await db.execute(
-                text(
-                    "CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks) ON COMMIT DROP"
-                )
+                text("CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks) ON COMMIT DROP")
             )
 
             # 2. Fast COPY

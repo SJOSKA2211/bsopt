@@ -19,7 +19,7 @@ class NonceManager:
         self.chain_id = chain_id
         self.redis_key = f"nonce:{chain_id}:{address}"
         self._lock = asyncio.Lock()
-        
+
         # 🧪 GOD-MODE: Lua script for atomic get-and-increment
         self._lua_nonce_script = """
         local current = redis.call('get', KEYS[1])
@@ -44,7 +44,7 @@ class NonceManager:
             # 1. Try atomic operation
             # ARGV[1] is the chain nonce to sync if Redis is empty
             chain_nonce = await w3_nonce_func()
-            
+
             try:
                 nonce = await redis.eval(self._lua_nonce_script, 1, self.redis_key, chain_nonce)
                 return int(nonce)

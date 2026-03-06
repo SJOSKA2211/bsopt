@@ -393,7 +393,7 @@ class DeFiOptionsProtocol:
         }
 
         # Fetch current permit nonce (simulated or from contract)
-        nonce = 0 # In reality, fetch from contract.nonces(owner)
+        nonce = 0  # In reality, fetch from contract.nonces(owner)
 
         permit_message = {
             "owner": self.address,

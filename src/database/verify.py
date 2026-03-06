@@ -1,8 +1,9 @@
 import sys
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
 from src.config import get_settings
+from src.database import get_engine
 
 
 def verify_connection():
@@ -11,7 +12,11 @@ def verify_connection():
 
     try:
         settings = get_settings()
-        db_url = settings.DATABASE_URL.replace("+asyncpg", "")
+        _, _ = get_settings(), None # Trigger settings load if needed
+        
+        # We use the centralized getter to test the ACTUAL production configuration
+        engine = get_engine()
+        db_url = str(engine.url)
 
         # Mask password for display
         safe_url = db_url
@@ -25,7 +30,6 @@ def verify_connection():
 
         print(f"Target: {safe_url}")
 
-        engine = create_engine(db_url)
         with engine.connect() as conn:
             # 1. Basic Connectivity
             result = conn.execute(text("SELECT 1")).scalar()

@@ -33,6 +33,7 @@ def train_func(config: dict[str, Any]):
 
     # 1. Setup MLflow Tracking
     import mlflow
+
     mlflow.set_tracking_uri(settings.tracking_uri)
 
     # 2. Setup Model (DT-v2)
@@ -42,6 +43,8 @@ def train_func(config: dict[str, Any]):
         max_length=config.get("max_length", 20),
         max_ep_len=config.get("max_ep_len", 1000),
     )
+
+    import ray
 
     device = ray.train.torch.get_device()
     model = model.to(device)
@@ -65,6 +68,7 @@ def train_func(config: dict[str, Any]):
 
     # 3. Setup Data
     import ray.data
+
     dataset_path = config.get("dataset_path", "data/trajectories.pkl")
     # ... (rest of data loading logic remains the same)
     ds = None
@@ -78,6 +82,7 @@ def train_func(config: dict[str, Any]):
         sharded_loader = ds.iter_torch_batches(batch_size=config.get("batch_size", 64))
     else:
         import pickle
+
         with open(dataset_path, "rb") as f:
             trajectories = pickle.load(f)
         dataset = TrajectoryDataset(trajectories)
@@ -128,7 +133,6 @@ def train_func(config: dict[str, Any]):
                     mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item())
 
 
-
 class BSOptDistributedTrainer:
     """
     Orchestrator for scaling BSOpt training across a Ray cluster.
@@ -140,11 +144,14 @@ class BSOptDistributedTrainer:
 
     def run(self, config: dict[str, Any]):
         """Starts the distributed training session using RayClusterManager."""
+        import os
+
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
             return None
 
         from src.utils.ray_cluster_manager import RayClusterManager
+
         if not RayClusterManager.initialize():
             raise RuntimeError("Failed to initialize Ray cluster via RayClusterManager.")
 
@@ -156,7 +163,9 @@ class BSOptDistributedTrainer:
                 resources_per_worker={"CPU": 1, "GPU": 1 if self.use_gpu else 0},
             )
 
-            trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
+            trainer = TorchTrainer(
+                train_func, train_loop_config=config, scaling_config=scaling_config
+            )
 
             logger.info("starting_distributed_training", workers=self.num_workers)
             result = trainer.fit()
