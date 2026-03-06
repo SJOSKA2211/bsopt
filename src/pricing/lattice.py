@@ -8,7 +8,7 @@ European and American options. Optimized with NumPy for performance.
 from dataclasses import dataclass
 from typing import Literal
 
-import numpy
+import numpy as np
 import numba
 from numba import njit, float64
 
@@ -34,17 +34,17 @@ class LatticeParameters(BSParameters):
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)
 
 
-@numba.njit(fastmath=True)
+
 def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     dt = T / n_steps
-    u = numpy.exp(sigma * numpy.sqrt(dt))
+    u = np.exp(sigma * np.sqrt(dt))
     d = 1.0 / u
-    a = numpy.exp((r - q) * dt)
+    a = np.exp((r - q) * dt)
     p = (a - d) / (u - d)
-    disc = numpy.exp(-r * dt)
+    disc = np.exp(-r * dt)
 
     # Terminal payoffs
-    V = numpy.zeros(n_steps + 1, dtype=numpy.float64)
+    V = np.zeros(n_steps + 1, dtype=np.float64)
     for j in range(n_steps + 1):
         st = S0 * (u ** (n_steps - j)) * (d**j)
         if is_call:
@@ -66,28 +66,28 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     return V[0]
 
 
-@numba.njit(fastmath=True)
+
 def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     dt = T / n_steps
-    dx = sigma * numpy.sqrt(3 * dt)
+    dx = sigma * np.sqrt(3 * dt)
     v_drift = r - q - 0.5 * sigma**2
 
     p_u = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 + v_drift * dt / dx)
     p_d = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
     p_m = 1.0 - p_u - p_d
-    disc = numpy.exp(-r * dt)
+    disc = np.exp(-r * dt)
 
     num_nodes = 2 * n_steps + 1
-    V = numpy.zeros(num_nodes, dtype=numpy.float64)
+    V = np.zeros(num_nodes, dtype=np.float64)
     for j in range(num_nodes):
-        st = S0 * numpy.exp(dx * (n_steps - j))
+        st = S0 * np.exp(dx * (n_steps - j))
         V[j] = max(st - K, 0.0) if is_call else max(K - st, 0.0)
 
     for i in range(n_steps - 1, -1, -1):
         for j in range(2 * i + 1):
             V_new = disc * (p_u * V[j] + p_m * V[j + 1] + p_d * V[j + 2])
             if is_american:
-                st = S0 * numpy.exp(dx * (i - j))
+                st = S0 * np.exp(dx * (i - j))
                 exercise = max(st - K, 0.0) if is_call else max(K - st, 0.0)
                 V[j] = max(V_new, exercise)
             else:
