@@ -445,13 +445,14 @@ class DeFiOptionsProtocol:
             return total_price + gas_cost
 
         best_venue = min(venues, key=execution_cost)
+        best_venue["estimated_cost"] = round(execution_cost(best_venue), 4)
 
         logger.info(
             "sor_routing_decision_v2",
             symbol=symbol,
             amount=amount,
             selected=best_venue["name"],
-            estimated_cost=round(execution_cost(best_venue), 4)
+            estimated_cost=best_venue["estimated_cost"]
         )
         return best_venue
 

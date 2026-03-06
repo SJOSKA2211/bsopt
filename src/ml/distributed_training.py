@@ -106,8 +106,17 @@ def train_func(config: dict[str, Any]):
 
             # ⚡ AMP Forward Pass
             with th.cuda.amp.autocast(enabled=config.get("use_amp", True)):
-                action_preds = model(states, th.zeros_like(actions), rtg, timesteps)
-                loss = criterion(action_preds, actions)
+                state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
+                
+                # 1. Action Prediction Loss (P0)
+                loss_action = criterion(action_preds, actions)
+                
+                # 2. Auxiliary Losses for Stability (P1)
+                # Predict next state and next return
+                loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
+                loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
+                
+                loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
 
             # ⚡ AMP Backward Pass
             scaler.scale(loss).backward()

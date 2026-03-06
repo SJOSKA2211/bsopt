@@ -68,3 +68,5 @@ qiskit-aer>=0.13.0
 qiskit-algorithms>=0.3.0
 wasmer>=1.1.0
 wasmer-compiler-cranelift>=1.1.0
+web3>=7.0.0
+websockets>=12.0
