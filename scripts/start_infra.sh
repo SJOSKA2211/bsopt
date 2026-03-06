@@ -13,8 +13,7 @@ echo "⌛ Waiting for database to stabilize..."
 sleep 5
 
 # Run BSOpt Verification
-echo "🥒 Running God-Mode Manifold Audit..."
-export PYTHONPATH=$PROJECT_ROOT
-python3 -m src.database.verify
+echo "🥒 Running God-Mode Manifold Audit (Containerized)..."
+docker-compose -f docker-compose.dev.yml --profile test run --rm test-runner python3 -m src.database.verify
 
 echo "✅ Infrastructure containers launched and audited."
