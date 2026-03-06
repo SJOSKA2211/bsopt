@@ -26,7 +26,7 @@ trap 'error_handler $LINENO' ERR
 log "🥒 Launching Full-Scale Manifold Deployment..."
 
 # Prioritize PG* variables for compatibility, then POSTGRES_*, then defaults
-DB_HOST=${PGHOST:-${POSTGRES_HOST:-localhost}}
+DB_HOST=${PGHOST:-${POSTGRES_HOST:-127.0.0.1}}
 DB_PORT=${PGPORT:-${POSTGRES_PORT:-5432}}
 DB_USER=${PGUSER:-${POSTGRES_USER:-admin}}
 DB_NAME=${PGDATABASE:-${POSTGRES_DATABASE:-bsopt}}
