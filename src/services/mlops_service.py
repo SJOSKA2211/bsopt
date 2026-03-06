@@ -76,7 +76,9 @@ class MLOpsService:
         if model_repo and model_repo.startswith("s3://"):
             if progress_callback:
                 progress_callback(f"Configuring S3 model repo: {model_repo}...")
-            os.environ["MLFLOW_ARTIFACT_ROOT"] = model_repo
+            # Avoid modifying process-wide os.environ in an async context
+            # Pass to task explicitly instead
+            logger.info("configuring_s3_repo", repo=model_repo)
             time.sleep(1)
 
         # K8s Generation
@@ -91,7 +93,8 @@ class MLOpsService:
         # Task Trigger
         if progress_callback:
             progress_callback("Starting training task...")
-        task = train_model_task.delay(model_type="xgboost")
+        # Explicitly pass artifacts root to avoid relying on os.environ race conditions
+        task = train_model_task.delay(model_type="xgboost", artifacts_root=model_repo)
 
         logger.info("mlops_pipeline_started", task_id=task.id, service=service_name)
         return task.id
@@ -99,6 +102,11 @@ class MLOpsService:
     def _generate_k8s_manifests(
         self, service_name, docker_image, model_repo, model_name, model_version
     ):
+        # Strict validation for YAML construction
+        name_pattern = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
+        if not name_pattern.match(service_name):
+            raise ValueError(f"Invalid service name for K8s: {service_name}")
+
         k8s_path = Path("k8s/base/deployment.yaml")
         if not k8s_path.parent.exists():
             k8s_path.parent.mkdir(parents=True, exist_ok=True)
@@ -119,7 +127,7 @@ class MLOpsService:
                                 "image": docker_image,
                                 "ports": [{"containerPort": 8000}],
                                 "env": [
-                                    {"name": "MODEL_REPO", "value": model_repo},
+                                    {"name": "MODEL_REPO", "value": model_repo or ""},
                                     {"name": "MODEL_NAME", "value": model_name},
                                     {
                                         "name": "MODEL_VERSION",

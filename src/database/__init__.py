@@ -133,10 +133,15 @@ def get_async_engine() -> AsyncEngine:
             async_url,
             connect_args={
                 "ssl": (True if settings.is_production and "postgresql" in async_url else False),
-                "server_settings": {"application_name": app_name},
+                "server_settings": {
+                    "application_name": app_name,
+                    "tcp_keepalives_idle": "60",
+                    "tcp_keepalives_interval": "10",
+                    "tcp_keepalives_count": "5",
+                },
                 "statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
                 "prepared_statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
-                "command_timeout": 60,
+                "command_timeout": settings.DATABASE_POOL_TIMEOUT,
             },
             **pool_kwargs,
         )

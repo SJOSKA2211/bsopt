@@ -5,7 +5,7 @@ services:
   postgres:
     image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
-    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,7 +17,7 @@ services:
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
       - ./src/migrations:/migrations:ro
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ./docker/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
     shm_size: 1gb
     deploy:
       resources:
@@ -353,6 +353,7 @@ services:
       - ENVIRONMENT=test
       - DATABASE_URL=${DATABASE_URL_TEST}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/1
+      - JWT_SECRET=test_secret_key_change_me_in_prod
     depends_on:
       postgres:
         condition: service_healthy

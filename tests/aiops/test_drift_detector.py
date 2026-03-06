@@ -6,27 +6,19 @@ from src.aiops.drift_detector import PricingDriftDetector
 
 
 @pytest.mark.asyncio
-@patch("src.aiops.drift_detector.get_async_db_context")
-async def test_check_drift_theoretical(mock_db_context):
+async def test_check_drift_theoretical():
     detector = PricingDriftDetector(threshold=0.05)
 
-    # Mock DB interaction
-    mock_session = AsyncMock()
-    mock_db_context.return_value.__aenter__.return_value = mock_session
+    import numpy as np
+    current_data = np.array([0.1, 0.2, 0.3])
+    reference_data = np.array([0.11, 0.19, 0.31])
 
-    # Assuming we implement the fetch logic in the source, we mock it here
-    with patch(
-        "src.aiops.drift_detector.PricingDriftDetector.check_drift", new_callable=AsyncMock
-    ) as mock_check:
-        mock_check.return_value = {
-            "drift_detected": True,
-            "reason": "theoretical_error_threshold_exceeded",
-            "mean_relative_error": 0.09,
-        }
-
-        result = await detector.check_drift()
-        assert result["drift_detected"] is True
-        assert result["mean_relative_error"] > 0.05
+    result = await detector.check_drift(
+        symbol="BTC/USD", current_data=current_data, reference_data=reference_data
+    )
+    assert result["symbol"] == "BTC/USD"
+    assert "drift_detected" in result
+    assert isinstance(result["reasons"], list)
 
 
 @pytest.mark.asyncio

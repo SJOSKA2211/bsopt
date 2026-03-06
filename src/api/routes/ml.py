@@ -38,8 +38,10 @@ async def get_predictions(
     """
     Convenience endpoint for the frontend dashboard.
     """
-    symbol = symbol.strip().upper()
-    if not symbol.isalnum() or len(symbol) > 10:
+    from src.utils.sanitization import sanitize_alphanumeric
+
+    symbol = sanitize_alphanumeric(symbol.strip().upper())
+    if not symbol or len(symbol) > 10:
         return DataResponse(data={}, message="Invalid symbol")
 
     base_price = 100.0

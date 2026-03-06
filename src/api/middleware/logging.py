@@ -136,9 +136,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
     def _get_user_info(self, request: Request) -> dict[str, Any]:
         """Extract user info from consolidated request state."""
+        from src.utils.sanitization import mask_email
+
+        email = getattr(request.state, "user_email", None)
         return {
             "user_id": getattr(request.state, "user_id", None),
-            "user_email": getattr(request.state, "user_email", None),
+            "user_email": mask_email(email) if email else None,
             "user_tier": getattr(request.state, "user_tier", None),
         }
 

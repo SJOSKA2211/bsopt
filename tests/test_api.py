@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_read_main():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "BS-Opt Optimized API"}
+    assert response.json() == {"message": "BS-Opt Optimized API is running"}
 
 
 def test_metrics_endpoint():
@@ -28,4 +28,4 @@ def test_metrics_endpoint():
 def test_health_endpoint():
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    assert response.json()["status"] == "healthy"

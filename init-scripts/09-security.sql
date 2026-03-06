@@ -14,6 +14,8 @@ BEGIN
         CREATE ROLE app_user WITH LOGIN PASSWORD 'app_secret_placeholder';
     END IF;
     ALTER ROLE app_user CONNECTION LIMIT 100;
+    -- Restrict app_user to a shorter statement timeout than admin (matched with app pool timeout)
+    ALTER ROLE app_user SET statement_timeout = '60s';
 END
 $$;
 
@@ -26,10 +28,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO app_user;
 
--- Revoke high-risk utility functions from app_user
-REVOKE ALL ON FUNCTION register_user_native(VARCHAR, VARCHAR, VARCHAR) FROM app_user;
-GRANT EXECUTE ON FUNCTION authenticate_user_native(VARCHAR, VARCHAR) TO app_user;
-GRANT EXECUTE ON FUNCTION update_last_login_native(UUID) TO app_user;
+-- Function grants moved to the end of the file
 
 -- 3. Row Level Security (RLS) Performance Optimized
 -- Helper function to get current user ID from session context
@@ -132,3 +131,8 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Revoke high-risk utility functions from app_user
+REVOKE ALL ON FUNCTION register_user_native(VARCHAR, VARCHAR, VARCHAR) FROM app_user;
+GRANT EXECUTE ON FUNCTION authenticate_user_native(VARCHAR, VARCHAR) TO app_user;
+GRANT EXECUTE ON FUNCTION update_last_login_native(UUID) TO app_user;

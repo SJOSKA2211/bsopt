@@ -33,6 +33,7 @@ class PricingDriftDetector:
         self.ks_threshold = ks_threshold
         self.factory = PricingEngineFactory()
         self.multivariate_detector = MultivariateDriftDetector(threshold=threshold)
+        self.logger = structlog.get_logger(__name__)
 
     async def check_drift(
         self, symbol: str, current_data: np.ndarray, reference_data: np.ndarray | None = None
