@@ -6,8 +6,6 @@ Consolidates critical numerical logic for cross-module consistency with JIT acce
 
 import os
 import numpy as np
-import numba
-from numba import njit, prange, boolean, float64
 
 # OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
 if os.getenv("NUMBA_DISABLE_JIT") == "1":
@@ -16,11 +14,23 @@ if os.getenv("NUMBA_DISABLE_JIT") == "1":
             return args[0]
         return lambda f: f
     _prange = range
+    njit = _njit # For external compatibility
+    prange = _prange
 else:
-    from numba import njit as _njit
-    from numba import prange as _prange
+    try:
+        from numba import njit as _njit
+        from numba import prange as _prange
+        from numba import njit, prange
+    except ImportError:
+        def _njit(*args, **kwargs):
+            if len(args) == 1 and callable(args[0]):
+                return args[0]
+            return lambda f: f
+        _prange = range
+        njit = _njit
+        prange = _prange
 
-# OPTIMIZED: Pre-computed constants for numerical kernels
+# Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
 INV_SQRT2PI = 0.3989422804014327
 CDF_P = 0.3275911
@@ -30,10 +40,8 @@ CDF_A3 = 1.421413741
 CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
 
-# Standardized njit behavior handled via _njit wrapper above.
-
 @_njit
-def fast_normal_cdf(x):
+def fast_normal_cdf(x: float) -> float:
     """
     High-precision rational approximation (A&S 7.1.26).
     """
@@ -52,12 +60,12 @@ def fast_normal_cdf(x):
     return 0.5 * (1.0 + np.sign(x) * y)
 
 @_njit
-def fast_normal_pdf(x):
+def fast_normal_pdf(x: float) -> float:
     """Numba-optimized Normal PDF."""
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
 @_njit
-def calculate_d1_d2(s, k, t, sigma, r, q):
+def calculate_d1_d2(s: float, k: float, t: float, sigma: float, r: float, q: float) -> tuple[float, float]:
     """Unified d1/d2 logic for scalar inputs."""
     if sigma <= 0 or t <= 0:
         return 0.0, 0.0
@@ -68,7 +76,7 @@ def calculate_d1_d2(s, k, t, sigma, r, q):
     return d1, d2
 
 @_njit
-def calculate_price_core(s, k, t, sigma, r, q, is_call):
+def calculate_price_core(s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool) -> float:
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
         if is_call:
@@ -119,7 +127,6 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     if s.size == 1:
-        # Scalar fast-path for single element arrays (common in lattice comparisons)
         return calculate_price_core(
             float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
             float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
@@ -139,7 +146,7 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
     return flat_res.reshape(original_shape)
 
 @_njit
-def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
+def calculate_greeks_core(s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool) -> tuple[float, float, float, float, float]:
     """Core Greeks for a single element."""
     if t <= 0 or sigma <= 0:
         if is_call:
@@ -199,7 +206,6 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     if s.size == 1:
-        # Scalar fast-path for single element arrays
         return calculate_greeks_core(
             float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
             float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
