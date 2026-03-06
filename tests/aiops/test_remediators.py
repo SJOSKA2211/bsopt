@@ -106,8 +106,10 @@ async def test_remediation_planner():
 async def test_db_pool_remediator_success():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.engine") as mock_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
+        mock_engine = MagicMock()
         mock_engine.dispose = MagicMock()
+        mock_get_engine.return_value = mock_engine
 
         success = await remediator.remediate(
             {"type": "db_pool_exhaustion", "metrics": {"pool_utilization": 0.5}}
@@ -120,8 +122,10 @@ async def test_db_pool_remediator_success():
 async def test_db_pool_remediator_critical_pressure():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.engine") as mock_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
+        mock_engine = MagicMock()
         mock_engine.dispose = MagicMock()
+        mock_get_engine.return_value = mock_engine
 
         success = await remediator.remediate(
             {"type": "db_pool_exhaustion", "metrics": {"pool_utilization": 0.95}}
@@ -133,8 +137,10 @@ async def test_db_pool_remediator_critical_pressure():
 async def test_db_pool_remediator_failure():
     remediator = DatabasePoolRemediator()
 
-    with patch("src.database.engine") as mock_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
+        mock_engine = MagicMock()
         mock_engine.dispose.side_effect = Exception("Connection refused")
+        mock_get_engine.return_value = mock_engine
 
         success = await remediator.remediate({"type": "db_pool_exhaustion"})
         assert success is False

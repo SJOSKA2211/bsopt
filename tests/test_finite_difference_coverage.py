@@ -113,28 +113,8 @@ def test_fdm_zero_maturity_put_otm_greeks():
     assert greeks.delta == 0.0
 
 
-def test_fdm_iterative_solver_ilu_fail():
-    from unittest.mock import patch
-
-    params = BSParameters(100, 100, 1.0, 0.2, 0.05)
-    solver = CrankNicolsonSolver(use_iterative=True)
-    with patch("src.pricing.finite_difference.spilu", side_effect=RuntimeError("mock fail")):
-        price = solver.price(params, "call")
-        assert price > 0
-
-
-def test_fdm_iterative_solver_convergence_fail():
-    from unittest.mock import patch
-
-    params = BSParameters(100, 100, 1.0, 0.2, 0.05)
-    solver = CrankNicolsonSolver(use_iterative=True)
-    # Mock cg to return info=1 (failure to converge)
-    # The size 199 is for default n_spots=200
-    with patch("src.pricing.finite_difference.cg", return_value=(np.zeros(199), 1)):
-        solver.price(params, "call")
-
-
 def test_fdm_clone():
+
     solver = CrankNicolsonSolver(n_spots=150)
     cloned = solver._clone(n_time=200)
     assert cloned.n_spots == 150

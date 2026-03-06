@@ -245,10 +245,10 @@ class DatabasePoolRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_db_pool_recovery_initiated")
         try:
-            from src.database import engine
+            from src.database import get_engine
 
             # Dispose all connections in the pool, forcing new ones to be created
-            engine.dispose()
+            get_engine().dispose()
             logger.info("remediator_db_pool_recycled", action="dispose")
 
             # Optionally adjust pool size if metrics indicate sustained pressure
@@ -268,10 +268,12 @@ class DatabasePoolRemediator(BaseRemediator):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """Verify that the pool is accepting new connections."""
         try:
-            from src.database import engine
+            from src.database import get_engine
 
-            async with engine.connect() as conn:
-                await conn.execute("SELECT 1")
+            with get_engine().connect() as conn:
+                from sqlalchemy import text
+
+                conn.execute(text("SELECT 1"))
             return True
         except Exception:
             return False

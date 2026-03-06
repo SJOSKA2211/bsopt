@@ -268,10 +268,76 @@ def thomas_algorithm(a, b, c, d):
 
 
 @njit
-def jit_cn_solver(S, K, T, r, sigma, q, is_call, S_max, M, N):
-    """Crank-Nicolson solver for PDE."""
-    # Placeholder for CN solver
-    return S_max / 2.0
+def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
+    """
+    Crank-Nicolson solver for the Black-Scholes PDE.
+    M: number of stock price steps (len(s_grid) - 1)
+    N: number of time steps
+    """
+    M = len(s_grid) - 1
+    dt = T / N
+    dS = s_grid[1] - s_grid[0]
+
+    # Initial condition (payoff at maturity)
+    if is_call:
+        V = np.maximum(s_grid - K, 0.0)
+    else:
+        V = np.maximum(K - s_grid, 0.0)
+
+    # Pre-calculate coefficients
+    # a_j, b_j, c_j for the tridiagonal matrix
+    # Equation: V_j^{n} = a_j V_{j-1}^{n+1} + b_j V_j^{n+1} + c_j V_{j+1}^{n+1}
+    
+    # Grid indices 1 to M-1
+    j = np.arange(1, M)
+    sigma2 = sigma**2
+    j2 = j**2
+    
+    alpha = 0.25 * dt * (sigma2 * j2 - (r - q) * j)
+    beta = -0.5 * dt * (sigma2 * j2 + r)
+    gamma = 0.25 * dt * (sigma2 * j2 + (r - q) * j)
+
+    # Left-hand side tridiagonal matrix (A) coefficients
+    # (1 - beta) V_j^n - alpha V_{j-1}^n - gamma V_{j+1}^n = (1 + beta) V_j^{n+1} + alpha V_{j-1}^{n+1} + gamma V_{j+1}^{n+1}
+    a_lhs = -alpha
+    b_lhs = 1.0 - beta
+    c_lhs = -gamma
+    
+    # Right-hand side coefficients
+    a_rhs = alpha
+    b_rhs = 1.0 + beta
+    c_rhs = gamma
+
+    # Time stepping (backward in time)
+    for n in range(N):
+        # 1. Compute RHS: B * V^{n+1}
+        rhs = np.zeros(M - 1)
+        for i in range(M - 1):
+            # Inner points
+            val = b_rhs[i] * V[i+1] + a_rhs[i] * V[i] + c_rhs[i] * V[i+2]
+            rhs[i] = val
+
+        # 2. Apply Boundary Conditions to RHS
+        # S=0 boundary (V_0)
+        if is_call:
+            v_0_new = 0.0
+            v_M_new = s_grid[M] * np.exp(-q * (n+1) * dt) - K * np.exp(-r * (n+1) * dt)
+        else:
+            v_0_new = K * np.exp(-r * (n+1) * dt)
+            v_M_new = 0.0
+            
+        rhs[0] += a_lhs[0] * v_0_new + a_rhs[0] * V[0]
+        rhs[-1] += c_lhs[-1] * v_M_new + c_rhs[-1] * V[M]
+
+        # 3. Solve Tridiagonal System A * V^n = RHS
+        # thomas_algorithm(a, b, c, d)
+        V[1:M] = thomas_algorithm(a_lhs[1:], b_lhs, c_lhs[:-1], rhs)
+        
+        # 4. Update Boundaries
+        V[0] = v_0_new
+        V[M] = v_M_new
+
+    return V
 
 
 # Backward compatibility stubs
