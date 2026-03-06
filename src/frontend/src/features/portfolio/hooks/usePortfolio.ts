@@ -1,4 +1,5 @@
-import { useQuery, useSubscription, gql } from '@apollo/client';
+import { useQuery, useSubscription } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { authClient } from '../../../lib/auth-client';
 import type { PortfolioData } from '../types';
 

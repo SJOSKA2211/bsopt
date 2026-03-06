@@ -9,7 +9,8 @@ import {
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 
 const GET_OPTIONS_FOR_HEATMAP = gql`
   query GetOptionsForHeatmap($symbol: String!) {
