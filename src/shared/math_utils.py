@@ -18,7 +18,7 @@ CDF_A3 = 1.421413741
 CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
 
-@numba.njit(inline='always')
+@njit(cache=True, inline='always')
 def fast_normal_cdf(x):
     """
     High-precision rational approximation (A&S 7.1.26).
@@ -37,12 +37,12 @@ def fast_normal_cdf(x):
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
 
-@numba.njit(inline='always')
+@njit(cache=True, inline='always')
 def fast_normal_pdf(x):
     """Numba-optimized Normal PDF."""
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
-@numba.njit(inline='always')
+@njit(cache=True, inline='always')
 def calculate_d1_d2(s, k, t, sigma, r, q):
     """Unified d1/d2 logic for scalar inputs."""
     if sigma <= 0 or t <= 0:
@@ -53,7 +53,7 @@ def calculate_d1_d2(s, k, t, sigma, r, q):
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
-@numba.njit(inline='always')
+@njit(inline='always', cache=True)
 def calculate_price_core(s, k, t, sigma, r, q, is_call):
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
@@ -80,7 +80,7 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
-@numba.njit(inline='always')
+@njit(cache=True, inline='always')
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
@@ -124,7 +124,7 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
     )
     return flat_res.reshape(original_shape)
 
-@numba.njit(inline='always')
+@njit(cache=True)
 def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
     """Core Greeks for a single element."""
     if t <= 0 or sigma <= 0:
