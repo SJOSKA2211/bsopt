@@ -14,7 +14,8 @@ import {
   AutoGraph,
   Update,
 } from '@mui/icons-material';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 
 interface MLPredictionsProps {
   symbol: string;

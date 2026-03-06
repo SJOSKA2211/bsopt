@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Box, useTheme, alpha } from '@mui/material';
 import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
-import { useSubscription, useQuery, gql } from '@apollo/client';
+import { useSubscription, useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 
 const MARKET_SUBSCRIPTION = gql`
   subscription OnMarketUpdate($symbols: [String!]!) {

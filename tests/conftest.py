@@ -59,10 +59,19 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("OPENBLAS_NUM_THREADS", "1")
     monkeypatch.setenv("TESTING", "true")
 
-
 @pytest.fixture(scope="session", autouse=True)
-async def startup_session():
+def startup_session():
     """Session-wide initialization."""
+    import os
+
+    from src.config import settings
+
+    # Ensure settings uses the TEST database URL
+    test_db_url = os.getenv(
+        "DATABASE_URL_TEST", "postgresql://admin:password@postgres:5432/bsopt_test"
+    )
+    settings.DATABASE_URL = test_db_url
+
     from src.database import create_tables
     from src.utils.cache import init_redis_cache
 
@@ -71,7 +80,7 @@ async def startup_session():
 
     from sqlalchemy import create_engine, text
 
-    from src.config import settings
+    print(f"DEBUG: DATABASE_URL value: {settings.DATABASE_URL}")
 
     engine = create_engine(settings.DATABASE_URL)
     max_retries = 30
@@ -88,8 +97,15 @@ async def startup_session():
     # Create tables for tests
     create_tables()
 
-    # Init Redis mock/client
-    await init_redis_cache()
+    # Init Redis mock/client (running sync wrapper if needed)
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    loop.run_until_complete(init_redis_cache())
 
     yield
 

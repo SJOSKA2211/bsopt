@@ -1,4 +1,5 @@
-import { useSubscription, gql } from '@apollo/client';
+import { useSubscription } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { useMemo } from 'react';
 
 const MARKET_DATA_SUBSCRIPTION = gql`

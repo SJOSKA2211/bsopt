@@ -26,7 +26,8 @@ import {
   TrendingUp,
   TrendingDown,
 } from '@mui/icons-material';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
+import { gql } from '@apollo/client';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Custom components
