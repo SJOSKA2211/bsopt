@@ -141,6 +141,23 @@ services:
         limits:
           memory: 512M
 
+  test-runner:
+    image: bsopt-ci-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ci
+    environment:
+      - ENVIRONMENT=dev
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - REDIS_URL=redis://redis:6379/0
+    networks:
+      - bsopt-network-dev
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+      - redis
+
 networks:
   bsopt-network-dev:
     driver: bridge
