@@ -179,7 +179,17 @@ class MLPipeline:
     def _run_distributed_hpo(self, df: pd.DataFrame) -> dict[str, Any]:
         """HPO powered by Ray Tune and Optuna."""
         if not ray.is_initialized():
-            ray.init(ignore_reinit_error=True)
+            ray.init(
+                ignore_reinit_error=True,
+                runtime_env={
+                    "env_vars": {
+                        "DATABASE_URL": self.settings.DATABASE_URL,
+                        "REDIS_URL": self.settings.REDIS_URL,
+                        "JWT_SECRET": self.settings.JWT_SECRET,
+                        "INSIDE_DOCKER": "1",
+                    }
+                }
+            )
 
         framework = self.config.get("framework", "xgboost")
 
@@ -200,9 +210,14 @@ class MLPipeline:
         else:
             search_space = {"framework": framework}
 
+        # Prepare data once to avoid repeated overhead and capture
+        x, y, features, meta = self._prepare_data(df)
+        study_name = self.study_name
+
         def train_func(config):
-            trainer = ModelTrainer(self.study_name)
-            x, y, _, _ = self._prepare_data(df)
+            # Static instantiation inside the worker
+            from src.ml.trainer import ModelTrainer
+            trainer = ModelTrainer(study_name)
             score = trainer.train_and_evaluate(x, y, config)
             tune.report(mean_score=score)
 

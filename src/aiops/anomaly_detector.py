@@ -97,13 +97,9 @@ class AnomalyDetector:
             if not (0 < contamination <= 0.5):
                 raise ValueError("Contamination must be between 0 and 0.5")
             self.model = IsolationForest(
-<<<<<<< HEAD
-                contamination=kwargs.get("contamination", 0.05), n_jobs=-1, random_state=42
-=======
                 contamination=contamination,
                 n_jobs=-1,
                 random_state=42
->>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)
             )
         elif engine == "autoencoder":
             self.input_dim = kwargs.get("input_dim")
