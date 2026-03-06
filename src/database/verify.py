@@ -11,7 +11,7 @@ def verify_connection():
     print("---------------------------------------")
 
     try:
-        settings = get_settings()
+        get_settings()
         _, _ = get_settings(), None # Trigger settings load if needed
         
         # We use the centralized getter to test the ACTUAL production configuration

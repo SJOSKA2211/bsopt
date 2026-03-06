@@ -2,59 +2,92 @@
 set -e
 
 # ==============================================================================
-# BS-OPT: THE GOD MODE DB DEPLOYER (v2.0)
+# BS-OPT: THE GOD MODE DB DEPLOYER (v2.1)
 # ==============================================================================
 # Orchestrates full initialization, incremental migrations, and fine-tuning.
 # ==============================================================================
 
-echo "🥒 Launching Full-Scale Manifold Deployment..."
+LOG_FILE="logs/db_deploy_$(date +%Y%m%d_%H%M%S).log"
+mkdir -p logs
+
+log() {
+    local message="[$(date +'%Y-%m-%dT%H:%M:%S%z')] $1"
+    echo "$message"
+    echo "$message" >> "$LOG_FILE"
+}
+
+log "🥒 Launching Full-Scale Manifold Deployment..."
 
 # Prioritize PG* variables for compatibility, then POSTGRES_*, then defaults
 DB_HOST=${PGHOST:-${POSTGRES_HOST:-localhost}}
 DB_PORT=${PGPORT:-${POSTGRES_PORT:-5432}}
 DB_USER=${PGUSER:-${POSTGRES_USER:-admin}}
 DB_NAME=${PGDATABASE:-${POSTGRES_DATABASE:-bsopt}}
-
-if [ -z "$POSTGRES_PASSWORD" ] && [ -z "$PGPASSWORD" ]; then
-    echo "❌ ERROR: Neither POSTGRES_PASSWORD nor PGPASSWORD is set. Execution halted."
-    exit 1
-fi
 POSTGRES_PASSWORD=${PGPASSWORD:-$POSTGRES_PASSWORD}
 
-if ! command -v psql &> /dev/null; then
-    echo "❌ ERROR: 'psql' command not found."
+if [ -z "$POSTGRES_PASSWORD" ]; then
+    log "❌ ERROR: POSTGRES_PASSWORD is not set. Execution halted."
     exit 1
 fi
 
-# Secure password handling using PGPASSFILE
-PGPASSFILE_TMP=$(mktemp)
-chmod 0600 "$PGPASSFILE_TMP"
-echo "$DB_HOST:$DB_PORT:$DB_NAME:$DB_USER:$POSTGRES_PASSWORD" > "$PGPASSFILE_TMP"
-export PGPASSFILE="$PGPASSFILE_TMP"
+# Detect environment: Local vs Docker
+USE_DOCKER=false
+if ! command -v psql &> /dev/null; then
+    if docker ps | grep -q "bsopt-postgres-1"; then
+        log "  🥒 Local 'psql' not found. Using 'docker exec' fallback..."
+        USE_DOCKER=true
+    else
+        log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
+        exit 1
+    fi
+fi
 
-# Ensure cleanup on exit
-cleanup() {
-    rm -f "$PGPASSFILE_TMP"
+run_sql_file() {
+    local file=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i bsopt-postgres-1 psql -U "$DB_USER" -d "$DB_NAME" < "$file" >> "$LOG_FILE" 2>&1
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" >> "$LOG_FILE" 2>&1
+    fi
 }
-trap cleanup EXIT
+
+run_sql_cmd() {
+    local cmd=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i bsopt-postgres-1 psql -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+    fi
+}
 
 # Phase 1: Core Initialization
-echo "🚀 Phase 1: Core Initialization..."
+log "🚀 Phase 1: Core Initialization..."
 for script in $(find init-scripts/ -name "*.sql" | sort); do
-    echo "  📜 Running $script..."
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$script"
+    log "  📜 Running $script..."
+    if ! run_sql_file "$script"; then
+        log "  ❌ FAILED: $script"
+        exit 1
+    fi
 done
 
 # Phase 2: Incremental Migrations
-echo "🚀 Phase 2: Structural Migrations..."
-for script in $(find src/migrations/ -name "*.sql" | sort); do
-    echo "  📜 Applying $script..."
-    psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$script"
-done
+log "🚀 Phase 2: Structural Migrations..."
+if [ -d "src/migrations/" ]; then
+    for script in $(find src/migrations/ -name "*.sql" | sort); do
+        log "  📜 Applying $script..."
+        if ! run_sql_file "$script"; then
+            log "  ❌ FAILED: $script"
+            exit 1
+        fi
+    done
+else
+    log "  ⚠️  No migrations found in src/migrations/"
+fi
 
 # Phase 3: Final Fine-Tuning (Pressurizing)
-echo "🚀 Phase 3: Manifold Fine-Tuning..."
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "VACUUM (ANALYZE, VERBOSE);"
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT refresh_all_continuous_aggregates();"
+log "🚀 Phase 3: Manifold Fine-Tuning..."
+run_sql_cmd "VACUUM (ANALYZE, VERBOSE);"
+run_sql_cmd "CALL refresh_all_continuous_aggregates();"
 
-echo "✅ Full database deployment and optimization complete. Solenya-tight! 🥒"
+log "✅ Full database deployment and optimization complete. Solenya-tight! 🥒"
+log "Log written to: $LOG_FILE"

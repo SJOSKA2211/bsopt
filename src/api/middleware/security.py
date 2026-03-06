@@ -196,7 +196,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         "/docs",
         "/redoc",
         "/openapi.json",
-        "/graphql",
     }
 
     # Cookie and header names

@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_users_active_pro ON users (tier) WHERE is_active 
 
 -- 4. Advanced Composite Indexes (Enabling Index-Only Scans)
 -- Use SP-GiST for 2D-like queries on time and strike (Better for sparse spatial data like options chains)
-CREATE INDEX IF NOT EXISTS idx_options_prices_spgist_strike_time ON options_prices USING SPGIST (strike, time);
+CREATE INDEX IF NOT EXISTS idx_options_prices_gist_strike_time ON options_prices USING GIST (strike, time);
 
 -- Composite INCLUDE index for lightning-fast options chain lookups
 -- Optimized for: symbol, expiry, strike, option_type + latest time

@@ -28,9 +28,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
-    DATABASE_MIN_POOL_SIZE: int = 2
-    DATABASE_MAX_POOL_SIZE: int = 20
-    DATABASE_POOL_TIMEOUT: int = 30
+    DATABASE_MIN_POOL_SIZE: int = 5
+    DATABASE_MAX_POOL_SIZE: int = 15
+    DATABASE_POOL_TIMEOUT: int = 60
     DATABASE_POOL_RECYCLE: int = 1800
     DATABASE_POOL_PRE_PING: bool = True
     SLOW_QUERY_THRESHOLD_MS: int = 100

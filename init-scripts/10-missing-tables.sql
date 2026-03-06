@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS option_contracts (
     underlying TEXT NOT NULL,
     expiry DATE NOT NULL,
     strike NUMERIC(12, 2) NOT NULL,
-    option_type option_type NOT NULL,
+    option_type VARCHAR(4) NOT NULL CHECK (option_type IN ('call', 'put')),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
