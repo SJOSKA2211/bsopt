@@ -108,7 +108,7 @@ def test_rls_enforcement(db_engine):
         # Reset session context and set to a dummy admin or similar if needed
         # Actually, for admin to insert a specific user ID, they need to BE that user or bypass RLS.
         # Since we FORCE RLS, we must BE the user we are inserting for that specific row.
-        
+
         # 1. Setup two users and portfolios
         user_a = str(uuid4())
         user_b = str(uuid4())
@@ -166,10 +166,10 @@ def test_rls_enforcement(db_engine):
         # Reset session context
         conn.execute(text("SET app.current_user_id = ''"))
 
-        # Use a raw connection/cursor for RLS because SQLAlchemy session management 
+        # Use a raw connection/cursor for RLS because SQLAlchemy session management
         # can conflict with manual transaction control for RLS variables.
         raw_conn = conn.connection.driver_connection
-        
+
         # Prepare a non-superuser role for testing RLS
         # We use 'app_user' which we already created and granted permissions to.
 
@@ -201,4 +201,3 @@ def test_rls_enforcement(db_engine):
             assert len(rows) == 1, "User A should see 1 portfolio"
             assert str(rows[0][0]) == user_a_portfolio
             cur.execute("RESET ROLE;")
-

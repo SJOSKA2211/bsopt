@@ -1,11 +1,13 @@
 import tracemalloc
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import text
 
 from src.api.exceptions import (
     InternalServerException,  # Imported directly as it's a specific exception
 )
 from src.api.schemas.common import DataResponse, ErrorResponse
+from src.database import get_async_db, health_check
 from src.security.auth import require_tier
 
 router = APIRouter(
@@ -49,3 +51,17 @@ async def get_tracemalloc_snapshot():
         data={"top_memory_allocations": report},
         message="Tracemalloc snapshot taken successfully.",
     )
+
+
+@router.get("/database/health", response_model=DataResponse[dict])
+async def get_db_health():
+    """Detailed database health audit."""
+    return DataResponse(data=health_check(), message="Database health audit complete.")
+
+
+@router.get("/database/sluggish_queries", response_model=DataResponse[list[dict]])
+async def get_sluggish_queries(db=Depends(get_async_db)):
+    """Fetch top 20 sluggish queries from the performance manifold."""
+    result = await db.execute(text("SELECT * FROM pg_stat_sluggish_queries"))
+    queries = [dict(row._mapping) for row in result]
+    return DataResponse(data=queries, message="Sluggish queries retrieved.")

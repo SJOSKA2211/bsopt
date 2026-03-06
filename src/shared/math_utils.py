@@ -5,27 +5,32 @@ Consolidates critical numerical logic for cross-module consistency with JIT acce
 """
 
 import os
+
 import numpy as np
 
 # OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
 if os.getenv("NUMBA_DISABLE_JIT") == "1":
+
     def _njit(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):
             return args[0]
         return lambda f: f
+
     _prange = range
-    njit = _njit # For external compatibility
+    njit = _njit  # For external compatibility
     prange = _prange
 else:
     try:
+        from numba import njit, prange
         from numba import njit as _njit
         from numba import prange as _prange
-        from numba import njit, prange
     except ImportError:
+
         def _njit(*args, **kwargs):
             if len(args) == 1 and callable(args[0]):
                 return args[0]
             return lambda f: f
+
         _prange = range
         njit = _njit
         prange = _prange
@@ -39,6 +44,7 @@ CDF_A2 = -0.284496736
 CDF_A3 = 1.421413741
 CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
+
 
 @_njit
 def fast_normal_cdf(x: float) -> float:
@@ -59,13 +65,17 @@ def fast_normal_cdf(x: float) -> float:
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
 
+
 @_njit
 def fast_normal_pdf(x: float) -> float:
     """Numba-optimized Normal PDF."""
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
+
 @_njit
-def calculate_d1_d2(s: float, k: float, t: float, sigma: float, r: float, q: float) -> tuple[float, float]:
+def calculate_d1_d2(
+    s: float, k: float, t: float, sigma: float, r: float, q: float
+) -> tuple[float, float]:
     """Unified d1/d2 logic for scalar inputs."""
     if sigma <= 0 or t <= 0:
         return 0.0, 0.0
@@ -75,8 +85,11 @@ def calculate_d1_d2(s: float, k: float, t: float, sigma: float, r: float, q: flo
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
+
 @_njit
-def calculate_price_core(s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool) -> float:
+def calculate_price_core(
+    s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool
+) -> float:
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
         if is_call:
@@ -102,6 +115,7 @@ def calculate_price_core(s: float, k: float, t: float, sigma: float, r: float, q
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
+
 @_njit
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
@@ -119,18 +133,32 @@ def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_
         )
     return flat_res
 
+
 def calculate_price(s, k, t, sigma, r, q, is_call):
     """Unified Black-Scholes pricing with Scalar Fast-Path."""
-    if (np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and 
-        np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call)):
-        return calculate_price_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
+    if (
+        np.isscalar(s)
+        and np.isscalar(k)
+        and np.isscalar(t)
+        and np.isscalar(sigma)
+        and np.isscalar(r)
+        and np.isscalar(q)
+        and np.isscalar(is_call)
+    ):
+        return calculate_price_core(
+            float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call)
+        )
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     if s.size == 1:
         return calculate_price_core(
-            float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
-            float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
-            bool(is_call.flat[0])
+            float(s.flat[0]),
+            float(k.flat[0]),
+            float(t.flat[0]),
+            float(sigma.flat[0]),
+            float(r.flat[0]),
+            float(q.flat[0]),
+            bool(is_call.flat[0]),
         )
 
     original_shape = s.shape
@@ -145,8 +173,11 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
     )
     return flat_res.reshape(original_shape)
 
+
 @_njit
-def calculate_greeks_core(s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool) -> tuple[float, float, float, float, float]:
+def calculate_greeks_core(
+    s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool
+) -> tuple[float, float, float, float, float]:
     """Core Greeks for a single element."""
     if t <= 0 or sigma <= 0:
         if is_call:
@@ -157,7 +188,7 @@ def calculate_greeks_core(s: float, k: float, t: float, sigma: float, r: float, 
 
     sqrt_t = np.sqrt(t)
     d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
-    
+
     pdf_d1 = fast_normal_pdf(d1)
     cdf_d1 = fast_normal_cdf(d1)
     cdf_d2 = fast_normal_cdf(d2)
@@ -177,9 +208,12 @@ def calculate_greeks_core(s: float, k: float, t: float, sigma: float, r: float, 
         delta = exp_qT * (cdf_d1 - 1.0)
         rho = -k * t * exp_rT * (1.0 - cdf_d2) / 100.0
         theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
-        theta = (theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)) / 365.0
+        theta = (
+            theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)
+        ) / 365.0
 
     return delta, gamma, theta, vega, rho
+
 
 @_njit
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
@@ -198,18 +232,32 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
         f_delta[i], f_gamma[i], f_theta[i], f_vega[i], f_rho[i] = d, g, th, v, rh
     return f_delta, f_gamma, f_theta, f_vega, f_rho
 
+
 def calculate_greeks(s, k, t, sigma, r, q, is_call):
     """Unified Black-Scholes Greeks with Scalar Fast-Path."""
-    if (np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and 
-        np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call)):
-        return calculate_greeks_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
+    if (
+        np.isscalar(s)
+        and np.isscalar(k)
+        and np.isscalar(t)
+        and np.isscalar(sigma)
+        and np.isscalar(r)
+        and np.isscalar(q)
+        and np.isscalar(is_call)
+    ):
+        return calculate_greeks_core(
+            float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call)
+        )
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
     if s.size == 1:
         return calculate_greeks_core(
-            float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
-            float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
-            bool(is_call.flat[0])
+            float(s.flat[0]),
+            float(k.flat[0]),
+            float(t.flat[0]),
+            float(sigma.flat[0]),
+            float(r.flat[0]),
+            float(q.flat[0]),
+            bool(is_call.flat[0]),
         )
 
     original_shape = s.shape
@@ -222,9 +270,15 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         q.ravel().astype(np.float64),
         is_call.ravel().astype(np.bool_),
     )
-    
-    return (d.reshape(original_shape), g.reshape(original_shape), th.reshape(original_shape), 
-            v.reshape(original_shape), rh.reshape(original_shape))
+
+    return (
+        d.reshape(original_shape),
+        g.reshape(original_shape),
+        th.reshape(original_shape),
+        v.reshape(original_shape),
+        rh.reshape(original_shape),
+    )
+
 
 # Aliases
 calculate_price_scalar = calculate_price

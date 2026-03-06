@@ -9,8 +9,6 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-import numba
-from numba import njit, float64
 
 from .base import PricingStrategy
 from .black_scholes import BlackScholesEngine
@@ -34,7 +32,6 @@ class LatticeParameters(BSParameters):
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)
 
 
-
 def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     if T <= 0:
         if is_call:
@@ -45,13 +42,13 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     u = np.exp(sigma * np.sqrt(dt))
     d = 1.0 / u
     a = np.exp((r - q) * dt)
-    
+
     # Numerical stability guard for p
     if u == d:
         p = 0.5
     else:
         p = (a - d) / (u - d)
-        
+
     p = max(min(p, 1.0), 0.0)  # Clamp p for stability
     disc = np.exp(-r * dt)
 
@@ -76,7 +73,6 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
                 V[j] = V_new
 
     return V[0]
-
 
 
 def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
@@ -145,9 +141,7 @@ def validate_convergence(
 class LatticePricer(PricingStrategy):
     """Base class for lattice models providing common Greeks implementation."""
 
-    def calculate_greeks(
-        self, params: BSParameters, option_type: str = "call"
-    ) -> OptionGreeks:
+    def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
         Calculate Greeks using finite difference approximation.
         Suitable for lattice models where closed-form derivatives are unavailable.
@@ -176,9 +170,7 @@ class LatticePricer(PricingStrategy):
 
         # Vega
         p_v_up = self.price(BSParameters(s, k, t, v + dv, r, q), option_type)
-        p_v_down = self.price(
-            BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type
-        )
+        p_v_down = self.price(BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type)
         vega = (p_v_up - p_v_down) / (2 * dv)
 
         # Theta (using backward difference - change in price as time passes)
@@ -195,9 +187,7 @@ class LatticePricer(PricingStrategy):
 
         # Rho
         p_r_up = self.price(BSParameters(s, k, t, v, r + dr, q), option_type)
-        p_r_down = self.price(
-            BSParameters(s, k, t, v, max(0, r - dr), q), option_type
-        )
+        p_r_down = self.price(BSParameters(s, k, t, v, max(0, r - dr), q), option_type)
         rho = (p_r_up - p_r_down) / (dr * 2)
 
         return OptionGreeks(
@@ -240,7 +230,7 @@ class BinomialTreePricer(LatticePricer):
         dt = params.maturity / self.n_steps if self.n_steps > 0 else 0
         u = np.exp(params.volatility * np.sqrt(dt)) if dt > 0 else 1.0
         d = 1.0 / u
-        
+
         tree = np.zeros((self.n_steps + 1, self.n_steps + 1))
         for i in range(self.n_steps + 1):
             for j in range(i + 1):
@@ -278,7 +268,7 @@ class TrinomialTreePricer(LatticePricer):
         """Generates the spot price tree for visualization/debugging."""
         dt = params.maturity / self.n_steps if self.n_steps > 0 else 0
         dx = params.volatility * np.sqrt(3 * dt) if dt > 0 else 0
-        
+
         num_nodes = 2 * self.n_steps + 1
         tree = np.zeros((self.n_steps + 1, num_nodes))
         for i in range(self.n_steps + 1):

@@ -14,14 +14,14 @@ class Option:
     strike: float = strawberry.federation.field(shareable=True)
     expiry: date = strawberry.federation.field(shareable=True)
     option_type: str = strawberry.federation.field(shareable=True)
-    
+
     # Market Data
     bid: float | None = strawberry.federation.field(shareable=True)
     ask: float | None = strawberry.federation.field(shareable=True)
     last: float | None = strawberry.federation.field(shareable=True)
     volume: int | None = strawberry.federation.field(shareable=True)
     open_interest: int | None = strawberry.federation.field(shareable=True)
-    
+
     # Greeks (Optimized DB data types)
     implied_volatility: float | None = strawberry.federation.field(shareable=True)
     delta: float | None = strawberry.federation.field(shareable=True)
@@ -29,7 +29,7 @@ class Option:
     vega: float | None = strawberry.federation.field(shareable=True)
     theta: float | None = strawberry.federation.field(shareable=True)
     rho: float | None = strawberry.federation.field(shareable=True)
-    
+
     time: datetime = strawberry.federation.field(shareable=True)
 
     @classmethod
@@ -42,7 +42,7 @@ class Option:
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
-    user_id: strawberry.ID
+    user_id: str = strawberry.federation.field(shareable=True)
     name: str = strawberry.federation.field(shareable=True)
     cash_balance: float = strawberry.federation.field(shareable=True)
     created_at: datetime
@@ -87,6 +87,7 @@ class Query:
         """Fetch latest ML-based price prediction for a symbol"""
         # Optimized: Fetches from revamped model_predictions hypertable
         from datetime import UTC, datetime
+
         return MLPrediction(
             id=strawberry.ID("pred-123"),
             symbol=symbol,
@@ -98,9 +99,12 @@ class Query:
         )
 
     @strawberry.field
-    async def option(self, symbol: str, expiry: date, strike: float, option_type: str) -> Option | None:
+    async def option(
+        self, symbol: str, expiry: date, strike: float, option_type: str
+    ) -> Option | None:
         """Get single option by primary key components"""
         from src.api.graphql.resolvers.option_service import get_option
+
         return await get_option(symbol, expiry, strike, option_type)
 
     @strawberry.field
@@ -125,7 +129,10 @@ class Query:
             cursor=after,
         )
 
-        edges = [OptionEdge(cursor=f"{res.symbol}_{res.expiry}_{res.strike}_{res.option_type}", node=res) for res in results]
+        edges = [
+            OptionEdge(cursor=f"{res.symbol}_{res.expiry}_{res.strike}_{res.option_type}", node=res)
+            for res in results
+        ]
 
         return OptionConnection(
             edges=edges,

@@ -14,8 +14,9 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
+import orjson
 import structlog
-from sqlalchemy import and_, func, insert, select, text, update
+from sqlalchemy import and_, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -62,7 +63,7 @@ async def create_user(db: AsyncSession, email: str, password: str, full_name: st
     # Retrieve the created user
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         raise ValueError("Failed to retrieve created user")
 
@@ -626,7 +627,6 @@ async def bulk_insert_option_prices(db: AsyncSession, prices_data: list[dict]) -
             """  # nosec B608
             await db.execute(text(query))
 
-            await db.execute(text(query))
             await db.commit()
             return len(prices_data)
         # [FALLBACK]
@@ -667,10 +667,10 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
                 for row in ticks_data
             ]
 
-            # 1. Create temporary staging table
+            # 1. Create temporary staging table (Lean: No indexes/constraints)
             await db.execute(
                 text(
-                    "CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks INCLUDING ALL) ON COMMIT DROP"
+                    "CREATE TEMP TABLE staging_market_ticks (LIKE market_ticks) ON COMMIT DROP"
                 )
             )
 
@@ -690,7 +690,6 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
             """  # nosec B608
             await db.execute(text(query))
 
-            await db.execute(text(query))
             await db.commit()
             return len(ticks_data)
         await db.execute(insert(MarketTick), ticks_data)
@@ -729,8 +728,6 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            import orjson
-
             records = [
                 (
                     row.get("id") or uuid4(),
@@ -794,8 +791,6 @@ async def bulk_insert_request_logs(db: AsyncSession, logs_data: list[dict]) -> i
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
-            import orjson
-
             records = [
                 (
                     row.get("id") or uuid4(),
@@ -841,8 +836,6 @@ async def get_portfolio_summary(db: AsyncSession, user_id: UUID) -> list[dict]:
     Get portfolio summary using the optimized materialized view.
     """
     try:
-        from sqlalchemy import text
-
         result = await db.execute(
             text("SELECT * FROM portfolio_summary_mv WHERE user_id = :uid"),
             {"uid": user_id},
@@ -859,8 +852,6 @@ async def get_user_trading_stats(db: AsyncSession, user_id: UUID) -> dict:
     Get trading statistics for a user using the optimized materialized view.
     """
     try:
-        from sqlalchemy import text
-
         result = await db.execute(
             text("SELECT * FROM trading_stats_mv WHERE user_id = :uid"),
             {"uid": user_id},
@@ -898,8 +889,6 @@ async def get_market_statistics(db: AsyncSession, symbol: str, limit: int = 30) 
     Fetch pre-aggregated daily market statistics from the continuous aggregate.
     """
     try:
-        from sqlalchemy import text
-
         result = await db.execute(
             text(
                 """
@@ -926,8 +915,6 @@ async def get_daily_ohlcv(db: AsyncSession, symbol: str, days: int = 90) -> list
     Fetch daily stats data from TimescaleDB continuous aggregate.
     """
     try:
-        from sqlalchemy import text
-
         # Corrected interval binding
         result = await db.execute(
             text(
@@ -955,8 +942,6 @@ async def get_iv_surface(db: AsyncSession, symbol: str, days: int = 7) -> list[d
     Optimized for 3D surface plotting (Time x IV).
     """
     try:
-        from sqlalchemy import text
-
         result = await db.execute(
             text(
                 """
@@ -982,8 +967,6 @@ async def get_hourly_market_stats(db: AsyncSession, symbol: str, hours: int = 24
     Fetch hourly market stats from continuous aggregates.
     """
     try:
-        from sqlalchemy import text
-
         result = await db.execute(
             text(
                 """
@@ -1009,8 +992,6 @@ async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None
     Fetch pre-aggregated drift metrics from the materialized view.
     """
     try:
-        from sqlalchemy import text
-
         query = "SELECT * FROM model_drift_metrics_mv"
         params = {}
         if model_id:

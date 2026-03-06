@@ -123,13 +123,13 @@ class DatabaseDataLoader:
         Fetch a full training set for a symbol using high-speed binary retrieval.
         """
         from src.database.pipeliner import db_engine
-        
+
         async with db_engine as db:
             data = await db.fetch_training_data([symbol], limit=self.chunk_size)
-            
+
             if not data:
                 return pd.DataFrame()
-                
+
             df = pd.DataFrame(data)
             return await feature_store.compute_features(df, ["log_return"])
 
@@ -148,7 +148,7 @@ class AIOpsDataLoader:
         Fetch latency and status code metrics for anomaly detection.
         """
         from src.database.pipeliner import db_engine
-        
+
         # Optimized query using TimescaleDB hyper-functions for bucketing
         query = f"""
             SELECT 
@@ -162,11 +162,11 @@ class AIOpsDataLoader:
             ORDER BY bucket ASC
             LIMIT {self.limit}
         """
-        
+
         async with db_engine as db:
             if not db._pool:
                 await db.connect()
-            
+
             async with db._pool.acquire() as conn:
                 records = await conn.fetch(query)
                 if not records:

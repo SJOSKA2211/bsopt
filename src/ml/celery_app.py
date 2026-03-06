@@ -29,8 +29,8 @@ def run_pipeline_task(self, config: dict[str, Any]):
     Celery task to run the autonomous ML pipeline.
     """
     logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
+    pipeline = MLPipeline(config)
     try:
-        pipeline = MLPipeline(config)
         import asyncio
 
         model = asyncio.run(pipeline.run())
@@ -48,3 +48,9 @@ def run_pipeline_task(self, config: dict[str, Any]):
         logger.error("celery_task_failed", error=str(e), task_id=self.request.id)
         # Re-raise so Celery marks it as failed
         raise e
+    finally:
+        import asyncio
+        try:
+            asyncio.run(pipeline.shutdown())
+        except Exception:
+            pass

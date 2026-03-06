@@ -33,8 +33,15 @@ def get_redis() -> Redis | None:
         from src.config import settings
 
         try:
-            _redis = Redis.from_url(settings.REDIS_URL, decode_responses=False)
-            logger.info("redis_client_initialized", url=settings.REDIS_URL)
+            _redis = Redis.from_url(
+                settings.REDIS_URL,
+                decode_responses=False,
+                max_connections=50,
+                socket_connect_timeout=5,
+                socket_keepalive=True,
+                retry_on_timeout=True,
+            )
+            logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=50)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
             return None
@@ -262,19 +269,23 @@ class RateLimiter:
                 if results[0] <= (limit + config.burst_size):
                     return True
             except Exception as e:
-                logger.warning("redis_rate_limit_check_failed_falling_back", error=str(e), user_id=user_id)
+                logger.warning(
+                    "redis_rate_limit_check_failed_falling_back", error=str(e), user_id=user_id
+                )
 
         # 2. Secondary: Optimized Postgres Unlogged Table (Highly Robust)
         # Prevents total bypass if Redis is unavailable or during cold restarts.
         try:
-            from src.database import get_async_db_context
+            from datetime import UTC, datetime
+
             from sqlalchemy import text
-            from datetime import datetime, UTC
-            
+
+            from src.database import get_async_db_context
+
             # Simple window-based check mirroring Redis logic
             now = datetime.now(UTC)
             window_start = now.replace(second=0, microsecond=0)
-            
+
             async with get_async_db_context() as db:
                 # Optimized native query for unlogged rate_limits table
                 stmt = text("""
@@ -284,21 +295,27 @@ class RateLimiter:
                     DO UPDATE SET request_count = rate_limits.request_count + 1
                     RETURNING request_count;
                 """)
-                result = await db.execute(stmt, {"uid": user_id, "ep": endpoint, "ws": window_start})
+                result = await db.execute(
+                    stmt, {"uid": user_id, "ep": endpoint, "ws": window_start}
+                )
                 count = result.scalar()
                 await db.commit()
-                
+
                 # Use default free tier limits for DB fallback safety if config not resolved
-                db_limit = 100 
+                db_limit = 100
                 if isinstance(tier, RateLimitTier):
                     config = RATE_LIMIT_CONFIGS[tier]
-                    db_limit = config.pricing_requests_per_minute if "price" in endpoint.lower() else config.requests_per_minute
-                
+                    db_limit = (
+                        config.pricing_requests_per_minute
+                        if "price" in endpoint.lower()
+                        else config.requests_per_minute
+                    )
+
                 return bool(count <= db_limit)
-                
+
         except Exception as e:
             logger.error("db_rate_limit_fallback_failed", error=str(e), user_id=user_id)
-            return True # Fail open
+            return True  # Fail open
 
 
 rate_limiter = RateLimiter()

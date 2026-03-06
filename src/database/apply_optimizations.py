@@ -1,10 +1,12 @@
 import os
 import subprocess
 from urllib.parse import urlparse
+
 import structlog
 from dotenv import load_dotenv
 
 logger = structlog.get_logger()
+
 
 def apply_database_optimizations():
     """
@@ -34,7 +36,7 @@ def apply_database_optimizations():
         "init-scripts/06-compression-retention.sql",
         "init-scripts/07-continuous-aggregates.sql",
         "init-scripts/08-materialized-views.sql",
-        "init-scripts/09-security.sql"
+        "init-scripts/09-security.sql",
     ]
 
     for script in optimization_scripts:
@@ -44,11 +46,16 @@ def apply_database_optimizations():
 
         cmd = [
             "psql",
-            "-h", str(db_host),
-            "-p", str(db_port),
-            "-U", str(db_user),
-            "-d", str(db_name),
-            "-f", script,
+            "-h",
+            str(db_host),
+            "-p",
+            str(db_port),
+            "-U",
+            str(db_user),
+            "-d",
+            str(db_name),
+            "-f",
+            script,
         ]
 
         logger.info("applying_optimization_phase", script=script)
@@ -61,6 +68,7 @@ def apply_database_optimizations():
                 logger.error("optimization_phase_failed", script=script, error=e.stderr)
 
     logger.info("all_optimizations_pressurized", status="solenya_tight")
+
 
 if __name__ == "__main__":
     apply_database_optimizations()

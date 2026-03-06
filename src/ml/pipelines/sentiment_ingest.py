@@ -12,6 +12,7 @@ logger = structlog.get_logger(__name__)
 try:
     from confluent_kafka import Consumer, Producer
 except ImportError:
+
     class Producer:
         pass
 

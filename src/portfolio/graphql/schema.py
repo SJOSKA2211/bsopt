@@ -14,7 +14,7 @@ class Option:
 
 @strawberry.type
 class Position:
-    id: strawberry.ID
+    id: strawberry.ID = strawberry.federation.field(shareable=True)
     contract_symbol: str
     quantity: int
     entry_price: float
@@ -26,7 +26,7 @@ class Position:
 
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
-    id: strawberry.ID
+    id: strawberry.ID = strawberry.federation.field(shareable=True)
     user_id: str = strawberry.federation.field(shareable=True)
     cash_balance: float = strawberry.federation.field(shareable=True)
     balance: float = strawberry.federation.field(shareable=True)
@@ -41,8 +41,8 @@ class Portfolio:
 
 @strawberry.type
 class Order:
-    id: strawberry.ID
-    portfolio_id: strawberry.ID
+    id: strawberry.ID = strawberry.federation.field(shareable=True)
+    portfolio_id: strawberry.ID = strawberry.federation.field(shareable=True)
     contract_symbol: str
     side: str  # BUY/SELL
     quantity: int

@@ -42,7 +42,9 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
         trajectories = pickle.load(f)  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True)
+    loader = DataLoader(
+        dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=True
+    )
 
     device = th.device("cuda" if th.cuda.is_available() else "cpu")
     model = DecisionTransformer(state_dim=100, action_dim=10).to(device)
@@ -87,11 +89,11 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
                     loss = criterion(action_preds, actions)
 
                 scaler.scale(loss).backward()
-                
+
                 # Gradient Clipping for stability
                 scaler.unscale_(optimizer)
                 th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                
+
                 scaler.step(optimizer)
                 scaler.update()
 
@@ -99,10 +101,10 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
 
             duration = time.time() - start_time
             avg_loss = epoch_loss / len(loader)
-            
+
             mlflow.log_metric("loss", avg_loss, step=epoch)
             mlflow.log_metric("epoch_duration", duration, step=epoch)
-            
+
             logger.info("epoch_completed", epoch=epoch, loss=avg_loss, duration=round(duration, 2))
 
         mlflow.pytorch.log_model(model, "decision_transformer_v2")

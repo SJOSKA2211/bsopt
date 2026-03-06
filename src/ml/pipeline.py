@@ -17,10 +17,10 @@ import ray
 import structlog
 from ray import tune
 from ray.tune.search.optuna import OptunaSearch
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import func, select
 
 from src.config import get_settings
-from src.database import get_async_db_context
+from src.database import dispose_engine, get_async_db_context, get_engine
 from src.database.models import ModelPrediction
 from src.ml.drift import DriftTrigger, PerformanceDriftMonitor
 from src.ml.indicators import (
@@ -68,11 +68,15 @@ class MLPipeline:
         self.framework = self.config.get("framework", "xgboost")
 
         # Database
-        sync_url = self.settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
-        self.engine = create_engine(sync_url)
+        self.engine = get_engine()
 
         self.drift_trigger = DriftTrigger(self.config)
         self.performance_monitor = PerformanceDriftMonitor()
+
+    async def shutdown(self):
+        """Gracefully shutdown the pipeline and dispose of engines."""
+        await dispose_engine()
+        logger.info("ml_pipeline_shutdown_complete")
 
     async def get_current_model_performance(self, session) -> float | None:
         """Fetches the average accuracy of the current model from recent predictions."""
@@ -188,7 +192,7 @@ class MLPipeline:
                         "JWT_SECRET": self.settings.JWT_SECRET,
                         "INSIDE_DOCKER": "1",
                     }
-                }
+                },
             )
 
         framework = self.config.get("framework", "xgboost")
@@ -217,6 +221,7 @@ class MLPipeline:
         def train_func(config):
             # Static instantiation inside the worker
             from src.ml.trainer import ModelTrainer
+
             trainer = ModelTrainer(study_name)
             score = trainer.train_and_evaluate(x, y, config)
             tune.report(mean_score=score)
@@ -290,7 +295,9 @@ class MLPipeline:
 
         market_data_records = [
             {
-                "time": pd.to_datetime(ts, unit="s", utc=True) if isinstance(ts, int | float) else pd.to_datetime(ts),
+                "time": pd.to_datetime(ts, unit="s", utc=True)
+                if isinstance(ts, int | float)
+                else pd.to_datetime(ts),
                 "symbol": self.ticker,
                 "price": float(c),
                 "volume": int(v),

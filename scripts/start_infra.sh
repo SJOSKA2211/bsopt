@@ -9,4 +9,12 @@ cd "$PROJECT_ROOT"
 echo " Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
 docker-compose -f docker-compose.dev.yml up -d postgres redis rabbitmq
 
-echo "✅ Infrastructure containers launched."
+echo "⌛ Waiting for database to stabilize..."
+sleep 5
+
+# Run BSOpt Verification
+echo "🥒 Running God-Mode Manifold Audit..."
+export PYTHONPATH=$PROJECT_ROOT
+python3 -m src.database.verify
+
+echo "✅ Infrastructure containers launched and audited."

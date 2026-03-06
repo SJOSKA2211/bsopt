@@ -2,46 +2,27 @@
 Authentication Routes (Optimized for PG16 + Async)
 """
 
-import binascii
-import hashlib
 import logging
-import secrets
-import string
-from datetime import UTC, datetime, timedelta
-from uuid import UUID
 
-from cryptography.fernet import Fernet
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.exceptions import (
-    AuthenticationException,
-    NotFoundException,
-    ValidationException,
-    ConflictException
-)
+from src.api.exceptions import AuthenticationException, ConflictException, ValidationException
 from src.api.schemas.auth import (
-    EmailVerificationRequest,
     LoginRequest,
-    MFASetupResponse,
     MFAVerifyRequest,
     PasswordChangeRequest,
     PasswordResetConfirmRequest,
     PasswordResetRequest,
-    RefreshTokenRequest,
     RegisterRequest,
-    TokenResponse,
 )
-from src.api.schemas.common import DataResponse
-from src.config import settings
 from src.database import get_async_db, set_user_context
 from src.database.models import User
 from src.security.auth import (
     auth_service,
     get_current_active_user,
     get_current_user,
-    token_blacklist,
 )
 from src.security.password import password_service
 from src.security.rate_limit import rate_limit
@@ -103,13 +84,13 @@ async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends
             {"email": data.email, "password": data.password},
         )
         row = result.fetchone()
-        
+
         if not row:
             raise AuthenticationException(message="Invalid email or password")
 
         # row mapping: (id, email, tier, is_active)
         user_id, email, tier, is_active = row
-        
+
         # 2. Sync session context for RLS
         await set_user_context(db, str(user_id))
         await db.commit()
@@ -181,6 +162,7 @@ async def reset_password_confirm(data: PasswordResetConfirmRequest):
 # ---------------------------------------------------------------------------
 # Internal Helpers (Mocked/Stubs for test compatibility)
 # ---------------------------------------------------------------------------
+
 
 async def _send_verification_email(email: str, token: str):
     """Stub for sending verification email."""

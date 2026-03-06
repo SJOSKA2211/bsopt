@@ -3,10 +3,9 @@ User Management Routes (Optimized & Async)
 """
 
 import math
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.schemas.common import (
@@ -42,12 +41,12 @@ async def update_current_user_profile(
     """
     # 1. Set RLS context
     await set_user_context(db, str(user.id))
-    
+
     if update_data.full_name is not None:
         user.full_name = update_data.full_name
 
     try:
-        db.add(user) # In async, we ensure object is in session
+        db.add(user)  # In async, we ensure object is in session
         await db.commit()
         await db.refresh(user)
     except Exception as e:
@@ -62,11 +61,7 @@ async def update_current_user_profile(
     response_model=PaginatedResponse[UserResponse],
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
-async def list_users(
-    db: AsyncSession = Depends(get_async_db), 
-    page: int = 1, 
-    page_size: int = 20
-):
+async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20):
     """
     List users (Restricted to High-Tier/Admin).
     """

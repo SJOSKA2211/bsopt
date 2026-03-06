@@ -94,3 +94,26 @@ SELECT
 FROM pg_stat_user_indexes
 JOIN pg_index ON pg_stat_user_indexes.indexrelid = pg_index.indexrelid
 WHERE pg_relation_size(pg_index.indexrelid) > 1024 * 1024; -- Only check indexes > 1MB
+
+-- 8. Wait Event Diagnostic (PG16)
+-- Helps identify why queries are waiting (I/O, locks, CPU, etc.)
+CREATE OR REPLACE VIEW pg_stat_wait_events AS
+SELECT 
+    wait_event_type, 
+    wait_event, 
+    count(*) as count 
+FROM pg_stat_activity 
+WHERE wait_event IS NOT NULL 
+GROUP BY wait_event_type, wait_event 
+ORDER BY count DESC;
+
+-- 9. Table Bloat Estimation (Rough estimate)
+CREATE OR REPLACE VIEW pg_stat_bloat_estimation AS
+SELECT
+    schemaname, relname, 
+    n_dead_tup, 
+    n_live_tup,
+    ROUND(n_dead_tup::numeric / (n_live_tup + n_dead_tup + 1), 4) AS bloat_ratio
+FROM pg_stat_all_tables
+WHERE (n_live_tup + n_dead_tup) > 1000
+ORDER BY bloat_ratio DESC;

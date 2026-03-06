@@ -71,7 +71,7 @@ class PersistenceWorker:
                     # 2. Historical DB Persistence (Binary COPY protocol)
                     now_utc = datetime.now(UTC)
                     today_date = now_utc.date()
-                    
+
                     # Convert to tuples for asyncpg COPY
                     transformed = [
                         (
@@ -83,11 +83,11 @@ class PersistenceWorker:
                             item["price"],
                             item.get("delta"),
                             item.get("gamma"),
-                            item.get("implied_volatility", 0.0)
+                            item.get("implied_volatility", 0.0),
                         )
                         for item in batch
                     ]
-                    
+
                     await db.insert_prices_vectorized(transformed)
                 except Exception as e:
                     logger.error("persistence_batch_failed", error=str(e))
@@ -131,7 +131,7 @@ class IngestionWorker:
         # Launch specialized threads/tasks
         asyncio.create_task(self.scribe.run())
         asyncio.create_task(self.broadcaster.run())
-        
+
         # Start consuming (blocking)
         while self.running:
             try:

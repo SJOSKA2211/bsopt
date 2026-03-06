@@ -9,11 +9,13 @@ import time
 
 import structlog
 
+from src.utils.celery import BaseAsyncTask
 from src.utils.lazy_import import lazy_import
 
 from .celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
+
 
 
 # Lazy Import Map
@@ -22,6 +24,7 @@ _IMPORT_MAP = {
     "np": "numpy",
     "BacktestEngine": "src.portfolio.engine.BacktestEngine",
     "OrderExecutor": "src.trading.execution.OrderExecutor",
+    "IncrementalDeltaTracker": "src.trading.risk_kernels.IncrementalDeltaTracker",
     "validate_risk": "src.trading.risk_kernels._validate_order_kernel",
     "validate_delta": "src.trading.risk_kernels._validate_delta_exposure_kernel",
 }
@@ -31,7 +34,7 @@ def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
 
 
-@celery_app.task(bind=True, queue="trading")
+@celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
 def execute_trade_task(self, order: dict):
     """
     Async task to execute a real trade using the Solenya-hardened executor.
@@ -49,10 +52,8 @@ def execute_trade_task(self, order: dict):
     executor = OrderExecutor(protocol=protocol)
 
     try:
-        import asyncio
-
         # Dispatch to real executor which handles risk and chain interaction
-        result = asyncio.run(executor.execute_order(order))
+        result = self.run_async(executor.execute_order(order))
 
         return {
             "task_id": self.request.id,
@@ -67,35 +68,56 @@ def execute_trade_task(self, order: dict):
         return {"status": "failed", "error": str(e)}
 
 
-@celery_app.task(bind=True, queue="trading")
+async def get_persistent_delta_tracker():
+    """Retrieve or initialize IncrementalDeltaTracker with Redis-backed state."""
+    from src.config import get_settings
+    from src.utils.cache import get_redis
+
+    settings = get_settings()
+    redis = get_redis()
+
+    current_delta = 0.0
+    if redis:
+        val = await redis.get("portfolio_net_delta")
+        if val:
+            current_delta = float(val)
+
+    IncrementalDeltaTracker = _get_attr("IncrementalDeltaTracker")
+    return IncrementalDeltaTracker(
+        initial_delta=current_delta, max_net_delta=settings.MAX_NET_DELTA
+    )
+
+
+@celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
 def check_risk_limits(self, portfolio_id: str):
-    """Checks portfolio-wide risk limits (Delta, Net Exposure)."""
-    logger.info("checking_risk_limits_calculation", portfolio_id=portfolio_id)
+    """Checks portfolio-wide risk limits using IncrementalDeltaTracker."""
+    logger.info("checking_risk_limits_incremental", portfolio_id=portfolio_id)
 
-    validate_delta = _get_attr("validate_delta")
-    np = _get_attr("np")
+    try:
+        tracker = self.run_async(get_persistent_delta_tracker())
 
-    # Mock portfolio exposure for demonstration
-    # In production, this would query TimescaleDB or Redis state
-    current_deltas = np.random.normal(0, 100, 50)
-    max_delta = 5000.0
+        # Periodic "Full Sync" check: Compare with source of truth (Simulated)
+        # In prod, this would query Postgres: SELECT SUM(delta * quantity) FROM positions
+        np = _get_attr("np")
+        actual_delta = float(np.sum(np.random.normal(0, 100, 50)))  # Simulated sync
 
-    is_safe = validate_delta(current_deltas, 0.0, max_delta) == 1
+        # Detect drift and reset
+        if abs(tracker.current_net_delta - actual_delta) > 1.0:
+            logger.info("delta_tracker_sync", old=tracker.current_net_delta, new=actual_delta)
+            tracker.reset(actual_delta)
 
-    if not is_safe:
-        logger.warning(
-            "portfolio_risk_limit_exceeded",
-            portfolio_id=portfolio_id,
-            net_delta=np.sum(current_deltas),
-        )
+        is_safe = abs(tracker.current_net_delta) <= tracker.max_net_delta
 
-    return {
-        "status": "success",
-        "portfolio_id": portfolio_id,
-        "within_limits": is_safe,
-        "net_delta": float(np.sum(current_deltas)),
-        "timestamp": time.time(),
-    }
+        return {
+            "status": "success",
+            "portfolio_id": portfolio_id,
+            "within_limits": is_safe,
+            "net_delta": tracker.current_net_delta,
+            "timestamp": time.time(),
+        }
+    except Exception as e:
+        logger.error("risk_check_failed", error=str(e))
+        return {"status": "failed", "error": str(e)}
 
 
 @celery_app.task(bind=True, queue="trading")

@@ -26,10 +26,19 @@ class OrderExecutor:
     async def execute_order(
         self, params: dict[str, Any], max_slippage_pct: float = 0.5
     ) -> dict[str, Any]:
-        """Execute a signed transaction with pre-trade risk validation."""
+        """Execute a signed transaction with pre-trade risk validation and state persistence."""
         async with self._execution_lock:
             start_time = time.time()
             try:
+                # 0. Sync Delta Tracker with Redis (Atomic state management)
+                from src.utils.cache import get_redis
+
+                redis = get_redis()
+                if redis:
+                    cached_delta = await redis.get("portfolio_net_delta")
+                    if cached_delta:
+                        self._delta_tracker.reset(float(cached_delta))
+
                 # 1. Pre-Trade Risk Validation
                 from src.trading.risk_kernels import _validate_order_kernel
 
@@ -53,13 +62,19 @@ class OrderExecutor:
                     )
                     return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
 
-                # 3. Extract params for execution
+                # 3. Persist new state to Redis
+                if redis:
+                    await redis.set(
+                        "portfolio_net_delta", str(self._delta_tracker.current_net_delta)
+                    )
+
+                # 4. Extract params for execution
                 contract_address = params.get("contract_address")
 
-                # 2. Check Circuit Breaker
+                # 5. Check Circuit Breaker
                 await self.protocol._check_circuit()
 
-                # 3. Dispatch real transaction
+                # 6. Dispatch real transaction
                 tx_hash = await self.protocol.buy_option(
                     contract_address=contract_address,
                     amount=quantity,

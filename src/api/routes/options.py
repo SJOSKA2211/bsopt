@@ -5,11 +5,10 @@ Optimized for high-performance database retrieval.
 
 from datetime import date, timedelta
 from typing import Any
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 
 from src.api.schemas.common import DataResponse
 from src.database import get_async_db
@@ -32,7 +31,7 @@ async def get_options_chain(
     # 1. Attempt real DB lookup
     try:
         stmt = select(OptionPrice).where(OptionPrice.symbol == symbol)
-        
+
         # Simple date logic for expiry filters
         today = date.today()
         if expiry == "week":
@@ -41,12 +40,12 @@ async def get_options_chain(
             stmt = stmt.where(OptionPrice.expiry <= today + timedelta(days=30))
         elif expiry == "quarter":
             stmt = stmt.where(OptionPrice.expiry <= today + timedelta(days=90))
-            
+
         stmt = stmt.order_by(OptionPrice.expiry.asc(), OptionPrice.strike.asc())
-        
+
         result = await db.execute(stmt)
         prices = result.scalars().all()
-        
+
         if prices:
             return DataResponse(
                 data=[
@@ -67,13 +66,13 @@ async def get_options_chain(
                         "vega": p.vega,
                         "theta": p.theta,
                         "rho": p.rho,
-                        "time": p.time.isoformat()
+                        "time": p.time.isoformat(),
                     }
                     for p in prices
                 ],
-                message="Real-time manifold data"
+                message="Real-time manifold data",
             )
-    except Exception as e:
+    except Exception:
         # Fallback to synthetic if DB is empty/fails in dev
         pass
 
