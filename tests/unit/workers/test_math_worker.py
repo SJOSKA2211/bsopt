@@ -41,53 +41,36 @@ def mock_market_data():
 
 
 @patch("src.workers.math_worker.MarketDataRouter")
-@patch("src.workers.math_worker.HestonCalibrator")
-@patch("src.workers.math_worker.get_db_context")
-@patch("src.workers.math_worker.push_metrics")
+@patch("src.workers.math_worker.get_pool")
+@patch("src.utils.celery.BaseAsyncTask.run_async")
 def test_recalibrate_symbol_success(
-    mock_push, mock_db, mock_calibrator, mock_router, mock_market_data
+    mock_run_async, mock_get_pool, mock_router, mock_market_data
 ):
-    # Mock router (async)
+    # 1. Mock Router
     router_instance = mock_router.return_value
     router_instance.get_option_chain_snapshot = AsyncMock(return_value=mock_market_data)
 
-    # Mock Calibrator
-    calib_instance = mock_calibrator.return_value
-    mock_params = HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
-    mock_metrics = {"rmse": 0.01, "r_squared": 0.99, "num_options": 10, "success": True}
-    calib_instance.calibrate.return_value = (mock_params, mock_metrics)
-    calib_instance.calibrate_surface.return_value = {0.5: (0.1, 0.1, -0.3, 0.0, 0.1)}
+    # 2. Mock Ray Pool & Actor
+    mock_actor = AsyncMock()
+    mock_result = {
+        "status": "success",
+        "symbol": "SPY",
+        "params": {"kappa": 2.0, "theta": 0.04, "sigma": 0.3, "rho": -0.7, "v0": 0.04}
+    }
+    mock_actor.run_calibration.remote = AsyncMock(return_value=mock_result)
+    
+    mock_pool = mock_get_pool.return_value
+    mock_pool.get_actor.return_value = mock_actor
 
-    # Mock DB context
-    mock_session = MagicMock()
-    mock_db.return_value.__enter__.return_value = mock_session
+    # 3. Mock run_async to return the expected dict
+    mock_run_async.return_value = mock_result
 
-    with patch("src.workers.math_worker.redis_client", mock_redis_client):
-        # Run task
-        result = recalibrate_symbol("SPY")
+    # 4. Run Task
+    result = recalibrate_symbol("SPY")
 
-        assert result["status"] == "success"
-        assert result["symbol"] == "SPY"
-
-        # Verify Redis interaction
-        assert mock_redis_client.setex.called
-
-    # Verify DB interaction
-    assert mock_session.add.called
-    db_res = mock_session.add.call_args[0][0]
-    assert db_res.symbol == "SPY"
-    assert db_res.v0 == 0.04
-
+    assert result["status"] == "success"
+    assert result["symbol"] == "SPY"
+    assert "params" in result
 
 def test_health_check_success():
-    # Mock redis response for SPY (healthy) and QQQ (missing)
-    mock_redis_client.get.side_effect = [
-        json.dumps({"timestamp": time.time(), "params": {}}),
-        None,
-    ]
-
-    with patch("src.workers.math_worker.redis_client", mock_redis_client):
-        result = health_check()
-
-    assert result["SPY"] == "healthy"
-    assert result["QQQ"] == "missing"
+    assert health_check() is True

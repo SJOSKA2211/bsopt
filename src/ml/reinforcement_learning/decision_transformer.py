@@ -98,6 +98,8 @@ class DecisionTransformer(nn.Module):
             nn.Linear(n_inner, action_dim),
             nn.Tanh(),  # Normalized action space (-1, 1)
         )
+        self.predict_state = nn.Linear(n_inner, state_dim)
+        self.predict_return = nn.Linear(n_inner, 1)
 
     def forward(self, states, actions, returns_to_go, timesteps):
         # states: [batch, seq_len, state_dim]
@@ -129,8 +131,15 @@ class DecisionTransformer(nn.Module):
         for block in self.blocks:
             x = block(x, mask=True)  # mask=True triggers causal attention in sdp
 
-        # 4. Extract state representations (Index 1, 4, 7... of the 3*seq_len sequence)
-        x = x.reshape(batch_size, seq_len, 3, -1)[:, :, 1, :]
-        action_preds = self.predict_action(x)
+        # 4. Extract representations and Predict
+        # Sequence: [R1, S1, A1, R2, S2, A2, ...]
+        x_reshaped = x.reshape(batch_size, seq_len, 3, -1)
+        
+        # Predict action given (R, S) -> output at S
+        action_preds = self.predict_action(x_reshaped[:, :, 1, :])
+        
+        # Predict state/return given (R, S, A) -> output at A
+        state_preds = self.predict_state(x_reshaped[:, :, 2, :])
+        return_preds = self.predict_return(x_reshaped[:, :, 2, :])
 
-        return action_preds
+        return state_preds, action_preds, return_preds

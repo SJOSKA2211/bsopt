@@ -7,23 +7,28 @@ from typing import Any
 import redis.asyncio as redis
 import structlog
 from fastapi import WebSocket
-from prometheus_client import Counter, Gauge  # Import Prometheus client metrics
+from prometheus_client import REGISTRY, Counter, Gauge  # Import Prometheus client metrics
 
 from .codec import ProtocolType, WebSocketCodec
 
 logger = structlog.get_logger()
 
-# Prometheus Metrics
-WEBSOCKET_CONNECTIONS_TOTAL = Counter(
+# Prometheus Metrics (Idempotent for tests)
+def _get_metric(cls, name, documentation):
+    if name in REGISTRY._names_to_collectors:
+        return REGISTRY._names_to_collectors[name]
+    return cls(name, documentation)
+
+WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(Counter,
     "websocket_connections_total", "Total number of WebSocket connections"
 )
-WEBSOCKET_DISCONNECTIONS_TOTAL = Counter(
+WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(Counter,
     "websocket_disconnections_total", "Total number of WebSocket disconnections"
 )
-WEBSOCKET_ACTIVE_CONNECTIONS = Gauge(
+WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(Gauge,
     "websocket_active_connections", "Current number of active WebSocket connections"
 )
-WEBSOCKET_MESSAGES_SENT_TOTAL = Counter(
+WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(Counter,
     "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
 )
 
@@ -55,7 +60,7 @@ class ConnectionManager:
         redis_fallback = "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
 
         redis_url = os.environ.get("REDIS_URL") or redis_fallback
-        self.redis = redis.from_url(redis_url, encoding=None, decode_responses=False)
+        self.redis = redis.from_url(redis_url, encoding="utf-8", decode_responses=False)
         self.pubsub = self.redis.pubsub()
         self._listener_task = None
 
