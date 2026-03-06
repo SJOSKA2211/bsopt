@@ -80,11 +80,11 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
-@njit(cache=True, inline='always')
+@njit(cache=True)
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
-    flat_res = np.arange(n) * 0.0
+    flat_res = np.zeros(n, dtype=np.float64)
     for i in prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
@@ -164,11 +164,11 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized Greeks calculation."""
     n = len(flat_s)
-    f_delta = np.arange(n) * 0.0
-    f_gamma = np.arange(n) * 0.0
-    f_theta = np.arange(n) * 0.0
-    f_vega = np.arange(n) * 0.0
-    f_rho = np.arange(n) * 0.0
+    f_delta = np.zeros(n, dtype=np.float64)
+    f_gamma = np.zeros(n, dtype=np.float64)
+    f_theta = np.zeros(n, dtype=np.float64)
+    f_vega = np.zeros(n, dtype=np.float64)
+    f_rho = np.zeros(n, dtype=np.float64)
 
     for i in prange(n):
         d, g, th, v, rh = calculate_greeks_core(

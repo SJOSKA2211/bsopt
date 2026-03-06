@@ -3,6 +3,11 @@ import pytest
 from src.shared.math_utils import _vec_price_impl
 
 def test_minimal_jit_vec():
+    import os
+    from src.shared.math_utils import _vec_price_impl, calculate_price_core
+    print(f"\nNUMBA_DISABLE_JIT: {os.getenv('NUMBA_DISABLE_JIT')}")
+    print(f"type(_vec_price_impl): {type(_vec_price_impl)}")
+    print(f"type(calculate_price_core): {type(calculate_price_core)}")
     S = np.array([100.0], dtype=np.float64)
     K = np.array([100.0], dtype=np.float64)
     T = np.array([1.0], dtype=np.float64)
