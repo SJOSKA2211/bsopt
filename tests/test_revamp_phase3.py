@@ -149,5 +149,3 @@ class TestRevampPhase3:
 
         await protocol.watch_mempool(mock_callback, iterations=2)
         assert mock_callback.call_count == 2
-
-

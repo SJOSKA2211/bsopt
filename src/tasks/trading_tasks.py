@@ -17,7 +17,6 @@ from .celery_app import celery_app
 logger = structlog.get_logger(__name__)
 
 
-
 # Lazy Import Map
 _IMPORT_MAP = {
     "pd": "pandas",

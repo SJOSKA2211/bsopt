@@ -1,15 +1,18 @@
 import os
-import ray
-import structlog
 from typing import Any
 
+import ray
+import structlog
+
 logger = structlog.get_logger(__name__)
+
 
 class RayClusterManager:
     """
     God-Tier Ray Cluster Orchestrator.
     Manages resource sharding, auto-scaling integration, and health monitoring.
     """
+
     @staticmethod
     def initialize(address: str | None = None, namespace: str = "bsopt") -> bool:
         """Initialize or connect to a Ray cluster with optimal settings."""
@@ -24,14 +27,16 @@ class RayClusterManager:
                 namespace=namespace,
                 ignore_reinit_error=True,
                 include_dashboard=True,
-                _temp_dir="/tmp/ray" # Avoid permission issues in some environments
+                _temp_dir="/tmp/ray",  # Avoid permission issues in some environments
             )
-            
+
             resources = ray.cluster_resources()
-            logger.info("ray_cluster_connected", 
-                        cpus=resources.get("CPU", 0), 
-                        gpus=resources.get("GPU", 0),
-                        memory_gb=resources.get("memory", 0) / 1e9)
+            logger.info(
+                "ray_cluster_connected",
+                cpus=resources.get("CPU", 0),
+                gpus=resources.get("GPU", 0),
+                memory_gb=resources.get("memory", 0) / 1e9,
+            )
             return True
         except Exception as e:
             logger.error("ray_initialization_failed", error=str(e))
@@ -45,7 +50,7 @@ class RayClusterManager:
         return {
             "nodes": ray.nodes(),
             "available": ray.available_resources(),
-            "total": ray.cluster_resources()
+            "total": ray.cluster_resources(),
         }
 
     @staticmethod
