@@ -57,6 +57,22 @@ def env_setup(monkeypatch):
     monkeypatch.setenv("OMP_NUM_THREADS", "1")
     monkeypatch.setenv("MKL_NUM_THREADS", "1")
     monkeypatch.setenv("OPENBLAS_NUM_THREADS", "1")
+    monkeypatch.setenv("TESTING", "true")
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def startup_session():
+    """Session-wide initialization."""
+    from src.database import create_tables
+    from src.utils.cache import init_redis_cache
+
+    # Create tables for tests
+    create_tables()
+
+    # Init Redis mock/client
+    await init_redis_cache()
+
+    yield
 
 
 @pytest.fixture

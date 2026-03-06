@@ -1,8 +1,8 @@
 #!/bin/bash
-set -e
+set -eo pipefail
 
 # ==============================================================================
-# BS-OPT: THE GOD MODE DB DEPLOYER (v2.1)
+# BS-OPT: THE GOD MODE DB DEPLOYER (v3.0)
 # ==============================================================================
 # Orchestrates full initialization, incremental migrations, and fine-tuning.
 # ==============================================================================
@@ -15,6 +15,13 @@ log() {
     echo "$message"
     echo "$message" >> "$LOG_FILE"
 }
+
+error_handler() {
+    log "❌ FATAL ERROR occurred on line $1. Check $LOG_FILE for details."
+    exit 1
+}
+
+trap 'error_handler $LINENO' ERR
 
 log "🥒 Launching Full-Scale Manifold Deployment..."
 
@@ -40,33 +47,68 @@ if ! command -v psql &> /dev/null; then
         log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
         exit 1
     fi
+else
+    # Auto-detect port from Docker if not specified
+    if [ "$DB_PORT" = "5432" ] && docker ps | grep -q "bsopt-postgres-1"; then
+        DETECTED_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' bsopt-postgres-1 2>/dev/null || echo "5432")
+        if [ "$DETECTED_PORT" != "5432" ] && [ -n "$DETECTED_PORT" ]; then
+            log "  🥒 Auto-detected Docker port: $DETECTED_PORT (Overriding $DB_PORT)"
+            DB_PORT=$DETECTED_PORT
+        fi
+    fi
 fi
 
-run_sql_file() {
-    local file=$1
+query_sql() {
+    local cmd=$1
     if [ "$USE_DOCKER" = true ]; then
-        docker exec -i bsopt-postgres-1 psql -U "$DB_USER" -d "$DB_NAME" < "$file" >> "$LOG_FILE" 2>&1
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -t -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" -c "$cmd" 2>/dev/null | xargs
     else
-        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" >> "$LOG_FILE" 2>&1
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -t -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" 2>/dev/null | xargs
     fi
 }
 
 run_sql_cmd() {
     local cmd=$1
     if [ "$USE_DOCKER" = true ]; then
-        docker exec -i bsopt-postgres-1 psql -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
     else
-        PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
     fi
 }
+
+run_sql_file() {
+    local file=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" < "$file" >> "$LOG_FILE" 2>&1
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" >> "$LOG_FILE" 2>&1
+    fi
+}
+
+# Ensure deployment_history table exists
+log "  🥒 Initializing audit history..."
+run_sql_cmd "CREATE TABLE IF NOT EXISTS deployment_history (
+    id SERIAL PRIMARY KEY,
+    script_name TEXT UNIQUE NOT NULL,
+    applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);"
 
 # Phase 1: Core Initialization
 log "🚀 Phase 1: Core Initialization..."
 for script in $(find init-scripts/ -name "*.sql" | sort); do
-    log "  📜 Running $script..."
-    if ! run_sql_file "$script"; then
-        log "  ❌ FAILED: $script"
-        exit 1
+    # Check if already applied
+    ALREADY_APPLIED=$(query_sql "SELECT 1 FROM deployment_history WHERE script_name = '$script';")
+    
+    if [ "$ALREADY_APPLIED" = "1" ]; then
+        log "  ⏭️  Skipping $script (Already applied)"
+    else
+        log "  📜 Running $script..."
+        if run_sql_file "$script"; then
+            run_sql_cmd "INSERT INTO deployment_history (script_name) VALUES ('$script');"
+        else
+            log "  ❌ FAILED: $script"
+            exit 1
+        fi
     fi
 done
 
@@ -74,10 +116,19 @@ done
 log "🚀 Phase 2: Structural Migrations..."
 if [ -d "src/migrations/" ]; then
     for script in $(find src/migrations/ -name "*.sql" | sort); do
-        log "  📜 Applying $script..."
-        if ! run_sql_file "$script"; then
-            log "  ❌ FAILED: $script"
-            exit 1
+        # Check if already applied
+        ALREADY_APPLIED=$(query_sql "SELECT 1 FROM deployment_history WHERE script_name = '$script';")
+        
+        if [ "$ALREADY_APPLIED" = "1" ]; then
+            log "  ⏭️  Skipping $script (Already applied)"
+        else
+            log "  📜 Applying $script..."
+            if run_sql_file "$script"; then
+                run_sql_cmd "INSERT INTO deployment_history (script_name) VALUES ('$script');"
+            else
+                log "  ❌ FAILED: $script"
+                exit 1
+            fi
         fi
     done
 else
@@ -87,7 +138,13 @@ fi
 # Phase 3: Final Fine-Tuning (Pressurizing)
 log "🚀 Phase 3: Manifold Fine-Tuning..."
 run_sql_cmd "VACUUM (ANALYZE, VERBOSE);"
-run_sql_cmd "CALL refresh_all_continuous_aggregates();"
+
+log "🚀 Refreshing Continuous Aggregates..."
+VIEWS=$(query_sql "SELECT view_name FROM timescaledb_information.continuous_aggregates;")
+for view in $VIEWS; do
+    log "  🥒 Refreshing: $view..."
+    run_sql_cmd "CALL refresh_continuous_aggregate('$view', NULL, NULL);"
+done
 
 log "✅ Full database deployment and optimization complete. Solenya-tight! 🥒"
 log "Log written to: $LOG_FILE"
