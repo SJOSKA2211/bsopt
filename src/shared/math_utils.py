@@ -18,7 +18,7 @@ CDF_A3 = 1.421413741
 CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
 
-@njit(fastmath=True)
+@numba.njit(inline='always')
 def fast_normal_cdf(x):
     """
     High-precision rational approximation (A&S 7.1.26).
@@ -37,12 +37,12 @@ def fast_normal_cdf(x):
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
 
-@njit(fastmath=True)
+@numba.njit(inline='always')
 def fast_normal_pdf(x):
     """Numba-optimized Normal PDF."""
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
-@njit(fastmath=True)
+@numba.njit(inline='always')
 def calculate_d1_d2(s, k, t, sigma, r, q):
     """Unified d1/d2 logic for scalar inputs."""
     if sigma <= 0 or t <= 0:
@@ -53,7 +53,7 @@ def calculate_d1_d2(s, k, t, sigma, r, q):
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
-@njit(fastmath=True)
+@numba.njit(inline='always')
 def calculate_price_core(s, k, t, sigma, r, q, is_call):
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
@@ -80,11 +80,11 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
-@njit(fastmath=True, parallel=True)
+@numba.njit(inline='always')
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
-    flat_res = np.empty(n, dtype=np.float64)
+    flat_res = np.zeros(n)
     for i in prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
@@ -118,7 +118,7 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
     )
     return flat_res.reshape(original_shape).item() if s.size == 1 else flat_res.reshape(original_shape)
 
-@njit(fastmath=True)
+@numba.njit(inline='always')
 def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
     """Core Greeks for a single element."""
     if t <= 0 or sigma <= 0:
@@ -154,15 +154,15 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
 
     return delta, gamma, theta, vega, rho
 
-@njit(fastmath=True, parallel=True)
+@numba.njit()
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized Greeks calculation."""
     n = len(flat_s)
-    f_delta = np.empty(n, dtype=np.float64)
-    f_gamma = np.empty(n, dtype=np.float64)
-    f_theta = np.empty(n, dtype=np.float64)
-    f_vega = np.empty(n, dtype=np.float64)
-    f_rho = np.empty(n, dtype=np.float64)
+    f_delta = np.zeros(n)
+    f_gamma = np.zeros(n)
+    f_theta = np.zeros(n)
+    f_vega = np.zeros(n)
+    f_rho = np.zeros(n)
 
     for i in prange(n):
         d, g, th, v, rh = calculate_greeks_core(

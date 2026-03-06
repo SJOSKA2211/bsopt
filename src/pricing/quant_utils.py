@@ -4,12 +4,14 @@ Targets: Numba JIT, Parallel, Vectorized
 """
 
 import numpy as np
+from numba import njit
 
 # Scheme Constants
 SCHEME_EULER = 0
 SCHEME_MILSTEIN = 1
 SCHEME_EULER_MULTI = 2
 
+@njit
 def fast_normal_cdf_v2(x):
     """Rational approximation of CDF."""
     INV_SQRT2 = 0.7071067811865476
@@ -71,6 +73,7 @@ def fused_lookback_payoff_v2(log_paths, K, r, T, is_call, is_floating):
         payoffs = np.exp(extrema) - K if is_call else K - np.exp(extrema)
     return np.maximum(payoffs, 0.0) * exp_rt
 
+@njit
 def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
     vol_sqrt_t = sigma * np.sqrt(T)
     d1 = (np.log(S/K) + (r - q + 0.5*sigma**2)*T) / vol_sqrt_t
@@ -84,6 +87,7 @@ def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
     res[~is_call] = K[~is_call]*exp_rt[~is_call]*norm.cdf(-d2[~is_call]) - S[~is_call]*exp_qt[~is_call]*norm.cdf(-d1[~is_call])
     return res
 
+@njit
 def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
     n = len(S)
     delta, gamma, theta, vega, rho = np.empty(n), np.empty(n), np.empty(n), np.empty(n), np.empty(n)
@@ -92,6 +96,7 @@ def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
     return delta, gamma, vega, theta, rho
 
+@njit
 def scalar_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
     from scipy.stats import norm
     Ti, sig = max(T, 1e-7), max(sigma, 1e-12)
@@ -111,6 +116,7 @@ def scalar_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
         theta = (common_theta + r * K * exp_rt * (1.0 - nd2) - q * S * exp_qt * (1.0 - nd1)) / 365.0
     return delta, gamma, theta, vega, rho
 
+@njit
 def corrado_miller_initial_guess(market_price, spot, strike, maturity, rate, dividend, is_call):
     n = len(market_price)
     sigma = np.empty(n)
@@ -124,6 +130,7 @@ def corrado_miller_initial_guess(market_price, spot, strike, maturity, rate, div
         sigma[i] = val * (term + np.sqrt(max(term**2 - intrinsic**2 / np.pi, 0.0)))
     return np.clip(sigma, 0.001, 5.0)
 
+@njit
 def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     xi = kappa - sigma * rho * u * 1j
     d = np.sqrt(xi**2 + sigma**2 * (u**2 + 1j * u))
@@ -133,6 +140,7 @@ def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     B = (v0 / sigma**2) * (xi + d) * (1.0 - exp_dT) / (1.0 - g * exp_dT)
     return np.exp(A + B)
 
+@njit
 def jit_mc_european_price_v2(S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme=SCHEME_EULER):
     actual_paths = n_paths // 2 if antithetic else n_paths
     exp_rt = np.exp(-r * T)
@@ -149,6 +157,7 @@ def jit_mc_european_price_v2(S0, K, T, r, sigma, q, n_paths, is_call, antithetic
 
 # ─── JIT Kernels & Quantitative Utilities ──────────────────────────────────────────
 
+@njit
 def scalar_bs_price_jit(S, K, T, sigma, r, q, is_call):
     """Scalar Black-Scholes price."""
     Ti, sig = max(T, 1e-7), max(sigma, 1e-12)
@@ -161,6 +170,7 @@ def scalar_bs_price_jit(S, K, T, sigma, r, q, is_call):
         return S*exp_qt*norm.cdf(d1) - K*exp_rt*norm.cdf(d2)
     return K*exp_rt*norm.cdf(-d2) - S*exp_qt*norm.cdf(-d1)
 
+@njit
 def _laguerre_basis_jit(x, n):
     """Laguerre polynomial basis for LSM."""
     if n == 0: return np.ones_like(x)
@@ -169,10 +179,14 @@ def _laguerre_basis_jit(x, n):
     if n == 3: return np.exp(-x/2) * (1 - 2*x + x**2/2)
     return np.exp(-x/2)
 
-def vectorized_newton_raphson_iv_jit(market_price, S, K, T, r, q, is_call, tol=1e-6, max_iter=100):
+@njit
+def vectorized_newton_raphson_iv_jit(market_price, S, K, T, r, q, is_call, initial_guess=None, tol=1e-6, max_iter=100):
     """Vectorized IV calculation using Newton-Raphson."""
-    n = len(market_price)
-    iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
+    if initial_guess is not None:
+        iv = initial_guess.copy()
+    else:
+        iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
+    
     for _ in range(max_iter):
         p = batch_bs_price_jit_v2(S, K, T, iv, r, q, is_call)
         diff = p - market_price
@@ -181,6 +195,7 @@ def vectorized_newton_raphson_iv_jit(market_price, S, K, T, r, q, is_call, tol=1
         iv -= diff / (vega * 100.0 + 1e-12)
     return np.clip(iv, 0.0001, 5.0)
 
+@njit
 def thomas_algorithm(a, b, c, d):
     """Solve tridiagonal system of linear equations."""
     n = len(d)
@@ -205,6 +220,7 @@ def thomas_algorithm(a, b, c, d):
         return x
     return np.zeros(0)
 
+@njit
 def jit_cn_solver(S, K, T, r, sigma, q, is_call, S_max, M, N):
     """Crank-Nicolson solver for PDE."""
     # Placeholder for CN solver
