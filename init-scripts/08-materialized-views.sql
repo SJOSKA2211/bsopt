@@ -77,6 +77,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_latest_vol_surface_unique
 ON latest_vol_surface (symbol, expiry, strike, option_type);
 
 -- 6. Performance Diagnostics (Query Bottleneck Detection)
+DROP VIEW IF EXISTS pg_stat_sluggish_queries;
 CREATE OR REPLACE VIEW pg_stat_sluggish_queries AS
 SELECT 
     (total_exec_time / 1000 / 60) as total_min, 
@@ -87,6 +88,7 @@ ORDER BY total_exec_time DESC
 LIMIT 20;
 
 -- 7. Index Size Diagnostic
+DROP VIEW IF EXISTS pg_stat_index_sizes;
 CREATE OR REPLACE VIEW pg_stat_index_sizes AS
 SELECT
     schemaname, relname, indexrelname,
@@ -97,6 +99,7 @@ WHERE pg_relation_size(pg_index.indexrelid) > 1024 * 1024; -- Only check indexes
 
 -- 8. Wait Event Diagnostic (PG16)
 -- Helps identify why queries are waiting (I/O, locks, CPU, etc.)
+DROP VIEW IF EXISTS pg_stat_wait_events;
 CREATE OR REPLACE VIEW pg_stat_wait_events AS
 SELECT 
     wait_event_type, 
