@@ -65,6 +65,9 @@ MOCK_IF_MISSING = [
     "lightning",
     "lightning.pytorch",
     "lightning.pytorch.callbacks",
+    "onnxruntime",
+    "flwr",
+    "faker",
     "sendgrid",
     "sendgrid.helpers",
     "sendgrid.helpers.mail",
@@ -97,6 +100,12 @@ MOCK_IF_MISSING = [
     "scikit-learn",
     "sklearn",
     "web3",
+    "fastavro",
+    "fastavro.schemaless_reader",
+    "fastavro.schemaless_writer",
+    "sendgrid",
+    "sendgrid.helpers",
+    "sendgrid.helpers.mail",
 ]
 
 # Note: qiskit, qiskit_aer, flwr, numba, onnxruntime are now installed in Advanced venv
@@ -117,6 +126,12 @@ heavy_prefixes = [
     "ray.tune",
     "ray.air",
     "matplotlib",
+    "web3",
+    "fastavro",
+    "sendgrid",
+    "faker",
+    "onnxruntime",
+    "flwr",
 ]
 
 for mod in MOCK_IF_MISSING:

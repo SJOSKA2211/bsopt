@@ -20,4 +20,8 @@ if [ -d ".venv" ]; then
 fi
 
 # Run Uvicorn with reload
-.venv/bin/python3 -m uvicorn src.api.main:app --reload --reload-dir src --port 8000 --host 0.0.0.0
+if [ -f ".venv/bin/python3" ]; then
+    .venv/bin/python3 -m uvicorn src.api.main:app --reload --reload-dir src --port 8000 --host 0.0.0.0
+else
+    python3 -m uvicorn src.api.main:app --reload --reload-dir src --port 8000 --host 0.0.0.0
+fi

@@ -22,10 +22,10 @@ import type {
 } from '@mui/x-data-grid';
 import {
   Search,
-  Zap,
   TrendingUp,
   TrendingDown,
 } from '@mui/icons-material';
+import { Zap } from '../../../components/common/Icons';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { motion, AnimatePresence } from 'framer-motion';

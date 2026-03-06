@@ -4,7 +4,7 @@ import pytest
 
 from src.workers.math_worker import (
     _calibration_worker,
-    _recalibrate_symbol_async,
+    _recalibrate_symbol_impl,
     recalibrate_symbol,
 )
 
@@ -16,7 +16,7 @@ async def test_recalibrate_symbol_async_no_data():
     mock_router.get_option_chain_snapshot = AsyncMock(return_value=None)
 
     with patch("src.workers.math_worker.MarketDataRouter", return_value=mock_router):
-        result = await _recalibrate_symbol_async(None, "AAPL")
+        result = await _recalibrate_symbol_impl("AAPL")
         assert result["status"] == "failed"
         assert result["reason"] == "no_data"
 
@@ -29,46 +29,26 @@ async def test_recalibrate_symbol_async_success():
 
     # Use a regular mock for params
     mock_params = MagicMock()
-    mock_params.v0 = 0.1
     mock_params.kappa = 1.0
     mock_params.theta = 0.1
     mock_params.sigma = 0.1
     mock_params.rho = -0.5
-    # Manually mock __dict__ since we use it in the code
-    mock_params.__dict__ = {
-        "v0": 0.1,
-        "kappa": 1.0,
-        "theta": 0.1,
-        "sigma": 0.1,
-        "rho": -0.5,
-    }
+    mock_params.v0 = 0.1
 
     mock_metrics = {"rmse": 0.01, "r_squared": 0.99, "num_options": 100}
-    mock_surface = {"1.0": [0.1, 0.2]}
 
-    mock_redis = AsyncMock()
-    mock_db = MagicMock()
-    mock_db_context = AsyncMock()
-    mock_db.__aenter__.return_value = mock_db_context
+    mock_pool = MagicMock()
+    mock_actor = AsyncMock()
+    mock_actor.run_calibration.remote.return_value = {"status": "success", "params": {}}
+    mock_pool.get_actor.return_value = mock_actor
 
     with (
         patch("src.workers.math_worker.MarketDataRouter", return_value=mock_router),
-        patch("src.workers.math_worker.executor"),
-        patch("src.workers.math_worker.async_redis_client", mock_redis),
-        patch("src.workers.math_worker.get_async_db_context", return_value=mock_db),
-        patch("asyncio.get_event_loop") as mock_loop,
+        patch("src.workers.math_worker.get_pool", return_value=mock_pool),
     ):
-        # Mock executor result
-        mock_loop.return_value.run_in_executor = AsyncMock(
-            return_value=(mock_params, mock_metrics, mock_surface)
-        )
-
-        # Use a mock for self that has a retry method
-        mock_self = MagicMock()
-        result = await _recalibrate_symbol_async(mock_self, "AAPL")
+        result = await _recalibrate_symbol_impl("AAPL")
 
         assert result["status"] == "success"
-        mock_redis.setex.assert_called_once()
 
 
 def test_calibration_worker_integration():

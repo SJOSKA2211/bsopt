@@ -14,4 +14,8 @@ if [ -d ".venv" ]; then
 fi
 
 # Run Scraper
-.venv/bin/python3 src/scrapers/engine.py
+if [ -f ".venv/bin/python3" ]; then
+    .venv/bin/python3 src/scrapers/engine.py
+else
+    python3 src/scrapers/engine.py
+fi

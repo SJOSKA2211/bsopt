@@ -34,7 +34,16 @@ tune_gc()
 logger = structlog.get_logger()
 settings = get_settings()
 
-async_redis_client = redis.from_url(settings.REDIS_URL)
+_async_redis_client: redis.Redis | None = None
+
+
+def get_async_redis_client() -> redis.Redis:
+    """Get or initialize the global async Redis client."""
+    global _async_redis_client
+    if _async_redis_client is None:
+        _async_redis_client = redis.from_url(settings.REDIS_URL)
+    return _async_redis_client
+
 
 app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS_URL))
 

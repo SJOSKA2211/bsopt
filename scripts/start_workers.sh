@@ -20,11 +20,19 @@ if [ -d ".venv" ]; then
 fi
 
 # Start Celery Worker
-.venv/bin/celery -A src.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
+if [ -f ".venv/bin/celery" ]; then
+    .venv/bin/celery -A src.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
+else
+    celery -A src.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
+fi
 PID_WORKER=$!
 
 # Start Celery Beat (Scheduler)
-.venv/bin/celery -A src.tasks.celery_app beat --loglevel=info &
+if [ -f ".venv/bin/celery" ]; then
+    .venv/bin/celery -A src.tasks.celery_app beat --loglevel=info &
+else
+    celery -A src.tasks.celery_app beat --loglevel=info &
+fi
 PID_BEAT=$!
 
 # Trap signals
