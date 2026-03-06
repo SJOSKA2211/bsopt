@@ -147,6 +147,24 @@ def get_async_sessionmaker() -> async_sessionmaker:
     return _AsyncSessionLocal
 
 
+# --- COMPATIBILITY EXPORTS ---
+# These allow existing code to import SessionLocal/AsyncSessionLocal
+# Note: They will trigger engine initialization on first use via the getters below.
+class LazySessionFactory:
+    def __init__(self, getter):
+        self._getter = getter
+
+    def __call__(self, *args, **kwargs):
+        return self._getter()(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self._getter(), name)
+
+
+SessionLocal = LazySessionFactory(get_sessionmaker)
+AsyncSessionLocal = LazySessionFactory(get_async_sessionmaker)
+
+
 # --- DEPENDENCIES ---
 def get_db() -> Generator[Session, None, None]:
     """Dependency for synchronous DB sessions."""

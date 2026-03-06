@@ -3,7 +3,12 @@ import time
 
 import structlog
 from eth_account import Account
-from eth_account.messages import encode_structured_data
+try:
+    from eth_account.messages import encode_typed_data
+except ImportError:
+    # Workaround for environment specific eth-account version issues
+    def encode_structured_data(*args, **kwargs):
+        raise ImportError("encode_structured_data is not available in this environment.")
 from web3 import AsyncWeb3, Web3
 
 from src.blockchain.nonce_manager import NonceManager
@@ -340,15 +345,15 @@ class DeFiOptionsProtocol:
             "message": order,
         }
         
-        encoded_data = encode_structured_data(structured_data)
+        encoded_data = encode_typed_data(full_message=structured_data)
         signed_message = Account.sign_message(encoded_data, self.private_key)
         
         return {
             "order": order,
             "signature": signed_message.signature.hex(),
             "v": signed_message.v,
-            "r": signed_message.r.hex(),
-            "s": signed_message.s.hex(),
+            "r": hex(signed_message.r),
+            "s": hex(signed_message.s),
         }
 
     async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
@@ -368,11 +373,15 @@ class DeFiOptionsProtocol:
         logger.info("sor_routing_selected", symbol=symbol, venue=best_venue["name"], price=best_venue["price"])
         return best_venue
 
-    async def watch_mempool(self, callback):
+    async def watch_mempool(self, callback, iterations: int = -1):
         """Subscribe to pending transactions for early signal detection."""
         try:
+            count = 0
             async for tx_hash in self.w3.eth.filter("pending").get_new_entries():
                 await callback(tx_hash)
+                count += 1
+                if iterations > 0 and count >= iterations:
+                    break
         except Exception as e:
             logger.warning("mempool_watch_failed", error=str(e))
 
