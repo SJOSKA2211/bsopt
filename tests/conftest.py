@@ -72,13 +72,13 @@ def startup_session():
     )
     settings.DATABASE_URL = test_db_url
 
-    from src.database import create_tables
-    from src.utils.cache import init_redis_cache
-
     # Wait for DB to be ready with retries
     import time
 
     from sqlalchemy import create_engine, text
+
+    from src.database import create_tables
+    from src.utils.cache import init_redis_cache
 
     print(f"DEBUG: DATABASE_URL value: {settings.DATABASE_URL}")
 
