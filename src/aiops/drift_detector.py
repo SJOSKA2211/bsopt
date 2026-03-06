@@ -113,9 +113,4 @@ class PricingDriftDetector:
         Detects structural changes in the volatility smile.
         """
         # Implementation would compare current IV surface with reference
-<<<<<<< HEAD
-        return {"symbol": symbol, "status": "not_implemented"}
-=======
         return None
-
->>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)

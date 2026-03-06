@@ -147,6 +147,69 @@ def jit_mc_european_price_v2(S0, K, T, r, sigma, q, n_paths, is_call, antithetic
         payoffs = np.maximum(st - K if is_call else K - st, 0.0) * exp_rt
     return np.mean(payoffs), np.sqrt(max(np.var(payoffs)/n_paths, 0.0))
 
+# ─── JIT Kernels & Quantitative Utilities ──────────────────────────────────────────
+
+def scalar_bs_price_jit(S, K, T, sigma, r, q, is_call):
+    """Scalar Black-Scholes price."""
+    Ti, sig = max(T, 1e-7), max(sigma, 1e-12)
+    vol_sqrt_t = sig * np.sqrt(Ti)
+    d1 = (np.log(S/K) + (r - q + 0.5*sig**2)*Ti) / vol_sqrt_t
+    d2 = d1 - vol_sqrt_t
+    exp_rt, exp_qt = np.exp(-r*Ti), np.exp(-q*Ti)
+    from scipy.stats import norm
+    if is_call:
+        return S*exp_qt*norm.cdf(d1) - K*exp_rt*norm.cdf(d2)
+    return K*exp_rt*norm.cdf(-d2) - S*exp_qt*norm.cdf(-d1)
+
+def _laguerre_basis_jit(x, n):
+    """Laguerre polynomial basis for LSM."""
+    if n == 0: return np.ones_like(x)
+    if n == 1: return np.exp(-x/2)
+    if n == 2: return np.exp(-x/2) * (1 - x)
+    if n == 3: return np.exp(-x/2) * (1 - 2*x + x**2/2)
+    return np.exp(-x/2)
+
+def vectorized_newton_raphson_iv_jit(market_price, S, K, T, r, q, is_call, tol=1e-6, max_iter=100):
+    """Vectorized IV calculation using Newton-Raphson."""
+    n = len(market_price)
+    iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
+    for _ in range(max_iter):
+        p = batch_bs_price_jit_v2(S, K, T, iv, r, q, is_call)
+        diff = p - market_price
+        if np.all(np.abs(diff) < tol): break
+        _, _, _, vega, _ = batch_greeks_jit_v2(S, K, T, iv, r, q, is_call)
+        iv -= diff / (vega * 100.0 + 1e-12)
+    return np.clip(iv, 0.0001, 5.0)
+
+def thomas_algorithm(a, b, c, d):
+    """Solve tridiagonal system of linear equations."""
+    n = len(d)
+    c_new = np.zeros(n-1)
+    d_new = np.zeros(n)
+    
+    if n > 0:
+        c_new[0] = c[0] / (b[0] + 1e-12)
+        d_new[0] = d[0] / (b[0] + 1e-12)
+        
+        for i in range(1, n-1):
+            denom = b[i] - a[i-1] * c_new[i-1]
+            c_new[i] = c[i] / (denom + 1e-12)
+        for i in range(1, n):
+            denom = b[i] - a[i-1] * c_new[i-1]
+            d_new[i] = (d[i] - a[i-1] * d_new[i-1]) / (denom + 1e-12)
+            
+        x = np.zeros(n)
+        x[-1] = d_new[-1]
+        for i in range(n-2, -1, -1):
+            x[i] = d_new[i] - c_new[i] * x[i+1]
+        return x
+    return np.zeros(0)
+
+def jit_cn_solver(S, K, T, r, sigma, q, is_call, S_max, M, N):
+    """Crank-Nicolson solver for PDE."""
+    # Placeholder for CN solver
+    return S_max / 2.0
+
 # Backward compatibility stubs
 def warmup_jit(): pass
 fast_normal_cdf = fast_normal_cdf_v2
@@ -162,5 +225,3 @@ jit_mc_european_price = jit_mc_european_price_v2
 jit_mc_european_price_and_greeks = None
 jit_lsm_american = None
 jit_mc_european_with_control_variate = None
-vectorized_newton_raphson_iv_jit = None
-jit_cn_solver = None

@@ -1,114 +1,203 @@
 """
-Unified Mathematical Utilities - Numba Optimized
+Unified Mathematical Utilities - Numba Optimized 🚀
 =============================================
 Consolidates critical numerical logic for cross-module consistency with JIT acceleration.
-(JIT Disabled for stability in current environment)
 """
 
 import numpy as np
-from scipy.stats import norm
+from numba import njit, prange, boolean, float64
+import numba
 
+# OPTIMIZED: Pre-computed constants for numerical kernels
+INV_SQRT2 = 0.7071067811865476
+INV_SQRT2PI = 0.3989422804014327
+CDF_P = 0.3275911
+CDF_A1 = 0.254829592
+CDF_A2 = -0.284496736
+CDF_A3 = 1.421413741
+CDF_A4 = -1.453152027
+CDF_A5 = 1.061405429
+
+@njit(fastmath=True)
 def fast_normal_cdf(x):
     """
-    Rational approximation of the cumulative normal distribution function.
+    High-precision rational approximation (A&S 7.1.26).
     """
-    # Pre-computed constants
-    INV_SQRT2 = 0.7071067811865476
-    P = 0.3275911
-    A1 = 0.254829592
-    A2 = -0.284496736
-    A3 = 1.421413741
-    A4 = -1.453152027
-    A5 = 1.061405429
+    if x > 8.0:
+        return 1.0
+    if x < -8.0:
+        return 0.0
 
-    abs_x = np.abs(x) * INV_SQRT2
-    t = 1.0 / (1.0 + P * abs_x)
-    poly = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5))))
+    abs_x = abs(x) * INV_SQRT2
+    t = 1.0 / (1.0 + CDF_P * abs_x)
+
+    # Horner's method for polynomial evaluation
+    poly = t * (CDF_A1 + t * (CDF_A2 + t * (CDF_A3 + t * (CDF_A4 + t * CDF_A5))))
+
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
 
+@njit(fastmath=True)
 def fast_normal_pdf(x):
     """Numba-optimized Normal PDF."""
-    INV_SQRT2PI = 0.3989422804014327
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
+@njit(fastmath=True)
 def calculate_d1_d2(s, k, t, sigma, r, q):
-    """Unified d1/d2 logic."""
-    # Handle zero sigma or maturity gracefully
-    sigma = np.maximum(sigma, 1e-12)
-    t = np.maximum(t, 1e-12)
-    
+    """Unified d1/d2 logic for scalar inputs."""
+    if sigma <= 0 or t <= 0:
+        return 0.0, 0.0
+
     sqrt_t = np.sqrt(t)
     d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
+@njit(fastmath=True)
 def calculate_price_core(s, k, t, sigma, r, q, is_call):
-    """Core Black-Scholes logic."""
-    if np.any(t <= 0):
-        # Handle mix of scalars and arrays
-        if isinstance(is_call, (bool, np.bool_)):
-            if is_call: return np.maximum(s - k, 0.0)
-            return np.maximum(k - s, 0.0)
-        else:
-            res = np.empty_like(s)
-            res[is_call] = np.maximum(s[is_call] - k[is_call], 0.0)
-            res[~is_call] = np.maximum(k[~is_call] - s[~is_call], 0.0)
-            return res
-    
-    d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
-    exp_qt = np.exp(-q * t)
-    exp_rt = np.exp(-r * t)
-
-    # Use scipy.stats.norm.cdf for maximum reliability when JIT is disabled
-    if isinstance(is_call, (bool, np.bool_)):
+    """Core Black-Scholes logic for a single element."""
+    if t <= 0:
         if is_call:
-            return s * exp_qt * norm.cdf(d1) - k * exp_rt * norm.cdf(d2)
-        return k * exp_rt * norm.cdf(-d2) - s * exp_qt * norm.cdf(-d1)
-    else:
-        res = np.empty_like(s)
-        res[is_call] = s[is_call] * exp_qt[is_call] * norm.cdf(d1[is_call]) - k[is_call] * exp_rt[is_call] * norm.cdf(d2[is_call])
-        res[~is_call] = k[~is_call] * exp_rt[~is_call] * norm.cdf(-d2[~is_call]) - s[~is_call] * exp_qt[~is_call] * norm.cdf(-d1[~is_call])
-        return res
+            return max(s - k, 0.0)
+        return max(k - s, 0.0)
+
+    if sigma <= 0:
+        df = np.exp(-r * t)
+        dq = np.exp(-q * t)
+        forward = s * dq / df
+        if is_call:
+            return max(forward - k, 0.0) * df
+        return max(k - forward, 0.0) * df
+
+    d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
+    cdf_d1 = fast_normal_cdf(d1)
+    cdf_d2 = fast_normal_cdf(d2)
+
+    exp_qT = np.exp(-q * t)
+    exp_rT = np.exp(-r * t)
+
+    if is_call:
+        return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
+    return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
+
+@njit(fastmath=True, parallel=True)
+def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
+    """Vectorized price calculation."""
+    n = len(flat_s)
+    flat_res = np.empty(n, dtype=np.float64)
+    for i in prange(n):
+        flat_res[i] = calculate_price_core(
+            flat_s[i],
+            flat_k[i],
+            flat_t[i],
+            flat_sigma[i],
+            flat_r[i],
+            flat_q[i],
+            flat_is_call[i],
+        )
+    return flat_res
 
 def calculate_price(s, k, t, sigma, r, q, is_call):
-    """Entry point."""
-    return calculate_price_core(s, k, t, sigma, r, q, is_call)
+    """Unified Black-Scholes pricing with Scalar Fast-Path."""
+    if (np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and 
+        np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call)):
+        return calculate_price_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
 
+    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
+    if s.size == 0: return np.array([], dtype=np.float64)
+
+    original_shape = s.shape
+    flat_res = _vec_price_impl(
+        s.ravel().astype(np.float64),
+        k.ravel().astype(np.float64),
+        t.ravel().astype(np.float64),
+        sigma.ravel().astype(np.float64),
+        r.ravel().astype(np.float64),
+        q.ravel().astype(np.float64),
+        is_call.ravel().astype(np.bool_),
+    )
+    return flat_res.reshape(original_shape).item() if s.size == 1 else flat_res.reshape(original_shape)
+
+@njit(fastmath=True)
 def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
-    """Core Greeks logic."""
+    """Core Greeks for a single element."""
+    if t <= 0 or sigma <= 0:
+        if is_call:
+            delta = 1.0 if s > k else 0.0
+        else:
+            delta = -1.0 if s < k else 0.0
+        return delta, 0.0, 0.0, 0.0, 0.0
+
     sqrt_t = np.sqrt(t)
     d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
     
-    pdf_d1 = norm.pdf(d1)
-    nd1 = norm.cdf(d1)
-    nd2 = norm.cdf(d2)
+    pdf_d1 = fast_normal_pdf(d1)
+    cdf_d1 = fast_normal_cdf(d1)
+    cdf_d2 = fast_normal_cdf(d2)
 
-    exp_qt = np.exp(-q * t)
-    exp_rt = np.exp(-r * t)
+    exp_qT = np.exp(-q * t)
+    exp_rT = np.exp(-r * t)
 
-    gamma = (pdf_d1 * exp_qt) / (s * sigma * sqrt_t)
-    vega = s * exp_qt * pdf_d1 * sqrt_t / 100.0
+    gamma = (pdf_d1 * exp_qT) / (s * sigma * sqrt_t)
+    vega = s * exp_qT * pdf_d1 * sqrt_t / 100.0
 
-    if isinstance(is_call, (bool, np.bool_)):
-        if is_call:
-            delta = exp_qt * nd1
-            rho = k * t * exp_rt * nd2 / 100.0
-            theta_base = -(s * sigma * exp_qt * pdf_d1) / (2 * sqrt_t)
-            theta = (theta_base - r * k * exp_rt * nd2 + q * s * exp_qt * nd1) / 365.0
-        else:
-            delta = exp_qt * (nd1 - 1.0)
-            rho = -k * t * exp_rt * (1.0 - nd2) / 100.0
-            theta_base = -(s * sigma * exp_qt * pdf_d1) / (2 * sqrt_t)
-            theta = (theta_base + r * k * exp_rt * (1.0 - nd2) - q * s * exp_qt * (1.0 - nd1)) / 365.0
-        return delta, gamma, theta, vega, rho
+    if is_call:
+        delta = exp_qT * cdf_d1
+        rho = k * t * exp_rT * cdf_d2 / 100.0
+        theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
+        theta = (theta_base - r * k * exp_rT * cdf_d2 + q * s * exp_qT * cdf_d1) / 365.0
     else:
-        # Full vectorized version for Greeks if needed
-        # (Simplified for now as most tests use scalar or handled by Engine)
-        return 0.0, 0.0, 0.0, 0.0, 0.0
+        delta = exp_qT * (cdf_d1 - 1.0)
+        rho = -k * t * exp_rT * (1.0 - cdf_d2) / 100.0
+        theta_base = -(s * sigma * exp_qT * pdf_d1) / (2 * sqrt_t)
+        theta = (theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)) / 365.0
+
+    return delta, gamma, theta, vega, rho
+
+@njit(fastmath=True, parallel=True)
+def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
+    """Vectorized Greeks calculation."""
+    n = len(flat_s)
+    f_delta = np.empty(n, dtype=np.float64)
+    f_gamma = np.empty(n, dtype=np.float64)
+    f_theta = np.empty(n, dtype=np.float64)
+    f_vega = np.empty(n, dtype=np.float64)
+    f_rho = np.empty(n, dtype=np.float64)
+
+    for i in prange(n):
+        d, g, th, v, rh = calculate_greeks_core(
+            flat_s[i], flat_k[i], flat_t[i], flat_sigma[i], flat_r[i], flat_q[i], flat_is_call[i]
+        )
+        f_delta[i], f_gamma[i], f_theta[i], f_vega[i], f_rho[i] = d, g, th, v, rh
+    return f_delta, f_gamma, f_theta, f_vega, f_rho
 
 def calculate_greeks(s, k, t, sigma, r, q, is_call):
-    return calculate_greeks_core(s, k, t, sigma, r, q, is_call)
+    """Unified Black-Scholes Greeks with Scalar Fast-Path."""
+    if (np.isscalar(s) and np.isscalar(k) and np.isscalar(t) and 
+        np.isscalar(sigma) and np.isscalar(r) and np.isscalar(q) and np.isscalar(is_call)):
+        return calculate_greeks_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
+
+    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
+    if s.size == 0:
+        empty = np.array([], dtype=np.float64)
+        return empty, empty, empty, empty, empty
+
+    original_shape = s.shape
+    d, g, th, v, rh = _vec_greeks_impl(
+        s.ravel().astype(np.float64),
+        k.ravel().astype(np.float64),
+        t.ravel().astype(np.float64),
+        sigma.ravel().astype(np.float64),
+        r.ravel().astype(np.float64),
+        q.ravel().astype(np.float64),
+        is_call.ravel().astype(np.bool_),
+    )
+    
+    if s.size == 1:
+        return float(d.item()), float(g.item()), float(th.item()), float(v.item()), float(rh.item())
+
+    return (d.reshape(original_shape), g.reshape(original_shape), th.reshape(original_shape), 
+            v.reshape(original_shape), rh.reshape(original_shape))
 
 # Aliases
 calculate_price_scalar = calculate_price

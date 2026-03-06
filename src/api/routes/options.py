@@ -26,12 +26,9 @@ async def get_options_chain(
 ) -> DataResponse:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
-<<<<<<< HEAD
     if not symbol.isalnum() or len(symbol) > 10:
         return DataResponse(data=[], message="Invalid symbol format")
 
-=======
-    
     # 1. Attempt real DB lookup
     try:
         stmt = select(OptionPrice).where(OptionPrice.symbol == symbol)
@@ -81,7 +78,6 @@ async def get_options_chain(
         pass
 
     # 2. Fallback: Synthetic data generation
->>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)
     today = date.today()
     expiries: list[str] = []
     if expiry in {"all", "week"}:

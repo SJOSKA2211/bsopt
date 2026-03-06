@@ -21,21 +21,6 @@ class MLPipelineTrigger:
         """Triggers retraining pipeline."""
         logger.info("ml_pipeline_trigger", status="attempting_retraining", config=self.config)
 
-<<<<<<< HEAD
-        def _run_pipeline():
-            try:
-                pipeline = MLPipeline(self.config)
-                import asyncio
-
-                asyncio.run(pipeline.run())
-                logger.info("ml_pipeline_background_complete")
-            except Exception as e:
-                logger.error("ml_pipeline_background_failed", error=str(e))
-
-        # Submit to executor and return immediately
-        self.executor.submit(_run_pipeline)
-        return True
-=======
         try:
             pipeline = AutonomousMLPipeline(self.config)
             pipeline.run()
@@ -53,4 +38,3 @@ class MLPipelineTrigger:
                 message="Failed to trigger ML retraining pipeline.",
             )
             return False
->>>>>>> 2a3ad5e0c (feat: Implement database optimization revamp, enhance ML and AIOps modules, and update frontend dependencies.)
