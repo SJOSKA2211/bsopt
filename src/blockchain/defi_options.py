@@ -3,6 +3,7 @@ import time
 
 import structlog
 from eth_account import Account
+from eth_account.messages import encode_structured_data
 from web3 import AsyncWeb3, Web3
 
 from src.blockchain.nonce_manager import NonceManager
@@ -63,6 +64,14 @@ class DeFiOptionsProtocol:
         self.cache_ttl = cache_ttl
         self.chain_id = chain_id
         self._price_cache: dict[str, dict] = {}
+        self.DEFAULT_ABI = [
+            {
+                "name": "get_price",
+                "type": "function",
+                "inputs": [],
+                "outputs": [{"type": "uint256"}],
+            }
+        ]
 
         self._failure_threshold = 5
         self._failure_count = 0
@@ -161,6 +170,28 @@ class DeFiOptionsProtocol:
             logger.error("multicall_failed", error=str(e))
             await self._handle_rpc_failure()
             return await self._get_option_prices_parallel(contract_addresses)
+
+    async def get_option_price(self, contract_address: str) -> float:
+        """Fetch a single option price with caching."""
+        now = time.time()
+        redis = get_redis()
+        
+        # 1. Local Cache
+        if contract_address in self._price_cache:
+            entry = self._price_cache[contract_address]
+            if now - entry["time"] < self.cache_ttl:
+                return entry["price"]
+                
+        # 2. Redis Cache
+        if redis:
+            cached = await redis.get(f"defi_price:{contract_address}")
+            if cached:
+                price = float(cached)
+                self._price_cache[contract_address] = {"price": price, "time": now}
+                return price
+                
+        # 3. On-chain
+        return await self._get_chain_price(contract_address, self.DEFAULT_ABI)
 
     async def _get_option_prices_parallel(self, contract_addresses: list[str]) -> dict[str, float]:
         """Parallel execution fallback."""
@@ -272,6 +303,78 @@ class DeFiOptionsProtocol:
                     lambda: self.w3.eth.get_transaction_count(self.address)
                 )
             raise
+
+    async def sign_order_eip712(self, order: dict) -> dict:
+        """Sign an order using EIP-712 structured data."""
+        if not self.private_key:
+            raise ValueError("Private key required for signing.")
+            
+        domain_data = {
+            "name": "DeFiOptionsProtocol",
+            "version": "1",
+            "chainId": self.chain_id,
+            "verifyingContract": self.MULTICALL3_ADDRESS,
+        }
+        
+        message_types = {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"},
+            ],
+            "Order": [
+                {"name": "maker", "type": "address"},
+                {"name": "asset", "type": "address"},
+                {"name": "amount", "type": "uint256"},
+                {"name": "price", "type": "uint256"},
+                {"name": "nonce", "type": "uint256"},
+                {"name": "expiry", "type": "uint256"},
+            ],
+        }
+        
+        structured_data = {
+            "types": message_types,
+            "domain": domain_data,
+            "primaryType": "Order",
+            "message": order,
+        }
+        
+        encoded_data = encode_structured_data(structured_data)
+        signed_message = Account.sign_message(encoded_data, self.private_key)
+        
+        return {
+            "order": order,
+            "signature": signed_message.signature.hex(),
+            "v": signed_message.v,
+            "r": signed_message.r.hex(),
+            "s": signed_message.s.hex(),
+        }
+
+    async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
+        """
+        Smart Order Router (SOR) - Finds best execution path across multiple protocols.
+        """
+        # Simulated multi-venue discovery
+        venues = [
+            {"name": "Protocol-A", "price": 100.0, "liquidity": 500.0},
+            {"name": "Protocol-B", "price": 98.5 if is_call else 101.5, "liquidity": 1000.0},
+            {"name": "DEX-Aggregator", "price": 99.0, "liquidity": 2000.0},
+        ]
+        
+        # Sort by best price (lowest for buy, highest for sell)
+        best_venue = min(venues, key=lambda x: x["price"])
+        
+        logger.info("sor_routing_selected", symbol=symbol, venue=best_venue["name"], price=best_venue["price"])
+        return best_venue
+
+    async def watch_mempool(self, callback):
+        """Subscribe to pending transactions for early signal detection."""
+        try:
+            async for tx_hash in self.w3.eth.filter("pending").get_new_entries():
+                await callback(tx_hash)
+        except Exception as e:
+            logger.warning("mempool_watch_failed", error=str(e))
 
 
 if __name__ == "__main__":

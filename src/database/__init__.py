@@ -1,89 +1,160 @@
-"""
-Database Session Management (Native PostgreSQL)
-"""
-
-import logging
+import structlog
+import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
+from typing import Any
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy import create_engine, event, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import NullPool, QueuePool
 
 from src.config import settings
 
 from .models import Base
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
+
+# --- ENGINE STATE ---
+_engine: Engine | None = None
+_async_engine: AsyncEngine | None = None
+_SessionLocal: sessionmaker | None = None
+_AsyncSessionLocal: async_sessionmaker | None = None
+
 
 # --- CONFIGURATION ---
-# Use optimized pooling for PostgreSQL 16
-POOL_CLASS = QueuePool
+def get_db_urls():
+    """Constructs sync and async database URLs based on environment."""
+    db_url = settings.DATABASE_URL
+    if settings.is_production and "sslmode" not in db_url:
+        separator = "&" if "?" in db_url else "?"
+        db_url = f"{db_url}{separator}sslmode=require"
 
-# Ensure SSL for production environments
-db_url = settings.DATABASE_URL
-if settings.is_production and "sslmode" not in db_url:
-    separator = "&" if "?" in db_url else "?"
-    db_url = f"{db_url}{separator}sslmode=require"
+    sync_url = db_url.replace("+asyncpg", "")
+    async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
-# Ensure sync engine gets sync URL
-sync_url = db_url.replace("+asyncpg", "")
+    if "sqlite" in db_url:
+        async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
+    # Strip sslmode for asyncpg (handled via connect_args)
+    if "postgresql" in async_url and "?" in async_url:
+        base, _ = async_url.split("?", 1)
+        async_url = base
 
-# --- ENGINES ---
-def get_engine():
-    """Returns the synchronous SQLAlchemy engine."""
-    return engine
-
-
-def get_async_engine():
-    """Returns the asynchronous SQLAlchemy engine."""
-    return async_engine
+    return sync_url, async_url
 
 
-# Optimized Sync Engine
-engine = create_engine(
-    sync_url,
-    poolclass=POOL_CLASS,
-    pool_size=settings.DATABASE_MIN_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
-    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-    pool_pre_ping=True,
-    pool_recycle=1800,  # Recycle connections after 30 minutes
-)
+# --- PERFORMANCE MONITORING ---
+@event.listens_for(Engine, "before_cursor_execute")
+def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    conn.info.setdefault("query_start_time", []).append(time.time())
 
-async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
-if "sqlite" in db_url:
-    async_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
 
-# Strip sslmode for asyncpg (it uses 'ssl' arg instead)
-if "postgresql" in async_url and "?" in async_url:
-    base, _ = async_url.split("?", 1)
-    async_url = base
+@event.listens_for(Engine, "after_cursor_execute")
+def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    total_time = (time.time() - conn.info["query_start_time"].pop()) * 1000
+    if total_time > settings.SLOW_QUERY_THRESHOLD_MS:
+        logger.warning(
+            "slow_query_detected",
+            duration_ms=round(total_time, 2),
+            statement=statement[:500],
+        )
 
-# Optimized Async Engine
-async_engine = create_async_engine(
-    async_url,
-    pool_size=settings.DATABASE_MIN_POOL_SIZE,
-    max_overflow=settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
-    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
-    pool_pre_ping=True,
-    pool_recycle=1800,
-    connect_args={
-        "ssl": True if settings.is_production and "postgresql" in async_url else False,
-        "statement_cache_size": 0,  # CRITICAL: Disable for PgBouncer Transaction Mode
-        "prepared_statement_cache_size": 0,
-        "command_timeout": 60,
-    },
-)
 
-SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-AsyncSessionLocal = async_sessionmaker(
-    bind=async_engine, class_=AsyncSession, expire_on_commit=False
-)
+# --- ENGINE INITIALIZATION ---
+def get_engine() -> Engine:
+    """Returns the synchronous SQLAlchemy engine, initializing if necessary."""
+    global _engine
+    if _engine is None:
+        sync_url, _ = get_db_urls()
+
+        # Dynamic Pool Configuration
+        if settings.PGBOUNCER_ENABLED:
+            logger.info("pgbouncer_detected: enabling NullPool for transaction mode")
+            pool_class = NullPool
+            pool_kwargs = {}
+        else:
+            pool_class = QueuePool
+            pool_kwargs = {
+                "pool_size": settings.DATABASE_MIN_POOL_SIZE,
+                "max_overflow": settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
+                "pool_timeout": settings.DATABASE_POOL_TIMEOUT,
+                "pool_pre_ping": settings.DATABASE_POOL_PRE_PING,
+                "pool_recycle": settings.DATABASE_POOL_RECYCLE,
+            }
+
+        _engine = create_engine(sync_url, poolclass=pool_class, **pool_kwargs)
+        logger.info("sync_engine_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
+
+    return _engine
+
+
+def get_async_engine() -> AsyncEngine:
+    """Returns the asynchronous SQLAlchemy engine, initializing if necessary."""
+    global _async_engine
+    if _async_engine is None:
+        _, async_url = get_db_urls()
+
+        # Optimized Async Config
+        pool_kwargs = {}
+        if not settings.PGBOUNCER_ENABLED:
+            pool_kwargs = {
+                "pool_size": settings.DATABASE_MIN_POOL_SIZE,
+                "max_overflow": settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
+                "pool_timeout": settings.DATABASE_POOL_TIMEOUT,
+                "pool_pre_ping": settings.DATABASE_POOL_PRE_PING,
+                "pool_recycle": settings.DATABASE_POOL_RECYCLE,
+            }
+        else:
+            pool_kwargs = {"poolclass": NullPool}
+
+        _async_engine = create_async_engine(
+            async_url,
+            connect_args={
+                "ssl": (
+                    True if settings.is_production and "postgresql" in async_url else False
+                ),
+                "statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
+                "prepared_statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
+                "command_timeout": 60,
+            },
+            **pool_kwargs,
+        )
+        logger.info("async_engine_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
+
+    return _async_engine
+
+
+def get_sessionmaker() -> sessionmaker:
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(bind=get_engine(), expire_on_commit=False)
+    return _SessionLocal
+
+
+def get_async_sessionmaker() -> async_sessionmaker:
+    global _AsyncSessionLocal
+    if _AsyncSessionLocal is None:
+        _AsyncSessionLocal = async_sessionmaker(
+            bind=get_async_engine(), class_=AsyncSession, expire_on_commit=False
+        )
+    return _AsyncSessionLocal
+
 
 # --- DEPENDENCIES ---
+def get_db() -> Generator[Session, None, None]:
+    """Dependency for synchronous DB sessions."""
+    db = get_sessionmaker()()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def get_session():
@@ -91,22 +162,14 @@ def get_session():
     return get_db()
 
 
-def get_db() -> Generator[Session]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-async def get_async_db() -> AsyncGenerator[AsyncSession]:
-    async with AsyncSessionLocal() as session:
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """Dependency for asynchronous DB sessions."""
+    async with get_async_sessionmaker()() as session:
         yield session
 
 
 async def set_user_context(session: AsyncSession, user_id: str):
     """Sets the app.current_user_id in the Postgres session for RLS."""
-    # STABLE: uses our optimized RLS function/policy
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
     )
@@ -114,7 +177,8 @@ async def set_user_context(session: AsyncSession, user_id: str):
 
 @contextmanager
 def get_db_context():
-    db = SessionLocal()
+    """Context manager for synchronous DB sessions."""
+    db = get_sessionmaker()()
     try:
         yield db
     finally:
@@ -123,30 +187,38 @@ def get_db_context():
 
 @asynccontextmanager
 async def get_async_db_context():
-    async with AsyncSessionLocal() as session:
+    """Context manager for asynchronous DB sessions."""
+    async with get_async_sessionmaker()() as session:
         yield session
 
 
 # --- UTILITIES ---
-
-
 def health_check() -> bool:
+    """Database connectivity health check."""
     try:
+        engine = get_engine()
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return True
     except Exception as e:
-        logger.error(f"database_health_check_failed: {e}")
+        logger.error("database_health_check_failed", error=str(e))
         return False
 
 
 def create_tables():
-    # Only create if not in prod/prod-like unless specifically needed
+    """Creates all metadata tables if not in production."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=get_engine())
         logger.info("database_tables_created")
 
 
 def dispose_engine():
-    engine.dispose()
-    logger.info("database_engine_disposed")
+    """Disposes of the engines, releasing resources."""
+    global _engine, _async_engine
+    if _engine:
+        _engine.dispose()
+        _engine = None
+    if _async_engine:
+        # Note: async dispose requires await, usually handled at app shutdown
+        pass
+    logger.info("database_engines_disposed")

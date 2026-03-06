@@ -4,9 +4,21 @@ Unified Mathematical Utilities - Numba Optimized 🚀
 Consolidates critical numerical logic for cross-module consistency with JIT acceleration.
 """
 
+import os
 import numpy as np
-from numba import njit, prange, boolean, float64
 import numba
+from numba import njit, prange, boolean, float64
+
+# OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
+if os.getenv("NUMBA_DISABLE_JIT") == "1":
+    def _njit(*args, **kwargs):
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return lambda f: f
+    _prange = range
+else:
+    from numba import njit as _njit
+    from numba import prange as _prange
 
 # OPTIMIZED: Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
@@ -18,7 +30,9 @@ CDF_A3 = 1.421413741
 CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
 
-@njit(cache=True, inline='always')
+# Standardized njit behavior handled via _njit wrapper above.
+
+@_njit
 def fast_normal_cdf(x):
     """
     High-precision rational approximation (A&S 7.1.26).
@@ -37,12 +51,12 @@ def fast_normal_cdf(x):
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + np.sign(x) * y)
 
-@njit(cache=True, inline='always')
+@_njit
 def fast_normal_pdf(x):
     """Numba-optimized Normal PDF."""
     return np.exp(-0.5 * x**2) * INV_SQRT2PI
 
-@njit(cache=True, inline='always')
+@_njit
 def calculate_d1_d2(s, k, t, sigma, r, q):
     """Unified d1/d2 logic for scalar inputs."""
     if sigma <= 0 or t <= 0:
@@ -53,7 +67,7 @@ def calculate_d1_d2(s, k, t, sigma, r, q):
     d2 = d1 - sigma * sqrt_t
     return d1, d2
 
-@njit(inline='always', cache=True)
+@_njit
 def calculate_price_core(s, k, t, sigma, r, q, is_call):
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
@@ -80,12 +94,12 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
         return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
-@njit(cache=True)
+@_njit
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
     flat_res = np.zeros(n, dtype=np.float64)
-    for i in prange(n):
+    for i in _prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
             flat_k[i],
@@ -124,7 +138,7 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
     )
     return flat_res.reshape(original_shape)
 
-@njit(cache=True)
+@_njit
 def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
     """Core Greeks for a single element."""
     if t <= 0 or sigma <= 0:
@@ -160,7 +174,7 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
 
     return delta, gamma, theta, vega, rho
 
-@njit(cache=True)
+@_njit
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized Greeks calculation."""
     n = len(flat_s)
@@ -170,7 +184,7 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
     f_vega = np.zeros(n, dtype=np.float64)
     f_rho = np.zeros(n, dtype=np.float64)
 
-    for i in prange(n):
+    for i in _prange(n):
         d, g, th, v, rh = calculate_greeks_core(
             flat_s[i], flat_k[i], flat_t[i], flat_sigma[i], flat_r[i], flat_q[i], flat_is_call[i]
         )
