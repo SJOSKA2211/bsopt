@@ -84,7 +84,7 @@ def calculate_price_core(s, k, t, sigma, r, q, is_call):
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
-    flat_res = np.zeros(n)
+    flat_res = np.arange(n) * 0.0
     for i in prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
@@ -104,7 +104,13 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
         return calculate_price_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    if s.size == 0: return np.array([], dtype=np.float64)
+    if s.size == 1:
+        # Scalar fast-path for single element arrays (common in lattice comparisons)
+        return calculate_price_core(
+            float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
+            float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
+            bool(is_call.flat[0])
+        )
 
     original_shape = s.shape
     flat_res = _vec_price_impl(
@@ -116,7 +122,7 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
         q.ravel().astype(np.float64),
         is_call.ravel().astype(np.bool_),
     )
-    return flat_res.reshape(original_shape).item() if s.size == 1 else flat_res.reshape(original_shape)
+    return flat_res.reshape(original_shape)
 
 @numba.njit(inline='always')
 def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
@@ -154,15 +160,15 @@ def calculate_greeks_core(s, k, t, sigma, r, q, is_call):
 
     return delta, gamma, theta, vega, rho
 
-@numba.njit()
+@njit(cache=True)
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized Greeks calculation."""
     n = len(flat_s)
-    f_delta = np.zeros(n)
-    f_gamma = np.zeros(n)
-    f_theta = np.zeros(n)
-    f_vega = np.zeros(n)
-    f_rho = np.zeros(n)
+    f_delta = np.arange(n) * 0.0
+    f_gamma = np.arange(n) * 0.0
+    f_theta = np.arange(n) * 0.0
+    f_vega = np.arange(n) * 0.0
+    f_rho = np.arange(n) * 0.0
 
     for i in prange(n):
         d, g, th, v, rh = calculate_greeks_core(
@@ -178,9 +184,13 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         return calculate_greeks_core(float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call))
 
     s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    if s.size == 0:
-        empty = np.array([], dtype=np.float64)
-        return empty, empty, empty, empty, empty
+    if s.size == 1:
+        # Scalar fast-path for single element arrays
+        return calculate_greeks_core(
+            float(s.flat[0]), float(k.flat[0]), float(t.flat[0]),
+            float(sigma.flat[0]), float(r.flat[0]), float(q.flat[0]),
+            bool(is_call.flat[0])
+        )
 
     original_shape = s.shape
     d, g, th, v, rh = _vec_greeks_impl(
@@ -193,9 +203,6 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         is_call.ravel().astype(np.bool_),
     )
     
-    if s.size == 1:
-        return float(d.item()), float(g.item()), float(th.item()), float(v.item()), float(rh.item())
-
     return (d.reshape(original_shape), g.reshape(original_shape), th.reshape(original_shape), 
             v.reshape(original_shape), rh.reshape(original_shape))
 

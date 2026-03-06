@@ -1,0 +1,947 @@
+ Container bsopt-redis-1  Running
+ Container bsopt-postgres-1  Running
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.4.2, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /app
+configfile: pyproject.toml
+plugins: anyio-4.12.1, hypothesis-6.151.9, asyncio-1.3.0, cov-7.0.0, mock-3.15.1, xdist-3.8.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 6 items
+
+tests/test_lattice.py::TestLatticeParameters::test_valid_parameters PASSED [ 16%]
+tests/test_lattice.py::TestBinomialTreePricer::test_crr_parameters PASSED [ 33%]
+tests/test_lattice.py::TestBinomialTreePricer::test_european_call_vs_black_scholes FAILED [ 50%]
+tests/test_lattice.py::TestBinomialTreePricer::test_american_put_premium FAILED [ 66%]
+tests/test_lattice.py::TestBinomialTreePricer::test_greeks_delta_range FAILED [ 83%]
+tests/test_lattice.py::TestTrinomialTreePricer::test_trinomial_european_vs_black_scholes FAILED [100%]
+
+=================================== FAILURES ===================================
+__________ TestBinomialTreePricer.test_european_call_vs_black_scholes __________
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/logging.py", line 850, in pytest_runtest_call
+    yield
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/capture.py", line 900, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/skipping.py", line 263, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_lattice.py", line 74, in test_european_call_vs_black_scholes
+    binomial_price = pricer.price(params, "call")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/pricing/lattice.py", line 199, in price
+    _binomial_jit_kernel(
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 443, in _compile_for_args
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 376, in _compile_for_args
+    return_val = self.compile(tuple(argtypes))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 908, in compile
+    cres = self._compiler.compile(args, return_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 80, in compile
+    status, retval = self._compile_cached(args, return_type)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 94, in _compile_cached
+    retval = self._compile_core(args, return_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 107, in _compile_core
+    cres = compiler.compile_extra(self.targetdescr.typing_context,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 739, in compile_extra
+    return pipeline.compile_extra(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 439, in compile_extra
+    return self._compile_bytecode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 505, in _compile_bytecode
+    return self._compile_core()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 481, in _compile_core
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 473, in _compile_core
+    pm.run(self.state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 363, in run
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 356, in run
+    self._runPass(idx, pass_inst, state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_lock.py", line 35, in _acquire_compile_lock
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 311, in _runPass
+    mutated |= check(pss.run_pass, internal_state)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 272, in check
+    mangled = func(compiler_state)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 114, in run_pass
+    typemap, return_type, calltypes, errs = type_inference_stage(
+                                            ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 95, in type_inference_stage
+    errs = infer.propagate(raise_errors=raise_errors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1075, in propagate
+    errors = self.constraints.propagate(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 160, in propagate
+    constraint(typeinfer)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 572, in __call__
+    self.resolve(typeinfer, typevars, fnty)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 595, in resolve
+    sig = typeinfer.resolve_call(fnty, pos_args, kw_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1569, in resolve_call
+    return self.context.resolve_function_type(fnty, pos_args, kw_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 279, in resolve_function_type
+    res = self._resolve_user_function_type(func, args, kws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 335, in _resolve_user_function_type
+    return func.get_call_type(self, args, kws)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 314, in get_call_type
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 311, in get_call_type
+    sig = temp.apply(nolitargs, nolitkws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 358, in apply
+    sig = generic(args, kws)
+          ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 621, in generic
+    disp, new_args = self._get_impl(args, kws)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 720, in _get_impl
+    impl, args = self._build_impl(cache_key, args, kws)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 824, in _build_impl
+    disp_type.get_call_type(self.context, args, kws)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 541, in get_call_type
+    self.dispatcher.get_call_template(args, kws)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'get_call_template'
+_______________ TestBinomialTreePricer.test_american_put_premium _______________
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/logging.py", line 850, in pytest_runtest_call
+    yield
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/capture.py", line 900, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/skipping.py", line 263, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_lattice.py", line 85, in test_american_put_premium
+    euro_price = pricer_euro.price(params, "put")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/pricing/lattice.py", line 199, in price
+    _binomial_jit_kernel(
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 443, in _compile_for_args
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 376, in _compile_for_args
+    return_val = self.compile(tuple(argtypes))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 908, in compile
+    cres = self._compiler.compile(args, return_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 80, in compile
+    status, retval = self._compile_cached(args, return_type)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 94, in _compile_cached
+    retval = self._compile_core(args, return_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 107, in _compile_core
+    cres = compiler.compile_extra(self.targetdescr.typing_context,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 739, in compile_extra
+    return pipeline.compile_extra(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 439, in compile_extra
+    return self._compile_bytecode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 505, in _compile_bytecode
+    return self._compile_core()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 481, in _compile_core
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 473, in _compile_core
+    pm.run(self.state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 363, in run
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 356, in run
+    self._runPass(idx, pass_inst, state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_lock.py", line 35, in _acquire_compile_lock
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 311, in _runPass
+    mutated |= check(pss.run_pass, internal_state)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 272, in check
+    mangled = func(compiler_state)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 114, in run_pass
+    typemap, return_type, calltypes, errs = type_inference_stage(
+                                            ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 95, in type_inference_stage
+    errs = infer.propagate(raise_errors=raise_errors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1075, in propagate
+    errors = self.constraints.propagate(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 160, in propagate
+    constraint(typeinfer)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 572, in __call__
+    self.resolve(typeinfer, typevars, fnty)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 595, in resolve
+    sig = typeinfer.resolve_call(fnty, pos_args, kw_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1569, in resolve_call
+    return self.context.resolve_function_type(fnty, pos_args, kw_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 279, in resolve_function_type
+    res = self._resolve_user_function_type(func, args, kws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 335, in _resolve_user_function_type
+    return func.get_call_type(self, args, kws)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 314, in get_call_type
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 311, in get_call_type
+    sig = temp.apply(nolitargs, nolitkws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 358, in apply
+    sig = generic(args, kws)
+          ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 621, in generic
+    disp, new_args = self._get_impl(args, kws)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 720, in _get_impl
+    impl, args = self._build_impl(cache_key, args, kws)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 824, in _build_impl
+    disp_type.get_call_type(self.context, args, kws)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 541, in get_call_type
+    self.dispatcher.get_call_template(args, kws)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'get_call_template'
+________________ TestBinomialTreePricer.test_greeks_delta_range ________________
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/logging.py", line 850, in pytest_runtest_call
+    yield
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/capture.py", line 900, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/skipping.py", line 263, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_lattice.py", line 97, in test_greeks_delta_range
+    greeks_call = pricer.calculate_greeks(params, "call")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/pricing/lattice.py", line 147, in calculate_greeks
+    p = self.price(params, option_type)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/pricing/lattice.py", line 199, in price
+    _binomial_jit_kernel(
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 443, in _compile_for_args
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 376, in _compile_for_args
+    return_val = self.compile(tuple(argtypes))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 908, in compile
+    cres = self._compiler.compile(args, return_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 80, in compile
+    status, retval = self._compile_cached(args, return_type)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 94, in _compile_cached
+    retval = self._compile_core(args, return_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 107, in _compile_core
+    cres = compiler.compile_extra(self.targetdescr.typing_context,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 739, in compile_extra
+    return pipeline.compile_extra(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 439, in compile_extra
+    return self._compile_bytecode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 505, in _compile_bytecode
+    return self._compile_core()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 481, in _compile_core
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 473, in _compile_core
+    pm.run(self.state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 363, in run
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 356, in run
+    self._runPass(idx, pass_inst, state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_lock.py", line 35, in _acquire_compile_lock
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 311, in _runPass
+    mutated |= check(pss.run_pass, internal_state)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 272, in check
+    mangled = func(compiler_state)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 114, in run_pass
+    typemap, return_type, calltypes, errs = type_inference_stage(
+                                            ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 95, in type_inference_stage
+    errs = infer.propagate(raise_errors=raise_errors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1075, in propagate
+    errors = self.constraints.propagate(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 160, in propagate
+    constraint(typeinfer)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 572, in __call__
+    self.resolve(typeinfer, typevars, fnty)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 595, in resolve
+    sig = typeinfer.resolve_call(fnty, pos_args, kw_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1569, in resolve_call
+    return self.context.resolve_function_type(fnty, pos_args, kw_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 279, in resolve_function_type
+    res = self._resolve_user_function_type(func, args, kws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 335, in _resolve_user_function_type
+    return func.get_call_type(self, args, kws)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 314, in get_call_type
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 311, in get_call_type
+    sig = temp.apply(nolitargs, nolitkws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 358, in apply
+    sig = generic(args, kws)
+          ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 621, in generic
+    disp, new_args = self._get_impl(args, kws)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 720, in _get_impl
+    impl, args = self._build_impl(cache_key, args, kws)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 824, in _build_impl
+    disp_type.get_call_type(self.context, args, kws)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 541, in get_call_type
+    self.dispatcher.get_call_template(args, kws)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'get_call_template'
+_______ TestTrinomialTreePricer.test_trinomial_european_vs_black_scholes _______
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 344, in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 246, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/logging.py", line 850, in pytest_runtest_call
+    yield
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/capture.py", line 900, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/_pytest/skipping.py", line 263, in pytest_runtest_call
+    return (yield)
+            ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/runner.py", line 178, in pytest_runtest_call
+    item.runtest()
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 1671, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+    raise exception
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 139, in _multicall
+    teardown.throw(exception)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 53, in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_result.py", line 103, in get_result
+    raise exc.with_traceback(tb)
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 38, in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/_pytest/python.py", line 157, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/tests/test_lattice.py", line 113, in test_trinomial_european_vs_black_scholes
+    trinomial_price = pricer.price(params, "call")
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/pricing/lattice.py", line 226, in price
+    _trinomial_jit_kernel(
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 443, in _compile_for_args
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 376, in _compile_for_args
+    return_val = self.compile(tuple(argtypes))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 908, in compile
+    cres = self._compiler.compile(args, return_type)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 80, in compile
+    status, retval = self._compile_cached(args, return_type)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 94, in _compile_cached
+    retval = self._compile_core(args, return_type)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/dispatcher.py", line 107, in _compile_core
+    cres = compiler.compile_extra(self.targetdescr.typing_context,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 739, in compile_extra
+    return pipeline.compile_extra(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 439, in compile_extra
+    return self._compile_bytecode()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 505, in _compile_bytecode
+    return self._compile_core()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 481, in _compile_core
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler.py", line 473, in _compile_core
+    pm.run(self.state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 363, in run
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 356, in run
+    self._runPass(idx, pass_inst, state)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_lock.py", line 35, in _acquire_compile_lock
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 311, in _runPass
+    mutated |= check(pss.run_pass, internal_state)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/compiler_machinery.py", line 272, in check
+    mangled = func(compiler_state)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 114, in run_pass
+    typemap, return_type, calltypes, errs = type_inference_stage(
+                                            ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typed_passes.py", line 95, in type_inference_stage
+    errs = infer.propagate(raise_errors=raise_errors)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1075, in propagate
+    errors = self.constraints.propagate(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 160, in propagate
+    constraint(typeinfer)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 572, in __call__
+    self.resolve(typeinfer, typevars, fnty)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 595, in resolve
+    sig = typeinfer.resolve_call(fnty, pos_args, kw_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typeinfer.py", line 1569, in resolve_call
+    return self.context.resolve_function_type(fnty, pos_args, kw_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 279, in resolve_function_type
+    res = self._resolve_user_function_type(func, args, kws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/context.py", line 335, in _resolve_user_function_type
+    return func.get_call_type(self, args, kws)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 314, in get_call_type
+    raise e
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 311, in get_call_type
+    sig = temp.apply(nolitargs, nolitkws)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 358, in apply
+    sig = generic(args, kws)
+          ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 621, in generic
+    disp, new_args = self._get_impl(args, kws)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 720, in _get_impl
+    impl, args = self._build_impl(cache_key, args, kws)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/numba/core/typing/templates.py", line 824, in _build_impl
+    disp_type.get_call_type(self.context, args, kws)
+  File "/usr/local/lib/python3.12/site-packages/numba/core/types/functions.py", line 541, in get_call_type
+    self.dispatcher.get_call_template(args, kws)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'function' object has no attribute 'get_call_template'
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
+
+Name                                                    Stmts   Miss   Cover   Missing
+--------------------------------------------------------------------------------------
+src/__init__.py                                            10      4  60.00%   30-32, 36
+src/aiops/__init__.py                                       0      0 100.00%
+src/aiops/aiops_orchestrator.py                            77     77   0.00%   9-150
+src/aiops/anomaly_detector.py                             158    158   0.00%   1-254
+src/aiops/data_drift_detector.py                           43     43   0.00%   8-133
+src/aiops/docker_remediator.py                             57     57   0.00%   1-122
+src/aiops/drift_detector.py                                57     57   0.00%   1-116
+src/aiops/ml_pipeline_trigger.py                           19     19   0.00%   1-40
+src/aiops/prometheus_adapter.py                            85     85   0.00%   1-145
+src/aiops/remediators.py                                  188    188   0.00%   1-378
+src/aiops/self_healing_orchestrator.py                    132    132   0.00%   1-248
+src/aiops/transformer_detector.py                          66     66   0.00%   14-198
+src/api/__init__.py                                         0      0 100.00%
+src/api/deps.py                                             2      2   0.00%   9-16
+src/api/exceptions.py                                      51     51   0.00%   1-86
+src/api/main.py                                            98     98   0.00%   1-201
+src/api/middleware/__init__.py                              4      4   0.00%   12-16
+src/api/middleware/idempotency.py                          57     57   0.00%   1-99
+src/api/middleware/logging.py                             126    126   0.00%   12-288
+src/api/middleware/profiling.py                            24     24   0.00%   5-46
+src/api/middleware/request_id.py                           23     23   0.00%   10-69
+src/api/middleware/security.py                            291    291   0.00%   12-660
+src/api/providers/__init__.py                               2      2   0.00%   1-2
+src/api/providers/market_data.py                           27     27   0.00%   1-49
+src/api/responses.py                                       14     14   0.00%   1-31
+src/api/routes/__init__.py                                  7      7   0.00%   12-21
+src/api/routes/auth.py                                     91     91   0.00%   5-197
+src/api/routes/debug.py                                    14     14   0.00%   1-48
+src/api/routes/ml.py                                       26     26   0.00%   5-67
+src/api/routes/options.py                                  48     48   0.00%   6-113
+src/api/routes/portfolio.py                                57     57   0.00%   6-141
+src/api/routes/pricing.py                                  48     48   0.00%   5-104
+src/api/routes/system.py                                   38     38   0.00%   1-68
+src/api/routes/users.py                                    38     38   0.00%   5-87
+src/api/routes/websocket.py                                29     29   0.00%   1-58
+src/api/schemas/__init__.py                                 5      5   0.00%   11-44
+src/api/schemas/auth.py                                   137    137   0.00%   7-293
+src/api/schemas/common.py                                  47     47   0.00%   7-144
+src/api/schemas/ml.py                                      31     31   0.00%   1-78
+src/api/schemas/pricing.py                                107    107   0.00%   8-196
+src/api/schemas/user.py                                    42     42   0.00%   7-107
+src/audit/__init__.py                                       0      0 100.00%
+src/audit/middleware.py                                    49     49   0.00%   1-105
+src/auth/__init__.py                                        0      0 100.00%
+src/auth/better_auth.py                                    22     22   0.00%   1-42
+src/auth/providers.py                                      59     59   0.00%   1-96
+src/auth/security.py                                       42     42   0.00%   1-94
+src/auth/server.py                                         66     66   0.00%   1-129
+src/auth/service.py                                        33     33   0.00%   1-71
+src/blockchain/__init__.py                                  9      9   0.00%   6-30
+src/blockchain/defi_options.py                            122    122   0.00%   1-274
+src/blockchain/nonce_manager.py                            29     29   0.00%   1-50
+src/blockchain/oracle.py                                   22     22   0.00%   1-50
+src/cli/__init__.py                                         0      0 100.00%
+src/cli/auth.py                                            97     97   0.00%   8-163
+src/cli/config.py                                          53     53   0.00%   7-88
+src/cli/portfolio.py                                       75     75   0.00%   7-151
+src/config.py                                             138    138   0.00%   6-273
+src/data/__init__.py                                        0      0 100.00%
+src/data/pipeline.py                                       63     63   0.00%   1-139
+src/data/router.py                                         85     85   0.00%   1-162
+src/data/storage_manager.py                                36     36   0.00%   1-67
+src/data/validation.py                                     33     33   0.00%   1-53
+src/data/xdp_ingest.py                                     79     79   0.00%   1-118
+src/database/__init__.py                                   67     67   0.00%   5-152
+src/database/apply_optimizations.py                        33     33   0.00%   1-63
+src/database/crud.py                                      342    342   0.00%   11-1025
+src/database/models.py                                    250    250   0.00%   5-400
+src/database/pipeliner.py                                  63     63   0.00%   1-148
+src/database/verify.py                                     43     43   0.00%   1-65
+src/ml/__init__.py                                         17     17   0.00%   1-84
+src/ml/autonomous_pipeline.py                              19     19   0.00%   9-53
+src/ml/callbacks.py                                        14     14   0.00%   1-18
+src/ml/celery_app.py                                       22     22   0.00%   1-50
+src/ml/data_loader.py                                      79     79   0.00%   1-174
+src/ml/distributed_training.py                             75     75   0.00%   1-141
+src/ml/drift.py                                            76     76   0.00%   1-203
+src/ml/forecasting/__init__.py                              0      0 100.00%
+src/ml/forecasting/tft_model.py                           104    104   0.00%   1-255
+src/ml/indicators.py                                      105    105   0.00%   1-169
+src/ml/main.py                                             19     19   0.00%   1-30
+src/ml/models/__init__.py                                   0      0 100.00%
+src/ml/models/neural_engine.py                             57     57   0.00%   1-134
+src/ml/pipeline.py                                        164    164   0.00%   8-332
+src/ml/registry/__init__.py                                 0      0 100.00%
+src/ml/registry/promote.py                                 13     13   0.00%   6-37
+src/ml/reinforcement_learning/__init__.py                   0      0 100.00%
+src/ml/reinforcement_learning/augmented_agent.py           38     38   0.00%   1-88
+src/ml/reinforcement_learning/decision_transformer.py      26     26   0.00%   1-81
+src/ml/reinforcement_learning/gnn_policy.py                34     34   0.00%   1-61
+src/ml/reinforcement_learning/kernels.py                   36     36   0.00%   1-96
+src/ml/reinforcement_learning/offline_train.py             65     65   0.00%   1-112
+src/ml/reinforcement_learning/online_agent.py              93     93   0.00%   1-211
+src/ml/reinforcement_learning/shm_buffer.py                52     52   0.00%   1-102
+src/ml/reinforcement_learning/trading_env.py               75     75   0.00%   1-160
+src/ml/reinforcement_learning/train.py                     76     76   0.00%   1-148
+src/ml/reinforcement_learning/transformer_policy.py        96     96   0.00%   2-229
+src/ml/scraper.py                                         134    134   0.00%   1-269
+src/ml/sentiment_pipeline.py                               68     68   0.00%   1-145
+src/ml/strategies.py                                      135    135   0.00%   1-250
+src/ml/tracker.py                                          57     57   0.00%   1-87
+src/ml/trainer.py                                          53     53   0.00%   1-91
+src/ml/trainer_v2.py                                       12     12   0.00%   5-29
+src/pricing/__init__.py                                    20     10  50.00%   74, 78, 83-98, 103
+src/pricing/arbiter.py                                     43     43   0.00%   1-92
+src/pricing/base.py                                        27     10  62.96%   21, 26, 47, 52, 62, 66-71
+src/pricing/black_scholes.py                               77     37  51.95%   26-31, 35, 65-66, 82, 101-122, 130, 135, 148-149, 159-163, 170, 174-177, 184-191
+src/pricing/calibration/__init__.py                         0      0 100.00%
+src/pricing/calibration/engine.py                         223    223   0.00%   1-430
+src/pricing/calibration/svi_surface.py                     26     26   0.00%   1-49
+src/pricing/execution_strategies.py                        81     81   0.00%   1-187
+src/pricing/exotic.py                                     141    141   0.00%   1-177
+src/pricing/factory.py                                     54     54   0.00%   8-106
+src/pricing/finite_difference.py                           82     82   0.00%   8-228
+src/pricing/greek_engine.py                                35     35   0.00%   1-67
+src/pricing/implied_vol.py                                 69     69   0.00%   10-247
+src/pricing/lattice.py                                    118     71  39.83%   38-65, 70-95, 102-119, 148-177
+src/pricing/main.py                                        18     18   0.00%   1-31
+src/pricing/models/__init__.py                             84     33  60.71%   20-26, 29-31, 34-40, 43-45, 75, 77, 79, 96-98, 101, 116-125
+src/pricing/models/heston_fft.py                           93     93   0.00%   1-210
+src/pricing/models/heston_strategy.py                      17     17   0.00%   7-46
+src/pricing/models/neural_strategy.py                      37     37   0.00%   1-94
+src/pricing/monte_carlo.py                                118    118   0.00%   1-343
+src/pricing/quant_utils.py                                196    196   0.00%   6-243
+src/pricing/quantum_backend.py                             48     48   0.00%   1-94
+src/pricing/quantum_pricing.py                            183    183   0.00%   1-301
+src/pricing/vol_surface.py                                210    210   0.00%   8-401
+src/pricing/wasm_engine.py                                 87     87   0.00%   1-304
+src/protos/__init__.py                                      6      6   0.00%   3-14
+src/protos/inference_grpc.py                               16     16   0.00%   4-37
+src/protos/inference_pb2.py                                19     19   0.00%   7-35
+src/protos/inference_pb2_grpc.py                           28     28   0.00%   4-88
+src/protos/market_data_pb2.py                              15     15   0.00%   7-31
+src/protos/market_data_pb2_grpc.py                         11     11   0.00%   4-18
+src/scrapers/__init__.py                                    0      0 100.00%
+src/scrapers/engine.py                                    246    246   0.00%   1-412
+src/scrapers/mesh_publisher.py                             18     18   0.00%   7-40
+src/scrapers/stealth.py                                    25     25   0.00%   1-59
+src/security/__init__.py                                    4      4   0.00%   12-17
+src/security/audit.py                                      53     53   0.00%   8-122
+src/security/auth.py                                      213    213   0.00%   11-395
+src/security/breach_notification.py                        34     34   0.00%   7-113
+src/security/mfa.py                                        21     21   0.00%   7-41
+src/security/oauth2.py                                     76     76   0.00%   10-159
+src/security/password.py                                  163    163   0.00%   11-373
+src/security/rate_limit.py                                 35     35   0.00%   1-73
+src/shared/__init__.py                                      0      0 100.00%
+src/shared/db.py                                           23     23   0.00%   1-44
+src/shared/eternal_ledger.py                               37     37   0.00%   1-77
+src/shared/log_drain.py                                    35     35   0.00%   1-72
+src/shared/math_utils.py                                  120     86  28.33%   26-38, 43, 48-54, 59-81, 86-98, 104, 115-125, 130-161, 166-178, 182-206
+src/shared/mesh_bridge.py                                  52     52   0.00%   1-89
+src/shared/observability.py                               147    147   0.00%   1-348
+src/shared/off_heap_logger.py                              39     39   0.00%   1-70
+src/shared/security.py                                    104    104   0.00%   1-229
+src/shared/shm_manager.py                                  59     59   0.00%   8-104
+src/shared/shm_mesh.py                                    112    112   0.00%   1-232
+src/shared/system_utils.py                                 35     35   0.00%   1-69
+src/shared/tracing.py                                      32     32   0.00%   8-71
+src/streaming/__init__.py                                  11     11   0.00%   1-34
+src/streaming/analytics.py                                 50     50   0.00%   1-83
+src/streaming/base.py                                      12     12   0.00%   1-34
+src/streaming/consumer.py                                  65     65   0.00%   1-138
+src/streaming/factory.py                                   18     18   0.00%   1-49
+src/streaming/ingestion_worker.py                          97     97   0.00%   1-165
+src/streaming/kafka_consumer.py                            85     85   0.00%   1-163
+src/streaming/kafka_producer.py                            62     62   0.00%   1-145
+src/streaming/main.py                                      41     41   0.00%   1-78
+src/streaming/mesh_producer.py                             31     31   0.00%   1-83
+src/streaming/producer.py                                  29     29   0.00%   1-88
+src/streaming/zmq_producer.py                              30     30   0.00%   1-55
+src/tasks/__init__.py                                       2      2   0.00%   3-5
+src/tasks/audit_tasks.py                                   21     21   0.00%   1-52
+src/tasks/celery_app.py                                    92     92   0.00%   15-422
+src/tasks/data_tasks.py                                   131    131   0.00%   11-432
+src/tasks/email_tasks.py                                   37     37   0.00%   1-98
+src/tasks/graceful_shutdown.py                             35     35   0.00%   1-58
+src/tasks/ml_tasks.py                                      72     72   0.00%   5-147
+src/tasks/pricing_tasks.py                                109    109   0.00%   5-290
+src/tasks/security_tasks.py                                42     42   0.00%   10-105
+src/tasks/trading_tasks.py                                 57     57   0.00%   7-156
+src/utils/__init__.py                                       0      0 100.00%
+src/utils/cache.py                                        261    261   0.00%   8-438
+src/utils/cache_decorator.py                               48     48   0.00%   1-83
+src/utils/chaos.py                                         30     30   0.00%   1-58
+src/utils/circuit_breaker.py                              106    106   0.00%   1-230
+src/utils/crypto.py                                        31     31   0.00%   1-52
+src/utils/dashboard.py                                     11     11   0.00%   1-110
+src/utils/distributed.py                                   54     54   0.00%   1-105
+src/utils/errors.py                                        34     34   0.00%   5-58
+src/utils/filesystem.py                                    12     12   0.00%   1-28
+src/utils/http_client.py                                   26     26   0.00%   8-57
+src/utils/lazy_import.py                                   85     60  29.41%   45-47, 53-64, 73-141, 146, 157-158, 172-195
+src/utils/resilience.py                                    27     27   0.00%   6-64
+src/utils/sanitization.py                                  27     27   0.00%   1-57
+src/utils/schemas_pb2.py                                   17     17   0.00%   7-33
+src/utils/shared_memory.py                                 70     70   0.00%   1-103
+src/utils/shm_context.py                                   70     70   0.00%   1-113
+src/utils/shm_worker.py                                    38     38   0.00%   1-65
+src/utils/wasm_loader.py                                   65     65   0.00%   1-116
+src/workers/__init__.py                                     3      3   0.00%   1-7
+src/workers/math_worker.py                                 88     88   0.00%   1-154
+src/workers/ray_workers.py                                 45     45   0.00%   1-94
+src/workers/webhook_worker.py                              61     61   0.00%   1-116
+--------------------------------------------------------------------------------------
+TOTAL                                                   12303  12073   1.87%
+============================= slowest 10 durations =============================
+1.42s call     tests/test_lattice.py::TestBinomialTreePricer::test_european_call_vs_black_scholes
+0.15s call     tests/test_lattice.py::TestTrinomialTreePricer::test_trinomial_european_vs_black_scholes
+0.08s call     tests/test_lattice.py::TestBinomialTreePricer::test_greeks_delta_range
+0.08s call     tests/test_lattice.py::TestBinomialTreePricer::test_american_put_premium
+0.00s setup    tests/test_lattice.py::TestLatticeParameters::test_valid_parameters
+0.00s setup    tests/test_lattice.py::TestBinomialTreePricer::test_european_call_vs_black_scholes
+0.00s call     tests/test_lattice.py::TestLatticeParameters::test_valid_parameters
+0.00s setup    tests/test_lattice.py::TestBinomialTreePricer::test_crr_parameters
+0.00s setup    tests/test_lattice.py::TestBinomialTreePricer::test_american_put_premium
+0.00s call     tests/test_lattice.py::TestBinomialTreePricer::test_crr_parameters
+=========================== short test summary info ============================
+FAILED tests/test_lattice.py::TestBinomialTreePricer::test_european_call_vs_black_scholes - AttributeError: 'function' object has no attribute 'get_call_template'
+FAILED tests/test_lattice.py::TestBinomialTreePricer::test_american_put_premium - AttributeError: 'function' object has no attribute 'get_call_template'
+FAILED tests/test_lattice.py::TestBinomialTreePricer::test_greeks_delta_range - AttributeError: 'function' object has no attribute 'get_call_template'
+FAILED tests/test_lattice.py::TestTrinomialTreePricer::test_trinomial_european_vs_black_scholes - AttributeError: 'function' object has no attribute 'get_call_template'
+========================= 4 failed, 2 passed in 5.42s ==========================
