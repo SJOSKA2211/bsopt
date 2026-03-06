@@ -11,6 +11,7 @@ import { CanvasRenderer } from 'echarts/renderers';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
+import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
 const GET_OPTIONS_FOR_HEATMAP = gql`
   query GetOptionsForHeatmap($symbol: String!) {

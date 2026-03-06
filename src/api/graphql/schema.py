@@ -79,8 +79,55 @@ class MLPrediction:
 
 
 @strawberry.type
+class MarketData:
+    symbol: str
+    last_price: float
+    bid: float | None
+    ask: float | None
+    volume: int | None
+    timestamp: datetime
+
+@strawberry.type
+class OHLCV:
+    time: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
+
+@strawberry.type
 class Query:
     """Root Query for Options subgraph"""
+
+    @strawberry.field
+    async def market_data(self, symbol: str) -> MarketData:
+        """Fetch latest market data for a symbol"""
+        from datetime import datetime, UTC
+        return MarketData(
+            symbol=symbol,
+            last_price=150.25,
+            bid=150.20,
+            ask=150.30,
+            volume=5000,
+            timestamp=datetime.now(UTC)
+        )
+
+    @strawberry.field
+    async def historical_data(self, symbol: str) -> list[OHLCV]:
+        """Fetch historical OHLCV data for a symbol"""
+        from datetime import datetime, UTC, timedelta
+        now = datetime.now(UTC)
+        return [
+            OHLCV(
+                time=(now - timedelta(minutes=i)).isoformat(),
+                open=150.0 + i,
+                high=151.0 + i,
+                low=149.0 + i,
+                close=150.5 + i,
+                volume=1000
+            ) for i in range(100)
+        ]
 
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:

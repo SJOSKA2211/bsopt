@@ -14,6 +14,9 @@ sleep 5
 
 # Run BSOpt Verification
 echo "🥒 Running God-Mode Manifold Audit (Containerized)..."
-docker-compose -f docker-compose.dev.yml --profile test run --rm test-runner python3 -m src.database.verify
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml --profile test run --rm \
+    -e ENVIRONMENT=dev \
+    -e DATABASE_URL=postgresql://admin:29a47839acf362c9ebb5679a@postgres:5432/bsopt \
+    test-runner python3 -m src.database.verify
 
 echo "✅ Infrastructure containers launched and audited."
