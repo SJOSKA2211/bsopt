@@ -55,14 +55,10 @@ async def test_circuit_breaker_state_transitions():
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker():
     mock_redis = AsyncMock()
-    # In DistributedCircuitBreaker.__init__:
-    # self._check_script = redis_client.register_script(self.CHECK_LUA)
-    # In DistributedCircuitBreaker.__call__:
-    # current_state = await self._check_script(keys=self.keys, args=...)
     
-    # So register_script returns an object that is CALLABLE and returns a COROUTINE
+    # register_script returns an object that is CALLABLE and returns a COROUTINE
     mock_script = MagicMock()
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
+    mock_script.return_value = AsyncMock(return_value=b"CLOSED")()
     mock_redis.register_script.return_value = mock_script
 
     cb = DistributedCircuitBreaker(
@@ -76,7 +72,7 @@ async def test_distributed_circuit_breaker():
     assert await wrapped() == "ok"
 
     # Test transitioning to HALF_OPEN
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"HALF_OPEN")()
+    mock_script.return_value = AsyncMock(return_value=b"HALF_OPEN")()
     assert await wrapped() == "ok"
     mock_redis.delete.assert_called()
 
@@ -85,7 +81,7 @@ async def test_distributed_circuit_breaker():
 async def test_distributed_circuit_breaker_still_open():
     mock_redis = AsyncMock()
     mock_script = MagicMock()
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"OPEN")()
+    mock_script.return_value = AsyncMock(return_value=b"OPEN")()
     mock_redis.register_script.return_value = mock_script
 
     cb = DistributedCircuitBreaker(
@@ -104,7 +100,7 @@ async def test_distributed_circuit_breaker_still_open():
 async def test_distributed_circuit_breaker_sync_func():
     mock_redis = AsyncMock()
     mock_script = MagicMock()
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
+    mock_script.return_value = AsyncMock(return_value=b"CLOSED")()
     mock_redis.register_script.return_value = mock_script
 
     cb = DistributedCircuitBreaker(
@@ -122,7 +118,7 @@ async def test_distributed_circuit_breaker_sync_func():
 async def test_distributed_circuit_breaker_fail_below_threshold():
     mock_redis = AsyncMock()
     mock_script = MagicMock()
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
+    mock_script.return_value = AsyncMock(return_value=b"CLOSED")()
     mock_redis.register_script.return_value = mock_script
     mock_redis.incr.return_value = 1  # below threshold
     mock_redis.get.return_value = b"1"
@@ -137,6 +133,7 @@ async def test_distributed_circuit_breaker_fail_below_threshold():
     with pytest.raises(Exception, match="fail"):
         await wrapped()
 
+    # Verify set was NOT called with OPEN
     open_calls = [
         call for call in mock_redis.set.call_args_list if "OPEN" in str(call)
     ]
@@ -147,7 +144,7 @@ async def test_distributed_circuit_breaker_fail_below_threshold():
 async def test_distributed_circuit_breaker_fail():
     mock_redis = AsyncMock()
     mock_script = MagicMock()
-    mock_script.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
+    mock_script.return_value = AsyncMock(return_value=b"CLOSED")()
     mock_redis.register_script.return_value = mock_script
     mock_redis.incr.return_value = 2  # hits threshold
     mock_redis.get.return_value = b"2"
@@ -161,6 +158,7 @@ async def test_distributed_circuit_breaker_fail():
     wrapped = cb(fail_func)
     with pytest.raises(Exception, match="fail"):
         await wrapped()
+    # verify set OPEN called
     mock_redis.set.assert_any_call("dist:cb_state", "OPEN", ex=60)
 
 
@@ -186,7 +184,5 @@ async def test_pricing_circuit_global():
 
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker_helpers():
-    # Note: Internal helpers like _set_state don't exist, they are inline.
-    # Testing the flow via public __call__ instead as done above.
+    # Tested via __call__ in cases above.
     pass
-

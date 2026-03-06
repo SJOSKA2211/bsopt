@@ -35,33 +35,38 @@ const getWorker = () => {
   if (sharedWorker) return sharedWorker;
 
   // Initialize Web Worker
-  sharedWorker = new Worker(new URL('../workers/pricing.worker.ts', import.meta.url), {
-    type: 'module'
-  });
+  try {
+    sharedWorker = new Worker(new URL('../workers/pricing.worker.ts', import.meta.url), {
+      type: 'module'
+    });
 
-  sharedWorker.onmessage = (e) => {
-    const { type, payload, id, error } = e.data;
+    sharedWorker.onmessage = (e) => {
+      const { type, payload, id, error } = e.data;
 
-    if (type === 'INIT_SUCCESS') {
-      isWorkerReady = true;
-      console.log('WASM Worker initialized successfully');
-      listeners.forEach(listener => listener());
-      return;
-    }
-
-    if (id && pendingRequests.has(id)) {
-      const resolver = pendingRequests.get(id);
-      pendingRequests.delete(id);
-
-      if (error) {
-        resolver?.reject(error);
-      } else {
-        resolver?.resolve(payload);
+      if (type === 'INIT_SUCCESS') {
+        isWorkerReady = true;
+        console.log('WASM Worker initialized successfully');
+        listeners.forEach(listener => listener());
+        return;
       }
-    }
-  };
 
-  sharedWorker.postMessage({ type: 'INIT' });
+      if (id && pendingRequests.has(id)) {
+        const resolver = pendingRequests.get(id);
+        pendingRequests.delete(id);
+
+        if (error) {
+          resolver?.reject(error);
+        } else {
+          resolver?.resolve(payload);
+        }
+      }
+    };
+
+    sharedWorker.postMessage({ type: 'INIT' });
+  } catch (err) {
+    console.error('Failed to create WASM worker:', err);
+  }
+  
   return sharedWorker;
 };
 
@@ -75,7 +80,7 @@ const subscribe = (callback: () => void) => {
 
 const getSnapshot = () => isWorkerReady;
 
-const useWasmPricing = () => {
+export const useWasmPricing = () => {
   const isLoaded = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
@@ -134,9 +139,3 @@ const useWasmPricing = () => {
     priceHeston
   };
 };
-
-export { useWasmPricing };
-if (typeof window !== 'undefined') {
-  (window as any).useWasmPricing = useWasmPricing;
-}
-
