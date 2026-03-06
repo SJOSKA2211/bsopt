@@ -79,6 +79,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "pytest-mock>=3.14.0",
     "pytest-xdist>=3.6.0",
+    "faker>=25.0.0",
     "hypothesis>=6.90.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",

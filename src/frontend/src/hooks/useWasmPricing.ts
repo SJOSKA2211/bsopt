@@ -75,9 +75,7 @@ const subscribe = (callback: () => void) => {
 
 const getSnapshot = () => isWorkerReady;
 
-console.log('[useWasmPricing] Script loaded');
-
-export const useWasmPricing = () => {
+const useWasmPricing = () => {
   const isLoaded = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
@@ -136,3 +134,9 @@ export const useWasmPricing = () => {
     priceHeston
   };
 };
+
+export { useWasmPricing };
+if (typeof window !== 'undefined') {
+  (window as any).useWasmPricing = useWasmPricing;
+}
+

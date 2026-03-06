@@ -21,6 +21,8 @@ export interface MarketTick {
 /**
  * Hook to subscribe to real-time market data ticks for one or more symbols.
  */
+console.log('[useMarketData] Script loaded');
+
 export const useMarketData = (symbols: string | string[]) => {
     const symbolList = useMemo(() =>
         typeof symbols === 'string' ? [symbols] : symbols,

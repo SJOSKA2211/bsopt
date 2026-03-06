@@ -97,18 +97,6 @@ class User(Base):
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
 
 
-# AUDIT & LOGGING (Hypertables)
-
-
-class RateLimit(Base):
-    __tablename__ = "rate_limits"
-
-    user_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    endpoint: Mapped[str] = mapped_column(String(255), primary_key=True)
-    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    request_count: Mapped[int] = mapped_column(Integer, default=1)
-
-
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 

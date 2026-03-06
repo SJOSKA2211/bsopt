@@ -80,19 +80,27 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
 
                 # 🔥 AMP: Automatic Mixed Precision
                 with th.amp.autocast("cuda", enabled=(device.type == "cuda")):
-                    _, action_preds, _ = model(
+                    state_preds, action_preds, return_preds = model(
                         states,
-                        th.zeros_like(actions),  # Masked actions for prediction
+                        actions,
                         rtg,
                         timesteps,
                     )
-                    loss = criterion(action_preds, actions)
+                    
+                    # 1. Action Prediction Loss (P0)
+                    loss_action = criterion(action_preds, actions)
+                    
+                    # 2. Auxiliary Losses for Stability (P1)
+                    loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
+                    loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
+                    
+                    loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
 
                 scaler.scale(loss).backward()
 
                 # Gradient Clipping for stability
                 scaler.unscale_(optimizer)
-                th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                grad_norm = th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
 
                 scaler.step(optimizer)
                 scaler.update()
@@ -102,8 +110,16 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64):
             duration = time.time() - start_time
             avg_loss = epoch_loss / len(loader)
 
+            # Log advanced metrics to MLflow
             mlflow.log_metric("loss", avg_loss, step=epoch)
+            mlflow.log_metric("grad_norm", grad_norm.item(), step=epoch)
             mlflow.log_metric("epoch_duration", duration, step=epoch)
+            
+            # Periodically log weight distributions
+            if epoch % 10 == 0:
+                for name, param in model.named_parameters():
+                    if 'weight' in name:
+                        mlflow.log_metric(f"weight_std_{name.replace('.', '_')}", param.std().item(), step=epoch)
 
             logger.info("epoch_completed", epoch=epoch, loss=avg_loss, duration=round(duration, 2))
 

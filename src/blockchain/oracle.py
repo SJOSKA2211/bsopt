@@ -32,16 +32,23 @@ class OracleManager:
         # 1. ⚡ SPEED FEED (WebSocket/Redis Cache)
         if redis:
             ws_price = await redis.get(f"price:ws:{symbol}")
-            if ws_price:
+            ws_ts = await redis.get(f"price:ws:{symbol}:ts")
+            
+            if ws_price and ws_ts:
                 price = float(ws_price)
-                logger.info("oracle_hit_ws", symbol=symbol, price=price)
-                return price
+                age = now - float(ws_ts)
+                confidence = self.get_confidence_score("WS", age)
+                
+                if confidence > 0.8:
+                    logger.info("oracle_hit_ws", symbol=symbol, price=price, confidence=round(confidence, 2))
+                    return price
 
         # 2. 🏛️ RPC FEED (On-chain/Local Cache)
         if contract_address in self._feeds:
             entry = self._feeds[contract_address]
-            if now - entry["time"] < self.cache_ttl:
-                logger.info("oracle_hit_local", symbol=symbol, price=entry["price"])
+            age = now - entry["time"]
+            if age < self.cache_ttl:
+                logger.info("oracle_hit_local", symbol=symbol, price=entry["price"], source=entry["source"])
                 return entry["price"]
 
         # 3. 🛡️ FALLBACK (Live RPC Call)
@@ -51,6 +58,7 @@ class OracleManager:
 
             if redis:
                 await redis.setex(f"price:rpc:{symbol}", self.cache_ttl, str(price))
+                await redis.setex(f"price:rpc:{symbol}:ts", self.cache_ttl, str(now))
 
             return price
         except Exception as e:
