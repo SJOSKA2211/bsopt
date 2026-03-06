@@ -16,7 +16,6 @@ import pandas as pd
 from src.ml.indicators import get_rsi
 
 
-
 # Need a fake Base for the test's `patch("...Base.metadata.create_all")`
 class _FakeMetadata:
     def create_all(self, *args: Any, **kwargs: Any) -> None:

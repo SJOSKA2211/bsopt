@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS option_contracts (
     underlying TEXT NOT NULL,
     expiry DATE NOT NULL,
     strike NUMERIC(12, 2) NOT NULL,
-    option_type VARCHAR(4) NOT NULL CHECK (option_type IN ('call', 'put')),
+    option_type option_type NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -18,11 +18,15 @@ ON option_contracts (underlying, expiry, strike);
 -- 2. Model Embeddings (pgvector)
 CREATE TABLE IF NOT EXISTS model_embeddings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    model_id TEXT NOT NULL,
+    model_id UUID NOT NULL REFERENCES ml_models(id) ON DELETE CASCADE,
     version INTEGER NOT NULL,
     embedding vector(1536),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Optimization: Fast lookup for model-specific embeddings
+CREATE INDEX IF NOT EXISTS idx_model_embeddings_lookup 
+ON model_embeddings (model_id, version);
 
 -- HNSW index for fast similarity search
 CREATE INDEX IF NOT EXISTS idx_model_embeddings_vector 

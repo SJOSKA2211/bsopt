@@ -33,10 +33,10 @@ class MathActor:
             # it's better to be async-native to allow other concurrent calls if needed.
             # However, for true CPU parallelism, we rely on Ray's multiple actors.
             params, metrics = self.calibrator.calibrate(market_data, symbol=symbol)
-            
+
             duration = (time.perf_counter() - start_time) * 1000
             logger.info("calibration_complete", symbol=symbol, ms=round(duration, 3))
-            
+
             return {
                 "symbol": symbol,
                 "status": "success",

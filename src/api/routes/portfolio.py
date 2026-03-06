@@ -28,19 +28,19 @@ async def get_portfolio(
     """Return the user's primary portfolio overview including positions (RLS Hardened)."""
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
-    
+
     # 2. Fetch primary portfolio (first one found)
     stmt = select(Portfolio).where(Portfolio.user_id == current_user.id).limit(1)
     result = await db.execute(stmt)
     portfolio = result.scalar_one_or_none()
-    
+
     if not portfolio:
         return {
             "balance": 0.0,
             "totalValue": 0.0,
             "positionsCount": 0,
             "positions": [],
-            "message": "No portfolio found for user"
+            "message": "No portfolio found for user",
         }
 
     # 3. Fetch positions for this portfolio (Filtered by RLS)
@@ -52,7 +52,7 @@ async def get_portfolio(
         "id": str(portfolio.id),
         "name": portfolio.name,
         "balance": float(portfolio.cash_balance),
-        "totalValue": float(portfolio.cash_balance), # Simplified for base case
+        "totalValue": float(portfolio.cash_balance),  # Simplified for base case
         "positionsCount": len(positions),
         "positions": [
             {
@@ -60,7 +60,7 @@ async def get_portfolio(
                 "symbol": p.symbol,
                 "quantity": p.quantity,
                 "entry_price": float(p.entry_price),
-                "status": p.status
+                "status": p.status,
             }
             for p in positions
         ],
@@ -74,13 +74,14 @@ async def get_portfolio_summary(
 ) -> DataResponse:
     """Return high-level portfolio metrics via optimized view."""
     await set_user_context(db, str(current_user.id))
-    
+
     from sqlalchemy import text
+
     # Optimized: Use our pre-aggregated materialized view (Refreshed via background task)
     stmt = text("SELECT * FROM portfolio_summary_mv WHERE user_id = :uid")
     result = await db.execute(stmt, {"uid": current_user.id})
     row = result.fetchone()
-    
+
     if not row:
         return DataResponse(data={"total_positions": 0, "cash_balance": 0.0})
 
@@ -95,12 +96,12 @@ async def add_position(
 ) -> dict:
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
-    
+
     # Get primary portfolio
     stmt = select(Portfolio).where(Portfolio.user_id == current_user.id).limit(1)
     result = await db.execute(stmt)
     portfolio = result.scalar_one_or_none()
-    
+
     if not portfolio:
         raise HTTPException(status_code=404, detail="Primary portfolio not found")
 
@@ -109,13 +110,13 @@ async def add_position(
         symbol=payload["symbol"].upper().strip(),
         quantity=int(payload["quantity"]),
         entry_price=float(payload["entry_price"]),
-        status="open"
+        status="open",
     )
-    
+
     db.add(new_pos)
     await db.commit()
     await db.refresh(new_pos)
-    
+
     return {"id": str(new_pos.id), "status": "position_created_solenya_tight"}
 
 
@@ -127,15 +128,15 @@ async def delete_position(
 ) -> dict:
     """Delete (close) a position by ID (RLS Enforced)."""
     await set_user_context(db, str(current_user.id))
-    
+
     stmt = select(Position).where(Position.id == position_id)
     result = await db.execute(stmt)
     position = result.scalar_one_or_none()
-    
+
     if not position:
         raise HTTPException(status_code=404, detail="Position not found or unauthorized")
-        
+
     await db.delete(position)
     await db.commit()
-    
+
     return {"message": "Position purged from manifold", "id": str(position_id)}

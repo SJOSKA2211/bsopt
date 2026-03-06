@@ -281,6 +281,7 @@ def refresh_materialized_views_task(self) -> dict[str, Any]:
     logger.info("refreshing_all_views_start")
 
     from sqlalchemy import text
+
     from src.database import SessionLocal
 
     db_session = SessionLocal()

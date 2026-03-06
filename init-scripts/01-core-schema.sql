@@ -1,8 +1,14 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Core Schema
+-- Black-Scholes Option Pricing Platform - Consolidated Core Schema
 -- ============================================================================
 
--- Custom Types for Optimization (ENUMs are faster and save space)
+-- 1. Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "timescaledb" CASCADE;
+CREATE EXTENSION IF NOT EXISTS "vector";
+
+-- 2. Custom Types for Optimization
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_tier') THEN
@@ -25,20 +31,18 @@ BEGIN
     END IF;
 END $$;
 
+-- 3. Core Tables (Aligned with Better-Auth)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    hashed_password VARCHAR(255) NOT NULL,
+    hashed_password VARCHAR(255),
     full_name VARCHAR(255),
     tier user_tier DEFAULT 'free',
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    last_login TIMESTAMPTZ,
+    last_login TIMESTAMPTZ DEFAULT NOW(),
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
-    verification_token VARCHAR(255),
-    reset_token VARCHAR(255),
-    reset_token_expires_at TIMESTAMPTZ,
-    is_mfa_enabled BOOLEAN DEFAULT FALSE,
+    mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     mfa_backup_codes TEXT
 ) WITH (FILLFACTOR = 90);
@@ -48,17 +52,11 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
-    ip_address INET,
+    ip_address VARCHAR(50),
     user_agent TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 ) WITH (FILLFACTOR = 90);
-
--- AUDIT: Track user changes
-DROP TRIGGER IF EXISTS audit_users ON users;
-CREATE TRIGGER audit_users
-    AFTER INSERT OR UPDATE OR DELETE ON users
-    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
 
 CREATE TABLE IF NOT EXISTS oauth_accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -69,6 +67,7 @@ CREATE TABLE IF NOT EXISTS oauth_accounts (
     refresh_token TEXT,
     expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(provider, provider_id)
 );
 
@@ -91,11 +90,7 @@ CREATE TABLE IF NOT EXISTS oauth2_clients (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX IF NOT EXISTS idx_oauth2_client_id ON oauth2_clients(client_id);
-
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_tier_active ON users(tier, is_active);
-
+-- 4. Options Pricing & Market Data (Hypertables defined in 02-hypertables.sql)
 CREATE TABLE IF NOT EXISTS options_prices (
     time TIMESTAMPTZ NOT NULL,
     symbol TEXT NOT NULL,
@@ -116,7 +111,6 @@ CREATE TABLE IF NOT EXISTS options_prices (
     PRIMARY KEY (time, symbol, strike, expiry, option_type)
 ) WITH (FILLFACTOR = 100);
 
--- Increase statistics target for symbol column for better query planning in large datasets
 ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 500;
 
 CREATE TABLE IF NOT EXISTS market_ticks (
@@ -124,26 +118,19 @@ CREATE TABLE IF NOT EXISTS market_ticks (
     symbol TEXT NOT NULL,
     price NUMERIC(15, 4) NOT NULL,
     volume INTEGER,
-    side VARCHAR(4) -- 'buy' or 'sell'
+    side order_side -- Reference order_side enum
 ) WITH (FILLFACTOR = 100);
 
+-- 5. Portfolios, Positions & Orders
 CREATE TABLE IF NOT EXISTS portfolios (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     cash_balance NUMERIC(15, 2) DEFAULT 0.00 CHECK (cash_balance >= 0),
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, name)
 ) WITH (FILLFACTOR = 90);
-
--- AUDIT: Track portfolio changes
-DROP TRIGGER IF EXISTS audit_portfolios ON portfolios;
-CREATE TRIGGER audit_portfolios
-    AFTER INSERT OR UPDATE OR DELETE ON portfolios
-    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
-
-CREATE INDEX IF NOT EXISTS idx_portfolios_user_created ON portfolios(user_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_portfolios_user_name ON portfolios(user_id, name);
 
 CREATE TABLE IF NOT EXISTS positions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -151,7 +138,7 @@ CREATE TABLE IF NOT EXISTS positions (
     symbol TEXT NOT NULL,
     strike NUMERIC(12, 2),
     expiry DATE,
-    option_type VARCHAR(4) CHECK (option_type IS NULL OR option_type IN ('call', 'put')),
+    option_type option_type,
     quantity INTEGER NOT NULL CHECK (quantity != 0),
     entry_price NUMERIC(12, 4) NOT NULL,
     entry_date TIMESTAMPTZ DEFAULT NOW(),
@@ -164,15 +151,7 @@ CREATE TABLE IF NOT EXISTS positions (
         (exit_price IS NULL AND exit_date IS NULL) OR
         (exit_price IS NOT NULL AND exit_date IS NOT NULL)
     )
-) WITH (
-    FILLFACTOR = 90,
-    autovacuum_vacuum_scale_factor = 0.01,
-    autovacuum_analyze_scale_factor = 0.005
-);
-
-CREATE INDEX IF NOT EXISTS idx_positions_portfolio_status ON positions(portfolio_id, status);
-CREATE INDEX IF NOT EXISTS idx_positions_symbol_status ON positions(symbol, status);
-CREATE INDEX IF NOT EXISTS idx_positions_expiry_status ON positions(expiry, status);
+) WITH (FILLFACTOR = 90);
 
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -181,7 +160,7 @@ CREATE TABLE IF NOT EXISTS orders (
     symbol TEXT NOT NULL,
     strike NUMERIC(12, 2),
     expiry DATE,
-    option_type VARCHAR(4) CHECK (option_type IS NULL OR option_type IN ('call', 'put')),
+    option_type option_type,
     side order_side NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     order_type order_type NOT NULL,
@@ -200,24 +179,9 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT stop_order_requires_stop_price CHECK (
         (order_type != 'stop' AND order_type != 'stop_limit') OR stop_price IS NOT NULL
     )
-) WITH (
-    FILLFACTOR = 90,
-    autovacuum_vacuum_scale_factor = 0.01,
-    autovacuum_analyze_scale_factor = 0.005
-);
+) WITH (FILLFACTOR = 90);
 
--- AUDIT: Track order changes
-DROP TRIGGER IF EXISTS audit_orders ON orders;
-CREATE TRIGGER audit_orders
-    AFTER INSERT OR UPDATE OR DELETE ON orders
-    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
-
-CREATE INDEX IF NOT EXISTS idx_orders_user_created ON orders(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_portfolio_created ON orders(portfolio_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders(status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_orders_broker_lookup ON orders(broker, broker_order_id);
-CREATE INDEX IF NOT EXISTS idx_orders_symbol_status ON orders(symbol, status, created_at DESC);
-
+-- 6. ML Models & Predictions
 CREATE TABLE IF NOT EXISTS ml_models (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
@@ -232,18 +196,7 @@ CREATE TABLE IF NOT EXISTS ml_models (
     UNIQUE(name, version)
 );
 
--- AUDIT: Track model changes
-DROP TRIGGER IF EXISTS audit_ml_models ON ml_models;
-CREATE TRIGGER audit_ml_models
-    AFTER INSERT OR UPDATE OR DELETE ON ml_models
-    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
-
-CREATE INDEX IF NOT EXISTS idx_ml_models_production ON ml_models(name, is_production);
-CREATE INDEX IF NOT EXISTS idx_ml_models_version ON ml_models(name, version DESC);
-CREATE INDEX IF NOT EXISTS idx_ml_models_created_by ON ml_models(created_by);
-
-DROP TABLE IF EXISTS model_predictions CASCADE;
-CREATE TABLE model_predictions (
+CREATE TABLE IF NOT EXISTS model_predictions (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     model_id UUID REFERENCES ml_models(id) ON DELETE SET NULL,
@@ -256,11 +209,7 @@ CREATE TABLE model_predictions (
     PRIMARY KEY (id, timestamp)
 ) WITH (FILLFACTOR = 100);
 
-CREATE INDEX IF NOT EXISTS idx_model_predictions_symbol_time ON model_predictions(symbol, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_model_predictions_pending ON model_predictions(timestamp DESC) WHERE actual_price IS NULL;
-
--- High-throughput transient table: UNLOGGED for zero WAL overhead
+-- 7. Utility Tables
 CREATE UNLOGGED TABLE IF NOT EXISTS rate_limits (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     endpoint VARCHAR(100) NOT NULL,
@@ -268,8 +217,6 @@ CREATE UNLOGGED TABLE IF NOT EXISTS rate_limits (
     request_count INTEGER DEFAULT 1,
     PRIMARY KEY (user_id, endpoint, window_start)
 );
-
-CREATE INDEX IF NOT EXISTS idx_rate_limits_lookup ON rate_limits(user_id, endpoint, window_start);
 
 CREATE TABLE IF NOT EXISTS request_logs (
     created_at TIMESTAMPTZ NOT NULL, 
@@ -279,54 +226,23 @@ CREATE TABLE IF NOT EXISTS request_logs (
     duration_ms DOUBLE PRECISION
 ) WITH (FILLFACTOR = 100);
 
-CREATE TABLE IF NOT EXISTS model_drift_baselines (
-    model_id UUID PRIMARY KEY REFERENCES ml_models(id) ON DELETE CASCADE,
-    baseline_accuracy DOUBLE PRECISION,
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE OR REPLACE FUNCTION update_drift_baseline()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_accuracy DOUBLE PRECISION;
-BEGIN
-    -- Calculate rolling accuracy for the model (predictions from the last 24h)
-    SELECT AVG(CASE WHEN ABS(predicted_price - actual_price) / NULLIF(actual_price, 0) < 0.05 THEN 1 ELSE 0 END)
-    INTO v_accuracy
-    FROM model_predictions
-    WHERE model_id = NEW.model_id
-      AND timestamp >= NOW() - INTERVAL '24 hours'
-      AND actual_price IS NOT NULL;
-
-    -- Update baseline if accuracy is statistically significant
-    IF v_accuracy IS NOT NULL AND v_accuracy > 0.90 THEN
-        INSERT INTO model_drift_baselines (model_id, baseline_accuracy, updated_at)
-        VALUES (NEW.model_id, v_accuracy, NOW())
-        ON CONFLICT (model_id) DO UPDATE 
-        SET baseline_accuracy = EXCLUDED.baseline_accuracy, updated_at = NOW();
-    END IF;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_update_drift_baseline ON model_predictions;
-CREATE TRIGGER trigger_update_drift_baseline
-    AFTER UPDATE OF actual_price ON model_predictions
-    FOR EACH ROW
-    WHEN (NEW.actual_price IS NOT NULL)
-    EXECUTE FUNCTION update_drift_baseline();
-
+-- 8. Functions & Triggers
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS update_orders_updated_at ON orders;
-CREATE TRIGGER update_orders_updated_at
-    BEFORE UPDATE ON orders
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_portfolios_updated_at ON portfolios;
+CREATE TRIGGER update_portfolios_updated_at BEFORE UPDATE ON portfolios FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_sessions_updated_at ON sessions;
+CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_oauth_accounts_updated_at ON oauth_accounts;
+CREATE TRIGGER update_oauth_accounts_updated_at BEFORE UPDATE ON oauth_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

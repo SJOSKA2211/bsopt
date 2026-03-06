@@ -237,5 +237,6 @@ if __name__ == "__main__":
     enforcer = OPAEnforcer()
     user = {"id": "user123", "role": "trader"}
     import asyncio
+
     authorized = asyncio.run(enforcer.is_authorized(user, "read", "market_data"))
     logger.info("manual_authorization_check", authorized=authorized)

@@ -26,6 +26,8 @@ try:
 except ImportError:
     pass
 
+from src.utils.celery import BaseAsyncTask
+
 setup_logging()
 tune_gc()
 logger = structlog.get_logger()
@@ -38,20 +40,8 @@ app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS
 # Initialize Ray once
 RayOrchestrator.init()
 
-# 🥒 Global Persistent Loop and Actors (One per prefork process)
-_loop = None
+# 🥒 Global Persistent Actors (One per prefork process)
 _actors = []
-
-
-def get_event_loop():
-    global _loop
-    if _loop is None:
-        try:
-            _loop = asyncio.get_running_loop()
-        except RuntimeError:
-            _loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(_loop)
-    return _loop
 
 
 def get_actors():
@@ -66,13 +56,12 @@ def get_actors():
     return _actors
 
 
-@app.task(bind=True, max_retries=3, default_retry_delay=60)
+@app.task(base=BaseAsyncTask, bind=True, max_retries=3, default_retry_delay=60)
 def recalibrate_symbol(self, symbol: str) -> dict:
-    """Non-blocking calibration delegation."""
-    loop = get_event_loop()
+    """Non-blocking calibration delegation using BaseAsyncTask loop."""
     try:
-        # EXECUTE: In a shared process-level loop to avoid asyncio.run overhead
-        return loop.run_until_complete(_recalibrate_symbol_impl(self, symbol))
+        # EXECUTE: In a shared persistent loop via BaseAsyncTask
+        return self.run_async(_recalibrate_symbol_impl(self, symbol))
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
         raise self.retry(exc=e) from e
@@ -128,7 +117,7 @@ async def _recalibrate_symbol_async(self, symbol: str, market_data: list | None 
 
         duration = time.time() - start_time
         CALIBRATION_DURATION.labels(symbol=symbol).observe(duration)
-        
+
         return {
             "symbol": symbol,
             "status": "success",

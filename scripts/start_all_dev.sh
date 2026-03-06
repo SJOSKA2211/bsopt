@@ -70,7 +70,8 @@ check_infra_health() {
     local status=0
     local message=""
 
-    $DOCKER_COMPOSE exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1
+    [ -f .env ] && source .env
+    $DOCKER_COMPOSE exec -T postgres pg_isready -U \"\${POSTGRES_USER:-admin}\" -d bsopt > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         message+="Postgres not ready. "
         status=1

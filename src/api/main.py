@@ -61,6 +61,14 @@ async def startup_event():
         await monkey.delay_db(0.5)  # Slight delay to trigger latency detectors without timeout
 
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    from src.database import dispose_engine
+
+    await dispose_engine()
+    logger.info("api_shutdown_complete_database_engines_disposed")
+
+
 # Middleware
 app.add_middleware(BrotliMiddleware, minimum_size=1000, quality=4)
 app.add_middleware(
@@ -171,7 +179,9 @@ app.include_router(graphql_app, prefix="/graphql")
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health():
-    return {"status": "healthy"}
+    from src.database import health_check
+
+    return {"status": "healthy", "database": health_check()}
 
 
 @app.get("/api/diagnostics/imports")

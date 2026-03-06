@@ -304,6 +304,7 @@ async def get_current_user(
         logger.warning(f"Cache lookup failed: {e}")
 
     from src.database import set_user_context
+
     await set_user_context(db, user_id)
 
     result = await db.execute(select(User).where(User.id == user_id))

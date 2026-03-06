@@ -3,16 +3,15 @@ Machine Learning Service
 Enhanced with God-Mode Persistence and Vectorized Database Ingestion.
 """
 
-import time
 import asyncio
+import time
 from math import erf, log, sqrt
-from typing import Any
 
 import structlog
 
 from src.api.schemas.ml import InferenceRequest, InferenceResponse
-from src.shared.observability import ML_PROXY_PREDICT_LATENCY
 from src.database.pipeliner import db_engine
+from src.shared.observability import ML_PROXY_PREDICT_LATENCY
 
 logger = structlog.get_logger(__name__)
 
@@ -53,7 +52,7 @@ class MLService:
         self, request: InferenceRequest, model_type: str = "xgb", symbol: str = "UNKNOWN"
     ) -> InferenceResponse:
         start_time = time.perf_counter()
-        
+
         # 1. Computation
         price = self._black_scholes_price(request)
         duration = (time.perf_counter() - start_time) * 1000
@@ -68,24 +67,24 @@ class MLService:
     async def _persist_prediction(self, symbol: str, price: float, request: InferenceRequest):
         """Asynchronously log prediction to the hypertable."""
         try:
-            from datetime import datetime, UTC
             import json
-            
+            from datetime import UTC, datetime
+
             # Format for VectorizedDBEngine.insert_predictions_bulk
             # columns: (timestamp, symbol, model_id, input_features, predicted_price)
             prediction_data = [
                 (
                     datetime.now(UTC),
                     symbol,
-                    None, # model_id (NULL for BS fallback)
+                    None,  # model_id (NULL for BS fallback)
                     json.dumps(request.model_dump()),
-                    price
+                    price,
                 )
             ]
-            
+
             async with db_engine as db:
                 await db.insert_predictions_bulk(prediction_data)
-                
+
         except Exception as e:
             logger.error("prediction_persistence_failed", error=str(e))
 

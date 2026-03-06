@@ -49,3 +49,45 @@ ALTER TABLE portfolios FORCE ROW LEVEL SECURITY;
 ALTER TABLE positions FORCE ROW LEVEL SECURITY;
 ALTER TABLE orders FORCE ROW LEVEL SECURITY;
 ALTER TABLE users FORCE ROW LEVEL SECURITY;
+
+-- 7. Native ENUM Standard (v2.5)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'option_type') THEN
+        CREATE TYPE option_type AS ENUM ('call', 'put');
+    END IF;
+END $$;
+
+-- Convert existing columns to use the new ENUM (with explicit cast)
+-- options_prices
+ALTER TABLE options_prices 
+    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
+
+-- positions
+ALTER TABLE positions 
+    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
+
+-- orders
+ALTER TABLE orders 
+    ALTER COLUMN option_type TYPE option_type USING option_type::option_type;
+
+-- 8. Aggressive Autovacuum Tuning (v2.5)
+ALTER TABLE users SET (
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
+);
+
+ALTER TABLE sessions SET (
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
+);
+
+ALTER TABLE orders SET (
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
+);
+
+ALTER TABLE positions SET (
+    autovacuum_vacuum_scale_factor = 0.01,
+    autovacuum_analyze_scale_factor = 0.005
+);

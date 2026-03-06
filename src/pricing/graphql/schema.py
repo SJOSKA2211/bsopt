@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 import strawberry
 from strawberry.dataloader import DataLoader
@@ -15,7 +15,7 @@ async def load_prices(keys: list[tuple]) -> list[float]:
     """Batch loader for option prices."""
     requests = []
     for key in keys:
-        # key: (id, strike, underlying_symbol, expiry, option_type)
+        # key: (id, strike, symbol, expiry, option_type)
         _, strike, _, expiry, option_type = key
         T = (expiry - datetime.now()).days / 365.0
         if T <= 0:
@@ -80,42 +80,48 @@ async def load_greeks(keys: list[tuple]) -> list[dict[str, float]]:
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
     strike: float = strawberry.federation.field(external=True)
-    underlying_symbol: str = strawberry.federation.field(external=True)
-    expiry: datetime = strawberry.federation.field(external=True)
+    symbol: str = strawberry.federation.field(external=True)
+    expiry: date = strawberry.federation.field(external=True)
     option_type: str = strawberry.federation.field(external=True)
 
-    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
+    @strawberry.federation.field(
+        requires=["strike", "symbol", "expiry", "optionType"], shareable=True
+    )
     async def price(self, info: strawberry.Info) -> float:
         loader = info.context["price_loader"]
         key = (
             self.id,
             self.strike,
-            self.underlying_symbol,
+            self.symbol,
             self.expiry,
             self.option_type,
         )
         return await loader.load(key)
 
-    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
-    async def delta(self, info: strawberry.Info) -> float:
+    @strawberry.federation.field(
+        requires=["strike", "symbol", "expiry", "optionType"], shareable=True
+    )
+    async def delta(self, info: strawberry.Info) -> float | None:
         loader = info.context["greeks_loader"]
         key = (
             self.id,
             self.strike,
-            self.underlying_symbol,
+            self.symbol,
             self.expiry,
             self.option_type,
         )
         res = await loader.load(key)
         return res["delta"]
 
-    @strawberry.federation.field(requires=["strike", "underlyingSymbol", "expiry", "optionType"])
-    async def gamma(self, info: strawberry.Info) -> float:
+    @strawberry.federation.field(
+        requires=["strike", "symbol", "expiry", "optionType"], shareable=True
+    )
+    async def gamma(self, info: strawberry.Info) -> float | None:
         loader = info.context["greeks_loader"]
         key = (
             self.id,
             self.strike,
-            self.underlying_symbol,
+            self.symbol,
             self.expiry,
             self.option_type,
         )
@@ -132,7 +138,7 @@ class Option:
         cls,
         id: strawberry.ID,
         strike: float,
-        underlyingSymbol: str,
+        symbol: str,
         expiry: str,
         optionType: str,
     ):
@@ -144,7 +150,7 @@ class Option:
         return cls(
             id=id,
             strike=strike,
-            underlying_symbol=underlyingSymbol,
+            symbol=symbol,
             expiry=expiry_dt,
             option_type=optionType,
         )

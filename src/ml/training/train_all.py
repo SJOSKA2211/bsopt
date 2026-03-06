@@ -48,6 +48,8 @@ async def train_all():
     except Exception as e:
         logger.critical("pipeline_fatal_error", error=str(e))
         raise
+    finally:
+        await pipeline.shutdown()
 
 
 if __name__ == "__main__":

@@ -27,13 +27,13 @@ class VectorizedDBEngine:
                 try:
                     # Optimized for 2GB container: restricted pool size
                     self._pool = await asyncpg.create_pool(
-                        self.dsn, 
-                        min_size=2, 
-                        max_size=5, 
+                        self.dsn,
+                        min_size=2,
+                        max_size=5,
                         command_timeout=60,
                         # Enable statement cache for repeated queries
                         max_cached_statement_lifetime=600,
-                        max_cache_size=100
+                        max_cache_size=100,
                     )
                     logger.info("db_pipeliner_pool_initialized", dsn=self.dsn)
                 except Exception as e:
@@ -120,13 +120,7 @@ class VectorizedDBEngine:
         """
         Specialized bulk ingestion for ML predictions (Hypertable).
         """
-        columns = (
-            "timestamp",
-            "symbol",
-            "model_id",
-            "input_features",
-            "predicted_price"
-        )
+        columns = ("timestamp", "symbol", "model_id", "input_features", "predicted_price")
         await self.generic_bulk_copy("model_predictions", predictions, columns)
 
     async def close(self):

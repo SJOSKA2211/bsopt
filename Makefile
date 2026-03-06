@@ -92,12 +92,15 @@ migrate:
 db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
+db-audit:
+	@echo "🥒 Running God-Mode Manifold Audit..."
+	$(DOCKER_COMPOSE) exec -T api python3 -m src.database.verify
+
 db-optimize:
 	@echo "🥒 Pressurizing the Manifold (Database Optimization)..."
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "VACUUM (ANALYZE, VERBOSE);"
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "REINDEX TABLE CONCURRENTLY orders; REINDEX TABLE CONCURRENTLY positions;"
-	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT compress_chunk(c) FROM show_chunks('options_prices') c WHERE NOT is_compression_enabled(c);"
-	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT compress_chunk(c) FROM show_chunks('market_ticks') c WHERE NOT is_compression_enabled(c);"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT refresh_all_continuous_aggregates();"
 
 # --- Quality & Security ---
 

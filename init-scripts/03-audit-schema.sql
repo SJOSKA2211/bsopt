@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     method VARCHAR(10) NOT NULL,
     path TEXT NOT NULL,
     status_code SMALLINT NOT NULL,
-    user_id UUID, -- Optimized to match users.id type
+    user_id UUID,
     client_ip INET NOT NULL,
     user_agent TEXT NOT NULL,
-    latency_ms REAL NOT NULL,
+    latency_ms DOUBLE PRECISION NOT NULL,
     metadata JSONB
 ) WITH (FILLFACTOR = 100);
 
@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS data_audit_logs (
     table_name TEXT NOT NULL,
     operation TEXT NOT NULL,
     user_id UUID,
-    old_data JSONB,
-    new_data JSONB,
+    changed_data JSONB, -- Only store what changed for updates
+    full_row JSONB,     -- Full row for inserts/deletes
     query TEXT
 );
 
@@ -43,13 +43,15 @@ DECLARE
     v_user_id UUID;
     v_changed_fields JSONB;
 BEGIN
-    -- Skip INSERT auditing for high-volume time-series tables (options_prices, market_ticks, audit_logs)
-    -- to prevent doubling storage footprint in 2GB environment.
-    IF (TG_OP = 'INSERT' AND TG_TABLE_NAME IN ('options_prices', 'market_ticks', 'audit_logs', 'request_logs', 'model_predictions')) THEN
+    -- Skip INSERT auditing for high-volume tables to prevent space bloat
+    IF (TG_OP = 'INSERT' AND TG_TABLE_NAME IN (
+        'options_prices', 'market_ticks', 'audit_logs', 'request_logs', 
+        'model_predictions', 'market_data_mesh', 'rate_limits'
+    )) THEN
         RETURN NEW;
     END IF;
 
-    -- Attempt to get the current user ID from the session setting
+    -- Attempt to get current user ID
     BEGIN
         v_user_id := NULLIF(current_setting('app.current_user_id', true), '')::UUID;
     EXCEPTION WHEN OTHERS THEN
@@ -57,21 +59,24 @@ BEGIN
     END;
 
     IF (TG_OP = 'DELETE') THEN
-        INSERT INTO data_audit_logs (table_name, operation, user_id, old_data, query)
+        INSERT INTO data_audit_logs (table_name, operation, user_id, full_row, query)
         VALUES (TG_TABLE_NAME, TG_OP, v_user_id, row_to_json(OLD)::JSONB, current_query());
         RETURN OLD;
     ELSIF (TG_OP = 'UPDATE') THEN
-        -- Storage Optimization: Calculate diff between NEW and OLD to store only changed fields
+        -- Calculate diff: ONLY changed fields
         SELECT jsonb_object_agg(n.key, n.value) INTO v_changed_fields
         FROM jsonb_each(row_to_json(NEW)::JSONB) n
         JOIN jsonb_each(row_to_json(OLD)::JSONB) o ON n.key = o.key
         WHERE n.value IS DISTINCT FROM o.value;
 
-        INSERT INTO data_audit_logs (table_name, operation, user_id, old_data, new_data, query)
-        VALUES (TG_TABLE_NAME, TG_OP, v_user_id, v_changed_fields, row_to_json(NEW)::JSONB, current_query());
+        -- Only log if something actually changed
+        IF v_changed_fields IS NOT NULL THEN
+            INSERT INTO data_audit_logs (table_name, operation, user_id, changed_data, full_row, query)
+            VALUES (TG_TABLE_NAME, TG_OP, v_user_id, v_changed_fields, row_to_json(NEW)::JSONB, current_query());
+        END IF;
         RETURN NEW;
     ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO data_audit_logs (table_name, operation, user_id, new_data, query)
+        INSERT INTO data_audit_logs (table_name, operation, user_id, full_row, query)
         VALUES (TG_TABLE_NAME, TG_OP, v_user_id, row_to_json(NEW)::JSONB, current_query());
         RETURN NEW;
     END IF;

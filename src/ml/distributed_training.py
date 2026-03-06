@@ -26,17 +26,16 @@ logger = structlog.get_logger(__name__)
 def train_func(config: dict[str, Any]):
     """
     Worker function for distributed Decision Transformer training.
-    OPTIMIZED: Real model, real data, real tracking.
+    OPTIMIZED: torch.compile, AMP (GradScaler), and Grad Flow Monitoring.
     """
     if not HAS_RAY_TRAIN:
         raise ImportError("Ray Train Torch dependencies missing.")
 
-    # 1. Setup MLflow Tracking (Native Postgres)
+    # 1. Setup MLflow Tracking
     import mlflow
-
     mlflow.set_tracking_uri(settings.tracking_uri)
 
-    # 2. Setup Model (Decision Transformer)
+    # 2. Setup Model (DT-v2)
     model = DecisionTransformer(
         state_dim=config.get("state_dim", 100),
         action_dim=config.get("action_dim", 10),
@@ -44,33 +43,43 @@ def train_func(config: dict[str, Any]):
         max_ep_len=config.get("max_ep_len", 1000),
     )
 
+    device = ray.train.torch.get_device()
+    model = model.to(device)
+
+    # 🚀 GOD-MODE: Kernel Fusion via torch.compile
+    try:
+        if config.get("use_compile", True):
+            model = th.compile(model)
+            logger.info("model_compiled_successfully")
+    except Exception as e:
+        logger.warning("torch_compile_failed", error=str(e))
+
     # Wrap for DDP
-    import ray.train.torch
     model = ray.train.torch.prepare_model(model)
 
     optimizer = th.optim.AdamW(model.parameters(), lr=config.get("lr", 1e-4), weight_decay=1e-2)
     criterion = nn.MSELoss()
 
-    # 3. Setup Data (Scalable Sharded Loading via Ray Data)
-    # OPTIMIZED: Using ray.data for OOM-safe distributed loading
-    import ray.data
+    # ⚡ AMP: Automatic Mixed Precision
+    scaler = th.cuda.amp.GradScaler(enabled=config.get("use_amp", True))
 
+    # 3. Setup Data
+    import ray.data
     dataset_path = config.get("dataset_path", "data/trajectories.pkl")
-    # In a real cluster, this would be a parquet or arrow dataset
-    # For now, we simulate with ray.data if it's a large dataset
+    # ... (rest of data loading logic remains the same)
+    ds = None
     try:
-        ds = ray.data.read_json(dataset_path) if dataset_path.endswith(".json") else None
+        if dataset_path.endswith(".json"):
+            ds = ray.data.read_json(dataset_path)
     except Exception:
-        ds = None
+        pass
 
     if ds:
-        # Sharded iteration
         sharded_loader = ds.iter_torch_batches(batch_size=config.get("batch_size", 64))
     else:
-        # Fallback to standard loader if ray.data fails or not applicable
-        import pickle  # nosec B403
+        import pickle
         with open(dataset_path, "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+            trajectories = pickle.load(f)
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)
@@ -81,35 +90,43 @@ def train_func(config: dict[str, Any]):
         epoch_loss = 0
         for batch in sharded_loader:
             optimizer.zero_grad()
-            
-            # OPTIMIZED: Unified batch extraction
+
             if isinstance(batch, dict):
-                states = batch["states"]
-                actions = batch["actions"]
-                rtg = batch["rtg"]
-                timesteps = batch["timesteps"]
+                states = batch["states"].to(device)
+                actions = batch["actions"].to(device)
+                rtg = batch["rtg"].to(device)
+                timesteps = batch["timesteps"].to(device)
             else:
-                # Standard DataLoader returns list/tuple
-                states, actions, rtg, timesteps = batch
+                states, actions, rtg, timesteps = [x.to(device) for x in batch]
 
-            _, action_preds, _ = model(
-                states,
-                th.zeros_like(actions),
-                rtg,
-                timesteps,
-            )
+            # ⚡ AMP Forward Pass
+            with th.cuda.amp.autocast(enabled=config.get("use_amp", True)):
+                action_preds = model(states, th.zeros_like(actions), rtg, timesteps)
+                loss = criterion(action_preds, actions)
 
-            loss = criterion(action_preds, actions)
-            loss.backward()
-            optimizer.step()
+            # ⚡ AMP Backward Pass
+            scaler.scale(loss).backward()
+
+            # Grad Clipping & Monitoring (Rank 0 only)
+            if ray.train.get_context().get_local_rank() == 0:
+                scaler.unscale_(optimizer)
+                grad_norm = th.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                mlflow.log_metric("grad_norm", grad_norm.item())
+
+            scaler.step(optimizer)
+            scaler.update()
             epoch_loss += loss.item()
 
-        # Report metrics to Ray Train
         avg_loss = epoch_loss / len(sharded_loader)
         ray.train.report({"loss": avg_loss, "epoch": epoch})
 
         if ray.train.get_context().get_local_rank() == 0:
             mlflow.log_metric("dist_loss", avg_loss, step=epoch)
+            # Log weight distribution
+            for name, param in model.named_parameters():
+                if "weight" in name:
+                    mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item())
+
 
 
 class BSOptDistributedTrainer:
@@ -122,23 +139,31 @@ class BSOptDistributedTrainer:
         self.use_gpu = use_gpu
 
     def run(self, config: dict[str, Any]):
-        """Starts the distributed training session."""
+        """Starts the distributed training session using RayClusterManager."""
         if not HAS_RAY_TRAIN:
             logger.error("ray_train_missing")
             return None
 
-        # AUDIT: Ensure resources_per_trial is set for scalability
-        scaling_config = ScalingConfig(
-            num_workers=self.num_workers,
-            use_gpu=self.use_gpu,
-            resources_per_worker={"CPU": 1, "GPU": 1 if self.use_gpu else 0},
-        )
+        from src.utils.ray_cluster_manager import RayClusterManager
+        if not RayClusterManager.initialize():
+            raise RuntimeError("Failed to initialize Ray cluster via RayClusterManager.")
 
-        trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
+        try:
+            # AUDIT: Ensure resources_per_trial is set for scalability
+            scaling_config = ScalingConfig(
+                num_workers=self.num_workers,
+                use_gpu=self.use_gpu,
+                resources_per_worker={"CPU": 1, "GPU": 1 if self.use_gpu else 0},
+            )
 
-        logger.info("starting_distributed_training", workers=self.num_workers)
-        result = trainer.fit()
-        return result
+            trainer = TorchTrainer(train_func, train_loop_config=config, scaling_config=scaling_config)
+
+            logger.info("starting_distributed_training", workers=self.num_workers)
+            result = trainer.fit()
+            return result
+        finally:
+            if os.getenv("RAY_SHUTDOWN_AFTER_RUN") == "true":
+                RayClusterManager.shutdown()
 
 
 if __name__ == "__main__":

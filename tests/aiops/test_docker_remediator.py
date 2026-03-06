@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -45,7 +45,7 @@ class TestDockerRemediator:
 
         remediator = DockerRemediator()
         mock_logger.reset_mock()
-        service_name = "api" # Use allowed service
+        service_name = "api"  # Use allowed service
 
         result = await remediator.restart_service(service_name)
 
@@ -57,7 +57,9 @@ class TestDockerRemediator:
         )
 
     @pytest.mark.asyncio
-    async def test_docker_remediator_restart_service_not_found_fallback(self, mock_from_env, mock_logger):
+    async def test_docker_remediator_restart_service_not_found_fallback(
+        self, mock_from_env, mock_logger
+    ):
         """Test service restart fallback to shell when SDK fails."""
         mock_client = MagicMock()
         mock_from_env.return_value = mock_client
@@ -71,7 +73,7 @@ class TestDockerRemediator:
         with patch("src.aiops.docker_remediator.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(stdout="restarted")
             result = await remediator.restart_service(service_name)
-            
+
             assert result is True
             mock_run.assert_called_once()
             assert "restart" in mock_run.call_args[0][0]
@@ -82,7 +84,9 @@ class TestDockerRemediator:
         remediator = DockerRemediator()
         result = await remediator.restart_service("malicious; rm -rf")
         assert result is False
-        mock_logger.error.assert_any_call("docker_remediator_invalid_service", service="malicious; rm -rf")
+        mock_logger.error.assert_any_call(
+            "docker_remediator_invalid_service", service="malicious; rm -rf"
+        )
 
     @pytest.mark.asyncio
     async def test_scale_service_success(self, mock_from_env, mock_logger):

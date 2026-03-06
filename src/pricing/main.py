@@ -22,10 +22,19 @@ async def startup_event():
     warmup_jit()
 
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    from src.database import dispose_engine
+
+    await dispose_engine()
+
+
 graphql_app = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    from src.database import health_check
+
+    return {"status": "healthy", "database": health_check()}

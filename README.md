@@ -56,5 +56,18 @@ Detailed technical specifications are available in the `docs/` directory:
 - [Security Protocol](docs/SECURITY_PROTOCOL.md)
 - [Anti-Freeze Guide (Build Optimization)](docs/mlops/anti-freeze.md)
 
+## 🗄️ Database God Mode (v2.5)
+The BS-OPT manifold is powered by a hyper-optimized **PostgreSQL 16 + TimescaleDB** backend:
+- **JIT Acceleration**: Native JIT compilation enabled for complex analytical risk queries.
+- **SIMD Compression**: TimescaleDB columnar compression with symbol-based segmenting.
+- **Automated Maintenance**: background jobs for concurrent MV refreshes and statistics re-analysis.
+- **Diagnostics Dashboard**: Real-time monitoring views (`db_health_overview`, `query_variance_report`).
+- **Audit Tool**: In-built verification manifold for infra-structure integrity.
+
+**Run Database Audit:**
+```bash
+python3 -m src.database.verify
+```
+
 ---
 *Created by the Joseph Kamau Maina Extension. Shut up and compute.*

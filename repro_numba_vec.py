@@ -1,11 +1,10 @@
 import sys
-import os
-import numpy as np
-sys.path.append('.')
 
-from src.shared.math_utils import calculate_price, _vec_price_impl
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.models import BSParameters
+import numpy as np
+
+sys.path.append(".")
+
+from src.shared.math_utils import _vec_price_impl
 
 # Force 1D arrays to trigger the vectorized path
 S = np.array([100.0], dtype=np.float64)
@@ -20,7 +19,8 @@ print("Starting vectorized pricing test...")
 try:
     res = _vec_price_impl(S, K, T, sigma, r, q, is_call)
     print(f"Result: {res}")
-except Exception as e:
+except Exception:
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

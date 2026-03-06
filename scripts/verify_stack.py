@@ -51,7 +51,9 @@ success = True
 # 1. Infrastructure (Mapped Ports)
 print("\n[ Infrastructure ]")
 # Check both 5432 (Dev) and 5433 (Main Stack)
-pg_up = check_port("localhost", 5432, "Postgres (Dev)") or check_port("localhost", 5433, "Postgres (Main)")
+pg_up = check_port("localhost", 5432, "Postgres (Dev)") or check_port(
+    "localhost", 5433, "Postgres (Main)"
+)
 success &= pg_up
 success &= check_port("localhost", 6379, "Redis")
 success &= check_port("localhost", 5672, "RabbitMQ")

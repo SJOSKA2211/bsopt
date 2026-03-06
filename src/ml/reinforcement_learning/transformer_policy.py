@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -41,7 +40,12 @@ class CausalSelfAttention(nn.Module):
         # 🔥 FLASH ATTENTION: Optimized kernel
         # causal mask handled by is_causal=True
         y = F.scaled_dot_product_attention(
-            q, k, v, attn_mask=None, dropout_p=self.attn_drop.p if self.training else 0, is_causal=True
+            q,
+            k,
+            v,
+            attn_mask=None,
+            dropout_p=self.attn_drop.p if self.training else 0,
+            is_causal=True,
         )
 
         y = y.transpose(1, 2).contiguous().view(B, T, C)

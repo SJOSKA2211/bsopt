@@ -17,3 +17,10 @@ CREATE TABLE IF NOT EXISTS market_data_mesh (
 
 SELECT create_hypertable('market_data_mesh', 'time', if_not_exists => TRUE);
 SELECT add_dimension('market_data_mesh', 'symbol', number_partitions => 4, if_not_exists => TRUE);
+
+-- Compression Policy
+ALTER TABLE market_data_mesh SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol');
+SELECT add_compression_policy('market_data_mesh', INTERVAL '7 days', if_not_exists => TRUE);
+
+-- Retention Policy
+SELECT add_retention_policy('market_data_mesh', INTERVAL '1 year', if_not_exists => TRUE);

@@ -7,7 +7,6 @@ from decimal import Decimal
 from uuid import uuid4
 
 from sqlalchemy import (
-    JSON,
     Boolean,
     Date,
     DateTime,
@@ -19,7 +18,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import ENUM, UUID
+from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -30,12 +29,30 @@ class Base(DeclarativeBase):
 
 # CUSTOM TYPES (Synced with DB ENUMs)
 
-UserTier = ENUM('free', 'pro', 'enterprise', name='user_tier', create_type=False)
-OrderSide = ENUM('buy', 'sell', name='order_side', create_type=False)
-OrderStatus = ENUM('pending', 'filled', 'partially_filled', 'cancelled', 'rejected', name='order_status', create_type=False)
-OrderType = ENUM('market', 'limit', 'stop', 'stop_limit', name='order_type', create_type=False)
-PositionStatus = ENUM('open', 'closed', name='position_status', create_type=False)
-MLAlgorithm = ENUM('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble', name='ml_algorithm', create_type=False)
+UserTier = ENUM("free", "pro", "enterprise", name="user_tier", create_type=False)
+OrderSide = ENUM("buy", "sell", name="order_side", create_type=False)
+OrderStatus = ENUM(
+    "pending",
+    "filled",
+    "partially_filled",
+    "cancelled",
+    "rejected",
+    name="order_status",
+    create_type=False,
+)
+OrderType = ENUM("market", "limit", "stop", "stop_limit", name="order_type", create_type=False)
+PositionStatus = ENUM("open", "closed", name="position_status", create_type=False)
+OptionType = ENUM("call", "put", name="option_type", create_type=False)
+MLAlgorithm = ENUM(
+    "xgboost",
+    "lightgbm",
+    "neural_network",
+    "random_forest",
+    "svm",
+    "ensemble",
+    name="ml_algorithm",
+    create_type=False,
+)
 
 
 # USER MODEL
@@ -96,7 +113,7 @@ class AuditLog(Base):
     client_ip: Mapped[str] = mapped_column(Text, nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
-    metadata_json: Mapped[dict | None] = mapped_column("metadata", JSON)
+    metadata_json: Mapped[dict | None] = mapped_column("metadata", JSONB)
 
 
 class RequestLog(Base):
@@ -151,7 +168,7 @@ class Position(Base):
     status: Mapped[str] = mapped_column(PositionStatus, default="open")
     strike: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     expiry: Mapped[date | None] = mapped_column(Date)
-    option_type: Mapped[str | None] = mapped_column(String(4))
+    option_type: Mapped[str | None] = mapped_column(OptionType)
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
 
@@ -169,7 +186,7 @@ class Order(Base):
     symbol: Mapped[str] = mapped_column(String, nullable=False)
     strike: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     expiry: Mapped[date | None] = mapped_column(Date)
-    option_type: Mapped[str | None] = mapped_column(String(4))
+    option_type: Mapped[str | None] = mapped_column(OptionType)
     side: Mapped[str] = mapped_column(OrderSide, nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     order_type: Mapped[str] = mapped_column(OrderType, nullable=False)
@@ -194,14 +211,14 @@ class OptionPrice(Base):
     symbol: Mapped[str] = mapped_column(String, primary_key=True)
     strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), primary_key=True)
     expiry: Mapped[date] = mapped_column(Date, primary_key=True)
-    option_type: Mapped[str] = mapped_column(String(4), primary_key=True)
+    option_type: Mapped[str] = mapped_column(OptionType, primary_key=True)
 
     bid: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     ask: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     last: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     volume: Mapped[int | None] = mapped_column(Integer)
     open_interest: Mapped[int | None] = mapped_column(Integer)
-    
+
     # OPTIMIZED: Using Double Precision for Greeks
     implied_volatility: Mapped[float | None] = mapped_column(Double)
     delta: Mapped[float | None] = mapped_column(Double)
@@ -231,8 +248,8 @@ class MLModel(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     algorithm: Mapped[str] = mapped_column(MLAlgorithm, nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
-    hyperparameters: Mapped[dict | None] = mapped_column(JSON)
-    training_metrics: Mapped[dict | None] = mapped_column(JSON)
+    hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
+    training_metrics: Mapped[dict | None] = mapped_column(JSONB)
     model_artifact_url: Mapped[str | None] = mapped_column(String(500))
     created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -250,7 +267,7 @@ class ModelPrediction(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), default=uuid4)
     model_id: Mapped[UUID | None] = mapped_column(ForeignKey("ml_models.id", ondelete="SET NULL"))
     symbol: Mapped[str] = mapped_column(String, nullable=False)
-    input_features: Mapped[dict] = mapped_column(JSON, nullable=False)
+    input_features: Mapped[dict] = mapped_column(JSONB, nullable=False)
     predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     actual_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     prediction_error: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
@@ -264,9 +281,7 @@ class ModelDriftBaseline(Base):
         ForeignKey("ml_models.id", ondelete="CASCADE"), primary_key=True
     )
     baseline_accuracy: Mapped[float | None] = mapped_column(Double)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # OAUTH & SECURITY
@@ -278,8 +293,8 @@ class OAuth2Client(Base):
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     client_id: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     client_secret: Mapped[str] = mapped_column(String(255), nullable=False)
-    redirect_uris: Mapped[list[str] | None] = mapped_column(JSON)
-    scopes: Mapped[list[str] | None] = mapped_column(JSON)
+    redirect_uris: Mapped[list[str] | None] = mapped_column(JSONB)
+    scopes: Mapped[list[str] | None] = mapped_column(JSONB)
     is_confidential: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
@@ -291,7 +306,9 @@ class APIKey(Base):
     __tablename__ = "api_keys"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     key_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     prefix: Mapped[str] = mapped_column(String(8), nullable=False)
@@ -307,7 +324,9 @@ class BetterAuthSession(Base):
     __tablename__ = "better_auth_sessions"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -322,7 +341,9 @@ class BetterAuthAccount(Base):
     __tablename__ = "better_auth_accounts"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     account_id: Mapped[str] = mapped_column(String(255), nullable=False)
     provider_id: Mapped[str] = mapped_column(String(255), nullable=False)
     access_token: Mapped[str | None] = mapped_column(Text)
@@ -337,7 +358,9 @@ class SecurityIncident(Base):
     __tablename__ = "security_incidents"
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    detected_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     severity: Mapped[str] = mapped_column(String(20), default="medium")
     nature_of_breach: Mapped[str | None] = mapped_column(Text)
@@ -345,7 +368,7 @@ class SecurityIncident(Base):
     approximate_number_records: Mapped[int | None] = mapped_column(Integer)
     likely_consequences: Mapped[str | None] = mapped_column(Text)
     measures_taken: Mapped[str | None] = mapped_column(Text)
-    data_categories_affected: Mapped[list[str] | None] = mapped_column(JSON)
+    data_categories_affected: Mapped[list[str] | None] = mapped_column(JSONB)
     reported_to_dpa: Mapped[bool] = mapped_column(Boolean, default=False)
     reported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -357,7 +380,7 @@ class OptionContract(Base):
     underlying: Mapped[str] = mapped_column(String, nullable=False)
     expiry: Mapped[date] = mapped_column(Date, nullable=False)
     strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
-    option_type: Mapped[str] = mapped_column(String(4), nullable=False)
+    option_type: Mapped[str] = mapped_column(OptionType, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (UniqueConstraint("underlying", "expiry", "strike", "option_type"),)
@@ -370,7 +393,7 @@ class RLEpisode(Base):
     agent_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     episode_reward: Mapped[float] = mapped_column(Double, nullable=False)
     steps: Mapped[int] = mapped_column(Integer, nullable=False)
-    hyperparameters: Mapped[dict | None] = mapped_column(JSON)
+    hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -381,7 +404,9 @@ try:
         __tablename__ = "model_embeddings"
 
         id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-        model_id: Mapped[str] = mapped_column(String, nullable=False)
+        model_id: Mapped[UUID] = mapped_column(
+            ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
+        )
         version: Mapped[int] = mapped_column(Integer, nullable=False)
         embedding: Mapped[list[float]] = mapped_column(Vector(1536))
         created_at: Mapped[datetime] = mapped_column(
@@ -394,9 +419,11 @@ except ImportError:
         __tablename__ = "model_embeddings"
 
         id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-        model_id: Mapped[str] = mapped_column(String, nullable=False)
+        model_id: Mapped[UUID] = mapped_column(
+            ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
+        )
         version: Mapped[int] = mapped_column(Integer, nullable=False)
-        embedding: Mapped[dict] = mapped_column(JSON)
+        embedding: Mapped[dict] = mapped_column(JSONB)
         created_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), server_default=func.now()
         )

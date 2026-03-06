@@ -1,9 +1,9 @@
-import structlog
 import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any
 
+import structlog
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import (
@@ -32,6 +32,12 @@ _AsyncSessionLocal: async_sessionmaker | None = None
 def get_db_urls():
     """Constructs sync and async database URLs based on environment."""
     db_url = settings.DATABASE_URL
+
+    # Inject application_name for better observability in pg_stat_activity
+    app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
+    separator = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{separator}application_name={app_name}"
+
     if settings.is_production and "sslmode" not in db_url:
         separator = "&" if "?" in db_url else "?"
         db_url = f"{db_url}{separator}sslmode=require"
@@ -44,8 +50,15 @@ def get_db_urls():
 
     # Strip sslmode for asyncpg (handled via connect_args)
     if "postgresql" in async_url and "?" in async_url:
-        base, _ = async_url.split("?", 1)
-        async_url = base
+        parts = async_url.split("?")
+        base = parts[0]
+        params = [p for p in parts[1].split("&") if not p.startswith("sslmode=")]
+        async_url = f"{base}?{'&'.join(params)}" if params else base
+
+    # AUTO-DETECT PGBOUNCER
+    if "pgbouncer" in db_url.lower() and not settings.PGBOUNCER_ENABLED:
+        logger.info("pgbouncer_auto_detected_enabling_optimization")
+        settings.PGBOUNCER_ENABLED = True
 
     return sync_url, async_url
 
@@ -103,6 +116,8 @@ def get_async_engine() -> AsyncEngine:
 
         # Optimized Async Config
         pool_kwargs = {}
+        app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
+
         if not settings.PGBOUNCER_ENABLED:
             pool_kwargs = {
                 "pool_size": settings.DATABASE_MIN_POOL_SIZE,
@@ -120,12 +135,14 @@ def get_async_engine() -> AsyncEngine:
                 "ssl": (
                     True if settings.is_production and "postgresql" in async_url else False
                 ),
+                "server_settings": {"application_name": app_name},
                 "statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
                 "prepared_statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
                 "command_timeout": 60,
             },
             **pool_kwargs,
         )
+
         logger.info("async_engine_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
 
     return _async_engine
@@ -211,16 +228,21 @@ async def get_async_db_context():
 
 
 # --- UTILITIES ---
-def health_check() -> bool:
-    """Database connectivity health check."""
+def health_check() -> dict[str, Any]:
+    """Enhanced database connectivity health check."""
+    status = {"status": "unhealthy", "pgbouncer": settings.PGBOUNCER_ENABLED}
     try:
         engine = get_engine()
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return True
+            version = conn.execute(text("SHOW server_version")).scalar()
+            status["status"] = "healthy"
+            status["version"] = version
+        return status
     except Exception as e:
         logger.error("database_health_check_failed", error=str(e))
-        return False
+        status["error"] = str(e)
+        return status
 
 
 def create_tables():
@@ -230,13 +252,15 @@ def create_tables():
         logger.info("database_tables_created")
 
 
-def dispose_engine():
-    """Disposes of the engines, releasing resources."""
+async def dispose_engine():
+    """Disposes of the engines, releasing resources. (Async-safe)"""
     global _engine, _async_engine
     if _engine:
         _engine.dispose()
         _engine = None
+
     if _async_engine:
-        # Note: async dispose requires await, usually handled at app shutdown
-        pass
+        await _async_engine.dispose()
+        _async_engine = None
+
     logger.info("database_engines_disposed")

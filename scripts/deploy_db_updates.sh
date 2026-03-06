@@ -9,15 +9,17 @@ set -e
 
 echo "🥒 Pressurizing the Manifold (Incremental Updates)..."
 
-DB_HOST=${POSTGRES_HOST:-localhost}
-DB_PORT=${POSTGRES_PORT:-5432}
-DB_USER=${POSTGRES_USER:-admin}
-DB_NAME=${POSTGRES_DATABASE:-bsopt}
+# Prioritize PG* variables for compatibility, then POSTGRES_*, then defaults
+DB_HOST=${PGHOST:-${POSTGRES_HOST:-localhost}}
+DB_PORT=${PGPORT:-${POSTGRES_PORT:-5432}}
+DB_USER=${PGUSER:-${POSTGRES_USER:-admin}}
+DB_NAME=${PGDATABASE:-${POSTGRES_DATABASE:-bsopt}}
 
-if [ -z "$POSTGRES_PASSWORD" ]; then
-    echo "❌ ERROR: POSTGRES_PASSWORD is not set. Execution halted."
+if [ -z "$POSTGRES_PASSWORD" ] && [ -z "$PGPASSWORD" ]; then
+    echo "❌ ERROR: Neither POSTGRES_PASSWORD nor PGPASSWORD is set. Execution halted."
     exit 1
 fi
+POSTGRES_PASSWORD=${PGPASSWORD:-$POSTGRES_PASSWORD}
 
 if ! command -v psql &> /dev/null; then
     echo "❌ ERROR: 'psql' command not found."
@@ -43,6 +45,9 @@ SCRIPTS=(
     "init-scripts/07-continuous-aggregates.sql"
     "init-scripts/08-materialized-views.sql"
     "init-scripts/09-security.sql"
+    "init-scripts/10-missing-tables.sql"
+    "init-scripts/11-scheduled-jobs.sql"
+    "init-scripts/12-performance-dashboard.sql"
 )
 
 for script in "${SCRIPTS[@]}"; do
@@ -56,7 +61,7 @@ done
 
 # Force a maintenance pass
 echo "🚀 Running Maintenance Pass..."
-psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "VACUUM ANALYZE;"
+psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "VACUUM (ANALYZE, VERBOSE);"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "SELECT refresh_all_continuous_aggregates();"
 
 echo "✅ Manifold pressurized and optimized. Solenya-tight! 🥒"

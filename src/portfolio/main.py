@@ -37,6 +37,9 @@ async def lifespan(app: FastAPI):
 
     yield
     # Shutdown logic
+    from src.database import dispose_engine
+
+    await dispose_engine()
 
 
 app = FastAPI(
@@ -55,4 +58,6 @@ app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    from src.database import health_check
+
+    return {"status": "healthy", "database": health_check()}

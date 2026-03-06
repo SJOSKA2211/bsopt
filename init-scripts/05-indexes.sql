@@ -27,9 +27,10 @@ CREATE INDEX IF NOT EXISTS idx_users_active_pro ON users (tier) WHERE is_active 
 CREATE INDEX IF NOT EXISTS idx_options_prices_spgist_strike_time ON options_prices USING SPGIST (strike, time);
 
 -- Composite INCLUDE index for lightning-fast options chain lookups
+-- Optimized for: symbol, expiry, strike, option_type + latest time
 DROP INDEX IF EXISTS idx_options_prices_chain;
 CREATE INDEX idx_options_prices_chain 
-ON options_prices (symbol, expiry, strike, option_type)
+ON options_prices (symbol, expiry, strike, option_type, time DESC)
 INCLUDE (bid, ask, last, implied_volatility, delta, gamma, vega, theta, rho);
 
 -- Optimized market_ticks lookup with volume included for faster data points retrieval
