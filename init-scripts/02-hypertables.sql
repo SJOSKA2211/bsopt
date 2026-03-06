@@ -11,8 +11,13 @@ SELECT add_dimension('options_prices', 'expiry', number_partitions => 4, if_not_
 DO $$
 BEGIN
     PERFORM enable_chunk_skipping('options_prices', 'expiry');
-EXCEPTION WHEN undefined_function THEN
-    RAISE NOTICE 'enable_chunk_skipping not supported in this TimescaleDB version';
+EXCEPTION 
+    WHEN undefined_function THEN
+        RAISE NOTICE 'enable_chunk_skipping not supported in this TimescaleDB version';
+    WHEN duplicate_object THEN
+        RAISE NOTICE 'chunk_skipping already enabled for options_prices(expiry)';
+    WHEN others THEN
+        RAISE NOTICE 'enable_chunk_skipping failed: %', SQLERRM;
 END $$;
 
 -- Compression Policy (Compress chunks older than 7 days)
