@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, UTC, timedelta
 
 import strawberry
 from strawberry.federation import Schema
@@ -13,17 +13,17 @@ class Option:
     symbol: str = strawberry.federation.field(shareable=True)
     strike: float = strawberry.federation.field(shareable=True)
     expiry: date = strawberry.federation.field(shareable=True)
-    option_type: str = strawberry.federation.field(shareable=True)
+    option_type: str = strawberry.federation.field(name="optionType", shareable=True)
 
     # Market Data
     bid: float | None = strawberry.federation.field(shareable=True)
     ask: float | None = strawberry.federation.field(shareable=True)
     last: float | None = strawberry.federation.field(shareable=True)
     volume: int | None = strawberry.federation.field(shareable=True)
-    open_interest: int | None = strawberry.federation.field(shareable=True)
+    open_interest: int | None = strawberry.federation.field(name="openInterest", shareable=True)
 
     # Greeks (Optimized DB data types)
-    implied_volatility: float | None = strawberry.federation.field(shareable=True)
+    implied_volatility: float | None = strawberry.federation.field(name="iv", shareable=True)
     delta: float | None = strawberry.federation.field(shareable=True)
     gamma: float | None = strawberry.federation.field(shareable=True)
     vega: float | None = strawberry.federation.field(shareable=True)
@@ -42,9 +42,9 @@ class Option:
 @strawberry.federation.type(keys=["id"], shareable=True)
 class Portfolio:
     id: strawberry.ID
-    user_id: str = strawberry.federation.field(shareable=True)
+    user_id: str = strawberry.federation.field(name="user_id", shareable=True)
     name: str = strawberry.federation.field(shareable=True)
-    cash_balance: float = strawberry.federation.field(shareable=True)
+    cash_balance: float = strawberry.federation.field(name="cash_balance", shareable=True)
     created_at: datetime
 
 
@@ -71,21 +71,25 @@ class OptionConnection:
 class MLPrediction:
     id: strawberry.ID
     symbol: str
-    predicted_price: float
-    actual_price: float | None
-    prediction_error: float | None
-    model_name: str
+    predicted_price: float = strawberry.field(name="predicted_price")
+    actual_price: float | None = strawberry.field(name="actual_price")
+    prediction_error: float | None = strawberry.field(name="prediction_error")
+    confidence_interval: float | None = strawberry.field(name="confidence_interval")
+    drift: float | None = strawberry.field(name="drift")
+    model_name: str = strawberry.field(name="model_name")
     timestamp: datetime
+    last_updated: datetime = strawberry.field(name="last_updated")
 
 
 @strawberry.type
 class MarketData:
     symbol: str
-    last_price: float
+    last_price: float = strawberry.field(name="last_price")
     bid: float | None
     ask: float | None
     volume: int | None
     timestamp: datetime
+
 
 @strawberry.type
 class OHLCV:
@@ -96,6 +100,7 @@ class OHLCV:
     close: float
     volume: int
 
+
 @strawberry.type
 class Query:
     """Root Query for Options subgraph"""
@@ -103,7 +108,6 @@ class Query:
     @strawberry.field
     async def market_data(self, symbol: str) -> MarketData:
         """Fetch latest market data for a symbol"""
-        from datetime import datetime, UTC
         return MarketData(
             symbol=symbol,
             last_price=150.25,
@@ -116,7 +120,6 @@ class Query:
     @strawberry.field
     async def historical_data(self, symbol: str) -> list[OHLCV]:
         """Fetch historical OHLCV data for a symbol"""
-        from datetime import datetime, UTC, timedelta
         now = datetime.now(UTC)
         return [
             OHLCV(
@@ -132,17 +135,18 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
-        # Optimized: Fetches from revamped model_predictions hypertable
-        from datetime import UTC, datetime
-
+        now = datetime.now(UTC)
         return MLPrediction(
             id=strawberry.ID("pred-123"),
             symbol=symbol,
             predicted_price=157.50,
             actual_price=None,
             prediction_error=None,
+            confidence_interval=0.95,
+            drift=0.02,
             model_name="XGBoost-V4-Ensemble",
-            timestamp=datetime.now(UTC),
+            timestamp=now,
+            last_updated=now,
         )
 
     @strawberry.field

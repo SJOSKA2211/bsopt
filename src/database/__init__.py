@@ -251,7 +251,50 @@ def health_check() -> dict[str, Any]:
 def create_tables():
     """Creates all metadata tables if not in production."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
-        Base.metadata.create_all(bind=get_engine())
+        from sqlalchemy import text
+
+        from src.database.models import Base
+
+        engine = get_engine()
+        with engine.connect() as conn:
+            # 1. Enable extensions
+            try:
+                conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+                conn.commit()
+            except Exception as e:
+                logger.warning("failed_to_enable_extensions", error=str(e))
+
+            # 2. Create ENUM types manually if they don't exist
+            enums = [
+                ("user_tier", ["free", "pro", "enterprise"]),
+                ("order_side", ["buy", "sell"]),
+                (
+                    "order_status",
+                    ["pending", "filled", "partially_filled", "cancelled", "rejected"],
+                ),
+                ("order_type", ["market", "limit", "stop", "stop_limit"]),
+                ("position_status", ["open", "closed"]),
+                ("option_type", ["call", "put"]),
+                (
+                    "ml_algorithm",
+                    ["xgboost", "lightgbm", "neural_network", "random_forest", "svm", "ensemble"],
+                ),
+            ]
+            for name, values in enums:
+                try:
+                    res = conn.execute(
+                        text("SELECT 1 FROM pg_type WHERE typname = :name"), {"name": name}
+                    )
+                    if not res.fetchone():
+                        vals = ", ".join([f"'{v}'" for v in values])
+                        conn.execute(text(f"CREATE TYPE {name} AS ENUM ({vals})"))
+                        conn.commit()
+                except Exception as e:
+                    logger.warning(f"failed_to_create_enum_{name}", error=str(e))
+
+        # 3. Create Tables
+        Base.metadata.create_all(bind=engine)
         logger.info("database_tables_created")
 
 

@@ -191,6 +191,10 @@ if "torch" in sys.modules and isinstance(sys.modules["torch"], MagicMock):
     sys.modules["torch"].Tensor = MockTensor
 
 # Special handling for Redis (always mock to avoid network)
+class AsyncMockCallable(AsyncMock):
+    def __call__(self, *args, **kwargs):
+        return super().__call__(*args, **kwargs)
+
 r_client = MagicMock()
 for m in [
     "get",
@@ -210,11 +214,16 @@ for m in [
 # Ensure pipeline also works
 pipe_mock = MagicMock()
 pipe_mock.execute = AsyncMock(return_value=[None, 0])
-pipe_mock.get = MagicMock(return_value=pipe_mock)
-pipe_mock.pttl = MagicMock(return_value=pipe_mock)
-pipe_mock.incr = MagicMock(return_value=pipe_mock)
-pipe_mock.expire = MagicMock(return_value=pipe_mock)
+# Pipeline methods return self for chaining
+for m in ["get", "set", "setex", "publish", "incr", "expire", "delete", "pttl", "exists"]:
+    setattr(pipe_mock, m, MagicMock(return_value=pipe_mock))
+
 r_client.pipeline = MagicMock(return_value=pipe_mock)
+
+# register_script returns an object that when called returns a coroutine
+script_mock = MagicMock()
+script_mock.side_effect = lambda *args, **kwargs: AsyncMock(return_value=b"CLOSED")()
+r_client.register_script = MagicMock(return_value=script_mock)
 
 redis_mock = MagicMock()
 redis_mock.from_url.return_value = r_client
