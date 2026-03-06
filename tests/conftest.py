@@ -66,6 +66,25 @@ async def startup_session():
     from src.database import create_tables
     from src.utils.cache import init_redis_cache
 
+    # Wait for DB to be ready with retries
+    import time
+
+    from sqlalchemy import create_engine, text
+
+    from src.config import settings
+
+    engine = create_engine(settings.DATABASE_URL)
+    max_retries = 30
+    for i in range(max_retries):
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+                break
+        except Exception:
+            if i == max_retries - 1:
+                raise
+            time.sleep(1)
+
     # Create tables for tests
     create_tables()
 
