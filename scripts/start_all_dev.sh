@@ -58,43 +58,28 @@ RUNNING_SERVICES=$($DOCKER_COMPOSE ps --services --filter "status=running")
 if [[ ! $RUNNING_SERVICES =~ "postgres" ]] || [[ ! $RUNNING_SERVICES =~ "redis" ]] || [[ ! $RUNNING_SERVICES =~ "rabbitmq" ]]; then
     echo " Starting Infrastructure via start_infra.sh..."
     ./scripts/start_infra.sh
+else
+    echo "✅ Infrastructure already running. Checking health..."
 fi
 
 
 # 3. Wait for Infrastructure (Postgres, Redis, RabbitMQ)
-echo "⏳ Waiting for Infrastructure to be ready..."
+echo "⏳ Ensuring Infrastructure is ready..."
 MAX_RETRIES=30
 RETRY_COUNT=0
 
 check_infra_health() {
-    local status=0
-    local message=""
-
     [ -f .env ] && source .env
-    $DOCKER_COMPOSE exec -T postgres pg_isready -U \"\${POSTGRES_USER:-admin}\" -d bsopt > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        message+="Postgres not ready. "
-        status=1
-    fi
-
-    [ -f .env ] && source .env
-    $DOCKER_COMPOSE exec -T redis sh -c "redis-cli -a \"\${REDIS_PASSWORD:-bsopt_redis_secret}\" ping 2>/dev/null" | grep -q PONG > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        message+="Redis not ready. "
-        status=1
-    fi
-
-    # Check RabbitMQ health
-    $DOCKER_COMPOSE exec -T rabbitmq rabbitmq-diagnostics -q check_running > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        message+="RabbitMQ not ready. "
-        status=1
-    fi
-
-    if [ $status -ne 0 ]; then
-        echo -n "$message"
-        return 1
-    fi
+    
+    # Fast check for Postgres
+    $DOCKER_COMPOSE exec -T postgres pg_isready -U "${POSTGRES_USER:-admin}" -d bsopt > /dev/null 2>&1 || return 1
+    
+    # Fast check for Redis
+    $DOCKER_COMPOSE exec -T redis redis-cli -a "${REDIS_PASSWORD:-bsopt_redis_secret}" ping 2>/dev/null | grep -q PONG || return 1
+    
+    # Fast check for RabbitMQ
+    $DOCKER_COMPOSE exec -T rabbitmq rabbitmq-diagnostics -q check_running > /dev/null 2>&1 || return 1
+    
     return 0
 }
 
