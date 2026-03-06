@@ -75,6 +75,8 @@ const subscribe = (callback: () => void) => {
 
 const getSnapshot = () => isWorkerReady;
 
+console.log('[useWasmPricing] Script loaded');
+
 export const useWasmPricing = () => {
   const isLoaded = useSyncExternalStore(subscribe, getSnapshot);
 

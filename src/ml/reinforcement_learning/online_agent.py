@@ -46,7 +46,16 @@ class OnlineRLAgent:
 
         self.brain = None
         self._last_brain_mtime = 0
+        self._edge_index = self._build_static_edge_index()
         self.reload_brain()
+
+    def _build_static_edge_index(self):
+        """Build edges between strike/expiry neighbors for GNN."""
+        edges = []
+        for i in range(9):
+            edges.append([i, i + 1])
+            edges.append([i + 1, i])
+        return torch.tensor(edges, dtype=torch.long).t().contiguous()
 
     def reload_brain(self):
         """Hot-swap the silicon weights if the file has changed."""
@@ -102,6 +111,8 @@ class OnlineRLAgent:
                         engine = PricingEngineFactory.get_engine("black_scholes")
                         params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                         g_vals = engine.calculate_greeks(params)
+                        current_delta = g_vals.delta # Capture for execution
+
                         greeks = np.zeros(50, dtype=np.float32)
                         greeks[:5] = [
                             g_vals.delta,
@@ -126,54 +137,16 @@ class OnlineRLAgent:
 
                         # 3. Inference (SILICON)
                         if self.brain:
-                            x = torch.from_numpy(state_vector).unsqueeze(0)
-                            edge_index = torch.tensor(
-                                [
-                                    [
-                                        0,
-                                        1,
-                                        1,
-                                        2,
-                                        2,
-                                        3,
-                                        3,
-                                        4,
-                                        4,
-                                        5,
-                                        5,
-                                        6,
-                                        6,
-                                        7,
-                                        7,
-                                        8,
-                                        8,
-                                        9,
-                                    ],
-                                    [
-                                        1,
-                                        0,
-                                        2,
-                                        1,
-                                        3,
-                                        2,
-                                        4,
-                                        3,
-                                        5,
-                                        4,
-                                        6,
-                                        5,
-                                        7,
-                                        6,
-                                        8,
-                                        7,
-                                        9,
-                                        8,
-                                    ],
-                                ],
-                                dtype=torch.long,
-                            )
-                            action = self.brain(x, edge_index).detach().numpy()[0]
-                            self._execute_action(action, prices)
+                            # Reshape state_vector if needed (GNN expects node features)
+                            # state_vector is 100-dim (10 nodes * 10 features?)
+                            # According to GATFeaturesExtractor it's input_dim=100
+                            x = torch.from_numpy(state_vector).unsqueeze(0).float()
+                            
+                            # Perform inference
+                            with torch.no_grad():
+                                action = self.brain(x, self._edge_index).detach().numpy()[0]
+                            
+                            self._execute_action(action, prices, current_delta)
 
                             # Reward Fusion
                             new_val, _ = _calculate_reward_kernel(
@@ -196,7 +169,7 @@ class OnlineRLAgent:
         finally:
             self._mesh.close()
 
-    def _execute_action(self, action: np.ndarray, prices: np.ndarray):
+    def _execute_action(self, action: np.ndarray, prices: np.ndarray, current_delta: float = 0.0):
         """Drop binary orders into the SHM Mesh."""
         portfolio_value = self._prev_portfolio_value
         target_units = (action * portfolio_value) / (prices + 1e-9)
@@ -206,7 +179,7 @@ class OnlineRLAgent:
             qty = int(abs(trades[i]))
             if qty > 0:
                 side = 1 if trades[i] > 0 else -1
-                self._orders.write_order(f"OPT_{i}", float(prices[i]), qty, side)
+                self._orders.write_order(f"OPT_{i}", float(prices[i]), qty, side, delta=current_delta)
                 self.positions[i] = target_units[i]
                 self.balance -= float(trades[i] * prices[i])
 

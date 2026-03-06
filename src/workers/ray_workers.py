@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import numpy as np
@@ -29,10 +30,12 @@ class MathActor:
         """Asynchronous Heston Calibration for a single symbol."""
         start_time = time.perf_counter()
         try:
-            # Note: calibrate is CPU-bound, but since this is a Ray Actor,
-            # it's better to be async-native to allow other concurrent calls if needed.
-            # However, for true CPU parallelism, we rely on Ray's multiple actors.
-            params, metrics = self.calibrator.calibrate(market_data, symbol=symbol)
+            # OPTIMIZED: Run CPU-bound calibration in a separate thread
+            # to avoid blocking the Ray Actor's async event loop.
+            loop = asyncio.get_event_loop()
+            params, metrics = await loop.run_in_executor(
+                None, lambda: self.calibrator.calibrate(market_data, symbol=symbol)
+            )
 
             duration = (time.perf_counter() - start_time) * 1000
             logger.info("calibration_complete", symbol=symbol, ms=round(duration, 3))

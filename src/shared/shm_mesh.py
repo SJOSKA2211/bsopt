@@ -32,13 +32,14 @@ class MarketTick(msgspec.Struct):
     receive_ts_ns: int
 
 
-# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), q (submit_ts_ns) = 36 bytes
+# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), d (Delta), q (submit_ts_ns) = 44 bytes
 ORDER_DTYPE = np.dtype(
     [
         ("symbol", "S8"),
         ("price", "f8"),
         ("quantity", "i8"),
         ("side", "i4"),
+        ("delta", "f8"),
         ("submit_ts_ns", "i8"),
     ]
 )
@@ -78,7 +79,7 @@ class OrderBuffer:
             self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY
         )
 
-    def write_order(self, symbol: str, price: float, qty: int, side: int):
+    def write_order(self, symbol: str, price: float, qty: int, side: int, delta: float = 0.0):
         head = struct.unpack("q", self.buf[:8])[0]
         # Log submission time in nanoseconds
         ts_ns = time.time_ns()
@@ -87,6 +88,7 @@ class OrderBuffer:
             price,
             qty,
             side,
+            delta,
             ts_ns,
         )
         self.buf[:8] = struct.pack("q", head + 1)
