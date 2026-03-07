@@ -1,6 +1,5 @@
-import importlib
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -136,7 +135,6 @@ async def test_get_redis_client(mocker):
     # Directly set the private variable
     src.utils.cache._redis = mock_redis
     
-    from src.utils.cache import get_redis_client
     r = await get_redis_client()
     assert r == mock_redis
 
@@ -226,7 +224,6 @@ async def test_init_redis_exception(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_generate_cache_key_numpy():
-    import numpy as np
 
     # Test np.integer and np.floating
     # We need to manually handle numpy in generate_cache_key if we want this,

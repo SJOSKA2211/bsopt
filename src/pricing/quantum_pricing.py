@@ -9,7 +9,7 @@ from scipy.stats import norm
 try:
     from qiskit import QuantumCircuit
     from qiskit.primitives import Sampler
-    from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
+    from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 
     QISKIT_AVAILABLE = True
 except ImportError:
