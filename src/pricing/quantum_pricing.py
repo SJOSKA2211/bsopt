@@ -9,7 +9,7 @@ from scipy.stats import norm
 try:
     from qiskit import QuantumCircuit
     from qiskit.primitives import Sampler
-    from qiskit_algorithms import IterativeAmplitudeEstimation, EstimationProblem
+    from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 
     QISKIT_AVAILABLE = True
 except ImportError:
@@ -27,13 +27,17 @@ class QuantumOptionPricer:
     Optimized for Qiskit 1.0+ Primitives.
     """
 
-    def __init__(self, backend_name: str = "aer_simulator", precision: float = 0.01, confidence: float = 0.95):
+    def __init__(
+        self, backend_name: str = "aer_simulator", precision: float = 0.01, confidence: float = 0.95
+    ):
         self.backend_name = backend_name
         self.sampler = Sampler() if QISKIT_AVAILABLE else None
         self.precision = precision
         self.confidence = confidence
 
-    def _create_state_prep(self, spot: float, vol: float, t: float, num_qubits: int) -> QuantumCircuit:
+    def _create_state_prep(
+        self, spot: float, vol: float, t: float, num_qubits: int
+    ) -> QuantumCircuit:
         """Approximates a Log-Normal distribution using a quantum circuit."""
         qc = QuantumCircuit(num_qubits)
         # Simplified: Use a normal distribution approximation (Hadamard + Rotations)
@@ -47,12 +51,12 @@ class QuantumOptionPricer:
         """Encodes the European option payoff (max(S-K, 0)) into the amplitude of an objective qubit."""
         # Objective qubit is the last one (index num_qubits)
         qc = QuantumCircuit(num_qubits + 1)
-        
+
         # High-level representation of the comparator and rotation
         # If price > strike (represented by qubit states), rotate the objective qubit
         for i in range(num_qubits):
             qc.cry(np.pi / (2**i), i, num_qubits)
-            
+
         return qc
 
     async def price_option_quantum(self, params: BSParameters) -> dict[str, Any]:
@@ -66,9 +70,11 @@ class QuantumOptionPricer:
         try:
             num_state_qubits = 3
             # 1. State Prep + Payoff
-            state_prep = self._create_state_prep(params.spot, params.volatility, params.maturity, num_state_qubits)
+            state_prep = self._create_state_prep(
+                params.spot, params.volatility, params.maturity, num_state_qubits
+            )
             payoff = self._create_payoff_circuit(params.strike, num_state_qubits)
-            
+
             # Combine
             full_circuit = QuantumCircuit(num_state_qubits + 1)
             full_circuit.append(state_prep, range(num_state_qubits))
@@ -76,24 +82,22 @@ class QuantumOptionPricer:
 
             # 🔥 OPTIMIZATION: Transpilation Pass (Optimization Level 3)
             from qiskit import transpile
-            full_circuit = transpile(full_circuit, basis_gates=['u', 'cx'], optimization_level=3)
+
+            full_circuit = transpile(full_circuit, basis_gates=["u", "cx"], optimization_level=3)
 
             # 2. Define Estimation Problem
             # The objective qubit is the last one
             problem = EstimationProblem(
-                state_preparation=full_circuit,
-                objective_qubits=[num_state_qubits]
+                state_preparation=full_circuit, objective_qubits=[num_state_qubits]
             )
 
             # 3. Run Iterative Amplitude Estimation
             iae = IterativeAmplitudeEstimation(
-                epsilon_target=self.precision,
-                alpha=1 - self.confidence,
-                sampler=self.sampler
+                epsilon_target=self.precision, alpha=1 - self.confidence, sampler=self.sampler
             )
-            
+
             result = iae.estimate(problem)
-            
+
             # 4. Map Result to Price
             # Result estimation is 'a' in sin^2(pi * a)
             # We scale this by the spot price and discount factor
@@ -109,7 +113,7 @@ class QuantumOptionPricer:
                 "execution_ms": execution_ms,
                 "qubits": num_state_qubits + 1,
                 "confidence": self.confidence,
-                "epsilon": self.precision
+                "epsilon": self.precision,
             }
         except Exception as e:
             logger.error("quantum_pricing_failed", error=str(e))

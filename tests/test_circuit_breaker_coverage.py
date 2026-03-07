@@ -1,5 +1,4 @@
 import asyncio
-import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -55,7 +54,7 @@ async def test_circuit_breaker_state_transitions():
 @pytest.mark.asyncio
 async def test_distributed_circuit_breaker():
     mock_redis = AsyncMock()
-    
+
     # register_script returns an object that is CALLABLE and returns a COROUTINE
     mock_script = MagicMock()
     mock_script.return_value = AsyncMock(return_value=b"CLOSED")()
@@ -134,9 +133,7 @@ async def test_distributed_circuit_breaker_fail_below_threshold():
         await wrapped()
 
     # Verify set was NOT called with OPEN
-    open_calls = [
-        call for call in mock_redis.set.call_args_list if "OPEN" in str(call)
-    ]
+    open_calls = [call for call in mock_redis.set.call_args_list if "OPEN" in str(call)]
     assert len(open_calls) == 0
 
 
@@ -165,7 +162,8 @@ async def test_distributed_circuit_breaker_fail():
 @pytest.mark.asyncio
 async def test_pricing_circuit_global():
     # Reset global state for test
-    from src.utils.circuit_breaker import pricing_circuit, CircuitState
+    from src.utils.circuit_breaker import CircuitState
+
     pricing_circuit.state = CircuitState.CLOSED
     pricing_circuit.failure_count = 0
 

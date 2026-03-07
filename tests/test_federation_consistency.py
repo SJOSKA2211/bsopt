@@ -7,7 +7,9 @@ def test_options_subgraph():
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
     assert 'type Option @key(fields: "id")' in sdl
-    assert "option(symbol: String!, expiry: Date!, strike: Float!, optionType: String!): Option" in sdl
+    assert (
+        "option(symbol: String!, expiry: Date!, strike: Float!, optionType: String!): Option" in sdl
+    )
 
 
 def test_pricing_subgraph():
@@ -17,7 +19,7 @@ def test_pricing_subgraph():
     sdl = schema.as_str()
     # It should extend Option and add price/delta/gamma
     assert 'type Option @key(fields: "id")' in sdl
-    assert "price: Float! @requires(fields: \"strike symbol expiry optionType\") @shareable" in sdl
+    assert 'price: Float! @requires(fields: "strike symbol expiry optionType") @shareable' in sdl
 
 
 def test_ml_subgraph():

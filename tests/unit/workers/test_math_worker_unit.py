@@ -35,8 +35,6 @@ async def test_recalibrate_symbol_async_success():
     mock_params.rho = -0.5
     mock_params.v0 = 0.1
 
-    mock_metrics = {"rmse": 0.01, "r_squared": 0.99, "num_options": 100}
-
     mock_pool = MagicMock()
     mock_actor = AsyncMock()
     mock_actor.run_calibration.remote.return_value = {"status": "success", "params": {}}

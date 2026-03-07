@@ -17,7 +17,7 @@ from sqlalchemy.pool import NullPool, QueuePool
 
 from src.config import settings
 
-from .models import Base
+from .models import Base as Base
 
 logger = structlog.get_logger(__name__)
 
