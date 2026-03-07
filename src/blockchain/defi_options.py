@@ -437,7 +437,7 @@ class DeFiOptionsProtocol:
             gas_price = await self.w3.eth.gas_price
             gas_price_eth = float(Web3.from_wei(gas_price, "ether"))
         except Exception:
-            gas_price_eth = 0.00000005 # Fallback
+            gas_price_eth = 0.00000005  # Fallback
 
         def execution_cost(v):
             slippage = amount / v["liquidity"]
@@ -453,7 +453,7 @@ class DeFiOptionsProtocol:
             symbol=symbol,
             amount=amount,
             selected=best_venue["name"],
-            estimated_cost=best_venue["estimated_cost"]
+            estimated_cost=best_venue["estimated_cost"],
         )
         return best_venue
 
@@ -468,15 +468,18 @@ class DeFiOptionsProtocol:
 
         try:
             import websockets
-            async with websockets.connect(self.feed_url if hasattr(self, 'feed_url') else self.rpc_url) as ws:
+
+            async with websockets.connect(
+                self.feed_url if hasattr(self, "feed_url") else self.rpc_url
+            ) as ws:
                 subscribe_msg = {
                     "jsonrpc": "2.0",
                     "id": 1,
                     "method": "eth_subscribe",
-                    "params": ["newPendingTransactions"]
+                    "params": ["newPendingTransactions"],
                 }
                 await ws.send(json.dumps(subscribe_msg))
-                
+
                 count = 0
                 async for message in ws:
                     data = json.loads(message)

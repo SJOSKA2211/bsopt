@@ -113,7 +113,6 @@ def test_fdm_zero_maturity_put_otm_greeks():
 
 
 def test_fdm_clone():
-
     solver = CrankNicolsonSolver(n_spots=150)
     cloned = solver._clone(n_time=200)
     assert cloned.n_spots == 150

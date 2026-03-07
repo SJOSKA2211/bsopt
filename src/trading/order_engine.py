@@ -58,7 +58,6 @@ class OrderEngine:
 
                 # 1. Base Silicon Risk Check (Price/Qty/Side)
                 if self._risk_check(price, qty, side):
-                    
                     # 2. Portfolio-Level Incremental Delta Check
                     if self._delta_tracker.validate_and_update(trade_delta):
                         #  BINARY FIRE
@@ -67,16 +66,18 @@ class OrderEngine:
 
                         self.execs.write_exec(order_id, price, qty, 1)
                     else:
-                        logger.warning("risk_veto_delta_limit_exceeded", 
-                                       delta=self._delta_tracker.current_net_delta, 
-                                       trade_delta=trade_delta)
+                        logger.warning(
+                            "risk_veto_delta_limit_exceeded",
+                            delta=self._delta_tracker.current_net_delta,
+                            trade_delta=trade_delta,
+                        )
                         self.execs.write_exec(-1, price, qty, 0)
                 else:
                     self.execs.write_exec(-1, price, qty, 0)
 
                 self._last_head += 1
                 self._drift_counter += 1
-                
+
                 # Periodic drift correction (Placeholder for real DB sync)
                 if self._drift_counter >= 1000:
                     self._sync_delta()

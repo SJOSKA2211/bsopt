@@ -50,8 +50,10 @@ app = Celery("math_worker", broker=os.getenv("CELERY_BROKER_URL", settings.REDIS
 # Initialize Ray once
 RayOrchestrator.init()
 
+
 class RayActorPool:
     """God-Mode Ray Actor Pool: Handles round-robin load balancing and health checks."""
+
     def __init__(self, actor_class, count: int | None = None):
         self._actor_class = actor_class
         self._count = count or int(ray.cluster_resources().get("CPU", 2))
@@ -66,8 +68,10 @@ class RayActorPool:
             self._index += 1
             return actor
 
+
 # Initialize Global Pool
 _pool: RayActorPool | None = None
+
 
 def get_pool():
     global _pool
@@ -100,7 +104,7 @@ async def _recalibrate_symbol_impl(symbol: str) -> dict:
         # 2. Delegate to Ray (Async/Awaited)
         pool = get_pool()
         actor = pool.get_actor()
-        
+
         # Ray async actor call
         result = await actor.run_calibration.remote(symbol, market_data)
         return result

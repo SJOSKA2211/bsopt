@@ -114,7 +114,7 @@ class Query:
             bid=150.20,
             ask=150.30,
             volume=5000,
-            timestamp=datetime.now(UTC)
+            timestamp=datetime.now(UTC),
         )
 
     @strawberry.field
@@ -128,8 +128,9 @@ class Query:
                 high=151.0 + i,
                 low=149.0 + i,
                 close=150.5 + i,
-                volume=1000
-            ) for i in range(100)
+                volume=1000,
+            )
+            for i in range(100)
         ]
 
     @strawberry.field

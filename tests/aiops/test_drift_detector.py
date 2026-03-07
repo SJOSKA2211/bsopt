@@ -1,4 +1,3 @@
-
 import pytest
 
 from src.aiops.drift_detector import PricingDriftDetector
@@ -9,6 +8,7 @@ async def test_check_drift_theoretical():
     detector = PricingDriftDetector(threshold=0.05)
 
     import numpy as np
+
     current_data = np.array([0.1, 0.2, 0.3])
     reference_data = np.array([0.11, 0.19, 0.31])
 

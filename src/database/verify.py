@@ -12,8 +12,8 @@ def verify_connection():
 
     try:
         get_settings()
-        _, _ = get_settings(), None # Trigger settings load if needed
-        
+        _, _ = get_settings(), None  # Trigger settings load if needed
+
         # We use the centralized getter to test the ACTUAL production configuration
         engine = get_engine()
         db_url = str(engine.url)

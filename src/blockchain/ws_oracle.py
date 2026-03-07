@@ -28,7 +28,7 @@ class DexWebSocketOracle:
         self._pairs = pairs
         self._running = True
         self.redis = get_redis()
-        
+
         while self._running:
             try:
                 async with websockets.connect(self.feed_url) as ws:
@@ -36,7 +36,7 @@ class DexWebSocketOracle:
                     subscribe_msg = {
                         "method": "SUBSCRIBE",
                         "params": [f"{p.lower()}@aggTrade" for p in pairs],
-                        "id": 1
+                        "id": 1,
                     }
                     await ws.send(json.dumps(subscribe_msg))
                     logger.info("dex_oracle_subscribed", pairs=pairs)

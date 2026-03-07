@@ -190,10 +190,12 @@ if "torch" in sys.modules and isinstance(sys.modules["torch"], MagicMock):
 
     sys.modules["torch"].Tensor = MockTensor
 
+
 # Special handling for Redis (always mock to avoid network)
 class AsyncMockCallable(AsyncMock):
     def __call__(self, *args, **kwargs):
         return super().__call__(*args, **kwargs)
+
 
 r_client = MagicMock()
 for m in [
@@ -211,23 +213,29 @@ for m in [
 ]:
     setattr(r_client, m, AsyncMock())
 
+
 # register_script returns an object that when called returns a coroutine
 # Using a class to ensure it's callable and awaitable mock-friendly
 class MockScript:
     def __init__(self, result=b"CLOSED"):
         self.result = result
+
     def __call__(self, *args, **kwargs):
         return AsyncMock(return_value=self.result)()
 
+
 r_client.register_script = MagicMock(side_effect=lambda *args, **kwargs: MockScript())
+
 
 # Ensure pipeline also works
 class MockPipeline:
     def __init__(self):
         self.execute = AsyncMock(return_value=[None, 0])
+
     def __getattr__(self, name):
         # Chaining
         return lambda *args, **kwargs: self
+
 
 r_client.pipeline = MagicMock(side_effect=lambda *args, **kwargs: MockPipeline())
 

@@ -134,10 +134,10 @@ class DecisionTransformer(nn.Module):
         # 4. Extract representations and Predict
         # Sequence: [R1, S1, A1, R2, S2, A2, ...]
         x_reshaped = x.reshape(batch_size, seq_len, 3, -1)
-        
+
         # Predict action given (R, S) -> output at S
         action_preds = self.predict_action(x_reshaped[:, :, 1, :])
-        
+
         # Predict state/return given (R, S, A) -> output at A
         state_preds = self.predict_state(x_reshaped[:, :, 2, :])
         return_preds = self.predict_return(x_reshaped[:, :, 2, :])

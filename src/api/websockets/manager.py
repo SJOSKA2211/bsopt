@@ -13,23 +13,25 @@ from .codec import ProtocolType, WebSocketCodec
 
 logger = structlog.get_logger()
 
+
 # Prometheus Metrics (Idempotent for tests)
 def _get_metric(cls, name, documentation):
     if name in REGISTRY._names_to_collectors:
         return REGISTRY._names_to_collectors[name]
     return cls(name, documentation)
 
-WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(Counter,
-    "websocket_connections_total", "Total number of WebSocket connections"
+
+WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(
+    Counter, "websocket_connections_total", "Total number of WebSocket connections"
 )
-WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(Counter,
-    "websocket_disconnections_total", "Total number of WebSocket disconnections"
+WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(
+    Counter, "websocket_disconnections_total", "Total number of WebSocket disconnections"
 )
-WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(Gauge,
-    "websocket_active_connections", "Current number of active WebSocket connections"
+WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(
+    Gauge, "websocket_active_connections", "Current number of active WebSocket connections"
 )
-WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(Counter,
-    "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
+WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(
+    Counter, "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
 )
 
 

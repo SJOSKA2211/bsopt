@@ -24,7 +24,7 @@ def test_portfolio_subgraph_exposed():
     client = TestClient(app)
     response = client.get("/graphql")
     # Portfolio service requires mTLS/OPA, so expect 401 if no certs
-    # but 200 if exposed publicly. 
+    # but 200 if exposed publicly.
     # Based on previous run, it might be 401 or 404 depending on mount.
     assert response.status_code in [200, 401]
 

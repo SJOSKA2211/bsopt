@@ -256,7 +256,9 @@ class MLModel(Base):
     hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
     training_metrics: Mapped[dict | None] = mapped_column(JSONB)
     model_artifact_url: Mapped[str | None] = mapped_column(String(500))
-    created_by: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_by: Mapped[UUID_TYPE | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL")
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_production: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -270,7 +272,9 @@ class ModelPrediction(Base):
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
     id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
-    model_id: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("ml_models.id", ondelete="SET NULL"))
+    model_id: Mapped[UUID_TYPE | None] = mapped_column(
+        ForeignKey("ml_models.id", ondelete="SET NULL")
+    )
     symbol: Mapped[str] = mapped_column(String, nullable=False)
     input_features: Mapped[dict] = mapped_column(JSONB, nullable=False)
     predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
