@@ -81,10 +81,10 @@ def train_func(config: dict[str, Any]):
     if ds:
         sharded_loader = ds.iter_torch_batches(batch_size=config.get("batch_size", 64))
     else:
-        import pickle
+        import pickle  # nosec B403: Used only for trusted internal data sets.
 
         with open(dataset_path, "rb") as f:
-            trajectories = pickle.load(f)
+            trajectories = pickle.load(f)  # nosec B301
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
         sharded_loader = ray.train.torch.prepare_data_loader(loader)

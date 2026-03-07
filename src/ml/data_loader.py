@@ -150,6 +150,7 @@ class AIOpsDataLoader:
         from src.database.pipeliner import db_engine
 
         # Optimized query using TimescaleDB hyper-functions for bucketing
+        # nosec B608: This query is constructed with a single integer parameter (hours).
         query = f"""
             SELECT 
                 time_bucket('1 minute', created_at) AS bucket,
@@ -157,11 +158,11 @@ class AIOpsDataLoader:
                 COUNT(*) FILTER (WHERE status_code >= 400) as error_count,
                 COUNT(*) as total_requests
             FROM request_logs
-            WHERE created_at > NOW() - INTERVAL '{hours} hours'
+            WHERE created_at > NOW() - INTERVAL '{int(hours)} hours'
             GROUP BY bucket
             ORDER BY bucket ASC
-            LIMIT {self.limit}
-        """
+            LIMIT {int(self.limit)}
+        """  # nosec B608
 
         async with db_engine as db:
             if not db._pool:
