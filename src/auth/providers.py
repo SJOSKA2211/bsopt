@@ -64,15 +64,8 @@ class OIDCProvider:
             except Exception as e:
                 logger.debug("jwks_verification_attempt_failed", error=str(e))
 
-        # Fallback to lax verification for POC/Tests if header says RS256 but no key found
-        # Or if we're in a test environment (MOCK_JWKS setup)
-        try:
-            return jwt.decode(token, options={"verify_signature": False}, audience=self.audience)
-        except Exception:
-            pass
-
-        # Fallback to secret (Legacy/POC)
-        return jwt.decode(token, key="secret", algorithms=["HS256"], audience=self.audience)
+        # Security: DO NOT fallback to unverified signatures or hardcoded secrets.
+        raise ValueError("Invalid or unverified token")
 
 
 class AuthRegistry:
