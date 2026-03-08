@@ -22,8 +22,23 @@ pub unsafe fn simd_ln(x: v128) -> v128 {
     let t = f64x2_div(num, den);
     let t2 = f64x2_mul(t, t);
     
-    // t * (2.0 + (2.0/3.0)*t^2 + (2.0/5.0)*t^4)
-    f64x2_mul(t, f64x2_add(f64x2(2.0, 2.0), f64x2_mul(t2, f64x2_add(f64x2(0.66666666, 0.66666666), f64x2_mul(t2, f64x2(0.4, 0.4))))))
+    // 7th-order polynomial approximation for ln((1+t)/(1-t))
+    // 2 * (t + t^3/3 + t^5/5 + t^7/7)
+    let c1 = f64x2(2.0, 2.0);
+    let c3 = f64x2(0.6666666666666666, 0.6666666666666666);
+    let c5 = f64x2(0.4, 0.4);
+    let c7 = f64x2(0.2857142857142857, 0.2857142857142857);
+
+    f64x2_add(
+        f64x2_mul(c1, t),
+        f64x2_add(
+            f64x2_mul(c3, f64x2_mul(t, t2)),
+            f64x2_add(
+                f64x2_mul(c5, f64x2_mul(t, f64x2_mul(t2, t2))),
+                f64x2_mul(c7, f64x2_mul(t, f64x2_mul(t2, f64x2_mul(t2, t2))))
+            )
+        )
+    )
 }
 
 /// SIMD Exponential (Polynomial Approximation)
@@ -33,8 +48,19 @@ pub unsafe fn simd_exp(x: v128) -> v128 {
     let x2 = f64x2_mul(x, x);
     let x3 = f64x2_mul(x2, x);
     let x4 = f64x2_mul(x2, x2);
+    let x5 = f64x2_mul(x4, x);
     
-    f64x2_add(one, f64x2_add(x, f64x2_add(f64x2_mul(x2, f64x2(0.5, 0.5)), f64x2_add(f64x2_mul(x3, f64x2(0.16666666, 0.16666666)), f64x2_mul(x4, f64x2(0.04166666, 0.04166666))))))
+    // 5th-order Taylor series for e^x
+    f64x2_add(one, f64x2_add(x, f64x2_add(
+        f64x2_mul(x2, f64x2(0.5, 0.5)),
+        f64x2_add(
+            f64x2_mul(x3, f64x2(0.16666666666666666, 0.16666666666666666)),
+            f64x2_add(
+                f64x2_mul(x4, f64x2(0.041666666666666664, 0.041666666666666664)),
+                f64x2_mul(x5, f64x2(0.008333333333333333, 0.008333333333333333))
+            )
+        )
+    )))
 }
 
 /// SIMD Normal PDF

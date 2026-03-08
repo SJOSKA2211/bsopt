@@ -172,6 +172,12 @@ CREATE TABLE IF NOT EXISTS ml_models (
     UNIQUE(name, version)
 );
 
+CREATE TABLE IF NOT EXISTS model_drift_baselines (
+    model_id UUID PRIMARY KEY REFERENCES ml_models(id) ON DELETE CASCADE,
+    baseline_accuracy DOUBLE PRECISION,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS model_predictions (
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id UUID NOT NULL DEFAULT gen_random_uuid(),

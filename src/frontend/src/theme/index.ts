@@ -50,7 +50,7 @@ const palette = {
   },
 
   background: {
-    default: '#020617',
+    default: '#020617', // Slate 950
     paper: 'rgba(15, 23, 42, 0.4)',
     elevation1: '#0f172a',
     elevation2: '#1e293b',
@@ -145,7 +145,8 @@ const typography = {
     fontFamily: '"JetBrains Mono", monospace',
     fontSize: '0.75rem',
     fontWeight: 800,
-    letterSpacing: '0.05em',
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const,
   },
 };
 
@@ -177,16 +178,17 @@ const components = {
     styleOverrides: {
       root: {
         backgroundImage: 'none',
-        backgroundColor: 'rgba(15, 23, 42, 0.4)',
-        backdropFilter: 'blur(30px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
-        border: `0.5px solid ${alpha('#f8fafc', 0.1)}`,
-        borderRadius: 24,
-        boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.5)`,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        backgroundColor: alpha('#0f172a', 0.4),
+        backdropFilter: 'blur(40px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+        border: `1px solid ${alpha('#f8fafc', 0.08)}`,
+        borderRadius: 28,
+        boxShadow: `0 30px 60px -12px rgba(0, 0, 0, 0.6)`,
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          border: `0.5px solid ${alpha('#00FFFF', 0.3)}`,
-          boxShadow: `0 30px 60px -12px rgba(0, 0, 0, 0.6), 0 0 20px ${alpha('#00FFFF', 0.1)}`,
+          borderColor: alpha('#00FFFF', 0.4),
+          boxShadow: `0 40px 80px -15px rgba(0, 0, 0, 0.7), 0 0 30px ${alpha('#00FFFF', 0.15)}`,
+          transform: 'translateY(-4px)',
         },
       },
     },

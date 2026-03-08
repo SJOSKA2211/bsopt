@@ -35,19 +35,30 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)])
 
 
-@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED)
+def _log_legacy_warning(route: str):
+    logger.warning("legacy_auth_route_accessed", route=route, migration_target="auth-service")
+
+
+@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED, deprecated=True)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
+    response: Response,
     db: AsyncSession = Depends(get_async_db),
 ):
-    """Register a new user using God-Mode Native DB procedure."""
+    """
+    [LEGACY] Register a new user using God-Mode Native DB procedure.
+    MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
+    """
+    _log_legacy_warning("/register")
+    response.headers["X-API-Status"] = "deprecated"
+    
     # 1. Validate password strength app-side
     val = password_service.validate_password(data.password)
     if not val.is_valid:
         raise ValidationException(message="Weak password", details=val.errors)
 
-    # 2. Hand off registration + hashing to Postgres
+    # 2. Hand off registration + hashing to Postgres (Native Bcrypt)
     try:
         result = await db.execute(
             text("SELECT register_user_native(:email, :password, :name)"),
@@ -75,13 +86,24 @@ async def register(
             "access_token": tokens.access_token,
             "token_type": tokens.token_type,
         },
-        "message": "User created in God-Mode",
+        "message": "User created in God-Mode (Legacy)",
     }
 
 
-@router.post("/login", response_model=dict)
-async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends(get_async_db)):
-    """Authenticate via Native DB procedure (High Performance)."""
+@router.post("/login", response_model=dict, deprecated=True)
+async def login(
+    request: Request, 
+    data: LoginRequest, 
+    response: Response,
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    [LEGACY] Authenticate via Native DB procedure (High Performance).
+    MIGRATION: Use /api/auth/login in the auth-service (Node.js).
+    """
+    _log_legacy_warning("/login")
+    response.headers["X-API-Status"] = "deprecated"
+    
     try:
         # 1. Native Authentication (Handles hashing and active check DB-side)
         result = await db.execute(
@@ -111,7 +133,7 @@ async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends
                 "email": email,
                 "tier": str(tier),
             },
-            "message": "Login successful (Native)",
+            "message": "Login successful (Legacy Native)",
         }
     except AuthenticationException:
         raise
@@ -125,8 +147,15 @@ async def read_users_me(user=Depends(get_current_active_user)):
     return {"data": user}
 
 
-@router.post("/logout")
-async def logout(request: Request, user=Depends(get_current_user)):
+@router.post("/logout", deprecated=True)
+async def logout(request: Request, response: Response, user=Depends(get_current_user)):
+    """
+    [LEGACY] Logout user.
+    MIGRATION: Use /api/auth/sign-out in the auth-service (Node.js).
+    """
+    _log_legacy_warning("/logout")
+    response.headers["X-API-Status"] = "deprecated"
+    
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
@@ -134,9 +163,19 @@ async def logout(request: Request, user=Depends(get_current_user)):
     return {"message": "Successfully logged out"}
 
 
-@router.post("/mfa/setup")
-async def mfa_setup(user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)):
-    """Initialize MFA setup for the user."""
+@router.post("/mfa/setup", deprecated=True)
+async def mfa_setup(
+    response: Response,
+    user: User = Depends(get_current_active_user), 
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    [LEGACY] Initialize MFA setup for the user.
+    MIGRATION: Use auth-service's two-factor plugin routes.
+    """
+    _log_legacy_warning("/mfa/setup")
+    response.headers["X-API-Status"] = "deprecated"
+    
     if not user.mfa_secret:
         # Generate new plaintext secret
         plain_secret = mfa_service.generate_secret()
@@ -159,13 +198,20 @@ async def mfa_setup(user: User = Depends(get_current_active_user), db: AsyncSess
     }
 
 
-@router.post("/mfa/verify")
+@router.post("/mfa/verify", deprecated=True)
 async def mfa_verify(
     data: MFAVerifyRequest, 
+    response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db)
 ):
-    """Verify MFA code and enable it for the user."""
+    """
+    [LEGACY] Verify MFA code and enable it for the user.
+    MIGRATION: Use auth-service's two-factor plugin routes.
+    """
+    _log_legacy_warning("/mfa/verify")
+    response.headers["X-API-Status"] = "deprecated"
+    
     if not user.mfa_secret:
         raise HTTPException(status_code=400, detail="MFA not initialized")
     
@@ -175,17 +221,24 @@ async def mfa_verify(
     if mfa_service.verify_code(plain_secret, data.code):
         user.is_mfa_enabled = True
         await db.commit()
-        return {"status": "success", "message": "MFA enabled successfully"}
+        return {"status": "success", "message": "MFA enabled successfully (Legacy)"}
     raise ValidationException(message="Invalid MFA code")
 
 
-@router.post("/password/change")
+@router.post("/password/change", deprecated=True)
 async def change_password(
     data: PasswordChangeRequest, 
+    response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db)
 ):
-    """Change user password."""
+    """
+    [LEGACY] Change user password.
+    MIGRATION: Use /api/auth/change-password in auth-service.
+    """
+    _log_legacy_warning("/password/change")
+    response.headers["X-API-Status"] = "deprecated"
+    
     # 1. Verify old password
     if not password_service.verify_password(data.old_password, user.hashed_password):
         raise AuthenticationException(message="Invalid current password")
@@ -199,16 +252,23 @@ async def change_password(
     user.hashed_password = password_service.hash_password(data.new_password)
     await db.commit()
     
-    return {"status": "success", "message": "Password changed successfully"}
+    return {"status": "success", "message": "Password changed successfully (Legacy)"}
 
 
-@router.post("/password/reset")
+@router.post("/password/reset", deprecated=True)
 async def request_password_reset(
     data: PasswordResetRequest, 
     background_tasks: BackgroundTasks,
+    response: Response,
     db: AsyncSession = Depends(get_async_db)
 ):
-    """Request a password reset email."""
+    """
+    [LEGACY] Request a password reset email.
+    MIGRATION: Use /api/auth/forget-password in auth-service.
+    """
+    _log_legacy_warning("/password/reset")
+    response.headers["X-API-Status"] = "deprecated"
+    
     result = await db.execute(select(User).where(User.email == data.email))
     user = result.scalar_one_or_none()
     
@@ -224,9 +284,19 @@ async def request_password_reset(
     return {"status": "success", "message": "If the email is registered, a reset link has been sent."}
 
 
-@router.post("/password/reset/confirm")
-async def reset_password_confirm(data: PasswordResetConfirmRequest, db: AsyncSession = Depends(get_async_db)):
-    """Confirm password reset with token."""
+@router.post("/password/reset/confirm", deprecated=True)
+async def reset_password_confirm(
+    data: PasswordResetConfirmRequest, 
+    response: Response,
+    db: AsyncSession = Depends(get_async_db)
+):
+    """
+    [LEGACY] Confirm password reset with token.
+    MIGRATION: Use /api/auth/reset-password in auth-service.
+    """
+    _log_legacy_warning("/password/reset/confirm")
+    response.headers["X-API-Status"] = "deprecated"
+    
     result = await db.execute(
         select(User).where(
             User.reset_token == data.token,
@@ -248,7 +318,7 @@ async def reset_password_confirm(data: PasswordResetConfirmRequest, db: AsyncSes
     user.reset_token_expires_at = None
     await db.commit()
     
-    return {"status": "success", "message": "Password has been reset successfully"}
+    return {"status": "success", "message": "Password has been reset successfully (Legacy)"}
 
 
 # ---------------------------------------------------------------------------

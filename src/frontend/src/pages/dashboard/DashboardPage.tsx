@@ -96,20 +96,22 @@ const KpiCard: React.FC<KpiCardProps> = ({
           position: 'relative',
           overflow: 'hidden',
           height: '100%',
-          borderRadius: 4,
-          border: `0.5px solid ${alpha(accentColor, 0.2)}`,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.4)}, ${alpha(theme.palette.background.paper, 0.1)})`,
-          backdropFilter: 'blur(30px) saturate(180%)',
+          borderRadius: 6,
+          border: `1px solid ${alpha(accentColor, 0.1)}`,
+          background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+          backdropFilter: 'blur(40px) saturate(200%)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            borderColor: accentColor,
-            boxShadow: `0 0 40px ${alpha(accentColor, 0.2)}`,
+            borderColor: alpha(accentColor, 0.5),
+            boxShadow: `0 20px 40px -10px ${alpha(accentColor, 0.2)}`,
             '& .card-icon': {
-              transform: 'scale(1.2) rotate(10deg)',
+              transform: 'scale(1.2) rotate(15deg)',
               color: accentColor,
+              filter: `drop-shadow(0 0 10px ${accentColor})`,
             },
             '& .greek-overlay': {
-              opacity: 0.2,
-              transform: 'scale(1.2) rotate(-5deg)',
+              opacity: 0.15,
+              transform: 'scale(1.3) rotate(-10deg)',
             }
           }
         }}
@@ -137,10 +139,11 @@ const KpiCard: React.FC<KpiCardProps> = ({
             fontSize: '140px',
             fontWeight: 900,
             color: accentColor,
-            opacity: 0.04,
-            transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            opacity: 0.03,
+            transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
             pointerEvents: 'none',
             zIndex: 0,
+            userSelect: 'none',
           }}
         >
           {greek}

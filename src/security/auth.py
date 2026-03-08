@@ -227,7 +227,27 @@ class AuthService:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
-        # 1. Try Better Auth Session (Primary)
+        # 1. Try Cache First (Redis)
+        from src.utils.cache import get_redis_client
+        redis_client = await get_redis_client()
+        if redis_client:
+            try:
+                cached_data = await redis_client.get(f"session_v2:{token}")
+                if cached_data:
+                    import json
+                    data = json.loads(cached_data)
+                    return TokenData(
+                        user_id=data["user_id"],
+                        email=data["email"],
+                        tier=data["tier"],
+                        token_type="session",
+                        exp=datetime.fromisoformat(data["exp"]),
+                        iat=datetime.fromisoformat(data["iat"]),
+                    )
+            except Exception as e:
+                logger.debug("session_cache_lookup_failed", error=str(e))
+
+        # 2. Try Better Auth Session (Primary DB Check)
         from src.database import get_async_db_context
         from src.database.models import BetterAuthSession
 
@@ -242,7 +262,7 @@ class AuthService:
             if session and session.expires_at > datetime.now(UTC):
                 user = session.user
                 if user:
-                    return TokenData(
+                    token_data = TokenData(
                         user_id=str(user.id),
                         email=user.email,
                         tier=user.tier,
@@ -250,8 +270,28 @@ class AuthService:
                         exp=session.expires_at,
                         iat=session.created_at,
                     )
+                    
+                    # Cache successful session verification (5 min TTL)
+                    if redis_client:
+                        try:
+                            import json
+                            await redis_client.setex(
+                                f"session_v2:{token}",
+                                300,
+                                json.dumps({
+                                    "user_id": token_data.user_id,
+                                    "email": token_data.email,
+                                    "tier": token_data.tier,
+                                    "exp": token_data.exp.isoformat(),
+                                    "iat": token_data.iat.isoformat(),
+                                })
+                            )
+                        except Exception as e:
+                            logger.debug("session_cache_save_failed", error=str(e))
+                            
+                    return token_data
 
-        # 2. Legacy JWT Fallback
+        # 3. Legacy JWT Fallback
         token_data = self.decode_token(token)
         if token_data.jti and await token_blacklist.contains(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")
