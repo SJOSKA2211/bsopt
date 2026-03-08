@@ -20,6 +20,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     uv pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
 
+# Install Rust and build bsopt_core
+RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN uv pip install maturin
+COPY src/core ./src/core
+RUN cd src/core && maturin build --release --out /tmp/wheels
+RUN uv pip install /tmp/wheels/*.whl
+
 # === Stage 2: Development ===
 FROM python:3.13-slim AS development
 

@@ -2,16 +2,13 @@
 Authentication Routes (Optimized for PG16 + Async)
 """
 
-import logging
 from datetime import UTC, datetime, timedelta
 
 import structlog
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
 from src.api.exceptions import AuthenticationException, ConflictException, ValidationException
 from src.api.schemas.auth import (
     LoginRequest,
@@ -21,6 +18,7 @@ from src.api.schemas.auth import (
     PasswordResetRequest,
     RegisterRequest,
 )
+from src.config import settings
 from src.database import get_async_db, set_user_context
 from src.database.models import User
 from src.security.auth import (
@@ -28,9 +26,9 @@ from src.security.auth import (
     get_current_active_user,
     get_current_user,
 )
+from src.security.mfa import mfa_service
 from src.security.password import password_service
 from src.security.rate_limit import rate_limit
-from src.security.mfa import mfa_service
 
 logger = structlog.get_logger(__name__)
 

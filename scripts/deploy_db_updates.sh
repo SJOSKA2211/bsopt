@@ -23,9 +23,23 @@ error_handler() {
 
 trap 'error_handler $LINENO' ERR
 
-log "🥒 Pressurizing the Manifold (Incremental Updates)..."
+# Load environment variables if .env exists
+if [ -f .env ]; then
+    log "  🥒 Loading .env..."
+    export $(grep -v '^#' .env | xargs)
+fi
 
-# Prioritize PG* variables for compatibility, then POSTGRES_*, then defaults
+# Pre-flight Validation
+log "🚀 Pre-flight check..."
+if ! query_sql "SELECT 1" > /dev/null 2>&1; then
+    log "❌ ERROR: Cannot connect to database. Is it running?"
+    exit 1
+fi
+
+EXT_CHECK=$(query_sql "SELECT count(*) FROM pg_extension WHERE extname IN ('timescaledb', 'vector');")
+if [ "$EXT_CHECK" != "2" ]; then
+    log "⚠️  Warning: Core extensions (timescaledb/vector) missing. Check init-scripts."
+fi
 DB_HOST=${PGHOST:-${POSTGRES_HOST:-127.0.0.1}}
 DB_PORT=${PGPORT:-${POSTGRES_PORT:-5432}}
 DB_USER=${PGUSER:-${POSTGRES_USER:-admin}}

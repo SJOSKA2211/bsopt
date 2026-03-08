@@ -155,4 +155,36 @@ def health_check() -> bool:
     return True
 
 
+@app.task(base=BaseAsyncTask, bind=True)
+def reconcile_risk_state(self):
+    """Periodically syncs Redis 'truth' to SHM RiskStateBuffer."""
+    try:
+        return self.run_async(_reconcile_risk_state_impl())
+    except Exception as e:
+        logger.error("risk_reconciliation_failed", error=str(e))
+
+
+async def _reconcile_risk_state_impl():
+    """Implementation of risk state synchronization."""
+    from src.shared.shm_mesh import RiskStateBuffer
+    from src.utils.cache import get_redis
+
+    redis = get_redis()
+    if not redis:
+        return
+
+    # 1. Fetch from Redis (The global truth)
+    current_delta = await redis.get("portfolio_net_delta")
+    if current_delta is None:
+        return
+
+    # 2. Update SHM (The engine's local truth)
+    try:
+        risk_buf = RiskStateBuffer(create=False)
+        risk_buf.update(float(current_delta), settings.MAX_NET_DELTA)
+        logger.debug("risk_shm_synced_from_redis", delta=current_delta)
+    except Exception as e:
+        logger.error("shm_update_failed", error=str(e))
+
+
 _calibration_worker = _recalibrate_symbol_fallback

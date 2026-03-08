@@ -55,3 +55,6 @@ def run_pipeline_task(self, config: dict[str, Any]):
             asyncio.run(pipeline.shutdown())
         except Exception:
             pass
+
+# Import tasks to register them with the app
+import src.scrapers.tasks # noqa

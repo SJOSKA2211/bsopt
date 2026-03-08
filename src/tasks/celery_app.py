@@ -19,6 +19,7 @@ from datetime import timedelta
 from celery import Celery, Task, signals
 from celery.schedules import crontab
 from kombu import Exchange, Queue
+from src.utils.celery import BaseAsyncTask
 
 logger = logging.getLogger(__name__)
 
@@ -332,12 +333,10 @@ def refresh_pricing_cache(self):
     logger.info("Refreshing pricing cache...")
     # Import here to avoid circular imports
     try:
-        import asyncio
-
         from src.utils.cache import warm_cache
 
-        asyncio.run(warm_cache())
-        return {"status": "completed", "message": "Cache warmed successfully"}
+        # Use persistent loop from BaseAsyncTask
+        return self.run_async(warm_cache())
     except Exception as e:
         logger.error(f"Cache refresh failed: {e}")
         return {"status": "failed", "error": str(e)}
@@ -346,10 +345,10 @@ def refresh_pricing_cache(self):
 # Task Base Classes with Retry Logic
 
 
-class BaseTaskWithRetry(Task):
+class BaseTaskWithRetry(BaseAsyncTask):
     """
-    Base task class with exponential backoff retry.
-    Inherit from this for tasks that need robust retry logic.
+    Base task class with exponential backoff retry and persistent loop.
+    Inherit from this for tasks that need robust retry logic and async support.
     """
 
     autoretry_for = (Exception,)
@@ -361,12 +360,11 @@ class BaseTaskWithRetry(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Handle task failure after all retries exhausted."""
         logger.error(f"Task {self.name}[{task_id}] failed after {self.max_retries} retries: {exc}")
-        # Could send to dead letter queue or alerting system here
 
 
-class PricingTask(Task):
+class PricingTask(BaseAsyncTask):
     """
-    Base task for pricing operations.
+    Base task for pricing operations with persistent loop.
     Low latency, high priority with limited retries.
     """
 
@@ -378,9 +376,9 @@ class PricingTask(Task):
     soft_time_limit = 25
 
 
-class MLTask(Task):
+class MLTask(BaseAsyncTask):
     """
-    Base task for ML operations.
+    Base task for ML operations with persistent loop.
     Resource intensive with longer timeouts.
     """
 
@@ -396,9 +394,9 @@ class MLTask(Task):
         logger.warning(f"ML Task {self.name}[{task_id}] retrying due to: {exc}")
 
 
-class TradingTask(Task):
+class TradingTask(BaseAsyncTask):
     """
-    Base task for trading operations.
+    Base task for trading operations with persistent loop.
     Critical with immediate retry and alerting.
     """
 
@@ -412,7 +410,6 @@ class TradingTask(Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Alert on trading task failure."""
         logger.critical(f"TRADING TASK FAILED: {self.name}[{task_id}] - {exc}")
-        # Send alert to trading operations team
 
 
 # Export base classes for use in task modules

@@ -10,7 +10,7 @@ import structlog
 
 from src.utils.lazy_import import lazy_import
 
-from .celery_app import celery_app
+from .celery_app import MLTask, celery_app
 
 logger = structlog.get_logger(__name__)
 
@@ -28,7 +28,7 @@ def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
 
 
-@celery_app.task(bind=True, queue="ml")
+@celery_app.task(bind=True, base=MLTask, queue="ml")
 def train_model_task(
     self,
     ticker: str = "TSLA",
@@ -45,7 +45,8 @@ def train_model_task(
         config["framework"] = model_type
 
         pipeline = MLPipeline(config)
-        model = asyncio.run(pipeline.run(force=True))
+        # OPTIMIZED: Use persistent loop from MLTask (BaseAsyncTask)
+        model = self.run_async(pipeline.run(force=True))
 
         return {
             "task_id": self.request.id,
@@ -59,7 +60,7 @@ def train_model_task(
         return {"status": "failed", "error": str(e)}
 
 
-@celery_app.task(bind=True, queue="ml")
+@celery_app.task(bind=True, base=MLTask, queue="ml")
 def monitor_drift_and_retrain_task(self):
     """Periodic task to monitor drift using lazy-loaded autonomous pipeline."""
     MLPipeline = _get_attr("MLPipeline")
@@ -74,7 +75,8 @@ def monitor_drift_and_retrain_task(self):
             "framework": "xgboost",
         }
         pipeline = MLPipeline(config)
-        model = asyncio.run(pipeline.run())
+        # OPTIMIZED: Use persistent loop from MLTask (BaseAsyncTask)
+        model = self.run_async(pipeline.run())
 
         if model:
             return {"status": "retrained", "model_class": model.__class__.__name__}

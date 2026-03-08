@@ -26,19 +26,6 @@ from .celery_app import PricingTask, celery_app
 logger = structlog.get_logger(__name__)
 
 
-def _run_sync(coro):
-    """
-    Robust async execution in sync contexts without nest_asyncio slop.
-    Uses asyncio.run if no loop is running, else reuse event loop.
-    """
-    try:
-        return asyncio.run(coro)
-    except RuntimeError:
-        # Fallback for environments where a loop is already present but not running
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(coro)
-
-
 # High-performance result structure for batch pricing.
 class PricingResult(msgspec.Struct):
     price: float
@@ -83,7 +70,8 @@ def price_option_task(
     if use_cache:
         try:
             params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
-            cached_price = _run_sync(
+            # OPTIMIZED: Use persistent loop from BaseAsyncTask
+            cached_price = self.run_async(
                 pricing_cache.get_option_price(params, option_type, "black_scholes")
             )
             if cached_price is not None:
@@ -123,7 +111,8 @@ def price_option_task(
         if use_cache and not cache_hit:
             try:
                 params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
-                _run_sync(
+                # OPTIMIZED: Use persistent loop from BaseAsyncTask
+                self.run_async(
                     pricing_cache.set_option_price(
                         params, option_type, "black_scholes", float(price)
                     )
