@@ -12,7 +12,7 @@ async def test_data_flow():
     
     # 2. Simulate Ingestion (Writing to SHM)
     print("Writing ticks to SHM...")
-    start_time = time.time()
+    time.time()
     for i in range(100):
         shm.write_tick(f"TSLA{i%10}", 150.0 + i, 100, time.time())
     

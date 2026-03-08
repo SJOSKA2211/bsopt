@@ -140,8 +140,8 @@ class QuantumOptionPricer:
         sigma = vol * np.sqrt(t)
         
         # 2. Define grid
-        low = np.exp(mu - 3 * sigma)
-        high = np.exp(mu + 3 * sigma)
+        np.exp(mu - 3 * sigma)
+        np.exp(mu + 3 * sigma)
         
         # 3. Create Circuit
         qc = QuantumCircuit(num_qubits)

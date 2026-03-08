@@ -8,7 +8,7 @@ from src.trading.risk_kernels import _full_risk_check_v2_kernel
 
 def benchmark_quant():
     print("--- Quant Benchmarks ---")
-    s0, k, t, v, r, q = 100.0, 100.0, 1.0, 0.2, 0.05, 0.02
+    s0, _k, t, v, r, q = 100.0, 100.0, 1.0, 0.2, 0.05, 0.02
     n_paths = 100_000
     n_steps = 252
 
