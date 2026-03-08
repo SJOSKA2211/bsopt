@@ -54,6 +54,34 @@ def _off_heap_processor(
     return event_dict
 
 
+def _pii_masking_processor(
+    logger: Any, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
+    """Masks PII (IPs, Emails) in all log events for security compliance."""
+    import re
+
+    # Patterns for IP and Email
+    ip_pattern = r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.[\d]{1,3}\b"
+    email_pattern = r"\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b"
+
+    for key, value in event_dict.items():
+        if isinstance(value, str):
+            # Mask IP
+            if re.search(ip_pattern, value):
+                event_dict[key] = re.sub(ip_pattern, "XXX.XXX.XXX.XXX", value)
+            # Mask Email
+            if re.search(email_pattern, value):
+                event_dict[key] = re.sub(email_pattern, "masked@email.com", value)
+        elif key == "client_ip" and isinstance(value, str):
+             # Specific handling for the client_ip key if it's already extracted
+             if "." in value:
+                 parts = value.split(".")
+                 if len(parts) == 4:
+                     event_dict[key] = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
+
+    return event_dict
+
+
 def setup_logging():
     """Configures structlog for JSON logging (Loki compliant) with optimized processors."""
     structlog.configure(
@@ -61,6 +89,7 @@ def setup_logging():
             _TIME_STAMPER,
             _LEVEL_ADDER,
             _CALLSITE_ADDER,
+            _pii_masking_processor, # Global PII masking
             _off_heap_processor,  #  Redirect high-freq logs
             _JSON_RENDERER,
         ],
@@ -128,19 +157,8 @@ async def logging_middleware(request: Request, call_next: Callable) -> Response:
 
     duration = time.time() - start_time
 
-    # Mask client IP to protect PII with caching for performance
-    raw_ip = request.client.host if request.client else "unknown"
-    if raw_ip in _IP_CACHE:
-        client_ip = _IP_CACHE[raw_ip]
-    elif raw_ip != "unknown":
-        parts = raw_ip.split(".")
-        if len(parts) == 4:
-            client_ip = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
-        else:
-            client_ip = "masked"
-        _IP_CACHE[raw_ip] = client_ip
-    else:
-        client_ip = "unknown"
+    # IP masking is now handled globally by _pii_masking_processor
+    client_ip = request.client.host if request.client else "unknown"
 
     # Log sampling: only log 10% of successful (2xx) requests to reduce I/O overhead.
     # Always log errors (4xx, 5xx) and redirects (3xx).

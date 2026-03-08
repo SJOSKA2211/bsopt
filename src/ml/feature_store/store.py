@@ -12,6 +12,9 @@ class InMemoryFeatureStore(FeatureStore):
         self.features = {}
         # Register default features
         self.register_feature(LogReturnFeature())
+        self.register_feature(RSIPeature())
+        self.register_feature(EMAFeature())
+        self.register_feature(MACDFeature())
 
     def register_feature(self, feature: Feature):
         self.features[feature.name] = feature
