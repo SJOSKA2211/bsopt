@@ -151,11 +151,37 @@ def train_func(config: dict[str, Any]):
 class BSOptDistributedTrainer:
     """
     Orchestrator for scaling BSOpt training across a Ray cluster.
+    OPTIMIZED: Automatic resource negotiation and cluster-aware scaling.
     """
 
-    def __init__(self, num_workers: int = 2, use_gpu: bool = False):
-        self.num_workers = num_workers
-        self.use_gpu = use_gpu
+    def __init__(self, num_workers: int | None = None, use_gpu: bool | None = None):
+        self._explicit_workers = num_workers
+        self._explicit_gpu = use_gpu
+
+    def _negotiate_resources(self) -> tuple[int, bool]:
+        """Dynamically detect cluster capacity and set optimal worker count."""
+        resources = ray.cluster_resources()
+        cpus = int(resources.get("CPU", 1))
+        gpus = int(resources.get("GPU", 0))
+        
+        # 1. Determine Worker Count
+        if self._explicit_workers:
+            num_workers = self._explicit_workers
+        else:
+            # Leave 1 CPU for the driver
+            num_workers = max(1, cpus - 1)
+            
+        # 2. Determine GPU usage
+        if self._explicit_gpu is not None:
+            use_gpu = self._explicit_gpu
+        else:
+            # Use GPU if available and we have enough for workers
+            use_gpu = gpus >= num_workers if num_workers > 0 else gpus > 0
+            
+        logger.info("resource_negotiation_complete", 
+                    cpus=cpus, gpus=gpus, 
+                    workers=num_workers, use_gpu=use_gpu)
+        return num_workers, use_gpu
 
     def run(self, config: dict[str, Any]):
         """Starts the distributed training session using RayClusterManager."""
@@ -171,18 +197,23 @@ class BSOptDistributedTrainer:
             raise RuntimeError("Failed to initialize Ray cluster via RayClusterManager.")
 
         try:
-            # AUDIT: Ensure resources_per_trial is set for scalability
+            num_workers, use_gpu = self._negotiate_resources()
+            
+            # 🚀 GOD-MODE: Dynamic Scaling Config
             scaling_config = ScalingConfig(
-                num_workers=self.num_workers,
-                use_gpu=self.use_gpu,
-                resources_per_worker={"CPU": 1, "GPU": 1 if self.use_gpu else 0},
+                num_workers=num_workers,
+                use_gpu=use_gpu,
+                resources_per_worker={
+                    "CPU": 1, 
+                    "GPU": 1 if use_gpu else 0
+                },
             )
 
             trainer = TorchTrainer(
                 train_func, train_loop_config=config, scaling_config=scaling_config
             )
 
-            logger.info("starting_distributed_training", workers=self.num_workers)
+            logger.info("starting_distributed_training", workers=num_workers, gpu=use_gpu)
             result = trainer.fit()
             return result
         finally:

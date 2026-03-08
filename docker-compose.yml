@@ -157,6 +157,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - ML_SERVICE_GRPC_URL=ml-inference:50051
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -204,6 +205,32 @@ services:
       - bsopt-network
     command: uvicorn src.portfolio.main:app --host 0.0.0.0 --port 8000
 
+  # === [Specialized] ML Inference Manifold ===
+  ml-inference:
+    profiles: [ "ml" ]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+      target: development
+    shm_size: '2gb'
+    ports:
+      - "5001:5001"
+      - "50051:50051"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+      - ML_SERVICE_PORT=5001
+      - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+    networks:
+      - bsopt-network
+    volumes:
+      - ./src:/app/src
+      - ./models:/app/models
+    command: python src/ml/serving/serve.py
+
   # === Worker Service ===
   worker:
     build:
@@ -215,7 +242,7 @@ services:
       - ./src:/app/src
       - ./pyproject.toml:/app/pyproject.toml
     ports:
-      - "50051:50051"
+      - "50052:50051" # Changed to avoid collision if run on host
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -226,7 +253,7 @@ services:
       - INSIDE_DOCKER=1
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-bsopt_rmq_secret}@rabbitmq:5672//
-      - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+      - ML_SERVICE_GRPC_URL=ml-inference:50051
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
@@ -241,6 +268,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      ml-inference:
+        condition: service_started
     networks:
       - bsopt-network
     command: celery -A src.ml.celery_app worker -l info

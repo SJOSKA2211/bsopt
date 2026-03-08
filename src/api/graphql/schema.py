@@ -149,16 +149,36 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
+        from src.services.ml_service import get_ml_service
+        from src.api.schemas.ml import InferenceRequest
+        
+        ml_service = get_ml_service()
+        
+        # Simulated request for the fair value prediction
+        req = InferenceRequest(
+            underlying_price=150.0,
+            strike=150.0,
+            time_to_expiry=0.1,
+            is_call=1,
+            moneyness=1.0,
+            log_moneyness=0.0,
+            sqrt_time_to_expiry=0.316,
+            days_to_expiry=36.5,
+            implied_volatility=0.2
+        )
+        
+        res = await ml_service.predict(req, symbol=symbol)
+        
         now = datetime.now(UTC)
         return MLPrediction(
-            id=strawberry.ID("pred-123"),
+            id=strawberry.ID(f"pred-{symbol}-{now.timestamp()}"),
             symbol=symbol,
-            predicted_price=157.50,
+            predicted_price=res.price,
             actual_price=None,
             prediction_error=None,
             confidence_interval=0.95,
-            drift=0.02,
-            model_name="XGBoost-V4-Ensemble",
+            drift=0.0, # Would come from drift detector
+            model_name=res.model_type,
             timestamp=now,
             last_updated=now,
         )

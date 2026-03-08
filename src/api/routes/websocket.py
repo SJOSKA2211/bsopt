@@ -1,4 +1,5 @@
 import structlog
+import time
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from src.api.websockets.manager import ProtocolType, manager
@@ -57,16 +58,19 @@ async def market_data_ws(
                 continue
 
             action = msg.get("action")
+            request_id = msg.get("request_id", "ws-" + str(int(time.time())))
             
             if action == "subscribe":
                 sym = msg.get("symbol")
                 if sym:
                     await manager.subscribe_to_symbol(websocket, sym)
+                    logger.info("ws_audit_subscribe", symbol=sym, request_id=request_id)
             
             elif action == "unsubscribe":
                 sym = msg.get("symbol")
                 if sym:
                     await manager.unsubscribe_from_symbol(websocket, sym)
+                    logger.info("ws_audit_unsubscribe", symbol=sym, request_id=request_id)
             
             elif action == "heartbeat":
                 websocket.metadata.update_heartbeat()
