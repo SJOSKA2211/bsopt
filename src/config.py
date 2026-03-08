@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: Annotated[list[str], BeforeValidator(lambda v: [x.strip() for x in (v if isinstance(v, list) else ([v] if isinstance(v, str) else [])) if x.strip()])] = ["http://localhost:3000", "http://localhost:5173"]
 
     # JWT Authentication
-    JWT_SECRET: str = Field(validation_alias="JWT_SECRET")
+    JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
     JWT_PRIVATE_KEY: str | None = ""
     JWT_PUBLIC_KEY: str | None = ""
@@ -259,26 +259,44 @@ class Settings(BaseSettings):
     def validate_security_configs(self) -> "Settings":
         """Validate security-critical settings and apply environment defaults."""
 
+        # 0. Master Secret and Key Derivation
+        if self.is_production and not self.BETTER_AUTH_SECRET:
+            # Node.js auth-service also enforces this.
+            raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
+
+        # Derivation logic (Shared between dev and prod if master secret exists)
+        if self.BETTER_AUTH_SECRET:
+            import hashlib
+            import base64
+
+            # Derive MFA Encryption Key if not explicitly set
+            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [_DEFAULT_DEV_MFA_KEY, "INSECURE_DEV_PLACEHOLDER"]:
+                # Deterministic derivation: PBKDF2 or Hmac is better, but simple SHA256 satisfies current revamp needs
+                # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
+                mfa_seed = hashlib.sha256(f"mfa-derivation-{self.BETTER_AUTH_SECRET}".encode()).digest()
+                self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
+                logger.debug("derived_mfa_key_from_master_secret")
+
+            # Derive JWT Secret if not explicitly set
+            if not self.JWT_SECRET or self.JWT_SECRET == "change-me-in-production":
+                jwt_seed = hashlib.sha256(f"jwt-derivation-{self.BETTER_AUTH_SECRET}".encode()).hexdigest()
+                self.JWT_SECRET = jwt_seed
+                logger.debug("derived_jwt_secret_from_master_secret")
+
         # Enforce email verification in production by default if not set
-        # Note: If it's already set in .env or environment, Pydantic preserves it.
         if self.is_production and self.ENVIRONMENT != "test":
-            # We don't want to silently change a False to True if the user
-            # explicitly set it to False in prod, but we should at least warn.
-            # However, usually we want a safe default.
             pass
 
         if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
-            # 0. JWT Secret Security
-            if self.JWT_SECRET == "change-me-in-production":
-                raise ValueError("CRITICAL: JWT_SECRET must be changed from the default in production.")
+            # 1. JWT Secret Security
+            if self.JWT_SECRET == "change-me-in-production" or not self.JWT_SECRET:
+                raise ValueError("CRITICAL: JWT_SECRET must be changed from the default or derived from BETTER_AUTH_SECRET in production.")
 
-            # 1. MFA Key Security
+            # 2. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY
             if not key or key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
                 raise ValueError(
-                    "CRITICAL: MFA_ENCRYPTION_KEY must be set and not use the default "
-                    "development key in production. Set a secure key via "
-                    "the MFA_ENCRYPTION_KEY environment variable."
+                    "CRITICAL: MFA_ENCRYPTION_KEY must be set or derived in production."
                 )
 
             try:
@@ -296,17 +314,12 @@ class Settings(BaseSettings):
                     f"string of at least 32 bytes: {e}"
                 ) from e
 
-            # 2. Email Verification Security
+            # 3. Email Verification Security
             if not self.REQUIRE_EMAIL_VERIFICATION:
                 logger.warning(
                     "security_warning: email verification is DISABLED in production",
                     environment=self.ENVIRONMENT,
                 )
-
-            # 3. Better Auth Secret Security
-            if self.is_production and not self.BETTER_AUTH_SECRET:
-                # The auth-service (Node.js) already enforces this, but let's be safe here too.
-                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
 
         return self
 
