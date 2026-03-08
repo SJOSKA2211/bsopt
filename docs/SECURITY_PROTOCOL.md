@@ -8,9 +8,12 @@ This document outlines the security measures and platform hardening steps implem
 - **API Key Security**: API keys are hashed using SHA-256 and stored securely.
 
 ## 2. Authentication and MFA
-- **Encryption at Rest**: MFA secrets are encrypted with `Fernet` (AES-128 in CBC mode with HMAC SHA256).
-- **Hashed Backup Codes**: MFA backup codes are stored as SHA-256 hashes.
-- **Timing Attack Protection**: Constant-time comparison implemented in `AuthService.authenticate_user`.
+- **Centralized Auth**: All authentication flows (login, register, MFA) are centralized in the Node.js `auth-service` using `better-auth`.
+- **Argon2id Hashing**: Standardized on Argon2id for all password hashing (Memory: 64MB, Time: 3, Parallelism: 4).
+- **Session Verification**: Python backend verifies `better_auth_sessions` with Redis caching (5-minute TTL) for performance.
+- **MFA (Two-Factor)**: MFA is enforced via the `better-auth` two-factor plugin, replacing the custom legacy implementation.
+- **Rate Limiting**: Distributed sliding window rate limiting implemented in Redis LUA for both Node.js and Python services.
+- **Timing Attack Protection**: Constant-time comparison and dummy hashing implemented in legacy `AuthService.authenticate_user`.
 
 ## 3. Webhook Security
 - **HMAC Signatures**: All incoming webhooks must include a `X-Webhook-Signature` header.
