@@ -6,7 +6,7 @@
 # ==============================================================================
 
 # Detect Docker Compose
-DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || (docker compose version >/dev/null 2>&1 && echo "docker compose") || (test -f ~/.local/bin/docker-compose && echo "~/.local/bin/docker-compose") || echo "docker compose")
+DOCKER_COMPOSE := $(shell [ -x "./docker-compose" ] && echo "./docker-compose" || which docker-compose 2>/dev/null || (docker compose version >/dev/null 2>&1 && echo "docker compose") || (test -f ~/.local/bin/docker-compose && echo "~/.local/bin/docker-compose") || echo "docker compose")
 
 .PHONY: help up down build build-prod logs clean migrate db-shell lint format security-scan protos xdp test-all manifold cli proxy check-env
 

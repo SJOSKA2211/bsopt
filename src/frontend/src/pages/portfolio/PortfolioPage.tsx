@@ -17,6 +17,7 @@ import {
   TableRow,
   Button,
 } from '@mui/material';
+import { motion } from 'framer-motion';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -143,49 +144,87 @@ export const PortfolioPage: React.FC = () => {
       {/* Header */}
       <Stack direction="row" justifyContent="space-between" alignItems="flex-end" sx={{ mb: 4 }}>
         <Box>
-          <Typography variant="h3" className="text-gradient slide-up" sx={{ fontWeight: 800, mb: 0.5 }}>
-            Portfolio Returns &amp; Holdings
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-            Options positions, P&L analytics &amp; allocation overview
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5, fontFamily: 'Outfit', letterSpacing: '-0.04em', background: 'linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Portfolio Returns & Holdings
+            </Typography>
+          </motion.div>
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+            Options positions, P&L analytics & allocation overview
           </Typography>
         </Box>
       </Stack>
 
       {/* KPI cards */}
-      <Grid container spacing={2.5} sx={{ mb: 4 }}>
-        {KPI_CARDS.map((kpi) => (
-          <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
-            <Paper
-              className="stat-card"
-              sx={{ p: 2.5, border: `1px solid ${alpha(kpi.color, 0.15)}`, height: '100%' }}
-            >
-              <Box sx={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', bgcolor: alpha(kpi.color, 0.08), filter: 'blur(20px)', pointerEvents: 'none' }} />
-              <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 700, letterSpacing: '0.1em' }}>
-                {kpi.label}
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 800, my: 0.75, fontFamily: '"JetBrains Mono", monospace', color: kpi.positive ? kpi.color : 'text.primary', fontSize: '1.4rem' }}
-              >
-                {kpi.value}
-              </Typography>
-              <Typography variant="caption" sx={{ color: kpi.positive ? kpi.color : kpi.positive === false ? 'error.main' : 'warning.main', fontWeight: 600 }}>
-                {kpi.sub}
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+      >
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {KPI_CARDS.map((kpi, idx) => (
+            <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+              <motion.div whileHover={{ translateY: -5 }} transition={{ duration: 0.2 }}>
+                <Paper
+                  className="stat-card"
+                  sx={{
+                    p: 3,
+                    borderRadius: 6,
+                    background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+                    backdropFilter: 'blur(40px) saturate(200%)',
+                    border: `1px solid ${alpha(kpi.color, 0.15)}`,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    height: '100%'
+                  }}
+                >
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 3, background: `linear-gradient(90deg, transparent, ${kpi.color}, transparent)`, opacity: 0.5 }} />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                    {kpi.label}
+                  </Typography>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 900,
+                      my: 1,
+                      fontFamily: 'JetBrains Mono',
+                      color: kpi.positive ? kpi.color : 'text.primary',
+                      fontSize: '1.6rem',
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    {kpi.value}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: kpi.positive ? kpi.color : kpi.positive === false ? 'error.main' : 'warning.main', fontWeight: 800 }}>
+                    {kpi.sub}
+                  </Typography>
+                </Paper>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+      </motion.div>
 
       {/* Charts row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Donut allocation */}
         <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.1s' }}>
-          <Paper sx={{ p: 3, height: 380 }}>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-              <AllocationIcon sx={{ color: 'secondary.main', fontSize: 18 }} />
-              <Typography variant="body1" sx={{ fontWeight: 700 }}>
+          <Paper
+            sx={{
+              p: 3,
+              height: 380,
+              borderRadius: 6,
+              background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+              backdropFilter: 'blur(40px) saturate(200%)',
+              border: `1px solid ${alpha('#f8fafc', 0.08)}`,
+            }}
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+              <AllocationIcon sx={{ color: 'secondary.main', fontSize: 20 }} />
+              <Typography variant="body1" sx={{ fontWeight: 900, fontFamily: 'Outfit' }}>
                 Allocation
               </Typography>
             </Stack>
@@ -193,33 +232,41 @@ export const PortfolioPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* P&L performance line chart */}
         <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.2s' }}>
-          <Paper sx={{ p: 3, height: 380 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: 18 }} />
-                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+          <Paper
+            sx={{
+              p: 3,
+              height: 380,
+              borderRadius: 6,
+              background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+              backdropFilter: 'blur(40px) saturate(200%)',
+              border: `1px solid ${alpha('#f8fafc', 0.08)}`,
+            }}
+          >
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <TrendingUpIcon sx={{ color: 'success.main', fontSize: 20 }} />
+                <Typography variant="body1" sx={{ fontWeight: 900, fontFamily: 'Outfit' }}>
                   P&L Performance · YTD
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={2}>
                 <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Box sx={{ width: 20, height: 2, bgcolor: 'success.main', borderRadius: 1 }} />
-                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>Portfolio</Typography>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'success.main' }} />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Portfolio</Typography>
                 </Stack>
                 <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Box sx={{ width: 20, height: 2, bgcolor: 'secondary.main', borderRadius: 1, opacity: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'text.disabled' }}>Benchmark</Typography>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'secondary.main', opacity: 0.5 }} />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Benchmark</Typography>
                 </Stack>
               </Stack>
             </Stack>
-            <Box>
+            <Box sx={{ borderRadius: 4, overflow: 'hidden', border: `1px solid ${alpha('#fff', 0.03)}`, p: 1 }}>
               <PnlChart />
             </Box>
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 1, px: 0.5 }}>
+            <Stack direction="row" justifyContent="space-between" sx={{ mt: 2, px: 1 }}>
               {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Now'].map((m) => (
-                <Typography key={m} variant="caption" sx={{ color: 'text.disabled', fontSize: '0.6rem' }}>
+                <Typography key={m} variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', fontWeight: 700 }}>
                   {m}
                 </Typography>
               ))}
@@ -241,29 +288,46 @@ export const PortfolioPage: React.FC = () => {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.2s' }}>
-          <Paper sx={{ overflow: 'hidden' }}>
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ p: 2.5, pb: 1.5 }}>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>Open Positions</Typography>
+          <Paper
+            sx={{
+              overflow: 'hidden',
+              borderRadius: 6,
+              background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+              backdropFilter: 'blur(40px) saturate(200%)',
+              border: `1px solid ${alpha('#f8fafc', 0.08)}`,
+            }}
+          >
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 3, pb: 2 }}>
+              <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Outfit' }}>Open Positions</Typography>
               <Chip
-                label={`${POSITIONS.length} positions`}
+                label={`${POSITIONS.length} active units`}
                 size="small"
-                sx={{ height: 22, fontSize: '0.68rem', fontWeight: 600, bgcolor: alpha('#94a3b8', 0.1), color: 'text.secondary' }}
+                sx={{
+                  height: 24,
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  bgcolor: alpha('#7B68EE', 0.1),
+                  color: '#7B68EE',
+                  border: `1px solid ${alpha('#7B68EE', 0.2)}`,
+                  borderRadius: 1.5
+                }}
               />
             </Stack>
             <Table size="small" aria-label="open-positions-table">
               <TableHead>
-                <TableRow>
+                <TableRow sx={{ bgcolor: alpha('#fff', 0.02) }}>
                   {['Symbol', 'Type', 'Strike', 'Expiry', 'Qty', 'Avg Cost', 'Price', 'P&L', 'P&L%', 'Δ', 'Action'].map((h) => (
                     <TableCell
                       key={h}
                       sx={{
-                        color: 'text.disabled',
-                        fontWeight: 700,
-                        fontSize: '0.68rem',
-                        letterSpacing: '0.07em',
-                        borderColor: alpha('#94a3b8', 0.08),
-                        py: 1,
-                        px: 1.5,
+                        color: 'text.secondary',
+                        fontWeight: 900,
+                        fontSize: '0.7rem',
+                        letterSpacing: '0.1em',
+                        borderBottom: `1px solid ${alpha('#94a3b8', 0.1)}`,
+                        py: 2,
+                        px: 2,
+                        textTransform: 'uppercase'
                       }}
                     >
                       {h}
@@ -273,87 +337,103 @@ export const PortfolioPage: React.FC = () => {
               </TableHead>
               <TableBody>
                 {POSITIONS.map((p) => (
-                  <TableRow key={`${p.symbol}-${p.type}-${p.strike}`}>
-                    <TableCell sx={{ fontWeight: 700, py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                  <TableRow
+                    key={`${p.symbol}-${p.type}-${p.strike}`}
+                    sx={{
+                      '&:hover': { bgcolor: alpha('#7B68EE', 0.03) },
+                      transition: 'background 0.2s'
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 900, py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}`, color: 'primary.main' }}>
                       {p.symbol}
                     </TableCell>
-                    <TableCell sx={{ py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       <Chip
                         label={p.type}
                         size="small"
-                        color={p.type === 'CALL' ? 'success' : 'error'}
-                        sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }}
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 900,
+                          bgcolor: alpha(p.type === 'CALL' ? '#10b981' : '#f43f5e', 0.1),
+                          color: p.type === 'CALL' ? '#10b981' : '#f43f5e',
+                          border: `1px solid ${alpha(p.type === 'CALL' ? '#10b981' : '#f43f5e', 0.2)}`,
+                          borderRadius: 1
+                        }}
                       />
                     </TableCell>
-                    <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.8rem', py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono', fontWeight: 700, fontSize: '0.85rem', py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       {p.strike}
                     </TableCell>
-                    <TableCell sx={{ color: 'text.disabled', fontSize: '0.78rem', py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       {p.expiry}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.8rem', py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono', fontWeight: 700, fontSize: '0.85rem', py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       {p.qty}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.8rem', color: 'text.secondary', py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono', fontWeight: 500, fontSize: '0.85rem', color: 'text.secondary', py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       {p.cost}
                     </TableCell>
-                    <TableCell sx={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '0.8rem', py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono', fontWeight: 700, fontSize: '0.85rem', py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       {p.price}
                     </TableCell>
                     <TableCell
                       sx={{
-                        fontWeight: 700,
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.82rem',
+                        fontWeight: 900,
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: '0.9rem',
                         color: p.pnl > 0 ? 'success.main' : 'error.main',
-                        py: 1.25,
-                        px: 1.5,
-                        borderColor: alpha('#94a3b8', 0.06),
+                        py: 2,
+                        px: 2,
+                        borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}`,
                       }}
                     >
-                      {p.pnl > 0 ? '+' : ''}${Math.abs(p.pnl)}
+                      {p.pnl > 0 ? '+' : ''}${Math.abs(p.pnl).toLocaleString()}
                     </TableCell>
                     <TableCell
                       sx={{
-                        fontWeight: 700,
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.78rem',
+                        fontWeight: 900,
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: '0.85rem',
                         color: p.pnlPct > 0 ? 'success.main' : 'error.main',
-                        py: 1.25,
-                        px: 1.5,
-                        borderColor: alpha('#94a3b8', 0.06),
+                        py: 2,
+                        px: 2,
+                        borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}`,
                       }}
                     >
                       {p.pnlPct > 0 ? '+' : ''}{p.pnlPct}%
                     </TableCell>
                     <TableCell
                       sx={{
-                        fontFamily: '"JetBrains Mono", monospace',
-                        fontSize: '0.78rem',
-                        color: p.delta > 0 ? 'info.main' : 'error.main',
-                        py: 1.25,
-                        px: 1.5,
-                        borderColor: alpha('#94a3b8', 0.06),
+                        fontFamily: 'JetBrains Mono',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        color: p.delta > 0 ? '#00FFFF' : '#f43f5e',
+                        py: 2,
+                        px: 2,
+                        borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}`,
                       }}
                     >
                       {p.delta.toFixed(2)}
                     </TableCell>
-                    <TableCell sx={{ py: 1.25, px: 1.5, borderColor: alpha('#94a3b8', 0.06) }}>
+                    <TableCell sx={{ py: 2, px: 2, borderBottom: `1px solid ${alpha('#94a3b8', 0.05)}` }}>
                       <Button
                         size="small"
-                        variant="outlined"
-                        color="error"
+                        variant="contained"
                         sx={{
-                          py: 0.25,
-                          px: 1,
+                          py: 0.5,
+                          px: 1.5,
                           fontSize: '0.65rem',
-                          fontWeight: 700,
-                          minWidth: 48,
-                          height: 24,
+                          fontWeight: 900,
+                          minWidth: 60,
+                          height: 28,
                           borderRadius: 1.5,
+                          bgcolor: alpha('#f43f5e', 0.1),
+                          color: '#f43f5e',
+                          '&:hover': { bgcolor: alpha('#f43f5e', 0.2) }
                         }}
                       >
-                        Close
+                        LIQUIDATE
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -100,3 +100,17 @@ SELECT
 FROM pg_stat_statements
 ORDER BY mean_exec_time DESC
 LIMIT 20;
+
+-- 8. TimescaleDB Background Job Audit
+CREATE OR REPLACE VIEW job_performance_audit AS
+SELECT
+    job_id,
+    proc_name,
+    schedule_interval,
+    last_run_started_at,
+    last_run_duration,
+    last_run_status,
+    total_runs,
+    total_failures
+FROM timescaledb_information.jobs j
+JOIN timescaledb_information.job_stats js ON j.job_id = js.job_id;

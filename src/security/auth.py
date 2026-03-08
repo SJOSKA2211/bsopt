@@ -381,6 +381,35 @@ def require_tier(allowed_tiers: list):
     return decorator
 
 
+class RoleChecker:
+    """
+    Role-Based Access Control (RBAC) Dependency.
+    Checks if the user has any of the required roles.
+    """
+    def __init__(self, allowed_roles: list[str]):
+        self.allowed_roles = allowed_roles
+
+    async def __call__(self, user: User = Depends(get_current_active_user)):
+        # Check against both 'tier' and specific 'roles' if they exist
+        # Legacy support: 'admin' role maps to 'enterprise' tier often
+        user_roles = [user.tier]
+        if user.tier == "enterprise":
+            user_roles.append("admin")
+            
+        if not set(self.allowed_roles).intersection(user_roles):
+            logger.warning(
+                "rbac_denied",
+                user_id=str(user.id),
+                required=self.allowed_roles,
+                actual=user_roles
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="Insufficient Permissions"
+            )
+        return user
+
+
 async def get_api_key(
     request: Request,
     api_key: str | None = Depends(api_key_header),
@@ -418,19 +447,16 @@ async def get_current_user_flexible(
     # 1. API Key Auth (Programmatic)
     if api_key_user:
         return api_key_user
-    # 2. Better Auth Session (New Primary Auth)
-    from src.auth.better_auth import get_current_user as get_better_auth_user
 
-    try:
-        # Check if we have a Better Auth session
-        better_user = await get_better_auth_user(request, db)
-        if better_user:
-            return better_user
-    except Exception:
-        pass  # Fallback to legacy JWT if Better Auth fails/missing
+    # 2. Optimized Token Validation (Handles Better Auth Sessions + JWT)
+    if token:
+        try:
+            token_data = await auth_service.validate_token(token)
+            # Fetch user for the token (uses cache if available)
+            user = await get_current_user(request, token, db, auth_service)
+            if user:
+                return user
+        except HTTPException:
+            pass  # Fallback to anonymous if needed, or re-raise if strictly required
 
-    # 3. Legacy JWT Auth (Migration Path)
-    try:
-        return await get_current_user(request, token, db, auth_service)
-    except HTTPException:
-        raise
+    return None

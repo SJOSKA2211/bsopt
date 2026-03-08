@@ -728,6 +728,84 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
         raise
 
 
+async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
+    """
+    High-performance bulk insert for Market Data Mesh using PostgreSQL COPY.
+    """
+    if not mesh_data:
+        return 0
+
+    columns = [
+        "time",
+        "symbol",
+        "market",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "source_type",
+        "metadata",
+    ]
+
+    try:
+        conn = await db.connection()
+        raw_conn = await conn.get_raw_connection()
+        driver_conn = raw_conn.driver_connection
+
+        if hasattr(driver_conn, "copy_records_to_table"):
+            records = [
+                (
+                    row.get("time") or datetime.now(UTC),
+                    row.get("symbol"),
+                    row.get("market"),
+                    row.get("open"),
+                    row.get("high"),
+                    row.get("low"),
+                    row.get("close"),
+                    row.get("volume"),
+                    row.get("source_type", "scraper"),
+                    (
+                        orjson.dumps(row.get("metadata", {})).decode("utf-8")
+                        if row.get("metadata")
+                        else None
+                    ),
+                )
+                for row in mesh_data
+            ]
+
+            # Use staging for mesh data as well to ensure idempotency if needed
+            await db.execute(
+                text("CREATE TEMP TABLE staging_market_mesh (LIKE market_data_mesh) ON COMMIT DROP")
+            )
+
+            await driver_conn.copy_records_to_table(
+                "staging_market_mesh", records=records, columns=columns, timeout=30
+            )
+
+            col_list = ", ".join(columns)
+            query = f"""
+                INSERT INTO market_data_mesh ({col_list})
+                SELECT {col_list} FROM staging_market_mesh
+                ON CONFLICT DO NOTHING
+            """  # nosec B608
+            await db.execute(text(query))
+
+            await db.commit()
+            return len(mesh_data)
+        
+        # Fallback to standard insert
+        from .models import MarketDataMesh
+        await db.execute(insert(MarketDataMesh), mesh_data)
+        await db.commit()
+        return len(mesh_data)
+
+    except Exception as e:
+        logger.error("market_mesh_bulk_copy_failed", error=str(e))
+        await db.rollback()
+        raise
+
+
 async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int:
     """
     High-performance bulk insert for AuditLog using PostgreSQL COPY.

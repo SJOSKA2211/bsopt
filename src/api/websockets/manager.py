@@ -53,21 +53,26 @@ class ConnectionManager:
     def __init__(self):
         # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
         self.active_connections: dict[str, set[WebSocket]] = {}
-
-        # Redis setup for cross-worker communication
-        # Use service name 'redis' if running inside docker, otherwise 'localhost'
-        is_docker = os.getenv("INSIDE_DOCKER") == "1"
-        redis_fallback = "redis://redis:6379/0" if is_docker else "redis://localhost:6379/0"
-
-        redis_url = os.environ.get("REDIS_URL") or redis_fallback
-        self.redis = redis.from_url(redis_url, encoding="utf-8", decode_responses=False)
-        self.pubsub = self.redis.pubsub()
         self._listener_task = None
+        self._pubsub = None
+
+    async def _get_pubsub(self):
+        if self._pubsub is None:
+            from src.utils.cache import get_redis
+            redis_client = get_redis()
+            if redis_client:
+                self._pubsub = redis_client.pubsub()
+        return self._pubsub
 
     async def _listen_to_redis(self):
         """Background task to listen for Redis messages and broadcast locally."""
+        pubsub = await self._get_pubsub()
+        if not pubsub:
+            logger.error("ws_redis_pubsub_unavailable")
+            return
+
         try:
-            async for message in self.pubsub.listen():
+            async for message in pubsub.listen():
                 if message["type"] == "message":
                     channel = message["channel"]
                     symbol = channel.decode("utf-8") if isinstance(channel, bytes) else channel
@@ -82,30 +87,41 @@ class ConnectionManager:
         """Accept connection and subscribe to symbol updates."""
         await websocket.accept()
 
-        # Start listener if not running
-        if self._listener_task is None:
-            self._listener_task = asyncio.create_task(self._listen_to_redis())
-
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
             websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK)
 
-        if symbol not in self.active_connections:
-            self.active_connections[symbol] = set()
-            await self.pubsub.subscribe(symbol)
+        # Lazy init pubsub and listener
+        pubsub = await self._get_pubsub()
+        if pubsub:
+            if self._listener_task is None or self._listener_task.done():
+                self._listener_task = asyncio.create_task(self._listen_to_redis())
+
+            if symbol not in self.active_connections:
+                self.active_connections[symbol] = set()
+                await pubsub.subscribe(symbol)
+        else:
+            logger.warning("ws_running_without_redis_synchronization", symbol=symbol)
+            if symbol not in self.active_connections:
+                self.active_connections[symbol] = set()
 
         self.active_connections[symbol].add(websocket)
         logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
-    def disconnect(self, websocket: WebSocket, symbol: str):
+    async def disconnect(self, websocket: WebSocket, symbol: str):
         """Handle disconnection and cleanup in O(1)."""
         if symbol in self.active_connections:
             self.active_connections[symbol].discard(websocket)
             if not self.active_connections[symbol]:
-                # In production, we might want to delay unsubscribe to avoid thrashing
                 del self.active_connections[symbol]
+                pubsub = await self._get_pubsub()
+                if pubsub:
+                    try:
+                        await pubsub.unsubscribe(symbol)
+                    except Exception as e:
+                        logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
 
         WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.dec()
@@ -119,8 +135,12 @@ class ConnectionManager:
         """
         if not from_redis:
             # Originating locally: Encode to binary once and push to Redis
-            payload = WebSocketCodec.encode(message, ProtocolType.MSGPACK)
-            await self.redis.publish(symbol, payload)
+            from src.utils.cache import get_redis
+            redis_client = get_redis()
+            if redis_client:
+                payload = WebSocketCodec.encode(message, ProtocolType.MSGPACK)
+                await redis_client.publish(symbol, payload)
+            # Local broadcast will happen via Redis Pub/Sub listener to ensure consistency
             return
 
         if symbol not in self.active_connections:
