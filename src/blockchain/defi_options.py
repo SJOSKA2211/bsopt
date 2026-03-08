@@ -476,6 +476,13 @@ class DeFiOptionsProtocol:
         encoded_data = encode_typed_data(full_message=structured_data)
         signed_message = Account.sign_message(encoded_data, self.private_key)
 
+        return {
+            "v": signed_message.v,
+            "r": hex(signed_message.r),
+            "s": hex(signed_message.s),
+            "deadline": deadline,
+        }
+
     async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
         """
         Smart Order Router (SOR) v2.1 - Ultra-Low Latency & Gas-Aware.

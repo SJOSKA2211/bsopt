@@ -59,6 +59,7 @@ class RLTrainer(BaseTrainer):
         self,
         total_timesteps: int = 10000,
         model_path: str = "models/best_td3",
+        warm_start_path: str | None = None,
     ) -> dict[str, Any]:
         """
         Executes RL training using TD3 with Transformer policy.
@@ -85,18 +86,27 @@ class RLTrainer(BaseTrainer):
             )
 
             try:
-                model = TD3(
-                    TransformerTD3Policy,
-                    env,
-                    action_noise=action_noise,
-                    verbose=1,
-                    policy_kwargs=policy_kwargs,
-                    learning_rate=1e-4,
-                    buffer_size=200000,
-                    batch_size=256,
-                    tau=0.005,
-                    gamma=0.99,
-                )
+                if warm_start_path and os.path.exists(warm_start_path):
+                    logger.info("warm_start_active", path=warm_start_path)
+                    model = TD3.load(
+                        warm_start_path,
+                        env=env,
+                        policy_kwargs=policy_kwargs,
+                        action_noise=action_noise,
+                    )
+                else:
+                    model = TD3(
+                        TransformerTD3Policy,
+                        env,
+                        action_noise=action_noise,
+                        verbose=1,
+                        policy_kwargs=policy_kwargs,
+                        learning_rate=1e-4,
+                        buffer_size=200000,
+                        batch_size=256,
+                        tau=0.005,
+                        gamma=0.99,
+                    )
             except Exception as e:
                 logger.error("model_init_failed", error=str(e))
                 raise
@@ -143,14 +153,17 @@ def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Policy")
     parser.add_argument("--timesteps", type=int, default=10000)
     parser.add_argument("--output", type=str, default="models/td3_final")
-    parser.add_argument("--study_name", type=str, default="rl_trading_core")
+    parser.add_argument("--study_name", type=int, default="rl_trading_core")
     parser.add_argument("--tracking_uri", type=str, default=None)
+    parser.add_argument("--warm_start", type=str, default=None)
 
     args = parser.parse_args()
 
     # OPTIMIZED: Use parameters from CLI
     trainer = RLTrainer(args.study_name, tracking_uri=args.tracking_uri or settings.tracking_uri)
-    trainer.train_and_evaluate(total_timesteps=args.timesteps, model_path=args.output)
+    trainer.train_and_evaluate(
+        total_timesteps=args.timesteps, model_path=args.output, warm_start_path=args.warm_start
+    )
 
 
 if __name__ == "__main__":

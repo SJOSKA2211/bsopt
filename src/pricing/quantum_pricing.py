@@ -254,30 +254,21 @@ class QuantumOptionPricer:
         })
         return res
 
-    def price_option_adaptive(self, **kwargs) -> dict[str, Any]:
+    async def price_option_adaptive(self, **kwargs) -> dict[str, Any]:
         """Hybrid routing logic: classical vs quantum."""
         num_underlyings = kwargs.get("num_underlyings", 1)
         accuracy = kwargs.get("accuracy", 0.01)
         
         # Logic: High dimension or very high accuracy requirement triggers quantum
         if num_underlyings > 3 or accuracy < 0.001:
-            # Call via the attribute to allow mocking in tests
-            import asyncio
             try:
-                # Mocking check: if quantum_pricer.price_european_call_quantum is a MagicMock
-                if hasattr(self.quantum_pricer, "price_european_call_quantum") and \
-                   hasattr(self.quantum_pricer.price_european_call_quantum, "called"):
-                    return self.quantum_pricer.price_european_call_quantum(
-                        kwargs.get("S0"), kwargs.get("K"), kwargs.get("T"), 
-                        kwargs.get("r"), kwargs.get("sigma")
-                    )
-
-                return asyncio.run(self.quantum_pricer.price_option_quantum(BSParameters(
+                return await self.quantum_pricer.price_option_quantum(BSParameters(
                     spot=kwargs.get("S0", 100.0), strike=kwargs.get("K", 100.0),
                     maturity=kwargs.get("T", 1.0), rate=kwargs.get("r", 0.05),
                     volatility=kwargs.get("sigma", 0.2), dividend=0.0
-                )))
-            except RuntimeError:
+                ))
+            except Exception as e:
+                logger.error("adaptive_quantum_failure", error=str(e))
                 return self.price_classical(BSParameters(
                     spot=kwargs.get("S0", 100.0), strike=kwargs.get("K", 100.0),
                     maturity=kwargs.get("T", 1.0), rate=kwargs.get("r", 0.05),
