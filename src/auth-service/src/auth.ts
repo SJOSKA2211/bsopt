@@ -18,7 +18,17 @@ export const auth = betterAuth({
     }),
     secret: process.env.BETTER_AUTH_SECRET || "development-secret-123", // Fallback for dev only
     emailAndPassword: {
-        enabled: true
+        enabled: true,
+        password: {
+            hash: async (password: string) => {
+                const { hash } = await import("@node-rs/argon2");
+                return hash(password, {
+                    memoryCost: 65536,
+                    timeCost: 3,
+                    parallelism: 4
+                });
+            }
+        }
     },
     user: {
         modelName: "users",

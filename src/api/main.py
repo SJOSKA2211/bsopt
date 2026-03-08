@@ -25,7 +25,7 @@ from src.api.routes.options import router as options_router
 from src.api.routes.portfolio import router as portfolio_router
 from src.api.routes.pricing import router as pricing_router
 from src.api.routes.users import router as users_router
-from src.auth.security import RoleChecker
+from src.security.auth import RoleChecker
 from src.config import settings
 from src.shared.observability import logging_middleware, start_system_metrics_loop
 

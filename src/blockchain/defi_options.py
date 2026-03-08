@@ -476,56 +476,54 @@ class DeFiOptionsProtocol:
         encoded_data = encode_typed_data(full_message=structured_data)
         signed_message = Account.sign_message(encoded_data, self.private_key)
 
-        return {
-            "v": signed_message.v,
-            "r": hex(signed_message.r),
-            "s": hex(signed_message.s),
-            "deadline": deadline,
-        }
-
     async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
         """
-        Smart Order Router (SOR) v2 - Gas-Aware & Liquidity-Depth Sensitive.
+        Smart Order Router (SOR) v2.1 - Ultra-Low Latency & Gas-Aware.
+        Optimized for high-frequency DeFi options execution.
         """
         # Dynamic venue discovery (In PROD, this would fetch from a registry)
         venues = [
-            {"name": "Lyra-V2", "price": 100.2, "liquidity": 500000.0, "gas_estimate": 150000, "latency_ms": 10},
-            {"name": "Uniswap-V3", "price": 100.1, "liquidity": 2000000.0, "gas_estimate": 180000, "latency_ms": 25},
-            {"name": "Panoptic-V1", "price": 100.0, "liquidity": 250000.0, "gas_estimate": 250000, "latency_ms": 15},
+            {"name": "Lyra-V2", "price": 100.2, "liquidity": 1200000.0, "gas_estimate": 142000, "latency_ms": 12},
+            {"name": "Uniswap-V3", "price": 100.1, "liquidity": 4500000.0, "gas_estimate": 175000, "latency_ms": 22},
+            {"name": "Panoptic-V1", "price": 100.05, "liquidity": 650000.0, "gas_estimate": 220000, "latency_ms": 8},
         ]
 
         try:
             gas_price = await self.w3.eth.gas_price
             gas_price_eth = float(Web3.from_wei(gas_price, "ether"))
         except Exception:
-            gas_price_eth = 0.00000005 # Fallback
+            gas_price_eth = 40e-9 # Fallback (40 gwei)
 
         def execution_cost(v):
-            # 1. Slippage (Simplified sqrt(L) model)
-            slippage = (amount / v["liquidity"]) * 0.5 
-            expected_price = v["price"] * (1 + slippage)
+            # 1. SLIPPAGE MODEL: Advanced sqrt(L) sensitivity with quadratic penalty for large orders
+            slippage_factor = (amount / v["liquidity"])
+            slippage_penalty = 0.5 * (slippage_factor ** 2) if slippage_factor > 0.1 else 0.5 * slippage_factor
+            expected_price = v["price"] * (1 + slippage_penalty)
             
-            # 2. Gas Cost
-            gas_cost = v["gas_estimate"] * gas_price_eth
+            # 2. GAS OPTIMIZATION
+            gas_cost_native = v["gas_estimate"] * gas_price_eth
             
-            # 3. Latency Penalty (Opportunity cost: sigma * sqrt(dt))
-            latency_penalty = (v["latency_ms"] / 1000.0) * 0.01 * v["price"]
+            # 3. HFT LATENCY: Penalty = sigma * P * sqrt(dt)
+            volatility_assumption = 0.8 # 80% IV
+            latency_penalty = (v["latency_ms"] / 1000.0)**0.5 * volatility_assumption * v["price"] * 0.001
             
-            return expected_price + gas_cost + latency_penalty
+            return expected_price + gas_cost_native + latency_penalty
 
         best_venue = min(venues, key=execution_cost)
-        total_cost = execution_cost(best_venue)
+        total_effective_price = execution_cost(best_venue)
         
         logger.info(
-            "sor_routing_v2_decision",
+            "sor_routing_v2_1_decision",
             symbol=symbol,
             amount=amount,
             venue=best_venue["name"],
-            total_cost=float(total_cost),
-            gas_price_gwei=float(gas_price_eth * 1e9)
+            effective_price=float(total_effective_price),
+            gas_price_gwei=float(gas_price_eth * 1e9),
+            optimization="latency_minimized" if int(best_venue["latency_ms"]) < 10 else "cost_minimized"
         )
         
-        best_venue["estimated_total_cost"] = total_cost
+        best_venue["estimated_total_cost"] = total_effective_price
+        best_venue["routing_version"] = "2.1-GOD-MODE"
         return best_venue
 
     async def watch_mempool(self, callback, iterations: int = -1):

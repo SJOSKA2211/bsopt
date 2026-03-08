@@ -12,7 +12,6 @@ import { theme } from './theme';
 
 import { Layout } from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
-import SignUp from './components/auth/SignUp';
 import { QuantumField } from './components/common/QuantumField';
 
 // Lazy load pages
@@ -20,6 +19,7 @@ const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const MarketPage = lazy(() => import('./pages/market/MarketPage'));
 const PortfolioPage = lazy(() => import('./pages/portfolio/PortfolioPage'));
 const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
+const SignUpPage = lazy(() => import('./pages/auth/SignUpPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +57,7 @@ function AppContent() {
               <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/login" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
+              <Route path="/signup" element={<SignUpPage />} />
             </Routes>
           </motion.div>
         </Suspense>

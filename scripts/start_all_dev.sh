@@ -6,7 +6,14 @@
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-DOCKER_COMPOSE="docker-compose -f docker-compose.dev.yml"
+# Detect Docker Compose
+if [ -x "./docker-compose" ]; then
+    COMPOSE_BIN="./docker-compose"
+else
+    COMPOSE_BIN="docker-compose"
+fi
+
+DOCKER_COMPOSE="$COMPOSE_BIN -f docker-compose.dev.yml"
 
 # Trap Ctrl-C to shut down containers if requested (optional, usually we keep them up)
 cleanup() {
