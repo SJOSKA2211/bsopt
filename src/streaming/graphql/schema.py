@@ -59,36 +59,92 @@ class Query:
         )
 
 
+class MeshListener:
+    """
+    Singleton listener for the Shared Memory Mesh.
+    OPTIMIZED: Single background task polls SHM and broadcasts to all active subscribers.
+    """
+    _instance = None
+
+    def __init__(self):
+        self._queues: set[asyncio.Queue] = set()
+        self._task: asyncio.Task | None = None
+        self._lock = asyncio.Lock()
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    async def subscribe(self) -> asyncio.Queue:
+        queue = asyncio.Queue(maxsize=1000)
+        async with self._lock:
+            self._queues.add(queue)
+            if self._task is None or self._task.done():
+                self._task = asyncio.create_task(self._run())
+        return queue
+
+    async def unsubscribe(self, queue: asyncio.Queue):
+        async with self._lock:
+            self._queues.discard(queue)
+            if not self._queues and self._task:
+                self._task.cancel()
+                self._task = None
+
+    async def _run(self):
+        from src.shared.shm_mesh import SharedMemoryRingBuffer
+        try:
+            mesh = SharedMemoryRingBuffer(create=False)
+            last_head = 0
+            while True:
+                ticks, new_head = mesh.read_latest_msgspec(last_head)
+                if ticks:
+                    async with self._lock:
+                        for queue in self._queues:
+                            for tick in ticks:
+                                try:
+                                    queue.put_nowait(tick)
+                                except asyncio.QueueFull:
+                                    # Drop oldest if queue is full
+                                    queue.get_nowait()
+                                    queue.put_nowait(tick)
+                    last_head = new_head
+                
+                # Sub-millisecond adaptive sleep
+                await asyncio.sleep(0.001)
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            import structlog
+            structlog.get_logger().error("mesh_listener_error", error=str(e))
+        finally:
+            if 'mesh' in locals():
+                mesh.close()
+
+
 @strawberry.type
 class Subscription:
     @strawberry.subscription
     async def market_data_stream(self, symbols: list[str]) -> AsyncGenerator[MarketData]:
         """
         Real-time market data stream from the silicon mesh.
-        OPTIMIZED: Low-latency polling of Shared Memory.
+        OPTIMIZED: Uses shared MeshListener to minimize CPU overhead.
         """
-        from src.shared.shm_mesh import SharedMemoryRingBuffer
-
-        mesh = SharedMemoryRingBuffer(create=False)
-        last_head = 0
-
-        while True:
-            # OPTIMIZED: Yield multiple ticks in a single window if available
-            slices, new_head = mesh.read_latest_slices(last_head)
-            if slices:
-                for chunk in slices:
-                    for tick in chunk:
-                        sym = tick["symbol"].decode("ascii").strip("\x00")
-                        if not symbols or sym in symbols:
-                            yield MarketData(
-                                symbol=sym,
-                                last_price=tick["price"],
-                                volume=tick["volume"],
-                            )
-                last_head = new_head
-
-            # Sub-millisecond sleep to avoid CPU pinning in the resolver
-            await asyncio.sleep(0.001)
+        listener = MeshListener.get_instance()
+        queue = await listener.subscribe()
+        
+        try:
+            while True:
+                tick = await queue.get()
+                if not symbols or tick.symbol in symbols:
+                    yield MarketData(
+                        symbol=tick.symbol,
+                        last_price=tick.price,
+                        volume=tick.volume,
+                    )
+        finally:
+            await listener.unsubscribe(queue)
 
 
 schema = Schema(query=Query, subscription=Subscription, types=[Option])

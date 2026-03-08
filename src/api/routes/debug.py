@@ -9,11 +9,13 @@ from src.api.exceptions import (
 from src.api.schemas.common import DataResponse, ErrorResponse
 from src.database import get_async_db, health_check
 from src.security.auth import require_tier
+from src.api.responses import MsgspecJSONResponse
 
 router = APIRouter(
     prefix="/debug",
     tags=["Debug & Diagnostics"],
     dependencies=[Depends(require_tier(["admin"]))],
+    default_response_class=MsgspecJSONResponse,
 )
 
 

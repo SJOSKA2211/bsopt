@@ -29,10 +29,11 @@ from src.security.auth import (
 from src.security.mfa import mfa_service
 from src.security.password import password_service
 from src.security.rate_limit import rate_limit
+from src.api.responses import MsgspecJSONResponse
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)])
+router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)], default_response_class=MsgspecJSONResponse)
 
 
 def _log_legacy_warning(route: str):

@@ -14,27 +14,17 @@ logger = structlog.get_logger()
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
-        from src.config import settings
-        # Dynamic host selection for docker environment
-        import socket
-        try:
-            socket.gethostbyname("postgres")
-            host = "postgres"
-        except:
-            host = "localhost"
-            
-        from sqlalchemy import create_engine
-        # Re-derive URL for sentinel check
-        url = settings.DATABASE_URL.replace("postgres", host) if "postgres" in settings.DATABASE_URL else settings.DATABASE_URL
-        engine = create_engine(url)
+        from src.database import db_manager
+        db_manager.initialize()
+        engine = db_manager.engine
         
         with engine.connect() as conn:
-            # Check for PG16 diagnostic view
-            res = conn.execute(text("SELECT count(*) FROM pg_views WHERE viewname = 'system_wait_bottlenecks'")).scalar()
+            # Check for our revamped diagnostic view
+            res = conn.execute(text("SELECT count(*) FROM pg_views WHERE viewname = 'db_health_overview'")).scalar()
             if res > 0:
                 print("✅ [PG16 GOD-MODE ACTIVE]")
             else:
-                print("⚠️ [SCHEMA OK, DIAGNOSTICS MISSING]")
+                print("⚠️ [SCHEMA OK, REVAMP DIAGNOSTICS MISSING]")
     except Exception as e:
         print(f"❌ [FAILED: {e}]")
 

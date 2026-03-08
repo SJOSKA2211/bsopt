@@ -6,10 +6,12 @@ import click
 import mlflow
 import uvicorn
 
+from src.config import settings
+
 logger = logging.getLogger(__name__)
 
 # Basic MLflow setup for client operations
-mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
+mlflow.set_tracking_uri(settings.tracking_uri)
 
 
 @click.command()

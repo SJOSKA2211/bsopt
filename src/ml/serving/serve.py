@@ -73,7 +73,7 @@ state: dict[str, Any] = {
 
 @app.on_event("startup")
 async def startup():
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000"))
+    mlflow.set_tracking_uri(settings.tracking_uri)
 
     # Attempt to initialize DistributedCircuitBreaker if Redis is available
     global ml_circuit
@@ -355,6 +355,21 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
         PREDICTION_COUNT.labels(status="error", model_type=model_type).inc(len(request.requests))
         logger.error(f"Batch inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal batch inference error") from e
+
+
+@app.post("/ml/reload")
+async def reload_models(request: Request):
+    """
+    Trigger a reload of models from the registry.
+    """
+    try:
+        # Re-initialize models
+        await load_xgb_model()
+        await load_onnx_model()
+        return {"status": "reloaded", "timestamp": datetime.now(UTC).isoformat()}
+    except Exception as e:
+        logger.error(f"Reload failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Reload failed: {str(e)}")
 
 
 @app.get("/metrics")

@@ -11,12 +11,32 @@ logger = logging.getLogger(__name__)
 class ONNXInferenceEngine:
     """
     High-performance inference engine using ONNX Runtime.
+    OPTIMIZED: GPU-aware with memory pinning and graph optimizations.
     """
 
-    def __init__(self, model_path: str):
-        self.session = ort.InferenceSession(model_path)
+    def __init__(self, model_path: str, providers: list[str] | None = None):
+        self.model_path = model_path
+        
+        # 1. Optimize Session
+        sess_options = ort.SessionOptions()
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
+        
+        # 2. Select Providers
+        if providers is None:
+            available = ort.get_available_providers()
+            providers = []
+            if "CUDAExecutionProvider" in available:
+                providers.append("CUDAExecutionProvider")
+            if "TensorrtExecutionProvider" in available:
+                providers.append("TensorrtExecutionProvider")
+            providers.append("CPUExecutionProvider")
+
+        self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
         self.input_name = self.session.get_inputs()[0].name
         self.output_name = self.session.get_outputs()[0].name
+        logger.info("onnx_session_ready", path=model_path, providers=providers)
 
     def predict(self, features: np.ndarray) -> np.ndarray:
         """

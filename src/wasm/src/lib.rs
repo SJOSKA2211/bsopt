@@ -260,10 +260,24 @@ impl BlackScholesWASM {
 
             // SIMD Greeks
             let call_delta = f64x2_mul(exp_neg_dt, cdf_d1);
-            let put_delta = f64x2_mul(exp_neg_dt, f64x2_sub(cdf_d1, f64x2(1.0, 1.0)));
+            let put_delta = f64x2_mul(exp_neg_dt, f64x2_sub(cdf_d1, f64x2_splat(1.0)));
             
             let gamma = f64x2_div(f64x2_mul(exp_neg_dt, pdf_d1), f64x2_mul(f64x2_mul(s, v), sqrt_t));
             let vega = f64x2_mul(f64x2_mul(f64x2_mul(s, exp_neg_dt), pdf_d1), sqrt_t);
+
+            // Theta and Rho
+            let two = f64x2_splat(2.0);
+            let term1 = f64x2_neg(f64x2_div(f64x2_mul(f64x2_mul(f64x2_mul(s, v), exp_neg_dt), pdf_d1), f64x2_mul(two, sqrt_t)));
+            let term2_c = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), cdf_d1);
+            let term2_p = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), f64x2_neg(cdf_neg_d1));
+            let term3_c = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), cdf_d2);
+            let term3_p = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), f64x2_neg(cdf_neg_d2));
+
+            let theta_call = f64x2_sub(f64x2_add(term1, term2_c), term3_c);
+            let theta_put = f64x2_add(f64x2_sub(term1, term2_p), term3_p);
+
+            let rho_call = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), cdf_d2);
+            let rho_put = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), f64x2_neg(cdf_neg_d2));
 
             let cp: [f64; 2] = std::mem::transmute(call_price);
             let pp: [f64; 2] = std::mem::transmute(put_price);
@@ -271,22 +285,22 @@ impl BlackScholesWASM {
             let pd: [f64; 2] = std::mem::transmute(put_delta);
             let gm: [f64; 2] = std::mem::transmute(gamma);
             let vg: [f64; 2] = std::mem::transmute(vega);
+            let tc: [f64; 2] = std::mem::transmute(theta_call);
+            let tp: [f64; 2] = std::mem::transmute(theta_put);
+            let rc: [f64; 2] = std::mem::transmute(rho_call);
+            let rp: [f64; 2] = std::mem::transmute(rho_put);
 
             // Populate results for option i and i+1
             for j in 0..2 {
                 let idx = i + j;
                 let off = idx * stride_out;
-                let p_idx = if j == 0 { off1 } else { off2 };
                 
                 results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
                 results[off + 1] = if is_call_mask[j] { cd[j] } else { pd[j] };
                 results[off + 2] = gm[j];
                 results[off + 3] = vg[j] * 0.01; // Scale Vega
-                
-                // Fallback for Theta and Rho (complex SIMD paths)
-                let g = self.calculate_greeks(params[p_idx], params[p_idx+1], params[p_idx+2], params[p_idx+3], params[p_idx+4], params[p_idx+5]);
-                results[off + 4] = g.theta;
-                results[off + 5] = g.rho;
+                results[off + 4] = if is_call_mask[j] { tc[j] / 365.0 } else { tp[j] / 365.0 }; // Daily Theta
+                results[off + 5] = if is_call_mask[j] { rc[j] * 0.01 } else { rp[j] * 0.01 }; // Rho for 1%
             }
             
             i += 2;
@@ -378,13 +392,42 @@ pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, para
                 let idx = i + j;
                 let off = idx * stride_out;
                 let p_idx = if j == 0 { off1 } else { off2 };
+            // SIMD Greeks
+            let call_delta = f64x2_mul(exp_neg_dt, cdf_d1);
+            let put_delta = f64x2_mul(exp_neg_dt, f64x2_sub(cdf_d1, f64x2_splat(1.0)));
+            let gamma = f64x2_div(f64x2_mul(exp_neg_dt, pdf_d1), f64x2_mul(f64x2_mul(s, v), sqrt_t));
+            let vega = f64x2_mul(f64x2_mul(f64x2_mul(s, exp_neg_dt), pdf_d1), sqrt_t);
+
+            let two = f64x2_splat(2.0);
+            let term1 = f64x2_neg(f64x2_div(f64x2_mul(f64x2_mul(f64x2_mul(s, v), exp_neg_dt), pdf_d1), f64x2_mul(two, sqrt_t)));
+            let term2_c = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), cdf_d1);
+            let term2_p = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), f64x2_neg(cdf_neg_d1));
+            let term3_c = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), cdf_d2);
+            let term3_p = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), f64x2_neg(cdf_neg_d2));
+
+            let theta_call = f64x2_sub(f64x2_add(term1, term2_c), term3_c);
+            let theta_put = f64x2_add(f64x2_sub(term1, term2_p), term3_p);
+            let rho_call = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), cdf_d2);
+            let rho_put = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), f64x2_neg(cdf_neg_d2));
+
+            let cd: [f64; 2] = std::mem::transmute(call_delta);
+            let pd: [f64; 2] = std::mem::transmute(put_delta);
+            let gm: [f64; 2] = std::mem::transmute(gamma);
+            let vg: [f64; 2] = std::mem::transmute(vega);
+            let tc: [f64; 2] = std::mem::transmute(theta_call);
+            let tp: [f64; 2] = std::mem::transmute(theta_put);
+            let rc: [f64; 2] = std::mem::transmute(rho_call);
+            let rp: [f64; 2] = std::mem::transmute(rho_put);
+
+            for j in 0..2 {
+                let idx = i + j;
+                let off = idx * stride_out;
                 results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
-                let g = bs.calculate_greeks(params[p_idx], params[p_idx+1], params[p_idx+2], params[p_idx+3], params[p_idx+4], params[p_idx+5]);
-                results[off + 1] = g.delta;
-                results[off + 2] = g.gamma;
-                results[off + 3] = g.vega;
-                results[off + 4] = g.theta;
-                results[off + 5] = g.rho;
+                results[off + 1] = if is_call_mask[j] { cd[j] } else { pd[j] };
+                results[off + 2] = gm[j];
+                results[off + 3] = vg[j] * 0.01;
+                results[off + 4] = if is_call_mask[j] { tc[j] / 365.0 } else { tp[j] / 365.0 };
+                results[off + 5] = if is_call_mask[j] { rc[j] * 0.01 } else { rp[j] * 0.01 };
             }
             i += 2;
         }

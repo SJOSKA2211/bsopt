@@ -500,6 +500,7 @@ services:
       - bsopt-network
     volumes:
       - ./:/app
+      - ./mlruns:/app/mlruns
 
   # === [Specialized] HFT Manifold Launcher ===
   manifold:

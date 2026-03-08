@@ -10,8 +10,9 @@ from src.database import crud, get_async_db
 from src.security.auth import require_tier
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.circuit_breaker import db_circuit, pricing_circuit
+from src.api.responses import MsgspecJSONResponse
 
-router = APIRouter(prefix="/system", tags=["System"])
+router = APIRouter(prefix="/system", tags=["System"], default_response_class=MsgspecJSONResponse)
 logger = logging.getLogger(__name__)
 
 

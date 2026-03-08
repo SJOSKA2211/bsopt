@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import (
     DataResponse,
     PaginatedResponse,
@@ -19,7 +20,7 @@ from src.database import get_async_db, set_user_context
 from src.database.models import User
 from src.security.auth import get_current_user, require_tier
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"], default_response_class=MsgspecJSONResponse)
 
 
 @router.get("/me")

@@ -47,12 +47,14 @@ class PricingDriftDetector:
         reasons = []
 
         # 2. Statistical Data Drift (PSI/KS / MMD)
+        metrics = {}
         if reference_data is not None:
             if current_data.ndim > 1 and current_data.shape[1] > 1:
                 # Multivariate detection
                 is_drifted, mmd_val = self.multivariate_detector.detect_drift(
                     reference_data, current_data
                 )
+                metrics["mmd"] = mmd_val
                 if is_drifted:
                     drift_detected = True
                     reasons.append(f"MMD_DRIFT({mmd_val:.4f})")
@@ -63,6 +65,9 @@ class PricingDriftDetector:
 
                 psi_score = calculate_psi(ref, curr)
                 _, ks_p_value = calculate_ks_test(ref, curr)
+                
+                metrics["psi"] = psi_score
+                metrics["ks_p_value"] = ks_p_value
 
                 psi_drift = psi_score >= self.psi_threshold
                 ks_drift = ks_p_value <= self.ks_threshold
@@ -79,6 +84,12 @@ class PricingDriftDetector:
 
         OVERALL_DRIFT_STATUS.set(1 if drift_detected else 0)
 
+        # Log to MLflow if run is active
+        import mlflow
+        if mlflow.active_run():
+            mlflow.log_metrics(metrics)
+            mlflow.set_tag("drift_detected", str(drift_detected))
+
         if drift_detected:
             logger.warning("drift_detected", symbol=symbol, reasons=reasons)
 
@@ -88,6 +99,46 @@ class PricingDriftDetector:
             "reasons": reasons,
             "timestamp": datetime.now().isoformat(),
         }
+
+
+if __name__ == "__main__":
+    import argparse
+    import asyncio
+    import mlflow
+    from src.ml.pipeline import MLPipeline
+
+    parser = argparse.ArgumentParser(description="Run Drift Detection")
+    parser.add_argument("--ticker", type=str, default="AAPL")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    if args.tracking_uri:
+        mlflow.set_tracking_uri(args.tracking_uri)
+
+    async def run_drift_check():
+        # Use MLPipeline to fetch data for drift check
+        pipeline = MLPipeline({"ticker": args.ticker})
+        df = await pipeline._fetch_data()
+        
+        # Split data for reference vs current
+        mid = len(df) // 2
+        ref_df = df.iloc[:mid]
+        curr_df = df.iloc[mid:]
+        
+        detector = PricingDriftDetector()
+        
+        with mlflow.start_run(run_name=f"drift_check_{args.ticker}"):
+            res = await detector.check_drift(
+                args.ticker, 
+                curr_df["close"].values.reshape(-1, 1), 
+                ref_df["close"].values.reshape(-1, 1)
+            )
+            print(res)
+        
+        await pipeline.shutdown()
+
+    asyncio.run(run_drift_check())
 
     def calculate_statistical_drift(
         self, reference_data: np.ndarray, current_data: np.ndarray

@@ -10,6 +10,7 @@ const hono_1 = require("hono");
 const cors_1 = require("hono/cors");
 const logger_1 = require("hono/logger");
 const secure_headers_1 = require("hono/secure-headers");
+const compress_1 = require("hono/compress");
 const ioredis_1 = __importDefault(require("ioredis"));
 const uuid_1 = require("uuid");
 const auth_1 = require("./auth");
@@ -51,6 +52,7 @@ const piiMaskingLogger = (str) => {
 };
 // Security & Logging Middleware
 exports.app.use('*', (0, logger_1.logger)(piiMaskingLogger));
+exports.app.use('*', (0, compress_1.compress)());
 exports.app.use('*', (0, secure_headers_1.secureHeaders)());
 exports.app.use('*', (0, cors_1.cors)({
     origin: process.env.CORS_ORIGIN || '*',

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { Pool } from "pg";
+import { pool } from "./db";
 import dotenv from "dotenv";
 dotenv.config();
 import { openAPI, twoFactor, admin } from "better-auth/plugins"; // Added twoFactor and admin
@@ -13,22 +13,10 @@ if (!process.env.BETTER_AUTH_SECRET && process.env.NODE_ENV === "production") {
 }
 
 export const auth = betterAuth({
-    database: new Pool({
-        connectionString: (process.env.DATABASE_URL || "").replace("postgresql+asyncpg://", "postgresql://")
-    }),
+    database: pool,
     secret: process.env.BETTER_AUTH_SECRET || "development-secret-123", // Fallback for dev only
     emailAndPassword: {
-        enabled: true,
-        password: {
-            hash: async (password: string) => {
-                const { hash } = await import("@node-rs/argon2");
-                return hash(password, {
-                    memoryCost: 65536,
-                    timeCost: 3,
-                    parallelism: 4
-                });
-            }
-        }
+        enabled: true
     },
     user: {
         modelName: "users",
@@ -36,7 +24,13 @@ export const auth = betterAuth({
             emailVerified: "is_verified",
             name: "full_name",
             createdAt: "created_at",
-            updatedAt: "last_login"
+            updatedAt: "last_login",
+            // Map two-factor plugin fields
+            twoFactorEnabled: "is_mfa_enabled",
+            twoFactorSecret: "mfa_secret",
+            twoFactorBackupCodes: "mfa_backup_codes",
+            // Map admin plugin fields
+            role: "tier"
         }
     },
     session: {

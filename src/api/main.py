@@ -18,13 +18,17 @@ from src.api.middleware.security import (
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
-from src.api.routes.auth import router as auth_router
-from src.api.routes.debug import router as debug_router
-from src.api.routes.ml import router as ml_router
-from src.api.routes.options import router as options_router
-from src.api.routes.portfolio import router as portfolio_router
-from src.api.routes.pricing import router as pricing_router
-from src.api.routes.users import router as users_router
+from contextlib import asynccontextmanager
+from src.api.routes import (
+    auth_router,
+    debug_router,
+    ml_router,
+    options_router,
+    portfolio_router,
+    pricing_router,
+    users_router,
+    websocket_router,
+)
 from src.security.auth import RoleChecker
 from src.config import settings
 from src.shared.observability import logging_middleware, start_system_metrics_loop
@@ -46,11 +50,12 @@ try:
 except (ImportError, AttributeError):
     pass
 
-app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse)
 
-
-@app.on_event("startup")
-async def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    God-Mode Lifespan: Handles resource lifecycle with zero-leak guarantees.
+    """
     start_system_metrics_loop("api")
 
     # Initialize Database (Weaponizer God-Mode)
@@ -63,20 +68,25 @@ async def startup_event():
 
     # Chaos Injection
     from src.utils.chaos import monkey
-
     if monkey.enabled:
         logger.warning("chaos_mode_active_injecting_startup_latency")
-        await monkey.delay_db(0.5)  # Slight delay to trigger latency detectors without timeout
+        await monkey.delay_db(0.5)
 
+    yield
 
-@app.on_event("shutdown")
-async def shutdown_event():
+    # Shutdown
     from src.database import dispose_engine
     from src.utils.cache import close_redis_cache
-
     await dispose_engine()
     await close_redis_cache()
     logger.info("api_shutdown_complete_database_engines_disposed")
+
+
+app = FastAPI(
+    title=settings.PROJECT_NAME, 
+    default_response_class=ORJSONResponse,
+    lifespan=lifespan
+)
 
 
 # Middleware
@@ -175,14 +185,20 @@ app.add_middleware(IPBlockMiddleware)
 # 5. Security Headers (outermost - applies to all responses)
 app.add_middleware(SecurityHeadersMiddleware)
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(pricing_router, prefix="/api/v1")
-app.include_router(ml_router, prefix="/api/v1")
-app.include_router(options_router, prefix="/api/v1")
-app.include_router(portfolio_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
+# API v1 Routes
+api_router = APIRouter(prefix="/api/v1")
+api_router.include_router(auth_router)
+api_router.include_router(pricing_router)
+api_router.include_router(ml_router)
+api_router.include_router(options_router)
+api_router.include_router(portfolio_router)
+api_router.include_router(users_router)
+api_router.include_router(websocket_router) # Include websocket router
+
 if settings.ENVIRONMENT not in ("prod", "production"):
-    app.include_router(debug_router, prefix="/api/v1")
+    api_router.include_router(debug_router)
+
+app.include_router(api_router)
 app.include_router(graphql_app, prefix="/graphql")
 
 

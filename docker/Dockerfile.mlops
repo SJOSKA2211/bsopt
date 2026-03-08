@@ -33,7 +33,7 @@ COPY . .
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV MLFLOW_TRACKING_URI=http://mlflow:5000
+ENV MLFLOW_TRACKING_URI=postgresql://admin:password@postgres:5432/bsopt
 ENV RAY_ADDRESS=auto
 
 # Performance tuning for numerical kernels

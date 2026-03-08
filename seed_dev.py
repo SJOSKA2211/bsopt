@@ -15,7 +15,9 @@ async def seed_core():
     """
     God-Mode Seeding: Uses native DB procedures for security and speed.
     """
-    engine = create_async_engine(DATABASE_URL)
+    from src.database import db_manager
+    db_manager.initialize()
+    engine = db_manager.async_engine
 
     async with engine.begin() as conn:
         print("🥒 Seeding Dev User...")

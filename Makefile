@@ -42,6 +42,14 @@ help:
 	@echo "  manifold     - Launch the HFT Silicon Swarm (Privileged)"
 	@echo "  proxy        - Start the stack with Nginx Gateway"
 	@echo "  obs          - Launch Observability Stack (Prometheus/Grafana)"
+	@echo "  ml           - Launch THE BRAIN (ML Cluster: Ray + MLflow)"
+	@echo "  ml-build     - Build High-Performance MLOps Runtime Image"
+	@echo "  ml-train     - Run Autonomous ML Training (Use TICKER=\"...\")"
+	@echo "  ml-rl-train  - Run RL Trading Policy Training"
+	@echo "  ml-tft-train - Run TFT Forecasting Training (Use TICKER=\"...\", EPOCHS=\"...\")"
+	@echo "  ml-evaluate  - Compare Challenger run vs Production Champion"
+	@echo "  ml-promote   - Promote model to Production (Use MODEL=\"...\", RUN_ID=\"...\")"
+	@echo "  ml-rollback  - Rollback model to previous version (Use MODEL=\"...\")"
 	@echo "  cli          - Run containerized CLI (Use ARGS=\"...\")"
 	@echo "=======================================================\n"
 
@@ -165,6 +173,34 @@ obs:
 ml:
 	@echo "🥒 Launching THE BRAIN (ML Cluster)... Stand back!"
 	$(DOCKER_COMPOSE) --profile ml up -d
+
+ml-build:
+	@echo "🥒 Building High-Performance MLOps Runtime..."
+	docker build -f docker/Dockerfile.mlops -t bsopt-mlops-runtime:latest .
+
+ml-train:
+	@echo "🥒 Triggering Autonomous ML Training for $(TICKER)..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_regressor -P ticker=$(TICKER) --no-conda
+
+ml-rl-train:
+	@echo "🥒 Triggering RL Trading Policy Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_rl -P timesteps=$(STEPS) --no-conda
+
+ml-tft-train:
+	@echo "🥒 Triggering TFT Forecasting Training for $(TICKER)..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_tft -P ticker=$(TICKER) -P epochs=$(EPOCHS) --no-conda
+
+ml-evaluate:
+	@echo "🥒 Evaluating Challenger Run: $(RUN_ID) against Production..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e evaluate_challenger -P model=$(MODEL) -P challenger=$(RUN_ID) --no-conda
+
+ml-promote:
+	@echo "🥒 Promoting Model $(MODEL) [Run: $(RUN_ID)] to Production..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e promote_model -P model=$(MODEL) -P run_id=$(RUN_ID) --no-conda
+
+ml-rollback:
+	@echo "🥒 Rolling Back Model $(MODEL) to Previous Version..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker python -c "from src.ml.utils.rollback import rollback_model; rollback_model('$(MODEL)')"
 
 cli:
 	@echo "🥒 Launching Containerized CLI..."

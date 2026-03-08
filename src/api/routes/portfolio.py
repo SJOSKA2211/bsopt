@@ -10,12 +10,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse
 from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
 from src.security.auth import get_current_active_user
 
-router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
+from sqlalchemy.orm import selectinload
+
+router = APIRouter(prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse)
 
 
 @router.get("")
@@ -29,8 +32,13 @@ async def get_portfolio(
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
 
-    # 2. Fetch primary portfolio (first one found)
-    stmt = select(Portfolio).where(Portfolio.user_id == current_user.id).limit(1)
+    # 2. Fetch primary portfolio with eager-loaded positions (God-Mode: 1 Round Trip)
+    stmt = (
+        select(Portfolio)
+        .options(selectinload(Portfolio.positions))
+        .where(Portfolio.user_id == current_user.id)
+        .limit(1)
+    )
     result = await db.execute(stmt)
     portfolio = result.scalar_one_or_none()
 
@@ -43,10 +51,7 @@ async def get_portfolio(
             "message": "No portfolio found for user",
         }
 
-    # 3. Fetch positions for this portfolio (Filtered by RLS)
-    pos_stmt = select(Position).where(Position.portfolio_id == portfolio.id)
-    pos_result = await db.execute(pos_stmt)
-    positions = pos_result.scalars().all()
+    positions = portfolio.positions
 
     return {
         "id": str(portfolio.id),

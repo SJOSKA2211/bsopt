@@ -394,6 +394,57 @@ fn calculate_psi(expected: Bound<'_, PyArray1<f64>>, actual: Bound<'_, PyArray1<
 }
 
 #[pyfunction]
+fn calculate_mmd(x: Bound<'_, PyArray2<f64>>, y: Bound<'_, PyArray2<f64>>, sigma: f64) -> f64 {
+    let x = unsafe { x.as_array() };
+    let y = unsafe { y.as_array() };
+
+    let n = x.nrows();
+    let m = y.nrows();
+
+    if n <= 1 || m <= 1 {
+        return 0.0;
+    }
+
+    let gamma = 1.0 / (2.0 * sigma.powi(2));
+
+    let mut term_xx = 0.0;
+    for i in 0..n {
+        for j in 0..n {
+            if i == j { continue; }
+            let mut dist_sq = 0.0;
+            for k in 0..x.ncols() {
+                dist_sq += (x[[i, k]] - x[[j, k]]).powi(2);
+            }
+            term_xx += (-gamma * dist_sq).exp();
+        }
+    }
+    term_xx /= (n * (n - 1)) as f64;
+
+    let mut term_yy = 0.0;
+    for i in 0..m {
+        for j in 0..m {
+            if i == j { continue; }
+            let mut dist_sq = 0.0;
+            for k in 0..y.ncols() {
+                dist_sq += (y[[i, k]] - y[[j, k]]).powi(2);
+            }
+            term_yy += (-gamma * dist_sq).exp();
+        }
+    }
+    term_yy /= (m * (m - 1)) as f64;
+
+    let mut term_xy = 0.0;
+    for i in 0..n {
+        for j in 0..m {
+            let mut dist_sq = 0.0;
+            for k in 0..x.ncols() {
+                dist_sq += (x[[i, k]] - y[[j, k]]).powi(2);
+            }
+            term_xy += (-gamma * dist_sq).exp();
+        }
+    }
+    term_xy /= (n * m) as f64;
+
     (term_xx + term_yy - 2.0 * term_xy).max(0.0).sqrt()
 }
 

@@ -33,8 +33,38 @@ def promote_model(model_name, run_id, stage="Production"):
 
 
 def notify_app_of_update(model_name, version):
-    # Simulated dispatch logic
-    logger.info("app_notification_sent", model=model_name, version=version)
+    """
+    Triggers a reload in the serving layer.
+    """
+    import httpx
+    import asyncio
+
+    serving_url = "http://api:8000/ml/reload"
+    logger.info("notifying_serving_layer", model=model_name, version=version, url=serving_url)
+
+    async def trigger():
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(serving_url, json={"model_name": model_name, "version": version})
+                if resp.status_code == 200:
+                    logger.info("serving_layer_reloaded", status=resp.status_code)
+                else:
+                    logger.error("serving_layer_reload_failed_triggering_rollback", status=resp.status_code, text=resp.text)
+                    from src.ml.utils.rollback import rollback_model
+                    rollback_model(model_name)
+        except Exception as e:
+            logger.error("serving_layer_notification_error_triggering_rollback", error=str(e))
+            from src.ml.utils.rollback import rollback_model
+            rollback_model(model_name)
+
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(trigger())
+        else:
+            loop.run_until_complete(trigger())
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":

@@ -236,6 +236,7 @@ MODEL_ACCURACY = Gauge(
 )
 MODEL_RMSE = Gauge("ml_model_rmse", "Root Mean Squared Error of model", ["model_type", "dataset"])
 DATA_DRIFT_SCORE = Gauge("ml_data_drift_score", "PSI score for data drift")
+MMD_DRIFT_SCORE = Gauge("ml_mmd_drift_score", "MMD score for multivariate data drift")
 KS_TEST_SCORE = Gauge("ml_ks_test_p_value", "P-value from Kolmogorov-Smirnov test")
 PERFORMANCE_DRIFT_ALERT = Gauge("ml_performance_drift_alert", "Binary alert for performance drift")
 TRAINING_ERRORS = Counter("ml_training_errors_total", "Total training failures", ["framework"])

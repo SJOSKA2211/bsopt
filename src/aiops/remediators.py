@@ -52,14 +52,17 @@ class ClearRedisCacheRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from src.config import settings
+        from src.utils.cache import get_redis
 
         logger.warning("remediator_clear_cache_initiated")
         try:
-            client = redis.from_url(settings.REDIS_URL)
-            await client.flushdb()
-            logger.info("remediator_clear_cache_completed")
-            return True
+            client = get_redis()
+            if client:
+                await client.flushdb()
+                logger.info("remediator_clear_cache_completed")
+                return True
+            logger.error("remediator_clear_cache_failed_no_client")
+            return False
         except Exception as e:
             logger.error("remediator_clear_cache_failed", error=str(e), exc_info=True)
             return False
@@ -245,10 +248,10 @@ class DatabasePoolRemediator(BaseRemediator):
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         logger.warning("remediator_db_pool_recovery_initiated")
         try:
-            from src.database import get_engine
+            from src.database import db_manager
 
             # Dispose all connections in the pool, forcing new ones to be created
-            get_engine().dispose()
+            await db_manager.dispose()
             logger.info("remediator_db_pool_recycled", action="dispose")
 
             # Optionally adjust pool size if metrics indicate sustained pressure
@@ -268,9 +271,10 @@ class DatabasePoolRemediator(BaseRemediator):
     async def validate(self, anomaly: dict[str, Any]) -> bool:
         """Verify that the pool is accepting new connections."""
         try:
-            from src.database import get_engine
+            from src.database import db_manager
 
-            with get_engine().connect() as conn:
+            engine = db_manager.engine
+            with engine.connect() as conn:
                 from sqlalchemy import text
 
                 conn.execute(text("SELECT 1"))
