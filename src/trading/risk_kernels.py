@@ -183,10 +183,10 @@ def _full_risk_check_v2_kernel(
     d_gamma: float,
     d_vega: float,
     state_arr: np.ndarray, # 0:delta, 1:gamma, 2:vega
+    limits_arr: np.ndarray, # 0:max_delta, 1:max_gamma, 2:max_vega
     max_qty: int = 1000,
     min_price: float = 0.01,
     max_price: float = 10000.0,
-    limits_arr: np.ndarray, # 0:max_delta, 1:max_gamma, 2:max_vega
 ) -> int:
     """
     Sub-300ns Multi-Dimensional Risk Kernel.
@@ -209,37 +209,3 @@ def _full_risk_check_v2_kernel(
     state_arr[1] = new_gamma
     state_arr[2] = new_vega
     return 1
-
-
-class RiskManager:
-    """
-    Orchestrates Local SHM Risk State and Global Redis LUA State.
-    """
-    def __init__(self, redis_client, shm_buffer):
-        self.redis = redis_client
-        self.shm = shm_buffer
-        self.kill_switch_key = "risk:kill_switch"
-        self.breaker_key = "blockchain:breaker:state"
-        self.matrix_key = "risk:state:matrix"
-        
-    async def global_risk_sync(self, d_delta: float, d_gamma: float, d_vega: float, limits: dict) -> tuple[bool, str]:
-        """Atomic global sync via LUA."""
-        try:
-            from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
-            
-            result = await self.redis.eval(
-                ADVANCED_RISK_MATRIX,
-                3,
-                self.matrix_key,
-                self.kill_switch_key,
-                self.breaker_key,
-                d_delta, d_gamma, d_vega,
-                limits['max_delta'], limits['max_gamma'], limits['max_vega']
-            )
-            
-            if result[0] == 1:
-                return True, "SUCCESS"
-            return False, result[1].decode() if isinstance(result[1], bytes) else str(result[1])
-        except Exception as e:
-            logger.error("global_risk_sync_failed", error=str(e))
-            return False, "SYNC_ERROR"

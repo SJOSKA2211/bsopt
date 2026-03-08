@@ -14,7 +14,20 @@ logger = structlog.get_logger()
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
-        engine = get_engine()
+        from src.config import settings
+        # Dynamic host selection for docker environment
+        import socket
+        try:
+            socket.gethostbyname("postgres")
+            host = "postgres"
+        except:
+            host = "localhost"
+            
+        from sqlalchemy import create_engine
+        # Re-derive URL for sentinel check
+        url = settings.DATABASE_URL.replace("postgres", host) if "postgres" in settings.DATABASE_URL else settings.DATABASE_URL
+        engine = create_engine(url)
+        
         with engine.connect() as conn:
             # Check for PG16 diagnostic view
             res = conn.execute(text("SELECT count(*) FROM pg_views WHERE viewname = 'system_wait_bottlenecks'")).scalar()
@@ -28,7 +41,17 @@ async def check_database():
 async def check_redis():
     print("Checking Redis Cluster...", end=" ", flush=True)
     try:
-        redis = get_redis()
+        from src.utils.cache import get_redis
+        import socket
+        try:
+            socket.gethostbyname("redis")
+            # In docker
+            redis = get_redis() # uses environment variable
+        except:
+            # Outside docker, try localhost
+            import redis.asyncio as aioredis
+            redis = aioredis.from_url("redis://localhost:6379/0", decode_responses=True)
+            
         if redis:
             await redis.set("sentinel_ping", "pong")
             val = await redis.get("sentinel_ping")

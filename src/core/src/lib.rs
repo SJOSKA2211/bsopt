@@ -394,61 +394,136 @@ fn calculate_psi(expected: Bound<'_, PyArray1<f64>>, actual: Bound<'_, PyArray1<
 }
 
 #[pyfunction]
-fn calculate_mmd(x: Bound<'_, PyArray2<f64>>, y: Bound<'_, PyArray2<f64>>, sigma: f64) -> f64 {
-    let x = unsafe { x.as_array() };
-    let y = unsafe { y.as_array() };
-
-    let n = x.nrows();
-    let m = y.nrows();
-    let gamma = 1.0 / (2.0 * sigma * sigma);
-
-    // Optimized RBF kernel calculation with Rayon
-    let sum_xx: f64 = (0..n).into_par_iter().map(|i| {
-        let mut row_sum = 0.0;
-        for j in 0..n {
-            if i == j { continue; }
-            let mut dist_sq = 0.0;
-            for k in 0..x.ncols() {
-                let diff = x[[i, k]] - x[[j, k]];
-                dist_sq += diff * diff;
-            }
-            row_sum += (-gamma * dist_sq).exp();
-        }
-        row_sum
-    }).sum();
-
-    let sum_yy: f64 = (0..m).into_par_iter().map(|i| {
-        let mut row_sum = 0.0;
-        for j in 0..m {
-            if i == j { continue; }
-            let mut dist_sq = 0.0;
-            for k in 0..y.ncols() {
-                let diff = y[[i, k]] - y[[j, k]];
-                dist_sq += diff * diff;
-            }
-            row_sum += (-gamma * dist_sq).exp();
-        }
-        row_sum
-    }).sum();
-
-    let sum_xy: f64 = (0..n).into_par_iter().map(|i| {
-        let mut row_sum = 0.0;
-        for j in 0..m {
-            let mut dist_sq = 0.0;
-            for k in 0..x.ncols() {
-                let diff = x[[i, k]] - y[[j, k]];
-                dist_sq += diff * diff;
-            }
-            row_sum += (-gamma * dist_sq).exp();
-        }
-        row_sum
-    }).sum();
-
-    let term_xx = sum_xx / (n * (n - 1)) as f64;
-    let term_yy = sum_yy / (m * (m - 1)) as f64;
-    let term_xy = sum_xy / (n * m) as f64;
-
     (term_xx + term_yy - 2.0 * term_xy).max(0.0).sqrt()
+}
+
+#[pyfunction]
+fn svi_total_variance(k: f64, a: f64, b: f64, rho: f64, m: f64, sigma: f64) -> f64 {
+    a + b * (rho * (k - m) + ((k - m).powi(2) + sigma.powi(2)).sqrt())
+}
+
+#[pyfunction]
+fn sabr_implied_vol(
+    strike: f64,
+    forward: f64,
+    maturity: f64,
+    alpha: f64,
+    beta: f64,
+    rho: f64,
+    nu: f64,
+) -> f64 {
+    let f_k = (forward * strike).powf((1.0 - beta) / 2.0);
+    let log_f_k = (forward / strike).ln();
+    let z = (nu / alpha) * f_k * log_f_k;
+
+    let term2 = if z.abs() < 1e-8 {
+        1.0
+    } else {
+        let xz = ((1.0 - 2.0 * rho * z + z * z).sqrt() + z - rho).ln() / (1.0 - rho).ln();
+        // Wait, the formula in Python was:
+        // z / np.log((np.sqrt(1.0 - 2.0 * rho * z + z^2) + z - rho) / (1.0 - rho))
+        z / ( ((1.0 - 2.0 * rho * z + z * z).sqrt() + z - rho) / (1.0 - rho) ).ln()
+    };
+
+    let term1 = alpha / (f_k * (1.0 + (1.0 - beta).powi(2) / 24.0 * log_f_k.powi(2) + (1.0 - beta).powi(4) / 1920.0 * log_f_k.powi(4)));
+    
+    let term3 = 1.0 + (
+        (1.0 - beta).powi(2) / 24.0 * alpha.powi(2) / f_k.powi(2) +
+        (rho * beta * nu * alpha) / (4.0 * f_k) +
+        ((2.0 - 3.0 * rho.powi(2)) / 24.0) * nu.powi(2)
+    ) * maturity;
+
+    term1 * term2 * term3
+}
+
+#[pyfunction]
+fn calibrate_svi_rust(
+    py: Python<'_>,
+    log_moneyness: PyReadonlyArray1<'_, f64>,
+    market_vols: PyReadonlyArray1<'_, f64>,
+    weights: PyReadonlyArray1<'_, f64>,
+    maturity: f64,
+    initial_params: Vec<f64>,
+) -> PyResult<Vec<f64>> {
+    use argmin::prelude::*;
+    use argmin::solver::gaussnewton::GaussNewton;
+    use argmin::solver::gradientdescent::SteepestDescent;
+    use argmin::solver::linesearch::MoreThuenteLineSearch;
+
+    let k = log_moneyness.as_array();
+    let target = market_vols.as_array();
+    let w = weights.as_array();
+
+    // SVI Problem Struct
+    struct SVIProblem<'a> {
+        k: ndarray::ArrayView1<'a, f64>,
+        target: ndarray::ArrayView1<'a, f64>,
+        weights: ndarray::ArrayView1<'a, f64>,
+        maturity: f64,
+    }
+
+    impl<'a> CostFunction for SVIProblem<'a> {
+        type Param = ndarray::Array1<f64>;
+        type Output = f64;
+
+        fn cost(&self, p: &Self::Param) -> Result<Self::Output, Error> {
+            let a = p[0];
+            let b = p[1];
+            let rho = p[2];
+            let m = p[3];
+            let sigma = p[4];
+
+            let mut sum_sq = 0.0;
+            for i in 0..self.k.len() {
+                let var = a + b * (rho * (self.k[i] - m) + ((self.k[i] - m).powi(2) + sigma.powi(2)).sqrt());
+                let vol = (var / self.maturity).max(1e-9).sqrt();
+                let diff = (vol - self.target[i]) * self.weights[i];
+                sum_sq += diff * diff;
+            }
+            Ok(sum_sq)
+        }
+    }
+
+    // Gradient for SteepestDescent (Simple fallback if GN is too unstable without Jacobian)
+    impl<'a> Gradient for SVIProblem<'a> {
+        type Param = ndarray::Array1<f64>;
+        type Gradient = ndarray::Array1<f64>;
+
+        fn gradient(&self, p: &Self::Param) -> Result<Self::Gradient, Error> {
+            // Finite difference gradient for now
+            let eps = 1e-7;
+            let mut grad = ndarray::Array1::zeros(5);
+            let base_cost = self.cost(p)?;
+            
+            for i in 0..5 {
+                let mut p_eps = p.clone();
+                p_eps[i] += eps;
+                let cost_eps = self.cost(&p_eps)?;
+                grad[i] = (cost_eps - base_cost) / eps;
+            }
+            Ok(grad)
+        }
+    }
+
+    let problem = SVIProblem {
+        k,
+        target,
+        weights: w,
+        maturity,
+    };
+
+    let init_param = ndarray::Array1::from_vec(initial_params);
+    let linesearch = MoreThuenteLineSearch::new();
+    let solver = SteepestDescent::new(linesearch);
+
+    let res = Executor::new(problem, solver)
+        .configure(|state| state.param(init_param).max_iters(100))
+        .run();
+
+    match res {
+        Ok(executor) => Ok(executor.state().get_best_param().unwrap().to_vec()),
+        Err(e) => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!("Calibration failed: {}", e))),
+    }
 }
 
 #[pymodule]
@@ -464,5 +539,8 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(calculate_mmd, m)?)?;
     m.add_function(wrap_pyfunction!(keccak256, m)?)?;
     m.add_function(wrap_pyfunction!(hash_order_eip712, m)?)?;
+    m.add_function(wrap_pyfunction!(svi_total_variance, m)?)?;
+    m.add_function(wrap_pyfunction!(sabr_implied_vol, m)?)?;
+    m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
     Ok(())
 }

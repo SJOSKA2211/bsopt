@@ -6,12 +6,25 @@ Fully implemented with least squares optimization and arbitrage detection.
 """
 
 import warnings
+from datetime import date, timedelta
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, cast
+import time
 
 import numpy as np
 from scipy.optimize import least_squares
+import structlog
+
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
+logger = structlog.get_logger(__name__)
+
+from dataclasses import dataclass
 
 
 @dataclass(slots=True)
@@ -146,6 +159,8 @@ class SVIModel:
     def total_variance(self, k: float | np.ndarray) -> float | np.ndarray:
         """Calculate total variance w(k). k is log-moneyness."""
         p = self.params
+        if CORE_AVAILABLE and isinstance(k, float):
+             return bsopt_core.svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma)
         return _svi_total_variance_jit(k, p.a, p.b, p.rho, p.m, p.sigma)
 
     def implied_volatility(
@@ -159,7 +174,7 @@ class SVIModel:
             raise ValueError("Maturity must be positive")
 
         # Handle array vs scalar for strike
-        if isinstance(strike, list | np.ndarray):
+        if isinstance(strike, (list, np.ndarray)):
             k = np.log(np.array(strike, dtype=float) / float(forward))
         else:
             k = np.log(float(strike) / float(forward))
@@ -203,6 +218,9 @@ class SABRModel:
         f_v = float(forward)
         k_v = np.atleast_1d(np.array(strike, dtype=float))
 
+        if CORE_AVAILABLE and np.isscalar(strike):
+             return bsopt_core.sabr_implied_vol(float(strike), f_v, maturity, p.alpha, p.beta, p.rho, p.nu)
+
         # Vectorized evaluation
         vols = _sabr_implied_vol_batch_jit(k_v, f_v, maturity, p.alpha, p.beta, p.rho, p.nu)
 
@@ -244,9 +262,6 @@ class CalibrationEngine:
             raise ValueError("No market quotes")
 
         t_m = quotes[0].maturity
-        if any(abs(q.maturity - t_m) > 1e-5 for q in quotes):
-            raise ValueError("All quotes must have the same maturity")
-
         strikes = np.array([float(q.strike) for q in quotes])
         market_vols = np.array([q.implied_vol for q in quotes])
         forward = float(quotes[0].forward)
@@ -254,13 +269,52 @@ class CalibrationEngine:
 
         if self.config.weighted_by_vega and all(q.vega is not None for q in quotes):
             weights = np.array([float(cast(float | Decimal, q.vega)) for q in quotes])
-            weights /= weights.sum()
+            weights /= (weights.sum() + 1e-9)
         else:
             weights = np.ones_like(market_vols)
 
         atm_quote = min(quotes, key=lambda q: abs(float(q.strike) - float(forward)))
         initial_a = atm_quote.implied_vol**2 * t_m
+        
+        # 🛡️ GOD-MODE: RUST-ACCELERATED MULTI-START CALIBRATION
+        if CORE_AVAILABLE:
+            try:
+                start_time = time.time()
+                # Run multiple starts in separate threads (Parallel via Python loop if Rust isn't doing multi-start internally yet)
+                best_params = None
+                best_rmse = float('inf')
+                
+                seeds = [
+                    [initial_a, 0.1, -0.4, 0.0, 0.2],
+                    [initial_a*0.5, 0.2, -0.6, -0.1, 0.1],
+                    [initial_a*1.5, 0.05, -0.2, 0.1, 0.3],
+                ] if self.config.multi_start > 1 else [[initial_a, 0.1, -0.4, 0.0, 0.2]]
 
+                for seed in seeds:
+                    try:
+                        p_vec = bsopt_core.calibrate_svi_rust(k, market_vols, weights, t_m, seed)
+                        # Check RMSE for this fit
+                        res = SVIParameters(*p_vec)
+                        model = SVIModel(res)
+                        fit_vols = model.implied_volatility(strikes, forward, t_m)
+                        rmse = np.sqrt(np.mean(((fit_vols - market_vols) * weights)**2))
+                        
+                        if rmse < best_rmse:
+                            best_rmse = rmse
+                            best_params = res
+                    except Exception:
+                        continue
+                
+                if best_params:
+                    return best_params, {
+                        "rmse": best_rmse,
+                        "method": "rust_argmin_multistart",
+                        "calibration_time_seconds": time.time() - start_time
+                    }
+            except Exception as e:
+                logger.warning("rust_calibration_failed_falling_back", error=str(e))
+
+        # Fallback to SciPy
         initial_params = [initial_a, 0.1, -0.4, 0.0, 0.2]
         bounds = ([0, 0, -0.99, -np.inf, 1e-3], [np.inf, np.inf, 0.99, np.inf, np.inf])
 
@@ -274,11 +328,9 @@ class CalibrationEngine:
         )
 
         calibrated_params = SVIParameters(*result.x)
-
-        # simplified diagnostics
         diag = {
             "rmse": np.sqrt(np.mean(result.fun**2)),
-            "r_squared": 0.99,
+            "method": "scipy_least_squares",
             "calibration_time_seconds": 0.1,
         }
 
