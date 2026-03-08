@@ -7,11 +7,14 @@ import asyncio
 import time
 from math import erf, log, sqrt
 
+import grpc
 import structlog
 
 from src.api.schemas.ml import InferenceRequest, InferenceResponse
 from src.database.pipeliner import db_engine
 from src.shared.observability import ML_PROXY_PREDICT_LATENCY
+from src.config import settings
+from src.protos import inference_pb2, inference_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 
@@ -19,7 +22,12 @@ logger = structlog.get_logger(__name__)
 class MLService:
     """
     Enhanced ML pricing service with automated hypertable persistence.
+    OPTIMIZED: Real-time gRPC connection to the ML Inference Manifold.
     """
+
+    def __init__(self):
+        self.grpc_url = settings.ML_SERVICE_GRPC_URL
+        logger.info("ml_service_initialized", grpc_url=self.grpc_url)
 
     @staticmethod
     def _norm_cdf(x: float) -> float:
@@ -53,16 +61,38 @@ class MLService:
     ) -> InferenceResponse:
         start_time = time.perf_counter()
 
-        # 1. Computation
-        price = self._black_scholes_price(request)
+        # 1. Attempt gRPC Inference (Primary)
+        try:
+            async with grpc.aio.insecure_channel(self.grpc_url) as channel:
+                stub = inference_pb2_grpc.MLInferenceStub(channel)
+                grpc_req = inference_pb2.InferenceRequest(
+                    underlying_price=request.underlying_price,
+                    strike=request.strike,
+                    time_to_expiry=request.time_to_expiry,
+                    is_call=bool(request.is_call),
+                    moneyness=request.moneyness,
+                    log_moneyness=request.log_moneyness,
+                    sqrt_time_to_expiry=request.sqrt_time_to_expiry,
+                    days_to_expiry=request.days_to_expiry,
+                    implied_volatility=request.implied_volatility,
+                    model_type=model_type
+                )
+                response = await asyncio.wait_for(stub.Predict(grpc_req), timeout=0.1) # 100ms timeout
+                price = response.price
+                source = f"grpc_{model_type}"
+        except Exception as e:
+            logger.warning("grpc_inference_failed_falling_back_to_bs", error=str(e))
+            # 2. Computation Fallback (Black-Scholes)
+            price = self._black_scholes_price(request)
+            source = "black_scholes_fallback"
+
         duration = (time.perf_counter() - start_time) * 1000
         ML_PROXY_PREDICT_LATENCY.observe(duration / 1000)
 
-        # 2. Fire-and-forget God-Mode Persistence (Hypertable)
-        # Optimized: uses VectorizedDBEngine with Binary COPY
+        # 3. Fire-and-forget God-Mode Persistence (Hypertable)
         asyncio.create_task(self._persist_prediction(symbol, price, request))
 
-        return InferenceResponse(price=price, model_type=model_type, latency_ms=duration)
+        return InferenceResponse(price=price, model_type=source, latency_ms=duration)
 
     async def _persist_prediction(self, symbol: str, price: float, request: InferenceRequest):
         """Asynchronously log prediction to the hypertable."""

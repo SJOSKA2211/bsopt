@@ -20,6 +20,16 @@ services:
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
     shm_size: 1gb
+    sysctls:
+      - net.core.somaxconn=1024
+      - net.ipv4.tcp_max_syn_backlog=1024
+      - kernel.shmmax=1073741824
+      - kernel.shmall=262144
+    ulimits:
+      memlock: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     deploy:
       resources:
         limits:
