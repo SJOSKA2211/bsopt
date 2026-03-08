@@ -10,7 +10,13 @@ echo " Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
 docker-compose -f docker-compose.dev.yml up -d postgres redis rabbitmq
 
 echo "⌛ Waiting for database to stabilize..."
-sleep 5
+MAX_RETRIES=30
+RETRY_COUNT=0
+until docker-compose -f docker-compose.dev.yml exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+    printf "."
+    sleep 1
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
 
 # Run BSOpt Verification
 echo "🥒 Running God-Mode Manifold Audit (Containerized)..."

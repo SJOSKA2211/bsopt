@@ -1,4 +1,4 @@
-from datetime import date, datetime, UTC, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 import strawberry
 from strawberry.federation import Schema

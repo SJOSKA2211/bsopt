@@ -1,11 +1,13 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Index Optimization
+-- Black-Scholes Option Pricing Platform - Index Optimization (GOD MODE)
+-- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 
 -- 1. High-Volume Hypertable Indexes (BRIN for time-ordered data)
 -- Optimized for large-scale range scans with minimal storage overhead.
-CREATE INDEX IF NOT EXISTS idx_options_prices_brin_time ON options_prices USING BRIN (time) WITH (pages_per_range = 32);
-CREATE INDEX IF NOT EXISTS idx_market_ticks_brin_time ON market_ticks USING BRIN (time) WITH (pages_per_range = 16);
+-- Using autosummarize for PG16 performance.
+CREATE INDEX IF NOT EXISTS idx_options_prices_brin_time ON options_prices USING BRIN (time) WITH (pages_per_range = 32, autosummarize = on);
+CREATE INDEX IF NOT EXISTS idx_market_ticks_brin_time ON market_ticks USING BRIN (time) WITH (pages_per_range = 16, autosummarize = on);
 
 -- 2. JSONB GIN Indexes (Optimized for JSON path operations)
 CREATE INDEX IF NOT EXISTS idx_ml_models_hyperparams_gin ON ml_models USING GIN (hyperparameters jsonb_path_ops);
@@ -28,27 +30,32 @@ CREATE INDEX IF NOT EXISTS idx_options_prices_gist_strike_time ON options_prices
 
 -- Composite INCLUDE index for lightning-fast options chain lookups
 -- Optimized for: symbol, expiry, strike, option_type + latest time
+-- Covers ALL frequent columns to trigger Index-Only Scans.
 DROP INDEX IF EXISTS idx_options_prices_chain;
 CREATE INDEX idx_options_prices_chain 
 ON options_prices (symbol, expiry, strike, option_type, time DESC)
-INCLUDE (bid, ask, last, implied_volatility, delta, gamma, vega, theta, rho);
+INCLUDE (bid, ask, last, volume, open_interest, implied_volatility, delta, gamma, vega, theta, rho);
 
 -- Optimized market_ticks lookup with volume included for faster data points retrieval
 CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_price_time ON market_ticks (symbol, price, time DESC) INCLUDE (volume);
 
--- 5. Planner Statistics Optimization (Help query planner with high-cardinality financial data)
-ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 1000;
-ALTER TABLE options_prices ALTER COLUMN strike SET STATISTICS 1000;
-ALTER TABLE market_ticks ALTER COLUMN symbol SET STATISTICS 1000;
-ALTER TABLE model_predictions ALTER COLUMN model_id SET STATISTICS 500;
+-- 5. Skip-Scan optimization for latest values
+-- This helps SELECT DISTINCT ON (symbol) queries common in dashboards.
+CREATE INDEX IF NOT EXISTS idx_options_prices_symbol_time ON options_prices (symbol, time DESC);
+CREATE INDEX IF NOT EXISTS idx_market_ticks_symbol_time ON market_ticks (symbol, time DESC);
 
--- 6. Specialized Feature-Specific Indexes
+-- 6. Statistics Enhancement (PG16)
+-- Helping the planner with multivariate correlations
+CREATE STATISTICS IF NOT EXISTS s_options_prices_symbol_expiry (dependencies) ON symbol, expiry FROM options_prices;
+CREATE STATISTICS IF NOT EXISTS s_options_prices_strike_type (dependencies) ON strike, option_type FROM options_prices;
+
+-- 7. Specialized Feature-Specific Indexes
 CREATE INDEX IF NOT EXISTS idx_options_prices_expiry_only ON options_prices (expiry DESC);
 CREATE INDEX IF NOT EXISTS idx_mesh_symbol_time ON market_data_mesh (symbol, time DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_symbol_time ON model_predictions(symbol, timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_model_predictions_model_time ON model_predictions(model_id, timestamp DESC);
 
--- 7. Audit & Relationship Optimization
+-- 8. Audit & Relationship Optimization
 CREATE INDEX IF NOT EXISTS idx_audit_user_time ON audit_logs (user_id, time DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_path_time ON audit_logs (path, time DESC);
 CREATE INDEX IF NOT EXISTS idx_oauth2_client_id ON oauth2_clients(client_id);

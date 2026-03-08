@@ -61,6 +61,41 @@ EXEC_SIZE = EXEC_DTYPE.itemsize
 EXEC_BUFFER_CAPACITY = 1000
 SHM_EXEC_NAME = "execution_status_buffer"
 
+# Risk State: d (CurrentDelta), d (MaxDelta), q (last_sync_ts_ns) = 24 bytes
+RISK_STATE_DTYPE = np.dtype(
+    [
+        ("current_delta", "f8"),
+        ("max_delta", "f8"),
+        ("last_sync_ts_ns", "i8"),
+    ]
+)
+SHM_RISK_NAME = "risk_state_buffer"
+
+
+class RiskStateBuffer:
+    """Zero-Latency Risk State Buffer for Engine-Worker Synchronization."""
+
+    def __init__(self, create: bool = False):
+        self.size = RISK_STATE_DTYPE.itemsize
+        self.shm = (
+            shared_memory.SharedMemory(name=SHM_RISK_NAME, create=create, size=self.size)
+            if create
+            else shared_memory.SharedMemory(name=SHM_RISK_NAME)
+        )
+        self.buf = self.shm.buf
+        self.view = np.frombuffer(self.buf, dtype=RISK_STATE_DTYPE, count=1)
+
+    def update(self, current_delta: float, max_delta: float):
+        self.view[0] = (current_delta, max_delta, time.time_ns())
+
+    def read(self) -> tuple[float, float, int]:
+        data = self.view[0]
+        return (
+            float(data["current_delta"]),
+            float(data["max_delta"]),
+            int(data["last_sync_ts_ns"]),
+        )
+
 
 class OrderBuffer:
     """Lock-Free Order Command Buffer (Agent -> Engine)."""

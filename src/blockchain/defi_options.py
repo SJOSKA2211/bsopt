@@ -9,8 +9,8 @@ try:
     from eth_account.messages import encode_typed_data
 except ImportError:
     # Workaround for environment specific eth-account version issues
-    def encode_structured_data(*args, **kwargs):
-        raise ImportError("encode_structured_data is not available in this environment.")
+    def encode_typed_data(*args, **kwargs):
+        raise ImportError("encode_typed_data is not available in this environment.")
 
 
 from web3 import AsyncWeb3, Web3
@@ -68,6 +68,7 @@ class DeFiOptionsProtocol:
         chain_id: int = 137,
     ):
         self.rpc_url = rpc_url
+        self.feed_url = rpc_url
         self.w3 = AsyncWeb3(Web3.AsyncHTTPProvider(rpc_url))
         self.private_key = private_key
         self.cache_ttl = cache_ttl

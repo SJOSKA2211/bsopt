@@ -74,7 +74,8 @@ class TestQuantumPricing:
         bs_price = black_scholes(S0, K, T, sigma, r)["price"]
 
         # Call quantum pricing
-        result = pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits)
+        import asyncio
+        result = asyncio.run(pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits))
         assert "price" in result
         assert "confidence_interval" in result
         assert "speedup_factor" in result

@@ -1002,3 +1002,59 @@ async def get_model_drift_metrics(db: AsyncSession, model_id: UUID | None = None
     except Exception as e:
         logger.error("model_drift_metrics_mv_query_failed", error=str(e))
         return []
+
+
+async def get_latest_volatility_surface(db: AsyncSession, symbol: str) -> list[dict]:
+    """
+    Get the most recent volatility surface for a symbol from the optimized MV.
+    """
+    try:
+        result = await db.execute(
+            text("SELECT * FROM latest_vol_surface WHERE symbol = :symbol"),
+            {"symbol": symbol},
+        )
+        return [dict(row._mapping) for row in result]
+    except Exception as e:
+        logger.error("latest_vol_surface_query_failed", error=str(e))
+        return []
+
+
+async def get_system_health_dashboard(db: AsyncSession) -> dict:
+    """
+    God Mode Diagnostic: Fetches a combined view of system performance and health.
+    """
+    try:
+        # 1. Fetch Metrics from Continuous Aggregate
+        metrics_res = await db.execute(
+            text("SELECT * FROM system_metric_stats ORDER BY bucket DESC LIMIT 1")
+        )
+        metrics = metrics_res.first()
+
+        # 2. Fetch Health Overview
+        health_res = await db.execute(text("SELECT * FROM db_health_overview"))
+        health = health_res.first()
+
+        # 3. Fetch Cache Hit Ratio
+        cache_res = await db.execute(text("SELECT * FROM cache_hit_ratio"))
+        cache = cache_res.first()
+
+        return {
+            "metrics": dict(metrics._mapping) if metrics else {},
+            "db_info": dict(health._mapping) if health else {},
+            "cache_hit_ratio": float(cache.hit_ratio) if cache else 0.0,
+        }
+    except Exception as e:
+        logger.error("system_health_dashboard_failed", error=str(e))
+        return {"error": str(e)}
+
+
+async def get_io_performance_audit(db: AsyncSession) -> list[dict]:
+    """
+    Fetches the new PostgreSQL 16 I/O diagnostics summary.
+    """
+    try:
+        result = await db.execute(text("SELECT * FROM pg_stat_io_summary LIMIT 20"))
+        return [dict(row._mapping) for row in result]
+    except Exception as e:
+        logger.error("io_performance_audit_failed", error=str(e))
+        return []

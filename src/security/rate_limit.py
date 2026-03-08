@@ -1,17 +1,20 @@
 import time
 
 import redis.asyncio as redis  # Import redis.asyncio for type hinting
+import structlog
 from fastapi import Depends, HTTPException, Request, status
 
 from src.config import settings
 from src.utils.cache import get_redis_client
 
+logger = structlog.get_logger(__name__)
 
 async def rate_limit(request: Request, redis_client: redis.Redis = Depends(get_redis_client)):
     """
     Rate limiting dependency using Redis for distributed rate limiting.
     """
     if not redis_client:
+        logger.error("rate_limit_redis_client_none")
         # Fail closed: if Redis is unavailable, reject requests to prevent bypass
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

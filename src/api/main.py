@@ -53,6 +53,10 @@ app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse
 async def startup_event():
     start_system_metrics_loop("api")
 
+    # Initialize Redis
+    from src.utils.cache import init_redis_cache
+    await init_redis_cache()
+
     # Chaos Injection
     from src.utils.chaos import monkey
 
@@ -64,8 +68,10 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     from src.database import dispose_engine
+    from src.utils.cache import close_redis_cache
 
     await dispose_engine()
+    await close_redis_cache()
     logger.info("api_shutdown_complete_database_engines_disposed")
 
 

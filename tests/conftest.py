@@ -36,7 +36,6 @@ def startup_session():
 
     from sqlalchemy import create_engine, text
 
-    from src.config import settings
 
     # Ensure settings uses the TEST database URL
     db_url = os.getenv("DATABASE_URL")
@@ -65,9 +64,14 @@ def startup_session():
                 pytest.exit(f"Could not connect to Postgres after {max_retries} seconds: {e}")
             time.sleep(1)
 
+    # 2. Ensure tables are created
+    from src.database import create_tables
+    create_tables()
+
     # 3. Init Redis mock/client
-    from src.utils.cache import init_redis_cache
     import asyncio
+
+    from src.utils.cache import init_redis_cache
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
@@ -105,6 +109,7 @@ def env_setup(monkeypatch):
 def api_client():
     """Returns a FastAPI TestClient."""
     from fastapi.testclient import TestClient
+
     from src.api.main import app
     with TestClient(app) as client:
         yield client

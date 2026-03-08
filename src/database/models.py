@@ -4,7 +4,8 @@ SQLAlchemy ORM Models for BSOPT Platform (Optimized for PG16 + TimescaleDB)
 
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import uuid4, UUID as UUID_TYPE
+from uuid import UUID as UUID_TYPE
+from uuid import uuid4
 
 from sqlalchemy import (
     Boolean,

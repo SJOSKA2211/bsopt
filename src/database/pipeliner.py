@@ -25,11 +25,11 @@ class VectorizedDBEngine:
         async with self._lock:
             if not self._pool:
                 try:
-                    # Optimized for 2GB container: restricted pool size
+                    # Optimized for 4GB container: increased pool size
                     self._pool = await asyncpg.create_pool(
                         self.dsn,
-                        min_size=2,
-                        max_size=5,
+                        min_size=5,
+                        max_size=20,
                         command_timeout=60,
                         # Enable statement cache for repeated queries
                         max_cached_statement_lifetime=600,

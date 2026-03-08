@@ -87,23 +87,63 @@ async def get_persistent_delta_tracker():
     )
 
 
+async def get_actual_portfolio_delta(portfolio_id: str) -> float:
+    """Calculate the true net delta by querying the database (Position + OptionPrice)."""
+    from sqlalchemy import func, select
+
+    from src.database import get_async_db_context
+    from src.database.models import OptionPrice, Position
+
+    async with get_async_db_context() as session:
+        # Optimized Join: Get the sum of (quantity * delta) for all open positions in the portfolio.
+        # We join with the latest OptionPrice for each position.
+        # Note: In a production hypertable, we would use a more sophisticated 'latest' query or a CAGG.
+        stmt = (
+            select(func.sum(Position.quantity * OptionPrice.delta))
+            .join(
+                OptionPrice,
+                (Position.symbol == OptionPrice.symbol)
+                & (Position.strike == OptionPrice.strike)
+                & (Position.expiry == OptionPrice.expiry)
+                & (Position.option_type == OptionPrice.option_type),
+            )
+            .where(Position.portfolio_id == portfolio_id)
+            .where(Position.status == "open")
+        )
+
+        result = await session.execute(stmt)
+        return float(result.scalar() or 0.0)
+
+
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
 def check_risk_limits(self, portfolio_id: str):
-    """Checks portfolio-wide risk limits using IncrementalDeltaTracker."""
+    """Checks portfolio-wide risk limits using IncrementalDeltaTracker with real DB sync."""
     logger.info("checking_risk_limits_incremental", portfolio_id=portfolio_id)
 
     try:
         tracker = self.run_async(get_persistent_delta_tracker())
 
-        # Periodic "Full Sync" check: Compare with source of truth (Simulated)
-        # In prod, this would query Postgres: SELECT SUM(delta * quantity) FROM positions
-        np = _get_attr("np")
-        actual_delta = float(np.sum(np.random.normal(0, 100, 50)))  # Simulated sync
+        # 1. Periodic "Full Sync" check: Recalculate from DB (Source of Truth)
+        actual_delta = self.run_async(get_actual_portfolio_delta(portfolio_id))
 
-        # Detect drift and reset
-        if abs(tracker.current_net_delta - actual_delta) > 1.0:
-            logger.info("delta_tracker_sync", old=tracker.current_net_delta, new=actual_delta)
+        # 2. Detect drift and reset tracker/Redis/SHM
+        if abs(tracker.current_net_delta - actual_delta) > 0.01:
+            logger.info("delta_tracker_sync_detected_drift", old=tracker.current_net_delta, new=actual_delta)
             tracker.reset(actual_delta)
+            
+            # Sync back to Redis for persistent workers
+            from src.utils.cache import get_redis
+            redis = get_redis()
+            if redis:
+                self.run_async(redis.set("portfolio_net_delta", str(actual_delta)))
+            
+            # Sync to SHM for hot-loop OrderEngine
+            try:
+                from src.shared.shm_mesh import RiskStateBuffer
+                risk_buf = RiskStateBuffer(create=False)
+                risk_buf.update(actual_delta, tracker.max_net_delta)
+            except Exception as shm_err:
+                logger.debug("shm_sync_skipped", error=str(shm_err))
 
         is_safe = abs(tracker.current_net_delta) <= tracker.max_net_delta
 

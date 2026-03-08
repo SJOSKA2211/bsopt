@@ -2,27 +2,32 @@
 -- Black-Scholes Option Pricing Platform - Scheduled Jobs (TimescaleDB)
 -- ============================================================================
 
--- 1. Procedure to refresh standard Materialized Views concurrently
--- This avoids blocking reads during the refresh process.
+-- 1. Procedure to refresh standard Materialized Views safely
+-- This handles the case where CONCURRENTLY cannot be used (e.g. view not yet populated)
 CREATE OR REPLACE PROCEDURE refresh_standard_materialized_views(job_id int, config jsonb)
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_mv_name TEXT;
+    v_mvs TEXT[] := ARRAY['portfolio_summary_mv', 'trading_stats_mv', 'model_drift_metrics_mv', 'latest_vol_surface'];
 BEGIN
-    RAISE NOTICE 'Refreshing standard materialized views...';
+    RAISE NOTICE 'Starting standard materialized view refresh cycle...';
     
-    -- Refresh portfolio summary (High priority, but can be slightly stale)
-    REFRESH MATERIALIZED VIEW CONCURRENTLY portfolio_summary_mv;
+    FOREACH v_mv_name IN ARRAY v_mvs
+    LOOP
+        BEGIN
+            -- Try concurrent refresh first
+            EXECUTE format('REFRESH MATERIALIZED VIEW CONCURRENTLY %I', v_mv_name);
+            RAISE NOTICE 'Refreshed % CONCURRENTLY', v_mv_name;
+        EXCEPTION WHEN OTHERS THEN
+            -- Fallback to standard refresh if concurrent fails (e.g. view not populated)
+            RAISE WARNING 'Concurrent refresh failed for %, falling back to standard refresh. Error: %', v_mv_name, SQLERRM;
+            EXECUTE format('REFRESH MATERIALIZED VIEW %I', v_mv_name);
+            RAISE NOTICE 'Refreshed % (Standard)', v_mv_name;
+        END;
+    END LOOP;
     
-    -- Refresh trading stats
-    REFRESH MATERIALIZED VIEW CONCURRENTLY trading_stats_mv;
-    
-    -- Refresh model drift metrics (Last 24h window)
-    REFRESH MATERIALIZED VIEW CONCURRENTLY model_drift_metrics_mv;
-    
-    -- Refresh latest volatility surface (Heaviest refresh)
-    REFRESH MATERIALIZED VIEW CONCURRENTLY latest_vol_surface;
-    
-    RAISE NOTICE 'Standard materialized views refreshed successfully.';
+    RAISE NOTICE 'Standard materialized views refresh cycle completed successfully.';
 END;
 $$;
 
@@ -41,8 +46,6 @@ BEGIN
 END $$;
 
 -- 3. Maintenance Job: Re-analyze tables with high churn
--- This helps the query planner stay accurate for tables that change frequently
--- but might not trigger autovacuum analyze quickly enough.
 CREATE OR REPLACE PROCEDURE maintenance_reanalyze_churn_tables(job_id int, config jsonb)
 LANGUAGE plpgsql
 AS $$
@@ -50,7 +53,6 @@ BEGIN
     ANALYZE orders;
     ANALYZE positions;
     ANALYZE portfolios;
-    -- Rate limits is UNLOGGED, still benefits from fresh stats
     ANALYZE rate_limits;
 END;
 $$;
@@ -66,8 +68,7 @@ BEGIN
     END IF;
 END $$;
 
--- 4. Statistics: Reset pg_stat_statements weekly to keep it focused on recent patterns
--- This can be useful for identifying new bottlenecks without old noise.
+-- 4. Statistics: Reset pg_stat_statements weekly
 CREATE OR REPLACE PROCEDURE weekly_stats_reset(job_id int, config jsonb)
 LANGUAGE plpgsql
 AS $$

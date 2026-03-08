@@ -1,5 +1,6 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Continuous Aggregates
+-- Black-Scholes Option Pricing Platform - Continuous Aggregates (GOD MODE)
+-- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 
 -- 1. Minute-level stats (Base Aggregate)
@@ -8,7 +9,7 @@ SELECT symbol, time_bucket('1 minute', time) AS bucket, AVG(last) AS avg_price, 
 FROM options_prices GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('minute_stats_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '5 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW minute_stats_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS minute_stats_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('minute_stats_cagg', compress_after => INTERVAL '2 hours', if_not_exists => TRUE);
 
 -- 2. Hourly stats (Chained from Minute Aggregate)
@@ -17,7 +18,7 @@ SELECT symbol, time_bucket('1 hour', bucket) AS hour, AVG(avg_price) AS avg_pric
 FROM minute_stats_cagg GROUP BY symbol, hour WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('hourly_stats_chained_cagg', start_offset => INTERVAL '1 day', end_offset => INTERVAL '1 hour', schedule_interval => INTERVAL '10 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW hourly_stats_chained_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS hourly_stats_chained_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('hourly_stats_chained_cagg', compress_after => INTERVAL '2 days', if_not_exists => TRUE);
 
 -- 3. Daily stats (Chained from Hourly Aggregate)
@@ -26,7 +27,7 @@ SELECT symbol, time_bucket('1 day', hour) AS day, AVG(avg_price) AS avg_price, M
 FROM hourly_stats_chained_cagg GROUP BY symbol, day WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('daily_stats_chained_cagg', start_offset => INTERVAL '3 days', end_offset => INTERVAL '1 hour', schedule_interval => INTERVAL '1 hour', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW daily_stats_chained_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS daily_stats_chained_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('daily_stats_chained_cagg', compress_after => INTERVAL '7 days', if_not_exists => TRUE);
 
 -- 4. Real-time Greeks Tracking
@@ -35,7 +36,7 @@ SELECT symbol, time_bucket('5 minutes', time) AS bucket, AVG(delta) AS avg_delta
 FROM options_prices GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('greeks_drift_cagg', start_offset => INTERVAL '6 hours', end_offset => INTERVAL '5 minutes', schedule_interval => INTERVAL '5 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW greeks_drift_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS greeks_drift_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('greeks_drift_cagg', compress_after => INTERVAL '12 hours', if_not_exists => TRUE);
 
 -- 5. Implied Volatility Surface Aggregates
@@ -44,7 +45,7 @@ SELECT symbol, time_bucket('15 minutes', time) AS bucket, AVG(implied_volatility
 FROM options_prices GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('iv_surface_cagg', start_offset => INTERVAL '1 day', end_offset => INTERVAL '15 minutes', schedule_interval => INTERVAL '15 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW iv_surface_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS iv_surface_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('iv_surface_cagg', compress_after => INTERVAL '2 days', if_not_exists => TRUE);
 
 -- 6. Market Ticks OHLCV (1 minute)
@@ -54,7 +55,7 @@ SELECT symbol, time_bucket('1 minute', time) AS bucket,
 FROM market_ticks GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('market_ticks_1m_cagg', start_offset => INTERVAL '1 hour', end_offset => INTERVAL '1 minute', schedule_interval => INTERVAL '5 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW market_ticks_1m_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS market_ticks_1m_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('market_ticks_1m_cagg', compress_after => INTERVAL '2 hours', if_not_exists => TRUE);
 
 -- 6b. Market Ticks OHLCV (1 hour, chained)
@@ -64,7 +65,7 @@ SELECT symbol, time_bucket('1 hour', bucket) AS hour,
 FROM market_ticks_1m_cagg GROUP BY symbol, hour WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('market_ticks_1h_cagg', start_offset => INTERVAL '1 day', end_offset => INTERVAL '1 hour', schedule_interval => INTERVAL '10 minutes', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW market_ticks_1h_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS market_ticks_1h_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('market_ticks_1h_cagg', compress_after => INTERVAL '2 days', if_not_exists => TRUE);
 
 -- 7. Market Data Mesh Daily Aggregates
@@ -73,5 +74,24 @@ SELECT symbol, time_bucket('1 day', time) AS bucket, AVG(close) AS avg_close, SU
 FROM market_data_mesh GROUP BY symbol, bucket WITH NO DATA;
 
 SELECT add_continuous_aggregate_policy('market_mesh_daily_cagg', start_offset => INTERVAL '7 days', end_offset => INTERVAL '1 day', schedule_interval => INTERVAL '1 hour', if_not_exists => TRUE);
-ALTER MATERIALIZED VIEW market_mesh_daily_cagg SET (timescaledb.compress = true);
+ALTER MATERIALIZED VIEW IF EXISTS market_mesh_daily_cagg SET (timescaledb.compress = true);
 SELECT add_compression_policy('market_mesh_daily_cagg', compress_after => INTERVAL '14 days', if_not_exists => TRUE);
+
+-- 8. System Metrics Stats (AIOps Monitoring)
+DROP MATERIALIZED VIEW IF EXISTS system_metric_stats CASCADE;
+CREATE MATERIALIZED VIEW system_metric_stats
+WITH (timescaledb.continuous) AS
+SELECT
+    time_bucket('1 minute', time) AS bucket,
+    AVG(latency_ms) as avg_latency,
+    STDDEV(latency_ms) as std_latency,
+    COUNT(*) as request_count,
+    SUM(CASE WHEN status_code >= 500 THEN 1 ELSE 0 END) as error_count
+FROM audit_logs
+GROUP BY bucket;
+
+SELECT add_continuous_aggregate_policy('system_metric_stats',
+    start_offset => INTERVAL '1 hour',
+    end_offset => INTERVAL '1 minute',
+    schedule_interval => INTERVAL '1 minute',
+    if_not_exists => TRUE);

@@ -3,8 +3,11 @@ import os
 
 import anyio
 import torch
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.database import crud, get_async_db
+from src.security.auth import require_tier
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.circuit_breaker import db_circuit, pricing_circuit
 
@@ -53,7 +56,11 @@ async def get_deep_health():
 
     # 3. WASM OPA Probe
     wasm_path = "policies/authz.wasm"
-    exists = await anyio.to_thread.run_sync(os.path.exists, wasm_path)
+    try:
+        exists = await anyio.to_thread.run_sync(os.path.exists, wasm_path)
+    except Exception:
+        exists = False
+    
     health["probes"]["wasm_opa"] = {
         "status": "verified" if exists else "missing",
         "path": wasm_path,
@@ -78,3 +85,21 @@ async def get_system_status():
             },
         },
     }
+
+
+@router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
+async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
+    """
+    God Mode Database Diagnostics.
+    Requires Enterprise tier for high-fidelity performance metrics.
+    """
+    return await crud.get_system_health_dashboard(db)
+
+
+@router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
+async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
+    """
+    PostgreSQL 16 I/O Performance Audit.
+    Requires Enterprise tier.
+    """
+    return await crud.get_io_performance_audit(db)
