@@ -46,6 +46,7 @@ services:
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
       DEFAULT_POOL_SIZE: 20
+      MAX_PREPARED_STATEMENTS: 100
       ADMIN_USERS: ${POSTGRES_USER}
     ports:
       - "127.0.0.1:6432:5432"
@@ -105,6 +106,7 @@ services:
       - "3001:3001"
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3001
     volumes:
@@ -138,9 +140,11 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -170,6 +174,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -204,8 +209,10 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-bsopt_rmq_secret}@rabbitmq:5672//
       - ML_SERVICE_GRPC_URL=0.0.0.0:50051
       - JWT_SECRET=${JWT_SECRET}
@@ -239,6 +246,7 @@ services:
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -271,6 +279,7 @@ services:
           cpus: '4'
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - OMP_NUM_THREADS=4
       - MKL_NUM_THREADS=4
@@ -420,9 +429,11 @@ services:
       - bsopt-network
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     volumes:
       - ./:/app
     working_dir: /app
@@ -437,9 +448,11 @@ services:
     environment:
       - RAY_ADDRESS=ray-head:6379
       - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     networks:
       - bsopt-network
     volumes:

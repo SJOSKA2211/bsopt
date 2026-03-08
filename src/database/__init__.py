@@ -17,8 +17,6 @@ from sqlalchemy.pool import NullPool, QueuePool
 
 from src.config import settings
 
-from .models import Base
-
 logger = structlog.get_logger(__name__)
 
 # --- ENGINE STATE ---
@@ -32,17 +30,17 @@ _AsyncSessionLocal: async_sessionmaker | None = None
 def get_db_urls():
     """Constructs sync and async database URLs based on environment."""
     db_url = settings.DATABASE_URL
-
-    # Inject application_name for better observability in pg_stat_activity
     app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
-    separator = "&" if "?" in db_url else "?"
-    db_url = f"{db_url}{separator}application_name={app_name}"
 
     if settings.is_production and "sslmode" not in db_url:
         separator = "&" if "?" in db_url else "?"
         db_url = f"{db_url}{separator}sslmode=require"
 
-    sync_url = db_url.replace("+asyncpg", "")
+    # Inject application_name for sync_url
+    separator = "&" if "?" in db_url else "?"
+    sync_url = f"{db_url}{separator}application_name={app_name}".replace("+asyncpg", "")
+    
+    # Do not inject application_name into async_url via query string
     async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
     if "sqlite" in db_url:
@@ -139,8 +137,8 @@ def get_async_engine() -> AsyncEngine:
                     "tcp_keepalives_interval": "10",
                     "tcp_keepalives_count": "5",
                 },
-                "statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
-                "prepared_statement_cache_size": 0 if settings.PGBOUNCER_ENABLED else 20,
+                "statement_cache_size": 20,
+                "prepared_statement_cache_size": 20,
                 "command_timeout": settings.DATABASE_POOL_TIMEOUT,
             },
             **pool_kwargs,

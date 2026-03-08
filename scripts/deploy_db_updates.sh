@@ -92,6 +92,7 @@ SCRIPTS=(
     "init-scripts/10-missing-tables.sql"
     "init-scripts/11-scheduled-jobs.sql"
     "init-scripts/12-performance-dashboard.sql"
+    "init-scripts/13-pg16-diagnostics.sql"
 )
 
 for script in "${SCRIPTS[@]}"; do

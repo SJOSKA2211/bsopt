@@ -1,17 +1,20 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Compression & Retention
+-- Black-Scholes Option Pricing Platform - Compression & Retention (GOD MODE)
+-- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 
 -- 1. Compression Policies
--- Segment by columns used in frequent WHERE/JOIN clauses to trigger SIMD vectorization (TimescaleDB 2.17+)
--- Note: symbol, expiry, strike are the core lookups for options.
+-- Segment by columns used in frequent WHERE/JOIN clauses to trigger SIMD vectorization
+
+-- options_prices: Optimized for SIMD vectorization & Chunk Skipping
 ALTER TABLE options_prices SET (
     timescaledb.compress, 
     timescaledb.compress_segmentby = 'symbol, expiry, strike, option_type', 
     timescaledb.compress_orderby = 'time DESC'
 );
-SELECT add_compression_policy('options_prices', INTERVAL '1 day', if_not_exists => TRUE);
+SELECT add_compression_policy('options_prices', INTERVAL '7 days', if_not_exists => TRUE);
 
+-- market_ticks: Aggressive compression for tick data
 ALTER TABLE market_ticks SET (
     timescaledb.compress, 
     timescaledb.compress_segmentby = 'symbol', 
@@ -19,12 +22,7 @@ ALTER TABLE market_ticks SET (
 );
 SELECT add_compression_policy('market_ticks', INTERVAL '6 hours', if_not_exists => TRUE);
 
-ALTER TABLE market_data_mesh SET (
-    timescaledb.compress, 
-    timescaledb.compress_segmentby = 'symbol'
-);
-SELECT add_compression_policy('market_data_mesh', INTERVAL '30 days', if_not_exists => TRUE);
-
+-- audit_logs: Compliance-driven compression
 ALTER TABLE audit_logs SET (
     timescaledb.compress, 
     timescaledb.compress_segmentby = 'user_id', 
@@ -32,27 +30,26 @@ ALTER TABLE audit_logs SET (
 );
 SELECT add_compression_policy('audit_logs', INTERVAL '7 days', if_not_exists => TRUE);
 
+-- request_logs: High-volume request tracking
 ALTER TABLE request_logs SET (
     timescaledb.compress, 
     timescaledb.compress_segmentby = 'status_code', 
     timescaledb.compress_orderby = 'created_at DESC'
 );
-SELECT add_compression_policy('request_logs', INTERVAL '3 days', if_not_exists => TRUE);
+SELECT add_compression_policy('request_logs', INTERVAL '1 day', if_not_exists => TRUE);
 
--- Compress model predictions after they are no longer being actively updated with actual_price
+-- model_predictions: Data science artifact compression
 ALTER TABLE model_predictions SET (
     timescaledb.compress,
     timescaledb.compress_segmentby = 'model_id, symbol'
 );
--- We skip compression policy for model_predictions if they are frequently updated late, 
--- but usually 1 day is safe for most financial predictions.
 SELECT add_compression_policy('model_predictions', INTERVAL '7 days', if_not_exists => TRUE);
 
 
--- 2. Retention Policies (Keep storage lean in 2GB environment)
+-- 2. Retention Policies (Balanced for 4GB environment)
+-- Keep core financial data longer, but purge ephemeral logs faster.
 SELECT add_retention_policy('options_prices', INTERVAL '1 year', if_not_exists => TRUE);
-SELECT add_retention_policy('market_ticks', INTERVAL '6 months', if_not_exists => TRUE);
-SELECT add_retention_policy('market_data_mesh', INTERVAL '2 years', if_not_exists => TRUE);
-SELECT add_retention_policy('audit_logs', INTERVAL '5 years', if_not_exists => TRUE);
-SELECT add_retention_policy('request_logs', INTERVAL '30 days', if_not_exists => TRUE);
+SELECT add_retention_policy('market_ticks', INTERVAL '30 days', if_not_exists => TRUE);
+SELECT add_retention_policy('audit_logs', INTERVAL '90 days', if_not_exists => TRUE);
+SELECT add_retention_policy('request_logs', INTERVAL '7 days', if_not_exists => TRUE);
 SELECT add_retention_policy('model_predictions', INTERVAL '1 year', if_not_exists => TRUE);

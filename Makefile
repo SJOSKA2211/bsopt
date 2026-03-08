@@ -77,30 +77,26 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 migrate:
-	@echo "🥒 Running full migration sequence..."
-	@echo "  Phase 1: Initialization Scripts..."
-	@for file in init-scripts/*.sql; do \
-	        echo "    - Applying $$file..."; \
-	        $(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/$$(basename $$file); \
-	done
-	@echo "  Phase 2: Incremental Migrations..."
-	@for file in src/migrations/*.sql; do \
-	        echo "    - Applying $$file..."; \
-	        $(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -f /migrations/$$(basename $$file); \
-	done
+	@echo "🥒 Running God-Mode Idempotent Deployment Sequence..."
+	$(DOCKER_COMPOSE) exec -T api bash scripts/deploy_db_updates.sh
+
+test-migrate:
+	@echo "🥒 Initializing Test Database (bsopt_test)..."
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE bsopt_test;" || true
+	$(DOCKER_COMPOSE) exec -T api bash -c "export DATABASE_URL=\$$DATABASE_URL_TEST && bash scripts/deploy_db_updates.sh"
 
 db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
 db-audit:
 	@echo "🥒 Running God-Mode Manifold Audit..."
-	$(DOCKER_COMPOSE) exec -T api python3 -m src.database.verify
+	$(DOCKER_COMPOSE) exec -T api python3 src/database/verify.py
 
 db-optimize:
 	@echo "🥒 Pressurizing the Manifold (Database Optimization)..."
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "VACUUM (ANALYZE, VERBOSE);"
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "REINDEX TABLE CONCURRENTLY orders; REINDEX TABLE CONCURRENTLY positions;"
-	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "SELECT refresh_all_continuous_aggregates();"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "CALL refresh_standard_materialized_views(NULL, NULL);"
 
 # --- Quality & Security ---
 
@@ -142,7 +138,7 @@ wasm:
 
 test-all:
 	@echo "🥒 Launching Containerized Test Suite (God Mode)..."
-	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest tests/
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest -n 2 tests/
 
 test-local:
 	@echo "🥒 Launching Local Test Suite (Bare Metal)... Stand back!"

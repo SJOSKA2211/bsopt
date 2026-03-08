@@ -25,6 +25,12 @@ def fast_normal_cdf_v2(x):
     return 0.5 * (1.0 + np.sign(x) * y)
 
 
+@njit
+def fast_normal_pdf_v2(x):
+    """Standard normal PDF."""
+    return (1.0 / np.sqrt(2.0 * np.pi)) * np.exp(-0.5 * x**2)
+
+
 def generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps):
     """Generate log-paths (Non-JIT)."""
     dt = T / n_steps
@@ -90,23 +96,32 @@ def fused_lookback_payoff_v2(log_paths, K, r, T, is_call, is_floating):
 
 @njit
 def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
-    vol_sqrt_t = sigma * np.sqrt(T)
-    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / vol_sqrt_t
+    Ti = np.maximum(T, 1e-9)
+    sig = np.maximum(sigma, 1e-9)
+    vol_sqrt_t = sig * np.sqrt(Ti)
+    d1 = (np.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
-    exp_rt, exp_qt = np.exp(-r * T), np.exp(-q * T)
-    from scipy.stats import norm
+    exp_rt, exp_qt = np.exp(-r * Ti), np.exp(-q * Ti)
 
-    if isinstance(is_call, bool):
-        return S * exp_qt * norm.cdf(d1 if is_call else -d1) - K * exp_rt * norm.cdf(
-            d2 if is_call else -d2
-        )
     res = np.empty_like(S)
-    res[is_call] = S[is_call] * exp_qt[is_call] * norm.cdf(d1[is_call]) - K[is_call] * exp_rt[
-        is_call
-    ] * norm.cdf(d2[is_call])
-    res[~is_call] = K[~is_call] * exp_rt[~is_call] * norm.cdf(-d2[~is_call]) - S[~is_call] * exp_qt[
-        ~is_call
-    ] * norm.cdf(-d1[~is_call])
+    
+    # Handle zero maturity case explicitly if needed, 
+    # but the 1e-9 epsilon above handles it for the CDF.
+    # However, for T=0 exactly, we should ideally return the payoff.
+    
+    for i in range(len(S)):
+        if T[i] < 1e-10:
+            if is_call[i]:
+                res[i] = max(S[i] - K[i], 0.0)
+            else:
+                res[i] = max(K[i] - S[i], 0.0)
+            continue
+            
+        if is_call[i]:
+            res[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1[i]) - K[i] * exp_rt[i] * fast_normal_cdf_v2(d2[i])
+        else:
+            res[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2[i]) - S[i] * exp_qt[i] * fast_normal_cdf_v2(-d1[i])
+            
     return res
 
 
@@ -122,14 +137,12 @@ def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
 
 @njit
 def scalar_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
-    from scipy.stats import norm
-
     Ti, sig = max(T, 1e-7), max(sigma, 1e-12)
     sqrt_T = np.sqrt(Ti)
     d1 = (np.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / (sig * sqrt_T)
     d2 = d1 - sig * sqrt_T
     exp_qt, exp_rt = np.exp(-q * Ti), np.exp(-r * Ti)
-    nd1, nd2, pdf_d1 = norm.cdf(d1), norm.cdf(d2), norm.pdf(d1)
+    nd1, nd2, pdf_d1 = fast_normal_cdf_v2(d1), fast_normal_cdf_v2(d2), fast_normal_pdf_v2(d1)
     gamma = (exp_qt * pdf_d1) / (S * sig * sqrt_T)
     vega = (S * exp_qt * pdf_d1 * sqrt_T) * 0.01
     common_theta = -(S * pdf_d1 * sig * exp_qt) / (2 * sqrt_T)
@@ -200,11 +213,10 @@ def scalar_bs_price_jit(S, K, T, sigma, r, q, is_call):
     d1 = (np.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
     exp_rt, exp_qt = np.exp(-r * Ti), np.exp(-q * Ti)
-    from scipy.stats import norm
 
     if is_call:
-        return S * exp_qt * norm.cdf(d1) - K * exp_rt * norm.cdf(d2)
-    return K * exp_rt * norm.cdf(-d2) - S * exp_qt * norm.cdf(-d1)
+        return S * exp_qt * fast_normal_cdf_v2(d1) - K * exp_rt * fast_normal_cdf_v2(d2)
+    return K * exp_rt * fast_normal_cdf_v2(-d2) - S * exp_qt * fast_normal_cdf_v2(-d1)
 
 
 @njit
@@ -236,8 +248,12 @@ def vectorized_newton_raphson_iv_jit(
         diff = p - market_price
         if np.all(np.abs(diff) < tol):
             break
-        _, _, _, vega, _ = batch_greeks_jit_v2(S, K, T, iv, r, q, is_call)
-        iv -= diff / (vega * 100.0 + 1e-12)
+        _, _, vega, _, _ = batch_greeks_jit_v2(S, K, T, iv, r, q, is_call)
+        # Vega from batch_greeks_jit_v2 is already scaled by 0.01
+        # Newton update: sigma_{n+1} = sigma_n - (f(sigma_n) - C) / f'(sigma_n)
+        # f'(sigma) is Vega (not scaled by 0.01 for this purpose)
+        real_vega = vega * 100.0
+        iv -= diff / (real_vega + 1e-12)
     return np.clip(iv, 0.0001, 5.0)
 
 

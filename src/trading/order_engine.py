@@ -34,6 +34,14 @@ class OrderEngine:
         self._delta_tracker = IncrementalDeltaTracker(max_net_delta=max_portfolio_delta)
         self._drift_counter = 0
 
+        # Initialize High-Speed Risk State Buffer
+        try:
+            from src.shared.shm_mesh import RiskStateBuffer
+            self._risk_buf = RiskStateBuffer(create=False)
+        except Exception:
+            logger.warning("risk_state_shm_missing_falling_back_to_local_only")
+            self._risk_buf = None
+
     def run(self, cpu_core: int = 7):
         """Hot loop: Zero-latency order processing."""
         try:
@@ -86,9 +94,21 @@ class OrderEngine:
                 os.sched_yield()
 
     def _sync_delta(self):
-        """Sync tracker with source of truth to prevent numerical drift."""
-        # TODO: Pull actual net delta from database or SHM portfolio view
-        logger.debug("delta_tracker_sync_check", current=self._delta_tracker.current_net_delta)
+        """Sync tracker with shared memory source of truth to prevent numerical drift."""
+        if not self._risk_buf:
+            return
+
+        try:
+            current_delta, max_delta, sync_ts = self._risk_buf.read()
+            # Reset local O(1) tracker to the DB-verified truth
+            self._delta_tracker.reset(current_delta)
+            self._delta_tracker.max_net_delta = max_delta
+            
+            logger.debug("delta_tracker_synced_from_shm", 
+                         current=current_delta, 
+                         ts=sync_ts)
+        except Exception as e:
+            logger.error("shm_sync_failed", error=str(e))
 
 
 if __name__ == "__main__":
