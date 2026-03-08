@@ -3,7 +3,7 @@ import numpy as np
 import structlog
 from gymnasium import spaces
 
-from .kernels import _calculate_reward_kernel, _fused_state_kernel
+from .kernels import _calculate_reward_kernel, _fused_state_kernel, _trading_step_kernel
 
 logger = structlog.get_logger()
 
@@ -84,57 +84,43 @@ class TradingEnvironment(gym.Env):
         )
 
     def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict]:
-        """Execute one step in the environment."""
-        action = np.clip(action, self.action_space.low, self.action_space.high)
+        """Execute one step in the environment using fused machine-code kernel."""
+        # 1. Clip and Prepare Input
+        action = np.clip(action, self.action_space.low, self.action_space.high).astype(np.float32)
+        prices = np.ascontiguousarray(self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32)
+        pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
-        # Get market state for current step
-        current_prices = self.market_data.get("prices", np.zeros(10))
-        p_safe = np.maximum(current_prices[:10], 1e-6)
+        # 2. 🔥 FUSION: Execute Step Kernel
+        new_pos, new_balance, new_val, reward = _trading_step_kernel(
+            action,
+            prices,
+            pos,
+            float(self.balance),
+            float(self.transaction_cost),
+            float(self.initial_balance)
+        )
 
-        # Calculate current portfolio value for weight conversion
-        portfolio_value = self.balance + np.sum(self.positions * p_safe)
+        # 3. Commit state
+        self.positions = new_pos
+        self.balance = new_balance
+        self.portfolio_values.append(new_val)
 
-        # Convert weight actions to target units
-        target_units = (action * portfolio_value) / (p_safe + 1e-9)
-        trades = target_units - self.positions
-
-        # Rebalancing costs
-        transaction_costs = np.sum(np.abs(trades) * p_safe * self.transaction_cost)
-        asset_costs = np.sum(trades * p_safe)
-
-        # Update state
-        self.positions = target_units
-        self.balance -= transaction_costs + asset_costs
-
-        # Advance time
+        # 4. Advance time
         self.current_step += 1
         if self.data_provider and self.current_step < len(self.data_provider):
             self.market_data = self.data_provider.get_data_at_step(self.current_step)
         else:
             self.market_data = self._get_dummy_data()
 
-        # Portfolio valuation & Reward via Silicon Kernel
-        new_prices = np.ascontiguousarray(
-            self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32
-        )
-        prev_val = self.portfolio_values[-1]
-
-        # 🔥 FUSION: Reward Kernel
-        current_val, reward = _calculate_reward_kernel(
-            self.positions, new_prices, float(prev_val), float(self.balance)
-        )
-
-        self.portfolio_values.append(current_val)
-
         terminated = bool(self.data_provider and self.current_step >= len(self.data_provider) - 1)
-        truncated = bool(current_val <= self.initial_balance * 0.5)
+        truncated = bool(new_val <= self.initial_balance * 0.5)
 
         return (
             self._get_observation(),
             float(reward),
             terminated,
             truncated,
-            {"portfolio_value": current_val, "step": self.current_step},
+            {"portfolio_value": new_val, "step": self.current_step},
         )
 
     def _calculate_reward(self, val: float) -> float:

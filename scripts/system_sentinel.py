@@ -68,14 +68,23 @@ async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
         from multiprocessing import shared_memory
-        try:
-            shm_risk = shared_memory.SharedMemory(name=SHM_RISK_NAME)
-            shm_risk.close()
-            shm_order = shared_memory.SharedMemory(name=SHM_ORDER_NAME)
-            shm_order.close()
+        from src.shared.shm_init import SHM_CONFIGS
+        
+        missing = []
+        for config in SHM_CONFIGS:
+            name = config["name"]
+            try:
+                shm = shared_memory.SharedMemory(name=name)
+                if shm.size != config["size"]:
+                    missing.append(f"{name} (size mismatch)")
+                shm.close()
+            except FileNotFoundError:
+                missing.append(name)
+        
+        if not missing:
             print("✅ [PRESSURIZED]")
-        except FileNotFoundError:
-            print("⚠️ [SHM BUFFERS NOT INITIALIZED]")
+        else:
+            print(f"⚠️ [MISSING/CORRUPT: {', '.join(missing)}]")
     except Exception as e:
         print(f"❌ [ERROR: {e}]")
 
