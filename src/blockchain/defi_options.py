@@ -19,6 +19,12 @@ from src.blockchain.nonce_manager import NonceManager
 from src.blockchain.oracle import OracleManager
 from src.utils.cache import get_redis
 
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
 logger = structlog.get_logger(__name__)
 
 
@@ -84,9 +90,8 @@ class DeFiOptionsProtocol:
         ]
 
         self._failure_threshold = 5
-        self._failure_count = 0
-        self._last_failure_time = 0.0
-        self._circuit_open = False
+        self.breaker_key = f"blockchain:breaker:{chain_id}"
+        self.breaker_expiry = 60 # 1 minute
 
         if private_key:
             self.account = Account.from_key(private_key)
@@ -106,21 +111,29 @@ class DeFiOptionsProtocol:
         )
 
     async def _handle_rpc_failure(self):
-        self._failure_count += 1
-        if self._failure_count >= self._failure_threshold:
-            self._circuit_open = True
-            self._last_failure_time = time.time()
-            logger.error("rpc_circuit_opened")
+        redis = get_redis()
+        if redis:
+            try:
+                count = await redis.incr(f"{self.breaker_key}:errors")
+                await redis.expire(f"{self.breaker_key}:errors", self.breaker_expiry)
+                if count >= self._failure_threshold:
+                    await redis.setex(f"{self.breaker_key}:state", self.breaker_expiry, "OPEN")
+                    logger.error("rpc_circuit_opened", chain_id=self.chain_id)
+            except Exception as e:
+                logger.warning("breaker_update_failed", error=str(e))
 
     async def _check_circuit(self):
-        """Check if circuit is open and should be half-opened."""
-        if self._circuit_open:
-            if time.time() - self._last_failure_time > 60:  # 1 minute cooldown
-                self._circuit_open = False
-                self._failure_count = 0
-                logger.info("rpc_circuit_half_opened")
-            else:
-                raise Exception("Blockchain RPC circuit is OPEN. Request rejected.")
+        """Check if circuit is open using Redis state."""
+        redis = get_redis()
+        if redis:
+            try:
+                state = await redis.get(f"{self.breaker_key}:state")
+                if state == b"OPEN":
+                    raise Exception(f"Blockchain RPC circuit for chain {self.chain_id} is OPEN.")
+            except Exception as e:
+                if "is OPEN" in str(e):
+                    raise
+                logger.warning("breaker_check_failed", error=str(e))
 
     async def get_option_prices_batch(self, contract_addresses: list[str]) -> dict[str, float]:
         """
@@ -174,7 +187,10 @@ class DeFiOptionsProtocol:
                             await redis.setex(f"defi_price:{addr}", self.cache_ttl, str(price))
                     idx += 1
 
-            self._failure_count = 0  # Reset on success
+            # SUCCESS: Reset error count in Redis
+            if redis:
+                await redis.delete(f"{self.breaker_key}:errors")
+
             return output
         except Exception as e:
             logger.error("multicall_failed", error=str(e))
@@ -348,6 +364,7 @@ class DeFiOptionsProtocol:
             "message": order,
         }
 
+        # EIP-712 signing handles structured data correctly.
         encoded_data = encode_typed_data(full_message=structured_data)
         signed_message = Account.sign_message(encoded_data, self.private_key)
 
@@ -424,14 +441,13 @@ class DeFiOptionsProtocol:
 
     async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
         """
-        Smart Order Router (SOR) v2 - Dynamic Protocol Discovery.
-        Finds best price across AMMs and Orderbooks with Gas-Aware Routing.
+        Smart Order Router (SOR) v2 - Gas-Aware & Liquidity-Depth Sensitive.
         """
-        # 🧪 GOD-MODE: Dynamic Routing Logic
+        # Dynamic venue discovery (In PROD, this would fetch from a registry)
         venues = [
-            {"name": "Lyra-V2", "price": 100.2, "liquidity": 500000.0, "gas_estimate": 150000},
-            {"name": "Uniswap-V3", "price": 100.1, "liquidity": 2000000.0, "gas_estimate": 180000},
-            {"name": "Panoptic-V1", "price": 100.0, "liquidity": 250000.0, "gas_estimate": 250000},
+            {"name": "Lyra-V2", "price": 100.2, "liquidity": 500000.0, "gas_estimate": 150000, "latency_ms": 10},
+            {"name": "Uniswap-V3", "price": 100.1, "liquidity": 2000000.0, "gas_estimate": 180000, "latency_ms": 25},
+            {"name": "Panoptic-V1", "price": 100.0, "liquidity": 250000.0, "gas_estimate": 250000, "latency_ms": 15},
         ]
 
         try:
@@ -441,21 +457,31 @@ class DeFiOptionsProtocol:
             gas_price_eth = 0.00000005 # Fallback
 
         def execution_cost(v):
-            slippage = amount / v["liquidity"]
-            total_price = v["price"] * (1 + slippage)
+            # 1. Slippage (Simplified sqrt(L) model)
+            slippage = (amount / v["liquidity"]) * 0.5 
+            expected_price = v["price"] * (1 + slippage)
+            
+            # 2. Gas Cost
             gas_cost = v["gas_estimate"] * gas_price_eth
-            return total_price + gas_cost
+            
+            # 3. Latency Penalty (Opportunity cost: sigma * sqrt(dt))
+            latency_penalty = (v["latency_ms"] / 1000.0) * 0.01 * v["price"]
+            
+            return expected_price + gas_cost + latency_penalty
 
         best_venue = min(venues, key=execution_cost)
-        best_venue["estimated_cost"] = round(execution_cost(best_venue), 4)
-
+        total_cost = execution_cost(best_venue)
+        
         logger.info(
-            "sor_routing_decision_v2",
+            "sor_routing_v2_decision",
             symbol=symbol,
             amount=amount,
-            selected=best_venue["name"],
-            estimated_cost=best_venue["estimated_cost"]
+            venue=best_venue["name"],
+            total_cost=float(total_cost),
+            gas_price_gwei=float(gas_price_eth * 1e9)
         )
+        
+        best_venue["estimated_total_cost"] = total_cost
         return best_venue
 
     async def watch_mempool(self, callback, iterations: int = -1):

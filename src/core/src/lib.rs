@@ -1,8 +1,97 @@
 use pyo3::prelude::*;
-use numpy::{PyArray1, PyReadonlyArray1};
+use numpy::{PyArray1, PyArray2, PyReadonlyArray1};
 use ndarray::Zip;
 use rayon::prelude::*;
 use statrs::distribution::{Normal, Continuous, ContinuousCDF};
+use sha3::{Digest, Keccak256};
+
+fn keccak256_hash(data: &[u8]) -> [u8; 32] {
+    let mut hasher = Keccak256::new();
+    hasher.update(data);
+    let result = hasher.finalize();
+    let mut out = [0u8; 32];
+    out.copy_from_slice(&result);
+    out
+}
+
+#[pyfunction]
+fn keccak256(data: &[u8]) -> String {
+    hex::encode(keccak256_hash(data))
+}
+
+#[pyfunction]
+fn hash_order_eip712(
+    domain_separator_hex: &str,
+    maker: &str,
+    asset: &str,
+    amount_hex: &str,
+    price_hex: &str,
+    nonce: u64,
+    expiry: u64,
+) -> PyResult<String> {
+    let domain_separator = hex::decode(domain_separator_hex.trim_start_matches("0x"))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid domain separator: {}", e)))?;
+    
+    if domain_separator.len() != 32 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Domain separator must be 32 bytes"));
+    }
+
+    // 1. Typehash for Order
+    let order_typehash = keccak256_hash(b"Order(address maker,address asset,uint256 amount,uint256 price,uint256 nonce,uint256 expiry)");
+    
+    // 2. Encode and Hash Struct
+    let mut encoded = Vec::with_capacity(32 * 7);
+    encoded.extend_from_slice(&order_typehash);
+    
+    // address maker
+    let maker_addr = hex::decode(maker.trim_start_matches("0x"))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid maker address: {}", e)))?;
+    let mut maker_padded = [0u8; 32];
+    maker_padded[32 - maker_addr.len()..].copy_from_slice(&maker_addr);
+    encoded.extend_from_slice(&maker_padded);
+    
+    // address asset
+    let asset_addr = hex::decode(asset.trim_start_matches("0x"))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid asset address: {}", e)))?;
+    let mut asset_padded = [0u8; 32];
+    asset_padded[32 - asset_addr.len()..].copy_from_slice(&asset_addr);
+    encoded.extend_from_slice(&asset_padded);
+    
+    // uint256 amount
+    let amount_val = hex::decode(amount_hex.trim_start_matches("0x"))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid amount: {}", e)))?;
+    let mut amount_padded = [0u8; 32];
+    amount_padded[32 - amount_val.len()..].copy_from_slice(&amount_val);
+    encoded.extend_from_slice(&amount_padded);
+    
+    // uint256 price
+    let price_val = hex::decode(price_hex.trim_start_matches("0x"))
+        .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("Invalid price: {}", e)))?;
+    let mut price_padded = [0u8; 32];
+    price_padded[32 - price_val.len()..].copy_from_slice(&price_val);
+    encoded.extend_from_slice(&price_padded);
+    
+    // uint256 nonce
+    let mut nonce_bytes = [0u8; 32];
+    nonce_bytes[24..].copy_from_slice(&nonce.to_be_bytes());
+    encoded.extend_from_slice(&nonce_bytes);
+    
+    // uint256 expiry
+    let mut expiry_bytes = [0u8; 32];
+    expiry_bytes[24..].copy_from_slice(&expiry.to_be_bytes());
+    encoded.extend_from_slice(&expiry_bytes);
+    
+    let struct_hash = keccak256_hash(&encoded);
+    
+    // 3. Final EIP-712 Hash
+    let mut final_encoded = Vec::with_capacity(2 + 32 + 32);
+    final_encoded.extend_from_slice(b"\x19\x01");
+    final_encoded.extend_from_slice(&domain_separator);
+    final_encoded.extend_from_slice(&struct_hash);
+    
+    let final_hash = keccak256_hash(&final_encoded);
+    Ok(format!("0x{}", hex::encode(final_hash)))
+}
 
 #[pyclass]
 #[derive(Clone)]
@@ -373,5 +462,7 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(order_engine_loop, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_psi, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_mmd, m)?)?;
+    m.add_function(wrap_pyfunction!(keccak256, m)?)?;
+    m.add_function(wrap_pyfunction!(hash_order_eip712, m)?)?;
     Ok(())
 }

@@ -13,6 +13,23 @@ from src.ml.reinforcement_learning.decision_transformer import DecisionTransform
 logger = structlog.get_logger()
 
 
+class TrajectoryDataset(Dataset):
+    def __init__(self, trajectories):
+        self.trajectories = trajectories
+
+    def __len__(self):
+        return len(self.trajectories)
+
+    def __getitem__(self, idx):
+        traj = self.trajectories[idx]
+        return {
+            "states": th.tensor(traj.get("states", []), dtype=th.float32),
+            "actions": th.tensor(traj.get("actions", []), dtype=th.float32),
+            "rtg": th.tensor(traj.get("rtg", []), dtype=th.float32),
+            "timesteps": th.tensor(traj.get("timesteps", []), dtype=th.long),
+        }
+
+
 def expectile_loss(diff, tau=0.7):
     weight = th.where(diff > 0, tau, 1 - tau)
     return weight * (diff**2)

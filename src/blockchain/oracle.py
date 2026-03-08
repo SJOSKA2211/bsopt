@@ -21,10 +21,13 @@ class OracleManager:
         self._sources = ["WS", "RPC", "AGG"]
 
     async def get_price(
-        self, symbol: str, contract_address: str, rpc_fallback: Callable[[str], Any]
+        self, 
+        symbol: str, 
+        contract_address: str, 
+        rpc_fallbacks: list[Callable[[str], Any]]
     ) -> float:
         """
-        Fetch price with confidence scoring across multiple sources.
+        Fetch price with confidence scoring and multi-RPC aggregation.
         """
         now = time.time()
         redis = get_redis()
@@ -51,19 +54,31 @@ class OracleManager:
                 logger.info("oracle_hit_local", symbol=symbol, price=entry["price"], source=entry["source"])
                 return entry["price"]
 
-        # 3. 🛡️ FALLBACK (Live RPC Call)
-        try:
-            price = await rpc_fallback(contract_address)
-            self._feeds[contract_address] = {"price": price, "time": now, "source": "RPC"}
+        # 3. 🛡️ MULTI-RPC AGGREGATION
+        prices = []
+        for rpc_call in rpc_fallbacks:
+            try:
+                price = await rpc_call(contract_address)
+                prices.append(price)
+            except Exception as e:
+                logger.warning("oracle_rpc_fallback_partial_failure", symbol=symbol, error=str(e))
 
-            if redis:
-                await redis.setex(f"price:rpc:{symbol}", self.cache_ttl, str(price))
-                await redis.setex(f"price:rpc:{symbol}:ts", self.cache_ttl, str(now))
+        if not prices:
+            logger.error("oracle_all_rpcs_failed", symbol=symbol)
+            raise Exception(f"All RPC sources failed for {symbol}")
 
-            return price
-        except Exception as e:
-            logger.error("oracle_rpc_fallback_failed", symbol=symbol, error=str(e))
-            raise
+        # Median price for robustness against outlier RPCs
+        prices.sort()
+        mid = len(prices) // 2
+        median_price = (prices[mid] + prices[~mid]) / 2 if prices else 0.0
+        
+        self._feeds[contract_address] = {"price": median_price, "time": now, "source": "AGG_RPC"}
+
+        if redis:
+            await redis.setex(f"price:rpc:{symbol}", self.cache_ttl, str(median_price))
+            await redis.setex(f"price:rpc:{symbol}:ts", self.cache_ttl, str(now))
+
+        return median_price
 
     def get_confidence_score(self, source: str, age: float) -> float:
         """Calculate confidence based on source and age."""
