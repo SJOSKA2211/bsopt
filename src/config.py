@@ -5,9 +5,10 @@ Application configuration management.
 
 import base64
 import os
+from typing import Annotated, Any
 
 import structlog
-from pydantic import Field, field_validator, model_validator
+from pydantic import BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
@@ -22,10 +23,18 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application Configuration
-    PROJECT_NAME: str = "BSOpt"
+    PROJECT_NAME: str = "Black-Scholes Advanced Option Pricing Platform"
     ENVIRONMENT: str = Field(default="dev")
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
+
+    @field_validator("LOG_LEVEL")
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
+        allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v.upper() not in allowed:
+            raise ValueError(f"LOG_LEVEL must be one of {allowed}")
+        return v.upper()
 
     DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
     DATABASE_MIN_POOL_SIZE: int = 5
@@ -98,7 +107,7 @@ class Settings(BaseSettings):
         }
 
     # CORS Configuration
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: Annotated[list[str], BeforeValidator(lambda v: [x.strip() for x in (v if isinstance(v, list) else ([v] if isinstance(v, str) else [])) if x.strip()])] = ["http://localhost:3000", "http://localhost:5173"]
 
     # JWT Authentication
     JWT_SECRET: str = Field(validation_alias="JWT_SECRET")
@@ -108,8 +117,23 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    @field_validator("ACCESS_TOKEN_EXPIRE_MINUTES", "REFRESH_TOKEN_EXPIRE_DAYS")
+    @classmethod
+    def validate_token_expiration(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("Token expiration must be a positive integer.")
+        return v
+
     # Authentication Policy
     PASSWORD_MIN_LENGTH: int = 8
+
+    @field_validator("PASSWORD_MIN_LENGTH")
+    @classmethod
+    def validate_password_min_length(cls, v: int) -> int:
+        if v < 8:
+            raise ValueError("PASSWORD_MIN_LENGTH must be at least 8.")
+        return v
+
     PASSWORD_REQUIRE_UPPERCASE: bool = True
     PASSWORD_REQUIRE_LOWERCASE: bool = True
     PASSWORD_REQUIRE_DIGIT: bool = True
@@ -122,6 +146,13 @@ class Settings(BaseSettings):
 
     # Password Hashing
     BCRYPT_ROUNDS: int = 12
+
+    @field_validator("BCRYPT_ROUNDS")
+    @classmethod
+    def validate_bcrypt_rounds(cls, v: int) -> int:
+        if not (4 <= v <= 15):
+            raise ValueError("BCRYPT_ROUNDS must be between 4 and 15.")
+        return v
     ARGON2_TIME_COST: int = 3
     ARGON2_MEMORY_COST: int = 65536
     ARGON2_PARALLELISM: int = 4
@@ -233,11 +264,15 @@ class Settings(BaseSettings):
             pass
 
         if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
+            # 0. JWT Secret Security
+            if self.JWT_SECRET == "change-me-in-production":
+                raise ValueError("CRITICAL: JWT_SECRET must be changed from the default in production.")
+
             # 1. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY
-            if key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
+            if not key or key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
                 raise ValueError(
-                    "CRITICAL: MFA_ENCRYPTION_KEY must not use the default "
+                    "CRITICAL: MFA_ENCRYPTION_KEY must be set and not use the default "
                     "development key in production. Set a secure key via "
                     "the MFA_ENCRYPTION_KEY environment variable."
                 )

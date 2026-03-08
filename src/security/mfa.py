@@ -5,15 +5,43 @@ Handles Multi-Factor Authentication using Time-based One-Time Passwords (TOTP).
 """
 
 import io
+import logging
 from base64 import b64encode
 
 import pyotp
 import qrcode
+from cryptography.fernet import Fernet
+
+from src.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class MfaService:
     def __init__(self, issuer_name: str = "BSOPT Platform"):
         self.issuer_name = issuer_name
+        self._fernet = None
+
+    @property
+    def fernet(self) -> Fernet:
+        """Lazy initialization of Fernet for encryption."""
+        if self._fernet is None:
+            key = settings.MFA_ENCRYPTION_KEY
+            if not key:
+                if settings.is_production:
+                    raise ValueError("MFA_ENCRYPTION_KEY is missing in production")
+                # Fallback for dev if not set (though we set it in .env now)
+                key = Fernet.generate_key().decode()
+            self._fernet = Fernet(key.encode())
+        return self._fernet
+
+    def encrypt_secret(self, secret: str) -> str:
+        """Encrypt the MFA secret for storage."""
+        return self.fernet.encrypt(secret.encode()).decode()
+
+    def decrypt_secret(self, encrypted_secret: str) -> str:
+        """Decrypt the MFA secret for verification."""
+        return self.fernet.decrypt(encrypted_secret.encode()).decode()
 
     def generate_secret(self) -> str:
         """Generate a new TOTP secret key."""
@@ -32,7 +60,7 @@ class MfaService:
         return b64encode(buf.getvalue()).decode("utf-8")
 
     def verify_code(self, secret: str, code: str) -> bool:
-        """Verify a TOTP code against the secret."""
+        """Verify a TOTP code against the secret (plaintext)."""
         totp = pyotp.TOTP(secret)
         return totp.verify(code)
 
