@@ -10,11 +10,12 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse
 from src.database import get_async_db
 from src.database.models import OptionPrice
 
-router = APIRouter(prefix="/options", tags=["Options"])
+router = APIRouter(prefix="/options", tags=["Options"], default_response_class=MsgspecJSONResponse)
 
 
 @router.get("/chain")

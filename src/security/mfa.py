@@ -30,8 +30,12 @@ class MfaService:
             if not key:
                 if settings.is_production:
                     raise ValueError("MFA_ENCRYPTION_KEY is missing in production")
-                # Fallback for dev if not set (though we set it in .env now)
-                key = Fernet.generate_key().decode()
+                
+                # In development, if not provided and not derived, we should ideally 
+                # have a stable fallback or error out to avoid data loss on restart.
+                # Settings now derives it from BETTER_AUTH_SECRET if present.
+                raise ValueError("MFA_ENCRYPTION_KEY is not set. Please set BETTER_AUTH_SECRET or MFA_ENCRYPTION_KEY.")
+                
             self._fernet = Fernet(key.encode())
         return self._fernet
 

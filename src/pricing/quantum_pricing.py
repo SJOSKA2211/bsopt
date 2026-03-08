@@ -66,8 +66,10 @@ class PayoffApproximator:
         normalized_payoffs = payoffs / max_p
         
         # Apply a smoothing kernel around the strike to minimize 'kink' impact
-        # This is a 2nd-order Taylor expansion of the payoff curve near-ATM
-        return 0.5 * (normalized_payoffs + (normalized_payoffs ** 2))
+        # We use a softened ReLU (Softplus-like) for the payoff to reduce high-frequency noise in QAE
+        k = 10.0 # Steepness
+        smoothed_payoffs = (1.0 / k) * np.log(1 + np.exp(k * (normalized_payoffs - 0.05)))
+        return 0.5 * (smoothed_payoffs + (smoothed_payoffs ** 2))
 
 
 class QuantumOptionPricer:
@@ -177,11 +179,13 @@ class QuantumOptionPricer:
         start_time = time.time()
 
         if not QISKIT_AVAILABLE:
-            logger.warning("qiskit_not_found_falling_back_to_classical")
-            return self.price_classical(params)
+            logger.warning("qiskit_not_found_falling_back_to_wasm_classical")
+            return self.price_classical_wasm(params)
 
         try:
-            num_state_qubits = 3
+            # DYNAMIC QUBIT SCALING: qubits propto -log2(epsilon)
+            num_state_qubits = int(np.ceil(-np.log2(self.precision))) 
+            num_state_qubits = max(3, min(num_state_qubits, 10)) # Cap for simulation speed
             # 1. State Prep + Payoff
             state_prep = self._create_state_prep(params.spot, params.volatility, params.maturity, num_state_qubits)
             payoff = self._create_payoff_circuit(params.strike, num_state_qubits)
@@ -232,6 +236,18 @@ class QuantumOptionPricer:
             }
         except Exception as e:
             logger.error("quantum_pricing_failed", error=str(e))
+            return self.price_classical(params)
+
+    def price_classical_wasm(self, params: BSParameters) -> dict[str, Any]:
+        """🥒 SOLENYA-HYPER-SPEED: WASM-accelerated fallback."""
+        try:
+            # We use the WASM module for sub-microsecond classical calc
+            # This is significantly faster than scipy.stats.norm for batch or repeated calls
+            from src.wasm.bindings import BlackScholesWASM as WASM_BS
+            bs = WASM_BS()
+            price = bs.price_call(params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend)
+            return {"price": float(price), "method": "wasm_classical_fallback", "confidence": 1.0}
+        except Exception:
             return self.price_classical(params)
 
     def price_classical(self, params: BSParameters) -> dict[str, Any]:

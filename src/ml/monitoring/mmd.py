@@ -24,13 +24,17 @@ def calculate_mmd(x, y, sigma=1.0):
     Maximum Mean Discrepancy (MMD) multivariate distance.
     Uses Rust core for sub-microsecond calculation if available.
     """
+    from src.shared.observability import MMD_DRIFT_SCORE
+    
     if CORE_AVAILABLE:
         try:
-            return bsopt_core.calculate_mmd(
+            val = bsopt_core.calculate_mmd(
                 x.astype(np.float64), 
                 y.astype(np.float64), 
                 float(sigma)
             )
+            MMD_DRIFT_SCORE.set(val)
+            return val
         except Exception as e:
             logger.warning("rust_mmd_calculation_failed_falling_back", error=str(e))
 
@@ -48,7 +52,9 @@ def calculate_mmd(x, y, sigma=1.0):
     sum_xy = np.mean(k_xy)
 
     mmd_sq = sum_xx + sum_yy - 2 * sum_xy
-    return np.sqrt(max(mmd_sq, 0.0))
+    val = np.sqrt(max(mmd_sq, 0.0))
+    MMD_DRIFT_SCORE.set(val)
+    return val
 
 
 class MultivariateDriftDetector:

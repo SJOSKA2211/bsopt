@@ -251,5 +251,43 @@ class PriceTFTModel:
             }
 
 
-# Alias for backward compatibility
-TFTModel = PriceTFTModel
+if __name__ == "__main__":
+    import argparse
+    import asyncio
+    from src.ml.pipeline import MLPipeline
+
+    parser = argparse.ArgumentParser(description="Train Temporal Fusion Transformer")
+    parser.add_argument("--ticker", type=str, default="AAPL")
+    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--hidden_size", type=int, default=16)
+    parser.add_argument("--study_name", type=str, default="tft_v1")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    if args.tracking_uri:
+        mlflow.set_tracking_uri(args.tracking_uri)
+
+    # OPTIMIZED: Use MLflow PyTorch autologging
+    mlflow.pytorch.autolog()
+
+    async def run_training():
+        # Use MLPipeline for data ingestion
+        pipeline = MLPipeline({"ticker": args.ticker})
+        df = await pipeline._fetch_data()
+        df["symbol"] = args.ticker
+        
+        config = {
+            "max_epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "hidden_size": args.hidden_size,
+            "study_name": args.study_name,
+        }
+        
+        model = PriceTFTModel(config)
+        processed_data = model.prepare_data(df)
+        model.train(processed_data)
+        await pipeline.shutdown()
+
+    asyncio.run(run_training())

@@ -13,11 +13,16 @@ entry_points:
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.pipeline --ticker {ticker} --framework {framework} --n_trials {n_trials} --study_name {study_name} --tracking_uri {tracking_uri}"
 
-  train_rl:
+  evaluate_challenger:
     parameters:
-      timesteps: {type: int, default: 10000}
-      model_path: {type: string, default: "models/best_td3"}
-      study_name: {type: string, default: "rl_v1"}
-      tracking_uri: {type: string, default: "http://mlflow:5000"}
-      warm_start: {type: string, default: ""}
-    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri} --warm_start {warm_start}"
+      model: {type: string}
+      challenger: {type: string}
+      champion: {type: string, default: "Production"}
+    command: "python -m src.ml.evaluation.compare_models --model {model} --challenger {challenger} --champion {champion}"
+
+  promote_model:
+    parameters:
+      model: {type: string}
+      run_id: {type: string}
+      stage: {type: string, default: "Production"}
+    command: "python -m src.ml.registry.promote --model {model} --run_id {run_id} --stage {stage}"

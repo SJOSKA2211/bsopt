@@ -47,6 +47,9 @@ class TradingEnvironment(gym.Env):
         self.current_step = 0
         self.portfolio_values = [self.initial_balance]
         self._window_buffer.fill(0)
+        
+        # Pre-allocated output buffer for the JIT kernel
+        self._obs_output = np.zeros((self.window_size, 128), dtype=np.float32)
 
         if self.data_provider:
             self.market_data = self.data_provider.get_data_at_step(0)
@@ -69,7 +72,7 @@ class TradingEnvironment(gym.Env):
         ind = np.ascontiguousarray(indicators[:20], dtype=np.float32)
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
-        # 🔥 FUSION: Execute JIT kernel
+        # 🔥 FUSION: Execute JIT kernel (Now using pre-allocated window buffer)
         return _fused_state_kernel(
             float(self.balance),
             float(self.initial_balance),

@@ -8,13 +8,14 @@ import structlog
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse
 from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
 from src.services.ml_service import MLService, get_ml_service
 
-router = APIRouter(prefix="/ml", tags=["Machine Learning"])
+router = APIRouter(prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse)
 logger = structlog.get_logger(__name__)
 
 

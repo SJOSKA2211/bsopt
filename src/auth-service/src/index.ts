@@ -4,6 +4,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
+import { compress } from 'hono/compress'
 import Redis from 'ioredis'
 import { v4 as uuidv4 } from 'uuid'
 import { auth } from './auth'
@@ -51,6 +52,7 @@ const piiMaskingLogger = (str: string) => {
 
 // Security & Logging Middleware
 app.use('*', logger(piiMaskingLogger))
+app.use('*', compress())
 app.use('*', secureHeaders())
 app.use('*', cors({
   origin: process.env.CORS_ORIGIN || '*',

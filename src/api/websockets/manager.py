@@ -53,8 +53,10 @@ class ConnectionManager:
     def __init__(self):
         # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
         self.active_connections: dict[str, set[WebSocket]] = {}
-        self._listener_task = None
+        self._listener_task: asyncio.Task | None = None
+        self._heartbeat_task: asyncio.Task | None = None
         self._pubsub = None
+        self._lock = asyncio.Lock()
 
     async def _get_pubsub(self):
         if self._pubsub is None:
@@ -77,11 +79,36 @@ class ConnectionManager:
                     channel = message["channel"]
                     symbol = channel.decode("utf-8") if isinstance(channel, bytes) else channel
                     raw_data = message["data"]
-                    await self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True)
+                    # Offload broadcast to avoid blocking listener
+                    asyncio.create_task(self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True))
         except asyncio.CancelledError:
-            pass
+            logger.info("ws_redis_listener_cancelled")
         except Exception as e:
             logger.error("ws_redis_listener_error", error=str(e))
+        finally:
+            self._listener_task = None
+
+    async def _heartbeat_monitor(self):
+        """Prune dead connections based on last heartbeat."""
+        while True:
+            await asyncio.sleep(30)  # Check every 30s
+            now = datetime.utcnow()
+            to_prune = []
+
+            async with self._lock:
+                for symbol, connections in self.active_connections.items():
+                    for ws in list(connections):
+                        meta = getattr(ws, "metadata", ConnectionMetadata())
+                        if (now - meta.last_heartbeat).total_seconds() > 60:
+                            to_prune.append((ws, symbol))
+
+            for ws, symbol in to_prune:
+                logger.warning("ws_heartbeat_timeout", symbol=symbol)
+                try:
+                    await ws.close(code=1001, reason="Heartbeat timeout")
+                except Exception:
+                    pass
+                await self.disconnect(ws, symbol)
 
     async def connect(self, websocket: WebSocket, symbol: str):
         """Accept connection and subscribe to symbol updates."""
@@ -91,37 +118,43 @@ class ConnectionManager:
         if not hasattr(websocket, "metadata"):
             websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK)
 
-        # Lazy init pubsub and listener
-        pubsub = await self._get_pubsub()
-        if pubsub:
+        async with self._lock:
+            # Lazy init background tasks
             if self._listener_task is None or self._listener_task.done():
                 self._listener_task = asyncio.create_task(self._listen_to_redis())
+            
+            if self._heartbeat_task is None or self._heartbeat_task.done():
+                self._heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
 
-            if symbol not in self.active_connections:
-                self.active_connections[symbol] = set()
-                await pubsub.subscribe(symbol)
-        else:
-            logger.warning("ws_running_without_redis_synchronization", symbol=symbol)
-            if symbol not in self.active_connections:
-                self.active_connections[symbol] = set()
+            pubsub = await self._get_pubsub()
+            if pubsub:
+                if symbol not in self.active_connections:
+                    self.active_connections[symbol] = set()
+                    await pubsub.subscribe(symbol)
+            else:
+                logger.warning("ws_running_without_redis_synchronization", symbol=symbol)
+                if symbol not in self.active_connections:
+                    self.active_connections[symbol] = set()
 
-        self.active_connections[symbol].add(websocket)
+            self.active_connections[symbol].add(websocket)
+        
         logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
     async def disconnect(self, websocket: WebSocket, symbol: str):
         """Handle disconnection and cleanup in O(1)."""
-        if symbol in self.active_connections:
-            self.active_connections[symbol].discard(websocket)
-            if not self.active_connections[symbol]:
-                del self.active_connections[symbol]
-                pubsub = await self._get_pubsub()
-                if pubsub:
-                    try:
-                        await pubsub.unsubscribe(symbol)
-                    except Exception as e:
-                        logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
+        async with self._lock:
+            if symbol in self.active_connections:
+                self.active_connections[symbol].discard(websocket)
+                if not self.active_connections[symbol]:
+                    del self.active_connections[symbol]
+                    pubsub = await self._get_pubsub()
+                    if pubsub:
+                        try:
+                            await pubsub.unsubscribe(symbol)
+                        except Exception as e:
+                            logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
 
         WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.dec()
@@ -143,10 +176,12 @@ class ConnectionManager:
             # Local broadcast will happen via Redis Pub/Sub listener to ensure consistency
             return
 
-        if symbol not in self.active_connections:
-            return
+        # Use local copy of connections to minimize lock contention
+        async with self._lock:
+            if symbol not in self.active_connections:
+                return
+            connections = list(self.active_connections[symbol])
 
-        connections = self.active_connections[symbol]
         if not connections:
             return
 
@@ -180,7 +215,12 @@ class ConnectionManager:
                 continue
 
         if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # Gather with return_exceptions to prevent one bad connection from killing the broadcast
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for i, res in enumerate(results):
+                if isinstance(res, Exception):
+                    logger.debug("ws_send_failed", symbol=symbol, error=str(res))
+                    # Connection likely dead, will be pruned by heartbeat or explicit disconnect
 
 
 # Global manager instance for reuse across routes

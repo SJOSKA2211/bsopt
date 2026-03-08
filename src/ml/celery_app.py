@@ -15,12 +15,39 @@ settings = get_settings()
 celery_app = Celery("bsopt_ml", broker=settings.RABBITMQ_URL, backend=settings.REDIS_URL)
 
 celery_app.conf.update(
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
+    task_serializer="msgpack",  # Optimized for speed
+    result_serializer="msgpack",
+    accept_content=["msgpack", "json"],
     timezone="UTC",
     enable_utc=True,
+    # 🚀 Performance Tuning
+    worker_prefetch_multiplier=1,  # Prevent long-running ML tasks from blocking others
+    task_acks_late=True,           # Ensure reliability for ML pipelines
+    worker_cancel_long_running_tasks_on_connection_loss=True,
+    # Broker optimizations
+    broker_pool_limit=10,
+    redis_max_connections=20,
 )
+
+
+@celery_app.on_after_configure.connect
+def setup_direct_queues(sender, **kwargs):
+    """Register database cleanup on worker shutdown."""
+    from celery.signals import worker_shutdown
+    
+    @worker_shutdown.connect
+    def shutdown_db_manager(**kwargs):
+        import asyncio
+        from src.database import db_manager
+        logger.info("celery_worker_shutting_down_cleaning_db_pool")
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(db_manager.dispose())
+            else:
+                asyncio.run(db_manager.dispose())
+        except Exception:
+            pass
 
 
 @celery_app.task(bind=True, name="ml.run_autonomous_pipeline")

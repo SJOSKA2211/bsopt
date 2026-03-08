@@ -15,8 +15,9 @@ from .ml import router as ml_router
 from .pricing import router as pricing_router
 from .system import router as system_router
 from .users import router as users_router
+from .websocket import router as websocket_router
 
-# Added debug_router
+# Added debug_router and websocket_router
 
 __all__ = [
     "auth_router",
@@ -25,4 +26,5 @@ __all__ = [
     "pricing_router",
     "debug_router",
     "system_router",
+    "websocket_router",
 ]
