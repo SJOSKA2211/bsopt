@@ -177,6 +177,11 @@ class Position(Base):
 
     portfolio: Mapped["Portfolio"] = relationship(back_populates="positions")
 
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="chk_position_quantity_positive"),
+        CheckConstraint("entry_price >= 0", name="chk_position_entry_price_non_negative"),
+    )
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -204,6 +209,12 @@ class Order(Base):
     broker_order_id: Mapped[str | None] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint("quantity > 0", name="chk_order_quantity_positive"),
+        CheckConstraint("limit_price >= 0", name="chk_order_limit_price_non_negative"),
+        CheckConstraint("stop_price >= 0", name="chk_order_stop_price_non_negative"),
+    )
 
 
 # MARKET DATA (Hypertables)
