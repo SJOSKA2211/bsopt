@@ -120,6 +120,45 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE model_drift_baselines TO app_user;
+
+-- 5. Model Drift Tracking (AIOps Trigger)
+CREATE OR REPLACE FUNCTION update_drift_baseline()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_accuracy DOUBLE PRECISION;
+BEGIN
+    -- OPTIMIZED: Calculate rolling accuracy for the model using last 1000 predictions
+    SELECT AVG(CASE WHEN ABS(predicted_price - actual_price) / NULLIF(actual_price, 0) < 0.05 THEN 1 ELSE 0 END)
+    INTO v_accuracy
+    FROM (
+        SELECT predicted_price, actual_price 
+        FROM model_predictions 
+        WHERE model_id = NEW.model_id 
+          AND actual_price IS NOT NULL
+        ORDER BY timestamp DESC
+        LIMIT 1000
+    ) as sub;
+
+    -- Update baseline if accuracy is high (Establish a reliable benchmark)
+    IF v_accuracy > 0.95 THEN
+        INSERT INTO model_drift_baselines (model_id, baseline_accuracy, updated_at)
+        VALUES (NEW.model_id, v_accuracy, NOW())
+        ON CONFLICT (model_id) DO UPDATE 
+        SET baseline_accuracy = EXCLUDED.baseline_accuracy, updated_at = NOW();
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_model_drift_update ON model_predictions;
+CREATE TRIGGER trigger_model_drift_update
+    AFTER UPDATE OF actual_price ON model_predictions
+    FOR EACH ROW
+    WHEN (NEW.actual_price IS NOT NULL)
+    EXECUTE FUNCTION update_drift_baseline();
+
 -- MAINTENANCE PROCEDURES
 CREATE OR REPLACE PROCEDURE refresh_all_continuous_aggregates() AS $$
 DECLARE

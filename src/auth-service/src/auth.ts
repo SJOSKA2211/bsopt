@@ -18,16 +18,7 @@ export const auth = betterAuth({
     }),
     secret: process.env.BETTER_AUTH_SECRET || "development-secret-123", // Fallback for dev only
     emailAndPassword: {
-        enabled: true,
-        password: {
-            // Standardize Argon2 parameters with Python PasswordService
-            // Note: better-auth uses @node-rs/argon2 internally if available
-            hashOptions: {
-                memoryCost: 65536,
-                timeCost: 3,
-                parallelism: 4
-            }
-        }
+        enabled: true
     },
     user: {
         modelName: "users",

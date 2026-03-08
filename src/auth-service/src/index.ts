@@ -7,6 +7,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import Redis from 'ioredis'
 import { v4 as uuidv4 } from 'uuid'
 import { auth } from './auth'
+import { openAPI } from "better-auth/plugins"
 
 export const app = new Hono()
 
@@ -102,6 +103,7 @@ app.get('/', (c) => c.text('Better Auth Service Running '))
 
 // OpenAPI Schema
 app.get('/openapi.json', async (c) => {
+  // @ts-ignore
   const openAPISchema = await auth.api.generateOpenAPISchema();
   return c.json(openAPISchema);
 });
