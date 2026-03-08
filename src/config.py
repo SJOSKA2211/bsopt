@@ -144,6 +144,10 @@ class Settings(BaseSettings):
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 
+    # Better Auth Configuration
+    BETTER_AUTH_SECRET: str = Field(default="", validation_alias="BETTER_AUTH_SECRET")
+    BETTER_AUTH_URL: str = Field(default="http://localhost:3001", validation_alias="BETTER_AUTH_URL")
+
     # Password Hashing
     BCRYPT_ROUNDS: int = 12
 
@@ -298,6 +302,11 @@ class Settings(BaseSettings):
                     "security_warning: email verification is DISABLED in production",
                     environment=self.ENVIRONMENT,
                 )
+
+            # 3. Better Auth Secret Security
+            if self.is_production and not self.BETTER_AUTH_SECRET:
+                # The auth-service (Node.js) already enforces this, but let's be safe here too.
+                raise ValueError("CRITICAL: BETTER_AUTH_SECRET must be set in production.")
 
         return self
 
