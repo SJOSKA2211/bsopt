@@ -247,8 +247,7 @@ export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   const { variants } = useMotion();
   const [activeTime, setActiveTime] = React.useState('1M');
-  // @ts-ignore
-  const qfd = theme.palette.financial?.qfd;
+  const qfd = theme.palette.financial.qfd;
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>

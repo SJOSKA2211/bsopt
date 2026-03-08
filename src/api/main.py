@@ -77,6 +77,9 @@ async def lifespan(app: FastAPI):
     # Shutdown
     from src.database import dispose_engine
     from src.utils.cache import close_redis_cache
+    from src.api.websockets.manager import manager
+
+    await manager.close()
     await dispose_engine()
     await close_redis_cache()
     logger.info("api_shutdown_complete_database_engines_disposed")

@@ -191,7 +191,34 @@ class BSOptDistributedTrainer:
 
 
 if __name__ == "__main__":
-    # Local verification if run directly
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Run Distributed DT Training")
+    parser.add_argument("--epochs", type=int, default=10)
+    parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--use_gpu", action="store_true")
+    parser.add_argument("--dataset", type=str, default="data/trajectories.parquet")
+    parser.add_argument("--study_name", type=str, default="distributed_dt_v1")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    if args.tracking_uri:
+        os.environ["MLFLOW_TRACKING_URI"] = args.tracking_uri
+
+    # Initialize Ray
     ray.init(ignore_reinit_error=True)
-    dt = BSOptDistributedTrainer(num_workers=1)  # 1 worker for local test
-    dt.run({"lr": 1e-4, "epochs": 1, "dataset_size": 100})
+    
+    config = {
+        "lr": args.lr,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "dataset_path": args.dataset,
+        "study_name": args.study_name,
+    }
+    
+    dt = BSOptDistributedTrainer(num_workers=args.workers, use_gpu=args.use_gpu)
+    dt.run(config)

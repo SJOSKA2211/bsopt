@@ -40,11 +40,11 @@ const LoadingFallback: React.FC = () => (
 const SYMBOLS = ['AAPL', 'SPY', 'QQQ', 'NVDA', 'TSLA'];
 
 const MARKET_PULSE = [
-  { label: 'IV Rank', value: '42.3%', color: '#fbbf24', icon: <IVIcon sx={{ fontSize: 14 }} /> },
-  { label: 'HV30', value: '28.1%', color: '#38bdf8', icon: <HVIcon sx={{ fontSize: 14 }} /> },
-  { label: 'P/C Ratio', value: '0.87', color: '#10b981', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
-  { label: 'Volume', value: '73.2M', color: '#f8fafc', icon: null },
-  { label: 'Open Int.', value: '4.82B', color: '#f8fafc', icon: null },
+  { label: 'IV Rank', value: '42.3%', type: 'nebula', icon: <IVIcon sx={{ fontSize: 14 }} /> },
+  { label: 'HV30', value: '28.1%', type: 'sky', icon: <HVIcon sx={{ fontSize: 14 }} /> },
+  { label: 'P/C Ratio', value: '0.87', type: 'quantum', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
+  { label: 'Volume', value: '73.2M', type: 'electrum', icon: null },
+  { label: 'Open Int.', value: '4.82B', type: 'electrum', icon: null },
 ];
 
 export const MarketPage: React.FC = () => {
@@ -120,10 +120,10 @@ export const MarketPage: React.FC = () => {
             },
             '& .Mui-selected': { color: 'primary.main !important' },
             '& .MuiTabs-indicator': {
-              background: 'linear-gradient(90deg, #00FFFF, #7B68EE)',
+              background: `linear-gradient(90deg, ${theme.palette.financial.qfd.quantum}, ${theme.palette.financial.qfd.nebula})`,
               borderRadius: 3,
               height: 4,
-              boxShadow: `0 0 15px ${alpha('#00FFFF', 0.5)}`,
+              boxShadow: `0 0 15px ${alpha(theme.palette.financial.qfd.quantum, 0.5)}`,
             },
           }}
         >
@@ -156,46 +156,49 @@ export const MarketPage: React.FC = () => {
               <Box sx={{ width: 1, bgcolor: alpha('#94a3b8', 0.1) }} />
             }
           >
-            {MARKET_PULSE.map((stat) => (
-              <Box
-                key={stat.label}
-                sx={{
-                  flex: 1,
-                  py: 2.5,
-                  px: 2.5,
-                  textAlign: 'center',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    bgcolor: alpha('#7B68EE', 0.05),
-                    transform: 'scale(1.02)',
-                  },
-                }}
-              >
-                <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mb: 1 }}>
-                  {stat.icon && (
-                    <Box sx={{ color: stat.color, display: 'flex', filter: `drop-shadow(0 0 5px ${stat.color})` }}>{stat.icon}</Box>
-                  )}
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.12em', fontSize: '0.65rem', textTransform: 'uppercase' }}
-                  >
-                    {stat.label}
-                  </Typography>
-                </Stack>
-                <Typography
-                  variant="body2"
+            {MARKET_PULSE.map((stat) => {
+              const accentColor = (theme.palette.financial.qfd as any)[stat.type] || theme.palette.text.primary;
+              return (
+                <Box
+                  key={stat.label}
                   sx={{
-                    fontWeight: 900,
-                    color: stat.color,
-                    fontFamily: 'JetBrains Mono',
-                    fontSize: '1.15rem',
-                    letterSpacing: '-0.02em'
+                    flex: 1,
+                    py: 2.5,
+                    px: 2.5,
+                    textAlign: 'center',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      bgcolor: alpha(accentColor, 0.05),
+                      transform: 'scale(1.02)',
+                    },
                   }}
                 >
-                  {stat.value}
-                </Typography>
-              </Box>
-            ))}
+                  <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mb: 1 }}>
+                    {stat.icon && (
+                      <Box sx={{ color: accentColor, display: 'flex', filter: `drop-shadow(0 0 5px ${accentColor})` }}>{stat.icon}</Box>
+                    )}
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.12em', fontSize: '0.65rem', textTransform: 'uppercase' }}
+                    >
+                      {stat.label}
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 900,
+                      color: accentColor,
+                      fontFamily: 'JetBrains Mono',
+                      fontSize: '1.15rem',
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    {stat.value}
+                  </Typography>
+                </Box>
+              );
+            })}
           </Stack>
         </Paper>
       </motion.div>

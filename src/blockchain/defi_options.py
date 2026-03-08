@@ -326,6 +326,7 @@ class DeFiOptionsProtocol:
                 await self.nonce_manager.reset(
                     lambda: self.w3.eth.get_transaction_count(self.address)
                 )
+            await self._handle_rpc_failure() # COMPLIANCE: Trigger breaker on TX failure
             raise
 
     async def buy_option_gasless(
@@ -488,6 +489,8 @@ class DeFiOptionsProtocol:
         Smart Order Router (SOR) v2.1 - Ultra-Low Latency & Gas-Aware.
         Optimized for high-frequency DeFi options execution.
         """
+        await self._check_circuit() # COMPLIANCE
+
         # Dynamic venue discovery (In PROD, this would fetch from a registry)
         venues = [
             {"name": "Lyra-V2", "price": 100.2, "liquidity": 1200000.0, "gas_estimate": 142000, "latency_ms": 12},
@@ -496,23 +499,32 @@ class DeFiOptionsProtocol:
         ]
 
         try:
-            gas_price = await self.w3.eth.gas_price
-            gas_price_eth = float(Web3.from_wei(gas_price, "ether"))
+            # OPTIMIZATION: Fetch real-time gas prices for selection
+            fee_history = await self.w3.eth.fee_history(1, "latest", [25.0])
+            base_fee = fee_history["baseFeePerGas"][-1]
+            priority_fee = fee_history["reward"][-1][0]
+            gas_price_eth = float(Web3.from_wei(base_fee + priority_fee, "ether"))
         except Exception:
             gas_price_eth = 40e-9 # Fallback (40 gwei)
 
         def execution_cost(v):
-            # 1. SLIPPAGE MODEL: Advanced sqrt(L) sensitivity with quadratic penalty for large orders
-            slippage_factor = (amount / v["liquidity"])
-            slippage_penalty = 0.5 * (slippage_factor ** 2) if slippage_factor > 0.1 else 0.5 * slippage_factor
-            expected_price = v["price"] * (1 + slippage_penalty)
+            # 1. ADVANCED SLIPPAGE MODEL: Permanent vs Temporary Impact
+            # Permanent impact: K * (amount/L)^0.5
+            # Temporary impact: K' * (amount/L)
+            utilization = amount / v["liquidity"]
+            permanent = 0.1 * (utilization ** 0.5)
+            temporary = 0.2 * utilization
+            total_slippage = permanent + temporary
+            
+            expected_price = v["price"] * (1 + total_slippage)
             
             # 2. GAS OPTIMIZATION
             gas_cost_native = v["gas_estimate"] * gas_price_eth
             
             # 3. HFT LATENCY: Penalty = sigma * P * sqrt(dt)
             volatility_assumption = 0.8 # 80% IV
-            latency_penalty = (v["latency_ms"] / 1000.0)**0.5 * volatility_assumption * v["price"] * 0.001
+            latency_seconds = v["latency_ms"] / 1000.0
+            latency_penalty = (latency_seconds ** 0.5) * volatility_assumption * v["price"] * 0.002
             
             return expected_price + gas_cost_native + latency_penalty
 
@@ -530,7 +542,7 @@ class DeFiOptionsProtocol:
         )
         
         best_venue["estimated_total_cost"] = total_effective_price
-        best_venue["routing_version"] = "2.1-GOD-MODE"
+        best_venue["routing_version"] = "2.2-HARDENED"
         return best_venue
 
     async def watch_mempool(self, callback, iterations: int = -1):

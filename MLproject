@@ -13,6 +13,17 @@ entry_points:
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.pipeline --ticker {ticker} --framework {framework} --n_trials {n_trials} --study_name {study_name} --tracking_uri {tracking_uri}"
 
+  train_distributed_dt:
+    parameters:
+      epochs: {type: int, default: 10}
+      lr: {type: float, default: 0.0001}
+      batch_size: {type: int, default: 64}
+      workers: {type: int, default: 2}
+      dataset: {type: string, default: "data/trajectories.parquet"}
+      study_name: {type: string, default: "distributed_dt_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.distributed_training --epochs {epochs} --lr {lr} --batch_size {batch_size} --workers {workers} --dataset {dataset} --study_name {study_name} --tracking_uri {tracking_uri}"
+
   evaluate_challenger:
     parameters:
       model: {type: string}

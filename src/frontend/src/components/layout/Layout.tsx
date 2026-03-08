@@ -200,10 +200,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Typography
               variant="h6"
               sx={{
-                fontWeight: 800,
-                letterSpacing: '-0.01em',
-                fontSize: '1.05rem',
-                background: 'linear-gradient(135deg, #10b981, #38bdf8)',
+                fontWeight: 900,
+                letterSpacing: '-0.04em',
+                fontSize: '1.25rem',
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -302,8 +302,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                               bottom: '20%',
                               width: 3,
                               borderRadius: '0 3px 3px 0',
-                              background: 'linear-gradient(180deg, #10b981, #38bdf8)',
-                              boxShadow: `0 0 8px ${alpha('#10b981', 0.6)}`,
+                              background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                              boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.6)}`,
                             },
                           }),
                         }}

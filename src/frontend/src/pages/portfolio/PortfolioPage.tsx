@@ -44,10 +44,10 @@ const POSITIONS = [
 ];
 
 const KPI_CARDS = [
-  { label: 'Total Portfolio', value: '$48,392', sub: '+$3,240 this week', positive: true, color: '#10b981' },
-  { label: 'Total P&L', value: '+$8,942', sub: '+22.6% YTD', positive: true, color: '#10b981' },
-  { label: 'Unrealized P&L', value: '+$2,341', sub: 'Today\'s change', positive: true, color: '#38bdf8' },
-  { label: 'Options Exposure', value: '$12,840', sub: '33.4% of portfolio', positive: null, color: '#fbbf24' },
+  { label: 'Total Portfolio', value: '$48,392', sub: '+$3,240 this week', type: 'quantum', positive: true },
+  { label: 'Total P&L', value: '+$8,942', sub: '+22.6% YTD', type: 'quantum', positive: true },
+  { label: 'Unrealized P&L', value: '+$2,341', sub: "Today's change", type: 'nebula', positive: true },
+  { label: 'Options Exposure', value: '$12,840', sub: '33.4% of portfolio', type: 'electrum', positive: null },
 ];
 
 // Simple SVG donut chart
@@ -166,46 +166,49 @@ export const PortfolioPage: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          {KPI_CARDS.map((kpi, idx) => (
-            <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
-              <motion.div whileHover={{ translateY: -5 }} transition={{ duration: 0.2 }}>
-                <Paper
-                  className="stat-card"
-                  sx={{
-                    p: 3,
-                    borderRadius: 6,
-                    background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
-                    backdropFilter: 'blur(40px) saturate(200%)',
-                    border: `1px solid ${alpha(kpi.color, 0.15)}`,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    height: '100%'
-                  }}
-                >
-                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 3, background: `linear-gradient(90deg, transparent, ${kpi.color}, transparent)`, opacity: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                    {kpi.label}
-                  </Typography>
-                  <Typography
-                    variant="h4"
+          {KPI_CARDS.map((kpi, idx) => {
+            const accentColor = (theme.palette.financial.qfd as any)[kpi.type] || theme.palette.primary.main;
+            return (
+              <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
+                <motion.div whileHover={{ translateY: -5 }} transition={{ duration: 0.2 }}>
+                  <Paper
+                    className="stat-card"
                     sx={{
-                      fontWeight: 900,
-                      my: 1,
-                      fontFamily: 'JetBrains Mono',
-                      color: kpi.positive ? kpi.color : 'text.primary',
-                      fontSize: '1.6rem',
-                      letterSpacing: '-0.02em'
+                      p: 3,
+                      borderRadius: 6,
+                      background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+                      backdropFilter: 'blur(40px) saturate(200%)',
+                      border: `1px solid ${alpha(accentColor, 0.15)}`,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      height: '100%'
                     }}
                   >
-                    {kpi.value}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: kpi.positive ? kpi.color : kpi.positive === false ? 'error.main' : 'warning.main', fontWeight: 800 }}>
-                    {kpi.sub}
-                  </Typography>
-                </Paper>
-              </motion.div>
-            </Grid>
-          ))}
+                    <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 3, background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`, opacity: 0.5 }} />
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                      {kpi.label}
+                    </Typography>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 900,
+                        my: 1,
+                        fontFamily: 'JetBrains Mono',
+                        color: kpi.positive ? accentColor : 'text.primary',
+                        fontSize: '1.6rem',
+                        letterSpacing: '-0.02em'
+                      }}
+                    >
+                      {kpi.value}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: kpi.positive ? accentColor : kpi.positive === false ? 'error.main' : 'warning.main', fontWeight: 800 }}>
+                      {kpi.sub}
+                    </Typography>
+                  </Paper>
+                </motion.div>
+              </Grid>
+            );
+          })}
         </Grid>
       </motion.div>
 
