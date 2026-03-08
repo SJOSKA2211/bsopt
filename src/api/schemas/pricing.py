@@ -5,10 +5,10 @@ High-performance schemas using msgspec for ultra-low latency serialization.
 Fallback to Pydantic for complex validation if needed, but core paths use msgspec.
 """
 
-import msgspec
 from datetime import UTC, datetime
 from typing import Any, Literal
 
+import msgspec
 from pydantic import BaseModel, Field
 
 

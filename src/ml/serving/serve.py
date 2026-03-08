@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 import time
@@ -9,7 +8,6 @@ from typing import Any
 import mlflow
 import mlflow.pyfunc
 import numpy as np
-import onnxruntime as ort
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import ORJSONResponse, Response

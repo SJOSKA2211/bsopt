@@ -11,10 +11,10 @@ import grpc
 import structlog
 
 from src.api.schemas.ml import InferenceRequest, InferenceResponse
-from src.database.pipeliner import db_engine
-from src.shared.observability import ML_PROXY_PREDICT_LATENCY
 from src.config import settings
+from src.database.pipeliner import db_engine
 from src.protos import inference_pb2, inference_pb2_grpc
+from src.shared.observability import ML_PROXY_PREDICT_LATENCY
 
 logger = structlog.get_logger(__name__)
 

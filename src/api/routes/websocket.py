@@ -1,7 +1,9 @@
-import structlog
 import time
+
+import structlog
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
+from src.api.websockets.codec import WebSocketCodec
 from src.api.websockets.manager import ProtocolType, manager
 
 # In a real app, we would import auth dependencies here

@@ -45,6 +45,7 @@ class FederatedLearningCoordinator:
 
 if __name__ == "__main__":
     import argparse
+
     import mlflow
 
     parser = argparse.ArgumentParser(description="Run Federated Learning Coordinator")

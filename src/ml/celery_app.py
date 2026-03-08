@@ -38,6 +38,7 @@ def setup_direct_queues(sender, **kwargs):
     @worker_shutdown.connect
     def shutdown_db_manager(**kwargs):
         import asyncio
+
         from src.database import db_manager
         logger.info("celery_worker_shutting_down_cleaning_db_pool")
         try:

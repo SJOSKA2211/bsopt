@@ -3,7 +3,7 @@ import numpy as np
 import structlog
 from gymnasium import spaces
 
-from .kernels import _calculate_reward_kernel, _fused_state_kernel, _trading_step_kernel
+from .kernels import _fused_state_kernel, _trading_step_kernel
 
 logger = structlog.get_logger()
 

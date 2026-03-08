@@ -1,9 +1,10 @@
 import asyncio
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
-from fastapi.responses import ORJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
+from src.api.responses import MsgspecJSONResponse
 from src.pricing.graphql.schema import get_context, schema
 from src.pricing.quant_utils import warmup_jit
 from src.shared.observability import (
@@ -11,7 +12,7 @@ from src.shared.observability import (
     setup_logging,
     tune_gc,
 )
-from src.api.responses import MsgspecJSONResponse
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

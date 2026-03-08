@@ -1,7 +1,9 @@
 import time
+
 import numpy as np
-from src.trading.risk_kernels import IncrementalDeltaTracker, _validate_order_kernel
 import structlog
+
+from src.trading.risk_kernels import IncrementalDeltaTracker, _validate_order_kernel
 
 logger = structlog.get_logger()
 

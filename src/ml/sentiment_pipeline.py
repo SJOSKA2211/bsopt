@@ -3,7 +3,7 @@ from typing import Any
 
 import orjson
 import structlog
-from confluent_kafka import Consumer, KafkaError, Producer
+from confluent_kafka import Consumer, Producer
 
 from src.ml.reinforcement_learning.augmented_agent import SentimentExtractor
 
@@ -35,59 +35,52 @@ class SentimentIngestor:
         )
         self.consumer.subscribe([self.topic])
 
-    async def process_news_message(self, message_bytes: bytes) -> None:
+    async def process_batch(self, messages: list[bytes]) -> None:
         """
-        Process a single message payload using optimized serialization.
+        God-Mode: Batch process messages for high throughput.
         """
-        try:
-            data = orjson.loads(message_bytes)
-        except Exception:
-            logger.error("failed_to_decode_message")
-            return
+        results = []
+        for msg in messages:
+            try:
+                data = orjson.loads(msg)
+                text = data.get("text", "")
+                if text:
+                    score = self.extractor.get_sentiment_score(text)
+                    results.append({
+                        "symbol": data.get("symbol", "GLOBAL"),
+                        "sentiment": score,
+                        "timestamp": data.get("timestamp")
+                    })
+            except Exception:
+                continue
+        
+        if results and self.producer:
+            # High-speed batch publishing
+            for res in results:
+                self.producer.produce(
+                    "model.signals",
+                    key=res["symbol"].encode("utf-8"),
+                    value=orjson.dumps(res),
+                )
+            self.producer.flush()
+            logger.info("sentiment_batch_processed", count=len(results))
 
-        text = data.get("text", "")
-        if not text:
-            return
-
-        # Extract sentiment
-        score = self.extractor.get_sentiment_score(text)
-
-        # Publish result
-        result = {
-            "original_data": data,
-            "sentiment_score": score,
-            "signal_type": "sentiment",
-        }
-
-        # Check if producer is available (might be mocked)
-        if self.producer:
-            self.producer.produce(
-                "model.signals",
-                key=data.get("symbol", "GLOBAL").encode("utf-8"),
-                value=orjson.dumps(result),
-            )
-            self.producer.poll(0)
-
-    def run(self):
+    def run(self, batch_size: int = 10):
         """
-        Main high-performance consumption loop.
+        Main high-performance consumption loop with batching.
         """
-        logger.info("sentiment_ingestor_loop_start")
+        logger.info("sentiment_ingestor_loop_start", batch_size=batch_size)
+        messages = []
         try:
             while True:
-                msg = self.consumer.poll(1.0)
-                if msg is None:
-                    continue
-                if msg.error():
-                    error = msg.error()
-                    if hasattr(error, "code") and error.code() == KafkaError._PARTITION_EOF:
-                        continue
-
-                    logger.error("kafka_consumer_error", error=str(error))
-                    continue
-
-                # Process message
-                asyncio.run(self.process_news_message(msg.value()))
+                msg = self.consumer.poll(0.1)
+                if msg is not None:
+                    if not msg.error():
+                        messages.append(msg.value())
+                    
+                if len(messages) >= batch_size or (messages and msg is None):
+                    asyncio.run(self.process_batch(messages))
+                    messages = []
 
         except Exception as e:
             logger.error("sentiment_ingestor_crashed", error=str(e))
@@ -143,3 +136,17 @@ class SentimentPipeline:
         # Note: SentimentIngestor.run() is synchronous/blocking,
         # so we run it in a thread to not block the event loop if called from async code
         await asyncio.to_thread(ingestor.run)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run Sentiment Ingestor")
+    parser.add_argument("--batch_size", type=int, default=10)
+    parser.add_argument("--topic", type=str, default="scraper.news")
+    parser.add_argument("--broker", type=str, default="kafka-1:9092")
+
+    args = parser.parse_args()
+
+    ingestor = SentimentIngestor(bootstrap_servers=args.broker, topic=args.topic)
+    ingestor.run(batch_size=args.batch_size)

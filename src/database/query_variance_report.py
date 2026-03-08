@@ -4,9 +4,11 @@ Analyzes execution jitter for mission-critical risk and pricing queries.
 """
 
 import time
+
 import numpy as np
 import structlog
 from sqlalchemy import text
+
 from src.database import get_engine
 
 logger = structlog.get_logger(__name__)
@@ -49,7 +51,7 @@ def run_variance_audit(iterations: int = 100):
         if p99 > 10.0:  # Arbitrary threshold for "high jitter"
             print(f"  ⚠️ ALERT: High P99 jitter detected for {name}!")
         else:
-            print(f"  ✅ Stability: EXCELLENT")
+            print("  ✅ Stability: EXCELLENT")
         print("")
 
 if __name__ == "__main__":

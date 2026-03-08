@@ -5,17 +5,16 @@ Implements SVI and SABR models for volatility surface calibration.
 Fully implemented with least squares optimization and arbitrage detection.
 """
 
+import time
 import warnings
-from datetime import date, timedelta
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, cast
-import time
 
 import numpy as np
+import structlog
 from numba import njit, prange
 from scipy.optimize import least_squares
-import structlog
 
 try:
     import bsopt_core
@@ -25,7 +24,6 @@ except ImportError:
 
 logger = structlog.get_logger(__name__)
 
-from dataclasses import dataclass
 
 
 @dataclass(slots=True)

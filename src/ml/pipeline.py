@@ -142,10 +142,13 @@ class MLPipeline:
             else:
                 raise e
 
-        df_featured = self.generate_features(df)
+        # 2. Lifecycle: Initialize Compute Manifold
+        from src.ml.utils.distributed import RayClusterManager
+        RayClusterManager.initialize()
 
-        # 2. Advanced Drift Check
-        if not force:
+        try:
+            # 2. Advanced Drift Check
+            if not force:
             async with get_async_db_context() as session:
                 current_perf = await self.get_current_model_performance(session)
 

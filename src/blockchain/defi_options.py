@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+from collections.abc import Callable
 
 import structlog
 from eth_account import Account

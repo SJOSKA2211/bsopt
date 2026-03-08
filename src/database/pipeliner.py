@@ -1,9 +1,6 @@
 import asyncio
 
-import asyncpg
 import structlog
-
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 

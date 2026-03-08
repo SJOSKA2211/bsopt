@@ -1,7 +1,10 @@
-import hashlib
 import base64
+import hashlib
+
 import pytest
-from src.config import Settings, _DEFAULT_DEV_MFA_KEY
+
+from src.config import _DEFAULT_DEV_MFA_KEY, Settings
+
 
 def test_secret_derivation_from_better_auth_secret():
     """Test that secrets are derived deterministically from BETTER_AUTH_SECRET."""
@@ -46,7 +49,6 @@ def test_explicit_secrets_override_derivation():
 
 def test_production_requires_better_auth_secret():
     """Test that production environment requires BETTER_AUTH_SECRET."""
-    from pydantic import ValidationError
     
     with pytest.raises(ValueError, match="BETTER_AUTH_SECRET must be set in production"):
         Settings(

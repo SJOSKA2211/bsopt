@@ -254,6 +254,7 @@ class PriceTFTModel:
 if __name__ == "__main__":
     import argparse
     import asyncio
+
     from src.ml.pipeline import MLPipeline
 
     parser = argparse.ArgumentParser(description="Train Temporal Fusion Transformer")

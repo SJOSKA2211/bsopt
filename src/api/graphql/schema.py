@@ -149,8 +149,8 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
-        from src.services.ml_service import get_ml_service
         from src.api.schemas.ml import InferenceRequest
+        from src.services.ml_service import get_ml_service
         
         ml_service = get_ml_service()
         

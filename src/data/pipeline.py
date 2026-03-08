@@ -3,8 +3,8 @@ from enum import Enum
 from typing import Any
 
 import numpy as np
-from numba import njit, prange
 import structlog
+from numba import njit
 
 logger = structlog.get_logger(__name__)
 
@@ -145,6 +145,7 @@ class DataPipeline:
         # Concatenate New Features
         X = np.column_stack([X_base, iv_lag, price_lag, iv_ma5, iv_ma20, price_ma5, price_ma20])
 
+        feature_names = ["strike", "maturity", "iv", "rate", "dividend"]
         feature_names += [
             "iv_lag1",
             "price_lag1",

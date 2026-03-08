@@ -1,5 +1,3 @@
-import requests
-from datetime import datetime, timedelta
 
 # This test verifies that the Python backend can validate a Better Auth session
 PYTHON_API_URL = "http://127.0.0.1:8000"

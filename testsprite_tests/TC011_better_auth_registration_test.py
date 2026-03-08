@@ -1,4 +1,5 @@
 import uuid
+
 import requests
 
 # Point to the new auth-service (Node.js)

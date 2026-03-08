@@ -1,10 +1,11 @@
 import asyncio
 import os
+from contextlib import asynccontextmanager
 
 import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import ORJSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
@@ -18,7 +19,6 @@ from src.api.middleware.security import (
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
-from contextlib import asynccontextmanager
 from src.api.routes import (
     auth_router,
     debug_router,
@@ -29,8 +29,8 @@ from src.api.routes import (
     users_router,
     websocket_router,
 )
-from src.security.auth import RoleChecker
 from src.config import settings
+from src.security.auth import RoleChecker
 from src.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging
@@ -75,9 +75,9 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
+    from src.api.websockets.manager import manager
     from src.database import dispose_engine
     from src.utils.cache import close_redis_cache
-    from src.api.websockets.manager import manager
 
     await manager.close()
     await dispose_engine()

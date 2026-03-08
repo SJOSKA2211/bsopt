@@ -42,8 +42,9 @@ class ModelCheckpoint:
         self.best_score = float("inf") if mode == "min" else -float("inf")
 
     def __call__(self, current_score: float, model: Any):
-        import torch
         import os
+
+        import torch
         
         is_best = (current_score < self.best_score) if self.mode == "min" else (current_score > self.best_score)
         

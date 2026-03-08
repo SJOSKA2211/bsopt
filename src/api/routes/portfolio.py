@@ -9,14 +9,13 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse
 from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
 from src.security.auth import get_current_active_user
-
-from sqlalchemy.orm import selectinload
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse)
 

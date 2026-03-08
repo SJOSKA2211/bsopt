@@ -3,7 +3,6 @@ import struct
 import time
 from multiprocessing import shared_memory
 
-from typing import Any, Optional, cast
 import msgspec
 import numpy as np
 import structlog
@@ -86,7 +85,7 @@ class RiskStateBuffer:
 
     def __init__(self, create: bool = False):
         self.size = RISK_STATE_DTYPE.itemsize
-        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.shm: shared_memory.SharedMemory | None = None
         self.buf: memoryview
         try:
             if create:
@@ -148,7 +147,7 @@ class OrderBuffer:
 
     def __init__(self, create: bool = False):
         self.size = (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8
-        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.shm: shared_memory.SharedMemory | None = None
         self.buf: memoryview
         try:
             if create:
@@ -200,7 +199,7 @@ class ExecutionBuffer:
 
     def __init__(self, create: bool = False):
         self.size = (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8
-        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.shm: shared_memory.SharedMemory | None = None
         self.buf: memoryview
         try:
             if create:
@@ -238,7 +237,7 @@ class SharedMemoryRingBuffer:
 
     def __init__(self, create: bool = False):
         self.shm_size = (TICK_SIZE * BUFFER_CAPACITY) + 8
-        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.shm: shared_memory.SharedMemory | None = None
         self.buf: memoryview
 
         try:

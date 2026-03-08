@@ -1,7 +1,6 @@
 import asyncio
-import random
 import threading
-from typing import Any, Type, TypeVar
+from typing import Any, TypeVar
 
 import ray
 import structlog
@@ -15,7 +14,7 @@ class RayActorPool:
     God-Mode Ray Actor Pool: Handles round-robin load balancing and lifecycle management.
     OPTIMIZED: Dynamic scaling based on cluster resources.
     """
-    def __init__(self, actor_class: Type[T], count: int | None = None, name: str = "default"):
+    def __init__(self, actor_class: type[T], count: int | None = None, name: str = "default"):
         self._actor_class = actor_class
         self._name = name
         self._count = count or self._detect_optimal_count()

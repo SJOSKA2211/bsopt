@@ -3,7 +3,6 @@
 Application configuration management.
 """
 
-import base64
 import os
 from typing import Annotated
 
@@ -268,8 +267,8 @@ class Settings(BaseSettings):
 
         # Derivation logic (Shared between dev and prod if master secret exists)
         if self.BETTER_AUTH_SECRET:
-            import hashlib
             import base64
+            import hashlib
 
             # Derive MFA Encryption Key if not explicitly set
             if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [_DEFAULT_DEV_MFA_KEY, "INSECURE_DEV_PLACEHOLDER"]:

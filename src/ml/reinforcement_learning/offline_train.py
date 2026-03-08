@@ -8,7 +8,11 @@ import torch as th
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
-from src.ml.reinforcement_learning.decision_transformer import DecisionTransformer, QNetwork, ValueNetwork
+from src.ml.reinforcement_learning.decision_transformer import (
+    DecisionTransformer,
+    QNetwork,
+    ValueNetwork,
+)
 
 logger = structlog.get_logger()
 

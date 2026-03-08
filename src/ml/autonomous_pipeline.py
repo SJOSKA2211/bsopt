@@ -13,7 +13,6 @@ from typing import Any
 import pandas as pd
 
 # Re-export or import expected symbols for `@patch`
-from src.ml.indicators import get_rsi
 
 
 # Need a fake Base for the test's `patch("...Base.metadata.create_all")`
@@ -53,8 +52,9 @@ class AutonomousMLPipeline:
         """
         Calculates indicators using the optimized Feature Store.
         """
-        from src.ml.feature_store.store import feature_store
         import asyncio
+
+        from src.ml.feature_store.store import feature_store
         
         # Synchronous wrapper for feature computation
         required = ["log_return", "RSI_14", "EMA_20"]

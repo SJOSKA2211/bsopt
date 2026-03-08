@@ -1,7 +1,8 @@
 import asyncio
 import time
-import numpy as np
-from src.shared.shm_mesh import SharedMemoryRingBuffer, MarketTick
+
+from src.shared.shm_mesh import SharedMemoryRingBuffer
+
 
 async def test_data_flow():
     print("Testing Manifold Data Flow...")

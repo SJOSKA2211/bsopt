@@ -6,7 +6,13 @@ import structlog
 from fastapi import APIRouter, Request
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.schemas.pricing import BatchPriceRequest, GreeksRequest, PriceRequest, PriceResult, BatchPriceResult
+from src.api.schemas.pricing import (
+    BatchPriceRequest,
+    BatchPriceResult,
+    GreeksRequest,
+    PriceRequest,
+    PriceResult,
+)
 from src.services.pricing_service import PricingService
 
 logger = structlog.get_logger(__name__)

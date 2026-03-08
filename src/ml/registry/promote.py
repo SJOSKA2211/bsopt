@@ -36,8 +36,9 @@ def notify_app_of_update(model_name, version):
     """
     Triggers a reload in the serving layer.
     """
-    import httpx
     import asyncio
+
+    import httpx
 
     serving_url = "http://api:8000/ml/reload"
     logger.info("notifying_serving_layer", model=model_name, version=version, url=serving_url)

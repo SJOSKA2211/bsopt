@@ -104,7 +104,9 @@ class PricingDriftDetector:
 if __name__ == "__main__":
     import argparse
     import asyncio
+
     import mlflow
+
     from src.ml.pipeline import MLPipeline
 
     parser = argparse.ArgumentParser(description="Run Drift Detection")
