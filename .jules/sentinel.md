@@ -11,3 +11,7 @@
 **Vulnerability:** The API had defined but unused security middlewares (`IPBlockMiddleware`, `CSRFMiddleware`). These were omitted from the main application startup file, leaving the application vulnerable to IP-based attacks (e.g., brute force, DDoS) and CSRF attacks for state-changing endpoints.
 **Learning:** Adding new security middleware to the repository is not sufficient; they must be explicitly registered to the application's middleware stack in `main.py` in the correct order.
 **Prevention:** Always verify integration of new security middleware definitions in the main application entry point (`main.py`). Consider enforcing this through an automated linting or testing rule that ensures all exported security middleware classes are applied.
+## 2026-03-01 - [SQL Injection via SET LOCAL]
+**Vulnerability:** The `set_user_context` function used `SET LOCAL` with parameterized queries using `text()`. However, `SET LOCAL` does not safely parameterize variables in PostgreSQL; it simply interpolates them, making it vulnerable to SQL injection.
+**Learning:** `SET LOCAL var = :val` can be vulnerable to injection or syntax errors depending on the driver implementation and how PostgreSQL handles parameterized identifiers/values in utility statements. `set_config` is the safer, standard function for this.
+**Prevention:** Always use `set_config('var', :val, true)` instead of `SET LOCAL` when setting session variables with SQLAlchemy `text()` and parameter dictionaries.

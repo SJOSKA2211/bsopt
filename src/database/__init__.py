@@ -1,9 +1,9 @@
 import time
-import msgspec
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any
 
+import msgspec
 import structlog
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
@@ -24,8 +24,10 @@ logger = structlog.get_logger(__name__)
 _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
+
 def msgspec_dumps(obj):
     return _encoder.encode(obj).decode()
+
 
 def msgspec_loads(s):
     return _decoder.decode(s)
@@ -50,8 +52,10 @@ def get_db_urls():
 
     # 🚀 GOD-MODE: Favor psycopg (v3) for sync path
     separator = "&" if "?" in db_url else "?"
-    sync_url = f"{db_url}{separator}application_name={app_name}".replace("postgresql://", "postgresql+psycopg://")
-    
+    sync_url = f"{db_url}{separator}application_name={app_name}".replace(
+        "postgresql://", "postgresql+psycopg://"
+    )
+
     # Async path favors asyncpg
     async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
@@ -114,13 +118,15 @@ def get_engine() -> Engine:
 
         # ⚡ SERIALIZATION WEAPONIZATION
         _engine = create_engine(
-            sync_url, 
-            poolclass=pool_class, 
+            sync_url,
+            poolclass=pool_class,
             json_serializer=msgspec_dumps,
             json_deserializer=msgspec_loads,
-            **pool_kwargs
+            **pool_kwargs,
         )
-        logger.info("sync_engine_initialized", driver="psycopg3", pgbouncer=settings.PGBOUNCER_ENABLED)
+        logger.info(
+            "sync_engine_initialized", driver="psycopg3", pgbouncer=settings.PGBOUNCER_ENABLED
+        )
 
     return _engine
 
@@ -229,7 +235,7 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
 async def set_user_context(session: AsyncSession, user_id: str):
     """Sets the app.current_user_id in the Postgres session for RLS."""
     await session.execute(
-        text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
+        text("SELECT set_config('app.current_user_id', :user_id, true)"), {"user_id": str(user_id)}
     )
 
 
