@@ -37,13 +37,8 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # 2. Start Infrastructure via Delegation
-RUNNING_INFRA=$($DOCKER_COMPOSE ps --services --filter "status=running")
-if [[ ! $RUNNING_INFRA =~ "postgres" ]] || [[ ! $RUNNING_INFRA =~ "redis" ]]; then
-    echo "🥒 Starting Infrastructure via start_infra.sh..."
-    ./scripts/start_infra.sh
-else
-    echo "✅ Infrastructure already running. Skipping redundant setup."
-fi
+echo "🥒 Ensuring Infrastructure is UP via start_infra.sh..."
+./scripts/start_infra.sh
 
 # 3. Run Lint if requested
 if [ "$RUN_LINT" = true ]; then
