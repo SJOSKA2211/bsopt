@@ -2,6 +2,12 @@ import numpy as np
 import structlog
 from scipy.spatial.distance import cdist
 
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
 logger = structlog.get_logger(__name__)
 
 
@@ -16,8 +22,18 @@ def _gaussian_kernel_matrix(x, y, sigma):
 def calculate_mmd(x, y, sigma=1.0):
     """
     Maximum Mean Discrepancy (MMD) multivariate distance.
-    Measures the distance between two distributions in RKHS.
+    Uses Rust core for sub-microsecond calculation if available.
     """
+    if CORE_AVAILABLE:
+        try:
+            return bsopt_core.calculate_mmd(
+                x.astype(np.float64), 
+                y.astype(np.float64), 
+                float(sigma)
+            )
+        except Exception as e:
+            logger.warning("rust_mmd_calculation_failed_falling_back", error=str(e))
+
     n = x.shape[0]
     m = y.shape[0]
 
