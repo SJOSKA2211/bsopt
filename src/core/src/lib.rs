@@ -394,6 +394,15 @@ fn calculate_psi(expected: Bound<'_, PyArray1<f64>>, actual: Bound<'_, PyArray1<
 }
 
 #[pyfunction]
+fn calculate_mmd(expected: Bound<'_, PyArray1<f64>>, actual: Bound<'_, PyArray1<f64>>) -> f64 {
+    let expected = unsafe { expected.as_array() };
+    let actual = unsafe { actual.as_array() };
+
+    // MMD Stub
+    let term_xx = 0.0;
+    let term_yy = 0.0;
+    let term_xy = 0.0;
+
     (term_xx + term_yy - 2.0 * term_xy).max(0.0).sqrt()
 }
 
