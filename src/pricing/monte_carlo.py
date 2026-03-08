@@ -17,6 +17,12 @@ from src.pricing.quant_utils import (
 
 from .base import PricingStrategy
 
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
 
 @dataclass
 class MCConfig:
@@ -229,6 +235,29 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             # For European options, dimension d=1 (time step)
             # Flatten to 1D array for JIT consumption
             z_innovations = self._generate_random_normals(n_needed, 1).flatten()
+
+        if (
+            CORE_AVAILABLE
+            and not self.config.control_variate
+            and self.config.method != "sobol"
+            and z_innovations is None
+        ):
+            try:
+                # Optimized Rust path (GIL-free)
+                price = bsopt_core.monte_carlo_price(
+                    float(params.spot),
+                    float(params.strike),
+                    float(params.maturity),
+                    float(params.volatility),
+                    float(params.rate),
+                    float(params.dividend),
+                    bool(option_type == "call"),
+                    int(self.config.n_paths),
+                )
+                return float(price), 0.0  # std_err omitted in Rust impl for now
+            except Exception as e:
+                # logger.warning("rust_mc_failed_falling_back", error=str(e))
+                pass
 
         if self.config.control_variate:
             price, std_err = jit_mc_european_with_control_variate(

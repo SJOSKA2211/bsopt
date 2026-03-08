@@ -56,7 +56,7 @@ class MathActor:
             logger.error("calibration_failed", symbol=symbol, error=str(e))
             return {"symbol": symbol, "status": "failed", "error": str(e)}
 
-    async def calibrate_batch(
+    async def price_batch(
         self,
         spots: np.ndarray,
         strikes: np.ndarray,
@@ -64,14 +64,14 @@ class MathActor:
         vols: np.ndarray,
         rates: np.ndarray,
     ) -> np.ndarray:
-        """Vectorized calibration dispatched to machine-code kernels."""
+        """Vectorized pricing dispatched to machine-code kernels."""
         start_time = time.perf_counter()
 
-        # Dispatch to vectorized JIT kernel (O(1) from Python's perspective)
+        # Dispatch to vectorized JIT kernel
         prices = self.engine.price_options(spots, strikes, times, vols, rates, 0.0, "call")
 
         duration = (time.perf_counter() - start_time) * 1000
-        logger.debug("batch_calibration_complete", size=len(spots), ms=round(duration, 3))
+        logger.debug("batch_pricing_complete", size=len(spots), ms=round(duration, 3))
         return prices
 
 

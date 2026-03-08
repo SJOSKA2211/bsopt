@@ -5,7 +5,7 @@ Application configuration management.
 
 import base64
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 import structlog
 from pydantic import BeforeValidator, Field, field_validator, model_validator
