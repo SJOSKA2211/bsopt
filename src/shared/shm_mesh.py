@@ -222,6 +222,25 @@ class SharedMemoryRingBuffer:
         # but for true rigor we'd use a C extension or ctypes.atomic.
         self.buf[:8] = struct.pack("q", current_head + 1)
 
+    def read_latest_slices(self, last_head: int) -> tuple[list[np.ndarray], int]:
+        """
+        Reader: Yields 1 or 2 zero-copy slices to avoid concatenation allocation.
+        """
+        current_head = struct.unpack("q", self.buf[:8])[0]
+        if current_head <= last_head:
+            return [], last_head
+
+        start_idx = max(last_head, current_head - BUFFER_CAPACITY)
+
+        s = start_idx % BUFFER_CAPACITY
+        e = current_head % BUFFER_CAPACITY
+
+        if s < e:
+            # Single slice - zero copy
+            return [self.data_view[s:e]], current_head
+        # Wrap around - return TWO slices to maintain zero-copy
+        return [self.data_view[s:], self.data_view[:e]], current_head
+
     def read_latest_view(self, last_head: int) -> tuple[np.ndarray, int]:
         """
         Returns a single numpy view of the new ticks.
@@ -237,18 +256,30 @@ class SharedMemoryRingBuffer:
         return np.concatenate(slices), head
 
     def read_latest_msgspec(self, last_head: int) -> tuple[list[MarketTick], int]:
-        """High-level reader using msgspec for speed."""
+        """High-level reader using msgspec for speed. Optimized with vectorized string decoding."""
         view, head = self.read_latest_view(last_head)
-        # Faster than dictionary comprehension
+        if len(view) == 0:
+            return [], head
+
+        # OPTIMIZED: Vectorized string decoding
+        # np.char.decode returns a numpy array of Python strings
+        symbols = np.char.decode(view["symbol"], "ascii")
+        
+        # Strip null bytes efficiently (vectorized)
+        symbols = np.char.strip(symbols, "\x00")
+
+        # Convert back to list of msgspec Structs
+        # Still requires a list comprehension for the final objects, but the string processing is now vectorized.
+        # For maximum God-mode, we'd use msgspec.json.encode directly from the buffer.
         return [
             MarketTick(
-                t["symbol"].decode().strip("\x00"),
-                float(t["price"]),
-                int(t["volume"]),
-                float(t["timestamp"]),
-                int(t["receive_ts_ns"])
+                symbol=str(symbols[i]),
+                price=float(view[i]["price"]),
+                volume=int(view[i]["volume"]),
+                timestamp=float(view[i]["timestamp"]),
+                receive_ts_ns=int(view[i]["receive_ts_ns"])
             )
-            for t in view
+            for i in range(len(view))
         ], head
 
     def close(self):

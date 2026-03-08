@@ -72,21 +72,22 @@ class PersistenceWorker:
                     now_utc = datetime.now(UTC)
                     today_date = now_utc.date()
 
-                    # Convert to tuples for asyncpg COPY
-                    transformed = [
-                        (
-                            item.get("timestamp", now_utc),
+                    # 🔥 GOD-MODE: Optimized transformation loop
+                    # Pre-calculating common values outside the loop
+                    transformed = []
+                    for item in batch:
+                        # Extract with efficient defaults
+                        transformed.append((
+                            item.get("timestamp") or now_utc,
                             item["symbol"],
-                            item.get("strike", 0.0),
-                            item.get("expiry", today_date),
+                            float(item.get("strike", 0.0)),
+                            item.get("expiry") or today_date,
                             item.get("option_type", "call"),
-                            item["price"],
-                            item.get("delta"),
-                            item.get("gamma"),
-                            item.get("implied_volatility", 0.0),
-                        )
-                        for item in batch
-                    ]
+                            float(item["price"]),
+                            float(item["delta"]) if item.get("delta") is not None else None,
+                            float(item["gamma"]) if item.get("gamma") is not None else None,
+                            float(item.get("implied_volatility", 0.0)),
+                        ))
 
                     await db.insert_prices_vectorized(transformed)
                 except Exception as e:
