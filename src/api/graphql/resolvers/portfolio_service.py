@@ -1,7 +1,8 @@
 import strawberry
 import structlog
+from sqlalchemy import select
 
-from src.database import get_session
+from src.database import get_async_db_context
 from src.database.models import Portfolio as DBPortfolio
 from src.database.models import Position as DBPosition
 
@@ -33,37 +34,35 @@ class Portfolio:
 
     @strawberry.field
     async def positions(self) -> list[Position]:
-        """Fetch real positions from DB."""
-        session = get_session()
-        try:
-            # RLS ensures we only see our own positions if session context is set
-            from sqlalchemy import select
-
-            result = session.execute(select(DBPosition).where(DBPosition.portfolio_id == self.id))
-            return [Position.from_db(p) for p in result.scalars()]
-        finally:
-            session.close()
+        """Fetch real positions from DB (Async)."""
+        async with get_async_db_context() as session:
+            try:
+                # RLS ensures we only see our own positions if session context is set
+                result = await session.execute(select(DBPosition).where(DBPosition.portfolio_id == self.id))
+                return [Position.from_db(p) for p in result.scalars()]
+            except Exception as e:
+                logger.error("ws_fetch_positions_failed", portfolio_id=self.id, error=str(e))
+                return []
 
 
 async def get_portfolio(id: str) -> Portfolio | None:
-    """Fetch real portfolio from DB."""
-    session = get_session()
-    try:
-        from sqlalchemy import select
-
-        result = session.execute(select(DBPortfolio).where(DBPortfolio.id == id))
-        db_port = result.scalar_one_or_none()
-        if db_port:
-            return Portfolio(
-                id=strawberry.ID(str(db_port.id)),
-                user_id=str(db_port.user_id),
-                cash_balance=float(db_port.cash_balance),
-            )
+    """Fetch real portfolio from DB (Async)."""
+    async with get_async_db_context() as session:
+        try:
+            result = await session.execute(select(DBPortfolio).where(DBPortfolio.id == id))
+            db_port = result.scalar_one_or_none()
+            if db_port:
+                return Portfolio(
+                    id=strawberry.ID(str(db_port.id)),
+                    user_id=str(db_port.user_id),
+                    cash_balance=float(db_port.cash_balance),
+                )
+        except Exception as e:
+            logger.error("ws_fetch_portfolio_failed", portfolio_id=id, error=str(e))
         return None
-    finally:
-        session.close()
 
 
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
-    logger.info("dummy_portfolio_create", user_id=user_id, name=name)
+    logger.info("portfolio_create_initiated", user_id=user_id, name=name)
+    # In a real God-Mode app, we'd persist this to DB here.
     return Portfolio(id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash)

@@ -49,10 +49,11 @@ async def calculate_greeks(body: GreeksRequest):
 
 
 @router.post("/calculate")
-async def calculate(body: dict) -> dict:
+async def calculate(body: dict) -> MsgspecJSONResponse:
     """
     Convenience endpoint used by tests and demos.
     Maps {s, k, t, r, sigma, option_type, model} → {price, greeks}.
+    OPTIMIZED: Returns high-performance MsgspecJSONResponse.
     """
     from src.api.schemas.pricing import PriceRequest as PR  # noqa: N817
 
@@ -89,16 +90,10 @@ async def calculate(body: dict) -> dict:
     except Exception:
         pass
 
-    # Convert price result struct to plain dict safely
-    try:
-        import msgspec
-
-        data = msgspec.to_builtins(result)
-    except Exception:
-        try:
-            data = result.model_dump() if hasattr(result, "model_dump") else vars(result)
-        except Exception:
-            data = {"price": 0.0}
-
-    price = data.get("price") or 0.0
-    return {"price": price, "greeks": greeks_data, **data}
+    # Convert result struct to dict safely for response
+    import msgspec
+    data = msgspec.to_builtins(result)
+    
+    return MsgspecJSONResponse(
+        content={"price": data.get("price", 0.0), "greeks": greeks_data, **data}
+    )
