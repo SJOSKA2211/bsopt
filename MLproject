@@ -19,4 +19,5 @@ entry_points:
       model_path: {type: string, default: "models/best_td3"}
       study_name: {type: string, default: "rl_v1"}
       tracking_uri: {type: string, default: "http://mlflow:5000"}
-    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri}"
+      warm_start: {type: string, default: ""}
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri} --warm_start {warm_start}"

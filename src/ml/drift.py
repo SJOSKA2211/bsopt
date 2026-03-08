@@ -157,6 +157,20 @@ def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[
     return float(statistic), float(p_value)
 
 
+from numba import njit
+
+@njit(cache=True, fastmath=True)
+def _psi_kernel(expected_counts: np.ndarray, actual_counts: np.ndarray, expected_len: int, actual_len: int) -> float:
+    """Numba-optimized PSI kernel with epsilon padding."""
+    eps = 1e-6
+    expected_pct = (expected_counts / expected_len) + eps
+    actual_pct = (actual_counts / actual_len) + eps
+    
+    psi_sum = 0.0
+    for i in range(len(expected_pct)):
+        psi_sum += (actual_pct[i] - expected_pct[i]) * np.log(actual_pct[i] / expected_pct[i])
+    return psi_sum
+
 def calculate_psi(
     expected: np.ndarray,
     actual: np.ndarray | list,
@@ -184,27 +198,15 @@ def calculate_psi(
             )
         except Exception as e:
             logger.warning("rust_psi_calculation_failed_falling_back", error=str(e))
-            # Fallback to numpy
+            # Fallback to JIT kernel
             expected_counts, _ = np.histogram(expected, bins=bins)
             actual_counts, _ = np.histogram(actual, bins=bins)
-            eps = 1e-6
-            expected_pct = (expected_counts / len(expected)) + eps
-            actual_pct = (actual_counts / len(actual)) + eps
-            psi_values = (actual_pct - expected_pct) * np.log(actual_pct / expected_pct)
-            psi_score = float(np.sum(psi_values))
+            psi_score = _psi_kernel(expected_counts, actual_counts, len(expected), len(actual))
     else:
         # Fast bucketing using pre-defined bins
         expected_counts, _ = np.histogram(expected, bins=bins)
         actual_counts, _ = np.histogram(actual, bins=bins)
-
-        # Convert to percentages with epsilon padding
-        eps = 1e-6
-        expected_pct = (expected_counts / len(expected)) + eps
-        actual_pct = (actual_counts / len(actual)) + eps
-
-        # Calculate PSI
-        psi_values = (actual_pct - expected_pct) * np.log(actual_pct / expected_pct)
-        psi_score = float(np.sum(psi_values))
+        psi_score = _psi_kernel(expected_counts, actual_counts, len(expected), len(actual))
 
     # Emit Prometheus metric
     DATA_DRIFT_SCORE.set(psi_score)
