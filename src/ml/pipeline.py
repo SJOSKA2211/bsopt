@@ -365,5 +365,31 @@ class MLPipeline:
 
 
 if __name__ == "__main__":
-    p = MLPipeline({"ticker": "TSLA", "n_trials": 2})
-    asyncio.run(p.run(force=True))
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run Unified ML Pipeline")
+    parser.add_argument("--ticker", type=str, default="TSLA")
+    parser.add_argument("--framework", type=str, default="xgboost")
+    parser.add_argument("--n_trials", type=int, default=10)
+    parser.add_argument("--study_name", type=str, default="autonomous_opt_v1")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    # OPTIMIZED: Enable Ray autologging for MLflow
+    try:
+        import mlflow.ray
+        mlflow.ray.autolog()
+    except Exception:
+        pass
+
+    config = {
+        "ticker": args.ticker,
+        "framework": args.framework,
+        "n_trials": args.n_trials,
+        "study_name": args.study_name,
+        "tracking_uri": args.tracking_uri,
+    }
+
+    pipeline = MLPipeline(config)
+    asyncio.run(pipeline.run(force=True))

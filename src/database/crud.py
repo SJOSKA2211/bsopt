@@ -448,6 +448,34 @@ async def update_order_status(
 # ML MODEL OPERATIONS
 
 
+async def get_similar_models(
+    db: AsyncSession, embedding: list[float], limit: int = 5
+) -> list[dict]:
+    """
+    God-Mode: Vector Similarity Search (HNSW Optimized).
+    Finds models with similar semantic embeddings using cosine distance.
+    """
+    try:
+        # 🚀 Use <=> for cosine distance with HNSW index
+        stmt = text("""
+            SELECT 
+                me.model_id, 
+                me.version, 
+                m.name, 
+                m.algorithm,
+                (1 - (me.embedding <=> :emb)) as similarity
+            FROM model_embeddings me
+            JOIN ml_models m ON me.model_id = m.id
+            ORDER BY me.embedding <=> :emb
+            LIMIT :limit
+        """)
+        result = await db.execute(stmt, {"emb": str(embedding), "limit": limit})
+        return [dict(row._mapping) for row in result]
+    except Exception as e:
+        logger.error("vector_similarity_search_failed", error=str(e))
+        return []
+
+
 async def get_production_model(db: AsyncSession, name: str) -> MLModel | None:
     """Get the production version of a model (Async)."""
     result = await db.execute(

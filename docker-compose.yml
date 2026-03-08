@@ -480,6 +480,27 @@ services:
       - bsopt-network
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ${DATABASE_URL} --default-artifact-root /app/mlruns
 
+  # === [Specialized] MLOps Pipeline Worker ===
+  mlops-worker:
+    profiles: [ "ml" ]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mlops
+    shm_size: '4gb'
+    depends_on:
+      - mlflow
+      - ray-head
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - INSIDE_DOCKER=1
+    networks:
+      - bsopt-network
+    volumes:
+      - ./:/app
+
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
     profiles: [ "hft" ]

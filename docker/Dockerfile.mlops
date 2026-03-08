@@ -1,0 +1,47 @@
+# docker/Dockerfile.mlops
+
+# === Stage 1: Runtime ===
+FROM rayproject/ray:latest-py312-cpu AS runtime
+
+WORKDIR /app
+
+# Switch to root to install dependencies
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy dependency files
+COPY pyproject.toml requirements.txt ./
+
+# Install heavy dependencies with uv
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_HTTP_TIMEOUT=300
+ENV UV_RETRIES=10
+RUN uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+
+# Copy source code
+COPY . .
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV MLFLOW_TRACKING_URI=http://mlflow:5000
+ENV RAY_ADDRESS=auto
+
+# Performance tuning for numerical kernels
+ENV OMP_NUM_THREADS=4
+ENV MKL_NUM_THREADS=4
+
+# Switch back to ray user
+USER ray
+
+# Default command
+CMD ["mlflow", "run", ".", "--no-conda"]
