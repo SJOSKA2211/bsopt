@@ -3,11 +3,15 @@ Authentication Routes (Optimized for PG16 + Async)
 """
 
 import logging
+from datetime import UTC, datetime, timedelta
+
+import structlog
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.api.exceptions import AuthenticationException, ConflictException, ValidationException
 from src.api.schemas.auth import (
     LoginRequest,
@@ -26,8 +30,9 @@ from src.security.auth import (
 )
 from src.security.password import password_service
 from src.security.rate_limit import rate_limit
+from src.security.mfa import mfa_service
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"], dependencies=[Depends(rate_limit)])
 
@@ -66,10 +71,12 @@ async def register(
     tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
 
     return {
-        "id": str(user.id),
-        "email": user.email,
-        "access_token": tokens.access_token,
-        "token_type": tokens.token_type,
+        "data": {
+            "id": str(user.id),
+            "email": user.email,
+            "access_token": tokens.access_token,
+            "token_type": tokens.token_type,
+        },
         "message": "User created in God-Mode",
     }
 
@@ -97,13 +104,15 @@ async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends
 
         tokens = auth_service.create_token_pair(str(user_id), email, str(tier))
         return {
-            "access_token": tokens.access_token,
-            "refresh_token": tokens.refresh_token,
-            "token_type": tokens.token_type,
-            "expires_in": tokens.expires_in,
-            "user_id": str(user_id),
-            "email": email,
-            "tier": str(tier),
+            "data": {
+                "access_token": tokens.access_token,
+                "refresh_token": tokens.refresh_token,
+                "token_type": tokens.token_type,
+                "expires_in": tokens.expires_in,
+                "user_id": str(user_id),
+                "email": email,
+                "tier": str(tier),
+            },
             "message": "Login successful (Native)",
         }
     except AuthenticationException:
@@ -115,7 +124,7 @@ async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends
 
 @router.get("/me")
 async def read_users_me(user=Depends(get_current_active_user)):
-    return user
+    return {"data": user}
 
 
 @router.post("/logout")
@@ -128,35 +137,120 @@ async def logout(request: Request, user=Depends(get_current_user)):
 
 
 @router.post("/mfa/setup")
-async def mfa_setup(user=Depends(get_current_active_user)):
+async def mfa_setup(user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)):
     """Initialize MFA setup for the user."""
-    return {"secret": user.mfa_secret or "dummy_secret", "qr_code": "dummy_qr_data"}
+    if not user.mfa_secret:
+        # Generate new plaintext secret
+        plain_secret = mfa_service.generate_secret()
+        # Encrypt before saving to DB
+        user.mfa_secret = mfa_service.encrypt_secret(plain_secret)
+        await db.commit()
+    else:
+        # Decrypt existing secret for URI generation
+        plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
+    
+    uri = mfa_service.get_provisioning_uri(user.email, plain_secret)
+    qr_code = mfa_service.generate_qr_code(uri)
+    
+    return {
+        "data": {
+            "secret": plain_secret,  # Return plaintext once for setup
+            "qr_code": qr_code
+        },
+        "message": "MFA setup initialized"
+    }
 
 
 @router.post("/mfa/verify")
-async def mfa_verify(data: MFAVerifyRequest, user=Depends(get_current_active_user)):
+async def mfa_verify(
+    data: MFAVerifyRequest, 
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db)
+):
     """Verify MFA code and enable it for the user."""
-    if _verify_mfa_code(user.mfa_secret, data.code):
-        return {"status": "success"}
+    if not user.mfa_secret:
+        raise HTTPException(status_code=400, detail="MFA not initialized")
+    
+    # Decrypt secret for verification
+    plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
+    
+    if mfa_service.verify_code(plain_secret, data.code):
+        user.is_mfa_enabled = True
+        await db.commit()
+        return {"status": "success", "message": "MFA enabled successfully"}
     raise ValidationException(message="Invalid MFA code")
 
 
 @router.post("/password/change")
-async def change_password(data: PasswordChangeRequest, user=Depends(get_current_active_user)):
+async def change_password(
+    data: PasswordChangeRequest, 
+    user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db)
+):
     """Change user password."""
-    return {"status": "success"}
+    # 1. Verify old password
+    if not password_service.verify_password(data.old_password, user.hashed_password):
+        raise AuthenticationException(message="Invalid current password")
+    
+    # 2. Validate new password strength
+    val = password_service.validate_password(data.new_password, user.email)
+    if not val.is_valid:
+        raise ValidationException(message="Weak new password", details=val.errors)
+    
+    # 3. Hash and save
+    user.hashed_password = password_service.hash_password(data.new_password)
+    await db.commit()
+    
+    return {"status": "success", "message": "Password changed successfully"}
 
 
 @router.post("/password/reset")
-async def request_password_reset(data: PasswordResetRequest):
+async def request_password_reset(
+    data: PasswordResetRequest, 
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_async_db)
+):
     """Request a password reset email."""
-    return {"status": "success"}
+    result = await db.execute(select(User).where(User.email == data.email))
+    user = result.scalar_one_or_none()
+    
+    if user:
+        token = password_service.generate_reset_token()
+        user.reset_token = token
+        user.reset_token_expires_at = datetime.now(UTC) + timedelta(hours=1)
+        await db.commit()
+        
+        background_tasks.add_task(_send_password_reset_email, user.email, token)
+    
+    # Always return success to prevent email enumeration
+    return {"status": "success", "message": "If the email is registered, a reset link has been sent."}
 
 
 @router.post("/password/reset/confirm")
-async def reset_password_confirm(data: PasswordResetConfirmRequest):
+async def reset_password_confirm(data: PasswordResetConfirmRequest, db: AsyncSession = Depends(get_async_db)):
     """Confirm password reset with token."""
-    return {"status": "success"}
+    result = await db.execute(
+        select(User).where(
+            User.reset_token == data.token,
+            User.reset_token_expires_at > datetime.now(UTC)
+        )
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Validate and hash new password
+    val = password_service.validate_password(data.new_password, user.email)
+    if not val.is_valid:
+        raise ValidationException(message="Weak password", details=val.errors)
+    
+    user.hashed_password = password_service.hash_password(data.new_password)
+    user.reset_token = None
+    user.reset_token_expires_at = None
+    await db.commit()
+    
+    return {"status": "success", "message": "Password has been reset successfully"}
 
 
 # ---------------------------------------------------------------------------
@@ -165,15 +259,24 @@ async def reset_password_confirm(data: PasswordResetConfirmRequest):
 
 
 async def _send_verification_email(email: str, token: str):
-    """Stub for sending verification email."""
-    logger.info(f"verification_email_sent: {email}")
+    """
+    Sends a verification email to the user.
+    In a real system, this would use an email service (e.g. SendGrid, Mailgun).
+    """
+    verification_link = f"{settings.BETTER_AUTH_URL}/verify-email?token={token}"
+    logger.info("email_verification_link_generated", email=email, link=verification_link)
+    # TODO: Integrate with actual email client (e.g. from src.utils.email)
 
 
 async def _send_password_reset_email(email: str, token: str):
-    """Stub for sending password reset email."""
-    logger.info(f"password_reset_email_sent: {email}")
+    """
+    Sends a password reset email to the user.
+    """
+    reset_link = f"{settings.BETTER_AUTH_URL}/reset-password?token={token}"
+    logger.info("password_reset_link_generated", email=email, link=reset_link)
+    # TODO: Integrate with actual email client
 
 
 def _verify_mfa_code(secret: str, code: str) -> bool:
-    """Stub for MFA verification logic."""
-    return code == "123456"
+    """Internal helper for MFA verification logic (legacy support)."""
+    return mfa_service.verify_code(secret, code)

@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMPTZ DEFAULT NOW(),
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
+    verification_token VARCHAR(255),
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMPTZ,
     mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_secret VARCHAR(255),
     mfa_backup_codes TEXT

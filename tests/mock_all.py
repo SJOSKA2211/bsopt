@@ -211,20 +211,11 @@ for m in [
 ]:
     setattr(r_client, m, AsyncMock())
 
-# register_script returns an object that when called returns a coroutine
-# Using a class to ensure it's callable and awaitable mock-friendly
-class MockScript:
-    def __init__(self, result=b"CLOSED"):
-        self.result = result
-    def __call__(self, *args, **kwargs):
-        return AsyncMock(return_value=self.result)()
-
-r_client.register_script = MagicMock(side_effect=lambda *args, **kwargs: MockScript())
-
 # Ensure pipeline also works
 class MockPipeline:
     def __init__(self):
-        self.execute = AsyncMock(return_value=[None, 0])
+        # Result for pipeline: [count, _] for incr/expire
+        self.execute = AsyncMock(return_value=[1, True])
     def __getattr__(self, name):
         # Chaining
         return lambda *args, **kwargs: self
@@ -233,6 +224,8 @@ r_client.pipeline = MagicMock(side_effect=lambda *args, **kwargs: MockPipeline()
 
 redis_mock = MagicMock()
 redis_mock.from_url.return_value = r_client
+# VERY IMPORTANT: Both Redis and Redis.from_url must be mocked
+redis_mock.Redis = MagicMock()
 redis_mock.Redis.from_url.return_value = r_client
 redis_mock.Redis.return_value = r_client
 sys.modules["redis"] = sys.modules["redis.asyncio"] = sys.modules["redis.asyncio.client"] = (

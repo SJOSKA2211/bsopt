@@ -65,6 +65,25 @@ def startup_session():
             time.sleep(1)
 
     # 2. Ensure tables are created
+    # Optimized: Run only essential SQL init scripts and handle DB name replace
+    for script_name in ["01-core-schema.sql", "09-security.sql", "10-missing-tables.sql"]:
+        sql_file = root / "init-scripts" / script_name
+        if not sql_file.exists():
+            continue
+        try:
+            with open(sql_file) as f:
+                sql = f.read()
+                # Replace hardcoded DB name in scripts
+                sql = sql.replace("DATABASE bsopt", "DATABASE bsopt_test")
+                
+                with engine.connect() as conn:
+                    # Execute as one block (Postgres allows multiple statements in one call)
+                    conn.execute(text(sql))
+                    conn.commit()
+        except Exception as e:
+            print(f"Warning: Failed to apply {script_name}: {e}")
+
+    # Fallback to create_all for any missing ORM-only models
     from src.database import create_tables
     create_tables()
 
@@ -106,11 +125,34 @@ def env_setup(monkeypatch):
 
 
 @pytest.fixture
+def unmocked_config_settings(monkeypatch):
+    """Fixture to provide a clean src.config.Settings class for validation testing."""
+    import importlib
+
+    import src.config
+
+    # Reload to ensure we have the real class if it was mocked
+    importlib.reload(src.config)
+    yield
+    # Reload again after test to restore any previous state
+    importlib.reload(src.config)
+
+
+@pytest.fixture
 def api_client():
-    """Returns a FastAPI TestClient."""
+    """Returns a FastAPI TestClient with clean DB state."""
     from fastapi.testclient import TestClient
+    from sqlalchemy import create_engine, text
 
     from src.api.main import app
+    from src.config import settings
+
+    # Truncate users to avoid ConflictException
+    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+    with engine.connect() as conn:
+        conn.execute(text("TRUNCATE TABLE users CASCADE"))
+        conn.commit()
+
     with TestClient(app) as client:
         yield client
 
