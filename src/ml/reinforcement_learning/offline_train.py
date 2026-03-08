@@ -35,15 +35,38 @@ def expectile_loss(diff, tau=0.7):
     return weight * (diff**2)
 
 
+def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
+    """
+    🚀 OPTIMIZATION: Convert bulky Pickle trajectories to compressed Parquet.
+    Enables zero-copy reading and sharding for Ray Data.
+    """
+    import pandas as pd
+    try:
+        with open(pkl_path, "rb") as f:
+            data = pickle.load(f)
+        df = pd.DataFrame(data)
+        df.to_parquet(parquet_path, compression="snappy")
+        logger.info("trajectories_converted_to_parquet", path=parquet_path)
+    except Exception as e:
+        logger.error("parquet_conversion_failed", error=str(e))
+
+
 def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64, iql_beta: float = 3.0, iql_tau: float = 0.7):
     """
     Advanced Offline training for Decision Transformer (v2) with IQL integration.
     Uses AMP, torch.compile, and Advantage-Weighted Regression (AWR).
+    Supports .pkl and .parquet datasets.
     """
     logger.info("offline_training_started_v2_iql", dataset=dataset_path)
 
-    with open(dataset_path, "rb") as f:
-        trajectories = pickle.load(f)  # nosec B301
+    # 1. ⚡ DATA LOADING OPTIMIZATION
+    if dataset_path.endswith(".parquet"):
+        import pandas as pd
+        df = pd.read_parquet(dataset_path)
+        trajectories = df.to_dict("records")
+    else:
+        with open(dataset_path, "rb") as f:
+            trajectories = pickle.load(f)  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
@@ -53,12 +76,12 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64, iq
     device = th.device("cuda" if th.cuda.is_available() else "cpu")
     
     # DT-v2 Model
-    model = DecisionTransformer(state_dim=100, action_dim=10).to(device)
+    model = DecisionTransformer(state_dim=128, action_dim=10).to(device)
     
     # IQL Components
-    q_net = QNetwork(state_dim=100, action_dim=10).to(device)
-    v_net = ValueNetwork(state_dim=100).to(device)
-    target_q_net = QNetwork(state_dim=100, action_dim=10).to(device)
+    q_net = QNetwork(state_dim=128, action_dim=10).to(device)
+    v_net = ValueNetwork(state_dim=128).to(device)
+    target_q_net = QNetwork(state_dim=128, action_dim=10).to(device)
     target_q_net.load_state_dict(q_net.state_dict())
 
     # 🔥 ACCELERATION: torch.compile

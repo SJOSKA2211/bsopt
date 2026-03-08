@@ -34,12 +34,12 @@ class OracleManager:
 
         # 1. ⚡ SPEED FEED (WebSocket/Redis Cache)
         if redis:
-            ws_price = await redis.get(f"price:ws:{symbol}")
-            ws_ts = await redis.get(f"price:ws:{symbol}:ts")
+            keys = [f"price:ws:{symbol}", f"price:ws:{symbol}:ts"]
+            values = await redis.mget(keys)
             
-            if ws_price and ws_ts:
-                price = float(ws_price)
-                age = now - float(ws_ts)
+            if values[0] and values[1]:
+                price = float(values[0])
+                age = now - float(values[1])
                 confidence = self.get_confidence_score("WS", age)
                 
                 if confidence > 0.8:
@@ -79,6 +79,33 @@ class OracleManager:
             await redis.setex(f"price:rpc:{symbol}:ts", self.cache_ttl, str(now))
 
         return median_price
+
+    async def batch_get_prices(self, symbols: list[str]) -> dict[str, float]:
+        """
+        🚀 GOD-MODE: Batch fetch prices using Redis pipelines.
+        Reduces RTT for high-frequency trading loops.
+        """
+        redis = get_redis()
+        if not redis:
+            return {}
+
+        now = time.time()
+        keys = []
+        for s in symbols:
+            keys.extend([f"price:ws:{s}", f"price:ws:{s}:ts"])
+
+        values = await redis.mget(keys)
+        results = {}
+
+        for i, s in enumerate(symbols):
+            p_val = values[i * 2]
+            ts_val = values[i * 2 + 1]
+            if p_val and ts_val:
+                age = now - float(ts_val)
+                if self.get_confidence_score("WS", age) > 0.8:
+                    results[s] = float(p_val)
+
+        return results
 
     def get_confidence_score(self, source: str, age: float) -> float:
         """Calculate confidence based on source and age."""

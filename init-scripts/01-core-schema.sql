@@ -2,34 +2,7 @@
 -- Black-Scholes Option Pricing Platform - Consolidated Core Schema
 -- ============================================================================
 
--- 1. Extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "timescaledb" CASCADE;
-CREATE EXTENSION IF NOT EXISTS "vector";
-
--- 2. Custom Types for Optimization
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_tier') THEN
-        CREATE TYPE user_tier AS ENUM ('free', 'pro', 'enterprise');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_side') THEN
-        CREATE TYPE order_side AS ENUM ('buy', 'sell');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
-        CREATE TYPE order_status AS ENUM ('pending', 'filled', 'partially_filled', 'cancelled', 'rejected');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_type') THEN
-        CREATE TYPE order_type AS ENUM ('market', 'limit', 'stop', 'stop_limit');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'position_status') THEN
-        CREATE TYPE position_status AS ENUM ('open', 'closed');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'ml_algorithm') THEN
-        CREATE TYPE ml_algorithm AS ENUM ('xgboost', 'lightgbm', 'neural_network', 'random_forest', 'svm', 'ensemble');
-    END IF;
-END $$;
+-- Extensions and Core Types are handled in 00-extensions.sql
 
 -- 3. Core Tables (Aligned with Better-Auth)
 CREATE TABLE IF NOT EXISTS users (

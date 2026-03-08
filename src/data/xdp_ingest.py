@@ -79,7 +79,7 @@ class XDPIngester:
         except Exception as e:
             logger.error("ingest_pinning_failed", error=str(e))
 
-        buf = bytearray(2048)
+        mv = memoryview(buf)
         # Offset 42 for Ethernet+IP+UDP header if using RAW AF_PACKET
         offset = (
             42
@@ -90,11 +90,10 @@ class XDPIngester:
         while self._running:
             try:
                 nbytes, _ = self.sock.recvfrom_into(buf)
-                if nbytes > offset:
-                    payload = buf[offset : offset + 32]
-                    if len(payload) < 32:
-                        continue
-                    data = TICK_STRUCT.unpack(payload)
+                if nbytes >= offset + 32:
+                    # ZERO-COPY: Unpack directly from the memoryview slice
+                    payload_view = mv[offset : offset + 32]
+                    data = TICK_STRUCT.unpack_from(payload_view)
 
                     self._mesh.write_tick(
                         symbol=data[0].decode("ascii", errors="ignore").strip("\x00"),
@@ -105,7 +104,6 @@ class XDPIngester:
             except (BlockingIOError, InterruptedError):
                 continue
             except Exception:
-                # Non-critical error in loop
                 continue
 
     def stop(self):

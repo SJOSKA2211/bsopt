@@ -132,7 +132,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Revoke high-risk utility functions from app_user
-REVOKE ALL ON FUNCTION register_user_native(VARCHAR, VARCHAR, VARCHAR) FROM app_user;
+-- Grant high-risk utility functions to app_user for managed registration
+GRANT EXECUTE ON FUNCTION register_user_native(VARCHAR, VARCHAR, VARCHAR) TO app_user;
 GRANT EXECUTE ON FUNCTION authenticate_user_native(VARCHAR, VARCHAR) TO app_user;
 GRANT EXECUTE ON FUNCTION update_last_login_native(UUID) TO app_user;

@@ -22,11 +22,10 @@ logger = structlog.get_logger(__name__)
 def _order_engine_hot_loop_kernel(
     orders_view: np.ndarray,
     execs_view: np.ndarray,
-    risk_state_arr: np.ndarray,
+    risk_state_arr: np.ndarray,  # 0:d, 1:g, 2:v, 3:max_d, 4:max_g, 5:max_v
     head_arr: np.ndarray,  # 8-byte array view of orders.buf[:8]
     last_head: int,
     order_id_counter: int,
-    max_net_delta: float,
 ) -> tuple[int, int]:
     """
     GOD-MODE: The absolute hot-path. 
@@ -43,15 +42,23 @@ def _order_engine_hot_loop_kernel(
         price = cmd["price"]
         qty = cmd["quantity"]
         side = cmd["side"]
-        delta = cmd["delta"]
-        trade_delta = delta * qty * side
+        
+        # Incremental Greeks for this trade
+        d_delta = cmd["delta"] * qty * side
+        d_gamma = cmd["gamma"] * qty * side
+        d_vega = cmd["vega"] * qty * side
 
         # 1. Combined Silicon + Portfolio Risk Check (Greeks Matrix)
-        # Assuming v2 kernel for advanced greeks validation
-        # In a real scenario, d_gamma and d_vega would be precomputed or passed in the order command
+        # Using expanded risk_state_arr for both current state and limits
         ok = _full_risk_check_v2_kernel(
-            price, qty, side, trade_delta, 0.0, 0.0, risk_state_arr, 
-            limits_arr=np.array([max_net_delta, max_net_delta*0.5, max_net_delta*0.5])
+            price,
+            qty,
+            side,
+            d_delta,
+            d_gamma,
+            d_vega,
+            risk_state_arr[0:3],
+            risk_state_arr[3:6],
         )
 
         # 2. Execution Response
@@ -152,12 +159,12 @@ class OrderEngine:
                     self._head_arr,
                     self._last_head,
                     self._order_id_counter,
-                    self.max_portfolio_delta
                 )
                 
                 if new_last_head > self._last_head:
-                    # Sync exec head (Numba doesn't update it directly in this version)
-                    self.execs.buf[:8] = struct.pack("q", new_last_head)
+                    # 🔥 OPTIMIZED: Update exec head via direct array view (O(1))
+                    # execs.buf[:8] is the head index
+                    np.frombuffer(self.execs.buf, dtype=np.int64, count=1)[0] = new_last_head
                     self._last_head = new_last_head
                     self._order_id_counter = new_order_id
 

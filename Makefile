@@ -36,6 +36,7 @@ help:
 	@echo "  migrate      - Run full database migration sequence"
 	@echo "  db-shell     - Open a psql shell to the database"
 	@echo "  db-optimize  - Run vacuum and manual TimescaleDB chunk compression"
+	@echo "  db-benchmark - Run God-Mode database performance benchmark"
 	@echo ""
 	@echo "Specialized Clusters:"
 	@echo "  manifold     - Launch the HFT Silicon Swarm (Privileged)"
@@ -172,3 +173,7 @@ cli:
 check-env:
 	@test -f .env || echo "WARNING: .env not found."
 	@test -f .env.test || echo "WARNING: .env.test not found."
+
+db-benchmark:
+	@echo "🥒 Pressurizing the Manifold (Database Benchmark)..."
+	@$(DOCKER_COMPOSE) --profile benchmark run --rm test-runner python scripts/benchmark_db.py

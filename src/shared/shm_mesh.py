@@ -3,11 +3,13 @@ import struct
 import time
 from multiprocessing import shared_memory
 
+from typing import Any, Optional, cast
 import msgspec
 import numpy as np
 import structlog
 
 logger = structlog.get_logger()
+memoryview_type = memoryview
 
 # Market Tick Structure: 8s (Symbol), d (Price), q (Volume), d (Timestamp), q (receive_ts_ns) = 40 bytes
 TICK_DTYPE = np.dtype(
@@ -32,7 +34,7 @@ class MarketTick(msgspec.Struct):
     receive_ts_ns: int
 
 
-# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), d (Delta), q (submit_ts_ns) = 44 bytes
+# Order Command: 8s (Symbol), d (Price), q (Quantity), i (Side), d (Delta), d (Gamma), d (Vega), q (submit_ts_ns) = 60 bytes
 ORDER_DTYPE = np.dtype(
     [
         ("symbol", "S8"),
@@ -40,6 +42,8 @@ ORDER_DTYPE = np.dtype(
         ("quantity", "i8"),
         ("side", "i4"),
         ("delta", "f8"),
+        ("gamma", "f8"),
+        ("vega", "f8"),
         ("submit_ts_ns", "i8"),
     ]
 )
@@ -61,11 +65,16 @@ EXEC_SIZE = EXEC_DTYPE.itemsize
 EXEC_BUFFER_CAPACITY = 1000
 SHM_EXEC_NAME = "execution_status_buffer"
 
-# Risk State: d (CurrentDelta), d (MaxDelta), q (last_sync_ts_ns) = 24 bytes
+# Risk State: d (CurrentDelta), d (CurrentGamma), d (CurrentVega), d (MaxDelta), d (MaxGamma), d (MaxVega), d (MarginUsage), q (last_sync_ts_ns) = 64 bytes
 RISK_STATE_DTYPE = np.dtype(
     [
         ("current_delta", "f8"),
+        ("current_gamma", "f8"),
+        ("current_vega", "f8"),
         ("max_delta", "f8"),
+        ("max_gamma", "f8"),
+        ("max_vega", "f8"),
+        ("margin_usage", "f8"),
         ("last_sync_ts_ns", "i8"),
     ]
 )
@@ -77,24 +86,61 @@ class RiskStateBuffer:
 
     def __init__(self, create: bool = False):
         self.size = RISK_STATE_DTYPE.itemsize
-        self.shm = (
-            shared_memory.SharedMemory(name=SHM_RISK_NAME, create=create, size=self.size)
-            if create
-            else shared_memory.SharedMemory(name=SHM_RISK_NAME)
-        )
-        self.buf = self.shm.buf
-        self.view = np.frombuffer(self.buf, dtype=RISK_STATE_DTYPE, count=1)
+        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.buf: memoryview
+        try:
+            if create:
+                sm = shared_memory.SharedMemory(name=SHM_RISK_NAME, create=True, size=self.size)
+            else:
+                sm = shared_memory.SharedMemory(name=SHM_RISK_NAME)
+            self.shm = sm
+            self.buf = sm.buf
+            self.view = np.frombuffer(self.buf, dtype=RISK_STATE_DTYPE, count=1)
+        except Exception as e:
+            if not create:
+                logger.warning("risk_shm_missing_using_dummy", error=str(e))
+                local_data = bytearray(self.size)
+                self.buf = memoryview(local_data)
+                self.view = np.frombuffer(self.buf, dtype=RISK_STATE_DTYPE, count=1)
+            else:
+                raise
 
-    def update(self, current_delta: float, max_delta: float):
-        self.view[0] = (current_delta, max_delta, time.time_ns())
+    def update(
+        self,
+        current_delta: float,
+        current_gamma: float,
+        current_vega: float,
+        max_delta: float,
+        max_gamma: float,
+        max_vega: float,
+        margin_usage: float = 0.0,
+    ):
+        if self.view is not None:
+            self.view[0] = (
+                current_delta,
+                current_gamma,
+                current_vega,
+                max_delta,
+                max_gamma,
+                max_vega,
+                margin_usage,
+                time.time_ns(),
+            )
 
-    def read(self) -> tuple[float, float, int]:
-        data = self.view[0]
-        return (
-            float(data["current_delta"]),
-            float(data["max_delta"]),
-            int(data["last_sync_ts_ns"]),
-        )
+    def read(self) -> tuple[float, float, float, float, float, float, float, int]:
+        if self.view is not None:
+            data = self.view[0]
+            return (
+                float(data["current_delta"]),
+                float(data["current_gamma"]),
+                float(data["current_vega"]),
+                float(data["max_delta"]),
+                float(data["max_gamma"]),
+                float(data["max_vega"]),
+                float(data["margin_usage"]),
+                int(data["last_sync_ts_ns"]),
+            )
+        return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)
 
 
 class OrderBuffer:
@@ -102,21 +148,39 @@ class OrderBuffer:
 
     def __init__(self, create: bool = False):
         self.size = (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8
-        self.shm = (
-            shared_memory.SharedMemory(name=SHM_ORDER_NAME, create=create, size=self.size)
-            if create
-            else shared_memory.SharedMemory(name=SHM_ORDER_NAME)
-        )
-        self.buf = self.shm.buf
-        if create:
-            self.buf[:8] = struct.pack("q", 0)
-        self.view = np.frombuffer(
-            self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY
-        )
+        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.buf: memoryview
+        try:
+            if create:
+                sm = shared_memory.SharedMemory(name=SHM_ORDER_NAME, create=True, size=self.size)
+            else:
+                sm = shared_memory.SharedMemory(name=SHM_ORDER_NAME)
+            self.shm = sm
+            self.buf = sm.buf
+            if create:
+                struct.pack_into("q", self.buf, 0, 0)
+            self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
+        except Exception as e:
+            if not create:
+                logger.warning("order_shm_missing_using_dummy", error=str(e))
+                self.buf = memoryview(bytearray(self.size))
+                self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
+            else:
+                raise
 
-    def write_order(self, symbol: str, price: float, qty: int, side: int, delta: float = 0.0):
-        head = struct.unpack("q", self.buf[:8])[0]
-        # Log submission time in nanoseconds
+    def write_order(
+        self,
+        symbol: str,
+        price: float,
+        qty: int,
+        side: int,
+        delta: float = 0.0,
+        gamma: float = 0.0,
+        vega: float = 0.0,
+    ):
+        # Extract head index from the first 8 bytes
+        head = struct.unpack_from("q", self.buf, 0)[0]
+        # Submitting order
         ts_ns = time.time_ns()
         self.view[head % ORDER_BUFFER_CAPACITY] = (
             symbol.encode("ascii")[:8],
@@ -124,9 +188,11 @@ class OrderBuffer:
             qty,
             side,
             delta,
+            gamma,
+            vega,
             ts_ns,
         )
-        self.buf[:8] = struct.pack("q", head + 1)
+        struct.pack_into("q", self.buf, 0, head + 1)
 
 
 class ExecutionBuffer:
@@ -134,22 +200,33 @@ class ExecutionBuffer:
 
     def __init__(self, create: bool = False):
         self.size = (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8
-        self.shm = (
-            shared_memory.SharedMemory(name=SHM_EXEC_NAME, create=create, size=self.size)
-            if create
-            else shared_memory.SharedMemory(name=SHM_EXEC_NAME)
-        )
-        self.buf = self.shm.buf
-        if create:
-            self.buf[:8] = struct.pack("q", 0)
-        self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.buf: memoryview
+        try:
+            if create:
+                sm = shared_memory.SharedMemory(name=SHM_EXEC_NAME, create=True, size=self.size)
+            else:
+                sm = shared_memory.SharedMemory(name=SHM_EXEC_NAME)
+            self.shm = sm
+            self.buf = sm.buf
+            if create:
+                struct.pack_into("q", self.buf, 0, 0)
+            self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+        except Exception as e:
+            if not create:
+                logger.warning("exec_shm_missing_using_dummy", error=str(e))
+                self.buf = memoryview(bytearray(self.size))
+                self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+            else:
+                raise
 
     def write_exec(self, order_id: int, price: float, qty: int, status: int):
-        head = struct.unpack("q", self.buf[:8])[0]
-        # Log execution time in nanoseconds
+        # Extract head index from the first 8 bytes
+        head = struct.unpack_from("q", self.buf, 0)[0]
+        # Executing response
         ts_ns = time.time_ns()
         self.view[head % EXEC_BUFFER_CAPACITY] = (order_id, price, qty, status, ts_ns)
-        self.buf[:8] = struct.pack("q", head + 1)
+        struct.pack_into("q", self.buf, 0, head + 1)
 
 
 class SharedMemoryRingBuffer:
@@ -161,8 +238,8 @@ class SharedMemoryRingBuffer:
 
     def __init__(self, create: bool = False):
         self.shm_size = (TICK_SIZE * BUFFER_CAPACITY) + 8
-        self.shm = None
-        self.buf = None
+        self.shm: Optional[shared_memory.SharedMemory] = None
+        self.buf: memoryview
 
         try:
             if create:
@@ -170,22 +247,25 @@ class SharedMemoryRingBuffer:
                     existing = shared_memory.SharedMemory(name=SHM_NAME)
                     existing.close()
                     existing.unlink()
-                except FileNotFoundError:
+                except Exception:
                     pass
-                self.shm = shared_memory.SharedMemory(
+                sm = shared_memory.SharedMemory(
                     name=SHM_NAME, create=True, size=self.shm_size
                 )
+                self.shm = sm
+                self.buf = sm.buf
                 # Initialize head index to 0
-                self.shm.buf[:8] = struct.pack("q", 0)
+                struct.pack_into("q", self.buf, 0, 0)
             else:
                 try:
-                    self.shm = shared_memory.SharedMemory(name=SHM_NAME)
-                except FileNotFoundError:
+                    sm = shared_memory.SharedMemory(name=SHM_NAME)
+                    self.shm = sm
+                    self.buf = sm.buf
+                except Exception:
                     if os.getenv("ENVIRONMENT") == "prod":
                         raise
                     logger.warning("shm_buffer_missing_using_dummy", name=SHM_NAME)
-                    self.buf = bytearray(self.shm_size)
-                    return
+                    self.buf = memoryview(bytearray(self.shm_size))
 
             self.buf = self.shm.buf
             # Create a numpy view of the entire tick buffer (skipping head index)
@@ -208,8 +288,8 @@ class SharedMemoryRingBuffer:
         # OPTIMIZED: Use pre-allocated bytes for symbol
         sym_bytes = symbol.encode("ascii")[:8]
 
-        # Lock-free head calculation
-        current_head = struct.unpack("q", self.buf[:8])[0]
+        # Lock-free head calculation from the prefix
+        current_head = struct.unpack_from("q", self.buf, 0)[0]
         idx = current_head % BUFFER_CAPACITY
 
         receive_ts_ns = time.time_ns()
@@ -218,15 +298,13 @@ class SharedMemoryRingBuffer:
         self.data_view[idx] = (sym_bytes, price, volume, timestamp, receive_ts_ns)
 
         # 2. Atomic Head update (Memory Barrier)
-        # In Python, assignment to a word-aligned memoryview slice is usually atomic at the machine level
-        # but for true rigor we'd use a C extension or ctypes.atomic.
-        self.buf[:8] = struct.pack("q", current_head + 1)
+        struct.pack_into("q", self.buf, 0, current_head + 1)
 
     def read_latest_slices(self, last_head: int) -> tuple[list[np.ndarray], int]:
         """
         Reader: Yields 1 or 2 zero-copy slices to avoid concatenation allocation.
         """
-        current_head = struct.unpack("q", self.buf[:8])[0]
+        current_head = struct.unpack_from("q", self.buf, 0)[0]
         if current_head <= last_head:
             return [], last_head
 
@@ -258,39 +336,43 @@ class SharedMemoryRingBuffer:
     def read_latest_msgspec(self, last_head: int) -> tuple[list[MarketTick], int]:
         """High-level reader using msgspec for speed. Optimized with vectorized string decoding."""
         view, head = self.read_latest_view(last_head)
-        if len(view) == 0:
+        if view is None or len(view) == 0:
             return [], head
 
-        # OPTIMIZED: Vectorized string decoding
-        # np.char.decode returns a numpy array of Python strings
-        symbols = np.char.decode(view["symbol"], "ascii")
-        
-        # Strip null bytes efficiently (vectorized)
-        symbols = np.char.strip(symbols, "\x00")
+        # OPTIMIZED: Vectorized string processing
+        # Use .astype('U8') and .strip() for numpy-native string handling if possible
+        # or stick to np.char if dependencies are stable.
+        try:
+            symbols = np.char.decode(view["symbol"], "ascii")
+            symbols = np.char.strip(symbols, "\x00")
+        except Exception:
+            symbols = [str(v["symbol"]) for v in view]
 
-        # Convert back to list of msgspec Structs
-        # Still requires a list comprehension for the final objects, but the string processing is now vectorized.
-        # For maximum God-mode, we'd use msgspec.json.encode directly from the buffer.
-        return [
-            MarketTick(
-                symbol=str(symbols[i]),
-                price=float(view[i]["price"]),
-                volume=int(view[i]["volume"]),
-                timestamp=float(view[i]["timestamp"]),
-                receive_ts_ns=int(view[i]["receive_ts_ns"])
-            )
-            for i in range(len(view))
-        ], head
+        ticks = []
+        for i in range(len(view)):
+            try:
+                # Using keywords to ensure static analysis matches msgspec.Struct fields
+                v = view[i]
+                ticks.append(MarketTick(
+                    symbol=str(symbols[i]),
+                    price=float(v["price"]),
+                    volume=int(v["volume"]),
+                    timestamp=float(v["timestamp"]),
+                    receive_ts_ns=int(v["receive_ts_ns"])
+                ))
+            except Exception:
+                continue
+        return ticks, head
 
     def close(self):
         if hasattr(self, "data_view"):
             del self.data_view
-        if self.shm:
+        if self.shm is not None:
             self.shm.close()
 
     def unlink(self):
-        if self.shm:
+        if self.shm is not None:
             try:
                 self.shm.unlink()
-            except FileNotFoundError:
+            except Exception:
                 pass

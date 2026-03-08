@@ -41,7 +41,14 @@ class RiskManager:
                 new_delta, new_gamma, new_vega = float(result[1]), float(result[2]), float(result[3])
                 
                 # Update local SHM state to prevent drift
-                self.risk_shm.update(new_delta, limits.get('max_delta', 10000.0))
+                self.risk_shm.update(
+                    new_delta,
+                    new_gamma,
+                    new_vega,
+                    limits.get("max_delta", 10000.0),
+                    limits.get("max_gamma", 5000.0),
+                    limits.get("max_vega", 5000.0),
+                )
                 # Note: If SHM is extended for gamma/vega, update them here too.
                 
                 return True, "SUCCESS"

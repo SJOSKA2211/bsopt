@@ -21,8 +21,10 @@ import {
   Google as GoogleIcon,
   LockOutlined as LockIcon,
   AlternateEmailOutlined as MailIcon,
+  PersonOutline as PersonIcon,
 } from '@mui/icons-material';
 import { authClient } from '../../lib/auth-client';
+import { useNavigate } from 'react-router-dom';
 
 // Decorative Greek / finance symbols for background
 const GREEK_SYMBOLS = ['Δ', 'Γ', 'Θ', 'Ρ', 'Σ', 'Λ', 'Φ', 'Ψ', '∑', '∂'];
@@ -48,11 +50,9 @@ const DecorativeBg: React.FC = () => (
         {sym}
       </Typography>
     ))}
-    {/* Background glow orbs */}
     <Box sx={{ position: 'absolute', top: '8%', right: '10%', width: 400, height: 400, borderRadius: '50%', bgcolor: alpha('#10b981', 0.07), filter: 'blur(80px)', pointerEvents: 'none' }} />
     <Box sx={{ position: 'absolute', bottom: '12%', left: '5%', width: 350, height: 350, borderRadius: '50%', bgcolor: alpha('#38bdf8', 0.07), filter: 'blur(70px)', pointerEvents: 'none' }} />
     <Box sx={{ position: 'absolute', top: '50%', left: '42%', width: 280, height: 280, borderRadius: '50%', bgcolor: alpha('#a855f7', 0.05), filter: 'blur(60px)', pointerEvents: 'none' }} />
-    {/* Subtle grid lines */}
     <Box
       sx={{
         position: 'absolute',
@@ -68,24 +68,37 @@ const DecorativeBg: React.FC = () => (
   </>
 );
 
-export default function SignIn() {
+export default function SignUp() {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
-  const signIn = async (e: React.FormEvent) => {
+  const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess(false);
 
-    await authClient.signIn.email({ email, password }, {
+    await authClient.signUp.email({ 
+      email, 
+      password, 
+      name 
+    }, {
       onRequest: () => setLoading(true),
-      onSuccess: () => { setLoading(false); setSuccess(true); },
-      onError: (ctx) => { setLoading(false); setError(ctx.error.message); },
+      onSuccess: () => { 
+        setLoading(false); 
+        setSuccess(true);
+        setTimeout(() => navigate('/login'), 2000);
+      },
+      onError: (ctx) => { 
+        setLoading(false); 
+        setError(ctx.error.message); 
+      },
     });
   };
 
@@ -116,7 +129,6 @@ export default function SignIn() {
           boxShadow: `0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px ${alpha('#10b981', 0.08)}`,
         }}
       >
-        {/* Brand */}
         <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
           <Box
             sx={{
@@ -160,32 +172,32 @@ export default function SignIn() {
         </Typography>
 
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-          Welcome back
+          Create an account
         </Typography>
         <Typography variant="body2" sx={{ color: 'text.disabled', mb: 2.5, fontSize: '0.82rem' }}>
-          Sign in to access your trading dashboard
+          Join the BS-Opt professional network
         </Typography>
 
-        <Box component="form" onSubmit={signIn}>
+        <Box component="form" onSubmit={signUp}>
           {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-          {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>Signed in successfully!</Alert>}
+          {success && <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>Account created! Redirecting to login...</Alert>}
 
           <TextField
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            type="email"
-            autoComplete="email"
+            id="name"
+            label="Full Name"
+            name="name"
+            autoComplete="name"
             autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             disabled={loading}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <MailIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
+                  <PersonIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
                 </InputAdornment>
               ),
             }}
@@ -196,10 +208,32 @@ export default function SignIn() {
             margin="normal"
             required
             fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MailIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <TextField
+            margin="normal"
+            required
+            fullWidth
             id="password"
             label="Password"
+            name="password"
             type={showPassword ? 'text' : 'password'}
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
@@ -224,21 +258,15 @@ export default function SignIn() {
             }}
           />
 
-          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 0.5, mb: 2.5 }}>
-            <Link href="#" variant="caption" sx={{ color: 'text.disabled', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}>
-              Forgot password?
-            </Link>
-          </Stack>
-
           <Button
             type="submit"
             fullWidth
             variant="contained"
             size="large"
             disabled={loading}
-            sx={{ py: 1.5, fontSize: '0.95rem', mb: 2 }}
+            sx={{ py: 1.5, fontSize: '0.95rem', mt: 2, mb: 2 }}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? 'Creating account…' : 'Sign Up'}
           </Button>
         </Box>
 
@@ -268,19 +296,11 @@ export default function SignIn() {
         </Stack>
 
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: 'text.disabled', mt: 3 }}>
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" sx={{ color: 'primary.main', textDecoration: 'none' }}>
-            Sign Up
+          Already have an account?{' '}
+          <Link href="/login" sx={{ color: 'primary.main', textDecoration: 'none' }}>
+            Sign In
           </Link>
         </Typography>
-
-        <Stack direction="row" spacing={2.5} justifyContent="center" sx={{ mt: 2.5 }}>
-          {['Privacy', 'Terms', 'Support'].map((link) => (
-            <Link key={link} href="#" variant="caption" sx={{ color: 'text.disabled', textDecoration: 'none', fontSize: '0.68rem', '&:hover': { color: 'text.secondary' } }}>
-              {link}
-            </Link>
-          ))}
-        </Stack>
       </Paper>
     </Box>
   );

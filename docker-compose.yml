@@ -45,9 +45,11 @@ services:
       DB_NAME: ${POSTGRES_DB}
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
-      DEFAULT_POOL_SIZE: 20
+      DEFAULT_POOL_SIZE: 50
+      RESERVE_POOL_SIZE: 10
       MAX_PREPARED_STATEMENTS: 100
       ADMIN_USERS: ${POSTGRES_USER}
+      STATS_PERIOD: 60
     ports:
       - "127.0.0.1:6432:5432"
     healthcheck:
@@ -356,7 +358,7 @@ services:
 
   # === [Specialized] Test Runner ===
   test-runner:
-    profiles: [ "test" ]
+    profiles: [ "test", "benchmark" ]
     build:
       context: .
       dockerfile: docker/Dockerfile.ci

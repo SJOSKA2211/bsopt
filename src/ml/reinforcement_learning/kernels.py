@@ -33,10 +33,10 @@ def _fused_state_kernel(
 ):
     """
     Fused kernel for state matrix construction (2D) with Spectral Features.
-    Returns (window_size, 100) instead of flattened vector.
+    Returns (window_size, 128) instead of flattened vector.
     """
-    # Create the current state vector (100 dims)
-    state = np.zeros(100, dtype=np.float32)
+    # Create the current state vector (128 dims)
+    state = np.zeros(128, dtype=np.float32)
 
     # 1. Portfolio (11 dims)
     state[0] = balance / initial_balance
@@ -51,35 +51,36 @@ def _fused_state_kernel(
         state[11 + i] = log_m
 
     # 3. Greeks (40 dims) - Tanh Scaling
-    # Reduced from 50 to 40 to make room for Fourier features
     for i in range(40):
         state[21 + i] = np.tanh(greeks[i])
 
-    # 4. Spectral Features (10 dims) - Multi-scale Fourier Base
+    # 4. Spectral Features (20 dims) - Multi-scale Fourier Base
     # Captures cyclical micro-structure at log-spaced frequencies.
-    for i in range(5):
-        p_norm = prices[i] / 100.0
-        # Multi-scale frequencies (1.0, 2.0, 4.0, 8.0, 16.0)
+    for i in range(10):
+        # i=0 to 9
+        # Normalize price around 100
+        p_norm = prices[i % 10] / 100.0
+        # Multi-scale frequencies (1.0, 2.0, 4.0, ..., 512.0)
         freq = 2.0**i
         state[61 + i] = np.tanh(np.sin(p_norm * np.pi * freq))
-        state[66 + i] = np.tanh(np.cos(p_norm * np.pi * freq))
+        state[71 + i] = np.tanh(np.cos(p_norm * np.pi * freq))
 
     # 5. Indicators (20 dims)
-    # Adjusted indices to start from 71 (stays the same as before)
     for i in range(20):
-        state[71 + i] = indicators[i]
+        state[81 + i] = indicators[i]
 
-    # 6. Temporal Stacking (Circular Buffer)
-    # Write to window buffer at current index
+    # 6. Wavelet-like Volatility Projection (27 dims)
+    # Using the remaining space to project high-frequency indicator variance
+    for i in range(27):
+        state[101 + i] = np.tanh(indicators[i % 20] * (prices[i % 10] / 100.0))
+
+    # 7. Temporal Stacking (Circular Buffer)
     idx = window_idx % window_size
     window_buffer[idx] = state
 
-    # Return 2D window (ordered chronologically or latest-first)
-    # Let's go with Chronological for the Transformer (oldest to newest)
-    out = np.zeros((window_size, 100), dtype=np.float32)
+    # Return 2D window (ordered chronologically)
+    out = np.zeros((window_size, 128), dtype=np.float32)
     for i in range(window_size):
-        # Calculate index for chronologically ordered window (i steps ago from current)
-        # i=0 is oldest, i=window_size-1 is newest
         src_idx = (window_idx - (window_size - 1 - i)) % window_size
         out[i] = window_buffer[src_idx]
 

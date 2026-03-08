@@ -81,34 +81,48 @@ def recalibrate_symbol(self, symbol: str) -> dict:
     """Non-blocking calibration delegation using BaseAsyncTask loop."""
     try:
         # EXECUTE: In a shared persistent loop via BaseAsyncTask
-        return self.run_async(_recalibrate_symbol_impl(symbol))
+        return self.run_async(_recalibrate_symbols_batch_impl([symbol]))[0]
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
         raise self.retry(exc=e) from e
 
 
-async def _recalibrate_symbol_impl(symbol: str) -> dict:
-    """Async implementation of calibration task."""
+@app.task(base=BaseAsyncTask, bind=True)
+def recalibrate_symbols_batch(self, symbols: list[str]) -> list[dict]:
+    """🚀 GOD-MODE: Non-blocking batch calibration delegation."""
     try:
-        # 1. Fetch market data (Async/Awaited)
+        return self.run_async(_recalibrate_symbols_batch_impl(symbols))
+    except Exception as e:
+        logger.error("batch_calibration_task_failed", symbols=symbols, error=str(e))
+        return []
+
+
+async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
+    """Async implementation of batch calibration."""
+    try:
+        # 1. Fetch market data snapshots in parallel
         router = MarketDataRouter()
-        market_data = await router.get_option_chain_snapshot(symbol)
+        snapshots = await asyncio.gather(*[router.get_option_chain_snapshot(s) for s in symbols])
 
-        if not market_data:
-            return {"symbol": symbol, "status": "failed", "reason": "no_data"}
+        valid_symbols = []
+        valid_data = []
+        for s, data in zip(symbols, snapshots):
+            if data:
+                valid_symbols.append(s)
+                valid_data.append(data)
 
-        # 2. Delegate to Ray (Async/Awaited)
+        if not valid_symbols:
+            return []
+
+        # 2. Delegate to Ray Actor Pool
         pool = get_pool()
         actor = pool.get_actor()
         
-        # Ray async actor call
-        result = await actor.run_calibration.remote(symbol, market_data)
-        return result
+        return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
 
     except Exception as exc:
-        logger.error("calibration_impl_error", symbol=symbol, error=str(exc))
-        # Fallback Local Calibration if Ray fails
-        return await _recalibrate_symbol_fallback(symbol, None)
+        logger.error("batch_calib_impl_error", symbols=symbols, error=str(exc))
+        return []
 
 
 async def _recalibrate_symbol_fallback(symbol: str, market_data: list | None = None) -> dict:
@@ -173,16 +187,28 @@ async def _reconcile_risk_state_impl():
     if not redis:
         return
 
-    # 1. Fetch from Redis (The global truth)
-    current_delta = await redis.get("portfolio_net_delta")
+    # 1. Atomic Fetch from Redis using Pipeline
+    async with redis.pipeline(transaction=False) as pipe:
+        pipe.get("portfolio_net_delta")
+        pipe.get("portfolio_margin_usage")
+        results = await pipe.execute()
+
+    current_delta = results[0]
+    margin_usage = results[1]
+    
     if current_delta is None:
         return
 
     # 2. Update SHM (The engine's local truth)
     try:
         risk_buf = RiskStateBuffer(create=False)
-        risk_buf.update(float(current_delta), settings.MAX_NET_DELTA)
-        logger.debug("risk_shm_synced_from_redis", delta=current_delta)
+        # Update delta, max_delta, and margin usage
+        risk_buf.update(
+            float(current_delta), 
+            settings.MAX_NET_DELTA, 
+            float(margin_usage) if margin_usage else 0.0
+        )
+        logger.debug("risk_shm_synced", delta=current_delta, margin=margin_usage)
     except Exception as e:
         logger.error("shm_update_failed", error=str(e))
 

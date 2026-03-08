@@ -38,7 +38,7 @@ def train_func(config: dict[str, Any]):
 
     # 2. Setup Model (DT-v2)
     model = DecisionTransformer(
-        state_dim=config.get("state_dim", 100),
+        state_dim=config.get("state_dim", 128),
         action_dim=config.get("action_dim", 10),
         max_length=config.get("max_length", 20),
         max_ep_len=config.get("max_ep_len", 1000),
@@ -69,21 +69,27 @@ def train_func(config: dict[str, Any]):
     # 3. Setup Data
     import ray.data
 
-    dataset_path = config.get("dataset_path", "data/trajectories.pkl")
-    # ... (rest of data loading logic remains the same)
-    ds = None
+    dataset_path = config.get("dataset_path", "data/trajectories.parquet")
+    
     try:
-        if dataset_path.endswith(".json"):
+        # 🚀 GOD-MODE: Streaming sharded data loading
+        if dataset_path.endswith(".parquet"):
+            ds = ray.data.read_parquet(dataset_path)
+        else:
+            # Fallback to JSON if specified
             ds = ray.data.read_json(dataset_path)
-    except Exception:
-        pass
-
-    if ds:
-        sharded_loader = ds.iter_torch_batches(batch_size=config.get("batch_size", 64))
-    else:
+            
+        # Create an iterator that shards the data across Ray workers automatically
+        sharded_loader = ds.iter_torch_batches(
+            batch_size=config.get("batch_size", 64),
+            local_shuffle_buffer_size=1000
+        )
+        logger.info("sharded_loader_optimized", path=dataset_path)
+    except Exception as e:
+        logger.warning("ray_data_fallback_to_local", error=str(e))
+        # Fallback to local loading if Ray Data fails
         import pickle
-
-        with open(dataset_path, "rb") as f:
+        with open("data/trajectories.pkl", "rb") as f:
             trajectories = pickle.load(f)
         dataset = TrajectoryDataset(trajectories)
         loader = DataLoader(dataset, batch_size=config.get("batch_size", 64), shuffle=True)
