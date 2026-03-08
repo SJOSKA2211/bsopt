@@ -117,7 +117,7 @@ def train_offline(dataset_path: str, epochs: int = 100, batch_size: int = 64, iq
             logger.warning("torch_compile_failed", error=str(e))
 
     optimizer = th.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
-    q_optimizer = th.optim.Adam(q_net.parameters(), lr=3e-4)
+    th.optim.Adam(q_net.parameters(), lr=3e-4)
     v_optimizer = th.optim.Adam(v_net.parameters(), lr=3e-4)
     
     # 📉 SCHEDULING

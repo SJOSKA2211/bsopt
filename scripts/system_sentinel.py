@@ -32,8 +32,9 @@ async def check_redis():
             socket.gethostbyname("redis")
             # In docker
             redis = get_redis() # uses environment variable
-        except:
+        except Exception as e:
             # Outside docker, try localhost
+            logger.warning("redis_connection_fallback", error=str(e))
             import redis.asyncio as aioredis
             redis = aioredis.from_url("redis://localhost:6379/0", decode_responses=True)
             

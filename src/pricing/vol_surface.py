@@ -159,7 +159,7 @@ def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu
 def _sabr_objective_jit(params, strikes, market_vols, weights, forward, maturity, fixed_beta):
     """JIT accelerated objective function for SABR calibration."""
     alpha = params[0]
-    beta = fixed_beta if fixed_beta > 0 else params[1]
+    fixed_beta if fixed_beta > 0 else params[1]
     rho = params[2] if fixed_beta > 0 else params[2] # rho is index 1 if beta is fixed, but let's be careful
     # Adjust for fixed beta case in params vector
     if fixed_beta > 0:
@@ -188,7 +188,7 @@ class SVIModel:
     def total_variance(self, k: float | np.ndarray) -> float | np.ndarray:
         """Calculate total variance w(k). k is log-moneyness."""
         p = self.params
-        if CORE_AVAILABLE and isinstance(k, (float, np.float64)):
+        if CORE_AVAILABLE and isinstance(k, float | np.float64):
              return bsopt_core.svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma)
         return _svi_total_variance_jit(k, p.a, p.b, p.rho, p.m, p.sigma)
 
@@ -203,7 +203,7 @@ class SVIModel:
             raise ValueError("Maturity must be positive")
 
         # Handle array vs scalar for strike
-        if isinstance(strike, (list, np.ndarray)):
+        if isinstance(strike, list | np.ndarray):
             k = np.log(np.array(strike, dtype=float) / float(forward))
         else:
             k = np.log(float(strike) / float(forward))

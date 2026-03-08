@@ -451,7 +451,7 @@ async def get_current_user_flexible(
     # 2. Optimized Token Validation (Handles Better Auth Sessions + JWT)
     if token:
         try:
-            token_data = await auth_service.validate_token(token)
+            await auth_service.validate_token(token)
             # Fetch user for the token (uses cache if available)
             user = await get_current_user(request, token, db, auth_service)
             if user:
