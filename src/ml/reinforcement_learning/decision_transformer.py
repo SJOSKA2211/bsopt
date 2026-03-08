@@ -32,12 +32,28 @@ def apply_rotary_pos_emb(q, k, cos, sin):
     return (q * cos) + (rotate_half(q) * sin), (k * cos) + (rotate_half(k) * sin)
 
 
+class GatedMLP(nn.Module):
+    """
+    God-Mode: Gated Linear Unit (SwiGLU variant).
+    Commonly used in state-of-the-art LLMs for superior representation power.
+    """
+    def __init__(self, n_inner: int, dropout: float = 0.1):
+        super().__init__()
+        self.w1 = nn.Linear(n_inner, 4 * n_inner)
+        self.w2 = nn.Linear(n_inner, 4 * n_inner)
+        self.w3 = nn.Linear(4 * n_inner, n_inner)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        return self.w3(self.dropout(F.silu(self.w1(x)) * self.w2(x)))
+
+
 class AttentionBlock(nn.Module):
     """
-    Flash Attention-capable Transformer Block with RoPE support.
+    Optimized Transformer Block with Flash Attention, RoPE, and Gated MLP.
     """
 
-    def __init__(self, n_inner: int, n_head: int, dropout: float = 0.1):
+    def __init__(self, n_inner: int, n_head: int, dropout: float = 0.1, drop_path: float = 0.0):
         super().__init__()
         self.n_head = n_head
         self.n_inner = n_inner
@@ -45,15 +61,24 @@ class AttentionBlock(nn.Module):
         self.proj = nn.Linear(n_inner, n_inner)
         self.ln_1 = nn.LayerNorm(n_inner)
         self.ln_2 = nn.LayerNorm(n_inner)
-        self.mlp = nn.Sequential(
-            nn.Linear(n_inner, 4 * n_inner),
-            nn.GELU(),
-            nn.Linear(4 * n_inner, n_inner),
-            nn.Dropout(dropout),
-        )
+        
+        # ⚡ GATED MLP (SwiGLU)
+        self.mlp = GatedMLP(n_inner, dropout)
+        
         self.dropout = nn.Dropout(dropout)
+        self.drop_path = drop_path
+
+    def _drop_path(self, x: th.Tensor, drop_prob: float = 0.0, training: bool = False) -> th.Tensor:
+        if drop_prob == 0.0 or not training:
+            return x
+        keep_prob = 1 - drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+        random_tensor = keep_prob + th.rand(shape, dtype=x.dtype, device=x.device)
+        random_tensor.floor_()  # binarize
+        return x.div(keep_prob) * random_tensor
 
     def forward(self, x: th.Tensor, mask: th.Tensor | None = None, rotary_emb: tuple | None = None) -> th.Tensor:
+        # 1. Attention Path
         x_ln = self.ln_1(x)
         batch, seq, dim = x_ln.shape
 
@@ -64,7 +89,6 @@ class AttentionBlock(nn.Module):
         )
         q, k, v = qkv[0], qkv[1], qkv[2]
 
-        # ⚡ APPLY RoPE
         if rotary_emb is not None:
             cos, sin = rotary_emb
             q, k = apply_rotary_pos_emb(q, k, cos, sin)
@@ -76,15 +100,19 @@ class AttentionBlock(nn.Module):
         )
 
         attn_out = attn_out.permute(0, 2, 1, 3).reshape(batch, seq, dim)
-        x = x + self.dropout(self.proj(attn_out))
-        x = x + self.mlp(self.ln_2(x))
+        
+        # Stochastic Depth
+        x = x + self._drop_path(self.dropout(self.proj(attn_out)), self.drop_path, self.training)
+        
+        # 2. MLP Path
+        x = x + self._drop_path(self.mlp(self.ln_2(x)), self.drop_path, self.training)
         return x
 
 
 class DecisionTransformer(nn.Module):
     """
     Advanced Decision Transformer (DT-v2) for Offline RL.
-    OPTIMIZED: Flash Attention, RoPE, Multi-scale Modal Embeddings.
+    OPTIMIZED: Flash Attention, RoPE, Gated MLP, Stochastic Depth.
     """
 
     def __init__(
@@ -97,6 +125,7 @@ class DecisionTransformer(nn.Module):
         max_length: int = 20,
         max_ep_len: int = 1000,
         dropout: float = 0.1,
+        drop_path: float = 0.1,
     ):
         super().__init__()
         self.state_dim = state_dim
@@ -105,7 +134,7 @@ class DecisionTransformer(nn.Module):
         self.n_head = n_head
         self.head_dim = n_inner // n_head
 
-        # Modal Embeddings
+        # Modal Embeddings with high-init scale for returns
         self.embed_return = nn.Linear(1, n_inner)
         self.embed_state = nn.Linear(state_dim, n_inner)
         self.embed_action = nn.Linear(action_dim, n_inner)
@@ -116,8 +145,10 @@ class DecisionTransformer(nn.Module):
         self.embed_ln = nn.LayerNorm(n_inner)
         self.dropout = nn.Dropout(dropout)
 
+        # Linear drop path rate schedule
+        dpr = [x.item() for x in th.linspace(0, drop_path, n_layer)]
         self.blocks = nn.ModuleList(
-            [AttentionBlock(n_inner, n_head, dropout) for _ in range(n_layer)]
+            [AttentionBlock(n_inner, n_head, dropout, dpr[i]) for i in range(n_layer)]
         )
 
         self.predict_action = nn.Sequential(
@@ -127,7 +158,7 @@ class DecisionTransformer(nn.Module):
         self.predict_state = nn.Linear(n_inner, state_dim)
         self.predict_return = nn.Linear(n_inner, 1)
 
-    def forward(self, states, actions, returns_to_go, timesteps):
+    def forward(self, states, actions, returns_to_go, timesteps, padding_mask=None):
         batch_size, seq_len = states.shape[0], states.shape[1]
 
         # Modal embeddings
@@ -143,7 +174,7 @@ class DecisionTransformer(nn.Module):
         )
         stacked_inputs = self.dropout(self.embed_ln(stacked_inputs))
 
-        # 3. Get RoPE coefficients for the interleaved sequence
+        # 3. Get RoPE coefficients
         cos, sin = self.rotary_emb(stacked_inputs, 3 * seq_len)
 
         # 4. Transformer Pass
@@ -153,8 +184,12 @@ class DecisionTransformer(nn.Module):
 
         x_reshaped = x.reshape(batch_size, seq_len, 3, -1)
         
+        # Predict s_{t+1}, a_t, or r_t
+        # action_preds are predicted from (R_t, S_t)
         action_preds = self.predict_action(x_reshaped[:, :, 1, :])
+        # state_preds are predicted from (R_t, S_t, A_t)
         state_preds = self.predict_state(x_reshaped[:, :, 2, :])
+        # return_preds are predicted from (R_t, S_t, A_t)
         return_preds = self.predict_return(x_reshaped[:, :, 2, :])
 
         return state_preds, action_preds, return_preds

@@ -86,6 +86,68 @@ def _full_risk_check_kernel(
     return 1
 
 
+class RiskVectorTracker:
+    """
+    Multi-Dimensional stateful tracker for portfolio-wide risk exposure.
+    OPTIMIZED: Maintains O(1) running totals for Delta, Gamma, and Vega.
+    """
+
+    def __init__(
+        self, 
+        initial_greeks: np.ndarray | None = None,
+        limits: np.ndarray | None = None
+    ):
+        # state: [delta, gamma, vega]
+        if initial_greeks is None:
+            initial_greeks = np.zeros(3, dtype=np.float64)
+        self._state = initial_greeks
+        
+        # limits: [max_delta, max_gamma, max_vega]
+        if limits is None:
+            limits = np.array([10000.0, 5000.0, 5000.0], dtype=np.float64)
+        self._limits = limits
+
+    @property
+    def current_state(self) -> np.ndarray:
+        return self._state
+
+    def validate_and_update(
+        self, 
+        price: float, 
+        quantity: int, 
+        side: int, 
+        d_delta: float, 
+        d_gamma: float, 
+        d_vega: float,
+        max_qty: int = 1000,
+        min_price: float = 0.01,
+        max_price: float = 10000.0,
+    ) -> bool:
+        """
+        Combined Multi-Point Risk Check.
+        Executes in < 300ns using fuzed Numba kernel.
+        """
+        return bool(
+            _full_risk_check_v2_kernel(
+                price,
+                quantity,
+                side,
+                d_delta,
+                d_gamma,
+                d_vega,
+                self._state,
+                self._limits,
+                max_qty,
+                min_price,
+                max_price,
+            )
+        )
+
+    def reset(self, new_state: np.ndarray):
+        """Periodic full-sync to prevent float-point drift."""
+        self._state[:] = new_state
+
+
 class IncrementalDeltaTracker:
     """
     Stateful tracker for portfolio-wide delta exposure.

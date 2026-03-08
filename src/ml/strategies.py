@@ -54,6 +54,32 @@ class TrainingStrategy:
     ) -> dict[str, float] | None:
         return None
 
+    def export_onnx(self, model: Any, path: str, input_dim: int):
+        """Standardized ONNX export interface."""
+        pass
+
+
+class ONNXOptimizationMixin:
+    """
+    God-Mode: Reusable ONNX optimization logic for strategies.
+    """
+    def export_onnx(self, model: Any, path: str, input_dim: int):
+        from src.ml.utils.optimization import export_to_onnx, quantize_onnx_model
+        import torch
+        
+        logger.info("optimizing_model_for_onnx", path=path)
+        dummy_input = torch.randn(1, input_dim)
+        
+        # 1. Export standard
+        export_to_onnx(model, dummy_input, path)
+        
+        # 2. Quantize
+        quantized_path = path.replace(".onnx", ".int8.onnx")
+        try:
+            quantize_onnx_model(path, quantized_path)
+        except Exception as e:
+            logger.warning("quantization_skipped_in_mixin", error=str(e))
+
 
 class XGBoostStrategy(TrainingStrategy):
     def train(
@@ -157,7 +183,7 @@ class SklearnStrategy(TrainingStrategy):
         return {name: float(imp) for name, imp in zip(feature_names, importances, strict=False)}
 
 
-class PyTorchStrategy(TrainingStrategy):
+class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
     class SimpleNet(nn.Module):
         def __init__(self, input_dim: int):
             super().__init__()

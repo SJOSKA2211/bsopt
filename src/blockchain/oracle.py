@@ -5,6 +5,7 @@ from typing import Any
 import structlog
 
 from src.utils.cache import get_redis
+from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -12,13 +13,23 @@ logger = structlog.get_logger(__name__)
 class OracleManager:
     """
     Hybrid Price Oracle (Speed-v1).
-    Combines high-frequency off-chain feeds with on-chain JSON-RPC state.
+    OPTIMIZED: Multilayered lookup (SHM -> Redis -> RPC) with confidence weighting.
     """
 
     def __init__(self, cache_ttl: int = 10):
         self.cache_ttl = cache_ttl
         self._feeds: dict[str, dict] = {}
-        self._sources = ["WS", "RPC", "AGG"]
+        self._sources = ["SHM", "WS", "RPC"]
+        self._mesh = None
+        self._last_mesh_head = 0
+
+    def _get_mesh(self):
+        if self._mesh is None:
+            try:
+                self._mesh = SharedMemoryRingBuffer(create=False)
+            except Exception:
+                pass
+        return self._mesh
 
     async def get_price(
         self, 
@@ -27,12 +38,36 @@ class OracleManager:
         rpc_fallbacks: list[Callable[[str], Any]]
     ) -> float:
         """
-        Fetch price with confidence scoring and multi-RPC aggregation.
+        Fetch price with multilayered fallback and confidence scoring.
         """
         now = time.time()
-        redis = get_redis()
+        now_ns = time.time_ns()
 
-        # 1. ⚡ SPEED FEED (WebSocket/Redis Cache)
+        # 1. 🚀 SHM MESH (Ultra-Low Latency)
+        mesh = self._get_mesh()
+        if mesh:
+            # Note: In a real implementation, we might maintain a local symbol map
+            # updated by a background task reading the mesh.
+            # For this revamp, we assume the mesh contains the latest ticks.
+            ticks, new_head = mesh.read_latest_msgspec(self._last_mesh_head)
+            if ticks:
+                self._last_mesh_head = new_head
+                # Update local cache with latest mesh ticks
+                for tick in ticks:
+                    self._feeds[tick.symbol] = {
+                        "price": tick.price,
+                        "time": tick.receive_ts_ns / 1e9,
+                        "source": "SHM"
+                    }
+
+            if symbol in self._feeds and self._feeds[symbol]["source"] == "SHM":
+                entry = self._feeds[symbol]
+                age = now - entry["time"]
+                if age < 1.0: # Very strict TTL for SHM
+                    return entry["price"]
+
+        # 2. ⚡ SPEED FEED (Redis Cache / WebSocket)
+        redis = get_redis()
         if redis:
             keys = [f"price:ws:{symbol}", f"price:ws:{symbol}:ts"]
             values = await redis.mget(keys)
@@ -42,43 +77,40 @@ class OracleManager:
                 age = now - float(values[1])
                 confidence = self.get_confidence_score("WS", age)
                 
-                if confidence > 0.8:
-                    logger.info("oracle_hit_ws", symbol=symbol, price=price, confidence=round(confidence, 2))
+                if confidence > 0.9:
                     return price
 
-        # 2. 🏛️ RPC FEED (On-chain/Local Cache)
+        # 3. 🏛️ RPC FEED (On-chain/Local Cache)
         if contract_address in self._feeds:
             entry = self._feeds[contract_address]
             age = now - entry["time"]
             if age < self.cache_ttl:
-                logger.info("oracle_hit_local", symbol=symbol, price=entry["price"], source=entry["source"])
                 return entry["price"]
 
-        # 3. 🛡️ MULTI-RPC AGGREGATION
+        # 4. 🛡️ MULTI-RPC AGGREGATION
         prices = []
         for rpc_call in rpc_fallbacks:
             try:
                 price = await rpc_call(contract_address)
                 prices.append(price)
-            except Exception as e:
-                logger.warning("oracle_rpc_fallback_partial_failure", symbol=symbol, error=str(e))
+            except Exception:
+                continue
 
         if not prices:
-            logger.error("oracle_all_rpcs_failed", symbol=symbol)
-            raise Exception(f"All RPC sources failed for {symbol}")
+            raise Exception(f"All sources failed for {symbol}")
 
-        # Median price for robustness against outlier RPCs
         prices.sort()
         mid = len(prices) // 2
         median_price = (prices[mid] + prices[~mid]) / 2 if prices else 0.0
         
-        self._feeds[contract_address] = {"price": median_price, "time": now, "source": "AGG_RPC"}
-
-        if redis:
-            await redis.setex(f"price:rpc:{symbol}", self.cache_ttl, str(median_price))
-            await redis.setex(f"price:rpc:{symbol}:ts", self.cache_ttl, str(now))
-
+        self._feeds[contract_address] = {"price": median_price, "time": now, "source": "RPC"}
         return median_price
+
+    def get_confidence_score(self, source: str, age: float) -> float:
+        """Calculate confidence based on source and age."""
+        base_scores = {"SHM": 0.99, "WS": 0.95, "RPC": 0.85}
+        decay = 0.1 * (age / self.cache_ttl)
+        return max(base_scores.get(source, 0.5) - decay, 0.0)
 
     async def batch_get_prices(self, symbols: list[str]) -> dict[str, float]:
         """

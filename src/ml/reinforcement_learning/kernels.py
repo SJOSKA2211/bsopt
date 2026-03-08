@@ -32,53 +32,55 @@ def _fused_state_kernel(
     window_size,
 ):
     """
-    Fused kernel for state matrix construction (2D) with Spectral Features.
-    Returns (window_size, 128) instead of flattened vector.
+    God-Mode: Fused kernel for state matrix construction (2D).
+    OPTIMIZED: Spectral Features, Wavelet Projections, Micro-structure Proxies.
+    Returns (window_size, 128) matrix for Transformer ingestion.
     """
     # Create the current state vector (128 dims)
     state = np.zeros(128, dtype=np.float32)
 
-    # 1. Portfolio (11 dims)
+    # 1. Portfolio Context (11 dims)
     state[0] = balance / initial_balance
     for i in range(10):
         state[1 + i] = positions[i]
 
-    # 2. Market (10 dims) - Log-Moneyness + Fourier Base
+    # 2. Market Dynamics (10 dims) - Log-Moneyness
     for i in range(10):
         p = max(prices[i], 1e-6)
         k = max(strikes[i], 1e-6)
-        log_m = np.log(p / k)
-        state[11 + i] = log_m
+        state[11 + i] = np.log(p / k)
 
-    # 3. Greeks (40 dims) - Tanh Scaling
+    # 3. Silicon Greeks (40 dims) - Non-linear Scaling
     for i in range(40):
         state[21 + i] = np.tanh(greeks[i])
 
-    # 4. Spectral Features (20 dims) - Multi-scale Fourier Base
-    # Captures cyclical micro-structure at log-spaced frequencies.
+    # 4. 🌀 SPECTRAL FEATURES (30 dims)
+    # Multi-scale Fourier base capturing cyclicality and micro-structure.
+    # Uses prime-spaced frequencies to avoid harmonic overlap.
+    primes = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29], dtype=np.float32)
     for i in range(10):
-        # i=0 to 9
-        # Normalize price around 100
         p_norm = prices[i % 10] / 100.0
-        # Multi-scale frequencies (1.0, 2.0, 4.0, ..., 512.0)
-        freq = 2.0**i
-        state[61 + i] = np.tanh(np.sin(p_norm * np.pi * freq))
-        state[71 + i] = np.tanh(np.cos(p_norm * np.pi * freq))
+        angle = p_norm * np.pi * primes[i]
+        state[61 + i] = np.sin(angle)
+        state[71 + i] = np.cos(angle)
+        # Added: High-frequency jitter proxy
+        state[81 + i] = np.tanh(np.sin(angle * 10.0))
 
-    # 5. Indicators (20 dims)
+    # 5. Volatility & Momentum Indicators (20 dims)
     for i in range(20):
-        state[81 + i] = indicators[i]
+        state[91 + i] = indicators[i]
 
-    # 6. Wavelet-like Volatility Projection (27 dims)
-    # Using the remaining space to project high-frequency indicator variance
-    for i in range(27):
-        state[101 + i] = np.tanh(indicators[i % 20] * (prices[i % 10] / 100.0))
+    # 6. 🌊 WAVELET PROJECTION (17 dims)
+    # Project high-frequency indicators into a synthetic wavelet space.
+    for i in range(17):
+        # Difference of Gaussians (DoG) approximation
+        state[111 + i] = np.tanh(indicators[i % 20] - indicators[(i + 1) % 20])
 
-    # 7. Temporal Stacking (Circular Buffer)
+    # 7. Temporal Stacking (Circular Buffer Management)
     idx = window_idx % window_size
     window_buffer[idx] = state
 
-    # Return 2D window (ordered chronologically)
+    # Return 2D window (ordered chronologically for Attention)
     out = np.zeros((window_size, 128), dtype=np.float32)
     for i in range(window_size):
         src_idx = (window_idx - (window_size - 1 - i)) % window_size

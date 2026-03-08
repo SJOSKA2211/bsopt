@@ -23,42 +23,67 @@ class DexWebSocketOracle:
         self._pairs = []
         self.redis: Redis | None = None
         self._decoder = msgspec.json.Decoder()
+        self._reconnect_attempt = 0
 
     async def start(self, pairs: list[str]):
-        """Start the WebSocket listener for specified pairs."""
+        """Start the WebSocket listener for specified pairs with buffered updates."""
         self._pairs = pairs
         self._running = True
         self.redis = get_redis()
         
+        # Initialize SHM for ultra-low latency local broadcast
+        try:
+            from src.shared.shm_mesh import SharedMemoryRingBuffer
+            mesh = SharedMemoryRingBuffer(create=False)
+        except Exception:
+            mesh = None
+            logger.warning("shm_mesh_unavailable_for_oracle_broadcast")
+
         while self._running:
             try:
                 async with websockets.connect(self.feed_url) as ws:
-                    # Binance example: subscribe to aggregate trades
                     subscribe_msg = {
                         "method": "SUBSCRIBE",
                         "params": [f"{p.lower()}@aggTrade" for p in pairs],
                         "id": 1
                     }
                     await ws.send(msgspec.json.encode(subscribe_msg))
-                    logger.info("dex_oracle_subscribed", pairs=pairs)
+                    self._reconnect_attempt = 0 # Reset on successful connection
+                    
+                    # Buffer for pipeline updates
+                    buffer = []
+                    last_flush = time.time()
 
                     async for message in ws:
                         try:
                             data = self._decoder.decode(message)
                             if "s" in data and "p" in data:
                                 symbol = data["s"]
-                                price = data["p"]
-                                # 🚀 GOD-MODE: Atomic update via pipeline
-                                if self.redis:
-                                    pipe = self.redis.pipeline()
-                                    pipe.set(f"price:ws:{symbol}", price)
-                                    pipe.set(f"price:ws:{symbol}:ts", str(time.time()))
-                                    await pipe.execute()
+                                price = float(data["p"])
+                                
+                                # 1. 🚀 ULTRA-SPEED: Local SHM Mesh
+                                if mesh:
+                                    mesh.write_tick(symbol, price, int(data.get("q", 0)), time.time())
+
+                                # 2. ⚡ PIPELINE BUFFER: Global Redis
+                                buffer.append((symbol, price))
+                                
+                                if len(buffer) >= 10 or (time.time() - last_flush) > 0.1:
+                                    if self.redis:
+                                        pipe = self.redis.pipeline()
+                                        for s, p in buffer:
+                                            pipe.set(f"price:ws:{s}", str(p))
+                                            pipe.set(f"price:ws:{s}:ts", str(time.time()))
+                                        await pipe.execute()
+                                    buffer = []
+                                    last_flush = time.time()
+
                         except Exception as e:
                             logger.error("dex_oracle_parse_error", error=str(e))
             except Exception as e:
                 logger.error("dex_oracle_ws_error", error=str(e))
-                await asyncio.sleep(5)  # Backoff
+                self._reconnect_attempt += 1
+                await asyncio.sleep(min(30, 2 ** self._reconnect_attempt)) # Exponential backoff
 
     async def stop(self):
         self._running = False

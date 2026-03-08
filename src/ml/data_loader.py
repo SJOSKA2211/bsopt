@@ -99,8 +99,12 @@ class StreamingDataLoader:
     def _process_chunk(self, chunk: pd.DataFrame) -> pd.DataFrame:
         """
         Normalize and feature engineer a chunk of data using the Feature Store.
+        OPTIMIZED: Automatically uses Numba indicators if close price exists.
         """
         required_features = ["log_return"]
+        if "close" in chunk.columns:
+            required_features.extend(["RSI_14", "EMA_20", "MACD"])
+            
         try:
             processed_chunk = feature_store.compute_features(chunk, required_features)
             return processed_chunk

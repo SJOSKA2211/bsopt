@@ -64,10 +64,10 @@ class MarketDataConsumer:
             self.market_data_schema = f.read()
         self.avro_deserializer = AvroDeserializer(self.schema_registry, self.market_data_schema)
 
-    async def consume_messages(self, callback: Callable[[dict], None], batch_size: int = 100):
+    async def consume_messages(self, callback: Callable[[list[dict], str], None], batch_size: int = 100):
         """
         Consume messages in adaptive batches and process with callback.
-        Uses bulk fetching with dynamic batch sizing for high throughput.
+        Groups batches by topic before dispatching.
         """
         self.running = True
         current_batch_size = batch_size
@@ -84,7 +84,8 @@ class MarketDataConsumer:
                     await asyncio.sleep(0.01)  # Yield
                     continue
 
-                batch = []
+                # Group by topic
+                topic_batches: dict[str, list[dict]] = {}
                 for msg in msgs:
                     if msg.error():
                         if msg.error().code() == KafkaError._PARTITION_EOF:
@@ -94,13 +95,20 @@ class MarketDataConsumer:
 
                     try:
                         data = self.avro_deserializer(msg.value(), None)
-                        batch.append(data)
+                        topic = msg.topic()
+                        if topic not in topic_batches:
+                            topic_batches[topic] = []
+                        topic_batches[topic].append(data)
                     except Exception as e:
                         logger.error("message_processing_error", error=str(e))
 
-                if batch:
+                if topic_batches:
                     start_time = time.time()
-                    await self._process_batch(batch, callback)
+                    
+                    # Process each topic's batch
+                    for topic, batch in topic_batches.items():
+                        await self._process_batch(batch, topic, callback)
+                    
                     duration = time.time() - start_time
 
                     # Commit offsets manually (Async for performance)
@@ -110,8 +118,6 @@ class MarketDataConsumer:
                         logger.error("offset_commit_failed", error=str(e))
 
                     # Adaptive batch sizing:
-                    # If we processed too fast, increase batch size.
-                    # If we processed too slow, decrease batch size.
                     if duration < target_duration * 0.8:
                         current_batch_size = min(max_batch, int(current_batch_size * 1.2))
                     elif duration > target_duration * 1.2:
@@ -126,37 +132,30 @@ class MarketDataConsumer:
         finally:
             self.consumer.close()
 
-    async def _process_batch(self, batch: list[dict], callback: Callable):
+    async def _process_batch(self, batch: list[dict], topic: str, callback: Callable):
         """Process batch of messages efficiently with backpressure."""
         start_time = time.time()
         try:
             # Check if callback explicitly handles batches
             if hasattr(callback, "_is_batch_aware") and callback._is_batch_aware:
-                await callback(batch)
+                await callback(batch, topic)
             else:
-                #  SLOP PREVENTION: Use a semaphore to limit concurrency
-                # Prevent event loop exhaustion during massive spikes
-                sem = asyncio.Semaphore(100)  # Process max 100 concurrently
-
-                async def sem_callback(msg):
-                    async with sem:
-                        await callback(msg)
-
-                tasks = [sem_callback(msg) for msg in batch]
-                await asyncio.gather(*tasks)
+                # Optimized callback dispatch
+                await callback(batch, topic)
 
             duration = time.time() - start_time
             if duration <= 0:
                 duration = 0.001
 
             logger.info(
-                "batch_processed",
+                "topic_batch_processed",
+                topic=topic,
                 batch_size=len(batch),
                 duration_ms=duration * 1000,
                 throughput=len(batch) / duration,
             )
         except Exception as e:
-            logger.error("batch_processing_error", error=str(e))
+            logger.error("batch_processing_error", topic=topic, error=str(e))
 
     def stop(self):
         """Stop consuming messages"""

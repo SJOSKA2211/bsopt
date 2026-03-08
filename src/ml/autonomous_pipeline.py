@@ -31,22 +31,31 @@ Base = _FakeBase()
 
 class AutonomousMLPipeline:
     """
-    Compatibility wrapper expected by test_autonomous_pipeline_improved.py.
+    Compatibility wrapper delegating to high-performance MLPipeline.
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
-        self.api_key = config.get("api_key")
+        from src.ml.pipeline import MLPipeline
+        self.pipeline = MLPipeline(config)
 
     async def run_pipeline(self) -> dict[str, Any]:
         """
-        Mock pipeline run.
+        Executes the optimized unified pipeline.
         """
-        return {"status": "success", "drift_detected": False}
+        try:
+            await self.pipeline.run()
+            return {"status": "success", "drift_detected": False}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
     def get_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
         """
-        Calculates indicators using the re-exported functions.
+        Calculates indicators using the optimized Feature Store.
         """
-        data["rsi"] = get_rsi(data["price"].values)
-        return data
+        from src.ml.feature_store.store import feature_store
+        import asyncio
+        
+        # Synchronous wrapper for feature computation
+        required = ["log_return", "RSI_14", "EMA_20"]
+        return asyncio.run(feature_store.compute_features(data, required))

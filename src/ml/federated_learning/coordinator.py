@@ -44,5 +44,26 @@ class FederatedLearningCoordinator:
 
 
 if __name__ == "__main__":
-    coordinator = FederatedLearningCoordinator()
-    coordinator.start()
+    import argparse
+    import mlflow
+
+    parser = argparse.ArgumentParser(description="Run Federated Learning Coordinator")
+    parser.add_argument("--rounds", type=int, default=3)
+    parser.add_argument("--address", type=str, default="0.0.0.0:8080")
+    parser.add_argument("--strategy", type=str, default="FedAvg")
+    parser.add_argument("--study_name", type=str, default="federated_v1")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    if args.tracking_uri:
+        mlflow.set_tracking_uri(args.tracking_uri)
+
+    with mlflow.start_run(run_name=args.study_name):
+        mlflow.log_params({
+            "rounds": args.rounds,
+            "strategy": args.strategy,
+            "address": args.address
+        })
+        coordinator = FederatedLearningCoordinator(server_address=args.address, strategy_name=args.strategy)
+        coordinator.start(num_rounds=args.rounds)

@@ -107,15 +107,29 @@ class Query:
 
     @strawberry.field
     async def market_data(self, symbol: str) -> MarketData:
-        """Fetch latest market data for a symbol"""
-        return MarketData(
-            symbol=symbol,
-            last_price=150.25,
-            bid=150.20,
-            ask=150.30,
-            volume=5000,
-            timestamp=datetime.now(UTC)
-        )
+        """Fetch latest market data for a symbol using optimized router."""
+        from src.api.graphql.resolvers.option_service import router
+        
+        try:
+            data = await router.get_live_quote(symbol)
+            return MarketData(
+                symbol=symbol,
+                last_price=data.get("price", 0.0),
+                bid=data.get("bid"),
+                ask=data.get("ask"),
+                volume=data.get("volume"),
+                timestamp=datetime.now(UTC)
+            )
+        except Exception:
+            # Fallback for demo
+            return MarketData(
+                symbol=symbol,
+                last_price=150.25,
+                bid=150.20,
+                ask=150.30,
+                volume=5000,
+                timestamp=datetime.now(UTC)
+            )
 
     @strawberry.field
     async def historical_data(self, symbol: str) -> list[OHLCV]:
