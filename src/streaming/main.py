@@ -40,6 +40,9 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    # Shutdown
+    await ws_manager.close()
+
 
 app = FastAPI(
     title="BS-Opt Market Data Service",
@@ -65,14 +68,17 @@ async def websocket_marketdata(websocket: WebSocket, symbol: str):
     """
     try:
         # Accept and subscribe to the requested symbol
-        await ws_manager.connect(websocket, symbol.upper())
+        await ws_manager.connect(websocket)
+        await ws_manager.subscribe_to_symbol(websocket, symbol)
 
         while True:
             # Keep connection alive
-            await websocket.receive_text()
+            msg = await websocket.receive_text()
+            if msg == "ping":
+                await websocket.send_text("pong")
 
     except WebSocketDisconnect:
-        ws_manager.disconnect(websocket, symbol.upper())
+        await ws_manager.disconnect(websocket)
     except Exception as e:
         logger.error("ws_error", symbol=symbol, error=str(e))
-        ws_manager.disconnect(websocket, symbol.upper())
+        await ws_manager.disconnect(websocket)

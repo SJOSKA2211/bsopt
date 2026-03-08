@@ -6,36 +6,36 @@ import structlog
 from fastapi import APIRouter, Request
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.schemas.pricing import BatchPriceRequest, GreeksRequest, PriceRequest
+from src.api.schemas.pricing import BatchPriceRequest, GreeksRequest, PriceRequest, PriceResult, BatchPriceResult
 from src.services.pricing_service import PricingService
 
 logger = structlog.get_logger(__name__)
-router = APIRouter(prefix="/pricing", tags=["Pricing"])
+router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=MsgspecJSONResponse)
 pricing_service = PricingService()
 
 
-@router.post("/price", response_class=MsgspecJSONResponse)
-async def calculate_price(body: PriceRequest, request: Request):
+@router.post("/price")
+async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     """
     Calculate theoretical price for a single option.
+    OPTIMIZED: Returns msgspec Struct for ultra-fast serialization.
     """
     params = body.to_bs_params()
-    result = await pricing_service.price_option(
+    return await pricing_service.price_option(
         params=params,
         option_type=body.option_type,
         model=body.model,
         symbol=body.symbol,
     )
-    return result
 
 
-@router.post("/batch", response_class=MsgspecJSONResponse)
-async def calculate_batch_prices(request: BatchPriceRequest):
+@router.post("/batch")
+async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
     """
     Vectorized batch pricing.
+    OPTIMIZED: Zero-overhead batch response using msgspec Structs.
     """
-    result = await pricing_service.price_batch(request.options)
-    return result
+    return await pricing_service.price_batch(request.options)
 
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)

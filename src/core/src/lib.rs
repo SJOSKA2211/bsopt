@@ -237,7 +237,7 @@ fn monte_carlo_price(
     use rand::prelude::*;
     use rand_distr::StandardNormal;
 
-    let mut rng = rand::rng();
+    let mut rng = rand::thread_rng();
     let mut sum_payoff = 0.0;
     let drift = (rate - div - 0.5 * vol * vol) * time;
     let vol_sqrt_t = vol * time.sqrt();
@@ -496,7 +496,7 @@ fn calibrate_svi_rust(
     maturity: f64,
     initial_params: Vec<f64>,
 ) -> PyResult<Vec<f64>> {
-    use argmin::prelude::*;
+    use argmin::core::{CostFunction, Gradient, Error, Executor};
     use argmin::solver::gaussnewton::GaussNewton;
     use argmin::solver::gradientdescent::SteepestDescent;
     use argmin::solver::linesearch::MoreThuenteLineSearch;

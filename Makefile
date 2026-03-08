@@ -46,6 +46,7 @@ help:
 	@echo "  ml-build     - Build High-Performance MLOps Runtime Image"
 	@echo "  ml-train     - Run Autonomous ML Training (Use TICKER=\"...\")"
 	@echo "  ml-rl-train  - Run RL Trading Policy Training"
+	@echo "  ml-dt-train  - Run Distributed Decision Transformer Training"
 	@echo "  ml-tft-train - Run TFT Forecasting Training (Use TICKER=\"...\", EPOCHS=\"...\")"
 	@echo "  ml-evaluate  - Compare Challenger run vs Production Champion"
 	@echo "  ml-promote   - Promote model to Production (Use MODEL=\"...\", RUN_ID=\"...\")"
@@ -185,6 +186,10 @@ ml-train:
 ml-rl-train:
 	@echo "🥒 Triggering RL Trading Policy Training..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_rl -P timesteps=$(STEPS) --no-conda
+
+ml-dt-train:
+	@echo "🥒 Triggering Distributed Decision Transformer Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_distributed_dt -P workers=$(WORKERS) -P epochs=$(EPOCHS) --no-conda
 
 ml-tft-train:
 	@echo "🥒 Triggering TFT Forecasting Training for $(TICKER)..."

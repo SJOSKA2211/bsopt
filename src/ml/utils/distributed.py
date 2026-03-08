@@ -88,3 +88,29 @@ def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
         synced_metrics[k] = t.item() / world_size
 
     return synced_metrics
+
+
+def check_ray_cluster() -> dict[str, Any]:
+    """
+    God-Mode: Comprehensive Ray Cluster health and resource check.
+    """
+    import ray
+    if not ray.is_initialized():
+        return {"status": "not_initialized"}
+    
+    nodes = ray.nodes()
+    resources = ray.cluster_resources()
+    available = ray.available_resources()
+    
+    health_report = {
+        "status": "healthy" if len(nodes) > 0 else "degraded",
+        "node_count": len(nodes),
+        "total_cpus": resources.get("CPU", 0),
+        "available_cpus": available.get("CPU", 0),
+        "total_gpus": resources.get("GPU", 0),
+        "total_memory_gb": resources.get("memory", 0) / (1024**3),
+        "object_store_gb": resources.get("object_store_memory", 0) / (1024**3),
+    }
+    
+    logger.info("ray_cluster_health_report", **health_report)
+    return health_report

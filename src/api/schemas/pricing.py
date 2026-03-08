@@ -5,10 +5,34 @@ High-performance schemas using msgspec for ultra-low latency serialization.
 Fallback to Pydantic for complex validation if needed, but core paths use msgspec.
 """
 
+import msgspec
 from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+
+class PriceResult(msgspec.Struct):
+    """Ultra-fast msgspec struct for single price result."""
+    price: float
+    spot: float
+    strike: float
+    time_to_expiry: float
+    rate: float
+    volatility: float
+    option_type: str
+    model: str
+    computation_time_ms: float
+    cached: bool = False
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+
+
+class BatchPriceResult(msgspec.Struct):
+    """Ultra-fast msgspec struct for batch results."""
+    results: list[PriceResult]
+    total_count: int
+    computation_time_ms: float
+    cached_count: int = 0
 
 
 class PriceRequest(BaseModel):

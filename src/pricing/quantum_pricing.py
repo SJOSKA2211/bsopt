@@ -243,9 +243,15 @@ class QuantumOptionPricer:
         try:
             # We use the WASM module for sub-microsecond classical calc
             # This is significantly faster than scipy.stats.norm for batch or repeated calls
-            from src.wasm.bindings import BlackScholesWASM as WASM_BS
-            bs = WASM_BS()
-            price = bs.price_call(params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend)
+            from src.utils.wasm_loader import get_wasm_instance
+            instance = get_wasm_instance()
+            if instance is None:
+                return self.price_classical(params)
+            
+            # Wasmer instance exports are accessed via .exports
+            price = instance.exports.price_call(
+                params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
+            )
             return {"price": float(price), "method": "wasm_classical_fallback", "confidence": 1.0}
         except Exception:
             return self.price_classical(params)

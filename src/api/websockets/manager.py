@@ -110,13 +110,13 @@ class ConnectionManager:
                     pass
                 await self.disconnect(ws, symbol)
 
-    async def connect(self, websocket: WebSocket, symbol: str):
-        """Accept connection and subscribe to symbol updates."""
+    async def connect(self, websocket: WebSocket):
+        """Accept connection and initialize metadata."""
         await websocket.accept()
 
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
-            websocket.metadata = ConnectionMetadata(protocol=ProtocolType.MSGPACK)
+            websocket.metadata = ConnectionMetadata(protocol=ProtocolType.JSON)
 
         async with self._lock:
             # Lazy init background tasks
@@ -126,24 +126,42 @@ class ConnectionManager:
             if self._heartbeat_task is None or self._heartbeat_task.done():
                 self._heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
 
-            pubsub = await self._get_pubsub()
-            if pubsub:
-                if symbol not in self.active_connections:
-                    self.active_connections[symbol] = set()
-                    await pubsub.subscribe(symbol)
-            else:
-                logger.warning("ws_running_without_redis_synchronization", symbol=symbol)
-                if symbol not in self.active_connections:
-                    self.active_connections[symbol] = set()
-
-            self.active_connections[symbol].add(websocket)
-        
-        logger.info("ws_connected", symbol=symbol, total=len(self.active_connections[symbol]))
+        logger.info("ws_connected", client=str(websocket.client))
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
-    async def disconnect(self, websocket: WebSocket, symbol: str):
-        """Handle disconnection and cleanup in O(1)."""
+    async def disconnect(self, websocket: WebSocket):
+        """Handle disconnection and cleanup all symbol subscriptions for this websocket."""
+        meta = getattr(websocket, "metadata", ConnectionMetadata())
+        symbols = list(meta.subscriptions)
+        
+        for symbol in symbols:
+            await self.unsubscribe_from_symbol(websocket, symbol)
+
+        WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
+        WEBSOCKET_ACTIVE_CONNECTIONS.dec()
+        logger.info("ws_disconnected", client=str(websocket.client))
+
+    async def subscribe_to_symbol(self, websocket: WebSocket, symbol: str):
+        """Subscribe a connection to a specific symbol updates."""
+        symbol = symbol.upper()
+        async with self._lock:
+            if symbol not in self.active_connections:
+                self.active_connections[symbol] = set()
+                pubsub = await self._get_pubsub()
+                if pubsub:
+                    await pubsub.subscribe(symbol)
+            
+            self.active_connections[symbol].add(websocket)
+            
+            meta = getattr(websocket, "metadata", ConnectionMetadata())
+            meta.subscriptions.add(symbol)
+        
+        logger.debug("ws_subscribed", symbol=symbol, client=str(websocket.client))
+
+    async def unsubscribe_from_symbol(self, websocket: WebSocket, symbol: str):
+        """Unsubscribe a connection from a specific symbol."""
+        symbol = symbol.upper()
         async with self._lock:
             if symbol in self.active_connections:
                 self.active_connections[symbol].discard(websocket)
@@ -155,9 +173,38 @@ class ConnectionManager:
                             await pubsub.unsubscribe(symbol)
                         except Exception as e:
                             logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
+            
+            meta = getattr(websocket, "metadata", ConnectionMetadata())
+            meta.subscriptions.discard(symbol)
+        
+        logger.debug("ws_unsubscribed", symbol=symbol, client=str(websocket.client))
 
-        WEBSOCKET_DISCONNECTIONS_TOTAL.inc()
-        WEBSOCKET_ACTIVE_CONNECTIONS.dec()
+    async def close(self):
+        """Shutdown the manager and cleanup all resources."""
+        logger.info("ws_manager_shutting_down")
+        
+        if self._listener_task:
+            self._listener_task.cancel()
+        if self._heartbeat_task:
+            self._heartbeat_task.cancel()
+            
+        if self._pubsub:
+            try:
+                await self._pubsub.close()
+            except Exception:
+                pass
+        
+        # Close all active connections
+        async with self._lock:
+            for symbol, connections in self.active_connections.items():
+                for ws in list(connections):
+                    try:
+                        await ws.close(code=1001, reason="Server shutting down")
+                    except Exception:
+                        pass
+            self.active_connections.clear()
+        
+        logger.info("ws_manager_shutdown_complete")
 
     async def broadcast_to_symbol(
         self, symbol: str, message: Any, from_redis: bool = False, is_raw: bool = False
