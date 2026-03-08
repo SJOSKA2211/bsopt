@@ -2,7 +2,6 @@
 Pricing Tasks for Celery - Production Optimized
 """
 
-import asyncio
 import gc
 import time
 from typing import Any

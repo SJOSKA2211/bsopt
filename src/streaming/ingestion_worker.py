@@ -100,8 +100,8 @@ class PersistenceWorker:
                     self.market_queue.task_done()
 
     async def _persist_audit_logs(self):
-        from src.database.crud import bulk_insert_audit_logs
         from src.database import get_async_db_context
+        from src.database.crud import bulk_insert_audit_logs
 
         while self.running:
             batch = await self.audit_queue.get()

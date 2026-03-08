@@ -1,8 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
-from fastapi.responses import ORJSONResponse
+from fastapi import Depends, FastAPI, Request
 from strawberry.fastapi import GraphQLRouter
 
 from src.portfolio.graphql.schema import schema
@@ -19,6 +18,7 @@ except ImportError:
 
 
 from src.api.responses import MsgspecJSONResponse
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

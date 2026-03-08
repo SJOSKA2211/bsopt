@@ -1,5 +1,5 @@
 import structlog
-import numpy as np
+
 from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
 logger = structlog.get_logger(__name__)

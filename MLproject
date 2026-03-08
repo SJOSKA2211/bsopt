@@ -24,6 +24,13 @@ entry_points:
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.distributed_training --epochs {epochs} --lr {lr} --batch_size {batch_size} --workers {workers} --dataset {dataset} --study_name {study_name} --tracking_uri {tracking_uri}"
 
+  ingest_sentiment:
+    parameters:
+      batch_size: {type: int, default: 10}
+      topic: {type: string, default: "scraper.news"}
+      broker: {type: string, default: "kafka-1:9092"}
+    command: "python -m src.ml.sentiment_pipeline --batch_size {batch_size} --topic {topic} --broker {broker}"
+
   offline_train_dt:
     parameters:
       dataset: {type: string, default: "data/trajectories.parquet"}

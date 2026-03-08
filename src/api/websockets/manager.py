@@ -1,10 +1,8 @@
 import asyncio
-import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-import redis.asyncio as redis
 import structlog
 from fastapi import WebSocket
 from prometheus_client import REGISTRY, Counter, Gauge  # Import Prometheus client metrics

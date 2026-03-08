@@ -16,9 +16,10 @@ import logging
 import os
 from datetime import timedelta
 
-from celery import Celery, Task, signals
+from celery import Celery, signals
 from celery.schedules import crontab
 from kombu import Exchange, Queue
+
 from src.utils.celery import BaseAsyncTask
 
 logger = logging.getLogger(__name__)

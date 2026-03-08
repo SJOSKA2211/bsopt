@@ -255,7 +255,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
                     int(self.config.n_paths),
                 )
                 return float(price), 0.0  # std_err omitted in Rust impl for now
-            except Exception as e:
+            except Exception:
                 # logger.warning("rust_mc_failed_falling_back", error=str(e))
                 pass
 

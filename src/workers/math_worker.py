@@ -1,9 +1,7 @@
 import asyncio
 import os
-import threading
 import time
 
-import ray
 import redis.asyncio as redis
 import structlog
 from celery import Celery

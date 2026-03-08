@@ -79,6 +79,7 @@ class XDPIngester:
         except Exception as e:
             logger.error("ingest_pinning_failed", error=str(e))
 
+        buf = bytearray(2048)
         mv = memoryview(buf)
         # Offset 42 for Ethernet+IP+UDP header if using RAW AF_PACKET
         offset = (

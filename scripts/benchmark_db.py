@@ -5,9 +5,7 @@ Measures latency and throughput of core database operations in BS-OPT.
 
 import asyncio
 import time
-import uuid
-from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from datetime import UTC, datetime, timedelta
 
 import numpy as np
 import structlog
@@ -31,7 +29,7 @@ async def benchmark_ingestion(session: AsyncSession):
     raw_conn = await conn.get_raw_connection()
     
     # Prepare data
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     data = []
     for i in range(BATCH_SIZE):
         data.append((
@@ -113,7 +111,7 @@ async def run_suite():
         ingest_tput = await benchmark_ingestion(session)
         
         # 2. Querying (Insert some dummy data first to avoid empty results)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await session.execute(text("""
             INSERT INTO options_prices (time, symbol, strike, expiry, option_type, last, implied_volatility, delta)
             VALUES (:t, 'BTC/USD', 50000, '2026-12-31', 'call', 2500, 0.5, 0.6)

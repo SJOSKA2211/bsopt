@@ -4,8 +4,8 @@ from typing import Any
 
 import structlog
 
-from src.utils.cache import get_redis
 from src.shared.shm_mesh import SharedMemoryRingBuffer
+from src.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 
@@ -106,41 +106,5 @@ class OracleManager:
         self._feeds[contract_address] = {"price": median_price, "time": now, "source": "RPC"}
         return median_price
 
-    def get_confidence_score(self, source: str, age: float) -> float:
-        """Calculate confidence based on source and age."""
-        base_scores = {"SHM": 0.99, "WS": 0.95, "RPC": 0.85}
-        decay = 0.1 * (age / self.cache_ttl)
-        return max(base_scores.get(source, 0.5) - decay, 0.0)
+        def get_confidence_score(self, source: str, age: float) -> float:
 
-    async def batch_get_prices(self, symbols: list[str]) -> dict[str, float]:
-        """
-        🚀 GOD-MODE: Batch fetch prices using Redis pipelines.
-        Reduces RTT for high-frequency trading loops.
-        """
-        redis = get_redis()
-        if not redis:
-            return {}
-
-        now = time.time()
-        keys = []
-        for s in symbols:
-            keys.extend([f"price:ws:{s}", f"price:ws:{s}:ts"])
-
-        values = await redis.mget(keys)
-        results = {}
-
-        for i, s in enumerate(symbols):
-            p_val = values[i * 2]
-            ts_val = values[i * 2 + 1]
-            if p_val and ts_val:
-                age = now - float(ts_val)
-                if self.get_confidence_score("WS", age) > 0.8:
-                    results[s] = float(p_val)
-
-        return results
-
-    def get_confidence_score(self, source: str, age: float) -> float:
-        """Calculate confidence based on source and age."""
-        base_scores = {"WS": 0.95, "RPC": 0.85, "AGG": 0.90}
-        decay = 0.1 * (age / self.cache_ttl)
-        return max(base_scores.get(source, 0.5) - decay, 0.0)

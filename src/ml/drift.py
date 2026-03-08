@@ -44,9 +44,10 @@ class PerformanceDriftMonitor:
 
     def _sync_with_redis(self):
         """Sync local history with Redis state (Synchronous attempt)."""
-        from src.utils.cache import get_redis
-        import json
         import asyncio
+        import json
+
+        from src.utils.cache import get_redis
 
         redis = get_redis()
         if not redis:
@@ -158,6 +159,7 @@ def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[
 
 
 from numba import njit
+
 
 @njit(cache=True, fastmath=True)
 def _psi_kernel(expected_counts: np.ndarray, actual_counts: np.ndarray, expected_len: int, actual_len: int) -> float:

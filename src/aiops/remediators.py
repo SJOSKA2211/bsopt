@@ -2,7 +2,6 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import Any
 
-import redis.asyncio as redis
 import structlog
 
 from src.tasks.ml_tasks import monitor_drift_and_retrain_task

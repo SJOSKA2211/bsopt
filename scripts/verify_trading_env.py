@@ -1,5 +1,7 @@
 import numpy as np
+
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+
 
 def verify_env():
     print("Verifying TradingEnvironment with Numba JIT...")
@@ -10,7 +12,7 @@ def verify_env():
     action = np.random.uniform(-1, 1, 10).astype(np.float32)
     next_obs, reward, terminated, truncated, info = env.step(action)
     
-    print(f"Step Result:")
+    print("Step Result:")
     print(f"  - Next Obs Shape: {next_obs.shape}")
     print(f"  - Reward: {reward:.6f}")
     print(f"  - Portfolio Value: {info['portfolio_value']:.2f}")

@@ -48,7 +48,6 @@ class SHMManager[T]:
         mv = self._shm.buf
 
         # 2. Optimized Spin-Lock
-        import time
 
         start = time.perf_counter()
         while mv[0] != 0:
@@ -80,7 +79,6 @@ class SHMManager[T]:
         while mv[0] != 0:
             pass  # Busy-wait for speed
 
-        import struct
 
         length = struct.unpack("I", mv[1:5])[0]
         # Zero-copy decode from buffer

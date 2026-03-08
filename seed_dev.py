@@ -3,7 +3,6 @@ import os
 import uuid
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 
 # Use the internal docker URL for seeding
 DATABASE_URL = os.getenv(

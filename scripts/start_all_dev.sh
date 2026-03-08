@@ -36,9 +36,17 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# 2. Start Infrastructure via Delegation
-echo "🥒 Ensuring Infrastructure is UP via start_infra.sh..."
-./scripts/start_infra.sh
+# 2. Check Infrastructure status
+echo "🥒 Checking Infrastructure status..."
+# Check for key infra containers (postgres is the best signal)
+INFRA_RUNNING=$($DOCKER_COMPOSE ps --format '{{.Name}}' | grep -q "postgres" && echo true || echo false)
+
+if [ "$INFRA_RUNNING" = "false" ]; then
+    echo "🥒 Infrastructure missing. Launching via start_infra.sh..."
+    ./scripts/start_infra.sh
+else
+    echo "🥒 Infrastructure already active. Skipping redundant initialization."
+fi
 
 # 3. Run Lint if requested
 if [ "$RUN_LINT" = true ]; then

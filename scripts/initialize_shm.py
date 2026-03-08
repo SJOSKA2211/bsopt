@@ -5,13 +5,14 @@ Ensures all required shared memory segments are pre-allocated and zeroed.
 """
 
 import argparse
-import sys
 import os
+import sys
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.shared.shm_init import initialize_all_shm, SHM_CONFIGS
+from src.shared.shm_init import SHM_CONFIGS, initialize_all_shm
+
 
 def main():
     parser = argparse.ArgumentParser(description="Initialize BS-OPT SHM Buffers")

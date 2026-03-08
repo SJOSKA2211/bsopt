@@ -2,7 +2,6 @@
 Machine Learning Tasks for Celery (Optimized)
 """
 
-import asyncio
 import os
 import sys
 

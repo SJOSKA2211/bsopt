@@ -1,8 +1,10 @@
 import time
+
 import numpy as np
-from src.pricing.vol_surface import SVIModel
-from src.pricing.quant_utils import generate_paths_v2, batch_bs_price_jit_v2
+
+from src.pricing.quant_utils import batch_bs_price_jit_v2, generate_paths_v2
 from src.trading.risk_kernels import _full_risk_check_v2_kernel
+
 
 def benchmark_quant():
     print("--- Quant Benchmarks ---")

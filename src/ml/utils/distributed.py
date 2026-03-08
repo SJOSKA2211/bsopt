@@ -114,3 +114,24 @@ def check_ray_cluster() -> dict[str, Any]:
     
     logger.info("ray_cluster_health_report", **health_report)
     return health_report
+
+
+class RayClusterManager:
+    """
+    God-Mode: Centralized Ray lifecycle and resource management.
+    Ensures zero-leak compute manifolds.
+    """
+    @staticmethod
+    def initialize(address: str = "auto", namespace: str = "bsopt"):
+        import ray
+        if not ray.is_initialized():
+            logger.info("initializing_ray_cluster", address=address, namespace=namespace)
+            ray.init(address=address, namespace=namespace, ignore_reinit_error=True)
+        return check_ray_cluster()
+
+    @staticmethod
+    def shutdown():
+        import ray
+        if ray.is_initialized():
+            logger.info("shutting_down_ray_cluster")
+            ray.shutdown()

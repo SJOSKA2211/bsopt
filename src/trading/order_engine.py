@@ -1,11 +1,11 @@
 import os
+
 import numpy as np
-import struct
-from numba import njit
 import structlog
+from numba import njit
 
 from src.shared.observability import tune_gc
-from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer, RISK_STATE_DTYPE
+from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer
 from src.trading.risk_kernels import _full_risk_check_v2_kernel
 
 try:

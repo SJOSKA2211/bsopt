@@ -1,4 +1,5 @@
 import numpy as np
+import structlog
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,6 +8,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from src.ml.architectures.neural_network import OptionPricingNN
 from src.pricing.base import BasePricingEngine
 from src.pricing.models import BSParameters, OptionGreeks
+
+logger = structlog.get_logger(__name__)
 
 
 class NeuralPricingEngine(BasePricingEngine):

@@ -3,19 +3,26 @@ SHM Registry and Initialization Logic.
 Centralizes all shared memory segments used in BS-OPT.
 """
 
-import structlog
 from multiprocessing import shared_memory
-from typing import Dict, Any, List
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 
 # Constants from shm_mesh (re-defined or imported to avoid circularity if needed)
 # For now, we define them here or import them carefully.
 from src.shared.shm_mesh import (
-    TICK_SIZE, BUFFER_CAPACITY, SHM_NAME,
-    ORDER_SIZE, ORDER_BUFFER_CAPACITY, SHM_ORDER_NAME,
-    EXEC_SIZE, EXEC_BUFFER_CAPACITY, SHM_EXEC_NAME,
-    RISK_STATE_DTYPE, SHM_RISK_NAME
+    BUFFER_CAPACITY,
+    EXEC_BUFFER_CAPACITY,
+    EXEC_SIZE,
+    ORDER_BUFFER_CAPACITY,
+    ORDER_SIZE,
+    RISK_STATE_DTYPE,
+    SHM_EXEC_NAME,
+    SHM_NAME,
+    SHM_ORDER_NAME,
+    SHM_RISK_NAME,
+    TICK_SIZE,
 )
 
 SHM_CONFIGS = [

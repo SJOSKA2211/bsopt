@@ -10,8 +10,9 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     God-Mode: Real batch loader using high-performance gRPC.
     """
     import grpc
-    from src.protos import inference_pb2, inference_pb2_grpc
+
     from src.config import settings
+    from src.protos import inference_pb2, inference_pb2_grpc
     
     try:
         async with grpc.aio.insecure_channel(settings.ML_SERVICE_GRPC_URL) as channel:

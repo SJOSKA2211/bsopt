@@ -1,13 +1,7 @@
 import asyncio
-import time
-import os
-import struct
-import numpy as np
-from sqlalchemy import text
-from src.database import get_engine
-from src.utils.cache import get_redis
-from src.shared.shm_mesh import RiskStateBuffer, SHM_ORDER_NAME, SHM_RISK_NAME
+
 import structlog
+from sqlalchemy import text
 
 logger = structlog.get_logger()
 
@@ -31,8 +25,9 @@ async def check_database():
 async def check_redis():
     print("Checking Redis Cluster...", end=" ", flush=True)
     try:
-        from src.utils.cache import get_redis
         import socket
+
+        from src.utils.cache import get_redis
         try:
             socket.gethostbyname("redis")
             # In docker
@@ -58,6 +53,7 @@ async def check_shm():
     print("Checking Shared Memory Mesh...", end=" ", flush=True)
     try:
         from multiprocessing import shared_memory
+
         from src.shared.shm_init import SHM_CONFIGS
         
         missing = []

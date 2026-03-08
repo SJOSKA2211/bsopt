@@ -6,10 +6,10 @@ from sqlalchemy import text
 from src.api.exceptions import (
     InternalServerException,  # Imported directly as it's a specific exception
 )
+from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse, ErrorResponse
 from src.database import get_async_db, health_check
 from src.security.auth import require_tier
-from src.api.responses import MsgspecJSONResponse
 
 router = APIRouter(
     prefix="/debug",
