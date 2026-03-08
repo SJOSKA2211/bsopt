@@ -1,4 +1,5 @@
 import time
+import msgspec
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any
@@ -19,6 +20,17 @@ from src.config import settings
 
 logger = structlog.get_logger(__name__)
 
+# --- SERIALIZATION ---
+_encoder = msgspec.json.Encoder()
+_decoder = msgspec.json.Decoder()
+
+def msgspec_dumps(obj):
+    return _encoder.encode(obj).decode()
+
+def msgspec_loads(s):
+    return _decoder.decode(s)
+
+
 # --- ENGINE STATE ---
 _engine: Engine | None = None
 _async_engine: AsyncEngine | None = None
@@ -36,11 +48,11 @@ def get_db_urls():
         separator = "&" if "?" in db_url else "?"
         db_url = f"{db_url}{separator}sslmode=require"
 
-    # Inject application_name for sync_url
+    # 🚀 GOD-MODE: Favor psycopg (v3) for sync path
     separator = "&" if "?" in db_url else "?"
-    sync_url = f"{db_url}{separator}application_name={app_name}".replace("+asyncpg", "")
+    sync_url = f"{db_url}{separator}application_name={app_name}".replace("postgresql://", "postgresql+psycopg://")
     
-    # Do not inject application_name into async_url via query string
+    # Async path favors asyncpg
     async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
     if "sqlite" in db_url:
@@ -100,8 +112,15 @@ def get_engine() -> Engine:
                 "pool_recycle": settings.DATABASE_POOL_RECYCLE,
             }
 
-        _engine = create_engine(sync_url, poolclass=pool_class, **pool_kwargs)
-        logger.info("sync_engine_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
+        # ⚡ SERIALIZATION WEAPONIZATION
+        _engine = create_engine(
+            sync_url, 
+            poolclass=pool_class, 
+            json_serializer=msgspec_dumps,
+            json_deserializer=msgspec_loads,
+            **pool_kwargs
+        )
+        logger.info("sync_engine_initialized", driver="psycopg3", pgbouncer=settings.PGBOUNCER_ENABLED)
 
     return _engine
 
@@ -127,8 +146,11 @@ def get_async_engine() -> AsyncEngine:
         else:
             pool_kwargs = {"poolclass": NullPool}
 
+        # ⚡ ASYNC WEAPONIZATION
         _async_engine = create_async_engine(
             async_url,
+            json_serializer=msgspec_dumps,
+            json_deserializer=msgspec_loads,
             connect_args={
                 "ssl": (True if settings.is_production and "postgresql" in async_url else False),
                 "server_settings": {

@@ -222,24 +222,19 @@ class SharedMemoryRingBuffer:
         # but for true rigor we'd use a C extension or ctypes.atomic.
         self.buf[:8] = struct.pack("q", current_head + 1)
 
-    def read_latest_slices(self, last_head: int) -> tuple[list[np.ndarray], int]:
+    def read_latest_view(self, last_head: int) -> tuple[np.ndarray, int]:
         """
-        Reader: Yields 1 or 2 zero-copy slices to avoid concatenation allocation.
+        Returns a single numpy view of the new ticks.
+        Note: If the buffer wrapped, this will return a copy (concatenated).
         """
-        current_head = struct.unpack("q", self.buf[:8])[0]
-        if current_head <= last_head:
-            return [], last_head
-
-        start_idx = max(last_head, current_head - BUFFER_CAPACITY)
-
-        s = start_idx % BUFFER_CAPACITY
-        e = current_head % BUFFER_CAPACITY
-
-        if s < e:
-            # Single slice - zero copy
-            return [self.data_view[s:e]], current_head
-        # Wrap around - return TWO slices to maintain zero-copy
-        return [self.data_view[s:], self.data_view[:e]], current_head
+        slices, head = self.read_latest_slices(last_head)
+        if not slices:
+            return np.array([], dtype=TICK_DTYPE), head
+        if len(slices) == 1:
+            return slices[0], head
+        
+        # Concatenate is NOT zero-copy, but necessary for a single view if wrapped
+        return np.concatenate(slices), head
 
     def read_latest_msgspec(self, last_head: int) -> tuple[list[MarketTick], int]:
         """High-level reader using msgspec for speed."""
@@ -247,10 +242,11 @@ class SharedMemoryRingBuffer:
         # Faster than dictionary comprehension
         return [
             MarketTick(
-                t["symbol"].decode().strip("\x00"),
-                t["price"],
-                t["volume"],
-                t["timestamp"],
+                symbol=t["symbol"].decode().strip("\x00"),
+                price=float(t["price"]),
+                volume=int(t["volume"]),
+                timestamp=float(t["timestamp"]),
+                receive_ts_ns=int(t["receive_ts_ns"])
             )
             for t in view
         ], head

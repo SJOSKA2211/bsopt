@@ -32,6 +32,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system -r requirements.txt --extra-index-url https://pypi.org/simple && \
     uv pip install --system ".[api,auth,ml,quant,distributed,dev]"
 
+# 🚀 Build bsopt_core Rust extensions
+RUN apt-get update && apt-get install -y --no-install-recommends curl
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN uv pip install --system maturin
+RUN cd src/core && maturin build --release --out /tmp/wheels
+RUN uv pip install --system /tmp/wheels/*.whl
+
 # Stage 2: Final CI/Test Image
 FROM python:3.12-slim
 

@@ -6,7 +6,7 @@ import structlog
 
 from src.shared.observability import tune_gc
 from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer, RISK_STATE_DTYPE
-from src.trading.risk_kernels import _full_risk_check_kernel
+from src.trading.risk_kernels import _full_risk_check_v2_kernel
 
 try:
     import bsopt_core
@@ -46,10 +46,12 @@ def _order_engine_hot_loop_kernel(
         delta = cmd["delta"]
         trade_delta = delta * qty * side
 
-        # 1. Combined Silicon + Portfolio Risk Check
-        # Passing risk_state_arr which is a view of SHM RISK_STATE_DTYPE
-        ok = _full_risk_check_kernel(
-            price, qty, side, trade_delta, risk_state_arr, max_net_delta=max_net_delta
+        # 1. Combined Silicon + Portfolio Risk Check (Greeks Matrix)
+        # Assuming v2 kernel for advanced greeks validation
+        # In a real scenario, d_gamma and d_vega would be precomputed or passed in the order command
+        ok = _full_risk_check_v2_kernel(
+            price, qty, side, trade_delta, 0.0, 0.0, risk_state_arr, 
+            limits_arr=np.array([max_net_delta, max_net_delta*0.5, max_net_delta*0.5])
         )
 
         # 2. Execution Response

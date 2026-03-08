@@ -159,6 +159,43 @@ services:
       - postgres
       - redis
 
+  # === [Specialized] ML Compute Cluster (Containerized Dev) ===
+  ray-head:
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '2gb'
+    ports:
+      - "8265:8265" # Dashboard
+      - "10001:10001" # Ray Client
+    networks:
+      - bsopt-network-dev
+    environment:
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=dev_secret_key
+      - INSIDE_DOCKER=1
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+
+  rl-training-worker:
+    image: rayproject/ray:latest-py312-cpu
+    shm_size: '2gb'
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=dev_secret_key
+      - INSIDE_DOCKER=1
+    networks:
+      - bsopt-network-dev
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ray start --address=ray-head:6379 --block
+
 networks:
   bsopt-network-dev:
     driver: bridge

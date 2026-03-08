@@ -1,0 +1,90 @@
+"""
+SHM Registry and Initialization Logic.
+Centralizes all shared memory segments used in BS-OPT.
+"""
+
+import structlog
+from multiprocessing import shared_memory
+from typing import Dict, Any, List
+
+logger = structlog.get_logger(__name__)
+
+# Constants from shm_mesh (re-defined or imported to avoid circularity if needed)
+# For now, we define them here or import them carefully.
+from src.shared.shm_mesh import (
+    TICK_SIZE, BUFFER_CAPACITY, SHM_NAME,
+    ORDER_SIZE, ORDER_BUFFER_CAPACITY, SHM_ORDER_NAME,
+    EXEC_SIZE, EXEC_BUFFER_CAPACITY, SHM_EXEC_NAME,
+    RISK_STATE_DTYPE, SHM_RISK_NAME
+)
+
+SHM_CONFIGS = [
+    {
+        "name": "market_mesh",
+        "size": 50 * 1024 * 1024,
+        "description": "General market data dictionary (msgspec)"
+    },
+    {
+        "name": SHM_NAME,
+        "size": (TICK_SIZE * BUFFER_CAPACITY) + 8,
+        "description": "Lock-free Market Tick Ring Buffer"
+    },
+    {
+        "name": SHM_ORDER_NAME,
+        "size": (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8,
+        "description": "Order Command Buffer"
+    },
+    {
+        "name": SHM_EXEC_NAME,
+        "size": (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8,
+        "description": "Execution Status Buffer"
+    },
+    {
+        "name": SHM_RISK_NAME,
+        "size": RISK_STATE_DTYPE.itemsize,
+        "description": "Risk State Buffer"
+    }
+]
+
+def initialize_all_shm(force: bool = False):
+    """
+    Pre-allocates all SHM segments.
+    If force=True, unlinks existing segments first.
+    """
+    for config in SHM_CONFIGS:
+        name = config["name"]
+        size = config["size"]
+        
+        if force:
+            try:
+                existing = shared_memory.SharedMemory(name=name)
+                existing.close()
+                existing.unlink()
+                logger.info("shm_force_unlinked", name=name)
+            except FileNotFoundError:
+                pass
+
+        try:
+            shm = shared_memory.SharedMemory(name=name, create=True, size=size)
+            # Initialize with zeros
+            shm.buf[:size] = b"\x00" * size
+            shm.close()
+            logger.info("shm_initialized", name=name, size=size)
+        except FileExistsError:
+            # Check size
+            shm = shared_memory.SharedMemory(name=name)
+            if shm.size != size:
+                logger.warning("shm_size_mismatch_recreating", name=name, existing=shm.size, expected=size)
+                shm.close()
+                shm.unlink()
+                shm = shared_memory.SharedMemory(name=name, create=True, size=size)
+                shm.buf[:size] = b"\x00" * size
+                shm.close()
+            else:
+                shm.close()
+                logger.info("shm_already_exists", name=name)
+        except Exception as e:
+            logger.error("shm_init_failed", name=name, error=str(e))
+
+if __name__ == "__main__":
+    initialize_all_shm(force=True)
