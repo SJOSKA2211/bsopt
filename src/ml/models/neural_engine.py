@@ -87,48 +87,78 @@ class NeuralPricingEngine(BasePricingEngine):
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         """
         Calculate option price using the Neural Network.
-        Note: Currently only supports 'call'. Put-Call parity should be handled by caller or wrapper.
+        OPTIMIZED: Uses Put-Call Parity to support Puts without separate model.
         """
-        if option_type.lower() != "call":
-            # For now, simplistic implementation. Real version would handle puts via parity or separate output.
-            raise NotImplementedError("NeuralEngine currently only supports Call options directly.")
-
         input_tensor = self._params_to_tensor(params)
         with torch.no_grad():
-            prediction = self.model(input_tensor)
+            call_price = self.model(input_tensor).item()
 
-        return prediction.item()
+        if option_type.lower() == "call":
+            return call_price
+        else:
+            # Put-Call Parity: P = C - S + K * exp(-r * T)
+            # Spot (0), Strike (1), T (2), Sigma (3), R (4), Q (5)
+            s = params.spot
+            k = params.strike
+            t = params.maturity
+            r = params.rate
+            q = params.dividend
+            put_price = call_price - s * np.exp(-q * t) + k * np.exp(-r * t)
+            return max(float(put_price), 0.0)
+
+    def optimize_for_inference(self, onnx_path: str | None = None, prune_amount: float = 0.2):
+        """
+        Fine-tune model for zero-latency inference.
+        """
+        self.model.apply_pruning(amount=prune_amount)
+        
+        if onnx_path:
+            sample = self._params_to_tensor(BSParameters(spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.01))
+            self.model.export_onnx(onnx_path, sample)
+            logger.info("model_optimized_onnx", path=onnx_path)
+            
+        return self
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
         Calculate Greeks using PyTorch Autograd.
         This provides exact derivatives of the model's pricing function.
+        OPTIMIZED: Uses Put-Call Parity relations for Put Greeks.
         """
-        if option_type.lower() != "call":
-            raise NotImplementedError("NeuralEngine currently only supports Call options directly.")
-
         input_tensor = self._params_to_tensor(params)
 
-        # Forward pass
+        # Forward pass (always Call price)
         price = self.model(input_tensor)
 
         # Backward pass (compute gradients w.r.t inputs)
         # Inputs: [Spot (0), Strike (1), T (2), Sigma (3), R (4), Q (5)]
         grads = torch.autograd.grad(price, input_tensor, create_graph=True)[0][0]
 
-        delta = grads[0].item()  # dPrice/dSpot
-        vega = grads[3].item()  # dPrice/dVol
-        theta = -grads[
-            2
-        ].item()  # dPrice/dTime (Time to maturity decreases, so theta is usually negative derivative w.r.t T)
-        rho = grads[4].item()  # dPrice/dRate
+        call_delta = grads[0].item()  # dPrice/dSpot
+        call_vega = grads[3].item()  # dPrice/dVol
+        call_theta = -grads[2].item()  # dPrice/dTime
+        call_rho = grads[4].item()  # dPrice/dRate
 
-        # Second order: Gamma (d2Price/dSpot2)
-        # We need to retain graph or run another backward pass on delta
-        # Since we just need one element, let's use the delta we just computed?
-        # No, grads[0] is a tensor attached to the graph.
-
+        # Second order: Gamma (same for Call/Put)
         gamma_grad = torch.autograd.grad(grads[0], input_tensor, retain_graph=False)[0][0]
         gamma = gamma_grad[0].item()
 
-        return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
+        if option_type.lower() == "call":
+            return OptionGreeks(delta=call_delta, gamma=gamma, theta=call_theta, vega=call_vega, rho=call_rho)
+        else:
+            # Put Greeks via Parity (assuming q=dividend, r=rate)
+            t = params.maturity
+            r = params.rate
+            q = params.dividend
+            k = params.strike
+            
+            # Delta_p = Delta_c - exp(-qT)
+            put_delta = call_delta - np.exp(-q * t)
+            # Vega_p = Vega_c
+            # Gamma_p = Gamma_c
+            # Theta_p = Theta_c + q*S*exp(-qT) - r*K*exp(-rT)
+            put_theta = call_theta + q * params.spot * np.exp(-q * t) - r * k * np.exp(-r * t)
+            # Rho_p = Rho_c - K*T*exp(-rT)
+            put_rho = call_rho - k * t * np.exp(-r * t)
+            
+            return OptionGreeks(delta=put_delta, gamma=gamma, theta=put_theta, vega=call_vega, rho=put_rho)

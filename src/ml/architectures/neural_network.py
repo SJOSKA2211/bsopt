@@ -52,3 +52,26 @@ class OptionPricingNN(nn.Module):
         # For demonstration, we convert directly after preparation.
         torch.quantization.convert(self, inplace=True)
         return self
+
+    def apply_pruning(self, amount: float = 0.2):
+        """
+        Apply global unstructured pruning to linear layers.
+        OPTIMIZED: Reduces model size and inference latency on supported backends.
+        """
+        import torch.nn.utils.prune as prune
+        
+        parameters_to_prune = []
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                parameters_to_prune.append((module, 'weight'))
+
+        if parameters_to_prune:
+            prune.global_unstructured(
+                parameters_to_prune,
+                pruning_method=prune.L1Unstructured,
+                amount=amount,
+            )
+            # Make pruning permanent
+            for module, name in parameters_to_prune:
+                prune.remove(module, name)
+        return self

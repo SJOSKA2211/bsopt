@@ -456,8 +456,9 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
 class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
     """
-    Consolidated JWT authentication middleware.
-    OPTIMIZED: Uses the central AuthService and native Postgres verification.
+    Consolidated authentication middleware.
+    OPTIMIZED: Supports Better Auth Sessions (Cookie/Header) and Legacy JWTs.
+    Utilizes Redis caching for high-performance session verification.
     """
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
@@ -493,27 +494,37 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
 
         from src.security.auth import auth_service
 
+        # 1. Extract Token (Support Header or Cookie)
+        token = None
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        else:
+            # Fallback to Better Auth standard cookie name
+            token = request.cookies.get("better-auth.session_token")
+
+        if not token:
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication token missing"},
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        token = auth_header.split(" ")[1]
         try:
-            # Use central auth service for validation (checks signature and blacklist)
+            # 2. Validate via Central AuthService (Optimized with Redis cache)
             token_data = await auth_service.validate_token(token)
 
-            # Simple user object for the request state
-            # Downstream dependencies can use get_current_user for full DB record
+            # 3. Populate request state for downstream consumption
             request.state.user_id = token_data.user_id
             request.state.user_email = token_data.email
             request.state.user_tier = token_data.tier
+            request.state.auth_type = token_data.token_type
 
         except Exception as e:
-            logger.warning("jwt_validation_failed", error=str(e), path=path)
+            # Mask email/PII if it was accidentally logged or passed
+            masked_error = str(e).replace(getattr(request.state, "user_email", "PII"), "MASKED")
+            logger.warning("auth_validation_failed", error=masked_error, path=path)
+            
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication failed"},
