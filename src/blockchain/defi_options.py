@@ -328,6 +328,50 @@ class DeFiOptionsProtocol:
                 )
             raise
 
+    async def buy_option_gasless(
+        self,
+        token_address: str,
+        contract_address: str,
+        amount: int,
+        deadline: int,
+        params: dict | None = None
+    ) -> dict:
+        """
+        🚀 GASLESS OPTIMIZATION: Buy option using EIP-2612 Permit + Meta-Tx.
+        Eliminates the 'Approve' transaction, saving ~50k gas.
+        """
+        if not self.private_key:
+            raise ValueError("Private key required for gasless trades.")
+
+        # 1. Sign Permit (EIP-2612)
+        permit_sig = await self.sign_permit(
+            token_address=token_address,
+            spender=contract_address,
+            value=amount,
+            deadline=deadline
+        )
+
+        # 2. Build Meta-Transaction Payload (EIP-712)
+        # This payload would be sent to a relayer (e.g., Gelato, Biconomy)
+        order_payload = {
+            "maker": self.address,
+            "asset": contract_address,
+            "amount": amount,
+            "price": params.get("expected_price", 0) if params else 0,
+            "nonce": await self.nonce_manager.get_next_nonce(lambda: 0), # Mocked for payload
+            "expiry": deadline
+        }
+        
+        tx_sig = await self.sign_order_eip712(order_payload)
+
+        logger.info("gasless_payload_signed", maker=self.address, asset=contract_address)
+
+        return {
+            "permit": permit_sig,
+            "order": tx_sig,
+            "relayer_status": "READY_FOR_SUBMISSION"
+        }
+
     async def sign_order_eip712(self, order: dict) -> dict:
         """Sign an order using EIP-712 structured data."""
         if not self.private_key:

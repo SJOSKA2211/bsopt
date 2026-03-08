@@ -4,7 +4,7 @@ Targets: Numba JIT, Parallel, Vectorized
 """
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 
 # Scheme Constants
 SCHEME_EULER = 0
@@ -31,85 +31,104 @@ def fast_normal_pdf_v2(x):
     return (1.0 / np.sqrt(2.0 * np.pi)) * np.exp(-0.5 * x**2)
 
 
+@njit(fastmath=True)
 def generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps):
-    """Generate log-paths (Non-JIT)."""
+    """Generate log-paths (JIT Optimized)."""
     dt = T / n_steps
     drift = (r - q - 0.5 * sigma**2) * dt
     diffusion = sigma * np.sqrt(dt)
-    Z = np.random.standard_normal((n_steps, n_paths))
     log_paths = np.zeros((n_steps + 1, n_paths))
     log_paths[0, :] = np.log(S0)
     for i in range(n_steps):
-        log_paths[i + 1, :] = log_paths[i, :] + drift + diffusion * Z[i, :]
+        for j in range(n_paths):
+            log_paths[i + 1, j] = log_paths[i, j] + drift + diffusion * np.random.standard_normal()
     return log_paths
 
 
+@njit(fastmath=True)
 def generate_paths_v2(S0, T, r, sigma, q, n_paths, n_steps, scheme=SCHEME_EULER):
-    """Optimized path generation."""
+    """Optimized path generation (JIT)."""
     if scheme == SCHEME_MILSTEIN:
         dt = T / n_steps
         mu = r - q
         S = np.full((n_paths, n_steps + 1), S0, dtype=np.float64)
-        Z = np.random.standard_normal((n_paths, n_steps))
         sqrt_dt = np.sqrt(dt)
         for t in range(n_steps):
-            dW = Z[:, t] * sqrt_dt
-            S[:, t + 1] = S[:, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
+            for i in range(n_paths):
+                dW = np.random.standard_normal() * sqrt_dt
+                S[i, t + 1] = S[i, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
         return S
 
     log_paths = generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps)
     return np.exp(log_paths).T
 
 
+@njit(fastmath=True, parallel=True)
 def fused_arithmetic_asian_payoff_v2(log_paths, K, r, T, is_call, is_fixed):
-    """Fused kernel (Non-JIT)."""
+    """Fused kernel (JIT Optimized)."""
     n_steps_p1, n_paths = log_paths.shape
     exp_rt = np.exp(-r * T)
-    prices = np.exp(log_paths[1:, :])
-    arith_means = np.mean(prices, axis=0)
-    if is_fixed:
-        payoffs = arith_means - K if is_call else K - arith_means
-    else:
-        payoffs = (
-            np.exp(log_paths[-1, :]) - arith_means
-            if is_call
-            else arith_means - np.exp(log_paths[-1, :])
-        )
-    return np.maximum(payoffs, 0.0) * exp_rt
+    payoffs = np.empty(n_paths, dtype=np.float64)
+    
+    for j in prange(n_paths):
+        sum_price = 0.0
+        for i in range(1, n_steps_p1):
+            sum_price += np.exp(log_paths[i, j])
+        arith_mean = sum_price / (n_steps_p1 - 1)
+        
+        if is_fixed:
+            po = arith_mean - K if is_call else K - arith_mean
+        else:
+            final_price = np.exp(log_paths[n_steps_p1-1, j])
+            po = final_price - arith_mean if is_call else arith_mean - final_price
+        
+        payoffs[j] = max(po, 0.0) * exp_rt
+    return payoffs
 
 
+@njit(fastmath=True, parallel=True)
 def fused_lookback_payoff_v2(log_paths, K, r, T, is_call, is_floating):
-    """Fused kernel (Non-JIT)."""
+    """Fused kernel (JIT Optimized)."""
+    n_steps_p1, n_paths = log_paths.shape
     exp_rt = np.exp(-r * T)
-    if is_floating:
-        extrema = np.min(log_paths, axis=0) if is_call else np.max(log_paths, axis=0)
-        payoffs = (
-            np.exp(log_paths[-1, :]) - np.exp(extrema)
-            if is_call
-            else np.exp(extrema) - np.exp(log_paths[-1, :])
-        )
-    else:
-        extrema = np.max(log_paths, axis=0) if is_call else np.min(log_paths, axis=0)
-        payoffs = np.exp(extrema) - K if is_call else K - np.exp(extrema)
-    return np.maximum(payoffs, 0.0) * exp_rt
+    payoffs = np.empty(n_paths, dtype=np.float64)
+    
+    for j in prange(n_paths):
+        if is_floating:
+            # Min/Max for floating strike
+            extreme = log_paths[0, j]
+            for i in range(1, n_steps_p1):
+                if is_call: # Floating strike call: S_T - min(S)
+                    if log_paths[i, j] < extreme: extreme = log_paths[i, j]
+                else: # Floating strike put: max(S) - S_T
+                    if log_paths[i, j] > extreme: extreme = log_paths[i, j]
+            
+            final_price = np.exp(log_paths[n_steps_p1-1, j])
+            po = final_price - np.exp(extreme) if is_call else np.exp(extreme) - final_price
+        else:
+            # Min/Max for fixed strike
+            extreme = log_paths[0, j]
+            for i in range(1, n_steps_p1):
+                if is_call: # Fixed strike call: max(S) - K
+                    if log_paths[i, j] > extreme: extreme = log_paths[i, j]
+                else: # Fixed strike put: K - min(S)
+                    if log_paths[i, j] < extreme: extreme = log_paths[i, j]
+            
+            po = np.exp(extreme) - K if is_call else K - np.exp(extreme)
+            
+        payoffs[j] = max(po, 0.0) * exp_rt
+    return payoffs
 
 
-@njit
+@njit(fastmath=True, parallel=True)
 def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
     Ti = np.maximum(T, 1e-9)
     sig = np.maximum(sigma, 1e-9)
-    vol_sqrt_t = sig * np.sqrt(Ti)
-    d1 = (np.log(S / K) + (r - q + 0.5 * sig**2) * Ti) / vol_sqrt_t
-    d2 = d1 - vol_sqrt_t
     exp_rt, exp_qt = np.exp(-r * Ti), np.exp(-q * Ti)
 
     res = np.empty_like(S)
     
-    # Handle zero maturity case explicitly if needed, 
-    # but the 1e-9 epsilon above handles it for the CDF.
-    # However, for T=0 exactly, we should ideally return the payoff.
-    
-    for i in range(len(S)):
+    for i in prange(len(S)):
         if T[i] < 1e-10:
             if is_call[i]:
                 res[i] = max(S[i] - K[i], 0.0)
@@ -117,19 +136,23 @@ def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
                 res[i] = max(K[i] - S[i], 0.0)
             continue
             
+        vol_sqrt_t = sig[i] * np.sqrt(Ti[i])
+        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sig[i]**2) * Ti[i]) / vol_sqrt_t
+        d2 = d1 - vol_sqrt_t
+
         if is_call[i]:
-            res[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1[i]) - K[i] * exp_rt[i] * fast_normal_cdf_v2(d2[i])
+            res[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1) - K[i] * exp_rt[i] * fast_normal_cdf_v2(d2)
         else:
-            res[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2[i]) - S[i] * exp_qt[i] * fast_normal_cdf_v2(-d1[i])
+            res[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2) - S[i] * exp_qt[i] * fast_normal_cdf_v2(-d1)
             
     return res
 
 
-@njit
+@njit(fastmath=True, parallel=True)
 def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
     n = len(S)
     delta, gamma, theta, vega, rho = np.empty(n), np.empty(n), np.empty(n), np.empty(n), np.empty(n)
-    for i in range(n):
+    for i in prange(n):
         d, g, th, v, rh = scalar_greeks_jit_v2(S[i], K[i], T[i], sigma[i], r[i], q[i], is_call[i])
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
     return delta, gamma, vega, theta, rho

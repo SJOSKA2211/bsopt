@@ -13,6 +13,7 @@ from typing import Any, cast
 import time
 
 import numpy as np
+from numba import njit, prange
 from scipy.optimize import least_squares
 import structlog
 
@@ -103,10 +104,12 @@ class MarketQuote:
     vega: float | Decimal | None = None
 
 
+@njit(fastmath=True)
 def _svi_total_variance_jit(k, a, b, rho, m, sigma):
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
 
 
+@njit(fastmath=True)
 def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     f_v = float(forward)
     k_v = strike
@@ -118,11 +121,10 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     z_v = (nu / alpha) * f_k_one_minus_beta * log_f_k
 
     # Handle ATM case vectorized
-    term2 = np.where(
-        np.abs(z_v) < 1e-8,
-        1.0,
-        z_v / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho)),
-    )
+    if np.abs(z_v) < 1e-8:
+        term2 = 1.0
+    else:
+        term2 = z_v / np.log((np.sqrt(1.0 - 2.0 * rho * z_v + z_v**2) + z_v - rho) / (1.0 - rho))
 
     term1 = alpha / (
         f_k_one_minus_beta
@@ -146,8 +148,37 @@ def _sabr_implied_vol_jit(strike, forward, maturity, alpha, beta, rho, nu):
     return term1 * term2 * term3
 
 
+@njit(parallel=True)
 def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu):
-    return _sabr_implied_vol_jit(strikes, forward, maturity, alpha, beta, rho, nu)
+    n = len(strikes)
+    res = np.empty(n, dtype=np.float64)
+    for i in prange(n):
+        res[i] = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta, rho, nu)
+    return res
+
+
+@njit(fastmath=True)
+def _sabr_objective_jit(params, strikes, market_vols, weights, forward, maturity, fixed_beta):
+    """JIT accelerated objective function for SABR calibration."""
+    alpha = params[0]
+    beta = fixed_beta if fixed_beta > 0 else params[1]
+    rho = params[2] if fixed_beta > 0 else params[2] # rho is index 1 if beta is fixed, but let's be careful
+    # Adjust for fixed beta case in params vector
+    if fixed_beta > 0:
+        rho = params[1]
+        nu = params[2]
+        beta_val = fixed_beta
+    else:
+        beta_val = params[1]
+        rho = params[2]
+        nu = params[3]
+        
+    n = len(strikes)
+    residuals = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        model_vol = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta_val, rho, nu)
+        residuals[i] = (model_vol - market_vols[i]) * weights[i]
+    return residuals
 
 
 class SVIModel:
@@ -159,7 +190,7 @@ class SVIModel:
     def total_variance(self, k: float | np.ndarray) -> float | np.ndarray:
         """Calculate total variance w(k). k is log-moneyness."""
         p = self.params
-        if CORE_AVAILABLE and isinstance(k, float):
+        if CORE_AVAILABLE and isinstance(k, (float, np.float64)):
              return bsopt_core.svi_total_variance(k, p.a, p.b, p.rho, p.m, p.sigma)
         return _svi_total_variance_jit(k, p.a, p.b, p.rho, p.m, p.sigma)
 
@@ -306,7 +337,7 @@ class CalibrationEngine:
                         continue
                 
                 if best_params:
-                    return best_params, {
+                    return cast(SVIParameters, best_params), {
                         "rmse": best_rmse,
                         "method": "rust_argmin_multistart",
                         "calibration_time_seconds": time.time() - start_time
@@ -339,11 +370,73 @@ class CalibrationEngine:
     def calibrate_sabr(
         self, quotes: list[MarketQuote], fix_beta: float | None = None
     ) -> tuple[SABRParameters, dict[str, Any]]:
-        params = SABRParameters(
-            alpha=0.2, beta=fix_beta if fix_beta is not None else 0.5, rho=-0.3, nu=0.4
-        )
-        diag = {"rmse": 0.01, "r_squared": 0.99}
-        return params, diag
+        """
+        Calibrate SABR model to market quotes.
+        fix_beta: Often 0.5 or 0 for FX/Equities.
+        """
+        strikes = np.array([float(q.strike) for q in quotes])
+        market_vols = np.array([float(q.implied_vol) for q in quotes])
+        weights = np.ones_like(market_vols)
+        
+        # Determine maturity and forward (assume consistent for the slice)
+        t_m = float(quotes[0].maturity)
+        atm_strike = min(strikes, key=lambda s: abs(s - 100.0)) # Rough guess
+        # Find forward from ATM or mid
+        forward = atm_strike # Simplified forward detection
+        
+        fixed_beta_val = fix_beta if fix_beta is not None else -1.0 # -1 means unfixed for JIT
+        
+        # Objective wrapper for Scipy
+        def objective_wrapper(p):
+            return _sabr_objective_jit(p, strikes, market_vols, weights, forward, t_m, fixed_beta_val)
+
+        if fix_beta is not None:
+            # params: [alpha, rho, nu]
+            seeds = [
+                [0.2, -0.3, 0.4],
+                [0.1, 0.0, 0.2],
+                [0.4, -0.6, 0.8]
+            ]
+            bounds = ([1e-4, -0.999, 1e-4], [2.0, 0.999, 5.0])
+        else:
+            # params: [alpha, beta, rho, nu]
+            seeds = [
+                [0.2, 0.5, -0.3, 0.1],
+                [0.1, 0.7, 0.0, 0.2],
+                [0.3, 0.3, -0.6, 0.4]
+            ]
+            bounds = ([1e-4, 0.0, -0.999, 1e-4], [2.0, 1.0, 0.999, 5.0])
+
+        best_res = None
+        best_rmse = float('inf')
+        
+        start_time = time.time()
+        for seed in seeds:
+            try:
+                res = least_squares(objective_wrapper, seed, bounds=bounds, method='trf', max_nfev=200)
+                rmse = np.sqrt(np.mean(res.fun**2))
+                if rmse < best_rmse:
+                    best_rmse = rmse
+                    best_res = res
+            except Exception:
+                continue
+        
+        if best_res is None: # Fallback to first seed if all failed (unlikely)
+             best_res = least_squares(objective_wrapper, seeds[0], bounds=bounds, method='trf', max_nfev=500)
+             best_rmse = np.sqrt(np.mean(best_res.fun**2))
+
+        if fix_beta is not None:
+            calibrated = SABRParameters(alpha=best_res.x[0], beta=fix_beta, rho=best_res.x[1], nu=best_res.x[2])
+        else:
+            calibrated = SABRParameters(alpha=best_res.x[0], beta=best_res.x[1], rho=best_res.x[2], nu=best_res.x[3])
+            
+        diag = {
+            "rmse": best_rmse,
+            "method": "scipy_sabr_jit_multistart",
+            "calibration_time_seconds": time.time() - start_time,
+            "iterations": best_res.nfev
+        }
+        return calibrated, diag
 
 
 class ArbitrageDetector:

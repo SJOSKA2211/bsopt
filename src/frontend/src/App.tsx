@@ -12,6 +12,7 @@ import { theme } from './theme';
 
 import { Layout } from './components/layout/Layout';
 import SignIn from './components/auth/SignIn';
+import SignUp from './components/auth/SignUp';
 import { QuantumField } from './components/common/QuantumField';
 
 // Lazy load pages
@@ -56,6 +57,7 @@ function AppContent() {
               <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/login" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
             </Routes>
           </motion.div>
         </Suspense>
