@@ -80,6 +80,8 @@ class Settings(BaseSettings):
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
     PRICING_LARGE_BATCH_THRESHOLD: int = 1000
     MAX_NET_DELTA: float = 10000.0
+    MAX_NET_GAMMA: float = 5000.0
+    MAX_NET_VEGA: float = 5000.0
 
     # ML Training Configuration
     ML_TRAINING_DEFAULT_SAMPLES: int = 1000
