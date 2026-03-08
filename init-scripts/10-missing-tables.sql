@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS model_embeddings (
 CREATE INDEX IF NOT EXISTS idx_model_embeddings_lookup 
 ON model_embeddings (model_id, version);
 
--- HNSW index for fast similarity search
+-- HNSW index for fast similarity search (Cosine Distance Optimized)
 CREATE INDEX IF NOT EXISTS idx_model_embeddings_vector 
-ON model_embeddings USING hnsw (embedding vector_l2_ops) 
-WITH (m = 16, ef_construction = 64);
+ON model_embeddings USING hnsw (embedding vector_cosine_ops) 
+WITH (m = 16, ef_construction = 128);
 
 -- 3. RL Episodes
 CREATE TABLE IF NOT EXISTS rl_episodes (

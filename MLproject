@@ -1,0 +1,22 @@
+name: bsopt_mlops
+
+docker_env:
+  image: bsopt-mlops-runtime:latest
+
+entry_points:
+  train_regressor:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      framework: {type: string, default: "xgboost"}
+      n_trials: {type: int, default: 20}
+      study_name: {type: string, default: "regressor_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.pipeline --ticker {ticker} --framework {framework} --n_trials {n_trials} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_rl:
+    parameters:
+      timesteps: {type: int, default: 10000}
+      model_path: {type: string, default: "models/best_td3"}
+      study_name: {type: string, default: "rl_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri}"

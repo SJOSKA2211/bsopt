@@ -53,6 +53,10 @@ app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse
 async def startup_event():
     start_system_metrics_loop("api")
 
+    # Initialize Database (Weaponizer God-Mode)
+    from src.database import db_manager
+    db_manager.initialize()
+
     # Initialize Redis
     from src.utils.cache import init_redis_cache
     await init_redis_cache()

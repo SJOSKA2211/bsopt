@@ -143,9 +143,14 @@ def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Policy")
     parser.add_argument("--timesteps", type=int, default=10000)
     parser.add_argument("--output", type=str, default="models/td3_final")
+    parser.add_argument("--study_name", type=str, default="rl_trading_core")
+    parser.add_argument("--tracking_uri", type=str, default=None)
 
     args = parser.parse_args()
-    train_td3(total_timesteps=args.timesteps, model_path=args.output)
+
+    # OPTIMIZED: Use parameters from CLI
+    trainer = RLTrainer(args.study_name, tracking_uri=args.tracking_uri or settings.tracking_uri)
+    trainer.train_and_evaluate(total_timesteps=args.timesteps, model_path=args.output)
 
 
 if __name__ == "__main__":

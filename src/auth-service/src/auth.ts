@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import dotenv from "dotenv";
 dotenv.config();
-import { openAPI } from "better-auth/plugins"; // New Import
+import { openAPI, twoFactor, admin } from "better-auth/plugins"; // Added twoFactor and admin
 
 if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL is required");
@@ -18,7 +18,16 @@ export const auth = betterAuth({
     }),
     secret: process.env.BETTER_AUTH_SECRET || "development-secret-123", // Fallback for dev only
     emailAndPassword: {
-        enabled: true
+        enabled: true,
+        password: {
+            // Standardize Argon2 parameters with Python PasswordService
+            // Note: better-auth uses @node-rs/argon2 internally if available
+            hashOptions: {
+                memoryCost: 65536,
+                timeCost: 3,
+                parallelism: 4
+            }
+        }
     },
     user: {
         modelName: "users",
@@ -26,7 +35,7 @@ export const auth = betterAuth({
             emailVerified: "is_verified",
             name: "full_name",
             createdAt: "created_at",
-            updatedAt: "last_login" // Close enough for Better Auth's internal use
+            updatedAt: "last_login"
         }
     },
     session: {
@@ -47,6 +56,8 @@ export const auth = betterAuth({
     },
     plugins: [
         openAPI(),
+        twoFactor(),
+        admin()
     ],
     jwt: {
         issuer: "bsopt-auth",

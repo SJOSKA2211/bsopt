@@ -123,7 +123,22 @@ class AIOpsOrchestrator:
                     ["aiops", "remediation"],
                 )
             elif anomaly_type == "data_drift":
-                self.ml_pipeline_trigger.trigger_retraining()
+                logger.warning("triggering_mlflow_retrain_run")
+                try:
+                    import mlflow.projects
+                    mlflow.projects.run(
+                        uri=".",
+                        entry_point="train_regressor",
+                        parameters={
+                            "ticker": self.config.get("ticker", "AAPL"),
+                            "study_name": f"aiops_retrain_{self.config.get('ticker', 'AAPL')}"
+                        },
+                        use_conda=False,
+                        synchronous=False
+                    )
+                except Exception as e:
+                    logger.error("failed_to_trigger_mlflow_run", error=str(e))
+                    self.ml_pipeline_trigger.trigger_retraining()
 
     def run_once(self) -> list[str]:
         """Convenience method: detect + remediate in one call."""
