@@ -242,11 +242,11 @@ class SharedMemoryRingBuffer:
         # Faster than dictionary comprehension
         return [
             MarketTick(
-                symbol=t["symbol"].decode().strip("\x00"),
-                price=float(t["price"]),
-                volume=int(t["volume"]),
-                timestamp=float(t["timestamp"]),
-                receive_ts_ns=int(t["receive_ts_ns"])
+                t["symbol"].decode().strip("\x00"),
+                float(t["price"]),
+                int(t["volume"]),
+                float(t["timestamp"]),
+                int(t["receive_ts_ns"])
             )
             for t in view
         ], head
