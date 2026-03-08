@@ -31,3 +31,22 @@ else
     return {0, current_count}
 end
 """
+
+# Distributed Delta Risk Check & State Commit
+# Keys: [risk_state_key]
+# Args: [trade_delta, max_net_delta]
+DISTRIBUTED_RISK_CHECK = """
+local key = KEYS[1]
+local trade_delta = tonumber(ARGV[1])
+local max_delta = tonumber(ARGV[2])
+
+local current_delta = tonumber(redis.call('GET', key) or "0")
+local new_delta = current_delta + trade_delta
+
+if math.abs(new_delta) <= max_delta then
+    redis.call('SET', key, tostring(new_delta))
+    return {1, new_delta}
+else
+    return {0, current_delta}
+end
+"""

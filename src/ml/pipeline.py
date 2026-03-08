@@ -144,21 +144,46 @@ class MLPipeline:
 
         df_featured = self.generate_features(df)
 
-        # 2. Drift Check
+        # 2. Advanced Drift Check
         if not force:
             async with get_async_db_context() as session:
                 current_perf = await self.get_current_model_performance(session)
 
             mid = len(df_featured) // 2
-            reference_dist = df_featured["log_return"].values[:mid]
-            current_dist = df_featured["log_return"].values[mid:]
+            reference_df = df_featured.iloc[:mid]
+            current_df = df_featured.iloc[mid:]
 
-            should_retrain, _ = self.drift_trigger.should_retrain(
-                reference_dist, current_dist, current_perf
+            # A. Univariate Drift (Target Variable)
+            should_retrain_uni, reason_uni = self.drift_trigger.should_retrain(
+                reference_df["log_return"].values, 
+                current_df["log_return"].values, 
+                current_perf
             )
-            if not should_retrain:
-                logger.info("pipeline_skipped_no_drift")
+
+            # B. Multivariate Drift (Feature Set)
+            from src.ml.monitoring.mmd import MultivariateDriftDetector
+            
+            features_to_monitor = [
+                col for col in df_featured.columns 
+                if col not in ["timestamp", "ticker", "log_return"]
+            ]
+            
+            mmd_detector = MultivariateDriftDetector(
+                threshold=self.config.get("mmd_threshold", 0.08)
+            )
+            
+            is_drifted_multi, mmd_score = mmd_detector.detect_drift(
+                reference_df[features_to_monitor].values,
+                current_df[features_to_monitor].values
+            )
+
+            # C. Aggregate Decision
+            if not(should_retrain_uni or is_drifted_multi):
+                logger.info("pipeline_skipped_no_drift", mmd_score=mmd_score)
                 return None
+            
+            reason = reason_uni if should_retrain_uni else "multivariate_feature_drift"
+            logger.warning("drift_detected_triggering_retrain", reason=reason, mmd=mmd_score)
 
         # 3. Distributed HPO via Ray
         best_config = self._run_distributed_hpo(df_featured)

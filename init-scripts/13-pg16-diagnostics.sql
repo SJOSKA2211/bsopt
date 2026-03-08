@@ -46,3 +46,15 @@ SELECT
     query
 FROM pg_stat_activity
 WHERE state != 'idle';
+
+-- 4. Cumulative Wait Events (Solenya Bottleneck Detector)
+CREATE OR REPLACE VIEW system_wait_bottlenecks AS
+SELECT
+    wait_event_type,
+    wait_event,
+    count(*) as concurrent_waiters,
+    sum(case when state = 'active' then 1 else 0 end) as active_waiters
+FROM pg_stat_activity
+WHERE wait_event IS NOT NULL
+GROUP BY wait_event_type, wait_event
+ORDER BY concurrent_waiters DESC;

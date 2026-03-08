@@ -55,15 +55,14 @@ def _fused_state_kernel(
     for i in range(40):
         state[21 + i] = np.tanh(greeks[i])
 
-    # 4. Spectral Features (10 dims) - Multi-scale Fourier Base (Sine/Cosine of prices)
-    # Captures cyclical micro-structure at multiple frequencies for all input channels
+    # 4. Spectral Features (10 dims) - Multi-scale Fourier Base
+    # Captures cyclical micro-structure at log-spaced frequencies.
     for i in range(5):
-        # Multi-scale spectral encoding
         p_norm = prices[i] / 100.0
-        # Lower frequency (Fundamental)
-        state[61 + i] = np.tanh(np.sin(p_norm * np.pi))
-        # Higher frequency (Harmonic)
-        state[66 + i] = np.tanh(np.cos(p_norm * 10.0))
+        # Multi-scale frequencies (1.0, 2.0, 4.0, 8.0, 16.0)
+        freq = 2.0**i
+        state[61 + i] = np.tanh(np.sin(p_norm * np.pi * freq))
+        state[66 + i] = np.tanh(np.cos(p_norm * np.pi * freq))
 
     # 5. Indicators (20 dims)
     # Adjusted indices to start from 71 (stays the same as before)

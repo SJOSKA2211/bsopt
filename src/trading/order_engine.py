@@ -8,6 +8,13 @@ from src.shared.observability import tune_gc
 from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer, RISK_STATE_DTYPE
 from src.trading.risk_kernels import _full_risk_check_kernel
 
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
+
 logger = structlog.get_logger(__name__)
 
 
@@ -97,39 +104,63 @@ class OrderEngine:
             self._risk_state_view = np.array([0.0], dtype=np.float64)
 
     def run(self, cpu_core: int = 7):
-        """Hot loop: Zero-latency order processing via Numba kernel."""
+        """Hot loop: Zero-latency order processing via Rust or Numba kernel."""
         try:
             os.sched_setaffinity(0, {cpu_core})
             logger.info("order_engine_pinned", core=cpu_core)
         except Exception:
             pass
 
-        logger.info("order_engine_spinning", shm=SHM_ORDER_NAME)
+        logger.info("order_engine_spinning", shm=SHM_ORDER_NAME, core_available=CORE_AVAILABLE)
+
+        # Get raw pointers for Rust core if available
+        orders_ptr = 0
+        execs_ptr = 0
+        risk_ptr = 0
+        
+        if CORE_AVAILABLE:
+            import ctypes
+            # SharedMemory.buf is a memoryview, we need the underlying address
+            # This is a bit hacky in Python but necessary for zero-copy Rust interop
+            def get_addr(buf):
+                return ctypes.addressof(ctypes.c_char.from_buffer(buf))
+
+            orders_ptr = get_addr(self.orders.buf)
+            execs_ptr = get_addr(self.execs.buf)
+            risk_ptr = get_addr(self._risk_state_view.data)
 
         while True:
-            # CALL THE GOD KERNEL
-            new_last_head, new_order_id = _order_engine_hot_loop_kernel(
-                self.orders.view,
-                self.execs.view,
-                self._risk_state_view,
-                self._head_arr,
-                self._last_head,
-                self._order_id_counter,
-                self.max_portfolio_delta
-            )
-            
-            if new_last_head > self._last_head:
-                # We processed something
-                # Note: execs head update is handled by the caller or we can do it here
-                # But ExecutionBuffer.write_exec expects us to update its head too.
-                # Actually, our Numba kernel just writes the data. We need to update the head of execs buffer.
-                # The execution head is the same as the order head in this simple 1:1 model.
-                self.execs.buf[:8] = struct.pack("q", new_last_head)
-                self._last_head = new_last_head
-                self._order_id_counter = new_order_id
+            if CORE_AVAILABLE:
+                # CALL THE RUST GOD KERNEL (Zero-Allocation, Zero-GIL)
+                self._last_head, self._order_id_counter = bsopt_core.order_engine_loop(
+                    orders_ptr,
+                    execs_ptr,
+                    risk_ptr,
+                    self._last_head,
+                    self._order_id_counter,
+                    float(self.max_portfolio_delta),
+                    1000, # max_qty
+                )
             else:
-                # Busy-wait
-                os.sched_yield()
+                # Fallback to Numba kernel
+                new_last_head, new_order_id = _order_engine_hot_loop_kernel(
+                    self.orders.view,
+                    self.execs.view,
+                    self._risk_state_view,
+                    self._head_arr,
+                    self._last_head,
+                    self._order_id_counter,
+                    self.max_portfolio_delta
+                )
+                
+                if new_last_head > self._last_head:
+                    # Sync exec head (Numba doesn't update it directly in this version)
+                    self.execs.buf[:8] = struct.pack("q", new_last_head)
+                    self._last_head = new_last_head
+                    self._order_id_counter = new_order_id
+
+            # Yield to OS to keep things responsive if no work
+            os.sched_yield()
 
 
 if __name__ == "__main__":

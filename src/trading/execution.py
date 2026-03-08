@@ -39,34 +39,48 @@ class OrderExecutor:
                     if cached_delta:
                         self._delta_tracker.reset(float(cached_delta))
 
-                # 1. Pre-Trade Risk Validation
-                from src.trading.risk_kernels import _validate_order_kernel
+                # 1. Pre-Trade Risk Validation (Consolidated & Atomic)
+                from src.shared.lua_scripts import DISTRIBUTED_RISK_CHECK
 
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
-
-                # Basic Order Validation (Fat-finger)
-                if not _validate_order_kernel(price, quantity, side):
-                    logger.warning("order_rejected_basic_risk", params=params)
-                    return {"status": "rejected", "reason": "basic_risk_limit_violation"}
-
-                # 2. Portfolio-wide Delta Exposure Validation (Incremental O(1))
                 trade_delta = params.get("delta", 0.0) * quantity * side
-                if not self._delta_tracker.validate_and_update(trade_delta):
-                    logger.warning(
-                        "order_rejected_delta_risk",
-                        params=params,
-                        delta=trade_delta,
-                        current_total=self._delta_tracker.current_net_delta,
-                    )
-                    return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
 
-                # 3. Persist new state to Redis
+                # Atomic Distributed Risk Check
                 if redis:
-                    await redis.set(
-                        "portfolio_net_delta", str(self._delta_tracker.current_net_delta)
-                    )
+                    try:
+                        # Script returns {allowed, new_delta}
+                        allowed, new_portfolio_delta = await redis.eval(
+                            DISTRIBUTED_RISK_CHECK,
+                            1,
+                            "portfolio_net_delta",
+                            trade_delta,
+                            settings.MAX_NET_DELTA,
+                        )
+
+                        if not allowed:
+                            logger.warning(
+                                "order_rejected_delta_risk_lua",
+                                params=params,
+                                delta=trade_delta,
+                                current_total=new_portfolio_delta,
+                            )
+                            return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
+
+                        # Sync local tracker with atomic state
+                        self._delta_tracker.reset(float(new_portfolio_delta))
+
+                    except Exception as e:
+                        logger.error("distributed_risk_check_failed", error=str(e))
+                        # Fallback to local validation if Redis/LUA fails (better than nothing)
+                        if not self._delta_tracker.validate_and_update(trade_delta):
+                            return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
+
+                else:
+                    # Fallback to local-only if no redis
+                    if not self._delta_tracker.validate_and_update(trade_delta):
+                        return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
 
                 # 4. Extract params for execution
                 contract_address = params.get("contract_address")

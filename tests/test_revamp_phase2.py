@@ -39,8 +39,8 @@ class TestRevampPhase2:
         assert latest[11] == pytest.approx(np.log(105.0 / 100.0))  # log-moneyness
 
         # Spectral features (Sine/Cosine) at indices 61-70
-        assert latest[61] == pytest.approx(np.sin(105.0 / 100.0))
-        assert latest[66] == pytest.approx(np.cos(105.0 / 100.0))
+        assert latest[61] == pytest.approx(np.tanh(np.sin(1.05 * np.pi)))
+        assert latest[66] == pytest.approx(np.tanh(np.cos(1.05 * np.pi)))
 
     def test_flash_attention_forward(self):
         n_embd = 128

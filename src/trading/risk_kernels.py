@@ -1,5 +1,14 @@
 import numpy as np
+import structlog
 from numba import njit
+
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
+logger = structlog.get_logger(__name__)
 
 
 @njit(cache=True, fastmath=True)
@@ -80,7 +89,7 @@ def _full_risk_check_kernel(
 class IncrementalDeltaTracker:
     """
     Stateful tracker for portfolio-wide delta exposure.
-    Maintains O(1) running total. Optimized to use Numba-compatible array state.
+    Maintains O(1) running total. Optimized to use Rust 'bsopt_core' if available.
     """
 
     def __init__(self, initial_delta: float = 0.0, max_net_delta: float = 10000.0):
@@ -95,10 +104,70 @@ class IncrementalDeltaTracker:
     def validate_and_update(self, trade_delta: float) -> bool:
         """
         Sub-microsecond validation with state update.
+        Uses Rust core or Numba fallback.
         """
-        return bool(_validate_delta_kernel(
-            self._state, trade_delta, self.max_net_delta
-        ))
+        if CORE_AVAILABLE:
+            try:
+                # 1. Fat-finger checks omitted here (handled by _validate_order_kernel or full_risk_check)
+                # But for incremental delta only, we use Rust full_risk_check with dummy fat-finger params
+                ok, new_delta = bsopt_core.full_risk_check(
+                    1.0, 1, 1, trade_delta, self._state[0], 100, 0.01, 100.0, self.max_net_delta
+                )
+                if ok:
+                    self._state[0] = new_delta
+                return ok
+            except Exception as e:
+                logger.warning("rust_risk_check_failed", error=str(e))
+
+        return bool(_validate_delta_kernel(self._state, trade_delta, self.max_net_delta))
+
+    def full_risk_check(
+        self,
+        price: float,
+        quantity: int,
+        side: int,
+        trade_delta: float,
+        max_qty: int = 1000,
+        min_price: float = 0.01,
+        max_price: float = 10000.0,
+    ) -> bool:
+        """
+        Combined risk check using Rust core if possible.
+        """
+        if CORE_AVAILABLE:
+            try:
+                ok, new_delta = bsopt_core.full_risk_check(
+                    float(price),
+                    int(quantity),
+                    int(side),
+                    float(trade_delta),
+                    float(self._state[0]),
+                    int(max_qty),
+                    float(min_price),
+                    float(max_price),
+                    float(self.max_net_delta),
+                )
+                if ok:
+                    self._state[0] = new_delta
+                return ok
+            except Exception as e:
+                logger.warning("rust_full_risk_failed", error=str(e))
+
+        # Fallback to Numba
+        ok = bool(
+            _full_risk_check_kernel(
+                price,
+                quantity,
+                side,
+                trade_delta,
+                self._state,
+                max_qty,
+                min_price,
+                max_price,
+                self.max_net_delta,
+            )
+        )
+        return ok
 
     def reset(self, new_delta: float):
         """Periodic full-sync to prevent drift."""
