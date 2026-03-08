@@ -25,6 +25,12 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
         self.xgb_model = xgb_model
         self.nn_ort_session = nn_ort_session
 
+    def update_models(self, xgb_model, nn_ort_session):
+        """God-Mode: Live-update model sessions without restart."""
+        self.xgb_model = xgb_model
+        self.nn_ort_session = nn_ort_session
+        logger.info("grpc_models_updated")
+
     def _prepare_input(self, request) -> np.ndarray:
         """Consolidated and optimized input preparation."""
         # OPTIMIZED: Return a flat array, reshape only when needed
@@ -83,7 +89,7 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
 
 
 async def serve_grpc(xgb_model, nn_ort_session):
-    """Starts the gRPC server."""
+    """Starts the gRPC server and returns the servicer."""
     options = [
         ("grpc.max_send_message_length", 16 * 1024 * 1024),
         ("grpc.max_receive_message_length", 16 * 1024 * 1024),
@@ -91,9 +97,8 @@ async def serve_grpc(xgb_model, nn_ort_session):
         ("grpc.default_compression_level", grpc.CompressionLevel.High),
     ]
     server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10), options=options)
-    inference_pb2_grpc.add_MLInferenceServicer_to_server(
-        MLInferenceServicer(xgb_model, nn_ort_session), server
-    )
+    servicer = MLInferenceServicer(xgb_model, nn_ort_session)
+    inference_pb2_grpc.add_MLInferenceServicer_to_server(servicer, server)
 
     # Use the configured gRPC URL
     listen_addr = settings.ML_SERVICE_GRPC_URL
@@ -106,7 +111,9 @@ async def serve_grpc(xgb_model, nn_ort_session):
     server.add_insecure_port(listen_addr)
     logger.info(f"Starting gRPC server on {listen_addr}")
     await server.start()
-    await server.wait_for_termination()
+    
+    # We return the servicer so the REST app can update its state
+    return servicer
 
 
 if __name__ == "__main__":

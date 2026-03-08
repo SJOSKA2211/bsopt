@@ -2,11 +2,12 @@ import asyncio
 import time
 from typing import Any
 
+import numpy as np
 import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.config import settings
-from src.trading.risk_kernels import IncrementalDeltaTracker
+from src.trading.risk_kernels import RiskVectorTracker
 
 logger = structlog.get_logger(__name__)
 
@@ -20,8 +21,14 @@ class OrderExecutor:
     def __init__(self, protocol: DeFiOptionsProtocol):
         self.protocol = protocol
         self._execution_lock = asyncio.Lock()
-        # OPTIMIZED: Incremental tracker to avoid O(N) delta summation
-        self._delta_tracker = IncrementalDeltaTracker(max_net_delta=settings.MAX_NET_DELTA)
+        # OPTIMIZED: Multi-dimensional tracker for Delta, Gamma, Vega
+        self._risk_tracker = RiskVectorTracker(
+            limits=np.array([
+                settings.MAX_NET_DELTA,
+                settings.MAX_NET_GAMMA,
+                settings.MAX_NET_VEGA
+            ], dtype=np.float64)
+        )
 
     async def execute_order(
         self, params: dict[str, Any], max_slippage_pct: float = 0.5
@@ -30,57 +37,70 @@ class OrderExecutor:
         async with self._execution_lock:
             start_time = time.time()
             try:
-                # 0. Sync Delta Tracker with Redis (Atomic state management)
+                # 0. Sync Risk Tracker with Redis (Atomic state management)
                 from src.utils.cache import get_redis
 
                 redis = get_redis()
                 if redis:
-                    cached_delta = await redis.get("portfolio_net_delta")
-                    if cached_delta:
-                        self._delta_tracker.reset(float(cached_delta))
+                    async with redis.pipeline(transaction=False) as pipe:
+                        pipe.get("portfolio_net_delta")
+                        pipe.get("portfolio_net_gamma")
+                        pipe.get("portfolio_net_vega")
+                        results = await pipe.execute()
+                    
+                    current_metrics = np.array([float(r) if r else 0.0 for r in results], dtype=np.float64)
+                    self._risk_tracker.reset(current_metrics)
 
                 # 1. Pre-Trade Risk Validation (Consolidated & Atomic)
-                from src.shared.lua_scripts import DISTRIBUTED_RISK_CHECK
+                from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
-                trade_delta = params.get("delta", 0.0) * quantity * side
+                
+                d_delta = float(params.get("delta", 0.0)) * quantity * side
+                d_gamma = float(params.get("gamma", 0.0)) * quantity * side
+                d_vega = float(params.get("vega", 0.0)) * quantity * side
 
                 # Atomic Distributed Risk Check
                 if redis:
                     try:
-                        # Script returns {allowed, new_delta}
-                        allowed, new_portfolio_delta = await redis.eval(
-                            DISTRIBUTED_RISK_CHECK,
-                            1,
-                            "portfolio_net_delta",
-                            trade_delta,
+                        # Script returns [ok, val1, val2, val3]
+                        result = await redis.eval(
+                            ADVANCED_RISK_MATRIX,
+                            3,
+                            "risk:state:matrix",
+                            "risk:kill_switch",
+                            "blockchain:breaker:state",
+                            d_delta, d_gamma, d_vega,
                             settings.MAX_NET_DELTA,
+                            settings.MAX_NET_GAMMA,
+                            settings.MAX_NET_VEGA
                         )
 
-                        if not allowed:
-                            logger.warning(
-                                "order_rejected_delta_risk_lua",
-                                params=params,
-                                delta=trade_delta,
-                                current_total=new_portfolio_delta,
-                            )
-                            return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
+                        if result[0] != 1:
+                            reason = result[1].decode() if isinstance(result[1], bytes) else str(result[1])
+                            logger.warning("order_rejected_risk_matrix", reason=reason, params=params)
+                            return {"status": "rejected", "reason": reason}
 
                         # Sync local tracker with atomic state
-                        self._delta_tracker.reset(float(new_portfolio_delta))
+                        new_state = np.array([float(result[1]), float(result[2]), float(result[3])], dtype=np.float64)
+                        self._risk_tracker.reset(new_state)
 
                     except Exception as e:
                         logger.error("distributed_risk_check_failed", error=str(e))
-                        # Fallback to local validation if Redis/LUA fails (better than nothing)
-                        if not self._delta_tracker.validate_and_update(trade_delta):
-                            return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
+                        # Fallback to local validation
+                        if not self._risk_tracker.validate_and_update(
+                            price, quantity, side, d_delta, d_gamma, d_vega
+                        ):
+                            return {"status": "rejected", "reason": "risk_limit_violation"}
 
                 else:
                     # Fallback to local-only if no redis
-                    if not self._delta_tracker.validate_and_update(trade_delta):
-                        return {"status": "rejected", "reason": "delta_exposure_limit_violation"}
+                    if not self._risk_tracker.validate_and_update(
+                        price, quantity, side, d_delta, d_gamma, d_vega
+                    ):
+                        return {"status": "rejected", "reason": "risk_limit_violation"}
 
                 # 4. Extract params for execution
                 contract_address = params.get("contract_address")

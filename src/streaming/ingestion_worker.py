@@ -52,7 +52,8 @@ class PersistenceWorker:
     """The Scribe: Dedicated to high-throughput DB persistence using Vectorized COPY."""
 
     def __init__(self):
-        self.queue = asyncio.Queue(maxsize=1000)
+        self.market_queue = asyncio.Queue(maxsize=1000)
+        self.audit_queue = asyncio.Queue(maxsize=1000)
         self.running = False
         self.ledger = EternalLedger()
 
@@ -60,10 +61,16 @@ class PersistenceWorker:
         self.running = True
         logger.info("persistence_worker_active")
 
-        # OPTIMIZED: Use our new God-Mode Vectorized Engine (Binary COPY)
+        # Launch specialized persistence tasks
+        await asyncio.gather(
+            self._persist_market_data(),
+            self._persist_audit_logs(),
+        )
+
+    async def _persist_market_data(self):
         async with db_engine as db:
             while self.running:
-                batch = await self.queue.get()
+                batch = await self.market_queue.get()
                 try:
                     # 1. HOT PATH: Persistent Binary Ledger (Zero-latency local disk)
                     self.ledger.write_batch(batch)
@@ -72,11 +79,8 @@ class PersistenceWorker:
                     now_utc = datetime.now(UTC)
                     today_date = now_utc.date()
 
-                    # 🔥 GOD-MODE: Optimized transformation loop
-                    # Pre-calculating common values outside the loop
                     transformed = []
                     for item in batch:
-                        # Extract with efficient defaults
                         transformed.append((
                             item.get("timestamp") or now_utc,
                             item["symbol"],
@@ -91,9 +95,24 @@ class PersistenceWorker:
 
                     await db.insert_prices_vectorized(transformed)
                 except Exception as e:
-                    logger.error("persistence_batch_failed", error=str(e))
+                    logger.error("persistence_market_batch_failed", error=str(e))
                 finally:
-                    self.queue.task_done()
+                    self.market_queue.task_done()
+
+    async def _persist_audit_logs(self):
+        from src.database.crud import bulk_insert_audit_logs
+        from src.database import get_async_db_context
+
+        while self.running:
+            batch = await self.audit_queue.get()
+            try:
+                # Optimized for high-throughput audit ingestion
+                async with get_async_db_context() as session:
+                    await bulk_insert_audit_logs(session, batch)
+            except Exception as e:
+                logger.error("persistence_audit_batch_failed", error=str(e))
+            finally:
+                self.audit_queue.task_done()
 
 
 class IngestionWorker:
@@ -102,29 +121,35 @@ class IngestionWorker:
     Splits ingestion into:
     1. Pulse (XDP/SHM) - Internal to XDPIngester
     2. Voice (WebSockets) - Dispatched to BroadcastWorker
-    3. Scribe (Postgres) - Dispatched to PersistenceWorker
+    3. Scribe (Postgres) - Dispatched to PersistenceWorker (Market & Audit)
     """
 
     def __init__(self, topics: list[str] | None = None):
-        if topics is None:
-            topics = ["market-data"]
-        self.consumer = MarketDataConsumer(topics=topics)
+        self.topics = topics or ["market-data", "audit-logs"]
+        self.consumer = MarketDataConsumer(topics=self.topics)
         self.running = False
         self.xdp_ingester = XDPIngester()
         self.broadcaster = BroadcastWorker()
         self.scribe = PersistenceWorker()
 
-    async def _dispatch_batch(self, batch: list[dict]):
-        """Non-blocking dispatch to specialized workers."""
-        try:
-            self.broadcaster.queue.put_nowait(batch)
-        except asyncio.QueueFull:
-            pass
+    async def _dispatch_batch(self, batch: list[dict], topic: str = "market-data"):
+        """Non-blocking dispatch to specialized workers based on topic."""
+        if topic == "market-data":
+            try:
+                self.broadcaster.queue.put_nowait(batch)
+            except asyncio.QueueFull:
+                pass
 
-        try:
-            self.scribe.queue.put_nowait(batch)
-        except asyncio.QueueFull:
-            pass
+            try:
+                self.scribe.market_queue.put_nowait(batch)
+            except asyncio.QueueFull:
+                pass
+        
+        elif topic == "audit-logs":
+            try:
+                self.scribe.audit_queue.put_nowait(batch)
+            except asyncio.QueueFull:
+                logger.warning("audit_persistence_queue_full")
 
     async def run(self):
         """Unified entry point for starting all components."""
@@ -136,6 +161,7 @@ class IngestionWorker:
         # Start consuming (blocking)
         while self.running:
             try:
+                # Updated consumer callback to pass topic context
                 await self.consumer.consume_messages(callback=self._dispatch_batch)
             except Exception as e:
                 logger.error("dispatcher_crash", error=str(e))

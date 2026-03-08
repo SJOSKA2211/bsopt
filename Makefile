@@ -47,10 +47,13 @@ help:
 	@echo "  ml-train     - Run Autonomous ML Training (Use TICKER=\"...\")"
 	@echo "  ml-rl-train  - Run RL Trading Policy Training"
 	@echo "  ml-dt-train  - Run Distributed Decision Transformer Training"
+	@echo "  ml-offline-dt-train - Run Offline Decision Transformer Training"
+	@echo "  ml-fl-train  - Run Federated Learning Coordinator"
 	@echo "  ml-tft-train - Run TFT Forecasting Training (Use TICKER=\"...\", EPOCHS=\"...\")"
 	@echo "  ml-evaluate  - Compare Challenger run vs Production Champion"
 	@echo "  ml-promote   - Promote model to Production (Use MODEL=\"...\", RUN_ID=\"...\")"
 	@echo "  ml-rollback  - Rollback model to previous version (Use MODEL=\"...\")"
+	@echo "  ml-reload    - Trigger dynamic model reload across the manifold"
 	@echo "  cli          - Run containerized CLI (Use ARGS=\"...\")"
 	@echo "=======================================================\n"
 
@@ -191,6 +194,14 @@ ml-dt-train:
 	@echo "🥒 Triggering Distributed Decision Transformer Training..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_distributed_dt -P workers=$(WORKERS) -P epochs=$(EPOCHS) --no-conda
 
+ml-offline-dt-train:
+	@echo "🥒 Triggering Offline Decision Transformer Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e offline_train_dt -P epochs=$(EPOCHS) --no-conda
+
+ml-fl-train:
+	@echo "🥒 Triggering Federated Learning Coordinator..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_federated -P rounds=$(ROUNDS) --no-conda
+
 ml-tft-train:
 	@echo "🥒 Triggering TFT Forecasting Training for $(TICKER)..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_tft -P ticker=$(TICKER) -P epochs=$(EPOCHS) --no-conda
@@ -206,6 +217,10 @@ ml-promote:
 ml-rollback:
 	@echo "🥒 Rolling Back Model $(MODEL) to Previous Version..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker python -c "from src.ml.utils.rollback import rollback_model; rollback_model('$(MODEL)')"
+
+ml-reload:
+	@echo "🥒 Triggering Dynamic Model Reload across the Manifold..."
+	curl -X POST http://localhost:8000/ml/reload
 
 cli:
 	@echo "🥒 Launching Containerized CLI..."

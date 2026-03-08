@@ -104,7 +104,7 @@ LIMIT 20;
 -- 8. TimescaleDB Background Job Audit
 CREATE OR REPLACE VIEW job_performance_audit AS
 SELECT
-    job_id,
+    j.job_id,
     proc_name,
     schedule_interval,
     last_run_started_at,

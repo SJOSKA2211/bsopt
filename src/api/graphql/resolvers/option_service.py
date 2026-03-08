@@ -26,39 +26,71 @@ class Option:
 
 async def _load_options_vectorized(keys: list[str]) -> list[Option]:
     """Vectorized batch fetcher for DataLoaders using Shared Memory."""
-    # OPTIMIZED: Bulk read from SHM segment
-    # In a production environment, we'd use _shm_reader.get_batch(keys)
+    # OPTIMIZED: Bulk read from SHM segment if available
     now = datetime.now()
-
-    return [
-        Option(
-            id=strawberry.ID(symbol),
-            contract_symbol=symbol,
-            underlying_symbol=symbol.split("_")[0],
-            strike=100.0,  # Default or from SHM
-            expiry=now,
-            option_type="CALL",
-            delta=0.5,  # Pulled from vectorized SHM read
-        )
-        for symbol in keys
-    ]
+    results = []
+    
+    for symbol in keys:
+        try:
+            # Try router for live data snapshot
+            data = await router.get_live_quote(symbol)
+            results.append(Option(
+                id=strawberry.ID(symbol),
+                contract_symbol=symbol,
+                underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                strike=data.get("strike", 100.0),
+                expiry=data.get("expiry", now),
+                option_type=data.get("type", "CALL").upper(),
+                last=data.get("price"),
+                delta=data.get("delta"),
+            ))
+        except Exception:
+            # Fallback to minimal object
+            results.append(Option(
+                id=strawberry.ID(symbol),
+                contract_symbol=symbol,
+                underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                strike=100.0,
+                expiry=now,
+                option_type="CALL",
+            ))
+    return results
 
 
 # Persistent DataLoader for the request context
 option_loader = DataLoader(load_fn=_load_options_vectorized)
 
 
-async def get_option(contract_symbol: str) -> Option | None:
-    """Fetch a single option, potentially using the router for live data."""
-    # In a real implementation, we'd look up this specific contract
-    return Option(
-        id=strawberry.ID(contract_symbol),
-        contract_symbol=contract_symbol,
-        underlying_symbol=contract_symbol.split("_")[0],
-        strike=100.0,
-        expiry=datetime.now(),
-        option_type="CALL",
-    )
+async def get_option(symbol: str, expiry: datetime, strike: float, option_type: str) -> Option | None:
+    """Fetch a single option using coordinates."""
+    contract_symbol = f"{symbol}_{expiry.strftime('%Y%m%d')}_{option_type[0].upper()}_{int(strike)}"
+    return await get_option_by_id(contract_symbol)
+
+
+async def get_option_by_id(id: str) -> Option | None:
+    """Fetch option by its unique manifold ID."""
+    try:
+        data = await router.get_live_quote(id)
+        return Option(
+            id=strawberry.ID(id),
+            contract_symbol=id,
+            underlying_symbol=id.split("_")[0] if "_" in id else id,
+            strike=data.get("strike", 100.0),
+            expiry=data.get("expiry", datetime.now()),
+            option_type=data.get("type", "CALL").upper(),
+            last=data.get("price"),
+            delta=data.get("delta"),
+        )
+    except Exception:
+        # Minimal return for federation compatibility
+        return Option(
+            id=strawberry.ID(id),
+            contract_symbol=id,
+            underlying_symbol=id.split("_")[0] if "_" in id else id,
+            strike=100.0,
+            expiry=datetime.now(),
+            option_type="CALL",
+        )
 
 
 async def search_options_paginated(

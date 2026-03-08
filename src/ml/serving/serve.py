@@ -28,6 +28,7 @@ from src.api.schemas.ml import (
     InferenceRequest,
     InferenceResponse,
 )
+from src.ml.utils.inference import ONNXInferenceEngine
 from src.utils.circuit_breaker import (  # Import both
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,
@@ -68,6 +69,7 @@ state: dict[str, Any] = {
     "xgb_ort_session": None,
     "nn_ort_session": None,
     "current_model": "xgb",
+    "grpc_servicer": None,
 }
 
 
@@ -105,12 +107,11 @@ async def startup():
     # Start gRPC server in background
     from src.ml.serving.grpc_server import serve_grpc
 
-    asyncio.create_task(
-        serve_grpc(
-            (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
-            state["nn_ort_session"],
-        )
+    servicer = await serve_grpc(
+        (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
+        state["nn_ort_session"],
     )
+    state["grpc_servicer"] = servicer
 
 
 async def load_xgb_model():
@@ -122,8 +123,8 @@ async def load_xgb_model():
         int8_path = os.getenv("XGB_INT8_MODEL_PATH", "models/latest_xgb_pricing.int8.onnx")
         exists_int8 = await anyio.to_thread.run_sync(os.path.exists, int8_path)
         if exists_int8:
-            state["xgb_ort_session"] = ort.InferenceSession(int8_path)
-            logger.info(f"XGBoost INT8 Quantized session initialized from {int8_path}.")
+            state["xgb_ort_session"] = ONNXInferenceEngine(int8_path)
+            logger.info(f"XGBoost INT8 Quantized engine initialized from {int8_path}.")
             MODEL_LOAD_STATUS.labels(model_type="xgb_int8").set(1)
             return
 
@@ -131,8 +132,8 @@ async def load_xgb_model():
         onnx_path = os.getenv("XGB_ONNX_MODEL_PATH", "models/latest_xgb_pricing.onnx")
         exists_onnx = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
         if exists_onnx:
-            state["xgb_ort_session"] = ort.InferenceSession(onnx_path)
-            logger.info(f"XGBoost ONNX session initialized from {onnx_path}.")
+            state["xgb_ort_session"] = ONNXInferenceEngine(onnx_path)
+            logger.info(f"XGBoost ONNX engine initialized from {onnx_path}.")
             MODEL_LOAD_STATUS.labels(model_type="xgb_onnx").set(1)
             return
 
@@ -157,8 +158,8 @@ async def load_onnx_model():
 
         exists = await anyio.to_thread.run_sync(os.path.exists, onnx_path)
         if exists:
-            state["nn_ort_session"] = ort.InferenceSession(onnx_path)
-            logger.info(f"ONNX session initialized from {onnx_path}.")
+            state["nn_ort_session"] = ONNXInferenceEngine(onnx_path)
+            logger.info(f"ONNX NN engine initialized from {onnx_path}.")
             MODEL_LOAD_STATUS.labels(model_type="nn").set(1)
         else:
             logger.warning(f"ONNX model not found at {onnx_path}")
@@ -212,8 +213,7 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
                 input_data = np.array(
                     list(request.model_dump().values()), dtype=np.float32
                 ).reshape(1, -1)
-                ort_inputs = {state["xgb_ort_session"].get_inputs()[0].name: input_data}
-                prediction = state["xgb_ort_session"].run(None, ort_inputs)[0][0]
+                prediction = state["xgb_ort_session"].predict(input_data)[0][0]
             elif state["xgb_model"]:
                 df = pd.DataFrame([request.model_dump()])
                 prediction = state["xgb_model"].predict(df)[0]
@@ -229,8 +229,7 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
             input_data = np.array(list(request.model_dump().values()), dtype=np.float32).reshape(
                 1, -1
             )
-            ort_inputs = {state["nn_ort_session"].get_inputs()[0].name: input_data}
-            prediction = state["nn_ort_session"].run(None, ort_inputs)[0][0]
+            prediction = state["nn_ort_session"].predict(input_data)[0][0]
 
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
@@ -289,8 +288,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
 
         if model_type == "xgb":
             if state["xgb_ort_session"]:
-                ort_inputs = {state["xgb_ort_session"].get_inputs()[0].name: input_data}
-                preds = state["xgb_ort_session"].run(None, ort_inputs)[0]
+                preds = state["xgb_ort_session"].predict(input_data)
                 predictions = [float(p[0]) for p in preds]
             elif state["xgb_model"]:
                 # Fallback for non-ONNX models (slower)
@@ -317,8 +315,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
                     status_code=503, detail="Neural Network model currently unavailable"
                 )
 
-            ort_inputs = {state["nn_ort_session"].get_inputs()[0].name: input_data}
-            preds = state["nn_ort_session"].run(None, ort_inputs)[0]
+            preds = state["nn_ort_session"].predict(input_data)
             predictions = [float(p[0]) for p in preds]
 
         else:
@@ -366,6 +363,14 @@ async def reload_models(request: Request):
         # Re-initialize models
         await load_xgb_model()
         await load_onnx_model()
+        
+        # Live-update gRPC servicer
+        if state["grpc_servicer"]:
+            state["grpc_servicer"].update_models(
+                (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
+                state["nn_ort_session"]
+            )
+            
         return {"status": "reloaded", "timestamp": datetime.now(UTC).isoformat()}
     except Exception as e:
         logger.error(f"Reload failed: {e}")

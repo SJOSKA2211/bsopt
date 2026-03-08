@@ -35,7 +35,8 @@ class OnlineRLAgent:
         self.window_size = window_size
 
         #  SILICON BUFFERS
-        self._window_buffer = np.zeros((window_size, 100), dtype=np.float32)
+        # OPTIMIZED: 128-dim state vector for DT-v2 compatibility
+        self._window_buffer = np.zeros((window_size, 128), dtype=np.float32)
         self._window_idx = 0
         self._prev_portfolio_value = initial_balance
 
@@ -67,8 +68,8 @@ class OnlineRLAgent:
                 # Load new brain to a temp variable
                 new_brain = torch.jit.load(self.model_path)
                 new_brain.eval()
-                # Warmup
-                _ = new_brain(torch.zeros((1, 100)), torch.zeros((2, 10), dtype=torch.long))
+                # Warmup: Using 128-dim features for DT-v2/GNN compatibility
+                _ = new_brain(torch.zeros((1, self.window_size, 128)), torch.zeros((2, 10), dtype=torch.long))
                 self.brain = new_brain
                 self._last_brain_mtime = mtime
                 logger.info("silicon_brain_reloaded", path=self.model_path)

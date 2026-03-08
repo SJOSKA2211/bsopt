@@ -24,6 +24,51 @@ entry_points:
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.distributed_training --epochs {epochs} --lr {lr} --batch_size {batch_size} --workers {workers} --dataset {dataset} --study_name {study_name} --tracking_uri {tracking_uri}"
 
+  offline_train_dt:
+    parameters:
+      dataset: {type: string, default: "data/trajectories.parquet"}
+      epochs: {type: int, default: 10}
+      batch_size: {type: int, default: 64}
+      beta: {type: float, default: 3.0}
+      tau: {type: float, default: 0.7}
+      study_name: {type: string, default: "offline_dt_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.reinforcement_learning.offline_train --dataset {dataset} --epochs {epochs} --batch-size {batch_size} --beta {beta} --tau {tau} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_federated:
+    parameters:
+      rounds: {type: int, default: 3}
+      address: {type: string, default: "0.0.0.0:8080"}
+      strategy: {type: string, default: "FedAvg"}
+      study_name: {type: string, default: "federated_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.federated_learning.coordinator --rounds {rounds} --address {address} --strategy {strategy} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_rl:
+    parameters:
+      timesteps: {type: int, default: 10000}
+      model_path: {type: string, default: "models/best_td3"}
+      study_name: {type: string, default: "rl_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+      warm_start: {type: string, default: ""}
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps} --output {model_path} --study_name {study_name} --tracking_uri {tracking_uri} --warm_start {warm_start}"
+
+  train_tft:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      epochs: {type: int, default: 10}
+      batch_size: {type: int, default: 64}
+      hidden_size: {type: int, default: 16}
+      study_name: {type: string, default: "tft_v1"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.ml.forecasting.tft_model --ticker {ticker} --epochs {epochs} --batch-size {batch_size} --hidden_size {hidden_size} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  detect_drift:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      tracking_uri: {type: string, default: "http://mlflow:5000"}
+    command: "python -m src.aiops.drift_detector --ticker {ticker} --tracking_uri {tracking_uri}"
+
   evaluate_challenger:
     parameters:
       model: {type: string}

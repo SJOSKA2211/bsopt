@@ -484,66 +484,66 @@ class DeFiOptionsProtocol:
             "deadline": deadline,
         }
 
-    async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
+    async def submit_meta_transaction(self, relayer_url: str, payload: dict) -> str:
         """
-        Smart Order Router (SOR) v2.1 - Ultra-Low Latency & Gas-Aware.
-        Optimized for high-frequency DeFi options execution.
+        Submit a signed EIP-712 payload to a meta-transaction relayer.
         """
-        await self._check_circuit() # COMPLIANCE
-
-        # Dynamic venue discovery (In PROD, this would fetch from a registry)
-        venues = [
-            {"name": "Lyra-V2", "price": 100.2, "liquidity": 1200000.0, "gas_estimate": 142000, "latency_ms": 12},
-            {"name": "Uniswap-V3", "price": 100.1, "liquidity": 4500000.0, "gas_estimate": 175000, "latency_ms": 22},
-            {"name": "Panoptic-V1", "price": 100.05, "liquidity": 650000.0, "gas_estimate": 220000, "latency_ms": 8},
-        ]
-
         try:
-            # OPTIMIZATION: Fetch real-time gas prices for selection
-            fee_history = await self.w3.eth.fee_history(1, "latest", [25.0])
-            base_fee = fee_history["baseFeePerGas"][-1]
-            priority_fee = fee_history["reward"][-1][0]
-            gas_price_eth = float(Web3.from_wei(base_fee + priority_fee, "ether"))
+            from src.utils.http_client import HttpClientManager
+            client = HttpClientManager.get_client()
+            
+            response = await client.post(
+                relayer_url,
+                json=payload,
+                timeout=10.0
+            )
+            
+            if response.status_code in [200, 201, 202]:
+                data = response.json()
+                tx_hash = data.get("tx_hash")
+                logger.info("meta_tx_submitted", relayer=relayer_url, tx_hash=tx_hash)
+                return tx_hash
+            
+            raise Exception(f"Relayer rejected meta-tx: {response.text}")
+        except Exception as e:
+            logger.error("meta_tx_submission_failed", error=str(e))
+            raise
+
+    async def route_order_advanced(self, symbol: str, amount: float, is_call: bool) -> dict:
+        """
+        Smart Order Router (SOR) v2.2 - Mempool & Gas Aware.
+        """
+        # 1. Base SOR decision (from venues)
+        base_decision = await self.route_order(symbol, amount, is_call)
+        
+        # 2. 🔥 MEMPOOL ADJUSTMENT: Check for congestion or front-running
+        # This is a simplified proxy for real mempool-aware routing
+        try:
+            pending_count = await self.w3.eth.get_block_transaction_count("pending")
+            if pending_count > 200: # Arbitrary high-congestion threshold
+                logger.warning("mempool_congested_adjusting_gas_strategy", count=pending_count)
+                base_decision["gas_estimate"] = int(base_decision["gas_estimate"] * 1.5)
+                base_decision["optimization"] = "urgency_maximized"
         except Exception:
-            gas_price_eth = 40e-9 # Fallback (40 gwei)
+            pass
+            
+        return base_decision
 
-        def execution_cost(v):
-            # 1. ADVANCED SLIPPAGE MODEL: Permanent vs Temporary Impact
-            # Permanent impact: K * (amount/L)^0.5
-            # Temporary impact: K' * (amount/L)
-            utilization = amount / v["liquidity"]
-            permanent = 0.1 * (utilization ** 0.5)
-            temporary = 0.2 * utilization
-            total_slippage = permanent + temporary
-            
-            expected_price = v["price"] * (1 + total_slippage)
-            
-            # 2. GAS OPTIMIZATION
-            gas_cost_native = v["gas_estimate"] * gas_price_eth
-            
-            # 3. HFT LATENCY: Penalty = sigma * P * sqrt(dt)
-            volatility_assumption = 0.8 # 80% IV
-            latency_seconds = v["latency_ms"] / 1000.0
-            latency_penalty = (latency_seconds ** 0.5) * volatility_assumption * v["price"] * 0.002
-            
-            return expected_price + gas_cost_native + latency_penalty
+    async def watch_mempool_hardened(self, target_addresses: list[str], callback: Callable):
+        """
+        Hardened Mempool Watcher with address filtering.
+        Detects transactions interacting with specific contracts or our own address.
+        """
+        async def _callback_wrapper(tx_hash):
+            try:
+                tx = await self.w3.eth.get_transaction(tx_hash)
+                if tx and (tx["to"] in target_addresses or tx["from"] == self.address):
+                    await callback(tx)
+            except Exception:
+                pass
 
-        best_venue = min(venues, key=execution_cost)
-        total_effective_price = execution_cost(best_venue)
-        
-        logger.info(
-            "sor_routing_v2_1_decision",
-            symbol=symbol,
-            amount=amount,
-            venue=best_venue["name"],
-            effective_price=float(total_effective_price),
-            gas_price_gwei=float(gas_price_eth * 1e9),
-            optimization="latency_minimized" if int(best_venue["latency_ms"]) < 10 else "cost_minimized"
-        )
-        
-        best_venue["estimated_total_cost"] = total_effective_price
-        best_venue["routing_version"] = "2.2-HARDENED"
-        return best_venue
+        logger.info("mempool_watcher_hardened_started", targets=len(target_addresses))
+        await self.watch_mempool(_callback_wrapper)
 
     async def watch_mempool(self, callback, iterations: int = -1):
         """
