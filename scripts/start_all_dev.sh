@@ -6,11 +6,12 @@
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Detect Docker Compose
+# Detect Docker Compose (God-Mode Detection)
 if [ -x "./docker-compose" ]; then
-    COMPOSE_BIN="./docker-compose"
-else
-    COMPOSE_BIN="docker-compose"
+    COMPOSE="./docker-compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+    COMPOSE="docker-compose"
+elif docker compose version >/dev/null 2>&1; then
 fi
 
 DOCKER_COMPOSE="$COMPOSE_BIN -f docker-compose.dev.yml"
