@@ -88,7 +88,11 @@ async def lifespan(app: FastAPI):
     logger.info("api_shutdown_complete_database_engines_disposed")
 
 
-app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse, lifespan=lifespan)
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    default_response_class=MsgspecJSONResponse,
+    lifespan=lifespan,
+)
 
 
 # Middleware
@@ -110,13 +114,17 @@ app.add_middleware(
 app.middleware("http")(logging_middleware)
 
 
+from src.api.responses import MsgspecJSONResponse, get_msgspec_response
+
+# ... (other imports)
+
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
     """Global exception handler."""
     from src.api.exceptions import BaseAPIException
 
     if isinstance(exc, BaseAPIException):
-        return ORJSONResponse(
+        return MsgspecJSONResponse(
             status_code=getattr(exc, "status_code", 500),
             content={
                 "error": getattr(exc, "error_code", getattr(exc, "error", "InternalServerError")),
@@ -127,7 +135,7 @@ async def api_exception_handler(request: Request, exc: Exception):
 
     if isinstance(exc, HTTPException):
         detail = exc.detail if isinstance(exc.detail, dict) else {"message": str(exc.detail)}
-        return ORJSONResponse(
+        return MsgspecJSONResponse(
             status_code=exc.status_code,
             content={
                 "error": "http_error",
@@ -146,7 +154,7 @@ async def api_exception_handler(request: Request, exc: Exception):
     else:
         logger.error("api_error", error=str(exc), path=request.url.path)
 
-    return ORJSONResponse(
+    return MsgspecJSONResponse(
         status_code=500,
         content={
             "message": "Internal server error",
@@ -163,7 +171,7 @@ from fastapi.exceptions import RequestValidationError  # noqa: E402
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle FastAPI built-in validation errors."""
-    return ORJSONResponse(
+    return MsgspecJSONResponse(
         status_code=422,
         content={"detail": exc.errors(), "body": exc.body},
     )

@@ -20,10 +20,10 @@ class MsgspecJSONResponse(Response):
         try:
             return _encoder.encode(content)
         except Exception:
-            # Fallback for complex objects not handled by the encoder
-            import json
+            # Fallback for complex objects not handled by the msgspec encoder
+            import orjson
 
-            return json.dumps(content).encode("utf-8")
+            return orjson.dumps(content)
 
 
 def get_msgspec_response(content: Any, status_code: int = 200) -> MsgspecJSONResponse:

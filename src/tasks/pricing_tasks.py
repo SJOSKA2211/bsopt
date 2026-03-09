@@ -35,6 +35,76 @@ class PricingResult(msgspec.Struct):
     rho: float
 
 
+from src.utils.distributed import RayOrchestrator
+from src.utils.ray_pool import RayActorPool
+
+# Initialize Ray once
+RayOrchestrator.init()
+
+# Initialize Global Pool for Math Actors
+_math_pool: RayActorPool | None = None
+
+
+def get_math_pool():
+    global _math_pool
+    if _math_pool is None:
+        from src.workers.ray_workers import MathActor
+
+        _math_pool = RayActorPool(MathActor, name="math_v2")
+    return _math_pool
+
+
+@celery_app.task(base=BaseAsyncTask, bind=True, queue="pricing", max_retries=3)
+def recalibrate_symbol_task(self, symbol: str) -> dict:
+    """Non-blocking calibration delegation using Ray Actor Pool."""
+    try:
+        return self.run_async(_recalibrate_symbols_batch_impl([symbol]))[0]
+    except Exception as e:
+        logger.error("calibration_task_failed", symbol=symbol, error=str(e))
+        raise self.retry(exc=e) from e
+
+
+@celery_app.task(base=BaseAsyncTask, bind=True, queue="pricing")
+def recalibrate_symbols_batch_task(self, symbols: list[str]) -> list[dict]:
+    """🚀 GOD-MODE: Batch calibration delegation to Ray."""
+    try:
+        return self.run_async(_recalibrate_symbols_batch_impl(symbols))
+    except Exception as e:
+        logger.error("batch_calibration_task_failed", symbols=symbols, error=str(e))
+        return []
+
+
+async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
+    """Async implementation of batch calibration using Ray Actor Pool."""
+    from src.data.router import MarketDataRouter
+
+    try:
+        # 1. Fetch market data snapshots in parallel
+        router = MarketDataRouter()
+        snapshots = await asyncio.gather(*[router.get_option_chain_snapshot(s) for s in symbols])
+
+        valid_symbols = []
+        valid_data = []
+        for s, data in zip(symbols, snapshots):
+            if data:
+                valid_symbols.append(s)
+                valid_data.append(data)
+
+        if not valid_symbols:
+            return []
+
+        # 2. Delegate to Ray Actor Pool
+        pool = get_math_pool()
+        actor = await pool.get_actor()
+
+        # 🚀 GOD-MODE: Non-blocking await of Ray future
+        return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
+
+    except Exception as exc:
+        logger.error("batch_calib_impl_error", symbols=symbols, error=str(exc))
+        return []
+
+
 @celery_app.task(
     bind=True,
     base=PricingTask,

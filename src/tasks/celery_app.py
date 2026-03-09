@@ -237,6 +237,17 @@ celery_app.conf.update(
             "schedule": crontab(hour="*/12"),  # Every 12 hours
             "options": {"queue": "ml", "priority": 1},
         },
+        "reconcile-risk-state": {
+            "task": "src.tasks.trading_tasks.reconcile_risk_state_task",
+            "schedule": timedelta(seconds=10),
+            "options": {"queue": "trading", "priority": 10},
+        },
+        "periodic-recalibration": {
+            "task": "src.tasks.pricing_tasks.recalibrate_symbols_batch_task",
+            "schedule": crontab(minute=0),  # Hourly
+            "args": (["TSLA", "AAPL", "BTC/USD"],),
+            "options": {"queue": "pricing", "priority": 2},
+        },
     },
     # Broker settings
     broker_connection_retry_on_startup=True,

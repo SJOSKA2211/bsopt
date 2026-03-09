@@ -136,6 +136,16 @@ services:
       - shared_shm:/dev/shm
     ports:
       - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2gb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -173,6 +183,11 @@ services:
       - ./pyproject.toml:/app/pyproject.toml
     ports:
       - "8003:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1gb
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -205,6 +220,11 @@ services:
     ports:
       - "5001:5001"
       - "50051:50051"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2gb
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
@@ -232,6 +252,16 @@ services:
       - shared_shm:/dev/shm
     ports:
       - "50052:50051" # Changed to avoid collision if run on host
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2gb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -275,6 +305,11 @@ services:
     volumes:
       - ./src:/app/src
       - shared_shm:/dev/shm
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1gb
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}

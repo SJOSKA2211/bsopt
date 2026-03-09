@@ -80,7 +80,7 @@ class RayOrchestrator:
             memory_gb=round(object_store_memory / 1024**3, 2),
         )
 
-        import json
+        import orjson
 
         address = os.getenv("RAY_ADDRESS")
         if address:
@@ -91,9 +91,9 @@ class RayOrchestrator:
                 num_gpus=num_gpus,
                 object_store_memory=object_store_memory,
                 _system_config={
-                    "object_spilling_config": json.dumps(
+                    "object_spilling_config": orjson.dumps(
                         {"type": "filesystem", "params": {"directory_path": spill_dir}}
-                    )
+                    ).decode()
                 },
                 ignore_reinit_error=True,
             )

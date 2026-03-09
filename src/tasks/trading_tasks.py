@@ -34,6 +34,54 @@ def _get_attr(name: str):
 
 
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
+def reconcile_risk_state_task(self):
+    """Periodically syncs Redis 'truth' to SHM RiskStateBuffer (Consolidated)."""
+    try:
+        return self.run_async(_reconcile_risk_state_impl())
+    except Exception as e:
+        logger.error("risk_reconciliation_failed", error=str(e))
+
+
+async def _reconcile_risk_state_impl():
+    """Implementation of risk state synchronization (Multi-Dimensional)."""
+    from src.config import get_settings
+    from src.shared.shm_mesh import RiskStateBuffer
+    from src.utils.cache import get_redis
+
+    settings = get_settings()
+    redis = get_redis()
+    if not redis:
+        return
+
+    # 1. Atomic Fetch from Redis using Pipeline (Delta, Gamma, Vega)
+    async with redis.pipeline(transaction=False) as pipe:
+        pipe.get("portfolio_net_delta")
+        pipe.get("portfolio_net_gamma")
+        pipe.get("portfolio_net_vega")
+        pipe.get("portfolio_margin_usage")
+        results = await pipe.execute()
+
+    # Results mapping: [delta, gamma, vega, margin]
+    current_metrics = [float(r) if r is not None else 0.0 for r in results]
+
+    # 2. Update SHM (The engine's local truth)
+    try:
+        risk_buf = RiskStateBuffer(create=False)
+        risk_buf.update(
+            current_metrics[0],  # delta
+            current_metrics[1],  # gamma
+            current_metrics[2],  # vega
+            settings.MAX_NET_DELTA,
+            settings.MAX_NET_GAMMA,
+            settings.MAX_NET_VEGA,
+            current_metrics[3],  # margin
+        )
+        logger.debug("risk_vector_synced", delta=current_metrics[0], gamma=current_metrics[1])
+    except Exception as e:
+        logger.error("shm_vector_update_failed", error=str(e))
+
+
+@celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
 def execute_trade_task(self, order: dict):
     """
     Async task to execute a real trade using the Solenya-hardened executor.
