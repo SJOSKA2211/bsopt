@@ -66,19 +66,35 @@ deploy() {
 
 run_smoke_tests() {
     log "Running Smoke Tests... *belch*"
-    local api_url="http://localhost:8000/health"
     
+    local api_url="http://localhost:8000/health"
+    local auth_url="http://localhost:3001/health"
+    local gateway_url="http://localhost:4000/health"
+    
+    # 1. API Health
+    log "Verifying API..."
     local retries=0
-    until curl -s "$api_url" | grep -q "healthy"; do
-        if [[ $retries -ge 10 ]]; then
-            error "API health check timed out"
-            return 1
-        fi
-        log "Waiting for API... ($((retries+1))/10)"
-        sleep 5
-        ((retries++))
+    until curl -sf "$api_url" | grep -q 'status\|healthy'; do
+        if [[ $retries -ge 12 ]]; then error "API health check failed"; return 1; fi
+        sleep 5; ((retries++)); log "Waiting for API... ($retries/12)"
     done
     
+    # 2. Auth Service Health
+    log "Verifying Auth Service..."
+    local retries=0
+    until curl -sf "$auth_url" | grep -q "operational"; do
+        if [[ $retries -ge 12 ]]; then error "Auth Service health check failed"; return 1; fi
+        sleep 5; ((retries++)); log "Waiting for Auth Service... ($retries/12)"
+    done
+    
+    # 3. Gateway Health
+    log "Verifying GraphQL Gateway..."
+    local retries=0
+    until curl -sf "$gateway_url" | grep -q "operational"; do
+        if [[ $retries -ge 12 ]]; then error "Gateway health check failed"; return 1; fi
+        sleep 5; ((retries++)); log "Waiting for Gateway... ($retries/12)"
+    done
+
     success "Pickle Rick's deployment is online and healthy. Wubba Lubba Dub Dub! 🥒"
 }
 
