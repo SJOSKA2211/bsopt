@@ -2,7 +2,6 @@
 Machine Learning Tasks for Celery (Optimized)
 """
 
-import os
 import sys
 from typing import Any
 
@@ -104,7 +103,7 @@ def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
 
         # Use the central startup script
         script_path = os.path.join(os.getcwd(), "scripts/start_mlflow_pipeline.sh")
-        
+
         # Dispatch the job
         # Note: We use check_call here because Celery worker should wait for dispatch to confirm success
         subprocess.check_call(
@@ -113,8 +112,10 @@ def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
                 script_path,
                 "train_regressor",
                 f"celery_drift_{ticker}",
-                "-P", f"ticker={ticker}",
-                "-P", "n_trials=10"
+                "-P",
+                f"ticker={ticker}",
+                "-P",
+                "n_trials=10",
             ]
         )
 

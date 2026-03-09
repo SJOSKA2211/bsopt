@@ -45,6 +45,6 @@ class TestBlockchainLazyLoading:
 
         exports = dir(src.blockchain)
         assert "DeFiOptionsProtocol" in exports
-        #  Rick Fix: Removed non-existent exports from assertion
+        #  Engineer Fix: Removed non-existent exports from assertion
         # Should not include private members
         assert "_import_map" not in exports

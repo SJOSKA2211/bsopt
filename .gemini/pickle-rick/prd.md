@@ -70,5 +70,5 @@ The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML traini
 ## Stakeholders / Owners
 | Name | Role |
 | :---- | :---- |
-| High-Performance Engine | God-Mode Architect |
+| High-Performance Engine | High-Performance Architect |
 | Assistant | Lead Compliance Officer |

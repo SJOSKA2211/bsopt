@@ -47,6 +47,7 @@ class OnlineRLAgent:
 
         # OPTIMIZED: Pre-initialize Pricing Engine
         from src.pricing.factory import PricingEngineFactory
+
         self._pricing_engine = PricingEngineFactory.get_engine("black_scholes")
 
         self.brain = None
@@ -74,9 +75,7 @@ class OnlineRLAgent:
                 new_brain.eval()
                 # Warmup: Using 128-dim features for DT-v2/GNN compatibility
                 # Input shape: (Batch, Seq, Feat)
-                _ = new_brain(
-                    torch.zeros((1, self.window_size, 128)), self._edge_index
-                )
+                _ = new_brain(torch.zeros((1, self.window_size, 128)), self._edge_index)
                 self.brain = new_brain
                 self._last_brain_mtime = mtime
                 logger.info("silicon_brain_reloaded", path=self.model_path)
@@ -95,7 +94,7 @@ class OnlineRLAgent:
         logger.info("agent_spinning_on_mesh", shm=SHM_NAME)
 
         from src.pricing.models import BSParameters
-        
+
         loop_count = 0
         try:
             with torch.no_grad():

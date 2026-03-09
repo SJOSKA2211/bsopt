@@ -25,6 +25,6 @@ Configure and enforce Black, Ruff, and Flake8.
 - Ensure zero errors.
 
 ## Notes
-- Fixed 155+ errors including syntax errors in `spawn_morty_real.py` and `store.py`.
+- Fixed 155+ errors including syntax errors in `assistant_implementer.py` and `store.py`.
 - Fixed F821 undefined names in `bs_cli.py`, `router.py`, `ray_workers.py`, `ml_tasks.py`, `execution.py`, `orchestrator.py`.
 - Remaining warnings (E402, F841) are acceptable for now.

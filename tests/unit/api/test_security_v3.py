@@ -55,7 +55,7 @@ async def test_ip_block_middleware_blocked(mock_call_next):
 @pytest.mark.asyncio
 async def test_jwt_auth_legacy_bypass(mock_call_next):
     middleware = JWTAuthenticationMiddleware(MagicMock())
-    headers = [(b"authorization", b"Bearer legacy-rick-token")]
+    headers = [(b"authorization", b"Bearer legacy-engineer-token")]
     request = Request(scope={"type": "http", "path": "/", "headers": headers})
     result = await middleware.dispatch(request, mock_call_next)
     assert result.status_code == 200

@@ -103,6 +103,10 @@ class PriceTFTModel:
         if not self.training_dataset:
             raise RuntimeError("Dataset not prepared. Call prepare_data first.")
 
+        from src.ml.tracker import ExperimentTracker
+
+        tracker = ExperimentTracker(self.config.get("study_name", "tft_v1"))
+
         model = TemporalFusionTransformer.from_dataset(
             self.training_dataset,
             learning_rate=0.03,
@@ -117,9 +121,9 @@ class PriceTFTModel:
 
         trainer = self._init_trainer()
 
-        with mlflow.start_run() as run:
+        with tracker.start_run(nested=True) as run:
             mlflow.log_params(self.config)
-            
+
             # OPTIMIZED: Enable torch.compile for PyTorch 2.0+
             if hasattr(torch, "compile"):
                 try:
@@ -137,7 +141,7 @@ class PriceTFTModel:
             # Log model artifact
             mlflow.pytorch.log_model(self.model, "tft_challenger")
 
-        return run.info.run_id
+        return run.info.run_id if run else None
 
     def _init_trainer(self) -> pl.Trainer:
         """Initializes the lightning trainer with optimal callbacks."""
@@ -195,7 +199,11 @@ class PriceTFTModel:
         processed = self.prepare_data(data)
         train_loader = processed["train_loader"]
 
-        with mlflow.start_run():
+        from src.ml.tracker import ExperimentTracker
+
+        tracker = ExperimentTracker(self.config.get("study_name", "tft_async"))
+
+        with tracker.start_run(nested=True):
             mlflow.log_params(self.config)
 
             # Initialize Model

@@ -44,5 +44,5 @@
 ## NEXT STEPS
 ```bash
 # Ready? Run:
-node /home/h8tedj4y/.gemini/extensions/pickle-rick/extension/bin/spawn-morty.js --ticket-id p006 --ticket-path /home/h8tedj4y/.gemini/extensions/pickle-rick/sessions/2026-03-05-e7c260f2/p006/ --ticket-file /home/h8tedj4y/.gemini/extensions/pickle-rick/sessions/2026-03-05-e7c260f2/p006/linear_ticket_p006.md --timeout 1200 "Audit and optimize database deployment scripts and refine pg_hba.conf."
+node /home/h8tedj4y/.gemini/extensions/high-performance-engine/extension/bin/assistant-implementer.js --ticket-id p006 --ticket-path /home/h8tedj4y/.gemini/extensions/high-performance-engine/sessions/2026-03-05-e7c260f2/p006/ --ticket-file /home/h8tedj4y/.gemini/extensions/high-performance-engine/sessions/2026-03-05-e7c260f2/p006/linear_ticket_p006.md --timeout 1200 "Audit and optimize database deployment scripts and refine pg_hba.conf."
 ```

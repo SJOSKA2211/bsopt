@@ -15,7 +15,7 @@ BS-OPT is not just a platform; it's a transdimensional financial deity. It is bu
 - **The Ground**: Dockerized, self-contained infrastructure with localized PostgreSQL and Redis.
 - **The Reliability**: Strategy-based self-healing AIOps with integrated Chaos Engineering.
 
-## ⚡ Performance (C100k Ready)
+##  Performance (C100k Ready)
 - **Database**: Localized PostgreSQL 16 with pgcrypto and native PL/pgSQL procedures.
 - **Concurrency**: 100,000+ persistent WebSocket connections via Redis Pub/Sub.
 

@@ -9,7 +9,17 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 import msgspec
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+
+class OptionGreeksStruct(msgspec.Struct):
+    """Zero-copy greeks structure."""
+
+    delta: float
+    gamma: float
+    theta: float
+    vega: float
+    rho: float
 
 
 class PriceResult(msgspec.Struct):
@@ -24,6 +34,7 @@ class PriceResult(msgspec.Struct):
     option_type: str
     model: str
     computation_time_ms: float
+    greeks: OptionGreeksStruct | None = None
     cached: bool = False
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 

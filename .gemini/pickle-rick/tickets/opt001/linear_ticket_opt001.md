@@ -7,7 +7,7 @@ project: bsopt
 created: 2026-02-04
 updated: 2026-02-04
 links:
-  - url: /home/kamau/bsopt/.gemini/pickle-rick/tickets/linear_ticket_parent.md
+  - url: /home/kamau/bsopt/.gemini/high-performance-engine/tickets/linear_ticket_parent.md
     title: Parent Ticket
 labels: [optimization, quant]
 assignee: Assistant

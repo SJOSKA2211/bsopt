@@ -28,7 +28,7 @@ def test_validator_complexity():
     # Truly valid and UNIQUE to avoid pwned check failures
     # Mocking pwned check for this specific test case to be safe
     with patch("src.security.password.pwnedpasswords.check", return_value=0):
-        res = validator.validate("RickC137_Dimensional_Portal_Gun_2026!")
+        res = validator.validate("Enterprise_Secure_Password_Manifold_2026!")
         assert res.is_valid
 
 
@@ -50,7 +50,7 @@ def test_validator_pwned(mock_check):
 
 def test_password_service_hash_verify():
     service = PasswordService(rounds=4)
-    password = "RickC137_Dimensional_Portal_Gun_2026!"
+    password = "Enterprise_Secure_Password_Manifold_2026!"
     hashed = service.hash_password(password)
     assert service.verify_password(password, hashed)
     assert not service.verify_password("wrong", hashed)

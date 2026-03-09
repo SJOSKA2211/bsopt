@@ -103,3 +103,7 @@ class SentimentExtractor:
                 matches += 1
 
         return np.clip(score / max(matches, 1), -1.0, 1.0) if matches > 0 else 0.0
+
+    def get_sentiment_score(self, text: str) -> float:
+        """Alias for extract() for backward compatibility."""
+        return self.extract(text)

@@ -17,6 +17,12 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     depends_on:
       - postgres
       - redis
@@ -54,7 +60,6 @@ services:
       - PORT=4000
       - LOG_LEVEL=debug
       - API_URL=http://api:8000/graphql
-      - PORTFOLIO_URL=http://portfolio:8000/graphql
       - PRICING_URL=http://neural-pricing:8000/graphql
     volumes:
       - ./src/gateway:/app
@@ -63,9 +68,14 @@ services:
       - bsopt-network-dev
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
       neural-pricing:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   frontend:
     image: bsopt-frontend-dev
@@ -82,11 +92,11 @@ services:
       - bsopt-network-dev
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
       auth-service:
         condition: service_started
       app-gateway:
-        condition: service_started
+        condition: service_healthy
 
   neural-pricing:
     image: bsopt-neural-pricing-dev
@@ -102,6 +112,15 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
+    command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - postgres
+      - redis
 
   scraper:
     image: bsopt-scraper-dev
@@ -156,6 +175,11 @@ services:
       resources:
         limits:
           memory: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d bsopt"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -168,6 +192,11 @@ services:
       resources:
         limits:
           memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -263,9 +292,14 @@ services:
     networks:
       - bsopt-network-dev
     depends_on:
-      - frontend
-      - auth-service
-      - api
+      frontend:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      api:
+        condition: service_healthy
+      app-gateway:
+        condition: service_healthy
     command: npx playwright test
 
 networks:

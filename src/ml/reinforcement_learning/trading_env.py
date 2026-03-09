@@ -72,7 +72,7 @@ class TradingEnvironment(gym.Env):
         ind = np.ascontiguousarray(indicators[:20], dtype=np.float32)
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
-        # 🔥 FUSION: Execute JIT kernel (Now using pre-allocated window buffer)
+        # FUSION: Execute JIT kernel (Now using pre-allocated window buffer)
         return _fused_state_kernel(
             float(self.balance),
             float(self.initial_balance),
@@ -95,7 +95,7 @@ class TradingEnvironment(gym.Env):
         )
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
-        # 2. 🔥 FUSION: Execute Step Kernel
+        # 2. FUSION: Execute Step Kernel
         new_pos, new_balance, new_val, reward = _trading_step_kernel(
             action,
             prices,

@@ -31,40 +31,53 @@ class PricingService:
     def __init__(self, factory: PricingEngineFactory = None):
         self.factory = factory or PricingEngineFactory()
 
-    async def price_option(self, request: Any) -> PriceResult:
+    async def price_option(
+        self,
+        params: BSParameters,
+        option_type: str,
+        model: str = "black_scholes",
+        symbol: str = None,
+    ) -> PriceResult:
         """
         Calculates price and greeks for a single option request.
         Dispatches to the optimized engine determined by the model type.
         """
         try:
             # 1. Resolve Engine
-            engine = self.factory.get_engine(request.model_type)
+            engine = self.factory.get_engine(model)
 
-            # 2. Extract Parameters
-            params = BSParameters(
-                spot=request.spot,
-                strike=request.strike,
-                maturity=request.maturity,
-                volatility=request.volatility,
-                rate=request.rate,
-                dividend=request.dividend,
-            )
-
-            # 3. Compute (Off-load to thread pool for heavy engines)
+            # 2. Compute (Off-load to thread pool for heavy engines)
             start_time = time.perf_counter()
             result = await run_sync(engine.price_european, params)
             duration_ms = (time.perf_counter() - start_time) * 1000
 
             logger.info(
                 "option_priced",
-                model=request.model_type,
+                model=model,
                 duration_ms=round(duration_ms, 2),
             )
 
+            from src.api.schemas.pricing import OptionGreeksStruct
+
             return PriceResult(
                 price=result.price,
-                greeks=result.greeks.__dict__,
+                spot=params.spot,
+                strike=params.strike,
+                time_to_expiry=params.maturity,
+                rate=params.rate,
+                volatility=params.volatility,
+                option_type=option_type,
+                model=model,
                 computation_time_ms=duration_ms,
+                greeks=OptionGreeksStruct(
+                    delta=result.greeks.delta,
+                    gamma=result.greeks.gamma,
+                    theta=result.greeks.theta,
+                    vega=result.greeks.vega,
+                    rho=result.greeks.rho,
+                )
+                if result.greeks
+                else None,
             )
 
         except PricingEngineNotFound as e:
@@ -104,16 +117,34 @@ class PricingService:
                     params_batch = (spots, strikes, maturities, vols, rates, divs)
                     batch_results = await run_sync(engine.price_batch_vectorized, params_batch)
 
+                    from src.api.schemas.pricing import OptionGreeksStruct
+
                     for (original_idx, _), res in zip(items, batch_results):
                         results[original_idx] = PriceResult(
                             price=res.price,
-                            greeks=res.greeks.__dict__,
-                            computation_time_ms=0.0,  # Batch level tracking
+                            spot=res.spot,
+                            strike=res.strike,
+                            time_to_expiry=res.maturity,
+                            rate=res.rate,
+                            volatility=res.volatility,
+                            option_type=res.option_type,
+                            model=model_type,
+                            computation_time_ms=0.0,
+                            greeks=OptionGreeksStruct(
+                                delta=res.greeks.delta,
+                                gamma=res.greeks.gamma,
+                                theta=res.greeks.theta,
+                                vega=res.greeks.vega,
+                                rho=res.greeks.rho,
+                            )
+                            if res.greeks
+                            else None,
                         )
                 else:
                     # Fallback to concurrent scalar pricing
+                    from src.api.schemas.pricing import OptionGreeksStruct
+
                     for original_idx, item_req in items:
-                        # Re-use logic from single price_option (simplified for batch)
                         params = BSParameters(
                             spot=item_req.spot,
                             strike=item_req.strike,
@@ -125,15 +156,41 @@ class PricingService:
                         res = await run_sync(engine.price_european, params)
                         results[original_idx] = PriceResult(
                             price=res.price,
-                            greeks=res.greeks.__dict__,
+                            spot=item_req.spot,
+                            strike=item_req.strike,
+                            time_to_expiry=item_req.maturity,
+                            rate=item_req.rate,
+                            volatility=item_req.volatility,
+                            option_type=item_req.option_type,
+                            model=model_type,
                             computation_time_ms=0.0,
+                            greeks=OptionGreeksStruct(
+                                delta=res.greeks.delta,
+                                gamma=res.greeks.gamma,
+                                theta=res.greeks.theta,
+                                vega=res.greeks.vega,
+                                rho=res.greeks.rho,
+                            )
+                            if res.greeks
+                            else None,
                         )
 
             except Exception as exc:
                 logger.error("group_pricing_failed", model=model_type, error=str(exc))
                 # Fill gaps with error indicator or zero
-                for original_idx, _ in items:
-                    results[original_idx] = PriceResult(price=0.0, greeks={}, error=str(exc))
+                for original_idx, item_req in items:
+                    results[original_idx] = PriceResult(
+                        price=0.0,
+                        spot=item_req.spot,
+                        strike=item_req.strike,
+                        time_to_expiry=item_req.maturity,
+                        rate=item_req.rate,
+                        volatility=item_req.volatility,
+                        option_type=item_req.option_type,
+                        model=model_type,
+                        computation_time_ms=0.0,
+                        greeks=None,
+                    )
 
         # 3. Dispatch all groups concurrently
         tasks = [_process_group(m, g) for m, g in model_groups.items()]

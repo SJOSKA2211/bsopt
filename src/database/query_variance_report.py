@@ -52,7 +52,7 @@ def run_variance_audit(iterations: int = 100):
         if p99 > 10.0:  # Arbitrary threshold for "high jitter"
             print(f"  ⚠️ ALERT: High P99 jitter detected for {name}!")
         else:
-            print("  ✅ Stability: EXCELLENT")
+            print("   Stability: EXCELLENT")
         print("")
 
 

@@ -67,22 +67,26 @@ class SentimentIngestor:
             self.producer.flush()
             logger.info("sentiment_batch_processed", count=len(results))
 
-    def run(self, batch_size: int = 10):
+    async def run(self, batch_size: int = 10):
         """
-        Main high-performance consumption loop with batching.
+        Main high-performance async consumption loop with batching.
         """
         logger.info("sentiment_ingestor_loop_start", batch_size=batch_size)
         messages = []
         try:
             while True:
-                msg = self.consumer.poll(0.1)
+                # Poll Kafka (blocking, but with short timeout)
+                msg = await asyncio.to_thread(self.consumer.poll, 0.1)
                 if msg is not None:
                     if not msg.error():
                         messages.append(msg.value())
 
                 if len(messages) >= batch_size or (messages and msg is None):
-                    asyncio.run(self.process_batch(messages))
+                    await self.process_batch(messages)
                     messages = []
+
+                # Zero-sleep to yield control
+                await asyncio.sleep(0)
 
         except Exception as e:
             logger.error("sentiment_ingestor_crashed", error=str(e))
@@ -150,5 +154,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    ingestor = SentimentIngestor(bootstrap_servers=args.broker, topic=args.topic)
-    ingestor.run(batch_size=args.batch_size)
+    async def main():
+        ingestor = SentimentIngestor(bootstrap_servers=args.broker, topic=args.topic)
+        await ingestor.run(batch_size=args.batch_size)
+
+    asyncio.run(main())

@@ -41,7 +41,7 @@ def expectile_loss(diff, tau=0.7):
 
 def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
     """
-     OPTIMIZATION: Convert bulky Pickle trajectories to compressed Parquet.
+     OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
     """
     import pandas as pd
@@ -114,7 +114,7 @@ def train_offline(
     target_q_net = QNetwork(state_dim=128, action_dim=10).to(device)
     target_q_net.load_state_dict(q_net.state_dict())
 
-    # 🔥 ACCELERATION: torch.compile
+    #  ACCELERATION: torch.compile
     if hasattr(th, "compile") and device.type == "cuda":
         try:
             model = th.compile(model)
@@ -128,13 +128,13 @@ def train_offline(
     th.optim.Adam(q_net.parameters(), lr=3e-4)
     v_optimizer = th.optim.Adam(v_net.parameters(), lr=3e-4)
 
-    # 📉 SCHEDULING
+    #  SCHEDULING
     scheduler = th.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     criterion = nn.MSELoss()
     scaler = th.amp.GradScaler("cuda", enabled=(device.type == "cuda"))
 
-    with mlflow.start_run(run_name="DT_v2_IQL_God_Mode"):
+    with mlflow.start_run(run_name="DT_v2_IQL_High_Performance"):
         mlflow.log_params(
             {
                 "epochs": epochs,

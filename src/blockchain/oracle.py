@@ -51,7 +51,7 @@ class OracleManager:
         """
         now = time.time()
 
-        # 0. 🧪 MANUAL OVERRIDE (For Tests/Admin)
+        # 0.  MANUAL OVERRIDE (For Tests/Admin)
         if symbol in self._feeds and self._feeds[symbol]["source"] == "MANUAL":
             return self._feeds[symbol]["price"]
 
@@ -74,7 +74,7 @@ class OracleManager:
                 if age < 1.0:  # Very strict TTL for SHM
                     return entry["price"]
 
-        # 2. ⚡ SPEED FEED (Redis Cache / WebSocket)
+        # 2.  SPEED FEED (Redis Cache / WebSocket)
         redis = get_redis()
         if redis:
             keys = [f"price:ws:{symbol}", f"price:ws:{symbol}:ts"]
@@ -101,7 +101,7 @@ class OracleManager:
                 )
                 return entry["price"]
 
-        # 4. 🛡️ MULTI-RPC AGGREGATION
+        # 4.  MULTI-RPC AGGREGATION
         prices = []
         for rpc_call in rpc_fallbacks:
             try:

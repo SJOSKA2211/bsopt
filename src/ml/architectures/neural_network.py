@@ -28,9 +28,28 @@ class OptionPricingNN(nn.Module):
 
         layers.append(nn.Linear(last_dim, num_classes))  # Price or Logit output
         self.model = nn.Sequential(*layers)
+        self._apply_init()
+
+    def _apply_init(self):
+        """Kaiming initialization for deeper networks."""
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         return self.model(x)
+
+    def compile(self, mode: str = "reduce-overhead"):
+        """Compiles the model for high-performance execution using PyTorch 2.0+."""
+        if hasattr(torch, "compile"):
+            try:
+                self.model = torch.compile(self.model, mode=mode)
+                return self
+            except Exception:
+                return self
+        return self
 
     def export_onnx(self, path: str, input_sample: torch.Tensor):
         """Export model to ONNX format for efficient inference."""

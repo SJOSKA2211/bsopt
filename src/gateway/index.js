@@ -9,7 +9,6 @@ const { fastifyApolloHandler, fastifyApolloDrainPlugin } = require('@as-integrat
 const port = parseInt(process.env.PORT || '4000', 10);
 const subgraphs = [
   { name: 'api', url: process.env.API_URL || 'http://api:8000/graphql' },
-  { name: 'portfolio', url: process.env.PORTFOLIO_URL || 'http://portfolio:8000/graphql' },
   { name: 'neural-pricing', url: process.env.PRICING_URL || 'http://neural-pricing:8000/graphql' },
 ];
 

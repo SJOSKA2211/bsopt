@@ -87,12 +87,15 @@ class DataPipeline:
 
         # Handle datetimes efficiently
         expiries = np.array(
-            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records],
-            dtype=np.float64
+            [
+                r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0
+                for r in records
+            ],
+            dtype=np.float64,
         )
         times = np.array(
             [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records],
-            dtype=np.float64
+            dtype=np.float64,
         )
 
         maturities = _calculate_maturity_jit(expiries, times)
@@ -105,7 +108,7 @@ class DataPipeline:
         X_base[:, 2] = ivs
         X_base[:, 3] = 0.05  # Rate
         X_base[:, 4] = 0.01  # Dividend
-        
+
         y_raw = last_prices
 
         iv_lag = np.roll(ivs, 1)
@@ -282,11 +285,11 @@ def _check_cache(file_path: str) -> bool:
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
     """Real feature computation using the centralized Feature Store (Optimized)."""
     from src.ml.feature_store.store import feature_store
-    
+
     logger.info("computing_features_production", count=len(df))
     # Required features for pricing/training
     required = ["log_return", "EMA_20", "RSI_14", "MACD"]
-    
+
     try:
         # feature_store handles Numba-accelerated computation internally
         return await feature_store.compute_features(df, required)

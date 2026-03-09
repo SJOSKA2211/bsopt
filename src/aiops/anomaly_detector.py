@@ -120,7 +120,9 @@ class AnomalyDetector:
         else:
             raise ValueError(f"Unknown anomaly detection engine: {engine}")
 
-    def train(self, data: pd.DataFrame | np.ndarray, epochs: int = 20):
+    def train(
+        self, data: pd.DataFrame | np.ndarray, epochs: int = 20, study_name: str | None = None
+    ):
         if isinstance(data, pd.DataFrame):
             numeric_df = data.select_dtypes(include=[np.number])
             self.columns = list(numeric_df.columns)
@@ -133,6 +135,12 @@ class AnomalyDetector:
         if features.shape[0] == 0:
             return
 
+        import mlflow
+
+        from src.ml.tracker import ExperimentTracker
+
+        tracker = ExperimentTracker(study_name or f"anomaly_train_{self.engine}")
+
         # Handle scaling
         if self.engine == "transformer" and features.ndim == 3:
             # Flatten for scaling: (Batch, Seq, Feat) -> (Batch*Seq, Feat)
@@ -142,44 +150,55 @@ class AnomalyDetector:
         else:
             scaled_features = self.scaler.fit_transform(features)
 
-        if self.engine == "isolation_forest":
-            self.model.fit(scaled_features)
+        with tracker.start_run(nested=True):
+            mlflow.log_param("engine", self.engine)
+            mlflow.log_param("epochs", epochs)
+            mlflow.log_param("samples", len(features))
 
-        elif self.engine == "autoencoder":
-            tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
-            dataloader = DataLoader(TensorDataset(tensor_data), batch_size=32, shuffle=True)
-            self.model.train()
-            for _ in range(epochs):
-                for batch in dataloader:
-                    inputs = batch[0]
+            if self.engine == "isolation_forest":
+                self.model.fit(scaled_features)
+
+            elif self.engine == "autoencoder":
+                tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
+                dataloader = DataLoader(TensorDataset(tensor_data), batch_size=32, shuffle=True)
+                self.model.train()
+                for epoch in range(epochs):
+                    epoch_loss = 0.0
+                    for batch in dataloader:
+                        inputs = batch[0]
+                        self.optimizer.zero_grad()
+                        recon, mu, logvar = self.model(inputs)
+                        loss = nn.functional.mse_loss(
+                            recon, inputs, reduction="sum"
+                        ) + -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+                        loss.backward()
+                        self.optimizer.step()
+                        epoch_loss += loss.item()
+
+                    mlflow.log_metric("vae_loss", epoch_loss / len(features), step=epoch)
+
+                # Calculate threshold (95th percentile)
+                self.model.eval()
+                with torch.no_grad():
+                    recon, _, _ = self.model(tensor_data)
+                    errors = torch.mean((recon - tensor_data) ** 2, dim=1).cpu().numpy()
+                    self.threshold = np.percentile(errors, 95)
+                    mlflow.log_metric("vae_threshold", self.threshold)
+
+            elif self.engine == "transformer":
+                tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
+                if tensor_data.dim() == 2:
+                    tensor_data = tensor_data.unsqueeze(0)
+
+                self.model.train()
+                for epoch in range(epochs):
                     self.optimizer.zero_grad()
-                    recon, mu, logvar = self.model(inputs)
-                    loss = nn.functional.mse_loss(
-                        recon, inputs, reduction="sum"
-                    ) + -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+                    recon = self.model(tensor_data)
+                    loss = F.mse_loss(recon, tensor_data)
                     loss.backward()
                     self.optimizer.step()
-
-            # Calculate threshold (95th percentile)
-            self.model.eval()
-            with torch.no_grad():
-                recon, _, _ = self.model(tensor_data)
-                errors = torch.mean((recon - tensor_data) ** 2, dim=1).cpu().numpy()
-                self.threshold = np.percentile(errors, 95)
-
-        elif self.engine == "transformer":
-            tensor_data = torch.tensor(scaled_features, dtype=torch.float32).to(self.device)
-            if tensor_data.dim() == 2:
-                tensor_data = tensor_data.unsqueeze(0)
-
-            self.model.train()
-            for _ in range(epochs):
-                self.optimizer.zero_grad()
-                recon = self.model(tensor_data)
-                loss = F.mse_loss(recon, tensor_data)
-                loss.backward()
-                self.optimizer.step()
-            self.model.eval()
+                    mlflow.log_metric("transformer_loss", loss.item(), step=epoch)
+                self.model.eval()
 
         self.is_fitted = True
         logger.info("anomaly_detector_trained", engine=self.engine, samples=len(features))

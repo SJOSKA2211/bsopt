@@ -23,8 +23,8 @@ pipeline {
             parallel {
                 stage('Linting') {
                     steps {
-                        sh 'docker compose run --rm api ruff check .'
-                        sh 'docker compose run --rm api black --check .'
+                        sh 'docker compose --profile test run --rm --no-deps test-runner ruff check .'
+                        sh 'docker compose --profile test run --rm --no-deps test-runner ruff format --check .'
                     }
                 }
                 stage('Security Audit') {

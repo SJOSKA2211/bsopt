@@ -329,6 +329,8 @@ def calculate_implied_volatility_task(
 
 @celery_app.task(
     bind=True,
+    base=PricingTask,
+    queue="pricing",
 )
 def generate_volatility_surface_task(
     self,
@@ -339,11 +341,56 @@ def generate_volatility_surface_task(
     rate: float,
     option_type: str = "call",
 ) -> dict[str, Any]:
-    logger.info("vol_surface_gen_start", option_type=option_type)
-    surface = []
-    for row_prices in prices:
-        row_vols = []
-        for p in row_prices:
-            row_vols.append(0.2)
-        surface.append(row_vols)
-    return {"surface": surface}
+    """
+    Generate a full volatility surface from a grid of prices.
+    Uses SABR model for calibration of each maturity slice.
+    """
+    from src.pricing.vol_surface import CalibrationEngine, MarketQuote, VolatilitySurface
+
+    logger.info("vol_surface_gen_start", option_type=option_type, n_maturities=len(maturities))
+
+    engine = CalibrationEngine()
+    surface = VolatilitySurface()
+
+    results = {}
+
+    # 1. Calibrate each maturity slice
+    for i, t in enumerate(maturities):
+        quotes = []
+        for j, k in enumerate(strikes):
+            price = prices[i][j]
+            if price <= 0:
+                continue
+
+            # Calculate IV for this point first
+            iv = implied_volatility(price, spot, k, t, rate, 0.0, option_type)
+            if iv > 0:
+                quotes.append(
+                    MarketQuote(
+                        strike=k, maturity=t, implied_vol=iv, forward=spot * np.exp(rate * t)
+                    )
+                )
+
+        if len(quotes) >= 3:
+            try:
+                # Use SABR for high-fidelity surface
+                sabr_params, _ = engine.calibrate_sabr(quotes)
+                from src.pricing.vol_surface import SABRModel
+
+                surface.add_slice(t, SABRModel(sabr_params), quotes[0].forward)
+                results[str(t)] = {
+                    "alpha": sabr_params.alpha,
+                    "beta": sabr_params.beta,
+                    "rho": sabr_params.rho,
+                    "nu": sabr_params.nu,
+                }
+            except Exception as e:
+                logger.warning("slice_calibration_failed", maturity=t, error=str(e))
+
+    return {
+        "status": "completed",
+        "maturities": maturities,
+        "strikes": strikes,
+        "calibrated_slices": results,
+        "timestamp": time.time(),
+    }

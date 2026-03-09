@@ -4,7 +4,7 @@ entry_points:
   main:
     parameters:
       timesteps: {type: int, default: 1000}
-    command: "mlflow run . -e train_rl -P timesteps={timesteps}"
+    command: "python -m src.ml.reinforcement_learning.train --timesteps {timesteps}"
 
   train_regressor:
     parameters:
@@ -72,6 +72,12 @@ entry_points:
       study_name: {type: string, default: "tft_v1"}
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.forecasting.tft_model --ticker {ticker} --epochs {epochs} --batch-size {batch_size} --hidden_size {hidden_size} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  train_all:
+    parameters:
+      ticker: {type: string, default: "AAPL"}
+      study_name: {type: string, default: "autonomous_all_v1"}
+    command: "python -m src.ml.training.train_all"
 
   detect_drift:
     parameters:

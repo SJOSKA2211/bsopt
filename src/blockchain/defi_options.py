@@ -530,7 +530,7 @@ class DeFiOptionsProtocol:
         # 1. Base SOR decision (from venues)
         base_decision = await self.route_order(symbol, amount, is_call)
 
-        # 2. 🔥 MEMPOOL ADJUSTMENT: Check for congestion or front-running
+        # 2. MEMPOOL ADJUSTMENT: Check for congestion or front-running
         # This is a simplified proxy for real mempool-aware routing
         try:
             pending_count = await self.w3.eth.get_block_transaction_count("pending")

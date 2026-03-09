@@ -68,7 +68,7 @@ class DexWebSocketOracle:
                                         symbol, price, int(data.get("q", 0)), time.time()
                                     )
 
-                                # 2. ⚡ PIPELINE BUFFER: Global Redis
+                                # 2.  PIPELINE BUFFER: Global Redis
                                 buffer.append((symbol, price))
 
                                 if len(buffer) >= 10 or (time.time() - last_flush) > 0.1:

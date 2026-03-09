@@ -1,14 +1,14 @@
-import json
 import os
 
+import orjson
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 
 def generate_html_dashboard(summary_path: str, output_path: str) -> None:
-    with open(summary_path) as f:
-        summary = json.load(f)
+    with open(summary_path, "rb") as f:
+        summary = orjson.loads(f.read())
 
     html_content = f"""
     <!DOCTYPE html>

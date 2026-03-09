@@ -253,6 +253,7 @@ if __name__ == "__main__":
     }
 
     from src.ml.tracker import ExperimentTracker
+
     tracker = ExperimentTracker(args.study_name, tracking_uri=args.tracking_uri)
 
     with tracker.start_run(nested=True):

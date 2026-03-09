@@ -69,12 +69,26 @@ class InMemoryFeatureStore(FeatureStore):
         # 5. Background cache fill
         if redis:
             try:
-                # In production, use a BackgroundTask or non-blocking call
-                pass  # await redis.setex(cache_key, 300, df.to_json())
+                # OPTIMIZED: Dispatch to background task to avoid blocking the API response
+                import asyncio
+
+                asyncio.create_task(self._background_cache_fill(df, cache_key))
             except Exception:
                 pass
 
         return df
+
+    async def _background_cache_fill(self, df: pd.DataFrame, key: str):
+        """Persistent cache population without blocking execution."""
+        try:
+            from src.utils.cache import get_redis
+
+            redis = get_redis()
+            if redis:
+                await redis.setex(key, 300, df.to_json())
+                logger.info("feature_cache_populated", key=key, rows=len(df))
+        except Exception as e:
+            logger.error("feature_cache_failed", key=key, error=str(e))
 
 
 # Global instance

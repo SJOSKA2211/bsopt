@@ -220,7 +220,7 @@ class QuantumOptionPricer:
             full_circuit.append(state_prep, range(num_state_qubits))
             full_circuit.append(payoff, range(num_state_qubits + 1))
 
-            # 🔥 OPTIMIZATION: Transpilation Pass (Optimization Level 3)
+            # OPTIMIZATION: Transpilation Pass (Optimization Level 3)
             from qiskit import transpile
 
             full_circuit = transpile(full_circuit, basis_gates=["u", "cx"], optimization_level=3)

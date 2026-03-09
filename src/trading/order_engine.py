@@ -166,7 +166,7 @@ class OrderEngine:
                 )
 
                 if new_last_head > self._last_head:
-                    # 🔥 OPTIMIZED: Update exec head via direct array view (O(1))
+                    # OPTIMIZED: Update exec head via direct array view (O(1))
                     # execs.buf[:8] is the head index
                     np.frombuffer(self.execs.buf, dtype=np.int64, count=1)[0] = new_last_head
                     self._last_head = new_last_head

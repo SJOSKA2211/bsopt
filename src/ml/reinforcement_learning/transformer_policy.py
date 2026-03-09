@@ -37,7 +37,7 @@ class CausalSelfAttention(nn.Module):
         q = self.query(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
-        # 🔥 FLASH ATTENTION: Optimized kernel
+        # FLASH ATTENTION: Optimized kernel
         # causal mask handled by is_causal=True
         y = F.scaled_dot_product_attention(
             q,

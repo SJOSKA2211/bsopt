@@ -36,7 +36,7 @@ def test_lazy_import_missing_attr():
 def test_lazy_import_failure_caching():
     lazy_import.reset_import_stats()
     mock_module = MagicMock()
-    import_map = {"fail": "non_existent_module_rick"}
+    import_map = {"fail": "non_existent_module_engineer"}
 
     # First attempt fails
     with pytest.raises(lazy_import.LazyImportError):

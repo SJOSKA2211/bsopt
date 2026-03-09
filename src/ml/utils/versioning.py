@@ -1,9 +1,10 @@
 import hashlib
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+import orjson
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ def calculate_data_hash(filepath: str) -> str:
 def tag_dataset(data_dir: str, version_name: str | None = None):
     """
     Create a version tag for a dataset.
-    Simulates DVC functionality.
+    Simulates DVC functionality (Optimized).
     """
     data_path = Path(data_dir)
     if not data_path.exists():
@@ -44,8 +45,8 @@ def tag_dataset(data_dir: str, version_name: str | None = None):
         )
 
     version_file = data_path / f"version_{version}.json"
-    with open(version_file, "w") as f:
-        json.dump(metadata, f, indent=2)
+    with open(version_file, "wb") as f:
+        f.write(orjson.dumps(metadata, option=orjson.OPT_INDENT_2))
 
     logger.info(f"Tagged dataset version {version} in {version_file}")
     return version

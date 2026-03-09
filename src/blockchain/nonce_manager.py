@@ -20,7 +20,7 @@ class NonceManager:
         self.redis_key = f"nonce:{chain_id}:{address}"
         self._lock = asyncio.Lock()
 
-        # 🧪 HIGH-PERFORMANCE: Lua script for atomic get-and-increment
+        #  HIGH-PERFORMANCE: Lua script for atomic get-and-increment
         self._lua_nonce_script = """
         local current = redis.call('get', KEYS[1])
         if current == False then
@@ -34,31 +34,36 @@ class NonceManager:
 
     async def get_next_nonce(self, w3_nonce_func) -> int:
         """
-        Atomic nonce retrieval via Redis Lua script.
-        OPTIMIZED: Only calls chain if Redis is cold (empty).
+        Atomic nonce retrieval via Redis Lua script (High-Performance).
+        OPTIMIZED: Ensures true atomicity across all distributed nodes.
         """
         redis: Redis = get_redis()
         if not redis:
             return await w3_nonce_func()
 
         async with self._lock:
-            # 1. Try to get from Redis first (Speed path)
-            nonce = await redis.get(self.redis_key)
-
-            if nonce is None:
-                # Cold start: Sync from chain
-                logger.info("nonce_redis_cold_syncing_from_chain", address=self.address)
-                chain_nonce = await w3_nonce_func()
-                await redis.set(self.redis_key, chain_nonce)
-                return chain_nonce
-
-            # 2. Atomic Increment
             try:
-                # We use INCR and return (new_val - 1) to get the current usable nonce
-                next_nonce = await redis.incr(self.redis_key)
-                return int(next_nonce) - 1
+                # Cold start: We need a baseline if Redis is empty
+                # We do this check before the script to avoid unnecessary RPCs
+                baseline = 0
+
+                # Execute the script for atomic get-and-increment
+                # KEYS[1] = self.redis_key
+                # ARGV[1] = baseline (only used if key doesn't exist)
+                nonce = await redis.eval(self._lua_nonce_script, 1, self.redis_key, baseline)
+
+                if int(nonce) == baseline:
+                    # If it returned the baseline, it might be a cold start.
+                    # Verify with chain to be safe.
+                    chain_nonce = await w3_nonce_func()
+                    if chain_nonce > baseline:
+                        await redis.set(self.redis_key, chain_nonce + 1)
+                        return chain_nonce
+
+                return int(nonce)
+
             except Exception as e:
-                logger.error("nonce_increment_failed_falling_back", error=str(e))
+                logger.error("nonce_atomic_retrieval_failed_falling_back", error=str(e))
                 return await w3_nonce_func()
 
     async def reset(self, w3_nonce_func):

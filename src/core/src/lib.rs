@@ -244,18 +244,73 @@ fn full_risk_check(
 #[pyfunction]
 fn order_engine_loop(
     _py: Python<'_>,
-    exec_head_ptr: usize,
-    order_id_counter: u64,
+    orders_ptr: usize,
+    execs_ptr: usize,
+    risk_ptr: usize,
+    mut last_head: u64,
+    mut order_id_counter: u64,
+    max_delta: f64,
+    max_qty: i32,
 ) -> (u64, u64) {
     unsafe {
-        let exec_head_ptr = exec_head_ptr as *mut u64;
-        let mut last_head = *exec_head_ptr;
+        let orders_head_ptr = orders_ptr as *const u64;
+        let execs_head_ptr = execs_ptr as *mut u64;
+        let current_head = *orders_head_ptr;
 
-        for _ in 0..100 {
-            last_head += 1;
-            // Update execution head atomically
-            *exec_head_ptr = last_head;
+        if last_head >= current_head {
+            return (last_head, order_id_counter);
         }
+
+        // Pointers to the data segments (skipping 8-byte head)
+        // Order Structure (based on Python OrderBuffer): symbol(8), price(d), quantity(i), side(i), delta(d), gamma(d), vega(d)
+        // Total size per order ~ 48 bytes
+        let order_data_ptr = (orders_ptr + 8) as *const u8;
+        let exec_data_ptr = (execs_ptr + 8) as *mut u8;
+        let risk_state_ptr = risk_ptr as *mut f64;
+
+        while last_head < current_head {
+            let idx = (last_head % 1000) as usize;
+            
+            // 1. Read Order (Manual offset calculation for speed)
+            // Note: This must strictly match the NumPy structured dtype in shm_mesh.py
+            let offset = idx * 48; 
+            let entry_ptr = order_data_ptr.add(offset);
+            
+            let price = *(entry_ptr.add(8) as *const f64);
+            let qty = *(entry_ptr.add(16) as *const i32);
+            let side = *(entry_ptr.add(20) as *const i32);
+            let d_delta = *(entry_ptr.add(24) as *const f64);
+
+            // 2. Risk Check
+            let current_portfolio_delta = *risk_state_ptr;
+            let trade_delta = d_delta * (qty as f64) * (side as f64);
+            let new_delta = current_portfolio_delta + trade_delta;
+
+            let ok = qty > 0 && qty <= max_qty && new_delta.abs() <= max_delta;
+
+            // 3. Write Execution
+            // Execution Structure: order_id(q), status(i), fill_price(d), fill_qty(i) ~ 28 bytes
+            let exec_offset = idx * 32; // Aligned to 8 bytes for safety
+            let out_ptr = exec_data_ptr.add(exec_offset);
+            
+            if ok {
+                *(out_ptr as *mut i64) = order_id_counter as i64;
+                *(out_ptr.add(8) as *mut i32) = 1; // Success
+                *risk_state_ptr = new_delta; // Commit risk state
+                order_id_counter += 1;
+            } else {
+                *(out_ptr as *mut i64) = -1;
+                *(out_ptr.add(8) as *mut i32) = 0; // Reject
+            }
+            
+            *(out_ptr.add(16) as *mut f64) = price;
+            *(out_ptr.add(24) as *mut i32) = qty;
+
+            last_head += 1;
+        }
+
+        // 4. Update Execution Head
+        *execs_head_ptr = last_head;
 
         (last_head, order_id_counter)
     }
