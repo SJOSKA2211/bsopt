@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
+from src.api.schemas.common import DataResponse
 from src.database import crud, get_async_db
 from src.security.auth import require_tier
 from src.shared.shm_mesh import SharedMemoryRingBuffer
@@ -19,10 +20,6 @@ logger = logging.getLogger(__name__)
 # Global Probe Cache
 _shm_probe = None
 
-
-from src.api.schemas.common import DataResponse
-
-# ...
 
 @router.get("/health/deep")
 async def get_deep_health() -> DataResponse:

@@ -3,7 +3,6 @@ from datetime import UTC, datetime
 
 import structlog
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.websockets.manager import manager as ws_manager

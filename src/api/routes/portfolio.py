@@ -3,10 +3,10 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with God-Mode Database integration and RLS enforcement.
 """
 
-import msgspec
 from typing import Any
 from uuid import UUID
 
+import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

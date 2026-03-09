@@ -18,16 +18,38 @@ class MLPipelineTrigger:
         self.config = config
 
     def trigger_retraining(self) -> bool:
-        """Triggers retraining pipeline."""
+        """Triggers retraining pipeline asynchronously via Docker."""
         logger.info("ml_pipeline_trigger", status="attempting_retraining", config=self.config)
 
         try:
-            pipeline = AutonomousMLPipeline(self.config)
-            pipeline.run()
+            import os
+            import subprocess
+
+            compose_bin = os.path.join(os.getcwd(), "docker-compose")
+            # OPTIMIZED: Run asynchronously using the central MLOps worker
+            subprocess.Popen(
+                [
+                    compose_bin,
+                    "exec",
+                    "-d",
+                    "mlops-worker",
+                    "mlflow",
+                    "run",
+                    ".",
+                    "-e",
+                    "train_regressor",
+                    "-P",
+                    f"ticker={self.config.get('ticker', 'AAPL')}",
+                    "--experiment-name",
+                    f"manual_trigger_{self.config.get('ticker', 'AAPL')}",
+                    "--env-manager",
+                    "local",
+                ]
+            )
             logger.info(
                 "ml_pipeline_trigger",
                 status="success",
-                message="ML retraining pipeline triggered successfully.",
+                message="ML retraining job dispatched to mlops-worker.",
             )
             return True
         except Exception as e:
@@ -35,6 +57,6 @@ class MLPipelineTrigger:
                 "ml_pipeline_trigger",
                 status="failure",
                 error=str(e),
-                message="Failed to trigger ML retraining pipeline.",
+                message="Failed to dispatch ML retraining job.",
             )
             return False

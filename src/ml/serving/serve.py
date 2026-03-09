@@ -10,7 +10,6 @@ import mlflow.pyfunc
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, status
-from src.api.responses import MsgspecJSONResponse, Response
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     Counter,
@@ -19,7 +18,8 @@ from prometheus_client import (
     generate_latest,
 )
 
-from src.api.schemas.common import DataResponse, ErrorResponse
+from src.api.responses import MsgspecJSONResponse, Response
+from src.api.schemas.common import DataResponse
 from src.api.schemas.ml import (
     BatchInferenceRequest,
     BatchInferenceResponse,

@@ -6,8 +6,34 @@ from src.pricing.quant_utils import batch_bs_price_jit_v2, generate_paths_v2
 from src.trading.risk_kernels import _full_risk_check_v2_kernel
 
 
+def benchmark_jit_warmup():
+    print("--- JIT Warmup Impact ---")
+    s = np.array([100.0], dtype=np.float64)
+    k = np.array([100.0], dtype=np.float64)
+    t = np.array([0.1], dtype=np.float64)
+    sig = np.array([0.2], dtype=np.float64)
+    r = np.array([0.05], dtype=np.float64)
+    q = np.array([0.0], dtype=np.float64)
+    is_call = np.array([True], dtype=bool)
+
+    # 1. Cold Call (Force compile)
+    start = time.perf_counter()
+    batch_bs_price_jit_v2(s, k, t, sig, r, q, is_call)
+    cold_time = (time.perf_counter() - start) * 1000
+    
+    # 2. Hot Call
+    start = time.perf_counter()
+    batch_bs_price_jit_v2(s, k, t, sig, r, q, is_call)
+    hot_time = (time.perf_counter() - start) * 1000
+    
+    print(f"Cold Call (JIT overhead): {cold_time:.4f}ms")
+    print(f"Hot Call (Optimized): {hot_time:.4f}ms")
+    if cold_time > 0:
+        print(f"Speedup from warmup: {cold_time / max(hot_time, 1e-9):.1f}x")
+
+
 def benchmark_quant():
-    print("--- Quant Benchmarks ---")
+    print("\n--- Quant Benchmarks ---")
     s0, _k, t, v, r, q = 100.0, 100.0, 1.0, 0.2, 0.05, 0.02
     n_paths = 100_000
     n_steps = 252
@@ -47,5 +73,6 @@ def benchmark_risk():
 
 
 if __name__ == "__main__":
+    benchmark_jit_warmup()
     benchmark_quant()
     benchmark_risk()

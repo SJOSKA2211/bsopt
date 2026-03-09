@@ -21,10 +21,10 @@ from urllib.parse import urlparse
 
 import structlog
 from fastapi import Request, Response, status
-from src.api.responses import MsgspecJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from src.api.responses import MsgspecJSONResponse
 from src.config import settings
 
 logger = structlog.get_logger(__name__)

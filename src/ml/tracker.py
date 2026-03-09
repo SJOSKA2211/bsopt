@@ -28,26 +28,37 @@ class ExperimentTracker:
             mlflow.set_tracking_uri(tracking_uri)
 
     def start_run(self, nested: bool = True):
-        # OPTIMIZED: If we are inside an MLflow run (e.g. via 'mlflow run'), 
-        # avoid starting a new top-level run that might conflict with the experiment ID.
+        """
+        Starts an MLflow run, with support for nested runs and environment detection.
+        """
         import os
-        active = mlflow.active_run()
-        in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
-        
-        if active or in_mlflow_run:
-            # If we want a nested run, we can try to start one.
-            if nested:
-                try:
-                    return mlflow.start_run(nested=True)
-                except Exception as e:
-                    logger.warning("nested_run_failed_returning_active", error=str(e))
-                    return active or mlflow.active_run()
-            return active or mlflow.active_run()
+        from contextlib import contextmanager
 
-        if self.study_name:
-            mlflow.set_experiment(self.study_name)
+        @contextmanager
+        def run_context():
+            active = mlflow.active_run()
+            in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
             
-        return mlflow.start_run(nested=nested)
+            # If already in a run, and nested is requested, try to start one.
+            if active or in_mlflow_run:
+                if nested:
+                    try:
+                        with mlflow.start_run(nested=True) as nested_run:
+                            yield nested_run
+                            return
+                    except Exception as e:
+                        logger.warning("nested_run_failed_using_existing", error=str(e))
+                
+                # If nesting fails or is not requested, yield the active run or a stub.
+                # Note: yield active doesn't 'end' the run on exit, which is what we want.
+                yield active or mlflow.active_run()
+            else:
+                if self.study_name:
+                    mlflow.set_experiment(self.study_name)
+                with mlflow.start_run(nested=nested) as new_run:
+                    yield nested_run if 'nested_run' in locals() else new_run
+
+        return run_context()
 
     def log_params(self, params: dict[str, Any]):
         mlflow.log_params(params)

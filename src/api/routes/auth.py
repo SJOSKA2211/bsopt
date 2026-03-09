@@ -20,7 +20,6 @@ from src.api.schemas.auth import (
     PasswordResetConfirmRequest,
     PasswordResetRequest,
     RegisterRequest,
-    RegisterResponse,
     TokenResponse,
 )
 from src.api.schemas.common import DataResponse, SuccessResponse

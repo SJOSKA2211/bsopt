@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any, Literal
 
 import msgspec
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class PriceResult(msgspec.Struct):

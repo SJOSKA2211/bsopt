@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from src.api.responses import MsgspecJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
+from src.api.responses import MsgspecJSONResponse
 from src.api.websockets.manager import manager as ws_manager
 from src.shared.observability import logging_middleware, setup_logging, tune_gc
 from src.streaming.graphql.schema import schema

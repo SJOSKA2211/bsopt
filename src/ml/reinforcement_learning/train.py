@@ -29,15 +29,15 @@ class SHMWeightSyncCallback(BaseCallback):
     OPTIMIZED: Reduced allocation overhead by reusing buffers if possible.
     """
 
-    def __init__(self, shm_name: str = "rl_weights", verbose: int = 0):
+    def __init__(self, shm_name: str = "rl_weights", sync_freq: int = 1000, verbose: int = 0):
         super().__init__(verbose)
         self.shm = SHMManager(shm_name, dict, size=50 * 1024 * 1024)
         self.shm.create()
+        self.sync_freq = sync_freq
 
     def _on_step(self) -> bool:
-        if self.num_timesteps % 5000 == 0:
+        if self.num_timesteps % self.sync_freq == 0:
             # OPTIMIZED: Bulk transfer to CPU and convert to numpy
-            # In a true zero-copy system, we'd use cupy or shared CUDA memory
             with torch.no_grad():
                 state = {
                     k: v.detach().cpu().numpy() for k, v in self.model.policy.state_dict().items()
@@ -63,6 +63,7 @@ class RLTrainer(BaseTrainer):
         total_timesteps: int = 10000,
         model_path: str = "models/best_td3",
         warm_start_path: str | None = None,
+        sync_freq: int = 1000,
     ) -> dict[str, Any]:
         """
         Executes RL training using TD3 with Transformer policy.
@@ -122,7 +123,7 @@ class RLTrainer(BaseTrainer):
                 deterministic=True,
             )
 
-            shm_callback = SHMWeightSyncCallback()
+            shm_callback = SHMWeightSyncCallback(sync_freq=sync_freq)
             callback = CallbackList([eval_callback, shm_callback])
 
             logger.info("training_active", steps=total_timesteps)
@@ -180,13 +181,17 @@ def main():
     parser.add_argument("--study_name", type=str, default="rl_trading_core")
     parser.add_argument("--tracking_uri", type=str, default=None)
     parser.add_argument("--warm_start", type=str, default=None)
+    parser.add_argument("--sync_freq", type=int, default=1000)
 
     args = parser.parse_args()
 
     # OPTIMIZED: Use parameters from CLI
     trainer = RLTrainer(args.study_name, tracking_uri=args.tracking_uri or settings.tracking_uri)
     trainer.train_and_evaluate(
-        total_timesteps=args.timesteps, model_path=args.output, warm_start_path=args.warm_start
+        total_timesteps=args.timesteps,
+        model_path=args.output,
+        warm_start_path=args.warm_start,
+        sync_freq=args.sync_freq,
     )
 
 

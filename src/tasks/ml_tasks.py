@@ -8,9 +8,9 @@ from typing import Any
 
 import structlog
 
+from src.ml.pipeline import MLPipeline
 from src.utils.lazy_import import lazy_import
 
-from src.ml.pipeline import MLPipeline
 from .celery_app import MLTask, celery_app
 
 logger = structlog.get_logger(__name__)
