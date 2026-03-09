@@ -3,6 +3,7 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with God-Mode Database integration and RLS enforcement.
 """
 
+import msgspec
 from typing import Any
 from uuid import UUID
 
@@ -22,13 +23,31 @@ router = APIRouter(
 )
 
 
+class PositionStruct(msgspec.Struct):
+    id: str
+    symbol: str
+    quantity: int
+    entry_price: float
+    status: str
+
+
+class PortfolioOverview(msgspec.Struct):
+    id: str
+    name: str
+    balance: float
+    totalValue: float
+    positionsCount: int
+    positions: list[PositionStruct]
+    message: str | None = None
+
+
 @router.get("")
 @router.get("/")
 async def get_portfolio(
     request: Request,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> dict:
+) -> PortfolioOverview:
     """Return the user's primary portfolio overview including positions (RLS Hardened)."""
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
@@ -44,33 +63,35 @@ async def get_portfolio(
     portfolio = result.scalar_one_or_none()
 
     if not portfolio:
-        return {
-            "balance": 0.0,
-            "totalValue": 0.0,
-            "positionsCount": 0,
-            "positions": [],
-            "message": "No portfolio found for user",
-        }
+        return PortfolioOverview(
+            id="",
+            name="",
+            balance=0.0,
+            totalValue=0.0,
+            positionsCount=0,
+            positions=[],
+            message="No portfolio found for user",
+        )
 
     positions = portfolio.positions
 
-    return {
-        "id": str(portfolio.id),
-        "name": portfolio.name,
-        "balance": float(portfolio.cash_balance),
-        "totalValue": float(portfolio.cash_balance),  # Simplified for base case
-        "positionsCount": len(positions),
-        "positions": [
-            {
-                "id": str(p.id),
-                "symbol": p.symbol,
-                "quantity": p.quantity,
-                "entry_price": float(p.entry_price),
-                "status": p.status,
-            }
+    return PortfolioOverview(
+        id=str(portfolio.id),
+        name=portfolio.name,
+        balance=float(portfolio.cash_balance),
+        totalValue=float(portfolio.cash_balance),  # Simplified for base case
+        positionsCount=len(positions),
+        positions=[
+            PositionStruct(
+                id=str(p.id),
+                symbol=p.symbol,
+                quantity=p.quantity,
+                entry_price=float(p.entry_price),
+                status=p.status,
+            )
             for p in positions
         ],
-    }
+    )
 
 
 @router.get("/summary")

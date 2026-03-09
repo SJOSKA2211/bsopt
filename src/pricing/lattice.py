@@ -29,9 +29,12 @@ class LatticeParameters(BSParameters):
     n_steps: int = 100
 
 
+from numba import njit
+
 # OPTIMIZED: High-Performance Lattice Kernels (Numba JIT)
 
 
+@njit(fastmath=True)
 def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     if T <= 0:
         if is_call:
@@ -75,6 +78,7 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     return V[0]
 
 
+@njit(fastmath=True)
 def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     if T <= 0:
         if is_call:

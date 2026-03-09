@@ -606,7 +606,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
         return None
 
     async def _check_body(self, request: Request) -> str | None:
-        """Check the request body for dangerous patterns."""
+        """Check the request body for dangerous patterns (Optimized)."""
         if request.method not in ["POST", "PUT", "PATCH"]:
             return None
 
@@ -620,9 +620,15 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
             if not body:
                 return None
 
-            import json
+            # Optimization: Quick byte-level search for small/medium bodies
+            # This avoids JSON parsing if a dangerous pattern is easily found
+            if len(body) < 1024 * 1024:  # 1MB
+                if self.DANGEROUS_PATTERN_RE.search(body.decode("utf-8", errors="ignore")):
+                    return "Dangerous pattern in raw body"
 
-            data = json.loads(body)
+            import msgspec
+
+            data = msgspec.json.decode(body)
             return self._recursive_check_patterns(data)
         except Exception:
             # If it's invalid JSON, let the standard handlers catch it

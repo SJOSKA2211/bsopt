@@ -28,6 +28,23 @@ class PriceResult(msgspec.Struct):
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 
 
+class GreeksResult(msgspec.Struct):
+    """Ultra-fast msgspec struct for single greeks result."""
+
+    delta: float
+    gamma: float
+    theta: float
+    vega: float
+    rho: float
+    option_price: float
+    spot: float
+    strike: float
+    time_to_expiry: float
+    volatility: float
+    option_type: str
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+
+
 class BatchPriceResult(msgspec.Struct):
     """Ultra-fast msgspec struct for batch results."""
 
@@ -35,6 +52,14 @@ class BatchPriceResult(msgspec.Struct):
     total_count: int
     computation_time_ms: float
     cached_count: int = 0
+
+
+class BatchGreeksResult(msgspec.Struct):
+    """Ultra-fast msgspec struct for batch greeks results."""
+
+    results: list[GreeksResult]
+    total_count: int
+    computation_time_ms: float
 
 
 class PriceRequest(BaseModel):

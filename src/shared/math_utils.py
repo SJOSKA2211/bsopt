@@ -124,7 +124,7 @@ def calculate_price_core(
     return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
 
 
-@_njit
+@_njit(parallel=True, nogil=True)
 def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized price calculation."""
     n = len(flat_s)
@@ -223,7 +223,7 @@ def calculate_greeks_core(
     return delta, gamma, theta, vega, rho
 
 
-@_njit
+@_njit(parallel=True, nogil=True)
 def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
     """Vectorized Greeks calculation."""
     n = len(flat_s)

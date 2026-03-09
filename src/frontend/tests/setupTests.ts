@@ -88,6 +88,7 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
+  })),
 });
 
 // Mock Apollo Client globally for components that do not have their own provider mock

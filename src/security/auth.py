@@ -235,9 +235,9 @@ class AuthService:
             try:
                 cached_data = await redis_client.get(f"session_v2:{token}")
                 if cached_data:
-                    import json
+                    import msgspec
 
-                    data = json.loads(cached_data)
+                    data = msgspec.json.decode(cached_data)
                     return TokenData(
                         user_id=data["user_id"],
                         email=data["email"],
@@ -276,12 +276,12 @@ class AuthService:
                     # Cache successful session verification (5 min TTL)
                     if redis_client:
                         try:
-                            import json
+                            import msgspec
 
                             await redis_client.setex(
                                 f"session_v2:{token}",
                                 300,
-                                json.dumps(
+                                msgspec.json.encode(
                                     {
                                         "user_id": token_data.user_id,
                                         "email": token_data.email,

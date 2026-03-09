@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     tune_gc()
 
     # Warmup JIT kernels to prevent first-request latency spikes
-    await asyncio.to_thread.run_sync(warmup_jit)
+    await asyncio.to_thread(warmup_jit)
 
     yield
 
