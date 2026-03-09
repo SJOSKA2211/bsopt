@@ -3,6 +3,7 @@ Pricing Routes (Optimized Refactored)
 """
 
 import structlog
+from typing import Any
 from fastapi import APIRouter, Request
 
 from src.api.responses import MsgspecJSONResponse
@@ -21,7 +22,7 @@ pricing_service = PricingService()
 
 
 @router.post("/price", response_model=None)
-async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
+async def calculate_price(body: PriceRequest, request: Request) -> Any:
     """
     Calculate theoretical price for a single option.
     OPTIMIZED: Returns msgspec Struct for ultra-fast serialization.
@@ -36,7 +37,7 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
 
 
 @router.post("/batch", response_model=None)
-async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
+async def calculate_batch_prices(request: BatchPriceRequest) -> Any:
     """
     Vectorized batch pricing.
     OPTIMIZED: Zero-overhead batch response using msgspec Structs.
