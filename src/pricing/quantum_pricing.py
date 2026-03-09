@@ -267,7 +267,13 @@ class QuantumOptionPricer:
             price = instance.exports.price_call(
                 params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
             )
-            return {"price": float(price), "method": "wasm_classical_fallback", "backend": "wasm_simd", "confidence": 1.0}
+            return {
+                "price": float(price),
+                "method": "wasm_classical_fallback",
+                "backend": "wasm_simd",
+                "confidence": 1.0,
+                "speedup_factor": 1.0,
+            }
         except Exception:
             return self.price_classical(params)
 
@@ -283,7 +289,13 @@ class QuantumOptionPricer:
             d1
         ) - params.strike * np.exp(-params.rate * params.maturity) * norm.cdf(d2)
 
-        return {"price": float(price), "method": "classical_fallback", "backend": "analytical_fallback", "confidence": 1.0}
+        return {
+            "price": float(price),
+            "method": "classical_fallback",
+            "backend": "analytical_fallback",
+            "confidence": 1.0,
+            "speedup_factor": 1.0,
+        }
 
     def price_european(self, params: BSParameters) -> dict[str, Any]:
         """Alias for classical pricing expected by legacy tests."""
@@ -296,7 +308,7 @@ class QuantumOptionPricer:
         # Tests expect specific fields
         res.update({
             "confidence_interval": [res["price"] * 0.99, res["price"] * 1.01],
-            "speedup_factor": 1.5
+            "speedup_factor": res.get("speedup_factor", 1.5)
         })
         return res
 

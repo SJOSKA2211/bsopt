@@ -51,17 +51,18 @@ class TestRevampPhase3:
 
             # 1. Local override
             oracle.update_price_feed("AAPL", 110.0)
-            price = await oracle.get_price("AAPL", "0xaddr", mock_w3_func)
+            price = await oracle.get_price("AAPL", "0xaddr", [mock_w3_func])
             assert price == 110.0
 
             # 2. Redis cache
-            mock_redis.get.return_value = b"102.0"
-            price2 = await oracle.get_price("MSFT", "0xaddr2", mock_w3_func)
+            # Use mget and simulate fresh timestamp
+            mock_redis.mget = AsyncMock(return_value=[b"102.0", str(time.time()).encode()])
+            price2 = await oracle.get_price("MSFT", "0xaddr2", [mock_w3_func])
             assert price2 == 102.0
 
             # 3. On-chain fallback
-            mock_redis.get.return_value = None
-            price3 = await oracle.get_price("GOOG", "0xaddr3", mock_w3_func)
+            mock_redis.mget.return_value = [None, None]
+            price3 = await oracle.get_price("GOOG", "0xaddr3", [mock_w3_func])
             assert price3 == 105.0
 
     @pytest.mark.asyncio
