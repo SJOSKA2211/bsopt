@@ -84,3 +84,5 @@ class InternalServerException(BaseAPIException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     error_code = "InternalServerError"
     message = "An unexpected internal error occurred."
+
+APIException = BaseAPIException

@@ -12,8 +12,16 @@ services:
       - REDIS_PORT=6379
     volumes:
       - ./src:/app/src
+      - ./.env:/app/.env
     networks:
       - bsopt-network-dev
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
     depends_on:
       - postgres
       - redis
@@ -34,8 +42,35 @@ services:
       - /app/node_modules
     networks:
       - bsopt-network-dev
+    env_file:
+      - .env
     depends_on:
       - postgres
+
+  app-gateway:
+    image: bsopt-app-gateway-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app-gateway
+      target: development
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - LOG_LEVEL=debug
+      - API_URL=http://api:8000/graphql
+      - PORTFOLIO_URL=http://portfolio:8000/graphql
+      - PRICING_URL=http://neural-pricing:8000/graphql
+    volumes:
+      - ./src/gateway:/app
+      - /app/node_modules
+    networks:
+      - bsopt-network-dev
+    depends_on:
+      api:
+        condition: service_healthy
+      neural-pricing:
+        condition: service_healthy
 
   frontend:
     image: bsopt-frontend-dev
@@ -51,8 +86,12 @@ services:
     networks:
       - bsopt-network-dev
     depends_on:
-      - api
-      - auth-service
+      api:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      app-gateway:
+        condition: service_healthy
 
   neural-pricing:
     image: bsopt-neural-pricing-dev
@@ -63,8 +102,16 @@ services:
       - "8001:8000"
     volumes:
       - ./src:/app/src
+      - ./.env:/app/.env
     networks:
       - bsopt-network-dev
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
 
   scraper:
     image: bsopt-scraper-dev
@@ -73,8 +120,11 @@ services:
       dockerfile: docker/Dockerfile.scraper-dev
     volumes:
       - ./src:/app/src
+      - ./.env:/app/.env
     networks:
       - bsopt-network-dev
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
@@ -86,8 +136,11 @@ services:
       dockerfile: docker/Dockerfile.worker-dev
     volumes:
       - ./src:/app/src
+      - ./.env:/app/.env
     networks:
       - bsopt-network-dev
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis

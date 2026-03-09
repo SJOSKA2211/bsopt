@@ -92,3 +92,4 @@ ref0003/
 scripts/
 src/frontend/node_modules/
 src/auth-service/node_modules/
+src/gateway/node_modules/
