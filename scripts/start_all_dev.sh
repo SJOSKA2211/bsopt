@@ -8,10 +8,14 @@ cd "$PROJECT_ROOT"
 
 # Detect Docker Compose (God-Mode Detection)
 if [ -x "./docker-compose" ]; then
-    COMPOSE="./docker-compose"
+    COMPOSE_BIN="./docker-compose"
 elif command -v docker-compose >/dev/null 2>&1; then
-    COMPOSE="docker-compose"
+    COMPOSE_BIN="docker-compose"
 elif docker compose version >/dev/null 2>&1; then
+    COMPOSE_BIN="docker compose"
+else
+    echo "❌ Docker Compose not found. Fix it, jerry!"
+    exit 1
 fi
 
 DOCKER_COMPOSE="$COMPOSE_BIN -f docker-compose.dev.yml"
@@ -40,7 +44,7 @@ fi
 # 2. Check Infrastructure status
 echo "🥒 Checking Infrastructure status..."
 # Check for key infra containers (postgres is the best signal)
-INFRA_RUNNING=$($DOCKER_COMPOSE ps --format '{{.Name}}' | grep -q "postgres" && echo true || echo false)
+INFRA_RUNNING=$($DOCKER_COMPOSE ps --services --filter "status=running" | grep -q "^postgres$" && echo true || echo false)
 
 if [ "$INFRA_RUNNING" = "false" ]; then
     echo "🥒 Infrastructure missing. Launching via start_infra.sh..."
