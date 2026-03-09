@@ -34,7 +34,7 @@ def test_validator_complexity():
 
 def test_validator_email_similarity():
     validator = PasswordValidator()
-    res = validator.validate("rick@c137.com", email="rick@c137.com")
+    res = validator.validate("engineer@bsopt.com", email="engineer@bsopt.com")
     assert not res.is_valid
     assert any("email" in e.lower() for e in res.errors)
 

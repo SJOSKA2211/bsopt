@@ -120,6 +120,8 @@ if __name__ == "__main__":
         mlflow.set_tracking_uri(args.tracking_uri)
 
     async def run_drift_check():
+        from src.ml.tracker import ExperimentTracker
+        
         # Use MLPipeline to fetch data for drift check
         pipeline = MLPipeline({"ticker": args.ticker})
         df = await pipeline._fetch_data()
@@ -130,8 +132,9 @@ if __name__ == "__main__":
         curr_df = df.iloc[mid:]
 
         detector = PricingDriftDetector()
+        tracker = ExperimentTracker(study_name=f"drift_check_{args.ticker}", tracking_uri=args.tracking_uri)
 
-        with mlflow.start_run(run_name=f"drift_check_{args.ticker}"):
+        with tracker.start_run(nested=True):
             res = await detector.check_drift(
                 args.ticker,
                 curr_df["close"].values.reshape(-1, 1),

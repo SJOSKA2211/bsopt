@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # ==============================================================================
-# BS-OPT: THE GOD MODE DB DEPLOYER (v3.0)
+# BS-OPT: THE HIGH-PERFORMANCE DB DEPLOYER (v3.0)
 # ==============================================================================
 # Orchestrates full initialization, incremental migrations, and fine-tuning.
 # ==============================================================================
@@ -23,7 +23,7 @@ error_handler() {
 
 trap 'error_handler $LINENO' ERR
 
-log "🥒 Launching Full-Scale Manifold Deployment..."
+log " Launching Full-Scale Manifold Deployment..."
 
 # Prioritize PG* variables for compatibility, then POSTGRES_*, then defaults
 DB_HOST=${PGHOST:-${POSTGRES_HOST:-127.0.0.1}}
@@ -40,7 +40,7 @@ fi
 # Detect environment: Prefer Docker if container is running
 USE_DOCKER=false
 if docker ps | grep -q "bsopt-postgres-1"; then
-    log "  🥒 Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
+    log "   Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
     USE_DOCKER=true
 elif ! command -v psql &> /dev/null; then
     log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
@@ -75,7 +75,7 @@ run_sql_file() {
 }
 
 # Ensure deployment_history table exists
-log "  🥒 Initializing audit history..."
+log "   Initializing audit history..."
 run_sql_cmd "CREATE TABLE IF NOT EXISTS deployment_history (
     id SERIAL PRIMARY KEY,
     script_name TEXT UNIQUE NOT NULL,
@@ -83,7 +83,7 @@ run_sql_cmd "CREATE TABLE IF NOT EXISTS deployment_history (
 );"
 
 # Phase 1: Core Initialization
-log "🚀 Phase 1: Core Initialization..."
+log " Phase 1: Core Initialization..."
 for script in $(find init-scripts/ -name "*.sql" | sort); do
     # Check if already applied
     ALREADY_APPLIED=$(query_sql "SELECT 1 FROM deployment_history WHERE script_name = '$script';")
@@ -102,7 +102,7 @@ for script in $(find init-scripts/ -name "*.sql" | sort); do
 done
 
 # Phase 2: Incremental Migrations
-log "🚀 Phase 2: Structural Migrations..."
+log " Phase 2: Structural Migrations..."
 if [ -d "src/migrations/" ]; then
     for script in $(find src/migrations/ -name "*.sql" | sort); do
         # Check if already applied
@@ -125,15 +125,15 @@ else
 fi
 
 # Phase 3: Final Fine-Tuning (Pressurizing)
-log "🚀 Phase 3: Manifold Fine-Tuning..."
+log " Phase 3: Manifold Fine-Tuning..."
 run_sql_cmd "VACUUM (ANALYZE, VERBOSE);"
 
-log "🚀 Refreshing Continuous Aggregates..."
+log " Refreshing Continuous Aggregates..."
 VIEWS=$(query_sql "SELECT view_name FROM timescaledb_information.continuous_aggregates;")
 for view in $VIEWS; do
-    log "  🥒 Refreshing: $view..."
+    log "   Refreshing: $view..."
     run_sql_cmd "CALL refresh_continuous_aggregate('$view', NULL, NULL);"
 done
 
-log "✅ Full database deployment and optimization complete. Solenya-tight! 🥒"
+log " Full database deployment and optimization complete. production-ready! "
 log "Log written to: $LOG_FILE"

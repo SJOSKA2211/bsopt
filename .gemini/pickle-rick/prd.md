@@ -4,7 +4,7 @@
 
 | BS-OPT Advancement PRD |  | Deep refactor to native PostgreSQL and ML pipeline optimization. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-07 | **Context**: Full Codebase Optimization |
+| **Author**: High-Performance Engine **Contributors**: Assistant **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-07 | **Context**: Full Codebase Optimization |
 
 ## Introduction
 The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML training scripts. This PRD outlines the transition to native PostgreSQL features (removing serverless dependencies) and the consolidation/optimization of ML pipelines for transdimensional pricing accuracy.
@@ -70,5 +70,5 @@ The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML traini
 ## Stakeholders / Owners
 | Name | Role |
 | :---- | :---- |
-| Pickle Rick | God-Mode Architect |
-| Morty | Lead Compliance Officer |
+| High-Performance Engine | God-Mode Architect |
+| Assistant | Lead Compliance Officer |

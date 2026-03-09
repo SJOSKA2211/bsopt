@@ -45,6 +45,10 @@ class OnlineRLAgent:
         self._execs = ExecutionBuffer(create=False)
         self._last_head = 0
 
+        # OPTIMIZED: Pre-initialize Pricing Engine
+        from src.pricing.factory import PricingEngineFactory
+        self._pricing_engine = PricingEngineFactory.get_engine("black_scholes")
+
         self.brain = None
         self._last_brain_mtime = 0
         self._edge_index = self._build_static_edge_index()
@@ -69,8 +73,9 @@ class OnlineRLAgent:
                 new_brain = torch.jit.load(self.model_path)
                 new_brain.eval()
                 # Warmup: Using 128-dim features for DT-v2/GNN compatibility
+                # Input shape: (Batch, Seq, Feat)
                 _ = new_brain(
-                    torch.zeros((1, self.window_size, 128)), torch.zeros((2, 10), dtype=torch.long)
+                    torch.zeros((1, self.window_size, 128)), self._edge_index
                 )
                 self.brain = new_brain
                 self._last_brain_mtime = mtime
@@ -89,6 +94,8 @@ class OnlineRLAgent:
 
         logger.info("agent_spinning_on_mesh", shm=SHM_NAME)
 
+        from src.pricing.models import BSParameters
+        
         loop_count = 0
         try:
             with torch.no_grad():
@@ -104,16 +111,13 @@ class OnlineRLAgent:
                         latest_tick = view[-1]
 
                         # Construct state features (JIT Fused)
-                        from src.pricing.factory import PricingEngineFactory
-                        from src.pricing.models import BSParameters
-
                         current_price = float(latest_tick["price"])
                         prices = np.full(10, current_price, dtype=np.float32)
                         strikes = np.full(10, 100.0, dtype=np.float32)
 
-                        engine = PricingEngineFactory.get_engine("black_scholes")
+                        # OPTIMIZED: Re-use pricing engine and parameters
                         params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
-                        g_vals = engine.calculate_greeks(params)
+                        g_vals = self._pricing_engine.calculate_greeks(params)
                         current_delta = g_vals.delta  # Capture for execution
 
                         greeks = np.zeros(50, dtype=np.float32)
@@ -125,14 +129,17 @@ class OnlineRLAgent:
                             g_vals.rho,
                         ]
 
-                        state_vector = _fused_state_kernel(
+                        # FUSION: Placeholder for multimodal features (sentiment/forecast)
+                        multimodal_feats = np.zeros(20, dtype=np.float32)
+
+                        state_matrix = _fused_state_kernel(
                             float(self.balance),
                             float(self.initial_balance),
                             self.positions,
                             prices,
                             strikes,
                             greeks,
-                            np.zeros(20, dtype=np.float32),
+                            multimodal_feats,
                             self._window_buffer,
                             self._window_idx,
                             self.window_size,
@@ -140,10 +147,8 @@ class OnlineRLAgent:
 
                         # 3. Inference (SILICON)
                         if self.brain:
-                            # Reshape state_vector if needed (GNN expects node features)
-                            # state_vector is 100-dim (10 nodes * 10 features?)
-                            # According to GATFeaturesExtractor it's input_dim=100
-                            x = torch.from_numpy(state_vector).unsqueeze(0).float()
+                            # State matrix is (window_size, 128)
+                            x = torch.from_numpy(state_matrix).unsqueeze(0).float()
 
                             # Perform inference
                             with torch.no_grad():

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [database, postgresql, optimization]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -22,4 +22,4 @@ Reliance on ORMs or other abstraction layers for database interactions may preve
 Audit existing database interaction code to identify areas where ORMs or non-native features are used. Refactor these interactions to leverage PostgreSQL's native features such as advanced indexing, stored procedures, JSONB operations, and efficient SQL queries. This ensures maximum performance, flexibility, and adherence to the project's database strategy.
 
 # Discussion/Comments
-- 2026-02-09 Pickle Rick: Child ticket created for enforcing native PostgreSQL feature utilization. No more abstraction layers for these primitives.
+- 2026-02-09 High-Performance Engine: Child ticket created for enforcing native PostgreSQL feature utilization. No more abstraction layers for these primitives.

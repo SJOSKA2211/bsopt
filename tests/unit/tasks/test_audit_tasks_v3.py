@@ -16,10 +16,10 @@ def mock_session():
 def test_persist_audit_log_success(mock_session):
     persist_audit_log(
         event_type="LOGIN",
-        user_id="rick",
-        user_email="rick@c137.com",
+        user_id="engineer",
+        user_email="engineer@bsopt.com",
         source_ip="127.0.0.1",
-        user_agent="RickBrowser",
+        user_agent="EnterpriseBrowser",
         request_path="/login",
         request_method="POST",
         details={"dimension": "C-137"},
@@ -36,7 +36,7 @@ def test_persist_audit_log_failure(mock_session):
     # Should handle exception internally
     persist_audit_log(
         event_type="BOOM",
-        user_id="morty",
+        user_id="assistant",
         user_email=None,
         source_ip=None,
         user_agent=None,

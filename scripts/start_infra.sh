@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Detect Docker Compose (God-Mode Detection)
+# Detect Docker Compose (High-Performance Detection)
 if [ -x "./docker-compose" ]; then
     COMPOSE="./docker-compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -9,7 +9,7 @@ elif command -v docker-compose >/dev/null 2>&1; then
 elif docker compose version >/dev/null 2>&1; then
     COMPOSE="docker compose"
 else
-    echo "❌ Docker Compose not found. Fix it, Morty!"
+    echo "❌ Docker Compose not found. Fix it, Assistant!"
     exit 1
 fi
 
@@ -36,7 +36,7 @@ if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
 fi
 
 # Run BSOpt Verification
-echo "🥒 Running God-Mode Manifold Audit (Containerized)..."
+echo " Running High-Performance Manifold Audit (Containerized)..."
 $COMPOSE -f docker-compose.dev.yml run --rm test-runner python3 -m src.database.verify
 
-echo "✅ Infrastructure containers launched and audited."
+echo " Infrastructure containers launched and audited."

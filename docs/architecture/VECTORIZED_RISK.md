@@ -1,4 +1,4 @@
-# Architecture: Vectorized Risk Management 🛡️
+# Architecture: Vectorized Risk Management 
 
 ## Overview
 To achieve sub-microsecond risk validation, BS-OPT moves critical safety checks out of standard Python loops and into **Numba-compiled JIT kernels**. These kernels are compiled to silicon-level machine code, bypassing the Python Global Interpreter Lock (GIL) and providing native performance.

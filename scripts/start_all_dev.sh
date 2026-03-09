@@ -1,12 +1,12 @@
 #!/bin/bash
-# Pickle Rick's Unified Dev Stack Launcher 🥒
-# "Shut up and compute, Morty! We're using Docker."
+# High-Performance Engine's Unified Dev Stack Launcher 
+# "Optimizing manifold execution. We're using Docker."
 
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Detect Docker Compose (God-Mode Detection)
+# Detect Docker Compose (High-Performance Detection)
 if [ -x "./docker-compose" ]; then
     COMPOSE_BIN="./docker-compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -42,20 +42,20 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # 2. Check Infrastructure status
-echo "🥒 Checking Infrastructure status..."
+echo " Checking Infrastructure status..."
 # Check for key infra containers (postgres is the best signal)
 INFRA_RUNNING=$($DOCKER_COMPOSE ps --services --filter "status=running" | grep -q "^postgres$" && echo true || echo false)
 
 if [ "$INFRA_RUNNING" = "false" ]; then
-    echo "🥒 Infrastructure missing. Launching via start_infra.sh..."
+    echo " Infrastructure missing. Launching via start_infra.sh..."
     ./scripts/start_infra.sh
 else
-    echo "🥒 Infrastructure already active. Skipping redundant initialization."
+    echo " Infrastructure already active. Skipping redundant initialization."
 fi
 
 # 3. Run Lint if requested
 if [ "$RUN_LINT" = true ]; then
-    echo "🥒 Running Containerized Lint..."
+    echo " Running Containerized Lint..."
     $DOCKER_COMPOSE --profile test run --rm test-runner ruff check . || exit 1
 fi
 
@@ -64,7 +64,7 @@ echo "🐝 Starting Ray Cluster (Containerized)..."
 $DOCKER_COMPOSE up -d --build ray-head rl-training-worker
 
 # 5. Start App Services in Docker
-echo "🚀 Launching App Services (Containerized)..."
+echo " Launching App Services (Containerized)..."
 $DOCKER_COMPOSE up -d --build auth-service api app-gateway frontend scraper neural-pricing worker-ml
 
 # 6. Unified Health Check
@@ -93,7 +93,7 @@ done
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
     echo -e "\n❌ Some services failed to stabilize. Check 'docker compose logs'."
 else
-    echo -e "\n✅ All services are UP and HEALTHY. God-Mode Active."
+    echo -e "\n All services are UP and HEALTHY. High-Performance Active."
 fi
 
 if [ "$NO_TAIL" = true ]; then

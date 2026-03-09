@@ -6,7 +6,7 @@ from src.database import create_tables, db_manager
 
 
 def verify_god_mode():
-    print("🥒 BSOpt God-Mode Database Verification")
+    print(" BSOpt High-Performance Database Verification")
     print("----------------------------------------")
 
     try:
@@ -16,14 +16,14 @@ def verify_god_mode():
         with engine.connect() as conn:
             # 1. Version Check
             version = conn.execute(text("SELECT version()")).scalar()
-            print(f"✅ Postgres: {version}")
+            print(f" Postgres: {version}")
 
             # 2. Extension Check
             extensions = conn.execute(text("SELECT extname FROM pg_extension")).scalars().all()
             required = ["timescaledb", "vector", "pg_stat_statements"]
             for ext in required:
                 if ext in extensions:
-                    print(f"✅ Extension Found: {ext}")
+                    print(f" Extension Found: {ext}")
                 else:
                     print(f"❌ Missing Extension: {ext}")
 
@@ -40,7 +40,7 @@ def verify_god_mode():
             ]
             for v in revamp_views:
                 if v in views:
-                    print(f"✅ God-Mode View Active: {v}")
+                    print(f" High-Performance View Active: {v}")
                 else:
                     print(f"⚠️  Revamp View Missing: {v}")
 
@@ -48,9 +48,9 @@ def verify_god_mode():
             res = conn.execute(
                 text("SELECT count(*) FROM timescaledb_information.hypertables")
             ).scalar()
-            print(f"✅ TimescaleDB Hypertables: {res}")
+            print(f" TimescaleDB Hypertables: {res}")
 
-        print("\n🚀 STATUS: MANIFOLD PRESSURIZED (Solenya-Tight)")
+        print("\n STATUS: MANIFOLD PRESSURIZED (Production-Ready)")
 
     except Exception as e:
         print(f"\n❌ VERIFICATION FAILED: {e}")

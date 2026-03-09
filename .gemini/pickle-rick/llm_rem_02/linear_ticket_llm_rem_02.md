@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [cleanup, ml]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -21,4 +21,4 @@ src/ml/reinforcement_learning/augmented_agent.py contains stubs and logic for LL
 Remove analyze_complex_news and related observation logic from AugmentedRLAgent.
 
 # Discussion/Comments
-- [2026-02-03] Pickle Rick: Removed SentimentExtractor and sentiment logic from AugmentedRLAgent.
+- [2026-02-03] High-Performance Engine: Removed SentimentExtractor and sentiment logic from AugmentedRLAgent.

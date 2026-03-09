@@ -1,7 +1,7 @@
 import numpy as np
 
 # High-Performance Indicator Kernels (Pure NumPy)
-from numba import njit
+from numba import njit, prange
 
 # OPTIMIZED: High-Performance Indicator Kernels (Numba JIT)
 
@@ -147,7 +147,7 @@ def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
     up_move = np.zeros(n, dtype=np.float64)
     down_move = np.zeros(n, dtype=np.float64)
 
-    for i in range(1, n):
+    for i in prange(1, n):
         up_move[i] = high[i] - high[i - 1]
         down_move[i] = low[i - 1] - low[i]
 
@@ -156,7 +156,7 @@ def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
     tr = np.zeros(n, dtype=np.float64)
     tr[0] = high[0] - low[0]
 
-    for i in range(1, n):
+    for i in prange(1, n):
         if up_move[i] > down_move[i] and up_move[i] > 0:
             pos_dm[i] = up_move[i]
         if down_move[i] > up_move[i] and down_move[i] > 0:
@@ -168,7 +168,7 @@ def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: in
     smooth_neg_dm = _ema_kernel(neg_dm, length)
 
     adx = np.zeros(n, dtype=np.float64)
-    for i in range(n):
+    for i in prange(n):
         tr_val = smooth_tr[i] if smooth_tr[i] != 0 else 1e-12
         pos_di = 100.0 * smooth_pos_dm[i] / tr_val
         neg_di = 100.0 * smooth_neg_dm[i] / tr_val

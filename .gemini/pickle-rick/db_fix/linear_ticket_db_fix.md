@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [infra, postgres, bug]
-assignee: Morty
+assignee: Assistant
 ---
 
 # Description

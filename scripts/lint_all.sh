@@ -1,8 +1,8 @@
 #!/bin/bash
-# I'm Pickle Riiiiick!🥒 *Belch.*
+# *
 # Standardizing on the containerized linting environment.
 
-echo "🥒 Running Containerized Linting Engine... Stand back, Morty."
+echo " Running Containerized Linting Engine... "
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then

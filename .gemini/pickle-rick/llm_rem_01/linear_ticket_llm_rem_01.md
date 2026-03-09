@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [cleanup, llm]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -21,4 +21,4 @@ The src/services/llm_gateway.py file is an unreferenced dependency.
 Delete src/services/llm_gateway.py and any associated tests.
 
 # Discussion/Comments
-- [2026-02-03] Pickle Rick: Deletion successful. Removed llm_gateway.py and test_augmented_agent.py.
+- [2026-02-03] High-Performance Engine: Deletion successful. Removed llm_gateway.py and test_augmented_agent.py.

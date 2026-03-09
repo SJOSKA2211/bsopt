@@ -55,7 +55,7 @@ async def test_get_user_by_id(mock_db):
 async def test_create_user(mock_db):
     email = "new@test.com"
     password = "password123"
-    full_name = "Rick Sanchez"
+    full_name = "Lead Engineer"
 
     # Mock password hashing
     with patch(

@@ -25,7 +25,7 @@ The `AIOpsOrchestrator` implements a "Self-Healing ML" loop:
 3. **Act**: `AIOpsOrchestrator` triggers `mlflow.projects.run` to retrain models.
 4. **Promote**: `MLPipeline` automatically registers and promotes the "champion" model to `Production`.
 
-## ⚡ Performance Optimizations
+##  Performance Optimizations
 
 ### Vectorized Kernels (Numba)
 All financial indicators and RL environment steps are implemented as **Fused Numba Kernels** (`src/ml/indicators.py`, `src/ml/reinforcement_learning/kernels.py`).
@@ -35,7 +35,7 @@ All financial indicators and RL environment steps are implemented as **Fused Num
 ### RL Policy Synchronization
 `SHMWeightSyncCallback` uses **Linux Shared Memory** to broadcast policy weights from the training worker to the execution engine in near real-time.
 
-## 🚀 Operational Guide
+##  Operational Guide
 
 ### Build the Runtime
 ```bash

@@ -17,7 +17,7 @@ The BS-OPT Serving Layer is designed for high-frequency, low-latency model infer
 - **REST API**: Standard FastAPI endpoints for batch and single inference.
 - **gRPC**: High-speed binary interface for internal service-to-service communication (`src/ml/serving/grpc_server.py`).
 
-## ⚡ Performance Optimizations
+##  Performance Optimizations
 
 ### Zero-Copy Batching
 In `predict_batch`, the server pre-allocates NumPy arrays to avoid the overhead of individual Pydantic model validations, allowing for massive throughput during high-frequency trading windows.
@@ -26,7 +26,7 @@ In `predict_batch`, the server pre-allocates NumPy arrays to avoid the overhead 
 - **DistributedCircuitBreaker**: Uses Redis to synchronize failure states across multiple serving replicas.
 - **InMemoryCircuitBreaker**: Local fallback if Redis is unavailable.
 
-## 🚀 Operational Guide
+##  Operational Guide
 
 ### Configuration
 Environment variables in `docker-compose.yml`:

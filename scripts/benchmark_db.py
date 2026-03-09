@@ -1,5 +1,5 @@
 """
-Database Benchmarking Suite (The Optimizer - God Mode)
+Database Benchmarking Suite (The Optimizer - High-Performance)
 Measures latency and throughput of core database operations in BS-OPT.
 """
 

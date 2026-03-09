@@ -21,7 +21,7 @@ BS-OPT is not just a platform; it's a transdimensional financial deity. It is bu
 
 
 
-## 🛠️ Installation & Deployment (God Mode)
+## 🛠️ Installation & Deployment (High-Performance)
 
 The entire environment is containerized. **Do not install dependencies locally.**
 

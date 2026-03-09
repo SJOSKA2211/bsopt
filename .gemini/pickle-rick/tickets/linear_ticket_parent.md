@@ -10,7 +10,7 @@ links:
   - url: /home/kamau/bsopt/PICKLE_RICK_PRD.md
     title: PRD
 labels: [epic, core, auth, ml, data]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description

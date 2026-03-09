@@ -20,7 +20,7 @@ async def check_database():
                 text("SELECT count(*) FROM pg_views WHERE viewname = 'db_health_overview'")
             ).scalar()
             if res > 0:
-                print("✅ [PG16 GOD-MODE ACTIVE]")
+                print(" [PG16 HIGH-PERFORMANCE ACTIVE]")
             else:
                 print("⚠️ [SCHEMA OK, REVAMP DIAGNOSTICS MISSING]")
     except Exception as e:
@@ -49,7 +49,7 @@ async def check_redis():
             await redis.set("sentinel_ping", "pong")
             val = await redis.get("sentinel_ping")
             if val == "pong":
-                print("✅ [ALIVE]")
+                print(" [ALIVE]")
             else:
                 print("⚠️ [UNEXPECTED RESPONSE]")
         else:
@@ -77,7 +77,7 @@ async def check_shm():
                 missing.append(name)
 
         if not missing:
-            print("✅ [PRESSURIZED]")
+            print(" [PRESSURIZED]")
         else:
             print(f"⚠️ [MISSING/CORRUPT: {', '.join(missing)}]")
     except Exception as e:
@@ -86,7 +86,7 @@ async def check_shm():
 
 async def main():
     print("\n" + "=" * 50)
-    print("   BS-OPT GOD-MODE SYSTEM SENTINEL")
+    print("   BS-OPT HIGH-PERFORMANCE SYSTEM SENTINEL")
     print("=" * 50)
     await check_database()
     await check_redis()

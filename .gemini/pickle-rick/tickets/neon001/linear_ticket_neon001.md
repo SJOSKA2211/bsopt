@@ -10,7 +10,7 @@ links:
   - url: /home/kamau/bsopt/.gemini/pickle-rick/tickets/linear_ticket_parent.md
     title: Parent Ticket
 labels: [migration, data]
-assignee: Morty
+assignee: Assistant
 ---
 
 # Description

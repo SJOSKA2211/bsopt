@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # ==============================================================================
-# BS-OPT: THE GOD MODE DB UPDATER (v3.0)
+# BS-OPT: THE HIGH-PERFORMANCE DB UPDATER (v3.0)
 # ==============================================================================
 # Applies incremental optimizations and schema refreshes with audit tracking.
 # ==============================================================================
@@ -25,12 +25,12 @@ trap 'error_handler $LINENO' ERR
 
 # Load environment variables if .env exists
 if [ -f .env ]; then
-    log "  🥒 Loading .env..."
+    log "   Loading .env..."
     export $(grep -v '^#' .env | xargs)
 fi
 
 # Pre-flight Validation
-log "🚀 Pre-flight check..."
+log " Pre-flight check..."
 if ! query_sql "SELECT 1" > /dev/null 2>&1; then
     log "❌ ERROR: Cannot connect to database. Is it running?"
     exit 1
@@ -54,7 +54,7 @@ fi
 # Detect environment: Prefer Docker if container is running
 USE_DOCKER=false
 if docker ps | grep -q "bsopt-postgres-1"; then
-    log "  🥒 Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
+    log "   Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
     USE_DOCKER=true
 elif ! command -v psql &> /dev/null; then
     log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
@@ -89,7 +89,7 @@ run_sql_file() {
 }
 
 # Ensure deployment_history table exists
-log "  🥒 Initializing audit history..."
+log "   Initializing audit history..."
 run_sql_cmd "CREATE TABLE IF NOT EXISTS deployment_history (
     id SERIAL PRIMARY KEY,
     script_name TEXT UNIQUE NOT NULL,
@@ -117,7 +117,7 @@ for script in "${SCRIPTS[@]}"; do
         if [ "$ALREADY_APPLIED" = "1" ]; then
             log "  ⏭️  Skipping $script (Already applied)"
         else
-            log "  🥒 Applying $script..."
+            log "   Applying $script..."
             if run_sql_file "$script"; then
                 run_sql_cmd "INSERT INTO deployment_history (script_name) VALUES ('$script');"
             else
@@ -131,15 +131,15 @@ for script in "${SCRIPTS[@]}"; do
 done
 
 # Force a maintenance pass
-log "🚀 Running Maintenance Pass..."
+log " Running Maintenance Pass..."
 run_sql_cmd "VACUUM (ANALYZE, VERBOSE);"
 
-log "🚀 Refreshing Continuous Aggregates..."
+log " Refreshing Continuous Aggregates..."
 VIEWS=$(query_sql "SELECT view_name FROM timescaledb_information.continuous_aggregates;")
 for view in $VIEWS; do
-    log "  🥒 Refreshing: $view..."
+    log "   Refreshing: $view..."
     run_sql_cmd "CALL refresh_continuous_aggregate('$view', NULL, NULL);"
 done
 
-log "✅ Manifold pressurized and optimized. Solenya-tight! 🥒"
+log " Manifold pressurized and optimized. production-ready! "
 log "Log written to: $LOG_FILE"

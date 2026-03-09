@@ -1,7 +1,7 @@
 # Codebase Optimization Strategy
 
 ## Overview
-The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It utilizes `FastAPI`, `XGBoost`, `Optuna`, `Ray`, and `Numba`. While the architecture shows "God Mode" aspirations (e.g., "Optimized" comments), there are inconsistencies, verbose patterns, and potential performance bottlenecks.
+The codebase (`bsopt`) is a Python-based ML/API platform for options pricing. It utilizes `FastAPI`, `XGBoost`, `Optuna`, `Ray`, and `Numba`. While the architecture shows "High-Performance" aspirations (e.g., "Optimized" comments), there are inconsistencies, verbose patterns, and potential performance bottlenecks.
 
 ## Findings
 

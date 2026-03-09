@@ -225,6 +225,14 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
         if base_model:
             model.load_state_dict(base_model.state_dict())
 
+        # OPTIMIZED: Kernel Fusion via torch.compile
+        if hasattr(torch, "compile") and device.type == "cuda":
+            try:
+                model = torch.compile(model)
+                logger.info("pytorch_strategy_model_compiled")
+            except Exception as e:
+                logger.warning("pytorch_strategy_compile_failed", error=str(e))
+
         optimizer = optim.Adam(model.parameters(), lr=lr)
         criterion = nn.MSELoss()  # Changed to MSE for regression
         early_stopping = EarlyStopping(patience=patience)

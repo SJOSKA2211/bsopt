@@ -1,8 +1,8 @@
 #!/bin/bash
-# I'm Pickle Riiiiick!🥒 *Belch.*
+# *
 # Standardizing on the containerized test environment.
 
-echo "🥒 Running Containerized Tests... Stand back, Morty."
+echo " Running Containerized Tests... "
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then

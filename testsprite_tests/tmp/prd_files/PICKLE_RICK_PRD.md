@@ -1,4 +1,4 @@
-# PICKLE RICK PRD: Fix Startup & Lint Slop
+# RE-ARCHITECTING PRD: Fix Startup & Lint Slop
 
 ## Problem
 1.  **Lint Failure**: `pyproject.toml` contains invalid TOML syntax for `ruff.lint.per-file-ignores`. It uses a nested list instead of a map, causing `ruff` to crash immediately.

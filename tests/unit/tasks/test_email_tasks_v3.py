@@ -30,7 +30,7 @@ def test_send_transactional_email_success(mock_rate_limiter, mock_email_service)
         # Celery bound tasks expect 'self' as first arg
         res = orig_func(
             MagicMock(),  # self
-            to_email="morty@jerry.com",
+            to_email="assistant@jerry.com",
             subject="Test",
             template_name="test",
             context={},

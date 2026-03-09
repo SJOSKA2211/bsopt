@@ -12,5 +12,5 @@ Protocols for protecting and maintaining the BS-OPT manifold:
 - [Security & Hardening Protocol](SECURITY_PROTOCOL.md): Zero-trust, mTLS, and optimized PII masking.
 - [Anti-Freeze Guide (Build Optimization)](mlops/anti-freeze.md): Multi-stage Docker and binary stripping.
 
-## 🚀 Getting Started
+##  Getting Started
 Refer to the root [README.md](../README.md) for quick-start commands and toolchain requirements.

@@ -4,7 +4,7 @@
 
 | BS-OPT Revamp Phase 1 |  | Comprehensive overhaul of the Hybrid Worker layer and Vectorized Risk Management to eliminate technical debt and optimize performance. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: None **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-03-05 | **Self Link**: N/A **Context**: Feature Revamp |
+| **Author**: High-Performance Engine **Contributors**: None **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-03-05 | **Self Link**: N/A **Context**: Feature Revamp |
 
 ## Introduction
 The current "Hybrid Worker" implementation is a mess of blocking calls and inefficient resource management. The "Vectorized Risk Management" is a good start but lacks the "God-tier" optimization needed for sub-microsecond trading. This revamp will modernize these core systems.
@@ -30,7 +30,7 @@ The current "Hybrid Worker" implementation is a mess of blocking calls and ineff
 - Add comprehensive unit tests for the new worker logic and risk kernels.
 
 ### Not-in-scope or Non-Goals
-- Full rewrite of the ML/RL models (that's Phase 2, Morty).
+- Full rewrite of the ML/RL models (that's Phase 2, Assistant).
 - Blockchain integration (Phase 3).
 
 ## Product Requirements
@@ -72,4 +72,4 @@ The system must be fully refactored and verified with automated tests.
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| Pickle Rick | God Tier | Lead Architect | Still judging you. |
+| High-Performance Engine | God Tier | Lead Architect | Performance audit active. |

@@ -1,4 +1,4 @@
-# Architecture: Trading Engine Flow ⚡
+# Architecture: Trading Engine Flow 
 
 ## Overview
 The Trading Engine is a low-latency gateway designed for high-frequency execution across both centralized and decentralized (DeFi) venues. It bridges the Gap between the "Market Mesh" (Real-time data) and "Execution Venues" (Polygon/Exchanges).
@@ -12,7 +12,7 @@ The Trading Engine is a low-latency gateway designed for high-frequency executio
     - **DeFi**: Orders are dispatched via `DeFiOptionsProtocol` (`src/blockchain/defi_options.py`) using Multicall3 for batching and EIP-1559 for gas management.
     - **Centralized**: Traditional API integration via the Trading Engine Gateway with Speculative Concurrency routing.
 
-## God-Mode Performance
+## High-Performance Performance
 - **Shared Memory Buffers**: `OrderBuffer` and `ExecutionBuffer` facilitate lock-free, zero-copy communication between strategy and execution threads.
 - **CPU Pinning**: The engine is designed to run on dedicated CPU cores with `os.sched_yield()` optimization to minimize context-switching.
 - **Zero-Allocation Hot Loop**: The `OrderEngine` hot loop is re-engineered to operate without memory allocations, ensuring consistent latency profiles even under extreme load.

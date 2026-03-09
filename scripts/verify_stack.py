@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # ==============================================================================
-# BS-OPT: THE GOD MODE STACK VERIFIER (v2.0)
+# BS-OPT: THE HIGH-PERFORMANCE STACK VERIFIER (v2.0)
 # ==============================================================================
-# I'm Pickle Riiiiick!🥒 *Belch.*
+# *
 # Validating the containerized manifold.
 # ==============================================================================
 
@@ -19,7 +19,7 @@ def check_port(host, port, name):
         result = sock.connect_ex((host, port))
         sock.close()
         if result == 0:
-            print(f"✅ {name:<20} UP   tcp/{port}")
+            print(f" {name:<20} UP   tcp/{port}")
             return True
         else:
             print(f"❌ {name:<20} DOWN tcp/{port}")
@@ -33,7 +33,7 @@ def check_http(url, name):
     try:
         response = requests.get(url, timeout=2)
         if response.status_code < 500:
-            print(f"✅ {name:<20} UP   {url} -> {response.status_code}")
+            print(f" {name:<20} UP   {url} -> {response.status_code}")
             return True
         else:
             print(f"❌ {name:<20} FAIL {url} -> {response.status_code}")
@@ -43,7 +43,7 @@ def check_http(url, name):
         return False
 
 
-print("\n🥒 Pickle Rick's Stack Verification 🥒")
+print("\n High-Performance Engine's Stack Verification ")
 print("=======================================")
 
 success = True
@@ -74,7 +74,7 @@ success &= check_http("http://localhost:8001/health", "Neural Health")
 
 print("=======================================")
 if success:
-    print("✨ System is Solenya-tight. Wubba Lubba Dub Dub!")
+    print(" System is production-ready. ")
     sys.exit(0)
 else:
     print("⚠️  Jerry-work detected. Run 'make logs' to diagnose.")

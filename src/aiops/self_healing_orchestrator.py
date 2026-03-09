@@ -65,19 +65,33 @@ class SelfHealingOrchestrator:
 
     async def run_cycle(self, current_data: pd.DataFrame):
         """
-        Perform one cycle of detection, drift analysis, and remediation.
+        Perform one cycle of detection, drift analysis, and remediation (Optimized).
         """
         logger.info("self_healing_cycle_start", data_points=len(current_data))
 
         try:
-            # 1. Point Anomaly Detection (Reactive)
-            anomalies = await asyncio.to_thread(self.detector.detect, current_data)
+            # 1. RUN ALL DETECTION CONCURRENTLY ( Concurrency Fusion)
+            # - Reactive: Point anomalies (ML)
+            # - Proactive: System anomalies (Prometheus)
+            # - Baseline: Distribution drift (Statistical)
+            
+            tasks = [
+                asyncio.to_thread(self.detector.detect, current_data),
+                self._detect_system_anomalies(),
+                asyncio.to_thread(self._analyze_drift, current_data)
+            ]
+            
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            anomalies = results[0] if not isinstance(results[0], Exception) else []
+            system_anomalies = results[1] if not isinstance(results[1], Exception) else []
+            drift_anomalies = results[2] if not isinstance(results[2], Exception) else []
+            
+            if isinstance(results[0], Exception):
+                logger.error("anomaly_detector_failed", error=str(results[0]))
+            if isinstance(results[2], Exception):
+                logger.error("drift_analysis_failed", error=str(results[2]))
 
-            # 2. System-wide Anomaly Detection (Prometheus-based)
-            system_anomalies = await self._detect_system_anomalies()
-
-            # 3. Distribution Drift Analysis (Proactive)
-            drift_anomalies = self._analyze_drift(current_data)
             all_anomalies = anomalies + system_anomalies + drift_anomalies
 
             if not all_anomalies:
@@ -92,6 +106,8 @@ class SelfHealingOrchestrator:
             )
 
             # 4. Intelligent Remediation Planning
+            # Remediations are kept sequential to avoid state corruption/race conditions
+            # in the infrastructure, but the planning is O(1).
             for anomaly in all_anomalies:
                 actions = self.planner.plan(anomaly)
                 if actions:

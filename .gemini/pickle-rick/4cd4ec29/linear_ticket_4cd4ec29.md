@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [code-optimize, refactor, performance]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -22,4 +22,4 @@ Even after understanding the codebase, there will be opportunities for general i
 Based on findings from the "Codebase Analysis and Understanding" ticket, implement targeted optimizations, refactor inefficient patterns, improve code clarity, and fine-tune various components for better performance across the general codebase.
 
 # Discussion/Comments
-- 2026-02-09 Pickle Rick: Child ticket created for general codebase optimization. This will follow the initial analysis.
+- 2026-02-09 High-Performance Engine: Child ticket created for general codebase optimization. This will follow the initial analysis.

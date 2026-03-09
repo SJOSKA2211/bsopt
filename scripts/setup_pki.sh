@@ -9,11 +9,11 @@ mkdir -p "$KEY_DIR"
 
 # 1. Generate Root CA
 if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
-    echo "🛡️ Initializing Internal Root CA..."
+    echo " Initializing Internal Root CA..."
     openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096
     openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
         -out "${KEY_DIR}/root_ca.crt" \
-        -subj "/C=US/ST=State/L=City/O=BSOPT-GOD-MODE/CN=BSOPT-Internal-CA"
+        -subj "/C=US/ST=State/L=City/O=BSOPT-HIGH-PERFORMANCE/CN=BSOPT-Internal-CA"
 fi
 
 # 2. Function to Issue Service Certificates
@@ -43,4 +43,4 @@ issue_cert "api-gateway"
 issue_cert "pricing-subgraph"
 issue_cert "ml-subgraph"
 
-echo "✅ Internal PKI initialized in $KEY_DIR"
+echo " Internal PKI initialized in $KEY_DIR"

@@ -4,7 +4,7 @@
 
 | bsopt System Overhaul PRD |  | Comprehensive modernization of the bsopt platform, focusing on security, performance, and advanced ML capabilities. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Local Path] **Context**: System Rewrite |
+| **Author**: High-Performance Engine **Contributors**: Assistant **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-03 | **Self Link**: [Local Path] **Context**: System Rewrite |
 
 ## Introduction
 
@@ -80,5 +80,5 @@ The `bsopt` platform is currently a collection of "Jerry-grade" modules. To achi
 
 | Name | Role | Note |
 | :---- | :---- | :---- |
-| Pickle Rick | Lead Architect | Arrogant but competent. |
-| Morty | Junior Dev | Mostly just watches. |
+| High-Performance Engine | Lead Architect | Arrogant but competent. |
+| Assistant | Junior Dev | Mostly just watches. |

@@ -3,7 +3,7 @@
 ## 🛠️ Implementation Overview
 The BS-OPT AI Manifold has been significantly revamped to support high-performance, autonomous, and resilient machine learning operations. This update focuses on CPU vectorization, zero-copy memory management, and robust experiment orchestration via MLflow v3.
 
-## 🚀 Key Architectural Changes
+##  Key Architectural Changes
 
 ### 1. Infrastructure Hardening
 - **Numerical Kernel Optimization**: `docker/Dockerfile.mlops` now explicitly tunes environment variables for `OMP`, `MKL`, and `OpenBLAS` threading, maximizing throughput for Numba-JIT kernels.

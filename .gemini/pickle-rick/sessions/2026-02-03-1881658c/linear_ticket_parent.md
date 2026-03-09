@@ -10,7 +10,7 @@ links:
   - url: prd.md
     title: PRD
 labels: [epic, core]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description

@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [optimization, fine-tune]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -22,4 +22,4 @@ While many improvements can be identified, implementing them without careful con
 Review and refine all identified improvements and optimizations. This involves detailed impact analysis, consideration of dependencies, and strategic planning for implementation to ensure that changes are introduced with minimal disruption and deliver the maximum intended positive impact on the codebase and its functionality.
 
 # Discussion/Comments
-- 2026-02-09 Pickle Rick: Child ticket created for the crucial fine-tuning process. Quality over quantity, always.
+- 2026-02-09 High-Performance Engine: Child ticket created for the crucial fine-tuning process. Quality over quantity, always.

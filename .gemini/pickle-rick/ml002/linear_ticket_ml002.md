@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [ml, pipeline, refactor]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description

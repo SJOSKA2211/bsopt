@@ -110,9 +110,10 @@ class RetrainModelRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        logger.warning("remediator_retrain_initiated", score=anomaly.get("score"))
-        monitor_drift_and_retrain_task.delay()
-        logger.info("remediator_retrain_task_queued")
+        ticker = anomaly.get("metrics", {}).get("ticker", "AAPL")
+        logger.warning("remediator_retrain_initiated", ticker=ticker, score=anomaly.get("score"))
+        monitor_drift_and_retrain_task.delay(ticker=ticker)
+        logger.info("remediator_retrain_task_queued", ticker=ticker)
         return True
 
 

@@ -6,10 +6,10 @@ test.describe('Sign Up Flow', () => {
     const uniqueEmail = `testuser_${Date.now()}@example.com`;
 
     // Navigate to the signup page
-    await page.goto('/signup');
+    await page.goto('/signup', { waitUntil: 'networkidle', timeout: 60000 });
 
-    // Wait for the signup form to be visible
-    await expect(page.locator('text=Create an account')).toBeVisible();
+    // Wait for the signup form to be visible - using a more robust selector
+    await expect(page.getByRole('heading', { name: /Create an account/i })).toBeVisible({ timeout: 30000 });
 
     // Fill in the sign up form
     await page.fill('input[name="name"]', 'Test User');
@@ -17,7 +17,7 @@ test.describe('Sign Up Flow', () => {
     await page.fill('input[name="password"]', 'SecurePass123!');
 
     // Submit the form
-    await page.click('button[type="submit"]');
+    await page.getByRole('button', { name: /Sign Up/i }).click();
 
     // Expect the success message or redirection
     // Based on the code, it shows "Account created! Redirecting to login..."

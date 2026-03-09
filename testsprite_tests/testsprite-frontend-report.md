@@ -18,12 +18,12 @@
 #### Test TC001 get root info returns bsopt optimized api message
 - **Test Code:** `TC001_get_root_info_returns_bsopt_optimized_api_message.py`
 - **Visualization:** [View Dashboard](https://www.testsprite.com/dashboard/mcp/tests/155f0f61-43bb-4557-a4cd-acd60c723575/131c8f6b-afdd-4b73-b394-5ab70627539d)
-- **Status:** ✅ Passed
+- **Status:**  Passed
 
 #### Test TC002 get health returns healthy status
 - **Test Code:** `TC002_get_health_returns_healthy_status.py`
 - **Visualization:** [View Dashboard](https://www.testsprite.com/dashboard/mcp/tests/155f0f61-43bb-4557-a4cd-acd60c723575/3bc56dca-6615-4ac6-a97d-72e5cf4e1417)
-- **Status:** ✅ Passed
+- **Status:**  Passed
 
 ### Requirement: System Observability
 #### Test TC003 get metrics returns prometheus metrics text
@@ -70,7 +70,7 @@
 - **Passed:** 2
 - **Failed:** 8
 
-| Requirement Category | Total Tests | ✅ Passed | ❌ Failed |
+| Requirement Category | Total Tests |  Passed | ❌ Failed |
 |----------------------|-------------|-----------|-----------|
 | Application Health & Root | 2 | 2 | 0 |
 | System Observability | 1 | 0 | 1 |

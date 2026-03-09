@@ -92,25 +92,33 @@ def train_model_task(
 
 
 @celery_app.task(bind=True, base=MLTask, queue="ml")
-def monitor_drift_and_retrain_task(self):
-    """Periodic task to monitor drift using autonomous pipeline."""
-    from src.config import settings
+def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
+    """
+    Periodic task to monitor drift and trigger the optimized MLflow pipeline via Docker.
+    """
+    logger.info("drift_monitoring_task_started", ticker=ticker)
 
     try:
-        config = {
-            "api_key": os.getenv("POLYGON_API_KEY", "DEMO_KEY"),
-            "db_url": settings.DATABASE_URL,
-            "study_name": "autonomous_drift_retraining",
-            "n_trials": 10,
-            "framework": "xgboost",
-        }
-        pipeline = MLPipeline(config)
-        # OPTIMIZED: Use persistent loop from MLTask (BaseAsyncTask)
-        model = self.run_async(pipeline.run())
+        import os
+        import subprocess
 
-        if model:
-            return {"status": "retrained", "model_class": model.__class__.__name__}
-        return {"status": "no_drift_detected"}
+        # Use the central startup script
+        script_path = os.path.join(os.getcwd(), "scripts/start_mlflow_pipeline.sh")
+        
+        # Dispatch the job
+        # Note: We use check_call here because Celery worker should wait for dispatch to confirm success
+        subprocess.check_call(
+            [
+                "bash",
+                script_path,
+                "train_regressor",
+                f"celery_drift_{ticker}",
+                "-P", f"ticker={ticker}",
+                "-P", "n_trials=10"
+            ]
+        )
+
+        return {"status": "retrained_job_dispatched", "ticker": ticker}
 
     except Exception as e:
         logger.error("drift_monitoring_task_failed", error=str(e))

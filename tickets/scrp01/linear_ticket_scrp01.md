@@ -20,5 +20,5 @@ Scripts like `verify_god_mode.py`, `setup_pki.sh`, and `enforce_venv.py` are ful
 
 ## Solution
 1. Remove all rocket emojis and marketing text.
-2. Rename "God Mode" to "Performance" or "Validation".
+2. Rename "High-Performance" to "Performance" or "Validation".
 3. Ensure they are professional.

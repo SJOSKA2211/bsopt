@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [security, oauth, auth]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description

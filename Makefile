@@ -1,8 +1,8 @@
 # ==============================================================================
-# BS-OPT: THE GOD MODE ORCHESTRATOR (Makefile v10.0)
+# BS-OPT: THE HIGH-PERFORMANCE ORCHESTRATOR (Makefile v10.0)
 # ==============================================================================
 # Unified Docker Orchestration for Dev, Test, and Prod.
-# I'm Pickle Riiiiick!🥒 *Belch.*
+# *
 # ==============================================================================
 
 # Detect Docker Compose
@@ -15,7 +15,7 @@ COMPOSE_PROFILES := ml
 
 # Default target
 help:
-	@echo "\n🥒 Pickle Rick's Master Orchestrator (Makefile v10.0) 🥒"
+	@echo "\n High-Performance Engine's Master Orchestrator (Makefile v10.0) "
 	@echo "======================================================="
 	@echo "Core Commands:"
 	@echo "  up           - Start the development stack (Background)"
@@ -39,7 +39,7 @@ help:
 	@echo "  migrate      - Run full database migration sequence"
 	@echo "  db-shell     - Open a psql shell to the database"
 	@echo "  db-optimize  - Run vacuum and manual TimescaleDB chunk compression"
-	@echo "  db-benchmark - Run God-Mode database performance benchmark"
+	@echo "  db-benchmark - Run High-Performance database performance benchmark"
 	@echo ""
 	@echo "Specialized Clusters:"
 	@echo "  manifold     - Launch the HFT Silicon Swarm (Privileged)"
@@ -72,7 +72,7 @@ build:
 	$(DOCKER_COMPOSE) build
 
 build-prod:
-	@echo "🥒 Building Production-ready images..."
+	@echo " Building Production-ready images..."
 	docker build --target production -t bsopt/api:latest -f docker/Dockerfile.api .
 	docker build --target production -t bsopt/worker:latest -f docker/Dockerfile.worker .
 	docker build --target production -t bsopt/scraper:latest -f docker/Dockerfile.scraper .
@@ -93,11 +93,11 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 migrate:
-	@echo "🥒 Running God-Mode Idempotent Deployment Sequence..."
+	@echo " Running High-Performance Idempotent Deployment Sequence..."
 	$(DOCKER_COMPOSE) exec -T api bash scripts/deploy_db_updates.sh
 
 test-migrate:
-	@echo "🥒 Initializing Test Database (bsopt_test)..."
+	@echo " Initializing Test Database (bsopt_test)..."
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE bsopt_test;" || true
 	$(DOCKER_COMPOSE) exec -T api bash -c "export DATABASE_URL=\$$DATABASE_URL_TEST && bash scripts/deploy_db_updates.sh"
 
@@ -105,11 +105,11 @@ db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
 db-audit:
-	@echo "🥒 Running God-Mode Manifold Audit..."
+	@echo " Running High-Performance Manifold Audit..."
 	$(DOCKER_COMPOSE) exec -T api python3 src/database/verify.py
 
 db-optimize:
-	@echo "🥒 Pressurizing the Manifold (Database Optimization)..."
+	@echo " Pressurizing the Manifold (Database Optimization)..."
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "VACUUM (ANALYZE, VERBOSE);"
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "REINDEX TABLE CONCURRENTLY orders; REINDEX TABLE CONCURRENTLY positions;"
 	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "CALL refresh_standard_materialized_views(NULL, NULL);"
@@ -129,7 +129,7 @@ security-scan:
 # --- Build & Protos ---
 
 protos:
-	@echo "🥒 Compiling Protocol Buffers..."
+	@echo " Compiling Protocol Buffers..."
 	$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
 	        -I=protos --python_out=src/protos --pyi_out=src/protos --grpc_python_out=src/protos protos/*.proto
 	@# Fix relative imports
@@ -137,14 +137,14 @@ protos:
 	@docker compose run --rm api sed -i 's/^import \(.*_pb2\)/from . import \1/' src/protos/inference_pb2_grpc.py
 
 xdp:
-	@echo "🥒 Compiling Silicon-Level XDP Filter..."
+	@echo " Compiling Silicon-Level XDP Filter..."
 	docker run --rm -v $$(pwd):/app -w /app alpine:latest sh -c \
 	        "apk add --no-cache clang llvm make libbpf-dev linux-headers && \
 	         clang -O2 -target bpf -c scripts/hft/xdp_filter.c -o scripts/hft/xdp_filter.o"
 
 # Build Rust/WASM kernels inside a container
 wasm:
-	@echo "🥒 Compiling High-Performance WASM Kernels... Stand back!"
+	@echo " Compiling High-Performance WASM Kernels... Stand back!"
 	docker run --rm -v $$(pwd):/app -w /app rust:slim sh -c \
 	        "rustup target add wasm32-unknown-unknown && \
 	         cd src/wasm && cargo build --target wasm32-unknown-unknown --release && \
@@ -153,80 +153,80 @@ wasm:
 # --- Testing ---
 
 test-all:
-	@echo "🥒 Launching Containerized Test Suite (God Mode)..."
+	@echo " Launching Containerized Test Suite (High-Performance)..."
 	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest -n 2 tests/
 
 test-local:
-	@echo "🥒 Launching Local Test Suite (Bare Metal)... Stand back!"
+	@echo " Launching Local Test Suite (Bare Metal)... Stand back!"
 	PYTHONPATH=src python3 -m pytest tests/
 
 # --- Specialized ---
 
 manifold:
-	@echo "🥒 Launching THE SOLENYA MANIFOLD..."
+	@echo " Launching THE HIGH-PERFORMANCE MANIFOLD..."
 	$(DOCKER_COMPOSE) --profile hft up -d postgres redis rabbitmq
 	$(DOCKER_COMPOSE) --profile hft run --rm manifold
 
 proxy:
-	@echo "🥒 Launching stack with SECURE GATEWAY..."
+	@echo " Launching stack with SECURE GATEWAY..."
 	$(DOCKER_COMPOSE) --profile proxy up -d
 
 # Launch the Observability Stack (Prometheus & Grafana)
 obs:
-	@echo "🥒 Launching THE ORACLE (Observability)... Stand back!"
+	@echo " Launching THE ORACLE (Observability)... Stand back!"
 	$(DOCKER_COMPOSE) --profile observability up -d
 
 # Launch the ML Cluster (Ray + MLflow)
 ml:
-	@echo "🥒 Launching THE BRAIN (ML Cluster)... Stand back!"
+	@echo " Launching THE BRAIN (ML Cluster)... Stand back!"
 	$(DOCKER_COMPOSE) --profile ml up -d
 
 ml-build:
-	@echo "🥒 Building High-Performance MLOps Runtime..."
+	@echo " Building High-Performance MLOps Runtime..."
 	docker build -f docker/Dockerfile.mlops -t bsopt-mlops-runtime:latest .
 
 ml-train:
-	@echo "🥒 Triggering Autonomous ML Training for $(TICKER)..."
+	@echo " Triggering Autonomous ML Training for $(TICKER)..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_regressor -P ticker=$(TICKER) --no-conda
 
 ml-rl-train:
-	@echo "🥒 Triggering RL Trading Policy Training..."
+	@echo " Triggering RL Trading Policy Training..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_rl -P timesteps=$(STEPS) --no-conda
 
 ml-dt-train:
-	@echo "🥒 Triggering Distributed Decision Transformer Training..."
+	@echo " Triggering Distributed Decision Transformer Training..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_distributed_dt -P workers=$(WORKERS) -P epochs=$(EPOCHS) --no-conda
 
 ml-offline-dt-train:
-	@echo "🥒 Triggering Offline Decision Transformer Training..."
+	@echo " Triggering Offline Decision Transformer Training..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e offline_train_dt -P epochs=$(EPOCHS) --no-conda
 
 ml-fl-train:
-	@echo "🥒 Triggering Federated Learning Coordinator..."
+	@echo " Triggering Federated Learning Coordinator..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_federated -P rounds=$(ROUNDS) --no-conda
 
 ml-tft-train:
-	@echo "🥒 Triggering TFT Forecasting Training for $(TICKER)..."
+	@echo " Triggering TFT Forecasting Training for $(TICKER)..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_tft -P ticker=$(TICKER) -P epochs=$(EPOCHS) --no-conda
 
 ml-evaluate:
-	@echo "🥒 Evaluating Challenger Run: $(RUN_ID) against Production..."
+	@echo " Evaluating Challenger Run: $(RUN_ID) against Production..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e evaluate_challenger -P model=$(MODEL) -P challenger=$(RUN_ID) --no-conda
 
 ml-promote:
-	@echo "🥒 Promoting Model $(MODEL) [Run: $(RUN_ID)] to Production..."
+	@echo " Promoting Model $(MODEL) [Run: $(RUN_ID)] to Production..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e promote_model -P model=$(MODEL) -P run_id=$(RUN_ID) --no-conda
 
 ml-rollback:
-	@echo "🥒 Rolling Back Model $(MODEL) to Previous Version..."
+	@echo " Rolling Back Model $(MODEL) to Previous Version..."
 	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker python -c "from src.ml.utils.rollback import rollback_model; rollback_model('$(MODEL)')"
 
 ml-reload:
-	@echo "🥒 Triggering Dynamic Model Reload across the Manifold..."
+	@echo " Triggering Dynamic Model Reload across the Manifold..."
 	curl -X POST http://localhost:8000/ml/reload
 
 cli:
-	@echo "🥒 Launching Containerized CLI..."
+	@echo " Launching Containerized CLI..."
 	@$(DOCKER_COMPOSE) run --rm -v $$(pwd):/app -e DATABASE_URL=postgresql://admin:password@postgres:5432/bsopt api python scripts/bs_cli.py $$(ARGS)
 
 check-env:
@@ -234,5 +234,5 @@ check-env:
 	@test -f .env.test || echo "WARNING: .env.test not found."
 
 db-benchmark:
-	@echo "🥒 Pressurizing the Manifold (Database Benchmark)..."
+	@echo " Pressurizing the Manifold (Database Benchmark)..."
 	@$(DOCKER_COMPOSE) --profile benchmark run --rm test-runner python scripts/benchmark_db.py

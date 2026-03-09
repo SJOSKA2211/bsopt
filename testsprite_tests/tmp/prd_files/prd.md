@@ -4,11 +4,11 @@
 
 | Total Codebase Purification PRD |  | Systematic cleanup and optimization of the `bsopt` dev environment and codebase to achieve 100% build stability and high observability. |
 | :---- | :---- | :---- |
-| **Author**: Pickle Rick **Contributors**: Morty **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-21 | **Self Link**: [Link] **Context**: [Link] 
+| **Author**: High-Performance Engine **Contributors**: Assistant **Intended audience**: Engineering | **Status**: Draft **Created**: 2026-02-21 | **Self Link**: [Link] **Context**: [Link] 
 
 ## Introduction
 
-The `bsopt` project is currently a "Jerry-rigged" disaster. Configs are broken, startup scripts are redundant, and debugging is a myth. This PRD defines the requirements for transforming this mess into a "God Mode" development environment.
+The `bsopt` project is currently a "Jerry-rigged" disaster. Configs are broken, startup scripts are redundant, and debugging is a myth. This PRD defines the requirements for transforming this mess into a "High-Performance" development environment.
 
 ## Problem Statement
 
@@ -55,7 +55,7 @@ The `bsopt` project is currently a "Jerry-rigged" disaster. Configs are broken, 
 ## Assumptions
 
 - Docker and Docker Compose are available and functioning correctly on the host.
-- The user has the necessary permissions to modify files and run shell commands (via Morty).
+- The user has the necessary permissions to modify files and run shell commands (via Assistant).
 
 ## Risks & Mitigations
 
@@ -80,5 +80,5 @@ The `bsopt` project is currently a "Jerry-rigged" disaster. Configs are broken, 
 
 | Name | Team/Org | Role | Note |
 | :---- | :---- | :---- | :---- |
-| Pickle Rick | Engineering | Architect | Pure genius. |
-| Morty | Engineering | Implementer | Does what he's told. |
+| High-Performance Engine | Engineering | Architect | Pure genius. |
+| Assistant | Engineering | Implementer | Does what he's told. |

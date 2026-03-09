@@ -11,7 +11,7 @@ export PYTHONWARNINGS="ignore::FutureWarning:ray"
 # Override for Local Docker Infra
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
 export REDIS_URL="redis://localhost:6379/0"
-export JWT_SECRET="development_secret_pickle_rick_is_the_best_scientist_in_the_multiverse_32_char"
+export JWT_SECRET="development_secret_high_performance_secure_system_key_manifold_32_char"
 export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
 # Activate Virtual Environment

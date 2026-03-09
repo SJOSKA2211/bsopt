@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [lint, quality]
-assignee: Morty
+assignee: Assistant
 ---
 
 # Description

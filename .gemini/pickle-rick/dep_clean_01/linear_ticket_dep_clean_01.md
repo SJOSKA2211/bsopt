@@ -10,7 +10,7 @@ links:
   - url: ../linear_ticket_parent.md
     title: Parent Ticket
 labels: [cleanup, dependencies]
-assignee: Pickle Rick
+assignee: High-Performance Engine
 ---
 
 # Description
@@ -21,4 +21,4 @@ requirements.txt contains packages like transformers, authlib, etc., that might 
 Audit dependencies and remove those not referenced in active code paths.
 
 # Discussion/Comments
-- [2026-02-03] Pickle Rick: Removed transformers, faust-streaming, authlib, and python-jose from requirements.txt.
+- [2026-02-03] High-Performance Engine: Removed transformers, faust-streaming, authlib, and python-jose from requirements.txt.
