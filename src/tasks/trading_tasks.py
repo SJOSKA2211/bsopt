@@ -128,18 +128,22 @@ def check_risk_limits(self, portfolio_id: str):
 
         # 2. Detect drift and reset tracker/Redis/SHM
         if abs(tracker.current_net_delta - actual_delta) > 0.01:
-            logger.info("delta_tracker_sync_detected_drift", old=tracker.current_net_delta, new=actual_delta)
+            logger.info(
+                "delta_tracker_sync_detected_drift", old=tracker.current_net_delta, new=actual_delta
+            )
             tracker.reset(actual_delta)
-            
+
             # Sync back to Redis for persistent workers
             from src.utils.cache import get_redis
+
             redis = get_redis()
             if redis:
                 self.run_async(redis.set("portfolio_net_delta", str(actual_delta)))
-            
+
             # Sync to SHM for hot-loop OrderEngine
             try:
                 from src.shared.shm_mesh import RiskStateBuffer
+
                 risk_buf = RiskStateBuffer(create=False)
                 risk_buf.update(actual_delta, tracker.max_net_delta)
             except Exception as shm_err:

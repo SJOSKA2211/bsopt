@@ -73,11 +73,11 @@ def _pii_masking_processor(
             if re.search(email_pattern, value):
                 event_dict[key] = re.sub(email_pattern, "masked@email.com", value)
         elif key == "client_ip" and isinstance(value, str):
-             # Specific handling for the client_ip key if it's already extracted
-             if "." in value:
-                 parts = value.split(".")
-                 if len(parts) == 4:
-                     event_dict[key] = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
+            # Specific handling for the client_ip key if it's already extracted
+            if "." in value:
+                parts = value.split(".")
+                if len(parts) == 4:
+                    event_dict[key] = f"{parts[0]}.{parts[1]}.{parts[2]}.xxx"
 
     return event_dict
 
@@ -89,7 +89,7 @@ def setup_logging():
             _TIME_STAMPER,
             _LEVEL_ADDER,
             _CALLSITE_ADDER,
-            _pii_masking_processor, # Global PII masking
+            _pii_masking_processor,  # Global PII masking
             _off_heap_processor,  #  Redirect high-freq logs
             _JSON_RENDERER,
         ],

@@ -36,6 +36,7 @@ class AutonomousMLPipeline:
     def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
         from src.ml.pipeline import MLPipeline
+
         self.pipeline = MLPipeline(config)
 
     async def run_pipeline(self) -> dict[str, Any]:
@@ -55,7 +56,7 @@ class AutonomousMLPipeline:
         import asyncio
 
         from src.ml.feature_store.store import feature_store
-        
+
         # Synchronous wrapper for feature computation
         required = ["log_return", "RSI_14", "EMA_20"]
         return asyncio.run(feature_store.compute_features(data, required))

@@ -47,7 +47,7 @@ class TradingEnvironment(gym.Env):
         self.current_step = 0
         self.portfolio_values = [self.initial_balance]
         self._window_buffer.fill(0)
-        
+
         # Pre-allocated output buffer for the JIT kernel
         self._obs_output = np.zeros((self.window_size, 128), dtype=np.float32)
 
@@ -90,7 +90,9 @@ class TradingEnvironment(gym.Env):
         """Execute one step in the environment using fused machine-code kernel."""
         # 1. Clip and Prepare Input
         action = np.clip(action, self.action_space.low, self.action_space.high).astype(np.float32)
-        prices = np.ascontiguousarray(self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32)
+        prices = np.ascontiguousarray(
+            self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32
+        )
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
         # 2. 🔥 FUSION: Execute Step Kernel
@@ -100,7 +102,7 @@ class TradingEnvironment(gym.Env):
             pos,
             float(self.balance),
             float(self.transaction_cost),
-            float(self.initial_balance)
+            float(self.initial_balance),
         )
 
         # 3. Commit state

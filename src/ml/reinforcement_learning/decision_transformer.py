@@ -8,6 +8,7 @@ class RotaryEmbedding(nn.Module):
     God-Mode: Rotary Positional Embeddings (RoPE).
     Provides relative positional information via rotation matrices in complex space.
     """
+
     def __init__(self, dim: int, max_position_embeddings: int = 2048, base: int = 10000):
         super().__init__()
         inv_freq = 1.0 / (base ** (th.arange(0, dim, 2).float() / dim))
@@ -37,6 +38,7 @@ class GatedMLP(nn.Module):
     God-Mode: Gated Linear Unit (SwiGLU variant).
     Commonly used in state-of-the-art LLMs for superior representation power.
     """
+
     def __init__(self, n_inner: int, dropout: float = 0.1):
         super().__init__()
         self.w1 = nn.Linear(n_inner, 4 * n_inner)
@@ -61,10 +63,10 @@ class AttentionBlock(nn.Module):
         self.proj = nn.Linear(n_inner, n_inner)
         self.ln_1 = nn.LayerNorm(n_inner)
         self.ln_2 = nn.LayerNorm(n_inner)
-        
+
         # ⚡ GATED MLP (SwiGLU)
         self.mlp = GatedMLP(n_inner, dropout)
-        
+
         self.dropout = nn.Dropout(dropout)
         self.drop_path = drop_path
 
@@ -77,7 +79,9 @@ class AttentionBlock(nn.Module):
         random_tensor.floor_()  # binarize
         return x.div(keep_prob) * random_tensor
 
-    def forward(self, x: th.Tensor, mask: th.Tensor | None = None, rotary_emb: tuple | None = None) -> th.Tensor:
+    def forward(
+        self, x: th.Tensor, mask: th.Tensor | None = None, rotary_emb: tuple | None = None
+    ) -> th.Tensor:
         # 1. Attention Path
         x_ln = self.ln_1(x)
         batch, seq, dim = x_ln.shape
@@ -94,16 +98,18 @@ class AttentionBlock(nn.Module):
             q, k = apply_rotary_pos_emb(q, k, cos, sin)
 
         attn_out = F.scaled_dot_product_attention(
-            q, k, v,
+            q,
+            k,
+            v,
             is_causal=(mask is not None),
             dropout_p=self.dropout.p if self.training else 0.0,
         )
 
         attn_out = attn_out.permute(0, 2, 1, 3).reshape(batch, seq, dim)
-        
+
         # Stochastic Depth
         x = x + self._drop_path(self.dropout(self.proj(attn_out)), self.drop_path, self.training)
-        
+
         # 2. MLP Path
         x = x + self._drop_path(self.mlp(self.ln_2(x)), self.drop_path, self.training)
         return x
@@ -141,7 +147,7 @@ class DecisionTransformer(nn.Module):
 
         # 🌀 RoPE Positional Embedding
         self.rotary_emb = RotaryEmbedding(self.head_dim)
-        
+
         self.embed_ln = nn.LayerNorm(n_inner)
         self.dropout = nn.Dropout(dropout)
 
@@ -183,7 +189,7 @@ class DecisionTransformer(nn.Module):
             x = block(x, mask=True, rotary_emb=(cos, sin))
 
         x_reshaped = x.reshape(batch_size, seq_len, 3, -1)
-        
+
         # Predict s_{t+1}, a_t, or r_t
         # action_preds are predicted from (R_t, S_t)
         action_preds = self.predict_action(x_reshaped[:, :, 1, :])
@@ -199,6 +205,7 @@ class QNetwork(nn.Module):
     """
     Critic Network for IQL/CQL integration.
     """
+
     def __init__(self, state_dim: int, action_dim: int, n_inner: int = 256):
         super().__init__()
         self.q1 = nn.Sequential(
@@ -206,14 +213,14 @@ class QNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(n_inner, n_inner),
             nn.ReLU(),
-            nn.Linear(n_inner, 1)
+            nn.Linear(n_inner, 1),
         )
         self.q2 = nn.Sequential(
             nn.Linear(state_dim + action_dim, n_inner),
             nn.ReLU(),
             nn.Linear(n_inner, n_inner),
             nn.ReLU(),
-            nn.Linear(n_inner, 1)
+            nn.Linear(n_inner, 1),
         )
 
     def forward(self, state, action):
@@ -225,6 +232,7 @@ class ValueNetwork(nn.Module):
     """
     Expectile Value Network for IQL.
     """
+
     def __init__(self, state_dim: int, n_inner: int = 256):
         super().__init__()
         self.v = nn.Sequential(
@@ -232,7 +240,7 @@ class ValueNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(n_inner, n_inner),
             nn.ReLU(),
-            nn.Linear(n_inner, 1)
+            nn.Linear(n_inner, 1),
         )
 
     def forward(self, state):

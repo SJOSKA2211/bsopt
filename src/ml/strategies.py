@@ -63,17 +63,18 @@ class ONNXOptimizationMixin:
     """
     God-Mode: Reusable ONNX optimization logic for strategies.
     """
+
     def export_onnx(self, model: Any, path: str, input_dim: int):
         import torch
 
         from src.ml.utils.optimization import export_to_onnx, quantize_onnx_model
-        
+
         logger.info("optimizing_model_for_onnx", path=path)
         dummy_input = torch.randn(1, input_dim)
-        
+
         # 1. Export standard
         export_to_onnx(model, dummy_input, path)
-        
+
         # 2. Quantize
         quantized_path = path.replace(".onnx", ".int8.onnx")
         try:

@@ -7,8 +7,6 @@ from multiprocessing import shared_memory
 
 import structlog
 
-logger = structlog.get_logger(__name__)
-
 # Constants from shm_mesh (re-defined or imported to avoid circularity if needed)
 # For now, we define them here or import them carefully.
 from src.shared.shm_mesh import (
@@ -25,33 +23,32 @@ from src.shared.shm_mesh import (
     TICK_SIZE,
 )
 
+logger = structlog.get_logger(__name__)
+
 SHM_CONFIGS = [
     {
         "name": "market_mesh",
         "size": 50 * 1024 * 1024,
-        "description": "General market data dictionary (msgspec)"
+        "description": "General market data dictionary (msgspec)",
     },
     {
         "name": SHM_NAME,
         "size": (TICK_SIZE * BUFFER_CAPACITY) + 8,
-        "description": "Lock-free Market Tick Ring Buffer"
+        "description": "Lock-free Market Tick Ring Buffer",
     },
     {
         "name": SHM_ORDER_NAME,
         "size": (ORDER_SIZE * ORDER_BUFFER_CAPACITY) + 8,
-        "description": "Order Command Buffer"
+        "description": "Order Command Buffer",
     },
     {
         "name": SHM_EXEC_NAME,
         "size": (EXEC_SIZE * EXEC_BUFFER_CAPACITY) + 8,
-        "description": "Execution Status Buffer"
+        "description": "Execution Status Buffer",
     },
-    {
-        "name": SHM_RISK_NAME,
-        "size": RISK_STATE_DTYPE.itemsize,
-        "description": "Risk State Buffer"
-    }
+    {"name": SHM_RISK_NAME, "size": RISK_STATE_DTYPE.itemsize, "description": "Risk State Buffer"},
 ]
+
 
 def initialize_all_shm(force: bool = False):
     """
@@ -61,7 +58,7 @@ def initialize_all_shm(force: bool = False):
     for config in SHM_CONFIGS:
         name = config["name"]
         size = config["size"]
-        
+
         if force:
             try:
                 existing = shared_memory.SharedMemory(name=name)
@@ -81,7 +78,9 @@ def initialize_all_shm(force: bool = False):
             # Check size
             shm = shared_memory.SharedMemory(name=name)
             if shm.size != size:
-                logger.warning("shm_size_mismatch_recreating", name=name, existing=shm.size, expected=size)
+                logger.warning(
+                    "shm_size_mismatch_recreating", name=name, existing=shm.size, expected=size
+                )
                 shm.close()
                 shm.unlink()
                 shm = shared_memory.SharedMemory(name=name, create=True, size=size)
@@ -92,6 +91,7 @@ def initialize_all_shm(force: bool = False):
                 logger.info("shm_already_exists", name=name)
         except Exception as e:
             logger.error("shm_init_failed", name=name, error=str(e))
+
 
 if __name__ == "__main__":
     initialize_all_shm(force=True)

@@ -2,17 +2,18 @@
 Pricing Routes (Optimized Refactored)
 """
 
-import structlog
+import datetime
 from typing import Any
+
+import msgspec
+import structlog
 from fastapi import APIRouter, Request
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.pricing import (
     BatchPriceRequest,
-    BatchPriceResult,
     GreeksRequest,
     PriceRequest,
-    PriceResult,
 )
 from src.services.pricing_service import PricingService
 
@@ -53,6 +54,21 @@ async def calculate_greeks(body: GreeksRequest):
     params = body.to_bs_params()
     result = await pricing_service.calculate_greeks(params, body.option_type)
     return result
+
+
+class CalculateResponseStruct(msgspec.Struct):
+    price: float
+    greeks: dict[str, float]
+    spot: float
+    strike: float
+    time_to_expiry: float
+    rate: float
+    volatility: float
+    option_type: str
+    model: str
+    computation_time_ms: float
+    cached: bool
+    timestamp: datetime.datetime
 
 
 @router.post("/calculate")
@@ -97,10 +113,19 @@ async def calculate(body: dict) -> MsgspecJSONResponse:
     except Exception:
         pass
 
-    # Convert result struct to dict safely for response
-    import msgspec
-    data = msgspec.to_builtins(result)
-    
-    return MsgspecJSONResponse(
-        content={"price": data.get("price", 0.0), "greeks": greeks_data, **data}
+    # Zero-copy Struct response
+    resp = CalculateResponseStruct(
+        price=getattr(result, "price", 0.0),
+        greeks=greeks_data,
+        spot=getattr(result, "spot", req.spot),
+        strike=getattr(result, "strike", req.strike),
+        time_to_expiry=getattr(result, "time_to_expiry", req.time_to_expiry),
+        rate=getattr(result, "rate", req.rate),
+        volatility=getattr(result, "volatility", req.volatility),
+        option_type=getattr(result, "option_type", req.option_type),
+        model=getattr(result, "model", req.model),
+        computation_time_ms=getattr(result, "computation_time_ms", 0.0),
+        cached=getattr(result, "cached", False),
+        timestamp=getattr(result, "timestamp", datetime.datetime.now(datetime.UTC)),
     )
+    return MsgspecJSONResponse(content=resp)

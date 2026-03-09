@@ -3,7 +3,6 @@ PostgreSQL Connection Management (The Weaponizer - God Mode)
 Optimized for PG16 + TimescaleDB 2.17+ with robust pooling and retry logic.
 """
 
-import asyncio
 import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
@@ -32,8 +31,10 @@ T = TypeVar("T")
 _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
+
 def msgspec_dumps(obj):
     return _encoder.encode(obj).decode()
+
 
 def msgspec_loads(s):
     return _decoder.decode(s)
@@ -68,11 +69,11 @@ class DatabaseManager:
             import psycopg  # noqa: F401
         except ImportError:
             driver = "psycopg2"
-        
+
         sync_url = f"{db_url}{separator}application_name={app_name}".replace(
             "postgresql://", f"postgresql+{driver}://"
         )
-        
+
         # Async path favors asyncpg
         async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
@@ -90,6 +91,7 @@ class DatabaseManager:
 
     def _setup_events(self, engine: Engine | AsyncEngine):
         """Attaches performance monitoring events to the engine."""
+
         @event.listens_for(engine, "before_cursor_execute")
         def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
             conn.info.setdefault("query_start_time", []).append(time.time())
@@ -134,7 +136,7 @@ class DatabaseManager:
             poolclass=sync_pool_class,
             json_serializer=msgspec_dumps,
             json_deserializer=msgspec_loads,
-            **sync_pool_kwargs
+            **sync_pool_kwargs,
         )
         self._setup_events(self._engine)
 
@@ -166,11 +168,11 @@ class DatabaseManager:
                     "tcp_keepalives_idle": "60",
                     "tcp_keepalives_interval": "10",
                     "tcp_keepalives_count": "5",
-                    "statement_timeout": "600000", # 10 minutes
+                    "statement_timeout": "600000",  # 10 minutes
                 },
                 "command_timeout": settings.DATABASE_POOL_TIMEOUT,
             },
-            **async_pool_kwargs
+            **async_pool_kwargs,
         )
         # Event listeners for async engine are slightly different in SQLAlchemy,
         # but for simplicity we use the same sync-style events which are supported for AsyncEngine's sync_engine.
@@ -180,7 +182,7 @@ class DatabaseManager:
         self._async_session_factory = async_sessionmaker(
             bind=self._async_engine, class_=AsyncSession, expire_on_commit=False
         )
-        
+
         self._initialized = True
         logger.info("database_manager_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
 
@@ -188,25 +190,25 @@ class DatabaseManager:
     def engine(self) -> Engine:
         if not self._engine:
             self.initialize()
-        return self._engine # type: ignore
+        return self._engine  # type: ignore
 
     @property
     def async_engine(self) -> AsyncEngine:
         if not self._async_engine:
             self.initialize()
-        return self._async_engine # type: ignore
+        return self._async_engine  # type: ignore
 
     @property
     def session_factory(self) -> sessionmaker:
         if not self._session_factory:
             self.initialize()
-        return self._session_factory # type: ignore
+        return self._session_factory  # type: ignore
 
     @property
     def async_session_factory(self) -> async_sessionmaker:
         if not self._async_session_factory:
             self.initialize()
-        return self._async_session_factory # type: ignore
+        return self._async_session_factory  # type: ignore
 
     async def dispose(self):
         """Gracefully shuts down engines."""
@@ -220,18 +222,23 @@ class DatabaseManager:
 
 db_manager = DatabaseManager()
 
+
 # --- COMPATIBILITY EXPORTS ---
 def get_engine() -> Engine:
     return db_manager.engine
 
+
 def get_async_engine() -> AsyncEngine:
     return db_manager.async_engine
+
 
 def get_sessionmaker() -> sessionmaker:
     return db_manager.session_factory
 
+
 def get_async_sessionmaker() -> async_sessionmaker:
     return db_manager.async_session_factory
+
 
 # Legacy Lazy Loaders
 class LazySessionFactory:
@@ -243,6 +250,7 @@ class LazySessionFactory:
 
     def __getattr__(self, name):
         return getattr(self._getter(), name)
+
 
 SessionLocal = LazySessionFactory(get_sessionmaker)
 AsyncSessionLocal = LazySessionFactory(get_async_sessionmaker)
@@ -257,13 +265,16 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
+
 def get_session():
     return get_db()
+
 
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for asynchronous DB sessions."""
     async with db_manager.async_session_factory() as session:
         yield session
+
 
 @contextmanager
 def get_db_context():
@@ -272,6 +283,7 @@ def get_db_context():
         yield db
     finally:
         db.close()
+
 
 @asynccontextmanager
 async def get_async_db_context():
@@ -285,6 +297,7 @@ async def set_user_context(session: AsyncSession, user_id: str):
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
     )
+
 
 def health_check() -> dict[str, Any]:
     """Enhanced database connectivity health check with retry."""
@@ -304,15 +317,17 @@ def health_check() -> dict[str, Any]:
                 logger.error("database_health_check_failed", error=str(e))
                 status["error"] = str(e)
             else:
-                time.sleep(1) # Simple backoff
+                time.sleep(1)  # Simple backoff
     return status
+
 
 def create_tables():
     """Creates all metadata tables with optimization hooks."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
         from src.database.models import Base
+
         engine = db_manager.engine
-        
+
         # 1. Extensions & Schema (Ensuring standard compliance)
         with engine.connect() as conn:
             try:
@@ -328,6 +343,7 @@ def create_tables():
             logger.info("database_metadata_synchronized")
         except Exception as e:
             logger.error("database_metadata_sync_failed", error=str(e))
+
 
 async def dispose_engine():
     await db_manager.dispose()

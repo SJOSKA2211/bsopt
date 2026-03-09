@@ -9,11 +9,13 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
+
 class RayActorPool:
     """
     God-Mode Ray Actor Pool: Handles round-robin load balancing and lifecycle management.
     OPTIMIZED: Dynamic scaling based on cluster resources.
     """
+
     def __init__(self, actor_class: type[T], count: int | None = None, name: str = "default"):
         self._actor_class = actor_class
         self._name = name
@@ -22,12 +24,14 @@ class RayActorPool:
         self._index = 0
         self._lock = asyncio.Lock()
         self._sync_lock = threading.Lock()
-        logger.info("ray_actor_pool_initialized", name=name, count=self._count, actor=actor_class.__name__)
+        logger.info(
+            "ray_actor_pool_initialized", name=name, count=self._count, actor=actor_class.__name__
+        )
 
     def _detect_optimal_count(self) -> int:
         try:
             cpus = int(ray.cluster_resources().get("CPU", 2))
-            return max(1, cpus - 1) # Reserve one for driver
+            return max(1, cpus - 1)  # Reserve one for driver
         except Exception:
             return 2
 
@@ -48,7 +52,9 @@ class RayActorPool:
     async def broadcast(self, method_name: str, *args, **kwargs) -> list[Any]:
         """Call a method on all actors in the pool simultaneously."""
         tasks = [getattr(actor, method_name).remote(*args, **kwargs) for actor in self._actors]
-        return await asyncio.gather(*[asyncio.wrap_future(t.to_async()) if hasattr(t, 'to_async') else t for t in tasks])
+        return await asyncio.gather(
+            *[asyncio.wrap_future(t.to_async()) if hasattr(t, "to_async") else t for t in tasks]
+        )
 
     def shutdown(self):
         """Cleanly shutdown all actors."""

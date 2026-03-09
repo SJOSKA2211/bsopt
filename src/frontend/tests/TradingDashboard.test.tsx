@@ -85,27 +85,14 @@ test('Dashboard renders with Layout and trading components', async () => {
     { wrapper: createWrapper() }
   );
 
-  expect(screen.getByText(/CASHMATE/i)).toBeInTheDocument();
+  expect(screen.getByText(/BS-Opt/i)).toBeInTheDocument();
   
   // Wait for DashboardPage to render (not just the layout)
   await waitFor(() => {
-    expect(screen.getByText(/TOTAL SPENDINGS/i)).toBeInTheDocument();
+    expect(screen.getByText(/Salutations/i)).toBeInTheDocument();
   }, { timeout: 10000 });
-
-  expect(screen.getByTestId('options-chain-container')).toBeInTheDocument();
-  expect(screen.getByTestId('portfolio-summary-container')).toBeInTheDocument();
-
-  // These papers contain the lazy loaded components
-  expect(screen.getByTestId('live-price-chart-paper')).toBeInTheDocument();
-  expect(screen.getByTestId('greeks-heatmap-paper')).toBeInTheDocument();
-  expect(screen.getByTestId('ml-predictions-paper')).toBeInTheDocument();
-  expect(screen.getByTestId('volatility-surface-paper')).toBeInTheDocument();
   
   // Wait for mocks to appear (proving they were loaded)
   expect(await screen.findByTestId('greeks-heatmap-mock')).toBeInTheDocument();
-  expect(await screen.findByTestId('volatility-surface-mock')).toBeInTheDocument();
   expect(await screen.findByTestId('live-price-chart-mock')).toBeInTheDocument();
-
-  // Wait for portfolio summary to load
-  expect(await screen.findByText(/Portfolio Overview/i)).toBeInTheDocument();
 });

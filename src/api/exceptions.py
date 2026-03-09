@@ -85,4 +85,5 @@ class InternalServerException(BaseAPIException):
     error_code = "InternalServerError"
     message = "An unexpected internal error occurred."
 
+
 APIException = BaseAPIException

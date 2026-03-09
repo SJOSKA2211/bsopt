@@ -42,10 +42,10 @@ def get_redis() -> Redis | None:
                 socket_keepalive=True,
                 retry_on_timeout=True,
             )
-            
+
             # If it's a mock, it might not have been initialized as we expect
             # but Redis.from_url should have returned the mock from mock_all.py
-            
+
             logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=50)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
@@ -432,6 +432,7 @@ async def get_redis_client() -> Redis:
     redis = get_redis()
     if redis is None:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail="Redis client not initialized")
     return redis
 

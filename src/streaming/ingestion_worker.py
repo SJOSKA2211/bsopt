@@ -81,17 +81,19 @@ class PersistenceWorker:
 
                     transformed = []
                     for item in batch:
-                        transformed.append((
-                            item.get("timestamp") or now_utc,
-                            item["symbol"],
-                            float(item.get("strike", 0.0)),
-                            item.get("expiry") or today_date,
-                            item.get("option_type", "call"),
-                            float(item["price"]),
-                            float(item["delta"]) if item.get("delta") is not None else None,
-                            float(item["gamma"]) if item.get("gamma") is not None else None,
-                            float(item.get("implied_volatility", 0.0)),
-                        ))
+                        transformed.append(
+                            (
+                                item.get("timestamp") or now_utc,
+                                item["symbol"],
+                                float(item.get("strike", 0.0)),
+                                item.get("expiry") or today_date,
+                                item.get("option_type", "call"),
+                                float(item["price"]),
+                                float(item["delta"]) if item.get("delta") is not None else None,
+                                float(item["gamma"]) if item.get("gamma") is not None else None,
+                                float(item.get("implied_volatility", 0.0)),
+                            )
+                        )
 
                     await db.insert_prices_vectorized(transformed)
                 except Exception as e:
@@ -144,7 +146,7 @@ class IngestionWorker:
                 self.scribe.market_queue.put_nowait(batch)
             except asyncio.QueueFull:
                 pass
-        
+
         elif topic == "audit-logs":
             try:
                 self.scribe.audit_queue.put_nowait(batch)

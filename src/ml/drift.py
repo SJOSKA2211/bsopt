@@ -12,6 +12,7 @@ from src.shared.observability import (
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -60,12 +61,14 @@ class PerformanceDriftMonitor:
                     metrics = json.loads(data)
                     self.history.clear()
                     self.history.extend(metrics)
-                    logger.info("metrics_baseline_recovered", model=self.model_name, count=len(metrics))
+                    logger.info(
+                        "metrics_baseline_recovered", model=self.model_name, count=len(metrics)
+                    )
             except Exception as e:
                 logger.warning("metrics_recovery_failed", error=str(e))
 
         try:
-            # We try to run this if we are not already in a loop, 
+            # We try to run this if we are not already in a loop,
             # or just fire and forget if we are.
             loop = asyncio.get_event_loop()
             if loop.is_running():
@@ -78,19 +81,23 @@ class PerformanceDriftMonitor:
     def add_metric(self, value: float):
         """Adds a new performance metric to the historical baseline and persists to Redis."""
         self.history.append(value)
-        
+
         from src.utils.cache import get_redis
+
         redis = get_redis()
         if redis:
+
             async def persist():
                 try:
                     import json
+
                     await redis.set(self.redis_key, json.dumps(list(self.history)))
                 except Exception as e:
                     logger.warning("metrics_persistence_failed", error=str(e))
-            
+
             try:
                 import asyncio
+
                 loop = asyncio.get_event_loop()
                 loop.create_task(persist())
             except Exception:
@@ -158,20 +165,23 @@ def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[
     return float(statistic), float(p_value)
 
 
-from numba import njit
+from numba import njit  # noqa: E402
 
 
 @njit(cache=True, fastmath=True)
-def _psi_kernel(expected_counts: np.ndarray, actual_counts: np.ndarray, expected_len: int, actual_len: int) -> float:
+def _psi_kernel(
+    expected_counts: np.ndarray, actual_counts: np.ndarray, expected_len: int, actual_len: int
+) -> float:
     """Numba-optimized PSI kernel with epsilon padding."""
     eps = 1e-6
     expected_pct = (expected_counts / expected_len) + eps
     actual_pct = (actual_counts / actual_len) + eps
-    
+
     psi_sum = 0.0
     for i in range(len(expected_pct)):
         psi_sum += (actual_pct[i] - expected_pct[i]) * np.log(actual_pct[i] / expected_pct[i])
     return psi_sum
+
 
 def calculate_psi(
     expected: np.ndarray,
@@ -194,9 +204,7 @@ def calculate_psi(
     if CORE_AVAILABLE:
         try:
             psi_score = bsopt_core.calculate_psi(
-                expected.astype(np.float64), 
-                actual.astype(np.float64), 
-                bins.astype(np.float64)
+                expected.astype(np.float64), actual.astype(np.float64), bins.astype(np.float64)
             )
         except Exception as e:
             logger.warning("rust_psi_calculation_failed_falling_back", error=str(e))
@@ -274,7 +282,7 @@ class DriftTrigger:
                     cur_val = current_data[feature]
                     _, p_val = calculate_ks_test(ref_val, cur_val)
                     psi = calculate_psi(ref_val, cur_val)
-                    
+
                     is_drifted = (psi > self.psi_threshold) or (p_val < self.ks_p_value_threshold)
                     if is_drifted:
                         self.feature_drifts[feature] = {"psi": psi, "p_value": p_val}
@@ -297,7 +305,11 @@ class DriftTrigger:
             self.performance_monitor.add_metric(current_perf)
 
         decision = bool(distribution_drift or perf_degraded)
-        reason = drift_reason if distribution_drift else ("performance_degraded" if perf_degraded else "no_drift")
+        reason = (
+            drift_reason
+            if distribution_drift
+            else ("performance_degraded" if perf_degraded else "no_drift")
+        )
 
         logger.info(
             "drift_trigger_evaluation",

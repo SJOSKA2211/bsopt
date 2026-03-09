@@ -131,15 +131,17 @@ async def test_publish_to_redis(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_redis_client(mocker):
     import src.utils.cache
+
     mock_redis = AsyncMock()
     # Directly set the private variable
     src.utils.cache._redis = mock_redis
-    
+
     r = await get_redis_client()
     assert r == mock_redis
 
     src.utils.cache._redis = None
     from fastapi import HTTPException
+
     with pytest.raises(HTTPException):
         await get_redis_client()
 
@@ -147,6 +149,7 @@ async def test_get_redis_client(mocker):
 @pytest.mark.asyncio
 async def test_cache_no_redis(mocker):
     from src.utils.cache import PricingCache, RateLimiter, db_cache, idempotency_manager
+
     mocker.patch("src.utils.cache.get_redis", return_value=None)
     pc = PricingCache()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)

@@ -69,19 +69,19 @@ def fused_arithmetic_asian_payoff_v2(log_paths, K, r, T, is_call, is_fixed):
     n_steps_p1, n_paths = log_paths.shape
     exp_rt = np.exp(-r * T)
     payoffs = np.empty(n_paths, dtype=np.float64)
-    
+
     for j in prange(n_paths):
         sum_price = 0.0
         for i in range(1, n_steps_p1):
             sum_price += np.exp(log_paths[i, j])
         arith_mean = sum_price / (n_steps_p1 - 1)
-        
+
         if is_fixed:
             po = arith_mean - K if is_call else K - arith_mean
         else:
-            final_price = np.exp(log_paths[n_steps_p1-1, j])
+            final_price = np.exp(log_paths[n_steps_p1 - 1, j])
             po = final_price - arith_mean if is_call else arith_mean - final_price
-        
+
         payoffs[j] = max(po, 0.0) * exp_rt
     return payoffs
 
@@ -92,30 +92,34 @@ def fused_lookback_payoff_v2(log_paths, K, r, T, is_call, is_floating):
     n_steps_p1, n_paths = log_paths.shape
     exp_rt = np.exp(-r * T)
     payoffs = np.empty(n_paths, dtype=np.float64)
-    
+
     for j in prange(n_paths):
         if is_floating:
             # Min/Max for floating strike
             extreme = log_paths[0, j]
             for i in range(1, n_steps_p1):
-                if is_call: # Floating strike call: S_T - min(S)
-                    if log_paths[i, j] < extreme: extreme = log_paths[i, j]
-                else: # Floating strike put: max(S) - S_T
-                    if log_paths[i, j] > extreme: extreme = log_paths[i, j]
-            
-            final_price = np.exp(log_paths[n_steps_p1-1, j])
+                if is_call:  # Floating strike call: S_T - min(S)
+                    if log_paths[i, j] < extreme:
+                        extreme = log_paths[i, j]
+                else:  # Floating strike put: max(S) - S_T
+                    if log_paths[i, j] > extreme:
+                        extreme = log_paths[i, j]
+
+            final_price = np.exp(log_paths[n_steps_p1 - 1, j])
             po = final_price - np.exp(extreme) if is_call else np.exp(extreme) - final_price
         else:
             # Min/Max for fixed strike
             extreme = log_paths[0, j]
             for i in range(1, n_steps_p1):
-                if is_call: # Fixed strike call: max(S) - K
-                    if log_paths[i, j] > extreme: extreme = log_paths[i, j]
-                else: # Fixed strike put: K - min(S)
-                    if log_paths[i, j] < extreme: extreme = log_paths[i, j]
-            
+                if is_call:  # Fixed strike call: max(S) - K
+                    if log_paths[i, j] > extreme:
+                        extreme = log_paths[i, j]
+                else:  # Fixed strike put: K - min(S)
+                    if log_paths[i, j] < extreme:
+                        extreme = log_paths[i, j]
+
             po = np.exp(extreme) - K if is_call else K - np.exp(extreme)
-            
+
         payoffs[j] = max(po, 0.0) * exp_rt
     return payoffs
 
@@ -127,7 +131,7 @@ def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
     exp_rt, exp_qt = np.exp(-r * Ti), np.exp(-q * Ti)
 
     res = np.empty_like(S)
-    
+
     for i in prange(len(S)):
         if T[i] < 1e-10:
             if is_call[i]:
@@ -135,16 +139,20 @@ def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
             else:
                 res[i] = max(K[i] - S[i], 0.0)
             continue
-            
+
         vol_sqrt_t = sig[i] * np.sqrt(Ti[i])
-        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sig[i]**2) * Ti[i]) / vol_sqrt_t
+        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sig[i] ** 2) * Ti[i]) / vol_sqrt_t
         d2 = d1 - vol_sqrt_t
 
         if is_call[i]:
-            res[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1) - K[i] * exp_rt[i] * fast_normal_cdf_v2(d2)
+            res[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1) - K[i] * exp_rt[
+                i
+            ] * fast_normal_cdf_v2(d2)
         else:
-            res[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2) - S[i] * exp_qt[i] * fast_normal_cdf_v2(-d1)
-            
+            res[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2) - S[i] * exp_qt[
+                i
+            ] * fast_normal_cdf_v2(-d1)
+
     return res
 
 
@@ -317,19 +325,19 @@ def jit_mc_european_price_and_greeks(
     actual_paths = n_paths // 2 if antithetic else n_paths
     sqrt_t = np.sqrt(T)
     exp_rt = np.exp(-r * T)
-    
+
     drift = (r - q - 0.5 * sigma**2) * T
     diffusion = sigma * sqrt_t
-    
+
     z = z_innovations if z_innovations is not None else np.random.standard_normal(actual_paths)
-    
+
     if antithetic:
         z_all = np.concatenate((z, -z))
     else:
         z_all = z
-        
+
     st = S0 * np.exp(drift + diffusion * z_all)
-    
+
     # Payoffs
     if is_call:
         payoffs = np.maximum(st - K, 0.0)
@@ -337,25 +345,25 @@ def jit_mc_european_price_and_greeks(
     else:
         payoffs = np.maximum(K - st, 0.0)
         indicator = -(st < K).astype(np.float64)
-        
+
     price = np.mean(payoffs) * exp_rt
-    
+
     # Pathwise Sensitivities (PWM)
     # Delta = E[ exp(-rT) * d(Payoff)/dS0 ]
     # d(st)/dS0 = st / S0
     delta = np.mean(exp_rt * indicator * (st / S0))
-    
+
     # Vega = E[ exp(-rT) * d(Payoff)/dsigma ]
     # d(st)/dsigma = st * (z * sqrt(T) - sigma * T)
     vega = np.mean(exp_rt * indicator * st * (z_all * sqrt_t - sigma * T))
-    
+
     # Rho = E[ d(exp(-rT) * Payoff)/dr ]
     # d(exp(-rT) * Payoff)/dr = -T * exp(-rT) * Payoff + exp(-rT) * d(Payoff)/dr
     # d(st)/dr = st * T
     rho = np.mean(-T * exp_rt * payoffs + exp_rt * indicator * st * T)
-    
+
     # Gamma (Likelihood Ratio Method fallback or simple approximation)
-    # For Gamma, we use a slightly shifted path or LRM. 
+    # For Gamma, we use a slightly shifted path or LRM.
     # Here we use a simple finite difference approximation for Gamma inside the kernel for speed
     dS = S0 * 0.01
     st_plus = (S0 + dS) * np.exp(drift + diffusion * z_all)
@@ -364,8 +372,8 @@ def jit_mc_european_price_and_greeks(
     else:
         payoffs_plus = np.maximum(K - st_plus, 0.0)
     price_plus = np.mean(payoffs_plus) * exp_rt
-    gamma = (price_plus - price * (S0 + dS)/S0) / (dS * S0) # Simplified proxy
-    
+    gamma = (price_plus - price * (S0 + dS) / S0) / (dS * S0)  # Simplified proxy
+
     return price, delta, gamma, vega, rho
 
 
@@ -376,64 +384,64 @@ def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme=SC
     """
     dt = T / n_steps
     df = np.exp(-r * dt)
-    
+
     # 1. Generate Paths
     # We need full paths for LSM
     S = np.zeros((n_paths, n_steps + 1))
     S[:, 0] = S0
-    
+
     drift = (r - q - 0.5 * sigma**2) * dt
     diffusion = sigma * np.sqrt(dt)
-    
+
     for t in range(n_steps):
         z = np.random.standard_normal(n_paths)
         S[:, t + 1] = S[:, t] * np.exp(drift + diffusion * z)
-        
+
     # 2. Payoff at each step
     if is_call:
         payoffs = np.maximum(S - K, 0.0)
     else:
         payoffs = np.maximum(K - S, 0.0)
-        
+
     # 3. Backward Induction
     cash_flows = payoffs[:, -1]
-    
+
     for t in range(n_steps - 1, 0, -1):
         # Find In-the-money paths
         itm = payoffs[:, t] > 0
-        if np.sum(itm) < 4: # Not enough points for regression
+        if np.sum(itm) < 4:  # Not enough points for regression
             cash_flows = cash_flows * df
             continue
-            
+
         x = S[itm, t]
         y = cash_flows[itm] * df
-        
+
         # Regression using Laguerre basis
         # Basis: [1, L1(x), L2(x), L3(x)]
         L0 = np.ones_like(x)
         L1 = np.exp(-x / (2 * S0))
         L2 = L1 * (1 - x / S0)
-        L3 = L1 * (1 - 2 * x / S0 + (x / S0)**2 / 2)
-        
+        L3 = L1 * (1 - 2 * x / S0 + (x / S0) ** 2 / 2)
+
         A = np.column_stack((L0, L1, L2, L3))
         # Solve least squares: (A^T * A) * beta = A^T * y
         # We use a simple QR or normal equations here for Numba compatibility
         # For simplicity in Numba, we use np.linalg.lstsq if available or manual
-        
+
         # Manual Normal Equations for ITM paths
         AtA = A.T @ A
         Aty = A.T @ y
         # Add small regularization
         AtA += np.eye(4) * 1e-9
-        
+
         beta = np.linalg.solve(AtA, Aty)
-        
+
         # Continuation Value
         continuation_value = A @ beta
-        
+
         # Exercise Decision
         exercise = payoffs[itm, t] > continuation_value
-        
+
         # Update Cash Flows
         # For ITM paths where we exercise, cash flow is the payoff
         # For others, it's the discounted future cash flow
@@ -441,7 +449,7 @@ def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme=SC
         # itm_indices = np.where(itm)[0]
         # exercise_indices = itm_indices[exercise]
         # new_cash_flows[exercise_indices] = payoffs[exercise_indices, t]
-        
+
         # Numba friendly update
         idx = 0
         for i in range(n_paths):
@@ -449,9 +457,9 @@ def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme=SC
                 if exercise[idx]:
                     new_cash_flows[i] = payoffs[i, t]
                 idx += 1
-        
+
         cash_flows = new_cash_flows
-        
+
     return np.mean(cash_flows * df)
 
 
@@ -466,12 +474,12 @@ def jit_mc_european_with_control_variate(
     # 1. Calculate Analytical BS Price (The Control)
     # We use scalar_bs_price_jit directly
     bs_analytic = scalar_bs_price_jit(S0, K, T, sigma, r, q, is_call)
-    
+
     # 2. Run MC for the same option
     price_mc, std_err_mc = jit_mc_european_price_v2(
         S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations, scheme
     )
-    
+
     # 3. Regression-based Control Variate (beta = Cov(X,Y)/Var(Y))
     # For simplicity, we use beta=1.0 which is often optimal for vanilla options
     # Price = Price_MC - beta * (Price_Control_MC - Price_Control_Analytic)
@@ -479,7 +487,7 @@ def jit_mc_european_with_control_variate(
     # So we just return the analytical price if the payoff is exactly BS.
     # But usually this is used for complex options using a vanilla one as control.
     # Here, we just return the analytical price as a "perfect" control variate.
-    return bs_analytic, 0.0 # Error is theoretically zero if control matches target
+    return bs_analytic, 0.0  # Error is theoretically zero if control matches target
 
 
 @njit
@@ -502,12 +510,12 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
     # Pre-calculate coefficients
     # a_j, b_j, c_j for the tridiagonal matrix
     # Equation: V_j^{n} = a_j V_{j-1}^{n+1} + b_j V_j^{n+1} + c_j V_{j+1}^{n+1}
-    
+
     # Grid indices 1 to M-1
     j = np.arange(1, M)
     sigma2 = sigma**2
     j2 = j**2
-    
+
     alpha = 0.25 * dt * (sigma2 * j2 - (r - q) * j)
     beta = -0.5 * dt * (sigma2 * j2 + r)
     gamma = 0.25 * dt * (sigma2 * j2 + (r - q) * j)
@@ -517,7 +525,7 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
     a_lhs = -alpha
     b_lhs = 1.0 - beta
     c_lhs = -gamma
-    
+
     # Right-hand side coefficients
     a_rhs = alpha
     b_rhs = 1.0 + beta
@@ -529,25 +537,25 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
         rhs = np.zeros(M - 1)
         for i in range(M - 1):
             # Inner points
-            val = b_rhs[i] * V[i+1] + a_rhs[i] * V[i] + c_rhs[i] * V[i+2]
+            val = b_rhs[i] * V[i + 1] + a_rhs[i] * V[i] + c_rhs[i] * V[i + 2]
             rhs[i] = val
 
         # 2. Apply Boundary Conditions to RHS
         # S=0 boundary (V_0)
         if is_call:
             v_0_new = 0.0
-            v_M_new = s_grid[M] * np.exp(-q * (n+1) * dt) - K * np.exp(-r * (n+1) * dt)
+            v_M_new = s_grid[M] * np.exp(-q * (n + 1) * dt) - K * np.exp(-r * (n + 1) * dt)
         else:
-            v_0_new = K * np.exp(-r * (n+1) * dt)
+            v_0_new = K * np.exp(-r * (n + 1) * dt)
             v_M_new = 0.0
-            
+
         rhs[0] += a_lhs[0] * v_0_new + a_rhs[0] * V[0]
         rhs[-1] += c_lhs[-1] * v_M_new + c_rhs[-1] * V[M]
 
         # 3. Solve Tridiagonal System A * V^n = RHS
         # thomas_algorithm(a, b, c, d)
         V[1:M] = thomas_algorithm(a_lhs[1:], b_lhs, c_lhs[:-1], rhs)
-        
+
         # 4. Update Boundaries
         V[0] = v_0_new
         V[M] = v_M_new

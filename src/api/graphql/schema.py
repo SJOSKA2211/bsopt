@@ -109,7 +109,7 @@ class Query:
     async def market_data(self, symbol: str) -> MarketData:
         """Fetch latest market data for a symbol using optimized router."""
         from src.api.graphql.resolvers.option_service import router
-        
+
         try:
             data = await router.get_live_quote(symbol)
             return MarketData(
@@ -118,7 +118,7 @@ class Query:
                 bid=data.get("bid"),
                 ask=data.get("ask"),
                 volume=data.get("volume"),
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             )
         except Exception:
             # Fallback for demo
@@ -128,7 +128,7 @@ class Query:
                 bid=150.20,
                 ask=150.30,
                 volume=5000,
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             )
 
     @strawberry.field
@@ -142,8 +142,9 @@ class Query:
                 high=151.0 + i,
                 low=149.0 + i,
                 close=150.5 + i,
-                volume=1000
-            ) for i in range(100)
+                volume=1000,
+            )
+            for i in range(100)
         ]
 
     @strawberry.field
@@ -151,9 +152,9 @@ class Query:
         """Fetch latest ML-based price prediction for a symbol"""
         from src.api.schemas.ml import InferenceRequest
         from src.services.ml_service import get_ml_service
-        
+
         ml_service = get_ml_service()
-        
+
         # Simulated request for the fair value prediction
         req = InferenceRequest(
             underlying_price=150.0,
@@ -164,11 +165,11 @@ class Query:
             log_moneyness=0.0,
             sqrt_time_to_expiry=0.316,
             days_to_expiry=36.5,
-            implied_volatility=0.2
+            implied_volatility=0.2,
         )
-        
+
         res = await ml_service.predict(req, symbol=symbol)
-        
+
         now = datetime.now(UTC)
         return MLPrediction(
             id=strawberry.ID(f"pred-{symbol}-{now.timestamp()}"),
@@ -177,7 +178,7 @@ class Query:
             actual_price=None,
             prediction_error=None,
             confidence_interval=0.95,
-            drift=0.0, # Would come from drift detector
+            drift=0.0,  # Would come from drift detector
             model_name=res.model_type,
             timestamp=now,
             last_updated=now,

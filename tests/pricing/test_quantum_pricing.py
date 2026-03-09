@@ -75,7 +75,10 @@ class TestQuantumPricing:
 
         # Call quantum pricing
         import asyncio
-        result = asyncio.run(pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits))
+
+        result = asyncio.run(
+            pricer.price_european_call_quantum(S0, K, T, r, sigma, num_qubits=num_qubits)
+        )
         assert "price" in result
         assert "confidence_interval" in result
         assert "speedup_factor" in result

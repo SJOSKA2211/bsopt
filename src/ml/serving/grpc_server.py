@@ -111,7 +111,7 @@ async def serve_grpc(xgb_model, nn_ort_session):
     server.add_insecure_port(listen_addr)
     logger.info(f"Starting gRPC server on {listen_addr}")
     await server.start()
-    
+
     # We return the servicer so the REST app can update its state
     return servicer
 

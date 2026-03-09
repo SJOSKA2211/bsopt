@@ -88,5 +88,15 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
-  })),
+});
+
+// Mock Apollo Client globally for components that do not have their own provider mock
+vi.mock('@apollo/client/react', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
+    useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
+    useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+  };
 });

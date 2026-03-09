@@ -11,7 +11,12 @@ import structlog
 from anyio.to_thread import run_sync
 from fastapi import HTTPException
 
-from src.api.schemas.pricing import BatchPriceResult, PriceResult
+from src.api.schemas.pricing import (
+    BatchGreeksResult,
+    BatchPriceResult,
+    GreeksResult,
+    PriceResult,
+)
 from src.pricing.black_scholes import BSParameters
 from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound
 

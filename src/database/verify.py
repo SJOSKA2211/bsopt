@@ -12,8 +12,8 @@ def verify_connection():
 
     try:
         get_settings()
-        _, _ = get_settings(), None # Trigger settings load if needed
-        
+        _, _ = get_settings(), None  # Trigger settings load if needed
+
         # We use the centralized getter to test the ACTUAL production configuration
         engine = get_engine()
         db_url = str(engine.url)
@@ -99,14 +99,16 @@ def verify_connection():
 
             # 🔥 NEW: Continuous Aggregate Freshness Check
             try:
-                cagg_freshness = conn.execute(text("""
+                cagg_freshness = conn.execute(
+                    text("""
                     SELECT 
                         view_name,
                         last_refresh_time,
                         now() - last_refresh_time as drift
                     FROM timescaledb_information.continuous_aggregates
                     WHERE last_refresh_time IS NOT NULL
-                """)).fetchall()
+                """)
+                ).fetchall()
                 for row in cagg_freshness:
                     status = "✅" if row[2].total_seconds() < 3600 else "⚠️"
                     print(f"{status} CAGG Freshness: {row[0]} (Drift: {row[2]})")
@@ -115,14 +117,16 @@ def verify_connection():
 
             # 🔥 NEW: Compression Ratio Check
             try:
-                compression_stats = conn.execute(text("""
+                compression_stats = conn.execute(
+                    text("""
                     SELECT 
                         hypertable_name,
                         compression_status,
                         uncompressed_total_bytes / NULLIF(compressed_total_bytes, 0) as ratio
                     FROM timescaledb_information.compression_settings
                     JOIN timescaledb_information.hypertables ON hypertable_name = table_name
-                """)).fetchall()
+                """)
+                ).fetchall()
                 for row in compression_stats:
                     if row[2]:
                         print(f"✅ Compression Ratio: {row[0]} ({round(row[2], 2)}x)")

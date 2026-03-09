@@ -793,9 +793,10 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
 
             await db.commit()
             return len(mesh_data)
-        
+
         # Fallback to standard insert
         from .models import MarketDataMesh
+
         await db.execute(insert(MarketDataMesh), mesh_data)
         await db.commit()
         return len(mesh_data)

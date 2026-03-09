@@ -131,6 +131,72 @@ fn batch_black_scholes(
 }
 
 #[pyfunction]
+fn batch_black_scholes_greeks(
+    py: Python<'_>,
+    spots: PyReadonlyArray1<'_, f64>,
+    strikes: PyReadonlyArray1<'_, f64>,
+    times: PyReadonlyArray1<'_, f64>,
+    vols: PyReadonlyArray1<'_, f64>,
+    rates: PyReadonlyArray1<'_, f64>,
+    divs: PyReadonlyArray1<'_, f64>,
+    are_calls: PyReadonlyArray1<'_, bool>,
+) -> PyResult<(
+    Py<PyArray1<f64>>,
+    Py<PyArray1<f64>>,
+    Py<PyArray1<f64>>,
+    Py<PyArray1<f64>>,
+    Py<PyArray1<f64>>,
+)> {
+    let spots = spots.as_array();
+    let strikes = strikes.as_array();
+    let times = times.as_array();
+    let vols = vols.as_array();
+    let rates = rates.as_array();
+    let divs = divs.as_array();
+    let are_calls = are_calls.as_array();
+
+    let n = spots.shape()[0];
+    let mut deltas = vec![0.0; n];
+    let mut gammas = vec![0.0; n];
+    let mut thetas = vec![0.0; n];
+    let mut vegas = vec![0.0; n];
+    let mut rhos = vec![0.0; n];
+
+    py.allow_threads(|| {
+        let results: Vec<Greeks> = (0..n)
+            .into_par_iter()
+            .map(|i| {
+                black_scholes_greeks(
+                    spots[i],
+                    strikes[i],
+                    times[i],
+                    vols[i],
+                    rates[i],
+                    divs[i],
+                    are_calls[i],
+                )
+            })
+            .collect();
+
+        for i in 0..n {
+            deltas[i] = results[i].delta;
+            gammas[i] = results[i].gamma;
+            thetas[i] = results[i].theta;
+            vegas[i] = results[i].vega;
+            rhos[i] = results[i].rho;
+        }
+    });
+
+    Ok((
+        PyArray1::from_vec(py, deltas).into_py(py),
+        PyArray1::from_vec(py, gammas).into_py(py),
+        PyArray1::from_vec(py, thetas).into_py(py),
+        PyArray1::from_vec(py, vegas).into_py(py),
+        PyArray1::from_vec(py, rhos).into_py(py),
+    ))
+}
+
+#[pyfunction]
 fn monte_carlo_price(
     spot: f64,
     strike: f64,
@@ -419,6 +485,7 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(monte_carlo_price, m)?)?;
     m.add_function(wrap_pyfunction!(full_risk_check, m)?)?;
     m.add_function(wrap_pyfunction!(order_engine_loop, m)?)?;

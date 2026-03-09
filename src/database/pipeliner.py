@@ -27,7 +27,7 @@ class VectorizedDBEngine:
         High-speed retrieval of training data using binary format.
         """
         from src.database import db_manager
-        
+
         # Optimized query for index-only scans
         query = """
             SELECT time, symbol, strike, expiry, option_type, last, delta, gamma, implied_volatility 
@@ -36,7 +36,7 @@ class VectorizedDBEngine:
             ORDER BY symbol, time DESC 
             LIMIT $2
         """
-        
+
         async with db_manager.async_engine.connect() as conn:
             raw_conn = await self._get_raw_conn(conn)
             try:

@@ -61,7 +61,7 @@ async def get_deep_health():
         exists = await anyio.to_thread.run_sync(os.path.exists, wasm_path)
     except Exception:
         exists = False
-    
+
     health["probes"]["wasm_opa"] = {
         "status": "verified" if exists else "missing",
         "path": wasm_path,

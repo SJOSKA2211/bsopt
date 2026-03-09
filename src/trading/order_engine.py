@@ -10,6 +10,7 @@ from src.trading.risk_kernels import _full_risk_check_v2_kernel
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -28,7 +29,7 @@ def _order_engine_hot_loop_kernel(
     order_id_counter: int,
 ) -> tuple[int, int]:
     """
-    GOD-MODE: The absolute hot-path. 
+    GOD-MODE: The absolute hot-path.
     Processes all pending orders in a single JIT-compiled pass.
     """
     current_head = head_arr[0]
@@ -38,11 +39,11 @@ def _order_engine_hot_loop_kernel(
         # OPTIMIZED: Direct NumPy access instead of Python dict/msgspec
         idx = last_head % 1000
         cmd = orders_view[idx]
-        
+
         price = cmd["price"]
         qty = cmd["quantity"]
         side = cmd["side"]
-        
+
         # Incremental Greeks for this trade
         d_delta = cmd["delta"] * qty * side
         d_gamma = cmd["gamma"] * qty * side
@@ -73,14 +74,14 @@ def _order_engine_hot_loop_kernel(
             # status=0 for reject
             execs_view[exec_idx]["order_id"] = -1
             execs_view[exec_idx]["status"] = 0
-            
+
         execs_view[exec_idx]["fill_price"] = price
         execs_view[exec_idx]["fill_qty"] = qty
         # exec_ts_ns would go here if we wanted to log it in Numba (requires time() call)
 
         last_head += 1
         processed_count += 1
-    
+
     return last_head, order_id_counter
 
 
@@ -104,10 +105,13 @@ class OrderEngine:
         # Initialize High-Speed Risk State Buffer
         try:
             from src.shared.shm_mesh import RiskStateBuffer
+
             self._risk_shm = RiskStateBuffer(create=False)
             # This is a view of the current_delta, max_delta, last_sync_ts_ns
             # We want just the current_delta field for the risk kernel
-            self._risk_state_view = self._risk_shm.view.view(np.float64).reshape(-1) # Flattened float64 view
+            self._risk_state_view = self._risk_shm.view.view(np.float64).reshape(
+                -1
+            )  # Flattened float64 view
         except Exception:
             logger.warning("risk_state_shm_missing_falling_back_to_local_only")
             self._risk_state_view = np.array([0.0], dtype=np.float64)
@@ -126,9 +130,10 @@ class OrderEngine:
         orders_ptr = 0
         execs_ptr = 0
         risk_ptr = 0
-        
+
         if CORE_AVAILABLE:
             import ctypes
+
             # SharedMemory.buf is a memoryview, we need the underlying address
             # This is a bit hacky in Python but necessary for zero-copy Rust interop
             def get_addr(buf):
@@ -148,7 +153,7 @@ class OrderEngine:
                     self._last_head,
                     self._order_id_counter,
                     float(self.max_portfolio_delta),
-                    1000, # max_qty
+                    1000,  # max_qty
                 )
             else:
                 # Fallback to Numba kernel
@@ -160,7 +165,7 @@ class OrderEngine:
                     self._last_head,
                     self._order_id_counter,
                 )
-                
+
                 if new_last_head > self._last_head:
                     # 🔥 OPTIMIZED: Update exec head via direct array view (O(1))
                     # execs.buf[:8] is the head index

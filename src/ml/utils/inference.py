@@ -16,13 +16,13 @@ class ONNXInferenceEngine:
 
     def __init__(self, model_path: str, providers: list[str] | None = None):
         self.model_path = model_path
-        
+
         # 1. Optimize Session
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
-        
+
         # 2. Select Providers
         if providers is None:
             available = ort.get_available_providers()

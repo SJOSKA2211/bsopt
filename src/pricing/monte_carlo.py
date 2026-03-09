@@ -19,6 +19,7 @@ from .base import PricingStrategy
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False

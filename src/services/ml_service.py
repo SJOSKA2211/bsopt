@@ -75,9 +75,11 @@ class MLService:
                     sqrt_time_to_expiry=request.sqrt_time_to_expiry,
                     days_to_expiry=request.days_to_expiry,
                     implied_volatility=request.implied_volatility,
-                    model_type=model_type
+                    model_type=model_type,
                 )
-                response = await asyncio.wait_for(stub.Predict(grpc_req), timeout=0.1) # 100ms timeout
+                response = await asyncio.wait_for(
+                    stub.Predict(grpc_req), timeout=0.1
+                )  # 100ms timeout
                 price = response.price
                 source = f"grpc_{model_type}"
         except Exception as e:

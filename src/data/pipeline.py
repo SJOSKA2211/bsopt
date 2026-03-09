@@ -34,16 +34,16 @@ def _rolling_mean_jit(x, w):
     if n < w:
         res[:] = x[0]
         return res
-        
+
     # Initial padding
     res[: w - 1] = x[0]
-    
+
     # Calculate initial sum
     current_sum = 0.0
     for i in range(w):
         current_sum += x[i]
     res[w - 1] = current_sum / w
-    
+
     # Sliding window
     for i in range(w, n):
         current_sum += x[i] - x[i - w]
@@ -113,22 +113,28 @@ class DataPipeline:
         strikes = np.array([r["strike"] for r in records], dtype=np.float64)
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
         ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
-        
+
         # DateTime handling (Mocked for speed if timestamps aren't available)
         # In real scenario, we'd extract float timestamps
-        expiries = np.array([r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records])
-        times = np.array([r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records])
-        
-        maturities = _calculate_maturity_jit(expiries, times)
-        maturities = np.where(maturities <= 0, 0.5, maturities) # Fallback
+        expiries = np.array(
+            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records]
+        )
+        times = np.array(
+            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records]
+        )
 
-        X_base = np.column_stack([
-            strikes,
-            maturities,
-            ivs,
-            np.full(len(records), 0.05), # Rate
-            np.full(len(records), 0.01), # Dividend
-        ])
+        maturities = _calculate_maturity_jit(expiries, times)
+        maturities = np.where(maturities <= 0, 0.5, maturities)  # Fallback
+
+        X_base = np.column_stack(
+            [
+                strikes,
+                maturities,
+                ivs,
+                np.full(len(records), 0.05),  # Rate
+                np.full(len(records), 0.01),  # Dividend
+            ]
+        )
         y_raw = last_prices
 
         #  PHASE 2: Fully Vectorized & JITed Feature Engineering

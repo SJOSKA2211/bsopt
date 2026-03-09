@@ -125,16 +125,28 @@ class AIOpsOrchestrator:
             elif anomaly_type == "data_drift":
                 logger.warning("triggering_mlflow_retrain_run")
                 try:
-                    import mlflow.projects
-                    mlflow.projects.run(
-                        uri=".",
-                        entry_point="train_regressor",
-                        parameters={
-                            "ticker": self.config.get("ticker", "AAPL"),
-                            "study_name": f"aiops_retrain_{self.config.get('ticker', 'AAPL')}"
-                        },
-                        use_conda=False,
-                        synchronous=False
+                    # OPTIMIZED: Run asynchronously so we don't block the AIOps event loop
+                    import subprocess
+                    import os
+
+                    compose_bin = os.path.join(os.getcwd(), "docker-compose")
+                    subprocess.Popen(
+                        [
+                            compose_bin,
+                            "exec",
+                            "-d",
+                            "mlops-worker",
+                            "mlflow",
+                            "run",
+                            ".",
+                            "-e",
+                            "train_regressor",
+                            "-P",
+                            f"ticker={self.config.get('ticker', 'AAPL')}",
+                            "--experiment-name",
+                            f"aiops_retrain_{self.config.get('ticker', 'AAPL')}",
+                            "--no-conda",
+                        ]
                     )
                 except Exception as e:
                     logger.error("failed_to_trigger_mlflow_run", error=str(e))

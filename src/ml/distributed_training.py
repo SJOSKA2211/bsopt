@@ -70,7 +70,7 @@ def train_func(config: dict[str, Any]):
     import ray.data
 
     dataset_path = config.get("dataset_path", "data/trajectories.parquet")
-    
+
     try:
         # 🚀 GOD-MODE: Streaming sharded data loading
         if dataset_path.endswith(".parquet"):
@@ -78,17 +78,17 @@ def train_func(config: dict[str, Any]):
         else:
             # Fallback to JSON if specified
             ds = ray.data.read_json(dataset_path)
-            
+
         # Create an iterator that shards the data across Ray workers automatically
         sharded_loader = ds.iter_torch_batches(
-            batch_size=config.get("batch_size", 64),
-            local_shuffle_buffer_size=1000
+            batch_size=config.get("batch_size", 64), local_shuffle_buffer_size=1000
         )
         logger.info("sharded_loader_optimized", path=dataset_path)
     except Exception as e:
         logger.warning("ray_data_fallback_to_local", error=str(e))
         # Fallback to local loading if Ray Data fails
         import pickle
+
         with open("data/trajectories.pkl", "rb") as f:
             trajectories = pickle.load(f)
         dataset = TrajectoryDataset(trajectories)
@@ -113,15 +113,15 @@ def train_func(config: dict[str, Any]):
             # ⚡ AMP Forward Pass
             with th.cuda.amp.autocast(enabled=config.get("use_amp", True)):
                 state_preds, action_preds, return_preds = model(states, actions, rtg, timesteps)
-                
+
                 # 1. Action Prediction Loss (P0)
                 loss_action = criterion(action_preds, actions)
-                
+
                 # 2. Auxiliary Losses for Stability (P1)
                 # Predict next state and next return
                 loss_state = criterion(state_preds[:, :-1, :], states[:, 1:, :])
                 loss_rtg = criterion(return_preds[:, :-1, :], rtg[:, 1:, :])
-                
+
                 loss = loss_action + 0.1 * loss_state + 0.1 * loss_rtg
 
             # ⚡ AMP Backward Pass
@@ -163,24 +163,28 @@ class BSOptDistributedTrainer:
         resources = ray.cluster_resources()
         cpus = int(resources.get("CPU", 1))
         gpus = int(resources.get("GPU", 0))
-        
+
         # 1. Determine Worker Count
         if self._explicit_workers:
             num_workers = self._explicit_workers
         else:
             # Leave 1 CPU for the driver
             num_workers = max(1, cpus - 1)
-            
+
         # 2. Determine GPU usage
         if self._explicit_gpu is not None:
             use_gpu = self._explicit_gpu
         else:
             # Use GPU if available and we have enough for workers
             use_gpu = gpus >= num_workers if num_workers > 0 else gpus > 0
-            
-        logger.info("resource_negotiation_complete", 
-                    cpus=cpus, gpus=gpus, 
-                    workers=num_workers, use_gpu=use_gpu)
+
+        logger.info(
+            "resource_negotiation_complete",
+            cpus=cpus,
+            gpus=gpus,
+            workers=num_workers,
+            use_gpu=use_gpu,
+        )
         return num_workers, use_gpu
 
     def run(self, config: dict[str, Any]):
@@ -198,15 +202,12 @@ class BSOptDistributedTrainer:
 
         try:
             num_workers, use_gpu = self._negotiate_resources()
-            
+
             # 🚀 GOD-MODE: Dynamic Scaling Config
             scaling_config = ScalingConfig(
                 num_workers=num_workers,
                 use_gpu=use_gpu,
-                resources_per_worker={
-                    "CPU": 1, 
-                    "GPU": 1 if use_gpu else 0
-                },
+                resources_per_worker={"CPU": 1, "GPU": 1 if use_gpu else 0},
             )
 
             trainer = TorchTrainer(
@@ -242,7 +243,7 @@ if __name__ == "__main__":
 
     # Initialize Ray
     ray.init(ignore_reinit_error=True)
-    
+
     config = {
         "lr": args.lr,
         "epochs": args.epochs,
@@ -250,6 +251,6 @@ if __name__ == "__main__":
         "dataset_path": args.dataset,
         "study_name": args.study_name,
     }
-    
+
     dt = BSOptDistributedTrainer(num_workers=args.workers, use_gpu=args.use_gpu)
     dt.run(config)

@@ -21,7 +21,8 @@ from src.blockchain.oracle import OracleManager
 from src.utils.cache import get_redis
 
 try:
-    import bsopt_core
+    import bsopt_core  # noqa: F401
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -92,7 +93,7 @@ class DeFiOptionsProtocol:
 
         self._failure_threshold = 5
         self.breaker_key = f"blockchain:breaker:{chain_id}"
-        self.breaker_expiry = 60 # 1 minute
+        self.breaker_expiry = 60  # 1 minute
 
         if private_key:
             self.account = Account.from_key(private_key)
@@ -327,7 +328,7 @@ class DeFiOptionsProtocol:
                 await self.nonce_manager.reset(
                     lambda: self.w3.eth.get_transaction_count(self.address)
                 )
-            await self._handle_rpc_failure() # COMPLIANCE: Trigger breaker on TX failure
+            await self._handle_rpc_failure()  # COMPLIANCE: Trigger breaker on TX failure
             raise
 
     async def buy_option_gasless(
@@ -336,7 +337,7 @@ class DeFiOptionsProtocol:
         contract_address: str,
         amount: int,
         deadline: int,
-        params: dict | None = None
+        params: dict | None = None,
     ) -> dict:
         """
         🚀 GASLESS OPTIMIZATION: Buy option using EIP-2612 Permit + Meta-Tx.
@@ -347,10 +348,7 @@ class DeFiOptionsProtocol:
 
         # 1. Sign Permit (EIP-2612)
         permit_sig = await self.sign_permit(
-            token_address=token_address,
-            spender=contract_address,
-            value=amount,
-            deadline=deadline
+            token_address=token_address, spender=contract_address, value=amount, deadline=deadline
         )
 
         # 2. Build Meta-Transaction Payload (EIP-712)
@@ -360,19 +358,15 @@ class DeFiOptionsProtocol:
             "asset": contract_address,
             "amount": amount,
             "price": params.get("expected_price", 0) if params else 0,
-            "nonce": await self.nonce_manager.get_next_nonce(lambda: 0), # Mocked for payload
-            "expiry": deadline
+            "nonce": await self.nonce_manager.get_next_nonce(lambda: 0),  # Mocked for payload
+            "expiry": deadline,
         }
-        
+
         tx_sig = await self.sign_order_eip712(order_payload)
 
         logger.info("gasless_payload_signed", maker=self.address, asset=contract_address)
 
-        return {
-            "permit": permit_sig,
-            "order": tx_sig,
-            "relayer_status": "READY_FOR_SUBMISSION"
-        }
+        return {"permit": permit_sig, "order": tx_sig, "relayer_status": "READY_FOR_SUBMISSION"}
 
     async def sign_order_eip712(self, order: dict) -> dict:
         """Sign an order using EIP-712 structured data."""
@@ -491,20 +485,17 @@ class DeFiOptionsProtocol:
         """
         try:
             from src.utils.http_client import HttpClientManager
+
             client = HttpClientManager.get_client()
-            
-            response = await client.post(
-                relayer_url,
-                json=payload,
-                timeout=10.0
-            )
-            
+
+            response = await client.post(relayer_url, json=payload, timeout=10.0)
+
             if response.status_code in [200, 201, 202]:
                 data = response.json()
                 tx_hash = data.get("tx_hash")
                 logger.info("meta_tx_submitted", relayer=relayer_url, tx_hash=tx_hash)
                 return tx_hash
-            
+
             raise Exception(f"Relayer rejected meta-tx: {response.text}")
         except Exception as e:
             logger.error("meta_tx_submission_failed", error=str(e))
@@ -515,16 +506,18 @@ class DeFiOptionsProtocol:
         Smart Order Router (SOR) v1.0 - Basic Liquidity Venue Discovery.
         """
         # Determine best venue based on current oracle price
-        price = await self.oracle.get_price(symbol, "0x0000000000000000000000000000000000000000", [])
-        
+        price = await self.oracle.get_price(
+            symbol, "0x0000000000000000000000000000000000000000", []
+        )
+
         # Simple logic: higher liquidity on Venue A, lower spread on Venue B
         if amount > 10.0:
             return {
                 "name": "QuickSwapV3",
-                "price": price * 1.001, # Include slippage proxy
+                "price": price * 1.001,  # Include slippage proxy
                 "gas_estimate": 150000,
             }
-        
+
         return {
             "name": "SushiswapV2",
             "price": price * 1.0005,
@@ -537,18 +530,18 @@ class DeFiOptionsProtocol:
         """
         # 1. Base SOR decision (from venues)
         base_decision = await self.route_order(symbol, amount, is_call)
-        
+
         # 2. 🔥 MEMPOOL ADJUSTMENT: Check for congestion or front-running
         # This is a simplified proxy for real mempool-aware routing
         try:
             pending_count = await self.w3.eth.get_block_transaction_count("pending")
-            if pending_count > 200: # Arbitrary high-congestion threshold
+            if pending_count > 200:  # Arbitrary high-congestion threshold
                 logger.warning("mempool_congested_adjusting_gas_strategy", count=pending_count)
                 base_decision["gas_estimate"] = int(base_decision["gas_estimate"] * 1.5)
                 base_decision["optimization"] = "urgency_maximized"
         except Exception:
             pass
-            
+
         return base_decision
 
     async def watch_mempool_hardened(self, target_addresses: list[str], callback: Callable):
@@ -556,6 +549,7 @@ class DeFiOptionsProtocol:
         Hardened Mempool Watcher with address filtering.
         Detects transactions interacting with specific contracts or our own address.
         """
+
         async def _callback_wrapper(tx_hash):
             try:
                 tx = await self.w3.eth.get_transaction(tx_hash)
@@ -578,15 +572,18 @@ class DeFiOptionsProtocol:
 
         try:
             import websockets
-            async with websockets.connect(self.feed_url if hasattr(self, 'feed_url') else self.rpc_url) as ws:
+
+            async with websockets.connect(
+                self.feed_url if hasattr(self, "feed_url") else self.rpc_url
+            ) as ws:
                 subscribe_msg = {
                     "jsonrpc": "2.0",
                     "id": 1,
                     "method": "eth_subscribe",
-                    "params": ["newPendingTransactions"]
+                    "params": ["newPendingTransactions"],
                 }
                 await ws.send(json.dumps(subscribe_msg))
-                
+
                 count = 0
                 async for message in ws:
                     data = json.loads(message)

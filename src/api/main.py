@@ -60,14 +60,17 @@ async def lifespan(app: FastAPI):
 
     # Initialize Database (Weaponizer God-Mode)
     from src.database import db_manager
+
     db_manager.initialize()
 
     # Initialize Redis
     from src.utils.cache import init_redis_cache
+
     await init_redis_cache()
 
     # Chaos Injection
     from src.utils.chaos import monkey
+
     if monkey.enabled:
         logger.warning("chaos_mode_active_injecting_startup_latency")
         await monkey.delay_db(0.5)
@@ -85,11 +88,7 @@ async def lifespan(app: FastAPI):
     logger.info("api_shutdown_complete_database_engines_disposed")
 
 
-app = FastAPI(
-    title=settings.PROJECT_NAME, 
-    default_response_class=ORJSONResponse,
-    lifespan=lifespan
-)
+app = FastAPI(title=settings.PROJECT_NAME, default_response_class=ORJSONResponse, lifespan=lifespan)
 
 
 # Middleware
@@ -196,7 +195,7 @@ api_router.include_router(ml_router)
 api_router.include_router(options_router)
 api_router.include_router(portfolio_router)
 api_router.include_router(users_router)
-api_router.include_router(websocket_router) # Include websocket router
+api_router.include_router(websocket_router)  # Include websocket router
 
 if settings.ENVIRONMENT not in ("prod", "production"):
     api_router.include_router(debug_router)

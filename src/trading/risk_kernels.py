@@ -4,6 +4,7 @@ from numba import njit
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -50,7 +51,7 @@ def _validate_delta_kernel(
     new_net_delta = state_arr[0] + trade_delta
     if abs(new_net_delta) > max_net_delta:
         return 0
-    
+
     # Commit state
     state_arr[0] = new_net_delta
     return 1
@@ -73,14 +74,20 @@ def _full_risk_check_kernel(
     Handles fat-finger protection and incremental delta validation in one pass.
     """
     # 1. Base Silicon Checks
-    if price < min_price or price > max_price or quantity <= 0 or quantity > max_qty or (side != 1 and side != -1):
+    if (
+        price < min_price
+        or price > max_price
+        or quantity <= 0
+        or quantity > max_qty
+        or (side != 1 and side != -1)
+    ):
         return 0
 
     # 2. Incremental Delta Check
     new_net_delta = state_arr[0] + trade_delta
     if abs(new_net_delta) > max_net_delta:
         return 0
-    
+
     # 3. State Commit
     state_arr[0] = new_net_delta
     return 1
@@ -92,16 +99,12 @@ class RiskVectorTracker:
     OPTIMIZED: Maintains O(1) running totals for Delta, Gamma, and Vega.
     """
 
-    def __init__(
-        self, 
-        initial_greeks: np.ndarray | None = None,
-        limits: np.ndarray | None = None
-    ):
+    def __init__(self, initial_greeks: np.ndarray | None = None, limits: np.ndarray | None = None):
         # state: [delta, gamma, vega]
         if initial_greeks is None:
             initial_greeks = np.zeros(3, dtype=np.float64)
         self._state = initial_greeks
-        
+
         # limits: [max_delta, max_gamma, max_vega]
         if limits is None:
             limits = np.array([10000.0, 5000.0, 5000.0], dtype=np.float64)
@@ -112,12 +115,12 @@ class RiskVectorTracker:
         return self._state
 
     def validate_and_update(
-        self, 
-        price: float, 
-        quantity: int, 
-        side: int, 
-        d_delta: float, 
-        d_gamma: float, 
+        self,
+        price: float,
+        quantity: int,
+        side: int,
+        d_delta: float,
+        d_gamma: float,
         d_vega: float,
         max_qty: int = 1000,
         min_price: float = 0.01,
@@ -244,8 +247,8 @@ def _full_risk_check_v2_kernel(
     d_delta: float,
     d_gamma: float,
     d_vega: float,
-    state_arr: np.ndarray, # 0:delta, 1:gamma, 2:vega
-    limits_arr: np.ndarray, # 0:max_delta, 1:max_gamma, 2:max_vega
+    state_arr: np.ndarray,  # 0:delta, 1:gamma, 2:vega
+    limits_arr: np.ndarray,  # 0:max_delta, 1:max_gamma, 2:max_vega
     max_qty: int = 1000,
     min_price: float = 0.01,
     max_price: float = 10000.0,
@@ -255,7 +258,13 @@ def _full_risk_check_v2_kernel(
     Validates Delta, Gamma, and Vega in a single pass.
     """
     # 1. Base Silicon Checks
-    if price < min_price or price > max_price or quantity <= 0 or quantity > max_qty or (side != 1 and side != -1):
+    if (
+        price < min_price
+        or price > max_price
+        or quantity <= 0
+        or quantity > max_qty
+        or (side != 1 and side != -1)
+    ):
         return 0
 
     # 2. Greeks Multi-Point Validation
@@ -263,9 +272,13 @@ def _full_risk_check_v2_kernel(
     new_gamma = state_arr[1] + d_gamma
     new_vega = state_arr[2] + d_vega
 
-    if abs(new_delta) > limits_arr[0] or abs(new_gamma) > limits_arr[1] or abs(new_vega) > limits_arr[2]:
+    if (
+        abs(new_delta) > limits_arr[0]
+        or abs(new_gamma) > limits_arr[1]
+        or abs(new_vega) > limits_arr[2]
+    ):
         return 0
-    
+
     # 3. State Commit (Local Hot-State)
     state_arr[0] = new_delta
     state_arr[1] = new_gamma

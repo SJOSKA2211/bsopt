@@ -23,6 +23,7 @@ class SHMManager[T]:
         self._shm: shared_memory.SharedMemory | None = None
         self._encoder = msgspec.msgpack.Encoder()
         self._decoder = msgspec.msgpack.Decoder(schema)
+        self._sequence = 0
 
     def create(self):
         """Create the shared memory block."""
@@ -41,7 +42,7 @@ class SHMManager[T]:
             raise RuntimeError("SHM not initialized.")
 
         packed = self._encoder.encode(data)
-        if len(packed) > self.size - 5:
+        if len(packed) > self.size - 13:
             raise ValueError(f"Data size {len(packed)} exceeds capacity")
 
         # 1. Use memoryview for fast slicing without copies
@@ -63,9 +64,11 @@ class SHMManager[T]:
         try:
             import struct
 
-            # Header: [Lock(1), Length(4)]
-            mv[1:5] = struct.pack("I", len(packed))
-            mv[5 : 5 + len(packed)] = packed
+            self._sequence += 1
+            # Header: [Lock(1), Sequence(8), Length(4)]
+            mv[1:9] = struct.pack("Q", self._sequence)
+            mv[9:13] = struct.pack("I", len(packed))
+            mv[13 : 13 + len(packed)] = packed
         finally:
             mv[0] = 0  # UNLOCK
 
@@ -79,10 +82,15 @@ class SHMManager[T]:
         while mv[0] != 0:
             pass  # Busy-wait for speed
 
-
-        length = struct.unpack("I", mv[1:5])[0]
+        length = struct.unpack("I", mv[9:13])[0]
         # Zero-copy decode from buffer
-        return self._decoder.decode(mv[5 : 5 + length])
+        return self._decoder.decode(mv[13 : 13 + length])
+
+    def get_sequence(self) -> int:
+        """Get the current sequence number from the header."""
+        if not self._shm:
+            self._shm = shared_memory.SharedMemory(name=self.name)
+        return struct.unpack("Q", self._shm.buf[1:9])[0]
 
     def close(self):
         """Close the SHM handle."""

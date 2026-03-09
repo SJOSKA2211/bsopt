@@ -64,7 +64,9 @@ class MarketDataConsumer:
             self.market_data_schema = f.read()
         self.avro_deserializer = AvroDeserializer(self.schema_registry, self.market_data_schema)
 
-    async def consume_messages(self, callback: Callable[[list[dict], str], None], batch_size: int = 100):
+    async def consume_messages(
+        self, callback: Callable[[list[dict], str], None], batch_size: int = 100
+    ):
         """
         Consume messages in adaptive batches and process with callback.
         Groups batches by topic before dispatching.
@@ -104,11 +106,11 @@ class MarketDataConsumer:
 
                 if topic_batches:
                     start_time = time.time()
-                    
+
                     # Process each topic's batch
                     for topic, batch in topic_batches.items():
                         await self._process_batch(batch, topic, callback)
-                    
+
                     duration = time.time() - start_time
 
                     # Commit offsets manually (Async for performance)

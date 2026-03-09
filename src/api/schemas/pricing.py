@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 class PriceResult(msgspec.Struct):
     """Ultra-fast msgspec struct for single price result."""
+
     price: float
     spot: float
     strike: float
@@ -29,6 +30,7 @@ class PriceResult(msgspec.Struct):
 
 class BatchPriceResult(msgspec.Struct):
     """Ultra-fast msgspec struct for batch results."""
+
     results: list[PriceResult]
     total_count: int
     computation_time_ms: float

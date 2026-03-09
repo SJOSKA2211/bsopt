@@ -1,21 +1,11 @@
-import asyncio
-import struct
 import time
 from collections.abc import Callable
-from typing import Any, Optional, cast
+from typing import Any
 
-import httpx
-import msgspec
-import orjson
-import redis.asyncio as redis
 import structlog
 
-from src.blockchain.nonce_manager import NonceManager
-from src.config import settings
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.cache import get_redis
-from src.utils.http_client import HttpClientManager
-from src.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
 
@@ -96,7 +86,9 @@ class OracleManager:
                 confidence = self.get_confidence_score("WS", age)
 
                 if confidence > 0.9:
-                    logger.info("oracle_hit_ws", symbol=symbol, price=price, confidence=round(confidence, 2))
+                    logger.info(
+                        "oracle_hit_ws", symbol=symbol, price=price, confidence=round(confidence, 2)
+                    )
                     return price
 
         # 3. 🏛️ RPC FEED (On-chain/Local Cache)
@@ -104,7 +96,9 @@ class OracleManager:
             entry = self._feeds[contract_address]
             age = now - entry["time"]
             if age < self.cache_ttl:
-                logger.info("oracle_hit_local", symbol=symbol, price=entry["price"], source=entry["source"])
+                logger.info(
+                    "oracle_hit_local", symbol=symbol, price=entry["price"], source=entry["source"]
+                )
                 return entry["price"]
 
         # 4. 🛡️ MULTI-RPC AGGREGATION

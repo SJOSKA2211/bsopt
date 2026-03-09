@@ -39,5 +39,6 @@ async def reload_models():
     # For this entry point, we might trigger a global event or specific service reloads.
     # In this unified main, we log and return success.
     from src.shared.observability import post_grafana_annotation
+
     await post_grafana_annotation("ML Manifold Reload Triggered", ["ml", "reload"])
     return {"status": "reload_triggered"}

@@ -114,12 +114,16 @@ class NeuralPricingEngine(BasePricingEngine):
         Fine-tune model for zero-latency inference.
         """
         self.model.apply_pruning(amount=prune_amount)
-        
+
         if onnx_path:
-            sample = self._params_to_tensor(BSParameters(spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.01))
+            sample = self._params_to_tensor(
+                BSParameters(
+                    spot=100, strike=100, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.01
+                )
+            )
             self.model.export_onnx(onnx_path, sample)
             logger.info("model_optimized_onnx", path=onnx_path)
-            
+
         return self
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
@@ -147,14 +151,16 @@ class NeuralPricingEngine(BasePricingEngine):
         gamma = gamma_grad[0].item()
 
         if option_type.lower() == "call":
-            return OptionGreeks(delta=call_delta, gamma=gamma, theta=call_theta, vega=call_vega, rho=call_rho)
+            return OptionGreeks(
+                delta=call_delta, gamma=gamma, theta=call_theta, vega=call_vega, rho=call_rho
+            )
         else:
             # Put Greeks via Parity (assuming q=dividend, r=rate)
             t = params.maturity
             r = params.rate
             q = params.dividend
             k = params.strike
-            
+
             # Delta_p = Delta_c - exp(-qT)
             put_delta = call_delta - np.exp(-q * t)
             # Vega_p = Vega_c
@@ -163,5 +169,7 @@ class NeuralPricingEngine(BasePricingEngine):
             put_theta = call_theta + q * params.spot * np.exp(-q * t) - r * k * np.exp(-r * t)
             # Rho_p = Rho_c - K*T*exp(-rT)
             put_rho = call_rho - k * t * np.exp(-r * t)
-            
-            return OptionGreeks(delta=put_delta, gamma=gamma, theta=put_theta, vega=call_vega, rho=put_rho)
+
+            return OptionGreeks(
+                delta=put_delta, gamma=gamma, theta=put_theta, vega=call_vega, rho=put_rho
+            )

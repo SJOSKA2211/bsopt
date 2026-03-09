@@ -69,7 +69,9 @@ class OnlineRLAgent:
                 new_brain = torch.jit.load(self.model_path)
                 new_brain.eval()
                 # Warmup: Using 128-dim features for DT-v2/GNN compatibility
-                _ = new_brain(torch.zeros((1, self.window_size, 128)), torch.zeros((2, 10), dtype=torch.long))
+                _ = new_brain(
+                    torch.zeros((1, self.window_size, 128)), torch.zeros((2, 10), dtype=torch.long)
+                )
                 self.brain = new_brain
                 self._last_brain_mtime = mtime
                 logger.info("silicon_brain_reloaded", path=self.model_path)
@@ -112,7 +114,7 @@ class OnlineRLAgent:
                         engine = PricingEngineFactory.get_engine("black_scholes")
                         params = BSParameters(S=current_price, K=100.0, T=0.1, sigma=0.2, r=0.05)
                         g_vals = engine.calculate_greeks(params)
-                        current_delta = g_vals.delta # Capture for execution
+                        current_delta = g_vals.delta  # Capture for execution
 
                         greeks = np.zeros(50, dtype=np.float32)
                         greeks[:5] = [
@@ -142,11 +144,11 @@ class OnlineRLAgent:
                             # state_vector is 100-dim (10 nodes * 10 features?)
                             # According to GATFeaturesExtractor it's input_dim=100
                             x = torch.from_numpy(state_vector).unsqueeze(0).float()
-                            
+
                             # Perform inference
                             with torch.no_grad():
                                 action = self.brain(x, self._edge_index).detach().numpy()[0]
-                            
+
                             self._execute_action(action, prices, current_delta)
 
                             # Reward Fusion
@@ -180,7 +182,9 @@ class OnlineRLAgent:
             qty = int(abs(trades[i]))
             if qty > 0:
                 side = 1 if trades[i] > 0 else -1
-                self._orders.write_order(f"OPT_{i}", float(prices[i]), qty, side, delta=current_delta)
+                self._orders.write_order(
+                    f"OPT_{i}", float(prices[i]), qty, side, delta=current_delta
+                )
                 self.positions[i] = target_units[i]
                 self.balance -= float(trades[i] * prices[i])
 

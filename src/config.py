@@ -108,7 +108,16 @@ class Settings(BaseSettings):
         }
 
     # CORS Configuration
-    CORS_ORIGINS: Annotated[list[str], BeforeValidator(lambda v: [x.strip() for x in (v if isinstance(v, list) else ([v] if isinstance(v, str) else [])) if x.strip()])] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: Annotated[
+        list[str],
+        BeforeValidator(
+            lambda v: [
+                x.strip()
+                for x in (v if isinstance(v, list) else ([v] if isinstance(v, str) else []))
+                if x.strip()
+            ]
+        ),
+    ] = ["http://localhost:3000", "http://localhost:5173"]
 
     # JWT Authentication
     JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
@@ -147,7 +156,9 @@ class Settings(BaseSettings):
 
     # Better Auth Configuration
     BETTER_AUTH_SECRET: str = Field(default="", validation_alias="BETTER_AUTH_SECRET")
-    BETTER_AUTH_URL: str = Field(default="http://localhost:3001", validation_alias="BETTER_AUTH_URL")
+    BETTER_AUTH_URL: str = Field(
+        default="http://localhost:3001", validation_alias="BETTER_AUTH_URL"
+    )
 
     # Password Hashing
     BCRYPT_ROUNDS: int = 12
@@ -158,6 +169,7 @@ class Settings(BaseSettings):
         if not (4 <= v <= 15):
             raise ValueError("BCRYPT_ROUNDS must be between 4 and 15.")
         return v
+
     ARGON2_TIME_COST: int = 3
     ARGON2_MEMORY_COST: int = 65536
     ARGON2_PARALLELISM: int = 4
@@ -271,16 +283,23 @@ class Settings(BaseSettings):
             import hashlib
 
             # Derive MFA Encryption Key if not explicitly set
-            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [_DEFAULT_DEV_MFA_KEY, "INSECURE_DEV_PLACEHOLDER"]:
+            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [
+                _DEFAULT_DEV_MFA_KEY,
+                "INSECURE_DEV_PLACEHOLDER",
+            ]:
                 # Deterministic derivation: PBKDF2 or Hmac is better, but simple SHA256 satisfies current revamp needs
                 # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
-                mfa_seed = hashlib.sha256(f"mfa-derivation-{self.BETTER_AUTH_SECRET}".encode()).digest()
+                mfa_seed = hashlib.sha256(
+                    f"mfa-derivation-{self.BETTER_AUTH_SECRET}".encode()
+                ).digest()
                 self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
                 logger.debug("derived_mfa_key_from_master_secret")
 
             # Derive JWT Secret if not explicitly set
             if not self.JWT_SECRET or self.JWT_SECRET == "change-me-in-production":
-                jwt_seed = hashlib.sha256(f"jwt-derivation-{self.BETTER_AUTH_SECRET}".encode()).hexdigest()
+                jwt_seed = hashlib.sha256(
+                    f"jwt-derivation-{self.BETTER_AUTH_SECRET}".encode()
+                ).hexdigest()
                 self.JWT_SECRET = jwt_seed
                 logger.debug("derived_jwt_secret_from_master_secret")
 
@@ -291,7 +310,9 @@ class Settings(BaseSettings):
         if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
             # 1. JWT Secret Security
             if self.JWT_SECRET == "change-me-in-production" or not self.JWT_SECRET:
-                raise ValueError("CRITICAL: JWT_SECRET must be changed from the default or derived from BETTER_AUTH_SECRET in production.")
+                raise ValueError(
+                    "CRITICAL: JWT_SECRET must be changed from the default or derived from BETTER_AUTH_SECRET in production."
+                )
 
             # 2. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY

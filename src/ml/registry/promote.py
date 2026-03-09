@@ -46,16 +46,24 @@ def notify_app_of_update(model_name, version):
     async def trigger():
         try:
             async with httpx.AsyncClient() as client:
-                resp = await client.post(serving_url, json={"model_name": model_name, "version": version})
+                resp = await client.post(
+                    serving_url, json={"model_name": model_name, "version": version}
+                )
                 if resp.status_code == 200:
                     logger.info("serving_layer_reloaded", status=resp.status_code)
                 else:
-                    logger.error("serving_layer_reload_failed_triggering_rollback", status=resp.status_code, text=resp.text)
+                    logger.error(
+                        "serving_layer_reload_failed_triggering_rollback",
+                        status=resp.status_code,
+                        text=resp.text,
+                    )
                     from src.ml.utils.rollback import rollback_model
+
                     rollback_model(model_name)
         except Exception as e:
             logger.error("serving_layer_notification_error_triggering_rollback", error=str(e))
             from src.ml.utils.rollback import rollback_model
+
             rollback_model(model_name)
 
     try:
