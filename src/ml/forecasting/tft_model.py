@@ -119,6 +119,15 @@ class PriceTFTModel:
 
         with mlflow.start_run() as run:
             mlflow.log_params(self.config)
+            
+            # OPTIMIZED: Enable torch.compile for PyTorch 2.0+
+            if hasattr(torch, "compile"):
+                try:
+                    model = torch.compile(model)
+                    logger.info("tft_model_compiled")
+                except Exception as e:
+                    logger.warning("tft_model_compile_failed", error=str(e))
+
             trainer.fit(model, train_dataloaders=data["train_loader"])
             self.model = model
 

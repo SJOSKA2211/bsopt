@@ -1,6 +1,11 @@
 name: bsopt_mlops
 
 entry_points:
+  main:
+    parameters:
+      timesteps: {type: int, default: 1000}
+    command: "mlflow run . -e train_rl -P timesteps={timesteps}"
+
   train_regressor:
     parameters:
       ticker: {type: string, default: "AAPL"}

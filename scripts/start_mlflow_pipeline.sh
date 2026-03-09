@@ -28,14 +28,16 @@ fi
 echo "Starting MLflow Pipeline: $PIPELINE_ENTRY_POINT with experiment: $STUDY_NAME"
 echo "Extra parameters: $EXTRA_PARAMS"
 
-# Use 'run' to start a fresh container for the training job, then auto-remove it
-$COMPOSE_CMD run --rm mlops-worker mlflow run . \
+# Use 'exec -d' to start the task inside the existing mlops-worker container
+$COMPOSE_CMD exec -d mlops-worker mlflow run . \
     -e "$PIPELINE_ENTRY_POINT" \
     --experiment-name "$STUDY_NAME" \
     --env-manager local \
     $EXTRA_PARAMS
 
 echo "=========================================================="
-echo "Pipeline $PIPELINE_ENTRY_POINT completed/terminated."
+echo "Pipeline $PIPELINE_ENTRY_POINT initiated inside mlops-worker."
 echo "Track results via the MLflow UI at http://localhost:5000"
+echo "To view logs, run:"
+echo "  docker compose logs -f mlops-worker"
 echo "=========================================================="

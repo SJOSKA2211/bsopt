@@ -64,7 +64,7 @@ class DataPipeline:
         self,
     ) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
         """
-        Load the latest collected data from Postgres.
+        Load the latest collected data from Postgres (Optimized extraction).
         Returns: (X, y, feature_names, metadata)
         """
         from src.database.pipeliner import db_engine
@@ -80,29 +80,32 @@ class DataPipeline:
             X, y, features = generate_synthetic_data(self.config.min_samples)
             return X, y, features, {"data_source": "synthetic_numba", "count": len(X)}
 
+        # OPTIMIZED: Vectorized extraction using NumPy from record list
         strikes = np.array([r["strike"] for r in records], dtype=np.float64)
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
         ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
 
+        # Handle datetimes efficiently
         expiries = np.array(
-            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records]
+            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records],
+            dtype=np.float64
         )
         times = np.array(
-            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records]
+            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records],
+            dtype=np.float64
         )
 
         maturities = _calculate_maturity_jit(expiries, times)
         maturities = np.where(maturities <= 0, 0.5, maturities)
 
-        X_base = np.column_stack(
-            [
-                strikes,
-                maturities,
-                ivs,
-                np.full(len(records), 0.05),  # Rate
-                np.full(len(records), 0.01),  # Dividend
-            ]
-        )
+        n = len(records)
+        X_base = np.empty((n, 5), dtype=np.float64)
+        X_base[:, 0] = strikes
+        X_base[:, 1] = maturities
+        X_base[:, 2] = ivs
+        X_base[:, 3] = 0.05  # Rate
+        X_base[:, 4] = 0.01  # Dividend
+        
         y_raw = last_prices
 
         iv_lag = np.roll(ivs, 1)
@@ -128,7 +131,7 @@ class DataPipeline:
         ]
         y = y_raw
 
-        metadata = {"data_source": "postgres_jit_vectorized", "count": len(records)}
+        metadata = {"data_source": "postgres_jit_vectorized", "count": n}
         return X, y, feature_names, metadata
 
 
@@ -229,9 +232,9 @@ if __name__ == "__main__":
 
 @njit(fastmath=True, parallel=True)
 def _rolling_mean_jit(x: np.ndarray, w: int) -> np.ndarray:
-    """Numba-optimized rolling mean with same-length padding."""
+    """Numba-optimized rolling mean with same-length padding (float64)."""
     n = len(x)
-    res = np.empty(n, dtype=np.float32)
+    res = np.empty(n, dtype=np.float64)
     if n < w:
         res[:] = x[0]
         return res
@@ -277,12 +280,19 @@ def _check_cache(file_path: str) -> bool:
 
 
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Placeholder for feature computation."""
-    logger.info("computing_features_simulated")
-    # Simulate feature computation
-    df["sma_20"] = df["close"].rolling(window=20).mean()
-    df["rsi_14"] = np.random.rand(len(df))  # Dummy RSI
-    return df
+    """Real feature computation using the centralized Feature Store (Optimized)."""
+    from src.ml.feature_store.store import feature_store
+    
+    logger.info("computing_features_production", count=len(df))
+    # Required features for pricing/training
+    required = ["log_return", "EMA_20", "RSI_14", "MACD"]
+    
+    try:
+        # feature_store handles Numba-accelerated computation internally
+        return await feature_store.compute_features(df, required)
+    except Exception as e:
+        logger.error("feature_computation_failed", error=str(e))
+        return df
 
 
 async def _background_cache_fill(df: pd.DataFrame):

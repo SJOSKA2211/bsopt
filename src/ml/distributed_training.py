@@ -252,5 +252,9 @@ if __name__ == "__main__":
         "study_name": args.study_name,
     }
 
-    dt = BSOptDistributedTrainer(num_workers=args.workers, use_gpu=args.use_gpu)
-    dt.run(config)
+    from src.ml.tracker import ExperimentTracker
+    tracker = ExperimentTracker(args.study_name, tracking_uri=args.tracking_uri)
+
+    with tracker.start_run(nested=True):
+        dt = BSOptDistributedTrainer(num_workers=args.workers, use_gpu=args.use_gpu)
+        dt.run(config)
