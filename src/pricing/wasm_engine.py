@@ -256,7 +256,8 @@ class WASMPricingEngine(PricingStrategy):
         heap = WasmModuleCache.map_wasm_memory(self.instance)
         heap[: len(input_data)] = input_data
 
-        return self.instance.batch_price_heston_mapped(0, num_options)
+        self.instance.batch_price_heston_mapped(0, num_options)
+        return heap[:num_options]
 
     def batch_price_monte_carlo(
         self,
@@ -276,9 +277,16 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return np.array([])
 
+        num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
-        return self.instance.batch_price_monte_carlo(input_data, num_paths)
+        from src.utils.wasm_loader import WasmModuleCache
+
+        heap = WasmModuleCache.map_wasm_memory(self.instance)
+        heap[: len(input_data)] = input_data
+
+        self.instance.batch_price_monte_carlo_mapped(0, num_options, num_paths)
+        return heap[:num_options]
 
     def batch_price_american_cn(
         self,
@@ -299,6 +307,13 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return np.array([])
 
+        num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
-        return self.instance.batch_price_american(input_data, m, n)
+        from src.utils.wasm_loader import WasmModuleCache
+
+        heap = WasmModuleCache.map_wasm_memory(self.instance)
+        heap[: len(input_data)] = input_data
+
+        self.instance.batch_price_american_mapped(0, num_options, m, n)
+        return heap[:num_options]
