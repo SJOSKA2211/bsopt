@@ -258,8 +258,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      ml-inference:
-        condition: service_started
     networks:
       - bsopt-network
     command: celery -A src.ml.celery_app worker -l info
