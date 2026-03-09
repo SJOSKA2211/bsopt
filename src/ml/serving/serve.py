@@ -207,15 +207,24 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
     try:
         if model_type == "xgb":
             if state["xgb_ort_session"]:
-                input_data = np.array([
-                    request.underlying_price, request.strike, request.time_to_expiry,
-                    float(request.is_call), request.moneyness, request.log_moneyness,
-                    request.sqrt_time_to_expiry, request.days_to_expiry,
-                    request.implied_volatility or 0.25
-                ], dtype=np.float32).reshape(1, -1)
+                input_data = np.array(
+                    [
+                        request.underlying_price,
+                        request.strike,
+                        request.time_to_expiry,
+                        float(request.is_call),
+                        request.moneyness,
+                        request.log_moneyness,
+                        request.sqrt_time_to_expiry,
+                        request.days_to_expiry,
+                        request.implied_volatility or 0.25,
+                    ],
+                    dtype=np.float32,
+                ).reshape(1, -1)
                 prediction = state["xgb_ort_session"].predict(input_data)[0][0]
             elif state["xgb_model"]:
                 import msgspec
+
                 df = pd.DataFrame([msgspec.to_builtins(request)])
                 prediction = state["xgb_model"].predict(df)[0]
             else:
@@ -227,12 +236,20 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
                     status_code=503, detail="Neural Network model currently unavailable"
                 )
 
-            input_data = np.array([
-                request.underlying_price, request.strike, request.time_to_expiry,
-                float(request.is_call), request.moneyness, request.log_moneyness,
-                request.sqrt_time_to_expiry, request.days_to_expiry,
-                request.implied_volatility or 0.25
-            ], dtype=np.float32).reshape(1, -1)
+            input_data = np.array(
+                [
+                    request.underlying_price,
+                    request.strike,
+                    request.time_to_expiry,
+                    float(request.is_call),
+                    request.moneyness,
+                    request.log_moneyness,
+                    request.sqrt_time_to_expiry,
+                    request.days_to_expiry,
+                    request.implied_volatility or 0.25,
+                ],
+                dtype=np.float32,
+            ).reshape(1, -1)
             prediction = state["nn_ort_session"].predict(input_data)[0][0]
 
         else:

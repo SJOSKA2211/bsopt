@@ -144,10 +144,7 @@ async def add_position(
     await db.commit()
     await db.refresh(new_pos)
 
-    return DataResponse(
-        data={"id": str(new_pos.id)},
-        message="position_created_solenya_tight"
-    )
+    return DataResponse(data={"id": str(new_pos.id)}, message="position_created_solenya_tight")
 
 
 @router.delete("/positions/{position_id}")

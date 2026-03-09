@@ -4,12 +4,12 @@ CLI Portfolio Manager
 Handles local portfolio management for the CLI.
 """
 
-import orjson
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
+import orjson
 
 
 @dataclass
@@ -57,7 +57,9 @@ class PortfolioManager:
     def _save(self) -> None:
         """Save current positions to file."""
         with open(self.portfolio_file, "wb") as f:
-            f.write(orjson.dumps([asdict(pos) for pos in self.positions], option=orjson.OPT_INDENT_2))
+            f.write(
+                orjson.dumps([asdict(pos) for pos in self.positions], option=orjson.OPT_INDENT_2)
+            )
 
     def add_position(self, position: Position) -> None:
         """Add a new position to the portfolio."""
@@ -94,7 +96,9 @@ class PortfolioManager:
             dividend=position.dividend,
         )
 
-        current_price = float(BlackScholesEngine.price(params=params, option_type=position.option_type))
+        current_price = float(
+            BlackScholesEngine.price(params=params, option_type=position.option_type)
+        )
 
         current_value = current_price * abs(position.quantity) * 100  # Assuming 100 multiplier
         entry_value = position.entry_price * abs(position.quantity) * 100
@@ -118,13 +122,12 @@ class PortfolioManager:
         if not self.positions:
             return {
                 "pnl": {"total_pnl": 0.0, "total_pnl_percent": 0.0},
-                "greeks": {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0, "rho": 0.0}
+                "greeks": {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0, "rho": 0.0},
             }
 
         from src.pricing.black_scholes import BlackScholesEngine
 
         # 1. Batch extract params
-        n = len(self.positions)
         spots = np.array([p.spot for p in self.positions], dtype=np.float64)
         strikes = np.array([p.strike for p in self.positions], dtype=np.float64)
         maturities = np.array([p.maturity for p in self.positions], dtype=np.float64)
@@ -136,19 +139,25 @@ class PortfolioManager:
         entry_prices = np.array([p.entry_price for p in self.positions], dtype=np.float64)
 
         # 2. Vectorized Pricing and Greeks
-        prices = BlackScholesEngine.price_batch(spots, strikes, maturities, vols, rates, divs, types)
-        greeks = BlackScholesEngine.calculate_greeks(spots, strikes, maturities, vols, rates, divs, types)
+        prices = BlackScholesEngine.price_batch(
+            spots, strikes, maturities, vols, rates, divs, types
+        )
+        greeks = BlackScholesEngine.calculate_greeks(
+            spots, strikes, maturities, vols, rates, divs, types
+        )
 
         # 3. Aggregate
         current_values = prices * np.abs(quantities) * 100
         entry_values = entry_prices * np.abs(quantities) * 100
-        
-        pnls = np.where(quantities > 0, current_values - entry_values, entry_values - current_values)
-        
+
+        pnls = np.where(
+            quantities > 0, current_values - entry_values, entry_values - current_values
+        )
+
         total_pnl = float(np.sum(pnls))
         total_entry_value = float(np.sum(entry_values))
         total_current_value = float(np.sum(current_values))
-        
+
         total_delta = float(np.sum(greeks.delta * quantities * 100))
         total_gamma = float(np.sum(greeks.gamma * quantities * 100))
         total_vega = float(np.sum(greeks.vega * quantities * 100))
@@ -158,7 +167,9 @@ class PortfolioManager:
         return {
             "pnl": {
                 "total_pnl": total_pnl,
-                "total_pnl_percent": (total_pnl / total_entry_value * 100) if total_entry_value != 0 else 0,
+                "total_pnl_percent": (total_pnl / total_entry_value * 100)
+                if total_entry_value != 0
+                else 0,
                 "total_entry_value": total_entry_value,
                 "total_current_value": total_current_value,
             },
@@ -170,4 +181,3 @@ class PortfolioManager:
                 "rho": total_rho,
             },
         }
-

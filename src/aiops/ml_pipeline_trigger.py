@@ -2,8 +2,6 @@ from typing import Any
 
 import structlog
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
-
 logger = structlog.get_logger()
 
 

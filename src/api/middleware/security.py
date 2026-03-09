@@ -670,6 +670,7 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 logger.warning(f"Suspicious input detected from {client_host}: {issues}")
             # Reject the request
             from src.api.responses import MsgspecJSONResponse
+
             return MsgspecJSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={"detail": "Invalid input detected"},

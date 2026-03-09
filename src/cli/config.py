@@ -4,9 +4,10 @@ CLI Configuration Manager
 Manages CLI-specific settings and preferences.
 """
 
-import orjson
 from pathlib import Path
 from typing import Any, cast
+
+import orjson
 
 
 class ConfigManager:

@@ -5,13 +5,13 @@ Handles user login, logout, and token management for the CLI.
 Stores tokens securely in the user's home directory.
 """
 
-import orjson
 import logging
 from pathlib import Path
 from typing import Any, cast
 
 import click
 import httpx
+import orjson
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +142,6 @@ class AuthManager:
         except Exception as e:
             logger.warning(f"Failed to read access token from token file: {e}")
             return None
-
 
 
 def require_auth(func):

@@ -74,19 +74,21 @@ async def get_deep_health() -> DataResponse:
 @router.get("/status")
 async def get_system_status() -> DataResponse:
     """Returns the status of various system components and circuit breakers."""
-    return DataResponse(data={
-        "status": "operational",
-        "circuits": {
-            "pricing": {
-                "state": pricing_circuit.state.value,
-                "failure_count": pricing_circuit.failure_count,
+    return DataResponse(
+        data={
+            "status": "operational",
+            "circuits": {
+                "pricing": {
+                    "state": pricing_circuit.state.value,
+                    "failure_count": pricing_circuit.failure_count,
+                },
+                "database": {
+                    "state": db_circuit.state.value,
+                    "failure_count": db_circuit.failure_count,
+                },
             },
-            "database": {
-                "state": db_circuit.state.value,
-                "failure_count": db_circuit.failure_count,
-            },
-        },
-    })
+        }
+    )
 
 
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])

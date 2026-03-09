@@ -155,11 +155,14 @@ async def login(
 @router.get("/me")
 async def read_users_me(user=Depends(get_current_active_user)) -> DataResponse:
     from src.api.schemas.user import UserResponse
+
     return DataResponse(data=UserResponse.from_orm(user))
 
 
 @router.post("/logout", deprecated=True)
-async def logout(request: Request, response: Response, user=Depends(get_current_user)) -> SuccessResponse:
+async def logout(
+    request: Request, response: Response, user=Depends(get_current_user)
+) -> SuccessResponse:
     """
     [LEGACY] Logout user.
     MIGRATION: Use /api/auth/sign-out in the auth-service (Node.js).

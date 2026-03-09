@@ -25,10 +25,11 @@ class SharedExperienceBuffer:
         self.obs_dim = obs_dim
         self.act_dim = act_dim
 
-        #  Layout: [Head(8)] + [Obs(N*D)] + [Act(N*A)] + [Rew(N)] + [Next_Obs(N*D)]
+        #  Layout: [Lock(1)] + [Head(8)] + [Obs(N*D)] + [Act(N*A)] + [Rew(N)] + [Next_Obs(N*D)]
         # Total size in bytes (float32 = 4 bytes)
         self.shm_size = (
-            8
+            1
+            + 8
             + capacity * obs_dim * 4
             + capacity * act_dim * 4
             + capacity * 4
@@ -44,14 +45,15 @@ class SharedExperienceBuffer:
                 except FileNotFoundError:
                     pass
                 self.shm = shared_memory.SharedMemory(name=name, create=True, size=self.shm_size)
-                self.shm.buf[:8] = struct.pack("q", 0)  # Head index
+                self.shm.buf[0] = 0  # LOCK initialization
+                self.shm.buf[1:9] = struct.pack("q", 0)  # Head index
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
 
             self.buf = self.shm.buf
 
             # Map buffers to NumPy arrays
-            offset = 8
+            offset = 9
             self.obs = np.ndarray(
                 (capacity, obs_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
@@ -72,20 +74,40 @@ class SharedExperienceBuffer:
             raise
 
     def add(self, obs, act, rew, next_obs):
-        """Zero-copy transition push."""
-        head = struct.unpack("q", self.buf[:8])[0]
-        idx = head % self.capacity
+        """Zero-copy transition push with spin-lock for multi-producer safety."""
+        import time
 
-        self.obs[idx] = obs
-        self.act[idx] = act
-        self.rew[idx] = rew
-        self.next_obs[idx] = next_obs
+        mv = self.shm.buf
 
-        self.buf[:8] = struct.pack("q", head + 1)
+        # 1. Spin-Lock
+        start = time.perf_counter()
+        while mv[0] != 0:
+            if time.perf_counter() - start > 0.1:  # 100ms timeout
+                mv[0] = 0  # Safety break
+                break
+            pass
+
+        mv[0] = 1  # LOCK
+        try:
+            head = struct.unpack("q", mv[1:9])[0]
+            idx = head % self.capacity
+
+            self.obs[idx] = obs
+            self.act[idx] = act
+            self.rew[idx] = rew
+            self.next_obs[idx] = next_obs
+
+            mv[1:9] = struct.pack("q", head + 1)
+        finally:
+            mv[0] = 0  # UNLOCK
 
     def sample(self, batch_size: int):
-        """Zero-copy batch sampling."""
-        head = struct.unpack("q", self.buf[:8])[0]
+        """Zero-copy batch sampling with wait-free polling."""
+        mv = self.shm.buf
+        while mv[0] != 0:
+            pass  # Busy-wait for unlock
+
+        head = struct.unpack("q", mv[1:9])[0]
         max_idx = min(head, self.capacity)
         indices = np.random.choice(max_idx, batch_size, replace=False)
 

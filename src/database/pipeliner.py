@@ -112,6 +112,7 @@ class VectorizedDBEngine:
     async def close(self):
         """Gracefully close and release resources."""
         from src.database import db_manager
+
         await db_manager.dispose()
         logger.info("db_vectorized_engine_disposed")
 

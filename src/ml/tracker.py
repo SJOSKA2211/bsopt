@@ -38,7 +38,7 @@ class ExperimentTracker:
         def run_context():
             active = mlflow.active_run()
             in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
-            
+
             # If already in a run, and nested is requested, try to start one.
             if active or in_mlflow_run:
                 if nested:
@@ -48,7 +48,7 @@ class ExperimentTracker:
                             return
                     except Exception as e:
                         logger.warning("nested_run_failed_using_existing", error=str(e))
-                
+
                 # If nesting fails or is not requested, yield the active run or a stub.
                 # Note: yield active doesn't 'end' the run on exit, which is what we want.
                 yield active or mlflow.active_run()
@@ -56,7 +56,7 @@ class ExperimentTracker:
                 if self.study_name:
                     mlflow.set_experiment(self.study_name)
                 with mlflow.start_run(nested=nested) as new_run:
-                    yield nested_run if 'nested_run' in locals() else new_run
+                    yield nested_run if "nested_run" in locals() else new_run
 
         return run_context()
 

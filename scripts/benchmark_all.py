@@ -20,12 +20,12 @@ def benchmark_jit_warmup():
     start = time.perf_counter()
     batch_bs_price_jit_v2(s, k, t, sig, r, q, is_call)
     cold_time = (time.perf_counter() - start) * 1000
-    
+
     # 2. Hot Call
     start = time.perf_counter()
     batch_bs_price_jit_v2(s, k, t, sig, r, q, is_call)
     hot_time = (time.perf_counter() - start) * 1000
-    
+
     print(f"Cold Call (JIT overhead): {cold_time:.4f}ms")
     print(f"Hot Call (Optimized): {hot_time:.4f}ms")
     if cold_time > 0:
