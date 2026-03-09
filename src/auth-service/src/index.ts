@@ -1,133 +1,125 @@
 import 'dotenv/config'
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
-import { secureHeaders } from 'hono/secure-headers'
-import { compress } from 'hono/compress'
+import fastify from 'fastify'
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+import compress from '@fastify/compress'
+import rateLimit from '@fastify/rate-limit'
 import Redis from 'ioredis'
 import { v4 as uuidv4 } from 'uuid'
 import { auth } from './auth'
-import { openAPI } from "better-auth/plugins"
 
-export const app = new Hono()
+const port = Number(process.env.PORT) || 3001
+const redisUrl = process.env.REDIS_URL || 'redis://redis:6379'
+const redis = new Redis(redisUrl)
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://redis:6379')
+async function start() {
+  const app = fastify({
+    logger: {
+      level: process.env.LOG_LEVEL || 'info',
+      serializers: {
+        req(request) {
+          return {
+            method: request.method,
+            url: request.url,
+            hostname: request.hostname,
+            remoteAddress: request.ip,
+          }
+        },
+      },
+    },
+    disableRequestLogging: process.env.NODE_ENV === 'production',
+  })
 
-// LUA script for atomic sliding window rate limiting
-const SLIDING_WINDOW_RL_SCRIPT = `
-local key = KEYS[1]
-local window = tonumber(ARGV[1])
-local limit = tonumber(ARGV[2])
-local now = tonumber(ARGV[3])
-local request_id = ARGV[4]
+  // 1. Register Plugins
+  await app.register(helmet, {
+    contentSecurityPolicy: process.env.NODE_ENV === 'production',
+  })
+  await app.register(cors, {
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    exposedHeaders: ['Content-Length'],
+    credentials: true,
+  })
+  await app.register(compress)
 
-local window_start = now - window
+  // 2. Rate Limiting (Using @fastify/rate-limit with Redis)
+  await app.register(rateLimit, {
+    redis,
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (request) => request.headers['x-forwarded-for'] as string || request.ip,
+    errorResponseBuilder: (request, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `I'm Pickle Rick! Rate limit exceeded. Try again in ${context.after}`,
+    }),
+  })
 
--- 1. Remove old requests outside the window
-redis.call('ZREMRANGEBYSCORE', key, 0, window_start)
+  // 3. Health Check
+  app.get('/health', async () => {
+    return {
+      status: 'operational',
+      service: 'auth-service',
+      timestamp: new Date().toISOString(),
+    }
+  })
 
--- 2. Count current requests in window
-local current_count = redis.call('ZCARD', key)
+  app.get('/', async () => {
+    return 'Better Auth Service (Fastify) Running 🥒'
+  })
 
-if current_count < limit then
-    -- 3. Add current request
-    redis.call('ZADD', key, now, request_id)
-    -- 4. Refresh TTL
-    redis.call('PEXPIRE', key, window)
-    return {1, current_count + 1}
-else
-    return {0, current_count}
-end
-`;
+  // 4. OpenAPI Schema
+  app.get('/openapi.json', async (request, reply) => {
+    // @ts-ignore
+    const openAPISchema = await auth.api.generateOpenAPISchema()
+    return reply.send(openAPISchema)
+  })
 
-// PII Masking Logger
-const piiMaskingLogger = (str: string) => {
-  // Simple masking for IPs and Emails in logs
-  const masked = str
-    .replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, 'XXX.XXX.XXX.XXX')
-    .replace(/\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b/g, 'masked@email.com');
-  console.log(masked);
-};
-
-// Security & Logging Middleware
-app.use('*', logger(piiMaskingLogger))
-app.use('*', compress())
-app.use('*', secureHeaders())
-app.use('*', cors({
-  origin: process.env.CORS_ORIGIN || '*',
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
-  exposeHeaders: ['Content-Length'],
-  maxAge: 600,
-  credentials: true,
-}))
-
-// Custom Redis Rate Limiting for Auth
-app.use('/api/auth/*', async (c, next) => {
-  const ip = c.req.header('x-forwarded-for') || 'anonymous';
-  const nowMs = Date.now();
-  const limit = 10; // 10 requests
-  const windowMs = 60000; // per minute
-  const requestId = uuidv4();
-  const key = `rate_limit:auth:${ip}`;
-
-  try {
-    const result = await redis.eval(
-      SLIDING_WINDOW_RL_SCRIPT,
-      1,
-      key,
-      windowMs,
-      limit,
-      nowMs,
-      requestId
-    ) as [number, number];
-
-    const [allowed, currentCount] = result;
-
-    if (!allowed) {
-      return c.json({ error: 'Too many requests' }, 429);
+  // 5. Better Auth Handler
+  app.all('/api/auth/*', async (request, reply) => {
+    // Ported internal rewrite logic
+    if (request.url === '/api/auth/login' && request.method === 'POST') {
+      const url = new URL(request.url, `http://${request.hostname}`)
+      url.pathname = '/api/auth/sign-in/email'
+      const rewrittenRequest = new Request(url.toString(), {
+        method: request.method,
+        headers: request.headers as HeadersInit,
+        body: JSON.stringify(request.body),
+      })
+      const response = await auth.handler(rewrittenRequest)
+      return reply.send(response)
     }
 
-    // Set headers similar to Python backend
-    c.header('X-RateLimit-Limit', limit.toString());
-    c.header('X-RateLimit-Remaining', Math.max(0, limit - currentCount).toString());
-  } catch (err) {
-    console.error('Rate limiting error:', err);
-    // Fail open if Redis is down
-  }
-
-  await next();
-});
-
-// Health check
-app.get('/', (c) => c.text('Better Auth Service Running '))
-
-// OpenAPI Schema
-app.get('/openapi.json', async (c) => {
-  // @ts-ignore
-  const openAPISchema = await auth.api.generateOpenAPISchema();
-  return c.json(openAPISchema);
-});
-
-// Auth Middleware/Handler
-app.all('/api/auth/*', async (c) => {
-  // Internal rewrite for convenience
-  if (c.req.path === '/api/auth/login' && c.req.method === 'POST') {
-    const url = new URL(c.req.url);
-    url.pathname = '/api/auth/sign-in/email';
-    return auth.handler(new Request(url.toString(), c.req.raw));
-  }
-
-  return auth.handler(c.req.raw);
-});
-
-if (process.env.NODE_ENV !== 'test') {
-  const port = Number(process.env.PORT) || 3001
-  console.log(`Server is running on port ${port}`)
-
-  serve({
-    fetch: app.fetch,
-    port
+    // Standard handler
+    const response = await auth.handler(request.raw)
+    return reply.send(response)
   })
+
+  // 6. Graceful Shutdown
+  const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT']
+  signals.forEach((signal) => {
+    process.on(signal, async () => {
+      app.log.info({ signal }, 'Closing Auth Service...')
+      try {
+        await app.close()
+        await redis.quit()
+        process.exit(0)
+      } catch (err) {
+        app.log.error(err, 'Error during shutdown')
+        process.exit(1)
+      }
+    })
+  })
+
+  // 7. Start Server
+  try {
+    await app.listen({ port, host: '0.0.0.0' })
+    app.log.info(`Auth Service ready at http://0.0.0.0:${port}`)
+  } catch (err) {
+    app.log.error(err)
+    process.exit(1)
+  }
 }
+
+start()
