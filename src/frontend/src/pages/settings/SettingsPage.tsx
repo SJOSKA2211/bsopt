@@ -95,7 +95,7 @@ export const SettingsPage: React.FC = () => {
       </Box>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <SettingsSection title="Quantum Preferences" icon={<Bolt />}>
             <SettingRow
               label="Engine Precision"
@@ -157,7 +157,7 @@ export const SettingsPage: React.FC = () => {
           </SettingsSection>
         </Grid>
 
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <SettingsSection title="Vault Security" icon={<Security />}>
             <Stack spacing={4}>
               <Box sx={{ p: 2, bgcolor: alpha('#f43f5e', 0.05), border: `1px solid ${alpha('#f43f5e', 0.2)}`, borderRadius: 3 }}>
