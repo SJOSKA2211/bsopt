@@ -65,7 +65,7 @@ $DOCKER_COMPOSE up -d ray-head rl-training-worker
 
 # 5. Start App Services in Docker
 echo "🚀 Launching App Services (Containerized)..."
-$DOCKER_COMPOSE up -d auth-service api frontend scraper neural-pricing worker-ml
+$DOCKER_COMPOSE up -d auth-service api app-gateway frontend scraper neural-pricing worker-ml
 
 # 6. Unified Health Check
 echo "⏳ Waiting for App Services to be healthy..."
@@ -76,7 +76,9 @@ check_app_health() {
     # Check API
     curl -s http://localhost:8000/health | grep -q "ok" || return 1
     # Check Auth
-    curl -s http://localhost:3001 > /dev/null || return 1
+    curl -s http://localhost:3001/health | grep -q "operational" || return 1
+    # Check Gateway
+    curl -s http://localhost:4000/health | grep -q "operational" || return 1
     # Check Neural Pricing
     curl -s http://localhost:8001/health | grep -q "ok" || return 1
     return 0
