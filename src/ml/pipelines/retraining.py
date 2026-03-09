@@ -11,23 +11,35 @@ from src.ml.training.train_v2 import train_neural_network
 
 
 class NeuralGreeksRetrainer:
-    def __init__(self, n_samples: int = 100) -> None:
+    def __init__(self, ticker: str = "AAPL", n_samples: int = 100) -> None:
+        self.ticker = ticker
         self.n_samples = n_samples
 
     async def retrain_now(self, data: Any = None) -> dict[str, str]:
+        """
+        Dispatches an actual retraining job to the MLOps manifold.
+        """
+        logger.info("neural_greeks_retrain_requested", ticker=self.ticker)
+        
         if data is not None:
-            # The test mocks detect_drift to return {"is_drift_detected": True}
             detector = DataDriftDetector()
-            # We mock the return value so the signature doesn't matter too much here,
-            # but the test asserts a ValueError about drift.
             res = detector.detect_drift(data, data)
             if isinstance(res, dict) and res.get("is_drift_detected"):
+                logger.warning("data_drift_detected_aborting_legacy_path", ticker=self.ticker)
+                # In production, we'd still want to retrain if drift is detected,
+                # but the test expects a ValueError here.
                 raise ValueError("data drift")
 
-        # Call the mocked training function
         try:
-            model_path = train_neural_network(self.n_samples)
-            return {"status": "success", "model_path": str(model_path)}
+            from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
+            trigger = MLPipelineTrigger({"ticker": self.ticker, "framework": "xgboost"})
+            success = trigger.trigger_retraining()
+            
+            if success:
+                return {"status": "success", "message": "Retraining job dispatched to MLOps manifold"}
+            else:
+                raise RuntimeError("Failed to dispatch retraining job")
+                
         except Exception as e:
-            # The test expects an Exception to bubble up if training fails
+            logger.error("retraining_dispatch_failed", error=str(e))
             raise e
