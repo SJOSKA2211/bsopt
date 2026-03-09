@@ -155,14 +155,11 @@ def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu
     return res
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, parallel=True)
 def _sabr_objective_jit(params, strikes, market_vols, weights, forward, maturity, fixed_beta):
     """JIT accelerated objective function for SABR calibration."""
     alpha = params[0]
-    fixed_beta if fixed_beta > 0 else params[1]
-    rho = (
-        params[2] if fixed_beta > 0 else params[2]
-    )  # rho is index 1 if beta is fixed, but let's be careful
+    
     # Adjust for fixed beta case in params vector
     if fixed_beta > 0:
         rho = params[1]
@@ -175,7 +172,7 @@ def _sabr_objective_jit(params, strikes, market_vols, weights, forward, maturity
 
     n = len(strikes)
     residuals = np.empty(n, dtype=np.float64)
-    for i in range(n):
+    for i in prange(n):
         model_vol = _sabr_implied_vol_jit(strikes[i], forward, maturity, alpha, beta_val, rho, nu)
         residuals[i] = (model_vol - market_vols[i]) * weights[i]
     return residuals
@@ -536,7 +533,7 @@ class VolatilitySurface:
         import pandas as pd
 
         strikes = np.linspace(strike_range[0], strike_range[1], num_points)
-        vols = [self.implied_volatility(k_v, maturity) for k_v in strikes]
+        vols = self.implied_volatility(strikes, maturity)
         return pd.DataFrame(
             {
                 "strike": strikes,

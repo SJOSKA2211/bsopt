@@ -3,6 +3,7 @@ Options data routes used by the frontend dashboard.
 Optimized for high-performance database retrieval.
 """
 
+import msgspec
 from datetime import date, timedelta
 from typing import Any
 
@@ -16,6 +17,26 @@ from src.database import get_async_db
 from src.database.models import OptionPrice
 
 router = APIRouter(prefix="/options", tags=["Options"], default_response_class=MsgspecJSONResponse)
+
+
+class OptionChainItem(msgspec.Struct):
+    id: str
+    symbol: str
+    strike: float
+    expiry: str
+    option_type: str
+    bid: float = 0.0
+    ask: float = 0.0
+    last: float = 0.0
+    volume: int = 0
+    open_interest: int = 0
+    iv: float = 0.0
+    delta: float | None = None
+    gamma: float | None = None
+    vega: float | None = None
+    theta: float | None = None
+    rho: float | None = None
+    time: str | None = None
 
 
 @router.get("/chain")
@@ -50,25 +71,25 @@ async def get_options_chain(
         if prices:
             return DataResponse(
                 data=[
-                    {
-                        "id": f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
-                        "symbol": p.symbol,
-                        "strike": float(p.strike),
-                        "expiry": p.expiry.isoformat(),
-                        "option_type": p.option_type,
-                        "bid": float(p.bid) if p.bid else 0.0,
-                        "ask": float(p.ask) if p.ask else 0.0,
-                        "last": float(p.last) if p.last else 0.0,
-                        "volume": p.volume,
-                        "open_interest": p.open_interest,
-                        "iv": p.implied_volatility,
-                        "delta": p.delta,
-                        "gamma": p.gamma,
-                        "vega": p.vega,
-                        "theta": p.theta,
-                        "rho": p.rho,
-                        "time": p.time.isoformat(),
-                    }
+                    OptionChainItem(
+                        id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
+                        symbol=p.symbol,
+                        strike=float(p.strike),
+                        expiry=p.expiry.isoformat(),
+                        option_type=p.option_type,
+                        bid=float(p.bid) if p.bid else 0.0,
+                        ask=float(p.ask) if p.ask else 0.0,
+                        last=float(p.last) if p.last else 0.0,
+                        volume=p.volume or 0,
+                        open_interest=p.open_interest or 0,
+                        iv=float(p.implied_volatility) if p.implied_volatility else 0.0,
+                        delta=float(p.delta) if p.delta is not None else None,
+                        gamma=float(p.gamma) if p.gamma is not None else None,
+                        vega=float(p.vega) if p.vega is not None else None,
+                        theta=float(p.theta) if p.theta is not None else None,
+                        rho=float(p.rho) if p.rho is not None else None,
+                        time=p.time.isoformat() if p.time else None,
+                    )
                     for p in prices
                 ],
                 message="Real-time manifold data",

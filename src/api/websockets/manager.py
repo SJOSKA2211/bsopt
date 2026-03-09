@@ -95,11 +95,13 @@ class ConnectionManager:
                                         symbol, item, from_redis=True, is_raw=False
                                     )
                                 )
+                        await asyncio.sleep(0.001)  # 1ms poll when active
+                    else:
+                        await asyncio.sleep(0.01)  # 10ms poll when idle
                 except FileNotFoundError:
-                    pass
+                    await asyncio.sleep(0.05)
                 except Exception:
-                    pass
-                await asyncio.sleep(0.01)  # 10ms poll
+                    await asyncio.sleep(0.01)
         except asyncio.CancelledError:
             logger.info("ws_shm_listener_cancelled")
 

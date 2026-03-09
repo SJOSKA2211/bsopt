@@ -169,6 +169,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
     ports:
       - "6379:6379"
     networks:

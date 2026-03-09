@@ -1,144 +1,72 @@
 """
-Common API Schemas
+Common API Schemas (Optimized msgspec)
 
-Shared schemas for API responses and pagination.
+Shared schemas for API responses and pagination using msgspec for zero-copy performance.
 """
 
-from datetime import UTC, datetime
-from typing import Any, TypeVar
+from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
-
-T = TypeVar("T")
+import msgspec
 
 
-class ErrorDetail(BaseModel):
+class ErrorDetail(msgspec.Struct):
     """Detailed error information."""
 
-    field: str | None = Field(None, description="Field that caused the error")
-    message: str = Field(..., description="Error message")
-    code: str | None = Field(None, description="Error code for programmatic handling")
+    message: str
+    field: str | None = None
+    code: str | None = None
 
 
-class ErrorResponse(BaseModel):
+class ErrorResponse(msgspec.Struct):
     """Standard error response."""
 
-    error: str = Field(..., description="Error type or title")
-    message: str = Field(..., description="Human-readable error message")
-    details: list[ErrorDetail] | None = Field(None, description="Detailed error information")
-    request_id: str | None = Field(None, description="Request ID for support reference")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "error": "ValidationError",
-                "message": "Request validation failed",
-                "details": [
-                    {
-                        "field": "email",
-                        "message": "Invalid email format",
-                        "code": "invalid_format",
-                    }
-                ],
-                "request_id": "abc123",
-                "timestamp": "2024-01-15T10:30:00Z",
-            }
-        }
-    )
+    error: str
+    message: str
+    details: list[ErrorDetail] | None = None
+    request_id: str | None = None
+    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
 
 
-class SuccessResponse(BaseModel):
+class SuccessResponse(msgspec.Struct):
     """Standard success response."""
 
+    message: str
     success: bool = True
-    message: str = Field(..., description="Success message")
     data: dict[str, Any] | None = None
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "success": True,
-                "message": "Operation completed successfully",
-                "data": {"id": "123"},
-            }
-        }
-    )
 
-
-class DataResponse[T](BaseModel):
+class DataResponse(msgspec.Struct):
     """Standard response wrapper with data field."""
 
+    data: Any
     success: bool = True
-    data: T
     message: str | None = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
 
 
-class PaginationMeta(BaseModel):
+class PaginationMeta(msgspec.Struct):
     """Pagination metadata."""
 
-    total: int = Field(..., description="Total number of items")
-    page: int = Field(..., description="Current page number (1-indexed)")
-    page_size: int = Field(..., description="Items per page")
-    total_pages: int = Field(..., description="Total number of pages")
-    has_next: bool = Field(..., description="Whether there is a next page")
-    has_prev: bool = Field(..., description="Whether there is a previous page")
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
 
 
-class PaginatedResponse[T](BaseModel):
+class PaginatedResponse(msgspec.Struct):
     """Paginated response wrapper."""
 
-    items: list[T] = Field(..., description="List of items")
-    pagination: PaginationMeta = Field(..., description="Pagination metadata")
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "items": [],
-                "pagination": {
-                    "total": 100,
-                    "page": 1,
-                    "page_size": 20,
-                    "total_pages": 5,
-                    "has_next": True,
-                    "has_prev": False,
-                },
-            }
-        }
-    )
+    items: list[Any]
+    pagination: PaginationMeta
 
 
-class HealthResponse(BaseModel):
+class HealthResponse(msgspec.Struct):
     """Health check response."""
 
-    status: str = Field(..., description="Overall health status")
-    version: str = Field(..., description="API version")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    checks: dict[str, dict[str, Any]] = Field(
-        default_factory=dict, description="Individual component health checks"
-    )
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "status": "healthy",
-                "version": "2.2.0",
-                "timestamp": "2024-01-15T10:30:00Z",
-                "checks": {
-                    "database": {"status": "healthy", "latency_ms": 5},
-                    "redis": {"status": "healthy", "latency_ms": 2},
-                    "rabbitmq": {"status": "healthy", "latency_ms": 10},
-                },
-            }
-        }
-    )
-
-
-class RateLimitInfo(BaseModel):
-    """Rate limit information."""
-
-    limit: int = Field(..., description="Maximum requests allowed")
-    remaining: int = Field(..., description="Remaining requests in window")
-    reset: datetime = Field(..., description="When the rate limit resets")
-    window_seconds: int = Field(..., description="Rate limit window in seconds")
+    status: str
+    version: str
+    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
+    checks: dict[str, dict[str, Any]] = msgspec.field(default_factory=dict)

@@ -31,7 +31,7 @@ def fast_normal_pdf_v2(x):
     return (1.0 / np.sqrt(2.0 * np.pi)) * np.exp(-0.5 * x**2)
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, parallel=True)
 def generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps):
     """Generate log-paths (JIT Optimized)."""
     dt = T / n_steps
@@ -39,13 +39,13 @@ def generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps):
     diffusion = sigma * np.sqrt(dt)
     log_paths = np.zeros((n_steps + 1, n_paths))
     log_paths[0, :] = np.log(S0)
-    for i in range(n_steps):
-        for j in range(n_paths):
+    for j in prange(n_paths):
+        for i in range(n_steps):
             log_paths[i + 1, j] = log_paths[i, j] + drift + diffusion * np.random.standard_normal()
     return log_paths
 
 
-@njit(fastmath=True)
+@njit(fastmath=True, parallel=True)
 def generate_paths_v2(S0, T, r, sigma, q, n_paths, n_steps, scheme=SCHEME_EULER):
     """Optimized path generation (JIT)."""
     if scheme == SCHEME_MILSTEIN:
@@ -53,8 +53,8 @@ def generate_paths_v2(S0, T, r, sigma, q, n_paths, n_steps, scheme=SCHEME_EULER)
         mu = r - q
         S = np.full((n_paths, n_steps + 1), S0, dtype=np.float64)
         sqrt_dt = np.sqrt(dt)
-        for t in range(n_steps):
-            for i in range(n_paths):
+        for i in prange(n_paths):
+            for t in range(n_steps):
                 dW = np.random.standard_normal() * sqrt_dt
                 S[i, t + 1] = S[i, t] * (1 + mu * dt + sigma * dW + 0.5 * (sigma**2) * (dW**2 - dt))
         return S
@@ -212,7 +212,7 @@ def heston_char_func_jit(u, T, r, v0, kappa, theta, sigma, rho) -> complex:
     return np.exp(A + B)
 
 
-@njit
+@njit(fastmath=True)
 def jit_mc_european_price_v2(
     S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme=SCHEME_EULER
 ):
@@ -264,28 +264,64 @@ def _laguerre_basis_jit(x, n):
     return np.exp(-x / 2)
 
 
-@njit
+@njit(fastmath=True, parallel=True)
 def vectorized_newton_raphson_iv_jit(
     market_price, S, K, T, r, q, is_call, initial_guess=None, tol=1e-6, max_iter=100
 ):
     """Vectorized IV calculation using Newton-Raphson."""
+    n = len(market_price)
+    iv = np.empty(n, dtype=np.float64)
+    
     if initial_guess is not None:
-        iv = initial_guess.copy()
+        initial_sigma = initial_guess
     else:
-        iv = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
+        initial_sigma = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
 
-    for _ in range(max_iter):
-        p = batch_bs_price_jit_v2(S, K, T, iv, r, q, is_call)
-        diff = p - market_price
-        if np.all(np.abs(diff) < tol):
-            break
-        _, _, vega, _, _ = batch_greeks_jit_v2(S, K, T, iv, r, q, is_call)
-        # Vega from batch_greeks_jit_v2 is already scaled by 0.01
-        # Newton update: sigma_{n+1} = sigma_n - (f(sigma_n) - C) / f'(sigma_n)
-        # f'(sigma) is Vega (not scaled by 0.01 for this purpose)
-        real_vega = vega * 100.0
-        iv -= diff / (real_vega + 1e-12)
-    return np.clip(iv, 0.0001, 5.0)
+    for i in prange(n):
+        sigma = initial_sigma[i]
+        is_c = is_call[i]
+        m_p = market_price[i]
+        s_i = S[i]
+        k_i = K[i]
+        t_i = T[i]
+        r_i = r[i]
+        q_i = q[i]
+        
+        for _ in range(max_iter):
+            # Inline price and vega calculation for maximum performance
+            # price
+            Ti, sig = max(t_i, 1e-7), max(sigma, 1e-12)
+            sqrt_T = np.sqrt(Ti)
+            vol_sqrt_t = sig * sqrt_T
+            d1 = (np.log(s_i / k_i) + (r_i - q_i + 0.5 * sig**2) * Ti) / vol_sqrt_t
+            d2 = d1 - vol_sqrt_t
+            exp_rt, exp_qt = np.exp(-r_i * Ti), np.exp(-q_i * Ti)
+            
+            nd1 = fast_normal_cdf_v2(d1)
+            nd2 = fast_normal_cdf_v2(d2)
+            
+            if is_c:
+                price = s_i * exp_qt * nd1 - k_i * exp_rt * nd2
+            else:
+                price = k_i * exp_rt * fast_normal_cdf_v2(-d2) - s_i * exp_qt * fast_normal_cdf_v2(-d1)
+            
+            diff = price - m_p
+            if abs(diff) < tol:
+                break
+            
+            # vega
+            pdf_d1 = fast_normal_pdf_v2(d1)
+            vega = (s_i * exp_qt * pdf_d1 * sqrt_T) # Not scaled by 0.01 for Newton
+            
+            if abs(vega) < 1e-12:
+                break
+                
+            sigma -= diff / vega
+            sigma = max(1e-6, min(sigma, 5.0))
+            
+        iv[i] = sigma
+        
+    return iv
 
 
 @njit
@@ -314,7 +350,7 @@ def thomas_algorithm(a, b, c, d):
     return np.zeros(0)
 
 
-@njit
+@njit(fastmath=True)
 def jit_mc_european_price_and_greeks(
     S0, K, T, r, sigma, q, n_paths, is_call, antithetic, z_innovations=None, scheme=SCHEME_EULER
 ):
@@ -377,7 +413,7 @@ def jit_mc_european_price_and_greeks(
     return price, delta, gamma, vega, rho
 
 
-@njit
+@njit(fastmath=True, parallel=True)
 def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme=SCHEME_EULER):
     """
     Longstaff-Schwartz Least Squares Monte Carlo for American options.
@@ -393,9 +429,10 @@ def jit_lsm_american(S0, K, T, r, sigma, q, n_paths, n_steps, is_call, scheme=SC
     drift = (r - q - 0.5 * sigma**2) * dt
     diffusion = sigma * np.sqrt(dt)
 
-    for t in range(n_steps):
-        z = np.random.standard_normal(n_paths)
-        S[:, t + 1] = S[:, t] * np.exp(drift + diffusion * z)
+    for i in prange(n_paths):
+        for t in range(n_steps):
+            z = np.random.standard_normal()
+            S[i, t + 1] = S[i, t] * np.exp(drift + diffusion * z)
 
     # 2. Payoff at each step
     if is_call:
@@ -490,7 +527,7 @@ def jit_mc_european_with_control_variate(
     return bs_analytic, 0.0  # Error is theoretically zero if control matches target
 
 
-@njit
+@njit(fastmath=True)
 def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
     """
     Crank-Nicolson solver for the Black-Scholes PDE.

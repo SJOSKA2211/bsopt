@@ -184,6 +184,7 @@ class NSEScraper:
             headers={"User-Agent": "BS-Opt/2.0"},
             timeout=10.0,
             verify=True,
+            http2=True,
         )
 
     @nse_circuit
