@@ -153,7 +153,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train RL Trading Policy")
     parser.add_argument("--timesteps", type=int, default=10000)
     parser.add_argument("--output", type=str, default="models/td3_final")
-    parser.add_argument("--study_name", type=int, default="rl_trading_core")
+    parser.add_argument("--study_name", type=str, default="rl_trading_core")
     parser.add_argument("--tracking_uri", type=str, default=None)
     parser.add_argument("--warm_start", type=str, default=None)
 

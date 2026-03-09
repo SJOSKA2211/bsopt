@@ -3,27 +3,16 @@ from datetime import datetime
 import strawberry
 import structlog
 
+from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.trading.execution import OrderExecutor
 
 logger = structlog.get_logger(__name__)
 
-
-@strawberry.type
-class Order:
-    id: strawberry.ID
-    portfolio_id: strawberry.ID
-    contract_symbol: str
-    side: str
-    quantity: int
-    order_type: str
-    status: str
-    limit_price: float | None = None
-    created_at: datetime
-    updated_at: datetime
-
+# ... (rest of type definitions)
 
 # Global executor instance (reuse connection pool)
-executor = OrderExecutor()
+protocol = DeFiOptionsProtocol()
+executor = OrderExecutor(protocol=protocol)
 
 
 async def create_order(

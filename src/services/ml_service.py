@@ -22,17 +22,34 @@ logger = structlog.get_logger(__name__)
 class MLService:
     """
     Enhanced ML pricing service with automated hypertable persistence.
-    OPTIMIZED: Real-time gRPC connection to the ML Inference Manifold.
+    OPTIMIZED: Persistent gRPC connection to the ML Inference Manifold.
     """
 
     def __init__(self):
         self.grpc_url = settings.ML_SERVICE_GRPC_URL
+        self._channel = None
+        self._stub = None
         logger.info("ml_service_initialized", grpc_url=self.grpc_url)
+
+    async def _get_grpc_stub(self):
+        """Lazy initialization of persistent gRPC stub."""
+        if self._channel is None:
+            self._channel = grpc.aio.insecure_channel(
+                self.grpc_url,
+                options=[
+                    ("grpc.keepalive_time_ms", 10000),
+                    ("grpc.keepalive_timeout_ms", 5000),
+                    ("grpc.keepalive_permit_without_calls", True),
+                    ("grpc.http2.max_pings_without_data", 0),
+                ],
+            )
+            self._stub = inference_pb2_grpc.MLInferenceStub(self._channel)
+        return self._stub
 
     @staticmethod
     def _norm_cdf(x: float) -> float:
-        """Standard normal CDF using math.erf."""
-        return 0.5 * (1.0 + erf(x / sqrt(2.0)))
+        """Standard normal CDF using math.erf (Optimized)."""
+        return 0.5 * (1.0 + erf(x * 0.7071067811865476))  # 1/sqrt(2)
 
     def _black_scholes_price(self, req: InferenceRequest) -> float:
         # Basic Black–Scholes approximation
@@ -43,17 +60,19 @@ class MLService:
         sigma = req.implied_volatility or 0.25
 
         try:
-            d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
-            d2 = d1 - sigma * sqrt(T)
+            sqrt_T = sqrt(T)
+            d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt_T)
+            d2 = d1 - sigma * sqrt_T
             Nd1 = self._norm_cdf(d1)
             Nd2 = self._norm_cdf(d2)
         except Exception:
             intrinsic = max(S - K, 0.0) if req.is_call else max(K - S, 0.0)
             return intrinsic * 0.9
 
+        exp_rT = 2.718281828459045 ** (-r * T)
         if req.is_call:
-            return S * Nd1 - K * (2.718281828459045 ** (-r * T)) * Nd2
-        intrinsic = K * (2.718281828459045 ** (-r * T)) * (1 - Nd2) - S * (1 - Nd1)
+            return S * Nd1 - K * exp_rT * Nd2
+        intrinsic = K * exp_rT * (1.0 - Nd2) - S * (1.0 - Nd1)
         return max(intrinsic, 0.0)
 
     async def predict(
@@ -63,25 +82,24 @@ class MLService:
 
         # 1. Attempt gRPC Inference (Primary)
         try:
-            async with grpc.aio.insecure_channel(self.grpc_url) as channel:
-                stub = inference_pb2_grpc.MLInferenceStub(channel)
-                grpc_req = inference_pb2.InferenceRequest(
-                    underlying_price=request.underlying_price,
-                    strike=request.strike,
-                    time_to_expiry=request.time_to_expiry,
-                    is_call=bool(request.is_call),
-                    moneyness=request.moneyness,
-                    log_moneyness=request.log_moneyness,
-                    sqrt_time_to_expiry=request.sqrt_time_to_expiry,
-                    days_to_expiry=request.days_to_expiry,
-                    implied_volatility=request.implied_volatility,
-                    model_type=model_type,
-                )
-                response = await asyncio.wait_for(
-                    stub.Predict(grpc_req), timeout=0.1
-                )  # 100ms timeout
-                price = response.price
-                source = f"grpc_{model_type}"
+            stub = await self._get_grpc_stub()
+            grpc_req = inference_pb2.InferenceRequest(
+                underlying_price=request.underlying_price,
+                strike=request.strike,
+                time_to_expiry=request.time_to_expiry,
+                is_call=bool(request.is_call),
+                moneyness=request.moneyness,
+                log_moneyness=request.log_moneyness,
+                sqrt_time_to_expiry=request.sqrt_time_to_expiry,
+                days_to_expiry=request.days_to_expiry,
+                implied_volatility=request.implied_volatility,
+                model_type=model_type,
+            )
+            response = await asyncio.wait_for(
+                stub.Predict(grpc_req), timeout=0.1
+            )  # 100ms timeout
+            price = response.price
+            source = f"grpc_{model_type}"
         except Exception as e:
             logger.warning("grpc_inference_failed_falling_back_to_bs", error=str(e))
             # 2. Computation Fallback (Black-Scholes)
@@ -99,7 +117,7 @@ class MLService:
     async def _persist_prediction(self, symbol: str, price: float, request: InferenceRequest):
         """Asynchronously log prediction to the hypertable."""
         try:
-            import json
+            import msgspec
             from datetime import UTC, datetime
 
             # Format for VectorizedDBEngine.insert_predictions_bulk
@@ -109,7 +127,7 @@ class MLService:
                     datetime.now(UTC),
                     symbol,
                     None,  # model_id (NULL for BS fallback)
-                    json.dumps(request.model_dump()),
+                    msgspec.json.encode(request),
                     price,
                 )
             ]
@@ -121,7 +139,10 @@ class MLService:
             logger.error("prediction_persistence_failed", error=str(e))
 
     async def close(self):
-        return None
+        if self._channel:
+            await self._channel.close()
+            self._channel = None
+            self._stub = None
 
 
 _ml_service_instance: MLService | None = None

@@ -25,28 +25,17 @@ class Option:
 
 
 async def _load_options_vectorized(keys: list[str]) -> list[Option]:
-    """Vectorized batch fetcher for DataLoaders using Shared Memory."""
-    # OPTIMIZED: Bulk read from SHM segment if available
+    """Vectorized batch fetcher for DataLoaders using Speculative Concurrency."""
+    # 1. Dispatch all fetches concurrently
+    tasks = [router.get_live_quote(symbol) for symbol in keys]
+    results_raw = await asyncio.gather(*tasks, return_exceptions=True)
+
     now = datetime.now()
     results = []
 
-    for symbol in keys:
-        try:
-            # Try router for live data snapshot
-            data = await router.get_live_quote(symbol)
-            results.append(
-                Option(
-                    id=strawberry.ID(symbol),
-                    contract_symbol=symbol,
-                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
-                    strike=data.get("strike", 100.0),
-                    expiry=data.get("expiry", now),
-                    option_type=data.get("type", "CALL").upper(),
-                    last=data.get("price"),
-                    delta=data.get("delta"),
-                )
-            )
-        except Exception:
+    for i, symbol in enumerate(keys):
+        res = results_raw[i]
+        if isinstance(res, Exception) or "error" in res:
             # Fallback to minimal object
             results.append(
                 Option(
@@ -56,6 +45,19 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
                     strike=100.0,
                     expiry=now,
                     option_type="CALL",
+                )
+            )
+        else:
+            results.append(
+                Option(
+                    id=strawberry.ID(symbol),
+                    contract_symbol=symbol,
+                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                    strike=res.get("strike", 100.0),
+                    expiry=res.get("expiry", now),
+                    option_type=res.get("type", "CALL").upper(),
+                    last=res.get("price"),
+                    delta=res.get("delta"),
                 )
             )
     return results
