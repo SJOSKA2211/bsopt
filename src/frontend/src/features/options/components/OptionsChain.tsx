@@ -199,18 +199,43 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       ];
 
       let results;
+      let greeksResults;
+
+      // We always need Greeks, so we'll run BS in batch to get them
+      // If the model is BS, we can just use those results for pricing too
       if (pricingModel === 'black_scholes') {
         results = await batchCalculate(allParams);
-      } else if (pricingModel === 'monte_carlo') {
-        results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
-      } else if (pricingModel === 'crank_nicolson') {
-        results = await Promise.all(allParams.map(p => priceAmerican(p)));
-      } else if (pricingModel === 'heston') {
-        results = await Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
+        greeksResults = results;
+      } else {
+        // Run the selected model for pricing, and BS for Greeks in parallel
+        const [modelResults, bsResults] = await Promise.all([
+          (async () => {
+            if (pricingModel === 'monte_carlo') {
+              return Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
+            } else if (pricingModel === 'crank_nicolson') {
+              return Promise.all(allParams.map(p => priceAmerican(p)));
+            } else if (pricingModel === 'heston') {
+              return Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
+            }
+            return [];
+          })(),
+          batchCalculate(allParams)
+        ]);
+        results = modelResults;
+        greeksResults = bsResults;
       }
 
-      if (results) {
-        setEnrichedResults(results);
+      if (results && greeksResults) {
+        // Merge the greeks back into the pricing results if they are from different models
+        if (pricingModel !== 'black_scholes') {
+            const mergedResults = results.map((res, i) => ({
+                ...res,
+                greeks: greeksResults[i]?.greeks
+            }));
+            setEnrichedResults(mergedResults);
+        } else {
+            setEnrichedResults(results);
+        }
       }
     };
 
@@ -221,7 +246,22 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const processedData = useMemo(() => {
     if (!optionsData) return [];
 
-    let filtered = optionsData;
+    let enrichedData = optionsData;
+
+    if (isWasmLoaded && enrichedResults.length > 0) {
+      const half = optionsData.length;
+      enrichedData = optionsData.map((row: OptionChainRow, i: number) => ({
+        ...row,
+        call_theor: enrichedResults[i]?.price,
+        // @ts-ignore
+        call_greeks: enrichedResults[i]?.greeks,
+        put_theor: enrichedResults[i + half]?.price,
+        // @ts-ignore
+        put_greeks: enrichedResults[i + half]?.greeks,
+      }));
+    }
+
+    let filtered = enrichedData;
 
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
@@ -230,14 +270,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       );
     }
 
-    if (!isWasmLoaded || enrichedResults.length === 0) return filtered;
-
-    const half = filtered.length;
-    return filtered.map((row: OptionChainRow, i: number) => ({
-      ...row,
-      call_theor: enrichedResults[i]?.price,
-      put_theor: enrichedResults[i + half]?.price,
-    }));
+    return filtered;
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
   const handleModelChange = React.useCallback((_: React.MouseEvent<HTMLElement> | null, value: string | null) => {
@@ -372,19 +405,12 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.call_iv}
-            rate={rate}
-            div={div}
-            isCall={true}
+            // @ts-ignore
+            greeks={row.call_greeks}
+            price={row.call_theor}
           />
         );
       },
@@ -579,19 +605,12 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
 
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.put_iv}
-            rate={rate}
-            div={div}
-            isCall={false}
+            // @ts-ignore
+            greeks={row.put_greeks}
+            price={row.put_theor}
           />
         );
       },
