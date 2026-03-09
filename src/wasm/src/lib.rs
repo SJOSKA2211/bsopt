@@ -477,6 +477,95 @@ pub unsafe extern "C" fn price_heston_mc(spot: f64, strike: f64, time: f64, r: f
     let engine = HestonWASM::new();
     engine.price_monte_carlo(spot, strike, time, r, v0, kappa, theta, sigma, rho, is_call, num_paths)
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn batch_price_monte_carlo(params_ptr: *const f64, params_len: usize, num_paths: usize) -> *mut f64 {
+    let params = unsafe { std::slice::from_raw_parts(params_ptr, params_len) };
+    let stride_in = 7; // [S, K, T, sigma, r, q, is_call]
+    let num_options = params_len / stride_in;
+    
+    let engine = MonteCarloWASM::new();
+    let mut results = Vec::with_capacity(num_options);
+    
+    for i in 0..num_options {
+        let off = i * stride_in;
+        let p = engine.price_european(
+            params[off], 
+            params[off+1], 
+            params[off+2], 
+            params[off+3], 
+            params[off+4], 
+            params[off+5], 
+            params[off+6] > 0.5, 
+            num_paths, 
+            false
+        );
+        results.push(p);
+    }
+    
+    let ptr = results.as_mut_ptr();
+    std::mem::forget(results);
+    ptr
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn batch_price_american(params_ptr: *const f64, params_len: usize, m: usize, n: usize) -> *mut f64 {
+    let params = unsafe { std::slice::from_raw_parts(params_ptr, params_len) };
+    let stride_in = 7;
+    let num_options = params_len / stride_in;
+    
+    let engine = CrankNicolsonWASM::new();
+    let mut results = Vec::with_capacity(num_options);
+    
+    for i in 0..num_options {
+        let off = i * stride_in;
+        let p = engine.price_american(
+            params[off], 
+            params[off+1], 
+            params[off+2], 
+            params[off+3], 
+            params[off+4], 
+            params[off+5], 
+            params[off+6] > 0.5, 
+            m, 
+            n
+        );
+        results.push(p);
+    }
+    
+    let ptr = results.as_mut_ptr();
+    std::mem::forget(results);
+    ptr
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn batch_price_heston_mapped(ptr: *mut f64, num_options: usize) -> *mut f64 {
+    let params = unsafe { std::slice::from_raw_parts(ptr, num_options * 9) };
+    let stride_in = 9; // [spot, strike, time, r, v0, kappa, theta, sigma, rho]
+    
+    let engine = HestonWASM::new();
+    let mut results = Vec::with_capacity(num_options);
+    
+    for i in 0..num_options {
+        let off = i * stride_in;
+        let p = engine.price_call(
+            params[off], 
+            params[off+1], 
+            params[off+2], 
+            params[off+3], 
+            params[off+4], 
+            params[off+5], 
+            params[off+6],
+            params[off+7],
+            params[off+8]
+        );
+        results.push(p);
+    }
+    
+    let res_ptr = results.as_mut_ptr();
+    std::mem::forget(results);
+    res_ptr
+}
  
 #[cfg_attr(feature = "js", wasm_bindgen)]
 pub struct CrankNicolsonWASM {}
