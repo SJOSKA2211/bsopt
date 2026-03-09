@@ -55,6 +55,81 @@ CDF_A5 = 1.061405429
 
 
 @_njit
+def fast_normal_ppf(p: float) -> float:
+    """
+    Inverse CDF (PPF) approximation using Beasley-Springer-Moro.
+    Optimized for JIT execution.
+    """
+    if p <= 0 or p >= 1:
+        return 0.0
+
+    if p < 0.5:
+        # Lower tail
+        return -_moro_inv_norm(p)
+    else:
+        # Upper tail
+        return _moro_inv_norm(1.0 - p)
+
+
+@_njit
+def _moro_inv_norm(p: float) -> float:
+    """Internal helper for Moro's approximation."""
+    # Beasley-Springer coefficients
+    a0, a1, a2, a3 = 2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637
+    b1, b2, b3, b4 = -8.47351093090, 23.08336743743, -21.06224691826, 3.13082909833
+    # Moro coefficients
+    c0, c1, c2, c3, c4, c5, c6, c7, c8 = (
+        0.3374754822726147,
+        0.9761690190917186,
+        0.1607979714918209,
+        0.0276438810333863,
+        0.0038405729373609,
+        0.0003951896511919,
+        0.0000321767881768,
+        0.0000002888167364,
+        0.0000003960315187,
+    )
+
+    y = p - 0.5
+    if abs(y) < 0.42:
+        # Central region
+        r = y * y
+        x = y * (((a3 * r + a2) * r + a1) * r + a0) / ((((b4 * r + b3) * r + b2) * r + b1) * r + 1.0)
+        return x
+    else:
+        # Tail region
+        r = np.log(-np.log(p))
+        x = c0 + r * (
+            c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8))))))
+        )
+        return x
+
+
+@_njit(parallel=True, nogil=True)
+def _vec_ppf_impl(flat_p):
+    """Vectorized PPF implementation."""
+    n = len(flat_p)
+    flat_res = np.empty(n, dtype=np.float64)
+    for i in _prange(n):
+        flat_res[i] = fast_normal_ppf(flat_p[i])
+    return flat_res
+
+
+def calculate_ppf(p):
+    """Unified Normal PPF with Scalar Fast-Path."""
+    if np.isscalar(p):
+        return fast_normal_ppf(float(p))
+
+    p_arr = np.asanyarray(p)
+    if p_arr.size == 1:
+        return fast_normal_ppf(float(p_arr.flat[0]))
+
+    original_shape = p_arr.shape
+    flat_res = _vec_ppf_impl(p_arr.ravel().astype(np.float64))
+    return flat_res.reshape(original_shape)
+
+
+@_njit
 def fast_normal_cdf(x: float) -> float:
     """
     High-precision rational approximation (A&S 7.1.26).
