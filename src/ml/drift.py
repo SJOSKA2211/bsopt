@@ -46,7 +46,6 @@ class PerformanceDriftMonitor:
     def _sync_with_redis(self):
         """Sync local history with Redis state (Synchronous attempt)."""
         import asyncio
-        import json
 
         from src.utils.cache import get_redis
 
@@ -58,7 +57,9 @@ class PerformanceDriftMonitor:
             try:
                 data = await redis.get(self.redis_key)
                 if data:
-                    metrics = json.loads(data)
+                    import orjson
+
+                    metrics = orjson.loads(data)
                     self.history.clear()
                     self.history.extend(metrics)
                     logger.info(
@@ -89,9 +90,9 @@ class PerformanceDriftMonitor:
 
             async def persist():
                 try:
-                    import json
+                    import orjson
 
-                    await redis.set(self.redis_key, json.dumps(list(self.history)))
+                    await redis.set(self.redis_key, orjson.dumps(list(self.history)))
                 except Exception as e:
                     logger.warning("metrics_persistence_failed", error=str(e))
 

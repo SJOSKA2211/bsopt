@@ -65,7 +65,12 @@ def startup_session():
 
     # 2. Ensure tables are created
     # Optimized: Run only essential SQL init scripts and handle DB name replace
-    for script_name in ["00-extensions.sql", "01-core-schema.sql", "09-security.sql", "10-missing-tables.sql"]:
+    for script_name in [
+        "00-extensions.sql",
+        "01-core-schema.sql",
+        "09-security.sql",
+        "10-missing-tables.sql",
+    ]:
         sql_file = root / "init-scripts" / script_name
         if not sql_file.exists():
             continue

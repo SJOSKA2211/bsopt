@@ -131,6 +131,51 @@ class DataPipeline:
         return X, y, feature_names, metadata
 
 
+class MLPipeline:
+    """
+    Unified Autonomous ML Pipeline.
+    Wires together Data Collection, Training, and Evaluation.
+    """
+
+    def __init__(self, config: dict[str, Any]):
+        self.config = config
+        self.symbols = [config.get("ticker", "AAPL")]
+        self.data_pipeline = DataPipeline(PipelineConfig(symbols=self.symbols))
+        from src.ml.trainer import ModelTrainer
+
+        self.trainer = ModelTrainer(
+            study_name=config.get("study_name", "autonomous_pipeline"),
+            tracking_uri=config.get("tracking_uri"),
+        )
+
+    async def run(self, force: bool = False) -> Any:
+        """
+        Executes the full pipeline: Data -> Train -> Model.
+        """
+        logger.info("ml_pipeline_run_start", ticker=self.symbols[0])
+
+        # 1. Fetch Data
+        await self.data_pipeline.run()
+        X, y, features, meta = await self.data_pipeline.load_latest_data()
+
+        # 2. Train and Evaluate
+        params = self.config.copy()
+        # Default to XGBoost if not specified
+        params["framework"] = self.config.get("framework", "xgboost")
+
+        # Run training (Synchronous in ModelTrainer, but we could wrap in to_thread)
+        score = await asyncio.to_thread(
+            self.trainer.train_and_evaluate, X, y, params, features, meta
+        )
+
+        logger.info("ml_pipeline_run_complete", score=score)
+        return self.trainer.model
+
+    async def shutdown(self):
+        """Cleanup resources."""
+        pass
+
+
 # =============================================================================
 # Helper Functions (Numba JIT)
 # =============================================================================

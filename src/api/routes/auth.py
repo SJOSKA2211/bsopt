@@ -334,21 +334,36 @@ async def reset_password_confirm(
 
 async def _send_verification_email(email: str, token: str):
     """
-    Sends a verification email to the user.
-    In a real system, this would use an email service (e.g. SendGrid, Mailgun).
+    Sends a verification email to the user using Celery.
     """
     verification_link = f"{settings.BETTER_AUTH_URL}/verify-email?token={token}"
     logger.info("email_verification_link_generated", email=email, link=verification_link)
-    # TODO: Integrate with actual email client (e.g. from src.utils.email)
+
+    from src.tasks.email_tasks import send_transactional_email
+
+    send_transactional_email.delay(
+        to_email=email,
+        subject="Verify Your BSOpt Account",
+        template_name="verification_email.html",
+        context={"verification_link": verification_link, "email": email},
+    )
 
 
 async def _send_password_reset_email(email: str, token: str):
     """
-    Sends a password reset email to the user.
+    Sends a password reset email to the user using Celery.
     """
     reset_link = f"{settings.BETTER_AUTH_URL}/reset-password?token={token}"
     logger.info("password_reset_link_generated", email=email, link=reset_link)
-    # TODO: Integrate with actual email client
+
+    from src.tasks.email_tasks import send_transactional_email
+
+    send_transactional_email.delay(
+        to_email=email,
+        subject="Password Reset Request",
+        template_name="password_reset.html",
+        context={"reset_link": reset_link, "email": email},
+    )
 
 
 def _verify_mfa_code(secret: str, code: str) -> bool:

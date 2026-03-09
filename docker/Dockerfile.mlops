@@ -47,4 +47,4 @@ ENV NUMEXPR_NUM_THREADS=4
 USER ray
 
 # Default command
-CMD ["mlflow", "run", ".", "--no-conda"]
+CMD ["mlflow", "run", ".", "--env-manager", "local"]

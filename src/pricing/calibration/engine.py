@@ -292,6 +292,50 @@ class HestonCalibrator:
 
         return np.sqrt(total_error / total_weight)
 
+    def _weighted_objective_vectorized(
+        self,
+        params: np.ndarray,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        market_prices: np.ndarray,
+        is_calls: np.ndarray,
+        weights: np.ndarray,
+    ) -> float:
+        """Fully vectorized objective function using batch JIT pricing."""
+        kappa, theta, sigma, rho, v0 = params
+
+        # Penalty for Feller condition
+        if 2 * kappa * theta <= sigma**2 * (1 - self.FELLER_TOLERANCE):
+            return 1e12
+
+        n = len(spots)
+        model_prices = np.empty(n, dtype=np.float64)
+
+        from src.pricing.models.heston_fft import batch_heston_price_jit
+
+        batch_heston_price_jit(
+            spots,
+            strikes,
+            maturities,
+            np.full(n, self.r),
+            np.full(n, v0),
+            np.full(n, kappa),
+            np.full(n, theta),
+            np.full(n, sigma),
+            np.full(n, rho),
+            is_calls,
+            model_prices,
+        )
+
+        weighted_errors = ((market_prices - model_prices) ** 2) * weights
+        total_weight = np.sum(weights)
+
+        if total_weight == 0:
+            return 1e12
+
+        return np.sqrt(np.sum(weighted_errors) / total_weight)
+
     def calibrate(
         self,
         market_data: list[Any],
@@ -309,6 +353,14 @@ class HestonCalibrator:
                     f"Insufficient liquid options: {len(liquid_options)} < {self.MIN_LIQUID_OPTIONS}"
                 )
 
+            # Pre-extract arrays for vectorized objective
+            spots = np.array([opt.spot for opt in liquid_options], dtype=np.float64)
+            strikes = np.array([opt.strike for opt in liquid_options], dtype=np.float64)
+            maturities = np.array([opt.T for opt in liquid_options], dtype=np.float64)
+            market_prices = np.array([opt.mid_price for opt in liquid_options], dtype=np.float64)
+            is_calls = np.array([opt.option_type == "call" for opt in liquid_options], dtype=bool)
+            weights = 1.0 / np.maximum(spots * np.sqrt(maturities) * 0.4, 0.01)
+
             bounds = [
                 (0.1, 15.0),  # kappa
                 (0.01, 0.5),  # theta
@@ -322,14 +374,13 @@ class HestonCalibrator:
 
             if initial_guess is not None:
                 logger.info("using_neural_calibration_guess", symbol=symbol)
-                # Use neural prediction as starting point for local optimizer
                 current_best = initial_guess
             else:
                 # Fallback to Differential Evolution
                 de_result = differential_evolution(
-                    self._weighted_objective,
+                    self._weighted_objective_vectorized,
                     bounds,
-                    args=(liquid_options,),
+                    args=(spots, strikes, maturities, market_prices, is_calls, weights),
                     maxiter=maxiter,
                     popsize=popsize,
                     seed=42,
@@ -338,9 +389,9 @@ class HestonCalibrator:
 
             # Stage 2: Local Refinement (SLSQP)
             slsqp_result = minimize(
-                self._weighted_objective,
+                self._weighted_objective_vectorized,
                 current_best,
-                args=(liquid_options,),
+                args=(spots, strikes, maturities, market_prices, is_calls, weights),
                 method="SLSQP",
                 bounds=bounds,
             )

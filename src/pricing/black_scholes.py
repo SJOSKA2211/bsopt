@@ -233,6 +233,32 @@ class BlackScholesEngine:
         )
 
     @staticmethod
+    def price_batch_greeks(S, K, T, sigma, r, dividend, is_call=True) -> tuple[np.ndarray, ...]:
+        """
+        Specialized batch Greek calculation for GreekEngine.
+        Returns a tuple of arrays: (delta, gamma, theta, vega, rho)
+        """
+        # Ensure arrays for broadcasting
+        n = len(S)
+        K_arr = np.full(n, K) if np.isscalar(K) else np.asanyarray(K)
+        T_arr = np.full(n, T) if np.isscalar(T) else np.asanyarray(T)
+        sig_arr = np.full(n, sigma) if np.isscalar(sigma) else np.asanyarray(sigma)
+        r_arr = np.full(n, r) if np.isscalar(r) else np.asanyarray(r)
+        q_arr = np.full(n, dividend) if np.isscalar(dividend) else np.asanyarray(dividend)
+
+        if np.isscalar(is_call):
+            is_call_arr = np.full(n, is_call, dtype=bool)
+        else:
+            is_call_arr = np.asanyarray(is_call).astype(bool)
+
+        from src.pricing.quant_utils import batch_greeks_jit_v2
+
+        # Note: batch_greeks_jit_v2 returns (delta, gamma, vega, theta, rho)
+        # But GreekEngine expects (delta, gamma, theta, vega, rho)
+        d, g, v, th, rh = batch_greeks_jit_v2(S, K_arr, T_arr, sig_arr, r_arr, q_arr, is_call_arr)
+        return d, g, th, v, rh
+
+    @staticmethod
     def calculate_greeks_batch(**kwargs) -> dict[str, np.ndarray]:
         """Vectorized Greeks calculation returning a dictionary."""
         greeks = BlackScholesEngine.calculate_greeks(**kwargs)

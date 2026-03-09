@@ -62,8 +62,6 @@ class SHMManager[T]:
 
         mv[0] = 1  # LOCK
         try:
-            import struct
-
             self._sequence += 1
             # Header: [Lock(1), Sequence(8), Length(4)]
             mv[1:9] = struct.pack("Q", self._sequence)

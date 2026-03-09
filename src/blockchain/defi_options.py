@@ -1,5 +1,4 @@
 import asyncio
-import json
 import time
 from collections.abc import Callable
 
@@ -576,17 +575,19 @@ class DeFiOptionsProtocol:
             async with websockets.connect(
                 self.feed_url if hasattr(self, "feed_url") else self.rpc_url
             ) as ws:
+                import orjson
+
                 subscribe_msg = {
                     "jsonrpc": "2.0",
                     "id": 1,
                     "method": "eth_subscribe",
                     "params": ["newPendingTransactions"],
                 }
-                await ws.send(json.dumps(subscribe_msg))
+                await ws.send(orjson.dumps(subscribe_msg))
 
                 count = 0
                 async for message in ws:
-                    data = json.loads(message)
+                    data = orjson.loads(message)
                     if "params" in data and "result" in data["params"]:
                         tx_hash = data["params"]["result"]
                         await callback(tx_hash)

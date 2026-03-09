@@ -19,12 +19,10 @@ fi
 
 echo "Starting MLflow Pipeline: $PIPELINE_ENTRY_POINT with study name: $STUDY_NAME"
 
-# Execute mlflow run in the background inside the mlops-worker container
-$COMPOSE_CMD exec -d mlops-worker mlflow run . -e "$PIPELINE_ENTRY_POINT" --experiment-name "$STUDY_NAME" --no-conda
+# Use 'run' to start a fresh container for the training job, then auto-remove it
+$COMPOSE_CMD run --rm mlops-worker mlflow run . -e "$PIPELINE_ENTRY_POINT" --experiment-name "$STUDY_NAME" --env-manager local
 
 echo "=========================================================="
-echo "Pipeline $PIPELINE_ENTRY_POINT initiated successfully."
-echo "Track runs via the MLflow UI at http://localhost:5000"
-echo "To view raw execution logs, run:"
-echo "  docker compose logs -f mlops-worker"
+echo "Pipeline $PIPELINE_ENTRY_POINT completed/terminated."
+echo "Track results via the MLflow UI at http://localhost:5000"
 echo "=========================================================="

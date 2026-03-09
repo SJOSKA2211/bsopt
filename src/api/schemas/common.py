@@ -5,9 +5,11 @@ Shared schemas for API responses and pagination using msgspec for zero-copy perf
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, TypeVar
 
 import msgspec
+
+T = TypeVar("T")
 
 
 class ErrorDetail(msgspec.Struct):
@@ -36,10 +38,10 @@ class SuccessResponse(msgspec.Struct):
     data: dict[str, Any] | None = None
 
 
-class DataResponse(msgspec.Struct):
+class DataResponse[T](msgspec.Struct):
     """Standard response wrapper with data field."""
 
-    data: Any
+    data: T
     success: bool = True
     message: str | None = None
     timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)

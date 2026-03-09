@@ -271,7 +271,7 @@ def vectorized_newton_raphson_iv_jit(
     """Vectorized IV calculation using Newton-Raphson."""
     n = len(market_price)
     iv = np.empty(n, dtype=np.float64)
-    
+
     if initial_guess is not None:
         initial_sigma = initial_guess
     else:
@@ -286,7 +286,7 @@ def vectorized_newton_raphson_iv_jit(
         t_i = T[i]
         r_i = r[i]
         q_i = q[i]
-        
+
         for _ in range(max_iter):
             # Inline price and vega calculation for maximum performance
             # price
@@ -296,31 +296,33 @@ def vectorized_newton_raphson_iv_jit(
             d1 = (np.log(s_i / k_i) + (r_i - q_i + 0.5 * sig**2) * Ti) / vol_sqrt_t
             d2 = d1 - vol_sqrt_t
             exp_rt, exp_qt = np.exp(-r_i * Ti), np.exp(-q_i * Ti)
-            
+
             nd1 = fast_normal_cdf_v2(d1)
             nd2 = fast_normal_cdf_v2(d2)
-            
+
             if is_c:
                 price = s_i * exp_qt * nd1 - k_i * exp_rt * nd2
             else:
-                price = k_i * exp_rt * fast_normal_cdf_v2(-d2) - s_i * exp_qt * fast_normal_cdf_v2(-d1)
-            
+                price = k_i * exp_rt * fast_normal_cdf_v2(-d2) - s_i * exp_qt * fast_normal_cdf_v2(
+                    -d1
+                )
+
             diff = price - m_p
             if abs(diff) < tol:
                 break
-            
+
             # vega
             pdf_d1 = fast_normal_pdf_v2(d1)
-            vega = (s_i * exp_qt * pdf_d1 * sqrt_T) # Not scaled by 0.01 for Newton
-            
+            vega = s_i * exp_qt * pdf_d1 * sqrt_T  # Not scaled by 0.01 for Newton
+
             if abs(vega) < 1e-12:
                 break
-                
+
             sigma -= diff / vega
             sigma = max(1e-6, min(sigma, 5.0))
-            
+
         iv[i] = sigma
-        
+
     return iv
 
 
@@ -570,12 +572,8 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
 
     # Time stepping (backward in time)
     for n in range(N):
-        # 1. Compute RHS: B * V^{n+1}
-        rhs = np.zeros(M - 1)
-        for i in range(M - 1):
-            # Inner points
-            val = b_rhs[i] * V[i + 1] + a_rhs[i] * V[i] + c_rhs[i] * V[i + 2]
-            rhs[i] = val
+        # 1. Compute RHS: B * V^{n+1} (Vectorized)
+        rhs = b_rhs * V[1:M] + a_rhs * V[0 : M - 1] + c_rhs * V[2 : M + 1]
 
         # 2. Apply Boundary Conditions to RHS
         # S=0 boundary (V_0)
@@ -586,8 +584,11 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
             v_0_new = K * np.exp(-r * (n + 1) * dt)
             v_M_new = 0.0
 
-        rhs[0] += a_lhs[0] * v_0_new + a_rhs[0] * V[0]
-        rhs[-1] += c_lhs[-1] * v_M_new + c_rhs[-1] * V[M]
+        # Boundary terms from the LHS matrix move to RHS
+        # A_j V_{j-1} + B_j V_j + C_j V_{j+1} = RHS_j
+        # j=1: B_1 V_1 + C_1 V_2 = RHS_1 - A_1 V_0
+        rhs[0] -= a_lhs[0] * v_0_new
+        rhs[-1] -= c_lhs[-1] * v_M_new
 
         # 3. Solve Tridiagonal System A * V^n = RHS
         # thomas_algorithm(a, b, c, d)
@@ -600,9 +601,34 @@ def jit_cn_solver(s_grid, K, T, r, sigma, q, is_call, N):
     return V
 
 
-# Backward compatibility stubs
 def warmup_jit():
-    pass
+    """
+    Triggers JIT compilation for critical kernels by running small dummy calculations.
+    Ensures zero-latency on first production request.
+    """
+    s = np.array([100.0], dtype=np.float64)
+    k = np.array([100.0], dtype=np.float64)
+    t = np.array([0.1], dtype=np.float64)
+    sig = np.array([0.2], dtype=np.float64)
+    r = np.array([0.05], dtype=np.float64)
+    q = np.array([0.0], dtype=np.float64)
+    is_call = np.array([True], dtype=bool)
+
+    # Warmup BS
+    batch_bs_price_jit_v2(s, k, t, sig, r, q, is_call)
+    batch_greeks_jit_v2(s, k, t, sig, r, q, is_call)
+
+    # Warmup MC
+    jit_mc_european_price_v2(100.0, 100.0, 0.1, 0.05, 0.2, 0.0, 100, True, True)
+
+    # Warmup IV
+    vectorized_newton_raphson_iv_jit(np.array([10.0]), s, k, t, r, q, is_call)
+
+    # Warmup PDE
+    jit_cn_solver(np.linspace(0, 300, 50), 100.0, 0.1, 0.05, 0.2, 0.0, True, 10)
+
+    # Warmup American LSM
+    jit_lsm_american(100.0, 100.0, 0.1, 0.05, 0.2, 0.0, 100, 10, True)
 
 
 fast_normal_cdf = fast_normal_cdf_v2

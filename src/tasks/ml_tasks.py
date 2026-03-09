@@ -4,6 +4,7 @@ Machine Learning Tasks for Celery (Optimized)
 
 import os
 import sys
+from typing import Any
 
 import structlog
 
@@ -25,6 +26,39 @@ _IMPORT_MAP = {
 
 def _get_attr(name: str):
     return lazy_import(__name__, _IMPORT_MAP, name, sys.modules[__name__])
+
+
+@celery_app.task(bind=True, base=MLTask, name="ml.run_autonomous_pipeline")
+def run_pipeline_task(self, config: dict[str, Any]):
+    """
+    Celery task to run the autonomous ML pipeline.
+    OPTIMIZED: Uses BaseAsyncTask for non-blocking execution.
+    """
+    logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
+    MLPipeline = _get_attr("MLPipeline")
+    pipeline = MLPipeline(config)
+    try:
+        # OPTIMIZED: Use persistent loop from BaseAsyncTask
+        model = self.run_async(pipeline.run())
+
+        result = {
+            "status": "success",
+            "model_promoted": model is not None,
+            "task_id": self.request.id,
+        }
+
+        logger.info("celery_task_completed", **result)
+        return result
+
+    except Exception as e:
+        logger.error("celery_task_failed", error=str(e), task_id=self.request.id)
+        # Re-raise so Celery marks it as failed
+        raise e
+    finally:
+        try:
+            self.run_async(pipeline.shutdown())
+        except Exception:
+            pass
 
 
 @celery_app.task(bind=True, base=MLTask, queue="ml")

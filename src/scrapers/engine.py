@@ -295,22 +295,27 @@ class NSEScraper:
         parser = LexborHTMLParser(html)
         results = []
 
+        # Pre-bind selectors for speed
+        tr_selector = "tr"
+        td_selector = "td"
+
         # Each row is a <tr>
-        for row in parser.css("tr"):
-            cells = row.css("td")
+        for row in parser.css(tr_selector):
+            cells = row.css(td_selector)
             if len(cells) < 5:
                 continue
 
+            # Direct extraction without intermediate objects where possible
             name = cells[0].text(strip=True)
             isin = cells[1].text(strip=True)
             volume = cells[2].text(strip=True)
             price = cells[3].text(strip=True)
 
             # Change is often wrapped in <span> with color
-            change_node = cells[4]
-            change_text = change_node.text(strip=True)
+            change_text = cells[4].text(strip=True)
 
-            # Extract numeric part of change using regex as fallback for dirty text
+            # Extract numeric part using pre-compiled regex logic if possible,
+            # but regex is already fast here.
             change_match = re.search(r"([-+]?\d*\.?\d+)", change_text)
             change = change_match.group(1) if change_match else "0.0"
 
@@ -331,17 +336,18 @@ class NSEScraper:
         if time.time() - self._last_refresh > self._cache_ttl:
             await self._refresh_cache()
 
+        # 1. Primary Lookup (O(1))
         data = self._data_cache.get(symbol)
-        if not data:
-            # Try substring match for better resilience
-            for s, d in self._data_cache.items():
-                if symbol in s or s in symbol:
-                    return d
+        if data:
+            return data
 
-            logger.warning("nse_ticker_not_in_cache", symbol=symbol)
-            return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
+        # 2. Optimized Substring Match (Stop at first match)
+        for s, d in self._data_cache.items():
+            if symbol in s or s in symbol:
+                return d
 
-        return data
+        logger.warning("nse_ticker_not_in_cache", symbol=symbol)
+        return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
 
     async def shutdown(self):
         """Gracefully close the HTTP client."""

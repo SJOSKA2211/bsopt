@@ -126,8 +126,8 @@ class AIOpsOrchestrator:
                 logger.warning("triggering_mlflow_retrain_run")
                 try:
                     # OPTIMIZED: Run asynchronously so we don't block the AIOps event loop
-                    import subprocess
                     import os
+                    import subprocess
 
                     compose_bin = os.path.join(os.getcwd(), "docker-compose")
                     subprocess.Popen(
@@ -145,7 +145,8 @@ class AIOpsOrchestrator:
                             f"ticker={self.config.get('ticker', 'AAPL')}",
                             "--experiment-name",
                             f"aiops_retrain_{self.config.get('ticker', 'AAPL')}",
-                            "--no-conda",
+                            "--env-manager",
+                            "local",
                         ]
                     )
                 except Exception as e:

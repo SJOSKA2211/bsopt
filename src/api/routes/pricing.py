@@ -3,7 +3,6 @@ Pricing Routes (Optimized Refactored)
 """
 
 import datetime
-from typing import Any
 
 import msgspec
 import structlog

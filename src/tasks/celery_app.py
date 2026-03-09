@@ -110,6 +110,7 @@ celery_app = Celery(
         "src.tasks.trading_tasks",
         "src.tasks.data_tasks",
         "src.tasks.email_tasks",
+        "src.scrapers.tasks",
     ],
 )
 

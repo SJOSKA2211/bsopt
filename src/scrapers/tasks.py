@@ -1,26 +1,30 @@
-import asyncio
-
 import structlog
 
-from src.ml.celery_app import celery_app
 from src.scrapers.engine import NSEScraper
+from src.tasks.celery_app import BaseTaskWithRetry, celery_app
 
 logger = structlog.get_logger(__name__)
 
 
-@celery_app.task(name="scrapers.refresh_nse_cache")
-def refresh_nse_cache_task():
+@celery_app.task(bind=True, base=BaseTaskWithRetry, name="scrapers.refresh_nse_cache")
+def refresh_nse_cache_task(self):
     """
     Celery task to refresh the NSE market data cache.
     Executed periodically to ensure data freshness.
+    OPTIMIZED: Uses BaseAsyncTask for non-blocking execution.
     """
     logger.info("nse_refresh_task_triggered")
     scraper = NSEScraper()
     try:
-        asyncio.run(scraper._refresh_cache())
+        # OPTIMIZED: Use persistent loop from BaseAsyncTask
+        self.run_async(scraper._refresh_cache())
         logger.info("nse_refresh_task_success")
     except Exception as e:
         logger.error("nse_refresh_task_failed", error=str(e))
         raise e
     finally:
-        asyncio.run(scraper.shutdown())
+        # Clean shutdown (async)
+        try:
+            self.run_async(scraper.shutdown())
+        except Exception:
+            pass

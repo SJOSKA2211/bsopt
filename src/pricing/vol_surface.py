@@ -159,7 +159,7 @@ def _sabr_implied_vol_batch_jit(strikes, forward, maturity, alpha, beta, rho, nu
 def _sabr_objective_jit(params, strikes, market_vols, weights, forward, maturity, fixed_beta):
     """JIT accelerated objective function for SABR calibration."""
     alpha = params[0]
-    
+
     # Adjust for fixed beta case in params vector
     if fixed_beta > 0:
         rho = params[1]

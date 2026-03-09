@@ -3,10 +3,10 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with God-Mode Database integration and RLS enforcement.
 """
 
-import msgspec
 from typing import Any
 from uuid import UUID
 
+import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,8 +35,8 @@ class PortfolioOverview(msgspec.Struct):
     id: str
     name: str
     balance: float
-    totalValue: float
-    positionsCount: int
+    total_value: float
+    positions_count: int
     positions: list[PositionStruct]
     message: str | None = None
 
@@ -67,8 +67,8 @@ async def get_portfolio(
             id="",
             name="",
             balance=0.0,
-            totalValue=0.0,
-            positionsCount=0,
+            total_value=0.0,
+            positions_count=0,
             positions=[],
             message="No portfolio found for user",
         )
@@ -79,8 +79,8 @@ async def get_portfolio(
         id=str(portfolio.id),
         name=portfolio.name,
         balance=float(portfolio.cash_balance),
-        totalValue=float(portfolio.cash_balance),  # Simplified for base case
-        positionsCount=len(positions),
+        total_value=float(portfolio.cash_balance),  # Simplified for base case
+        positions_count=len(positions),
         positions=[
             PositionStruct(
                 id=str(p.id),

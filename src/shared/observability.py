@@ -2,6 +2,7 @@ import gc
 import logging
 import os
 import random
+import re
 import time
 import uuid
 from collections.abc import Callable
@@ -25,6 +26,10 @@ from prometheus_client import (
 
 from src.config import settings
 from src.shared.off_heap_logger import omega_logger
+
+# Pre-compiled patterns for IP and Email
+_IP_PATTERN = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.[\d]{1,3}\b")
+_EMAIL_PATTERN = re.compile(r"\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b")
 
 # Pre-instantiate processors for performance
 _TIME_STAMPER = structlog.processors.TimeStamper(fmt="iso")
@@ -57,21 +62,16 @@ def _off_heap_processor(
 def _pii_masking_processor(
     logger: Any, method_name: str, event_dict: dict[str, Any]
 ) -> dict[str, Any]:
-    """Masks PII (IPs, Emails) in all log events for security compliance."""
-    import re
-
-    # Patterns for IP and Email
-    ip_pattern = r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.[\d]{1,3}\b"
-    email_pattern = r"\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b"
-
+    """Masks PII (IPs, Emails) in all log events for security compliance (Optimized)."""
     for key, value in event_dict.items():
         if isinstance(value, str):
-            # Mask IP
-            if re.search(ip_pattern, value):
-                event_dict[key] = re.sub(ip_pattern, "XXX.XXX.XXX.XXX", value)
-            # Mask Email
-            if re.search(email_pattern, value):
-                event_dict[key] = re.sub(email_pattern, "masked@email.com", value)
+            # Check if likely to contain PII before sub
+            if "@" in value or "." in value:
+                # Mask Email
+                value = _EMAIL_PATTERN.sub("masked@email.com", value)
+                # Mask IP
+                value = _IP_PATTERN.sub("XXX.XXX.XXX.XXX", value)
+                event_dict[key] = value
         elif key == "client_ip" and isinstance(value, str):
             # Specific handling for the client_ip key if it's already extracted
             if "." in value:
@@ -194,15 +194,23 @@ PROCESS_MEMORY_USAGE = Gauge(
 )
 
 
+_PROCESS_CACHE: Any = None
+
+
 # System Metrics
 def update_system_metrics(service_name: str):
-    """Capture real-time resource utilization for the current process."""
+    """Capture real-time resource utilization for the current process (Optimized)."""
     try:
         import psutil
 
-        process = psutil.Process()
-        PROCESS_CPU_USAGE.labels(service=service_name).set(process.cpu_percent(interval=None))
-        PROCESS_MEMORY_USAGE.labels(service=service_name).set(process.memory_info().rss)
+        global _PROCESS_CACHE
+        if _PROCESS_CACHE is None:
+            _PROCESS_CACHE = psutil.Process()
+
+        PROCESS_CPU_USAGE.labels(service=service_name).set(
+            _PROCESS_CACHE.cpu_percent(interval=None)
+        )
+        PROCESS_MEMORY_USAGE.labels(service=service_name).set(_PROCESS_CACHE.memory_info().rss)
     except Exception:
         pass
 
@@ -256,7 +264,7 @@ PROXY_FAILURES = Counter("proxy_failures_total", "Total failures per proxy", ["p
 
 # RL Agent Metrics
 RL_EPISODE_REWARD = Gauge("rl_episode_reward_total", "Total reward per episode", ["agent_id"])
-RL_ACTION_VARIANCE = Gauge(
+RL_ACTION_VARANCE = Gauge(
     "rl_action_variance", "Variance of actions taken by the RL agent", ["agent_id"]
 )
 RL_PORTFOLIO_VALUE = Gauge(

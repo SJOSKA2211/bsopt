@@ -1,3 +1,4 @@
+import ctypes
 import os
 
 import numpy as np
@@ -17,6 +18,11 @@ except ImportError:
 
 
 logger = structlog.get_logger(__name__)
+
+
+def _get_addr(buf):
+    """Zero-overhead address resolution for SharedMemory buffers."""
+    return ctypes.addressof(ctypes.c_char.from_buffer(buf))
 
 
 @njit(cache=True, fastmath=True)
@@ -132,16 +138,9 @@ class OrderEngine:
         risk_ptr = 0
 
         if CORE_AVAILABLE:
-            import ctypes
-
-            # SharedMemory.buf is a memoryview, we need the underlying address
-            # This is a bit hacky in Python but necessary for zero-copy Rust interop
-            def get_addr(buf):
-                return ctypes.addressof(ctypes.c_char.from_buffer(buf))
-
-            orders_ptr = get_addr(self.orders.buf)
-            execs_ptr = get_addr(self.execs.buf)
-            risk_ptr = get_addr(self._risk_state_view.data)
+            orders_ptr = _get_addr(self.orders.buf)
+            execs_ptr = _get_addr(self.execs.buf)
+            risk_ptr = _get_addr(self._risk_state_view.data)
 
         while True:
             if CORE_AVAILABLE:

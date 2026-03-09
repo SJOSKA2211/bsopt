@@ -3,7 +3,6 @@ from typing import Any
 
 import numpy as np
 import structlog
-from scipy.stats import norm
 
 # 🥒 SOLENYA-HARDENED: Qiskit 1.0+ Compliance
 try:
@@ -295,15 +294,17 @@ class QuantumOptionPricer:
 
     def price_classical(self, params: BSParameters) -> dict[str, Any]:
         """Black-Scholes fallback for validation or failure recovery."""
+        from src.pricing.quant_utils import fast_normal_cdf_v2
+
         d1 = (
             np.log(params.spot / params.strike)
             + (params.rate - params.dividend + 0.5 * params.volatility**2) * params.maturity
         ) / (params.volatility * np.sqrt(params.maturity))
         d2 = d1 - params.volatility * np.sqrt(params.maturity)
 
-        price = params.spot * np.exp(-params.dividend * params.maturity) * norm.cdf(
+        price = params.spot * np.exp(-params.dividend * params.maturity) * fast_normal_cdf_v2(
             d1
-        ) - params.strike * np.exp(-params.rate * params.maturity) * norm.cdf(d2)
+        ) - params.strike * np.exp(-params.rate * params.maturity) * fast_normal_cdf_v2(d2)
 
         return {
             "price": float(price),

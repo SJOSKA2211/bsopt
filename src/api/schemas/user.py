@@ -58,6 +58,8 @@ class UserListResponse(BaseModel):
     items: list[UserResponse] = Field(..., description="List of users")
     pagination: PaginationMeta = Field(..., description="Pagination metadata")
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
 
 class UserStatsResponse(BaseModel):
     """User statistics response."""

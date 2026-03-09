@@ -1,8 +1,5 @@
 name: bsopt_mlops
 
-docker_env:
-  image: bsopt-mlops-runtime:latest
-
 entry_points:
   train_regressor:
     parameters:

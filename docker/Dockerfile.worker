@@ -54,7 +54,7 @@ COPY . .
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-CMD ["celery", "-A", "src.ml.celery_app", "worker", "-l", "info"]
+CMD ["celery", "-A", "src.tasks.celery_app", "worker", "-l", "info"]
 
 
 # === Stage 3: Production ===
@@ -86,4 +86,4 @@ RUN chown -R bsopt:bsopt /app
 USER bsopt
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["celery", "-A", "src.ml.celery_app", "worker", "-l", "info"]
+CMD ["celery", "-A", "src.tasks.celery_app", "worker", "-l", "info"]

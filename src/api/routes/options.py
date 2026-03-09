@@ -3,10 +3,10 @@ Options data routes used by the frontend dashboard.
 Optimized for high-performance database retrieval.
 """
 
-import msgspec
 from datetime import date, timedelta
 from typing import Any
 
+import msgspec
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -7,7 +7,9 @@ import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
 from src.config import settings
+from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 from src.trading.risk_kernels import RiskVectorTracker
+from src.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 
@@ -28,6 +30,8 @@ class OrderExecutor:
                 dtype=np.float64,
             )
         )
+        self.redis = get_redis()
+        self.risk_script = ADVANCED_RISK_MATRIX
 
     async def execute_order(
         self, params: dict[str, Any], max_slippage_pct: float = 0.5
@@ -37,11 +41,8 @@ class OrderExecutor:
             start_time = time.time()
             try:
                 # 0. Sync Risk Tracker with Redis (Atomic state management)
-                from src.utils.cache import get_redis
-
-                redis = get_redis()
-                if redis:
-                    async with redis.pipeline(transaction=False) as pipe:
+                if self.redis:
+                    async with self.redis.pipeline(transaction=False) as pipe:
                         pipe.get("portfolio_net_delta")
                         pipe.get("portfolio_net_gamma")
                         pipe.get("portfolio_net_vega")
@@ -53,8 +54,6 @@ class OrderExecutor:
                     self._risk_tracker.reset(current_metrics)
 
                 # 1. Pre-Trade Risk Validation (Consolidated & Atomic)
-                from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
-
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
@@ -64,11 +63,11 @@ class OrderExecutor:
                 d_vega = float(params.get("vega", 0.0)) * quantity * side
 
                 # Atomic Distributed Risk Check
-                if redis:
+                if self.redis:
                     try:
                         # Script returns [ok, val1, val2, val3]
-                        result = await redis.eval(
-                            ADVANCED_RISK_MATRIX,
+                        result = await self.redis.eval(
+                            self.risk_script,
                             3,
                             "risk:state:matrix",
                             "risk:kill_switch",

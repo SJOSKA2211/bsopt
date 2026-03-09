@@ -1,6 +1,6 @@
 import numpy as np
 import structlog
-from numba import complex128, float64, njit
+from numba import complex128, float64, njit, prange
 
 from src.pricing.models import HestonParams
 
@@ -22,6 +22,7 @@ logger = structlog.get_logger()
     ),
     cache=True,
     fastmath=True,
+    parallel=True,
 )
 def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     """
@@ -32,7 +33,7 @@ def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     n_batch = k.shape[0]
     res = np.zeros((n_v, n_batch), dtype=np.complex128)
 
-    for i in range(n_v):
+    for i in prange(n_v):
         u_v = v[i] - (alpha + 1) * 1j
         for j in range(n_batch):
             xi = kappa[j] - sigma[j] * rho[j] * u_v * 1j

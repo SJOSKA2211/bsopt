@@ -101,12 +101,21 @@ class AnomalyDetector:
             self.input_dim = kwargs.get("input_dim")
             self.latent_dim = kwargs.get("latent_dim", 16)
             self.threshold = None
-            self.model = VAE(self.input_dim, self.latent_dim).to(self.device)
+            raw_model = VAE(self.input_dim, self.latent_dim).to(self.device)
+            # OPTIMIZED: Use torch.compile for 2.0+ or JIT for older versions
+            try:
+                self.model = torch.compile(raw_model)
+            except (AttributeError, Exception):
+                self.model = torch.jit.script(raw_model)
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
         elif engine == "transformer":
             self.input_dim = kwargs.get("input_dim")
             self.threshold = kwargs.get("threshold", 0.05)
-            self.model = TimeSeriesTransformerEncoder(self.input_dim).to(self.device)
+            raw_model = TimeSeriesTransformerEncoder(self.input_dim).to(self.device)
+            try:
+                self.model = torch.compile(raw_model)
+            except (AttributeError, Exception):
+                self.model = torch.jit.script(raw_model)
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-3)
         else:
             raise ValueError(f"Unknown anomaly detection engine: {engine}")

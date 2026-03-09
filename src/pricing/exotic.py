@@ -2,10 +2,11 @@ from enum import Enum
 from typing import Any
 
 import numpy as np
-from scipy.stats import norm
+from numba import njit
 
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 from src.pricing.quant_utils import (
+    fast_normal_cdf_v2,
     fused_arithmetic_asian_payoff,
     fused_lookback_payoff,
     jit_generate_log_paths,
@@ -38,31 +39,107 @@ class ExoticParameters:
         self.exotic_kwargs = kwargs
 
 
+@njit(fastmath=True)
+def _price_geometric_asian_jit(S, K, T, r, q, sigma, n, is_call):
+    """JIT Accelerated Geometric Asian Pricing."""
+    if T <= 1e-12:
+        return max(S - K, 0.0) if is_call else max(K - S, 0.0)
+
+    b = r - q
+    sigma_a = sigma * np.sqrt((2.0 * n + 1.0) / (6.0 * (n + 1.0)))
+    b_a = 0.5 * (sigma_a**2 + b - 0.5 * sigma**2)
+
+    sqrt_T = np.sqrt(T)
+    vol_sqrt_T = sigma_a * sqrt_T
+    d1 = (np.log(S / K) + (b_a + 0.5 * sigma_a**2) * T) / vol_sqrt_T
+    d2 = d1 - vol_sqrt_T
+
+    exp_rT = np.exp(-r * T)
+    exp_ba_r_T = np.exp((b_a - r) * T)
+
+    if is_call:
+        return S * exp_ba_r_T * fast_normal_cdf_v2(d1) - K * exp_rT * fast_normal_cdf_v2(d2)
+    return K * exp_rT * fast_normal_cdf_v2(-d2) - S * exp_ba_r_T * fast_normal_cdf_v2(-d1)
+
+
+@njit(fastmath=True)
+def _price_barrier_analytical_jit(S, K, T, r, q, sigma, H, R, barrier_type_idx, is_call):
+    """
+    JIT Accelerated Barrier Option Pricing.
+    barrier_type_idx: 0: down-and-out, 1: down-and-in, 2: up-and-out, 3: up-and-in
+    """
+    b = r - q
+    sig_sqrt_T = sigma * np.sqrt(T)
+    mu = (b - 0.5 * sigma**2) / sigma**2
+    phi = 1 if is_call else -1
+
+    exp_r_T = np.exp(-r * T)
+    exp_b_r_T = np.exp((b - r) * T)
+
+    x1 = np.log(S / K) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+    x2 = np.log(S / H) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+    y1 = np.log(H**2 / (S * K)) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+    y2 = np.log(H / S) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
+
+    def _n(x):
+        return fast_normal_cdf_v2(x)
+
+    A = phi * S * exp_b_r_T * _n(phi * x1) - phi * K * exp_r_T * _n(phi * (x1 - sig_sqrt_T))
+    B = phi * S * exp_b_r_T * _n(phi * x2) - phi * K * exp_r_T * _n(phi * (x2 - sig_sqrt_T))
+    C = phi * S * exp_b_r_T * (H / S) ** (2 * (mu + 1)) * _n(phi * y1) - phi * K * exp_r_T * (
+        H / S
+    ) ** (2 * mu) * _n(phi * (y1 - sig_sqrt_T))
+    D = phi * S * exp_b_r_T * (H / S) ** (2 * (mu + 1)) * _n(phi * y2) - phi * K * exp_r_T * (
+        H / S
+    ) ** (2 * mu) * _n(phi * (y2 - sig_sqrt_T))
+    F = (
+        R
+        * exp_r_T
+        * (_n(phi * x2 - phi * sig_sqrt_T) - (H / S) ** (2 * mu) * _n(phi * y2 - phi * sig_sqrt_T))
+    )
+
+    res = 0.0
+    if is_call:
+        if barrier_type_idx == 0:  # down-and-out
+            res = A - C if K >= H else B - D
+        elif barrier_type_idx == 1:  # down-and-in
+            res = C if K >= H else A - B + D
+        elif barrier_type_idx == 2:  # up-and-out
+            res = 0.0 if K >= H else A - B + C - D
+        else:  # up-and-in
+            res = A if K >= H else B - C + D
+    else:  # Put
+        if barrier_type_idx == 0:  # down-and-out
+            res = 0.0 if K <= H else A - B + C - D
+        elif barrier_type_idx == 1:  # down-and-in
+            res = A if K <= H else B - C + D
+        elif barrier_type_idx == 2:  # up-and-out
+            res = A - C if K <= H else B - D
+        else:  # up-and-in
+            res = C if K <= H else A - B + D
+
+    if barrier_type_idx % 2 == 0:  # "out" types are 0 and 2
+        res += F
+    return max(res, 0.0)
+
+
 class AsianOptionPricer:
     @staticmethod
     def price_geometric_asian(
         params: ExoticParameters, option_type: str, strike_type: StrikeType = StrikeType.FIXED
     ) -> float:
-        S, K, T, r, q, sigma = (
-            params.base_params.spot,
-            params.base_params.strike,
-            params.base_params.maturity,
-            params.base_params.rate,
-            params.base_params.dividend,
-            params.base_params.volatility,
-        )
-        n, b = params.n_observations, r - q
-        sigma_a = sigma * np.sqrt((2 * n + 1) / (6 * (n + 1)))
-        b_a = 0.5 * (sigma_a**2 + b - 0.5 * sigma**2)
-        if T <= 1e-12:
-            return float(max(S - K, 0.0) if option_type == "call" else max(K - S, 0.0))
-        d1 = (np.log(S / K) + (b_a + 0.5 * sigma_a**2) * T) / (sigma_a * np.sqrt(T))
-        d2 = d1 - sigma_a * np.sqrt(T)
-        if option_type == "call":
-            return float(
-                S * np.exp((b_a - r) * T) * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+        return float(
+            _price_geometric_asian_jit(
+                params.base_params.spot,
+                params.base_params.strike,
+                params.base_params.maturity,
+                params.base_params.rate,
+                params.base_params.dividend,
+                params.base_params.volatility,
+                params.n_observations,
+                option_type.lower() == "call",
             )
-        return float(K * np.exp(-r * T) * norm.cdf(-d2) - S * np.exp((b_a - r) * T) * norm.cdf(-d1))
+        )
 
     @staticmethod
     def price_arithmetic_asian_mc(
@@ -106,76 +183,84 @@ class BarrierOptionPricer:
     def price_barrier_analytical(
         params: ExoticParameters, option_type: str, barrier_type: BarrierType
     ) -> float:
-        S, K, T, r, q, sigma = (
-            params.base_params.spot,
-            params.base_params.strike,
-            params.base_params.maturity,
-            params.base_params.rate,
-            params.base_params.dividend,
-            params.base_params.volatility,
-        )
-        H, R, b = params.barrier, params.rebate, r - q
-        if "up" in str(barrier_type).lower() and H <= S:
-            raise ValueError("Up-barrier must be above spot.")
-        if "down" in str(barrier_type).lower() and H >= S:
-            raise ValueError("Down-barrier must be below spot.")
-        sig_sqrt_T = sigma * np.sqrt(T)
-        mu = (b - 0.5 * sigma**2) / sigma**2
-        phi = 1 if option_type == "call" else -1
+        bt_str = str(barrier_type).lower()
+        if "down-and-out" in bt_str:
+            bt_idx = 0
+        elif "down-and-in" in bt_str:
+            bt_idx = 1
+        elif "up-and-out" in bt_str:
+            bt_idx = 2
+        else:
+            bt_idx = 3
 
-        def _n(x):
-            return norm.cdf(x)
-
-        exp_r_T = np.exp(-r * T)
-        x1 = np.log(S / K) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
-        x2 = np.log(S / H) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
-        y1 = np.log(H**2 / (S * K)) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
-        y2 = np.log(H / S) / sig_sqrt_T + (mu + 1) * sig_sqrt_T
-
-        A = phi * S * np.exp((b - r) * T) * _n(phi * x1) - phi * K * exp_r_T * _n(
-            phi * (x1 - sig_sqrt_T)
-        )
-        B = phi * S * np.exp((b - r) * T) * _n(phi * x2) - phi * K * exp_r_T * _n(
-            phi * (x2 - sig_sqrt_T)
-        )
-        C = phi * S * np.exp((b - r) * T) * (H / S) ** (2 * (mu + 1)) * _n(
-            phi * y1
-        ) - phi * K * exp_r_T * (H / S) ** (2 * mu) * _n(phi * (y1 - sig_sqrt_T))
-        D = phi * S * np.exp((b - r) * T) * (H / S) ** (2 * (mu + 1)) * _n(
-            phi * y2
-        ) - phi * K * exp_r_T * (H / S) ** (2 * mu) * _n(phi * (y2 - sig_sqrt_T))
-        F = (
-            R
-            * exp_r_T
-            * (
-                _n(phi * x2 - phi * sig_sqrt_T)
-                - (H / S) ** (2 * mu) * _n(phi * y2 - phi * sig_sqrt_T)
+        return float(
+            _price_barrier_analytical_jit(
+                params.base_params.spot,
+                params.base_params.strike,
+                params.base_params.maturity,
+                params.base_params.rate,
+                params.base_params.dividend,
+                params.base_params.volatility,
+                params.barrier,
+                params.rebate,
+                bt_idx,
+                option_type.lower() == "call",
             )
         )
 
-        bt = str(barrier_type).lower()
-        if option_type == "call":
-            if "down-and-out" in bt:
-                res = A - C if K >= H else B - D
-            elif "down-and-in" in bt:
-                res = C if K >= H else A - B + D
-            elif "up-and-out" in bt:
-                res = 0.0 if K >= H else A - B + C - D
-            else:
-                res = A if K >= H else B - C + D  # up-and-in
-        else:  # Put
-            if "down-and-out" in bt:
-                res = 0.0 if K <= H else A - B + C - D
-            elif "down-and-in" in bt:
-                res = A if K <= H else B - C + D
-            elif "up-and-out" in bt:
-                res = A - C if K <= H else B - D
-            else:
-                res = C if K <= H else A - B + D  # up-and-in
 
-        if "out" in bt:
-            res += F
-        return float(max(res, 0.0))
+@njit(fastmath=True)
+def _price_lookback_floating_strike_jit(S, T, r, q, sigma, is_call):
+    """JIT Accelerated Lookback Floating Strike Pricing."""
+    if T <= 1e-12:
+        return 0.0
+    b = r - q
+    sig = max(sigma, 1e-12)
+    sig_sqrt_T = sig * np.sqrt(T)
+    d1 = (b + 0.5 * sig**2) * np.sqrt(T) / sig
+
+    def _n(x):
+        return fast_normal_cdf_v2(x)
+
+    exp_ba_r_T = np.exp((b - r) * T)
+    exp_rT = np.exp(-r * T)
+
+    if is_call:
+        if abs(b) < 1e-12:
+            return S * (2.0 * _n(0.5 * sig_sqrt_T) - 1.0) + S * sig * np.sqrt(T / (2.0 * np.pi))
+        term1 = S * exp_ba_r_T * _n(d1)
+        term2 = S * exp_ba_r_T * (sig**2 / (2.0 * b)) * _n(-d1)
+        term3 = (
+            S
+            * exp_rT
+            * (sig**2 / (2.0 * b))
+            * np.exp((2.0 * b * (b + 0.5 * sig**2) * T) / sig**2)
+            * _n(-d1)
+        )
+        return term1 - term2 + term3
+    # Put
+    if abs(b) < 1e-12:
+        return S * (1.0 - 2.0 * _n(-0.5 * sig_sqrt_T)) + S * sig * np.sqrt(T / (2.0 * np.pi))
+    term1 = S * exp_rT * (sig**2 / (2.0 * b)) * _n(d1)
+    term2 = S * exp_ba_r_T * (1.0 + sig**2 / (2.0 * b)) * _n(-d1)
+    term3 = S * exp_ba_r_T * _n(-d1)
+    return term1 - term2 + term3
+
+
+@njit(fastmath=True)
+def _price_digital_cash_or_nothing_jit(S, K, T, r, q, sigma, payout, is_call):
+    """JIT Accelerated Digital Cash-or-Nothing Pricing."""
+    sqrt_T = np.sqrt(T)
+    d2 = (np.log(S / K) + (r - q - 0.5 * sigma**2) * T) / (sigma * sqrt_T)
+    return payout * np.exp(-r * T) * fast_normal_cdf_v2(d2 if is_call else -d2)
+
+
+@njit(fastmath=True)
+def _price_digital_asset_or_nothing_jit(S, K, T, r, q, sigma, is_call):
+    """JIT Accelerated Digital Asset-or-Nothing Pricing."""
+    sqrt_T = np.sqrt(T)
+    d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * sqrt_T)
+    return S * np.exp(-q * T) * fast_normal_cdf_v2(d1 if is_call else -d1)
 
 
 class LookbackOptionPricer:
@@ -189,44 +274,15 @@ class LookbackOptionPricer:
 
     @staticmethod
     def price_floating_strike_analytical(params: BSParameters, option_type: str) -> float:
-        S, T, r, q, sigma = (
-            params.spot,
-            params.maturity,
-            params.rate,
-            params.dividend,
-            params.volatility,
-        )
-        if T <= 1e-12:
-            return 0.0
-        b, sig = r - q, max(sigma, 1e-12)
-
-        def _n(x):
-            return norm.cdf(x)
-
-        d1 = (b + 0.5 * sig**2) * np.sqrt(T) / sig
-        if option_type == "call":
-            if abs(b) < 1e-12:
-                return float(
-                    S * (2 * _n(0.5 * sig * np.sqrt(T)) - 1) + S * sig * np.sqrt(T / (2 * np.pi))
-                )
-            return float(
-                S * np.exp((b - r) * T) * _n(d1)
-                - S * np.exp((b - r) * T) * (sig**2 / (2 * b)) * _n(-d1)
-                + S
-                * np.exp(-r * T)
-                * (sig**2 / (2 * b))
-                * np.exp((2 * b * (b + 0.5 * sig**2) * T) / sig**2)
-                * _n(-d1)
-            )
-        # Put
-        if abs(b) < 1e-12:
-            return float(
-                S * (1 - 2 * _n(-0.5 * sig * np.sqrt(T))) + S * sig * np.sqrt(T / (2 * np.pi))
-            )
         return float(
-            S * np.exp(-r * T) * (sig**2 / (2 * b)) * _n(d1)
-            - S * np.exp((b - r) * T) * (1 + sig**2 / (2 * b)) * _n(-d1)
-            + S * np.exp((b - r) * T) * _n(-d1)
+            _price_lookback_floating_strike_jit(
+                params.spot,
+                params.maturity,
+                params.rate,
+                params.dividend,
+                params.volatility,
+                option_type.lower() == "call",
+            )
         )
 
     @staticmethod
@@ -259,29 +315,32 @@ class LookbackOptionPricer:
 class DigitalOptionPricer:
     @staticmethod
     def price_cash_or_nothing(params: BSParameters, option_type: str, payout: float = 1.0) -> float:
-        S, K, T, r, q, sigma = (
-            params.spot,
-            params.strike,
-            params.maturity,
-            params.rate,
-            params.dividend,
-            params.volatility,
+        return float(
+            _price_digital_cash_or_nothing_jit(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.rate,
+                params.dividend,
+                params.volatility,
+                payout,
+                option_type.lower() == "call",
+            )
         )
-        d2 = (np.log(S / K) + (r - q - 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        return float(payout * np.exp(-r * T) * norm.cdf(d2 if option_type == "call" else -d2))
 
     @staticmethod
     def price_asset_or_nothing(params: BSParameters, option_type: str) -> float:
-        S, K, T, r, q, sigma = (
-            params.spot,
-            params.strike,
-            params.maturity,
-            params.rate,
-            params.dividend,
-            params.volatility,
+        return float(
+            _price_digital_asset_or_nothing_jit(
+                params.spot,
+                params.strike,
+                params.maturity,
+                params.rate,
+                params.dividend,
+                params.volatility,
+                option_type.lower() == "call",
+            )
         )
-        d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
-        return float(S * np.exp(-q * T) * norm.cdf(d1 if option_type == "call" else -d1))
 
     @staticmethod
     def calculate_digital_greeks(
