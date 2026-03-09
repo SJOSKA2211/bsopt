@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
@@ -18,21 +19,22 @@ class TestRevampPhase3:
             mock_redis = AsyncMock()
             mock_get_redis.return_value = mock_redis
 
-            # 1. Initial state (Redis empty)
-            mock_redis.get.return_value = None
+            # 1. Initial state
             manager = NonceManager(address, chain_id)
-
             mock_w3_func = AsyncMock(return_value=10)
+            
+            # Mock eval to return the provided chain_nonce (10)
+            mock_redis.eval = AsyncMock(return_value=10)
+            
             nonce = await manager.get_next_nonce(mock_w3_func)
 
             assert nonce == 10
-            mock_redis.set.assert_called_with(manager.redis_key, 10)
+            assert mock_redis.eval.called
 
-            # 2. Sequential call (Redis has value)
-            mock_redis.get.return_value = b"10"
-            mock_redis.incr.return_value = 11
+            # 2. Sequential call
+            mock_redis.eval.return_value = 11
             nonce2 = await manager.get_next_nonce(mock_w3_func)
-            assert nonce2 == 10
+            assert nonce2 == 11
 
             # 3. Reset
             await manager.reset(mock_w3_func)
@@ -126,10 +128,14 @@ class TestRevampPhase3:
     @pytest.mark.asyncio
     async def test_defi_protocol_sor_routing(self):
         protocol = DeFiOptionsProtocol()
+        # Inject deterministic price via hybrid oracle override
+        protocol.oracle.update_price_feed("ETH", 100.0)
+ 
         route = await protocol.route_order("ETH", 1.0, is_call=True)
         assert "name" in route
         assert "price" in route
-        assert route["price"] < 105.0  # Check logic
+        # SushiswapV2 (amount <= 10.0) uses price * 1.0005
+        assert np.isclose(route["price"], 100.05)
 
     @pytest.mark.asyncio
     async def test_defi_protocol_mempool_watching(self):

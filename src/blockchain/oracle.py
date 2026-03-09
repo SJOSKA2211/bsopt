@@ -33,6 +33,15 @@ class OracleManager:
         self._mesh = None
         self._last_mesh_head = 0
 
+    def update_price_feed(self, symbol: str, price: float):
+        """Update local cache with manual or test data."""
+        self._feeds[symbol] = {
+            "price": price,
+            "time": time.time(),
+            "source": "MANUAL",
+        }
+        logger.info("oracle_manual_update", symbol=symbol, price=price)
+
     def _get_mesh(self):
         if self._mesh is None:
             try:
@@ -51,6 +60,10 @@ class OracleManager:
         Fetch price with multilayered fallback and confidence scoring.
         """
         now = time.time()
+
+        # 0. 🧪 MANUAL OVERRIDE (For Tests/Admin)
+        if symbol in self._feeds and self._feeds[symbol]["source"] == "MANUAL":
+            return self._feeds[symbol]["price"]
 
         # 1. 🚀 SHM MESH (Ultra-Low Latency)
         mesh = self._get_mesh()
