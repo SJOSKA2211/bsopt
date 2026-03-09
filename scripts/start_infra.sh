@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
-# Detect Docker Compose
+# Detect Docker Compose (God-Mode Detection)
 if [ -x "./docker-compose" ]; then
     COMPOSE="./docker-compose"
-else
+elif command -v docker-compose >/dev/null 2>&1; then
     COMPOSE="docker-compose"
+elif docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
+else
+    echo "❌ Docker Compose not found. Fix it, Morty!"
+    exit 1
 fi
 
 # Project root
