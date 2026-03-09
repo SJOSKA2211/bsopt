@@ -53,11 +53,11 @@ const KPI_CARDS = [
 // Simple SVG donut chart
 const DonutChart: React.FC = () => {
   const segments = [
-    { label: 'AAPL', pct: 28, color: '#10b981' },
-    { label: 'SPY', pct: 22, color: '#38bdf8' },
-    { label: 'QQQ', pct: 18, color: '#a855f7' },
-    { label: 'NVDA', pct: 15, color: '#fbbf24' },
-    { label: 'Cash', pct: 17, color: '#64748b' },
+    { label: 'AAPL', pct: 28, color: theme.palette.financial.qfd.quantum },
+    { label: 'SPY', pct: 22, color: theme.palette.financial.qfd.nebula },
+    { label: 'QQQ', pct: 18, color: theme.palette.financial.qfd.electrum },
+    { label: 'NVDA', pct: 15, color: theme.palette.info.main },
+    { label: 'Cash', pct: 17, color: theme.palette.text.disabled },
   ];
 
   let cumulative = 0;
@@ -129,7 +129,7 @@ const PnlChart: React.FC = () => {
         </linearGradient>
       </defs>
       <path d={`M ${pts} L ${w},${h} L 0,${h} Z`} fill="url(#pnl-grad)" />
-      <path d={`M ${pts}`} fill="none" stroke="#10b981" strokeWidth="2" strokeLinejoin="round" />
+      <path d={`M ${pts}`} fill="none" stroke={theme.palette.financial.qfd.quantum} strokeWidth="2" strokeLinejoin="round" />
       {/* Benchmark */}
       <line x1={0} y1={h * 0.7} x2={w} y2={h * 0.35} stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="6 4" opacity={0.5} />
     </svg>
@@ -149,8 +149,20 @@ export const PortfolioPage: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5, fontFamily: 'Outfit', letterSpacing: '-0.04em', background: 'linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Portfolio Returns & Holdings
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 900,
+                mb: 0.5,
+                fontFamily: 'Outfit',
+                letterSpacing: '-0.04em',
+                background: theme.palette.financial.qfd.iridescent,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: `0 0 40px ${alpha(theme.palette.financial.qfd.quantum, 0.3)}`,
+              }}
+            >
+              Portfolio & Analytics
             </Typography>
           </motion.div>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>

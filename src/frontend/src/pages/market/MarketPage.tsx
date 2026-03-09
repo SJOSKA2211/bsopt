@@ -70,9 +70,10 @@ export const MarketPage: React.FC = () => {
                 mb: 0.5,
                 fontFamily: 'Outfit',
                 letterSpacing: '-0.04em',
-                background: 'linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%)',
+                background: theme.palette.financial.qfd.iridescent,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                textShadow: `0 0 40px ${alpha(theme.palette.financial.qfd.quantum, 0.3)}`,
               }}
             >
               Market Data
@@ -87,9 +88,9 @@ export const MarketPage: React.FC = () => {
           label="STREAMING"
           size="small"
           sx={{
-            bgcolor: alpha('#10b981', 0.1),
-            color: 'success.main',
-            border: `1px solid ${alpha('#10b981', 0.2)}`,
+            bgcolor: alpha(theme.palette.success.main, 0.1),
+            color: theme.palette.success.main,
+            border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
             fontWeight: 700,
             fontSize: '0.65rem',
             letterSpacing: '0.07em',

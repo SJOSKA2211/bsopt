@@ -509,6 +509,31 @@ pub unsafe extern "C" fn batch_price_monte_carlo_mapped(ptr: *mut f64, num_optio
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn batch_price_american(params_ptr: *const f64, params_len: usize, m: usize, n: usize, results_ptr: *mut f64) {
+    let params = unsafe { std::slice::from_raw_parts(params_ptr, params_len) };
+    let stride_in = 7;
+    let num_options = params_len / stride_in;
+    let results = unsafe { std::slice::from_raw_parts_mut(results_ptr, num_options) };
+    
+    let engine = CrankNicolsonWASM::new();
+    
+    for i in 0..num_options {
+        let off = i * stride_in;
+        results[i] = engine.price_american(
+            params[off], 
+            params[off+1], 
+            params[off+2], 
+            params[off+3], 
+            params[off+4], 
+            params[off+5], 
+            params[off+6] > 0.5, 
+            m, 
+            n
+        );
+    }
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn batch_price_american_mapped(ptr: *mut f64, num_options: usize, m: usize, n: usize) {
     batch_price_american(ptr, num_options * 7, m, n, ptr);
 }

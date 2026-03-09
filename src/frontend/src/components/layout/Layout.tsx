@@ -187,11 +187,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               width: 36,
               height: 36,
               borderRadius: 2,
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: theme.palette.financial.qfd.quantum,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: `0 4px 14px ${alpha('#10b981', 0.4)}`,
+              boxShadow: `0 4px 14px ${alpha(theme.palette.financial.qfd.quantum, 0.4)}`,
             }}
           >
             <BrandIcon sx={{ color: '#fff', fontSize: 20 }} />
@@ -203,7 +203,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 fontWeight: 900,
                 letterSpacing: '-0.04em',
                 fontSize: '1.25rem',
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                background: theme.palette.financial.qfd.iridescent,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -236,8 +236,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   width: 6,
                   height: 6,
                   borderRadius: '50%',
-                  bgcolor: 'success.main',
-                  boxShadow: `0 0 6px ${alpha('#10b981', 0.8)}`,
+                  bgcolor: theme.palette.success.main,
+                  boxShadow: `0 0 6px ${alpha(theme.palette.success.main, 0.8)}`,
                   animation: 'live-pulse 1.8s ease-in-out infinite',
                   '@keyframes live-pulse': {
                     '0%, 100%': { opacity: 1 },
@@ -245,14 +245,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                   },
                   flexShrink: 0,
                 }}
+                className="chip-dot"
               />
             }
             label="MARKET OPEN"
             size="small"
             sx={{
-              bgcolor: alpha('#10b981', 0.1),
-              color: 'success.main',
-              border: `1px solid ${alpha('#10b981', 0.2)}`,
+              bgcolor: alpha(theme.palette.success.main, 0.1),
+              color: theme.palette.success.main,
+              border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
               fontWeight: 700,
               fontSize: '0.62rem',
               letterSpacing: '0.07em',

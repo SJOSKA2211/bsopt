@@ -75,19 +75,20 @@ export const SettingsPage: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 950,
-              fontFamily: 'Outfit',
-              letterSpacing: '-0.05em',
-              background: `linear-gradient(135deg, ${qfd?.quantum ?? '#00FFFF'}, ${qfd?.nebula ?? '#7B68EE'})`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            System Configuration
-          </Typography>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 950,
+                fontFamily: 'Outfit',
+                letterSpacing: '-0.05em',
+                background: theme.palette.financial.qfd.iridescent,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: `0 0 50px ${alpha(theme.palette.financial.qfd.quantum, 0.4)}`,
+              }}
+            >
+              System Configuration
+            </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', fontWeight: 600, mt: 1 }}>
             Manage your quantum kernels, API connectivity, and vault security.
           </Typography>
