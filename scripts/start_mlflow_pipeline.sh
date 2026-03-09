@@ -2,12 +2,20 @@
 # Initialize and start MLflow training pipeline via Docker
 set -e
 
+# Usage: ./scripts/start_mlflow_pipeline.sh [entry_point] [experiment_name] [additional_params...]
+# Example: ./scripts/start_mlflow_pipeline.sh train_regressor tsla_v1 -P ticker=TSLA -P n_trials=50
+
 PIPELINE_ENTRY_POINT=${1:-train_rl}
-STUDY_NAME=${2:-rl_trading_core_v1}
+STUDY_NAME=${2:-rl_v1}
+shift 2 || true
+EXTRA_PARAMS=$@
 COMPOSE_CMD="./docker-compose"
 
 # Ensure we are in the project root to find the binary
 cd "$(dirname "$0")/.."
+
+# Default project name for consistency if not set
+export COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-bsopt_revamp}
 
 echo "Checking if mlops-worker is running..."
 if ! $COMPOSE_CMD ps | grep -q "mlops-worker"; then
@@ -17,10 +25,15 @@ if ! $COMPOSE_CMD ps | grep -q "mlops-worker"; then
     sleep 5
 fi
 
-echo "Starting MLflow Pipeline: $PIPELINE_ENTRY_POINT with study name: $STUDY_NAME"
+echo "Starting MLflow Pipeline: $PIPELINE_ENTRY_POINT with experiment: $STUDY_NAME"
+echo "Extra parameters: $EXTRA_PARAMS"
 
 # Use 'run' to start a fresh container for the training job, then auto-remove it
-$COMPOSE_CMD run --rm mlops-worker mlflow run . -e "$PIPELINE_ENTRY_POINT" --experiment-name "$STUDY_NAME" --env-manager local
+$COMPOSE_CMD run --rm mlops-worker mlflow run . \
+    -e "$PIPELINE_ENTRY_POINT" \
+    --experiment-name "$STUDY_NAME" \
+    --env-manager local \
+    $EXTRA_PARAMS
 
 echo "=========================================================="
 echo "Pipeline $PIPELINE_ENTRY_POINT completed/terminated."

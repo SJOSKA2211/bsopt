@@ -77,7 +77,8 @@ class DataPipeline:
             )
 
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
-            return generate_synthetic_data(self.config.min_samples)
+            X, y, features = generate_synthetic_data(self.config.min_samples)
+            return X, y, features, {"data_source": "synthetic_numba", "count": len(X)}
 
         strikes = np.array([r["strike"] for r in records], dtype=np.float64)
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
@@ -169,11 +170,56 @@ class MLPipeline:
         )
 
         logger.info("ml_pipeline_run_complete", score=score)
+
+        # 3. Model Registration and Promotion
+        if self.trainer.model:
+            from src.ml.registry.promote import promote_model
+
+            run_id = self.trainer.tracker.current_run.info.run_id
+            model_name = f"{params['framework']}_pricer_{self.symbols[0]}"
+            logger.info("promoting_new_champion", model=model_name, run_id=run_id)
+
+            # In a real scenario, we would compare scores before promoting
+            # For now, we promote the latest successful run
+            promote_model(model_name, run_id, stage="Production")
+
         return self.trainer.model
 
     async def shutdown(self):
         """Cleanup resources."""
         pass
+
+
+if __name__ == "__main__":
+    import argparse
+
+    import mlflow
+
+    parser = argparse.ArgumentParser(description="BS-OPT Autonomous ML Pipeline")
+    parser.add_argument("--ticker", type=str, default="AAPL")
+    parser.add_argument("--framework", type=str, default="xgboost")
+    parser.add_argument("--n_trials", type=int, default=20)
+    parser.add_argument("--study_name", type=str, default="regressor_v1")
+    parser.add_argument("--tracking_uri", type=str, default=None)
+
+    args = parser.parse_args()
+
+    if args.tracking_uri:
+        mlflow.set_tracking_uri(args.tracking_uri)
+
+    async def main():
+        config = {
+            "ticker": args.ticker,
+            "framework": args.framework,
+            "n_trials": args.n_trials,
+            "study_name": args.study_name,
+            "tracking_uri": args.tracking_uri,
+        }
+        pipeline = MLPipeline(config)
+        await pipeline.run()
+        await pipeline.shutdown()
+
+    asyncio.run(main())
 
 
 # =============================================================================

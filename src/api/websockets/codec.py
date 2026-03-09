@@ -2,7 +2,6 @@ from enum import StrEnum
 from typing import Any
 
 import msgspec
-import orjson
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 
@@ -21,14 +20,15 @@ class WebSocketCodec:
 
     _msgpack_encoder = msgspec.msgpack.Encoder()
     _msgpack_decoder = msgspec.msgpack.Decoder()
+    _json_encoder = msgspec.json.Encoder()
+    _json_decoder = msgspec.json.Decoder()
 
     @staticmethod
-    def encode(data: Any, protocol: ProtocolType) -> str | bytes:
+    def encode(data: Any, protocol: ProtocolType) -> bytes:
         if protocol == ProtocolType.JSON:
             if isinstance(data, Message):
                 data = MessageToDict(data, preserving_proto_field_name=True)
-            # Returning bytes directly is faster for the WS layer
-            return orjson.dumps(data)
+            return WebSocketCodec._json_encoder.encode(data)
         if protocol == ProtocolType.MSGPACK:
             return WebSocketCodec._msgpack_encoder.encode(data)
         if protocol == ProtocolType.PROTO:
@@ -40,7 +40,7 @@ class WebSocketCodec:
     @staticmethod
     def decode(data: str | bytes, protocol: ProtocolType, message_type: Any | None = None) -> Any:
         if protocol == ProtocolType.JSON:
-            return orjson.loads(data)
+            return WebSocketCodec._json_decoder.decode(data)
         if protocol == ProtocolType.MSGPACK:
             # OPTIMIZED: Use pre-allocated msgspec decoder
             return WebSocketCodec._msgpack_decoder.decode(data)

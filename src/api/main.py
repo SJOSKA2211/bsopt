@@ -6,7 +6,6 @@ import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import ORJSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
@@ -19,6 +18,7 @@ from src.api.middleware.security import (
     JWTAuthenticationMiddleware,
     SecurityHeadersMiddleware,
 )
+from src.api.responses import MsgspecJSONResponse
 from src.api.routes import (
     auth_router,
     debug_router,
@@ -113,10 +113,6 @@ app.add_middleware(
 )
 app.middleware("http")(logging_middleware)
 
-
-from src.api.responses import MsgspecJSONResponse, get_msgspec_response
-
-# ... (other imports)
 
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):

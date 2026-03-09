@@ -36,7 +36,7 @@ class PolygonProvider:
 class YahooProvider:
     """
     Yahoo Finance Provider.
-    OPTIMIZED: Uses StealthHttpClient to avoid bot detection.
+    OPTIMIZED: Uses StealthHttpClient to avoid bot detection and parses fragment responses.
     """
 
     def __init__(self):
@@ -44,6 +44,31 @@ class YahooProvider:
 
     @retry_with_backoff(retries=3)
     async def get_ticker_data(self, symbol: str) -> dict:
-        # Real Yahoo lookup using stealth client
-        logger.info("yahoo_lookup_initiated", symbol=symbol)
-        return {"symbol": symbol, "price": 149.5, "provider": "Yahoo"}
+        """Fetch quote data from Yahoo Finance using stealth impersonation."""
+        # Normalize symbol for Yahoo (.NS for NSE stocks if needed, but handled by router)
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1m&range=1d"
+
+        try:
+            response = await self.stealth.get(url)
+            if response.status_code != 200:
+                logger.warning("yahoo_lookup_failed", status=response.status_code, symbol=symbol)
+                return {"symbol": symbol, "error": "Yahoo lookup failed"}
+
+            data = response.json()
+            meta = data.get("chart", {}).get("result", [{}])[0].get("meta", {})
+
+            price = meta.get("regularMarketPrice")
+            if price is None:
+                price = meta.get("chartPreviousClose", 0.0)
+
+            return {
+                "symbol": symbol,
+                "price": float(price),
+                "currency": meta.get("currency"),
+                "exchange": meta.get("exchangeName"),
+                "provider": "Yahoo",
+                "timestamp": meta.get("regularMarketTime"),
+            }
+        except Exception as e:
+            logger.error("yahoo_provider_error", error=str(e), symbol=symbol)
+            return {"symbol": symbol, "error": str(e)}

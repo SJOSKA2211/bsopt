@@ -2,6 +2,7 @@
 Pricing Tasks for Celery - Production Optimized
 """
 
+import asyncio
 import gc
 import time
 from typing import Any
@@ -19,6 +20,9 @@ from src.shared.math_utils import (
     calculate_price_scalar,
 )
 from src.utils.cache import pricing_cache
+from src.utils.celery import BaseAsyncTask
+from src.utils.distributed import RayOrchestrator
+from src.utils.ray_pool import RayActorPool
 
 from .celery_app import PricingTask, celery_app
 
@@ -34,9 +38,6 @@ class PricingResult(msgspec.Struct):
     theta: float
     rho: float
 
-
-from src.utils.distributed import RayOrchestrator
-from src.utils.ray_pool import RayActorPool
 
 # Initialize Ray once
 RayOrchestrator.init()

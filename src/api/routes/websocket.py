@@ -51,12 +51,9 @@ async def market_data_ws(
 
     try:
         while True:
-            # 4. Dynamic Command Handling
-            if protocol == ProtocolType.MSGPACK:
-                data = await websocket.receive_bytes()
-                msg = WebSocketCodec.decode(data, protocol)
-            else:
-                msg = await websocket.receive_json()
+            # 4. Dynamic Command Handling using fast binary paths
+            data = await websocket.receive_bytes()
+            msg = WebSocketCodec.decode(data, protocol)
 
             if not isinstance(msg, dict):
                 continue
@@ -78,13 +75,10 @@ async def market_data_ws(
 
             elif action == "heartbeat":
                 websocket.metadata.update_heartbeat()
-                # Echo heartbeat back
-                if protocol == ProtocolType.MSGPACK:
-                    await websocket.send_bytes(
-                        WebSocketCodec.encode({"status": "ok", "type": "heartbeat"}, protocol)
-                    )
-                else:
-                    await websocket.send_json({"status": "ok", "type": "heartbeat"})
+                # Echo heartbeat back using optimized codec
+                await websocket.send_bytes(
+                    WebSocketCodec.encode({"status": "ok", "type": "heartbeat"}, protocol)
+                )
 
     except WebSocketDisconnect:
         pass

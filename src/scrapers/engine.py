@@ -369,7 +369,7 @@ class NSEScraper:
 
     def _batch_clean(self, items: list[dict]) -> list[dict]:
         """
-        Vectorized batch cleaning using Pandas.
+        Vectorized batch cleaning using Pandas (Optimized).
         """
         if not items:
             return []
@@ -377,14 +377,21 @@ class NSEScraper:
         try:
             df = pd.DataFrame(items)
 
-            # Vectorized cleaning
-            for col in ["price", "volume", "change"]:
+            # Vectorized cleaning: remove commas and convert to numeric
+            cols_to_clean = ["price", "volume", "change"]
+            for col in cols_to_clean:
                 if col in df.columns:
-                    df[col] = df[col].astype(str).str.replace(",", "", regex=False)
-                    df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+                    # Direct string replacement is faster than .str.replace for large frames if already str
+                    df[col] = pd.to_numeric(
+                        df[col].astype(str).str.replace(",", "", regex=False), errors="coerce"
+                    ).fillna(0.0)
 
             if "volume" in df.columns:
                 df["volume"] = df["volume"].astype(np.int64)
+
+            # Use 'category' for low-cardinality strings to save memory and time during dict conversion
+            if "market" in df.columns:
+                df["market"] = df["market"].astype("category")
 
             return df.to_dict("records")
 

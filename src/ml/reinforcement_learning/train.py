@@ -132,7 +132,28 @@ class RLTrainer(BaseTrainer):
             try:
                 os.makedirs(os.path.dirname(model_path), exist_ok=True)
                 model.save(model_path)
-                mlflow.pytorch.log_model(model.policy, "model")
+
+                # 🚀 GOD-MODE: High-fidelity model logging
+                mlflow.log_params(
+                    {
+                        "timesteps": total_timesteps,
+                        "batch_size": 256,
+                        "learning_rate": 1e-4,
+                        "policy": "TransformerTD3Policy",
+                        "features_dim": 512,
+                    }
+                )
+
+                # Log final metrics if available
+                if hasattr(eval_callback, "last_mean_reward"):
+                    mlflow.log_metric("eval_mean_reward", eval_callback.last_mean_reward)
+
+                mlflow.pytorch.log_model(
+                    model.policy,
+                    "model",
+                    pip_requirements=["torch", "stable-baselines3", "gymnasium"],
+                )
+                logger.info("model_persisted_mlflow", run_id=run.info.run_id)
             except Exception as e:
                 logger.error("save_failed", error=str(e))
                 raise
