@@ -13,7 +13,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
 
     from src.config import settings
     from src.protos import inference_pb2, inference_pb2_grpc
-    
+
     try:
         async with grpc.aio.insecure_channel(settings.ML_SERVICE_GRPC_URL) as channel:
             stub = inference_pb2_grpc.MLInferenceStub(channel)
@@ -28,7 +28,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
                     strike=150.0,
                     time_to_expiry=0.1,
                     is_call=True,
-                    model_type="nn"
+                    model_type="nn",
                 )
                 response = await stub.Predict(request)
                 results.append(response.price)
@@ -49,7 +49,7 @@ class Option:
 
     @strawberry.field
     def recommendation(self) -> str:
-        return random.choice(["BUY", "SELL", "HOLD"]) 
+        return random.choice(["BUY", "SELL", "HOLD"])
 
     @classmethod
     def resolve_reference(cls, id: strawberry.ID):
@@ -73,10 +73,11 @@ class Query:
     async def drift_status(self) -> DriftStatus:
         """Expose AIOps drift metrics via GraphQL."""
         from src.shared.observability import DATA_DRIFT_SCORE, MMD_DRIFT_SCORE
+
         return DriftStatus(
             is_drifted=DATA_DRIFT_SCORE.get() > 0.2 or MMD_DRIFT_SCORE.get() > 0.05,
             psi_score=DATA_DRIFT_SCORE.get(),
-            mmd_score=MMD_DRIFT_SCORE.get()
+            mmd_score=MMD_DRIFT_SCORE.get(),
         )
 
 

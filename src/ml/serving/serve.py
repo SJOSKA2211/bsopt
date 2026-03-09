@@ -361,14 +361,18 @@ async def reload_models(request: Request):
         # Re-initialize models
         await load_xgb_model()
         await load_onnx_model()
-        
+
         # Live-update gRPC servicer
         if state["grpc_servicer"]:
             state["grpc_servicer"].update_models(
-                (state["xgb_model"] if state["xgb_ort_session"] is None else state["xgb_ort_session"]),
-                state["nn_ort_session"]
+                (
+                    state["xgb_model"]
+                    if state["xgb_ort_session"] is None
+                    else state["xgb_ort_session"]
+                ),
+                state["nn_ort_session"],
             )
-            
+
         return {"status": "reloaded", "timestamp": datetime.now(UTC).isoformat()}
     except Exception as e:
         logger.error(f"Reload failed: {e}")

@@ -22,8 +22,16 @@ if os.getenv("NUMBA_DISABLE_JIT") == "1":
 else:
     try:
         from numba import njit, prange
-        from numba import njit as _njit
-        from numba import prange as _prange
+
+        # Enable AOT caching and fastmath by default to eliminate cold-starts and push limits
+        def _njit(*args, **kwargs):
+            if len(args) == 1 and callable(args[0]) and not kwargs:
+                return njit(cache=True, fastmath=True)(args[0])
+            kwargs.setdefault("cache", True)
+            kwargs.setdefault("fastmath", True)
+            return njit(*args, **kwargs)
+
+        _prange = prange
     except ImportError:
 
         def _njit(*args, **kwargs):

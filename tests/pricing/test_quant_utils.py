@@ -57,13 +57,13 @@ def test_cn_solver():
     s_grid = np.linspace(0, 200, 21)
     res = quant_utils.jit_cn_solver(
         s_grid,
-        100.0, # strike
-        1.0,   # T
+        100.0,  # strike
+        1.0,  # T
         0.05,  # r
-        0.2,   # sigma
-        0.0,   # q
+        0.2,  # sigma
+        0.0,  # q
         True,  # is_call
-        10,    # N
+        10,  # N
     )
     assert len(res) == 21
     assert res[-1] > 0  # ITM path has value

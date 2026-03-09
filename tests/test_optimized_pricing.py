@@ -7,7 +7,11 @@ import unittest
 import numpy as np
 
 from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
-from src.pricing.implied_vol import implied_volatility, vectorized_implied_volatility
+from src.pricing.implied_vol import (
+    implied_volatility,
+    vectorized_implied_volatility,
+)
+from src.pricing.models import BSParameters
 
 
 class TestOptimizedPricing(unittest.TestCase):
@@ -19,6 +23,10 @@ class TestOptimizedPricing(unittest.TestCase):
         self.rates = np.array([0.05, 0.05, 0.05])
         self.divs = np.array([0.0, 0.0, 0.0])
         self.types = np.array(["call", "call", "call"])
+        # New Put test data
+        self.put_spots = np.array([100.0, 100.0])
+        self.put_strikes = np.array([100.0, 110.0])
+        self.put_types = np.array(["put", "put"])
 
     def test_vectorized_bs_accuracy(self):
         """Verify JIT BS engine against known values."""
@@ -41,6 +49,21 @@ class TestOptimizedPricing(unittest.TestCase):
         )
         self.assertTrue(np.all(greeks["delta"] >= 0))
         self.assertTrue(np.all(greeks["delta"] <= 1.0))
+
+        # Verify Puts
+        put_greeks = VectorizedBlackScholesEngine.calculate_greeks_batch(
+            spot=self.put_spots,
+            strike=self.put_strikes,
+            maturity=self.maturities[:2],
+            volatility=self.vols[:2],
+            rate=self.rates[:2],
+            dividend=self.divs[:2],
+            option_type=self.put_types,
+        )
+        self.assertTrue(np.all(put_greeks["delta"] <= 0))
+        self.assertTrue(np.all(put_greeks["delta"] >= -1.0))
+        # Theta for Puts should be negative (time decay) for most vanilla options
+        self.assertTrue(np.all(put_greeks["theta"] < 0))
 
     def test_iv_convergence(self):
         """Verify IV calculation recovers the input volatility."""
@@ -87,10 +110,22 @@ class TestOptimizedPricing(unittest.TestCase):
             price = engine.price_call(100.0, 100.0, 1.0, 0.2, 0.05, 0.0)
             self.assertAlmostEqual(price, 10.450583572185565, places=6)
             print("\n[SUCCESS] WASM SIMD Pricing Verified")
+
+            # Verify Put Greeks in WASM
+            put_price = engine.price_put(100.0, 100.0, 1.0, 0.2, 0.05, 0.0)
+            # Put price for S=100, K=100, T=1, sigma=0.2, r=0.05 is ~5.5735
+            self.assertAlmostEqual(put_price, 5.57352, places=4)
+
+            greeks = engine.calculate_greeks(BSParameters(100.0, 100.0, 1.0, 0.2, 0.05, 0.0), "put")
+            self.assertTrue(greeks.delta < 0, f"Expected negative put delta, got {greeks.delta}")
+            self.assertTrue(
+                greeks.theta < 0, f"Expected negative put theta (decay), got {greeks.theta}"
+            )
         except ImportError:
             print("\n[SKIP] WASM Engine not installed in this environment")
         except Exception as e:
-            print(f"\n[FAIL] WASM SIMD Pricing failed: {e}")
+            print(f"\n[FAIL] WASM SIMD Verification failed: {e}")
+            raise e
 
     def test_lsm_american_accuracy(self):
         """OPTIMIZED: Verify Optimized LSM American Pricing."""

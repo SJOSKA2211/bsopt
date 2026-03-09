@@ -15,7 +15,9 @@ from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
 from src.services.ml_service import MLService, get_ml_service
 
-router = APIRouter(prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse)
+router = APIRouter(
+    prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse
+)
 logger = structlog.get_logger(__name__)
 
 

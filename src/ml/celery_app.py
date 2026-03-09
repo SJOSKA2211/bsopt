@@ -22,7 +22,7 @@ celery_app.conf.update(
     enable_utc=True,
     # 🚀 Performance Tuning
     worker_prefetch_multiplier=1,  # Prevent long-running ML tasks from blocking others
-    task_acks_late=True,           # Ensure reliability for ML pipelines
+    task_acks_late=True,  # Ensure reliability for ML pipelines
     worker_cancel_long_running_tasks_on_connection_loss=True,
     # Broker optimizations
     broker_pool_limit=10,
@@ -34,12 +34,13 @@ celery_app.conf.update(
 def setup_direct_queues(sender, **kwargs):
     """Register database cleanup on worker shutdown."""
     from celery.signals import worker_shutdown
-    
+
     @worker_shutdown.connect
     def shutdown_db_manager(**kwargs):
         import asyncio
 
         from src.database import db_manager
+
         logger.info("celery_worker_shutting_down_cleaning_db_pool")
         try:
             loop = asyncio.get_event_loop()
@@ -84,5 +85,6 @@ def run_pipeline_task(self, config: dict[str, Any]):
         except Exception:
             pass
 
+
 # Import tasks to register them with the app
-import src.scrapers.tasks # noqa
+import src.scrapers.tasks  # noqa

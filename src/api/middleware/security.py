@@ -524,7 +524,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             # Mask email/PII if it was accidentally logged or passed
             masked_error = str(e).replace(getattr(request.state, "user_email", "PII"), "MASKED")
             logger.warning("auth_validation_failed", error=masked_error, path=path)
-            
+
             return ORJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication failed"},

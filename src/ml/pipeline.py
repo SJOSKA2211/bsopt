@@ -1,57 +1,10 @@
 import asyncio
-import os
-import sys
-from collections.abc import Callable
-from typing import Any, Optional, cast
+from typing import Any
 
-import structlog
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import ORJSONResponse
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, selectinload
-from sqlalchemy.pool import NullPool
 import numpy as np
 import pandas as pd
-from numba import njit
-from strawberry.fastapi import GraphQLRouter
-
-from src.blockchain.nonce_manager import NonceManager
-from src.config import settings
-from src.database import db_manager, get_async_db_context, get_db
-from src.database.models import (
-    APIKey,
-    BetterAuthAccount,
-    BetterAuthSession,
-    MLModel,
-    ModelDriftBaseline,
-    OptionContract,
-    Order,
-    Portfolio,
-    Position,
-    RateLimit,
-    RequestLog,
-    SecurityIncident,
-    User,
-)
-from src.security.auth import AuthService, RoleChecker, get_auth_service, get_token_from_header
-from src.security.mfa import MfaService
-from src.security.password import PasswordService
-from src.security.rate_limit import RateLimitMiddleware
-from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
-from src.shared.observability import (
-    CALIBRATION_DURATION,
-    setup_logging,
-    tune_gc,
-)
-from src.utils.cache import get_redis
-from src.utils.celery import BaseAsyncTask
-from src.utils.chaos import monkey
-from src.utils.distributed import RayOrchestrator
-from src.utils.http_client import HttpClientManager
-from src.utils.resilience import retry_with_backoff
+import structlog
+from numba import njit, prange
 
 logger = structlog.get_logger(__name__)
 
@@ -129,20 +82,26 @@ class DataPipeline:
         strikes = np.array([r["strike"] for r in records], dtype=np.float64)
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
         ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
-        
-        expiries = np.array([r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records])
-        times = np.array([r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records])
-        
+
+        expiries = np.array(
+            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records]
+        )
+        times = np.array(
+            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records]
+        )
+
         maturities = _calculate_maturity_jit(expiries, times)
         maturities = np.where(maturities <= 0, 0.5, maturities)
 
-        X_base = np.column_stack([
-            strikes,
-            maturities,
-            ivs,
-            np.full(len(records), 0.05), # Rate
-            np.full(len(records), 0.01), # Dividend
-        ])
+        X_base = np.column_stack(
+            [
+                strikes,
+                maturities,
+                ivs,
+                np.full(len(records), 0.05),  # Rate
+                np.full(len(records), 0.01),  # Dividend
+            ]
+        )
         y_raw = last_prices
 
         iv_lag = np.roll(ivs, 1)
@@ -171,11 +130,13 @@ class DataPipeline:
         metadata = {"data_source": "postgres_jit_vectorized", "count": len(records)}
         return X, y, feature_names, metadata
 
+
 # =============================================================================
 # Helper Functions (Numba JIT)
 # =============================================================================
 
-@njit(fastmath=True)
+
+@njit(fastmath=True, parallel=True)
 def _rolling_mean_jit(x: np.ndarray, w: int) -> np.ndarray:
     """Numba-optimized rolling mean with same-length padding."""
     n = len(x)
@@ -183,30 +144,35 @@ def _rolling_mean_jit(x: np.ndarray, w: int) -> np.ndarray:
     if n < w:
         res[:] = x[0]
         return res
-        
+
     # Initial padding
     res[: w - 1] = x[0]
-    
+
     # Calculate initial sum
     current_sum = 0.0
-    for i in range(w):
+    for i in prange(w):
         current_sum += x[i]
     res[w - 1] = current_sum / w
-    
+
     # Sliding window
-    for i in range(w, n):
+    for i in prange(w, n):
         current_sum += x[i] - x[i - w]
         res[i] = current_sum / w
     return res
 
-@njit(fastmath=True)
-def _calculate_maturity_jit(expiry_timestamps: np.ndarray, current_timestamps: np.ndarray) -> np.ndarray:
+
+@njit(fastmath=True, parallel=True)
+def _calculate_maturity_jit(
+    expiry_timestamps: np.ndarray, current_timestamps: np.ndarray
+) -> np.ndarray:
     """Vectorized maturity calculation."""
     return (expiry_timestamps - current_timestamps) / (365.0 * 24 * 3600)
+
 
 # =============================================================================
 # Data Pipeline Implementation
 # =============================================================================
+
 
 def _check_cache(file_path: str) -> bool:
     """
@@ -218,13 +184,15 @@ def _check_cache(file_path: str) -> bool:
     # For now, assume cache is always stale for demonstration purposes.
     return False
 
+
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
     """Placeholder for feature computation."""
     logger.info("computing_features_simulated")
     # Simulate feature computation
-    df['sma_20'] = df['close'].rolling(window=20).mean()
-    df['rsi_14'] = np.random.rand(len(df)) # Dummy RSI
+    df["sma_20"] = df["close"].rolling(window=20).mean()
+    df["rsi_14"] = np.random.rand(len(df))  # Dummy RSI
     return df
+
 
 async def _background_cache_fill(df: pd.DataFrame):
     """Placeholder for background cache population."""

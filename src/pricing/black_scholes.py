@@ -8,6 +8,7 @@ from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -160,25 +161,49 @@ class BlackScholesEngine:
         else:
             is_call = np.char.lower(np.asanyarray(option_type).astype(str)) == "call"
 
-        if CORE_AVAILABLE and S.size == 1:
+        if CORE_AVAILABLE:
             try:
-                # Optimized Rust scalar path
-                res = bsopt_core.black_scholes_greeks(
-                    float(S[0]),
-                    float(K[0]),
-                    float(T[0]),
-                    float(sigma[0]),
-                    float(r[0]),
-                    float(q[0]),
-                    bool(is_call),
-                )
-                return OptionGreeks(
-                    delta=res.delta,
-                    gamma=res.gamma,
-                    theta=res.theta,
-                    vega=res.vega,
-                    rho=res.rho,
-                )
+                if S.size == 1:
+                    # Optimized Rust scalar path
+                    res = bsopt_core.black_scholes_greeks(
+                        float(S[0]),
+                        float(K[0]),
+                        float(T[0]),
+                        float(sigma[0]),
+                        float(r[0]),
+                        float(q[0]),
+                        bool(is_call),
+                    )
+                    return OptionGreeks(
+                        delta=res.delta,
+                        gamma=res.gamma,
+                        theta=res.theta,
+                        vega=res.vega,
+                        rho=res.rho,
+                    )
+                else:
+                    # Optimized Rust batch path
+                    if np.isscalar(is_call):
+                        is_call_arr = np.full(S.shape, is_call, dtype=bool)
+                    else:
+                        is_call_arr = np.asanyarray(is_call).astype(bool)
+
+                    d, g, th, v, rh = bsopt_core.batch_black_scholes_greeks(
+                        S.ravel(),
+                        K.ravel(),
+                        T.ravel(),
+                        sigma.ravel(),
+                        r.ravel(),
+                        q.ravel(),
+                        is_call_arr.ravel(),
+                    )
+                    return OptionGreeks(
+                        delta=d.reshape(S.shape),
+                        gamma=g.reshape(S.shape),
+                        theta=th.reshape(S.shape),
+                        vega=v.reshape(S.shape),
+                        rho=rh.reshape(S.shape),
+                    )
             except Exception as e:
                 logger.warning("rust_core_greeks_failed_falling_back", error=str(e))
 

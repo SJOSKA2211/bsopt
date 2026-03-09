@@ -94,7 +94,9 @@ class MarketDataRouter:
             # Threshold: 200ms or 50% of the current fastest latency
             if i < len(sorted_candidates) - 1:
                 wait_time = min(0.2, self._latency_map[sorted_candidates[0]] * 0.5)
-                done, _ = await asyncio.wait(tasks, timeout=wait_time, return_when=asyncio.FIRST_COMPLETED)
+                done, _ = await asyncio.wait(
+                    tasks, timeout=wait_time, return_when=asyncio.FIRST_COMPLETED
+                )
                 if done:
                     # Someone finished! Check if successful
                     for t in done:
@@ -104,13 +106,13 @@ class MarketDataRouter:
                             for remaining in tasks:
                                 if not remaining.done():
                                     remaining.cancel()
-                            
+
                             total_latency = time.time() - start_time
                             ROUTING_LATENCY.labels(target=p_name).observe(total_latency)
                             ROUTING_COUNT.labels(target=p_name, market=market).inc()
                             return res
                         except Exception:
-                            continue # Try next/wait
+                            continue  # Try next/wait
 
         # 4. Final wait if no one finished during staggered launch
         if not tasks:
@@ -125,14 +127,14 @@ class MarketDataRouter:
                     # SUCCESS
                     for p in pending:
                         p.cancel()
-                    
+
                     total_latency = time.time() - start_time
                     ROUTING_LATENCY.labels(target=p_name).observe(total_latency)
                     ROUTING_COUNT.labels(target=p_name, market=market).inc()
                     return res
                 except Exception:
                     tasks.remove(t)
-            
+
             if not tasks:
                 break
 

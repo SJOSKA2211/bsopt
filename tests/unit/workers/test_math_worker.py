@@ -43,9 +43,7 @@ def mock_market_data():
 @patch("src.workers.math_worker.MarketDataRouter")
 @patch("src.workers.math_worker.get_pool")
 @patch("src.utils.celery.BaseAsyncTask.run_async")
-def test_recalibrate_symbol_success(
-    mock_run_async, mock_get_pool, mock_router, mock_market_data
-):
+def test_recalibrate_symbol_success(mock_run_async, mock_get_pool, mock_router, mock_market_data):
     # 1. Mock Router
     router_instance = mock_router.return_value
     router_instance.get_option_chain_snapshot = AsyncMock(return_value=mock_market_data)
@@ -55,10 +53,10 @@ def test_recalibrate_symbol_success(
     mock_result = {
         "status": "success",
         "symbol": "SPY",
-        "params": {"kappa": 2.0, "theta": 0.04, "sigma": 0.3, "rho": -0.7, "v0": 0.04}
+        "params": {"kappa": 2.0, "theta": 0.04, "sigma": 0.3, "rho": -0.7, "v0": 0.04},
     }
     mock_actor.run_calibration.remote = AsyncMock(return_value=mock_result)
-    
+
     mock_pool = mock_get_pool.return_value
     mock_pool.get_actor.return_value = mock_actor
 
@@ -71,6 +69,7 @@ def test_recalibrate_symbol_success(
     assert result["status"] == "success"
     assert result["symbol"] == "SPY"
     assert "params" in result
+
 
 def test_health_check_success():
     assert health_check() is True

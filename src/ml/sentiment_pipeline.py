@@ -46,14 +46,16 @@ class SentimentIngestor:
                 text = data.get("text", "")
                 if text:
                     score = self.extractor.get_sentiment_score(text)
-                    results.append({
-                        "symbol": data.get("symbol", "GLOBAL"),
-                        "sentiment": score,
-                        "timestamp": data.get("timestamp")
-                    })
+                    results.append(
+                        {
+                            "symbol": data.get("symbol", "GLOBAL"),
+                            "sentiment": score,
+                            "timestamp": data.get("timestamp"),
+                        }
+                    )
             except Exception:
                 continue
-        
+
         if results and self.producer:
             # High-speed batch publishing
             for res in results:
@@ -77,7 +79,7 @@ class SentimentIngestor:
                 if msg is not None:
                     if not msg.error():
                         messages.append(msg.value())
-                    
+
                 if len(messages) >= batch_size or (messages and msg is None):
                     asyncio.run(self.process_batch(messages))
                     messages = []

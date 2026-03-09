@@ -229,12 +229,14 @@ class AuthService:
 
         # 1. Try Cache First (Redis)
         from src.utils.cache import get_redis_client
+
         redis_client = await get_redis_client()
         if redis_client:
             try:
                 cached_data = await redis_client.get(f"session_v2:{token}")
                 if cached_data:
                     import json
+
                     data = json.loads(cached_data)
                     return TokenData(
                         user_id=data["user_id"],
@@ -270,25 +272,28 @@ class AuthService:
                         exp=session.expires_at,
                         iat=session.created_at,
                     )
-                    
+
                     # Cache successful session verification (5 min TTL)
                     if redis_client:
                         try:
                             import json
+
                             await redis_client.setex(
                                 f"session_v2:{token}",
                                 300,
-                                json.dumps({
-                                    "user_id": token_data.user_id,
-                                    "email": token_data.email,
-                                    "tier": token_data.tier,
-                                    "exp": token_data.exp.isoformat(),
-                                    "iat": token_data.iat.isoformat(),
-                                })
+                                json.dumps(
+                                    {
+                                        "user_id": token_data.user_id,
+                                        "email": token_data.email,
+                                        "tier": token_data.tier,
+                                        "exp": token_data.exp.isoformat(),
+                                        "iat": token_data.iat.isoformat(),
+                                    }
+                                ),
                             )
                         except Exception as e:
                             logger.debug("session_cache_save_failed", error=str(e))
-                            
+
                     return token_data
 
         # 3. Legacy JWT Fallback
@@ -386,6 +391,7 @@ class RoleChecker:
     Role-Based Access Control (RBAC) Dependency.
     Checks if the user has any of the required roles.
     """
+
     def __init__(self, allowed_roles: list[str]):
         self.allowed_roles = allowed_roles
 
@@ -395,17 +401,13 @@ class RoleChecker:
         user_roles = [user.tier]
         if user.tier == "enterprise":
             user_roles.append("admin")
-            
+
         if not set(self.allowed_roles).intersection(user_roles):
             logger.warning(
-                "rbac_denied",
-                user_id=str(user.id),
-                required=self.allowed_roles,
-                actual=user_roles
+                "rbac_denied", user_id=str(user.id), required=self.allowed_roles, actual=user_roles
             )
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="Insufficient Permissions"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient Permissions"
             )
         return user
 

@@ -11,23 +11,25 @@ from .codec import ProtocolType, WebSocketCodec
 
 logger = structlog.get_logger()
 
+
 # Prometheus Metrics (Idempotent for tests)
 def _get_metric(cls, name, documentation):
     if name in REGISTRY._names_to_collectors:
         return REGISTRY._names_to_collectors[name]
     return cls(name, documentation)
 
-WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(Counter,
-    "websocket_connections_total", "Total number of WebSocket connections"
+
+WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(
+    Counter, "websocket_connections_total", "Total number of WebSocket connections"
 )
-WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(Counter,
-    "websocket_disconnections_total", "Total number of WebSocket disconnections"
+WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(
+    Counter, "websocket_disconnections_total", "Total number of WebSocket disconnections"
 )
-WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(Gauge,
-    "websocket_active_connections", "Current number of active WebSocket connections"
+WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(
+    Gauge, "websocket_active_connections", "Current number of active WebSocket connections"
 )
-WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(Counter,
-    "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
+WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(
+    Counter, "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
 )
 
 
@@ -52,6 +54,7 @@ class ConnectionManager:
         # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
         self.active_connections: dict[str, set[WebSocket]] = {}
         self._listener_task: asyncio.Task | None = None
+        self._shm_task: asyncio.Task | None = None
         self._heartbeat_task: asyncio.Task | None = None
         self._pubsub = None
         self._lock = asyncio.Lock()
@@ -59,10 +62,46 @@ class ConnectionManager:
     async def _get_pubsub(self):
         if self._pubsub is None:
             from src.utils.cache import get_redis
+
             redis_client = get_redis()
             if redis_client:
                 self._pubsub = redis_client.pubsub()
         return self._pubsub
+
+    async def _listen_to_shm(self):
+        """High-frequency polling of SHM for market data."""
+        import os
+
+        if os.getenv("USE_SHM") != "1":
+            return
+
+        logger.info("ws_shm_listener_started")
+        try:
+            from src.shared.shm_manager import SHMManager
+
+            shm = SHMManager("market_mesh", dict, size=50 * 1024 * 1024)
+            last_seq = 0
+            while True:
+                try:
+                    seq = shm.get_sequence()
+                    if seq != last_seq:
+                        last_seq = seq
+                        data = shm.read()
+                        for symbol, item in data.items():
+                            if symbol in self.active_connections:
+                                # Bypass Redis for SHM
+                                asyncio.create_task(
+                                    self.broadcast_to_symbol(
+                                        symbol, item, from_redis=True, is_raw=False
+                                    )
+                                )
+                except FileNotFoundError:
+                    pass
+                except Exception:
+                    pass
+                await asyncio.sleep(0.01)  # 10ms poll
+        except asyncio.CancelledError:
+            logger.info("ws_shm_listener_cancelled")
 
     async def _listen_to_redis(self):
         """Background task to listen for Redis messages and broadcast locally."""
@@ -78,7 +117,9 @@ class ConnectionManager:
                     symbol = channel.decode("utf-8") if isinstance(channel, bytes) else channel
                     raw_data = message["data"]
                     # Offload broadcast to avoid blocking listener
-                    asyncio.create_task(self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True))
+                    asyncio.create_task(
+                        self.broadcast_to_symbol(symbol, raw_data, from_redis=True, is_raw=True)
+                    )
         except asyncio.CancelledError:
             logger.info("ws_redis_listener_cancelled")
         except Exception as e:
@@ -120,7 +161,9 @@ class ConnectionManager:
             # Lazy init background tasks
             if self._listener_task is None or self._listener_task.done():
                 self._listener_task = asyncio.create_task(self._listen_to_redis())
-            
+            if self._shm_task is None or self._shm_task.done():
+                self._shm_task = asyncio.create_task(self._listen_to_shm())
+
             if self._heartbeat_task is None or self._heartbeat_task.done():
                 self._heartbeat_task = asyncio.create_task(self._heartbeat_monitor())
 
@@ -132,7 +175,7 @@ class ConnectionManager:
         """Handle disconnection and cleanup all symbol subscriptions for this websocket."""
         meta = getattr(websocket, "metadata", ConnectionMetadata())
         symbols = list(meta.subscriptions)
-        
+
         for symbol in symbols:
             await self.unsubscribe_from_symbol(websocket, symbol)
 
@@ -149,12 +192,12 @@ class ConnectionManager:
                 pubsub = await self._get_pubsub()
                 if pubsub:
                     await pubsub.subscribe(symbol)
-            
+
             self.active_connections[symbol].add(websocket)
-            
+
             meta = getattr(websocket, "metadata", ConnectionMetadata())
             meta.subscriptions.add(symbol)
-        
+
         logger.debug("ws_subscribed", symbol=symbol, client=str(websocket.client))
 
     async def unsubscribe_from_symbol(self, websocket: WebSocket, symbol: str):
@@ -171,27 +214,30 @@ class ConnectionManager:
                             await pubsub.unsubscribe(symbol)
                         except Exception as e:
                             logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
-            
+
             meta = getattr(websocket, "metadata", ConnectionMetadata())
             meta.subscriptions.discard(symbol)
-        
+
         logger.debug("ws_unsubscribed", symbol=symbol, client=str(websocket.client))
 
     async def close(self):
         """Shutdown the manager and cleanup all resources."""
         logger.info("ws_manager_shutting_down")
-        
+
         if self._listener_task:
             self._listener_task.cancel()
+        if self._shm_task:
+            self._shm_task.cancel()
+
         if self._heartbeat_task:
             self._heartbeat_task.cancel()
-            
+
         if self._pubsub:
             try:
                 await self._pubsub.close()
             except Exception:
                 pass
-        
+
         # Close all active connections
         async with self._lock:
             for symbol, connections in self.active_connections.items():
@@ -201,7 +247,7 @@ class ConnectionManager:
                     except Exception:
                         pass
             self.active_connections.clear()
-        
+
         logger.info("ws_manager_shutdown_complete")
 
     async def broadcast_to_symbol(
@@ -214,6 +260,7 @@ class ConnectionManager:
         if not from_redis:
             # Originating locally: Encode to binary once and push to Redis
             from src.utils.cache import get_redis
+
             redis_client = get_redis()
             if redis_client:
                 payload = WebSocketCodec.encode(message, ProtocolType.MSGPACK)

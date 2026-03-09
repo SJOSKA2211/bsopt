@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class EarlyStopping:
     """Simple early stopping callback."""
 
@@ -22,8 +25,10 @@ class MLflowCallback:
     """
     God-Mode: MLflow logging callback for custom training loops.
     """
+
     def __init__(self, run_name: str | None = None):
         import mlflow
+
         self.mlflow = mlflow
         self.run_name = run_name
 
@@ -35,6 +40,7 @@ class ModelCheckpoint:
     """
     Automated model checkpointing with stage promotion support.
     """
+
     def __init__(self, filepath: str, monitor: str = "val_loss", mode: str = "min"):
         self.filepath = filepath
         self.monitor = monitor
@@ -45,9 +51,13 @@ class ModelCheckpoint:
         import os
 
         import torch
-        
-        is_best = (current_score < self.best_score) if self.mode == "min" else (current_score > self.best_score)
-        
+
+        is_best = (
+            (current_score < self.best_score)
+            if self.mode == "min"
+            else (current_score > self.best_score)
+        )
+
         if is_best:
             self.best_score = current_score
             os.makedirs(os.path.dirname(self.filepath), exist_ok=True)

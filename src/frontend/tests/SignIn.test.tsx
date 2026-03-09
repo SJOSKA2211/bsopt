@@ -19,9 +19,9 @@ vi.mock('../src/lib/auth-client', () => ({
 describe('SignIn Component', () => {
   it('renders sign in form', () => {
     render(<SignIn />);
-    expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i, { selector: 'input' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
@@ -35,7 +35,7 @@ describe('SignIn Component', () => {
     render(<SignIn />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'password123' } });
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
@@ -58,7 +58,7 @@ describe('SignIn Component', () => {
     render(<SignIn />);
 
     fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'wrong@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrongpass' } });
+    fireEvent.change(screen.getByLabelText(/password/i, { selector: 'input' }), { target: { value: 'wrongpass' } });
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 

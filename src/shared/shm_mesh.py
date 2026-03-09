@@ -158,12 +158,16 @@ class OrderBuffer:
             self.buf = sm.buf
             if create:
                 struct.pack_into("q", self.buf, 0, 0)
-            self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
+            self.view = np.frombuffer(
+                self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY
+            )
         except Exception as e:
             if not create:
                 logger.warning("order_shm_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
-                self.view = np.frombuffer(self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY)
+                self.view = np.frombuffer(
+                    self.buf, dtype=ORDER_DTYPE, offset=8, count=ORDER_BUFFER_CAPACITY
+                )
             else:
                 raise
 
@@ -210,12 +214,16 @@ class ExecutionBuffer:
             self.buf = sm.buf
             if create:
                 struct.pack_into("q", self.buf, 0, 0)
-            self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+            self.view = np.frombuffer(
+                self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY
+            )
         except Exception as e:
             if not create:
                 logger.warning("exec_shm_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
-                self.view = np.frombuffer(self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY)
+                self.view = np.frombuffer(
+                    self.buf, dtype=EXEC_DTYPE, offset=8, count=EXEC_BUFFER_CAPACITY
+                )
             else:
                 raise
 
@@ -248,9 +256,7 @@ class SharedMemoryRingBuffer:
                     existing.unlink()
                 except Exception:
                     pass
-                sm = shared_memory.SharedMemory(
-                    name=SHM_NAME, create=True, size=self.shm_size
-                )
+                sm = shared_memory.SharedMemory(name=SHM_NAME, create=True, size=self.shm_size)
                 self.shm = sm
                 self.buf = sm.buf
                 # Initialize head index to 0
@@ -328,7 +334,7 @@ class SharedMemoryRingBuffer:
             return np.array([], dtype=TICK_DTYPE), head
         if len(slices) == 1:
             return slices[0], head
-        
+
         # Concatenate is NOT zero-copy, but necessary for a single view if wrapped
         return np.concatenate(slices), head
 
@@ -352,13 +358,15 @@ class SharedMemoryRingBuffer:
             try:
                 # Using keywords to ensure static analysis matches msgspec.Struct fields
                 v = view[i]
-                ticks.append(MarketTick(
-                    symbol=str(symbols[i]),
-                    price=float(v["price"]),
-                    volume=int(v["volume"]),
-                    timestamp=float(v["timestamp"]),
-                    receive_ts_ns=int(v["receive_ts_ns"])
-                ))
+                ticks.append(
+                    MarketTick(
+                        symbol=str(symbols[i]),
+                        price=float(v["price"]),
+                        volume=int(v["volume"]),
+                        timestamp=float(v["timestamp"]),
+                        receive_ts_ns=int(v["receive_ts_ns"]),
+                    )
+                )
             except Exception:
                 continue
         return ticks, head

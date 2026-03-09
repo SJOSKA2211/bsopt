@@ -23,11 +23,10 @@ class OrderExecutor:
         self._execution_lock = asyncio.Lock()
         # OPTIMIZED: Multi-dimensional tracker for Delta, Gamma, Vega
         self._risk_tracker = RiskVectorTracker(
-            limits=np.array([
-                settings.MAX_NET_DELTA,
-                settings.MAX_NET_GAMMA,
-                settings.MAX_NET_VEGA
-            ], dtype=np.float64)
+            limits=np.array(
+                [settings.MAX_NET_DELTA, settings.MAX_NET_GAMMA, settings.MAX_NET_VEGA],
+                dtype=np.float64,
+            )
         )
 
     async def execute_order(
@@ -47,8 +46,10 @@ class OrderExecutor:
                         pipe.get("portfolio_net_gamma")
                         pipe.get("portfolio_net_vega")
                         results = await pipe.execute()
-                    
-                    current_metrics = np.array([float(r) if r else 0.0 for r in results], dtype=np.float64)
+
+                    current_metrics = np.array(
+                        [float(r) if r else 0.0 for r in results], dtype=np.float64
+                    )
                     self._risk_tracker.reset(current_metrics)
 
                 # 1. Pre-Trade Risk Validation (Consolidated & Atomic)
@@ -57,7 +58,7 @@ class OrderExecutor:
                 price = float(params.get("price", 0.0))
                 quantity = int(params.get("amount", 0))
                 side = 1 if params.get("side") == "BUY" else -1
-                
+
                 d_delta = float(params.get("delta", 0.0)) * quantity * side
                 d_gamma = float(params.get("gamma", 0.0)) * quantity * side
                 d_vega = float(params.get("vega", 0.0)) * quantity * side
@@ -72,19 +73,29 @@ class OrderExecutor:
                             "risk:state:matrix",
                             "risk:kill_switch",
                             "blockchain:breaker:state",
-                            d_delta, d_gamma, d_vega,
+                            d_delta,
+                            d_gamma,
+                            d_vega,
                             settings.MAX_NET_DELTA,
                             settings.MAX_NET_GAMMA,
-                            settings.MAX_NET_VEGA
+                            settings.MAX_NET_VEGA,
                         )
 
                         if result[0] != 1:
-                            reason = result[1].decode() if isinstance(result[1], bytes) else str(result[1])
-                            logger.warning("order_rejected_risk_matrix", reason=reason, params=params)
+                            reason = (
+                                result[1].decode()
+                                if isinstance(result[1], bytes)
+                                else str(result[1])
+                            )
+                            logger.warning(
+                                "order_rejected_risk_matrix", reason=reason, params=params
+                            )
                             return {"status": "rejected", "reason": reason}
 
                         # Sync local tracker with atomic state
-                        new_state = np.array([float(result[1]), float(result[2]), float(result[3])], dtype=np.float64)
+                        new_state = np.array(
+                            [float(result[1]), float(result[2]), float(result[3])], dtype=np.float64
+                        )
                         self._risk_tracker.reset(new_state)
 
                     except Exception as e:

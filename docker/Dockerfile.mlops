@@ -39,6 +39,9 @@ ENV RAY_ADDRESS=auto
 # Performance tuning for numerical kernels
 ENV OMP_NUM_THREADS=4
 ENV MKL_NUM_THREADS=4
+ENV OPENBLAS_NUM_THREADS=4
+ENV VECLIB_MAXIMUM_THREADS=4
+ENV NUMEXPR_NUM_THREADS=4
 
 # Switch back to ray user
 USER ray

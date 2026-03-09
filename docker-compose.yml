@@ -19,7 +19,6 @@ services:
       - ./src/migrations:/migrations:ro
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
-    shm_size: 1gb
     deploy:
       resources:
         limits:
@@ -131,10 +130,10 @@ services:
       context: .
       dockerfile: docker/Dockerfile.api
       target: development
-    shm_size: '1gb'
     volumes:
       - ./src:/app/src
       - ./pyproject.toml:/app/pyproject.toml
+      - shared_shm:/dev/shm
     ports:
       - "8000:8000"
     environment:
@@ -148,6 +147,7 @@ services:
       - INSIDE_DOCKER=1
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - ML_SERVICE_GRPC_URL=ml-inference:50051
+      - USE_SHM=1
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -202,7 +202,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile.api
       target: development
-    shm_size: '2gb'
     ports:
       - "5001:5001"
       - "50051:50051"
@@ -227,10 +226,10 @@ services:
       context: .
       dockerfile: docker/Dockerfile.worker
       target: development
-    shm_size: '1gb'
     volumes:
       - ./src:/app/src
       - ./pyproject.toml:/app/pyproject.toml
+      - shared_shm:/dev/shm
     ports:
       - "50052:50051" # Changed to avoid collision if run on host
     environment:
@@ -246,6 +245,7 @@ services:
       - ML_SERVICE_GRPC_URL=ml-inference:50051
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - USE_SHM=1
     healthcheck:
       test: [ "CMD-SHELL", "celery -A src.ml.celery_app inspect ping" ]
       interval: 30s
@@ -274,6 +274,7 @@ services:
       - "8002:8000"
     volumes:
       - ./src:/app/src
+      - shared_shm:/dev/shm
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
@@ -281,6 +282,7 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - USE_SHM=1
     healthcheck:
       test: [ "CMD-SHELL", "[ -f /tmp/scraper_heartbeat ] && [ $(($(date +%s) - $(date +%s -r /tmp/scraper_heartbeat))) -lt 600 ] || exit 1" ]
       interval: 30s
@@ -304,6 +306,7 @@ services:
       - "8001:8000"
     volumes:
       - ./src:/app/src
+      - shared_shm:/dev/shm
     deploy:
       resources:
         limits:
@@ -316,6 +319,7 @@ services:
       - MKL_NUM_THREADS=4
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - USE_SHM=1
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 10s
@@ -452,7 +456,6 @@ services:
   ray-head:
     profiles: [ "ml" ]
     image: rayproject/ray:latest-py312-cpu
-    shm_size: '2gb'
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
@@ -467,13 +470,17 @@ services:
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     volumes:
       - ./:/app
+    shm_size: '8gb'
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
     working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
 
   rl-training-worker:
     profiles: [ "ml" ]
     image: rayproject/ray:latest-py312-cpu
-    shm_size: '2gb'
     depends_on:
       - ray-head
     environment:
@@ -488,6 +495,11 @@ services:
       - bsopt-network
     volumes:
       - ./:/app
+    shm_size: '8gb'
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
     working_dir: /app
     command: ray start --address=ray-head:6379 --block
 
@@ -515,7 +527,6 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.mlops
-    shm_size: '4gb'
     depends_on:
       - mlflow
       - ray-head
@@ -538,7 +549,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile.worker
       target: production
-    shm_size: '4gb'
     network_mode: host
     cap_add:
       - IPC_LOCK
@@ -601,10 +611,44 @@ services:
     networks:
       - bsopt-network
 
+  frontend-test:
+    profiles: [ "test" ]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      target: development
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    networks:
+      - bsopt-network
+    command: npm run test -- --run
+
+  e2e-test:
+    profiles: [ "test" ]
+    image: mcr.microsoft.com/playwright:v1.50.1-jammy
+    working_dir: /app/src/frontend
+    volumes:
+      - .:/app
+    environment:
+      - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
+    networks:
+      - bsopt-network
+    depends_on:
+      - frontend
+      - auth-service
+      - api
+    command: npx playwright test
+
 networks:
   bsopt-network:
     driver: bridge
 
 volumes:
+  shared_shm:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: "size=2048m"
   postgres_data:
   redis_data:

@@ -17,7 +17,9 @@ from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
 from src.security.auth import get_current_active_user
 
-router = APIRouter(prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse)
+router = APIRouter(
+    prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse
+)
 
 
 @router.get("")

@@ -59,11 +59,11 @@ class OptionPricingNN(nn.Module):
         OPTIMIZED: Reduces model size and inference latency on supported backends.
         """
         import torch.nn.utils.prune as prune
-        
+
         parameters_to_prune = []
         for module in self.modules():
             if isinstance(module, nn.Linear):
-                parameters_to_prune.append((module, 'weight'))
+                parameters_to_prune.append((module, "weight"))
 
         if parameters_to_prune:
             prune.global_unstructured(

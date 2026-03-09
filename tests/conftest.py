@@ -36,7 +36,6 @@ def startup_session():
 
     from sqlalchemy import create_engine, text
 
-
     # Ensure settings uses the TEST database URL
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
@@ -44,7 +43,7 @@ def startup_session():
         db_host = os.getenv("POSTGRES_HOST") or ("postgres" if is_docker else "localhost")
         # Use the known hex password as default if DATABASE_URL is missing
         db_url = f"postgresql://admin:29a47839acf362c9ebb5679a@{db_host}:5432/bsopt_test"
-    
+
     # Force test DB name if not already there
     if "bsopt_test" not in db_url:
         if "/" in db_url:
@@ -75,7 +74,7 @@ def startup_session():
                 sql = f.read()
                 # Replace hardcoded DB name in scripts
                 sql = sql.replace("DATABASE bsopt", "DATABASE bsopt_test")
-                
+
                 with engine.connect() as conn:
                     # Execute as one block (Postgres allows multiple statements in one call)
                     conn.execute(text(sql))
@@ -85,18 +84,20 @@ def startup_session():
 
     # Fallback to create_all for any missing ORM-only models
     from src.database import create_tables
+
     create_tables()
 
     # 3. Init Redis mock/client
     import asyncio
 
     from src.utils.cache import init_redis_cache
+
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    
+
     if loop.is_running():
         # Use a task if loop is already running
         loop.create_task(init_redis_cache())
@@ -113,7 +114,10 @@ def env_setup(monkeypatch):
     db_host = os.getenv("POSTGRES_HOST") or ("postgres" if is_docker else "localhost")
     redis_host = os.getenv("REDIS_HOST") or ("redis" if is_docker else "localhost")
 
-    db_url = os.getenv("DATABASE_URL") or f"postgresql://admin:29a47839acf362c9ebb5679a@{db_host}:5432/bsopt_test"
+    db_url = (
+        os.getenv("DATABASE_URL")
+        or f"postgresql://admin:29a47839acf362c9ebb5679a@{db_host}:5432/bsopt_test"
+    )
     redis_url = os.getenv("REDIS_URL") or f"redis://{redis_host}:6379/0"
 
     monkeypatch.setenv("DATABASE_URL", db_url)
@@ -161,5 +165,6 @@ def api_client():
 def mock_db_session(mocker):
     """Returns a mocked SQLAlchemy Session."""
     from sqlalchemy.orm import Session
+
     session = mocker.MagicMock(spec=Session)
     return session

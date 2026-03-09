@@ -38,9 +38,9 @@ class MathActor:
         """
         start_time = time.perf_counter()
         results = []
-        
+
         loop = asyncio.get_event_loop()
-        
+
         def _calib_task(symbol, data):
             try:
                 params, metrics = self.calibrator.calibrate(data, symbol=symbol)

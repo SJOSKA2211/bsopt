@@ -65,7 +65,7 @@ class PricingDriftDetector:
 
                 psi_score = calculate_psi(ref, curr)
                 _, ks_p_value = calculate_ks_test(ref, curr)
-                
+
                 metrics["psi"] = psi_score
                 metrics["ks_p_value"] = ks_p_value
 
@@ -86,6 +86,7 @@ class PricingDriftDetector:
 
         # Log to MLflow if run is active
         import mlflow
+
         if mlflow.active_run():
             mlflow.log_metrics(metrics)
             mlflow.set_tag("drift_detected", str(drift_detected))
@@ -122,22 +123,22 @@ if __name__ == "__main__":
         # Use MLPipeline to fetch data for drift check
         pipeline = MLPipeline({"ticker": args.ticker})
         df = await pipeline._fetch_data()
-        
+
         # Split data for reference vs current
         mid = len(df) // 2
         ref_df = df.iloc[:mid]
         curr_df = df.iloc[mid:]
-        
+
         detector = PricingDriftDetector()
-        
+
         with mlflow.start_run(run_name=f"drift_check_{args.ticker}"):
             res = await detector.check_drift(
-                args.ticker, 
-                curr_df["close"].values.reshape(-1, 1), 
-                ref_df["close"].values.reshape(-1, 1)
+                args.ticker,
+                curr_df["close"].values.reshape(-1, 1),
+                ref_df["close"].values.reshape(-1, 1),
             )
             print(res)
-        
+
         await pipeline.shutdown()
 
     asyncio.run(run_drift_check())

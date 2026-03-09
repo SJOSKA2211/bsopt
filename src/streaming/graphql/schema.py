@@ -64,6 +64,7 @@ class MeshListener:
     Singleton listener for the Shared Memory Mesh.
     OPTIMIZED: Single background task polls SHM and broadcasts to all active subscribers.
     """
+
     _instance = None
 
     def __init__(self):
@@ -94,6 +95,7 @@ class MeshListener:
 
     async def _run(self):
         from src.shared.shm_mesh import SharedMemoryRingBuffer
+
         try:
             mesh = SharedMemoryRingBuffer(create=False)
             last_head = 0
@@ -110,16 +112,17 @@ class MeshListener:
                                     queue.get_nowait()
                                     queue.put_nowait(tick)
                     last_head = new_head
-                
+
                 # Sub-millisecond adaptive sleep
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             pass
         except Exception as e:
             import structlog
+
             structlog.get_logger().error("mesh_listener_error", error=str(e))
         finally:
-            if 'mesh' in locals():
+            if "mesh" in locals():
                 mesh.close()
 
 
@@ -133,7 +136,7 @@ class Subscription:
         """
         listener = MeshListener.get_instance()
         queue = await listener.subscribe()
-        
+
         try:
             while True:
                 tick = await queue.get()

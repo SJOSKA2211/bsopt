@@ -4,6 +4,7 @@ from scipy.spatial.distance import cdist
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -25,14 +26,10 @@ def calculate_mmd(x, y, sigma=1.0):
     Uses Rust core for sub-microsecond calculation if available.
     """
     from src.shared.observability import MMD_DRIFT_SCORE
-    
+
     if CORE_AVAILABLE:
         try:
-            val = bsopt_core.calculate_mmd(
-                x.astype(np.float64), 
-                y.astype(np.float64), 
-                float(sigma)
-            )
+            val = bsopt_core.calculate_mmd(x.astype(np.float64), y.astype(np.float64), float(sigma))
             MMD_DRIFT_SCORE.set(val)
             return val
         except Exception as e:

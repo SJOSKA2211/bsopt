@@ -61,10 +61,10 @@ if __name__ == "__main__":
         mlflow.set_tracking_uri(args.tracking_uri)
 
     with mlflow.start_run(run_name=args.study_name):
-        mlflow.log_params({
-            "rounds": args.rounds,
-            "strategy": args.strategy,
-            "address": args.address
-        })
-        coordinator = FederatedLearningCoordinator(server_address=args.address, strategy_name=args.strategy)
+        mlflow.log_params(
+            {"rounds": args.rounds, "strategy": args.strategy, "address": args.address}
+        )
+        coordinator = FederatedLearningCoordinator(
+            server_address=args.address, strategy_name=args.strategy
+        )
         coordinator.start(num_rounds=args.rounds)

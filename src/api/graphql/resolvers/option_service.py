@@ -29,31 +29,35 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
     # OPTIMIZED: Bulk read from SHM segment if available
     now = datetime.now()
     results = []
-    
+
     for symbol in keys:
         try:
             # Try router for live data snapshot
             data = await router.get_live_quote(symbol)
-            results.append(Option(
-                id=strawberry.ID(symbol),
-                contract_symbol=symbol,
-                underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
-                strike=data.get("strike", 100.0),
-                expiry=data.get("expiry", now),
-                option_type=data.get("type", "CALL").upper(),
-                last=data.get("price"),
-                delta=data.get("delta"),
-            ))
+            results.append(
+                Option(
+                    id=strawberry.ID(symbol),
+                    contract_symbol=symbol,
+                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                    strike=data.get("strike", 100.0),
+                    expiry=data.get("expiry", now),
+                    option_type=data.get("type", "CALL").upper(),
+                    last=data.get("price"),
+                    delta=data.get("delta"),
+                )
+            )
         except Exception:
             # Fallback to minimal object
-            results.append(Option(
-                id=strawberry.ID(symbol),
-                contract_symbol=symbol,
-                underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
-                strike=100.0,
-                expiry=now,
-                option_type="CALL",
-            ))
+            results.append(
+                Option(
+                    id=strawberry.ID(symbol),
+                    contract_symbol=symbol,
+                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                    strike=100.0,
+                    expiry=now,
+                    option_type="CALL",
+                )
+            )
     return results
 
 
@@ -61,7 +65,9 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
 option_loader = DataLoader(load_fn=_load_options_vectorized)
 
 
-async def get_option(symbol: str, expiry: datetime, strike: float, option_type: str) -> Option | None:
+async def get_option(
+    symbol: str, expiry: datetime, strike: float, option_type: str
+) -> Option | None:
     """Fetch a single option using coordinates."""
     contract_symbol = f"{symbol}_{expiry.strftime('%Y%m%d')}_{option_type[0].upper()}_{int(strike)}"
     return await get_option_by_id(contract_symbol)

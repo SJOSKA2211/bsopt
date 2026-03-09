@@ -249,6 +249,34 @@ services:
     working_dir: /app
     command: ray start --address=ray-head:6379 --block
 
+  frontend-test:
+    image: bsopt-frontend-dev
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      target: development
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    networks:
+      - bsopt-network-dev
+    command: npm run test -- --run
+
+  e2e-test:
+    image: mcr.microsoft.com/playwright:v1.50.1-jammy
+    working_dir: /app/src/frontend
+    volumes:
+      - .:/app
+    environment:
+      - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
+    networks:
+      - bsopt-network-dev
+    depends_on:
+      - frontend
+      - auth-service
+      - api
+    command: npx playwright test
+
 networks:
   bsopt-network-dev:
     driver: bridge

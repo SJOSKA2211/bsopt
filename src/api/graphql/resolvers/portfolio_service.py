@@ -38,7 +38,9 @@ class Portfolio:
         async with get_async_db_context() as session:
             try:
                 # RLS ensures we only see our own positions if session context is set
-                result = await session.execute(select(DBPosition).where(DBPosition.portfolio_id == self.id))
+                result = await session.execute(
+                    select(DBPosition).where(DBPosition.portfolio_id == self.id)
+                )
                 return [Position.from_db(p) for p in result.scalars()]
             except Exception as e:
                 logger.error("ws_fetch_positions_failed", portfolio_id=self.id, error=str(e))

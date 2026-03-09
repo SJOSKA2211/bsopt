@@ -278,14 +278,14 @@ if __name__ == "__main__":
         pipeline = MLPipeline({"ticker": args.ticker})
         df = await pipeline._fetch_data()
         df["symbol"] = args.ticker
-        
+
         config = {
             "max_epochs": args.epochs,
             "batch_size": args.batch_size,
             "hidden_size": args.hidden_size,
             "study_name": args.study_name,
         }
-        
+
         model = PriceTFTModel(config)
         processed_data = model.prepare_data(df)
         model.train(processed_data)

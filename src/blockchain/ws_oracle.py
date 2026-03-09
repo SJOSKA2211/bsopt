@@ -30,10 +30,11 @@ class DexWebSocketOracle:
         self._pairs = pairs
         self._running = True
         self.redis = get_redis()
-        
+
         # Initialize SHM for ultra-low latency local broadcast
         try:
             from src.shared.shm_mesh import SharedMemoryRingBuffer
+
             mesh = SharedMemoryRingBuffer(create=False)
         except Exception:
             mesh = None
@@ -45,11 +46,11 @@ class DexWebSocketOracle:
                     subscribe_msg = {
                         "method": "SUBSCRIBE",
                         "params": [f"{p.lower()}@aggTrade" for p in pairs],
-                        "id": 1
+                        "id": 1,
                     }
                     await ws.send(msgspec.json.encode(subscribe_msg))
-                    self._reconnect_attempt = 0 # Reset on successful connection
-                    
+                    self._reconnect_attempt = 0  # Reset on successful connection
+
                     # Buffer for pipeline updates
                     buffer = []
                     last_flush = time.time()
@@ -60,14 +61,16 @@ class DexWebSocketOracle:
                             if "s" in data and "p" in data:
                                 symbol = data["s"]
                                 price = float(data["p"])
-                                
+
                                 # 1. 🚀 ULTRA-SPEED: Local SHM Mesh
                                 if mesh:
-                                    mesh.write_tick(symbol, price, int(data.get("q", 0)), time.time())
+                                    mesh.write_tick(
+                                        symbol, price, int(data.get("q", 0)), time.time()
+                                    )
 
                                 # 2. ⚡ PIPELINE BUFFER: Global Redis
                                 buffer.append((symbol, price))
-                                
+
                                 if len(buffer) >= 10 or (time.time() - last_flush) > 0.1:
                                     if self.redis:
                                         pipe = self.redis.pipeline()
@@ -83,7 +86,7 @@ class DexWebSocketOracle:
             except Exception as e:
                 logger.error("dex_oracle_ws_error", error=str(e))
                 self._reconnect_attempt += 1
-                await asyncio.sleep(min(30, 2 ** self._reconnect_attempt)) # Exponential backoff
+                await asyncio.sleep(min(30, 2**self._reconnect_attempt))  # Exponential backoff
 
     async def stop(self):
         self._running = False

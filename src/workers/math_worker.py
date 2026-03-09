@@ -52,6 +52,7 @@ RayOrchestrator.init()
 # Initialize Global Pool
 _pool: RayActorPool | None = None
 
+
 def get_pool():
     global _pool
     if _pool is None:
@@ -100,7 +101,7 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
         # 2. Delegate to Ray Actor Pool
         pool = get_pool()
         actor = await pool.get_actor()
-        
+
         # 🚀 GOD-MODE: Non-blocking await of Ray future
         return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
 
@@ -181,7 +182,7 @@ async def _reconcile_risk_state_impl():
 
     # Results mapping: [delta, gamma, vega, margin]
     current_metrics = [float(r) if r is not None else 0.0 for r in results]
-    
+
     # 2. Update SHM (The engine's local truth)
     try:
         risk_buf = RiskStateBuffer(create=False)
@@ -189,13 +190,13 @@ async def _reconcile_risk_state_impl():
         # Assuming RiskStateBuffer.view is [d, g, v, max_d, max_g, max_v, margin, ts]
         # We update the metrics and ensure limits are synced from settings
         risk_buf.update(
-            current_metrics[0], # delta
-            current_metrics[1], # gamma
-            current_metrics[2], # vega
+            current_metrics[0],  # delta
+            current_metrics[1],  # gamma
+            current_metrics[2],  # vega
             settings.MAX_NET_DELTA,
             settings.MAX_NET_GAMMA,
             settings.MAX_NET_VEGA,
-            current_metrics[3]  # margin
+            current_metrics[3],  # margin
         )
         logger.debug("risk_vector_synced", delta=current_metrics[0], gamma=current_metrics[1])
     except Exception as e:

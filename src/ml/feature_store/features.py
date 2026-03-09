@@ -18,6 +18,7 @@ class NumbaIndicatorFeature(Feature):
     """
     God-Mode: High-performance wrapper for JIT-compiled indicators.
     """
+
     def __init__(self, name: str, func, **kwargs):
         self.name = name
         self.func = func
@@ -26,29 +27,32 @@ class NumbaIndicatorFeature(Feature):
     def transform(self, data: pd.DataFrame) -> pd.Series:
         if "close" not in data.columns:
             raise ValueError(f"Data missing 'close' for {self.name}")
-        
+
         closes = data["close"].values.astype(np.float64)
         result = self.func(closes, **self.kwargs)
-        
+
         # Handle tuple results (e.g., BBands)
         if isinstance(result, tuple):
-            return pd.Series(result[1], index=data.index) # Default to mid band
+            return pd.Series(result[1], index=data.index)  # Default to mid band
         return pd.Series(result, index=data.index)
 
 
 class RSIPeature(NumbaIndicatorFeature):
     def __init__(self, length: int = 14):
         from src.ml.indicators import get_rsi
+
         super().__init__(f"RSI_{length}", get_rsi, length=length)
 
 
 class EMAFeature(NumbaIndicatorFeature):
     def __init__(self, span: int = 20):
         from src.ml.indicators import get_ema
+
         super().__init__(f"EMA_{span}", get_ema, span=span)
 
 
 class MACDFeature(NumbaIndicatorFeature):
     def __init__(self, fast: int = 12, slow: int = 26, signal: int = 9):
         from src.ml.indicators import get_macd
+
         super().__init__("MACD", get_macd, fast=fast, slow=slow, signal=signal)

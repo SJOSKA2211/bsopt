@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown logic
     from src.database import dispose_engine
+
     await dispose_engine()
 
 
@@ -50,15 +51,18 @@ app = FastAPI(
 )
 app.middleware("http")(logging_middleware)
 
+
 # Standardized Error Handling
 @app.exception_handler(Exception)
 async def universal_exception_handler(request: Request, exc: Exception):
     import structlog
+
     structlog.get_logger().error("portfolio_service_error", error=str(exc), path=request.url.path)
     return MsgspecJSONResponse(
         status_code=500,
-        content={"message": "Portfolio manifold internal error", "type": "persistence_failure"}
+        content={"message": "Portfolio manifold internal error", "type": "persistence_failure"},
     )
+
 
 # Apply Zero Trust security dependencies
 security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "portfolio"))]

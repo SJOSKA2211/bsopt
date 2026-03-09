@@ -108,7 +108,7 @@ def _trading_step_kernel(
     current_positions,
     current_balance,
     transaction_cost_pct,
-    initial_balance
+    initial_balance,
 ):
     """
     God-Tier: Full Environment Step Fusion.
@@ -135,7 +135,7 @@ def _trading_step_kernel(
         # Action is expected to be in [-1, 1] range (weights)
         target_units[i] = (action[i] * portfolio_value) / (p_safe[i] + 1e-9)
         trades[i] = target_units[i] - current_positions[i]
-        
+
         # Costs
         total_transaction_costs += abs(trades[i]) * p_safe[i] * transaction_cost_pct
         total_asset_costs += trades[i] * p_safe[i]
