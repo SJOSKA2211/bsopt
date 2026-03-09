@@ -60,6 +60,7 @@ services:
       - PORT=4000
       - LOG_LEVEL=debug
       - API_URL=http://api:8000/graphql
+      - PORTFOLIO_URL=http://api:8000/graphql
       - PRICING_URL=http://neural-pricing:8000/graphql
     volumes:
       - ./src/gateway:/app
@@ -299,6 +300,8 @@ services:
       api:
         condition: service_healthy
       app-gateway:
+        condition: service_healthy
+      neural-pricing:
         condition: service_healthy
     command: npx playwright test
 

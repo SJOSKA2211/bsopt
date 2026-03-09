@@ -42,6 +42,7 @@ services:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres-sync:5432/bsopt
       - REDIS_HOST=redis-sync
       - REDIS_PORT=6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis-sync:6379/0
     volumes:
       - ./src:/app/src
     networks:
