@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv(
 
 async def seed_core():
     """
-    God-Mode Seeding: Uses native DB procedures for security and speed.
+    High-Performance Seeding: Uses native DB procedures for security and speed.
     """
     from src.database import db_manager
 
@@ -20,7 +20,7 @@ async def seed_core():
     engine = db_manager.async_engine
 
     async with engine.begin() as conn:
-        print("🥒 Seeding Dev User...")
+        print(" Seeding Dev User...")
         # Use our revamped native registration (Handles hashing DB-side)
         await conn.execute(
             text("SELECT register_user_native(:email, :password, :name)"),
@@ -44,7 +44,7 @@ async def seed_core():
             {"pid": str(uuid.uuid4())},
         )
 
-    print("✨ Seed complete. Solenya-tight! 🥒")
+    print(" Seed complete. production-ready! ")
 
 
 if __name__ == "__main__":

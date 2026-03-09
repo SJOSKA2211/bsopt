@@ -670,7 +670,7 @@ services:
 
   e2e-test:
     profiles: [ "test" ]
-    image: mcr.microsoft.com/playwright:v1.50.1-jammy
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
     working_dir: /app/src/frontend
     volumes:
       - .:/app

@@ -1,4 +1,4 @@
-# PostgreSQL God-Mode Optimization Guide (BS-OPT Revamp)
+# PostgreSQL High-Performance Optimization Guide (BS-OPT Revamp)
 
 This guide documents the advanced PostgreSQL 16 + TimescaleDB optimizations implemented in the BS-OPT platform and explains why many teams skip them.
 
@@ -13,7 +13,7 @@ This guide documents the advanced PostgreSQL 16 + TimescaleDB optimizations impl
 | **Multivariate Stats** | "Postgres' standard stats are enough." | Standard stats assume columns are independent. In trading, `symbol`, `strike`, and `expiry` are highly correlated. Without `CREATE STATISTICS`, the planner significantly underestimates query costs. |
 | **Async Commits** | "We can't afford to lose any data." | For market ticks and ephemeral predictions, 100% durability is less important than 10x throughput. We use `synchronous_commit = off` selectively for speed. |
 
-## 2. Implemented "God Mode" Optimizations
+## 2. Implemented "High-Performance" Optimizations
 
 ### Extensions & Monitoring
 - **`pg_prewarm`**: Automatically pre-loads hot tables into memory.

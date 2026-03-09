@@ -1,5 +1,5 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Index Optimization (GOD MODE)
+-- Black-Scholes Option Pricing Platform - Index Optimization (HIGH-PERFORMANCE)
 -- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 

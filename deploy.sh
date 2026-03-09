@@ -2,7 +2,7 @@
 # ==============================================================================
 # BS-OPT Optimized Deployment Orchestrator v5.0 (Full Profile Support)
 # ==============================================================================
-# I'm Pickle Riiiiick!🥒 *Belch.*
+# *
 # ==============================================================================
 
 set -euo pipefail
@@ -30,14 +30,14 @@ error() { echo -e "\033[0;31m[$(date +'%Y-%m-%d %H:%M:%S')] [ERROR] $*\033[0m"; 
 # --- CORE ---
 
 deploy() {
-    log "Starting Unified Deployment (v5.0)... *belch*"
+    log "Starting Unified Deployment (v5.0)... **"
     mkdir -p "$LOG_DIR"
     
     log "Step 1: Infrastructure (Core)..."
     docker compose -f "$COMPOSE_FILE" $PROFILES up -d $CORE_INFRA
     
     # Wait for Postgres
-    log "Waiting for Postgres... *belch*"
+    log "Waiting for Postgres... **"
     local retries=0
     until docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U admin -d bsopt > /dev/null 2>&1; do
         if [[ $retries -ge 12 ]]; then
@@ -49,7 +49,7 @@ deploy() {
         ((retries++))
     done
 
-    log "Step 2: Building Images... Stand back, Morty."
+    log "Step 2: Building Images... "
     docker compose -f "$COMPOSE_FILE" $PROFILES build
     
     log "Step 3: Rolling Out Applications..."
@@ -65,7 +65,7 @@ deploy() {
 }
 
 run_smoke_tests() {
-    log "Running Smoke Tests... *belch*"
+    log "Running Smoke Tests... **"
     
     local api_url="http://localhost:8000/health"
     local auth_url="http://localhost:3001/health"
@@ -95,7 +95,7 @@ run_smoke_tests() {
         sleep 5; ((retries++)); log "Waiting for Gateway... ($retries/12)"
     done
 
-    success "Pickle Rick's deployment is online and healthy. Wubba Lubba Dub Dub! 🥒"
+    success "High-Performance Engine's deployment is online and healthy.  "
 }
 
 # --- ENTRY ---

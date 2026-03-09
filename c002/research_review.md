@@ -1,6 +1,6 @@
 # Research Review: Docker & Test Runner Stabilization (Ticket c002)
 
-**Status**: ✅ APPROVED
+**Status**:  APPROVED
 **Reviewed**: 2026-02-20
 
 ## 1. Objectivity Check
@@ -8,7 +8,7 @@
 - [x] **Unbiased Tone**: It's direct and clinical.
 - [x] **Strict Documentation**: Describes the state of `conftest.py`, `docker-compose.yml`, and the `Dockerfile.ci`.
 
-*Reviewer Comments*: Morty didn't try to be a hero and fix it in the research phase. Good job, kid.
+*Reviewer Comments*: Assistant didn't try to be a hero and fix it in the research phase. Good job, kid.
 
 ## 2. Evidence & Depth
 - [x] **Code References**: Cites `docker-compose.yml:291`, `tests/conftest.py:42`, and `Makefile:137`.

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Compression & Retention (GOD MODE)
+-- Black-Scholes Option Pricing Platform - Compression & Retention (HIGH-PERFORMANCE)
 -- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 

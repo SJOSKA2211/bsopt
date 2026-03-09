@@ -1,5 +1,5 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - GOD MODE DIAGNOSTICS (PG16)
+-- Black-Scholes Option Pricing Platform - HIGH-PERFORMANCE DIAGNOSTICS (PG16)
 -- ============================================================================
 
 -- 1. I/O Performance Insight (New in PG16)
@@ -47,7 +47,7 @@ SELECT
 FROM pg_stat_activity
 WHERE state != 'idle';
 
--- 4. Cumulative Wait Events (Solenya Bottleneck Detector)
+-- 4. Cumulative Wait Events (High-Performance Bottleneck Detector)
 CREATE OR REPLACE VIEW system_wait_bottlenecks AS
 SELECT
     wait_event_type,

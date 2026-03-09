@@ -1,5 +1,5 @@
 -- ============================================================================
--- Black-Scholes Option Pricing Platform - Continuous Aggregates (GOD MODE)
+-- Black-Scholes Option Pricing Platform - Continuous Aggregates (HIGH-PERFORMANCE)
 -- Target: PG 16 + TimescaleDB 2.17+
 -- ============================================================================
 

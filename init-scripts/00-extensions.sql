@@ -6,7 +6,7 @@
 SELECT 'CREATE DATABASE bsopt_test'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'bsopt_test')\gexec
 
--- Enable required extensions (Solenya Standard)
+-- Enable required extensions (High-Performance Standard)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -15,7 +15,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 🚀 GOD-MODE: Consolidated Enum Types
+--  HIGH-PERFORMANCE: Consolidated Enum Types
 DO $$
 BEGIN
     -- User Tiers
