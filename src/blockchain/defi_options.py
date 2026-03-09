@@ -510,6 +510,27 @@ class DeFiOptionsProtocol:
             logger.error("meta_tx_submission_failed", error=str(e))
             raise
 
+    async def route_order(self, symbol: str, amount: float, is_call: bool) -> dict:
+        """
+        Smart Order Router (SOR) v1.0 - Basic Liquidity Venue Discovery.
+        """
+        # Determine best venue based on current oracle price
+        price = await self.oracle.get_price(symbol, "0x0000000000000000000000000000000000000000", [])
+        
+        # Simple logic: higher liquidity on Venue A, lower spread on Venue B
+        if amount > 10.0:
+            return {
+                "name": "QuickSwapV3",
+                "price": price * 1.001, # Include slippage proxy
+                "gas_estimate": 150000,
+            }
+        
+        return {
+            "name": "SushiswapV2",
+            "price": price * 1.0005,
+            "gas_estimate": 120000,
+        }
+
     async def route_order_advanced(self, symbol: str, amount: float, is_call: bool) -> dict:
         """
         Smart Order Router (SOR) v2.2 - Mempool & Gas Aware.

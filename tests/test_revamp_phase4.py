@@ -7,18 +7,19 @@ from src.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
 
 
 class TestRevampPhase4:
-    def test_quantum_pricer_speedup_calculation(self):
+    @pytest.mark.asyncio
+    async def test_quantum_pricer_speedup_calculation(self):
         # Even if Qiskit is not available, we can test the fallback or mock the AE
         pricer = QuantumOptionPricer(use_real_quantum=False)
 
         # Test math fallback if QISKIT_AVAILABLE is False
         if not QISKIT_AVAILABLE:
-            res = pricer.price_european_call_quantum(100, 100, 1.0, 0.05, 0.2)
+            res = await pricer.price_european_call_quantum(100, 100, 1.0, 0.05, 0.2)
             assert res["backend"] == "analytical_fallback"
             assert res["speedup_factor"] == 1.0
         else:
             # If Qiskit is available, test real AE execution (Simulation)
-            res = pricer.price_european_call_quantum(100, 100, 1.0, 0.05, 0.2, num_qubits=3)
+            res = await pricer.price_european_call_quantum(100, 100, 1.0, 0.05, 0.2, num_qubits=3)
             assert "price" in res
             assert res["speedup_factor"] > 1.0  # Should show quadratic speedup logic
             assert "num_queries" in res

@@ -61,9 +61,17 @@ class DatabaseManager:
             separator = "&" if "?" in db_url else "?"
             db_url = f"{db_url}{separator}sslmode=require"
 
-        # 🚀 Favor psycopg (v3) for sync path
+        # 🚀 Favor psycopg (v3) for sync path, fallback to psycopg2
         separator = "&" if "?" in db_url else "?"
-        sync_url = f"{db_url}{separator}application_name={app_name}".replace("postgresql://", "postgresql+psycopg://")
+        driver = "psycopg"
+        try:
+            import psycopg  # noqa: F401
+        except ImportError:
+            driver = "psycopg2"
+        
+        sync_url = f"{db_url}{separator}application_name={app_name}".replace(
+            "postgresql://", f"postgresql+{driver}://"
+        )
         
         # Async path favors asyncpg
         async_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
@@ -135,7 +143,9 @@ class DatabaseManager:
             async_pool_class = NullPool
             async_pool_kwargs = {}
         else:
-            async_pool_class = QueuePool
+            # OPTIMIZED: SQLAlchemy 2.0 automatically adapts QueuePool for AsyncEngine
+            # if we don't specify it explicitly.
+            async_pool_class = None
             async_pool_kwargs = {
                 "pool_size": settings.DATABASE_MIN_POOL_SIZE,
                 "max_overflow": settings.DATABASE_MAX_POOL_SIZE - settings.DATABASE_MIN_POOL_SIZE,
