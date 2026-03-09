@@ -10,10 +10,7 @@ import orjson
 import redis.asyncio as redis
 import structlog
 
-from src.api.exceptions import APIException
-from src.api.responses import MsgspecJSONResponse
 from src.blockchain.nonce_manager import NonceManager
-from src.blockchain.signature import get_signer
 from src.config import settings
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.utils.cache import get_redis

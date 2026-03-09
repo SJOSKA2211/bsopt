@@ -61,11 +61,11 @@ fi
 
 # 4. Start Ray Cluster in Docker
 echo "🐝 Starting Ray Cluster (Containerized)..."
-$DOCKER_COMPOSE up -d ray-head rl-training-worker
+$DOCKER_COMPOSE up -d --build ray-head rl-training-worker
 
 # 5. Start App Services in Docker
 echo "🚀 Launching App Services (Containerized)..."
-$DOCKER_COMPOSE up -d auth-service api app-gateway frontend scraper neural-pricing worker-ml
+$DOCKER_COMPOSE up -d --build auth-service api app-gateway frontend scraper neural-pricing worker-ml
 
 # 6. Unified Health Check
 echo "⏳ Waiting for App Services to be healthy..."

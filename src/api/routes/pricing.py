@@ -20,7 +20,7 @@ router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=M
 pricing_service = PricingService()
 
 
-@router.post("/price")
+@router.post("/price", response_model=None)
 async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     """
     Calculate theoretical price for a single option.
@@ -35,7 +35,7 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     )
 
 
-@router.post("/batch")
+@router.post("/batch", response_model=None)
 async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
     """
     Vectorized batch pricing.

@@ -13,14 +13,12 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, selectinload
 from sqlalchemy.pool import NullPool
+import numpy as np
+import pandas as pd
+from numba import njit
 from strawberry.fastapi import GraphQLRouter
 
-from src.api.dependencies import get_current_active_user, get_current_user, get_token_from_header, get_api_key
-from src.api.exceptions import AuthenticationException, ConflictException, ValidationException
-from src.api.responses import MsgspecJSONResponse
-from src.auth.better_auth import BetterAuth
 from src.blockchain.nonce_manager import NonceManager
-from src.blockchain.signature import get_signer
 from src.config import settings
 from src.database import db_manager, get_async_db_context, get_db
 from src.database.models import (
@@ -86,7 +84,7 @@ class DataPipeline:
     OPTIMIZED: Loads real data from Postgres.
     """
 
-    def __init__(const DataPipeline(config: PipelineConfig):
+    def __init__(self, config: PipelineConfig):
         self.config = config
         self.last_run_report: dict[str, Any] = {}
 
