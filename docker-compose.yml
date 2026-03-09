@@ -347,7 +347,7 @@ services:
       - PORTFOLIO_URL=http://portfolio:8000/graphql
       - PRICING_URL=http://neural-pricing:8000/graphql
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:4001/health || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
