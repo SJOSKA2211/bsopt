@@ -13,12 +13,17 @@ from src.api.exceptions import AuthenticationException, ConflictException, Valid
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.auth import (
     LoginRequest,
+    LoginResponse,
+    MFASetupResponse,
     MFAVerifyRequest,
     PasswordChangeRequest,
     PasswordResetConfirmRequest,
     PasswordResetRequest,
     RegisterRequest,
+    RegisterResponse,
+    TokenResponse,
 )
+from src.api.schemas.common import DataResponse, SuccessResponse
 from src.config import settings
 from src.database import get_async_db, set_user_context
 from src.database.models import User
@@ -45,13 +50,13 @@ def _log_legacy_warning(route: str):
     logger.warning("legacy_auth_route_accessed", route=route, migration_target="auth-service")
 
 
-@router.post("/register", response_model=dict, status_code=status.HTTP_201_CREATED, deprecated=True)
+@router.post("/register", response_model=None, status_code=status.HTTP_201_CREATED, deprecated=True)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-):
+) -> DataResponse:
     """
     [LEGACY] Register a new user using God-Mode Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
@@ -85,24 +90,24 @@ async def register(
 
     tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
 
-    return {
-        "data": {
-            "id": str(user.id),
-            "email": user.email,
-            "access_token": tokens.access_token,
-            "token_type": tokens.token_type,
-        },
-        "message": "User created in God-Mode (Legacy)",
-    }
+    return DataResponse(
+        data=TokenResponse(
+            user_id=str(user.id),
+            email=user.email,
+            access_token=tokens.access_token,
+            token_type=tokens.token_type,
+        ),
+        message="User created in God-Mode (Legacy)",
+    )
 
 
-@router.post("/login", response_model=dict, deprecated=True)
+@router.post("/login", response_model=None, deprecated=True)
 async def login(
     request: Request,
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-):
+) -> DataResponse:
     """
     [LEGACY] Authenticate via Native DB procedure (High Performance).
     MIGRATION: Use /api/auth/login in the auth-service (Node.js).
@@ -129,18 +134,18 @@ async def login(
         await db.commit()
 
         tokens = auth_service.create_token_pair(str(user_id), email, str(tier))
-        return {
-            "data": {
-                "access_token": tokens.access_token,
-                "refresh_token": tokens.refresh_token,
-                "token_type": tokens.token_type,
-                "expires_in": tokens.expires_in,
-                "user_id": str(user_id),
-                "email": email,
-                "tier": str(tier),
-            },
-            "message": "Login successful (Legacy Native)",
-        }
+        return DataResponse(
+            data=LoginResponse(
+                access_token=tokens.access_token,
+                refresh_token=tokens.refresh_token,
+                token_type=tokens.token_type,
+                expires_in=tokens.expires_in,
+                user_id=str(user_id),
+                email=email,
+                tier=str(tier),
+            ),
+            message="Login successful (Legacy Native)",
+        )
     except AuthenticationException:
         raise
     except Exception as e:
@@ -149,12 +154,13 @@ async def login(
 
 
 @router.get("/me")
-async def read_users_me(user=Depends(get_current_active_user)):
-    return {"data": user}
+async def read_users_me(user=Depends(get_current_active_user)) -> DataResponse:
+    from src.api.schemas.user import UserResponse
+    return DataResponse(data=UserResponse.from_orm(user))
 
 
 @router.post("/logout", deprecated=True)
-async def logout(request: Request, response: Response, user=Depends(get_current_user)):
+async def logout(request: Request, response: Response, user=Depends(get_current_user)) -> SuccessResponse:
     """
     [LEGACY] Logout user.
     MIGRATION: Use /api/auth/sign-out in the auth-service (Node.js).
@@ -166,7 +172,7 @@ async def logout(request: Request, response: Response, user=Depends(get_current_
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         await auth_service.invalidate_token(token, request)
-    return {"message": "Successfully logged out"}
+    return SuccessResponse(message="Successfully logged out")
 
 
 @router.post("/mfa/setup", deprecated=True)
@@ -174,7 +180,7 @@ async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-):
+) -> DataResponse:
     """
     [LEGACY] Initialize MFA setup for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.
@@ -195,13 +201,14 @@ async def mfa_setup(
     uri = mfa_service.get_provisioning_uri(user.email, plain_secret)
     qr_code = mfa_service.generate_qr_code(uri)
 
-    return {
-        "data": {
-            "secret": plain_secret,  # Return plaintext once for setup
-            "qr_code": qr_code,
-        },
-        "message": "MFA setup initialized",
-    }
+    return DataResponse(
+        data=MFASetupResponse(
+            secret=plain_secret,  # Return plaintext once for setup
+            provisioning_uri=uri,
+            qr_code_uri=qr_code,
+        ),
+        message="MFA setup initialized",
+    )
 
 
 @router.post("/mfa/verify", deprecated=True)
@@ -210,7 +217,7 @@ async def mfa_verify(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-):
+) -> SuccessResponse:
     """
     [LEGACY] Verify MFA code and enable it for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.
@@ -227,7 +234,7 @@ async def mfa_verify(
     if mfa_service.verify_code(plain_secret, data.code):
         user.is_mfa_enabled = True
         await db.commit()
-        return {"status": "success", "message": "MFA enabled successfully (Legacy)"}
+        return SuccessResponse(message="MFA enabled successfully (Legacy)")
     raise ValidationException(message="Invalid MFA code")
 
 
@@ -237,7 +244,7 @@ async def change_password(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-):
+) -> SuccessResponse:
     """
     [LEGACY] Change user password.
     MIGRATION: Use /api/auth/change-password in auth-service.
@@ -246,7 +253,7 @@ async def change_password(
     response.headers["X-API-Status"] = "deprecated"
 
     # 1. Verify old password
-    if not password_service.verify_password(data.old_password, user.hashed_password):
+    if not password_service.verify_password(data.current_password, user.hashed_password):
         raise AuthenticationException(message="Invalid current password")
 
     # 2. Validate new password strength
@@ -258,7 +265,7 @@ async def change_password(
     user.hashed_password = password_service.hash_password(data.new_password)
     await db.commit()
 
-    return {"status": "success", "message": "Password changed successfully (Legacy)"}
+    return SuccessResponse(message="Password changed successfully (Legacy)")
 
 
 @router.post("/password/reset", deprecated=True)
@@ -267,7 +274,7 @@ async def request_password_reset(
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-):
+) -> SuccessResponse:
     """
     [LEGACY] Request a password reset email.
     MIGRATION: Use /api/auth/forget-password in auth-service.
@@ -287,16 +294,15 @@ async def request_password_reset(
         background_tasks.add_task(_send_password_reset_email, user.email, token)
 
     # Always return success to prevent email enumeration
-    return {
-        "status": "success",
-        "message": "If the email is registered, a reset link has been sent.",
-    }
+    return SuccessResponse(
+        message="If the email is registered, a reset link has been sent.",
+    )
 
 
 @router.post("/password/reset/confirm", deprecated=True)
 async def reset_password_confirm(
     data: PasswordResetConfirmRequest, response: Response, db: AsyncSession = Depends(get_async_db)
-):
+) -> SuccessResponse:
     """
     [LEGACY] Confirm password reset with token.
     MIGRATION: Use /api/auth/reset-password in auth-service.
@@ -324,7 +330,7 @@ async def reset_password_confirm(
     user.reset_token_expires_at = None
     await db.commit()
 
-    return {"status": "success", "message": "Password has been reset successfully (Legacy)"}
+    return SuccessResponse(message="Password has been reset successfully (Legacy)")
 
 
 # ---------------------------------------------------------------------------

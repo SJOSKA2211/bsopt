@@ -54,6 +54,9 @@ class RLTrainer(BaseTrainer):
 
     def __init__(self, study_name: str, tracking_uri: str | None = None):
         super().__init__(study_name, tracking_uri)
+        from src.ml.tracker import ExperimentTracker
+
+        self.tracker = ExperimentTracker(study_name, self.tracking_uri)
 
     def train_and_evaluate(
         self,
@@ -64,7 +67,7 @@ class RLTrainer(BaseTrainer):
         """
         Executes RL training using TD3 with Transformer policy.
         """
-        with mlflow.start_run() as run:
+        with self.tracker.start_run(nested=True) as run:
             try:
                 env = TradingEnvironment()
                 eval_env = TradingEnvironment()
@@ -119,8 +122,8 @@ class RLTrainer(BaseTrainer):
                 deterministic=True,
             )
 
-            # shm_callback = SHMWeightSyncCallback()
-            callback = CallbackList([eval_callback])
+            shm_callback = SHMWeightSyncCallback()
+            callback = CallbackList([eval_callback, shm_callback])
 
             logger.info("training_active", steps=total_timesteps)
             try:

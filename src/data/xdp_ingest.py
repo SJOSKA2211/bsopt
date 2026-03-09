@@ -96,8 +96,9 @@ class XDPIngester:
                     payload_view = mv[offset : offset + 32]
                     data = TICK_STRUCT.unpack_from(payload_view)
 
-                    self._mesh.write_tick(
-                        symbol=data[0].decode("ascii", errors="ignore").strip("\x00"),
+                    # OPTIMIZED: Write raw bytes directly to SHM
+                    self._mesh.write_tick_raw(
+                        sym_bytes=data[0],
                         price=data[1],
                         volume=data[2],
                         timestamp=data[3],

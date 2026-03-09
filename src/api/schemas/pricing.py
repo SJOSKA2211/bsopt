@@ -91,29 +91,11 @@ class PriceRequest(BaseModel):
         )
 
 
-class PriceResponse(BaseModel):
-    """Standard option pricing response."""
-
-    price: float
-    spot: float
-    strike: float
-    time_to_expiry: float
-    rate: float
-    volatility: float
-    option_type: str
-    model: str
-    computation_time_ms: float
-    cached: bool = False
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-
-class BatchPriceResponse(BaseModel):
-    """Batch option pricing response."""
-
-    results: list[PriceResponse]
-    total_count: int
-    computation_time_ms: float
-    cached_count: int = 0
+# Aliases for backward compatibility
+PriceResponse = PriceResult
+BatchPriceResponse = BatchPriceResult
+GreeksResponse = GreeksResult
+BatchGreeksResponse = BatchGreeksResult
 
 
 class GreeksRequest(BaseModel):
@@ -142,35 +124,10 @@ class GreeksRequest(BaseModel):
         )
 
 
-class GreeksResponse(BaseModel):
-    """Greeks calculation response."""
-
-    delta: float
-    gamma: float
-    theta: float
-    vega: float
-    rho: float
-    option_price: float
-    spot: float
-    strike: float
-    time_to_expiry: float
-    volatility: float
-    option_type: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
-
 class BatchGreeksRequest(BaseModel):
     """Batch Greeks calculation request."""
 
     options: list[GreeksRequest]
-
-
-class BatchGreeksResponse(BaseModel):
-    """Batch Greeks calculation response."""
-
-    results: list[GreeksResponse]
-    total_count: int
-    computation_time_ms: float
 
 
 class ImpliedVolatilityRequest(BaseModel):
@@ -185,7 +142,7 @@ class ImpliedVolatilityRequest(BaseModel):
     dividend_yield: float = 0.0
 
 
-class ImpliedVolatilityResponse(BaseModel):
+class ImpliedVolatilityResponse(msgspec.Struct):
     """Implied volatility calculation response."""
 
     implied_volatility: float
@@ -216,13 +173,13 @@ class ExoticPriceRequest(BaseModel):
     payout: float = 1.0
 
 
-class ExoticPriceResponse(BaseModel):
+class ExoticPriceResponse(msgspec.Struct):
     """Exotic option pricing response."""
 
     price: float
     exotic_type: str
     confidence_interval: list[float] | None = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
 
 
 class BatchPriceRequest(BaseModel):
@@ -231,17 +188,10 @@ class BatchPriceRequest(BaseModel):
     options: list[PriceRequest]
 
 
-class PricingDataResponse(BaseModel):
+class PricingDataResponse(msgspec.Struct):
     """OPTIMIZED: msgspec equivalent of DataResponse for pricing paths."""
 
-    data: (
-        PriceResponse
-        | BatchPriceResponse
-        | GreeksResponse
-        | BatchGreeksResponse
-        | ImpliedVolatilityResponse
-        | ExoticPriceResponse
-    )
+    data: Any
     success: bool = True
     message: str | None = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))

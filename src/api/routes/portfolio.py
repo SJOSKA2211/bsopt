@@ -3,17 +3,17 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with God-Mode Database integration and RLS enforcement.
 """
 
+import msgspec
 from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.schemas.common import DataResponse
+from src.api.schemas.common import DataResponse, SuccessResponse
 from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
 from src.security.auth import get_current_active_user
@@ -23,26 +23,22 @@ router = APIRouter(
 )
 
 
-class PositionSchema(BaseModel):
+class PositionStruct(msgspec.Struct):
     id: str
     symbol: str
     quantity: int
     entry_price: float
     status: str
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class PortfolioOverview(BaseModel):
+class PortfolioOverview(msgspec.Struct):
     id: str
     name: str
     balance: float
     total_value: float
     positions_count: int
-    positions: list[PositionSchema]
+    positions: list[PositionStruct]
     message: str | None = None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("")
@@ -86,7 +82,7 @@ async def get_portfolio(
         total_value=float(portfolio.cash_balance),  # Simplified for base case
         positions_count=len(positions),
         positions=[
-            PositionSchema(
+            PositionStruct(
                 id=str(p.id),
                 symbol=p.symbol,
                 quantity=p.quantity,
@@ -124,7 +120,7 @@ async def add_position(
     payload: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> dict:
+) -> DataResponse:
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
 
@@ -148,7 +144,10 @@ async def add_position(
     await db.commit()
     await db.refresh(new_pos)
 
-    return {"id": str(new_pos.id), "status": "position_created_solenya_tight"}
+    return DataResponse(
+        data={"id": str(new_pos.id)},
+        message="position_created_solenya_tight"
+    )
 
 
 @router.delete("/positions/{position_id}")
@@ -156,7 +155,7 @@ async def delete_position(
     position_id: UUID,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> dict:
+) -> SuccessResponse:
     """Delete (close) a position by ID (RLS Enforced)."""
     await set_user_context(db, str(current_user.id))
 
@@ -170,4 +169,4 @@ async def delete_position(
     await db.delete(position)
     await db.commit()
 
-    return {"message": "Position purged from manifold", "id": str(position_id)}
+    return SuccessResponse(message="Position purged from manifold")

@@ -5,9 +5,11 @@ Shared schemas for API responses and pagination using msgspec for zero-copy perf
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
+
+T = TypeVar("T")
 
 
 class ErrorDetail(BaseModel):
@@ -36,7 +38,7 @@ class SuccessResponse(BaseModel):
     data: dict[str, Any] | None = None
 
 
-class DataResponse[T](BaseModel):
+class DataResponse(BaseModel, Generic[T]):
     """Standard response wrapper with data field."""
 
     data: T
@@ -58,7 +60,7 @@ class PaginationMeta(BaseModel):
     has_prev: bool
 
 
-class PaginatedResponse[T](BaseModel):
+class PaginatedResponse(BaseModel, Generic[T]):
     """Paginated response wrapper."""
 
     items: list[T]

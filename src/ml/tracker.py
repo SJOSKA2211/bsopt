@@ -28,14 +28,24 @@ class ExperimentTracker:
             mlflow.set_tracking_uri(tracking_uri)
 
     def start_run(self, nested: bool = True):
-        # OPTIMIZED: Ensure experiment is set but don't override if already in a run
-        if self.study_name and not mlflow.active_run():
-            mlflow.set_experiment(self.study_name)
+        # OPTIMIZED: If we are inside an MLflow run (e.g. via 'mlflow run'), 
+        # avoid starting a new top-level run that might conflict with the experiment ID.
+        import os
+        active = mlflow.active_run()
+        in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
         
-        # If we are already in a run (e.g. via mlflow run), we must use nested=True
-        # or just return the existing run.
-        if mlflow.active_run() and not nested:
-            return mlflow.active_run()
+        if active or in_mlflow_run:
+            # If we want a nested run, we can try to start one.
+            if nested:
+                try:
+                    return mlflow.start_run(nested=True)
+                except Exception as e:
+                    logger.warning("nested_run_failed_returning_active", error=str(e))
+                    return active or mlflow.active_run()
+            return active or mlflow.active_run()
+
+        if self.study_name:
+            mlflow.set_experiment(self.study_name)
             
         return mlflow.start_run(nested=nested)
 

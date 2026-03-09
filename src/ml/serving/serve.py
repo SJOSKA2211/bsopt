@@ -10,7 +10,7 @@ import mlflow.pyfunc
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.responses import ORJSONResponse, Response
+from src.api.responses import MsgspecJSONResponse, Response
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     Counter,
@@ -40,7 +40,7 @@ app = FastAPI(
     title="BSOPT ML Serving",
     version="1.0.0",
     description="Production-grade ML model serving for option pricing",
-    default_response_class=ORJSONResponse,
+    default_response_class=MsgspecJSONResponse,
 )
 
 # Metrics
@@ -180,7 +180,7 @@ async def add_request_id(request: Request, call_next):
 async def generic_exception_handler(request: Request, exc: Exception):
     request_id = getattr(request.state, "request_id", "unknown")
     logger.exception(f"Unhandled exception [RID: {request_id}]: {exc}")
-    return ORJSONResponse(
+    return MsgspecJSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": "InternalServerError",
@@ -193,11 +193,10 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.post(
     "/predict",
-    response_model=DataResponse[InferenceResponse],
-    responses={503: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+    response_model=None,
 )
 @ml_circuit
-async def predict(request: InferenceRequest, model_type: str = "xgb"):
+async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataResponse:
     """
     Perform ML-based option price prediction.
     - **xgb**: eXtreme Gradient Boosting model (Default, ONNX-accelerated if available)
@@ -208,12 +207,16 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
     try:
         if model_type == "xgb":
             if state["xgb_ort_session"]:
-                input_data = np.array(
-                    list(request.model_dump().values()), dtype=np.float32
-                ).reshape(1, -1)
+                input_data = np.array([
+                    request.underlying_price, request.strike, request.time_to_expiry,
+                    float(request.is_call), request.moneyness, request.log_moneyness,
+                    request.sqrt_time_to_expiry, request.days_to_expiry,
+                    request.implied_volatility or 0.25
+                ], dtype=np.float32).reshape(1, -1)
                 prediction = state["xgb_ort_session"].predict(input_data)[0][0]
             elif state["xgb_model"]:
-                df = pd.DataFrame([request.model_dump()])
+                import msgspec
+                df = pd.DataFrame([msgspec.to_builtins(request)])
                 prediction = state["xgb_model"].predict(df)[0]
             else:
                 raise HTTPException(status_code=503, detail="XGB model currently unavailable")
@@ -224,9 +227,12 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
                     status_code=503, detail="Neural Network model currently unavailable"
                 )
 
-            input_data = np.array(list(request.model_dump().values()), dtype=np.float32).reshape(
-                1, -1
-            )
+            input_data = np.array([
+                request.underlying_price, request.strike, request.time_to_expiry,
+                float(request.is_call), request.moneyness, request.log_moneyness,
+                request.sqrt_time_to_expiry, request.days_to_expiry,
+                request.implied_volatility or 0.25
+            ], dtype=np.float32).reshape(1, -1)
             prediction = state["nn_ort_session"].predict(input_data)[0][0]
 
         else:
@@ -253,11 +259,10 @@ async def predict(request: InferenceRequest, model_type: str = "xgb"):
 
 @app.post(
     "/predict/batch",
-    response_model=DataResponse[BatchInferenceResponse],
-    responses={503: {"model": ErrorResponse}, 400: {"model": ErrorResponse}},
+    response_model=None,
 )
 @ml_circuit
-async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb"):
+async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb") -> DataResponse:
     """
     Perform batch ML-based option price prediction.
     - **xgb**: eXtreme Gradient Boosting model (Default, ONNX-accelerated if available)
@@ -266,10 +271,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
     start_time = time.perf_counter()
 
     try:
-        predictions = []
-
         # Optimization: Pre-allocate numpy array for zero-copy batch construction
-        # Avoids Pydantic model_dump overhead for high-frequency batches
         n_reqs = len(request.requests)
         input_data = np.empty((n_reqs, 9), dtype=np.float32)
 
@@ -282,7 +284,7 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
             input_data[i, 5] = r.log_moneyness
             input_data[i, 6] = r.sqrt_time_to_expiry
             input_data[i, 7] = r.days_to_expiry
-            input_data[i, 8] = r.implied_volatility
+            input_data[i, 8] = r.implied_volatility or 0.25
 
         if model_type == "xgb":
             if state["xgb_ort_session"]:
@@ -320,19 +322,17 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
             raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
 
         total_latency_ms = (time.perf_counter() - start_time) * 1000
+        avg_latency = total_latency_ms / len(predictions)
 
-        # Log metrics per item to keep histograms accurate
-        for _ in predictions:
-            INFERENCE_LATENCY.labels(model_type=model_type).observe(
-                total_latency_ms / len(predictions) / 1000
-            )
-            PREDICTION_COUNT.labels(status="success", model_type=model_type).inc()
+        # Log metrics once for the batch to save overhead
+        INFERENCE_LATENCY.labels(model_type=model_type).observe(total_latency_ms / 1000)
+        PREDICTION_COUNT.labels(status="success", model_type=model_type).inc(len(predictions))
 
         response_items = [
             InferenceResponse(
                 price=p,
                 model_type=model_type,
-                latency_ms=total_latency_ms / len(predictions),  # Approximate per-item latency
+                latency_ms=avg_latency,
             )
             for p in predictions
         ]

@@ -292,7 +292,10 @@ class SharedMemoryRingBuffer:
         """Writer: Direct write into numpy view with atomic index update."""
         # OPTIMIZED: Use pre-allocated bytes for symbol
         sym_bytes = symbol.encode("ascii")[:8]
+        self.write_tick_raw(sym_bytes, price, volume, timestamp)
 
+    def write_tick_raw(self, sym_bytes: bytes, price: float, volume: int, timestamp: float):
+        """Zero-copy writer for raw bytes symbol."""
         # Lock-free head calculation from the prefix
         current_head = struct.unpack_from("q", self.buf, 0)[0]
         idx = current_head % BUFFER_CAPACITY

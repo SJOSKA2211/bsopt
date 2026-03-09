@@ -20,8 +20,12 @@ logger = logging.getLogger(__name__)
 _shm_probe = None
 
 
+from src.api.schemas.common import DataResponse
+
+# ...
+
 @router.get("/health/deep")
-async def get_deep_health():
+async def get_deep_health() -> DataResponse:
     """High-fidelity stack probe with cached connections."""
     global _shm_probe
     health = {"status": "operational", "probes": {}}
@@ -67,13 +71,13 @@ async def get_deep_health():
         "path": wasm_path,
     }
 
-    return health
+    return DataResponse(data=health)
 
 
 @router.get("/status")
-async def get_system_status():
+async def get_system_status() -> DataResponse:
     """Returns the status of various system components and circuit breakers."""
-    return {
+    return DataResponse(data={
         "status": "operational",
         "circuits": {
             "pricing": {
@@ -85,22 +89,22 @@ async def get_system_status():
                 "failure_count": db_circuit.failure_count,
             },
         },
-    }
+    })
 
 
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
-async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
+async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponse:
     """
     God Mode Database Diagnostics.
     Requires Enterprise tier for high-fidelity performance metrics.
     """
-    return await crud.get_system_health_dashboard(db)
+    return DataResponse(data=await crud.get_system_health_dashboard(db))
 
 
 @router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
-async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
+async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponse:
     """
     PostgreSQL 16 I/O Performance Audit.
     Requires Enterprise tier.
     """
-    return await crud.get_io_performance_audit(db)
+    return DataResponse(data=await crud.get_io_performance_audit(db))

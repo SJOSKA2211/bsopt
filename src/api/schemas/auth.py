@@ -6,6 +6,7 @@ Pydantic models for authentication endpoints.
 
 import re
 
+import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings
@@ -30,32 +31,17 @@ class LoginRequest(BaseModel):
     )
 
 
-class LoginResponse(BaseModel):
+class LoginResponse(msgspec.Struct):
     """Successful login response."""
 
-    access_token: str | None = Field(None, description="JWT access token")
-    refresh_token: str | None = Field(None, description="JWT refresh token")
+    access_token: str | None = None
+    refresh_token: str | None = None
     token_type: str = "bearer"
-    expires_in: int | None = Field(None, description="Access token expiration in seconds")
-    user_id: str | None = Field(None, description="User ID")
-    email: str | None = Field(None, description="User email")
-    tier: str | None = Field(None, description="User subscription tier")
+    expires_in: int | None = None
+    user_id: str | None = None
+    email: str | None = None
+    tier: str | None = None
     requires_mfa: bool = False
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "access_token": "eyJhbGciOiJIUzI1NiIs...",
-                "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
-                "token_type": "bearer",
-                "expires_in": 1800,
-                "user_id": "123e4567-e89b-12d3-a456-426614174000",
-                "email": "user@example.com",
-                "tier": "pro",
-                "requires_mfa": False,
-            }
-        }
-    )
 
 
 class RegisterRequest(BaseModel):
@@ -122,36 +108,25 @@ class RegisterRequest(BaseModel):
     )
 
 
-class RegisterResponse(BaseModel):
+class RegisterResponse(msgspec.Struct):
     """Successful registration response."""
 
-    user_id: str = Field(..., description="Created user ID")
-    email: str = Field(..., description="User email")
-    message: str = Field(..., description="Success message")
-    verification_required: bool = Field(True, description="Email verification required")
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "user_id": "123e4567-e89b-12d3-a456-426614174000",
-                "email": "newuser@example.com",
-                "message": "Registration successful. Please verify your email.",
-                "verification_required": True,
-            }
-        }
-    )
+    user_id: str
+    email: str
+    message: str
+    verification_required: bool = True
 
 
-class TokenResponse(BaseModel):
+class TokenResponse(msgspec.Struct):
     """Successful token response."""
 
-    access_token: str | None = Field(default=None, description="JWT access token")
-    refresh_token: str | None = Field(default=None, description="JWT refresh token")
+    access_token: str | None = None
+    refresh_token: str | None = None
     token_type: str = "bearer"
-    expires_in: int | None = Field(default=None, description="Access token expiration in seconds")
-    user_id: str | None = Field(default=None, description="User ID")
-    email: str | None = Field(default=None, description="User email")
-    tier: str | None = Field(default=None, description="User subscription tier")
+    expires_in: int | None = None
+    user_id: str | None = None
+    email: str | None = None
+    tier: str | None = None
     requires_mfa: bool = False
 
 
@@ -246,25 +221,13 @@ class PasswordChangeRequest(BaseModel):
         return v
 
 
-class MFASetupResponse(BaseModel):
+class MFASetupResponse(msgspec.Struct):
     """MFA setup response with secret and QR code."""
 
-    secret: str = Field(..., description="TOTP secret key")
-    provisioning_uri: str = Field(..., description="URI for QR code generation")
+    secret: str
+    provisioning_uri: str
     qr_code_uri: str | None = None
-    backup_codes: list[str] = Field(default_factory=list, description="Backup recovery codes")
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "secret": "JBSWY3DPEHPK3PXP",
-                "provisioning_uri": (
-                    "otpauth://totp/BSOPT:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=BSOPT"
-                ),
-                "backup_codes": ["12345678", "23456789", "34567890"],
-            }
-        }
-    )
+    backup_codes: list[str] = msgspec.field(default_factory=list)
 
 
 class MFAVerifyRequest(BaseModel):

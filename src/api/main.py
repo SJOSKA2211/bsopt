@@ -232,9 +232,9 @@ async def metrics(request: Request):
     if settings.is_production:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            from fastapi.responses import ORJSONResponse
+            from src.api.responses import MsgspecJSONResponse
 
-            return ORJSONResponse(status_code=401, content={"detail": "Not authenticated"})
+            return MsgspecJSONResponse(status_code=401, content={"detail": "Not authenticated"})
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 

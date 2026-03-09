@@ -42,7 +42,7 @@ async function start() {
   const gateway = new ApolloGateway({
     supergraphSdl: new IntrospectAndCompose({
       subgraphs,
-      pollIntervalInMs: 10000,
+      pollIntervalInMs: process.env.NODE_ENV === 'production' ? 60000 : 10000,
     }),
     buildService({ url }) {
       return new (require('@apollo/gateway').RemoteGraphQLDataSource)({
@@ -61,7 +61,11 @@ async function start() {
   // 4. Initialize Apollo Server
   const server = new ApolloServer({
     gateway,
-    plugins: [fastifyApolloDrainPlugin(app)],
+    plugins: [
+      fastifyApolloDrainPlugin(app),
+      require('@apollo/server-plugin-response-cache').default(),
+    ],
+    introspection: process.env.NODE_ENV !== 'production',
   });
 
   try {

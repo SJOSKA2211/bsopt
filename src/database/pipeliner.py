@@ -110,19 +110,16 @@ class VectorizedDBEngine:
         await self.generic_bulk_copy("model_predictions", predictions, columns)
 
     async def close(self):
-        """Gracefully close the connection pool and release resources."""
-        async with self._lock:
-            if self._pool:
-                await self._pool.close()
-                self._pool = None
-                logger.info("db_pipeliner_pool_closed")
+        """Gracefully close and release resources."""
+        from src.database import db_manager
+        await db_manager.dispose()
+        logger.info("db_vectorized_engine_disposed")
 
     async def __aenter__(self):
-        await self.connect()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.close()
+        pass
 
 
 db_engine = VectorizedDBEngine()

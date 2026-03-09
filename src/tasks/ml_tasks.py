@@ -10,6 +10,7 @@ import structlog
 
 from src.utils.lazy_import import lazy_import
 
+from src.ml.pipeline import MLPipeline
 from .celery_app import MLTask, celery_app
 
 logger = structlog.get_logger(__name__)
@@ -18,7 +19,6 @@ logger = structlog.get_logger(__name__)
 _IMPORT_MAP = {
     "mlflow": "mlflow",
     "pd": "pandas",
-    "MLPipeline": "src.ml.pipeline.MLPipeline",
     "ModelQuantizer": "src.ml.serving.quantization.ModelQuantizer",
     "calc_metrics": "src.ml.evaluation.metrics.calculate_regression_metrics",
 }
@@ -35,7 +35,6 @@ def run_pipeline_task(self, config: dict[str, Any]):
     OPTIMIZED: Uses BaseAsyncTask for non-blocking execution.
     """
     logger.info("celery_task_started", task_id=self.request.id, ticker=config.get("ticker"))
-    MLPipeline = _get_attr("MLPipeline")
     pipeline = MLPipeline(config)
     try:
         # OPTIMIZED: Use persistent loop from BaseAsyncTask
@@ -70,7 +69,6 @@ def train_model_task(
 ):
     """Async task to train an ML model using the unified pipeline."""
     logger.info("training_model_start", ticker=ticker, model_type=model_type)
-    MLPipeline = _get_attr("MLPipeline")
 
     try:
         config = hyperparams or {}
@@ -95,8 +93,7 @@ def train_model_task(
 
 @celery_app.task(bind=True, base=MLTask, queue="ml")
 def monitor_drift_and_retrain_task(self):
-    """Periodic task to monitor drift using lazy-loaded autonomous pipeline."""
-    MLPipeline = _get_attr("MLPipeline")
+    """Periodic task to monitor drift using autonomous pipeline."""
     from src.config import settings
 
     try:

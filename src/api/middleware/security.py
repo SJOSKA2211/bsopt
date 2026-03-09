@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 
 import structlog
 from fastapi import Request, Response, status
-from fastapi.responses import ORJSONResponse
+from src.api.responses import MsgspecJSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -302,7 +302,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                     f"CSRF origin validation failed for {request.url.path} "
                     f"from {request.headers.get('origin', 'unknown')}"
                 )
-                return ORJSONResponse(
+                return MsgspecJSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={"detail": "Origin validation failed"},
                 )
@@ -312,14 +312,14 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
             if not csrf_cookie or not csrf_header:
                 logger.warning(f"Missing CSRF token for {request.url.path}")
-                return ORJSONResponse(
+                return MsgspecJSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={"detail": "CSRF token missing"},
                 )
 
             if not self._verify_token(csrf_cookie):
                 logger.warning(f"Invalid CSRF cookie token for {request.url.path}")
-                return ORJSONResponse(
+                return MsgspecJSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={"detail": "Invalid CSRF token"},
                 )
@@ -327,7 +327,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             # Token in header should match cookie token
             if not hmac.compare_digest(csrf_cookie, csrf_header):
                 logger.warning(f"CSRF token mismatch for {request.url.path}")
-                return ORJSONResponse(
+                return MsgspecJSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={"detail": "CSRF token mismatch"},
                 )
@@ -443,7 +443,7 @@ class IPBlockMiddleware(BaseHTTPMiddleware):
 
         if self._is_blocked(client_ip):
             logger.warning(f"Blocked request from {client_ip}")
-            return ORJSONResponse(
+            return MsgspecJSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={"detail": "Access denied"},
             )
@@ -504,7 +504,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             token = request.cookies.get("better-auth.session_token")
 
         if not token:
-            return ORJSONResponse(
+            return MsgspecJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication token missing"},
                 headers={"WWW-Authenticate": "Bearer"},
@@ -525,7 +525,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
             masked_error = str(e).replace(getattr(request.state, "user_email", "PII"), "MASKED")
             logger.warning("auth_validation_failed", error=masked_error, path=path)
 
-            return ORJSONResponse(
+            return MsgspecJSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Authentication failed"},
                 headers={"WWW-Authenticate": "Bearer"},
@@ -669,7 +669,8 @@ class InputSanitizationMiddleware(BaseHTTPMiddleware):
                 client_host = request.client.host if request.client else "unknown"
                 logger.warning(f"Suspicious input detected from {client_host}: {issues}")
             # Reject the request
-            return ORJSONResponse(
+            from src.api.responses import MsgspecJSONResponse
+            return MsgspecJSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content={"detail": "Invalid input detected"},
             )

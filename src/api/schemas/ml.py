@@ -1,10 +1,12 @@
-from datetime import UTC, datetime
+from datetime import datetime
+from typing import Any
 
+import msgspec
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class InferenceRequest(BaseModel):
-    """ML inference request."""
+    """ML inference request (Pydantic for Request Validation)."""
 
     underlying_price: float = Field(..., gt=0)
     strike: float = Field(..., gt=0)
@@ -14,7 +16,7 @@ class InferenceRequest(BaseModel):
     log_moneyness: float = Field(...)
     sqrt_time_to_expiry: float = Field(..., gt=0)
     days_to_expiry: float = Field(..., gt=0)
-    implied_volatility: float = Field(..., ge=0)
+    implied_volatility: float | None = Field(None, ge=0)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -39,40 +41,33 @@ class BatchInferenceRequest(BaseModel):
     requests: list[InferenceRequest]
 
 
-class InferenceResponse(BaseModel):
-    """ML inference response."""
+class InferenceResponse(msgspec.Struct):
+    """ML inference response (msgspec for Response Speed)."""
 
-    price: float = Field(..., description="Predicted option price")
-
-    model_type: str = Field(..., description="Model used for prediction")
-
-    latency_ms: float = Field(..., description="Inference latency in milliseconds")
-
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    price: float
+    model_type: str
+    latency_ms: float
+    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
 
 
-class BatchInferenceResponse(BaseModel):
+class BatchInferenceResponse(msgspec.Struct):
     """Batch ML inference response."""
 
     predictions: list[InferenceResponse]
     total_latency_ms: float
 
 
-class DriftMetrics(BaseModel):
+class DriftMetrics(msgspec.Struct):
     """Hourly drift metrics from materialized view."""
 
     model_id: str
-
     window_hour: datetime
-
     mae: float
-
     rmse: float
-
     prediction_count: int
 
 
-class DriftMetricsResponse(BaseModel):
+class DriftMetricsResponse(msgspec.Struct):
     """Response containing a list of drift metrics."""
 
     metrics: list[DriftMetrics]

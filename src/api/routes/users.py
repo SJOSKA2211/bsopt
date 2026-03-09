@@ -28,7 +28,7 @@ async def get_current_user_profile(user: User = Depends(get_current_user)):
     """
     Fetch the authenticated user's profile.
     """
-    return DataResponse(data=UserResponse.model_validate(user))
+    return DataResponse(data=UserResponse.from_orm(user))
 
 
 @router.patch("/me")
@@ -59,7 +59,7 @@ async def update_current_user_profile(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[UserResponse],
+    response_model=None,
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
 async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20):
@@ -81,7 +81,7 @@ async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, pa
     users = users_result.scalars().all()
 
     return PaginatedResponse(
-        items=[UserResponse.model_validate(u) for u in users],
+        items=[UserResponse.from_orm(u) for u in users],
         pagination=PaginationMeta(
             total=total,
             page=page,

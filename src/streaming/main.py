@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import structlog
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import ORJSONResponse
+from src.api.responses import MsgspecJSONResponse
 from strawberry.fastapi import GraphQLRouter
 
 from src.api.websockets.manager import manager as ws_manager
@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="BS-Opt Market Data Service",
     lifespan=lifespan,
-    default_response_class=ORJSONResponse,
+    default_response_class=MsgspecJSONResponse,
 )
 app.middleware("http")(logging_middleware)
 
