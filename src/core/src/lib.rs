@@ -53,6 +53,7 @@ fn black_scholes_greeks(
     v: f64,
     r: f64,
     d: f64,
+    is_call: bool,
 ) -> Greeks {
     let t_sqrt = t.sqrt();
     let d1 = ((s / k).ln() + (r - d + 0.5 * v * v) * t) / (v * t_sqrt);
@@ -60,14 +61,32 @@ fn black_scholes_greeks(
     let n = Normal::new(0.0, 1.0).unwrap();
     let pdf_d1 = (-(d1 * d1) / 2.0).exp() / (2.0 * std::f64::consts::PI).sqrt();
 
+    let delta = if is_call {
+        (-d * t).exp() * n.cdf(d1)
+    } else {
+        (-d * t).exp() * (n.cdf(d1) - 1.0)
+    };
+ 
+    let theta = if is_call {
+        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+         - r * k * (-r * t).exp() * n.cdf(d2)
+         + d * s * (-d * t).exp() * n.cdf(d1))
+    } else {
+        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+         + r * k * (-r * t).exp() * n.cdf(-d2)
+         - d * s * (-d * t).exp() * n.cdf(-d1))
+    };
+ 
     Greeks {
-        delta: (-d * t).exp() * n.cdf(d1),
+        delta,
         gamma: (-d * t).exp() * pdf_d1 / (s * v * t_sqrt),
         vega: s * (-d * t).exp() * t_sqrt * pdf_d1 * 0.01,
-        theta: (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
-                - r * k * (-r * t).exp() * n.cdf(d2)
-                + d * s * (-d * t).exp() * n.cdf(d1)) / 365.0,
-        rho: k * t * (-r * t).exp() * n.cdf(d2) * 0.01,
+        theta: theta / 365.25,
+        rho: if is_call {
+            k * t * (-r * t).exp() * n.cdf(d2) * 0.01
+        } else {
+            -k * t * (-r * t).exp() * n.cdf(-d2) * 0.01
+        },
     }
 }
 

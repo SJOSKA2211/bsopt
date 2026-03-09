@@ -335,7 +335,7 @@ use crate::simd_math::*;
 impl BlackScholesWASM {
 
 // Python-Friendly C-API (No JS Types)
-#[unsafe(no_mangle)]
+#[no_mangle]
 pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, params_len: usize, results_ptr: *mut f64) {
     use std::arch::wasm32::*;
     
@@ -345,93 +345,88 @@ pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, para
     let stride_out = 6;
     let num_options = params_len / stride_in;
     let results = unsafe { std::slice::from_raw_parts_mut(results_ptr, num_options * stride_out) };
-
+ 
     let mut i = 0;
-            while i + 1 < num_options {
-            let off1 = i * stride_in;
-            let off2 = (i + 1) * stride_in;
-            
-            let s = f64x2(params[off1], params[off2]);
-            let k = f64x2(params[off1 + 1], params[off2 + 1]);
-            let t = f64x2(params[off1 + 2], params[off2 + 2]);
-            let v = f64x2(params[off1 + 3], params[off2 + 3]);
-            let r = f64x2(params[off1 + 4], params[off2 + 4]);
-            let d = f64x2(params[off1 + 5], params[off2 + 5]);
-            let is_call_mask = [params[off1+6] > 0.5, params[off2+6] > 0.5];
-    
-            // Optimized SIMD path
-            let ln_sk = simd_ln(f64x2_div(s, k));
-            let v_sq = f64x2_mul(v, v);
-            let half = f64x2(0.5, 0.5);
-            let drift = f64x2_add(f64x2_sub(r, d), f64x2_mul(half, v_sq));
-            let vol_sqrt_t = f64x2_mul(v, f64x2_sqrt(t));
-            let d1 = f64x2_div(f64x2_add(ln_sk, f64x2_mul(drift, t)), vol_sqrt_t);
-            let d2 = f64x2_sub(d1, vol_sqrt_t);
-    
-            let cdf_d1 = simd_n_cdf(d1);
-            let cdf_d2 = simd_n_cdf(d2);
-            let cdf_neg_d1 = simd_n_cdf(f64x2_neg(d1));
-            let cdf_neg_d2 = simd_n_cdf(f64x2_neg(d2));
-    
-            let exp_neg_dt = simd_exp(f64x2_neg(f64x2_mul(d, t)));
-            let exp_neg_rt = simd_exp(f64x2_neg(f64x2_mul(r, t)));
-            
-            let call_price = f64x2_sub(
-                f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_d1), 
-                f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_d2)
-            );
-            let put_price = f64x2_sub(
-                f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_neg_d2), 
-                f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_neg_d1)
-            );
-    
-            let cp: [f64; 2] = std::mem::transmute(call_price);
-            let pp: [f64; 2] = std::mem::transmute(put_price);
-    
-            for j in 0..2 {
-                let idx = i + j;
-                let off = idx * stride_out;
-                let p_idx = if j == 0 { off1 } else { off2 };
-            // SIMD Greeks
-            let call_delta = f64x2_mul(exp_neg_dt, cdf_d1);
-            let put_delta = f64x2_mul(exp_neg_dt, f64x2_sub(cdf_d1, f64x2_splat(1.0)));
-            let gamma = f64x2_div(f64x2_mul(exp_neg_dt, pdf_d1), f64x2_mul(f64x2_mul(s, v), sqrt_t));
-            let vega = f64x2_mul(f64x2_mul(f64x2_mul(s, exp_neg_dt), pdf_d1), sqrt_t);
-
-            let two = f64x2_splat(2.0);
-            let term1 = f64x2_neg(f64x2_div(f64x2_mul(f64x2_mul(f64x2_mul(s, v), exp_neg_dt), pdf_d1), f64x2_mul(two, sqrt_t)));
-            let term2_c = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), cdf_d1);
-            let term2_p = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), f64x2_neg(cdf_neg_d1));
-            let term3_c = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), cdf_d2);
-            let term3_p = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), f64x2_neg(cdf_neg_d2));
-
-            let theta_call = f64x2_sub(f64x2_add(term1, term2_c), term3_c);
-            let theta_put = f64x2_add(f64x2_sub(term1, term2_p), term3_p);
-            let rho_call = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), cdf_d2);
-            let rho_put = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), f64x2_neg(cdf_neg_d2));
-
-            let cd: [f64; 2] = std::mem::transmute(call_delta);
-            let pd: [f64; 2] = std::mem::transmute(put_delta);
-            let gm: [f64; 2] = std::mem::transmute(gamma);
-            let vg: [f64; 2] = std::mem::transmute(vega);
-            let tc: [f64; 2] = std::mem::transmute(theta_call);
-            let tp: [f64; 2] = std::mem::transmute(theta_put);
-            let rc: [f64; 2] = std::mem::transmute(rho_call);
-            let rp: [f64; 2] = std::mem::transmute(rho_put);
-
-            for j in 0..2 {
-                let idx = i + j;
-                let off = idx * stride_out;
-                results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
-                results[off + 1] = if is_call_mask[j] { cd[j] } else { pd[j] };
-                results[off + 2] = gm[j];
-                results[off + 3] = vg[j] * 0.01;
-                results[off + 4] = if is_call_mask[j] { tc[j] / 365.0 } else { tp[j] / 365.0 };
-                results[off + 5] = if is_call_mask[j] { rc[j] * 0.01 } else { rp[j] * 0.01 };
-            }
-            i += 2;
+    while i + 1 < num_options {
+        let off1 = i * stride_in;
+        let off2 = (i + 1) * stride_in;
+        
+        let s = f64x2(params[off1], params[off2]);
+        let k = f64x2(params[off1 + 1], params[off2 + 1]);
+        let t = f64x2(params[off1 + 2], params[off2 + 2]);
+        let v = f64x2(params[off1 + 3], params[off2 + 3]);
+        let r = f64x2(params[off1 + 4], params[off2 + 4]);
+        let d = f64x2(params[off1 + 5], params[off2 + 5]);
+        let is_call_mask = [params[off1 + 6] > 0.5, params[off2 + 6] > 0.5];
+ 
+        let sqrt_t = f64x2_sqrt(t);
+        let ln_sk = simd_ln(f64x2_div(s, k));
+        let v_sq = f64x2_mul(v, v);
+        let half = f64x2(0.5, 0.5);
+        let drift = f64x2_add(f64x2_sub(r, d), f64x2_mul(half, v_sq));
+        let vol_sqrt_t = f64x2_mul(v, sqrt_t);
+        let d1 = f64x2_div(f64x2_add(ln_sk, f64x2_mul(drift, t)), vol_sqrt_t);
+        let d2 = f64x2_sub(d1, vol_sqrt_t);
+ 
+        let pdf_d1 = simd_n_pdf(d1);
+        let cdf_d1 = simd_n_cdf(d1);
+        let cdf_d2 = simd_n_cdf(d2);
+        let cdf_neg_d1 = simd_n_cdf(f64x2_neg(d1));
+        let cdf_neg_d2 = simd_n_cdf(f64x2_neg(d2));
+ 
+        let exp_neg_dt = simd_exp(f64x2_neg(f64x2_mul(d, t)));
+        let exp_neg_rt = simd_exp(f64x2_neg(f64x2_mul(r, t)));
+        
+        let call_price = f64x2_sub(
+            f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_d1), 
+            f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_d2)
+        );
+        let put_price = f64x2_sub(
+            f64x2_mul(f64x2_mul(k, exp_neg_rt), cdf_neg_d2), 
+            f64x2_mul(f64x2_mul(s, exp_neg_dt), cdf_neg_d1)
+        );
+ 
+        let call_delta = f64x2_mul(exp_neg_dt, cdf_d1);
+        let put_delta = f64x2_mul(exp_neg_dt, f64x2_sub(cdf_d1, f64x2_splat(1.0)));
+        let gamma = f64x2_div(f64x2_mul(exp_neg_dt, pdf_d1), f64x2_mul(f64x2_mul(s, v), sqrt_t));
+        let vega = f64x2_mul(f64x2_mul(f64x2_mul(s, exp_neg_dt), pdf_d1), sqrt_t);
+ 
+        let two = f64x2_splat(2.0);
+        let term1 = f64x2_neg(f64x2_div(f64x2_mul(f64x2_mul(f64x2_mul(s, v), exp_neg_dt), pdf_d1), f64x2_mul(two, sqrt_t)));
+        let term2_c = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), cdf_d1);
+        let term2_p = f64x2_mul(f64x2_mul(f64x2_mul(d, s), exp_neg_dt), f64x2_neg(cdf_neg_d1));
+        let term3_c = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), cdf_d2);
+        let term3_p = f64x2_mul(f64x2_mul(f64x2_mul(r, k), exp_neg_rt), f64x2_neg(cdf_neg_d2));
+ 
+        let theta_call = f64x2_sub(f64x2_add(term1, term2_c), term3_c);
+        let theta_put = f64x2_sub(f64x2_add(term1, term2_p), term3_p);
+        let rho_call = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), cdf_d2);
+        let rho_put = f64x2_mul(f64x2_mul(f64x2_mul(k, t), exp_neg_rt), f64x2_neg(cdf_neg_d2));
+ 
+        let cp: [f64; 2] = std::mem::transmute(call_price);
+        let pp: [f64; 2] = std::mem::transmute(put_price);
+        let cd: [f64; 2] = std::mem::transmute(call_delta);
+        let pd: [f64; 2] = std::mem::transmute(put_delta);
+        let gm: [f64; 2] = std::mem::transmute(gamma);
+        let vg: [f64; 2] = std::mem::transmute(vega);
+        let tc: [f64; 2] = std::mem::transmute(theta_call);
+        let tp: [f64; 2] = std::mem::transmute(theta_put);
+        let rc: [f64; 2] = std::mem::transmute(rho_call);
+        let rp: [f64; 2] = std::mem::transmute(rho_put);
+ 
+        for j in 0..2 {
+            let idx = i + j;
+            let off = idx * stride_out;
+            results[off] = if is_call_mask[j] { cp[j] } else { pp[j] };
+            results[off + 1] = if is_call_mask[j] { cd[j] } else { pd[j] };
+            results[off + 2] = gm[j];
+            results[off + 3] = vg[j] * 0.01;
+            results[off + 4] = if is_call_mask[j] { tc[j] / 365.0 } else { tp[j] / 365.0 };
+            results[off + 5] = if is_call_mask[j] { rc[j] * 0.01 } else { rp[j] * 0.01 };
         }
-        // Remainder
+        i += 2;
+    }
+    // Remainder
     while i < num_options {
         let off_in = i * stride_in;
         let off_out = i * stride_out;
@@ -445,8 +440,8 @@ pub unsafe extern "C" fn python_batch_price_bs_simd(params_ptr: *const f64, para
         results[off_out+1] = g.delta;
         results[off_out+2] = g.gamma;
         results[off_out+3] = g.vega;
-        results[off_out+4] = g.theta;
-        results[off_out+5] = g.rho;
+        results[off_out+4] = g.theta / 365.0;
+        results[off_out+5] = g.rho * 0.01;
         i += 1;
     }
 }
@@ -466,6 +461,23 @@ pub unsafe extern "C" fn python_free_f64(ptr: *mut f64, len: usize) {
     }
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn batch_calculate_simd_mapped(ptr: *mut f64, num_options: usize) {
+    python_batch_price_bs_simd(ptr, num_options * 7, ptr);
+}
+ 
+#[no_mangle]
+pub unsafe extern "C" fn price_american_lsm(spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64, is_call: bool, num_paths: usize, num_steps: usize) -> f64 {
+    let engine = AmericanOptionsWASM::new();
+    engine.price_lsm(spot, strike, time, vol, rate, div, is_call, num_paths, num_steps)
+}
+ 
+#[no_mangle]
+pub unsafe extern "C" fn price_heston_mc(spot: f64, strike: f64, time: f64, r: f64, v0: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, is_call: bool, num_paths: usize) -> f64 {
+    let engine = HestonWASM::new();
+    engine.price_monte_carlo(spot, strike, time, r, v0, kappa, theta, sigma, rho, is_call, num_paths)
+}
+ 
 #[cfg_attr(feature = "js", wasm_bindgen)]
 pub struct CrankNicolsonWASM {}
 
