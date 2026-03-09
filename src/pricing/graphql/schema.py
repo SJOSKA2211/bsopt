@@ -128,7 +128,7 @@ class Option:
         res = await loader.load(key)
         return res["gamma"]
 
-    @strawberry.field
+    @strawberry.federation.field(shareable=True)
     def iv(self) -> float:
         """Implied Volatility - currently returning mock value"""
         return 0.2
