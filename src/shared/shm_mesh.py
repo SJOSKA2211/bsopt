@@ -344,31 +344,24 @@ class SharedMemoryRingBuffer:
         if view is None or len(view) == 0:
             return [], head
 
-        # OPTIMIZED: Vectorized string processing
-        # Use .astype('U8') and .strip() for numpy-native string handling if possible
-        # or stick to np.char if dependencies are stable.
-        try:
-            symbols = np.char.decode(view["symbol"], "ascii")
-            symbols = np.char.strip(symbols, "\x00")
-        except Exception:
-            symbols = [str(v["symbol"]) for v in view]
+        # Vectorized decoding of all symbols at once
+        symbols = np.char.decode(view["symbol"], "ascii")
+        prices = view["price"]
+        volumes = view["volume"]
+        timestamps = view["timestamp"]
+        r_ts = view["receive_ts_ns"]
 
-        ticks = []
-        for i in range(len(view)):
-            try:
-                # Using keywords to ensure static analysis matches msgspec.Struct fields
-                v = view[i]
-                ticks.append(
-                    MarketTick(
-                        symbol=str(symbols[i]),
-                        price=float(v["price"]),
-                        volume=int(v["volume"]),
-                        timestamp=float(v["timestamp"]),
-                        receive_ts_ns=int(v["receive_ts_ns"]),
-                    )
-                )
-            except Exception:
-                continue
+        # List comprehension is faster than append in a loop for msgspec creation
+        ticks = [
+            MarketTick(
+                symbol=str(symbols[i]).strip("\x00"),
+                price=float(prices[i]),
+                volume=int(volumes[i]),
+                timestamp=float(timestamps[i]),
+                receive_ts_ns=int(r_ts[i]),
+            )
+            for i in range(len(view))
+        ]
         return ticks, head
 
     def close(self):

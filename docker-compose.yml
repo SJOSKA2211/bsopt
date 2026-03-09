@@ -470,11 +470,12 @@ services:
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     volumes:
       - ./:/app
-    shm_size: '8gb'
+    shm_size: '1gb'
     deploy:
       resources:
         limits:
           cpus: '2'
+          memory: 2gb
     working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
 
@@ -495,11 +496,12 @@ services:
       - bsopt-network
     volumes:
       - ./:/app
-    shm_size: '8gb'
+    shm_size: '1gb'
     deploy:
       resources:
         limits:
-          cpus: '4'
+          cpus: '2'
+          memory: 2gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --block
 
@@ -528,11 +530,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.mlops
-    shm_size: '4gb'
+    shm_size: '1gb'
     deploy:
       resources:
         limits:
-          memory: 4gb
+          memory: 2gb
           cpus: '2'
     depends_on:
       - mlflow

@@ -27,21 +27,53 @@ class MarketDataRouter:
     """
     OPTIMIZED: Adaptive, latency-aware data routing engine.
     Uses EWMA to track provider performance and selects the optimal path.
+    Shared across instances via Redis for global coordination.
     """
 
     def __init__(self):
         self.nse = NSEScraper()
         self.polygon = PolygonProvider()
         self.yahoo = YahooProvider()
+        from src.utils.cache import get_redis
+
+        self.redis = get_redis()
 
         # Latency state (EWMA)
         # Higher score = more latency. Initialize with baseline estimates.
-        self._latency_map = {
+        self._local_latency_map = {
             "NSE": 0.5,  # High latency (Scraping)
             "Polygon": 0.05,  # Low latency (Direct API)
             "Yahoo": 0.1,  # Medium latency (Public API)
         }
         self._alpha = 0.2  # Smoothing factor for EWMA
+
+    async def _get_latency_map(self) -> dict[str, float]:
+        """Fetch current latency scores, merging local and Redis global state."""
+        if not self.redis:
+            return self._local_latency_map
+
+        try:
+            global_latencies = await self.redis.hgetall("market_data:latency_map")
+            if global_latencies:
+                # Merge: Redis overrides local for faster convergence across nodes
+                return {k.decode(): float(v) for k, v in global_latencies.items()}
+        except Exception:
+            pass
+        return self._local_latency_map
+
+    async def _update_latency(self, provider: str, latency: float):
+        """Update EWMA score locally and in Redis."""
+        # 1. Local update
+        old_val = self._local_latency_map.get(provider, 0.1)
+        new_val = self._alpha * latency + (1 - self._alpha) * old_val
+        self._local_latency_map[provider] = new_val
+
+        # 2. Redis update (Global visibility)
+        if self.redis:
+            try:
+                await self.redis.hset("market_data:latency_map", provider, str(new_val))
+            except Exception:
+                pass
 
     async def get_live_quote(self, symbol: str, market: str = "AUTO") -> dict:
         """
@@ -49,6 +81,7 @@ class MarketDataRouter:
         Races providers with a staggered start to ensure minimal latency.
         """
         start_time = time.time()
+        latency_map = await self._get_latency_map()
 
         # 1. Select candidates
         candidates = []
@@ -60,7 +93,7 @@ class MarketDataRouter:
             candidates = ["Polygon", "Yahoo"]
 
         # 2. Sort by current EWMA latency
-        sorted_candidates = sorted(candidates, key=lambda x: self._latency_map[x])
+        sorted_candidates = sorted(candidates, key=lambda x: latency_map.get(x, 0.1))
 
         # 3. 🚀 SPECULATIVE RACE
         async def _call_provider(provider_name):
@@ -78,12 +111,11 @@ class MarketDataRouter:
 
                 # Update EWMA
                 p_latency = time.time() - p_start
-                self._latency_map[provider_name] = (
-                    self._alpha * p_latency + (1 - self._alpha) * self._latency_map[provider_name]
-                )
+                await self._update_latency(provider_name, p_latency)
                 return res, provider_name
             except Exception as e:
-                self._latency_map[provider_name] *= 2.0  # Penalty
+                # Penalty for failure
+                await self._update_latency(provider_name, latency_map.get(provider_name, 0.1) * 2.0)
                 raise e
 
         # Staggered launch
@@ -93,7 +125,7 @@ class MarketDataRouter:
             # If this is not the last candidate, wait a bit before starting the next
             # Threshold: 200ms or 50% of the current fastest latency
             if i < len(sorted_candidates) - 1:
-                wait_time = min(0.2, self._latency_map[sorted_candidates[0]] * 0.5)
+                wait_time = min(0.2, latency_map.get(sorted_candidates[0], 0.1) * 0.5)
                 done, _ = await asyncio.wait(
                     tasks, timeout=wait_time, return_when=asyncio.FIRST_COMPLETED
                 )

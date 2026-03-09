@@ -95,9 +95,7 @@ class MLService:
                 implied_volatility=request.implied_volatility,
                 model_type=model_type,
             )
-            response = await asyncio.wait_for(
-                stub.Predict(grpc_req), timeout=0.1
-            )  # 100ms timeout
+            response = await asyncio.wait_for(stub.Predict(grpc_req), timeout=0.1)  # 100ms timeout
             price = response.price
             source = f"grpc_{model_type}"
         except Exception as e:
@@ -117,8 +115,9 @@ class MLService:
     async def _persist_prediction(self, symbol: str, price: float, request: InferenceRequest):
         """Asynchronously log prediction to the hypertable."""
         try:
-            import msgspec
             from datetime import UTC, datetime
+
+            import msgspec
 
             # Format for VectorizedDBEngine.insert_predictions_bulk
             # columns: (timestamp, symbol, model_id, input_features, predicted_price)

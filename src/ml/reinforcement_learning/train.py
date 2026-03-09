@@ -119,8 +119,8 @@ class RLTrainer(BaseTrainer):
                 deterministic=True,
             )
 
-            shm_callback = SHMWeightSyncCallback()
-            callback = CallbackList([eval_callback, shm_callback])
+            # shm_callback = SHMWeightSyncCallback()
+            callback = CallbackList([eval_callback])
 
             logger.info("training_active", steps=total_timesteps)
             try:

@@ -3,32 +3,26 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 
+import msgspec
 import structlog
 from confluent_kafka import Consumer, KafkaError
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
-from pydantic import BaseModel, ConfigDict, TypeAdapter
 
 
-class MarketDataSchema(BaseModel):
-    model_config = ConfigDict(slots=True)
+class MarketDataSchema(msgspec.Struct):
     symbol: str
     price: float
     timestamp: datetime
 
 
 logger = structlog.get_logger()
-market_data_adapter = TypeAdapter(MarketDataSchema)
 
 
 class MarketDataConsumer:
     """
     High-performance Kafka consumer for real-time processing.
-    Features:
-    - Consumer group for load balancing
-    - Automatic offset management
-    - Bulk fetching via consume()
-    - Avro deserialization (matches producer)
+    OPTIMIZED: msgspec-powered binary deserialization and adaptive batching.
     """
 
     def __init__(

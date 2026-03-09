@@ -5,15 +5,12 @@ Shared schemas for API responses and pagination using msgspec for zero-copy perf
 """
 
 from datetime import datetime
-from typing import Any, Generic, TypeVar
+from typing import Any
 
-import msgspec
-from pydantic import BaseModel, ConfigDict
-
-T = TypeVar("T")
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class ErrorDetail(msgspec.Struct):
+class ErrorDetail(BaseModel):
     """Detailed error information."""
 
     message: str
@@ -21,17 +18,17 @@ class ErrorDetail(msgspec.Struct):
     code: str | None = None
 
 
-class ErrorResponse(msgspec.Struct):
+class ErrorResponse(BaseModel):
     """Standard error response."""
 
     error: str
     message: str
     details: list[ErrorDetail] | None = None
     request_id: str | None = None
-    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
 
 
-class SuccessResponse(msgspec.Struct):
+class SuccessResponse(BaseModel):
     """Standard success response."""
 
     message: str
@@ -39,7 +36,7 @@ class SuccessResponse(msgspec.Struct):
     data: dict[str, Any] | None = None
 
 
-class DataResponse(BaseModel, Generic[T]):
+class DataResponse[T](BaseModel):
     """Standard response wrapper with data field."""
 
     data: T
@@ -50,10 +47,7 @@ class DataResponse(BaseModel, Generic[T]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-from pydantic import Field
-
-
-class PaginationMeta(msgspec.Struct):
+class PaginationMeta(BaseModel):
     """Pagination metadata."""
 
     total: int
@@ -64,17 +58,19 @@ class PaginationMeta(msgspec.Struct):
     has_prev: bool
 
 
-class PaginatedResponse(msgspec.Struct):
+class PaginatedResponse[T](BaseModel):
     """Paginated response wrapper."""
 
-    items: list[Any]
+    items: list[T]
     pagination: PaginationMeta
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-class HealthResponse(msgspec.Struct):
+
+class HealthResponse(BaseModel):
     """Health check response."""
 
     status: str
     version: str
-    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
-    checks: dict[str, dict[str, Any]] = msgspec.field(default_factory=dict)
+    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    checks: dict[str, dict[str, Any]] = Field(default_factory=dict)

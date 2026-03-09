@@ -13,6 +13,69 @@ SCHEME_EULER_MULTI = 2
 
 
 @njit
+def fast_normal_ppf_v2(p):
+    """
+    Inverse CDF (PPF) approximation using Beasley-Springer-Moro.
+    Optimized for JIT execution.
+    """
+    if p <= 0 or p >= 1:
+        return 0.0  # Or appropriate error/infinity
+
+    if p < 0.5:
+        # Lower tail
+        return -_moro_inv_norm(p)
+    else:
+        # Upper tail
+        return _moro_inv_norm(1.0 - p)
+
+
+@njit
+def _moro_inv_norm(p):
+    """Internal helper for Moro's approximation."""
+    # Beasley-Springer coefficients
+    a0, a1, a2, a3 = 2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637
+    b1, b2, b3, b4 = -8.47351093090, 23.08336743743, -21.06224691826, 3.13082909833
+    # Moro coefficients
+    c0, c1, c2, c3, c4, c5, c6, c7, c8 = (
+        0.3374754822726147,
+        0.9761690190917186,
+        0.1607979714918209,
+        0.0276438810333863,
+        0.0038405729373609,
+        0.0003951896511919,
+        0.0000321767881768,
+        0.0000002888167364,
+        0.0000003960315187,
+    )
+
+    y = p - 0.5
+    if abs(y) < 0.42:
+        # Central region
+        r = y * y
+        x = (
+            y
+            * (((a3 * r + a2) * r + a1) * r + a0)
+            / ((((b4 * r + b3) * r + b2) * r + b1) * r + 1.0)
+        )
+        return x
+    else:
+        # Tail region
+        r = np.log(-np.log(p))
+        x = c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8)))))))
+        return x
+
+
+@njit(parallel=True)
+def vectorized_fast_normal_ppf_v2(p):
+    """Vectorized JIT version of fast_normal_ppf."""
+    n = len(p)
+    res = np.empty(n, dtype=np.float64)
+    for i in prange(n):
+        res[i] = fast_normal_ppf_v2(p[i])
+    return res
+
+
+@njit
 def fast_normal_cdf_v2(x):
     """Rational approximation of CDF."""
     INV_SQRT2 = 0.7071067811865476

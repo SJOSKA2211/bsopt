@@ -8,7 +8,20 @@ from src.trading.execution import OrderExecutor
 
 logger = structlog.get_logger(__name__)
 
-# ... (rest of type definitions)
+
+@strawberry.type
+class Order:
+    id: strawberry.ID
+    portfolio_id: strawberry.ID
+    contract_symbol: str
+    side: str
+    quantity: int
+    order_type: str
+    status: str
+    limit_price: float | None = None
+    created_at: datetime
+    updated_at: datetime
+
 
 # Global executor instance (reuse connection pool)
 protocol = DeFiOptionsProtocol()

@@ -2,7 +2,6 @@ import dataclasses
 from dataclasses import dataclass
 
 import numpy as np
-from scipy.stats import norm
 
 from src.config import settings
 from src.pricing.models import BSParameters, OptionGreeks
@@ -300,9 +299,12 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         if self.config.method == "sobol":
             from scipy.stats import qmc
 
+            from src.pricing.quant_utils import vectorized_fast_normal_ppf_v2
+
             sampler = qmc.Sobol(d=n_steps, scramble=True, seed=self.config.seed)
             sample = sampler.random(n_paths)
-            return norm.ppf(sample)
+            # Use JIT accelerated inverse CDF
+            return vectorized_fast_normal_ppf_v2(sample.ravel()).reshape(sample.shape)
 
         return self.rng.standard_normal((n_paths, n_steps))
 
@@ -359,14 +361,16 @@ def geometric_asian_price(params: BSParameters, option_type: str, n_obs: int) ->
     )
     d2 = d1 - sigma_prime * np.sqrt(T_prime)
 
+    from src.pricing.quant_utils import fast_normal_cdf_v2
+
     if option_type == "call":
-        price = params.spot * np.exp((mu_prime - params.rate) * T_prime) * norm.cdf(
+        price = params.spot * np.exp((mu_prime - params.rate) * T_prime) * fast_normal_cdf_v2(
             d1
-        ) - params.strike * np.exp(-params.rate * T_prime) * norm.cdf(d2)
+        ) - params.strike * np.exp(-params.rate * T_prime) * fast_normal_cdf_v2(d2)
     elif option_type == "put":
-        price = params.strike * np.exp(-params.rate * T_prime) * norm.cdf(
+        price = params.strike * np.exp(-params.rate * T_prime) * fast_normal_cdf_v2(
             -d2
-        ) - params.spot * np.exp((mu_prime - params.rate) * T_prime) * norm.cdf(-d1)
+        ) - params.spot * np.exp((mu_prime - params.rate) * T_prime) * fast_normal_cdf_v2(-d1)
     else:
         raise ValueError("Option type must be 'call' or 'put'.")
 
