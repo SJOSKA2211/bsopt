@@ -4,7 +4,7 @@ CLI Configuration Manager
 Manages CLI-specific settings and preferences.
 """
 
-import json
+import orjson
 from pathlib import Path
 from typing import Any, cast
 
@@ -32,8 +32,8 @@ class ConfigManager:
             return cast(dict[str, Any], self.defaults.copy())
 
         try:
-            with open(self.config_file) as f:
-                user_config = json.load(f)
+            with open(self.config_file, "rb") as f:
+                user_config = orjson.loads(f.read())
                 # Deep merge defaults with user config (simple version)
                 config = self.defaults.copy()
                 for key, value in user_config.items():
@@ -48,8 +48,8 @@ class ConfigManager:
     def save(self, scope: str = "user"):
         """Save current configuration to file."""
         if scope == "user":
-            with open(self.config_file, "w") as f:
-                json.dump(self.config, f, indent=2)
+            with open(self.config_file, "wb") as f:
+                f.write(orjson.dumps(self.config, option=orjson.OPT_INDENT_2))
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value using dot notation (e.g., 'api.base_url')."""

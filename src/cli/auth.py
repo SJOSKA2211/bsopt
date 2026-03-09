@@ -5,7 +5,7 @@ Handles user login, logout, and token management for the CLI.
 Stores tokens securely in the user's home directory.
 """
 
-import json
+import orjson
 import logging
 from pathlib import Path
 from typing import Any, cast
@@ -74,8 +74,7 @@ class AuthManager:
         Authenticate with the API via OAuth2 client_credentials flow.
         """
         try:
-            with httpx.Client() as client:
-                #  OPTIMIZATION: Real OAuth2 Token endpoint
+            with httpx.Client(timeout=10.0) as client:
                 response = client.post(
                     f"{self.api_base_url}/api/v1/auth/token",
                     data={
@@ -89,8 +88,8 @@ class AuthManager:
 
             #  SECURITY: Set restricted permissions (600)
             self.token_file.touch(mode=0o600)
-            with open(self.token_file, "w") as f:
-                json.dump(data, f)
+            with open(self.token_file, "wb") as f:
+                f.write(orjson.dumps(data))
 
             logger.info("cli_auth_successful", client_id=client_id)
             return data
@@ -98,7 +97,7 @@ class AuthManager:
             error_detail = "Unknown error"
             try:
                 error_detail = e.response.json().get("detail", str(e))
-            except (json.JSONDecodeError, AttributeError):
+            except Exception:
                 error_detail = str(e)
             logger.error(f"Authentication failed: {error_detail}")
             raise AuthenticationError(f"Login failed: {error_detail}") from e
@@ -124,10 +123,10 @@ class AuthManager:
             return None
 
         try:
-            with open(self.token_file) as f:
-                data = json.load(f)
+            with open(self.token_file, "rb") as f:
+                data = orjson.loads(f.read())
                 return cast(dict[str, Any] | None, data.get("user"))
-        except (json.JSONDecodeError, OSError) as e:
+        except Exception as e:
             logger.warning(f"Failed to read user data from token file: {e}")
             return None
 
@@ -137,12 +136,13 @@ class AuthManager:
             return None
 
         try:
-            with open(self.token_file) as f:
-                data = json.load(f)
+            with open(self.token_file, "rb") as f:
+                data = orjson.loads(f.read())
                 return cast(str | None, data.get("access_token"))
-        except (json.JSONDecodeError, OSError) as e:
+        except Exception as e:
             logger.warning(f"Failed to read access token from token file: {e}")
             return None
+
 
 
 def require_auth(func):

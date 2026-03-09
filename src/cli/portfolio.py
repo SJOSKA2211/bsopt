@@ -4,10 +4,12 @@ CLI Portfolio Manager
 Handles local portfolio management for the CLI.
 """
 
-import json
+import orjson
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, cast
+
+import numpy as np
 
 
 @dataclass
@@ -46,16 +48,16 @@ class PortfolioManager:
             return []
 
         try:
-            with open(self.portfolio_file) as f:
-                data = json.load(f)
+            with open(self.portfolio_file, "rb") as f:
+                data = orjson.loads(f.read())
                 return [Position(**pos) for pos in data]
         except Exception:
             return []
 
     def _save(self) -> None:
         """Save current positions to file."""
-        with open(self.portfolio_file, "w") as f:
-            json.dump([asdict(pos) for pos in self.positions], f, indent=2)
+        with open(self.portfolio_file, "wb") as f:
+            f.write(orjson.dumps([asdict(pos) for pos in self.positions], option=orjson.OPT_INDENT_2))
 
     def add_position(self, position: Position) -> None:
         """Add a new position to the portfolio."""
@@ -80,8 +82,6 @@ class PortfolioManager:
     def calculate_position_value(self, position: Position) -> dict[str, Any]:
         """
         Calculate current value and P&L for a position.
-
-        This is a mock implementation. In reality, it would use the pricing engines.
         """
         from src.pricing.black_scholes import BlackScholesEngine, BSParameters
 
@@ -94,10 +94,7 @@ class PortfolioManager:
             dividend=position.dividend,
         )
 
-        if position.option_type == "call":
-            current_price = float(BlackScholesEngine.price(params=params, option_type="call"))
-        else:
-            current_price = float(BlackScholesEngine.price(params=params, option_type="put"))
+        current_price = float(BlackScholesEngine.price(params=params, option_type=position.option_type))
 
         current_value = current_price * abs(position.quantity) * 100  # Assuming 100 multiplier
         entry_value = position.entry_price * abs(position.quantity) * 100
@@ -117,51 +114,60 @@ class PortfolioManager:
         }
 
     def get_portfolio_summary(self) -> dict[str, Any]:
-        """Get aggregate metrics for the entire portfolio."""
-        total_pnl = 0.0
-        total_entry_value = 0.0
-        total_current_value = 0.0
-        total_delta = 0.0
+        """Get aggregate metrics for the entire portfolio (OPTIMIZED: Vectorized)."""
+        if not self.positions:
+            return {
+                "pnl": {"total_pnl": 0.0, "total_pnl_percent": 0.0},
+                "greeks": {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0, "rho": 0.0}
+            }
 
-        for pos in self.positions:
-            val = self.calculate_position_value(pos)
-            total_pnl += val["pnl"]
-            total_entry_value += val["entry_value"]
-            total_current_value += val["current_value"]
+        from src.pricing.black_scholes import BlackScholesEngine
 
-            # Simple delta sum (ignoring contract multiplier for simplicity in mock)
-            from src.pricing.black_scholes import (
-                BlackScholesEngine,
-                BSParameters,
-                OptionGreeks,
-            )
+        # 1. Batch extract params
+        n = len(self.positions)
+        spots = np.array([p.spot for p in self.positions], dtype=np.float64)
+        strikes = np.array([p.strike for p in self.positions], dtype=np.float64)
+        maturities = np.array([p.maturity for p in self.positions], dtype=np.float64)
+        vols = np.array([p.volatility for p in self.positions], dtype=np.float64)
+        rates = np.array([p.rate for p in self.positions], dtype=np.float64)
+        divs = np.array([p.dividend for p in self.positions], dtype=np.float64)
+        types = np.array([p.option_type for p in self.positions])
+        quantities = np.array([p.quantity for p in self.positions], dtype=np.float64)
+        entry_prices = np.array([p.entry_price for p in self.positions], dtype=np.float64)
 
-            params = BSParameters(
-                spot=pos.spot,
-                strike=pos.strike,
-                maturity=pos.maturity,
-                volatility=pos.volatility,
-                rate=pos.rate,
-                dividend=pos.dividend,
-            )
-            greeks_res = BlackScholesEngine.calculate_greeks(params, pos.option_type)
-            greeks = cast(OptionGreeks, greeks_res)
-            total_delta += float(greeks.delta) * pos.quantity * 100
+        # 2. Vectorized Pricing and Greeks
+        prices = BlackScholesEngine.price_batch(spots, strikes, maturities, vols, rates, divs, types)
+        greeks = BlackScholesEngine.calculate_greeks(spots, strikes, maturities, vols, rates, divs, types)
+
+        # 3. Aggregate
+        current_values = prices * np.abs(quantities) * 100
+        entry_values = entry_prices * np.abs(quantities) * 100
+        
+        pnls = np.where(quantities > 0, current_values - entry_values, entry_values - current_values)
+        
+        total_pnl = float(np.sum(pnls))
+        total_entry_value = float(np.sum(entry_values))
+        total_current_value = float(np.sum(current_values))
+        
+        total_delta = float(np.sum(greeks.delta * quantities * 100))
+        total_gamma = float(np.sum(greeks.gamma * quantities * 100))
+        total_vega = float(np.sum(greeks.vega * quantities * 100))
+        total_theta = float(np.sum(greeks.theta * quantities * 100))
+        total_rho = float(np.sum(greeks.rho * quantities * 100))
 
         return {
             "pnl": {
                 "total_pnl": total_pnl,
-                "total_pnl_percent": (
-                    (total_pnl / total_entry_value * 100) if total_entry_value != 0 else 0
-                ),
+                "total_pnl_percent": (total_pnl / total_entry_value * 100) if total_entry_value != 0 else 0,
                 "total_entry_value": total_entry_value,
                 "total_current_value": total_current_value,
             },
             "greeks": {
                 "delta": total_delta,
-                "gamma": 0.0,  # Mock
-                "vega": 0.0,  # Mock
-                "theta": 0.0,  # Mock
-                "rho": 0.0,  # Mock
+                "gamma": total_gamma,
+                "vega": total_vega,
+                "theta": total_theta,
+                "rho": total_rho,
             },
         }
+
