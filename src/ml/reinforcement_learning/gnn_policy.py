@@ -21,11 +21,14 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
         self.conv3 = GATConv(64 * heads, features_dim, heads=1, concat=False)
 
         self.layer_norm = nn.LayerNorm(features_dim)
+        self._cached_edge_index = None
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        """Standard path for training."""
-        edge_index = self._get_static_edge_index(observations.device)
-        return self.forward_jit(observations, edge_index)
+        """Standard path for training with CACHED edge index."""
+        if self._cached_edge_index is None or self._cached_edge_index.device != observations.device:
+            self._cached_edge_index = self._get_static_edge_index(observations.device)
+
+        return self.forward_jit(observations, self._cached_edge_index)
 
     @torch.jit.export
     def forward_jit(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:

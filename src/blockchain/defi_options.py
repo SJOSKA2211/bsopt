@@ -339,7 +339,7 @@ class DeFiOptionsProtocol:
         params: dict | None = None,
     ) -> dict:
         """
-        🚀 GASLESS OPTIMIZATION: Buy option using EIP-2612 Permit + Meta-Tx.
+         GASLESS OPTIMIZATION: Buy option using EIP-2612 Permit + Meta-Tx.
         Eliminates the 'Approve' transaction, saving ~50k gas.
         """
         if not self.private_key:

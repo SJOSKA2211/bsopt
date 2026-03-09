@@ -66,5 +66,5 @@ async def get_portfolio(id: str) -> Portfolio | None:
 
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
     logger.info("portfolio_create_initiated", user_id=user_id, name=name)
-    # In a real God-Mode app, we'd persist this to DB here.
+    # In a real High-Performance app, we'd persist this to DB here.
     return Portfolio(id=strawberry.ID("port_new"), user_id=user_id, cash_balance=initial_cash)

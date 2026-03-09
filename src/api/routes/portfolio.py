@@ -1,13 +1,13 @@
 """
 Portfolio routes backing the dashboard overview widgets.
-Enhanced with God-Mode Database integration and RLS enforcement.
+Enhanced with High-Performance Database integration and RLS enforcement.
 """
 
 from typing import Any
 from uuid import UUID
 
-import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -23,22 +23,26 @@ router = APIRouter(
 )
 
 
-class PositionStruct(msgspec.Struct):
+class PositionSchema(BaseModel):
     id: str
     symbol: str
     quantity: int
     entry_price: float
     status: str
 
+    model_config = ConfigDict(from_attributes=True)
 
-class PortfolioOverview(msgspec.Struct):
+
+class PortfolioOverview(BaseModel):
     id: str
     name: str
     balance: float
     total_value: float
     positions_count: int
-    positions: list[PositionStruct]
+    positions: list[PositionSchema]
     message: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("")
@@ -52,7 +56,7 @@ async def get_portfolio(
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
 
-    # 2. Fetch primary portfolio with eager-loaded positions (God-Mode: 1 Round Trip)
+    # 2. Fetch primary portfolio with eager-loaded positions (High-Performance: 1 Round Trip)
     stmt = (
         select(Portfolio)
         .options(selectinload(Portfolio.positions))
@@ -82,7 +86,7 @@ async def get_portfolio(
         total_value=float(portfolio.cash_balance),  # Simplified for base case
         positions_count=len(positions),
         positions=[
-            PositionStruct(
+            PositionSchema(
                 id=str(p.id),
                 symbol=p.symbol,
                 quantity=p.quantity,
@@ -144,7 +148,7 @@ async def add_position(
     await db.commit()
     await db.refresh(new_pos)
 
-    return DataResponse(data={"id": str(new_pos.id)}, message="position_created_solenya_tight")
+    return DataResponse(data={"id": str(new_pos.id)}, message="position_created__tight")
 
 
 @router.delete("/positions/{position_id}")

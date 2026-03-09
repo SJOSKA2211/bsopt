@@ -112,7 +112,7 @@ async function start() {
   // 8. Start Server
   try {
     await app.listen({ port, host: '0.0.0.0' });
-    app.log.info(`God Mode Federated Gateway (Fastify) ready at http://0.0.0.0:${port}/graphql`);
+    app.log.info(`High-Performance Federated Gateway (Fastify) ready at http://0.0.0.0:${port}/graphql`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

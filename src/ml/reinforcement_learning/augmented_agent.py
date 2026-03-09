@@ -31,10 +31,10 @@ class AugmentedRLAgent:
 
     async def act(self, observation: np.ndarray, news_text: str | None = None) -> np.ndarray:
         """
-        Multimodal action selection.
+        Multimodal action selection with ACTUAL Observation Fusion.
         1. Extract sentiment from news.
         2. Get forecast from TFT.
-        3. Augment observation and predict.
+        3. FUSE: Concatenate forecast/sentiment into observation.
         """
         sentiment = 0.0
         if news_text:
@@ -42,25 +42,38 @@ class AugmentedRLAgent:
 
         # Get forecast (Simulated call to TFT model)
         forecast = self.forecaster.predict(observation)
+        if isinstance(forecast, np.ndarray):
+            # Take the mean forecast across lookahead if it's a sequence
+            forecast_val = np.mean(forecast)
+        else:
+            forecast_val = float(forecast or 0.0)
 
-        # Augment the latest timestep in the 2D observation (window_size, 100)
-        # We assume the last dimension has space for these features or we append.
-        # For simplicity, we just log the augmentation here.
-        logger.debug("augmented_decision_path", sentiment=sentiment, forecast=forecast)
+        # FUSION: Append [forecast, sentiment] to the observation
+        # Assuming observation is (Batch, Features) or (Features,)
+        if observation.ndim == 1:
+            augmented_obs = np.append(observation, [forecast_val, sentiment])
+        else:
+            # Append to every sample in batch
+            batch_size = observation.shape[0]
+            extra = np.tile([forecast_val, sentiment], (batch_size, 1))
+            augmented_obs = np.hstack([observation, extra])
 
-        action, _ = self.model.predict(observation, deterministic=True)
+        logger.debug("multimodal_fusion_complete", sentiment=sentiment, forecast=forecast_val)
+
+        action, _ = self.model.predict(augmented_obs, deterministic=True)
         return action
 
 
 class SentimentExtractor:
     """
     OPTIMIZED: Financial Sentiment Extractor.
-    Uses a hybrid approach of lexical analysis and transformer-based scoring.
+    Uses a high-performance hash-based lookup for keyword matching.
     """
 
     def __init__(self, model_name: str = "finbert"):
         self.model_name = model_name
-        self.keywords = {
+        # Pre-process keywords into a set for O(1) lookup
+        self.keyword_map = {
             "bullish": 0.8,
             "bearish": -0.8,
             "upgraded": 0.5,
@@ -72,17 +85,21 @@ class SentimentExtractor:
         }
 
     def extract(self, text: str) -> float:
-        """Extracts a sentiment score using weighted financial lexicon."""
+        """Extracts a sentiment score using optimized lookup."""
         if not text:
             return 0.0
 
-        words = text.lower().split()
+        import re
+
+        # OPTIMIZATION: Use regex to tokenize properly while ignoring punctuation
+        words = re.findall(r"\w+", text.lower())
+
         score = 0.0
         matches = 0
 
         for word in words:
-            if word in self.keywords:
-                score += self.keywords[word]
+            if word in self.keyword_map:
+                score += self.keyword_map[word]
                 matches += 1
 
-        return np.clip(score / max(matches, 1), -1.0, 1.0)
+        return np.clip(score / max(matches, 1), -1.0, 1.0) if matches > 0 else 0.0

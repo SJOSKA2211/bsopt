@@ -7,7 +7,7 @@ from strawberry.federation import Schema
 
 async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     """
-    God-Mode: Real batch loader using high-performance gRPC.
+    High-Performance: Real batch loader using high-performance gRPC.
     """
     import grpc
 

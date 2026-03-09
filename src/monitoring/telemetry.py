@@ -21,7 +21,7 @@ T2T_LATENCY = Gauge("bsopt_t2t_latency_ns", "Tick-to-Trade Latency in Nanosecond
 INF_LATENCY = Gauge("bsopt_inference_latency_ns", "Inference Latency in Nanoseconds")
 OE_LATENCY = Gauge("bsopt_oe_latency_ns", "Order Entry Latency in Nanoseconds")
 WS_LATENCY = Gauge("bsopt_ws_broadcast_latency_ms", "WebSocket Broadcast Latency in Milliseconds")
-RISK_VETOS = Gauge("bsopt_risk_vetos_total", "Total Orders Vetoed by Solenya Shield")
+RISK_VETOS = Gauge("bsopt_risk_vetos_total", "Total Orders Vetoed by Risk Shield")
 
 
 class TelemetryEngine:

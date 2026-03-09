@@ -33,7 +33,7 @@ class MathActor:
 
     async def run_calibration_batch(self, symbols: list[str], datasets: list[list]) -> list[dict]:
         """
-        🚀 GOD-MODE: Parallel Calibration Batch using machine-code fusion.
+         HIGH-PERFORMANCE: Parallel Calibration Batch using machine-code fusion.
         Processes multiple symbols in a dedicated thread pool to maximize throughput.
         """
         start_time = time.perf_counter()

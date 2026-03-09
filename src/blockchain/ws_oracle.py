@@ -62,7 +62,7 @@ class DexWebSocketOracle:
                                 symbol = data["s"]
                                 price = float(data["p"])
 
-                                # 1. 🚀 ULTRA-SPEED: Local SHM Mesh
+                                # 1.  ULTRA-SPEED: Local SHM Mesh
                                 if mesh:
                                     mesh.write_tick(
                                         symbol, price, int(data.get("q", 0)), time.time()

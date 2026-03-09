@@ -7,7 +7,7 @@ from src.database import get_engine
 
 
 def verify_connection():
-    print(" 🥒 BSOpt God-Mode Database Verification")
+    print("  BSOpt High-Performance Database Verification")
     print("---------------------------------------")
 
     try:
@@ -133,7 +133,7 @@ def verify_connection():
             except Exception:
                 print("⚠️ Compression Stats: Unable to query")
 
-        print("\n✨ Database is Solenya-tight. God Mode Active! 🥒")
+        print("\n✨ Database is tight. High-Performance Active! ")
 
     except Exception as e:
         print(f"❌ Verification Failed: {e}")

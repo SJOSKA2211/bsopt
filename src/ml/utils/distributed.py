@@ -92,7 +92,7 @@ def sync_metrics(metrics: dict[str, float]) -> dict[str, float]:
 
 def check_ray_cluster() -> dict[str, Any]:
     """
-    God-Mode: Comprehensive Ray Cluster health and resource check.
+    High-Performance: Comprehensive Ray Cluster health and resource check.
     """
     import ray
 
@@ -119,7 +119,7 @@ def check_ray_cluster() -> dict[str, Any]:
 
 class RayClusterManager:
     """
-    God-Mode: Centralized Ray lifecycle and resource management.
+    High-Performance: Centralized Ray lifecycle and resource management.
     Ensures zero-leak compute manifolds.
     """
 

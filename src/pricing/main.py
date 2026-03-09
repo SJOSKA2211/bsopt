@@ -16,7 +16,7 @@ from src.shared.observability import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """God-Mode Lifespan for Pricing Service."""
+    """High-Performance Lifespan for Pricing Service."""
     setup_logging()
     tune_gc()
 

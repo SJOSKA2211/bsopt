@@ -37,7 +37,7 @@ class SentimentIngestor:
 
     async def process_batch(self, messages: list[bytes]) -> None:
         """
-        God-Mode: Batch process messages for high throughput.
+        High-Performance: Batch process messages for high throughput.
         """
         results = []
         for msg in messages:

@@ -57,7 +57,7 @@ async def register(
     db: AsyncSession = Depends(get_async_db),
 ) -> DataResponse:
     """
-    [LEGACY] Register a new user using God-Mode Native DB procedure.
+    [LEGACY] Register a new user using High-Performance Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
     """
     _log_legacy_warning("/register")
@@ -96,7 +96,7 @@ async def register(
             access_token=tokens.access_token,
             token_type=tokens.token_type,
         ),
-        message="User created in God-Mode (Legacy)",
+        message="User created in High-Performance (Legacy)",
     )
 
 

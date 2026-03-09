@@ -1,5 +1,5 @@
 """
-PostgreSQL Connection Management (The Weaponizer - God Mode)
+PostgreSQL Connection Management (High-Performance)
 Optimized for PG16 + TimescaleDB 2.17+ with robust pooling and retry logic.
 """
 
@@ -42,7 +42,7 @@ def msgspec_loads(s):
 
 class DatabaseManager:
     """
-    God-Mode Database Manager:
+    High-Performance Database Manager:
     Handles sync and async engines, pooling strategies, and RLS context.
     """
 
@@ -62,7 +62,7 @@ class DatabaseManager:
             separator = "&" if "?" in db_url else "?"
             db_url = f"{db_url}{separator}sslmode=require"
 
-        # 🚀 Favor psycopg (v3) for sync path, fallback to psycopg2
+        #  Favor psycopg (v3) for sync path, fallback to psycopg2
         separator = "&" if "?" in db_url else "?"
         driver = "psycopg"
         try:

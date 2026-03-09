@@ -61,7 +61,7 @@ class TrainingStrategy:
 
 class ONNXOptimizationMixin:
     """
-    God-Mode: Reusable ONNX optimization logic for strategies.
+    High-Performance: Reusable ONNX optimization logic for strategies.
     """
 
     def export_onnx(self, model: Any, path: str, input_dim: int):

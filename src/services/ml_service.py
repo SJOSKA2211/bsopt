@@ -1,6 +1,6 @@
 """
 Machine Learning Service
-Enhanced with God-Mode Persistence and Vectorized Database Ingestion.
+Enhanced with High-Performance Persistence and Vectorized Database Ingestion.
 """
 
 import asyncio
@@ -107,7 +107,7 @@ class MLService:
         duration = (time.perf_counter() - start_time) * 1000
         ML_PROXY_PREDICT_LATENCY.observe(duration / 1000)
 
-        # 3. Fire-and-forget God-Mode Persistence (Hypertable)
+        # 3. Fire-and-forget High-Performance Persistence (Hypertable)
         asyncio.create_task(self._persist_prediction(symbol, price, request))
 
         return InferenceResponse(price=price, model_type=source, latency_ms=duration)

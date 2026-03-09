@@ -41,7 +41,7 @@ async def create_order(
     """
     logger.info("order_request_received", symbol=contract_symbol, side=side)
 
-    # 1. Dispatch to real executor (Solenya-hardened)
+    # 1. Dispatch to real executor (hardened)
     params = {
         "contract_address": contract_symbol,  # Assuming symbol is address for DeFi
         "amount": quantity,

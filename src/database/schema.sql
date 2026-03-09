@@ -2,7 +2,7 @@
 -- LEGACY SCHEMA REDIRECT
 -- ============================================================================
 -- Note: This file is kept for backward compatibility with some legacy scripts.
--- The SOURCE OF TRUTH for the Solenya-tight PostgreSQL 16 revamp is:
+-- The SOURCE OF TRUTH for the tight PostgreSQL 16 revamp is:
 -- init-scripts/00-extensions.sql
 -- init-scripts/01-core-schema.sql
 -- init-scripts/02-hypertables.sql

@@ -6,7 +6,6 @@ Pydantic models for authentication endpoints.
 
 import re
 
-import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings
@@ -31,7 +30,7 @@ class LoginRequest(BaseModel):
     )
 
 
-class LoginResponse(msgspec.Struct):
+class LoginResponse(BaseModel):
     """Successful login response."""
 
     access_token: str | None = None
@@ -108,7 +107,7 @@ class RegisterRequest(BaseModel):
     )
 
 
-class RegisterResponse(msgspec.Struct):
+class RegisterResponse(BaseModel):
     """Successful registration response."""
 
     user_id: str
@@ -117,7 +116,7 @@ class RegisterResponse(msgspec.Struct):
     verification_required: bool = True
 
 
-class TokenResponse(msgspec.Struct):
+class TokenResponse(BaseModel):
     """Successful token response."""
 
     access_token: str | None = None
@@ -221,13 +220,13 @@ class PasswordChangeRequest(BaseModel):
         return v
 
 
-class MFASetupResponse(msgspec.Struct):
+class MFASetupResponse(BaseModel):
     """MFA setup response with secret and QR code."""
 
     secret: str
     provisioning_uri: str
     qr_code_uri: str | None = None
-    backup_codes: list[str] = msgspec.field(default_factory=list)
+    backup_codes: list[str] = Field(default_factory=list)
 
 
 class MFAVerifyRequest(BaseModel):

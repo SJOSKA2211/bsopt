@@ -54,11 +54,11 @@ except (ImportError, AttributeError):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    God-Mode Lifespan: Handles resource lifecycle with zero-leak guarantees.
+    High-Performance Lifespan: Handles resource lifecycle with zero-leak guarantees.
     """
     start_system_metrics_loop("api")
 
-    # Initialize Database (Weaponizer God-Mode)
+    # Initialize Database (High-Performance)
     from src.database import db_manager
 
     db_manager.initialize()

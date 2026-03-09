@@ -52,7 +52,7 @@ async function start() {
     errorResponseBuilder: (request, context) => ({
       statusCode: 429,
       error: 'Too Many Requests',
-      message: `I'm Pickle Rick! Rate limit exceeded. Try again in ${context.after}`,
+      message: `Rate limit exceeded. Try again in ${context.after}`,
     }),
   })
 
@@ -66,7 +66,7 @@ async function start() {
   })
 
   app.get('/', async () => {
-    return 'Better Auth Service (Fastify) Running 🥒'
+    return 'Better Auth Service (Fastify) Running '
   })
 
   // 4. OpenAPI Schema

@@ -23,7 +23,7 @@ class EarlyStopping:
 
 class MLflowCallback:
     """
-    God-Mode: MLflow logging callback for custom training loops.
+    High-Performance: MLflow logging callback for custom training loops.
     """
 
     def __init__(self, run_name: str | None = None):

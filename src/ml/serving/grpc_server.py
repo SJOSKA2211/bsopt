@@ -26,7 +26,7 @@ class MLInferenceServicer(inference_pb2_grpc.MLInferenceServicer):
         self.nn_ort_session = nn_ort_session
 
     def update_models(self, xgb_model, nn_ort_session):
-        """God-Mode: Live-update model sessions without restart."""
+        """High-Performance: Live-update model sessions without restart."""
         self.xgb_model = xgb_model
         self.nn_ort_session = nn_ort_session
         logger.info("grpc_models_updated")

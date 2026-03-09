@@ -8,12 +8,11 @@ Fallback to Pydantic for complex validation if needed, but core paths use msgspe
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-import msgspec
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class PriceResult(msgspec.Struct):
-    """Ultra-fast msgspec struct for single price result."""
+class PriceResult(BaseModel):
+    """Ultra-fast schema for single price result."""
 
     price: float
     spot: float
@@ -25,11 +24,11 @@ class PriceResult(msgspec.Struct):
     model: str
     computation_time_ms: float
     cached: bool = False
-    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
-class GreeksResult(msgspec.Struct):
-    """Ultra-fast msgspec struct for single greeks result."""
+class GreeksResult(BaseModel):
+    """Ultra-fast schema for single greeks result."""
 
     delta: float
     gamma: float
@@ -42,11 +41,11 @@ class GreeksResult(msgspec.Struct):
     time_to_expiry: float
     volatility: float
     option_type: str
-    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
-class BatchPriceResult(msgspec.Struct):
-    """Ultra-fast msgspec struct for batch results."""
+class BatchPriceResult(BaseModel):
+    """Ultra-fast schema for batch results."""
 
     results: list[PriceResult]
     total_count: int
@@ -54,8 +53,8 @@ class BatchPriceResult(msgspec.Struct):
     cached_count: int = 0
 
 
-class BatchGreeksResult(msgspec.Struct):
-    """Ultra-fast msgspec struct for batch greeks results."""
+class BatchGreeksResult(BaseModel):
+    """Ultra-fast schema for batch greeks results."""
 
     results: list[GreeksResult]
     total_count: int
@@ -142,7 +141,7 @@ class ImpliedVolatilityRequest(BaseModel):
     dividend_yield: float = 0.0
 
 
-class ImpliedVolatilityResponse(msgspec.Struct):
+class ImpliedVolatilityResponse(BaseModel):
     """Implied volatility calculation response."""
 
     implied_volatility: float
@@ -173,13 +172,13 @@ class ExoticPriceRequest(BaseModel):
     payout: float = 1.0
 
 
-class ExoticPriceResponse(msgspec.Struct):
+class ExoticPriceResponse(BaseModel):
     """Exotic option pricing response."""
 
     price: float
     exotic_type: str
     confidence_interval: list[float] | None = None
-    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class BatchPriceRequest(BaseModel):
@@ -188,10 +187,10 @@ class BatchPriceRequest(BaseModel):
     options: list[PriceRequest]
 
 
-class PricingDataResponse(msgspec.Struct):
-    """OPTIMIZED: msgspec equivalent of DataResponse for pricing paths."""
+class PricingDataResponse(BaseModel):
+    """msgspec equivalent of DataResponse for pricing paths."""
 
     data: Any
     success: bool = True
     message: str | None = None
-    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))

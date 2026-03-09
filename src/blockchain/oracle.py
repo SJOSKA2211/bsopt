@@ -55,7 +55,7 @@ class OracleManager:
         if symbol in self._feeds and self._feeds[symbol]["source"] == "MANUAL":
             return self._feeds[symbol]["price"]
 
-        # 1. 🚀 SHM MESH (Ultra-Low Latency)
+        # 1.  SHM MESH (Ultra-Low Latency)
         mesh = self._get_mesh()
         if mesh:
             ticks, new_head = mesh.read_latest_msgspec(self._last_mesh_head)

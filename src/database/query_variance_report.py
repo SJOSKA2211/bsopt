@@ -16,7 +16,7 @@ logger = structlog.get_logger(__name__)
 
 def run_variance_audit(iterations: int = 100):
     engine = get_engine()
-    print(" 🥒 BSOpt Query Jitter Audit (God-Mode)")
+    print("  BSOpt Query Jitter Audit (High-Performance)")
     print("---------------------------------------")
 
     queries = {

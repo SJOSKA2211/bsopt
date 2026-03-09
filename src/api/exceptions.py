@@ -29,7 +29,7 @@ class BaseAPIException(Exception):
 
 
 class RiskVetoException(BaseAPIException):
-    """Thrown when pre-trade risk checks (Solenya Shield) fail."""
+    """Thrown when pre-trade risk checks (Risk Shield) fail."""
 
     status_code = status.HTTP_403_FORBIDDEN
     error_code = "RiskVeto"

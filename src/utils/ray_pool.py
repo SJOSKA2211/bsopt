@@ -12,7 +12,7 @@ T = TypeVar("T")
 
 class RayActorPool:
     """
-    God-Mode Ray Actor Pool: Handles round-robin load balancing and lifecycle management.
+    High-Performance Ray Actor Pool: Handles round-robin load balancing and lifecycle management.
     OPTIMIZED: Dynamic scaling based on cluster resources.
     """
 

@@ -67,7 +67,7 @@ def recalibrate_symbol_task(self, symbol: str) -> dict:
 
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="pricing")
 def recalibrate_symbols_batch_task(self, symbols: list[str]) -> list[dict]:
-    """🚀 GOD-MODE: Batch calibration delegation to Ray."""
+    """HIGH-PERFORMANCE: Batch calibration delegation to Ray."""
     try:
         return self.run_async(_recalibrate_symbols_batch_impl(symbols))
     except Exception as e:
@@ -98,7 +98,7 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
         pool = get_math_pool()
         actor = await pool.get_actor()
 
-        # 🚀 GOD-MODE: Non-blocking await of Ray future
+        #  HIGH-PERFORMANCE: Non-blocking await of Ray future
         return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
 
     except Exception as exc:

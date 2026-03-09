@@ -10,7 +10,7 @@ logger = structlog.get_logger()
 
 def apply_database_optimizations():
     """
-    God-Mode Optimization Wrapper:
+    High-Performance Optimization Wrapper:
     Applies the full-spectrum optimized init-scripts to an existing database.
     """
     load_dotenv()
@@ -30,7 +30,7 @@ def apply_database_optimizations():
     if db_password:
         os.environ["PGPASSWORD"] = db_password
 
-    # The new source of truth for Solenya-tight optimizations
+    # The new source of truth for tight optimizations
     optimization_scripts = [
         "init-scripts/05-indexes.sql",
         "init-scripts/06-compression-retention.sql",
@@ -71,7 +71,7 @@ def apply_database_optimizations():
             if "already exists" not in e.stderr:
                 logger.error("optimization_phase_failed", script=script, error=e.stderr)
 
-    logger.info("all_optimizations_pressurized", status="solenya_tight")
+    logger.info("all_optimizations_pressurized", status="_tight")
 
 
 if __name__ == "__main__":

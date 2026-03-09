@@ -49,7 +49,7 @@ def train_func(config: dict[str, Any]):
     device = ray.train.torch.get_device()
     model = model.to(device)
 
-    # 🚀 GOD-MODE: Kernel Fusion via torch.compile
+    #  HIGH-PERFORMANCE: Kernel Fusion via torch.compile
     try:
         if config.get("use_compile", True):
             model = th.compile(model)
@@ -72,7 +72,7 @@ def train_func(config: dict[str, Any]):
     dataset_path = config.get("dataset_path", "data/trajectories.parquet")
 
     try:
-        # 🚀 GOD-MODE: Streaming sharded data loading
+        #  HIGH-PERFORMANCE: Streaming sharded data loading
         if dataset_path.endswith(".parquet"):
             ds = ray.data.read_parquet(dataset_path)
         else:
@@ -203,7 +203,7 @@ class BSOptDistributedTrainer:
         try:
             num_workers, use_gpu = self._negotiate_resources()
 
-            # 🚀 GOD-MODE: Dynamic Scaling Config
+            #  HIGH-PERFORMANCE: Dynamic Scaling Config
             scaling_config = ScalingConfig(
                 num_workers=num_workers,
                 use_gpu=use_gpu,

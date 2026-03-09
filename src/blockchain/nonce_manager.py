@@ -10,7 +10,7 @@ logger = structlog.get_logger(__name__)
 
 class NonceManager:
     """
-    Atomic Nonce Manager using Redis (Solenya Hardened).
+    Atomic Nonce Manager using Redis (Hardened).
     Ensures cross-process nonce synchronization using Lua scripts for atomicity.
     """
 
@@ -20,7 +20,7 @@ class NonceManager:
         self.redis_key = f"nonce:{chain_id}:{address}"
         self._lock = asyncio.Lock()
 
-        # 🧪 GOD-MODE: Lua script for atomic get-and-increment
+        # 🧪 HIGH-PERFORMANCE: Lua script for atomic get-and-increment
         self._lua_nonce_script = """
         local current = redis.call('get', KEYS[1])
         if current == False then

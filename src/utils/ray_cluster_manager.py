@@ -21,7 +21,7 @@ class RayClusterManager:
             return True
 
         try:
-            # 🥒 SOLENYA-HARDENED: Dynamic resource detection
+            #  HARDENED: Dynamic resource detection
             ray.init(
                 address=address or os.getenv("RAY_ADDRESS"),
                 namespace=namespace,

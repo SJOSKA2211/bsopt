@@ -75,7 +75,7 @@ class PricingService:
 
     async def price_batch(self, request: Any) -> BatchPriceResult:
         """
-        GOD-MODE: Prices an array of options concurrently using vectorized group-batching.
+        HIGH-PERFORMANCE: Prices an array of options concurrently using vectorized group-batching.
         Groups requests by model type to maximize SIMD efficiency.
         """
         start_time = time.perf_counter()
@@ -91,7 +91,7 @@ class PricingService:
             try:
                 engine = self.factory.get_engine(model_type)
 
-                # Check for vectorized capability (God-Mode check)
+                # Check for vectorized capability (High-Performance check)
                 if hasattr(engine, "price_batch_vectorized"):
                     # Extract params into numpy arrays
                     spots = np.array([it[1].spot for it in items], dtype=np.float64)

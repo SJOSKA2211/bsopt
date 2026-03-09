@@ -17,11 +17,6 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 5s
-      timeout: 2s
-      retries: 5
     depends_on:
       - postgres
       - redis
@@ -68,9 +63,9 @@ services:
       - bsopt-network-dev
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
       neural-pricing:
-        condition: service_healthy
+        condition: service_started
 
   frontend:
     image: bsopt-frontend-dev
@@ -87,11 +82,11 @@ services:
       - bsopt-network-dev
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
       auth-service:
         condition: service_started
       app-gateway:
-        condition: service_healthy
+        condition: service_started
 
   neural-pricing:
     image: bsopt-neural-pricing-dev
@@ -107,11 +102,6 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 5s
-      timeout: 2s
-      retries: 5
 
   scraper:
     image: bsopt-scraper-dev

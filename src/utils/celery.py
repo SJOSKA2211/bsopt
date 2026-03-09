@@ -18,7 +18,7 @@ logger = structlog.get_logger(__name__)
 
 class BaseAsyncTask(Task):
     """
-    God-Mode Celery Task: Manages a persistent process-level event loop.
+    High-Performance Celery Task: Manages a persistent process-level event loop.
     Eliminates asyncio.run() overhead and enables high-throughput async delegation.
     """
 

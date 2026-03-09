@@ -1,5 +1,5 @@
 """
-Legacy Celery App Redirection - God Mode Consolidation.
+Legacy Celery App Redirection - High-Performance Consolidation.
 Points all ML tasks to the unified src.tasks.celery_app.
 """
 

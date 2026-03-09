@@ -22,6 +22,12 @@ BS-OPT is an advanced, high-performance financial platform for zero-latency deri
 - **Async-Native Delegation**: Celery workers using `BaseAsyncTask` for zero-wait task submission.
 - **Ray Actor Pool**: Robust `RayActorPool` with round-robin balancing and thread-safe actor management.
 
+### The Manifold: MLOps & Autonomous Training (v2026)
+- **CPU-Vectorized Pipelines**: Data ingestion and feature engineering utilizing Numba `@njit(parallel=True)` for sub-millisecond execution.
+- **Shared Memory Replay**: Multi-producer safe shared memory buffers with optimized spin-locks for high-throughput RL experience collection.
+- **Autonomous Self-Healing**: AIOps-integrated retraining triggers that automatically initiate MLflow runs upon drift detection.
+- **Zero-Dependency Orchestration**: Unified `MLproject` and startup scripts for one-line deployment of distributed RL and HPO pipelines.
+
 ### The Intelligence: Blockchain & Quantum
 - **Speed-v1 Oracle**: Hybrid WebSocket/RPC oracle with confidence-based scoring for real-time DeFi data.
 - **Quantum QAE-v2**: Option pricing engine using **Iterative Amplitude Estimation (IAE)** for quadratic speedup.

@@ -35,7 +35,7 @@ def _order_engine_hot_loop_kernel(
     order_id_counter: int,
 ) -> tuple[int, int]:
     """
-    GOD-MODE: The absolute hot-path.
+    HIGH-PERFORMANCE: The absolute hot-path.
     Processes all pending orders in a single JIT-compiled pass.
     """
     current_head = head_arr[0]

@@ -53,7 +53,7 @@ class SHMManager[T]:
         start = time.perf_counter()
         while mv[0] != 0:
             # OPTIMIZED: Use a combination of busy-wait and very short sleep
-            # In a true Rick-pass, we'd use a machine-code 'pause' instruction
+            # In a true Optimized implementation, we'd use a machine-code 'pause' instruction
             if time.perf_counter() - start > 0.05:  # 50ms timeout
                 logger.warning("shm_lock_contention_clearing", name=self.name)
                 mv[0] = 0  # Safety break

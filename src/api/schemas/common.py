@@ -1,5 +1,5 @@
 """
-Common API Schemas (Optimized msgspec)
+Common API Schemas (Optimized)
 
 Shared schemas for API responses and pagination using msgspec for zero-copy performance.
 """

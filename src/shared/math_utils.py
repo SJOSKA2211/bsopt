@@ -1,5 +1,5 @@
 """
-Unified Mathematical Utilities - Numba Optimized 🚀
+Unified Mathematical Utilities - Numba Optimized
 =============================================
 Consolidates critical numerical logic for cross-module consistency with JIT acceleration.
 """

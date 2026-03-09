@@ -125,19 +125,24 @@ def get_macd(
     return macd_line, signal_line, macd_hist
 
 
-def get_atr(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
-    """Average True Range."""
+@njit(cache=True, fastmath=True)
+def _atr_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int) -> np.ndarray:
     n = high.shape[0]
     tr = np.zeros(n, dtype=np.float64)
     tr[0] = high[0] - low[0]
 
     for i in range(1, n):
         tr[i] = max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
-    return get_ema(tr, length)
+    return _ema_kernel(tr, length)
 
 
-def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
-    """Average Directional Index."""
+def get_atr(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
+    """Average True Range."""
+    return _atr_kernel(high, low, close, length)
+
+
+@njit(cache=True, fastmath=True, parallel=True)
+def _adx_kernel(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int) -> np.ndarray:
     n = high.shape[0]
     up_move = np.zeros(n, dtype=np.float64)
     down_move = np.zeros(n, dtype=np.float64)
@@ -146,24 +151,36 @@ def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 
         up_move[i] = high[i] - high[i - 1]
         down_move[i] = low[i - 1] - low[i]
 
-    pos_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
-    neg_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
-
+    pos_dm = np.zeros(n, dtype=np.float64)
+    neg_dm = np.zeros(n, dtype=np.float64)
     tr = np.zeros(n, dtype=np.float64)
     tr[0] = high[0] - low[0]
+
     for i in range(1, n):
+        if up_move[i] > down_move[i] and up_move[i] > 0:
+            pos_dm[i] = up_move[i]
+        if down_move[i] > up_move[i] and down_move[i] > 0:
+            neg_dm[i] = down_move[i]
         tr[i] = max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
 
-    smooth_tr = get_ema(tr, length)
-    smooth_pos_dm = get_ema(pos_dm, length)
-    smooth_neg_dm = get_ema(neg_dm, length)
+    smooth_tr = _ema_kernel(tr, length)
+    smooth_pos_dm = _ema_kernel(pos_dm, length)
+    smooth_neg_dm = _ema_kernel(neg_dm, length)
 
-    # Avoid div by zero
-    tr_eff = np.where(smooth_tr == 0, 1e-12, smooth_tr)
-    pos_di = 100.0 * smooth_pos_dm / tr_eff
-    neg_di = 100.0 * smooth_neg_dm / tr_eff
+    adx = np.zeros(n, dtype=np.float64)
+    for i in range(n):
+        tr_val = smooth_tr[i] if smooth_tr[i] != 0 else 1e-12
+        pos_di = 100.0 * smooth_pos_dm[i] / tr_val
+        neg_di = 100.0 * smooth_neg_dm[i] / tr_val
 
-    di_sum = pos_di + neg_di
-    dx = 100.0 * np.abs(pos_di - neg_di) / np.where(di_sum == 0, 1e-12, di_sum)
-    adx = get_ema(dx, length)
-    return adx
+        di_sum = pos_di + neg_di
+        di_sum = di_sum if di_sum != 0 else 1e-12
+        dx = 100.0 * abs(pos_di - neg_di) / di_sum
+        adx[i] = dx
+
+    return _ema_kernel(adx, length)
+
+
+def get_adx(high: np.ndarray, low: np.ndarray, close: np.ndarray, length: int = 14) -> np.ndarray:
+    """Average Directional Index."""
+    return _adx_kernel(high, low, close, length)

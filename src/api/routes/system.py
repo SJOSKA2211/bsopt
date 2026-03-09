@@ -94,7 +94,7 @@ async def get_system_status() -> DataResponse:
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
 async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponse:
     """
-    God Mode Database Diagnostics.
+    High-Performance Database Diagnostics.
     Requires Enterprise tier for high-fidelity performance metrics.
     """
     return DataResponse(data=await crud.get_system_health_dashboard(db))

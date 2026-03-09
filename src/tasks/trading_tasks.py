@@ -84,7 +84,7 @@ async def _reconcile_risk_state_impl():
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="trading")
 def execute_trade_task(self, order: dict):
     """
-    Async task to execute a real trade using the Solenya-hardened executor.
+    Async task to execute a real trade using the hardened executor.
     """
     logger.info("executing_trade_task_started", symbol=order.get("symbol"))
 

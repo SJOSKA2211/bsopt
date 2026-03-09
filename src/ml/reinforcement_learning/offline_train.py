@@ -41,7 +41,7 @@ def expectile_loss(diff, tau=0.7):
 
 def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
     """
-    🚀 OPTIMIZATION: Convert bulky Pickle trajectories to compressed Parquet.
+     OPTIMIZATION: Convert bulky Pickle trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
     """
     import pandas as pd
@@ -58,7 +58,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
 
 def _log_gradient_flow(model: nn.Module, step: int):
     """
-    God-Mode: Monitor gradient flow across deep transformer layers.
+    High-Performance: Monitor gradient flow across deep transformer layers.
     Helps detect vanishing/exploding gradients in real-time.
     """
     avg_grads = []

@@ -1,4 +1,5 @@
 import struct
+import time
 from multiprocessing import shared_memory
 
 import numpy as np
@@ -75,9 +76,7 @@ class SharedExperienceBuffer:
 
     def add(self, obs, act, rew, next_obs):
         """Zero-copy transition push with spin-lock for multi-producer safety."""
-        import time
-
-        mv = self.shm.buf
+        mv = self.buf
 
         # 1. Spin-Lock
         start = time.perf_counter()

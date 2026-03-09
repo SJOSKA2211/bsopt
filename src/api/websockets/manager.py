@@ -279,7 +279,7 @@ class ConnectionManager:
         if not connections:
             return
 
-        #  GOD MODE: Deliver to clients
+        #  HIGH-PERFORMANCE: Deliver to clients
         by_protocol: dict[ProtocolType, list[WebSocket]] = {}
         for conn in connections:
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol

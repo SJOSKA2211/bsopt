@@ -95,7 +95,7 @@ class MarketDataRouter:
         # 2. Sort by current EWMA latency
         sorted_candidates = sorted(candidates, key=lambda x: latency_map.get(x, 0.1))
 
-        # 3. 🚀 SPECULATIVE RACE
+        # 3.  SPECULATIVE RACE
         async def _call_provider(provider_name):
             try:
                 p_start = time.time()

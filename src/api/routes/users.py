@@ -54,7 +54,7 @@ async def update_current_user_profile(
         await db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update profile") from e
 
-    return SuccessResponse(message="Profile updated in God-Mode")
+    return SuccessResponse(message="Profile updated in High-Performance")
 
 
 @router.get(

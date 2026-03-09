@@ -32,7 +32,7 @@ def _fused_state_kernel(
     window_size,
 ):
     """
-    God-Mode: Fused kernel for state matrix construction (2D).
+    High-Performance: Fused kernel for state matrix construction (2D).
     OPTIMIZED: Spectral Features, Wavelet Projections, Micro-structure Proxies.
     Returns (window_size, 128) matrix for Transformer ingestion.
     """

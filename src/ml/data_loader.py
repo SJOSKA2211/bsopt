@@ -115,7 +115,7 @@ class StreamingDataLoader:
 
 class DatabaseDataLoader:
     """
-    God-Mode ML Data Loader: Fetches training data directly from revamped hypertables.
+    High-Performance ML Data Loader: Fetches training data directly from revamped hypertables.
     Uses the VectorizedDBEngine (Binary COPY/Fetch) for maximum throughput.
     """
 

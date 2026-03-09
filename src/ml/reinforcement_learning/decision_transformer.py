@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class RotaryEmbedding(nn.Module):
     """
-    God-Mode: Rotary Positional Embeddings (RoPE).
+    High-Performance: Rotary Positional Embeddings (RoPE).
     Provides relative positional information via rotation matrices in complex space.
     """
 
@@ -35,7 +35,7 @@ def apply_rotary_pos_emb(q, k, cos, sin):
 
 class GatedMLP(nn.Module):
     """
-    God-Mode: Gated Linear Unit (SwiGLU variant).
+    High-Performance: Gated Linear Unit (SwiGLU variant).
     Commonly used in state-of-the-art LLMs for superior representation power.
     """
 

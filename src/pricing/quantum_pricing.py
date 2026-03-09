@@ -4,7 +4,7 @@ from typing import Any
 import numpy as np
 import structlog
 
-# 🥒 SOLENYA-HARDENED: Qiskit 1.0+ Compliance
+#  HARDENED: Qiskit 1.0+ Compliance
 try:
     from qiskit import QuantumCircuit
     from qiskit.primitives import Sampler, SamplerV2
@@ -29,7 +29,7 @@ logger = structlog.get_logger(__name__)
 
 
 class QuantumCircuitOptimizer:
-    """🥒 SOLENYA-HARDENED: High-performance quantum circuit transpilation & optimization."""
+    """HARDENED: High-performance quantum circuit transpilation & optimization."""
 
     @staticmethod
     def optimize(qc: QuantumCircuit, optimization_level: int = 3) -> QuantumCircuit:
@@ -50,14 +50,14 @@ class QuantumCircuitOptimizer:
 
 class PayoffApproximator:
     """
-    🚀 GOD-MODE: Polynomial Payoff Approximation.
+     HIGH-PERFORMANCE: Polynomial Payoff Approximation.
     Maps non-linear payoffs (Options) to objective amplitudes using 2nd-order fitting.
     """
 
     @staticmethod
     def fit_payoff_to_amplitude(prices: np.ndarray, strike: float) -> np.ndarray:
         """
-        🥒 SOLENYA-OPTIMIZED: 2nd-Order Taylor Approximation for Payoff.
+         OPTIMIZED: 2nd-Order Taylor Approximation for Payoff.
         Ensures amplitude mapping is continuous and smooth, reducing estimation error.
         """
         payoffs = np.maximum(prices - strike, 0)
@@ -138,7 +138,7 @@ class QuantumOptionPricer:
         self, spot: float, vol: float, t: float, num_qubits: int
     ) -> QuantumCircuit:
         """
-        🚀 GOD-MODE: Precise Log-Normal Basis State Prep.
+         HIGH-PERFORMANCE: Precise Log-Normal Basis State Prep.
         Uses a discretized Log-Normal distribution mapped to qubit grid.
         Optimized for depth-efficiency using high-fidelity rotations.
         """
@@ -176,7 +176,7 @@ class QuantumOptionPricer:
 
     def _create_payoff_circuit(self, strike: float, num_qubits: int) -> QuantumCircuit:
         """
-        🥒 SOLENYA-OPTIMIZED: Linear Payoff Operator.
+         OPTIMIZED: Linear Payoff Operator.
         Encodes f(S) = max(S-K, 0) into the objective qubit.
         Uses a comparator-based approach for zero-leakage below strike.
         """
@@ -263,7 +263,7 @@ class QuantumOptionPricer:
             return self.price_classical(params)
 
     def price_classical_wasm(self, params: BSParameters) -> dict[str, Any]:
-        """🥒 SOLENYA-HYPER-SPEED: WASM-accelerated fallback."""
+        """HYPER-SPEED: WASM-accelerated fallback."""
         try:
             # We use the WASM module for sub-microsecond classical calc
             # This is significantly faster than scipy.stats.norm for batch or repeated calls
@@ -376,5 +376,5 @@ class QuantumOptionPricer:
             return self.classical_pricer.price_european(params)
 
 
-# 🥒 Backward Compatibility Alias
+#  Backward Compatibility Alias
 HybridQuantumClassicalPricer = QuantumOptionPricer

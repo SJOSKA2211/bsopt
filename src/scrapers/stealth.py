@@ -31,7 +31,7 @@ class StealthHttpClient:
         target = random.choice(["chrome110", "chrome120", "safari15_5"])  # nosec B311
 
         # 2. Map headers to the specific target to avoid mismatches
-        # This is a simplified map - in a true Rick-pass, we'd have full profiles
+        # This is a simplified map - in a true Optimized implementation, we'd have full profiles
         ua_map = {
             "chrome110": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
             "chrome120": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

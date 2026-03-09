@@ -1,5 +1,5 @@
 """
-Pricing Routes (Optimized Refactored)
+Pricing Routes (Optimized)
 """
 
 import datetime

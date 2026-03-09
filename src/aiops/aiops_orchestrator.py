@@ -57,7 +57,7 @@ class AIOpsOrchestrator:
         self.ml_pipeline_trigger: Any = _NullTrigger()
         if ml_cfg:
             try:
-                from src.ml.ml_pipeline_trigger import MLPipelineTrigger  # type: ignore
+                from src.aiops.ml_pipeline_trigger import MLPipelineTrigger
 
                 self.ml_pipeline_trigger = MLPipelineTrigger(ml_cfg)
             except Exception:  # pragma: no cover

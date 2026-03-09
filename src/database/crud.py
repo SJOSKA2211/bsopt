@@ -452,11 +452,11 @@ async def get_similar_models(
     db: AsyncSession, embedding: list[float], limit: int = 5
 ) -> list[dict]:
     """
-    God-Mode: Vector Similarity Search (HNSW Optimized).
+    High-Performance: Vector Similarity Search (HNSW Optimized).
     Finds models with similar semantic embeddings using cosine distance.
     """
     try:
-        # 🚀 Use <=> for cosine distance with HNSW index
+        #  Use <=> for cosine distance with HNSW index
         stmt = text("""
             SELECT 
                 me.model_id, 
@@ -1128,7 +1128,7 @@ async def get_latest_volatility_surface(db: AsyncSession, symbol: str) -> list[d
 
 async def get_system_health_dashboard(db: AsyncSession) -> dict:
     """
-    God Mode Diagnostic: Fetches a combined view of system performance and health.
+    High-Performance Diagnostic: Fetches a combined view of system performance and health.
     """
     try:
         # 1. Fetch Metrics from Continuous Aggregate

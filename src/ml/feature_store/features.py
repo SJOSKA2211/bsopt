@@ -16,7 +16,7 @@ class LogReturnFeature(Feature):
 
 class NumbaIndicatorFeature(Feature):
     """
-    God-Mode: High-performance wrapper for JIT-compiled indicators.
+    High-Performance: High-performance wrapper for JIT-compiled indicators.
     """
 
     def __init__(self, name: str, func, **kwargs):
