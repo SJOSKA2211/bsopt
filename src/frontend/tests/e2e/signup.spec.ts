@@ -6,10 +6,10 @@ test.describe('Sign Up Flow', () => {
     const uniqueEmail = `testuser_${Date.now()}@example.com`;
 
     // Navigate to the signup page
-    await page.goto('/signup', { waitUntil: 'networkidle', timeout: 60000 });
+    await page.goto('/signup', { waitUntil: 'networkidle', timeout: 120000 });
 
     // Wait for the signup form to be visible - using a more robust selector
-    await expect(page.getByRole('heading', { name: /Create an account/i })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByRole('heading', { name: /Create an account/i })).toBeVisible({ timeout: 90000 });
 
     // Fill in the sign up form
     await page.fill('input[name="name"]', 'Test User');

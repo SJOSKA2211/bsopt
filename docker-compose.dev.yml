@@ -20,9 +20,10 @@ services:
     command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
+      interval: 15s
+      timeout: 10s
       retries: 10
+      start_period: 90s
     depends_on:
       - postgres
       - redis
@@ -74,9 +75,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
-      interval: 10s
-      timeout: 5s
+      interval: 15s
+      timeout: 10s
       retries: 10
+      start_period: 90s
 
   frontend:
     image: bsopt-frontend-dev
@@ -116,9 +118,10 @@ services:
     command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
+      interval: 15s
+      timeout: 10s
       retries: 10
+      start_period: 90s
     depends_on:
       - postgres
       - redis

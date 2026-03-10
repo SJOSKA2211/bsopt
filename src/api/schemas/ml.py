@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import msgspec
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -40,23 +39,23 @@ class BatchInferenceRequest(BaseModel):
     requests: list[InferenceRequest]
 
 
-class InferenceResponse(msgspec.Struct):
-    """ML inference response (msgspec for Response Speed)."""
+class InferenceResponse(BaseModel):
+    """ML inference response (Pydantic for Response Validation)."""
 
     price: float
     model_type: str
     latency_ms: float
-    timestamp: datetime = msgspec.field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
-class BatchInferenceResponse(msgspec.Struct):
+class BatchInferenceResponse(BaseModel):
     """Batch ML inference response."""
 
     predictions: list[InferenceResponse]
     total_latency_ms: float
 
 
-class DriftMetrics(msgspec.Struct):
+class DriftMetrics(BaseModel):
     """Hourly drift metrics from materialized view."""
 
     model_id: str
@@ -66,7 +65,7 @@ class DriftMetrics(msgspec.Struct):
     prediction_count: int
 
 
-class DriftMetricsResponse(msgspec.Struct):
+class DriftMetricsResponse(BaseModel):
     """Response containing a list of drift metrics."""
 
     metrics: list[DriftMetrics]

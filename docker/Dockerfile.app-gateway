@@ -24,7 +24,7 @@ COPY src/gateway/ .
 
 EXPOSE 4000
 
-CMD ["npx", "nodemon", "index.js"]
+CMD ["node", "index.js"]
 
 # --- Stage 3: Production ---
 FROM node:20-alpine AS production
