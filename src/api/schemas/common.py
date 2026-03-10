@@ -7,7 +7,17 @@ Shared schemas for API responses and pagination using msgspec for zero-copy perf
 from datetime import datetime
 from typing import Any
 
+import msgspec
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class DataResponseStruct(msgspec.Struct):
+    """OPTIMIZED: Zero-copy response wrapper."""
+
+    data: Any
+    success: bool = True
+    message: str | None = None
+    timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
 
 
 class ErrorDetail(BaseModel):
