@@ -126,13 +126,13 @@ class AIOpsOrchestrator:
                 logger.warning("triggering_mlflow_retrain_run")
                 try:
                     # OPTIMIZED: Run asynchronously so we don't block the AIOps event loop
-                    import os
                     import subprocess
 
-                    compose_bin = os.path.join(os.getcwd(), "docker-compose")
+                    compose_bin = "docker"
                     subprocess.Popen(
                         [
                             compose_bin,
+                            "compose",
                             "exec",
                             "-d",
                             "mlops-worker",

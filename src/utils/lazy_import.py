@@ -12,7 +12,7 @@ import os
 import sys
 import threading
 import time
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from importlib import import_module
 from typing import Any
@@ -48,7 +48,7 @@ def _get_import_lock(module_name: str) -> threading.RLock:
 
 
 @contextmanager
-def _track_import_stack(module_name: str):
+def _track_import_stack(module_name: str) -> Generator[None, None, None]:
     """Context manager to track and detect circular imports."""
     if not hasattr(_import_stack, "modules"):
         _import_stack.modules = []
@@ -152,7 +152,7 @@ def get_import_stats() -> dict[str, Any]:
     }
 
 
-def reset_import_stats():
+def reset_import_stats() -> None:
     """Reset import statistics."""
     _import_times.clear()
     _failed_imports.clear()
@@ -164,7 +164,7 @@ def preload_modules(
     attributes: Iterable[str],
     cache_module_override: Any = None,
     service_type: str | None = None,
-):
+) -> None:
     """
     Eagerly load a set of modules with service-awareness.
     Useful for 'warming up' critical paths in production without over-loading.

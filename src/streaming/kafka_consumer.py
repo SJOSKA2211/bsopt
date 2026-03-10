@@ -2,6 +2,7 @@ import asyncio
 import time
 from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 
 import msgspec
 import structlog
@@ -59,8 +60,8 @@ class MarketDataConsumer:
         self.avro_deserializer = AvroDeserializer(self.schema_registry, self.market_data_schema)
 
     async def consume_messages(
-        self, callback: Callable[[list[dict], str], None], batch_size: int = 100
-    ):
+        self, callback: Callable[[list[dict[str, Any]], str], Any], batch_size: int = 100
+    ) -> None:
         """
         Consume messages in adaptive batches and process with callback.
         Groups batches by topic before dispatching.
@@ -81,20 +82,22 @@ class MarketDataConsumer:
                     continue
 
                 # Group by topic
-                topic_batches: dict[str, list[dict]] = {}
+                topic_batches: dict[str, list[dict[str, Any]]] = {}
                 for msg in msgs:
-                    if msg.error():
-                        if msg.error().code() == KafkaError._PARTITION_EOF:
+                    err = msg.error()
+                    if err:
+                        if err.code() == KafkaError._PARTITION_EOF:
                             continue
-                        logger.error("kafka_consumer_error", error=str(msg.error()))
+                        logger.error("kafka_consumer_error", error=str(err))
                         continue
 
                     try:
                         data = self.avro_deserializer(msg.value(), None)
                         topic = msg.topic()
-                        if topic not in topic_batches:
-                            topic_batches[topic] = []
-                        topic_batches[topic].append(data)
+                        if topic is not None:
+                            if topic not in topic_batches:
+                                topic_batches[topic] = []
+                            topic_batches[topic].append(data)
                     except Exception as e:
                         logger.error("message_processing_error", error=str(e))
 
@@ -128,12 +131,17 @@ class MarketDataConsumer:
         finally:
             self.consumer.close()
 
-    async def _process_batch(self, batch: list[dict], topic: str, callback: Callable):
+    async def _process_batch(
+        self,
+        batch: list[dict[str, Any]],
+        topic: str,
+        callback: Callable[[list[dict[str, Any]], str], Any],
+    ) -> None:
         """Process batch of messages efficiently with backpressure."""
         start_time = time.time()
         try:
             # Check if callback explicitly handles batches
-            if hasattr(callback, "_is_batch_aware") and callback._is_batch_aware:
+            if hasattr(callback, "_is_batch_aware") and getattr(callback, "_is_batch_aware"):
                 await callback(batch, topic)
             else:
                 # Optimized callback dispatch
@@ -153,6 +161,6 @@ class MarketDataConsumer:
         except Exception as e:
             logger.error("batch_processing_error", topic=topic, error=str(e))
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop consuming messages"""
         self.running = False

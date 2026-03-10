@@ -1,5 +1,6 @@
 import argparse
 import os
+import multiprocessing
 from typing import Any
 
 import mlflow
@@ -22,11 +23,14 @@ from src.shared.shm_manager import SHMManager
 
 logger = structlog.get_logger()
 
+# Global lock for SHM writes
+shm_lock = multiprocessing.Lock()
 
 class SHMWeightSyncCallback(BaseCallback):
     """
     Synchronizes model weights to shared memory.
     OPTIMIZED: Reduced allocation overhead by reusing buffers if possible.
+    Includes multiprocessing lock for safe distributed writes.
     """
 
     def __init__(self, shm_name: str = "rl_weights", sync_freq: int = 1000, verbose: int = 0):
@@ -42,7 +46,8 @@ class SHMWeightSyncCallback(BaseCallback):
                 state = {
                     k: v.detach().cpu().numpy() for k, v in self.model.policy.state_dict().items()
                 }
-            self.shm.write(state)
+            with shm_lock:
+                self.shm.write(state)
             logger.info("weights_synced_to_shm", step=self.num_timesteps)
         return True
 
