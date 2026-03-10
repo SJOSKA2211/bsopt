@@ -235,7 +235,9 @@ class Query:
 schema = Schema(query=Query, types=[Option])
 
 
-async def get_context(request: strawberry.Request):
+from typing import Any
+
+async def get_context(request: Any):
     """GraphQL context helper."""
     # This function is intended to provide context to GraphQL resolvers.
     # It's currently a placeholder and might need to be implemented
