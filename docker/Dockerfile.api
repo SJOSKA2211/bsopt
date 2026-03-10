@@ -11,7 +11,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY pyproject.toml README.md ./
 COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install ".[api,auth]"
+    uv pip install ".[api,auth]" && uv pip install granian
 
 # Install Rust and build bsopt_core
 RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential
@@ -19,6 +19,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN uv pip install maturin
 COPY src/core ./src/core
+ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
 RUN cd src/core && maturin build --release --strip --out /tmp/wheels
 RUN uv pip install /tmp/wheels/*.whl
 
@@ -33,7 +34,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 EXPOSE 8000
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]
+CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM python:3.13-slim AS production
 WORKDIR /app
@@ -51,6 +52,6 @@ RUN chown -R bsopt:bsopt /app
 USER bsopt
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--access-logformat", "%(h)s %(l)s %(u)s %(t)s \"%(r)s\" %(s)s %(b)s \"%(f)s\" \"%(a)s\" %(L)s", "--keep-alive", "5"]
+CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--websockets", "--opt"]

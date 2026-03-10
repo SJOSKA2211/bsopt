@@ -33,7 +33,7 @@ models/
 Dockerfile*
 docker-compose*
 Makefile
-README.md
+# README.md
 LICENSE
 Jenkinsfile
 deploy.sh

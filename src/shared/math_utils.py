@@ -94,14 +94,16 @@ def _moro_inv_norm(p: float) -> float:
     if abs(y) < 0.42:
         # Central region
         r = y * y
-        x = y * (((a3 * r + a2) * r + a1) * r + a0) / ((((b4 * r + b3) * r + b2) * r + b1) * r + 1.0)
+        x = (
+            y
+            * (((a3 * r + a2) * r + a1) * r + a0)
+            / ((((b4 * r + b3) * r + b2) * r + b1) * r + 1.0)
+        )
         return x
     else:
         # Tail region
         r = np.log(-np.log(p))
-        x = c0 + r * (
-            c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8))))))
-        )
+        x = c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8)))))))
         return x
 
 

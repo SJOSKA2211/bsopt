@@ -189,11 +189,11 @@ class QuantumOptionPricer:
         #  OPTIMIZED: Use PayoffApproximator logic for rotation angles.
         # This replaces the simplistic linear encoding with a 2nd-order mapping
         # that is smoother around the strike, reducing estimation error in QAE.
-        
+
         # Discretize prices for the qubits
         prices = np.linspace(strike * 0.5, strike * 1.5, 2**num_qubits)
         amplitudes = PayoffApproximator.fit_payoff_to_amplitude(prices, strike)
-        
+
         for i in range(num_qubits):
             # We use the average amplitude contribution for this qubit's bit-weight
             # This is a heuristic that approximates the 2nd-order fit within the RY gates.

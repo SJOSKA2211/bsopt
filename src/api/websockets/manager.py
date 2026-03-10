@@ -95,9 +95,9 @@ class ConnectionManager:
                                         symbol, item, from_redis=True, is_raw=False
                                     )
                                 )
-                        await asyncio.sleep(0.001)  # 1ms poll when active
+                        await asyncio.sleep(0)  # Yield to event loop, immediate poll
                     else:
-                        await asyncio.sleep(0.01)  # 10ms poll when idle
+                        await asyncio.sleep(0.001)  # 1ms poll when idle
                 except FileNotFoundError:
                     await asyncio.sleep(0.05)
                 except Exception:

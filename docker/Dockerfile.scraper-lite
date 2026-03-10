@@ -13,12 +13,11 @@ RUN uv venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY pyproject.toml README.md ./
-COPY src ./src
+COPY pyproject.toml ./
 
-# Install Python dependencies only in builder
+# Install Python dependencies only in builder (no playwright)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install . && uv pip install playwright
+    uv pip install .
 
 
 # === Stage 2: Development ===
@@ -26,25 +25,18 @@ FROM python:3.13-slim AS development
 
 WORKDIR /app
 
-# Install build dependencies for dev (including Playwright system deps)
+# Install build dependencies for dev (no playwright deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
     git \
     curl \
-    # Playwright deps
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtualenv from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-
-# Install Playwright browsers natively in development stage
-RUN playwright install --with-deps chromium
 
 # Copy everything for dev (hot-reloading)
 COPY . .
@@ -60,7 +52,7 @@ FROM python:3.13-slim AS production
 
 WORKDIR /app
 
-#  OPTIMIZED: Optimized performance flags
+# OPTIMIZED: Optimized performance flags
 ENV PYTHON_JIT=all
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -72,10 +64,6 @@ RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
     libpq5 \
     curl \
     tini \
-    # Playwright deps
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2 \
     && rm -rf /var/lib/apt/lists/* \
     && chown -R bsopt:bsopt /app
 
@@ -83,13 +71,14 @@ RUN groupadd -r bsopt && useradd -r -g bsopt -m -d /home/bsopt bsopt \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Playwright browsers natively in production stage
-RUN playwright install --with-deps chromium
-
 COPY src/ ./src
 RUN chown -R bsopt:bsopt /app
 
 USER bsopt
+
+# Native Healthcheck
+HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "src/scrapers/engine.py"]

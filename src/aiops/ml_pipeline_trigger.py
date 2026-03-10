@@ -23,11 +23,12 @@ class MLPipelineTrigger:
             import os
             import subprocess
 
-            compose_bin = os.path.join(os.getcwd(), "docker-compose")
+            compose_bin = "docker"
             # OPTIMIZED: Run asynchronously using the central MLOps worker
             subprocess.Popen(
                 [
                     compose_bin,
+                    "compose",
                     "exec",
                     "-d",
                     "mlops-worker",

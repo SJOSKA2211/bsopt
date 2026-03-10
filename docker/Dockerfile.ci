@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN uv pip install --system maturin
+ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
 RUN cd src/core && maturin build --release --out /tmp/wheels
 RUN uv pip install --system /tmp/wheels/*.whl
 
