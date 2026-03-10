@@ -44,11 +44,11 @@ async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse:
+) -> DataResponseStruct:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
-        return DataResponse(data=[], message="Invalid symbol format")
+        return DataResponseStruct(data=[], message="Invalid symbol format")
 
     # 1. Attempt real DB lookup
     try:
@@ -69,7 +69,7 @@ async def get_options_chain(
         prices = result.scalars().all()
 
         if prices:
-            return DataResponse(
+            return DataResponseStruct(
                 data=[
                     OptionChainItem(
                         id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
@@ -131,4 +131,4 @@ async def get_options_chain(
                 }
             )
 
-    return DataResponse(data=rows, message="Synthetic fallback data")
+    return DataResponseStruct(data=rows, message="Synthetic fallback data")

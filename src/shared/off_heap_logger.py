@@ -36,7 +36,8 @@ class OffHeapLogger:
                     name=SHM_LOG_NAME, create=True, size=self.shm_size
                 )
                 if self.shm is not None:
-                    self.shm.buf[:8] = struct.pack("q", 0)  # Head index
+                    self.buf = self.shm.buf
+                    self.buf[:8] = struct.pack("q", 0)  # Head index
             else:
                 self.shm = shared_memory.SharedMemory(name=SHM_LOG_NAME)
 
