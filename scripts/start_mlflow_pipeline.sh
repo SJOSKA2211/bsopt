@@ -9,7 +9,15 @@ PIPELINE_ENTRY_POINT=${1:-train_rl}
 STUDY_NAME=${2:-rl_v1}
 shift 2 || true
 EXTRA_PARAMS=$@
-COMPOSE_CMD="./docker-compose"
+
+# Detection logic for docker compose
+if [ -x "./docker-compose" ]; then
+    COMPOSE_CMD="./docker-compose"
+elif docker compose version >/dev/null 2>&1; then
+    COMPOSE_CMD="docker compose"
+else
+    COMPOSE_CMD="docker-compose"
+fi
 
 # Ensure we are in the project root to find the binary
 cd "$(dirname "$0")/.."
@@ -39,5 +47,5 @@ echo "=========================================================="
 echo "Pipeline $PIPELINE_ENTRY_POINT initiated inside mlops-worker."
 echo "Track results via the MLflow UI at http://localhost:5000"
 echo "To view logs, run:"
-echo "  docker compose logs -f mlops-worker"
+echo "  $COMPOSE_CMD logs -f mlops-worker"
 echo "=========================================================="

@@ -82,4 +82,5 @@ failed_log.txt
 ci_quality_logs.txt
 
 # Test artifacts
-.hypothesis/
+.hypothesis/docker-compose
+*.zip

@@ -18,7 +18,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy and install Python dependencies
 COPY requirements.txt .
-RUN pip install uv && uv pip install --system --default-timeout=1000 --no-cache-dir -r requirements.txt
+RUN pip install uv && uv pip install --system -r requirements.txt
 
 # Copy the entire source directory for development
 COPY src/ ./src

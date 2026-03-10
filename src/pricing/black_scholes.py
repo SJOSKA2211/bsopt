@@ -46,14 +46,33 @@ class BlackScholesEngine:
                 "Missing required parameters (spot, strike, maturity, volatility, rate)"
             )
 
-        # Convert to numpy arrays for Numba (float64) - use atleast_1d to avoid Numba NdIter bugs
+        # Convert inputs to at least 1D numpy arrays first
+        s_arr = np.atleast_1d(s).astype(np.float64)
+        k_arr = np.atleast_1d(k).astype(np.float64)
+        t_arr = np.atleast_1d(t).astype(np.float64)
+        v_arr = np.atleast_1d(v).astype(np.float64)
+        r_arr = np.atleast_1d(r).astype(np.float64)
+        d_arr = np.atleast_1d(d).astype(np.float64)
+
+        # Broadcast all to a common shape
+        # np.broadcast() will raise an error if they are not compatible
+        try:
+            target_shape = np.broadcast(s_arr, k_arr, t_arr, v_arr, r_arr, d_arr).shape
+        except ValueError as e:
+            raise ValueError(f"Parameters cannot be broadcast to a common shape: {e}")
+
+        def _to_arr(arr):
+            if arr.shape != target_shape:
+                return np.broadcast_to(arr, target_shape).copy()
+            return arr
+
         return (
-            np.atleast_1d(s).astype(np.float64),
-            np.atleast_1d(k).astype(np.float64),
-            np.atleast_1d(t).astype(np.float64),
-            np.atleast_1d(v).astype(np.float64),
-            np.atleast_1d(r).astype(np.float64),
-            np.atleast_1d(d).astype(np.float64),
+            _to_arr(s_arr),
+            _to_arr(k_arr),
+            _to_arr(t_arr),
+            _to_arr(v_arr),
+            _to_arr(r_arr),
+            _to_arr(d_arr),
         )
 
     @staticmethod
@@ -96,11 +115,10 @@ class BlackScholesEngine:
             try:
                 # Optimized Rust path
                 if S.size > 1:
-                    # If is_call is scalar, broadcast it for the Rust kernel
-                    if np.isscalar(is_call):
-                        is_call_arr = np.full(S.shape, is_call, dtype=bool)
-                    else:
-                        is_call_arr = np.asanyarray(is_call).astype(bool)
+                    # Ensure is_call is broadcast to S.shape for Rust core
+                    is_call_arr = np.atleast_1d(is_call).astype(bool)
+                    if is_call_arr.shape != S.shape:
+                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
                     # Ensure 1D arrays for the Rust batch function
                     return bsopt_core.batch_black_scholes(
@@ -130,7 +148,13 @@ class BlackScholesEngine:
         if kwargs.get("out") is not None:
             from src.pricing.quant_utils import batch_bs_price_jit_v2_out
 
-            batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call, kwargs["out"])
+            # Ensure is_call is an array for Numba batch path
+            if np.isscalar(is_call):
+                is_call_arr = np.full(S.shape, is_call, dtype=bool)
+            else:
+                is_call_arr = np.asanyarray(is_call).astype(bool)
+
+            batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call_arr, kwargs["out"])
             return kwargs["out"]
 
         return calculate_price(S, K, T, sigma, r, q, is_call)
@@ -191,10 +215,9 @@ class BlackScholesEngine:
                     )
                 else:
                     # Optimized Rust batch path
-                    if np.isscalar(is_call):
-                        is_call_arr = np.full(S.shape, is_call, dtype=bool)
-                    else:
-                        is_call_arr = np.asanyarray(is_call).astype(bool)
+                    is_call_arr = np.atleast_1d(is_call).astype(bool)
+                    if is_call_arr.shape != S.shape:
+                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
                     d, g, th, v, rh = bsopt_core.batch_black_scholes_greeks(
                         S.ravel(),
@@ -218,6 +241,12 @@ class BlackScholesEngine:
         if "out_delta" in kwargs:
             from src.pricing.quant_utils import batch_greeks_jit_v2_out
 
+            # Ensure is_call is an array for Numba batch path
+            if np.isscalar(is_call):
+                is_call_arr = np.full(S.shape, is_call, dtype=bool)
+            else:
+                is_call_arr = np.asanyarray(is_call).astype(bool)
+
             batch_greeks_jit_v2_out(
                 S,
                 K,
@@ -225,7 +254,7 @@ class BlackScholesEngine:
                 sigma,
                 r,
                 q,
-                is_call,
+                is_call_arr,
                 kwargs["out_delta"],
                 kwargs["out_gamma"],
                 kwargs["out_theta"],
