@@ -43,6 +43,26 @@ class OptionChainItem(msgspec.Struct):
     time: str | None = None
 
 
+@router.get("/greeks/{symbol}")
+async def get_realtime_greeks(symbol: str) -> DataResponseStruct:
+    """Return real-time Greeks from SHM for a symbol."""
+    data = _greeks_mesh.read(symbol.upper().strip())
+    if not data:
+        return DataResponseStruct(data={}, message="No live data in manifold", success=False)
+    return DataResponseStruct(data=data)
+
+
+@router.post("/greeks/batch")
+async def get_batch_greeks(symbols: list[str]) -> DataResponseStruct:
+    """Batch lookup of real-time Greeks from SHM."""
+    results = {}
+    for sym in symbols:
+        data = _greeks_mesh.read(sym.upper().strip())
+        if data:
+            results[sym] = data
+    return DataResponseStruct(data=results)
+
+
 @router.get("/chain")
 async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
