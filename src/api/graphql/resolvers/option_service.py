@@ -1,28 +1,19 @@
 import asyncio
-from datetime import datetime
+from datetime import date, datetime
+from typing import Any, cast
 
 import strawberry
 from strawberry.dataloader import DataLoader
 
+from src.api.graphql.types import Option
 from src.data.router import MarketDataRouter
-from src.shared.shm_mesh import SharedMemoryRingBuffer
+from src.shared.shm_mesh import GreeksMesh, SharedMemoryRingBuffer
 
 router = MarketDataRouter()
 
-# Singleton SHM reader for DataLoaders
+# Singleton SHM readers
 _shm_reader = SharedMemoryRingBuffer(create=False)
-
-
-@strawberry.type
-class Option:
-    id: strawberry.ID
-    contract_symbol: str
-    underlying_symbol: str
-    strike: float
-    expiry: datetime
-    option_type: str
-    last: float | None = None
-    delta: float | None = None
+_greeks_mesh = GreeksMesh(create=False)
 
 
 async def _load_options_vectorized(keys: list[str]) -> list[Option]:
@@ -36,31 +27,56 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
 
     for i, symbol in enumerate(keys):
         res = results_raw[i]
-        if isinstance(res, Exception) or "error" in res:
+        
+        # Type-safe check for exceptions or error dictionaries
+        is_error = isinstance(res, Exception) or (isinstance(res, dict) and "error" in res)
+        
+        if is_error:
             # Fallback to minimal object
             results.append(
                 Option(
                     id=strawberry.ID(symbol),
-                    contract_symbol=symbol,
-                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
+                    symbol=symbol,
                     strike=100.0,
-                    expiry=now,
+                    expiry=now.date(),
                     option_type="CALL",
+                    time=now,
                 )
             )
         else:
-            results.append(
-                Option(
-                    id=strawberry.ID(symbol),
-                    contract_symbol=symbol,
-                    underlying_symbol=symbol.split("_")[0] if "_" in symbol else symbol,
-                    strike=res.get("strike", 100.0),
-                    expiry=res.get("expiry", now),
-                    option_type=res.get("type", "CALL").upper(),
-                    last=res.get("price"),
-                    delta=res.get("delta"),
-                )
+            # At this point, res is guaranteed to be a successful dict
+            res_dict = cast(dict[str, Any], res)
+            
+            exp_val = res_dict.get("expiry", now)
+            exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
+
+            opt = Option(
+                id=strawberry.ID(symbol),
+                symbol=symbol,
+                strike=float(res_dict.get("strike", 100.0)),
+                expiry=exp_date,
+                option_type=str(res_dict.get("type", "CALL")).upper(),
+                last=res_dict.get("price"),
+                time=cast(datetime, res_dict.get("time", now)),
             )
+
+            # Enrich with real-time SHM Greeks
+            shm_greeks = _greeks_mesh.read(symbol)
+            if shm_greeks:
+                opt.delta = shm_greeks["delta"]
+                opt.gamma = shm_greeks["gamma"]
+                opt.theta = shm_greeks["theta"]
+                opt.vega = shm_greeks["vega"]
+                opt.rho = shm_greeks["rho"]
+            else:
+                # Fallback to provider Greeks if available
+                opt.delta = res_dict.get("delta")
+                opt.gamma = res_dict.get("gamma")
+                opt.theta = res_dict.get("theta")
+                opt.vega = res_dict.get("vega")
+                opt.rho = res_dict.get("rho")
+
+            results.append(opt)
     return results
 
 
@@ -69,36 +85,62 @@ option_loader = DataLoader(load_fn=_load_options_vectorized)
 
 
 async def get_option(
-    symbol: str, expiry: datetime, strike: float, option_type: str
+    symbol: str, expiry: date | datetime, strike: float, option_type: str
 ) -> Option | None:
     """Fetch a single option using coordinates."""
-    contract_symbol = f"{symbol}_{expiry.strftime('%Y%m%d')}_{option_type[0].upper()}_{int(strike)}"
+    expiry_str = expiry.strftime('%Y%m%d') if hasattr(expiry, 'strftime') else str(expiry).replace('-', '')
+    contract_symbol = f"{symbol}_{expiry_str}_{option_type[0].upper()}_{int(strike)}"
     return await get_option_by_id(contract_symbol)
 
 
 async def get_option_by_id(id: str) -> Option | None:
     """Fetch option by its unique manifold ID."""
     try:
-        data = await router.get_live_quote(id)
-        return Option(
+        data = cast(dict[str, Any], await router.get_live_quote(id))
+        
+        if "error" in data:
+            raise RuntimeError(data["error"])
+            
+        now = datetime.now()
+        exp_val = data.get("expiry", now)
+        exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
+
+        opt = Option(
             id=strawberry.ID(id),
-            contract_symbol=id,
-            underlying_symbol=id.split("_")[0] if "_" in id else id,
-            strike=data.get("strike", 100.0),
-            expiry=data.get("expiry", datetime.now()),
-            option_type=data.get("type", "CALL").upper(),
+            symbol=id,
+            strike=float(data.get("strike", 100.0)),
+            expiry=exp_date,
+            option_type=str(data.get("type", "CALL")).upper(),
             last=data.get("price"),
-            delta=data.get("delta"),
+            time=cast(datetime, data.get("time", now)),
         )
+        
+        # Enrich with real-time SHM Greeks
+        shm_greeks = _greeks_mesh.read(id)
+        if shm_greeks:
+            opt.delta = shm_greeks["delta"]
+            opt.gamma = shm_greeks["gamma"]
+            opt.theta = shm_greeks["theta"]
+            opt.vega = shm_greeks["vega"]
+            opt.rho = shm_greeks["rho"]
+        else:
+            opt.delta = data.get("delta")
+            opt.gamma = data.get("gamma")
+            opt.theta = data.get("theta")
+            opt.vega = data.get("vega")
+            opt.rho = data.get("rho")
+            
+        return opt
     except Exception:
         # Minimal return for federation compatibility
+        now = datetime.now()
         return Option(
             id=strawberry.ID(id),
-            contract_symbol=id,
-            underlying_symbol=id.split("_")[0] if "_" in id else id,
+            symbol=id,
             strike=100.0,
-            expiry=datetime.now(),
+            expiry=now.date(),
             option_type="CALL",
+            time=now,
         )
 
 
@@ -106,7 +148,7 @@ async def search_options_paginated(
     underlying: str,
     min_strike: float | None = None,
     max_strike: float | None = None,
-    expiry: datetime | None = None,
+    expiry: date | datetime | None = None,
     expiry_bucket: str | None = None,
     limit: int = 100,
     cursor: str | None = None,
@@ -114,18 +156,18 @@ async def search_options_paginated(
     """Search for options with cursor-based pagination."""
     # Handle expiry bucket mapping
     if expiry_bucket and expiry_bucket != "all":
-        from datetime import date, timedelta
+        from datetime import timedelta
 
         today = date.today()
         if expiry_bucket == "week":
-            expiry = datetime.combine(today + timedelta(days=7), datetime.min.time())
+            expiry = today + timedelta(days=7)
         elif expiry_bucket == "month":
-            expiry = datetime.combine(today + timedelta(days=30), datetime.min.time())
+            expiry = today + timedelta(days=30)
         elif expiry_bucket == "quarter":
-            expiry = datetime.combine(today + timedelta(days=90), datetime.min.time())
+            expiry = today + timedelta(days=90)
 
     # Fetch data
-    raw_chain = await router.get_option_chain_snapshot(underlying)
+    raw_chain = cast(list[dict[str, Any]], await router.get_option_chain_snapshot(underlying))
 
     # Filter
     filtered = []
@@ -137,12 +179,13 @@ async def search_options_paginated(
 
         # If expiry filter is active, only show that specific date or closer
         if expiry:
+            expiry_date = expiry if isinstance(expiry, date) else expiry.date()
             contract_exp = (
-                datetime.fromisoformat(contract["expiry"])
+                datetime.fromisoformat(cast(str, contract["expiry"])).date()
                 if isinstance(contract["expiry"], str)
-                else contract["expiry"]
+                else (contract["expiry"].date() if isinstance(contract["expiry"], datetime) else cast(date, contract["expiry"]))
             )
-            if contract_exp.date() > expiry.date():
+            if contract_exp > expiry_date:
                 continue
 
         filtered.append(contract)
@@ -161,23 +204,40 @@ async def search_options_paginated(
     # Slice
     paged = filtered[start_idx : start_idx + limit]
     has_next = len(filtered) > (start_idx + limit)
-    next_cursor = paged[-1]["symbol"] if paged else None
+    next_cursor = cast(str, paged[-1]["symbol"]) if paged else None
 
-    results = [
-        Option(
-            id=strawberry.ID(contract["symbol"]),
-            contract_symbol=contract["symbol"],
-            underlying_symbol=underlying,
-            strike=contract["strike"],
-            expiry=(
-                datetime.fromisoformat(contract["expiry"])
-                if isinstance(contract["expiry"], str)
-                else contract["expiry"]
-            ),
-            option_type=contract["type"].upper(),
+    results = []
+    now = datetime.now()
+    for contract in paged:
+        symbol = cast(str, contract["symbol"])
+        exp_val = contract["expiry"]
+        exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
+
+        opt = Option(
+            id=strawberry.ID(symbol),
+            symbol=symbol,
+            strike=float(contract["strike"]),
+            expiry=exp_date,
+            option_type=str(contract["type"]).upper(),
             last=contract["price"],
+            time=cast(datetime, contract.get("time", now)),
         )
-        for contract in paged
-    ]
+        
+        # Enrich with real-time SHM Greeks
+        shm_greeks = _greeks_mesh.read(symbol)
+        if shm_greeks:
+            opt.delta = shm_greeks["delta"]
+            opt.gamma = shm_greeks["gamma"]
+            opt.theta = shm_greeks["theta"]
+            opt.vega = shm_greeks["vega"]
+            opt.rho = shm_greeks["rho"]
+        else:
+            opt.delta = contract.get("delta")
+            opt.gamma = contract.get("gamma")
+            opt.theta = contract.get("theta")
+            opt.vega = contract.get("vega")
+            opt.rho = contract.get("rho")
+            
+        results.append(opt)
 
     return results, has_next, next_cursor

@@ -17,9 +17,9 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--websockets"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -115,9 +115,9 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["granian", "--interface", "asgi", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--opt"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -141,6 +141,11 @@ services:
     depends_on:
       - postgres
       - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   worker-ml:
     image: bsopt-worker-dev

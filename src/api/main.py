@@ -1,6 +1,8 @@
 import asyncio
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import structlog
 import uvloop
@@ -31,7 +33,7 @@ from src.shared.observability import logging_middleware, start_system_metrics_lo
 logger = structlog.get_logger()
 
 
-def get_context(request: Request) -> dict:
+def get_context(request: Request) -> dict[str, Any]:
     """GraphQL Context factory."""
     if os.getenv("TESTING") == "true":
         return {}
@@ -46,7 +48,7 @@ except (ImportError, AttributeError):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     High-Performance Lifespan: Handles resource lifecycle with zero-leak guarantees.
     """
@@ -112,7 +114,7 @@ app.add_middleware(FusedSecurityMiddleware)
 
 
 # Exception Handler
-async def api_exception_handler(request: Request, exc: Exception):
+async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSONResponse:
     """Global exception handler."""
     from src.api.exceptions import BaseAPIException
 
@@ -162,7 +164,7 @@ from fastapi.exceptions import RequestValidationError  # noqa: E402
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> MsgspecJSONResponse:
     """Handle FastAPI built-in validation errors."""
     return MsgspecJSONResponse(
         status_code=422,
@@ -174,7 +176,7 @@ app.add_exception_handler(Exception, api_exception_handler)
 app.add_exception_handler(HTTPException, api_exception_handler)
 
 
-graphql_app = GraphQLRouter(schema)
+graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema)
 
 # API v1 Routes
 api_router = APIRouter(prefix="/api/v1")
@@ -195,24 +197,24 @@ app.include_router(graphql_app, prefix="/graphql")
 
 @app.get("/health")
 @app.get("/api/v1/health")
-async def health():
+async def health() -> dict[str, Any]:
     from src.database import health_check
 
     return {"status": "healthy", "database": health_check()}
 
 
 @app.get("/api/diagnostics/imports")
-async def diagnostics_imports():
+async def diagnostics_imports() -> dict[str, bool]:
     return {"successful_imports": True}
 
 
 @app.get("/admin-only")
-async def admin_only(user: dict = Depends(RoleChecker(["admin"]))):
+async def admin_only(user: dict[str, Any] = Depends(RoleChecker(["admin"]))) -> dict[str, str]:
     return {"message": "Welcome, Admin"}
 
 
 @app.get("/metrics")
-async def metrics(request: Request):
+async def metrics(request: Request) -> Response:
     # Only allow internal/authenticated access to metrics
     if settings.is_production:
         auth_header = request.headers.get("Authorization")
@@ -224,5 +226,5 @@ async def metrics(request: Request):
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     return {"message": "BS-Opt Optimized API is running"}

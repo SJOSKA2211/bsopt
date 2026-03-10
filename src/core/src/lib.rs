@@ -441,7 +441,7 @@ fn batch_svi_total_variance(
 ) -> PyResult<Py<PyArray1<f64>>> {
     let k = k.as_array();
     let n = k.len();
-    let results = PyArray1::new_bound(py, [n], false);
+    let results = unsafe { PyArray1::new_bound(py, [n], false) };
     
     // Use rayon for parallelization if n is large
     if n > 1000 {
@@ -450,12 +450,12 @@ fn batch_svi_total_variance(
             a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt())
         }).collect();
         
-        let mut results_view = results.as_array_mut();
+        let mut results_view = unsafe { results.as_array_mut() };
         for (i, &val) in res_vec.iter().enumerate() {
             results_view[i] = val;
         }
     } else {
-        let mut results_view = results.as_array_mut();
+        let mut results_view = unsafe { results.as_array_mut() };
         for i in 0..n {
             let ki = k[i];
             results_view[i] = a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt());
@@ -504,14 +504,27 @@ fn batch_sabr_implied_vol(
 ) -> PyResult<Py<PyArray1<f64>>> {
     let strike = strike.as_array();
     let n = strike.len();
-    let results = PyArray1::new_bound(py, [n], false);
+    let results = unsafe { PyArray1::new_bound(py, [n], false) };
     
-    let mut results_view = results.as_array_mut();
+    let mut results_view = unsafe { results.as_array_mut() };
     for i in 0..n {
         results_view[i] = sabr_implied_vol(strike[i], forward, maturity, alpha, beta, rho, nu);
     }
     
     Ok(results.into())
+}
+
+#[pyfunction]
+fn normal_cdf(x: f64) -> f64 {
+    let n = Normal::new(0.0, 1.0).unwrap();
+    n.cdf(x)
+}
+
+#[pyfunction]
+fn normal_ppf(p: f64) -> f64 {
+    use statrs::distribution::Continuous;
+    let n = Normal::new(0.0, 1.0).unwrap();
+    n.inverse_cdf(p)
 }
 
 #[pyfunction]
@@ -636,6 +649,8 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_svi_total_variance, m)?)?;
     m.add_function(wrap_pyfunction!(sabr_implied_vol, m)?)?;
     m.add_function(wrap_pyfunction!(batch_sabr_implied_vol, m)?)?;
+    m.add_function(wrap_pyfunction!(normal_cdf, m)?)?;
+    m.add_function(wrap_pyfunction!(normal_ppf, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
     Ok(())
 }

@@ -1,7 +1,9 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from strawberry.fastapi import GraphQLRouter
 
 from src.portfolio.graphql.schema import schema
@@ -21,7 +23,7 @@ from src.api.responses import MsgspecJSONResponse
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize components
     setup_logging()
     tune_gc()
@@ -54,7 +56,7 @@ app.middleware("http")(logging_middleware)
 
 # Standardized Error Handling
 @app.exception_handler(Exception)
-async def universal_exception_handler(request: Request, exc: Exception):
+async def universal_exception_handler(request: Request, exc: Exception) -> MsgspecJSONResponse:
     import structlog
 
     structlog.get_logger().error("portfolio_service_error", error=str(exc), path=request.url.path)
@@ -67,12 +69,12 @@ async def universal_exception_handler(request: Request, exc: Exception):
 # Apply Zero Trust security dependencies
 security_deps = [Depends(verify_mtls), Depends(opa_authorize("read", "portfolio"))]
 
-graphql_app = GraphQLRouter(schema)
+graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema)
 app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, Any]:
     from src.database import health_check
 
     return {"status": "healthy", "database": health_check()}

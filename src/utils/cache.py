@@ -391,7 +391,7 @@ class DatabaseQueryCache:
             return None
         try:
             val = await redis.get(f"{self.PREFIX}user:{user_id}")
-            return orjson.loads(val) if val else None
+            return msgspec.json.decode(val) if val else None
         except Exception as e:
             logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
@@ -401,7 +401,7 @@ class DatabaseQueryCache:
         if redis is None:
             return False
         try:
-            await redis.setex(f"{self.PREFIX}user:{user_id}", ttl, orjson.dumps(user_data))
+            await redis.setex(f"{self.PREFIX}user:{user_id}", ttl, msgspec.json.encode(user_data))
             return True
         except Exception as e:
             logger.error("db_cache_set_user_failed", error=str(e), user_id=user_id)
@@ -416,11 +416,11 @@ redis_channel_updates: str = "pricing_updates"
 
 
 async def publish_to_redis(channel: str, message: dict[str, Any]):
-    """Publish a message to a Redis channel using orjson."""
+    """Publish a message to a Redis channel using msgspec."""
     redis = get_redis()
     if redis is not None:
         try:
-            encoded_message = orjson.dumps(message)
+            encoded_message = msgspec.json.encode(message)
             await redis.publish(channel, encoded_message)
             logger.debug("redis_publish_success", channel=channel)
         except Exception as e:

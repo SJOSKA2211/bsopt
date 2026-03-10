@@ -73,29 +73,42 @@ async def get_options_chain(
         prices = result.scalars().all()
 
         if prices:
+            # OPTIMIZED: Enrich DB records with real-time SHM greeks
+            enriched_data = []
+            for p in prices:
+                item = OptionChainItem(
+                    id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
+                    symbol=p.symbol,
+                    strike=float(p.strike),
+                    expiry=p.expiry.isoformat(),
+                    option_type=p.option_type,
+                    bid=float(p.bid) if p.bid else 0.0,
+                    ask=float(p.ask) if p.ask else 0.0,
+                    last=float(p.last) if p.last else 0.0,
+                    volume=p.volume or 0,
+                    open_interest=p.open_interest or 0,
+                    iv=float(p.implied_volatility) if p.implied_volatility else 0.0,
+                    delta=float(p.delta) if p.delta is not None else None,
+                    gamma=float(p.gamma) if p.gamma is not None else None,
+                    vega=float(p.vega) if p.vega is not None else None,
+                    theta=float(p.theta) if p.theta is not None else None,
+                    rho=float(p.rho) if p.rho is not None else None,
+                    time=p.time.isoformat() if p.time else None,
+                )
+
+                # Check SHM for live overrides
+                shm_greeks = _greeks_mesh.read(p.symbol)
+                if shm_greeks:
+                    item.delta = shm_greeks["delta"]
+                    item.gamma = shm_greeks["gamma"]
+                    item.vega = shm_greeks["vega"]
+                    item.theta = shm_greeks["theta"]
+                    item.rho = shm_greeks["rho"]
+
+                enriched_data.append(item)
+
             return DataResponseStruct(
-                data=[
-                    OptionChainItem(
-                        id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
-                        symbol=p.symbol,
-                        strike=float(p.strike),
-                        expiry=p.expiry.isoformat(),
-                        option_type=p.option_type,
-                        bid=float(p.bid) if p.bid else 0.0,
-                        ask=float(p.ask) if p.ask else 0.0,
-                        last=float(p.last) if p.last else 0.0,
-                        volume=p.volume or 0,
-                        open_interest=p.open_interest or 0,
-                        iv=float(p.implied_volatility) if p.implied_volatility else 0.0,
-                        delta=float(p.delta) if p.delta is not None else None,
-                        gamma=float(p.gamma) if p.gamma is not None else None,
-                        vega=float(p.vega) if p.vega is not None else None,
-                        theta=float(p.theta) if p.theta is not None else None,
-                        rho=float(p.rho) if p.rho is not None else None,
-                        time=p.time.isoformat() if p.time else None,
-                    )
-                    for p in prices
-                ],
+                data=enriched_data,
                 message="Real-time manifold data",
             )
     except Exception:

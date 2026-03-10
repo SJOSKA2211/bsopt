@@ -44,7 +44,7 @@ async def get_portfolio(
     request: Request,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> PortfolioOverview:
+) :
     """Return the user's primary portfolio overview including positions (RLS Hardened)."""
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))

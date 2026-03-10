@@ -82,7 +82,7 @@ def _pii_masking_processor(
     return event_dict
 
 
-def setup_logging():
+def setup_logging() -> None:
     """Configures structlog for JSON logging (Loki compliant) with optimized processors."""
     structlog.configure(
         processors=[
@@ -100,7 +100,7 @@ def setup_logging():
     )
 
 
-def tune_gc(mode: str = "analytical"):
+def tune_gc(mode: str = "analytical") -> None:
     """
     Optimizes Garbage Collection based on the specific workload mode.
     - 'analytical': Standard aggressive collection to save memory.
@@ -116,7 +116,7 @@ def tune_gc(mode: str = "analytical"):
     structlog.get_logger().info("gc_tuned", mode=mode, thresholds=gc.get_threshold())
 
 
-def tune_worker_resources():
+def tune_worker_resources() -> None:
     """
     OPTIMIZED: Coordinates CPU resource allocation for multi-backend parallelism.
     Prevents CPU oversubscription between Ray and Numba.
@@ -140,7 +140,7 @@ def tune_worker_resources():
 _IP_CACHE = LRUCache(maxsize=1000)
 
 
-async def logging_middleware(request: Request, call_next: Callable) -> Response:
+async def logging_middleware(request: Request, call_next: Callable[[Request], Any]) -> Response:
     """FastAPI middleware for structured logging of every request with optimized IP masking and tracing."""
     logger = structlog.get_logger("api_request")
     start_time = time.time()
@@ -198,7 +198,7 @@ _PROCESS_CACHE: Any = None
 
 
 # System Metrics
-def update_system_metrics(service_name: str):
+def update_system_metrics(service_name: str) -> None:
     """Capture real-time resource utilization for the current process (Optimized)."""
     try:
         import psutil
@@ -215,10 +215,10 @@ def update_system_metrics(service_name: str):
         pass
 
 
-def start_system_metrics_loop(service_name: str, interval: int = 15):
+def start_system_metrics_loop(service_name: str, interval: int = 15) -> None:
     """Starts a background thread to periodically update system metrics."""
 
-    def _loop():
+    def _loop() -> None:
         while True:
             update_system_metrics(service_name)
             time.sleep(interval)
@@ -309,7 +309,7 @@ ML_PROXY_PREDICT_LATENCY = Histogram(
 _METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="metrics_pusher")
 
 
-def push_metrics(job_name: str):
+def push_metrics(job_name: str) -> None:
     """
     Pushes all metrics to the Prometheus Pushgateway.
     Optimized: Dispatches to a background thread pool to avoid blocking the hot path.
@@ -318,7 +318,7 @@ def push_metrics(job_name: str):
     if not gateway_url:
         return
 
-    def _do_push():
+    def _do_push() -> None:
         try:
             push_to_gateway(gateway_url, job=job_name, registry=REGISTRY)
             # Use standard logging for background threads to avoid structlog contention
@@ -344,7 +344,7 @@ def get_obs_client() -> httpx.AsyncClient:
     return _observability_client
 
 
-async def post_grafana_annotation(message: str, tags: list[str] = None) -> bool:
+async def post_grafana_annotation(message: str, tags: list[str] | None = None) -> bool:
     """
     Posts an annotation to Grafana using a shared persistent client and high-speed serialization.
     """

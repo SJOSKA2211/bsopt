@@ -96,6 +96,18 @@ class PricingEngineFactory:
                 from src.ml.models.neural_engine import NeuralPricingEngine
 
                 cls.register("neural", NeuralPricingEngine)
+            elif name == "lattice":
+                from src.pricing.lattice import LatticePricingEngine
+
+                cls.register("lattice", LatticePricingEngine)
+            elif name == "fdm":
+                from src.pricing.finite_difference import FDMPricingEngine
+
+                cls.register("fdm", FDMPricingEngine)
+            elif name == "exotic":
+                from src.pricing.exotic import ExoticPricingEngine
+
+                cls.register("exotic", ExoticPricingEngine)
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))

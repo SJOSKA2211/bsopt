@@ -1,47 +1,10 @@
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
 import strawberry
 from strawberry.federation import Schema
 
-
-# TYPE DEFINITIONS (Base Subgraph: Options)
-@strawberry.federation.type(keys=["id"], extend=True, shareable=True)
-class Option:
-    id: strawberry.ID = strawberry.federation.field(external=True)
-    strike: float = strawberry.federation.field(shareable=True)
-    symbol: str = strawberry.federation.field(shareable=True)
-    expiry: date = strawberry.federation.field(shareable=True)
-    option_type: str = strawberry.federation.field(shareable=True)
-
-    # Market Data
-    bid: float | None = strawberry.federation.field(shareable=True)
-    ask: float | None = strawberry.federation.field(shareable=True)
-    last: float | None = strawberry.federation.field(shareable=True)
-    volume: int | None = strawberry.federation.field(shareable=True)
-    open_interest: int | None = strawberry.federation.field(name="openInterest", shareable=True)
-
-    # Greeks (Optimized DB data types)
-    implied_volatility: float | None = strawberry.federation.field(name="iv", shareable=True)
-    delta: float | None = strawberry.federation.field(shareable=True)
-    gamma: float | None = strawberry.federation.field(shareable=True)
-    vega: float | None = strawberry.federation.field(shareable=True)
-    theta: float | None = strawberry.federation.field(shareable=True)
-    rho: float | None = strawberry.federation.field(shareable=True)
-
-    time: datetime = strawberry.federation.field(shareable=True)
-
-    @classmethod
-    async def resolve_reference(
-        cls,
-        id: strawberry.ID,
-        strike: float,
-        symbol: str,
-        expiry: str,
-        option_type: str,
-    ):
-        from src.api.graphql.resolvers.option_service import get_option_by_id
-
-        return await get_option_by_id(str(id))
+from src.api.graphql.types import Option
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)
@@ -212,7 +175,7 @@ class Query:
         from src.api.graphql.resolvers.option_service import search_options_paginated
 
         results, has_next, next_cursor = await search_options_paginated(
-            symbol=symbol,
+            underlying=symbol or "AAPL",
             min_strike=min_strike,
             max_strike=max_strike,
             expiry=expiry,
@@ -232,15 +195,11 @@ class Query:
 
 
 # APOLLO FEDERATION - Subgraph Schema
-schema = Schema(query=Query, types=[Option])
+schema: Schema = Schema(query=Query, types=[Option])
 
 
 from fastapi import Request
 
-async def get_context(request: Request):
+async def get_context(request: Request) -> dict[str, Any]:
     """GraphQL context helper."""
-    # This function is intended to provide context to GraphQL resolvers.
-    # It's currently a placeholder and might need to be implemented
-    # to inject dependencies like database sessions or user information.
-    # For now, returning an empty dictionary.
     return {}

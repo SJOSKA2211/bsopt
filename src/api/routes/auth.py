@@ -3,6 +3,7 @@ Authentication Routes (Optimized for PG16 + Async)
 """
 
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
@@ -23,6 +24,7 @@ from src.api.schemas.auth import (
     TokenResponse,
 )
 from src.api.schemas.common import DataResponse, SuccessResponse
+from src.api.schemas.user import UserResponse
 from src.config import settings
 from src.database import get_async_db, set_user_context
 from src.database.models import User
@@ -45,7 +47,7 @@ router = APIRouter(
 )
 
 
-def _log_legacy_warning(route: str):
+def _log_legacy_warning(route: str) -> None:
     logger.warning("legacy_auth_route_accessed", route=route, migration_target="auth-service")
 
 
@@ -55,7 +57,7 @@ async def register(
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse:
+) -> DataResponse[TokenResponse]:
     """
     [LEGACY] Register a new user using High-Performance Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
@@ -106,7 +108,7 @@ async def login(
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse:
+) -> DataResponse[LoginResponse]:
     """
     [LEGACY] Authenticate via Native DB procedure (High Performance).
     MIGRATION: Use /api/auth/login in the auth-service (Node.js).
@@ -153,15 +155,13 @@ async def login(
 
 
 @router.get("/me")
-async def read_users_me(user=Depends(get_current_active_user)) -> DataResponse:
-    from src.api.schemas.user import UserResponse
-
-    return DataResponse(data=UserResponse.from_orm(user))
+async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponse[UserResponse]:
+    return DataResponse(data=UserResponse.model_validate(user))
 
 
 @router.post("/logout", deprecated=True)
 async def logout(
-    request: Request, response: Response, user=Depends(get_current_user)
+    request: Request, response: Response, user: User = Depends(get_current_user)
 ) -> SuccessResponse:
     """
     [LEGACY] Logout user.
@@ -182,7 +182,7 @@ async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse:
+) -> DataResponse[MFASetupResponse]:
     """
     [LEGACY] Initialize MFA setup for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.
@@ -340,7 +340,7 @@ async def reset_password_confirm(
 # ---------------------------------------------------------------------------
 
 
-async def _send_verification_email(email: str, token: str):
+async def _send_verification_email(email: str, token: str) -> None:
     """
     Sends a verification email to the user using Celery.
     """
@@ -357,7 +357,7 @@ async def _send_verification_email(email: str, token: str):
     )
 
 
-async def _send_password_reset_email(email: str, token: str):
+async def _send_password_reset_email(email: str, token: str) -> None:
     """
     Sends a password reset email to the user using Celery.
     """

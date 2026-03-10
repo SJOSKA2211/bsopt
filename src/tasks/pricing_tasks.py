@@ -5,7 +5,7 @@ Pricing Tasks for Celery - Production Optimized
 import asyncio
 import gc
 import time
-from typing import Any
+from typing import Any, cast
 
 import msgspec
 import numpy as np
@@ -46,7 +46,7 @@ RayOrchestrator.init()
 _math_pool: RayActorPool | None = None
 
 
-def get_math_pool():
+def get_math_pool() -> RayActorPool:
     global _math_pool
     if _math_pool is None:
         from src.workers.ray_workers import MathActor
@@ -56,26 +56,27 @@ def get_math_pool():
 
 
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="pricing", max_retries=3)
-def recalibrate_symbol_task(self, symbol: str) -> dict:
+def recalibrate_symbol_task(self: BaseAsyncTask, symbol: str) -> dict[str, Any]:
     """Non-blocking calibration delegation using Ray Actor Pool."""
     try:
-        return self.run_async(_recalibrate_symbols_batch_impl([symbol]))[0]
+        results = self.run_async(_recalibrate_symbols_batch_impl([symbol]))
+        return cast(dict[str, Any], results[0])
     except Exception as e:
         logger.error("calibration_task_failed", symbol=symbol, error=str(e))
         raise self.retry(exc=e) from e
 
 
 @celery_app.task(base=BaseAsyncTask, bind=True, queue="pricing")
-def recalibrate_symbols_batch_task(self, symbols: list[str]) -> list[dict]:
+def recalibrate_symbols_batch_task(self: BaseAsyncTask, symbols: list[str]) -> list[dict[str, Any]]:
     """HIGH-PERFORMANCE: Batch calibration delegation to Ray."""
     try:
-        return self.run_async(_recalibrate_symbols_batch_impl(symbols))
+        return cast(list[dict[str, Any]], self.run_async(_recalibrate_symbols_batch_impl(symbols)))
     except Exception as e:
         logger.error("batch_calibration_task_failed", symbols=symbols, error=str(e))
         return []
 
 
-async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
+async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict[str, Any]]:
     """Async implementation of batch calibration using Ray Actor Pool."""
     from src.data.router import MarketDataRouter
 
@@ -116,7 +117,7 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict]:
     max_retries=3,
 )
 def price_option_task(
-    self,
+    self: PricingTask,
     spot: float,
     strike: float,
     maturity: float,
@@ -148,7 +149,7 @@ def price_option_task(
                 computation_time = (time.perf_counter() - start_time) * 1000
                 return {
                     "task_id": self.request.id,
-                    "price": round(cached_price, 4),
+                    "price": round(float(cached_price), 4),
                     "status": "completed",
                     "cache_hit": True,
                     "computation_time_ms": round(computation_time, 3),
@@ -204,7 +205,7 @@ def price_option_task(
     priority=4,
 )
 def batch_price_options_task(
-    self,
+    self: PricingTask,
     options: list[dict[str, Any]],
     vectorized: bool = True,
 ) -> dict[str, Any]:
@@ -232,11 +233,12 @@ def batch_price_options_task(
 
             # Perform vectorized pricing using JIT utilities
             is_call = types == "call"
-            prices = calculate_price(spots, strikes, maturities, vols, rates, divs, is_call)
+            prices = cast(np.ndarray[Any, np.dtype[np.float64]], calculate_price(spots, strikes, maturities, vols, rates, divs, is_call))
 
             # Perform vectorized greeks using JIT utilities
-            deltas, gammas, thetas, vegas, rhos = calculate_greeks(
-                spots, strikes, maturities, vols, rates, divs, is_call
+            deltas, gammas, thetas, vegas, rhos = cast(
+                tuple[np.ndarray[Any, np.dtype[np.float64]], ...],
+                calculate_greeks(spots, strikes, maturities, vols, rates, divs, is_call)
             )
 
             # Format results
@@ -254,12 +256,12 @@ def batch_price_options_task(
             ]
 
             # Convert to plain dicts for Celery/Kombu compatibility
-            result_list = msgspec.to_builtins(results)
+            result_list = cast(list[dict[str, Any]], msgspec.to_builtins(results))
         else:
             # Fallback to sequential pricing using scalar JIT functions
             result_list = []
             for opt in options:
-                is_call = opt.get("option_type", "call").lower() == "call"
+                is_call_bool = opt.get("option_type", "call").lower() == "call"
                 price = calculate_price_scalar(
                     opt["spot"],
                     opt["strike"],
@@ -267,7 +269,7 @@ def batch_price_options_task(
                     opt["volatility"],
                     opt["rate"],
                     opt.get("dividend", 0.0),
-                    is_call,
+                    is_call_bool,
                 )
                 delta, gamma, theta, vega, rho = calculate_greeks_scalar(
                     opt["spot"],
@@ -276,7 +278,7 @@ def batch_price_options_task(
                     opt["volatility"],
                     opt["rate"],
                     opt.get("dividend", 0.0),
-                    is_call,
+                    is_call_bool,
                 )
                 result_list.append(
                     {
@@ -313,7 +315,7 @@ def batch_price_options_task(
     queue="pricing",
 )
 def calculate_implied_volatility_task(
-    self,
+    self: PricingTask,
     price: float,
     spot: float,
     strike: float,
@@ -333,7 +335,7 @@ def calculate_implied_volatility_task(
     queue="pricing",
 )
 def generate_volatility_surface_task(
-    self,
+    self: PricingTask,
     prices: list[list[float]],
     strikes: list[float],
     maturities: list[float],

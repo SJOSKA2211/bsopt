@@ -453,7 +453,9 @@ def vectorized_newton_raphson_iv_jit(
     if initial_guess is not None:
         initial_sigma = initial_guess
     else:
-        initial_sigma = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], corrado_miller_initial_guess)(market_price, S, K, T, r, q, is_call)
+        # Properly typed call to corrado_miller_initial_guess
+        f_guess = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], corrado_miller_initial_guess)
+        initial_sigma = f_guess(market_price, S, K, T, r, q, is_call)
 
     for i in loop_prange(n):
         sigma = initial_sigma[i]
@@ -516,7 +518,8 @@ def thomas_algorithm(
     c_new = np.zeros(n - 1)
     d_new = np.zeros(n)
     x = np.zeros(n)
-    return cast(np.ndarray[Any, np.dtype[np.float64]], cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)(a, b, c, d, c_new, d_new, x))
+    f_thomas = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)
+    return f_thomas(a, b, c, d, c_new, d_new, x)
 
 
 @njit_engine
@@ -613,6 +616,41 @@ def jit_mc_european_price_and_greeks(
     gamma = float(np.mean(exp_rt * (pay_p - 2.0 * payoffs + pay_m) / (dS**2)))
 
     return price, delta, gamma, vega, rho
+
+
+@njit_engine(fastmath=True, parallel=True)
+def batch_mc_european_price_and_greeks(
+    S0, K, T, r, sigma, q, n_paths, is_call, antithetic
+):
+    """
+    Vectorized batch Monte Carlo for European options.
+    """
+    n_options = len(S0)
+    prices = np.empty(n_options)
+    deltas = np.empty(n_options)
+    gammas = np.empty(n_options)
+    vegas = np.empty(n_options)
+    rhos = np.empty(n_options)
+
+    for i in prange(n_options):
+        p, d, g, v, rh = jit_mc_european_price_and_greeks(
+            S0[i],
+            K[i],
+            T[i],
+            r[i],
+            sigma[i],
+            q[i],
+            n_paths,
+            is_call[i],
+            antithetic,
+        )
+        prices[i] = p
+        deltas[i] = d
+        gammas[i] = g
+        vegas[i] = v
+        rhos[i] = rh
+
+    return prices, deltas, gammas, vegas, rhos
 
 
 @njit_engine(fastmath=True, parallel=True)
@@ -800,7 +838,8 @@ def jit_cn_solver(
 
         # 3. Solve Tridiagonal System A * V^n = RHS
         # Use optimized out-of-place Thomas algo with pre-allocated buffers
-        V[1:M] = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)(
+        f_thomas_out = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)
+        V[1:M] = f_thomas_out(
             a_lhs[1:], b_lhs, c_lhs[:-1], rhs, c_new, d_new, x_thomas
         )
 

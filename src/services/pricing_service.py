@@ -86,82 +86,143 @@ class PricingService:
             logger.error("pricing_failed", error=str(e))
             raise HTTPException(status_code=500, detail="Internal pricing error")
 
-    async def price_batch(self, request: Any) -> BatchPriceResult:
+    async def price_batch(self, options: list[Any]) -> BatchPriceResult:
         """
         HIGH-PERFORMANCE: Prices an array of options concurrently using vectorized group-batching.
         Groups requests by model type to maximize SIMD efficiency.
         """
         start_time = time.perf_counter()
-        results: list[PriceResult | None] = [None] * len(request.requests)
+        results: list[PriceResult | None] = [None] * len(options)
 
         # 1. Group by model type
         model_groups = defaultdict(list)
-        for i, req in enumerate(request.requests):
-            model_groups[req.model_type].append((i, req))
+        for i, req in enumerate(options):
+            model_groups[req.model].append((i, req))
 
         # 2. Process each group (Vectorized if engine supports it)
         async def _process_group(model_type: str, items: list[tuple[int, Any]]):
             try:
                 engine = self.factory.get_engine(model_type)
 
-                # Check for vectorized capability (High-Performance check)
-                if hasattr(engine, "price_batch_vectorized"):
-                    # Extract params into numpy arrays
-                    spots = np.array([it[1].spot for it in items], dtype=np.float64)
-                    strikes = np.array([it[1].strike for it in items], dtype=np.float64)
-                    maturities = np.array([it[1].maturity for it in items], dtype=np.float64)
-                    vols = np.array([it[1].volatility for it in items], dtype=np.float64)
-                    rates = np.array([it[1].rate for it in items], dtype=np.float64)
-                    divs = np.array([it[1].dividend for it in items], dtype=np.float64)
+                # Vectorized parameters
+                spots = np.array([it[1].spot for it in items], dtype=np.float64)
+                strikes = np.array([it[1].strike for it in items], dtype=np.float64)
+                maturities = np.array([it[1].time_to_expiry for it in items], dtype=np.float64)
+                vols = np.array([it[1].volatility for it in items], dtype=np.float64)
+                rates = np.array([it[1].rate for it in items], dtype=np.float64)
+                divs = np.array([it[1].dividend_yield for it in items], dtype=np.float64)
+                types = np.array([it[1].option_type for it in items])
 
-                    params_batch = (spots, strikes, maturities, vols, rates, divs)
-                    batch_results = await run_sync(engine.price_batch_vectorized, params_batch)
+                from src.api.schemas.pricing import OptionGreeksStruct
 
-                    from src.api.schemas.pricing import OptionGreeksStruct
-
-                    for (original_idx, _), res in zip(items, batch_results):
+                # Optimized Dispatch
+                if model_type == "black_scholes":
+                    from src.pricing.black_scholes import BlackScholesEngine
+                    
+                    # Direct call to JIT/Rust batch kernels
+                    prices = await run_sync(
+                        BlackScholesEngine.price_options,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    
+                    # Calculate Greeks in batch too
+                    g_res = await run_sync(
+                        BlackScholesEngine.calculate_greeks,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    
+                    for idx, (original_idx, req) in enumerate(items):
                         results[original_idx] = PriceResult(
-                            price=res.price,
-                            spot=res.spot,
-                            strike=res.strike,
-                            time_to_expiry=res.maturity,
-                            rate=res.rate,
-                            volatility=res.volatility,
-                            option_type=res.option_type,
+                            price=float(prices[idx]),
+                            spot=req.spot,
+                            strike=req.strike,
+                            time_to_expiry=req.time_to_expiry,
+                            rate=req.rate,
+                            volatility=req.volatility,
+                            option_type=req.option_type,
                             model=model_type,
                             computation_time_ms=0.0,
                             greeks=OptionGreeksStruct(
-                                delta=res.greeks.delta,
-                                gamma=res.greeks.gamma,
-                                theta=res.greeks.theta,
-                                vega=res.greeks.vega,
-                                rho=res.greeks.rho,
+                                delta=float(g_res.delta[idx]),
+                                gamma=float(g_res.gamma[idx]),
+                                theta=float(g_res.theta[idx]),
+                                vega=float(g_res.vega[idx]),
+                                rho=float(g_res.rho[idx]),
                             )
-                            if res.greeks
-                            else None,
+                        )
+                elif model_type == "neural":
+                    # Neural engine is already vectorized via PyTorch
+                    prices = await run_sync(
+                        engine.price_batch,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    g_delta, g_gamma, g_theta, g_vega, g_rho = await run_sync(
+                        engine.price_batch_greeks,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    
+                    for idx, (original_idx, req) in enumerate(items):
+                        results[original_idx] = PriceResult(
+                            price=float(prices[idx]),
+                            spot=req.spot,
+                            strike=req.strike,
+                            time_to_expiry=req.time_to_expiry,
+                            rate=req.rate,
+                            volatility=req.volatility,
+                            option_type=req.option_type,
+                            model=model_type,
+                            computation_time_ms=0.0,
+                            greeks=OptionGreeksStruct(
+                                delta=float(g_delta[idx]),
+                                gamma=float(g_gamma[idx]),
+                                theta=float(g_theta[idx]),
+                                vega=float(g_vega[idx]),
+                                rho=float(g_rho[idx]),
+                            )
+                        )
+                elif model_type == "monte_carlo":
+                    # Monte Carlo batch pricing via Numba Parallel
+                    prices = await run_sync(
+                        engine.price_batch,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    g_delta, g_gamma, g_theta, g_vega, g_rho = await run_sync(
+                        engine.price_batch_greeks,
+                        spots, strikes, maturities, vols, rates, divs, types
+                    )
+                    
+                    for idx, (original_idx, req) in enumerate(items):
+                        results[original_idx] = PriceResult(
+                            price=float(prices[idx]),
+                            spot=req.spot,
+                            strike=req.strike,
+                            time_to_expiry=req.time_to_expiry,
+                            rate=req.rate,
+                            volatility=req.volatility,
+                            option_type=req.option_type,
+                            model=model_type,
+                            computation_time_ms=0.0,
+                            greeks=OptionGreeksStruct(
+                                delta=float(g_delta[idx]),
+                                gamma=float(g_gamma[idx]),
+                                theta=float(g_theta[idx]),
+                                vega=float(g_vega[idx]),
+                                rho=float(g_rho[idx]),
+                            )
                         )
                 else:
-                    # Fallback to concurrent scalar pricing
-                    from src.api.schemas.pricing import OptionGreeksStruct
-
-                    for original_idx, item_req in items:
-                        params = BSParameters(
-                            spot=item_req.spot,
-                            strike=item_req.strike,
-                            maturity=item_req.maturity,
-                            volatility=item_req.volatility,
-                            rate=item_req.rate,
-                            dividend=item_req.dividend,
-                        )
-                        res = await run_sync(engine.price_european, params)
+                    # Fallback to concurrent scalar pricing for non-vectorized engines
+                    for original_idx, req in items:
+                        params = req.to_bs_params()
+                        res = await run_sync(engine.price_european, params, req.option_type)
                         results[original_idx] = PriceResult(
                             price=res.price,
-                            spot=item_req.spot,
-                            strike=item_req.strike,
-                            time_to_expiry=item_req.maturity,
-                            rate=item_req.rate,
-                            volatility=item_req.volatility,
-                            option_type=item_req.option_type,
+                            spot=req.spot,
+                            strike=req.strike,
+                            time_to_expiry=req.time_to_expiry,
+                            rate=req.rate,
+                            volatility=req.volatility,
+                            option_type=req.option_type,
                             model=model_type,
                             computation_time_ms=0.0,
                             greeks=OptionGreeksStruct(
@@ -170,26 +231,17 @@ class PricingService:
                                 theta=res.greeks.theta,
                                 vega=res.greeks.vega,
                                 rho=res.greeks.rho,
-                            )
-                            if res.greeks
-                            else None,
+                            ) if res.greeks else None
                         )
 
             except Exception as exc:
                 logger.error("group_pricing_failed", model=model_type, error=str(exc))
-                # Fill gaps with error indicator or zero
-                for original_idx, item_req in items:
+                for original_idx, req in items:
                     results[original_idx] = PriceResult(
-                        price=0.0,
-                        spot=item_req.spot,
-                        strike=item_req.strike,
-                        time_to_expiry=item_req.maturity,
-                        rate=item_req.rate,
-                        volatility=item_req.volatility,
-                        option_type=item_req.option_type,
-                        model=model_type,
-                        computation_time_ms=0.0,
-                        greeks=None,
+                        price=0.0, spot=req.spot, strike=req.strike,
+                        time_to_expiry=req.time_to_expiry, rate=req.rate,
+                        volatility=req.volatility, option_type=req.option_type,
+                        model=model_type, computation_time_ms=0.0, greeks=None
                     )
 
         # 3. Dispatch all groups concurrently
@@ -204,5 +256,32 @@ class PricingService:
         )
 
 
-# Global Singleton for injection
+    async def calculate_iv_batch(self, options: list[Any]) -> list[float]:
+        """
+        Vectorized batch IV calculation.
+        """
+        if not options:
+            return []
+
+        market_prices = np.array([o.market_price for i, o in enumerate(options)], dtype=np.float64)
+        spots = np.array([o.spot for i, o in enumerate(options)], dtype=np.float64)
+        strikes = np.array([o.strike for i, o in enumerate(options)], dtype=np.float64)
+        maturities = np.array([o.time_to_expiry for i, o in enumerate(options)], dtype=np.float64)
+        rates = np.array([o.rate for i, o in enumerate(options)], dtype=np.float64)
+        dividends = np.array([o.dividend_yield for i, o in enumerate(options)], dtype=np.float64)
+        option_types = np.array([o.option_type for i, o in enumerate(options)])
+
+        from src.pricing.implied_vol import vectorized_implied_volatility
+
+        vols = await run_sync(
+            vectorized_implied_volatility,
+            market_prices,
+            spots,
+            strikes,
+            maturities,
+            rates,
+            dividends,
+            option_types,
+        )
+        return [float(v) for v in vols]
 pricing_service = PricingService()

@@ -1,42 +1,10 @@
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
 import strawberry
 from strawberry.federation import Schema
 
-
-# TYPE DEFINITIONS (Base Subgraph: Options)
-@strawberry.federation.type(keys=["id"], shareable=True)
-class Option:
-    """Federated Option type - provided by the Options subgraph"""
-
-    id: strawberry.ID
-    symbol: str = strawberry.federation.field(shareable=True)
-    strike: float = strawberry.federation.field(shareable=True)
-    expiry: date = strawberry.federation.field(shareable=True)
-    option_type: str = strawberry.federation.field(name="optionType", shareable=True)
-
-    # Market Data
-    bid: float | None = strawberry.federation.field(shareable=True)
-    ask: float | None = strawberry.federation.field(shareable=True)
-    last: float | None = strawberry.federation.field(shareable=True)
-    volume: int | None = strawberry.federation.field(shareable=True)
-    open_interest: int | None = strawberry.federation.field(name="openInterest", shareable=True)
-
-    # Greeks (Optimized DB data types)
-    implied_volatility: float | None = strawberry.federation.field(name="iv", shareable=True)
-    delta: float | None = strawberry.federation.field(shareable=True)
-    gamma: float | None = strawberry.federation.field(shareable=True)
-    vega: float | None = strawberry.federation.field(shareable=True)
-    theta: float | None = strawberry.federation.field(shareable=True)
-    rho: float | None = strawberry.federation.field(shareable=True)
-
-    time: datetime = strawberry.federation.field(shareable=True)
-
-    @classmethod
-    async def resolve_reference(cls, id: strawberry.ID):
-        from src.api.graphql.resolvers.option_service import get_option_by_id
-
-        return await get_option_by_id(str(id))
+from src.api.graphql.types import Option
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)
@@ -207,7 +175,7 @@ class Query:
         from src.api.graphql.resolvers.option_service import search_options_paginated
 
         results, has_next, next_cursor = await search_options_paginated(
-            symbol=symbol,
+            underlying=symbol or "AAPL", # Handle None symbol
             min_strike=min_strike,
             max_strike=max_strike,
             expiry=expiry,
@@ -227,4 +195,4 @@ class Query:
 
 
 # APOLLO FEDERATION - Subgraph Schema
-schema = Schema(query=Query, types=[Option, Portfolio])
+schema: Schema = Schema(query=Query, types=[Option, Portfolio])

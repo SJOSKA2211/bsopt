@@ -77,9 +77,12 @@ CDF_A5 = 1.061405429
 @njit_engine
 def fast_normal_ppf(p: float) -> float:
     """
-    Inverse CDF (PPF) approximation using Beasley-Springer-Moro.
-    Optimized for JIT execution.
+    Inverse CDF (PPF) approximation.
+    Uses Rust bsopt_core if available for maximum precision and speed.
     """
+    if _CORE_AVAILABLE:
+        return float(bsopt_core.normal_ppf(p))
+
     if p <= 0 or p >= 1:
         return 0.0
 
@@ -158,8 +161,12 @@ def calculate_ppf(
 @njit_engine
 def fast_normal_cdf(x: float) -> float:
     """
-    High-precision rational approximation (A&S 7.1.26).
+    Cumulative Distribution Function.
+    Uses Rust bsopt_core if available.
     """
+    if _CORE_AVAILABLE:
+        return float(bsopt_core.normal_cdf(x))
+
     if x > 8.0:
         return 1.0
     if x < -8.0:

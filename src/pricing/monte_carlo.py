@@ -181,6 +181,59 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             rho=float(rho),
         )
 
+    def price_batch(
+        self,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> np.ndarray:
+        """Vectorized batch pricing for Monte Carlo."""
+        is_call = (option_types == "call") | (option_types == "CALL")
+        from src.pricing.quant_utils import batch_mc_european_price_and_greeks
+
+        prices, _, _, _, _ = batch_mc_european_price_and_greeks(
+            spots,
+            strikes,
+            maturities,
+            rates,
+            vols,
+            dividends,
+            self.config.n_paths,
+            is_call,
+            self.config.antithetic,
+        )
+        return prices
+
+    def price_batch_greeks(
+        self,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Vectorized batch Greeks for Monte Carlo."""
+        is_call = (option_types == "call") | (option_types == "CALL")
+        from src.pricing.quant_utils import batch_mc_european_price_and_greeks
+
+        return batch_mc_european_price_and_greeks(
+            spots,
+            strikes,
+            maturities,
+            rates,
+            vols,
+            dividends,
+            self.config.n_paths,
+            is_call,
+            self.config.antithetic,
+        )
+
     def price_european(
         self,
         params: BSParameters,

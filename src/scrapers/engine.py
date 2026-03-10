@@ -34,6 +34,10 @@ class MarketSource(Protocol):
         ...
 
 
+# Pre-compiled regex for fast numeric extraction
+_CHANGE_RE = re.compile(r"([-+]?\d*\.?\d+)")
+
+
 class ProxyRotator:
     """
     Manages a pool of proxies with persistent health tracking in Redis.
@@ -44,6 +48,7 @@ class ProxyRotator:
         self.proxies = [{"url": p, "failures": 0, "active": True, "latency": 0.0} for p in proxies]
         self._index = 0
         self.redis = get_redis()
+        self._decoder = msgspec.json.Decoder()
 
     async def get_proxy(self) -> str | None:
         if not self.proxies:
@@ -57,7 +62,7 @@ class ProxyRotator:
             for i, health in enumerate(health_results):
                 if health:
                     try:
-                        h_data = orjson.loads(health)
+                        h_data = self._decoder.decode(health)
                         p = self.proxies[i]
                         p["failures"] = h_data.get("failures", 0)
                         p["active"] = h_data.get("active", True)
@@ -105,7 +110,7 @@ class ProxyRotator:
                 await self.redis.setex(
                     f"proxy_health:{proxy_obj['url']}",
                     3600,
-                    orjson.dumps(
+                    msgspec.json.encode(
                         {
                             "failures": proxy_obj["failures"],
                             "active": proxy_obj["active"],
@@ -314,9 +319,8 @@ class NSEScraper:
             # Change is often wrapped in <span> with color
             change_text = cells[4].text(strip=True)
 
-            # Extract numeric part using pre-compiled regex logic if possible,
-            # but regex is already fast here.
-            change_match = re.search(r"([-+]?\d*\.?\d+)", change_text)
+            # Extract numeric part using pre-compiled regex
+            change_match = _CHANGE_RE.search(change_text)
             change = change_match.group(1) if change_match else "0.0"
 
             results.append(

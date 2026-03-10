@@ -90,24 +90,18 @@ class NeuralPricingEngine(BasePricingEngine):
     def price(self, params: BSParameters, option_type: str = "call") -> float:
         """
         Calculate option price using the Neural Network.
-        OPTIMIZED: Uses Put-Call Parity to support Puts without separate model.
+        Reuses the optimized vectorized path.
         """
-        input_tensor = self._params_to_tensor(params)
-        with torch.no_grad():
-            call_price = self.model(input_tensor).item()
-
-        if option_type.lower() == "call":
-            return call_price
-        else:
-            # Put-Call Parity: P = C - S + K * exp(-r * T)
-            # Spot (0), Strike (1), T (2), Sigma (3), R (4), Q (5)
-            s = params.spot
-            k = params.strike
-            t = params.maturity
-            r = params.rate
-            q = params.dividend
-            put_price = call_price - s * np.exp(-q * t) + k * np.exp(-r * t)
-            return max(float(put_price), 0.0)
+        res = self.price_batch(
+            np.array([params.spot]),
+            np.array([params.strike]),
+            np.array([params.maturity]),
+            np.array([params.volatility]),
+            np.array([params.rate]),
+            np.array([params.dividend]),
+            np.array([option_type]),
+        )
+        return float(res[0])
 
     def optimize_for_inference(self, onnx_path: str | None = None, prune_amount: float = 0.2):
         """
@@ -126,50 +120,104 @@ class NeuralPricingEngine(BasePricingEngine):
 
         return self
 
+    def price_batch(
+        self,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> np.ndarray:
+        """
+        High-Performance Vectorized Batch Pricing.
+        """
+        n = len(spots)
+        data = np.stack([spots, strikes, maturities, vols, rates, dividends], axis=1)
+        input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
+
+        with torch.no_grad():
+            call_prices = self.model(input_tensor).squeeze().cpu().numpy()
+
+        # Handle Put-Call Parity Vectorized
+        is_call = (option_types == "call") | (option_types == "CALL")
+        
+        if np.all(is_call):
+            return call_prices
+        
+        put_prices = call_prices - spots * np.exp(-dividends * maturities) + strikes * np.exp(-rates * maturities)
+        return np.where(is_call, call_prices, np.maximum(put_prices, 0.0))
+
+    def price_batch_greeks(
+        self,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """
+        High-Performance Vectorized Greeks using Autograd Batching.
+        """
+        n = len(spots)
+        data = np.stack([spots, strikes, maturities, vols, rates, dividends], axis=1)
+        input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
+        input_tensor.requires_grad_(True)
+
+        prices = self.model(input_tensor)
+        
+        # Batch Gradients
+        grads = torch.autograd.grad(
+            prices, input_tensor, grad_outputs=torch.ones_like(prices), create_graph=True
+        )[0]
+
+        delta_c = grads[:, 0].detach().cpu().numpy()
+        vega_c = grads[:, 3].detach().cpu().numpy()
+        theta_c = -grads[:, 2].detach().cpu().numpy()
+        rho_c = grads[:, 4].detach().cpu().numpy()
+
+        # Second order (Gamma) - Approximated for batch speed or use Hessian if needed
+        # For performance, we'll use a centered difference on the already computed gradients
+        gamma_grads = torch.autograd.grad(
+            grads[:, 0], input_tensor, grad_outputs=torch.ones_like(grads[:, 0]), retain_graph=False
+        )[0]
+        gamma = gamma_grads[:, 0].detach().cpu().numpy()
+
+        is_call = (option_types == "call") | (option_types == "CALL")
+        
+        # Vectorized Put Greeks via Parity
+        delta = np.where(is_call, delta_c, delta_c - np.exp(-dividends * maturities))
+        vega = vega_c  # Vega is same for call/put
+        theta = np.where(
+            is_call, 
+            theta_c, 
+            theta_c + dividends * spots * np.exp(-dividends * maturities) - rates * strikes * np.exp(-rates * maturities)
+        )
+        rho = np.where(is_call, rho_c, rho_c - strikes * maturities * np.exp(-rates * maturities))
+
+        return delta, gamma, theta, vega, rho
+
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
-        Calculate Greeks using PyTorch Autograd.
-        This provides exact derivatives of the model's pricing function.
-        OPTIMIZED: Uses Put-Call Parity relations for Put Greeks.
+        Calculate Greeks for a single set of parameters.
+        Reuses the optimized vectorized path for consistency.
         """
-        input_tensor = self._params_to_tensor(params)
-
-        # Forward pass (always Call price)
-        price = self.model(input_tensor)
-
-        # Backward pass (compute gradients w.r.t inputs)
-        # Inputs: [Spot (0), Strike (1), T (2), Sigma (3), R (4), Q (5)]
-        grads = torch.autograd.grad(price, input_tensor, create_graph=True)[0][0]
-
-        call_delta = grads[0].item()  # dPrice/dSpot
-        call_vega = grads[3].item()  # dPrice/dVol
-        call_theta = -grads[2].item()  # dPrice/dTime
-        call_rho = grads[4].item()  # dPrice/dRate
-
-        # Second order: Gamma (same for Call/Put)
-        gamma_grad = torch.autograd.grad(grads[0], input_tensor, retain_graph=False)[0][0]
-        gamma = gamma_grad[0].item()
-
-        if option_type.lower() == "call":
-            return OptionGreeks(
-                delta=call_delta, gamma=gamma, theta=call_theta, vega=call_vega, rho=call_rho
-            )
-        else:
-            # Put Greeks via Parity (assuming q=dividend, r=rate)
-            t = params.maturity
-            r = params.rate
-            q = params.dividend
-            k = params.strike
-
-            # Delta_p = Delta_c - exp(-qT)
-            put_delta = call_delta - np.exp(-q * t)
-            # Vega_p = Vega_c
-            # Gamma_p = Gamma_c
-            # Theta_p = Theta_c + q*S*exp(-qT) - r*K*exp(-rT)
-            put_theta = call_theta + q * params.spot * np.exp(-q * t) - r * k * np.exp(-r * t)
-            # Rho_p = Rho_c - K*T*exp(-rT)
-            put_rho = call_rho - k * t * np.exp(-r * t)
-
-            return OptionGreeks(
-                delta=put_delta, gamma=gamma, theta=put_theta, vega=call_vega, rho=put_rho
-            )
+        res = self.price_batch_greeks(
+            np.array([params.spot]),
+            np.array([params.strike]),
+            np.array([params.maturity]),
+            np.array([params.volatility]),
+            np.array([params.rate]),
+            np.array([params.dividend]),
+            np.array([option_type]),
+        )
+        return OptionGreeks(
+            delta=float(res[0][0]),
+            gamma=float(res[1][0]),
+            theta=float(res[2][0]),
+            vega=float(res[3][0]),
+            rho=float(res[4][0]),
+        )
