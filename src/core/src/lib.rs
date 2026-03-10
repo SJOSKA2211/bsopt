@@ -210,23 +210,117 @@ fn monte_carlo_price(
     use rand::prelude::*;
     use rand_distr::StandardNormal;
 
-    let mut rng = rand::thread_rng();
-    let mut sum_payoff = 0.0;
     let drift = (rate - div - 0.5 * vol * vol) * time;
     let vol_sqrt_t = vol * time.sqrt();
+    let discount = (-rate * time).exp();
 
-    for _ in 0..num_paths {
-        let z: f64 = rng.sample(StandardNormal);
-        let s_t = spot * (drift + vol_sqrt_t * z).exp();
-        let payoff = if is_call {
-            (s_t - strike).max(0.0)
-        } else {
-            (strike - s_t).max(0.0)
-        };
-        sum_payoff += payoff;
+    if num_paths > 10000 {
+        // Parallel path using rayon
+        let sum_payoff: f64 = (0..num_paths)
+            .into_par_iter()
+            .map_init(rand::thread_rng, |rng, _| {
+                let z: f64 = rng.sample(StandardNormal);
+                let s_t = spot * (drift + vol_sqrt_t * z).exp();
+                if is_call {
+                    (s_t - strike).max(0.0)
+                } else {
+                    (strike - s_t).max(0.0)
+                }
+            })
+            .sum();
+        (sum_payoff / num_paths as f64) * discount
+    } else {
+        let mut rng = rand::thread_rng();
+        let mut sum_payoff = 0.0;
+        for _ in 0..num_paths {
+            let z: f64 = rng.sample(StandardNormal);
+            let s_t = spot * (drift + vol_sqrt_t * z).exp();
+            let payoff = if is_call {
+                (s_t - strike).max(0.0)
+            } else {
+                (strike - s_t).max(0.0)
+            };
+            sum_payoff += payoff;
+        }
+        (sum_payoff / num_paths as f64) * discount
+    }
+}
+
+#[pyfunction]
+fn heston_characteristic_function(
+    py: Python<'_>,
+    v: PyReadonlyArray1<'_, f64>,
+    k: PyReadonlyArray1<'_, f64>,
+    alpha: PyReadonlyArray1<'_, f64>,
+    t: PyReadonlyArray1<'_, f64>,
+    r: PyReadonlyArray1<'_, f64>,
+    v0: PyReadonlyArray1<'_, f64>,
+    kappa: PyReadonlyArray1<'_, f64>,
+    theta: PyReadonlyArray1<'_, f64>,
+    sigma: PyReadonlyArray1<'_, f64>,
+    rho: PyReadonlyArray1<'_, f64>,
+) -> PyResult<Py<PyArray2<num_complex::Complex64>>> {
+    use num_complex::Complex64;
+    
+    let v_arr = v.as_array();
+    let k_arr = k.as_array();
+    let alpha_arr = alpha.as_array();
+    let t_arr = t.as_array();
+    let r_arr = r.as_array();
+    let v0_arr = v0.as_array();
+    let kappa_arr = kappa.as_array();
+    let theta_arr = theta.as_array();
+    let sigma_arr = sigma.as_array();
+    let rho_arr = rho.as_array();
+
+    let n_v = v_arr.len();
+    let n_batch = k_arr.len();
+    
+    let mut results = unsafe { PyArray2::<Complex64>::new(py, [n_v, n_batch], false) };
+    let mut results_view = results.bind().as_array_mut();
+
+    // Parallel calculation over the frequency grid (v)
+    let rows: Vec<Vec<Complex64>> = (0..n_v).into_par_iter().map(|i| {
+        let vi = v_arr[i];
+        let mut row = Vec::with_capacity(n_batch);
+        for j in 0..n_batch {
+            let alphaj = alpha_arr[j];
+            let tj = t_arr[j];
+            let rj = r_arr[j];
+            let v0j = v0_arr[j];
+            let kappaj = kappa_arr[j];
+            let thetaj = theta_arr[j];
+            let sigmaj = sigma_arr[j];
+            let rhoj = rho_arr[j];
+            let kj = k_arr[j];
+
+            let u_v = Complex64::new(vi, -(alphaj + 1.0));
+            let xi = Complex64::new(kappaj, 0.0) - Complex64::new(0.0, sigmaj * rhoj) * u_v;
+            let d = (xi.powi(2) + sigmaj.powi(2) * (u_v.powi(2) + Complex64::new(0.0, 1.0) * u_v)).sqrt();
+            let g = (xi + d) / (xi - d);
+
+            let exp_dt = (d * tj).exp();
+            let big_g = (Complex64::new(1.0, 0.0) - g * exp_dt) / (Complex64::new(1.0, 0.0) - g);
+
+            let a = (kappaj * thetaj / sigmaj.powi(2)) * ((xi + d) * tj - 2.0 * big_g.ln());
+            let b = (v0j / sigmaj.powi(2)) * (xi + d) * (Complex64::new(1.0, 0.0) - exp_dt) / (Complex64::new(1.0, 0.0) - g * exp_dt);
+
+            let phi = (a + b).exp();
+            let num = (Complex64::new(0.0, -vi * kj)).exp() * phi;
+            let den = Complex64::new(alphaj.powi(2) + alphaj - vi.powi(2) - rj * tj, (2.0 * alphaj + 1.0) * vi);
+            
+            row.push(num / den);
+        }
+        row
+    }).collect();
+
+    for (i, row) in rows.into_iter().enumerate() {
+        for (j, val) in row.into_iter().enumerate() {
+            results_view[[i, j]] = val;
+        }
     }
 
-    (sum_payoff / num_paths as f64) * (-rate * time).exp()
+    Ok(results.into())
 }
 
 #[pyfunction]
@@ -528,6 +622,118 @@ fn normal_ppf(p: f64) -> f64 {
 }
 
 #[pyfunction]
+fn geometric_asian_price(
+    s: f64,
+    k: f64,
+    t: f64,
+    r: f64,
+    q: f64,
+    vol: f64,
+    n: f64,
+    is_call: bool,
+) -> f64 {
+    if t <= 1e-12 {
+        return if is_call { (s - k).max(0.0) } else { (k - s).max(0.0) };
+    }
+
+    let b = r - q;
+    let sigma_a = vol * ((2.0 * n + 1.0) / (6.0 * (n + 1.0))).sqrt();
+    let b_a = 0.5 * (sigma_a.powi(2) + b - 0.5 * vol.powi(2));
+
+    let sqrt_t = t.sqrt();
+    let vol_sqrt_t = sigma_a * sqrt_t;
+    let d1 = ((s / k).ln() + (b_a + 0.5 * sigma_a.powi(2)) * t) / vol_sqrt_t;
+    let d2 = d1 - vol_sqrt_t;
+
+    let normal = Normal::new(0.0, 1.0).unwrap();
+    let exp_rt = (-r * t).exp();
+    let exp_ba_r_t = ((b_a - r) * t).exp();
+
+    if is_call {
+        s * exp_ba_r_t * normal.cdf(d1) - k * exp_rt * normal.cdf(d2)
+    } else {
+        k * exp_rt * normal.cdf(-d2) - s * exp_ba_r_t * normal.cdf(-d1)
+    }
+}
+
+#[pyfunction]
+fn barrier_option_price(
+    s: f64,
+    k: f64,
+    t: f64,
+    r: f64,
+    q: f64,
+    vol: f64,
+    h: f64,
+    rebate: f64,
+    barrier_type: i32, // 0: DO, 1: DI, 2: UO, 3: UI
+    is_call: bool,
+) -> f64 {
+    let b = r - q;
+    let sig_sqrt_t = vol * t.sqrt();
+    let mu = (b - 0.5 * vol.powi(2)) / vol.powi(2);
+    let phi = if is_call { 1.0 } else { -1.0 };
+
+    let exp_rt = (-r * t).exp();
+    let exp_ba_r_t = ((b - r) * t).exp();
+
+    let x1 = (s / k).ln() / sig_sqrt_t + (mu + 1.0) * sig_sqrt_t;
+    let x2 = (s / h).ln() / sig_sqrt_t + (mu + 1.0) * sig_sqrt_t;
+    let y1 = (h.powi(2) / (s * k)).ln() / sig_sqrt_t + (mu + 1.0) * sig_sqrt_t;
+    let y2 = (h / s).ln() / sig_sqrt_t + (mu + 1.0) * sig_sqrt_t;
+
+    let n = Normal::new(0.0, 1.0).unwrap();
+    let cdf = |x: f64| n.cdf(x);
+
+    let big_a = phi * s * exp_ba_r_t * cdf(phi * x1) - phi * k * exp_rt * cdf(phi * (x1 - sig_sqrt_t));
+    let big_b = phi * s * exp_ba_r_t * cdf(phi * x2) - phi * k * exp_rt * cdf(phi * (x2 - sig_sqrt_t));
+    let big_c = phi * s * exp_ba_r_t * (h / s).powf(2.0 * (mu + 1.0)) * cdf(phi * y1) - phi * k * exp_rt * (h / s).powf(2.0 * mu) * cdf(phi * (y1 - sig_sqrt_t));
+    let big_d = phi * s * exp_ba_r_t * (h / s).powf(2.0 * (mu + 1.0)) * cdf(phi * y2) - phi * k * exp_rt * (h / s).powf(2.0 * mu) * cdf(phi * (y2 - sig_sqrt_t));
+    let big_f = rebate * exp_rt * (cdf(phi * x2 - phi * sig_sqrt_t) - (h / s).powf(2.0 * mu) * cdf(phi * y2 - phi * sig_sqrt_t));
+
+    let mut res = match (is_call, barrier_type) {
+        (true, 0) => if k >= h { big_a - big_c } else { big_b - big_d },
+        (true, 1) => if k >= h { big_c } else { big_a - big_b + big_d },
+        (true, 2) => if k >= h { 0.0 } else { big_a - big_b + big_c - big_d },
+        (true, 3) => if k >= h { big_a } else { big_b - big_c + big_d },
+        (false, 0) => if k <= h { 0.0 } else { big_a - big_b + big_c - big_d },
+        (false, 1) => if k <= h { big_a } else { big_b - big_c + big_d },
+        (false, 2) => if k <= h { big_a - big_c } else { big_b - big_d },
+        (false, 3) => if k <= h { big_c } else { big_a - big_b + big_d },
+        _ => 0.0,
+    };
+
+    if barrier_type % 2 == 0 {
+        res += big_f;
+    }
+    res.max(0.0)
+}
+
+#[pyfunction]
+fn digital_option_price(
+    s: f64,
+    k: f64,
+    t: f64,
+    r: f64,
+    q: f64,
+    vol: f64,
+    payout: f64,
+    is_call: bool,
+    is_cash_or_nothing: bool,
+) -> f64 {
+    let sqrt_t = t.sqrt();
+    let d1 = ((s / k).ln() + (r - q + 0.5 * vol.powi(2)) * t) / (vol * sqrt_t);
+    let d2 = d1 - vol * sqrt_t;
+    let n = Normal::new(0.0, 1.0).unwrap();
+
+    if is_cash_or_nothing {
+        payout * (-r * t).exp() * n.cdf(if is_call { d2 } else { -d2 })
+    } else {
+        s * (-q * t).exp() * n.cdf(if is_call { d1 } else { -d1 })
+    }
+}
+
+#[pyfunction]
 fn keccak256(data: &[u8]) -> Vec<u8> {
     let mut hasher = Keccak256::new();
     hasher.update(data);
@@ -645,12 +851,16 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(calculate_mmd, m)?)?;
     m.add_function(wrap_pyfunction!(keccak256, m)?)?;
     m.add_function(wrap_pyfunction!(hash_order_eip712, m)?)?;
+    m.add_function(wrap_pyfunction!(heston_characteristic_function, m)?)?;
     m.add_function(wrap_pyfunction!(svi_total_variance, m)?)?;
     m.add_function(wrap_pyfunction!(batch_svi_total_variance, m)?)?;
     m.add_function(wrap_pyfunction!(sabr_implied_vol, m)?)?;
     m.add_function(wrap_pyfunction!(batch_sabr_implied_vol, m)?)?;
     m.add_function(wrap_pyfunction!(normal_cdf, m)?)?;
     m.add_function(wrap_pyfunction!(normal_ppf, m)?)?;
+    m.add_function(wrap_pyfunction!(geometric_asian_price, m)?)?;
+    m.add_function(wrap_pyfunction!(barrier_option_price, m)?)?;
+    m.add_function(wrap_pyfunction!(digital_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
     Ok(())
 }

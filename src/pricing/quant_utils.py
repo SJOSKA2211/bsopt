@@ -454,8 +454,7 @@ def vectorized_newton_raphson_iv_jit(
         initial_sigma = initial_guess
     else:
         # Properly typed call to corrado_miller_initial_guess
-        f_guess = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], corrado_miller_initial_guess)
-        initial_sigma = f_guess(market_price, S, K, T, r, q, is_call)
+        initial_sigma = corrado_miller_initial_guess(market_price, S, K, T, r, q, is_call)
 
     for i in loop_prange(n):
         sigma = initial_sigma[i]

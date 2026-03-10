@@ -108,6 +108,10 @@ class PricingEngineFactory:
                 from src.pricing.exotic import ExoticPricingEngine
 
                 cls.register("exotic", ExoticPricingEngine)
+            elif name == "heston":
+                from src.pricing.models.heston_strategy import HestonPricingStrategy
+
+                cls.register("heston", HestonPricingStrategy)
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))

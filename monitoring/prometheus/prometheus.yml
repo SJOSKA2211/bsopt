@@ -1,18 +1,23 @@
 global:
   scrape_interval: 15s
+
 scrape_configs:
   - job_name: 'bsopt-services'
     static_configs:
-      - targets: ['api:8000', 'worker-ml:8000', 'worker-pricing:8000']
-  - job_name: 'kafka'
+      - targets: ['api:8000', 'ml-inference:8000', 'neural-pricing:8000', 'mlops-worker:8000']
+
+  - job_name: 'ray'
     static_configs:
-      - targets: ['kafka-exporter:9308']
-  - job_name: 'redis'
+      - targets: ['ray-head:8080', 'rl-training-worker:8080']
+
+  - job_name: 'mlflow'
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ['mlflow:5000']
+
   - job_name: 'postgres'
     static_configs:
       - targets: ['postgres-exporter:9187']
-  - job_name: 'github-exporter'
+
+  - job_name: 'redis'
     static_configs:
-      - targets: ['github-exporter:9101']
+      - targets: ['redis-exporter:9121']

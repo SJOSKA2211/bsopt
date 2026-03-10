@@ -3,7 +3,7 @@ import os
 import time
 from typing import Any
 
-import orjson
+import msgspec
 import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -31,7 +31,7 @@ def _produce_audit_log(producer: Any, topic: str, payload: dict[str, Any]):
 
         producer.produce(
             topic,
-            orjson.dumps(payload),
+            msgspec.json.encode(payload),
             on_delivery=lambda err, msg: (
                 logger.debug("audit_log_delivered", topic=msg.topic())
                 if not err

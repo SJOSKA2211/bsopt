@@ -1,7 +1,7 @@
 import asyncio
 from typing import Any
 
-import orjson
+import msgspec
 import structlog
 from confluent_kafka import Consumer, Producer
 
@@ -42,7 +42,7 @@ class SentimentIngestor:
         results = []
         for msg in messages:
             try:
-                data = orjson.loads(msg)
+                data = msgspec.json.decode(msg)
                 text = data.get("text", "")
                 if text:
                     score = self.extractor.get_sentiment_score(text)
@@ -62,7 +62,7 @@ class SentimentIngestor:
                 self.producer.produce(
                     "model.signals",
                     key=res["symbol"].encode("utf-8"),
-                    value=orjson.dumps(res),
+                    value=msgspec.json.encode(res),
                 )
             self.producer.flush()
             logger.info("sentiment_batch_processed", count=len(results))

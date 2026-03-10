@@ -67,8 +67,14 @@ def _heston_cf_kernel(
             res[i, j] = num / den
 
     return res
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
 
-
+logger = structlog.get_logger()
+...
 def _heston_integrand_vectorized(
     v: np.ndarray[Any, np.dtype[np.float64]],
     k: np.ndarray[Any, np.dtype[np.float64]],
@@ -82,9 +88,22 @@ def _heston_integrand_vectorized(
     rho: np.ndarray[Any, np.dtype[np.float64]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """
-    Delegates to the JIT-compiled kernel.
+    Delegates to the JIT-compiled or Rust kernel.
     """
-    return cast(np.ndarray[Any, np.dtype[np.float64]], np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho)))
+    if CORE_AVAILABLE:
+        try:
+            cf = bsopt_core.heston_characteristic_function(
+                v, k, alpha, T, r, v0, kappa, theta, sigma, rho
+            )
+            return np.real(cf)
+        except Exception as e:
+            logger.warning("rust_heston_cf_failed_falling_back", error=str(e))
+
+    return cast(
+        np.ndarray[Any, np.dtype[np.float64]],
+        np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho)),
+    )
+
 
 
 def batch_heston_price_jit(

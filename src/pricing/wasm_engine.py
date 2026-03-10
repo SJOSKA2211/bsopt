@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import structlog
@@ -27,11 +27,11 @@ class WASMPricingEngine(PricingStrategy):
     Optimized for large batch processing.
     """
 
-    def __init__(self, model: str = "black_scholes"):
+    def __init__(self, model: str = "black_scholes") -> None:
         self.instance = get_wasm_instance() if WASM_AVAILABLE else None
         self.model = model.lower()
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
         if not self.instance:
             return 0.0  # Fallback should be handled by factory
 
@@ -47,22 +47,22 @@ class WASMPricingEngine(PricingStrategy):
 
         # Default to Black-Scholes
         if option_type == "call":
-            return self.instance.price_call(
+            return cast(float, self.instance.price_call(
                 params.spot,
                 params.strike,
                 params.maturity,
                 params.volatility,
                 params.rate,
                 params.dividend,
-            )
-        return self.instance.price_put(
+            ))
+        return cast(float, self.instance.price_put(
             params.spot,
             params.strike,
             params.maturity,
             params.volatility,
             params.rate,
             params.dividend,
-        )
+        ))
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         if not self.instance:
@@ -86,20 +86,20 @@ class WASMPricingEngine(PricingStrategy):
 
     def batch_price_black_scholes(
         self,
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        q: np.ndarray,
-        is_call: np.ndarray,
-    ) -> np.ndarray:
+        S: np.ndarray[Any, np.dtype[np.float64]],
+        K: np.ndarray[Any, np.dtype[np.float64]],
+        T: np.ndarray[Any, np.dtype[np.float64]],
+        sigma: np.ndarray[Any, np.dtype[np.float64]],
+        r: np.ndarray[Any, np.dtype[np.float64]],
+        q: np.ndarray[Any, np.dtype[np.float64]],
+        is_call: np.ndarray[Any, np.dtype[np.bool_]],
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
         """
         Processes a batch of options using WASM SIMD acceleration.
          OPTIMIZED: Zero-copy memory mapping.
         """
         if not self.instance:
-            return np.array([])
+            return np.array([], dtype=np.float64)
 
         num_options = len(S)
         # Stride = 7: spot, strike, time, vol, rate, div, is_call
@@ -119,7 +119,7 @@ class WASMPricingEngine(PricingStrategy):
         raw_results = self.instance.batch_calculate_simd_mapped(0, num_options)
 
         # Extract prices (stride 6 in results: price, delta, gamma, vega, theta, rho)
-        return raw_results[::6]
+        return cast(np.ndarray[Any, np.dtype[np.float64]], raw_results[::6])
 
     def price_american_lsm(
         self,
@@ -132,7 +132,7 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return 0.0
 
-        return self.instance.price_american_lsm(
+        return cast(float, self.instance.price_american_lsm(
             params.spot,
             params.strike,
             params.maturity,
@@ -142,7 +142,7 @@ class WASMPricingEngine(PricingStrategy):
             option_type == "call",
             num_paths,
             num_steps,
-        )
+        ))
 
     def price_monte_carlo(
         self, params: BSParameters, option_type: str = "call", num_paths: int = 100000
@@ -150,7 +150,7 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Monte Carlo implementation."""
         if not self.instance:
             return 0.0
-        return self.instance.price_monte_carlo(
+        return cast(float, self.instance.price_monte_carlo(
             params.spot,
             params.strike,
             params.maturity,
@@ -159,7 +159,7 @@ class WASMPricingEngine(PricingStrategy):
             params.dividend,
             option_type == "call",
             num_paths,
-        )
+        ))
 
     def price_american_cn(
         self,
@@ -171,7 +171,7 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Crank-Nicolson implementation."""
         if not self.instance:
             return 0.0
-        return self.instance.price_american(
+        return cast(float, self.instance.price_american(
             params.spot,
             params.strike,
             params.maturity,
@@ -181,14 +181,14 @@ class WASMPricingEngine(PricingStrategy):
             option_type == "call",
             m,
             n,
-        )
+        ))
 
     def price_heston(self, params: Any, spot: float, strike: float, time: float, r: float) -> float:
         """Rust/WASM Heston implementation."""
         if not self.instance:
             return 0.0
 
-        return self.instance.price_heston(
+        return cast(float, self.instance.price_heston(
             spot,
             strike,
             time,
@@ -198,7 +198,7 @@ class WASMPricingEngine(PricingStrategy):
             params.theta,
             params.sigma,
             params.rho,
-        )
+        ))
 
     def price_heston_mc(
         self,
@@ -213,7 +213,7 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Heston Monte Carlo implementation."""
         if not self.instance:
             return 0.0
-        return self.instance.price_heston_mc(
+        return cast(float, self.instance.price_heston_mc(
             spot,
             strike,
             time,
@@ -225,22 +225,22 @@ class WASMPricingEngine(PricingStrategy):
             params.rho,
             option_type == "call",
             num_paths,
-        )
+        ))
 
     def batch_price_heston(
         self,
-        spot: np.ndarray,
-        strike: np.ndarray,
-        time: np.ndarray,
-        r: np.ndarray,
+        spot: np.ndarray[Any, np.dtype[np.float64]],
+        strike: np.ndarray[Any, np.dtype[np.float64]],
+        time: np.ndarray[Any, np.dtype[np.float64]],
+        r: np.ndarray[Any, np.dtype[np.float64]],
         params: Any,
-    ) -> np.ndarray:
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
         """
         Rust/WASM Heston batch implementation.
          OPTIMIZED: Zero-copy memory mapping.
         """
         if not self.instance:
-            return np.array([])
+            return np.array([], dtype=np.float64)
 
         num_options = len(spot)
         v0 = np.full(num_options, params.v0)
@@ -257,25 +257,25 @@ class WASMPricingEngine(PricingStrategy):
         heap[: len(input_data)] = input_data
 
         self.instance.batch_price_heston_mapped(0, num_options)
-        return heap[:num_options]
+        return cast(np.ndarray[Any, np.dtype[np.float64]], heap[:num_options])
 
     def batch_price_monte_carlo(
         self,
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        q: np.ndarray,
-        is_call: np.ndarray,
+        S: np.ndarray[Any, np.dtype[np.float64]],
+        K: np.ndarray[Any, np.dtype[np.float64]],
+        T: np.ndarray[Any, np.dtype[np.float64]],
+        sigma: np.ndarray[Any, np.dtype[np.float64]],
+        r: np.ndarray[Any, np.dtype[np.float64]],
+        q: np.ndarray[Any, np.dtype[np.float64]],
+        is_call: np.ndarray[Any, np.dtype[np.bool_]],
         num_paths: int = 100000,
-    ) -> np.ndarray:
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
         """
         Rust/WASM Monte Carlo batch implementation.
         OPTIMIZED: Vectorized data preparation.
         """
         if not self.instance:
-            return np.array([])
+            return np.array([], dtype=np.float64)
 
         num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
@@ -286,26 +286,26 @@ class WASMPricingEngine(PricingStrategy):
         heap[: len(input_data)] = input_data
 
         self.instance.batch_price_monte_carlo_mapped(0, num_options, num_paths)
-        return heap[:num_options]
+        return cast(np.ndarray[Any, np.dtype[np.float64]], heap[:num_options])
 
     def batch_price_american_cn(
         self,
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        q: np.ndarray,
-        is_call: np.ndarray,
+        S: np.ndarray[Any, np.dtype[np.float64]],
+        K: np.ndarray[Any, np.dtype[np.float64]],
+        T: np.ndarray[Any, np.dtype[np.float64]],
+        sigma: np.ndarray[Any, np.dtype[np.float64]],
+        r: np.ndarray[Any, np.dtype[np.float64]],
+        q: np.ndarray[Any, np.dtype[np.float64]],
+        is_call: np.ndarray[Any, np.dtype[np.bool_]],
         m: int = 200,
         n: int = 200,
-    ) -> np.ndarray:
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
         """
         Rust/WASM Crank-Nicolson batch implementation.
         OPTIMIZED: Vectorized data preparation.
         """
         if not self.instance:
-            return np.array([])
+            return np.array([], dtype=np.float64)
 
         num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
@@ -316,4 +316,4 @@ class WASMPricingEngine(PricingStrategy):
         heap[: len(input_data)] = input_data
 
         self.instance.batch_price_american_mapped(0, num_options, m, n)
-        return heap[:num_options]
+        return cast(np.ndarray[Any, np.dtype[np.float64]], heap[:num_options])

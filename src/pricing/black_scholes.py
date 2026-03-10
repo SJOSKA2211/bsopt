@@ -1,10 +1,11 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import structlog
 
 from src.pricing.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
+from .base import PricingStrategy
 
 try:
     import bsopt_core
@@ -16,14 +17,14 @@ except ImportError:
 logger = structlog.get_logger(__name__)
 
 
-class BlackScholesEngine:
+class BlackScholesEngine(PricingStrategy):
     """
     Black-Scholes option pricing engine.
     Optimized: Uses Rust 'bsopt_core' if available, falls back to Numba JIT.
     """
 
     @staticmethod
-    def _extract_params(params: Any | None = None, **kwargs) -> tuple:
+    def _extract_params(params: Any | None = None, **kwargs: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Helper to extract parameters."""
         if params:
             s = getattr(params, "spot", kwargs.get("spot"))
@@ -61,7 +62,7 @@ class BlackScholesEngine:
         except ValueError as e:
             raise ValueError(f"Parameters cannot be broadcast to a common shape: {e}")
 
-        def _to_arr(arr):
+        def _to_arr(arr: np.ndarray) -> np.ndarray:
             if arr.shape != target_shape:
                 return np.broadcast_to(arr, target_shape).copy()
             return arr
@@ -85,7 +86,7 @@ class BlackScholesEngine:
         dividend: float | np.ndarray = 0.0,
         option_type: str | np.ndarray = "call",
         params: Any | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> float | np.ndarray:
         """
         Calculate European option prices using Black-Scholes formula (JIT Accelerated).
@@ -155,7 +156,7 @@ class BlackScholesEngine:
                 is_call_arr = np.asanyarray(is_call).astype(bool)
 
             batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call_arr, kwargs["out"])
-            return kwargs["out"]
+            return cast(np.ndarray, kwargs["out"])
 
         return calculate_price(S, K, T, sigma, r, q, is_call)
 
@@ -169,7 +170,7 @@ class BlackScholesEngine:
         dividend: float | np.ndarray = 0.0,
         option_type: str | np.ndarray = "call",
         params: Any | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> OptionGreeks:
         """
         Calculate Greeks for European options (Accelerated).
@@ -283,9 +284,9 @@ class BlackScholesEngine:
         return float(BlackScholesEngine.price_options(params=params, option_type="put"))
 
     @staticmethod
-    def price_batch(S, K, T, sigma, r, dividend, option_types) -> np.ndarray:
+    def price_batch(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, option_types: np.ndarray) -> np.ndarray:
         """Vectorized pricing returning an array."""
-        return BlackScholesEngine.price_options(
+        return cast(np.ndarray, BlackScholesEngine.price_options(
             spot=S,
             strike=K,
             maturity=T,
@@ -293,10 +294,10 @@ class BlackScholesEngine:
             rate=r,
             dividend=dividend,
             option_type=option_types,
-        )
+        ))
 
     @staticmethod
-    def price_batch_greeks(S, K, T, sigma, r, dividend, is_call=True) -> tuple[np.ndarray, ...]:
+    def price_batch_greeks(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, is_call: Any = True) -> tuple[np.ndarray, ...]:
         """
         Specialized batch Greek calculation for GreekEngine.
         Returns a tuple of arrays: (delta, gamma, theta, vega, rho)
@@ -344,34 +345,33 @@ class BlackScholesEngine:
         return d, g, th, v, rh
 
     @staticmethod
-    def calculate_greeks_batch(**kwargs) -> dict[str, np.ndarray]:
+    def calculate_greeks_batch(**kwargs: Any) -> dict[str, np.ndarray]:
         """Vectorized Greeks calculation returning a dictionary."""
         greeks = BlackScholesEngine.calculate_greeks(**kwargs)
         return {
-            "delta": greeks.delta,
-            "gamma": greeks.gamma,
-            "theta": greeks.theta,
-            "vega": greeks.vega,
-            "rho": greeks.rho,
+            "delta": cast(np.ndarray, greeks.delta),
+            "gamma": cast(np.ndarray, greeks.gamma),
+            "theta": cast(np.ndarray, greeks.theta),
+            "vega": cast(np.ndarray, greeks.vega),
+            "rho": cast(np.ndarray, greeks.rho),
         }
 
     @staticmethod
-    def verify_put_call_parity(S, K, T, r, call_price, put_price, q=0.0):
+    def verify_put_call_parity(S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0) -> bool:
         lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
         rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - np.asanyarray(
             K
         ) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
-        return np.allclose(lhs, rhs, atol=1e-5)
+        return bool(np.allclose(lhs, rhs, atol=1e-5))
 
-    @classmethod
-    def price(
-        cls, params: BSParameters | None = None, option_type: str = "call", **kwargs
+    def price_european(
+        self, params: BSParameters, option_type: str = "call", **kwargs: Any
     ) -> float:
-        """Class method for backward compatibility and PricingStrategy interface."""
-        return float(cls.price_options(params=params, option_type=option_type, **kwargs))
+        """Implementation of PricingStrategy interface."""
+        return float(self.price_options(params=params, option_type=option_type, **kwargs))
 
 
-def black_scholes(*args, **kwargs):
+def black_scholes(*args: Any, **kwargs: Any) -> Any:
     result = BlackScholesEngine.price_options(*args, **kwargs)
     if len(args) == 5 or "params" in kwargs:
         return {"price": result}
@@ -379,8 +379,8 @@ def black_scholes(*args, **kwargs):
 
 
 def verify_put_call_parity(
-    params_or_S, K=None, T=None, r=None, call_price=None, put_price=None, q=0.0
-):
+    params_or_S: Any, K: Any = None, T: Any = None, r: Any = None, call_price: Any = None, put_price: Any = None, q: float = 0.0
+) -> bool:
     """Module-level parity verifier for test compatibility."""
     if hasattr(params_or_S, "spot") and K is None:
         p = params_or_S

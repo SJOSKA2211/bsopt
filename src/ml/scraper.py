@@ -3,6 +3,8 @@ import re
 import time
 
 import httpx
+import msgspec
+import numpy as np
 import pandas as pd
 import structlog
 
@@ -82,16 +84,20 @@ class MarketDataScraper:
                         response = await client.get(self.base_url, params=params)
                         last_response = response
                         if response.status_code == 200:
-                            data = response.json()
+                            # OPTIMIZED: Use msgspec for JSON decoding
+                            data = msgspec.json.decode(response.content)
                             if "Time Series (Daily)" in data:
                                 time_series = data["Time Series (Daily)"]
                                 records = []
+                                # OPTIMIZED: Pre-parse dates to avoid pd.Timestamp overhead in loop
                                 for date_str, values in time_series.items():
                                     if start_date <= date_str <= end_date:
+                                        # Use faster date parsing
+                                        y, m, d = map(int, date_str.split("-"))
+                                        ts = int(time.mktime((y, m, d, 0, 0, 0, 0, 0, 0))) * 1000
                                         records.append(
                                             {
-                                                "timestamp": pd.Timestamp(date_str).value
-                                                // 10**6,  # ms
+                                                "timestamp": ts,
                                                 "open": float(values["1. open"]),
                                                 "high": float(values["2. high"]),
                                                 "low": float(values["3. low"]),
@@ -205,7 +211,8 @@ class MarketDataScraper:
                     response = await client.get(url, params=params)
                     last_response = response
                     if response.status_code == 200:
-                        data = response.json()
+                        # OPTIMIZED: Use msgspec
+                        data = msgspec.json.decode(response.content)
                         if data.get("status") == "OK" and "results" in data:
                             df = pd.DataFrame(data["results"])
                             df = df.rename(

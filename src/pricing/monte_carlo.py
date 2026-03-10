@@ -60,9 +60,9 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         self.config = config or MCConfig()
         self.rng = np.random.default_rng(self.config.seed)
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
-        """Implementation of PricingStrategy.price."""
-        price, _ = self.price_european(params, option_type)
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
+        """Implementation of PricingStrategy.price_european."""
+        price, _ = self.simulate_european(params, option_type)
         return price
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
@@ -128,14 +128,14 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             z_innovations = np.random.standard_normal(n_needed)
 
         ds = max(params.spot * 0.001, 0.01)
-        p_base, _ = self.price_european(params, option_type, seed=seed, z_innovations=z_innovations)
-        p_plus, _ = self.price_european(
+        p_base, _ = self.simulate_european(params, option_type, seed=seed, z_innovations=z_innovations)
+        p_plus, _ = self.simulate_european(
             dataclasses.replace(params, spot=params.spot + ds),
             option_type,
             seed=seed,
             z_innovations=z_innovations,
         )
-        p_minus, _ = self.price_european(
+        p_minus, _ = self.simulate_european(
             dataclasses.replace(params, spot=params.spot - ds),
             option_type,
             seed=seed,
@@ -145,7 +145,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         gamma = (p_plus - 2 * p_base + p_minus) / (ds**2)
 
         dvol = 0.001
-        p_vol_plus, _ = self.price_european(
+        p_vol_plus, _ = self.simulate_european(
             dataclasses.replace(params, volatility=params.volatility + dvol),
             option_type,
             seed=seed,
@@ -156,7 +156,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
         dt = 1.0 / 365.0
         theta = 0.0
         if params.maturity > dt:
-            p_theta, _ = self.price_european(
+            p_theta, _ = self.simulate_european(
                 dataclasses.replace(params, maturity=params.maturity - dt),
                 option_type,
                 seed=seed,
@@ -165,7 +165,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             theta = p_theta - p_base
 
         dr = 0.0001
-        p_rho_plus, _ = self.price_european(
+        p_rho_plus, _ = self.simulate_european(
             dataclasses.replace(params, rate=params.rate + dr),
             option_type,
             seed=seed,
@@ -234,7 +234,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             self.config.antithetic,
         )
 
-    def price_european(
+    def simulate_european(
         self,
         params: BSParameters,
         option_type: str = "call",

@@ -4,6 +4,12 @@ from typing import Any
 import numpy as np
 from numba import njit
 
+try:
+    import bsopt_core
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+
 from src.pricing.black_scholes import BSParameters, OptionGreeks
 from src.pricing.quant_utils import (
     fast_normal_cdf_v2,
@@ -128,6 +134,21 @@ class AsianOptionPricer:
     def price_geometric_asian(
         params: ExoticParameters, option_type: str, strike_type: StrikeType = StrikeType.FIXED
     ) -> float:
+        if CORE_AVAILABLE:
+            try:
+                return float(bsopt_core.geometric_asian_price(
+                    params.base_params.spot,
+                    params.base_params.strike,
+                    params.base_params.maturity,
+                    params.base_params.rate,
+                    params.base_params.dividend,
+                    params.base_params.volatility,
+                    float(params.n_observations),
+                    option_type.lower() == "call"
+                ))
+            except Exception:
+                pass
+
         return float(
             _price_geometric_asian_jit(
                 params.base_params.spot,

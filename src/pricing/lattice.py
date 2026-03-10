@@ -11,9 +11,9 @@ from typing import Literal
 import numpy as np
 from numba import njit
 
-from .base import PricingStrategy
-from .black_scholes import BlackScholesEngine
-from .models import BSParameters, OptionGreeks
+from src.pricing.base import PricingStrategy
+from src.pricing.black_scholes import BlackScholesEngine
+from src.pricing.models import BSParameters, OptionGreeks
 
 
 @dataclass
@@ -120,9 +120,9 @@ def validate_convergence(
     bs_params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
     engine = BlackScholesEngine()
     if option_type == "call":
-        bs_price = float(engine.price(params=bs_params, option_type="call"))
+        bs_price = float(engine.price_european(params=bs_params, option_type="call"))
     else:
-        bs_price = float(engine.price(params=bs_params, option_type="put"))
+        bs_price = float(engine.price_european(params=bs_params, option_type="put"))
 
     bin_errors = []
     tri_errors = []
@@ -131,8 +131,8 @@ def validate_convergence(
         bin_pricer = BinomialTreePricer(n_steps=n_s)
         tri_pricer = TrinomialTreePricer(n_steps=n_s)
 
-        bin_errors.append(abs(bin_pricer.price(bs_params, option_type) - bs_price))
-        tri_errors.append(abs(tri_pricer.price(bs_params, option_type) - bs_price))
+        bin_errors.append(abs(bin_pricer.price_european(bs_params, option_type) - bs_price))
+        tri_errors.append(abs(tri_pricer.price_european(bs_params, option_type) - bs_price))
 
     return {"binomial_errors": bin_errors, "trinomial_errors": tri_errors}
 
@@ -160,16 +160,16 @@ class LatticePricer(PricingStrategy):
         dt = 1.0 / 365.0
 
         # Spot-based Greeks (Delta, Gamma)
-        p = self.price(params, option_type)
-        p_up = self.price(BSParameters(s + ds, k, t, v, r, q), option_type)
-        p_down = self.price(BSParameters(s - ds, k, t, v, r, q), option_type)
+        p = self.price_european(params, option_type)
+        p_up = self.price_european(BSParameters(s + ds, k, t, v, r, q), option_type)
+        p_down = self.price_european(BSParameters(s - ds, k, t, v, r, q), option_type)
 
         delta = (p_up - p_down) / (2 * ds)
         gamma = (p_up - 2 * p + p_down) / (ds**2)
 
         # Vega
-        p_v_up = self.price(BSParameters(s, k, t, v + dv, r, q), option_type)
-        p_v_down = self.price(BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type)
+        p_v_up = self.price_european(BSParameters(s, k, t, v + dv, r, q), option_type)
+        p_v_down = self.price_european(BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type)
         vega = (p_v_up - p_v_down) / (2 * dv)
 
         # Theta (using backward difference - change in price as time passes)
@@ -177,16 +177,16 @@ class LatticePricer(PricingStrategy):
         if t < 0.01:
             theta = 0.0
         elif t > dt:
-            p_t_minus = self.price(BSParameters(s, k, t - dt, v, r, q), option_type)
+            p_t_minus = self.price_european(BSParameters(s, k, t - dt, v, r, q), option_type)
             theta = (p_t_minus - p) / dt
         else:
             # For very short maturity, use forward difference
-            p_t_plus = self.price(BSParameters(s, k, t + 0.0001, v, r, q), option_type)
+            p_t_plus = self.price_european(BSParameters(s, k, t + 0.0001, v, r, q), option_type)
             theta = -(p_t_plus - p) / 0.0001
 
         # Rho
-        p_r_up = self.price(BSParameters(s, k, t, v, r + dr, q), option_type)
-        p_r_down = self.price(BSParameters(s, k, t, v, max(0, r - dr), q), option_type)
+        p_r_up = self.price_european(BSParameters(s, k, t, v, r + dr, q), option_type)
+        p_r_down = self.price_european(BSParameters(s, k, t, v, max(0, r - dr), q), option_type)
         rho = (p_r_up - p_r_down) / (dr * 2)
 
         return OptionGreeks(
@@ -209,7 +209,7 @@ class BinomialTreePricer(LatticePricer):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
         return float(
             _binomial_jit_kernel(
                 params.spot,
@@ -248,7 +248,7 @@ class TrinomialTreePricer(LatticePricer):
         self.n_steps = n_steps
         self.exercise_type = exercise_type.lower()
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
         return float(
             _trinomial_jit_kernel(
                 params.spot,

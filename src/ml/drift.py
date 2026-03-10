@@ -57,9 +57,9 @@ class PerformanceDriftMonitor:
             try:
                 data = await redis.get(self.redis_key)
                 if data:
-                    import orjson
+                    import msgspec
 
-                    metrics = orjson.loads(data)
+                    metrics = msgspec.json.decode(data)
                     self.history.clear()
                     self.history.extend(metrics)
                     logger.info(
@@ -90,9 +90,9 @@ class PerformanceDriftMonitor:
 
             async def persist():
                 try:
-                    import orjson
+                    import msgspec
 
-                    await redis.set(self.redis_key, orjson.dumps(list(self.history)))
+                    await redis.set(self.redis_key, msgspec.json.encode(list(self.history)))
                 except Exception as e:
                     logger.warning("metrics_persistence_failed", error=str(e))
 

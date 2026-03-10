@@ -12,6 +12,12 @@ from typing import Any
 import numpy as np
 from scipy.stats import ks_2samp
 
+try:
+    import bsopt_core
+    _CORE_AVAILABLE = True
+except ImportError:
+    _CORE_AVAILABLE = False
+
 
 class DataDriftDetector:
     """
@@ -117,6 +123,18 @@ class DataDriftDetector:
 
     def _psi(self, reference: np.ndarray, current: np.ndarray) -> float:
         """Compute the Population Stability Index for a single feature."""
+        if _CORE_AVAILABLE:
+            try:
+                # Use pre-calculated bins for consistency
+                bins = np.histogram_bin_edges(reference, bins=self.n_bins).astype(np.float64)
+                return float(bsopt_core.calculate_psi(
+                    reference.astype(np.float64), 
+                    current.astype(np.float64), 
+                    bins
+                ))
+            except Exception:
+                pass
+
         eps = 1e-8
 
         # Build bins from the reference distribution
