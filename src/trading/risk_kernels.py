@@ -200,13 +200,12 @@ class IncrementalDeltaTracker:
         """
         if CORE_AVAILABLE:
             try:
-                # 1. Fat-finger checks omitted here (handled by _validate_order_kernel or full_risk_check)
-                # But for incremental delta only, we use Rust full_risk_check with dummy fat-finger params
-                ok, new_delta = bsopt_core.full_risk_check(
-                    1.0, 1, 1, trade_delta, self._state[0], 100, 0.01, 100.0, self.max_net_delta
+                # Using 0.0 for Gamma/Vega and Price/Qty checks for delta-only tracker
+                ok, new_d, _, _ = bsopt_core.full_risk_check(
+                    1.0, 1, 1, trade_delta, 0.0, 0.0, self._state[0], 0.0, 0.0, 100, 0.01, 100.0, self.max_net_delta, 1e18, 1e18
                 )
                 if ok:
-                    self._state[0] = new_delta
+                    self._state[0] = new_d
                 return ok
             except Exception as e:
                 logger.warning("rust_risk_check_failed", error=str(e))
@@ -228,19 +227,25 @@ class IncrementalDeltaTracker:
         """
         if CORE_AVAILABLE:
             try:
-                ok, new_delta = bsopt_core.full_risk_check(
+                ok, new_d, _, _ = bsopt_core.full_risk_check(
                     float(price),
                     int(quantity),
                     int(side),
                     float(trade_delta),
+                    0.0,
+                    0.0,
                     float(self._state[0]),
+                    0.0,
+                    0.0,
                     int(max_qty),
                     float(min_price),
                     float(max_price),
                     float(self.max_net_delta),
+                    1e18,
+                    1e18,
                 )
                 if ok:
-                    self._state[0] = new_delta
+                    self._state[0] = new_d
                 return ok
             except Exception as e:
                 logger.warning("rust_full_risk_failed", error=str(e))

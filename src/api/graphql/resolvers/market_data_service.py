@@ -7,7 +7,7 @@ from src.data.router import MarketDataRouter
 router = MarketDataRouter()
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class MarketData:
     symbol: str
     timestamp: datetime

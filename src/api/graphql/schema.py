@@ -48,26 +48,26 @@ class Portfolio:
     created_at: datetime
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OptionEdge:
     cursor: str
     node: Option
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class PageInfo:
     has_next_page: bool
     end_cursor: str | None
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OptionConnection:
     edges: list[OptionEdge]
     page_info: PageInfo
 
 
 # QUERIES
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class MLPrediction:
     id: strawberry.ID
     symbol: str
@@ -81,7 +81,7 @@ class MLPrediction:
     last_updated: datetime = strawberry.field(name="last_updated")
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class MarketData:
     symbol: str
     last_price: float = strawberry.field(name="last_price")
@@ -91,7 +91,7 @@ class MarketData:
     timestamp: datetime
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OHLCV:
     time: str
     open: float
@@ -101,7 +101,7 @@ class OHLCV:
     volume: int
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class Query:
     """Root Query for Options subgraph"""
 

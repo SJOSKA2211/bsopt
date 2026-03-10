@@ -6,6 +6,7 @@ testability, and consistent patterns across the platform.
 """
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 import numpy as np
 
@@ -35,14 +36,14 @@ class VectorizedPricingStrategy(ABC):
     @abstractmethod
     def price_batch(
         self,
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        q: np.ndarray,
-        is_call: np.ndarray,
-    ) -> np.ndarray:
+        S: np.ndarray[Any, np.dtype[np.float64]],
+        K: np.ndarray[Any, np.dtype[np.float64]],
+        T: np.ndarray[Any, np.dtype[np.float64]],
+        sigma: np.ndarray[Any, np.dtype[np.float64]],
+        r: np.ndarray[Any, np.dtype[np.float64]],
+        q: np.ndarray[Any, np.dtype[np.float64]],
+        is_call: np.ndarray[Any, np.dtype[np.bool_]],
+    ) -> np.ndarray[Any, np.dtype[np.float64]]:
         """Batch calculation of option prices."""
         pass
 
@@ -58,7 +59,7 @@ class PricingEngine:
     Refactored for performance and modularity (Ultrathinking).
     """
 
-    def __init__(self, strategy: PricingStrategy | VectorizedPricingStrategy):
+    def __init__(self, strategy: PricingStrategy | VectorizedPricingStrategy) -> None:
         self.strategy = strategy
 
     def get_price(self, params: BSParameters, option_type: str = "call") -> float:

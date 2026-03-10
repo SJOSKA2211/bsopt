@@ -54,6 +54,9 @@ try:
 except ImportError:
     loop_prange = range  # type: ignore
 
+# Explicit exports for static analysis
+__all__ = ["njit_engine", "loop_prange", "fast_normal_ppf", "calculate_ppf", "fast_normal_cdf", "fast_normal_pdf", "calculate_d1_d2", "calculate_price", "calculate_greeks"]
+
 # Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
 INV_SQRT2PI = 0.3989422804014327
@@ -143,7 +146,7 @@ def calculate_ppf(
 
     original_shape = p_arr.shape
     flat_res = _vec_ppf_impl(p_arr.ravel().astype(np.float64))
-    return cast(np.ndarray[Any, np.dtype[np.float64]], flat_res.reshape(original_shape))
+    return flat_res.reshape(original_shape)
 
 
 @njit_engine
@@ -300,7 +303,7 @@ def calculate_price(
         q_arr.ravel().astype(np.float64),
         is_call_arr.ravel().astype(np.bool_),
     )
-    return cast(np.ndarray[Any, np.dtype[np.float64]], flat_res.reshape(original_shape))
+    return flat_res.reshape(original_shape)
 
 
 @njit_engine
@@ -401,34 +404,28 @@ def calculate_greeks(
         and np.isscalar(q)
         and np.isscalar(is_call)
     ):
-        return cast(
-            tuple[float, float, float, float, float],
-            calculate_greeks_core(
-                float(cast(float, s)),
-                float(cast(float, k)),
-                float(cast(float, t)),
-                float(cast(float, sigma)),
-                float(cast(float, r)),
-                float(cast(float, q)),
-                bool(is_call),
-            ),
+        return calculate_greeks_core(
+            float(cast(float, s)),
+            float(cast(float, k)),
+            float(cast(float, t)),
+            float(cast(float, sigma)),
+            float(cast(float, r)),
+            float(cast(float, q)),
+            bool(is_call),
         )
 
     s_arr, k_arr, t_arr, sigma_arr, r_arr, q_arr, is_call_arr = np.broadcast_arrays(
         s, k, t, sigma, r, q, is_call
     )
     if s_arr.size == 1:
-        return cast(
-            tuple[float, float, float, float, float],
-            calculate_greeks_core(
-                float(s_arr.flat[0]),
-                float(k_arr.flat[0]),
-                float(t_arr.flat[0]),
-                float(sigma_arr.flat[0]),
-                float(r_arr.flat[0]),
-                float(q_arr.flat[0]),
-                bool(is_call_arr.flat[0]),
-            ),
+        return calculate_greeks_core(
+            float(s_arr.flat[0]),
+            float(k_arr.flat[0]),
+            float(t_arr.flat[0]),
+            float(sigma_arr.flat[0]),
+            float(r_arr.flat[0]),
+            float(q_arr.flat[0]),
+            bool(is_call_arr.flat[0]),
         )
 
     original_shape = s_arr.shape
@@ -443,11 +440,11 @@ def calculate_greeks(
     )
 
     return (
-        cast(np.ndarray[Any, np.dtype[np.float64]], d.reshape(original_shape)),
-        cast(np.ndarray[Any, np.dtype[np.float64]], g.reshape(original_shape)),
-        cast(np.ndarray[Any, np.dtype[np.float64]], th.reshape(original_shape)),
-        cast(np.ndarray[Any, np.dtype[np.float64]], v.reshape(original_shape)),
-        cast(np.ndarray[Any, np.dtype[np.float64]], rh.reshape(original_shape)),
+        d.reshape(original_shape),
+        g.reshape(original_shape),
+        th.reshape(original_shape),
+        v.reshape(original_shape),
+        rh.reshape(original_shape),
     )
 
 

@@ -263,8 +263,8 @@ class NSEScraper:
                     self._last_refresh = time.time()
                     logger.info("nse_cache_updated", count=len(new_cache))
 
-                    # Publish to Market Mesh
-                    get_market_publisher().publish(new_cache)
+                    # OPTIMIZED: Offload SHM publication to avoid blocking event loop
+                    await run_sync(get_market_publisher().publish, new_cache)
 
             finally:
                 if client != self.client:

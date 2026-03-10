@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.schemas.common import DataResponse
+from src.api.schemas.common import DataResponseStruct
 from src.database import crud, get_async_db
 from src.security.auth import require_tier
 from src.shared.shm_mesh import SharedMemoryRingBuffer
@@ -22,7 +22,7 @@ _shm_probe = None
 
 
 @router.get("/health/deep")
-async def get_deep_health() -> DataResponse:
+async def get_deep_health() -> DataResponseStruct:
     """High-fidelity stack probe with cached connections."""
     global _shm_probe
     health = {"status": "operational", "probes": {}}
@@ -68,14 +68,15 @@ async def get_deep_health() -> DataResponse:
         "path": wasm_path,
     }
 
-    return DataResponse(data=health)
+    return DataResponseStruct(data=
+health)
 
 
 @router.get("/status")
-async def get_system_status() -> DataResponse:
+async def get_system_status() -> DataResponseStruct:
     """Returns the status of various system components and circuit breakers."""
-    return DataResponse(
-        data={
+    return DataResponseStruct(data=
+{
             "status": "operational",
             "circuits": {
                 "pricing": {
@@ -92,18 +93,20 @@ async def get_system_status() -> DataResponse:
 
 
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
-async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponse:
+async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponseStruct:
     """
     High-Performance Database Diagnostics.
     Requires Enterprise tier for high-fidelity performance metrics.
     """
-    return DataResponse(data=await crud.get_system_health_dashboard(db))
+    return DataResponseStruct(data=
+await crud.get_system_health_dashboard(db))
 
 
 @router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
-async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponse:
+async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponseStruct:
     """
     PostgreSQL 16 I/O Performance Audit.
     Requires Enterprise tier.
     """
-    return DataResponse(data=await crud.get_io_performance_audit(db))
+    return DataResponseStruct(data=
+await crud.get_io_performance_audit(db))

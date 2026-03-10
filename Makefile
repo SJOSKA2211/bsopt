@@ -75,7 +75,7 @@ build-prod:
 	@echo " Building Production-ready images..."
 	docker build --target production -t bsopt/api:latest -f docker/Dockerfile.api .
 	docker build --target production -t bsopt/worker:latest -f docker/Dockerfile.worker .
-	docker build --target production -t bsopt/scraper:latest -f docker/Dockerfile.scraper .
+	docker build --target production -t bsopt/scraper:latest -f docker/Dockerfile.scraper-lite .
 	docker build --target production -t bsopt/auth-service:latest -f docker/Dockerfile.auth-service .
 	docker build --target production -t bsopt/neural-pricing:latest -f docker/Dockerfile.neural-pricing .
 	docker build --target production -t bsopt/frontend:latest -f docker/Dockerfile.frontend .

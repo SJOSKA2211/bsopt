@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import structlog
 from numba import njit
@@ -8,8 +10,13 @@ logger = structlog.get_logger()
 
 @njit(cache=True, fastmath=True)
 def _raw_svi_kernel(
-    k: np.ndarray, a: float, b: float, rho: float, m: float, sigma: float
-) -> np.ndarray:
+    k: np.ndarray[Any, np.dtype[np.float64]],
+    a: float,
+    b: float,
+    rho: float,
+    m: float,
+    sigma: float,
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized JIT SVI formula."""
     return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
 
@@ -21,12 +28,29 @@ class SVISurface:
     """
 
     @staticmethod
+    def raw_svi(
+        k: float | np.ndarray[Any, np.dtype[np.float64]],
+        a: float,
+        b: float,
+        rho: float,
+        m: float,
+        sigma: float,
+    ) -> float | np.ndarray[Any, np.dtype[np.float64]]:
+        """Public interface for SVI total variance calculation."""
+        if np.isscalar(k):
+            k_val = float(k)
+            return a + b * (rho * (k_val - m) + np.sqrt((k_val - m) ** 2 + sigma**2))
+        return _raw_svi_kernel(np.asanyarray(k, dtype=np.float64), a, b, rho, m, sigma)
+
+    @staticmethod
     def fit_svi_slice(
-        log_strikes: np.ndarray, total_variances: np.ndarray, T: float
+        log_strikes: np.ndarray[Any, np.dtype[np.float64]],
+        total_variances: np.ndarray[Any, np.dtype[np.float64]],
+        T: float,
     ) -> tuple[float, ...]:
         """Fit SVI using vectorized JIT objective."""
 
-        def objective(params):
+        def objective(params: np.ndarray[Any, np.dtype[np.float64]]) -> float:
             a, b, rho, m, sigma = params
             # Fast validation
             if b < 0 or abs(rho) >= 1 or (a + b * sigma * np.sqrt(1 - rho**2)) < 0:
@@ -34,9 +58,9 @@ class SVISurface:
 
             # Vectorized kernel call (O(1) from Python)
             model_var = _raw_svi_kernel(log_strikes, a, b, rho, m, sigma)
-            return np.sum((total_variances - model_var) ** 2)
+            return float(np.sum((total_variances - model_var) ** 2))
 
-        initial = [np.median(total_variances) * 0.5, 0.1, -0.3, 0.0, 0.1]
+        initial = np.array([np.median(total_variances) * 0.5, 0.1, -0.3, 0.0, 0.1])
         bounds = [(0, 2.0), (0, 1.0), (-0.99, 0.99), (-1.0, 1.0), (0.01, 1.0)]
 
         result = minimize(objective, initial, bounds=bounds, method="L-BFGS-B")
@@ -45,5 +69,6 @@ class SVISurface:
     @staticmethod
     def get_implied_vol(S0: float, K: float, T: float, params: tuple[float, ...]) -> float:
         k = np.log(K / S0)
+        # params: (a, b, rho, m, sigma)
         total_variance = SVISurface.raw_svi(k, *params)
-        return np.sqrt(max(total_variance, 1e-6) / T)
+        return float(np.sqrt(max(float(total_variance), 1e-6) / T))

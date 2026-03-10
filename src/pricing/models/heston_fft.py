@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import structlog
 from numba import complex128, float64, njit, prange
@@ -11,7 +13,7 @@ logger = structlog.get_logger()
     complex128[:, :](
         float64[:],
         float64[:],
-        float64,
+        float64[:],
         float64[:],
         float64[:],
         float64[:],
@@ -24,7 +26,18 @@ logger = structlog.get_logger()
     fastmath=True,
     parallel=True,
 )
-def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
+def _heston_cf_kernel(
+    v: np.ndarray[Any, np.dtype[np.float64]],
+    k: np.ndarray[Any, np.dtype[np.float64]],
+    alpha: np.ndarray[Any, np.dtype[np.float64]],
+    T: np.ndarray[Any, np.dtype[np.float64]],
+    r: np.ndarray[Any, np.dtype[np.float64]],
+    v0: np.ndarray[Any, np.dtype[np.float64]],
+    kappa: np.ndarray[Any, np.dtype[np.float64]],
+    theta: np.ndarray[Any, np.dtype[np.float64]],
+    sigma: np.ndarray[Any, np.dtype[np.float64]],
+    rho: np.ndarray[Any, np.dtype[np.float64]],
+) -> np.ndarray[Any, np.dtype[np.complex128]]:
     """
     Fused Numba kernel for the Heston Characteristic Function.
     Avoids NumPy broadcasting overhead and uses machine-code complex math.
@@ -34,8 +47,10 @@ def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
     res = np.zeros((n_v, n_batch), dtype=np.complex128)
 
     for i in prange(n_v):
-        u_v = v[i] - (alpha + 1) * 1j
+        # We assume alpha is uniform or we'd need to index it.
+        # Here we index it for maximum flexibility in vectorized calls.
         for j in range(n_batch):
+            u_v = v[i] - (alpha[j] + 1) * 1j
             xi = kappa[j] - sigma[j] * rho[j] * u_v * 1j
             d = np.sqrt(xi**2 + sigma[j] ** 2 * (u_v**2 + 1j * u_v))
             g = (xi + d) / (xi - d)
@@ -49,28 +64,49 @@ def _heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
             phi = np.exp(A + B)
 
             num = np.exp(-1j * v[i] * k[j]) * phi
-            den = alpha**2 + alpha - v[i] ** 2 + 1j * (2 * alpha + 1) * v[i]
+            den = alpha[j]**2 + alpha[j] - v[i] ** 2 + 1j * (2 * alpha[j] + 1) * v[i]
             res[i, j] = num / den
 
     return res
 
 
-def _heston_integrand_vectorized(v, k, alpha, T, r, v0, kappa, theta, sigma, rho):
+def _heston_integrand_vectorized(
+    v: np.ndarray[Any, np.dtype[np.float64]],
+    k: np.ndarray[Any, np.dtype[np.float64]],
+    alpha: np.ndarray[Any, np.dtype[np.float64]],
+    T: np.ndarray[Any, np.dtype[np.float64]],
+    r: np.ndarray[Any, np.dtype[np.float64]],
+    v0: np.ndarray[Any, np.dtype[np.float64]],
+    kappa: np.ndarray[Any, np.dtype[np.float64]],
+    theta: np.ndarray[Any, np.dtype[np.float64]],
+    sigma: np.ndarray[Any, np.dtype[np.float64]],
+    rho: np.ndarray[Any, np.dtype[np.float64]],
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """
     Delegates to the JIT-compiled kernel.
     """
-    return np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho))
+    return cast(np.ndarray[Any, np.dtype[np.float64]], np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho)))
 
 
 def batch_heston_price_jit(
-    spots, strikes, maturities, rates, v0s, kappas, thetas, sigmas, rhos, is_calls, out
-):
+    spots: np.ndarray[Any, np.dtype[np.float64]],
+    strikes: np.ndarray[Any, np.dtype[np.float64]],
+    maturities: np.ndarray[Any, np.dtype[np.float64]],
+    rates: np.ndarray[Any, np.dtype[np.float64]],
+    v0s: np.ndarray[Any, np.dtype[np.float64]],
+    kappas: np.ndarray[Any, np.dtype[np.float64]],
+    thetas: np.ndarray[Any, np.dtype[np.float64]],
+    sigmas: np.ndarray[Any, np.dtype[np.float64]],
+    rhos: np.ndarray[Any, np.dtype[np.float64]],
+    is_calls: np.ndarray[Any, np.dtype[np.bool_]],
+    out: np.ndarray[Any, np.dtype[np.float64]],
+) -> None:
     """
     Advanced vectorized batch pricing. ZERO Python loops.
     """
     k = np.log(strikes / spots)
     # alpha = 1.5 for call, -2.5 for put usually, but let's stick to 1.5 and use parity
-    alpha = np.where(is_calls, 1.5, 1.5)
+    alpha = np.full_like(k, 1.5)
 
     upper_bound = 250.0
     n_steps = 2000
@@ -102,6 +138,9 @@ def batch_heston_price_jit(
     out[:] = np.maximum(final_prices, intrinsics)
 
 
+from typing import cast
+
+
 class HestonModelFFT:
     """
     Heston Model using vectorized FFT and Simpson integration.
@@ -115,43 +154,49 @@ class HestonModelFFT:
         params: HestonParams | None = None,
         r: float | None = None,
         T: float | None = None,
-    ):
+    ) -> None:
         self.params = params
         self.r = r
         self.T = T
 
     def price_call(self, S0: float, K: float) -> float:
         """Single option pricing for backward compatibility."""
+        if self.params is None or self.r is None or self.T is None:
+            raise ValueError("Model not fully initialized")
+
         out = np.zeros(1)
         batch_heston_price_jit(
-            np.array([S0]),
-            np.array([K]),
-            np.array([self.T]),
-            np.array([self.r]),
-            np.array([self.params.v0]),
-            np.array([self.params.kappa]),
-            np.array([self.params.theta]),
-            np.array([self.params.sigma]),
-            np.array([self.params.rho]),
-            np.array([True]),
+            np.array([S0], dtype=np.float64),
+            np.array([K], dtype=np.float64),
+            np.array([self.T], dtype=np.float64),
+            np.array([self.r], dtype=np.float64),
+            np.array([self.params.v0], dtype=np.float64),
+            np.array([self.params.kappa], dtype=np.float64),
+            np.array([self.params.theta], dtype=np.float64),
+            np.array([self.params.sigma], dtype=np.float64),
+            np.array([self.params.rho], dtype=np.float64),
+            np.array([True], dtype=bool),
             out,
         )
         return float(out[0])
 
     def price_put(self, S0: float, K: float) -> float:
         """Single option pricing for backward compatibility."""
+        if self.params is None or self.r is None or self.T is None:
+            raise ValueError("Model not fully initialized")
+
         out = np.zeros(1)
         batch_heston_price_jit(
-            np.array([S0]),
-            np.array([K]),
-            np.array([self.T]),
-            np.array([self.r]),
-            np.array([self.params.v0]),
-            np.array([self.params.kappa]),
-            np.array([self.params.theta]),
-            np.array([self.params.sigma]),
-            np.array([self.params.rho]),
-            np.array([False]),
+            np.array([S0], dtype=np.float64),
+            np.array([K], dtype=np.float64),
+            np.array([self.T], dtype=np.float64),
+            np.array([self.r], dtype=np.float64),
+            np.array([self.params.v0], dtype=np.float64),
+            np.array([self.params.kappa], dtype=np.float64),
+            np.array([self.params.theta], dtype=np.float64),
+            np.array([self.params.sigma], dtype=np.float64),
+            np.array([self.params.rho], dtype=np.float64),
+            np.array([False], dtype=bool),
             out,
         )
         return float(out[0])
