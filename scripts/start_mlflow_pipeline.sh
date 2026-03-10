@@ -36,6 +36,11 @@ fi
 echo "Starting MLflow Pipeline: $PIPELINE_ENTRY_POINT with experiment: $STUDY_NAME"
 echo "Extra parameters: $EXTRA_PARAMS"
 
+# Check if entry point accepts study_name and pass it if not already in EXTRA_PARAMS
+if [[ "$EXTRA_PARAMS" != *"study_name"* ]]; then
+    EXTRA_PARAMS="-P study_name=$STUDY_NAME $EXTRA_PARAMS"
+fi
+
 # Use 'exec -d' to start the task inside the existing mlops-worker container
 $COMPOSE_CMD exec -d mlops-worker mlflow run . \
     -e "$PIPELINE_ENTRY_POINT" \

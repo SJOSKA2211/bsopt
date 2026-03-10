@@ -3,6 +3,7 @@ Portfolio routes backing the dashboard overview widgets.
 Enhanced with High-Performance Database integration and RLS enforcement.
 """
 
+from typing import Any
 import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select

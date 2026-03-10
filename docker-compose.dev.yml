@@ -17,7 +17,7 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    command: ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--websockets"]
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 15s
@@ -115,7 +115,7 @@ services:
       - bsopt-network-dev
     env_file:
       - .env
-    command: ["granian", "--interface", "asgi", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--opt"]
+    command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 15s

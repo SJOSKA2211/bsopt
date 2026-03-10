@@ -40,11 +40,19 @@ ENV MLFLOW_TRACKING_URI=postgresql://admin:password@postgres:5432/bsopt
 ENV RAY_ADDRESS=auto
 
 # Performance tuning for numerical kernels
-ENV OMP_NUM_THREADS=4
-ENV MKL_NUM_THREADS=4
-ENV OPENBLAS_NUM_THREADS=4
-ENV VECLIB_MAXIMUM_THREADS=4
-ENV NUMEXPR_NUM_THREADS=4
+ENV OMP_NUM_THREADS=8
+ENV MKL_NUM_THREADS=8
+ENV OPENBLAS_NUM_THREADS=8
+ENV VECLIB_MAXIMUM_THREADS=8
+ENV NUMEXPR_NUM_THREADS=8
+
+# Numba and Python optimization
+ENV NUMBA_CACHE_DIR=/tmp/numba_cache
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create Numba cache directory as root then switch user
+RUN mkdir -p /tmp/numba_cache && chmod 777 /tmp/numba_cache
 
 # Switch back to ray user
 USER ray

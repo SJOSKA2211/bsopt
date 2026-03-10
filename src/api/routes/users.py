@@ -24,11 +24,11 @@ router = APIRouter(prefix="/users", tags=["Users"], default_response_class=Msgsp
 
 
 @router.get("/me")
-async def get_current_user_profile(user: User = Depends(get_current_user)):
+async def get_current_user_profile(user: User = Depends(get_current_user)) -> DataResponseStruct:
     """
     Fetch the authenticated user's profile.
     """
-    return DataResponse(data=UserResponse.from_orm(user))
+    return DataResponseStruct(data=UserResponse.from_orm(user))
 
 
 @router.patch("/me")
@@ -62,7 +62,7 @@ async def update_current_user_profile(
     response_model=None,
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
-async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20):
+async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20) -> PaginatedResponseStruct:
     """
     List users (Restricted to High-Tier/Admin).
     """
@@ -80,9 +80,9 @@ async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, pa
     users_result = await db.execute(users_stmt)
     users = users_result.scalars().all()
 
-    return PaginatedResponse(
+    return PaginatedResponseStruct(
         items=[UserResponse.from_orm(u) for u in users],
-        pagination=PaginationMeta(
+        pagination=PaginationMetaStruct(
             total=total,
             page=page,
             page_size=page_size,

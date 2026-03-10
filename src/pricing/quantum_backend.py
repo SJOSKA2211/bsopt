@@ -7,7 +7,7 @@ try:
     from qiskit_aer import AerSimulator
 except ImportError:
 
-    class AerSimulator:
+    class AerSimulator:  # type: ignore
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
@@ -17,7 +17,7 @@ try:
 
     IBM_PROVIDER_AVAILABLE = True
 except ImportError:
-    IBMProvider = None
+    IBMProvider = None  # type: ignore
     IBM_PROVIDER_AVAILABLE = False
 
 logger = structlog.get_logger()
@@ -68,9 +68,12 @@ class QuantumBackendManager:
                 raise
 
         try:
-            backend = self.provider.get_backend(backend_name)
-            logger.info("using_remote_backend", backend=backend_name)
-            return backend
+            # Defensive check for provider
+            if self.provider is not None:
+                backend = self.provider.get_backend(backend_name)
+                logger.info("using_remote_backend", backend=backend_name)
+                return backend
+            raise RuntimeError("IBM Provider failed to initialize")
         except Exception as e:
             logger.error("backend_retrieval_failed", backend=backend_name, error=str(e))
             raise

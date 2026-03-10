@@ -17,8 +17,8 @@ class PricingStrategy(ABC):
     """Abstract base class for all pricing strategies."""
 
     @abstractmethod
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
-        """Calculate the option price."""
+    def price_european(self, params: BSParameters, option_type: str = "call") -> Any:
+        """Calculate the European option price."""
         pass
 
     @abstractmethod
@@ -65,7 +65,7 @@ class PricingEngine:
     def get_price(self, params: BSParameters, option_type: str = "call") -> float:
         """Unified entry point for single option pricing."""
         if isinstance(self.strategy, PricingStrategy):
-            return self.strategy.price(params, option_type)
+            return float(self.strategy.price_european(params, option_type))
         if isinstance(self.strategy, VectorizedPricingStrategy):
             # If strategy is VectorizedPricingStrategy, use its price_single method
             return self.strategy.price_single(params, option_type)

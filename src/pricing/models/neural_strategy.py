@@ -49,12 +49,12 @@ class NeuralPricingStrategy(PricingStrategy):
         else:
             logger.debug("neural_pricing_model_not_found", path=path)
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
         if not self.ort_session:
             # Fallback to Black-Scholes if model not loaded
             from src.pricing.black_scholes import BlackScholesEngine
 
-            return BlackScholesEngine().price(params, option_type)
+            return BlackScholesEngine().price_european(params, option_type)
 
         # Feature vector: [S, K, T, sigma, r, q, is_call, ...]
         # Map to OptionPricingNN input_dim (assumed 9 based on class definition if it includes Greeks or other params)

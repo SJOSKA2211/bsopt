@@ -504,7 +504,7 @@ services:
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     volumes:
       - ./:/app
-    shm_size: '1gb'
+    shm_size: '2gb'
     deploy:
       resources:
         limits:
@@ -530,7 +530,7 @@ services:
       - bsopt-network
     volumes:
       - ./:/app
-    shm_size: '1gb'
+    shm_size: '2gb'
     deploy:
       resources:
         limits:
@@ -564,7 +564,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.mlops
-    shm_size: '1gb'
+    shm_size: '2gb'
     deploy:
       resources:
         limits:

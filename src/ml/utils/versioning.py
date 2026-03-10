@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import orjson
+import msgspec
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ def tag_dataset(data_dir: str, version_name: str | None = None):
 
     version_file = data_path / f"version_{version}.json"
     with open(version_file, "wb") as f:
-        f.write(orjson.dumps(metadata, option=orjson.OPT_INDENT_2))
+        f.write(msgspec.json.encode(metadata))
 
     logger.info(f"Tagged dataset version {version} in {version_file}")
     return version

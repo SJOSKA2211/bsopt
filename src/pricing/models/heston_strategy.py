@@ -15,7 +15,7 @@ class HestonPricingStrategy(PricingStrategy):
     Note: Requires HestonParams to be passed via kwargs or derived from symbol.
     """
 
-    def price(self, params: BSParameters, option_type: str = "call", **kwargs) -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call", **kwargs) -> float:
         """
         Calculate option price using Heston FFT.
         Expects 'heston_params' in kwargs.

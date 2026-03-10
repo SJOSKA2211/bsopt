@@ -23,7 +23,7 @@ from src.api.schemas.auth import (
     RegisterRequest,
     TokenResponse,
 )
-from src.api.schemas.common import DataResponse, SuccessResponse
+from src.api.schemas.common import DataResponseStruct, SuccessResponse
 from src.api.schemas.user import UserResponse
 from src.config import settings
 from src.database import get_async_db, set_user_context
@@ -57,7 +57,7 @@ async def register(
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse[TokenResponse]:
+) -> DataResponseStruct:
     """
     [LEGACY] Register a new user using High-Performance Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
@@ -91,7 +91,7 @@ async def register(
 
     tokens = auth_service.create_token_pair(str(user.id), user.email, str(user.tier))
 
-    return DataResponse(
+    return DataResponseStruct(
         data=TokenResponse(
             user_id=str(user.id),
             email=user.email,
@@ -108,7 +108,7 @@ async def login(
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse[LoginResponse]:
+) -> DataResponseStruct:
     """
     [LEGACY] Authenticate via Native DB procedure (High Performance).
     MIGRATION: Use /api/auth/login in the auth-service (Node.js).
@@ -135,7 +135,7 @@ async def login(
         await db.commit()
 
         tokens = auth_service.create_token_pair(str(user_id), email, str(tier))
-        return DataResponse(
+        return DataResponseStruct(
             data=LoginResponse(
                 access_token=tokens.access_token,
                 refresh_token=tokens.refresh_token,
@@ -155,8 +155,8 @@ async def login(
 
 
 @router.get("/me")
-async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponse[UserResponse]:
-    return DataResponse(data=UserResponse.from_orm(user))
+async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponseStruct:
+    return DataResponseStruct(data=UserResponse.from_orm(user))
 
 
 @router.post("/logout", deprecated=True)
@@ -182,7 +182,7 @@ async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponse[MFASetupResponse]:
+) -> DataResponseStruct:
     """
     [LEGACY] Initialize MFA setup for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.
@@ -203,7 +203,7 @@ async def mfa_setup(
     uri = mfa_service.get_provisioning_uri(user.email, plain_secret)
     qr_code = mfa_service.generate_qr_code(uri)
 
-    return DataResponse(
+    return DataResponseStruct(
         data=MFASetupResponse(
             secret=plain_secret,  # Return plaintext once for setup
             provisioning_uri=uri,

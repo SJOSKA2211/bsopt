@@ -2,7 +2,7 @@ from collections import defaultdict
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from fastapi import WebSocket
@@ -14,22 +14,22 @@ logger = structlog.get_logger()
 
 
 # Prometheus Metrics (Idempotent for tests)
-def _get_metric(cls, name, documentation):
+def _get_metric(cls: Any, name: str, documentation: str) -> Any:
     if name in REGISTRY._names_to_collectors:
         return REGISTRY._names_to_collectors[name]
     return cls(name, documentation)
 
 
-WEBSOCKET_CONNECTIONS_TOTAL = _get_metric(
+WEBSOCKET_CONNECTIONS_TOTAL: Counter = _get_metric(
     Counter, "websocket_connections_total", "Total number of WebSocket connections"
 )
-WEBSOCKET_DISCONNECTIONS_TOTAL = _get_metric(
+WEBSOCKET_DISCONNECTIONS_TOTAL: Counter = _get_metric(
     Counter, "websocket_disconnections_total", "Total number of WebSocket disconnections"
 )
-WEBSOCKET_ACTIVE_CONNECTIONS = _get_metric(
+WEBSOCKET_ACTIVE_CONNECTIONS: Gauge = _get_metric(
     Gauge, "websocket_active_connections", "Current number of active WebSocket connections"
 )
-WEBSOCKET_MESSAGES_SENT_TOTAL = _get_metric(
+WEBSOCKET_MESSAGES_SENT_TOTAL: Counter = _get_metric(
     Counter, "websocket_messages_sent_total", "Total number of messages sent over WebSockets"
 )
 
@@ -41,7 +41,7 @@ class ConnectionMetadata:
     subscriptions: set[str] = field(default_factory=set)
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
 
-    def update_heartbeat(self):
+    def update_heartbeat(self) -> None:
         self.last_heartbeat = datetime.utcnow()
 
 
@@ -51,16 +51,16 @@ class ConnectionManager:
     OPTIMIZED: O(1) connection management and binary-aware delivery.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
         self.active_connections: dict[str, set[WebSocket]] = defaultdict(set)
-        self._listener_task: asyncio.Task | None = None
-        self._shm_task: asyncio.Task | None = None
-        self._heartbeat_task: asyncio.Task | None = None
-        self._pubsub = None
+        self._listener_task: asyncio.Task[None] | None = None
+        self._shm_task: asyncio.Task[None] | None = None
+        self._heartbeat_task: asyncio.Task[None] | None = None
+        self._pubsub: Any | None = None
         self._lock = asyncio.Lock()
 
-    async def _get_pubsub(self):
+    async def _get_pubsub(self) -> Any:
         if self._pubsub is None:
             from src.utils.cache import get_redis
 
@@ -69,7 +69,7 @@ class ConnectionManager:
                 self._pubsub = redis_client.pubsub()
         return self._pubsub
 
-    async def _listen_to_shm(self):
+    async def _listen_to_shm(self) -> None:
         """High-frequency polling of Ring Buffers for market and Greeks data."""
         import os
 
@@ -96,10 +96,9 @@ class ConnectionManager:
                                 asyncio.create_task(self.broadcast_to_symbol(tick.symbol, tick, from_redis=True))
                     
                     # 2. Greeks Data Poll
-                    # (Assuming GreeksBuffer also has a read_latest variant or we use head pointer)
-                    # For Greeks, we'll check the head pointer in the buffer
                     import struct
-                    g_head = struct.unpack_from("q", g_mesh.buf, 0)[0]
+                    g_head_tuple = struct.unpack_from("q", g_mesh.buf, 0)
+                    g_head = cast(int, g_head_tuple[0])
                     if g_head > last_g_head:
                         # Read new Greeks
                         for i in range(last_g_head, g_head):
@@ -131,7 +130,7 @@ class ConnectionManager:
         except asyncio.CancelledError:
             logger.info("ws_shm_listener_cancelled")
 
-    async def _listen_to_redis(self):
+    async def _listen_to_redis(self) -> None:
         """Background task to listen for Redis messages and broadcast locally."""
         pubsub = await self._get_pubsub()
         if not pubsub:
@@ -155,7 +154,7 @@ class ConnectionManager:
         finally:
             self._listener_task = None
 
-    async def _heartbeat_monitor(self):
+    async def _heartbeat_monitor(self) -> None:
         """Prune dead connections based on last heartbeat."""
         while True:
             await asyncio.sleep(30)  # Check every 30s
@@ -177,13 +176,13 @@ class ConnectionManager:
                     pass
                 await self.disconnect(ws, symbol)
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> None:
         """Accept connection and initialize metadata."""
         await websocket.accept()
 
         # Ensure metadata exists
         if not hasattr(websocket, "metadata"):
-            websocket.metadata = ConnectionMetadata(protocol=ProtocolType.JSON)
+            setattr(websocket, "metadata", ConnectionMetadata(protocol=ProtocolType.JSON))
 
         async with self._lock:
             # Lazy init background tasks
@@ -199,9 +198,9 @@ class ConnectionManager:
         WEBSOCKET_CONNECTIONS_TOTAL.inc()
         WEBSOCKET_ACTIVE_CONNECTIONS.inc()
 
-    async def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket) -> None:
         """Handle disconnection and cleanup all symbol subscriptions for this websocket."""
-        meta = getattr(websocket, "metadata", ConnectionMetadata())
+        meta = cast(ConnectionMetadata, getattr(websocket, "metadata", ConnectionMetadata()))
         symbols = list(meta.subscriptions)
 
         for symbol in symbols:
@@ -211,7 +210,7 @@ class ConnectionManager:
         WEBSOCKET_ACTIVE_CONNECTIONS.dec()
         logger.info("ws_disconnected", client=str(websocket.client))
 
-    async def subscribe_to_symbol(self, websocket: WebSocket, symbol: str):
+    async def subscribe_to_symbol(self, websocket: WebSocket, symbol: str) -> None:
         """Subscribe a connection to a specific symbol updates."""
         symbol = symbol.upper()
         async with self._lock:
@@ -222,12 +221,12 @@ class ConnectionManager:
 
             self.active_connections[symbol].add(websocket)
 
-            meta = getattr(websocket, "metadata", ConnectionMetadata())
+            meta = cast(ConnectionMetadata, getattr(websocket, "metadata", ConnectionMetadata()))
             meta.subscriptions.add(symbol)
 
         logger.debug("ws_subscribed", symbol=symbol, client=str(websocket.client))
 
-    async def unsubscribe_from_symbol(self, websocket: WebSocket, symbol: str):
+    async def unsubscribe_from_symbol(self, websocket: WebSocket, symbol: str) -> None:
         """Unsubscribe a connection from a specific symbol."""
         symbol = symbol.upper()
         async with self._lock:
@@ -242,12 +241,12 @@ class ConnectionManager:
                         except Exception as e:
                             logger.warning("ws_unsubscribe_failed", symbol=symbol, error=str(e))
 
-            meta = getattr(websocket, "metadata", ConnectionMetadata())
+            meta = cast(ConnectionMetadata, getattr(websocket, "metadata", ConnectionMetadata()))
             meta.subscriptions.discard(symbol)
 
         logger.debug("ws_unsubscribed", symbol=symbol, client=str(websocket.client))
 
-    async def close(self):
+    async def close(self) -> None:
         """Shutdown the manager and cleanup all resources."""
         logger.info("ws_manager_shutting_down")
 
@@ -279,7 +278,7 @@ class ConnectionManager:
 
     async def broadcast_to_symbol(
         self, symbol: str, message: Any, from_redis: bool = False, is_raw: bool = False
-    ):
+    ) -> None:
         """
         Send message to all users watching a specific ticker.
         OPTIMIZED: Multi-protocol delivery with minimal serialization overhead.
@@ -295,13 +294,10 @@ class ConnectionManager:
             # Local broadcast will happen via Redis Pub/Sub listener to ensure consistency
             return
 
-        # Use local copy of connections to minimize lock contention
-        # Dict access is atomic, but we copy the set to iterate safely
         connections = self.active_connections.get(symbol)
         if not connections:
             return
         
-        # Copy outside of any potential lock if we used one, but here we just list() it
         targets = list(connections)
         if not targets:
             return
@@ -309,13 +305,13 @@ class ConnectionManager:
         #  HIGH-PERFORMANCE: Group by protocol to avoid redundant encoding
         by_protocol: dict[ProtocolType, list[WebSocket]] = {}
         for conn in targets:
-            proto = getattr(conn, "metadata", ConnectionMetadata()).protocol
+            meta = cast(ConnectionMetadata, getattr(conn, "metadata", ConnectionMetadata()))
+            proto = meta.protocol
             if proto not in by_protocol:
                 by_protocol[proto] = []
             by_protocol[proto].append(conn)
 
         tasks = []
-        # Pre-decoded data if raw bytes received from Redis
         decoded_data = None
         
         for proto, conns in by_protocol.items():

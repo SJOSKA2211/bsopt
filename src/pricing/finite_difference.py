@@ -58,7 +58,7 @@ class CrankNicolsonSolver(PricingStrategy):
         # Grids
         self.s_grid = np.linspace(self.s_min, self.s_max, self.n_spots + 1)
 
-    def price(self, params: BSParameters, option_type: str = "call") -> float:
+    def price_european(self, params: BSParameters, option_type: str = "call") -> float:
         """Implementation of PricingStrategy interface."""
         self._setup_grid(params)
         self.option_type = option_type.lower()
@@ -151,7 +151,7 @@ class CrankNicolsonSolver(PricingStrategy):
         )
 
         vega = (
-            (self.price(params_up, self.option_type) - self.price(params_down, self.option_type))
+            (self.price_european(params_up, self.option_type) - self.price_european(params_down, self.option_type))
             / (2 * eps_vol)
             * 0.01
         )
@@ -167,7 +167,7 @@ class CrankNicolsonSolver(PricingStrategy):
                 self.rate,
                 self.dividend,
             )
-            theta = self.price(params_t, self.option_type) - self.price(
+            theta = self.price_european(params_t, self.option_type) - self.price_european(
                 BSParameters(
                     self.spot,
                     self.strike,
@@ -202,8 +202,8 @@ class CrankNicolsonSolver(PricingStrategy):
 
         rho = (
             (
-                self.price(params_r_up, self.option_type)
-                - self.price(params_r_down, self.option_type)
+                self.price_european(params_r_up, self.option_type)
+                - self.price_european(params_r_down, self.option_type)
             )
             / (2 * eps_rate)
             * 0.01
