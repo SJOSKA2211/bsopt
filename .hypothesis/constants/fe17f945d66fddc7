@@ -1,0 +1,4 @@
+# file: /app/src/database/__init__.py
+# hypothesis_version: 6.151.9
+
+[500, 1000, '&', '10', '5', '60', '600000', '?', 'SELECT 1', 'SHOW server_version', 'T', 'after_cursor_execute', 'application_name', 'command_timeout', 'error', 'healthy', 'max_overflow', 'pgbouncer', 'pool_pre_ping', 'pool_recycle', 'pool_size', 'pool_timeout', 'postgresql', 'postgresql://', 'psycopg', 'psycopg2', 'query_start_time', 'server_settings', 'slow_query_detected', 'sqlite', 'sqlite+aiosqlite://', 'sqlite://', 'ssl', 'sslmode', 'sslmode=', 'statement_timeout', 'status', 'tcp_keepalives_count', 'tcp_keepalives_idle', 'test', 'unhealthy', 'user_id', 'version']

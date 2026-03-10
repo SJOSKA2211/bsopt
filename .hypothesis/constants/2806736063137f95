@@ -1,0 +1,4 @@
+# file: /app/src/streaming/graphql/schema.py
+# hypothesis_version: 6.151.9
+
+[0.001, 0.5, 1.0, 14.8, 15.0, 15.2, 155.0, 100, 500, 1000, 10000, 50000, 1500000, 'id', 'market', 'mesh', 'mesh_listener_error']

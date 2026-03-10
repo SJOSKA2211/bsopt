@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/offline_train.py
+# hypothesis_version: 6.151.9
+
+[1e-08, 0.0001, 0.0003, 0.005, 0.01, 0.1, 0.7, 3.0, 100.0, 100, 128, '--batch_size', '--beta', '--dataset', '--epochs', '--study_name', '--tau', '--tracking_uri', '.parquet', 'AMP', 'DT-v2', 'DT_v2_IQL_God_Mode', '__main__', 'actions', 'batch_size', 'bias', 'compile', 'cpu', 'cuda', 'epoch_completed', 'epochs', 'grad_avg_mean', 'grad_max_mean', 'iql_beta', 'iql_tau', 'loss', 'lr', 'model', 'offline_dt_v1', 'precision', 'rb', 'records', 'rtg', 'snappy', 'states', 'timesteps', 'torch_compile_failed']

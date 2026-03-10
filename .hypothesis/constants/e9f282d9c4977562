@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/debug.py
+# hypothesis_version: 6.151.9
+
+[500, 1024, '/database/health', '/debug', 'Debug & Diagnostics', 'admin', 'count', 'description', 'file', 'line', 'model', 'size_kb', 'traceback']

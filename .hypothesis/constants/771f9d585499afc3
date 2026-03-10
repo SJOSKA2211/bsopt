@@ -1,0 +1,4 @@
+# file: /app/src/shared/security.py
+# hypothesis_version: 6.151.9
+
+[2.0, 200, 'SUCCESS', 'TESTING', 'X-SSL-Client-S-DN', 'X-SSL-Client-Verify', '__main__', 'action', 'anonymous', 'guest', 'id', 'input', 'market_data', 'mtls_dn_mismatch', 'mtls_verified', 'opa_error', 'opa_wasm_load_failed', 'opa_wasm_loaded', 'policies/authz.wasm', 'prod', 'rb', 'read', 'redis_not_available', 'resource', 'result', 'role', 'security_opa', 'trader', 'true', 'user', 'user123', 'user_id', 'user_tier']

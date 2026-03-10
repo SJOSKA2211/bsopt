@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/auth.py
+# hypothesis_version: 6.151.9
+
+[400, 500, '/auth', '/login', '/logout', '/me', '/mfa/setup', '/mfa/verify', '/password/change', '/password/reset', '/register', 'Authentication', 'Authorization', 'Bearer ', 'Invalid MFA code', 'MFA not initialized', 'Registration failure', 'Weak new password', 'Weak password', 'X-API-Status', 'already registered', 'auth-service', 'deprecated', 'email', 'name', 'password', 'password_reset.html', 'reset_link', 'verification_link']

@@ -1,0 +1,4 @@
+# file: /app/src/services/ml_service.py
+# hypothesis_version: 6.151.9
+
+[0.0, 1e-06, 0.01, 0.1, 0.25, 0.5, 0.7071067811865476, 0.9, 1.0, 2.718281828459045, 1000, 5000, 10000, 'UNKNOWN', 'xgb']

@@ -1,0 +1,4 @@
+# file: /app/src/ml/data_loader.py
+# hypothesis_version: 6.151.9
+
+[0.1, 10000, 50000, '.csv', '.parquet', 'EMA_20', 'MACD', 'RSI_14', 'close', 'high', 'log_return', 'low', 'open', 'outlier_detected', 'price', 'scraper_synthetic', 'source_type', 'symbol', 'timestamp', 'volume']

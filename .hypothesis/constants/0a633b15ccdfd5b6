@@ -1,0 +1,4 @@
+# file: /app/src/ml/forecasting/tft_model.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.0001, 0.03, 0.1, 0.5, 100, 128, 512, 500000, '--batch_size', '--epochs', '--hidden_size', '--study_name', '--ticker', '--tracking_uri', 'AAPL', '__main__', 'auto', 'batch_size', 'close', 'compile', 'decoder_variables', 'dropout', 'encoder_variables', 'error', 'group_ids', 'hidden_size', 'input_chunk_length', 'max_encoder_length', 'max_epochs', 'message', 'min', 'num_attention_heads', 'output_chunk_length', 'price', 'quantization_failed', 'raw', 'softplus', 'static_variables', 'status', 'step', 'study_name', 'symbol', 'tft_async', 'tft_challenger', 'tft_model_compiled', 'tft_v1', 'ticker', 'time_idx', 'train_loader', 'val_loader', 'val_loss']

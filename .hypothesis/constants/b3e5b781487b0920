@@ -1,0 +1,4 @@
+# file: /app/src/portfolio/main.py
+# hypothesis_version: 6.151.9
+
+[500, '/graphql', '/health', 'database', 'healthy', 'http', 'message', 'persistence_failure', 'portfolio', 'read', 'status', 'type']

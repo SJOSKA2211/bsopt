@@ -1,0 +1,4 @@
+# file: /app/src/ml/autonomous_pipeline.py
+# hypothesis_version: 6.151.9
+
+['EMA_20', 'RSI_14', 'drift_detected', 'error', 'log_return', 'message', 'status', 'success']

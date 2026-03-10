@@ -1,0 +1,4 @@
+# file: /app/src/cli/portfolio.py
+# hypothesis_version: 6.151.9
+
+[0.0, 100, '.bsopt', 'current_price', 'current_value', 'delta', 'entry_value', 'gamma', 'greeks', 'pnl', 'pnl_percent', 'portfolio.json', 'rb', 'rho', 'theta', 'total_current_value', 'total_entry_value', 'total_pnl', 'total_pnl_percent', 'vega', 'wb']

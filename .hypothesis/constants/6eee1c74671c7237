@@ -1,0 +1,4 @@
+# file: /app/src/shared/shm_manager.py
+# hypothesis_version: 6.151.9
+
+[0.05, 1024, 'I', 'SHM not initialized.', 'T', 'shm_already_exists', 'shm_created', 'shm_destroyed']

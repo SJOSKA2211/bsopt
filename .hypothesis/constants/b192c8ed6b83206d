@@ -1,0 +1,4 @@
+# file: /app/src/aiops/prometheus_adapter.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.05, '1h', '1m', 'api', 'cpu_usage', 'fetch_5xx_failed', 'fetch_p95_failed', 'h', 'm', 'price', 's', 'symbol', 'time_idx', 'timestamp', 'value']

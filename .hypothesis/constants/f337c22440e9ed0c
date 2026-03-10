@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipelines/retraining.py
+# hypothesis_version: 6.151.9
+
+[100, 'AAPL', 'data drift', 'framework', 'is_drift_detected', 'message', 'status', 'success', 'ticker', 'xgboost']

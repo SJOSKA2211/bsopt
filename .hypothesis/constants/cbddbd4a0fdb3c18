@@ -1,0 +1,4 @@
+# file: /app/src/api/schemas/auth.py
+# hypothesis_version: 6.151.9
+
+[255, '-', '123456', '; ', 'Confirm new password', 'Current password', 'John Doe', 'MFA code if enabled', 'New password', 'SecurePassword123!', 'User email address', 'User password', "User's full name", '[A-Z]', '[a-z]', '\\d', 'abc123def456', 'accept_terms', 'bearer', 'code', 'email', 'example', 'full_name', 'new_password', 'new_password_confirm', 'newuser@example.com', 'password', 'password_confirm', 'refresh_token', 'remember_me', 'token', 'user@example.com']

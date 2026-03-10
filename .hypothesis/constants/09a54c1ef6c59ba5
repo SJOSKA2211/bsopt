@@ -1,0 +1,4 @@
+# file: /app/src/ml/training/train_v2.py
+# hypothesis_version: 6.151.9
+
+[100, './outputs', './outputs/model.pt']

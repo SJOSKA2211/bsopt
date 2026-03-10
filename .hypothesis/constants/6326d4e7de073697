@@ -1,0 +1,4 @@
+# file: /app/src/ml/feature_store/features.py
+# hypothesis_version: 6.151.9
+
+['MACD', 'close', 'log_return']

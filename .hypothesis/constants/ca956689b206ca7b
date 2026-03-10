@@ -1,0 +1,4 @@
+# file: /app/src/ml/sentiment_pipeline.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, '--batch_size', '--broker', '--topic', 'GLOBAL', '__main__', 'auto.offset.reset', 'bootstrap.servers', 'earliest', 'group.id', 'kafka-1:9092', 'localhost:9092', 'model.signals', 'scraper.news', 'sentiment', 'sentiment-ingestor', 'sentiment_extracted', 'symbol', 'text', 'timestamp', 'utf-8']

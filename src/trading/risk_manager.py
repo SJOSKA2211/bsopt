@@ -1,3 +1,5 @@
+from typing import Any
+
 import structlog
 
 from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
@@ -11,7 +13,7 @@ class RiskManager:
     Provides a unified interface for sub-microsecond local checks and atomic distributed sync.
     """
 
-    def __init__(self, redis_client, risk_shm):
+    def __init__(self, redis_client: Any, risk_shm: Any) -> None:
         self.redis = redis_client
         self.risk_shm = risk_shm
         self.kill_switch_key = "risk:kill_switch"
@@ -19,7 +21,7 @@ class RiskManager:
         self.matrix_key = "risk:state:matrix"
 
     async def global_risk_sync(
-        self, d_delta: float, d_gamma: float, d_vega: float, limits: dict
+        self, d_delta: float, d_gamma: float, d_vega: float, limits: dict[str, float]
     ) -> tuple[bool, str]:
         """
         Atomic global sync via Redis LUA.
@@ -70,7 +72,7 @@ class RiskManager:
             logger.error("global_risk_sync_failed", error=str(e))
             return False, "SYNC_ERROR"
 
-    async def set_kill_switch(self, active: bool):
+    async def set_kill_switch(self, active: bool) -> None:
         """Emergency trigger to stop all trading."""
         await self.redis.set(self.kill_switch_key, "1" if active else "0")
         logger.warning("risk_kill_switch_updated", active=active)

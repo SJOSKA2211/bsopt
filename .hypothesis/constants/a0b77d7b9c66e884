@@ -1,0 +1,4 @@
+# file: /app/src/services/pricing_service.py
+# hypothesis_version: 6.151.9
+
+[0.0, 400, 500, 1000, 'black_scholes', 'group_pricing_failed', 'option_priced', 'pricing_failed']

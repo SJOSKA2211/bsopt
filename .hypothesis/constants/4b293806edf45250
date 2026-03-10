@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipeline.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.05, 0.2, 0.5, 1.0, 365.0, 1000, 3600, 10000, 'AAPL', 'close', 'count', 'data/training', 'data_pipeline_start', 'data_pipeline_status', 'data_source', 'database', 'dividend', 'duration_seconds', 'expiry', 'implied_volatility', 'iv', 'iv_lag1', 'iv_ma20', 'iv_ma5', 'last', 'maturity', 'price_lag1', 'price_ma20', 'price_ma5', 'rate', 'ready', 'rsi_14', 'samples_available', 'sma_20', 'status', 'strike', 'symbols', 'synthetic', 'time', 'timestamp']

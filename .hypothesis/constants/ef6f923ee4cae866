@@ -1,0 +1,4 @@
+# file: /app/src/data/router.py
+# hypothesis_version: 6.151.9
+
+[0.05, 0.1, 0.2, 0.5, 2.0, '-', '.NR', 'AUTO', 'NSE', 'Polygon', 'USD', 'USDT', 'Yahoo', 'error', 'market', 'market_search_failed', 'target', 'yahoo_search']

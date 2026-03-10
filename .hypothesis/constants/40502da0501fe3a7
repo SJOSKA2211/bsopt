@@ -1,0 +1,4 @@
+# file: /app/src/utils/ray_pool.py
+# hypothesis_version: 6.151.9
+
+['CPU', 'T', 'default', 'to_async']

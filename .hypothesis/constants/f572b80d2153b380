@@ -1,0 +1,4 @@
+# file: /app/src/cli/config.py
+# hypothesis_version: 6.151.9
+
+['.', '.bsopt', 'api', 'base_url', 'bs', 'color', 'config.json', 'default_method', 'format', 'output', 'pricing', 'rb', 'table', 'user', 'wb']

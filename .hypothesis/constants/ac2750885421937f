@@ -1,0 +1,4 @@
+# file: /app/src/ml/strategies.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.001, 0.5, 100, '.int8.onnx', '.onnx', 'batch_size', 'cpu', 'cuda', 'dask_address', 'dask_xgboost', 'dist_init_failed', 'env://', 'epochs', 'eval', 'framework', 'gloo', 'lr', 'n_estimators', 'nccl', 'pytorch', 'sklearn', 'train', 'weight', 'xgboost']

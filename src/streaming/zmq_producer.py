@@ -17,7 +17,7 @@ class ZMQMarketDataProducer(Producer):
     Complements Kafka by providing a sub-millisecond bypass for critical paths.
     """
 
-    def __init__(self, endpoint: str = "tcp://*:5555"):
+    def __init__(self, endpoint: str = "tcp://*:5555") -> None:
         self.context = zmq.asyncio.Context()
         self.socket = self.context.socket(zmq.PUSH)
 
@@ -32,7 +32,7 @@ class ZMQMarketDataProducer(Producer):
             logger.error("zmq_bind_failed", endpoint=endpoint, error=str(e))
             raise
 
-    async def produce(self, data: dict[str, Any], **kwargs):
+    async def produce(self, data: dict[str, Any], **kwargs: Any) -> None:
         """
         Send market data via ZeroMQ with ZERO-COPY optimization.
         """
@@ -46,10 +46,10 @@ class ZMQMarketDataProducer(Producer):
         except Exception as e:
             logger.error("zmq_send_error", error=str(e))
 
-    def flush(self):
+    def flush(self) -> None:
         """ZMQ is async/fire-and-forget, no explicit flush needed for PUSH."""
         pass
 
-    def close(self):
+    def close(self) -> None:
         self.socket.close()
         self.context.term()

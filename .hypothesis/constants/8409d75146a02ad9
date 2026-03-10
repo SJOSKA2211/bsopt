@@ -1,0 +1,4 @@
+# file: /app/src/tasks/ml_tasks.py
+# hypothesis_version: 6.151.9
+
+['-P', 'AAPL', 'ModelQuantizer', 'TSLA', 'bash', 'best_params', 'calc_metrics', 'celery_task_failed', 'celery_task_started', 'completed', 'error', 'failed', 'framework', 'metrics', 'ml', 'mlflow', 'model_promoted', 'n_trials=10', 'optimized_path', 'pandas', 'pd', 'promoted', 'status', 'success', 'target', 'task_id', 'ticker', 'train_regressor', 'training_error', 'training_model_start', 'xgboost']

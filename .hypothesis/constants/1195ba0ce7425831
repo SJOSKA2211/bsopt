@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/options.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.25, 0.4, 0.43, 0.45, 0.5, 1.0, 1.1, 1.2, 110.0, 115.0, 120.0, 125.0, 130.0, 100, '/chain', '/options', 'AAPL', 'Expiry bucket filter', 'Options', 'Underlying symbol', 'all', 'ask', 'bid', 'call', 'delta', 'expiry', 'id', 'iv', 'last', 'month', 'option_type', 'quarter', 'strike', 'volume', 'week']

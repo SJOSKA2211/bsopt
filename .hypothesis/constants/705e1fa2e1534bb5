@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipeline.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.05, 0.2, 0.5, 1.0, 365.0, 1000, 3600, 10000, '--framework', '--n_trials', '--study_name', '--ticker', '--tracking_uri', 'AAPL', 'EMA_20', 'MACD', 'Production', 'RSI_14', '__main__', 'autonomous_pipeline', 'count', 'data/training', 'data_pipeline_start', 'data_pipeline_status', 'data_source', 'database', 'dividend', 'duration_seconds', 'expiry', 'framework', 'implied_volatility', 'iv', 'iv_lag1', 'iv_ma20', 'iv_ma5', 'last', 'log_return', 'maturity', 'n_trials', 'price_lag1', 'price_ma20', 'price_ma5', 'rate', 'ready', 'regressor_v1', 'samples_available', 'status', 'strike', 'study_name', 'symbols', 'synthetic', 'synthetic_numba', 'ticker', 'time', 'timestamp', 'tracking_uri', 'xgboost']

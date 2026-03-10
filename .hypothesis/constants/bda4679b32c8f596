@@ -1,0 +1,4 @@
+# file: /app/src/aiops/drift_detector.py
+# hypothesis_version: 6.151.9
+
+[0.05, 0.2, '--ticker', '--tracking_uri', 'AAPL', 'KS_DRIFT', 'PSI_DRIFT', 'Run Drift Detection', '__main__', 'close', 'drift_detected', 'feature', 'ks_p_value', 'mmd', 'psi', 'reasons', 'symbol', 'ticker', 'timestamp']

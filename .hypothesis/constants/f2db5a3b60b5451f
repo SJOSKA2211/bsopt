@@ -1,0 +1,4 @@
+# file: /app/src/tasks/pricing_tasks.py
+# hypothesis_version: 6.151.9
+
+[0.0, 1000, 'alpha', 'batch_pricing_failed', 'batch_pricing_start', 'beta', 'black_scholes', 'cache_hit', 'cache_lookup_failed', 'cache_set_failed', 'calibrated_slices', 'call', 'completed', 'computation_time_ms', 'computing_fresh', 'count', 'delta', 'dividend', 'gamma', 'implied_vol', 'math_v2', 'maturities', 'maturity', 'nu', 'option_type', 'price', 'prices', 'pricing', 'pricing_error', 'pricing_option_start', 'put', 'rate', 'results', 'rho', 'spot', 'status', 'strike', 'strikes', 'task_id', 'theta', 'timestamp', 'vectorized', 'vega', 'volatility']

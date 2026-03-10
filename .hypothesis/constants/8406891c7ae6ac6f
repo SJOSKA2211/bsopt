@@ -1,0 +1,4 @@
+# file: /app/src/workers/ray_workers.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.05, 0.2, 1.0, 5.0, 100.0, 500, 1000, '__main__', 'black_scholes', 'call', 'error', 'failed', 'kappa', 'math_actor_ready', 'metrics', 'params', 'rho', 'sigma', 'status', 'success', 'symbol', 'theta', 'v0', 'vectorized_bs+heston', 'webhook_actor_ready']

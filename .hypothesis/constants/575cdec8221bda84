@@ -1,0 +1,4 @@
+# file: /app/src/pricing/lattice.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.0001, 0.001, 0.01, 0.5, 1.0, 365.0, 100, 'american', 'binomial_errors', 'call', 'european', 'put', 'trinomial_errors']

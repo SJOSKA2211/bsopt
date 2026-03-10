@@ -1,0 +1,4 @@
+# file: /app/src/api/main.py
+# hypothesis_version: 6.151.9
+
+[0.5, 401, 422, 500, 1000, '/', '/admin-only', '/api/v1', '/api/v1/health', '/graphql', '/health', '/metrics', 'Accept', 'Authorization', 'Bearer ', 'Content-Type', 'DELETE', 'GET', 'InternalServerError', 'Not authenticated', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TESTING', 'Welcome, Admin', 'X-API-Key', 'X-CSRF-Token', 'X-Request-ID', 'admin', 'api', 'api_error', 'api_error_detailed', 'body', 'database', 'detail', 'details', 'error', 'error_code', 'headers', 'healthy', 'http', 'http_error', 'message', 'prod', 'production', 'request', 'status', 'status_code', 'successful_imports', 'true']

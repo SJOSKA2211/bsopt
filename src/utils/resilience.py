@@ -7,10 +7,13 @@ import asyncio
 import functools
 import random
 from collections.abc import Callable
+from typing import Any, TypeVar
 
 import structlog
 
 logger = structlog.get_logger(__name__)
+
+T = TypeVar("T")
 
 
 def retry_with_backoff(
@@ -19,15 +22,15 @@ def retry_with_backoff(
     backoff_factor: float = 2.0,
     jitter: bool = True,
     exceptions: type[Exception] | tuple[type[Exception], ...] = (Exception,),
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Standardized retry decorator with exponential backoff and jitter.
     """
 
-    def decorator(func: Callable):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            last_exception = None
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
+            last_exception: Exception | None = None
 
             for attempt in range(retries + 1):
                 try:
@@ -57,7 +60,9 @@ def retry_with_backoff(
                 attempts=retries + 1,
                 error=str(last_exception),
             )
-            raise last_exception
+            if last_exception:
+                raise last_exception
+            raise RuntimeError("Retry failed without exception")
 
         return wrapper
 

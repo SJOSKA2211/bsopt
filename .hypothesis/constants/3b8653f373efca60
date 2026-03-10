@@ -1,0 +1,4 @@
+# file: /app/src/ml/pipelines/retraining.py
+# hypothesis_version: 6.151.9
+
+[100, 'data drift', 'is_drift_detected', 'model_path', 'status', 'success']

@@ -1,0 +1,4 @@
+# file: /app/src/ml/federated_learning/coordinator.py
+# hypothesis_version: 6.151.9
+
+['--address', '--rounds', '--strategy', '--study_name', '--tracking_uri', '0.0.0.0:8080', 'FedAvg', '__main__', 'address', 'federated_v1', 'fl_server_stopped', 'rounds', 'starting_fl_server', 'strategy', 'unknown_strategy']

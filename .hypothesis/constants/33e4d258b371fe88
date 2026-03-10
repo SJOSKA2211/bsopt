@@ -1,0 +1,4 @@
+# file: /app/src/utils/filesystem.py
+# hypothesis_version: 6.151.9
+
+['..', '/']

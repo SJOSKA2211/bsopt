@@ -1,0 +1,4 @@
+# file: /app/src/aiops/ml_pipeline_trigger.py
+# hypothesis_version: 6.151.9
+
+['failure', 'framework', 'ml_pipeline_trigger', 'success', 'ticker']

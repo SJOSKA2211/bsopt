@@ -1,0 +1,4 @@
+# file: /app/src/ml/distributed_training.py
+# hypothesis_version: 6.151.9
+
+[0.0001, 0.01, 0.1, 1.0, 128, 1000, '--batch_size', '--dataset', '--epochs', '--lr', '--study_name', '--tracking_uri', '--use_gpu', '--workers', '.parquet', 'CPU', 'GPU', 'MLFLOW_TRACKING_URI', '__main__', 'action_dim', 'actions', 'batch_size', 'dataset_path', 'dist_loss', 'distributed_dt_v1', 'epoch', 'epochs', 'grad_norm', 'loss', 'lr', 'max_ep_len', 'max_length', 'ray_train_missing', 'rb', 'rtg', 'state_dim', 'states', 'store_true', 'study_name', 'timesteps', 'torch_compile_failed', 'true', 'use_amp', 'use_compile', 'weight']

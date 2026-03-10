@@ -1,0 +1,4 @@
+# file: /app/src/shared/shm_mesh.py
+# hypothesis_version: 6.151.9
+
+[0.0, 1000, 100000, '\x00', 'ENVIRONMENT', 'S8', 'ascii', 'current_delta', 'current_gamma', 'current_vega', 'data_view', 'delta', 'exec_ts_ns', 'f8', 'fill_price', 'fill_qty', 'gamma', 'i4', 'i8', 'last_sync_ts_ns', 'margin_usage', 'max_delta', 'max_gamma', 'max_vega', 'order_command_buffer', 'order_id', 'price', 'prod', 'q', 'quantity', 'receive_ts_ns', 'risk_state_buffer', 'side', 'status', 'submit_ts_ns', 'symbol', 'timestamp', 'vega', 'volume']

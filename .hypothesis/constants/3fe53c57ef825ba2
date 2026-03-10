@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/websocket.py
+# hypothesis_version: 6.151.9
+
+[1008, '/ws/market-data', 'action', 'heartbeat', 'ok', 'request_id', 'status', 'subscribe', 'symbol', 'type', 'unsubscribe', 'ws-', 'ws_audit_subscribe', 'ws_audit_unsubscribe', 'ws_route_error']

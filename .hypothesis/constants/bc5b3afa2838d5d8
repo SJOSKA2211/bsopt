@@ -1,0 +1,4 @@
+# file: /app/src/ml/architectures/neural_network.py
+# hypothesis_version: 6.151.9
+
+[0.1, 0.2, 128, 'batch_size', 'compile', 'fan_out', 'fbgemm', 'input', 'output', 'reduce-overhead', 'relu', 'weight']

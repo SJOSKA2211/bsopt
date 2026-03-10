@@ -1,0 +1,4 @@
+# file: /app/src/security/rate_limit.py
+# hypothesis_version: 6.151.9
+
+[100, 1000, '0', '60', 'Retry-After', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'free', 'rate_limit_exceeded', 'tier', 'unknown', 'user']

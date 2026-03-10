@@ -1,0 +1,4 @@
+# file: /app/src/ml/trainer.py
+# hypothesis_version: 6.151.9
+
+['final_model', 'fold', 'framework', 'mae', 'maximize', 'r2', 'rmse', 'xgboost']

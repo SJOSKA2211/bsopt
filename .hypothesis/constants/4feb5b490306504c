@@ -1,0 +1,4 @@
+# file: /app/src/api/providers/market_data.py
+# hypothesis_version: 6.151.9
+
+[0.0, 150.0, 200, 'DEMO_KEY', 'Polygon', 'Polygon (Mock)', 'Yahoo', 'Yahoo lookup failed', 'chart', 'chartPreviousClose', 'currency', 'error', 'exchange', 'exchangeName', 'meta', 'name', 'price', 'provider', 'regularMarketPrice', 'regularMarketTime', 'result', 'symbol', 'timestamp', 'yahoo_lookup_failed', 'yahoo_provider_error']

@@ -1,0 +1,4 @@
+# file: /app/src/scrapers/engine.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.3, 0.7, 2.0, 3.0, 10.0, 300, 3600, '($^)', '([-+]?\\d*\\.?\\d+)', ',', '0.0', 'BS-Opt/2.0', 'NSE', 'Ticker not found', 'User-Agent', '__main__', 'action', 'active', 'change', 'display_prices', 'error', 'failures', 'isin', 'latency', 'market', 'name', 'nse_cache_updated', 'nse_nonce_not_found', 'nse_refresh_failed', 'price', 'proxy_deactivated', 'scraper', 'scraper_loop_error', 'scraper_loop_ok', 'sector', 'security', 'symbol', 'td', 'timestamp', 'tr', 'url', 'volume', 'w', '|']

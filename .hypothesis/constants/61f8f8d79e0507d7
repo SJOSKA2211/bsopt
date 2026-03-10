@@ -1,0 +1,4 @@
+# file: /app/src/api/schemas/user.py
+# hypothesis_version: 6.151.9
+
+[100, 255, 'UserResponse', 'forbid']

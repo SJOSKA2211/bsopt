@@ -1,0 +1,4 @@
+# file: /app/src/api/routes/portfolio.py
+# hypothesis_version: 6.151.9
+
+[0.0, 201, 404, '/', '/portfolio', '/positions', '/summary', 'Portfolio', 'balance', 'cash_balance', 'entry_price', 'id', 'message', 'name', 'open', 'positions', 'positionsCount', 'quantity', 'status', 'symbol', 'totalValue', 'total_positions', 'uid']

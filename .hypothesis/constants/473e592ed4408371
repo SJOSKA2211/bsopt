@@ -1,0 +1,4 @@
+# file: /app/src/aiops/aiops_orchestrator.py
+# hypothesis_version: 6.151.9
+
+[0.05, 0.5, '--env-manager', '--experiment-name', '-P', '-d', '-e', '.', 'aiops', 'api_service_name', 'autoencoder', 'bsopt-api', 'data_drift', 'docker-compose', 'error_rate_threshold', 'exec', 'high_error_rate', 'high_latency', 'latency_check_failed', 'latency_threshold', 'local', 'ml_pipeline_config', 'mlflow', 'mlops-worker', 'prometheus_url', 'remediation', 'run', 'train_regressor']

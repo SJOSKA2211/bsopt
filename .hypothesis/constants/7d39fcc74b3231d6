@@ -1,0 +1,4 @@
+# file: /app/src/wasm/engine.py
+# hypothesis_version: 6.151.9
+
+['black_scholes', 'fdm']

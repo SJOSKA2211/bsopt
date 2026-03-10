@@ -1,0 +1,4 @@
+# file: /app/src/pricing/monte_carlo.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.0001, 0.001, 0.01, 0.5, 1.0, 1.96, 365.0, 100, 252, 100000, 'call', 'euler', 'milstein', 'monte_carlo', 'put', 'sobol']

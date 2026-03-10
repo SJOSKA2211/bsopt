@@ -1,0 +1,4 @@
+# file: /app/src/pricing/factory.py
+# hypothesis_version: 6.151.9
+
+['black_scholes', 'heston', 'lazy_load_failed', 'monte_carlo', 'neural', 'wasm']

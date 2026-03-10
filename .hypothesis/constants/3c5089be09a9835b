@@ -1,0 +1,4 @@
+# file: /app/src/ml/utils/distributed.py
+# hypothesis_version: 6.151.9
+
+[0.6, 0.7, 0.8, 0.95, 1024, 'CPU', 'GPU', 'auto', 'available_cpus', 'bsopt', 'cpu', 'cuda', 'degraded', 'healthy', 'lz4', 'memory', 'node_count', 'not_initialized', 'object_store_gb', 'object_store_memory', 'status', 'total_cpus', 'total_gpus', 'total_memory_gb']

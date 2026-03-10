@@ -1,0 +1,4 @@
+# file: /app/src/ml/utils/inference.py
+# hypothesis_version: 6.151.9
+
+[1000, '1', 'CPUExecutionProvider', 'onnx_session_ready']

@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/trading_env.py
+# hypothesis_version: 6.151.9
+
+[1e-09, 0.0001, 0.05, 0.1, 0.5, 100.0, 100000.0, 110, 128, 'greeks', 'indicators', 'portfolio_value', 'prices', 'step', 'strikes']

@@ -1,0 +1,4 @@
+# file: /app/src/database/pipeliner.py
+# hypothesis_version: 6.151.9
+
+[1000, 10000, 'db_bulk_copy_failed', 'db_bulk_copy_success', 'db_fetch_failed', 'db_fetch_success', 'delta', 'expiry', 'gamma', 'implied_volatility', 'input_features', 'last', 'model_id', 'model_predictions', 'option_type', 'options_prices', 'predicted_price', 'strike', 'symbol', 'time', 'timestamp']

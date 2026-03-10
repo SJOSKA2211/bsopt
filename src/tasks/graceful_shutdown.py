@@ -13,15 +13,15 @@ class ShutdownManager:
     and executing registered cleanup tasks.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.cleanup_tasks: list[Callable[[], Coroutine[Any, Any, None]]] = []
         self._shutdown_event = asyncio.Event()
 
-    def register_cleanup(self, task: Callable[[], Coroutine[Any, Any, None]]):
+    def register_cleanup(self, task: Callable[[], Coroutine[Any, Any, None]]) -> None:
         """Register a coroutine function to be called during shutdown."""
         self.cleanup_tasks.append(task)
 
-    async def shutdown(self, sig=None):
+    async def shutdown(self, sig: signal.Signals | None = None) -> None:
         """Execute all cleanup tasks."""
         if sig:
             logger.info(f"Received exit signal {sig.name}...")
@@ -48,11 +48,15 @@ class ShutdownManager:
         loop = asyncio.get_event_loop()
         loop.stop()
 
-    def install_signal_handlers(self):
+    def install_signal_handlers(self) -> None:
         """Install signal handlers for SIGINT and SIGTERM."""
         loop = asyncio.get_event_loop()
+
+        def handle_signal(sig: signal.Signals) -> None:
+            asyncio.create_task(self.shutdown(sig))
+
         for sig in (signal.SIGINT, signal.SIGTERM):
-            loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(self.shutdown(s)))
+            loop.add_signal_handler(sig, handle_signal, sig)
 
 
 shutdown_manager = ShutdownManager()

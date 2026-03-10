@@ -212,7 +212,6 @@ services:
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
-    profiles: [ "ml" ]
     build:
       context: .
       dockerfile: docker/Dockerfile.api

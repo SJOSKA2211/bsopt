@@ -1,0 +1,4 @@
+# file: /app/src/api/graphql/schema.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 0.2, 0.316, 0.95, 1.0, 36.5, 149.0, 150.0, 150.2, 150.25, 150.3, 150.5, 151.0, 100, 1000, 5000, 'actual_price', 'ask', 'bid', 'cash_balance', 'confidence_interval', 'drift', 'id', 'iv', 'last_price', 'last_updated', 'model_name', 'openInterest', 'optionType', 'predicted_price', 'prediction_error', 'price', 'user_id', 'volume']

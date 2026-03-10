@@ -1,6 +1,7 @@
 import struct
 import time
 from multiprocessing import shared_memory
+from typing import Any
 
 import orjson
 
@@ -18,8 +19,11 @@ class OffHeapLogger:
     A background 'LogDrain' process is responsible for persisting these to disk/Loki.
     """
 
-    def __init__(self, create: bool = False):
+    def __init__(self, create: bool = False) -> None:
         self.shm_size = (LOG_SIZE * LOG_BUFFER_CAPACITY) + 8
+        self.shm: shared_memory.SharedMemory | None = None
+        self.buf: memoryview | None = None
+
         try:
             if create:
                 try:
@@ -31,18 +35,21 @@ class OffHeapLogger:
                 self.shm = shared_memory.SharedMemory(
                     name=SHM_LOG_NAME, create=True, size=self.shm_size
                 )
-                self.shm.buf[:8] = struct.pack("q", 0)  # Head index
+                if self.shm is not None:
+                    self.shm.buf[:8] = struct.pack("q", 0)  # Head index
             else:
                 self.shm = shared_memory.SharedMemory(name=SHM_LOG_NAME)
 
-            self.buf = self.shm.buf
+            if self.shm is not None:
+                self.buf = self.shm.buf
         except Exception:
             # Fallback to standard logging if SHM fails
             self.shm = None
+            self.buf = None
 
-    def log(self, event: str, **kwargs):
+    def log(self, event: str, **kwargs: Any) -> None:
         """Ultra-fast log write to shared memory. Aligned for atomic head update."""
-        if not self.shm:
+        if self.shm is None or self.buf is None:
             return
 
         # 1. Prepare Payload (Still serialized here, ideally offloaded to a pre-allocated pool)
@@ -61,7 +68,7 @@ class OffHeapLogger:
         # 4. Atomic Head Update (Machine-word aligned write)
         self.buf[:8] = struct.pack("q", head + 1)
 
-    def close(self):
+    def close(self) -> None:
         if self.shm:
             self.shm.close()
 

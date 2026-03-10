@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/augmented_agent.py
+# hypothesis_version: 6.151.9
+
+[-1.0, -0.8, -0.5, -0.4, -0.3, 0.0, 0.2, 0.4, 0.5, 0.8, 1.0, './logs/td3_trading/', '\\w+', 'bearish', 'beat', 'bullish', 'downgraded', 'finbert', 'loss', 'missed', 'profit', 'tft_config', 'upgraded']

@@ -1,0 +1,4 @@
+# file: /app/src/tasks/trading_tasks.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.2, 0.55, 5.0, 100.0, 'BacktestEngine', 'D', 'OrderExecutor', 'completed', 'duration', 'duration_seconds', 'error', 'failed', 'max_drawdown', 'metrics', 'net_delta', 'np', 'numpy', 'open', 'option_price', 'pandas', 'pd', 'portfolio_id', 'portfolio_net_delta', 'portfolio_net_gamma', 'portfolio_net_vega', 'reason', 'risk_check_failed', 'risk_vector_synced', 'sharpe_ratio', 'shm_sync_skipped', 'status', 'strategy', 'success', 'symbol', 'task_id', 'timestamp', 'total_return', 'trades_count', 'trading', 'tx_hash', 'underlying_price', 'validate_delta', 'validate_risk', 'win_rate', 'within_limits']

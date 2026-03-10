@@ -1,0 +1,4 @@
+# file: /app/src/api/websockets/manager.py
+# hypothesis_version: 6.151.9
+
+[0.001, 0.01, 0.05, 1001, 1024, '1', 'Heartbeat timeout', 'Server shutting down', 'USE_SHM', 'channel', 'data', 'market_mesh', 'message', 'metadata', 'type', 'utf-8', 'ws_connected', 'ws_disconnected', 'ws_encode_error', 'ws_heartbeat_timeout', 'ws_send_failed', 'ws_subscribed', 'ws_unsubscribed']

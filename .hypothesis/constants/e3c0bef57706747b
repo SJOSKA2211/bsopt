@@ -1,0 +1,4 @@
+# file: /app/src/aiops/ml_pipeline_trigger.py
+# hypothesis_version: 6.151.9
+
+['--env-manager', '--experiment-name', '-P', '-d', '-e', '.', 'compose', 'docker', 'exec', 'failure', 'framework', 'local', 'ml_pipeline_trigger', 'mlflow', 'mlops-worker', 'run', 'success', 'ticker', 'train_regressor']

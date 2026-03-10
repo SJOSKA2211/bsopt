@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import atexit
 import threading
 from multiprocessing import shared_memory
+from typing import Any
 
 import structlog
 
@@ -13,10 +16,10 @@ class SharedMemoryManager:
     zero-allocation communication between processes.
     """
 
-    _instance = None
+    _instance: SharedMemoryManager | None = None
     _lock = threading.Lock()
 
-    def __init__(self, segment_size: int = 20 * 1024 * 1024, num_segments: int = 10):
+    def __init__(self, segment_size: int = 20 * 1024 * 1024, num_segments: int = 10) -> None:
         self.segment_size = segment_size
         self.num_segments = num_segments
         self.available_segments: list[str] = []
@@ -26,13 +29,13 @@ class SharedMemoryManager:
         self._initialize_pool()
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls) -> SharedMemoryManager:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = cls()
         return cls._instance
 
-    def _initialize_pool(self):
+    def _initialize_pool(self) -> None:
         for i in range(self.num_segments):
             name = f"bsopt_shm_pool_{i}"
             try:
@@ -68,7 +71,7 @@ class SharedMemoryManager:
             logger.warning("shm_pool_exhausted")
             return None
 
-    def release(self, name: str):
+    def release(self, name: str) -> None:
         """Releases a segment back to the pool."""
         with self._pool_lock:
             if name in self.all_segments and name not in self.available_segments:
@@ -81,7 +84,7 @@ class SharedMemoryManager:
     def get_segment(self, name: str) -> shared_memory.SharedMemory | None:
         return self.all_segments.get(name)
 
-    def cleanup(self, unlink: bool = False):
+    def cleanup(self, unlink: bool = False) -> None:
         """Close segment handles and optionally unlink (dangerous in multi-process)."""
         with self._pool_lock:
             for shm in self.all_segments.values():

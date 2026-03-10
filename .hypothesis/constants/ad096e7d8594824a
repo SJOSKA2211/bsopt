@@ -1,0 +1,4 @@
+# file: /app/src/ml/serving/serve.py
+# hypothesis_version: 6.151.9
+
+[0.25, 400, 500, 503, 1000, '/health', '/metrics', '/ml/reload', '/predict', '/predict/batch', '1.0.0', 'BSOPT ML Serving', 'InternalServerError', 'NN_MODEL_PATH', 'X-Request-ID', 'XGB_INT8_MODEL_PATH', 'XGB_MODEL_URI', 'XGB_ONNX_MODEL_PATH', '__main__', 'current_model', 'days_to_expiry', 'details', 'error', 'grpc_servicer', 'healthy', 'http', 'implied_volatility', 'is_call', 'log_moneyness', 'message', 'ml_inference', 'ml_model_load_status', 'ml_predictions_total', 'model_type', 'models', 'moneyness', 'nn', 'nn_ort_session', 'reloaded', 'request_id', 'sqrt_time_to_expiry', 'startup', 'status', 'strike', 'success', 'time_to_expiry', 'timestamp', 'underlying_price', 'unknown', 'xgb', 'xgb_int8', 'xgb_model', 'xgb_onnx', 'xgb_ort_session']

@@ -7,7 +7,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def set_thread_affinity(core_id: int):
+def set_thread_affinity(core_id: int) -> None:
     """
     Pins the current thread/process to a specific CPU core.
     OPTIMIZED: Checks core availability before pinning.
@@ -31,7 +31,7 @@ def set_thread_affinity(core_id: int):
         logger.error("affinity_setting_failed", error=str(e), core=core_id)
 
 
-def tune_gc(mode: str = "high_frequency"):
+def tune_gc(mode: str = "high_frequency") -> None:
     """
     OPTIMIZED: Tune Python GC for specific workloads.
     'high_frequency' mode reduces stop-the-world latency by increasing thresholds.
@@ -48,7 +48,7 @@ def tune_gc(mode: str = "high_frequency"):
         gc.set_debug(gc.DEBUG_STATS)
 
 
-def set_process_priority(priority: int = -10):
+def set_process_priority(priority: int = -10) -> None:
     """
     Sets the OS-level process priority (niceness).
     -10 is higher priority, 0 is standard.
@@ -66,4 +66,4 @@ def get_memory_usage_mb() -> float:
     import psutil
 
     process = psutil.Process()
-    return process.memory_info().rss / (1024 * 1024)
+    return float(process.memory_info().rss / (1024 * 1024))

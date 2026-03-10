@@ -1,0 +1,4 @@
+# file: /app/src/ml/registry/promote.py
+# hypothesis_version: 6.151.9
+
+[200, '--model', '--run_id', '--stage', 'Production', '__main__', 'model_name', 'model_promoted', 'version']

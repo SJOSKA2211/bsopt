@@ -1,0 +1,4 @@
+# file: /app/src/ml/reinforcement_learning/decision_transformer.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 1.0, 256, 1000, 1024, 2048, 10000, 'cos_cached', 'i,j->ij', 'inv_freq', 'sin_cached']
