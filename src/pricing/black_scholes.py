@@ -66,6 +66,7 @@ class BlackScholesEngine:
         dividend: float | np.ndarray = 0.0,
         option_type: str | np.ndarray = "call",
         params: Any | None = None,
+        **kwargs,
     ) -> float | np.ndarray:
         """
         Calculate European option prices using Black-Scholes formula (JIT Accelerated).
@@ -126,6 +127,12 @@ class BlackScholesEngine:
                 logger.warning("rust_core_pricing_failed_falling_back", error=str(e))
 
         # The shared math utility handles broadcasting and returns either scalar or array
+        if kwargs.get("out") is not None:
+            from src.pricing.quant_utils import batch_bs_price_jit_v2_out
+
+            batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call, kwargs["out"])
+            return kwargs["out"]
+
         return calculate_price(S, K, T, sigma, r, q, is_call)
 
     @staticmethod
@@ -138,6 +145,7 @@ class BlackScholesEngine:
         dividend: float | np.ndarray = 0.0,
         option_type: str | np.ndarray = "call",
         params: Any | None = None,
+        **kwargs,
     ) -> OptionGreeks:
         """
         Calculate Greeks for European options (Accelerated).
@@ -207,9 +215,35 @@ class BlackScholesEngine:
             except Exception as e:
                 logger.warning("rust_core_greeks_failed_falling_back", error=str(e))
 
+        if "out_delta" in kwargs:
+            from src.pricing.quant_utils import batch_greeks_jit_v2_out
+
+            batch_greeks_jit_v2_out(
+                S,
+                K,
+                T,
+                sigma,
+                r,
+                q,
+                is_call,
+                kwargs["out_delta"],
+                kwargs["out_gamma"],
+                kwargs["out_theta"],
+                kwargs["out_vega"],
+                kwargs["out_rho"],
+            )
+            return OptionGreeks(
+                delta=kwargs["out_delta"],
+                gamma=kwargs["out_gamma"],
+                theta=kwargs["out_theta"],
+                vega=kwargs["out_vega"],
+                rho=kwargs["out_rho"],
+            )
+
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
+
 
     @staticmethod
     def price_call(params: BSParameters) -> float:

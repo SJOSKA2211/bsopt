@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bsopt_secret}
     ports:
       - "5433:5432"
     networks:
@@ -23,9 +23,10 @@ services:
     ports:
       - "3002:3001"
     environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres-sync:5432/bsopt
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-bsopt_secret}@postgres-sync:5432/bsopt
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-secret}
       - BETTER_AUTH_URL=http://localhost:3002
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis-sync:6379/0
     volumes:
       - ./src/auth-service:/app
       - /app/node_modules
@@ -33,13 +34,14 @@ services:
       - sync-network
     depends_on:
       - postgres-sync
+      - redis-sync
 
   api-sync:
     image: bsopt-api-dev
     ports:
       - "8002:8000"
     environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres-sync:5432/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-bsopt_secret}@postgres-sync:5432/bsopt
       - REDIS_HOST=redis-sync
       - REDIS_PORT=6379
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis-sync:6379/0
@@ -49,6 +51,7 @@ services:
       - sync-network
     depends_on:
       - postgres-sync
+      - redis-sync
 
   app-gateway-sync:
     image: bsopt-app-gateway-dev

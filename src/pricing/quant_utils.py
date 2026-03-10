@@ -220,6 +220,36 @@ def batch_bs_price_jit_v2(S, K, T, sigma, r, q, is_call):
 
 
 @njit(fastmath=True, parallel=True)
+def batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call, out):
+    """Batch Black-Scholes price with pre-allocated output buffer."""
+    Ti = np.maximum(T, 1e-9)
+    sig = np.maximum(sigma, 1e-9)
+    exp_rt, exp_qt = np.exp(-r * Ti), np.exp(-q * Ti)
+
+    for i in prange(len(S)):
+        if T[i] < 1e-10:
+            if is_call[i]:
+                out[i] = max(S[i] - K[i], 0.0)
+            else:
+                out[i] = max(K[i] - S[i], 0.0)
+            continue
+
+        vol_sqrt_t = sig[i] * np.sqrt(Ti[i])
+        d1 = (np.log(S[i] / K[i]) + (r[i] - q[i] + 0.5 * sig[i] ** 2) * Ti[i]) / vol_sqrt_t
+        d2 = d1 - vol_sqrt_t
+
+        if is_call[i]:
+            out[i] = S[i] * exp_qt[i] * fast_normal_cdf_v2(d1) - K[i] * exp_rt[
+                i
+            ] * fast_normal_cdf_v2(d2)
+        else:
+            out[i] = K[i] * exp_rt[i] * fast_normal_cdf_v2(-d2) - S[i] * exp_qt[
+                i
+            ] * fast_normal_cdf_v2(-d1)
+
+
+
+@njit(fastmath=True, parallel=True)
 def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
     n = len(S)
     delta, gamma, theta, vega, rho = np.empty(n), np.empty(n), np.empty(n), np.empty(n), np.empty(n)
@@ -227,6 +257,16 @@ def batch_greeks_jit_v2(S, K, T, sigma, r, q, is_call):
         d, g, th, v, rh = scalar_greeks_jit_v2(S[i], K[i], T[i], sigma[i], r[i], q[i], is_call[i])
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
     return delta, gamma, vega, theta, rho
+
+
+@njit(fastmath=True, parallel=True)
+def batch_greeks_jit_v2_out(S, K, T, sigma, r, q, is_call, delta, gamma, theta, vega, rho):
+    """Batch Greeks calculation with pre-allocated output buffers."""
+    n = len(S)
+    for i in prange(n):
+        d, g, th, v, rh = scalar_greeks_jit_v2(S[i], K[i], T[i], sigma[i], r[i], q[i], is_call[i])
+        delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
+
 
 
 @njit

@@ -9,7 +9,7 @@ class Producer(ABC):
     """
 
     @abstractmethod
-    async def produce(self, data: dict[str, Any], **kwargs):
+    async def produce(self, data: dict[str, Any], **kwargs: Any) -> None:
         """
         Produce a message to the stream.
 
@@ -20,14 +20,14 @@ class Producer(ABC):
         pass
 
     @abstractmethod
-    def flush(self):
+    def flush(self) -> None:
         """
         Flush pending messages.
         """
         pass
 
     @abstractmethod
-    def close(self):
+    def close(self) -> None:
         """
         Close the producer connection.
         """

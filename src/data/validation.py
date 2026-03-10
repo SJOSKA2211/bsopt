@@ -1,4 +1,5 @@
 import msgspec
+from typing import Any
 
 
 class MarketData(msgspec.Struct):
@@ -39,7 +40,7 @@ class OptionsDataValidator:
         except Exception:
             return False
 
-    def validate(self, df: any) -> any:
+    def validate(self, df: Any) -> Any:
         # Compatibility wrapper for legacy code
         from typing import NamedTuple
 
@@ -47,7 +48,7 @@ class OptionsDataValidator:
             passed: bool
             errors: list[str] = []
 
-        if hasattr(df, "empty") and df.empty:
+        if hasattr(df, "empty") and getattr(df, "empty"):
             return ValidationReport(passed=False, errors=["DataFrame is empty"])
 
         return ValidationReport(passed=True)
