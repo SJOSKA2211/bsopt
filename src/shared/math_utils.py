@@ -5,43 +5,54 @@ Consolidates critical numerical logic for cross-module consistency with JIT acce
 """
 
 import os
+from collections.abc import Callable
+from typing import Any, TypeVar, cast, overload
 
 import numpy as np
 
-# OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
-if os.getenv("NUMBA_DISABLE_JIT") == "1":
+F = TypeVar("F", bound=Callable[..., Any])
 
-    def _njit(*args, **kwargs):
+# OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
+_JIT_DISABLED = os.getenv("NUMBA_DISABLE_JIT") == "1"
+
+
+@overload
+def njit_engine(func: F) -> F: ...
+
+
+@overload
+def njit_engine(*args: Any, **kwargs: Any) -> Callable[[F], F]: ...
+
+
+def njit_engine(*args: Any, **kwargs: Any) -> Any:
+    """
+    Unified JIT decorator with proper typing and environment awareness.
+    """
+    if _JIT_DISABLED:
         if len(args) == 1 and callable(args[0]):
             return args[0]
         return lambda f: f
 
-    _prange = range
-    njit = _njit  # For external compatibility
-    prange = _prange
-else:
     try:
-        from numba import njit, prange
+        from numba import njit
 
-        # Enable AOT caching and fastmath by default to eliminate cold-starts and push limits
-        def _njit(*args, **kwargs):
-            if len(args) == 1 and callable(args[0]) and not kwargs:
-                return njit(cache=True, fastmath=True)(args[0])
-            kwargs.setdefault("cache", True)
-            kwargs.setdefault("fastmath", True)
-            return njit(*args, **kwargs)
+        if len(args) == 1 and callable(args[0]) and not kwargs:
+            return njit(cache=True, fastmath=True)(args[0])
 
-        _prange = prange
+        kwargs.setdefault("cache", True)
+        kwargs.setdefault("fastmath", True)
+        return njit(*args, **kwargs)
     except ImportError:
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        return lambda f: f
 
-        def _njit(*args, **kwargs):
-            if len(args) == 1 and callable(args[0]):
-                return args[0]
-            return lambda f: f
 
-        _prange = range
-        njit = _njit
-        prange = _prange
+# Special case for prange which doesn't need a wrapper but needs a type-safe alias
+try:
+    from numba import prange as loop_prange
+except ImportError:
+    loop_prange = range  # type: ignore
 
 # Pre-computed constants for numerical kernels
 INV_SQRT2 = 0.7071067811865476
@@ -54,7 +65,7 @@ CDF_A4 = -1.453152027
 CDF_A5 = 1.061405429
 
 
-@_njit
+@njit_engine
 def fast_normal_ppf(p: float) -> float:
     """
     Inverse CDF (PPF) approximation using Beasley-Springer-Moro.
@@ -65,13 +76,13 @@ def fast_normal_ppf(p: float) -> float:
 
     if p < 0.5:
         # Lower tail
-        return -_moro_inv_norm(p)
+        return -float(_moro_inv_norm(p))
     else:
         # Upper tail
-        return _moro_inv_norm(1.0 - p)
+        return float(_moro_inv_norm(1.0 - p))
 
 
-@_njit
+@njit_engine
 def _moro_inv_norm(p: float) -> float:
     """Internal helper for Moro's approximation."""
     # Beasley-Springer coefficients
@@ -99,39 +110,43 @@ def _moro_inv_norm(p: float) -> float:
             * (((a3 * r + a2) * r + a1) * r + a0)
             / ((((b4 * r + b3) * r + b2) * r + b1) * r + 1.0)
         )
-        return x
+        return float(x)
     else:
         # Tail region
         r = np.log(-np.log(p))
         x = c0 + r * (c1 + r * (c2 + r * (c3 + r * (c4 + r * (c5 + r * (c6 + r * (c7 + r * c8)))))))
-        return x
+        return float(x)
 
 
-@_njit(parallel=True, nogil=True)
-def _vec_ppf_impl(flat_p):
+@njit_engine(parallel=True, nogil=True)
+def _vec_ppf_impl(
+    flat_p: np.ndarray[Any, np.dtype[np.float64]]
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized PPF implementation."""
     n = len(flat_p)
     flat_res = np.empty(n, dtype=np.float64)
-    for i in _prange(n):
+    for i in loop_prange(n):
         flat_res[i] = fast_normal_ppf(flat_p[i])
     return flat_res
 
 
-def calculate_ppf(p):
+def calculate_ppf(
+    p: float | np.ndarray[Any, np.dtype[np.float64]]
+) -> float | np.ndarray[Any, np.dtype[np.float64]]:
     """Unified Normal PPF with Scalar Fast-Path."""
     if np.isscalar(p):
-        return fast_normal_ppf(float(p))
+        return float(fast_normal_ppf(float(cast(float, p))))
 
     p_arr = np.asanyarray(p)
     if p_arr.size == 1:
-        return fast_normal_ppf(float(p_arr.flat[0]))
+        return float(fast_normal_ppf(float(p_arr.flat[0])))
 
     original_shape = p_arr.shape
     flat_res = _vec_ppf_impl(p_arr.ravel().astype(np.float64))
-    return flat_res.reshape(original_shape)
+    return cast(np.ndarray[Any, np.dtype[np.float64]], flat_res.reshape(original_shape))
 
 
-@_njit
+@njit_engine
 def fast_normal_cdf(x: float) -> float:
     """
     High-precision rational approximation (A&S 7.1.26).
@@ -148,16 +163,16 @@ def fast_normal_cdf(x: float) -> float:
     poly = t * (CDF_A1 + t * (CDF_A2 + t * (CDF_A3 + t * (CDF_A4 + t * CDF_A5))))
 
     y = 1.0 - poly * np.exp(-abs_x * abs_x)
-    return 0.5 * (1.0 + np.sign(x) * y)
+    return float(0.5 * (1.0 + np.sign(x) * y))
 
 
-@_njit
+@njit_engine
 def fast_normal_pdf(x: float) -> float:
     """Numba-optimized Normal PDF."""
-    return np.exp(-0.5 * x**2) * INV_SQRT2PI
+    return float(np.exp(-0.5 * x**2) * INV_SQRT2PI)
 
 
-@_njit
+@njit_engine
 def calculate_d1_d2(
     s: float, k: float, t: float, sigma: float, r: float, q: float
 ) -> tuple[float, float]:
@@ -168,26 +183,26 @@ def calculate_d1_d2(
     sqrt_t = np.sqrt(t)
     d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
     d2 = d1 - sigma * sqrt_t
-    return d1, d2
+    return float(d1), float(d2)
 
 
-@_njit
+@njit_engine
 def calculate_price_core(
     s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool
 ) -> float:
     """Core Black-Scholes logic for a single element."""
     if t <= 0:
         if is_call:
-            return max(s - k, 0.0)
-        return max(k - s, 0.0)
+            return float(max(s - k, 0.0))
+        return float(max(k - s, 0.0))
 
     if sigma <= 0:
         df = np.exp(-r * t)
         dq = np.exp(-q * t)
         forward = s * dq / df
         if is_call:
-            return max(forward - k, 0.0) * df
-        return max(k - forward, 0.0) * df
+            return float(max(forward - k, 0.0) * df)
+        return float(max(k - forward, 0.0) * df)
 
     d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
     cdf_d1 = fast_normal_cdf(d1)
@@ -197,16 +212,24 @@ def calculate_price_core(
     exp_rT = np.exp(-r * t)
 
     if is_call:
-        return s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2
-    return k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1)
+        return float(s * exp_qT * cdf_d1 - k * exp_rT * cdf_d2)
+    return float(k * exp_rT * (1.0 - cdf_d2) - s * exp_qT * (1.0 - cdf_d1))
 
 
-@_njit(parallel=True, nogil=True)
-def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
+@njit_engine(parallel=True, nogil=True)
+def _vec_price_impl(
+    flat_s: np.ndarray[Any, np.dtype[np.float64]],
+    flat_k: np.ndarray[Any, np.dtype[np.float64]],
+    flat_t: np.ndarray[Any, np.dtype[np.float64]],
+    flat_sigma: np.ndarray[Any, np.dtype[np.float64]],
+    flat_r: np.ndarray[Any, np.dtype[np.float64]],
+    flat_q: np.ndarray[Any, np.dtype[np.float64]],
+    flat_is_call: np.ndarray[Any, np.dtype[np.bool_]],
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized price calculation."""
     n = len(flat_s)
     flat_res = np.zeros(n, dtype=np.float64)
-    for i in _prange(n):
+    for i in loop_prange(n):
         flat_res[i] = calculate_price_core(
             flat_s[i],
             flat_k[i],
@@ -219,7 +242,15 @@ def _vec_price_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_
     return flat_res
 
 
-def calculate_price(s, k, t, sigma, r, q, is_call):
+def calculate_price(
+    s: float | np.ndarray[Any, np.dtype[np.float64]],
+    k: float | np.ndarray[Any, np.dtype[np.float64]],
+    t: float | np.ndarray[Any, np.dtype[np.float64]],
+    sigma: float | np.ndarray[Any, np.dtype[np.float64]],
+    r: float | np.ndarray[Any, np.dtype[np.float64]],
+    q: float | np.ndarray[Any, np.dtype[np.float64]],
+    is_call: bool | np.ndarray[Any, np.dtype[np.bool_]],
+) -> float | np.ndarray[Any, np.dtype[np.float64]]:
     """Unified Black-Scholes pricing with Scalar Fast-Path."""
     if (
         np.isscalar(s)
@@ -230,36 +261,49 @@ def calculate_price(s, k, t, sigma, r, q, is_call):
         and np.isscalar(q)
         and np.isscalar(is_call)
     ):
-        return calculate_price_core(
-            float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call)
+        return float(
+            calculate_price_core(
+                float(cast(float, s)),
+                float(cast(float, k)),
+                float(cast(float, t)),
+                float(cast(float, sigma)),
+                float(cast(float, r)),
+                float(cast(float, q)),
+                bool(is_call),
+            )
         )
 
-    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    if s.size == 1:
-        return calculate_price_core(
-            float(s.flat[0]),
-            float(k.flat[0]),
-            float(t.flat[0]),
-            float(sigma.flat[0]),
-            float(r.flat[0]),
-            float(q.flat[0]),
-            bool(is_call.flat[0]),
-        )
-
-    original_shape = s.shape
-    flat_res = _vec_price_impl(
-        s.ravel().astype(np.float64),
-        k.ravel().astype(np.float64),
-        t.ravel().astype(np.float64),
-        sigma.ravel().astype(np.float64),
-        r.ravel().astype(np.float64),
-        q.ravel().astype(np.float64),
-        is_call.ravel().astype(np.bool_),
+    # Broadcast to common shape
+    s_arr, k_arr, t_arr, sigma_arr, r_arr, q_arr, is_call_arr = np.broadcast_arrays(
+        s, k, t, sigma, r, q, is_call
     )
-    return flat_res.reshape(original_shape)
+    if s_arr.size == 1:
+        return float(
+            calculate_price_core(
+                float(s_arr.flat[0]),
+                float(k_arr.flat[0]),
+                float(t_arr.flat[0]),
+                float(sigma_arr.flat[0]),
+                float(r_arr.flat[0]),
+                float(q_arr.flat[0]),
+                bool(is_call_arr.flat[0]),
+            )
+        )
+
+    original_shape = s_arr.shape
+    flat_res = _vec_price_impl(
+        s_arr.ravel().astype(np.float64),
+        k_arr.ravel().astype(np.float64),
+        t_arr.ravel().astype(np.float64),
+        sigma_arr.ravel().astype(np.float64),
+        r_arr.ravel().astype(np.float64),
+        q_arr.ravel().astype(np.float64),
+        is_call_arr.ravel().astype(np.bool_),
+    )
+    return cast(np.ndarray[Any, np.dtype[np.float64]], flat_res.reshape(original_shape))
 
 
-@_njit
+@njit_engine
 def calculate_greeks_core(
     s: float, k: float, t: float, sigma: float, r: float, q: float, is_call: bool
 ) -> tuple[float, float, float, float, float]:
@@ -269,7 +313,7 @@ def calculate_greeks_core(
             delta = 1.0 if s > k else 0.0
         else:
             delta = -1.0 if s < k else 0.0
-        return delta, 0.0, 0.0, 0.0, 0.0
+        return float(delta), 0.0, 0.0, 0.0, 0.0
 
     sqrt_t = np.sqrt(t)
     d1, d2 = calculate_d1_d2(s, k, t, sigma, r, q)
@@ -297,11 +341,25 @@ def calculate_greeks_core(
             theta_base + r * k * exp_rT * (1.0 - cdf_d2) - q * s * exp_qT * (1.0 - cdf_d1)
         ) / 365.0
 
-    return delta, gamma, theta, vega, rho
+    return float(delta), float(gamma), float(theta), float(vega), float(rho)
 
 
-@_njit(parallel=True, nogil=True)
-def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is_call):
+@njit_engine(parallel=True, nogil=True)
+def _vec_greeks_impl(
+    flat_s: np.ndarray[Any, np.dtype[np.float64]],
+    flat_k: np.ndarray[Any, np.dtype[np.float64]],
+    flat_t: np.ndarray[Any, np.dtype[np.float64]],
+    flat_sigma: np.ndarray[Any, np.dtype[np.float64]],
+    flat_r: np.ndarray[Any, np.dtype[np.float64]],
+    flat_q: np.ndarray[Any, np.dtype[np.float64]],
+    flat_is_call: np.ndarray[Any, np.dtype[np.bool_]],
+) -> tuple[
+    np.ndarray[Any, np.dtype[np.float64]],
+    np.ndarray[Any, np.dtype[np.float64]],
+    np.ndarray[Any, np.dtype[np.float64]],
+    np.ndarray[Any, np.dtype[np.float64]],
+    np.ndarray[Any, np.dtype[np.float64]],
+]:
     """Vectorized Greeks calculation."""
     n = len(flat_s)
     f_delta = np.zeros(n, dtype=np.float64)
@@ -310,7 +368,7 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
     f_vega = np.zeros(n, dtype=np.float64)
     f_rho = np.zeros(n, dtype=np.float64)
 
-    for i in _prange(n):
+    for i in loop_prange(n):
         d, g, th, v, rh = calculate_greeks_core(
             flat_s[i], flat_k[i], flat_t[i], flat_sigma[i], flat_r[i], flat_q[i], flat_is_call[i]
         )
@@ -318,7 +376,21 @@ def _vec_greeks_impl(flat_s, flat_k, flat_t, flat_sigma, flat_r, flat_q, flat_is
     return f_delta, f_gamma, f_theta, f_vega, f_rho
 
 
-def calculate_greeks(s, k, t, sigma, r, q, is_call):
+def calculate_greeks(
+    s: float | np.ndarray[Any, np.dtype[np.float64]],
+    k: float | np.ndarray[Any, np.dtype[np.float64]],
+    t: float | np.ndarray[Any, np.dtype[np.float64]],
+    sigma: float | np.ndarray[Any, np.dtype[np.float64]],
+    r: float | np.ndarray[Any, np.dtype[np.float64]],
+    q: float | np.ndarray[Any, np.dtype[np.float64]],
+    is_call: bool | np.ndarray[Any, np.dtype[np.bool_]],
+) -> tuple[
+    float | np.ndarray[Any, np.dtype[np.float64]],
+    float | np.ndarray[Any, np.dtype[np.float64]],
+    float | np.ndarray[Any, np.dtype[np.float64]],
+    float | np.ndarray[Any, np.dtype[np.float64]],
+    float | np.ndarray[Any, np.dtype[np.float64]],
+]:
     """Unified Black-Scholes Greeks with Scalar Fast-Path."""
     if (
         np.isscalar(s)
@@ -329,39 +401,53 @@ def calculate_greeks(s, k, t, sigma, r, q, is_call):
         and np.isscalar(q)
         and np.isscalar(is_call)
     ):
-        return calculate_greeks_core(
-            float(s), float(k), float(t), float(sigma), float(r), float(q), bool(is_call)
+        return cast(
+            tuple[float, float, float, float, float],
+            calculate_greeks_core(
+                float(cast(float, s)),
+                float(cast(float, k)),
+                float(cast(float, t)),
+                float(cast(float, sigma)),
+                float(cast(float, r)),
+                float(cast(float, q)),
+                bool(is_call),
+            ),
         )
 
-    s, k, t, sigma, r, q, is_call = np.broadcast_arrays(s, k, t, sigma, r, q, is_call)
-    if s.size == 1:
-        return calculate_greeks_core(
-            float(s.flat[0]),
-            float(k.flat[0]),
-            float(t.flat[0]),
-            float(sigma.flat[0]),
-            float(r.flat[0]),
-            float(q.flat[0]),
-            bool(is_call.flat[0]),
+    s_arr, k_arr, t_arr, sigma_arr, r_arr, q_arr, is_call_arr = np.broadcast_arrays(
+        s, k, t, sigma, r, q, is_call
+    )
+    if s_arr.size == 1:
+        return cast(
+            tuple[float, float, float, float, float],
+            calculate_greeks_core(
+                float(s_arr.flat[0]),
+                float(k_arr.flat[0]),
+                float(t_arr.flat[0]),
+                float(sigma_arr.flat[0]),
+                float(r_arr.flat[0]),
+                float(q_arr.flat[0]),
+                bool(is_call_arr.flat[0]),
+            ),
         )
 
-    original_shape = s.shape
+    original_shape = s_arr.shape
     d, g, th, v, rh = _vec_greeks_impl(
-        s.ravel().astype(np.float64),
-        k.ravel().astype(np.float64),
-        t.ravel().astype(np.float64),
-        sigma.ravel().astype(np.float64),
-        r.ravel().astype(np.float64),
-        q.ravel().astype(np.float64),
-        is_call.ravel().astype(np.bool_),
+        s_arr.ravel().astype(np.float64),
+        k_arr.ravel().astype(np.float64),
+        t_arr.ravel().astype(np.float64),
+        sigma_arr.ravel().astype(np.float64),
+        r_arr.ravel().astype(np.float64),
+        q_arr.ravel().astype(np.float64),
+        is_call_arr.ravel().astype(np.bool_),
     )
 
     return (
-        d.reshape(original_shape),
-        g.reshape(original_shape),
-        th.reshape(original_shape),
-        v.reshape(original_shape),
-        rh.reshape(original_shape),
+        cast(np.ndarray[Any, np.dtype[np.float64]], d.reshape(original_shape)),
+        cast(np.ndarray[Any, np.dtype[np.float64]], g.reshape(original_shape)),
+        cast(np.ndarray[Any, np.dtype[np.float64]], th.reshape(original_shape)),
+        cast(np.ndarray[Any, np.dtype[np.float64]], v.reshape(original_shape)),
+        cast(np.ndarray[Any, np.dtype[np.float64]], rh.reshape(original_shape)),
     )
 
 

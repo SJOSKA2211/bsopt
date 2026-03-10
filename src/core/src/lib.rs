@@ -232,13 +232,38 @@ fn monte_carlo_price(
 #[pyfunction]
 fn full_risk_check(
     _py: Python<'_>,
-    _portfolio_id: String,
-    _current_exposure: f64,
-    _new_trade_notional: f64,
-    _max_limit: f64,
-) -> PyResult<bool> {
-    // Highly optimized safety manifold
-    Ok(_current_exposure + _new_trade_notional <= _max_limit)
+    price: f64,
+    quantity: i32,
+    side: i32,
+    d_delta: f64,
+    d_gamma: f64,
+    d_vega: f64,
+    current_delta: f64,
+    current_gamma: f64,
+    current_vega: f64,
+    max_qty: i32,
+    min_price: f64,
+    max_price: f64,
+    max_delta: f64,
+    max_gamma: f64,
+    max_vega: f64,
+) -> PyResult<(bool, f64, f64, f64)> {
+    // 1. Silicon-level fat-finger checks
+    if price < min_price || price > max_price || quantity <= 0 || quantity > max_qty || (side != 1 && side != -1) {
+        return Ok((false, current_delta, current_gamma, current_vega));
+    }
+
+    // 2. Incremental Risk Validation
+    let new_delta = current_delta + d_delta;
+    let new_gamma = current_gamma + d_gamma;
+    let new_vega = current_vega + d_vega;
+
+    if new_delta.abs() > max_delta || new_gamma.abs() > max_gamma || new_vega.abs() > max_vega {
+        return Ok((false, current_delta, current_gamma, current_vega));
+    }
+
+    // 3. Success: Return new state
+    Ok((true, new_delta, new_gamma, new_vega))
 }
 
 #[pyfunction]
@@ -405,6 +430,42 @@ fn svi_total_variance(k: f64, a: f64, b: f64, rho: f64, m: f64, sigma: f64) -> f
 }
 
 #[pyfunction]
+fn batch_svi_total_variance(
+    py: Python<'_>,
+    k: PyReadonlyArray1<'_, f64>,
+    a: f64,
+    b: f64,
+    rho: f64,
+    m: f64,
+    sigma: f64,
+) -> PyResult<Py<PyArray1<f64>>> {
+    let k = k.as_array();
+    let n = k.len();
+    let mut results = unsafe { PyArray1::new(py, [n], false) };
+    
+    // Use rayon for parallelization if n is large
+    if n > 1000 {
+        let k_vec: Vec<f64> = k.to_vec();
+        let res_vec: Vec<f64> = k_vec.par_iter().map(|&ki| {
+            a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt())
+        }).collect();
+        
+        let mut results_view = results.bind().as_array_mut();
+        for (i, &val) in res_vec.iter().enumerate() {
+            results_view[i] = val;
+        }
+    } else {
+        let mut results_view = results.bind().as_array_mut();
+        for i in 0..n {
+            let ki = k[i];
+            results_view[i] = a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt());
+        }
+    }
+    
+    Ok(results.into())
+}
+
+#[pyfunction]
 fn sabr_implied_vol(
     strike: f64,
     forward: f64,
@@ -417,17 +478,40 @@ fn sabr_implied_vol(
     let f_k = forward * strike;
     let log_f_k = (forward / strike).ln();
     
-    if forward == strike {
+    if (forward - strike).abs() < 1e-10 {
         let f_beta = forward.powf(1.0 - beta);
         return alpha / f_beta * (1.0 + ((1.0 - beta).powi(2) / 24.0 * alpha.powi(2) / forward.powf(2.0 - 2.0 * beta) + 0.25 * rho * beta * nu * alpha / f_beta + (2.0 - 3.0 * rho.powi(2)) / 24.0 * nu.powi(2)) * maturity);
     }
 
     let z = nu / alpha * f_k.powf((1.0 - beta) / 2.0) * log_f_k;
-    let _xz = ((1.0 - 2.0 * rho * z + z * z).sqrt() + z - rho).ln() / (1.0 - rho).ln();
+    let _xz = (((1.0 - 2.0 * rho * z + z * z).sqrt() + z - rho) / (1.0 - rho)).ln();
     
     let den = f_k.powf((1.0 - beta) / 2.0) * (1.0 + (1.0 - beta).powi(2) / 24.0 * log_f_k.powi(2) + (1.0 - beta).powi(4) / 1920.0 * log_f_k.powi(4));
     
     (alpha / den) * (z / _xz) * (1.0 + ((1.0 - beta).powi(2) / 24.0 * alpha.powi(2) / f_k.powf(1.0 - beta) + 0.25 * rho * beta * nu * alpha / f_k.powf((1.0 - beta) / 2.0) + (2.0 - 3.0 * rho.powi(2)) / 24.0 * nu.powi(2)) * maturity)
+}
+
+#[pyfunction]
+fn batch_sabr_implied_vol(
+    py: Python<'_>,
+    strike: PyReadonlyArray1<'_, f64>,
+    forward: f64,
+    maturity: f64,
+    alpha: f64,
+    beta: f64,
+    rho: f64,
+    nu: f64,
+) -> PyResult<Py<PyArray1<f64>>> {
+    let strike = strike.as_array();
+    let n = strike.len();
+    let mut results = unsafe { PyArray1::new(py, [n], false) };
+    
+    let mut results_view = results.bind().as_array_mut();
+    for i in 0..n {
+        results_view[i] = sabr_implied_vol(strike[i], forward, maturity, alpha, beta, rho, nu);
+    }
+    
+    Ok(results.into())
 }
 
 #[pyfunction]
@@ -549,7 +633,9 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(keccak256, m)?)?;
     m.add_function(wrap_pyfunction!(hash_order_eip712, m)?)?;
     m.add_function(wrap_pyfunction!(svi_total_variance, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_svi_total_variance, m)?)?;
     m.add_function(wrap_pyfunction!(sabr_implied_vol, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_sabr_implied_vol, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
     Ok(())
 }

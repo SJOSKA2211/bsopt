@@ -45,17 +45,15 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
     d = 1.0 / u
     a = np.exp((r - q) * dt)
 
-    # Numerical stability guard for p
     if u == d:
         p = 0.5
     else:
         p = (a - d) / (u - d)
 
-    p = max(min(p, 1.0), 0.0)  # Clamp p for stability
+    p = max(min(p, 1.0), 0.0)
     disc = np.exp(-r * dt)
 
-    # Terminal payoffs
-    V = np.zeros(n_steps + 1, dtype=np.float64)
+    V = np.empty(n_steps + 1, dtype=np.float64)
     for j in range(n_steps + 1):
         st = S0 * (u ** (n_steps - j)) * (d**j)
         if is_call:
@@ -63,7 +61,6 @@ def _binomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
         else:
             V[j] = max(K - st, 0.0)
 
-    # Backward induction
     for i in range(n_steps - 1, -1, -1):
         for j in range(i + 1):
             V_new = disc * (p * V[j] + (1 - p) * V[j + 1])
@@ -92,14 +89,13 @@ def _trinomial_jit_kernel(S0, K, T, r, q, sigma, n_steps, is_call, is_american):
         return max(K - S0, 0.0)
 
     v_drift = r - q - 0.5 * sigma**2
-
     p_u = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 + v_drift * dt / dx)
     p_d = 0.5 * ((sigma**2 * dt + v_drift**2 * dt**2) / dx**2 - v_drift * dt / dx)
     p_m = 1.0 - p_u - p_d
     disc = np.exp(-r * dt)
 
     num_nodes = 2 * n_steps + 1
-    V = np.zeros(num_nodes, dtype=np.float64)
+    V = np.empty(num_nodes, dtype=np.float64)
     for j in range(num_nodes):
         st = S0 * np.exp(dx * (n_steps - j))
         V[j] = max(st - K, 0.0) if is_call else max(K - st, 0.0)

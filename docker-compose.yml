@@ -159,7 +159,7 @@ services:
       - ML_SERVICE_GRPC_URL=ml-inference:50051
       - USE_SHM=1
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -170,7 +170,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --log-level info
+    command: granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --websockets --opt
 
   # === Portfolio Service ===
   portfolio:
@@ -197,7 +197,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -208,7 +208,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: uvicorn src.portfolio.main:app --host 0.0.0.0 --port 8000
+    command: granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
@@ -297,8 +297,8 @@ services:
   scraper:
     build:
       context: .
-      dockerfile: docker/Dockerfile.scraper
-      target: development
+      dockerfile: docker/Dockerfile.scraper-lite
+      target: production
     ports:
       - "8002:8000"
     volumes:
@@ -318,7 +318,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - USE_SHM=1
     healthcheck:
-      test: [ "CMD-SHELL", "[ -f /tmp/scraper_heartbeat ] && [ $(($(date +%s) - $(date +%s -r /tmp/scraper_heartbeat))) -lt 600 ] || exit 1" ]
+      test: ["CMD", "python", "-c", "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -355,7 +355,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - USE_SHM=1
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -364,7 +364,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: uvicorn src.pricing.main:app --host 0.0.0.0 --port 8000
+    command: granian --interface asgi src.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --opt
 
   # === App Gateway (Node.js Federation) ===
   app-gateway:

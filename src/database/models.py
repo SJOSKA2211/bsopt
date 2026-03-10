@@ -4,6 +4,7 @@ SQLAlchemy ORM Models for BSOPT Platform (Optimized for PG16 + TimescaleDB)
 
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any
 from uuid import UUID as UUID_TYPE
 from uuid import uuid4
 
@@ -115,7 +116,7 @@ class AuditLog(Base):
     path: Mapped[str | None] = mapped_column(Text)
     method: Mapped[str | None] = mapped_column(String(10))
     status_code: Mapped[int | None] = mapped_column(Integer)
-    payload: Mapped[dict | None] = mapped_column("payload", JSONB)
+    payload: Mapped[dict[str, Any] | None] = mapped_column("payload", JSONB)
     ip_address: Mapped[str | None] = mapped_column(String(45))
     user_agent: Mapped[str | None] = mapped_column(Text)
     latency_ms: Mapped[float | None] = mapped_column(Double)
@@ -265,8 +266,8 @@ class MLModel(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     algorithm: Mapped[str] = mapped_column(MLAlgorithm, nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False)
-    hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
-    training_metrics: Mapped[dict | None] = mapped_column(JSONB)
+    hyperparameters: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    training_metrics: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     model_artifact_url: Mapped[str | None] = mapped_column(String(500))
     created_by: Mapped[UUID_TYPE | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
@@ -288,7 +289,7 @@ class ModelPrediction(Base):
         ForeignKey("ml_models.id", ondelete="SET NULL")
     )
     symbol: Mapped[str] = mapped_column(String, nullable=False)
-    input_features: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    input_features: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     predicted_price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     actual_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     prediction_error: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
@@ -414,7 +415,7 @@ class RLEpisode(Base):
     agent_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     episode_reward: Mapped[float] = mapped_column(Double, nullable=False)
     steps: Mapped[int] = mapped_column(Integer, nullable=False)
-    hyperparameters: Mapped[dict | None] = mapped_column(JSONB)
+    hyperparameters: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -452,7 +453,7 @@ except ImportError:
             ForeignKey("ml_models.id", ondelete="CASCADE"), nullable=False
         )
         version: Mapped[int] = mapped_column(Integer, nullable=False)
-        embedding: Mapped[dict] = mapped_column(JSONB)
+        embedding: Mapped[dict[str, Any]] = mapped_column(JSONB)
         created_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), server_default=func.now()
         )

@@ -52,28 +52,23 @@ class MLService:
         return 0.5 * (1.0 + erf(x * 0.7071067811865476))  # 1/sqrt(2)
 
     def _black_scholes_price(self, req: InferenceRequest) -> float:
-        # Basic Black–Scholes approximation
-        S = req.underlying_price
-        K = req.strike
-        T = max(req.time_to_expiry, 1e-6)
-        r = 0.01
-        sigma = req.implied_volatility or 0.25
-
+        # Optimized Black-Scholes using core engines
+        from src.pricing.black_scholes import BlackScholesEngine
+        
         try:
-            sqrt_T = sqrt(T)
-            d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt_T)
-            d2 = d1 - sigma * sqrt_T
-            Nd1 = self._norm_cdf(d1)
-            Nd2 = self._norm_cdf(d2)
+            price = BlackScholesEngine.price_options(
+                spot=req.underlying_price,
+                strike=req.strike,
+                maturity=req.time_to_expiry,
+                volatility=req.implied_volatility or 0.25,
+                rate=0.01,
+                option_type="call" if req.is_call else "put"
+            )
+            return float(price)
         except Exception:
-            intrinsic = max(S - K, 0.0) if req.is_call else max(K - S, 0.0)
+            # Absolute fallback
+            intrinsic = max(req.underlying_price - req.strike, 0.0) if req.is_call else max(req.strike - req.underlying_price, 0.0)
             return intrinsic * 0.9
-
-        exp_rT = 2.718281828459045 ** (-r * T)
-        if req.is_call:
-            return S * Nd1 - K * exp_rT * Nd2
-        intrinsic = K * exp_rT * (1.0 - Nd2) - S * (1.0 - Nd1)
-        return max(intrinsic, 0.0)
 
     async def predict(
         self, request: InferenceRequest, model_type: str = "xgb", symbol: str = "UNKNOWN"

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.schemas.common import DataResponse
+from src.api.schemas.common import DataResponseStruct
 from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
@@ -27,9 +27,9 @@ async def predict(
     symbol: str = "UNKNOWN",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponse:
+) -> DataResponseStruct:
     """Predict option price using ML models."""
-    return DataResponse(data=await ml_service.predict(request, model_type, symbol))
+    return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
 
 
 @router.get("/predictions")
@@ -37,7 +37,7 @@ async def get_predictions(
     symbol: str = "AAPL",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponse:
+) -> DataResponseStruct:
     """
     Convenience endpoint for the frontend dashboard.
     """
@@ -45,7 +45,7 @@ async def get_predictions(
 
     symbol = sanitize_alphanumeric(symbol.strip().upper())
     if not symbol or len(symbol) > 10:
-        return DataResponse(data={}, message="Invalid symbol")
+        return DataResponseStruct(data={}, message="Invalid symbol")
 
     base_price = 100.0
     req = InferenceRequest(
@@ -59,14 +59,14 @@ async def get_predictions(
         days_to_expiry=365.0,
         implied_volatility=0.2,
     )
-    return DataResponse(data=await ml_service.predict(req, model_type, symbol))
+    return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
 
 
 @router.get("/drift-metrics")
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
-) -> DataResponse:
+) -> DataResponseStruct:
     """Fetch model performance metrics (Async Optimized)."""
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
-    return DataResponse(data=DriftMetricsResponse(metrics=metrics))
+    return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))

@@ -128,8 +128,35 @@ class RiskVectorTracker:
     ) -> bool:
         """
         Combined Multi-Point Risk Check.
-        Executes in < 300ns using fuzed Numba kernel.
+        Executes in < 300ns using Rust core if available.
         """
+        if CORE_AVAILABLE:
+            try:
+                ok, new_d, new_g, new_v = bsopt_core.full_risk_check(
+                    float(price),
+                    int(quantity),
+                    int(side),
+                    float(d_delta),
+                    float(d_gamma),
+                    float(d_vega),
+                    float(self._state[0]),
+                    float(self._state[1]),
+                    float(self._state[2]),
+                    int(max_qty),
+                    float(min_price),
+                    float(max_price),
+                    float(self._limits[0]),
+                    float(self._limits[1]),
+                    float(self._limits[2]),
+                )
+                if ok:
+                    self._state[0] = new_d
+                    self._state[1] = new_g
+                    self._state[2] = new_v
+                return ok
+            except Exception as e:
+                logger.warning("rust_risk_vector_check_failed", error=str(e))
+
         return bool(
             _full_risk_check_v2_kernel(
                 price,

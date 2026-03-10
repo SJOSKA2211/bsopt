@@ -8,10 +8,10 @@ from strawberry.federation import Schema
 @strawberry.federation.type(keys=["id"], extend=True, shareable=True)
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
-    strike: float = strawberry.federation.field(external=True)
-    symbol: str = strawberry.federation.field(external=True)
-    expiry: date = strawberry.federation.field(external=True)
-    option_type: str = strawberry.federation.field(external=True)
+    strike: float = strawberry.federation.field(shareable=True)
+    symbol: str = strawberry.federation.field(shareable=True)
+    expiry: date = strawberry.federation.field(shareable=True)
+    option_type: str = strawberry.federation.field(shareable=True)
 
     # Market Data
     bid: float | None = strawberry.federation.field(shareable=True)
@@ -53,26 +53,26 @@ class Portfolio:
     created_at: datetime
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OptionEdge:
     cursor: str
     node: Option
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class PageInfo:
     has_next_page: bool
     end_cursor: str | None
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OptionConnection:
     edges: list[OptionEdge]
     page_info: PageInfo
 
 
 # QUERIES
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class MLPrediction:
     id: strawberry.ID
     symbol: str
@@ -86,7 +86,7 @@ class MLPrediction:
     last_updated: datetime = strawberry.field(name="last_updated")
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class MarketData:
     symbol: str
     last_price: float = strawberry.field(name="last_price")
@@ -96,7 +96,7 @@ class MarketData:
     timestamp: datetime
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class OHLCV:
     time: str
     open: float
@@ -106,7 +106,7 @@ class OHLCV:
     volume: int
 
 
-@strawberry.type
+@strawberry.federation.type(shareable=True)
 class Query:
     """Root Query for Options subgraph"""
 
@@ -235,9 +235,9 @@ class Query:
 schema = Schema(query=Query, types=[Option])
 
 
-from typing import Any
+from fastapi import Request
 
-async def get_context(request: Any):
+async def get_context(request: Request):
     """GraphQL context helper."""
     # This function is intended to provide context to GraphQL resolvers.
     # It's currently a placeholder and might need to be implemented

@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import structlog
 
@@ -6,19 +7,17 @@ try:
     from qiskit_aer import AerSimulator
 except ImportError:
 
-    class AerSimulator:
-        def __init__(self, *args, **kwargs):
+    class AerSimulator:  # type: ignore
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             pass
 
-
-from typing import Any
 
 try:
     from qiskit_ibm_provider import IBMProvider
 
     IBM_PROVIDER_AVAILABLE = True
 except ImportError:
-    IBMProvider = None
+    IBMProvider = None  # type: ignore
     IBM_PROVIDER_AVAILABLE = False
 
 logger = structlog.get_logger()
@@ -29,8 +28,8 @@ class QuantumBackendManager:
     Manages connections to Quantum Backends (Local Simulators or IBM Quantum Hardware).
     """
 
-    def __init__(self):
-        self.provider = None
+    def __init__(self) -> None:
+        self.provider: Any = None
 
     def get_backend(self, backend_name: str = "aer_simulator") -> Any:
         """
@@ -60,6 +59,7 @@ class QuantumBackendManager:
 
         if self.provider is None:
             try:
+                # We know IBMProvider is not None if IBM_PROVIDER_AVAILABLE is True
                 self.provider = IBMProvider(token=token)
                 logger.info("ibm_provider_initialized")
             except Exception as e:

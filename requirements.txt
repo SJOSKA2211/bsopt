@@ -27,6 +27,7 @@ minio
 # API Extra
 fastapi>=0.111.0
 uvicorn[standard]>=0.30.0
+granian>=1.5.0
 uvloop>=0.19.0
 python-multipart>=0.0.9
 strawberry-graphql[fastapi,federation]~=0.200
