@@ -441,7 +441,7 @@ fn batch_svi_total_variance(
 ) -> PyResult<Py<PyArray1<f64>>> {
     let k = k.as_array();
     let n = k.len();
-    let mut results = unsafe { PyArray1::new(py, [n], false) };
+    let results = PyArray1::new_bound(py, [n], false);
     
     // Use rayon for parallelization if n is large
     if n > 1000 {
@@ -450,12 +450,12 @@ fn batch_svi_total_variance(
             a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt())
         }).collect();
         
-        let mut results_view = results.bind(py).as_array_mut();
+        let mut results_view = results.as_array_mut();
         for (i, &val) in res_vec.iter().enumerate() {
             results_view[i] = val;
         }
     } else {
-        let mut results_view = results.bind(py).as_array_mut();
+        let mut results_view = results.as_array_mut();
         for i in 0..n {
             let ki = k[i];
             results_view[i] = a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt());

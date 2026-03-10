@@ -15,8 +15,12 @@ from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
 from src.database import get_async_db
 from src.database.models import OptionPrice
+from src.shared.shm_mesh import GreeksMesh
 
 router = APIRouter(prefix="/options", tags=["Options"], default_response_class=MsgspecJSONResponse)
+
+# Initialize Greeks Mesh reader (Lock-Free)
+_greeks_mesh = GreeksMesh(create=False)
 
 
 class OptionChainItem(msgspec.Struct):
