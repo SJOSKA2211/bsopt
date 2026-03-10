@@ -6,7 +6,7 @@ Optimized for PG16 + TimescaleDB 2.17+ with robust pooling and retry logic.
 import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 import msgspec
 import structlog
@@ -32,11 +32,11 @@ _encoder = msgspec.json.Encoder()
 _decoder = msgspec.json.Decoder()
 
 
-def msgspec_dumps(obj):
+def msgspec_dumps(obj: Any) -> str:
     return _encoder.encode(obj).decode()
 
 
-def msgspec_loads(s):
+def msgspec_loads(s: str | bytes) -> Any:
     return _decoder.decode(s)
 
 
@@ -46,11 +46,11 @@ class DatabaseManager:
     Handles sync and async engines, pooling strategies, and RLS context.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._engine: Engine | None = None
         self._async_engine: AsyncEngine | None = None
-        self._session_factory: sessionmaker | None = None
-        self._async_session_factory: async_sessionmaker | None = None
+        self._session_factory: sessionmaker[Session] | None = None
+        self._async_session_factory: async_sessionmaker[AsyncSession] | None = None
         self._initialized = False
 
     def get_urls(self) -> tuple[str, str]:
@@ -89,15 +89,19 @@ class DatabaseManager:
 
         return sync_url, async_url
 
-    def _setup_events(self, engine: Engine | AsyncEngine):
+    def _setup_events(self, engine: Engine | AsyncEngine) -> None:
         """Attaches performance monitoring events to the engine."""
 
         @event.listens_for(engine, "before_cursor_execute")
-        def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        def before_cursor_execute(
+            conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
+        ) -> None:
             conn.info.setdefault("query_start_time", []).append(time.time())
 
         @event.listens_for(engine, "after_cursor_execute")
-        def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        def after_cursor_execute(
+            conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
+        ) -> None:
             if not conn.info.get("query_start_time"):
                 return
             total_time = (time.time() - conn.info["query_start_time"].pop()) * 1000
@@ -108,7 +112,7 @@ class DatabaseManager:
                     statement=statement[:500],
                 )
 
-    def initialize(self):
+    def initialize(self) -> None:
         """Initializes both sync and async engines with optimized settings."""
         if self._initialized:
             return
@@ -117,9 +121,10 @@ class DatabaseManager:
         app_name = f"{settings.PROJECT_NAME}_{settings.ENVIRONMENT}"
 
         # 1. Sync Engine Initialization
+        sync_pool_kwargs: dict[str, Any]
         if settings.PGBOUNCER_ENABLED:
             logger.info("pgbouncer_detected: enabling NullPool for sync engine")
-            sync_pool_class = NullPool
+            sync_pool_class: type[NullPool] | type[QueuePool] = NullPool
             sync_pool_kwargs = {}
         else:
             sync_pool_class = QueuePool
@@ -141,8 +146,9 @@ class DatabaseManager:
         self._setup_events(self._engine)
 
         # 2. Async Engine Initialization (Weaponized)
+        async_pool_kwargs: dict[str, Any]
         if settings.PGBOUNCER_ENABLED:
-            async_pool_class = NullPool
+            async_pool_class: type[NullPool] | None = NullPool
             async_pool_kwargs = {}
         else:
             # OPTIMIZED: SQLAlchemy 2.0 automatically adapts QueuePool for AsyncEngine
@@ -190,27 +196,27 @@ class DatabaseManager:
     def engine(self) -> Engine:
         if not self._engine:
             self.initialize()
-        return self._engine  # type: ignore
+        return cast(Engine, self._engine)
 
     @property
     def async_engine(self) -> AsyncEngine:
         if not self._async_engine:
             self.initialize()
-        return self._async_engine  # type: ignore
+        return cast(AsyncEngine, self._async_engine)
 
     @property
-    def session_factory(self) -> sessionmaker:
+    def session_factory(self) -> sessionmaker[Session]:
         if not self._session_factory:
             self.initialize()
-        return self._session_factory  # type: ignore
+        return cast(sessionmaker[Session], self._session_factory)
 
     @property
-    def async_session_factory(self) -> async_sessionmaker:
+    def async_session_factory(self) -> async_sessionmaker[AsyncSession]:
         if not self._async_session_factory:
             self.initialize()
-        return self._async_session_factory  # type: ignore
+        return cast(async_sessionmaker[AsyncSession], self._async_session_factory)
 
-    async def dispose(self):
+    async def dispose(self) -> None:
         """Gracefully shuts down engines."""
         if self._engine:
             self._engine.dispose()
@@ -232,23 +238,23 @@ def get_async_engine() -> AsyncEngine:
     return db_manager.async_engine
 
 
-def get_sessionmaker() -> sessionmaker:
+def get_sessionmaker() -> sessionmaker[Session]:
     return db_manager.session_factory
 
 
-def get_async_sessionmaker() -> async_sessionmaker:
+def get_async_sessionmaker() -> async_sessionmaker[AsyncSession]:
     return db_manager.async_session_factory
 
 
 # Legacy Lazy Loaders
 class LazySessionFactory:
-    def __init__(self, getter):
+    def __init__(self, getter: Any) -> None:
         self._getter = getter
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return self._getter()(*args, **kwargs)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._getter(), name)
 
 
@@ -266,7 +272,7 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def get_session():
+def get_session() -> Generator[Session, None, None]:
     return get_db()
 
 
@@ -277,7 +283,7 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 @contextmanager
-def get_db_context():
+def get_db_context() -> Generator[Session, None, None]:
     db = db_manager.session_factory()
     try:
         yield db
@@ -286,13 +292,13 @@ def get_db_context():
 
 
 @asynccontextmanager
-async def get_async_db_context():
+async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
     async with db_manager.async_session_factory() as session:
         yield session
 
 
 # --- UTILITIES ---
-async def set_user_context(session: AsyncSession, user_id: str):
+async def set_user_context(session: AsyncSession, user_id: str) -> None:
     """Sets the app.current_user_id in the Postgres session for RLS."""
     await session.execute(
         text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
@@ -301,7 +307,7 @@ async def set_user_context(session: AsyncSession, user_id: str):
 
 def health_check() -> dict[str, Any]:
     """Enhanced database connectivity health check with retry."""
-    status = {"status": "unhealthy", "pgbouncer": settings.PGBOUNCER_ENABLED}
+    status: dict[str, Any] = {"status": "unhealthy", "pgbouncer": settings.PGBOUNCER_ENABLED}
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -321,7 +327,7 @@ def health_check() -> dict[str, Any]:
     return status
 
 
-def create_tables():
+def create_tables() -> None:
     """Creates all metadata tables with optimization hooks."""
     if not settings.is_production or settings.ENVIRONMENT == "test":
         from src.database.models import Base
@@ -345,5 +351,5 @@ def create_tables():
             logger.error("database_metadata_sync_failed", error=str(e))
 
 
-async def dispose_engine():
+async def dispose_engine() -> None:
     await db_manager.dispose()

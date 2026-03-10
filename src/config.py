@@ -4,7 +4,7 @@ Application configuration management.
 """
 
 import os
-from typing import Annotated
+from typing import Annotated, Any
 
 import structlog
 from pydantic import BeforeValidator, Field, field_validator, model_validator
@@ -35,7 +35,10 @@ class Settings(BaseSettings):
             raise ValueError(f"LOG_LEVEL must be one of {allowed}")
         return v.upper()
 
-    DATABASE_URL: str = Field(validation_alias="DATABASE_URL")
+    DATABASE_URL: str = Field(
+        default="postgresql://admin:password@postgres:5432/bsopt",
+        validation_alias="DATABASE_URL",
+    )
     DATABASE_MIN_POOL_SIZE: int = 5
     DATABASE_MAX_POOL_SIZE: int = 15
     DATABASE_POOL_TIMEOUT: int = 60
@@ -53,7 +56,10 @@ class Settings(BaseSettings):
         return v
 
     # Redis Configuration
-    REDIS_URL: str = Field(validation_alias="REDIS_URL")
+    REDIS_URL: str = Field(
+        default="redis://:bsopt_redis_secret@redis:6379/0",
+        validation_alias="REDIS_URL",
+    )
     REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
@@ -322,6 +328,7 @@ class Settings(BaseSettings):
                 )
 
             try:
+                import base64
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
                 if len(decoded) < 32:
                     raise ValueError(
@@ -349,6 +356,6 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-def get_settings():
+def get_settings() -> Settings:
     """Returns the singleton settings instance."""
     return settings

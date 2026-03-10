@@ -1,3 +1,4 @@
+from collections import defaultdict
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -52,7 +53,7 @@ class ConnectionManager:
 
     def __init__(self):
         # Store active connections: { "AAPL": {ws1, ws2}, "GOOG": {ws3} }
-        self.active_connections: dict[str, set[WebSocket]] = {}
+        self.active_connections: dict[str, set[WebSocket]] = defaultdict(set)
         self._listener_task: asyncio.Task | None = None
         self._shm_task: asyncio.Task | None = None
         self._heartbeat_task: asyncio.Task | None = None
@@ -190,7 +191,6 @@ class ConnectionManager:
         symbol = symbol.upper()
         async with self._lock:
             if symbol not in self.active_connections:
-                self.active_connections[symbol] = set()
                 pubsub = await self._get_pubsub()
                 if pubsub:
                     await pubsub.subscribe(symbol)
@@ -271,32 +271,38 @@ class ConnectionManager:
             return
 
         # Use local copy of connections to minimize lock contention
-        async with self._lock:
-            if symbol not in self.active_connections:
-                return
-            connections = list(self.active_connections[symbol])
-
+        # Dict access is atomic, but we copy the set to iterate safely
+        connections = self.active_connections.get(symbol)
         if not connections:
             return
+        
+        # Copy outside of any potential lock if we used one, but here we just list() it
+        targets = list(connections)
+        if not targets:
+            return
 
-        #  HIGH-PERFORMANCE: Deliver to clients
+        #  HIGH-PERFORMANCE: Group by protocol to avoid redundant encoding
         by_protocol: dict[ProtocolType, list[WebSocket]] = {}
-        for conn in connections:
+        for conn in targets:
             proto = getattr(conn, "metadata", ConnectionMetadata()).protocol
             if proto not in by_protocol:
                 by_protocol[proto] = []
             by_protocol[proto].append(conn)
 
         tasks = []
+        # Pre-decoded data if raw bytes received from Redis
+        decoded_data = None
+        
         for proto, conns in by_protocol.items():
             try:
-                # Optimized Encoding
+                # Optimized Encoding: Encode once per protocol
                 if is_raw and proto == ProtocolType.MSGPACK:
                     encoded = message  # Pass-through bytes
                 else:
-                    data = (
-                        WebSocketCodec.decode(message, ProtocolType.MSGPACK) if is_raw else message
-                    )
+                    if decoded_data is None and is_raw:
+                        decoded_data = WebSocketCodec.decode(message, ProtocolType.MSGPACK)
+                    
+                    data = decoded_data if is_raw else message
                     encoded = WebSocketCodec.encode(data, proto)
 
                 for conn in conns:
@@ -314,7 +320,7 @@ class ConnectionManager:
             for i, res in enumerate(results):
                 if isinstance(res, Exception):
                     logger.debug("ws_send_failed", symbol=symbol, error=str(res))
-                    # Connection likely dead, will be pruned by heartbeat or explicit disconnect
+
 
 
 # Global manager instance for reuse across routes

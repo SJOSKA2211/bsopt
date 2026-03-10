@@ -63,7 +63,8 @@ class SharedMemoryManager:
                     shm = self.all_segments[seg_name]
                     # Probe health
                     buf = shm.buf
-                    buf[0] = buf[0]
+                    if buf is not None:
+                        buf[0] = buf[0]
                     return seg_name
                 except Exception as e:
                     logger.error("shm_segment_corrupt", segment=seg_name, error=str(e))
@@ -78,7 +79,9 @@ class SharedMemoryManager:
             if name in self.all_segments and name not in self.available_segments:
                 # OPTIMIZED: Zero out buffer on release for security/consistency
                 shm = self.all_segments[name]
-                shm.buf[:] = b"\x00" * self.segment_size
+                buf = shm.buf
+                if buf is not None:
+                    buf[:] = b"\x00" * self.segment_size
                 self.available_segments.append(name)
             else:
                 logger.warning("shm_release_invalid", segment=name)

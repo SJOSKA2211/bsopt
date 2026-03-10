@@ -1,7 +1,7 @@
 import struct
 import time
 from multiprocessing import shared_memory
-from typing import Any
+from typing import Any, cast
 
 import orjson
 
@@ -36,8 +36,10 @@ class OffHeapLogger:
                     name=SHM_LOG_NAME, create=True, size=self.shm_size
                 )
                 if self.shm is not None:
-                    self.buf = self.shm.buf
-                    self.buf[:8] = struct.pack("q", 0)  # Head index
+                    buf = self.shm.buf
+                    if buf is not None:
+                        buf[:8] = struct.pack("q", 0)  # Head index
+                    self.buf = buf
             else:
                 self.shm = shared_memory.SharedMemory(name=SHM_LOG_NAME)
 
@@ -50,7 +52,8 @@ class OffHeapLogger:
 
     def log(self, event: str, **kwargs: Any) -> None:
         """Ultra-fast log write to shared memory. Aligned for atomic head update."""
-        if self.shm is None or self.buf is None:
+        buf = self.buf
+        if buf is None:
             return
 
         # 1. Prepare Payload (Still serialized here, ideally offloaded to a pre-allocated pool)
@@ -60,14 +63,14 @@ class OffHeapLogger:
         timestamp = int(time.time() * 1000)
 
         # 2. Lock-free slot calculation
-        head = struct.unpack("q", self.buf[:8])[0]
+        head = struct.unpack("q", buf[:8])[0]
         offset = 8 + (head % LOG_BUFFER_CAPACITY) * LOG_SIZE
 
         # 3. Write Data FIRST
-        self.buf[offset : offset + LOG_SIZE] = LOG_STRUCT.pack(timestamp, payload_bytes)
+        buf[offset : offset + LOG_SIZE] = LOG_STRUCT.pack(timestamp, payload_bytes)
 
         # 4. Atomic Head Update (Machine-word aligned write)
-        self.buf[:8] = struct.pack("q", head + 1)
+        buf[:8] = struct.pack("q", head + 1)
 
     def close(self) -> None:
         if self.shm:

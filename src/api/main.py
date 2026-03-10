@@ -11,13 +11,7 @@ from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql.schema import schema
-from src.api.middleware.security import (
-    CSRFMiddleware,
-    InputSanitizationMiddleware,
-    IPBlockMiddleware,
-    JWTAuthenticationMiddleware,
-    SecurityHeadersMiddleware,
-)
+from src.api.middleware.fused import FusedSecurityMiddleware
 from src.api.responses import MsgspecJSONResponse
 from src.api.routes import (
     auth_router,
@@ -113,6 +107,9 @@ app.add_middleware(
 )
 app.middleware("http")(logging_middleware)
 
+# OPTIMIZED: Single fused security hop
+app.add_middleware(FusedSecurityMiddleware)
+
 
 # Exception Handler
 async def api_exception_handler(request: Request, exc: Exception):
@@ -178,18 +175,6 @@ app.add_exception_handler(HTTPException, api_exception_handler)
 
 
 graphql_app = GraphQLRouter(schema)
-
-# Security Middleware (Order matters: executed from bottom to top of this list)
-# 1. JWT Auth (innermost - specific to routes)
-app.add_middleware(JWTAuthenticationMiddleware)
-# 2. CSRF Protection
-app.add_middleware(CSRFMiddleware)
-# 3. Input Sanitization (logging only)
-app.add_middleware(InputSanitizationMiddleware)
-# 4. IP Blocking (reject bad IPs early)
-app.add_middleware(IPBlockMiddleware)
-# 5. Security Headers (outermost - applies to all responses)
-app.add_middleware(SecurityHeadersMiddleware)
 
 # API v1 Routes
 api_router = APIRouter(prefix="/api/v1")
