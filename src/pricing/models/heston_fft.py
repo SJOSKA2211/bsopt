@@ -1,15 +1,16 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import structlog
-from numba import complex128, float64, njit, prange
+from numba import complex128, float64, prange
 
 from src.pricing.models import HestonParams
+from src.shared.math_utils import njit_engine
 
 logger = structlog.get_logger()
 
 
-@njit(
+@njit_engine(
     complex128[:, :](
         float64[:],
         float64[:],
@@ -47,8 +48,6 @@ def _heston_cf_kernel(
     res = np.zeros((n_v, n_batch), dtype=np.complex128)
 
     for i in prange(n_v):
-        # We assume alpha is uniform or we'd need to index it.
-        # Here we index it for maximum flexibility in vectorized calls.
         for j in range(n_batch):
             u_v = v[i] - (alpha[j] + 1) * 1j
             xi = kappa[j] - sigma[j] * rho[j] * u_v * 1j
@@ -111,18 +110,18 @@ def batch_heston_price_jit(
     upper_bound = 250.0
     n_steps = 2000
     h = upper_bound / n_steps
-    v = np.linspace(0, upper_bound, n_steps + 1)
+    v = np.linspace(0, upper_bound, n_steps + 1).astype(np.float64)
 
     f_v = _heston_integrand_vectorized(
         v, k, alpha, maturities, rates, v0s, kappas, thetas, sigmas, rhos
     )
 
-    weights = np.ones(n_steps + 1)
+    weights = np.ones(n_steps + 1, dtype=np.float64)
     weights[1:-1:2] = 4
     weights[2:-1:2] = 2
-    weights = weights.reshape(-1, 1)
+    weights_col = cast(np.ndarray[Any, np.dtype[np.float64]], weights.reshape(-1, 1))
 
-    integrals = (h / 3.0) * np.sum(f_v * weights, axis=0)
+    integrals = (h / 3.0) * np.sum(f_v * weights_col, axis=0)
 
     price_vals = (np.exp(-alpha * k) / np.pi) * integrals
     discounted_prices = np.exp(-rates * maturities) * spots * price_vals
@@ -136,9 +135,6 @@ def batch_heston_price_jit(
         is_calls, np.maximum(spots - strikes, 0.0), np.maximum(strikes - spots, 0.0)
     )
     out[:] = np.maximum(final_prices, intrinsics)
-
-
-from typing import cast
 
 
 class HestonModelFFT:
@@ -164,7 +160,7 @@ class HestonModelFFT:
         if self.params is None or self.r is None or self.T is None:
             raise ValueError("Model not fully initialized")
 
-        out = np.zeros(1)
+        out = np.zeros(1, dtype=np.float64)
         batch_heston_price_jit(
             np.array([S0], dtype=np.float64),
             np.array([K], dtype=np.float64),
@@ -185,7 +181,7 @@ class HestonModelFFT:
         if self.params is None or self.r is None or self.T is None:
             raise ValueError("Model not fully initialized")
 
-        out = np.zeros(1)
+        out = np.zeros(1, dtype=np.float64)
         batch_heston_price_jit(
             np.array([S0], dtype=np.float64),
             np.array([K], dtype=np.float64),

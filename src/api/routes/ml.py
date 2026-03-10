@@ -21,23 +21,23 @@ router = APIRouter(
 logger = structlog.get_logger(__name__)
 
 
-@router.post("/predict")
+@router.post("/predict", response_model=None)
 async def predict(
     request: InferenceRequest,
     symbol: str = "UNKNOWN",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponseStruct:
+) :
     """Predict option price using ML models."""
     return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
 
 
-@router.get("/predictions")
+@router.get("/predictions", response_model=None)
 async def get_predictions(
     symbol: str = "AAPL",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) -> DataResponseStruct:
+) :
     """
     Convenience endpoint for the frontend dashboard.
     """
@@ -62,10 +62,10 @@ async def get_predictions(
     return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
 
 
-@router.get("/drift-metrics")
+@router.get("/drift-metrics", response_model=None)
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
-) -> DataResponseStruct:
+) :
     """Fetch model performance metrics (Async Optimized)."""
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)

@@ -70,38 +70,39 @@ class ConnectionManager:
         return self._pubsub
 
     async def _listen_to_shm(self):
-        """High-frequency polling of SHM for market data."""
+        """High-frequency polling of Ring Buffer for market data."""
         import os
 
         if os.getenv("USE_SHM") != "1":
             return
 
-        logger.info("ws_shm_listener_started")
+        logger.info("ws_shm_listener_started_ring_buffer")
         try:
-            from src.shared.shm_manager import SHMManager
+            from src.shared.shm_mesh import SharedMemoryRingBuffer
 
-            shm = SHMManager("market_mesh", dict, size=50 * 1024 * 1024)
-            last_seq = 0
+            mesh = SharedMemoryRingBuffer(create=False)
+            last_head = 0
             while True:
                 try:
-                    seq = shm.get_sequence()
-                    if seq != last_seq:
-                        last_seq = seq
-                        data = shm.read()
-                        for symbol, item in data.items():
+                    # 1. Read latest ticks since last head
+                    ticks, new_head = mesh.read_latest_msgspec(last_head)
+                    
+                    if new_head > last_head:
+                        last_head = new_head
+                        for tick in ticks:
+                            symbol = tick.symbol
                             if symbol in self.active_connections:
-                                # Bypass Redis for SHM
+                                # Optimized: Broadcast individual tick
                                 asyncio.create_task(
                                     self.broadcast_to_symbol(
-                                        symbol, item, from_redis=True, is_raw=False
+                                        symbol, tick, from_redis=True, is_raw=False
                                     )
                                 )
-                        await asyncio.sleep(0)  # Yield to event loop, immediate poll
+                        await asyncio.sleep(0)  # Immediate poll if data was present
                     else:
                         await asyncio.sleep(0.001)  # 1ms poll when idle
-                except FileNotFoundError:
-                    await asyncio.sleep(0.05)
-                except Exception:
+                except Exception as e:
+                    logger.debug("shm_poll_error", error=str(e))
                     await asyncio.sleep(0.01)
         except asyncio.CancelledError:
             logger.info("ws_shm_listener_cancelled")

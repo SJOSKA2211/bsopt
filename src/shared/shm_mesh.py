@@ -80,6 +80,176 @@ RISK_STATE_DTYPE = np.dtype(
 SHM_RISK_NAME = "risk_state_buffer"
 
 
+# Greeks State: 8s (Symbol), d (Delta), d (Gamma), d (Theta), d (Vega), d (Rho), q (calc_ts_ns) = 48 bytes
+GREEKS_DTYPE = np.dtype(
+    [
+        ("symbol", "S8"),
+        ("delta", "f8"),
+        ("gamma", "f8"),
+        ("theta", "f8"),
+        ("vega", "f8"),
+        ("rho", "f8"),
+        ("calc_ts_ns", "i8"),
+    ]
+)
+GREEKS_SIZE = GREEKS_DTYPE.itemsize
+GREEKS_BUFFER_CAPACITY = 1000
+SHM_GREEKS_NAME = "greeks_mesh_buffer"
+# Map-based Greeks Snapshot: [Symbol(8s), Delta(d), Gamma(d), Theta(d), Vega(d), Rho(d), CalcTs(q)] * 2000 symbols
+GREEKS_MAP_CAPACITY = 2000
+GREEKS_MAP_SIZE = (GREEKS_SIZE * GREEKS_MAP_CAPACITY)
+
+
+class GreeksMesh:
+    """O(1) Map-based Greeks Mesh for instant lookup."""
+
+    def __init__(self, create: bool = False):
+        self.size = GREEKS_MAP_SIZE
+        self.shm: shared_memory.SharedMemory | None = None
+        self.buf: memoryview
+        try:
+            if create:
+                try:
+                    existing = shared_memory.SharedMemory(name="greeks_snapshot")
+                    existing.close()
+                    existing.unlink()
+                except Exception:
+                    pass
+                sm = shared_memory.SharedMemory(name="greeks_snapshot", create=True, size=self.size)
+                self.shm = sm
+                self.buf = sm.buf
+            else:
+                sm = shared_memory.SharedMemory(name="greeks_snapshot")
+                self.shm = sm
+                self.buf = sm.buf
+
+            self.view = np.frombuffer(self.buf, dtype=GREEKS_DTYPE, count=GREEKS_MAP_CAPACITY)
+            
+            # Fast index for symbol lookup: { "AAPL": index }
+            self._symbol_to_idx = {}
+            self._refresh_index()
+        except Exception as e:
+            if not create:
+                logger.warning("greeks_snapshot_missing_using_dummy", error=str(e))
+                self.buf = memoryview(bytearray(self.size))
+                self.view = np.frombuffer(self.buf, dtype=GREEKS_DTYPE, count=GREEKS_MAP_CAPACITY)
+            else:
+                raise
+
+    def _refresh_index(self):
+        """Rebuild the local symbol-to-index map from SHM."""
+        self._symbol_to_idx.clear()
+        for i in range(GREEKS_MAP_CAPACITY):
+            sym = self.view[i]["symbol"].decode("ascii").strip("\x00")
+            if sym:
+                self._symbol_to_idx[sym] = i
+
+    def write(self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float):
+        """Update the latest Greeks for a symbol."""
+        idx = self._symbol_to_idx.get(symbol)
+        if idx is None:
+            # Find first empty slot or use a simple hash
+            # For speed, we use a simple linear probe if collision
+            h = hash(symbol) % GREEKS_MAP_CAPACITY
+            for i in range(GREEKS_MAP_CAPACITY):
+                probe_idx = (h + i) % GREEKS_MAP_CAPACITY
+                existing = self.view[probe_idx]["symbol"].strip(b"\x00")
+                if not existing or existing.decode("ascii") == symbol:
+                    idx = probe_idx
+                    self._symbol_to_idx[symbol] = idx
+                    break
+        
+        if idx is not None:
+            self.view[idx] = (
+                symbol.encode("ascii")[:8],
+                delta,
+                gamma,
+                theta,
+                vega,
+                rho,
+                time.time_ns(),
+            )
+
+    def read(self, symbol: str) -> dict | None:
+        """Instant O(1) Greek lookup."""
+        idx = self._symbol_to_idx.get(symbol)
+        if idx is None:
+            # Try one full scan in case index is stale
+            self._refresh_index()
+            idx = self._symbol_to_idx.get(symbol)
+            
+        if idx is not None:
+            data = self.view[idx]
+            return {
+                "delta": float(data["delta"]),
+                "gamma": float(data["gamma"]),
+                "theta": float(data["theta"]),
+                "vega": float(data["vega"]),
+                "rho": float(data["rho"]),
+                "timestamp": int(data["calc_ts_ns"]),
+            }
+        return None
+
+
+class GreeksBuffer:
+    """High-Performance Greeks Mesh for real-time risk observability."""
+
+    def __init__(self, create: bool = False):
+        self.size = (GREEKS_SIZE * GREEKS_BUFFER_CAPACITY) + 8
+        self.shm: shared_memory.SharedMemory | None = None
+        self.buf: memoryview
+        try:
+            if create:
+                try:
+                    existing = shared_memory.SharedMemory(name=SHM_GREEKS_NAME)
+                    existing.close()
+                    existing.unlink()
+                except Exception:
+                    pass
+                sm = shared_memory.SharedMemory(name=SHM_GREEKS_NAME, create=True, size=self.size)
+                self.shm = sm
+                self.buf = sm.buf
+                struct.pack_into("q", self.buf, 0, 0)
+            else:
+                sm = shared_memory.SharedMemory(name=SHM_GREEKS_NAME)
+                self.shm = sm
+                self.buf = sm.buf
+
+            self.view = np.frombuffer(
+                self.buf, dtype=GREEKS_DTYPE, offset=8, count=GREEKS_BUFFER_CAPACITY
+            )
+        except Exception as e:
+            if not create:
+                logger.warning("greeks_shm_missing_using_dummy", error=str(e))
+                self.buf = memoryview(bytearray(self.size))
+                self.view = np.frombuffer(
+                    self.buf, dtype=GREEKS_DTYPE, offset=8, count=GREEKS_BUFFER_CAPACITY
+                )
+            else:
+                raise
+
+    def write_greeks(self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float):
+        """Writer: Direct write into Greeks Mesh."""
+        self.write_greeks_raw(
+            symbol.encode("ascii")[:8], delta, gamma, theta, vega, rho
+        )
+
+    def write_greeks_raw(self, sym_bytes: bytes, delta: float, gamma: float, theta: float, vega: float, rho: float):
+        """Zero-copy writer for raw bytes symbol."""
+        head = struct.unpack_from("q", self.buf, 0)[0]
+        idx = head % GREEKS_BUFFER_CAPACITY
+        self.view[idx] = (
+            sym_bytes,
+            delta,
+            gamma,
+            theta,
+            vega,
+            rho,
+            time.time_ns(),
+        )
+        struct.pack_into("q", self.buf, 0, head + 1)
+
+
 class RiskStateBuffer:
     """Zero-Latency Risk State Buffer for Engine-Worker Synchronization."""
 

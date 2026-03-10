@@ -44,7 +44,7 @@ async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) :
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:

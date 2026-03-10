@@ -22,7 +22,7 @@ _shm_probe = None
 
 
 @router.get("/health/deep")
-async def get_deep_health() -> DataResponseStruct:
+async def get_deep_health() :
     """High-fidelity stack probe with cached connections."""
     global _shm_probe
     health = {"status": "operational", "probes": {}}
@@ -73,7 +73,7 @@ health)
 
 
 @router.get("/status")
-async def get_system_status() -> DataResponseStruct:
+async def get_system_status() :
     """Returns the status of various system components and circuit breakers."""
     return DataResponseStruct(data=
 {
@@ -93,7 +93,7 @@ async def get_system_status() -> DataResponseStruct:
 
 
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
-async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponseStruct:
+async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) :
     """
     High-Performance Database Diagnostics.
     Requires Enterprise tier for high-fidelity performance metrics.
@@ -103,7 +103,7 @@ await crud.get_system_health_dashboard(db))
 
 
 @router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
-async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) -> DataResponseStruct:
+async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) :
     """
     PostgreSQL 16 I/O Performance Audit.
     Requires Enterprise tier.

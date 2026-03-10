@@ -1,14 +1,14 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import structlog
-from numba import njit
 from scipy.optimize import minimize
+from src.shared.math_utils import njit_engine
 
 logger = structlog.get_logger()
 
 
-@njit(cache=True, fastmath=True)
+@njit_engine(cache=True, fastmath=True)
 def _raw_svi_kernel(
     k: np.ndarray[Any, np.dtype[np.float64]],
     a: float,
@@ -18,7 +18,7 @@ def _raw_svi_kernel(
     sigma: float,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized JIT SVI formula."""
-    return a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2))
+    return cast(np.ndarray[Any, np.dtype[np.float64]], a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2)))
 
 
 class SVISurface:
@@ -38,9 +38,11 @@ class SVISurface:
     ) -> float | np.ndarray[Any, np.dtype[np.float64]]:
         """Public interface for SVI total variance calculation."""
         if np.isscalar(k):
-            k_val = float(k)
-            return a + b * (rho * (k_val - m) + np.sqrt((k_val - m) ** 2 + sigma**2))
-        return _raw_svi_kernel(np.asanyarray(k, dtype=np.float64), a, b, rho, m, sigma)
+            k_val = float(cast(float, k))
+            return float(a + b * (rho * (k_val - m) + np.sqrt((k_val - m) ** 2 + sigma**2)))
+        
+        k_arr = np.asanyarray(k, dtype=np.float64)
+        return _raw_svi_kernel(k_arr, a, b, rho, m, sigma)
 
     @staticmethod
     def fit_svi_slice(
@@ -68,7 +70,7 @@ class SVISurface:
 
     @staticmethod
     def get_implied_vol(S0: float, K: float, T: float, params: tuple[float, ...]) -> float:
-        k = np.log(K / S0)
+        k = float(np.log(K / S0))
         # params: (a, b, rho, m, sigma)
-        total_variance = SVISurface.raw_svi(k, *params)
-        return float(np.sqrt(max(float(total_variance), 1e-6) / T))
+        total_variance = SVISurface.raw_svi(k, params[0], params[1], params[2], params[3], params[4])
+        return float(np.sqrt(max(float(cast(float, total_variance)), 1e-6) / T))

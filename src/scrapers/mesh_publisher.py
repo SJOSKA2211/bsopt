@@ -4,28 +4,37 @@ Market Mesh Publisher
 Writes real-time scraped market data to shared memory for zero-copy access.
 """
 
+import time
 import structlog
 
-from src.shared.shm_manager import SHMManager
+from src.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
 
 class MarketMeshPublisher:
     """
-    Publishes market data to the 'market_mesh' shared memory segment.
+    Publishes market data to the lock-free SharedMemoryRingBuffer.
     """
 
     def __init__(self):
-        # 50MB buffer for market ticks
-        self.shm = SHMManager("market_mesh", dict, size=50 * 1024 * 1024)
-        self.shm.create()
+        # Ultra-high-performance ring buffer for market ticks
+        self.mesh = SharedMemoryRingBuffer(create=True)
 
     def publish(self, data: dict):
-        """Write ticker data to SHM."""
+        """Write ticker data to the Ring Buffer."""
         try:
-            self.shm.write(data)
-            logger.debug("market_data_published", count=len(data))
+            # data is { symbol: {price, volume, ...} }
+            count = 0
+            for symbol, tick in data.items():
+                self.mesh.write_tick(
+                    symbol,
+                    float(tick.get("price", 0.0)),
+                    int(tick.get("volume", 0)),
+                    float(time.time()),  # Use current server time for the mesh
+                )
+                count += 1
+            logger.debug("market_data_published_to_ring", count=count)
         except Exception as e:
             logger.error("market_publish_failed", error=str(e))
 

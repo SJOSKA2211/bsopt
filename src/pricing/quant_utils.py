@@ -3,7 +3,7 @@
 Targets: Numba JIT, Parallel, Vectorized
 """
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from src.shared.math_utils import njit_engine, loop_prange
@@ -131,7 +131,7 @@ def generate_paths_v2(
         return S
 
     log_paths = generate_log_paths_v2(S0, T, r, sigma, q, n_paths, n_steps)
-    return np.exp(log_paths).T
+    return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(log_paths).T)
 
 
 @njit_engine(fastmath=True, parallel=True)
@@ -423,14 +423,14 @@ def scalar_bs_price_jit(S: float, K: float, T: float, sigma: float, r: float, q:
 def _laguerre_basis_jit(x: np.ndarray[Any, np.dtype[np.float64]], n: int) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Laguerre polynomial basis for LSM."""
     if n == 0:
-        return np.ones_like(x)
+        return cast(np.ndarray[Any, np.dtype[np.float64]], np.ones_like(x))
     if n == 1:
-        return np.exp(-x / 2)
+        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2))
     if n == 2:
-        return np.exp(-x / 2) * (1 - x)
+        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2) * (1 - x))
     if n == 3:
-        return np.exp(-x / 2) * (1 - 2 * x + x**2 / 2)
-    return np.exp(-x / 2)
+        return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2) * (1 - 2 * x + x**2 / 2))
+    return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-x / 2))
 
 
 @njit_engine(fastmath=True, parallel=True)
@@ -835,7 +835,7 @@ def warmup_jit() -> None:
     vectorized_newton_raphson_iv_jit(np.array([10.0]), s, k, t, r, q, is_call)
 
     # Warmup PDE
-    jit_cn_solver(np.linspace(0, 300, 50), 100.0, 0.1, 0.05, 0.2, 0.0, True, 10)
+    jit_cn_solver(np.linspace(0, 300, 50).astype(np.float64), 100.0, 0.1, 0.05, 0.2, 0.0, True, 10)
 
     # Warmup American LSM
     jit_lsm_american(100.0, 100.0, 0.1, 0.05, 0.2, 0.0, 100, 10, True)

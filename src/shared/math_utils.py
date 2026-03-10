@@ -37,11 +37,17 @@ def njit_engine(*args: Any, **kwargs: Any) -> Any:
         from numba import njit
 
         if len(args) == 1 and callable(args[0]) and not kwargs:
-            return njit(cache=True, fastmath=True)(args[0])
+            # Type-safe binding of F
+            f_to_jit: Any = args[0]
+            return njit(cache=True, fastmath=True)(f_to_jit)
 
-        kwargs.setdefault("cache", True)
-        kwargs.setdefault("fastmath", True)
-        return njit(*args, **kwargs)
+        # Return a decorator
+        def decorator(f: Any) -> Any:
+            kwargs.setdefault("cache", True)
+            kwargs.setdefault("fastmath", True)
+            return njit(*args, **kwargs)(f)
+
+        return decorator
     except ImportError:
         if len(args) == 1 and callable(args[0]):
             return args[0]
@@ -52,7 +58,7 @@ def njit_engine(*args: Any, **kwargs: Any) -> Any:
 try:
     from numba import prange as loop_prange
 except ImportError:
-    loop_prange = range  # type: ignore
+    loop_prange = range
 
 # Explicit exports for static analysis
 __all__ = ["njit_engine", "loop_prange", "fast_normal_ppf", "calculate_ppf", "fast_normal_cdf", "fast_normal_pdf", "calculate_d1_d2", "calculate_price", "calculate_greeks"]
@@ -264,16 +270,14 @@ def calculate_price(
         and np.isscalar(q)
         and np.isscalar(is_call)
     ):
-        return float(
-            calculate_price_core(
-                float(cast(float, s)),
-                float(cast(float, k)),
-                float(cast(float, t)),
-                float(cast(float, sigma)),
-                float(cast(float, r)),
-                float(cast(float, q)),
-                bool(is_call),
-            )
+        return calculate_price_core(
+            float(cast(float, s)),
+            float(cast(float, k)),
+            float(cast(float, t)),
+            float(cast(float, sigma)),
+            float(cast(float, r)),
+            float(cast(float, q)),
+            bool(is_call),
         )
 
     # Broadcast to common shape
@@ -281,16 +285,14 @@ def calculate_price(
         s, k, t, sigma, r, q, is_call
     )
     if s_arr.size == 1:
-        return float(
-            calculate_price_core(
-                float(s_arr.flat[0]),
-                float(k_arr.flat[0]),
-                float(t_arr.flat[0]),
-                float(sigma_arr.flat[0]),
-                float(r_arr.flat[0]),
-                float(q_arr.flat[0]),
-                bool(is_call_arr.flat[0]),
-            )
+        return calculate_price_core(
+            float(s_arr.flat[0]),
+            float(k_arr.flat[0]),
+            float(t_arr.flat[0]),
+            float(sigma_arr.flat[0]),
+            float(r_arr.flat[0]),
+            float(q_arr.flat[0]),
+            bool(is_call_arr.flat[0]),
         )
 
     original_shape = s_arr.shape
@@ -303,6 +305,7 @@ def calculate_price(
         q_arr.ravel().astype(np.float64),
         is_call_arr.ravel().astype(np.bool_),
     )
+
     return flat_res.reshape(original_shape)
 
 

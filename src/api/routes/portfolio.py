@@ -95,7 +95,7 @@ async def get_portfolio(
 async def get_portfolio_summary(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> DataResponseStruct:
+) :
     """Return high-level portfolio metrics via optimized view."""
     await set_user_context(db, str(current_user.id))
 
@@ -117,7 +117,7 @@ async def add_position(
     payload: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) -> DataResponseStruct:
+) :
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
 

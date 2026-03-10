@@ -5,7 +5,7 @@ import structlog
 
 from src.pricing.factory import PricingEngineFactory
 from src.shared.observability import tune_gc
-from src.shared.shm_mesh import SHM_NAME, GreeksBuffer, SharedMemoryRingBuffer
+from src.shared.shm_mesh import SHM_NAME, GreeksBuffer, GreeksMesh, SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -13,14 +13,15 @@ logger = structlog.get_logger(__name__)
 class GreekEngine:
     """
     The Oracle: High-Frequency Mathematical Feature Engine.
-    Spins on the SHM Mesh, calculates Greeks via WASM, and writes to Greeks Mesh.
+    Spins on the SHM Mesh, calculates Greeks via WASM/Rust, and writes to Greeks Mesh.
     Pinned to Core 12 for mathematical dominance.
     """
 
     def __init__(self):
         tune_gc()
         self.mesh = SharedMemoryRingBuffer(create=False)
-        self.greeks = GreeksBuffer(create=False)
+        self.greeks_stream = GreeksBuffer(create=False)
+        self.greeks_snapshot = GreeksMesh(create=False)
         self._last_head = 0
         self.engine = PricingEngineFactory.get_engine("black_scholes")
 
@@ -51,14 +52,23 @@ class GreekEngine:
                     spots = chunk["price"]
                     # Call JIT-accelerated vectorized Greek kernel
                     # Note: We use a simplified constant for strike/maturity for demo
+                    # In a real system, these would be matched per contract from a registry
                     deltas, gammas, thetas, vegas, rhos = self.engine.price_batch_greeks(
                         spots, 100.0, 0.1, 0.2, 0.05, 0.0
                     )
 
-                    # 3. Write results back to Greeks Mesh
+                    # 3. Write results back to Greeks Mesh (Stream + Snapshot)
                     for i in range(len(chunk)):
-                        symbol = chunk[i]["symbol"].decode().strip("\x00")
-                        self.greeks.write_greeks(
+                        sym_bytes = chunk[i]["symbol"]
+                        symbol = sym_bytes.decode("ascii").strip("\x00")
+                        
+                        # Streaming update
+                        self.greeks_stream.write_greeks_raw(
+                            sym_bytes, deltas[i], gammas[i], thetas[i], vegas[i], rhos[i]
+                        )
+                        
+                        # Snapshot update
+                        self.greeks_snapshot.write(
                             symbol, deltas[i], gammas[i], thetas[i], vegas[i], rhos[i]
                         )
 

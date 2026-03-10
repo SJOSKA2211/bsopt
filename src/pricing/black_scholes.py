@@ -314,6 +314,28 @@ class BlackScholesEngine:
         else:
             is_call_arr = np.asanyarray(is_call).astype(bool)
 
+        if CORE_AVAILABLE:
+            try:
+                # Optimized Rust batch path
+                d, g, th, v, rh = bsopt_core.batch_black_scholes_greeks(
+                    S.ravel().astype(np.float64),
+                    K_arr.ravel().astype(np.float64),
+                    T_arr.ravel().astype(np.float64),
+                    sig_arr.ravel().astype(np.float64),
+                    r_arr.ravel().astype(np.float64),
+                    q_arr.ravel().astype(np.float64),
+                    is_call_arr.ravel().astype(bool),
+                )
+                return (
+                    d.reshape(S.shape),
+                    g.reshape(S.shape),
+                    th.reshape(S.shape),
+                    v.reshape(S.shape),
+                    rh.reshape(S.shape),
+                )
+            except Exception as e:
+                logger.warning("rust_batch_greeks_failed_falling_back", error=str(e))
+
         from src.pricing.quant_utils import batch_greeks_jit_v2
 
         # Note: batch_greeks_jit_v2 returns (delta, gamma, vega, theta, rho)
