@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Any
+from typing import Any, cast
 
 import msgspec
 from google.protobuf.json_format import MessageToDict
@@ -34,21 +34,26 @@ class WebSocketCodec:
         if protocol == ProtocolType.PROTO:
             if not isinstance(data, Message):
                 raise ValueError("Data must be a Protobuf Message for PROTO protocol")
-            return data.SerializeToString()
+            # Explicitly cast to bytes to satisfy mypy
+            return cast(bytes, data.SerializeToString())
         raise ValueError(f"Unsupported protocol: {protocol}")
 
     @staticmethod
     def decode(data: str | bytes, protocol: ProtocolType, message_type: Any | None = None) -> Any:
         if protocol == ProtocolType.JSON:
             return WebSocketCodec._json_decoder.decode(data)
+        
+        # Binary protocols require bytes
+        binary_data = data.encode() if isinstance(data, str) else data
+        
         if protocol == ProtocolType.MSGPACK:
             # OPTIMIZED: Use pre-allocated msgspec decoder
-            return WebSocketCodec._msgpack_decoder.decode(data)
+            return WebSocketCodec._msgpack_decoder.decode(binary_data)
         if protocol == ProtocolType.PROTO:
             # High-performance binary decoding
             if message_type is None:
                 raise ValueError("message_type required for PROTO decoding")
             message = message_type()
-            message.ParseFromString(data)
+            message.ParseFromString(binary_data)
             return message
         raise ValueError(f"Unsupported protocol: {protocol}")

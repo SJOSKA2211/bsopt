@@ -18,7 +18,7 @@ class EternalLedger:
     # Pre-compiled structure for sub-microsecond packing
     _TICK_STRUCT = struct.Struct("8s d q d q")
 
-    def __init__(self, file_path: str = "logs/eternal_ledger.bin", capacity: int = 1000000):
+    def __init__(self, file_path: str = "logs/eternal_ledger.bin", capacity: int = 1000000) -> None:
         self.file_path = file_path
         self.capacity = capacity
         self.entry_size = self._TICK_STRUCT.size
@@ -42,7 +42,7 @@ class EternalLedger:
             size_mb=self.file_size / 1024 / 1024,
         )
 
-    def write_batch(self, batch: list[Any]):
+    def write_batch(self, batch: list[dict[str, Any]]) -> None:
         """HOT PATH: Optimized batch write to mmap."""
         try:
             # OPTIMIZED: Pre-pack batch or use direct memoryview copy
@@ -69,9 +69,9 @@ class EternalLedger:
         except Exception as e:
             logger.error("ledger_batch_write_failed", error=str(e))
 
-    def flush(self):
+    def flush(self) -> None:
         self.mmap.flush()
 
-    def close(self):
+    def close(self) -> None:
         self.mmap.close()
         self.file.close()

@@ -214,6 +214,23 @@ class BarrierOptionPricer:
         else:
             bt_idx = 3
 
+        if CORE_AVAILABLE:
+            try:
+                return float(bsopt_core.barrier_option_price(
+                    params.base_params.spot,
+                    params.base_params.strike,
+                    params.base_params.maturity,
+                    params.base_params.rate,
+                    params.base_params.dividend,
+                    params.base_params.volatility,
+                    float(params.barrier),
+                    float(params.rebate),
+                    bt_idx,
+                    option_type.lower() == "call"
+                ))
+            except Exception:
+                pass
+
         return float(
             _price_barrier_analytical_jit(
                 params.base_params.spot,
@@ -336,6 +353,22 @@ class LookbackOptionPricer:
 class DigitalOptionPricer:
     @staticmethod
     def price_cash_or_nothing(params: BSParameters, option_type: str, payout: float = 1.0) -> float:
+        if CORE_AVAILABLE:
+            try:
+                return float(bsopt_core.digital_option_price(
+                    params.spot,
+                    params.strike,
+                    params.maturity,
+                    params.rate,
+                    params.dividend,
+                    params.volatility,
+                    payout,
+                    option_type.lower() == "call",
+                    True # is_cash_or_nothing
+                ))
+            except Exception:
+                pass
+
         return float(
             _price_digital_cash_or_nothing_jit(
                 params.spot,
@@ -351,6 +384,22 @@ class DigitalOptionPricer:
 
     @staticmethod
     def price_asset_or_nothing(params: BSParameters, option_type: str) -> float:
+        if CORE_AVAILABLE:
+            try:
+                return float(bsopt_core.digital_option_price(
+                    params.spot,
+                    params.strike,
+                    params.maturity,
+                    params.rate,
+                    params.dividend,
+                    params.volatility,
+                    0.0, # payout ignored
+                    option_type.lower() == "call",
+                    False # is_cash_or_nothing
+                ))
+            except Exception:
+                pass
+
         return float(
             _price_digital_asset_or_nothing_jit(
                 params.spot,

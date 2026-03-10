@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 logger = structlog.get_logger()
 
 
-def apply_database_optimizations():
+def apply_database_optimizations() -> None:
     """
     High-Performance Optimization Wrapper:
     Applies the full-spectrum optimized init-scripts to an existing database.

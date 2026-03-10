@@ -1,10 +1,16 @@
 import asyncio
 import re
 import subprocess
+from typing import Any, cast
 
 import structlog
 
-import docker
+try:
+    import docker
+    from docker.client import DockerClient
+    HAS_DOCKER_SDK = True
+except ImportError:
+    HAS_DOCKER_SDK = False
 
 logger = structlog.get_logger()
 
@@ -30,13 +36,15 @@ class DockerRemediator:
     OPTIMIZED: Non-blocking execution via thread pool.
     """
 
-    def __init__(self):
-        try:
-            self.client = docker.from_env()
-            logger.info("docker_remediator_init", status="success")
-        except Exception as e:
-            logger.error("docker_remediator_init", status="failure", error=str(e))
-            self.client = None
+    def __init__(self) -> None:
+        self.client: Any = None
+        if HAS_DOCKER_SDK:
+            try:
+                self.client = docker.from_env()
+                logger.info("docker_remediator_init", status="success")
+            except Exception as e:
+                logger.error("docker_remediator_init", status="failure", error=str(e))
+                self.client = None
 
     async def _run_cmd(self, cmd: list[str]) -> bool:
         """Helper to run shell commands in the background."""
@@ -102,9 +110,9 @@ class DockerRemediator:
 
         # Ensure replicas is a sane integer
         try:
-            replicas = int(replicas)
-            if replicas < 1 or replicas > 5:
-                logger.error("docker_remediator_invalid_scale", count=replicas)
+            replicas_int = int(replicas)
+            if replicas_int < 1 or replicas_int > 5:
+                logger.error("docker_remediator_invalid_scale", count=replicas_int)
                 return False
         except (ValueError, TypeError):
             return False
@@ -115,7 +123,7 @@ class DockerRemediator:
             "up",
             "-d",
             "--scale",
-            f"{service_name}={replicas}",
+            f"{service_name}={replicas_int}",
             service_name,
         ]
 

@@ -837,8 +837,7 @@ def jit_cn_solver(
 
         # 3. Solve Tridiagonal System A * V^n = RHS
         # Use optimized out-of-place Thomas algo with pre-allocated buffers
-        f_thomas_out = cast(Callable[..., np.ndarray[Any, np.dtype[np.float64]]], thomas_algorithm_out)
-        V[1:M] = f_thomas_out(
+        U_new = thomas_algorithm_out(
             a_lhs[1:], b_lhs, c_lhs[:-1], rhs, c_new, d_new, x_thomas
         )
 

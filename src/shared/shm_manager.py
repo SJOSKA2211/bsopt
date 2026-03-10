@@ -86,7 +86,7 @@ class SHMManager[T]:
         length_tuple = struct.unpack("I", mv[9:13])
         length = cast(int, length_tuple[0])
         # Zero-copy decode from buffer
-        return cast(T, self._decoder.decode(mv[13 : 13 + length]))
+        return self._decoder.decode(mv[13 : 13 + length])
 
     def get_sequence(self) -> int:
         """Get the current sequence number from the header."""

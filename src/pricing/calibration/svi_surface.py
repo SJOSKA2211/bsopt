@@ -3,6 +3,13 @@ from typing import Any, cast
 import numpy as np
 import structlog
 from scipy.optimize import minimize
+
+try:
+    import bsopt_core
+    _CORE_AVAILABLE = True
+except ImportError:
+    _CORE_AVAILABLE = False
+
 from src.shared.math_utils import njit_engine
 
 logger = structlog.get_logger()
@@ -50,7 +57,25 @@ class SVISurface:
         total_variances: np.ndarray[Any, np.dtype[np.float64]],
         T: float,
     ) -> tuple[float, ...]:
-        """Fit SVI using vectorized JIT objective."""
+        """Fit SVI using vectorized JIT objective or Rust Core."""
+        initial = np.array([np.median(total_variances) * 0.5, 0.1, -0.3, 0.0, 0.1])
+
+        if _CORE_AVAILABLE:
+            try:
+                # Convert variances back to vols for Rust calibrator which fits in vol space (more robust)
+                vols = np.sqrt(np.maximum(total_variances / T, 1e-9))
+                weights = np.ones_like(vols)
+
+                res = bsopt_core.calibrate_svi_rust(
+                    log_strikes.astype(np.float64),
+                    vols.astype(np.float64),
+                    weights.astype(np.float64),
+                    float(T),
+                    list(initial),
+                )
+                return tuple(res)
+            except Exception as e:
+                logger.warning("rust_svi_calibration_failed_falling_back", error=str(e))
 
         def objective(params: np.ndarray[Any, np.dtype[np.float64]]) -> float:
             a, b, rho, m, sigma = params
@@ -62,7 +87,6 @@ class SVISurface:
             model_var = _raw_svi_kernel(log_strikes, a, b, rho, m, sigma)
             return float(np.sum((total_variances - model_var) ** 2))
 
-        initial = np.array([np.median(total_variances) * 0.5, 0.1, -0.3, 0.0, 0.1])
         bounds = [(0, 2.0), (0, 1.0), (-0.99, 0.99), (-1.0, 1.0), (0.01, 1.0)]
 
         result = minimize(objective, initial, bounds=bounds, method="L-BFGS-B")

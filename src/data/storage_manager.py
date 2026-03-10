@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 
 import aioboto3
 import structlog
@@ -21,7 +22,7 @@ class AsyncStorageManager:
         bucket_name: str,
         region: str = "us-east-1",
         max_concurrent_uploads: int = 5,
-    ):
+    ) -> None:
         self.endpoint_url = endpoint_url
         self.bucket_name = bucket_name
         self.session = aioboto3.Session(
@@ -31,7 +32,7 @@ class AsyncStorageManager:
         )
         self._semaphore = asyncio.Semaphore(max_concurrent_uploads)
 
-    async def upload_file(self, local_path: str, remote_key: str):
+    async def upload_file(self, local_path: str, remote_key: str) -> None:
         """Asynchronous file upload with semaphore protection."""
         async with self._semaphore:
             async with self.session.client("s3", endpoint_url=self.endpoint_url) as s3:
@@ -43,7 +44,7 @@ class AsyncStorageManager:
                     logger.error("upload_to_vault_failed", key=remote_key, error=str(e))
                     raise
 
-    async def download_file(self, remote_key: str, local_path: str):
+    async def download_file(self, remote_key: str, local_path: str) -> None:
         """Asynchronous file download."""
         async with self.session.client("s3", endpoint_url=self.endpoint_url) as s3:
             try:
@@ -54,7 +55,7 @@ class AsyncStorageManager:
                 logger.error("download_from_vault_failed", key=remote_key, error=str(e))
                 raise
 
-    def upload_background(self, local_path: str, remote_key: str):
+    def upload_background(self, local_path: str, remote_key: str) -> asyncio.Task[None]:
         """Fire-and-forget background upload (non-blocking)."""
         loop = asyncio.get_event_loop()
         task = loop.create_task(self.upload_file(local_path, remote_key))
@@ -63,6 +64,6 @@ class AsyncStorageManager:
 
 
 # Example usage (Mock)
-async def test_storage():
+async def test_storage() -> None:
     AsyncStorageManager("http://localhost:9000", "admin", "password", "models")
     # await manager.upload_file("model.pt", "v1/model.pt")
