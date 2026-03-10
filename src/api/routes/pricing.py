@@ -10,6 +10,8 @@ from fastapi import APIRouter, Request
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.pricing import (
+    BatchGreeksRequest,
+    BatchGreeksResult,
     BatchPriceRequest,
     BatchPriceResult,
     GreeksRequest,
@@ -45,6 +47,14 @@ async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult
     OPTIMIZED: Zero-overhead batch response using msgspec Structs.
     """
     return await pricing_service.price_batch(request.options)
+
+
+@router.post("/greeks/batch", response_model=None)
+async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResult:
+    """
+    Vectorized batch Greek calculation.
+    """
+    return await pricing_service.calculate_greeks_batch(request.options)
 
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)

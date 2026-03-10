@@ -20,6 +20,24 @@ class DataResponseStruct(msgspec.Struct):
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
 
 
+class PaginationMetaStruct(msgspec.Struct):
+    """OPTIMIZED: Pagination metadata."""
+
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+
+class PaginatedResponseStruct(msgspec.Struct):
+    """OPTIMIZED: Paginated response wrapper."""
+
+    items: list[Any]
+    pagination: PaginationMetaStruct
+
+
 class ErrorDetail(BaseModel):
     """Detailed error information."""
 

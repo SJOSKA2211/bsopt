@@ -10,9 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import (
-    DataResponse,
-    PaginatedResponse,
-    PaginationMeta,
+    DataResponseStruct,
+    PaginatedResponseStruct,
+    PaginationMetaStruct,
     SuccessResponse,
 )
 from src.api.schemas.user import UserResponse, UserUpdateRequest

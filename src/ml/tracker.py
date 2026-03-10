@@ -43,6 +43,7 @@ class ExperimentTracker:
             if active or in_mlflow_run:
                 if nested:
                     try:
+                        # OPTIMIZED: Use nested run if already in an active run
                         with mlflow.start_run(nested=True) as nested_run:
                             yield nested_run
                             return
@@ -50,13 +51,17 @@ class ExperimentTracker:
                         logger.warning("nested_run_failed_using_existing", error=str(e))
 
                 # If nesting fails or is not requested, yield the active run or a stub.
-                # Note: yield active doesn't 'end' the run on exit, which is what we want.
                 yield active or mlflow.active_run()
             else:
+                # Only set experiment if we are NOT already in a run to avoid conflicts
                 if self.study_name:
-                    mlflow.set_experiment(self.study_name)
-                with mlflow.start_run(nested=nested) as new_run:
-                    yield nested_run if "nested_run" in locals() else new_run
+                    try:
+                        mlflow.set_experiment(self.study_name)
+                    except Exception as e:
+                        logger.warning("set_experiment_failed", error=str(e), study=self.study_name)
+                
+                with mlflow.start_run() as new_run:
+                    yield new_run
 
         return run_context()
 

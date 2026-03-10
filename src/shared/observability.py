@@ -5,10 +5,10 @@ import random
 import re
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, MutableMapping
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 import httpx
 import orjson
@@ -45,8 +45,8 @@ _CALLSITE_ADDER = structlog.processors.CallsiteParameterAdder(
 
 
 def _off_heap_processor(
-    logger: Any, method_name: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+    logger: Any, method_name: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any] | str | bytes | bytearray | tuple[Any, ...]:
     """Zero-latency redirect for high-frequency logs."""
     if event_dict.get("high_frequency") or event_dict.get("latency_sensitive"):
         # Remove the marker before logging to SHM
@@ -60,8 +60,8 @@ def _off_heap_processor(
 
 
 def _pii_masking_processor(
-    logger: Any, method_name: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+    logger: Any, method_name: str, event_dict: MutableMapping[str, Any]
+) -> Mapping[str, Any] | str | bytes | bytearray | tuple[Any, ...]:
     """Masks PII (IPs, Emails) in all log events for security compliance (Optimized)."""
     for key, value in event_dict.items():
         if isinstance(value, str):
@@ -182,7 +182,7 @@ async def logging_middleware(request: Request, call_next: Callable[[Request], An
     # Propagate ID back to client
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Response-Time"] = str(round(duration * 1000, 2))
-    return response
+    return cast(Response, response)
 
 
 # System Metrics (Defined at module level to avoid registration leaks)

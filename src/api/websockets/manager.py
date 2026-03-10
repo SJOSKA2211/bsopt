@@ -70,39 +70,63 @@ class ConnectionManager:
         return self._pubsub
 
     async def _listen_to_shm(self):
-        """High-frequency polling of Ring Buffer for market data."""
+        """High-frequency polling of Ring Buffers for market and Greeks data."""
         import os
 
         if os.getenv("USE_SHM") != "1":
             return
 
-        logger.info("ws_shm_listener_started_ring_buffer")
+        logger.info("ws_shm_listener_started_multi_ring")
         try:
-            from src.shared.shm_mesh import SharedMemoryRingBuffer
+            from src.shared.shm_mesh import GreeksBuffer, SharedMemoryRingBuffer
 
             mesh = SharedMemoryRingBuffer(create=False)
+            g_mesh = GreeksBuffer(create=False)
             last_head = 0
+            last_g_head = 0
+            
             while True:
                 try:
-                    # 1. Read latest ticks since last head
+                    # 1. Market Data Poll
                     ticks, new_head = mesh.read_latest_msgspec(last_head)
-                    
                     if new_head > last_head:
                         last_head = new_head
                         for tick in ticks:
-                            symbol = tick.symbol
-                            if symbol in self.active_connections:
-                                # Optimized: Broadcast individual tick
+                            if tick.symbol in self.active_connections:
+                                asyncio.create_task(self.broadcast_to_symbol(tick.symbol, tick, from_redis=True))
+                    
+                    # 2. Greeks Data Poll
+                    # (Assuming GreeksBuffer also has a read_latest variant or we use head pointer)
+                    # For Greeks, we'll check the head pointer in the buffer
+                    import struct
+                    g_head = struct.unpack_from("q", g_mesh.buf, 0)[0]
+                    if g_head > last_g_head:
+                        # Read new Greeks
+                        for i in range(last_g_head, g_head):
+                            idx = i % 1000 # GREEKS_BUFFER_CAPACITY
+                            data = g_mesh.view[idx]
+                            symbol = data["symbol"].decode("ascii").strip("\x00")
+                            g_channel = f"GREEKS:{symbol}"
+                            if g_channel in self.active_connections:
                                 asyncio.create_task(
                                     self.broadcast_to_symbol(
-                                        symbol, tick, from_redis=True, is_raw=False
+                                        g_channel, 
+                                        {
+                                            "delta": float(data["delta"]),
+                                            "gamma": float(data["gamma"]),
+                                            "theta": float(data["theta"]),
+                                            "vega": float(data["vega"]),
+                                            "rho": float(data["rho"]),
+                                            "timestamp": int(data["calc_ts_ns"])
+                                        }, 
+                                        from_redis=True
                                     )
                                 )
-                        await asyncio.sleep(0)  # Immediate poll if data was present
-                    else:
-                        await asyncio.sleep(0.001)  # 1ms poll when idle
+                        last_g_head = g_head
+
+                    await asyncio.sleep(0 if new_head > last_head or g_head > last_g_head else 0.001)
                 except Exception as e:
-                    logger.debug("shm_poll_error", error=str(e))
+                    logger.debug("shm_multi_poll_error", error=str(e))
                     await asyncio.sleep(0.01)
         except asyncio.CancelledError:
             logger.info("ws_shm_listener_cancelled")

@@ -156,7 +156,7 @@ async def login(
 
 @router.get("/me")
 async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponse[UserResponse]:
-    return DataResponse(data=UserResponse.model_validate(user))
+    return DataResponse(data=UserResponse.from_orm(user))
 
 
 @router.post("/logout", deprecated=True)

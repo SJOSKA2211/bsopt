@@ -11,7 +11,7 @@ import time
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from functools import wraps
-from typing import Any
+from typing import Any, Callable, cast
 
 import msgspec
 import orjson
@@ -43,9 +43,6 @@ def get_redis() -> Redis | None:
                 retry_on_timeout=True,
             )
 
-            # If it's a mock, it might not have been initialized as we expect
-            # but Redis.from_url should have returned the mock from mock_all.py
-
             logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=50)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
@@ -53,7 +50,7 @@ def get_redis() -> Redis | None:
     return _redis
 
 
-def generate_cache_key(prefix: str, **kwargs) -> str:
+def generate_cache_key(prefix: str, **kwargs: Any) -> str:
     """
     Generate a deterministic cache key using ultra-fast msgspec serialization.
     """
@@ -86,7 +83,7 @@ class PricingCache:
         method: str,
         price: float,
         ttl: int = 3600,
-    ):
+    ) -> bool:
         redis = get_redis()
         if redis is None:
             return False
@@ -107,7 +104,7 @@ class PricingCache:
         try:
             val = await redis.get(key)
             if val:
-                data = msgspec.json.decode(val)
+                data = cast(dict[str, Any], msgspec.json.decode(val))
                 return OptionGreeks(**data)
             return None
         except Exception as e:
@@ -120,7 +117,7 @@ class PricingCache:
         option_type: str,
         greeks: OptionGreeks,
         ttl: int = 3600,
-    ):
+    ) -> bool:
         """Cache Greeks."""
         redis = get_redis()
         if redis is None:
@@ -136,18 +133,18 @@ class PricingCache:
 
 def multi_layer_cache(
     prefix: str, maxsize: int = 1000, ttl: int = 60, validation_model: Any = None
-):
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     Decorator for multi-layer caching with OPTIMIZED X-Fetch (Probabilistic Early Recomputation).
     Layer 1: Local In-Memory LRU
     Layer 2: Distributed Redis
     """
-    l1_cache = TTLCache(maxsize=maxsize, ttl=ttl)
+    l1_cache: TTLCache[str, Any] = TTLCache(maxsize=maxsize, ttl=ttl)
     beta = 1.0  # X-Fetch coefficient (higher means more aggressive early refresh)
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             import math
             import random
 
@@ -158,7 +155,6 @@ def multi_layer_cache(
             cache_key = generate_cache_key(prefix, **key_params)
 
             # 1. L1 Check (with X-Fetch logic for local memory?)
-            # Usually X-Fetch is most beneficial for network-bound L2
             if cache_key in l1_cache:
                 return l1_cache[cache_key]
 
@@ -172,12 +168,10 @@ def multi_layer_cache(
                     pipe = redis.pipeline()
                     pipe.get(cache_key)
                     pipe.pttl(cache_key)
-                    cached_val, remaining_ms = await pipe.execute()
+                    results = await pipe.execute()
+                    cached_val, remaining_ms = results[0], results[1]
 
                     if cached_val:
-                        # X-Fetch formula: now - (delta * beta * log(random())) > expiry
-                        # delta is the time it took to compute (approximate here)
-                        # We use a constant 'beta' and random jitter to trigger refresh
                         delta_ms = 100  # Assume 100ms computation time average
                         if (
                             remaining_ms > 0
@@ -250,21 +244,24 @@ class RateLimiter:
         redis = get_redis()
         if redis:
             # Convert string to Enum if needed
+            tier_enum = RateLimitTier.FREE
             if isinstance(tier, str):
                 try:
-                    tier = RateLimitTier(tier.lower())
+                    tier_enum = RateLimitTier(tier.lower())
                 except ValueError:
-                    tier = RateLimitTier.FREE
+                    tier_enum = RateLimitTier.FREE
+            else:
+                tier_enum = tier
 
-            config = RATE_LIMIT_CONFIGS[tier]
+            config = RATE_LIMIT_CONFIGS[tier_enum]
             limit = (
                 config.pricing_requests_per_minute
                 if "price" in endpoint.lower()
                 else config.requests_per_minute
             )
             key = f"rl:{user_id}:{endpoint}"
-            now = int(time.time())
-            window = now // 60
+            now_ts = int(time.time())
+            window = now_ts // 60
             full_key = f"{key}:{window}"
             try:
                 pipe = redis.pipeline()
@@ -279,7 +276,6 @@ class RateLimiter:
                 )
 
         # 2. Secondary: Optimized Postgres Unlogged Table (Highly Robust)
-        # Prevents total bypass if Redis is unavailable or during cold restarts.
         try:
             from datetime import UTC, datetime
 
@@ -288,8 +284,8 @@ class RateLimiter:
             from src.database import get_async_db_context
 
             # Simple window-based check mirroring Redis logic
-            now = datetime.now(UTC)
-            window_start = now.replace(second=0, microsecond=0)
+            now_dt = datetime.now(UTC)
+            window_start = now_dt.replace(second=0, microsecond=0)
 
             async with get_async_db_context() as db:
                 # Optimized native query for unlogged rate_limits table
@@ -308,15 +304,23 @@ class RateLimiter:
 
                 # Use default free tier limits for DB fallback safety if config not resolved
                 db_limit = 100
-                if isinstance(tier, RateLimitTier):
-                    config = RATE_LIMIT_CONFIGS[tier]
-                    db_limit = (
-                        config.pricing_requests_per_minute
-                        if "price" in endpoint.lower()
-                        else config.requests_per_minute
-                    )
+                tier_enum = RateLimitTier.FREE
+                if isinstance(tier, str):
+                    try:
+                        tier_enum = RateLimitTier(tier.lower())
+                    except ValueError:
+                        tier_enum = RateLimitTier.FREE
+                else:
+                    tier_enum = tier
 
-                return bool(count <= db_limit)
+                config = RATE_LIMIT_CONFIGS[tier_enum]
+                db_limit = (
+                    config.pricing_requests_per_minute
+                    if "price" in endpoint.lower()
+                    else config.requests_per_minute
+                )
+
+                return bool(cast(int, count) <= db_limit)
 
         except Exception as e:
             logger.error("db_rate_limit_fallback_failed", error=str(e), user_id=user_id)
@@ -326,7 +330,7 @@ class RateLimiter:
 rate_limiter = RateLimiter()
 
 
-async def warm_cache():
+async def warm_cache() -> None:
     """Pre-warm cache with common option parameters in parallel."""
     from src.pricing.black_scholes import BlackScholesEngine
 
@@ -385,18 +389,18 @@ idempotency_manager = IdempotencyManager()
 class DatabaseQueryCache:
     PREFIX = "db:"
 
-    async def get_user(self, user_id: str) -> dict | None:
+    async def get_user(self, user_id: str) -> dict[str, Any] | None:
         redis = get_redis()
         if redis is None:
             return None
         try:
             val = await redis.get(f"{self.PREFIX}user:{user_id}")
-            return msgspec.json.decode(val) if val else None
+            return cast(dict[str, Any], msgspec.json.decode(val)) if val else None
         except Exception as e:
             logger.error("db_cache_get_user_failed", error=str(e), user_id=user_id)
             return None
 
-    async def set_user(self, user_id: str, user_data: dict, ttl: int = 300):
+    async def set_user(self, user_id: str, user_data: dict[str, Any], ttl: int = 300) -> bool:
         redis = get_redis()
         if redis is None:
             return False
@@ -415,7 +419,7 @@ db_cache = DatabaseQueryCache()
 redis_channel_updates: str = "pricing_updates"
 
 
-async def publish_to_redis(channel: str, message: dict[str, Any]):
+async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
     """Publish a message to a Redis channel using msgspec."""
     redis = get_redis()
     if redis is not None:
@@ -437,7 +441,7 @@ async def get_redis_client() -> Redis:
     return redis
 
 
-async def init_redis_cache(**kwargs):
+async def init_redis_cache(**kwargs: Any) -> None:
     """Initialize the Redis cache during startup."""
     redis = get_redis()
     if redis:
@@ -448,7 +452,7 @@ async def init_redis_cache(**kwargs):
             logger.error("redis_cache_init_failed", error=str(e))
 
 
-async def close_redis_cache():
+async def close_redis_cache() -> None:
     """Close the Redis client connection."""
     global _redis
     if _redis:

@@ -256,6 +256,53 @@ class PricingService:
         )
 
 
+    async def calculate_greeks_batch(self, options: list[Any]) -> BatchGreeksResult:
+        """
+        HIGH-PERFORMANCE: Batch Greeks calculation.
+        """
+        start_time = time.perf_counter()
+        
+        # Truly vectorized parameters
+        spots = np.array([o.spot for o in options], dtype=np.float64)
+        strikes = np.array([o.strike for o in options], dtype=np.float64)
+        maturities = np.array([o.time_to_expiry for o in options], dtype=np.float64)
+        vols = np.array([o.volatility for o in options], dtype=np.float64)
+        rates = np.array([o.rate for o in options], dtype=np.float64)
+        divs = np.array([o.dividend_yield for o in options], dtype=np.float64)
+        types = np.array([o.option_type for o in options])
+
+        from src.pricing.black_scholes import BlackScholesEngine
+        from src.api.schemas.pricing import GreeksResult
+
+        # Using BlackScholesEngine truly vectorized batch greeks (Rust/JIT)
+        g_res = await run_sync(
+            BlackScholesEngine.calculate_greeks,
+            spots, strikes, maturities, vols, rates, divs, types
+        )
+        
+        results = [
+            GreeksResult(
+                delta=float(g_res.delta[i]),
+                gamma=float(g_res.gamma[i]),
+                theta=float(g_res.theta[i]),
+                vega=float(g_res.vega[i]),
+                rho=float(g_res.rho[i]),
+                option_price=0.0, # Price omitted for pure Greeks call
+                spot=options[i].spot,
+                strike=options[i].strike,
+                time_to_expiry=options[i].time_to_expiry,
+                volatility=options[i].volatility,
+                option_type=options[i].option_type,
+            )
+            for i in range(len(options))
+        ]
+
+        return BatchGreeksResult(
+            results=results,
+            total_count=len(results),
+            computation_time_ms=(time.perf_counter() - start_time) * 1000,
+        )
+
     async def calculate_iv_batch(self, options: list[Any]) -> list[float]:
         """
         Vectorized batch IV calculation.
