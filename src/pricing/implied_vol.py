@@ -204,30 +204,54 @@ def implied_volatility(
                 option_type,
                 tolerance,
             )
-        raise
+        try:
+            import bsopt_core
+            CORE_AVAILABLE = True
+        except ImportError:
+            CORE_AVAILABLE = False
 
 
-def vectorized_implied_volatility(
-    market_prices: np.ndarray,
-    spots: np.ndarray,
-    strikes: np.ndarray,
-    maturities: np.ndarray,
-    rates: np.ndarray,
-    dividends: np.ndarray,
-    option_types: np.ndarray,
-    tolerance: float = 1e-6,
-    max_iterations: int = 50,
-) -> np.ndarray:
-    """
-    State-of-the-art vectorized IV calculation.
-    """
-    # OPTIMIZED: Vectorized type conversion
-    is_call = (option_types == "call") | (option_types == "CALL")
-    type_ints = np.where(is_call, 0, 1)
+        class ImpliedVolatilityError(Exception):
+        ...
+        def vectorized_implied_volatility(
+            market_prices: np.ndarray,
+            spots: np.ndarray,
+            strikes: np.ndarray,
+            maturities: np.ndarray,
+            rates: np.ndarray,
+            dividends: np.ndarray,
+            option_types: np.ndarray,
+            tolerance: float = 1e-6,
+            max_iterations: int = 50,
+        ) -> np.ndarray:
+            """
+            State-of-the-art vectorized IV calculation.
+            """
+            # OPTIMIZED: Vectorized type conversion
+            is_call = (option_types == "call") | (option_types == "CALL")
 
-    # 2. Corrado-Miller Initial Guess
-    sigma = corrado_miller_initial_guess(
-        market_prices, spots, strikes, maturities, rates, dividends, type_ints
+            if CORE_AVAILABLE:
+                try:
+                    return bsopt_core.batch_black_scholes_iv(
+                        market_prices.astype(np.float64),
+                        spots.astype(np.float64),
+                        strikes.astype(np.float64),
+                        maturities.astype(np.float64),
+                        rates.astype(np.float64),
+                        dividends.astype(np.float64),
+                        is_call.astype(bool),
+                        tolerance,
+                        max_iterations
+                    )
+                except Exception:
+                    pass
+
+            # 2. Corrado-Miller Initial Guess
+            type_ints = np.where(is_call, 0, 1)
+            sigma = corrado_miller_initial_guess(
+                market_prices, spots, strikes, maturities, rates, dividends, type_ints
+            )
+
     )
 
     # 3. Optimized JIT Newton-Raphson

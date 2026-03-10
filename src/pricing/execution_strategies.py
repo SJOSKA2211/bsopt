@@ -176,7 +176,12 @@ class WASMStrategy(ExecutionStrategy):
 class StrategyFactory:
     @staticmethod
     def get_strategy(count: int, ray_active: bool) -> ExecutionStrategy:
+        from src.pricing.black_scholes import CORE_AVAILABLE
         from src.pricing.wasm_engine import WASM_AVAILABLE
+
+        # OPTIMIZED: Prioritize host-native Rust Core (Multi-threaded Rayon)
+        if CORE_AVAILABLE:
+            return SequentialStrategy()  # SequentialStrategy uses vectorized Rust call
 
         if ray_active and count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             return RayStrategy()

@@ -15,6 +15,13 @@ F = TypeVar("F", bound=Callable[..., Any])
 # OPTIMIZED: Safety wrapper for environments where JIT is disabled (e.g. Test CI)
 _JIT_DISABLED = os.getenv("NUMBA_DISABLE_JIT") == "1"
 
+_CORE_AVAILABLE = False
+try:
+    import bsopt_core
+    _CORE_AVAILABLE = True
+except ImportError:
+    bsopt_core = None # type: ignore
+
 
 @overload
 def njit_engine(func: F) -> F: ...
@@ -58,7 +65,7 @@ def njit_engine(*args: Any, **kwargs: Any) -> Any:
 try:
     from numba import prange as loop_prange
 except ImportError:
-    loop_prange = range
+    loop_prange = range # type: ignore
 
 # Explicit exports for static analysis
 __all__ = ["njit_engine", "loop_prange", "fast_normal_ppf", "calculate_ppf", "fast_normal_cdf", "fast_normal_pdf", "calculate_d1_d2", "calculate_price", "calculate_greeks"]
@@ -77,11 +84,14 @@ CDF_A5 = 1.061405429
 @njit_engine
 def fast_normal_ppf(p: float) -> float:
     """
-    Inverse CDF (PPF) approximation.
-    Uses Rust bsopt_core if available for maximum precision and speed.
+    Inverse CDF (PPF) approximation using Beasley-Springer-Moro.
+    Optimized for JIT execution.
     """
-    if _CORE_AVAILABLE:
-        return float(bsopt_core.normal_ppf(p))
+    if _CORE_AVAILABLE and bsopt_core is not None:
+        try:
+            return float(bsopt_core.normal_ppf(p))
+        except Exception:
+            pass
 
     if p <= 0 or p >= 1:
         return 0.0
@@ -147,11 +157,11 @@ def calculate_ppf(
 ) -> float | np.ndarray[Any, np.dtype[np.float64]]:
     """Unified Normal PPF with Scalar Fast-Path."""
     if np.isscalar(p):
-        return float(fast_normal_ppf(float(cast(float, p))))
+        return fast_normal_ppf(float(cast(float, p)))
 
     p_arr = np.asanyarray(p)
     if p_arr.size == 1:
-        return float(fast_normal_ppf(float(p_arr.flat[0])))
+        return fast_normal_ppf(float(p_arr.flat[0]))
 
     original_shape = p_arr.shape
     flat_res = _vec_ppf_impl(p_arr.ravel().astype(np.float64))
@@ -161,11 +171,13 @@ def calculate_ppf(
 @njit_engine
 def fast_normal_cdf(x: float) -> float:
     """
-    Cumulative Distribution Function.
-    Uses Rust bsopt_core if available.
+    High-precision rational approximation (A&S 7.1.26).
     """
-    if _CORE_AVAILABLE:
-        return float(bsopt_core.normal_cdf(x))
+    if _CORE_AVAILABLE and bsopt_core is not None:
+        try:
+            return float(bsopt_core.normal_cdf(x))
+        except Exception:
+            pass
 
     if x > 8.0:
         return 1.0

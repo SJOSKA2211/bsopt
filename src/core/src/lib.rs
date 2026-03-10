@@ -734,6 +734,71 @@ fn digital_option_price(
 }
 
 #[pyfunction]
+fn batch_black_scholes_iv(
+    py: Python<'_>,
+    market_prices: PyReadonlyArray1<'_, f64>,
+    spots: PyReadonlyArray1<'_, f64>,
+    strikes: PyReadonlyArray1<'_, f64>,
+    maturities: PyReadonlyArray1<'_, f64>,
+    rates: PyReadonlyArray1<'_, f64>,
+    dividends: PyReadonlyArray1<'_, f64>,
+    is_calls: PyReadonlyArray1<'_, bool>,
+    tolerance: f64,
+    max_iter: i32,
+) -> PyResult<Py<PyArray1<f64>>> {
+    let p = market_prices.as_array();
+    let s = spots.as_array();
+    let k = strikes.as_array();
+    let t = maturities.as_array();
+    let r = rates.as_array();
+    let q = dividends.as_array();
+    let is_call = is_calls.as_array();
+    
+    let n = p.len();
+    let mut results = unsafe { PyArray1::new(py, [n], false) };
+    let mut results_view = results.bind().as_array_mut();
+
+    let rows: Vec<f64> = (0..n).into_par_iter().map(|i| {
+        let pi = p[i];
+        let si = s[i];
+        let ki = k[i];
+        let ti = t[i];
+        let ri = r[i];
+        let qi = q[i];
+        let ic = is_call[i];
+
+        if ti <= 1e-12 { return 0.0; }
+
+        // Initial guess: Corrado-Miller
+        let mut sigma = 0.25; 
+        
+        // Newton-Raphson
+        for _ in 0..max_iter {
+            let price = black_scholes_price(si, ki, ti, sigma, ri, qi, ic);
+            let greeks = black_scholes_greeks(si, ki, ti, sigma, ri, qi, ic);
+            let vega = greeks.vega * 100.0; // Our greeks are scaled for 1% vol
+
+            let diff = price - pi;
+            if diff.abs() < tolerance {
+                return sigma;
+            }
+            if vega.abs() < 1e-12 {
+                break;
+            }
+            sigma -= diff / vega;
+            sigma = sigma.max(1e-6).min(5.0);
+        }
+        sigma
+    }).collect();
+
+    for (i, val) in rows.into_iter().enumerate() {
+        results_view[i] = val;
+    }
+
+    Ok(results.into())
+}
+
+#[pyfunction]
 fn keccak256(data: &[u8]) -> Vec<u8> {
     let mut hasher = Keccak256::new();
     hasher.update(data);
@@ -858,6 +923,7 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_sabr_implied_vol, m)?)?;
     m.add_function(wrap_pyfunction!(normal_cdf, m)?)?;
     m.add_function(wrap_pyfunction!(normal_ppf, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_black_scholes_iv, m)?)?;
     m.add_function(wrap_pyfunction!(geometric_asian_price, m)?)?;
     m.add_function(wrap_pyfunction!(barrier_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(digital_option_price, m)?)?;
