@@ -15,7 +15,7 @@ from src.ml.utils.distributed import train_xgboost_distributed
 logger = structlog.get_logger()
 
 
-def init_collective_backend():
+def init_collective_backend() -> None:
     """Initialize NCCL backend for multi-GPU training if available."""
     if not torch.cuda.is_available():
         return
@@ -54,7 +54,7 @@ class TrainingStrategy:
     ) -> dict[str, float] | None:
         return None
 
-    def export_onnx(self, model: Any, path: str, input_dim: int):
+    def export_onnx(self, model: Any, path: str, input_dim: int) -> None:
         """Standardized ONNX export interface."""
         pass
 
@@ -64,7 +64,7 @@ class ONNXOptimizationMixin:
     High-Performance: Reusable ONNX optimization logic for strategies.
     """
 
-    def export_onnx(self, model: Any, path: str, input_dim: int):
+    def export_onnx(self, model: Any, path: str, input_dim: int) -> None:
         import torch
 
         from src.ml.utils.optimization import export_to_onnx, quantize_onnx_model
@@ -186,8 +186,8 @@ class SklearnStrategy(TrainingStrategy):
 
 
 class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
-    class SimpleNet(nn.Module):
-        def __init__(self, input_dim: int):
+    class SimpleNet(nn.Module): # type: ignore
+        def __init__(self, input_dim: int) -> None:
             super().__init__()
             self.fc = nn.Sequential(
                 nn.Linear(input_dim, 64),
@@ -197,7 +197,7 @@ class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
                 nn.Linear(32, 1),  # Regression output
             )
 
-        def forward(self, x):
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
             return self.fc(x)
 
     def train(

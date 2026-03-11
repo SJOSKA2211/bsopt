@@ -43,8 +43,8 @@ class OptionChainItem(msgspec.Struct):
     time: str | None = None
 
 
-@router.get("/greeks/{symbol}")
-async def get_realtime_greeks(symbol: str) -> DataResponseStruct:
+@router.get("/greeks/{symbol}", response_model=None)
+async def get_realtime_greeks(symbol: str) -> Any:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
     if not data:
@@ -52,8 +52,8 @@ async def get_realtime_greeks(symbol: str) -> DataResponseStruct:
     return DataResponseStruct(data=data)
 
 
-@router.post("/greeks/batch")
-async def get_batch_greeks(symbols: list[str]) -> DataResponseStruct:
+@router.post("/greeks/batch", response_model=None)
+async def get_batch_greeks(symbols: list[str]) -> Any:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}
     for sym in symbols:
@@ -63,12 +63,12 @@ async def get_batch_greeks(symbols: list[str]) -> DataResponseStruct:
     return DataResponseStruct(data=results)
 
 
-@router.get("/chain")
+@router.get("/chain", response_model=None)
 async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     db: AsyncSession = Depends(get_async_db),
-) :
+) -> Any:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:

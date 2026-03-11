@@ -1,18 +1,20 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 from torch_geometric.nn import GATConv
+from typing import Any, cast
 
 
-class GATFeaturesExtractor(BaseFeaturesExtractor):
+class GATFeaturesExtractor(BaseFeaturesExtractor): # type: ignore
     """
     Advanced Graph Attention Network (GAT) Extractor for stable-baselines3.
     Constructs features from option surface topology.
     """
 
-    def __init__(self, observation_space, features_dim: int = 64, heads: int = 4):
+    def __init__(self, observation_space: spaces.Box, features_dim: int = 64, heads: int = 4) -> None:
         super().__init__(observation_space, features_dim)
         self.input_dim = 100
 
@@ -21,7 +23,7 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
         self.conv3 = GATConv(64 * heads, features_dim, heads=1, concat=False)
 
         self.layer_norm = nn.LayerNorm(features_dim)
-        self._cached_edge_index = None
+        self._cached_edge_index: torch.Tensor | None = None
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
         """Standard path for training with CACHED edge index."""
@@ -30,28 +32,28 @@ class GATFeaturesExtractor(BaseFeaturesExtractor):
 
         return self.forward_jit(observations, self._cached_edge_index)
 
-    @torch.jit.export
+    @torch.jit.export # type: ignore
     def forward_jit(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
         """SILICON PATH: High-performance JIT-friendly forward pass."""
         x = F.elu(self.conv1(x, edge_index))
         x = F.elu(self.conv2(x, edge_index))
         x = self.conv3(x, edge_index)
-        return self.layer_norm(x)
+        return cast(torch.Tensor, self.layer_norm(x))
 
-    def _get_static_edge_index(self, device: torch.device):
+    def _get_static_edge_index(self, device: torch.device) -> torch.Tensor:
         """Build edges between strike/expiry neighbors."""
         # Simple adjacency for 10 nodes (OPT_0 to OPT_9)
-        edges = []
+        edges: list[list[int]] = []
         for i in range(9):
             edges.append([i, i + 1])  # Strike adjacency
             edges.append([i + 1, i])
         return torch.tensor(edges, dtype=torch.long).t().contiguous().to(device)
 
 
-class GATTD3Policy(TD3Policy):
+class GATTD3Policy(TD3Policy): # type: ignore
     """TD3 Policy with GAT topological extractor."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(
             *args,
             **kwargs,

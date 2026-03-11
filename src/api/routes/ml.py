@@ -2,6 +2,7 @@
 Machine Learning Routes (Optimized)
 """
 
+from typing import Any
 from uuid import UUID
 
 import structlog
@@ -27,7 +28,7 @@ async def predict(
     symbol: str = "UNKNOWN",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) :
+) -> Any:
     """Predict option price using ML models."""
     return DataResponseStruct(data=await ml_service.predict(request, model_type, symbol))
 
@@ -37,7 +38,7 @@ async def get_predictions(
     symbol: str = "AAPL",
     model_type: str = "xgb",
     ml_service: MLService = Depends(get_ml_service),
-) :
+) -> Any:
     """
     Convenience endpoint for the frontend dashboard.
     """
@@ -65,7 +66,7 @@ async def get_predictions(
 @router.get("/drift-metrics", response_model=None)
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
-) :
+) -> Any:
     """Fetch model performance metrics (Async Optimized)."""
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)

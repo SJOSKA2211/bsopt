@@ -1,6 +1,7 @@
 import logging
 import os
 import subprocess
+from typing import Any
 
 import click
 import mlflow
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 mlflow.set_tracking_uri(settings.tracking_uri)
 
 
-@click.command()
+@click.command() # type: ignore
 @click.option(
     "--model-name",
     required=True,
@@ -37,7 +38,7 @@ def serve_model(
     host: str,
     backend: str,
     onnx_path: str,
-):
+) -> None:
     """
     Serves a model using either high-performance ONNX Runtime or standard MLflow.
     """

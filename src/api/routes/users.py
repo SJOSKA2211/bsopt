@@ -24,7 +24,7 @@ router = APIRouter(prefix="/users", tags=["Users"], default_response_class=Msgsp
 
 
 @router.get("/me")
-async def get_current_user_profile(user: User = Depends(get_current_user)) -> DataResponseStruct:
+async def get_current_user_profile(user: User = Depends(get_current_user)) : 
     """
     Fetch the authenticated user's profile.
     """

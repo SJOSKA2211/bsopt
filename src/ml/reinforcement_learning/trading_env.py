@@ -2,13 +2,14 @@ import gymnasium as gym
 import numpy as np
 import structlog
 from gymnasium import spaces
+from typing import Any, cast, Callable
 
 from .kernels import _fused_state_kernel, _trading_step_kernel
 
 logger = structlog.get_logger()
 
 
-class TradingEnvironment(gym.Env):
+class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]]]): # type: ignore
     """
     High-performance Trading Environment.
     FUSED: Uses Numba silicon kernels for zero-allocation state and reward logic.
@@ -16,11 +17,11 @@ class TradingEnvironment(gym.Env):
 
     def __init__(
         self,
-        data_provider=None,
-        initial_balance=100000.0,
-        transaction_cost=0.0001,
-        window_size=5,
-    ):
+        data_provider: Any = None,
+        initial_balance: float = 100000.0,
+        transaction_cost: float = 0.0001,
+        window_size: int = 5,
+    ) -> None:
         super().__init__()
         self.data_provider = data_provider
         self.initial_balance = initial_balance
@@ -28,19 +29,26 @@ class TradingEnvironment(gym.Env):
         self.window_size = window_size
 
         # Action space: target weights for 10 assets
-        self.action_space = spaces.Box(low=-1, high=1, shape=(10,), dtype=np.float32)
+        self.action_space: spaces.Box = spaces.Box(low=-1.0, high=1.0, shape=(10,), dtype=np.float32)
 
         # Observation space: (window_size, 128) for Transformer usage
-        self.observation_space = spaces.Box(
+        self.observation_space: spaces.Box = spaces.Box(
             low=-np.inf, high=np.inf, shape=(window_size, 128), dtype=np.float32
         )
 
         # Silicon Buffers
-        self._window_buffer = np.zeros((window_size, 128), dtype=np.float32)
+        self._window_buffer: np.ndarray[Any, np.dtype[np.float32]] = np.zeros((window_size, 128), dtype=np.float32)
+        
+        # State variables
+        self.balance: float = initial_balance
+        self.positions: np.ndarray[Any, np.dtype[np.float32]] = np.zeros(10, dtype=np.float32)
+        self.current_step: int = 0
+        self.portfolio_values: list[float] = [initial_balance]
+        self.market_data: dict[str, Any] = {}
 
         self.reset()
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[np.ndarray[Any, np.dtype[np.float32]], dict[str, Any]]:
         super().reset(seed=seed)
         self.balance = self.initial_balance
         self.positions = np.zeros(10, dtype=np.float32)
@@ -48,17 +56,14 @@ class TradingEnvironment(gym.Env):
         self.portfolio_values = [self.initial_balance]
         self._window_buffer.fill(0)
 
-        # Pre-allocated output buffer for the JIT kernel
-        self._obs_output = np.zeros((self.window_size, 128), dtype=np.float32)
-
         if self.data_provider:
-            self.market_data = self.data_provider.get_data_at_step(0)
+            self.market_data = cast(dict[str, Any], self.data_provider.get_data_at_step(0))
         else:
             self.market_data = self._get_dummy_data()
 
         return self._get_observation(), {}
 
-    def _get_observation(self) -> np.ndarray:
+    def _get_observation(self) -> np.ndarray[Any, np.dtype[np.float32]]:
         """Fused state construction via silicon kernel."""
         prices = self.market_data.get("prices", np.ones(10))
         strikes = self.market_data.get("strikes", np.ones(10) * 100.0)
@@ -73,7 +78,8 @@ class TradingEnvironment(gym.Env):
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
         # FUSION: Execute JIT kernel (Now using pre-allocated window buffer)
-        return _fused_state_kernel(
+        f_state = cast(Callable[..., np.ndarray[Any, np.dtype[np.float32]]], _fused_state_kernel)
+        return f_state(
             float(self.balance),
             float(self.initial_balance),
             pos,
@@ -86,18 +92,21 @@ class TradingEnvironment(gym.Env):
             self.window_size,
         )
 
-    def step(self, action: np.ndarray) -> tuple[np.ndarray, float, bool, bool, dict]:
+    def step(self, action: np.ndarray[Any, np.dtype[np.float32]]) -> tuple[np.ndarray[Any, np.dtype[np.float32]], float, bool, bool, dict[str, Any]]:
         """Execute one step in the environment using fused machine-code kernel."""
         # 1. Clip and Prepare Input
-        action = np.clip(action, self.action_space.low, self.action_space.high).astype(np.float32)
+        # Use cast to Any to access .low and .high on Space
+        action_space = cast(Any, self.action_space)
+        action_clipped = np.clip(action, action_space.low, action_space.high).astype(np.float32)
         prices = np.ascontiguousarray(
             self.market_data.get("prices", np.zeros(10))[:10], dtype=np.float32
         )
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
         # 2. FUSION: Execute Step Kernel
-        new_pos, new_balance, new_val, reward = _trading_step_kernel(
-            action,
+        f_step = cast(Callable[..., tuple[np.ndarray[Any, np.dtype[np.float32]], float, float, float]], _trading_step_kernel)
+        new_pos, new_balance, new_val, reward = f_step(
+            action_clipped,
             prices,
             pos,
             float(self.balance),
@@ -113,7 +122,7 @@ class TradingEnvironment(gym.Env):
         # 4. Advance time
         self.current_step += 1
         if self.data_provider and self.current_step < len(self.data_provider):
-            self.market_data = self.data_provider.get_data_at_step(self.current_step)
+            self.market_data = cast(dict[str, Any], self.data_provider.get_data_at_step(self.current_step))
         else:
             self.market_data = self._get_dummy_data()
 
@@ -136,7 +145,7 @@ class TradingEnvironment(gym.Env):
         if len(self.portfolio_values) > 10:
             window = np.array(self.portfolio_values[-10:])
             rets = np.diff(window) / (window[:-1] + 1e-9)
-            vol = np.std(rets)
+            vol = float(np.std(rets))
             ret -= 0.1 * vol
 
         # Drawdown penalty
@@ -146,7 +155,7 @@ class TradingEnvironment(gym.Env):
 
         return float(ret)
 
-    def _get_dummy_data(self) -> dict:
+    def _get_dummy_data(self) -> dict[str, Any]:
         """Generate random data for fallback/tests"""
         return {
             "prices": np.random.uniform(90, 110, 10),

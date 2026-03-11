@@ -493,6 +493,7 @@ services:
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
+      - "8080:8080" # Ray Metrics
     networks:
       - bsopt-network
     environment:
@@ -511,7 +512,7 @@ services:
           cpus: '2'
           memory: 2gb
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -537,7 +538,7 @@ services:
           cpus: '2'
           memory: 2gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:
@@ -546,7 +547,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=${DATABASE_URL}
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:password@postgres:5432/bsopt
       - MLFLOW_ARTIFACT_ROOT=/app/mlruns
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
     volumes:
@@ -556,7 +557,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ${DATABASE_URL} --default-artifact-root /app/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:password@postgres:5432/bsopt --default-artifact-root /app/mlruns
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:

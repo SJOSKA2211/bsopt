@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
@@ -21,17 +22,17 @@ setup_logging()
 app = FastAPI(title="BS-Opt ML Service", default_response_class=ORJSONResponse)
 app.middleware("http")(logging_middleware)
 
-graphql_app = GraphQLRouter(schema, context_getter=get_context)
+graphql_app: GraphQLRouter[Any, Any] = GraphQLRouter(schema, context_getter=get_context)
 app.include_router(graphql_app, prefix="/graphql")
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     return {"status": "healthy"}
 
 
 @app.post("/ml/reload")
-async def reload_models():
+async def reload_models() -> dict[str, str]:
     """
     Trigger dynamic model reload across the manifold.
     Consistency endpoint for MLOps V2 orchestration.

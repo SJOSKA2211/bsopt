@@ -11,16 +11,14 @@ def export_to_onnx(
     model: Any,
     dummy_input: torch.Tensor,
     export_path: str,
-    input_names: list = None,
-    output_names: list = None,
-):
+    input_names: list[str] | None = None,
+    output_names: list[str] | None = None,
+) -> None:
     """
     Optimizes a model for production by exporting it to ONNX format.
     """
-    if input_names is None:
-        input_names = ["input"]
-    if output_names is None:
-        output_names = ["output"]
+    actual_input_names = input_names if input_names is not None else ["input"]
+    actual_output_names = output_names if output_names is not None else ["output"]
 
     logger.info("exporting_to_onnx", path=export_path)
 
@@ -31,16 +29,16 @@ def export_to_onnx(
         if isinstance(model, torch.nn.Module):
             torch.onnx.export(
                 model,
-                dummy_input,
+                (dummy_input,),
                 export_path,
                 export_params=True,
                 opset_version=14,
                 do_constant_folding=True,
-                input_names=input_names,
-                output_names=output_names,
+                input_names=actual_input_names,
+                output_names=actual_output_names,
                 dynamic_axes={
-                    input_names[0]: {0: "batch_size"},
-                    output_names[0]: {0: "batch_size"},
+                    actual_input_names[0]: {0: "batch_size"},
+                    actual_output_names[0]: {0: "batch_size"},
                 },
             )
             logger.info("onnx_export_success", path=export_path)
@@ -52,15 +50,15 @@ def export_to_onnx(
         raise
 
 
-def quantize_onnx_model(model_path: str, output_path: str):
+def quantize_onnx_model(model_path: str, output_path: str) -> None:
     """
     Apply INT8 quantization to an ONNX model.
     OPTIMIZED: Reduces model size by ~4x and improves CPU throughput.
     """
-    from onnxruntime.quantization import QuantType, quantize_dynamic
-
-    logger.info("quantizing_onnx_model", input=model_path, output=output_path)
     try:
+        from onnxruntime.quantization import QuantType, quantize_dynamic
+
+        logger.info("quantizing_onnx_model", input=model_path, output=output_path)
         quantize_dynamic(
             model_input=model_path, model_output=output_path, weight_type=QuantType.QUInt8
         )

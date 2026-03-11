@@ -2,6 +2,7 @@
 Authentication Routes (Optimized for PG16 + Async)
 """
 
+from typing import Any, Annotated, cast
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
 
@@ -57,7 +58,7 @@ async def register(
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Register a new user using High-Performance Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
@@ -108,7 +109,7 @@ async def login(
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Authenticate via Native DB procedure (High Performance).
     MIGRATION: Use /api/auth/login in the auth-service (Node.js).
@@ -155,7 +156,7 @@ async def login(
 
 
 @router.get("/me")
-async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponseStruct:
+async def read_users_me(user: User = Depends(get_current_active_user)) :
     return DataResponseStruct(data=UserResponse.from_orm(user))
 
 
@@ -177,12 +178,12 @@ async def logout(
     return SuccessResponse(message="Successfully logged out")
 
 
-@router.post("/mfa/setup", deprecated=True)
+@router.post("/mfa/setup", deprecated=True, response_model=None)
 async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Initialize MFA setup for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.

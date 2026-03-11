@@ -1,5 +1,6 @@
 import flwr as fl
 import structlog
+from typing import Any
 
 logger = structlog.get_logger()
 
@@ -10,7 +11,7 @@ class FederatedLearningCoordinator:
     Manages the central server and aggregation strategies.
     """
 
-    def __init__(self, server_address: str = "0.0.0.0:8080", strategy_name: str = "FedAvg"):
+    def __init__(self, server_address: str = "0.0.0.0:8080", strategy_name: str = "FedAvg") -> None:
         self.server_address = server_address
         self.strategy_name = strategy_name
         self.strategy = self._get_strategy()
@@ -22,7 +23,7 @@ class FederatedLearningCoordinator:
         logger.warning("unknown_strategy", strategy=self.strategy_name)
         return fl.server.strategy.FedAvg()
 
-    def start(self, num_rounds: int = 3):
+    def start(self, num_rounds: int = 3) -> None:
         """Start the Flower server."""
         logger.info(
             "starting_fl_server",

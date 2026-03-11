@@ -3,9 +3,20 @@
 -- ============================================================================
 
 -- Extensions and Core Types are handled in 00-extensions.sql
-
 -- 3. Core Tables (Aligned with Better-Auth)
+CREATE TABLE IF NOT EXISTS symbols (
+    symbol TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    exchange VARCHAR(50) NOT NULL,
+    sector VARCHAR(100),
+    industry VARCHAR(100),
+    market_cap NUMERIC(20, 2),
+    is_active BOOLEAN DEFAULT TRUE,
+    last_updated TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS users (
+...
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     hashed_password VARCHAR(255),
@@ -92,9 +103,12 @@ ALTER TABLE options_prices ALTER COLUMN symbol SET STATISTICS 500;
 CREATE TABLE IF NOT EXISTS market_ticks (
     time TIMESTAMPTZ NOT NULL,
     symbol TEXT NOT NULL,
+    market VARCHAR(50) NOT NULL,
     price NUMERIC(15, 4) NOT NULL,
     volume INTEGER,
-    side order_side -- Reference order_side enum
+    change NUMERIC(15, 4) DEFAULT 0.0,
+    side order_side,
+    PRIMARY KEY (time, symbol)
 ) WITH (FILLFACTOR = 100);
 
 -- 5. Portfolios, Positions & Orders

@@ -87,6 +87,26 @@ class PricingService:
             logger.error("pricing_failed", error=str(e))
             raise HTTPException(status_code=500, detail="Internal pricing error")
 
+    async def calculate_greeks(
+        self,
+        params: BSParameters,
+        option_type: str,
+        model: str = "black_scholes",
+    ) -> Any:
+        """
+        Calculates greeks for a single option request.
+        """
+        try:
+            engine = self.factory.get_engine(model)
+            # Off-load to thread pool
+            result = await run_sync(engine.calculate_greeks, params, option_type)
+            return result
+        except PricingEngineNotFound as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            logger.error("greeks_calculation_failed", error=str(e))
+            raise HTTPException(status_code=500, detail="Internal greeks error")
+
     async def price_batch(self, options: list[Any]) -> BatchPriceResult:
         """
         HIGH-PERFORMANCE: Prices an array of options concurrently using vectorized group-batching.
@@ -120,17 +140,18 @@ class PricingService:
                 if model_type == "black_scholes":
                     from src.pricing.black_scholes import BlackScholesEngine
                     
-                    # Direct call to JIT/Rust batch kernels
-                    prices_arr = cast(np.ndarray[Any, np.dtype[np.float64]], await run_sync(
+                    # Concurrently call JIT/Rust batch kernels for price and greeks
+                    prices_task = run_sync(
                         BlackScholesEngine.price_options,
                         spots, strikes, maturities, vols, rates, divs, types
-                    ))
-                    
-                    # Calculate Greeks in batch too
-                    g_res = await run_sync(
+                    )
+                    greeks_task = run_sync(
                         BlackScholesEngine.calculate_greeks,
                         spots, strikes, maturities, vols, rates, divs, types
                     )
+                    
+                    prices_arr, g_res = await asyncio.gather(prices_task, greeks_task)
+                    prices_arr = cast(np.ndarray[Any, np.dtype[np.float64]], prices_arr)
                     
                     for idx, (original_idx, req) in enumerate(items):
                         results[original_idx] = PriceResult(

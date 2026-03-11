@@ -1,0 +1,6 @@
+tree ba7bcf634f6e876cd20881a0fbd4a68a1a1559e0
+parent 501df93cda3af3cfbd5ac45efe7da2d062f7c8ff
+author Joseph Kamau Maina <kamau2589000@gmail.com> 1770459318 +0300
+committer Joseph Kamau Maina <kamau2589000@gmail.com> 1770459318 +0300
+
+Fix dependencies: Add torch, torchvision, ray

@@ -15,21 +15,21 @@ from src.ml.utils.validation import WalkForwardValidator
 logger = structlog.get_logger()
 
 
-class ModelTrainer(BaseTrainer):
+class ModelTrainer(BaseTrainer): # type: ignore
     """
     Unified Model Trainer with Temporal Validation and Experiment Tracking.
     """
 
-    def __init__(self, study_name: str, tracking_uri: str | None = None, n_splits: int = 5):
+    def __init__(self, study_name: str, tracking_uri: str | None = None, n_splits: int = 5) -> None:
         super().__init__(study_name, tracking_uri)
         self.tracker = ExperimentTracker(study_name, self.tracking_uri)
         self.n_splits = n_splits
-        self.model = None
+        self.model: Any = None
 
     def train_and_evaluate(
         self,
-        X: np.ndarray,
-        y: np.ndarray,
+        X: np.ndarray[Any, np.dtype[np.float64]],
+        y: np.ndarray[Any, np.dtype[np.float64]],
         params: dict[str, Any],
         feature_names: list[str] | None = None,
         dataset_metadata: dict[str, Any] | None = None,
@@ -40,7 +40,7 @@ class ModelTrainer(BaseTrainer):
         if not isinstance(params, dict):
             raise ValueError("params must be a dictionary")
 
-        framework = params.get("framework", "xgboost")
+        framework = cast(str, params.get("framework", "xgboost"))
         from src.ml.strategies import STRATEGY_MAP
 
         if framework not in STRATEGY_MAP:
@@ -79,12 +79,14 @@ class ModelTrainer(BaseTrainer):
 
         return float(np.mean(scores))
 
-    def optimize(self, objective: Callable, n_trials: int = 20) -> optuna.study.Study:
+    def optimize(self, objective: Callable[..., Any], n_trials: int = 20) -> optuna.study.Study:
         """Standard Optuna optimization wrapper."""
         study = optuna.create_study(direction="maximize")
         study.optimize(objective, n_trials=n_trials)
         return study
 
+
+from typing import cast
 
 # Aliases for compatibility
 InstrumentedTrainer = ModelTrainer

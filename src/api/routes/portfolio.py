@@ -1,3 +1,4 @@
+from uuid import UUID
 """
 Portfolio routes backing the dashboard overview widgets.
 Enhanced with High-Performance Database integration and RLS enforcement.

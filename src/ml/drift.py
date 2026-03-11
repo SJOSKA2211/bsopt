@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Any, cast
 
 import numpy as np
 import structlog
@@ -9,10 +10,10 @@ from src.shared.observability import (
     KS_TEST_SCORE,
     PERFORMANCE_DRIFT_ALERT,
 )
+from src.shared.math_utils import njit_engine
 
 try:
     import bsopt_core
-
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -34,8 +35,8 @@ class PerformanceDriftMonitor:
         threshold: float = 0.05,
         higher_is_better: bool = True,
         model_name: str = "default",
-    ):
-        self.history = deque(maxlen=window_size)
+    ) -> None:
+        self.history: deque[float] = deque(maxlen=window_size)
         self.threshold = threshold
         self.window_size = window_size
         self.higher_is_better = higher_is_better
@@ -43,7 +44,7 @@ class PerformanceDriftMonitor:
         self.redis_key = f"ml:perf_history:{model_name}"
         self._sync_with_redis()
 
-    def _sync_with_redis(self):
+    def _sync_with_redis(self) -> None:
         """Sync local history with Redis state (Synchronous attempt)."""
         import asyncio
 
@@ -53,13 +54,13 @@ class PerformanceDriftMonitor:
         if not redis:
             return
 
-        async def _load():
+        async def _load() -> None:
             try:
                 data = await redis.get(self.redis_key)
                 if data:
                     import msgspec
 
-                    metrics = msgspec.json.decode(data)
+                    metrics = cast(list[float], msgspec.json.decode(data))
                     self.history.clear()
                     self.history.extend(metrics)
                     logger.info(
@@ -79,7 +80,7 @@ class PerformanceDriftMonitor:
         except Exception:
             pass
 
-    def add_metric(self, value: float):
+    def add_metric(self, value: float) -> None:
         """Adds a new performance metric to the historical baseline and persists to Redis."""
         self.history.append(value)
 
@@ -88,7 +89,7 @@ class PerformanceDriftMonitor:
         redis = get_redis()
         if redis:
 
-            async def persist():
+            async def persist() -> None:
                 try:
                     import msgspec
 
@@ -140,7 +141,7 @@ class PerformanceDriftMonitor:
         return bool(is_drifted)
 
 
-def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[float, float]:
+def calculate_ks_test(expected: np.ndarray[Any, np.dtype[np.float64]], actual: np.ndarray[Any, np.dtype[np.float64]] | list[float]) -> tuple[float, float]:
     """
     Calculates the Kolmogorov-Smirnov (KS) test between two distributions.
 
@@ -153,25 +154,22 @@ def calculate_ks_test(expected: np.ndarray, actual: np.ndarray | list) -> tuple[
     """
     logger.info("ks_test_calculation_started")
 
-    expected = np.array(expected)
-    actual = np.array(actual)
+    expected_arr = np.asarray(expected)
+    actual_arr = np.asarray(actual)
 
-    statistic, p_value = ks_2samp(expected, actual)
+    statistic, p_value = ks_2samp(expected_arr, actual_arr)
 
     # Emit Prometheus metric
-    KS_TEST_SCORE.set(p_value)
+    KS_TEST_SCORE.set(float(p_value))
 
     logger.info("ks_test_calculation_completed", statistic=statistic, p_value=p_value)
 
     return float(statistic), float(p_value)
 
 
-from numba import njit  # noqa: E402
-
-
-@njit(cache=True, fastmath=True)
+@njit_engine(cache=True, fastmath=True)
 def _psi_kernel(
-    expected_counts: np.ndarray, actual_counts: np.ndarray, expected_len: int, actual_len: int
+    expected_counts: np.ndarray[Any, np.dtype[np.float64]], actual_counts: np.ndarray[Any, np.dtype[np.float64]], expected_len: int, actual_len: int
 ) -> float:
     """Numba-optimized PSI kernel with epsilon padding."""
     eps = 1e-6
@@ -181,43 +179,43 @@ def _psi_kernel(
     psi_sum = 0.0
     for i in range(len(expected_pct)):
         psi_sum += (actual_pct[i] - expected_pct[i]) * np.log(actual_pct[i] / expected_pct[i])
-    return psi_sum
+    return float(psi_sum)
 
 
 def calculate_psi(
-    expected: np.ndarray,
-    actual: np.ndarray | list,
+    expected: np.ndarray[Any, np.dtype[np.float64]],
+    actual: np.ndarray[Any, np.dtype[np.float64]] | list[float],
     buckets: int = 10,
-    bins: np.ndarray | None = None,
+    bins: np.ndarray[Any, np.dtype[np.float64]] | None = None,
 ) -> float:
     """
     OPTIMIZED: Population Stability Index with pre-calculated bins.
     """
-    expected = np.asarray(expected)
-    actual = np.asarray(actual)
+    expected_arr = np.asarray(expected)
+    actual_arr = np.asarray(actual)
 
     if bins is None:
         # Fallback to dynamic binning if not provided
-        min_val = min(expected.min(), actual.min())
-        max_val = max(expected.max(), actual.max())
+        min_val = min(float(expected_arr.min()), float(actual_arr.min()))
+        max_val = max(float(expected_arr.max()), float(actual_arr.max()))
         bins = np.linspace(min_val, max_val, buckets + 1)
 
     if CORE_AVAILABLE:
         try:
-            psi_score = bsopt_core.calculate_psi(
-                expected.astype(np.float64), actual.astype(np.float64), bins.astype(np.float64)
-            )
+            psi_score = float(cast(Any, bsopt_core).calculate_psi(
+                expected_arr.astype(np.float64), actual_arr.astype(np.float64), bins.astype(np.float64)
+            ))
         except Exception as e:
             logger.warning("rust_psi_calculation_failed_falling_back", error=str(e))
             # Fallback to JIT kernel
-            expected_counts, _ = np.histogram(expected, bins=bins)
-            actual_counts, _ = np.histogram(actual, bins=bins)
-            psi_score = _psi_kernel(expected_counts, actual_counts, len(expected), len(actual))
+            expected_counts, _ = np.histogram(expected_arr, bins=bins)
+            actual_counts, _ = np.histogram(actual_arr, bins=bins)
+            psi_score = _psi_kernel(expected_counts.astype(np.float64), actual_counts.astype(np.float64), len(expected_arr), len(actual_arr))
     else:
         # Fast bucketing using pre-defined bins
-        expected_counts, _ = np.histogram(expected, bins=bins)
-        actual_counts, _ = np.histogram(actual, bins=bins)
-        psi_score = _psi_kernel(expected_counts, actual_counts, len(expected), len(actual))
+        expected_counts, _ = np.histogram(expected_arr, bins=bins)
+        actual_counts, _ = np.histogram(actual_arr, bins=bins)
+        psi_score = _psi_kernel(expected_counts.astype(np.float64), actual_counts.astype(np.float64), len(expected_arr), len(actual_arr))
 
     # Emit Prometheus metric
     DATA_DRIFT_SCORE.set(psi_score)
@@ -230,19 +228,19 @@ class DriftTrigger:
     retraining should be triggered.
     """
 
-    def __init__(self, config: dict):
-        self.psi_threshold = config.get("psi_threshold", 0.1)
-        self.ks_p_value_threshold = config.get("ks_p_value_threshold", 0.05)
-        self.perf_threshold = config.get("perf_threshold", 0.05)
-        self.force_train = config.get("force_train", False)
+    def __init__(self, config: dict[str, Any]) -> None:
+        self.psi_threshold = float(config.get("psi_threshold", 0.1))
+        self.ks_p_value_threshold = float(config.get("ks_p_value_threshold", 0.05))
+        self.perf_threshold = float(config.get("perf_threshold", 0.05))
+        self.force_train = bool(config.get("force_train", False))
 
         # Use existing PerformanceDriftMonitor
         self.performance_monitor = PerformanceDriftMonitor(
-            higher_is_better=config.get("perf_higher_is_better", True),
+            higher_is_better=bool(config.get("perf_higher_is_better", True)),
         )
-        self.feature_drifts = {}
+        self.feature_drifts: dict[str, dict[str, float]] = {}
 
-    def trigger_retrain(self, ticker: str, model_type: str):
+    def trigger_retrain(self, ticker: str, model_type: str) -> bool:
         """Asynchronously trigger the Celery retraining task."""
         try:
             # Avoid circular import
@@ -257,8 +255,8 @@ class DriftTrigger:
 
     def should_retrain(
         self,
-        reference_data: np.ndarray | dict[str, np.ndarray],
-        current_data: np.ndarray | dict[str, np.ndarray],
+        reference_data: np.ndarray[Any, np.dtype[np.float64]] | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
+        current_data: np.ndarray[Any, np.dtype[np.float64]] | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
         current_perf: float | None,
     ) -> tuple[bool, str]:
         """
@@ -291,8 +289,12 @@ class DriftTrigger:
                         drift_reason = f"feature_drift:{feature}"
         else:
             # Single-series fallback
-            _, p_value = calculate_ks_test(reference_data, current_data)
-            psi_score = calculate_psi(reference_data, current_data)
+            # We need to cast to help mypy understand these are np.ndarray here
+            ref_arr = cast(np.ndarray[Any, np.dtype[np.float64]], reference_data)
+            cur_arr = cast(np.ndarray[Any, np.dtype[np.float64]], current_data)
+            
+            _, p_value = calculate_ks_test(ref_arr, cur_arr)
+            psi_score = calculate_psi(ref_arr, cur_arr)
             distribution_drift = (psi_score > self.psi_threshold) or (
                 p_value < self.ks_p_value_threshold
             )
