@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+# Pre-computed dummy hash to prevent DoS via repeated Argon2 hashing on invalid usernames
+DUMMY_HASH = password_service.hash_password(secrets.token_urlsafe(32))
+
 
 @dataclass
 class TokenData:
@@ -141,9 +144,8 @@ class AuthService:
         # Timing attack protection: always verify a password hash, even if the user is not found.
         # This prevents attackers from enumerating valid usernames based on response times.
         if not user:
-            # Create a dummy hash to burn CPU time consistently
-            dummy_hash = password_service.hash_password(secrets.token_urlsafe(32))
-            await run_in_threadpool(password_service.verify_password, password, dummy_hash)
+            # Burn CPU time consistently using a pre-computed static dummy hash
+            await run_in_threadpool(password_service.verify_password, password, DUMMY_HASH)
             return None
         # Always run password verification
         password_matches = await run_in_threadpool(
