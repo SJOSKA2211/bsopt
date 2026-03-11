@@ -15,6 +15,7 @@ refs/remotes/origin/maina
 refs/remotes/origin/palette-a11y-calibration-health-11579502537115176311
 refs/remotes/origin/palette-a11y-calibration-health-16453228198400383579
 refs/remotes/origin/palette-options-chain-a11y-8859415856161440945
+refs/remotes/origin/palette-optionschain-a11y-1059661989629801918
 refs/remotes/origin/palette-quick-trade-button-a11y-17887487082822861587
 refs/remotes/origin/palette-signin-ux-improvement-12592776899150622920
 refs/remotes/origin/security/add-csrf-ipblock-middleware-4824957313240475079
@@ -31,6 +32,7 @@ refs/remotes/origin/sentinel-secure-debug-endpoint-3702152469933783006
 refs/remotes/origin/sentinel-security-headers-9549951218438353727
 refs/remotes/origin/sentinel-sql-injection-fix-4954817582957464357
 refs/remotes/origin/sentinel/fix-auth-bypass-14246974660976321384
+refs/remotes/origin/sentinel/fix-auth-timing-dos-14669302031138683712
 refs/remotes/origin/sentinel/fix-mfa-default-key-vulnerability-18252083158553405324
 refs/remotes/origin/sentinel/fix-rls-set-local-param-binding-8072212340365717546
 refs/remotes/origin/sentinel/fix-sql-injection-chaos-16812774955724945117

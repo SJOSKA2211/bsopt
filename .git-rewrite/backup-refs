@@ -1,5 +1,5 @@
-93d9db7df3761636959e3138b0ee51c82d09e032 commit	refs/heads/main
-93d9db7df3761636959e3138b0ee51c82d09e032 commit	refs/remotes/origin/HEAD
+1211ca8a88e88467d7c05f22955ed3a41885d877 commit	refs/heads/main
+1211ca8a88e88467d7c05f22955ed3a41885d877 commit	refs/remotes/origin/HEAD
 999a02703797f4a96b41a336b09a8b62ce6a13af commit	refs/remotes/origin/bolt-frontend-n-plus-one-greeks-5559348744418018917
 a406e23b5ca796c6f105402a443aa9089f7d241c commit	refs/remotes/origin/bolt-memoize-wasm-greeks-cell-527386783451939496
 376b540b98afd09aa11b8191f65b79bc4a60b3ef commit	refs/remotes/origin/bolt-monte-carlo-greeks-optimization-3235126471973017052
@@ -10,11 +10,12 @@ d07c3d3b8afc8130949d5867ae2d25a5f47cedd9 commit	refs/remotes/origin/bolt-singlet
 dc0cef2028116692fb88ea55abe31e971f578d0b commit	refs/remotes/origin/bolt/monte-carlo-antithetic-optimization-5593960177205333523
 247d68eeb286327f0b1d0355efa7e5417070abaf commit	refs/remotes/origin/bolt/optimize-bulk-inserts-17988563308380447114
 9dc231fbb6f95ade0571914dc4c11bea13f7ca38 commit	refs/remotes/origin/fix-logging-middleware-session-usage-17744657986850606813
-93d9db7df3761636959e3138b0ee51c82d09e032 commit	refs/remotes/origin/main
+1211ca8a88e88467d7c05f22955ed3a41885d877 commit	refs/remotes/origin/main
 69e401bf9f0af4d9a3af37d15a9811cee527b827 commit	refs/remotes/origin/maina
 087f1b296f9cbbe0417932964bfe3360e57629b5 commit	refs/remotes/origin/palette-a11y-calibration-health-11579502537115176311
 95a06cbc5deb1d926a4fd40e14eb052d20323e4f commit	refs/remotes/origin/palette-a11y-calibration-health-16453228198400383579
 e6d269692f5ead9b025668070c8eeda6dca327fc commit	refs/remotes/origin/palette-options-chain-a11y-8859415856161440945
+9c6176b9ef424dcccf660aa02644bf6bec508b85 commit	refs/remotes/origin/palette-optionschain-a11y-1059661989629801918
 c1168962c2f8d06ca5475e05162b9e9f77027ba2 commit	refs/remotes/origin/palette-quick-trade-button-a11y-17887487082822861587
 978547f3578e535a68785020eecad6f926ff0392 commit	refs/remotes/origin/palette-signin-ux-improvement-12592776899150622920
 f917dfc74783584aa76cdaadc2c08bd7eaf3eb6d commit	refs/remotes/origin/security/add-csrf-ipblock-middleware-4824957313240475079
@@ -31,6 +32,7 @@ cd83c28c6b29e4cdae4a2f286f6bea140ef33d88 commit	refs/remotes/origin/sentinel-fix
 5e980a53f4ffea33f3203499140bbde4c129d4e7 commit	refs/remotes/origin/sentinel-security-headers-9549951218438353727
 146a08c2a311d60cdca89dd1e1d876a91597963a commit	refs/remotes/origin/sentinel-sql-injection-fix-4954817582957464357
 c0066891c2dddbc2dde05510e52340d652f3fd90 commit	refs/remotes/origin/sentinel/fix-auth-bypass-14246974660976321384
+4d58a43f4e71ead41603607590f8951d6234ef7b commit	refs/remotes/origin/sentinel/fix-auth-timing-dos-14669302031138683712
 e2c4f499e53064473b2f6daff4850bfca59942d6 commit	refs/remotes/origin/sentinel/fix-mfa-default-key-vulnerability-18252083158553405324
 e77e9de9c57ac51b826da858b83ac537e6a5097a commit	refs/remotes/origin/sentinel/fix-rls-set-local-param-binding-8072212340365717546
 70a7f14c9b75583ea88a7fab35207fe12c1fb0e0 commit	refs/remotes/origin/sentinel/fix-sql-injection-chaos-16812774955724945117
