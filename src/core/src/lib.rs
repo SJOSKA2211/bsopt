@@ -276,13 +276,13 @@ fn heston_characteristic_function(
     let n_v = v_arr.len();
     let n_batch = k_arr.len();
     
-    let mut results = unsafe { PyArray2::<Complex64>::new(py, [n_v, n_batch], false) };
-    let mut results_view = results.bind().as_array_mut();
+    let mut results = unsafe { PyArray2::<Complex64>::new_bound(py, [n_v, n_batch], false) };
+    let mut results_view = unsafe { results.as_array_mut() };
 
     // Parallel calculation over the frequency grid (v)
     let rows: Vec<Vec<Complex64>> = (0..n_v).into_par_iter().map(|i| {
         let vi = v_arr[i];
-        let mut row = Vec::with_capacity(n_batch);
+        let mut row: Vec<Complex64> = Vec::with_capacity(n_batch);
         for j in 0..n_batch {
             let alphaj = alpha_arr[j];
             let tj = t_arr[j];
@@ -755,8 +755,8 @@ fn batch_black_scholes_iv(
     let is_call = is_calls.as_array();
     
     let n = p.len();
-    let mut results = unsafe { PyArray1::new(py, [n], false) };
-    let mut results_view = results.bind().as_array_mut();
+    let results = unsafe { PyArray1::new_bound(py, [n], false) };
+    let mut results_view = unsafe { results.as_array_mut() };
 
     let rows: Vec<f64> = (0..n).into_par_iter().map(|i| {
         let pi = p[i];
@@ -903,7 +903,7 @@ fn calibrate_svi_rust(
 }
 
 #[pymodule]
-fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn bsopt_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Greeks>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
