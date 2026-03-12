@@ -124,6 +124,9 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
+    network_mode: host
+    environment:
+      - METRICS_PORT=8009
     env_file:
       - .env
     depends_on:

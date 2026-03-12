@@ -410,12 +410,14 @@ async def run_concurrent_ingestion(us_universe: Optional[List[str]] = None):
 
 if __name__ == "__main__":
     import structlog
+    import os
     from prometheus_client import start_http_server
     
     structlog.configure()
     
-    # Start Prometheus metrics server on port 8001
-    start_http_server(8001)
-    logger.info("metrics_server_started", port=8001)
+    # Start Prometheus metrics server on a configurable port
+    metrics_port = int(os.getenv("METRICS_PORT", "8001"))
+    start_http_server(metrics_port)
+    logger.info("metrics_server_started", port=metrics_port)
     
     asyncio.run(run_concurrent_ingestion())

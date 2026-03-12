@@ -38,14 +38,21 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
     
     query = """
         SELECT 
-            time as timestamp, symbol, strike, expiry, option_type,
-            last as market_price, volume, open_interest, implied_volatility,
-            100.0 as spot, -- Stub: Needs to join with market_ticks for true spot
+            o.time as timestamp, o.symbol, o.strike, o.expiry, o.option_type,
+            o.last as market_price, o.volume, o.open_interest, o.implied_volatility,
+            t.price as spot,
             0.05 as risk_free_rate,
             0.0 as dividend_yield
-        FROM options_prices
-        WHERE time >= '2020-01-01'
-        ORDER BY time ASC
+        FROM options_prices o
+        JOIN LATERAL (
+            SELECT price 
+            FROM market_ticks mt 
+            WHERE mt.symbol = o.symbol AND mt.time <= o.time
+            ORDER BY mt.time DESC 
+            LIMIT 1
+        ) t ON TRUE
+        WHERE o.time >= '2020-01-01'
+        ORDER BY o.time ASC
     """
     
     chunks: list[pd.DataFrame] = []
@@ -127,33 +134,50 @@ class CrossSectionalPricingModel(nn.Module): # type: ignore
 # ─── Training Loop ──────────────────────────────────────────────────────────
 
 def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "cross_sectional_v1", tracking_uri: str = "http://mlflow:5000") -> None:
-    """End-to-end ML Pipeline."""
+    """
+    End-to-end Machine Learning Pipeline for Cross-Sectional Option Pricing.
+    
+    Workflow:
+    1. Extract data from TimescaleDB with high-fidelity spot price joins.
+    2. Engineer vectorized features using Numba-accelerated math kernels.
+    3. Perform temporal validation split (pre/post 2025).
+    4. Train Deep Neural Network with AdamW and Batch Normalization.
+    5. Log all telemetry, artifacts, and champion metrics to MLflow.
+    """
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(study_name)
     
-    with mlflow.start_run():
+    with mlflow.start_run() as run:
+        logger.info("ml_pipeline_ignition", run_id=run.info.run_id)
+        
+        # --- Data Acquisition ---
         df = extract_and_engineer_features()
         if df.empty:
-            logger.warning("ml_pipeline_no_data")
+            logger.error("ml_pipeline_aborted_no_data")
             return
 
-        # Select features
-        features = ['spot', 'strike', 'T', 'implied_volatility', 'risk_free_rate', 
-                    'bs_delta', 'bs_gamma', 'bs_vega', 'bs_price']
+        # Select production feature set
+        features = [
+            'spot', 'strike', 'T', 'implied_volatility', 'risk_free_rate', 
+            'bs_delta', 'bs_gamma', 'bs_vega', 'bs_price'
+        ]
         target = 'market_price'
         
-        # 3. Temporal Train/Test Split
+        # --- Temporal Data Partitioning ---
+        # We split by date to ensure the model generalizes to future market regimes.
         split_date = pd.to_datetime('2025-01-01', utc=True)
         train_df = df[df['timestamp'] < split_date].copy()
         test_df = df[df['timestamp'] >= split_date].copy()
         
         if train_df.empty or test_df.empty:
-            logger.warning("ml_pipeline_insufficient_data_for_split")
+            logger.warning("ml_pipeline_insufficient_temporal_data", split_date=str(split_date))
+            # Fallback to simple ratio split if temporal data is sparse
             split_idx = int(len(df) * 0.8)
             train_df = df.iloc[:split_idx]
             test_df = df.iloc[split_idx:]
         
-        # Normalize Features
+        # --- Feature Normalization ---
+        # Critical for DNN convergence. We use training set statistics only.
         feature_means = train_df[features].mean()
         feature_stds = train_df[features].std().replace(0, 1)
         
@@ -162,7 +186,11 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
         X_test = cast(np.ndarray[Any, np.dtype[np.float64]], ((test_df[features] - feature_means) / feature_stds).values)
         y_test = cast(np.ndarray[Any, np.dtype[np.float64]], test_df[target].values)
 
-        # Convert to PyTorch Tensors
+        # Log normalization constants for inference parity
+        mlflow.log_dict(feature_means.to_dict(), "normalization/means.json")
+        mlflow.log_dict(feature_stds.to_dict(), "normalization/stds.json")
+
+        # --- Model Preparation ---
         X_train_t = torch.tensor(X_train, dtype=torch.float32)
         y_train_t = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
         X_test_t = torch.tensor(X_test, dtype=torch.float32)
@@ -171,20 +199,20 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
         train_dataset = TensorDataset(X_train_t, y_train_t)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-        # Initialize Model
         model = CrossSectionalPricingModel(input_dim=len(features))
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
 
-        # Log params
         mlflow.log_params({
             "epochs": epochs,
             "batch_size": batch_size,
+            "optimizer": "AdamW",
+            "weight_decay": 1e-4,
             "train_samples": len(X_train),
             "test_samples": len(X_test)
         })
 
-        # Training Loop
+        # --- Training Execution ---
         logger.info("ml_training_started", epochs=epochs, train_samples=len(X_train))
         
         for epoch in range(epochs):
@@ -200,7 +228,7 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
                 
             epoch_loss = running_loss / len(train_dataset)
             
-            # Validation
+            # --- Continuous Evaluation ---
             model.eval()
             with torch.no_grad():
                 test_preds = model(X_test_t)
@@ -210,8 +238,19 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
             mlflow.log_metric("test_loss", test_loss, step=epoch)
             logger.info("ml_epoch_metrics", epoch=epoch+1, train_loss=epoch_loss, test_loss=test_loss)
             
+        # --- Finalization & Promotion ---
         logger.info("ml_training_complete")
+        
+        # Log requirements for reproducibility
+        mlflow.set_tag("framework", "pytorch")
         mlflow.pytorch.log_model(model, "model")
+        
+        # Calculate final R2 Score
+        from sklearn.metrics import r2_score
+        final_preds = model(X_test_t).detach().numpy()
+        r2 = r2_score(y_test, final_preds)
+        mlflow.log_metric("r2_score", r2)
+        logger.info("ml_final_evaluation", r2_score=r2)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

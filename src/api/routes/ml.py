@@ -78,15 +78,16 @@ async def trigger_retraining(
     ticker: str = "AAPL",
     force: bool = False,
     threshold: int = 50000,
+    mode: str = "regressor",
 ) -> Any:
     """
     Trigger model retraining.
-    If force is False, it will only trigger if the threshold of new data is met.
+    Modes: 'regressor' (single ticker), 'cross_sectional' (entire universe).
     """
     from src.tasks.ml_tasks import check_threshold_and_retrain_task
 
-    task = check_threshold_and_retrain_task.delay(ticker=ticker, force=force, threshold=threshold)
+    task = check_threshold_and_retrain_task.delay(ticker=ticker, force=force, threshold=threshold, mode=mode)
     return DataResponseStruct(
-        data={"task_id": task.id, "status": "dispatched"},
-        message="Retraining task dispatched to background worker"
+        data={"task_id": task.id, "status": "dispatched", "mode": mode},
+        message=f"Retraining task ({mode}) dispatched to background worker"
     )

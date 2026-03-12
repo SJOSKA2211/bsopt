@@ -26,6 +26,7 @@ aiolimiter>=1.1.0
 tenacity>=8.3.0
 eth_account
 minio
+prometheus-client>=0.20.0
 
 # API Extra
 fastapi>=0.111.0
