@@ -11,13 +11,14 @@ DOCKER_COMPOSE := $(shell [ -x "./docker-compose" ] && echo "./docker-compose" |
 # Define COMPOSE_PROFILES for specific service profiles
 COMPOSE_PROFILES := ml
 
-.PHONY: help up down build build-prod logs clean migrate db-shell lint format security-scan protos xdp test-all manifold cli proxy check-env
+.PHONY: help up down build build-prod logs clean migrate db-shell lint format security-scan protos xdp test-all manifold cli proxy check-env bootstrap
 
 # Default target
 help:
 	@echo "\n High-Performance Engine's Master Orchestrator (Makefile v10.0) "
 	@echo "======================================================="
 	@echo "Core Commands:"
+	@echo "  bootstrap    - One-Click Stack Automation & Security setup"
 	@echo "  up           - Start the development stack (Background)"
 	@echo "  down         - Stop and remove all containers"
 	@echo "  build        - Rebuild all core images (Development Stage)"
@@ -61,6 +62,10 @@ help:
 	@echo "=======================================================\n"
 
 # --- Core Commands ---
+
+bootstrap:
+	@chmod +x scripts/bootstrap.sh
+	@./scripts/bootstrap.sh
 
 up:
 	$(DOCKER_COMPOSE) up -d

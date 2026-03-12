@@ -14,10 +14,21 @@ import httpx
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
+from prometheus_client import Counter, Histogram, Gauge
+
 from src.config import settings
 from src.scrapers.engine import NSEScraper
 from src.scrapers.discovery import get_sp500_symbols
 from src.shared.observability import logger
+
+# Prometheus Metrics
+INGESTION_TICKS_TOTAL = Counter("bsopt_ingestion_ticks_total", "Total number of market ticks ingested", ["market"])
+INGESTION_OPTIONS_TOTAL = Counter("bsopt_ingestion_options_total", "Total number of option ticks ingested")
+INGESTION_BATCH_DURATION = Histogram("bsopt_ingestion_batch_duration_seconds", "Time spent fetching a batch of data")
+DB_INSERT_DURATION = Histogram("bsopt_db_insert_duration_seconds", "Time spent bulk inserting to DB", ["table"])
+INGESTION_ERRORS = Counter("bsopt_ingestion_errors_total", "Total ingestion errors", ["type"])
+RATE_LIMIT_HITS = Counter("bsopt_rate_limit_hits_total", "Total rate limit / backoff attempts")
+ACTIVE_INGESTION_TASKS = Gauge("bsopt_active_ingestion_tasks", "Number of concurrent ingestion tasks")
 
 try:
     import yfinance as yf
@@ -104,8 +115,10 @@ async def fetch_yfinance_batch(symbols: List[str]) -> List[MarketTick]:
         reraise=True,
     ):
         with attempt:
+            RATE_LIMIT_HITS.inc()
             async with yahoo_rate_limiter:
-                logger.info("yfinance_batch_fetch_start", symbols=symbols)
+                with INGESTION_BATCH_DURATION.time():
+                    logger.info("yfinance_batch_fetch_start", symbols=symbols)
                 data = await asyncio.to_thread(
                     yf.download, 
                     tickers=" ".join(symbols),
@@ -269,13 +282,16 @@ async def bulk_insert_ticks(ticks: List[MarketTick]):
     """
     
     try:
-        async with engine.begin() as conn:
-            # Drop to the raw driver connection for maximum throughput
-            raw_conn = await conn.get_raw_connection()
-            # asyncpg's executemany is significantly faster than SQLAlchemy's for large batches
-            await raw_conn.driver_connection.executemany(insert_query, records)
+        with DB_INSERT_DURATION.labels(table="market_ticks").time():
+            async with engine.begin() as conn:
+                # Drop to the raw driver connection for maximum throughput
+                raw_conn = await conn.get_raw_connection()
+                # asyncpg's executemany is significantly faster than SQLAlchemy's for large batches
+                await raw_conn.driver_connection.executemany(insert_query, records)
+        INGESTION_TICKS_TOTAL.labels(market="US").inc(len(records))
         logger.info("bulk_insert_ticks_success", count=len(records))
     except Exception as e:
+        INGESTION_ERRORS.labels(type="db_insert_ticks").inc()
         logger.error("bulk_insert_ticks_failed", error=str(e))
         raise
     finally:
