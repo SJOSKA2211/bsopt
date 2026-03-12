@@ -114,18 +114,22 @@ def calculate_d1_d2(
     q = np.asarray(q, dtype=np.float64)
 
     # Safe log and division using np.where
-    safe_t = np.where(t > 0, t, 1.0)
-    safe_sigma = np.where(sigma > 0, sigma, 1.0)
+    safe_t = np.where(t > 0, t, 1e-9)
+    safe_sigma = np.where(sigma > 0, sigma, 1e-9)
     sqrt_t = np.sqrt(safe_t)
+    
+    # Preventing ZeroDivisionError specifically on denominator
+    denominator = safe_sigma * sqrt_t
+    safe_denominator = np.where(denominator > 0, denominator, 1e-9)
     
     d1 = np.where(
         (t > 0) & (sigma > 0),
-        (np.log(np.maximum(s / np.maximum(k, 1e-9), 1e-9)) + (r - q + 0.5 * safe_sigma**2) * safe_t) / (safe_sigma * sqrt_t),
+        (np.log(np.maximum(s / np.maximum(k, 1e-9), 1e-9)) + (r - q + 0.5 * safe_sigma**2) * safe_t) / safe_denominator,
         0.0
     )
     d2 = np.where(
         (t > 0) & (sigma > 0),
-        d1 - safe_sigma * sqrt_t,
+        d1 - safe_denominator,
         0.0
     )
     return (float(d1) if d1.ndim == 0 else d1, float(d2) if d2.ndim == 0 else d2)

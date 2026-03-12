@@ -64,77 +64,73 @@ class DataPipeline:
         self,
     ) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
         """
-        Load the latest collected data from Postgres (Optimized extraction).
+        Load the latest collected data from Postgres (Optimized cross-sectional extraction).
         Returns: (X, y, feature_names, metadata)
         """
         from src.database.pipeliner import db_engine
+        import pandas as pd
+        from src.shared.math_utils import calculate_greeks
 
-        records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
+        # Use chunked extraction to handle large cross-sectional datasets efficiently
+        chunk_size = 50000
+        records = []
+        offset = 0
+        while True:
+            chunk = await db_engine.fetch_training_data(self.config.symbols, limit=chunk_size, offset=offset)
+            if not chunk:
+                break
+            records.extend(chunk)
+            offset += chunk_size
+            if len(records) >= self.config.max_samples:
+                break
 
         if not records:
             from src.ml.training.data_gen import (
                 generate_synthetic_data_numba as generate_synthetic_data,
             )
-
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
             X, y, features = generate_synthetic_data(self.config.min_samples)
             return X, y, features, {"data_source": "synthetic_numba", "count": len(X)}
 
-        # OPTIMIZED: Vectorized extraction using NumPy from record list
-        strikes = np.array([r["strike"] for r in records], dtype=np.float64)
-        last_prices = np.array([r["last"] for r in records], dtype=np.float64)
-        ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
+        # Load into Pandas for vectorized cleaning and robust cross-sectional manipulation
+        df = pd.DataFrame(records)
+        df['time'] = pd.to_datetime(df['time'])
+        df = df.sort_values(by=['symbol', 'time'])
+        
+        # Rigorous Data Cleaning: handle NaNs, forward-fills
+        df = df.groupby('symbol').ffill().bfill()
+        df = df.dropna(subset=['last', 'strike'])
+        
+        # Feature Engineering: Compute base vectors
+        s = df['last'].values
+        k = df['strike'].values
+        t = np.where(_calculate_maturity_jit(
+            pd.to_datetime(df['expiry']).astype('int64').values // 10**9,
+            df['time'].astype('int64').values // 10**9
+        ) <= 0, 0.5, _calculate_maturity_jit(
+            pd.to_datetime(df['expiry']).astype('int64').values // 10**9,
+            df['time'].astype('int64').values // 10**9
+        ))
+        
+        sigma = df['implied_volatility'].fillna(0.2).values
+        r = np.full_like(s, 0.05)
+        q = np.full_like(s, 0.01)
+        is_call = (df.get('option_type', 'call') == 'call').values
+        
+        # Calculate cross-sectional Black-Scholes Features
+        delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call)
+        df['delta'] = delta
+        df['gamma'] = gamma
+        df['vega'] = vega
+        
+        # Cross-sectional Targets: Predict next price conditionally
+        df['target_price'] = df.groupby('symbol')['last'].shift(-1).fillna(df['last'])
 
-        # Handle datetimes efficiently
-        expiries = np.array(
-            [
-                r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0
-                for r in records
-            ],
-            dtype=np.float64,
-        )
-        times = np.array(
-            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records],
-            dtype=np.float64,
-        )
-
-        maturities = _calculate_maturity_jit(expiries, times)
-        maturities = np.where(maturities <= 0, 0.5, maturities)
-
-        n = len(records)
-        X_base = np.empty((n, 5), dtype=np.float64)
-        X_base[:, 0] = strikes
-        X_base[:, 1] = maturities
-        X_base[:, 2] = ivs
-        X_base[:, 3] = 0.05  # Rate
-        X_base[:, 4] = 0.01  # Dividend
-
-        y_raw = last_prices
-
-        iv_lag = np.roll(ivs, 1)
-        iv_lag[0] = ivs[0]
-        price_lag = np.roll(y_raw, 1)
-        price_lag[0] = y_raw[0]
-
-        iv_ma5 = _rolling_mean_jit(ivs, 5)
-        iv_ma20 = _rolling_mean_jit(ivs, 20)
-        price_ma5 = _rolling_mean_jit(y_raw, 5)
-        price_ma20 = _rolling_mean_jit(y_raw, 20)
-
-        X = np.column_stack([X_base, iv_lag, price_lag, iv_ma5, iv_ma20, price_ma5, price_ma20])
-
-        feature_names = ["strike", "maturity", "iv", "rate", "dividend"]
-        feature_names += [
-            "iv_lag1",
-            "price_lag1",
-            "iv_ma5",
-            "iv_ma20",
-            "price_ma5",
-            "price_ma20",
-        ]
-        y = y_raw
-
-        metadata = {"data_source": "postgres_jit_vectorized", "count": n}
+        X = df[['strike', 'delta', 'gamma', 'vega', 'implied_volatility']].values
+        y = df['target_price'].values
+        feature_names = ['strike', 'delta', 'gamma', 'vega', 'iv']
+        metadata = {"data_source": "postgres_chunked_pandas", "count": len(X), "temporal_split": True}
+        
         return X, y, feature_names, metadata
 
 

@@ -379,26 +379,28 @@ class NSEScraper:
         if not items:
             return []
 
-        cleaned = []
-        for item in items:
-            try:
-                # Direct string replacement and casting
-                if "price" in item and isinstance(item["price"], str):
-                    item["price"] = float(item["price"].replace(",", ""))
-                
-                if "volume" in item and isinstance(item["volume"], str):
-                    item["volume"] = int(float(item["volume"].replace(",", "")))
-                
-                if "change" in item and isinstance(item["change"], str):
-                    item["change"] = float(item["change"].replace(",", ""))
-                    
-                cleaned.append(item)
-            except (ValueError, TypeError, AttributeError) as e:
-                # On failure, append the item but maybe missing some converted fields
-                # Or fallback to safe _clean_data
+        # Vectorized dataframe for speed
+        try:
+            df = pd.DataFrame(items)
+            
+            # Fast vectorized string replacements using regex without allocating python strings
+            if "price" in df:
+                df["price"] = pd.to_numeric(df["price"].astype(str).str.replace(",", ""), errors="coerce")
+            
+            if "volume" in df:
+                df["volume"] = pd.to_numeric(df["volume"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
+            
+            if "change" in df:
+                df["change"] = pd.to_numeric(df["change"].astype(str).str.replace(",", ""), errors="coerce")
+
+            return df.to_dict(orient="records")
+        except Exception as e:
+            logger.error("nse_batch_clean_failed", error=str(e))
+            # Fallback
+            cleaned = []
+            for item in items:
                 cleaned.append(self._clean_data(item))
-                
-        return cleaned
+            return cleaned
 
 
 async def main():
