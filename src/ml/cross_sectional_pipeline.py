@@ -105,6 +105,14 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
             chunk["bs_rho"] = rho
             chunk["bs_price"] = calculate_price(s, k, t, sigma, r, q, is_call)
 
+            # Additional engineered features for cross-sectional learning
+            chunk["moneyness"] = s / k
+            chunk["log_moneyness"] = np.log(np.maximum(s / k, 1e-8))
+            chunk["sqrt_T"] = np.sqrt(np.maximum(t, 1e-8))
+            chunk["vega_gamma_ratio"] = np.where(
+                np.abs(gamma) > 1e-12, vega / (gamma + 1e-12), 0.0
+            )
+
             chunks.append(chunk)
             logger.info("ml_extraction_chunk_processed", size=len(chunk))
 
@@ -181,6 +189,9 @@ def train_pipeline(
             "bs_gamma",
             "bs_vega",
             "bs_price",
+            "moneyness",
+            "log_moneyness",
+            "sqrt_T",
         ]
         target = "market_price"
 
@@ -229,20 +240,26 @@ def train_pipeline(
         model = CrossSectionalPricingModel(input_dim=len(features))
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
         mlflow.log_params(
             {
                 "epochs": epochs,
                 "batch_size": batch_size,
                 "optimizer": "AdamW",
+                "lr_scheduler": "CosineAnnealingLR",
                 "weight_decay": 1e-4,
                 "train_samples": len(X_train),
                 "test_samples": len(X_test),
+                "n_features": len(features),
             }
         )
 
-        # --- Training Execution ---
+        # --- Training Execution with Early Stopping ---
         logger.info("ml_training_started", epochs=epochs, train_samples=len(X_train))
+        best_test_loss = float("inf")
+        patience = 5
+        patience_counter = 0
 
         for epoch in range(epochs):
             model.train()
@@ -252,9 +269,11 @@ def train_pipeline(
                 preds = model(batch_X)
                 loss = criterion(preds, batch_y)
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
                 running_loss += float(loss.item()) * batch_X.size(0)
 
+            scheduler.step()
             epoch_loss = running_loss / len(train_dataset)
 
             # --- Continuous Evaluation ---
@@ -265,9 +284,20 @@ def train_pipeline(
 
             mlflow.log_metric("train_loss", epoch_loss, step=epoch)
             mlflow.log_metric("test_loss", test_loss, step=epoch)
+            mlflow.log_metric("learning_rate", scheduler.get_last_lr()[0], step=epoch)
             logger.info(
                 "ml_epoch_metrics", epoch=epoch + 1, train_loss=epoch_loss, test_loss=test_loss
             )
+
+            # Early stopping
+            if test_loss < best_test_loss:
+                best_test_loss = test_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= patience:
+                    logger.info("early_stopping_triggered", epoch=epoch + 1)
+                    break
 
         # --- Finalization & Promotion ---
         logger.info("ml_training_complete")
@@ -277,12 +307,16 @@ def train_pipeline(
         mlflow.pytorch.log_model(model, "model")
 
         # Calculate final R2 Score
-        from sklearn.metrics import r2_score
+        from sklearn.metrics import mean_absolute_error, r2_score
 
         final_preds = model(X_test_t).detach().numpy()
         r2 = r2_score(y_test, final_preds)
+        mae = mean_absolute_error(y_test, final_preds)
+        rmse = float(np.sqrt(test_loss))
         mlflow.log_metric("r2_score", r2)
-        logger.info("ml_final_evaluation", r2_score=r2)
+        mlflow.log_metric("mae", mae)
+        mlflow.log_metric("rmse", rmse)
+        logger.info("ml_final_evaluation", r2_score=r2, mae=mae, rmse=rmse)
 
 
 if __name__ == "__main__":

@@ -79,4 +79,4 @@ USER bsopt
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD python -c "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"
 
-CMD ["python", "src/scrapers/engine.py"]
+CMD ["python", "src/scrapers/concurrent_ingestion.py"]

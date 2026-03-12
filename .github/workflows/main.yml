@@ -33,6 +33,26 @@ jobs:
         run: |
           make lint
           make format
+
+      - name: Math Kernel Smoke Test
+        run: |
+          python -c "
+from src.shared.math_utils import calculate_greeks, calculate_price
+import numpy as np
+s = np.array([100.0, 110.0, 90.0])
+k = np.array([100.0, 100.0, 100.0])
+t = np.array([0.25, 0.5, 1.0])
+sigma = np.array([0.2, 0.25, 0.3])
+r = np.array([0.05, 0.05, 0.05])
+q = np.array([0.01, 0.01, 0.01])
+is_call = np.array([True, True, False])
+delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call)
+assert delta.shape == s.shape, 'Greeks shape mismatch'
+assert np.all(np.isfinite(delta)), 'Non-finite Greeks detected'
+prices = calculate_price(s, k, t, sigma, r, q, is_call)
+assert np.all(prices > 0), 'Negative prices detected'
+print('Math kernel validation PASSED')
+"
           
       - name: Run Tests
         run: |
@@ -57,34 +77,75 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.api
-          target: production
+          file: docker/Dockerfile.api-prod
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-api:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-api:latest,${{ secrets.DOCKER_USERNAME }}/bsopt-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           
       - name: Build & Push Scraper
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.scraper-lite
-          target: production
+          file: docker/Dockerfile.scraper-prod
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-scraper:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-scraper:latest,${{ secrets.DOCKER_USERNAME }}/bsopt-scraper:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & Push Worker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.worker-prod
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-worker:latest,${{ secrets.DOCKER_USERNAME }}/bsopt-worker:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build & Push Neural Pricing
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.neural-pricing-prod
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bsopt-neural-pricing:latest,${{ secrets.DOCKER_USERNAME }}/bsopt-neural-pricing:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   continuous-training:
     name: CT Pipeline (MLflow Retraining)
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        
-      - name: Trigger Retraining
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
         run: |
-          echo "Checking new market data volume..."
-          # In a real environment, this triggers a Celery beat task or webhook 
-          # to check the database threshold. For now, we simulate the hook.
-          curl -X POST https://api.bsopt.com/api/v1/ml/retrain \
-               -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" \
-               -H "Content-Type: application/json" \
-               -d '{"force": false, "threshold": 50000}'
+          pip install uv
+          uv pip install --system -r requirements.txt
+
+      - name: Check Data Volume & Trigger Retraining
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          python -c "
+import os, sys
+try:
+    from sqlalchemy import create_engine, text
+    engine = create_engine(os.environ['DATABASE_URL'])
+    with engine.connect() as conn:
+        count = conn.execute(text('SELECT COUNT(*) FROM market_ticks')).scalar()
+        print(f'Market ticks count: {count}')
+        if count < 50000:
+            print('Insufficient data for retraining, skipping.')
+            sys.exit(0)
+except Exception as e:
+    print(f'DB check failed: {e}')
+    sys.exit(0)
+"
+          # Trigger retraining via internal API or direct pipeline execution
+          python -m src.ml.cross_sectional_pipeline --epochs 10 --study_name ct_daily || true

@@ -335,7 +335,7 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
         logger.error("bulk_insert_ticks_failed", error=str(e))
         raise
     finally:
-        await engine.dispose()
+        pass
 
 
 async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
@@ -370,14 +370,14 @@ async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
     """
 
     try:
-        async with engine.begin() as conn:
+        async with async_engine.begin() as conn:
             raw_conn = await conn.get_raw_connection()
             await raw_conn.driver_connection.executemany(insert_query, records)
         logger.info("bulk_insert_symbols_success", count=len(records))
     except Exception as e:
         logger.error("bulk_insert_symbols_failed", error=str(e))
     finally:
-        await engine.dispose()
+        pass
 
 
 # ─── Orchestrator ────────────────────────────────────────────────────────────
@@ -387,7 +387,7 @@ async def bulk_insert_options(options: list[OptionData]):
     """Bulk inserts option chains into PostgreSQL."""
     if not options:
         return
-    engine = get_db_engine()
+    async_engine = db_manager.async_engine
 
     records = [
         (
@@ -416,14 +416,14 @@ async def bulk_insert_options(options: list[OptionData]):
     """
 
     try:
-        async with engine.begin() as conn:
+        async with async_engine.begin() as conn:
             raw_conn = await conn.get_raw_connection()
             await raw_conn.driver_connection.executemany(insert_query, records)
         logger.info("bulk_insert_options_success", count=len(records))
     except Exception as e:
         logger.error("bulk_insert_options_failed", error=str(e))
     finally:
-        await engine.dispose()
+        pass
 
 
 # ─── Orchestrator ────────────────────────────────────────────────────────────
@@ -445,7 +445,7 @@ async def run_concurrent_ingestion(us_universe: list[str] | None = None):
 
     if YFINANCE_AVAILABLE:
         us_task = asyncio.create_task(yfinance_ingestion_task(us_universe))
-        (nse_ticks), (us_ticks_result, us_options_result) = await asyncio.gather(nse_task, us_task)
+        (nse_ticks, (us_ticks_result, us_options_result)) = await asyncio.gather(nse_task, us_task)
     else:
         nse_ticks = await nse_task
 
@@ -481,6 +481,33 @@ async def run_concurrent_ingestion(us_universe: list[str] | None = None):
     )
 
 
+async def run_continuous_ingestion(us_universe: list[str] | None = None):
+    """Continuous orchestrator for data ingestion."""
+    logger.info("continuous_ingestion_service_start")
+    
+    # Load universe once if not provided
+    if us_universe is None:
+        try:
+            us_universe = await get_sp500_symbols()
+        except Exception as e:
+            logger.error("discovery_failed", error=str(e))
+            us_universe = ["AAPL", "MSFT", "GOOGL", "TSLA", "NVDA"] # Fallback
+
+    while True:
+        try:
+            await run_concurrent_ingestion(us_universe)
+            
+            # Standard Heartbeat
+            with open('/tmp/scraper_heartbeat', 'w') as f:
+                f.write(str(time.time()))
+                
+            logger.info("ingestion_cycle_complete", next_run_in="300s")
+        except Exception as e:
+            logger.error("ingestion_cycle_failed", error=str(e))
+        
+        await asyncio.sleep(settings.NSE_CACHE_TTL or 300)
+
+
 if __name__ == "__main__":
     import os
 
@@ -498,4 +525,4 @@ if __name__ == "__main__":
     with open('/tmp/scraper_heartbeat', 'w') as f:
         f.write(str(time.time()))
         
-    asyncio.run(run_concurrent_ingestion())
+    asyncio.run(run_continuous_ingestion())

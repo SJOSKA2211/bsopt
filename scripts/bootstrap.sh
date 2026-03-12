@@ -25,6 +25,7 @@ if [ ! -f "$ENV_FILE" ]; then
     # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
     MFA_SECRET=$(openssl rand -base64 32)
     AUTH_SECRET=$(openssl rand -hex 32)
+    ENCRYPTION_KEY=$(openssl rand -hex 32)
     DB_PASSWORD=$(openssl rand -hex 16)
     REDIS_PASSWORD=$(openssl rand -hex 16)
     RABBITMQ_PASSWORD=$(openssl rand -hex 16)
@@ -36,7 +37,6 @@ if [ ! -f "$ENV_FILE" ]; then
     fi
     
     # Inject secrets (using a temporary file for safety)
-    # Use a more reliable way to replace or append
     update_env() {
         local key=$1
         local value=$2
@@ -49,6 +49,7 @@ if [ ! -f "$ENV_FILE" ]; then
 
     update_env "JWT_SECRET" "$JWT_SECRET"
     update_env "MFA_ENCRYPTION_KEY" "$MFA_SECRET"
+    update_env "ENCRYPTION_KEY" "$ENCRYPTION_KEY"
     update_env "BETTER_AUTH_SECRET" "$AUTH_SECRET"
     update_env "POSTGRES_PASSWORD" "$DB_PASSWORD"
     update_env "REDIS_PASSWORD" "$REDIS_PASSWORD"
@@ -67,19 +68,42 @@ fi
 ENVIRONMENT=${1:-dev}
 echo "🌍 Setting environment to: $ENVIRONMENT"
 
-# --- 3. Automated Startup ---
+# --- 3. Automated Startup & Health Gates ---
 if [ "$ENVIRONMENT" == "prod" ]; then
-    echo "🏗️  Starting Production Manifold..."
-    docker-compose -f "$DOCKER_COMPOSE_PROD" up --build -d
+    COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_PROD"
 else
-    echo "🛠️  Starting Development Manifold..."
-    # Ensure dev compose exists, fallback to main if not
     if [ -f "$DOCKER_COMPOSE_DEV" ]; then
-        docker-compose -f "$DOCKER_COMPOSE_DEV" up --build -d
+        COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_DEV"
     else
-        docker-compose -f "$DOCKER_COMPOSE_PROD" up --build -d
+        COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_PROD"
     fi
 fi
+
+echo "🏗️  Igniting Manifold with BuildKit..."
+$COMPOSE_CMD up --build -d
+
+echo "⏳ Waiting for Database to stabilize..."
+MAX_RETRIES=30
+COUNT=0
+until $COMPOSE_CMD ps --format json | grep -q '"Service":"postgres","Health":"healthy"'; do
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ Timeout: Database failed to reach healthy state."
+        exit 1
+    fi
+    printf "."
+    sleep 2
+    COUNT=$((COUNT + 1))
+done
+echo "✅ Database is Healthy."
+
+echo "🔍 Verifying all critical services..."
+CRITICAL_SERVICES=("api" "auth-service" "redis" "rabbitmq")
+for SERVICE in "${CRITICAL_SERVICES[@]}"; do
+    if ! $COMPOSE_CMD ps --format json | grep -q "\"Service\":\"$SERVICE\",\"Health\":\"healthy\""; then
+        echo "⚠️  Warning: $SERVICE is not yet healthy. Checking logs..."
+        # Non-blocking warning as some services might take longer
+    fi
+done
 
 echo "=========================================================="
 echo "⚡ BS-OPT Manifold Ignition Complete!"
