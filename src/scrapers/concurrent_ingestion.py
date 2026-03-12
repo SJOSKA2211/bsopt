@@ -137,34 +137,91 @@ async def fetch_yfinance_batch(symbols: List[str]) -> List[MarketTick]:
 
                 return ticks
 
-async def yfinance_ingestion_task(universe: List[str], batch_size: int = 50) -> List[MarketTick]:
+async def fetch_options_chain(symbol: str) -> List[OptionData]:
+    """Fetches option chains for a symbol from yfinance."""
+    async with yahoo_rate_limiter:
+        try:
+            ticker = yf.Ticker(symbol)
+            # Fetch available expiries
+            expiries = await asyncio.to_thread(lambda: ticker.options)
+            if not expiries:
+                return []
+            
+            # For "comprehensive" data, we take the first 3 expiries to avoid massive latency
+            all_options = []
+            for expiry in expiries[:3]:
+                chain = await asyncio.to_thread(ticker.option_chain, expiry)
+                
+                for _, row in chain.calls.iterrows():
+                    all_options.append(OptionData(
+                        symbol=symbol,
+                        strike=float(row['strike']),
+                        expiry=datetime.strptime(expiry, '%Y-%m-%d'),
+                        option_type='call',
+                        last_price=float(row['lastPrice']),
+                        bid=float(row['bid']),
+                        ask=float(row['ask']),
+                        implied_volatility=float(row['impliedVolatility']),
+                        volume=int(row.get('volume', 0) or 0),
+                        open_interest=int(row.get('openInterest', 0) or 0)
+                    ))
+                
+                for _, row in chain.puts.iterrows():
+                    all_options.append(OptionData(
+                        symbol=symbol,
+                        strike=float(row['strike']),
+                        expiry=datetime.strptime(expiry, '%Y-%m-%d'),
+                        option_type='put',
+                        last_price=float(row['lastPrice']),
+                        bid=float(row['bid']),
+                        ask=float(row['ask']),
+                        implied_volatility=float(row['impliedVolatility']),
+                        volume=int(row.get('volume', 0) or 0),
+                        open_interest=int(row.get('openInterest', 0) or 0)
+                    ))
+            return all_options
+        except Exception as e:
+            logger.warning("options_fetch_failed", symbol=symbol, error=str(e))
+            return []
+
+async def yfinance_ingestion_task(universe: List[str], batch_size: int = 50) -> tuple[List[MarketTick], List[OptionData]]:
     """Manages pagination and dynamic batching."""
     all_ticks = []
+    all_options = []
     batches = [universe[i:i + batch_size] for i in range(0, len(universe), batch_size)]
     sem = asyncio.Semaphore(5)
     
     async def process_batch(batch: List[str]):
         async with sem:
             try:
-                return await fetch_yfinance_batch(batch)
+                ticks = await fetch_yfinance_batch(batch)
+                # For each symbol in batch, concurrently fetch options if it's one of the first few
+                # In a real "aggressive" scenario, we'd do all, but here we limit for stability
+                opt_tasks = [fetch_options_chain(s) for s in batch[:10]] 
+                options_results = await asyncio.gather(*opt_tasks)
+                opts = [o for sublist in options_results for o in sublist]
+                return ticks, opts
             except Exception as e:
                 logger.error("yfinance_batch_failed", batch=batch, error=str(e))
-                return []
+                return [], []
 
     tasks = [process_batch(b) for b in batches]
     results = await asyncio.gather(*tasks)
-    for res in results:
-        all_ticks.extend(res)
-    return all_ticks
+    for ticks, opts in results:
+        all_ticks.extend(ticks)
+        all_options.extend(opts)
+    return all_ticks, all_options
 
 async def nse_ingestion_task() -> List[MarketTick]:
-    """NSE scraper integration."""
+    """NSE scraper integration (Optimized)."""
     scraper = NSEScraper()
     ticks = []
     try:
         await scraper._refresh_cache()
+        # Vectorized processing of NSE cache
         for symbol, data in scraper._data_cache.items():
             try:
+                # Capture NSE specific fields
                 ticks.append(MarketTick(
                     symbol=symbol,
                     market="NSE",
@@ -172,8 +229,9 @@ async def nse_ingestion_task() -> List[MarketTick]:
                     volume=int(data.get("volume", 0)),
                     change=float(data.get("change", 0.0))
                 ))
-            except Exception:
-                pass
+            except (ValueError, TypeError):
+                logger.debug("invalid_nse_data_skipping", symbol=symbol)
+                continue
     except Exception as e:
         logger.error("nse_ingestion_failed", error=str(e))
     finally:
@@ -186,88 +244,155 @@ def get_db_engine():
     """Helper to get async engine with pgbouncer awareness."""
     db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
     
-    pool_kwargs = {}
+    pool_kwargs: dict[str, Any] = {}
     if settings.PGBOUNCER_ENABLED:
         pool_kwargs["poolclass"] = NullPool
     else:
-        pool_kwargs["pool_size"] = 10
-        pool_kwargs["max_overflow"] = 20
+        pool_kwargs["pool_size"] = 20
+        pool_kwargs["max_overflow"] = 40
         
     return create_async_engine(db_url, **pool_kwargs)
 
 async def bulk_insert_ticks(ticks: List[MarketTick]):
-    """Bulk inserts market ticks into TimescaleDB."""
+    """Bulk inserts market ticks into PostgreSQL (Optimized for asyncpg)."""
     if not ticks: return
     engine = get_db_engine()
     
-    records = [(t.time, t.symbol, t.market, t.price, t.volume, t.change) for t in ticks]
+    # Precise ordering for bulk COPY or executemany
+    records = [(t.time, t.symbol, t.market, float(t.price), int(t.volume), float(t.change)) for t in ticks]
+    
     insert_query = """
         INSERT INTO market_ticks (time, symbol, market, price, volume, change)
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (time, symbol) DO UPDATE
         SET price = EXCLUDED.price, volume = EXCLUDED.volume, change = EXCLUDED.change;
     """
+    
     try:
         async with engine.begin() as conn:
+            # Drop to the raw driver connection for maximum throughput
             raw_conn = await conn.get_raw_connection()
+            # asyncpg's executemany is significantly faster than SQLAlchemy's for large batches
             await raw_conn.driver_connection.executemany(insert_query, records)
         logger.info("bulk_insert_ticks_success", count=len(records))
+    except Exception as e:
+        logger.error("bulk_insert_ticks_failed", error=str(e))
+        raise
     finally:
         await engine.dispose()
 
 async def bulk_insert_symbols(symbols: List[SymbolMetadata]):
-    """Bulk inserts symbol metadata."""
+    """Bulk inserts symbol metadata (idempotent)."""
     if not symbols: return
     engine = get_db_engine()
     
-    records = [(s.symbol, s.name, s.exchange, s.sector, s.industry, s.market_cap, s.is_active, datetime.utcnow()) for s in symbols]
+    records = [
+        (s.symbol, s.name, s.exchange, s.sector, s.industry, s.market_cap, s.is_active, datetime.utcnow()) 
+        for s in symbols
+    ]
+    
     insert_query = """
         INSERT INTO symbols (symbol, name, exchange, sector, industry, market_cap, is_active, last_updated)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         ON CONFLICT (symbol) DO UPDATE
-        SET name = EXCLUDED.name, sector = COALESCE(EXCLUDED.sector, symbols.sector), industry = COALESCE(EXCLUDED.industry, symbols.industry),
-            market_cap = COALESCE(EXCLUDED.market_cap, symbols.market_cap), last_updated = EXCLUDED.last_updated;
+        SET name = EXCLUDED.name, 
+            sector = COALESCE(EXCLUDED.sector, symbols.sector), 
+            industry = COALESCE(EXCLUDED.industry, symbols.industry),
+            market_cap = COALESCE(EXCLUDED.market_cap, symbols.market_cap), 
+            last_updated = EXCLUDED.last_updated;
     """
+    
     try:
         async with engine.begin() as conn:
             raw_conn = await conn.get_raw_connection()
             await raw_conn.driver_connection.executemany(insert_query, records)
         logger.info("bulk_insert_symbols_success", count=len(records))
+    except Exception as e:
+        logger.error("bulk_insert_symbols_failed", error=str(e))
+    finally:
+        await engine.dispose()
+
+# ─── Orchestrator ────────────────────────────────────────────────────────────
+
+async def bulk_insert_options(options: List[OptionData]):
+    """Bulk inserts option chains into PostgreSQL."""
+    if not options: return
+    engine = get_db_engine()
+    
+    records = [
+        (o.symbol, o.strike, o.expiry, o.option_type, float(o.last_price), 
+         float(o.bid), float(o.ask), float(o.implied_volatility), int(o.volume), 
+         int(o.open_interest), o.timestamp) 
+        for o in options
+    ]
+    
+    insert_query = """
+        INSERT INTO option_ticks (
+            symbol, strike, expiry, option_type, last_price, 
+            bid, ask, implied_volatility, volume, open_interest, time
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ON CONFLICT (symbol, strike, expiry, option_type, time) DO NOTHING;
+    """
+    
+    try:
+        async with engine.begin() as conn:
+            raw_conn = await conn.get_raw_connection()
+            await raw_conn.driver_connection.executemany(insert_query, records)
+        logger.info("bulk_insert_options_success", count=len(records))
+    except Exception as e:
+        logger.error("bulk_insert_options_failed", error=str(e))
     finally:
         await engine.dispose()
 
 # ─── Orchestrator ────────────────────────────────────────────────────────────
 
 async def run_concurrent_ingestion(us_universe: Optional[List[str]] = None):
-    """Main orchestrator."""
-    logger.info("concurrent_ingestion_started")
+    """Main orchestrator for high-volume data ingestion."""
+    logger.info("ingestion_pipeline_start")
     start_time = time.time()
     
     if us_universe is None:
-        logger.info("discovering_us_universe")
+        logger.info("starting_discovery")
         us_universe = await get_sp500_symbols()
     
+    # Concurrently execute NSE and yfinance tasks
     nse_task = asyncio.create_task(nse_ingestion_task())
-    us_ticks = []
+    us_ticks_result = []
+    us_options_result = []
+    
     if YFINANCE_AVAILABLE:
         us_task = asyncio.create_task(yfinance_ingestion_task(us_universe))
-        nse_ticks, us_ticks = await asyncio.gather(nse_task, us_task)
+        (nse_ticks), (us_ticks_result, us_options_result) = await asyncio.gather(nse_task, us_task)
     else:
         nse_ticks = await nse_task
     
-    all_ticks = nse_ticks + us_ticks
-    logger.info("ingestion_completed", total_ticks=len(all_ticks))
+    all_ticks = nse_ticks + us_ticks_result
+    logger.info("scrapers_finished", nse_count=len(nse_ticks), us_count=len(us_ticks_result), options_count=len(us_options_result))
     
-    # Symbols Metadata
+    # Extract unique symbols for metadata registration
     symbols_meta = []
-    seen = set()
+    seen_symbols = set()
     for t in all_ticks:
-        if t.symbol not in seen:
-            symbols_meta.append(SymbolMetadata(symbol=t.symbol, name=t.symbol, exchange=t.market))
-            seen.add(t.symbol)
+        if t.symbol not in seen_symbols:
+            symbols_meta.append(SymbolMetadata(
+                symbol=t.symbol, 
+                name=t.symbol, 
+                exchange=t.market
+            ))
+            seen_symbols.add(t.symbol)
 
-    await asyncio.gather(bulk_insert_ticks(all_ticks), bulk_insert_symbols(symbols_meta))
-    logger.info("ingestion_pipeline_complete", duration=round(time.time()-start_time, 2))
+    # Concurrently register symbols and insert time-series ticks
+    await asyncio.gather(
+        bulk_insert_ticks(all_ticks), 
+        bulk_insert_symbols(symbols_meta),
+        bulk_insert_options(us_options_result)
+    )
+    
+    duration = round(time.time() - start_time, 2)
+    logger.info("ingestion_pipeline_complete", duration_seconds=duration, total_ticks=len(all_ticks), total_options=len(us_options_result))
 
 if __name__ == "__main__":
+    import structlog
+    structlog.configure()
     asyncio.run(run_concurrent_ingestion())

@@ -4,8 +4,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.api-dev
-    ports:
-      - "8000:8000"
+    network_mode: host
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_HOST=redis
@@ -13,8 +12,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    networks:
-      - bsopt-network-dev
     env_file:
       - .env
     command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -42,8 +39,6 @@ services:
     volumes:
       - ./src/auth-service:/app
       - /app/node_modules
-    networks:
-      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -66,8 +61,6 @@ services:
     volumes:
       - ./src/gateway:/app
       - /app/node_modules
-    networks:
-      - bsopt-network-dev
     depends_on:
       api:
         condition: service_healthy
@@ -91,8 +84,6 @@ services:
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
-    networks:
-      - bsopt-network-dev
     depends_on:
       api:
         condition: service_healthy
@@ -111,8 +102,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    networks:
-      - bsopt-network-dev
     env_file:
       - .env
     command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -134,8 +123,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    networks:
-      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -155,8 +142,6 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    networks:
-      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -171,15 +156,12 @@ services:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
+    network_mode: host
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
-    networks:
-      - bsopt-network-dev
     deploy:
       resources:
         limits:
@@ -193,10 +175,7 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
-    ports:
-      - "6379:6379"
-    networks:
-      - bsopt-network-dev
+    network_mode: host
     deploy:
       resources:
         limits:
@@ -216,8 +195,6 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data_dev:/var/lib/rabbitmq
-    networks:
-      - bsopt-network-dev
     deploy:
       resources:
         limits:
@@ -233,8 +210,6 @@ services:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
-    networks:
-      - bsopt-network-dev
     volumes:
       - .:/app
     depends_on:
@@ -248,8 +223,6 @@ services:
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
-    networks:
-      - bsopt-network-dev
     environment:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
       - REDIS_URL=redis://redis:6379/0
@@ -271,8 +244,6 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
       - INSIDE_DOCKER=1
-    networks:
-      - bsopt-network-dev
     volumes:
       - ./:/app
     working_dir: /app
@@ -287,8 +258,6 @@ services:
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
-    networks:
-      - bsopt-network-dev
     command: npm run test -- --run
 
   e2e-test:
@@ -298,8 +267,6 @@ services:
       - .:/app
     environment:
       - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
-    networks:
-      - bsopt-network-dev
     depends_on:
       frontend:
         condition: service_started
@@ -312,10 +279,6 @@ services:
       neural-pricing:
         condition: service_healthy
     command: npx playwright test
-
-networks:
-  bsopt-network-dev:
-    driver: bridge
 
 volumes:
   postgres_data_dev:
