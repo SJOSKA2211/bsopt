@@ -7,7 +7,6 @@ across the entire dataset without Python loop overhead.
 """
 
 import numpy as np
-
 try:
     from numba import njit, prange
 except ImportError:
@@ -329,12 +328,20 @@ def calculate_greeks(
 
 
 def njit_engine(*args, **kwargs):
-    def decorator(f):
-        return f
-
+    """
+    Unified decorator that applies Numba njit if available,
+    otherwise returns the original function.
+    """
     if len(args) == 1 and callable(args[0]):
-        return args[0]
-    return decorator
+        return njit(cache=True, fastmath=True)(args[0])
+    
+    # Default parameters for our high-perf engine
+    if "cache" not in kwargs:
+        kwargs["cache"] = True
+    if "fastmath" not in kwargs:
+        kwargs["fastmath"] = True
+        
+    return njit(*args, **kwargs)
 
 
 loop_prange = prange
