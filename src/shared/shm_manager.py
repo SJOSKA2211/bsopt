@@ -1,7 +1,7 @@
 import struct
 import time
 from multiprocessing import shared_memory
-from typing import Any, TypeVar, cast
+from typing import TypeVar, cast
 
 import msgspec
 import structlog
@@ -92,11 +92,11 @@ class SHMManager[T]:
         """Get the current sequence number from the header."""
         if self._shm is None:
             self._shm = shared_memory.SharedMemory(name=self.name)
-        
+
         mv = self._shm.buf
         if mv is None:
             raise RuntimeError("SHM buffer is None.")
-            
+
         seq_tuple = struct.unpack("Q", mv[1:9])
         return cast(int, seq_tuple[0])
 

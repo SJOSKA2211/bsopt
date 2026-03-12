@@ -1,5 +1,6 @@
-import msgspec
 from typing import Any
+
+import msgspec
 
 
 class MarketData(msgspec.Struct):

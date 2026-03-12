@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from typing import Any
 
 import click
 import mlflow
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 mlflow.set_tracking_uri(settings.tracking_uri)
 
 
-@click.command() # type: ignore
+@click.command()  # type: ignore
 @click.option(
     "--model-name",
     required=True,

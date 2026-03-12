@@ -63,18 +63,23 @@ def _heston_cf_kernel(
             phi = np.exp(A + B)
 
             num = np.exp(-1j * v[i] * k[j]) * phi
-            den = alpha[j]**2 + alpha[j] - v[i] ** 2 + 1j * (2 * alpha[j] + 1) * v[i]
+            den = alpha[j] ** 2 + alpha[j] - v[i] ** 2 + 1j * (2 * alpha[j] + 1) * v[i]
             res[i, j] = num / den
 
     return res
+
+
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
 
 logger = structlog.get_logger()
 ...
+
+
 def _heston_integrand_vectorized(
     v: np.ndarray[Any, np.dtype[np.float64]],
     k: np.ndarray[Any, np.dtype[np.float64]],
@@ -103,7 +108,6 @@ def _heston_integrand_vectorized(
         np.ndarray[Any, np.dtype[np.float64]],
         np.real(_heston_cf_kernel(v, k, alpha, T, r, v0, kappa, theta, sigma, rho)),
     )
-
 
 
 def batch_heston_price_jit(

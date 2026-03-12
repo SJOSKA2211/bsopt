@@ -1,5 +1,4 @@
 from datetime import UTC, date, datetime, timedelta
-from typing import Any
 
 import strawberry
 from strawberry.federation import Schema
@@ -175,7 +174,7 @@ class Query:
         from src.api.graphql.resolvers.option_service import search_options_paginated
 
         results, has_next, next_cursor = await search_options_paginated(
-            underlying=symbol or "AAPL", # Handle None symbol
+            underlying=symbol or "AAPL",  # Handle None symbol
             min_strike=min_strike,
             max_strike=max_strike,
             expiry=expiry,

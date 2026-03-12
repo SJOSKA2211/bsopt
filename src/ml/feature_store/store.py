@@ -1,6 +1,5 @@
 import pandas as pd
 import structlog
-from typing import Any, cast
 
 from .base import Feature, FeatureStore
 from .features import EMAFeature, LogReturnFeature, MACDFeature, RSIPeature

@@ -8,13 +8,13 @@ Optimized for 1000+ concurrent users with connection pooling and keepalive.
 import asyncio
 import hashlib
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from functools import wraps
-from typing import Any, Callable, cast
+from typing import Any, cast
 
 import msgspec
-import orjson
 import structlog
 from cachetools import TTLCache
 from redis.asyncio import Redis, RedisError

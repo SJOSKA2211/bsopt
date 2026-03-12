@@ -26,16 +26,17 @@ logger = structlog.get_logger(__name__)
 
 # ─── Data Extraction & Feature Engineering ────────────────────────────────
 
+
 def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
     """
     Extracts options data in chunks from PostgreSQL to avoid OOM.
     Performs dynamic feature engineering using vectorized Black-Scholes.
     """
     logger.info("ml_extraction_start")
-    
+
     # We use sync SQLAlchemy engine for chunked Pandas read
     engine = create_engine(settings.DATABASE_URL)
-    
+
     query = """
         SELECT 
             o.time as timestamp, o.symbol, o.strike, o.expiry, o.option_type,
@@ -54,67 +55,73 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
         WHERE o.time >= '2020-01-01'
         ORDER BY o.time ASC
     """
-    
+
     chunks: list[pd.DataFrame] = []
     with engine.connect() as conn:
         for chunk in pd.read_sql(text(query), conn, chunksize=chunk_size):
             # 1. Rigorous Data Cleaning
-            chunk = chunk.dropna(subset=['symbol', 'strike', 'expiry', 'option_type'])
-            chunk['timestamp'] = pd.to_datetime(chunk['timestamp'], utc=True)
-            chunk['expiry'] = pd.to_datetime(chunk['expiry'], utc=True)
-            chunk['is_halted'] = chunk['volume'] == 0
-            chunk = chunk.sort_values(['symbol', 'timestamp'])
+            chunk = chunk.dropna(subset=["symbol", "strike", "expiry", "option_type"])
+            chunk["timestamp"] = pd.to_datetime(chunk["timestamp"], utc=True)
+            chunk["expiry"] = pd.to_datetime(chunk["expiry"], utc=True)
+            chunk["is_halted"] = chunk["volume"] == 0
+            chunk = chunk.sort_values(["symbol", "timestamp"])
 
-            chunk['market_price'] = chunk.groupby('symbol')['market_price'].transform(
-                lambda x: x.interpolate(method='linear', limit=5).ffill().bfill()
+            chunk["market_price"] = chunk.groupby("symbol")["market_price"].transform(
+                lambda x: x.interpolate(method="linear", limit=5).ffill().bfill()
             )
-            chunk = chunk.dropna(subset=['market_price'])
-            chunk['T'] = (chunk['expiry'] - chunk['timestamp']).dt.total_seconds() / (365.25 * 24 * 3600)
+            chunk = chunk.dropna(subset=["market_price"])
+            chunk["T"] = (chunk["expiry"] - chunk["timestamp"]).dt.total_seconds() / (
+                365.25 * 24 * 3600
+            )
 
             chunk = chunk[
-                (chunk['T'] > (1.0 / 365.25)) & 
-                (chunk['market_price'] > 0.01) &
-                (chunk['implied_volatility'].fillna(0.2).between(0.01, 5.0))
+                (chunk["T"] > (1.0 / 365.25))
+                & (chunk["market_price"] > 0.01)
+                & (chunk["implied_volatility"].fillna(0.2).between(0.01, 5.0))
             ]
-            chunk['implied_volatility'] = chunk['implied_volatility'].fillna(0.2)
+            chunk["implied_volatility"] = chunk["implied_volatility"].fillna(0.2)
 
             if chunk.empty:
                 continue
 
             # 2. Vectorized Feature Engineering (Black-Scholes Greeks)
-            s = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['spot'].values)
-            k = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['strike'].values)
-            t = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['T'].values)
-            sigma = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['implied_volatility'].values)
-            r = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['risk_free_rate'].values)
-            q = cast(np.ndarray[Any, np.dtype[np.float64]], chunk['dividend_yield'].values)
-            is_call = cast(np.ndarray[Any, np.dtype[np.bool_]], (chunk['option_type'] == 'call').values)
+            s = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["spot"].values)
+            k = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["strike"].values)
+            t = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["T"].values)
+            sigma = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["implied_volatility"].values)
+            r = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["risk_free_rate"].values)
+            q = cast(np.ndarray[Any, np.dtype[np.float64]], chunk["dividend_yield"].values)
+            is_call = cast(
+                np.ndarray[Any, np.dtype[np.bool_]], (chunk["option_type"] == "call").values
+            )
 
             # Calculate Greeks using our highly optimized pure NumPy math utilities
             delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call)
-            
-            chunk['bs_delta'] = delta
-            chunk['bs_gamma'] = gamma
-            chunk['bs_theta'] = theta
-            chunk['bs_vega'] = vega
-            chunk['bs_rho'] = rho
-            chunk['bs_price'] = calculate_price(s, k, t, sigma, r, q, is_call)
-            
+
+            chunk["bs_delta"] = delta
+            chunk["bs_gamma"] = gamma
+            chunk["bs_theta"] = theta
+            chunk["bs_vega"] = vega
+            chunk["bs_rho"] = rho
+            chunk["bs_price"] = calculate_price(s, k, t, sigma, r, q, is_call)
+
             chunks.append(chunk)
             logger.info("ml_extraction_chunk_processed", size=len(chunk))
 
     if not chunks:
         return pd.DataFrame()
-        
+
     final_df = pd.concat(chunks, ignore_index=True)
     logger.info("ml_extraction_complete", total_rows=len(final_df))
     return final_df
 
+
 # ─── PyTorch Model ──────────────────────────────────────────────────────────
 
-class CrossSectionalPricingModel(nn.Module): # type: ignore
+
+class CrossSectionalPricingModel(nn.Module):  # type: ignore
     """Deep Neural Network for cross-sectional option pricing."""
-    
+
     def __init__(self, input_dim: int, hidden_dim: int = 128) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -125,18 +132,25 @@ class CrossSectionalPricingModel(nn.Module): # type: ignore
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.BatchNorm1d(hidden_dim // 2),
             nn.ReLU(),
-            nn.Linear(hidden_dim // 2, 1)  # Predicts Price
+            nn.Linear(hidden_dim // 2, 1),  # Predicts Price
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return cast(torch.Tensor, self.net(x))
 
+
 # ─── Training Loop ──────────────────────────────────────────────────────────
 
-def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "cross_sectional_v1", tracking_uri: str = "http://mlflow:5000") -> None:
+
+def train_pipeline(
+    epochs: int = 10,
+    batch_size: int = 1024,
+    study_name: str = "cross_sectional_v1",
+    tracking_uri: str = "http://mlflow:5000",
+) -> None:
     """
     End-to-end Machine Learning Pipeline for Cross-Sectional Option Pricing.
-    
+
     Workflow:
     1. Extract data from TimescaleDB with high-fidelity spot price joins.
     2. Engineer vectorized features using Numba-accelerated math kernels.
@@ -146,10 +160,10 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
     """
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(study_name)
-    
+
     with mlflow.start_run() as run:
         logger.info("ml_pipeline_ignition", run_id=run.info.run_id)
-        
+
         # --- Data Acquisition ---
         df = extract_and_engineer_features()
         if df.empty:
@@ -158,32 +172,45 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
 
         # Select production feature set
         features = [
-            'spot', 'strike', 'T', 'implied_volatility', 'risk_free_rate', 
-            'bs_delta', 'bs_gamma', 'bs_vega', 'bs_price'
+            "spot",
+            "strike",
+            "T",
+            "implied_volatility",
+            "risk_free_rate",
+            "bs_delta",
+            "bs_gamma",
+            "bs_vega",
+            "bs_price",
         ]
-        target = 'market_price'
-        
+        target = "market_price"
+
         # --- Temporal Data Partitioning ---
         # We split by date to ensure the model generalizes to future market regimes.
-        split_date = pd.to_datetime('2025-01-01', utc=True)
-        train_df = df[df['timestamp'] < split_date].copy()
-        test_df = df[df['timestamp'] >= split_date].copy()
-        
+        split_date = pd.to_datetime("2025-01-01", utc=True)
+        train_df = df[df["timestamp"] < split_date].copy()
+        test_df = df[df["timestamp"] >= split_date].copy()
+
         if train_df.empty or test_df.empty:
             logger.warning("ml_pipeline_insufficient_temporal_data", split_date=str(split_date))
             # Fallback to simple ratio split if temporal data is sparse
             split_idx = int(len(df) * 0.8)
             train_df = df.iloc[:split_idx]
             test_df = df.iloc[split_idx:]
-        
+
         # --- Feature Normalization ---
         # Critical for DNN convergence. We use training set statistics only.
         feature_means = train_df[features].mean()
         feature_stds = train_df[features].std().replace(0, 1)
-        
-        X_train = cast(np.ndarray[Any, np.dtype[np.float64]], ((train_df[features] - feature_means) / feature_stds).values)
+
+        X_train = cast(
+            np.ndarray[Any, np.dtype[np.float64]],
+            ((train_df[features] - feature_means) / feature_stds).values,
+        )
         y_train = cast(np.ndarray[Any, np.dtype[np.float64]], train_df[target].values)
-        X_test = cast(np.ndarray[Any, np.dtype[np.float64]], ((test_df[features] - feature_means) / feature_stds).values)
+        X_test = cast(
+            np.ndarray[Any, np.dtype[np.float64]],
+            ((test_df[features] - feature_means) / feature_stds).values,
+        )
         y_test = cast(np.ndarray[Any, np.dtype[np.float64]], test_df[target].values)
 
         # Log normalization constants for inference parity
@@ -203,18 +230,20 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
 
-        mlflow.log_params({
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "optimizer": "AdamW",
-            "weight_decay": 1e-4,
-            "train_samples": len(X_train),
-            "test_samples": len(X_test)
-        })
+        mlflow.log_params(
+            {
+                "epochs": epochs,
+                "batch_size": batch_size,
+                "optimizer": "AdamW",
+                "weight_decay": 1e-4,
+                "train_samples": len(X_train),
+                "test_samples": len(X_test),
+            }
+        )
 
         # --- Training Execution ---
         logger.info("ml_training_started", epochs=epochs, train_samples=len(X_train))
-        
+
         for epoch in range(epochs):
             model.train()
             running_loss = 0.0
@@ -225,32 +254,36 @@ def train_pipeline(epochs: int = 10, batch_size: int = 1024, study_name: str = "
                 loss.backward()
                 optimizer.step()
                 running_loss += float(loss.item()) * batch_X.size(0)
-                
+
             epoch_loss = running_loss / len(train_dataset)
-            
+
             # --- Continuous Evaluation ---
             model.eval()
             with torch.no_grad():
                 test_preds = model(X_test_t)
                 test_loss = float(criterion(test_preds, y_test_t).item())
-                
+
             mlflow.log_metric("train_loss", epoch_loss, step=epoch)
             mlflow.log_metric("test_loss", test_loss, step=epoch)
-            logger.info("ml_epoch_metrics", epoch=epoch+1, train_loss=epoch_loss, test_loss=test_loss)
-            
+            logger.info(
+                "ml_epoch_metrics", epoch=epoch + 1, train_loss=epoch_loss, test_loss=test_loss
+            )
+
         # --- Finalization & Promotion ---
         logger.info("ml_training_complete")
-        
+
         # Log requirements for reproducibility
         mlflow.set_tag("framework", "pytorch")
         mlflow.pytorch.log_model(model, "model")
-        
+
         # Calculate final R2 Score
         from sklearn.metrics import r2_score
+
         final_preds = model(X_test_t).detach().numpy()
         r2 = r2_score(y_test, final_preds)
         mlflow.log_metric("r2_score", r2)
         logger.info("ml_final_evaluation", r2_score=r2)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -259,10 +292,10 @@ if __name__ == "__main__":
     parser.add_argument("--study_name", type=str, default="cross_sectional_v1")
     parser.add_argument("--tracking_uri", type=str, default="http://mlflow:5000")
     args = parser.parse_args()
-    
+
     train_pipeline(
         epochs=args.epochs,
         batch_size=args.batch_size,
         study_name=args.study_name,
-        tracking_uri=args.tracking_uri
+        tracking_uri=args.tracking_uri,
     )

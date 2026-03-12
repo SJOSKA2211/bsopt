@@ -1,9 +1,10 @@
+from typing import cast
+
 import torch
 import torch.nn as nn
-from typing import Any, Self
 
 
-class OptionPricingNN(nn.Module): # type: ignore
+class OptionPricingNN(nn.Module):  # type: ignore
     """
     Feed-forward Neural Network for Option Pricing.
     Supports quantization and pruning.
@@ -46,7 +47,7 @@ class OptionPricingNN(nn.Module): # type: ignore
         """Compiles the model for high-performance execution using PyTorch 2.0+."""
         if hasattr(torch, "compile"):
             try:
-                self.model = torch.compile(self.model, mode=mode) # type: ignore
+                self.model = torch.compile(self.model, mode=mode)  # type: ignore
                 return self
             except Exception:
                 return self
@@ -96,4 +97,4 @@ class OptionPricingNN(nn.Module): # type: ignore
                 prune.remove(module, name)
         return self
 
-from typing import cast
+

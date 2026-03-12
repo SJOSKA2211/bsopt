@@ -18,7 +18,7 @@ from src.ml.reinforcement_learning.decision_transformer import (
 logger = structlog.get_logger()
 
 
-class TrajectoryDataset(Dataset[dict[str, th.Tensor]]): # type: ignore
+class TrajectoryDataset(Dataset[dict[str, th.Tensor]]):  # type: ignore
     def __init__(self, trajectories: list[dict[str, Any]]) -> None:
         self.trajectories = trajectories
 
@@ -126,7 +126,7 @@ def train_offline(
             logger.warning("torch_compile_failed", error=str(e))
 
     optimizer = th.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
-    q_optimizer = th.optim.Adam(q_net.parameters(), lr=3e-4)
+    th.optim.Adam(q_net.parameters(), lr=3e-4)
     v_optimizer = th.optim.Adam(v_net.parameters(), lr=3e-4)
 
     #  SCHEDULING
@@ -225,7 +225,9 @@ def train_offline(
         # Log weight distributions at the end
         for name, param in model.named_parameters():
             if param.requires_grad:
-                mlflow.log_param(f"weight_norm_{name.replace('.', '_')}", float(param.norm().item()))
+                mlflow.log_param(
+                    f"weight_norm_{name.replace('.', '_')}", float(param.norm().item())
+                )
 
         mlflow.pytorch.log_model(model, "decision_transformer_v2_god_mode")
         th.save(model.state_dict(), "models/dt_v2_final.pt")

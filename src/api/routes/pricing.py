@@ -119,7 +119,7 @@ async def calculate(body: dict) -> MsgspecJSONResponse:
     if isinstance(result, Exception):
         logger.error("calculate_price_failed", error=str(result))
         result = None
-    
+
     greeks_data = {}
     if not isinstance(greeks_result, Exception) and greeks_result is not None:
         if hasattr(greeks_result, "__dict__"):
@@ -137,7 +137,9 @@ async def calculate(body: dict) -> MsgspecJSONResponse:
         greeks=greeks_data,
         spot=getattr(result, "spot", req.spot) if result else req.spot,
         strike=getattr(result, "strike", req.strike) if result else req.strike,
-        time_to_expiry=getattr(result, "time_to_expiry", req.time_to_expiry) if result else req.time_to_expiry,
+        time_to_expiry=getattr(result, "time_to_expiry", req.time_to_expiry)
+        if result
+        else req.time_to_expiry,
         rate=getattr(result, "rate", req.rate) if result else req.rate,
         volatility=getattr(result, "volatility", req.volatility) if result else req.volatility,
         option_type=getattr(result, "option_type", req.option_type) if result else req.option_type,

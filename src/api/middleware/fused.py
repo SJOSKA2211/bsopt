@@ -3,22 +3,13 @@ Fused Security Middleware (Ultra-High Performance)
 Consolidates all security layers into a single ASGI hop to minimize context-switching overhead.
 """
 
-import hashlib
-import hmac
-import os
 import re
-import secrets
-import time
-from datetime import UTC, datetime, timedelta
-from typing import Any, cast
-from urllib.parse import urlparse
 
 import structlog
-from fastapi import Request, status
+from fastapi import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.api.responses import MsgspecJSONResponse
-from src.api.websockets.codec import WebSocketCodec
 from src.config import settings
 
 logger = structlog.get_logger(__name__)
@@ -61,7 +52,7 @@ class FusedSecurityMiddleware:
         self.blocked_ips: set[str] = set()
         self.trusted_proxies = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
         self.csrf_secret = settings.JWT_SECRET.encode()
-        
+
         # CSP and other headers pre-built for speed
         self.security_headers = {
             "X-Content-Type-Options": "nosniff",
@@ -89,10 +80,10 @@ class FusedSecurityMiddleware:
 
         # 2. JWT Auth (Fast Path)
         is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
-        
+
         if not is_public:
             from src.security.auth import auth_service
-            
+
             token = None
             auth_header = request.headers.get("Authorization")
             if auth_header and auth_header.startswith("Bearer "):
@@ -102,28 +93,27 @@ class FusedSecurityMiddleware:
 
             if not token:
                 resp = MsgspecJSONResponse(
-                    status_code=401, 
+                    status_code=401,
                     content={"detail": "Authentication token missing"},
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
                 await resp(scope, receive, send)
                 return
 
             try:
                 token_data = await auth_service.validate_token(token)
-                
+
                 # Populate request state via scope["state"] for compatibility
                 state = scope.setdefault("state", {})
                 state["user_id"] = token_data.user_id
                 state["user_email"] = token_data.email
                 state["user_tier"] = token_data.tier
                 state["auth_type"] = token_data.token_type
-                
+
             except Exception as e:
                 logger.warning("auth_failed", error=str(e), path=path)
                 resp = MsgspecJSONResponse(
-                    status_code=401, 
-                    content={"detail": "Authentication failed"}
+                    status_code=401, content={"detail": "Authentication failed"}
                 )
                 await resp(scope, receive, send)
                 return
@@ -135,11 +125,11 @@ class FusedSecurityMiddleware:
                 # Inject pre-built headers
                 for k, v in self.security_headers.items():
                     headers[k.lower().encode()] = v.encode()
-                
+
                 # HSTS
                 if settings.is_production:
                     headers[b"strict-transport-security"] = b"max-age=31536000; includeSubDomains"
-                
+
                 message["headers"] = list(headers.items())
             await send(message)
 

@@ -67,8 +67,9 @@ class DataPipeline:
         Load the latest collected data from Postgres (Optimized cross-sectional extraction).
         Returns: (X, y, feature_names, metadata)
         """
-        from src.database.pipeliner import db_engine
         import pandas as pd
+
+        from src.database.pipeliner import db_engine
         from src.shared.math_utils import calculate_greeks
 
         # Use chunked extraction to handle large cross-sectional datasets efficiently
@@ -76,7 +77,9 @@ class DataPipeline:
         records = []
         offset = 0
         while True:
-            chunk = await db_engine.fetch_training_data(self.config.symbols, limit=chunk_size, offset=offset)
+            chunk = await db_engine.fetch_training_data(
+                self.config.symbols, limit=chunk_size, offset=offset
+            )
             if not chunk:
                 break
             records.extend(chunk)
@@ -88,49 +91,59 @@ class DataPipeline:
             from src.ml.training.data_gen import (
                 generate_synthetic_data_numba as generate_synthetic_data,
             )
+
             logger.warning("data_pipeline_no_real_data_found", fallback="synthetic")
             X, y, features = generate_synthetic_data(self.config.min_samples)
             return X, y, features, {"data_source": "synthetic_numba", "count": len(X)}
 
         # Load into Pandas for vectorized cleaning and robust cross-sectional manipulation
         df = pd.DataFrame(records)
-        df['time'] = pd.to_datetime(df['time'])
-        df = df.sort_values(by=['symbol', 'time'])
-        
+        df["time"] = pd.to_datetime(df["time"])
+        df = df.sort_values(by=["symbol", "time"])
+
         # Rigorous Data Cleaning: handle NaNs, forward-fills
-        df = df.groupby('symbol').ffill().bfill()
-        df = df.dropna(subset=['last', 'strike'])
-        
+        df = df.groupby("symbol").ffill().bfill()
+        df = df.dropna(subset=["last", "strike"])
+
         # Feature Engineering: Compute base vectors
-        s = df['last'].values
-        k = df['strike'].values
-        t = np.where(_calculate_maturity_jit(
-            pd.to_datetime(df['expiry']).astype('int64').values // 10**9,
-            df['time'].astype('int64').values // 10**9
-        ) <= 0, 0.5, _calculate_maturity_jit(
-            pd.to_datetime(df['expiry']).astype('int64').values // 10**9,
-            df['time'].astype('int64').values // 10**9
-        ))
-        
-        sigma = df['implied_volatility'].fillna(0.2).values
+        s = df["last"].values
+        k = df["strike"].values
+        t = np.where(
+            _calculate_maturity_jit(
+                pd.to_datetime(df["expiry"]).astype("int64").values // 10**9,
+                df["time"].astype("int64").values // 10**9,
+            )
+            <= 0,
+            0.5,
+            _calculate_maturity_jit(
+                pd.to_datetime(df["expiry"]).astype("int64").values // 10**9,
+                df["time"].astype("int64").values // 10**9,
+            ),
+        )
+
+        sigma = df["implied_volatility"].fillna(0.2).values
         r = np.full_like(s, 0.05)
         q = np.full_like(s, 0.01)
-        is_call = (df.get('option_type', 'call') == 'call').values
-        
+        is_call = (df.get("option_type", "call") == "call").values
+
         # Calculate cross-sectional Black-Scholes Features
         delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call)
-        df['delta'] = delta
-        df['gamma'] = gamma
-        df['vega'] = vega
-        
-        # Cross-sectional Targets: Predict next price conditionally
-        df['target_price'] = df.groupby('symbol')['last'].shift(-1).fillna(df['last'])
+        df["delta"] = delta
+        df["gamma"] = gamma
+        df["vega"] = vega
 
-        X = df[['strike', 'delta', 'gamma', 'vega', 'implied_volatility']].values
-        y = df['target_price'].values
-        feature_names = ['strike', 'delta', 'gamma', 'vega', 'iv']
-        metadata = {"data_source": "postgres_chunked_pandas", "count": len(X), "temporal_split": True}
-        
+        # Cross-sectional Targets: Predict next price conditionally
+        df["target_price"] = df.groupby("symbol")["last"].shift(-1).fillna(df["last"])
+
+        X = df[["strike", "delta", "gamma", "vega", "implied_volatility"]].values
+        y = df["target_price"].values
+        feature_names = ["strike", "delta", "gamma", "vega", "iv"]
+        metadata = {
+            "data_source": "postgres_chunked_pandas",
+            "count": len(X),
+            "temporal_split": True,
+        }
+
         return X, y, feature_names, metadata
 
 

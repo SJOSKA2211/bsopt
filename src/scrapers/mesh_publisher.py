@@ -5,6 +5,7 @@ Writes real-time scraped market data to shared memory for zero-copy access.
 """
 
 import time
+
 import structlog
 
 from src.shared.shm_mesh import SharedMemoryRingBuffer

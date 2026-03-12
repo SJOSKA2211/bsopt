@@ -1,6 +1,6 @@
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import optuna
@@ -15,7 +15,7 @@ from src.ml.utils.validation import WalkForwardValidator
 logger = structlog.get_logger()
 
 
-class ModelTrainer(BaseTrainer): # type: ignore
+class ModelTrainer(BaseTrainer):  # type: ignore
     """
     Unified Model Trainer with Temporal Validation and Experiment Tracking.
     """
@@ -85,8 +85,6 @@ class ModelTrainer(BaseTrainer): # type: ignore
         study.optimize(objective, n_trials=n_trials)
         return study
 
-
-from typing import cast
 
 # Aliases for compatibility
 InstrumentedTrainer = ModelTrainer

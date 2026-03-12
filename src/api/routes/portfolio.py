@@ -1,10 +1,12 @@
 from uuid import UUID
+
 """
 Portfolio routes backing the dashboard overview widgets.
 Enhanced with High-Performance Database integration and RLS enforcement.
 """
 
 from typing import Any
+
 import msgspec
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
@@ -46,7 +48,7 @@ async def get_portfolio(
     request: Request,
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) :
+):
     """Return the user's primary portfolio overview including positions (RLS Hardened)."""
     # 1. Set RLS Context
     await set_user_context(db, str(current_user.id))
@@ -97,7 +99,7 @@ async def get_portfolio(
 async def get_portfolio_summary(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) :
+):
     """Return high-level portfolio metrics via optimized view."""
     await set_user_context(db, str(current_user.id))
 
@@ -119,7 +121,7 @@ async def add_position(
     payload: dict[str, Any],
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user),
-) :
+):
     """Add a new position to the first available portfolio."""
     await set_user_context(db, str(current_user.id))
 

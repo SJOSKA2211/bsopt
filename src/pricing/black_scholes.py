@@ -5,6 +5,7 @@ import structlog
 
 from src.pricing.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
+
 from .base import PricingStrategy
 
 try:
@@ -24,7 +25,9 @@ class BlackScholesEngine(PricingStrategy):
     """
 
     @staticmethod
-    def _extract_params(params: Any | None = None, **kwargs: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def _extract_params(
+        params: Any | None = None, **kwargs: Any
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Helper to extract parameters."""
         if params:
             s = getattr(params, "spot", kwargs.get("spot"))
@@ -147,7 +150,7 @@ class BlackScholesEngine(PricingStrategy):
 
         # Vectorized numpy fallback
         res = calculate_price(S, K, T, sigma, r, q, is_call)
-        
+
         if kwargs.get("out") is not None:
             out_arr = kwargs["out"]
             if isinstance(res, np.ndarray):
@@ -241,17 +244,19 @@ class BlackScholesEngine(PricingStrategy):
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
         if "out_delta" in kwargs:
+
             def _copy(dst, src):
                 if isinstance(src, np.ndarray):
                     np.copyto(dst, src)
                 else:
                     dst.fill(src)
+
             _copy(kwargs["out_delta"], delta)
             _copy(kwargs["out_gamma"], gamma)
             _copy(kwargs["out_theta"], theta)
             _copy(kwargs["out_vega"], vega)
             _copy(kwargs["out_rho"], rho)
-            
+
             return OptionGreeks(
                 delta=kwargs["out_delta"],
                 gamma=kwargs["out_gamma"],
@@ -262,7 +267,6 @@ class BlackScholesEngine(PricingStrategy):
 
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
 
-
     @staticmethod
     def price_call(params: BSParameters) -> float:
         return float(BlackScholesEngine.price_options(params=params, option_type="call"))
@@ -272,20 +276,39 @@ class BlackScholesEngine(PricingStrategy):
         return float(BlackScholesEngine.price_options(params=params, option_type="put"))
 
     @staticmethod
-    def price_batch(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, option_types: np.ndarray) -> np.ndarray:
+    def price_batch(
+        S: np.ndarray,
+        K: np.ndarray,
+        T: np.ndarray,
+        sigma: np.ndarray,
+        r: np.ndarray,
+        dividend: np.ndarray,
+        option_types: np.ndarray,
+    ) -> np.ndarray:
         """Vectorized pricing returning an array."""
-        return cast(np.ndarray, BlackScholesEngine.price_options(
-            spot=S,
-            strike=K,
-            maturity=T,
-            volatility=sigma,
-            rate=r,
-            dividend=dividend,
-            option_type=option_types,
-        ))
+        return cast(
+            np.ndarray,
+            BlackScholesEngine.price_options(
+                spot=S,
+                strike=K,
+                maturity=T,
+                volatility=sigma,
+                rate=r,
+                dividend=dividend,
+                option_type=option_types,
+            ),
+        )
 
     @staticmethod
-    def price_batch_greeks(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, is_call: Any = True) -> tuple[np.ndarray, ...]:
+    def price_batch_greeks(
+        S: np.ndarray,
+        K: np.ndarray,
+        T: np.ndarray,
+        sigma: np.ndarray,
+        r: np.ndarray,
+        dividend: np.ndarray,
+        is_call: Any = True,
+    ) -> tuple[np.ndarray, ...]:
         """
         Specialized batch Greek calculation for GreekEngine.
         Returns a tuple of arrays: (delta, gamma, theta, vega, rho)
@@ -342,7 +365,9 @@ class BlackScholesEngine(PricingStrategy):
         }
 
     @staticmethod
-    def verify_put_call_parity(S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0) -> bool:
+    def verify_put_call_parity(
+        S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0
+    ) -> bool:
         lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
         rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - np.asanyarray(
             K
@@ -364,7 +389,13 @@ def black_scholes(*args: Any, **kwargs: Any) -> Any:
 
 
 def verify_put_call_parity(
-    params_or_S: Any, K: Any = None, T: Any = None, r: Any = None, call_price: Any = None, put_price: Any = None, q: float = 0.0
+    params_or_S: Any,
+    K: Any = None,
+    T: Any = None,
+    r: Any = None,
+    call_price: Any = None,
+    put_price: Any = None,
+    q: float = 0.0,
 ) -> bool:
     """Module-level parity verifier for test compatibility."""
     if hasattr(params_or_S, "spot") and K is None:

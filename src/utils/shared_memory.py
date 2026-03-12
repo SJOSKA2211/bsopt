@@ -3,7 +3,6 @@ from __future__ import annotations
 import atexit
 import threading
 from multiprocessing import shared_memory
-from typing import Any
 
 import structlog
 

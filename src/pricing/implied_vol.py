@@ -7,18 +7,19 @@ Features:
 - Robust error handling with Brent fallback
 """
 
-from typing import Any, cast
+from typing import cast
 
 import numpy as np
 
-from src.pricing.black_scholes import BlackScholesEngine
 from src.pricing.quant_utils import (
     corrado_miller_initial_guess,
     vectorized_newton_raphson_iv_jit,
 )
+from src.shared.math_utils import calculate_greeks, calculate_price
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -26,6 +27,7 @@ except ImportError:
 
 class ImpliedVolatilityError(Exception):
     """Exception raised when IV calculation fails to converge."""
+
     pass
 
 
@@ -97,8 +99,6 @@ def _newton_raphson_iv(
     """
     OPTIMIZED: Scalar Newton-Raphson using vectorized kernels (fallback to scalar).
     """
-    from src.shared.math_utils import calculate_greeks, calculate_price
-
     sigma = initial_guess
 
     for _ in range(max_iterations):
@@ -106,9 +106,7 @@ def _newton_raphson_iv(
         price = calculate_price(spot, strike, maturity, sigma, rate, dividend, is_call)
 
         # 2. Vega using vectorized kernel
-        _, _, _, vega, _ = calculate_greeks(
-            spot, strike, maturity, sigma, rate, dividend, is_call
-        )
+        _, _, _, vega, _ = calculate_greeks(spot, strike, maturity, sigma, rate, dividend, is_call)
 
         diff = price - market_price
         if abs(diff) < tolerance:
@@ -164,14 +162,12 @@ def implied_volatility(
     """Calculate IV for a single option using specified method."""
     if method not in ["auto", "newton", "brent"]:
         raise ValueError("method must be 'auto', 'newton', or 'brent'")
-    
+
     is_call = option_type.lower() == "call"
     _validate_inputs(market_price, spot, strike, maturity, rate, dividend, is_call)
 
     if method == "brent":
-        return _brent_iv(
-            market_price, spot, strike, maturity, rate, dividend, is_call, tolerance
-        )
+        return _brent_iv(market_price, spot, strike, maturity, rate, dividend, is_call, tolerance)
 
     # Default/Newton
     try:
@@ -218,7 +214,7 @@ def vectorized_implied_volatility(
     State-of-the-art vectorized IV calculation.
     """
     # OPTIMIZED: Vectorized type conversion
-    is_call = (np.char.lower(option_types.astype(str)) == "call")
+    is_call = np.char.lower(option_types.astype(str)) == "call"
 
     if CORE_AVAILABLE:
         try:
@@ -231,7 +227,7 @@ def vectorized_implied_volatility(
                 dividends.astype(np.float64),
                 is_call.astype(bool),
                 tolerance,
-                max_iterations
+                max_iterations,
             )
         except Exception:
             pass
@@ -246,7 +242,7 @@ def vectorized_implied_volatility(
         maturities.astype(np.float64),
         rates.astype(np.float64),
         dividends.astype(np.float64),
-        type_ints
+        type_ints,
     )
 
     # 3. Optimized JIT Newton-Raphson

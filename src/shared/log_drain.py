@@ -1,7 +1,6 @@
 import asyncio
 import struct
 import time
-from typing import Any
 
 import httpx
 import structlog

@@ -5,8 +5,7 @@ from datetime import datetime
 from typing import Protocol
 
 import httpx
-import numpy as np
-import orjson
+import msgspec
 import pandas as pd
 import structlog
 from anyio.to_thread import run_sync
@@ -382,16 +381,24 @@ class NSEScraper:
         # Vectorized dataframe for speed
         try:
             df = pd.DataFrame(items)
-            
+
             # Fast vectorized string replacements using regex without allocating python strings
             if "price" in df:
-                df["price"] = pd.to_numeric(df["price"].astype(str).str.replace(",", ""), errors="coerce")
-            
+                df["price"] = pd.to_numeric(
+                    df["price"].astype(str).str.replace(",", ""), errors="coerce"
+                )
+
             if "volume" in df:
-                df["volume"] = pd.to_numeric(df["volume"].astype(str).str.replace(",", ""), errors="coerce").fillna(0).astype(int)
-            
+                df["volume"] = (
+                    pd.to_numeric(df["volume"].astype(str).str.replace(",", ""), errors="coerce")
+                    .fillna(0)
+                    .astype(int)
+                )
+
             if "change" in df:
-                df["change"] = pd.to_numeric(df["change"].astype(str).str.replace(",", ""), errors="coerce")
+                df["change"] = pd.to_numeric(
+                    df["change"].astype(str).str.replace(",", ""), errors="coerce"
+                )
 
             return df.to_dict(orient="records")
         except Exception as e:

@@ -101,15 +101,17 @@ class QuantumOptionPricer:
         # Initialize backend and sampler
         try:
             from qiskit_aer import AerSimulator
+
             if use_real_quantum:
                 self.backend = self.backend_manager.get_backend(backend_name)
             else:
                 self.backend = AerSimulator()
-            
+
             # Use SamplerV2 for Qiskit 1.0+ efficiency
             if QISKIT_AVAILABLE:
                 try:
                     from qiskit.primitives import SamplerV2 as RealSamplerV2
+
                     self.sampler = RealSamplerV2(mode=self.backend)
                 except ImportError:
                     self.sampler = Sampler()
@@ -117,6 +119,7 @@ class QuantumOptionPricer:
                 self.sampler = None
         except Exception:
             from qiskit_aer import AerSimulator
+
             self.backend = AerSimulator()
             self.sampler = Sampler() if QISKIT_AVAILABLE else None
 

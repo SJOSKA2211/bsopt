@@ -5,7 +5,6 @@ from sqlalchemy import select
 from src.database import get_async_db_context
 from src.database.models import Portfolio as DBPortfolio
 from src.database.models import Position as DBPosition
-
 from src.shared.shm_mesh import GreeksMesh
 
 logger = structlog.get_logger(__name__)
@@ -31,11 +30,11 @@ class Position:
     def from_db(cls, db_pos: DBPosition):
         pos = cls(
             id=strawberry.ID(str(db_pos.id)),
-            contract_symbol=db_pos.symbol, # Mapping contract_symbol to symbol
+            contract_symbol=db_pos.symbol,  # Mapping contract_symbol to symbol
             quantity=db_pos.quantity,
             entry_price=float(db_pos.entry_price),
         )
-        
+
         # Enrich with SHM Greeks
         shm_greeks = _greeks_mesh.read(db_pos.symbol)
         if shm_greeks:
@@ -44,7 +43,7 @@ class Position:
             pos.theta = shm_greeks["theta"]
             pos.vega = shm_greeks["vega"]
             pos.rho = shm_greeks["rho"]
-            
+
         return pos
 
 
@@ -67,12 +66,12 @@ class Portfolio:
                     select(DBPosition).where(DBPosition.portfolio_id == self.id)
                 )
                 db_positions = result.scalars().all()
-                
+
                 results = []
                 for p in db_positions:
                     pos = Position.from_db(p)
                     results.append(pos)
-                    
+
                     # Accumulate portfolio risk
                     if pos.delta is not None:
                         self.total_delta += pos.delta * pos.quantity
@@ -80,7 +79,7 @@ class Portfolio:
                         self.total_gamma += pos.gamma * pos.quantity
                     if pos.vega is not None:
                         self.total_vega += pos.vega * pos.quantity
-                        
+
                 return results
             except Exception as e:
                 logger.error("ws_fetch_positions_failed", portfolio_id=self.id, error=str(e))

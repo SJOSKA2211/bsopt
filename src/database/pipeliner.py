@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, cast
+from typing import Any
 
 import structlog
 
@@ -23,7 +23,9 @@ class VectorizedDBEngine:
         """Extracts raw asyncpg connection from SQLAlchemy connection."""
         return await conn.get_raw_connection()
 
-    async def fetch_training_data(self, symbols: list[str], limit: int = 10000) -> list[dict[str, Any]]:
+    async def fetch_training_data(
+        self, symbols: list[str], limit: int = 10000
+    ) -> list[dict[str, Any]]:
         """
         High-speed retrieval of training data using binary format.
         """

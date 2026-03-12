@@ -1,7 +1,8 @@
+from typing import cast
+
 import structlog
 import torch
 import torch.nn as nn
-from typing import Any
 
 logger = structlog.get_logger()
 
@@ -45,7 +46,7 @@ class ModelQuantizer:
         Performs INT8 quantization on an ONNX model for high-performance inference.
         """
         try:
-            from onnxruntime.quantization import QuantType, quantize_dynamic # type: ignore
+            from onnxruntime.quantization import QuantType, quantize_dynamic  # type: ignore
 
             logger.info("quantizing_onnx_model", input=input_path, output=output_path)
             quantize_dynamic(
@@ -58,4 +59,4 @@ class ModelQuantizer:
             logger.error("onnx_quantization_failed", error=str(e))
             raise
 
-from typing import cast
+

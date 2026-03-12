@@ -43,12 +43,12 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
 
-    @strawberry.field # type: ignore
+    @strawberry.field  # type: ignore
     async def fair_value(self, info: strawberry.Info[Any, Any]) -> float:
         loader = cast(DataLoader[strawberry.ID, float], info.context["fair_value_loader"])
         return await loader.load(self.id)
 
-    @strawberry.field # type: ignore
+    @strawberry.field  # type: ignore
     def recommendation(self) -> str:
         return str(random.choice(["BUY", "SELL", "HOLD"]))
 
@@ -66,11 +66,11 @@ class DriftStatus:
 
 @strawberry.type
 class Query:
-    @strawberry.field # type: ignore
+    @strawberry.field  # type: ignore
     def ml_status(self) -> str:
         return "GOD_MODE_ACTIVE"
 
-    @strawberry.field # type: ignore
+    @strawberry.field  # type: ignore
     async def drift_status(self) -> DriftStatus:
         """Expose AIOps drift metrics via GraphQL."""
         from src.shared.observability import DATA_DRIFT_SCORE, MMD_DRIFT_SCORE

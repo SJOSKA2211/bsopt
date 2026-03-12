@@ -5,15 +5,16 @@ import numpy as np
 import structlog
 from scipy.stats import ks_2samp
 
+from src.shared.math_utils import njit_engine
 from src.shared.observability import (
     DATA_DRIFT_SCORE,
     KS_TEST_SCORE,
     PERFORMANCE_DRIFT_ALERT,
 )
-from src.shared.math_utils import njit_engine
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -141,7 +142,10 @@ class PerformanceDriftMonitor:
         return bool(is_drifted)
 
 
-def calculate_ks_test(expected: np.ndarray[Any, np.dtype[np.float64]], actual: np.ndarray[Any, np.dtype[np.float64]] | list[float]) -> tuple[float, float]:
+def calculate_ks_test(
+    expected: np.ndarray[Any, np.dtype[np.float64]],
+    actual: np.ndarray[Any, np.dtype[np.float64]] | list[float],
+) -> tuple[float, float]:
     """
     Calculates the Kolmogorov-Smirnov (KS) test between two distributions.
 
@@ -169,7 +173,10 @@ def calculate_ks_test(expected: np.ndarray[Any, np.dtype[np.float64]], actual: n
 
 @njit_engine(cache=True, fastmath=True)
 def _psi_kernel(
-    expected_counts: np.ndarray[Any, np.dtype[np.float64]], actual_counts: np.ndarray[Any, np.dtype[np.float64]], expected_len: int, actual_len: int
+    expected_counts: np.ndarray[Any, np.dtype[np.float64]],
+    actual_counts: np.ndarray[Any, np.dtype[np.float64]],
+    expected_len: int,
+    actual_len: int,
 ) -> float:
     """Numba-optimized PSI kernel with epsilon padding."""
     eps = 1e-6
@@ -202,20 +209,34 @@ def calculate_psi(
 
     if CORE_AVAILABLE:
         try:
-            psi_score = float(cast(Any, bsopt_core).calculate_psi(
-                expected_arr.astype(np.float64), actual_arr.astype(np.float64), bins.astype(np.float64)
-            ))
+            psi_score = float(
+                cast(Any, bsopt_core).calculate_psi(
+                    expected_arr.astype(np.float64),
+                    actual_arr.astype(np.float64),
+                    bins.astype(np.float64),
+                )
+            )
         except Exception as e:
             logger.warning("rust_psi_calculation_failed_falling_back", error=str(e))
             # Fallback to JIT kernel
             expected_counts, _ = np.histogram(expected_arr, bins=bins)
             actual_counts, _ = np.histogram(actual_arr, bins=bins)
-            psi_score = _psi_kernel(expected_counts.astype(np.float64), actual_counts.astype(np.float64), len(expected_arr), len(actual_arr))
+            psi_score = _psi_kernel(
+                expected_counts.astype(np.float64),
+                actual_counts.astype(np.float64),
+                len(expected_arr),
+                len(actual_arr),
+            )
     else:
         # Fast bucketing using pre-defined bins
         expected_counts, _ = np.histogram(expected_arr, bins=bins)
         actual_counts, _ = np.histogram(actual_arr, bins=bins)
-        psi_score = _psi_kernel(expected_counts.astype(np.float64), actual_counts.astype(np.float64), len(expected_arr), len(actual_arr))
+        psi_score = _psi_kernel(
+            expected_counts.astype(np.float64),
+            actual_counts.astype(np.float64),
+            len(expected_arr),
+            len(actual_arr),
+        )
 
     # Emit Prometheus metric
     DATA_DRIFT_SCORE.set(psi_score)
@@ -255,8 +276,10 @@ class DriftTrigger:
 
     def should_retrain(
         self,
-        reference_data: np.ndarray[Any, np.dtype[np.float64]] | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
-        current_data: np.ndarray[Any, np.dtype[np.float64]] | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
+        reference_data: np.ndarray[Any, np.dtype[np.float64]]
+        | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
+        current_data: np.ndarray[Any, np.dtype[np.float64]]
+        | dict[str, np.ndarray[Any, np.dtype[np.float64]]],
         current_perf: float | None,
     ) -> tuple[bool, str]:
         """
@@ -292,7 +315,7 @@ class DriftTrigger:
             # We need to cast to help mypy understand these are np.ndarray here
             ref_arr = cast(np.ndarray[Any, np.dtype[np.float64]], reference_data)
             cur_arr = cast(np.ndarray[Any, np.dtype[np.float64]], current_data)
-            
+
             _, p_value = calculate_ks_test(ref_arr, cur_arr)
             psi_score = calculate_psi(ref_arr, cur_arr)
             distribution_drift = (psi_score > self.psi_threshold) or (

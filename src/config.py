@@ -4,7 +4,7 @@ Application configuration management.
 """
 
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 import structlog
 from pydantic import BeforeValidator, Field, field_validator, model_validator
@@ -329,6 +329,7 @@ class Settings(BaseSettings):
 
             try:
                 import base64
+
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
                 if len(decoded) < 32:
                     raise ValueError(

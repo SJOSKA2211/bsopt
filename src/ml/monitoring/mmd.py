@@ -1,7 +1,8 @@
+from typing import Any, cast
+
 import numpy as np
 import structlog
 from scipy.spatial.distance import cdist
-from typing import Any, cast
 
 try:
     import bsopt_core
@@ -13,7 +14,9 @@ except ImportError:
 logger = structlog.get_logger(__name__)
 
 
-def _gaussian_kernel_matrix(x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndarray[Any, np.dtype[np.float64]], sigma: float) -> np.ndarray[Any, np.dtype[np.float64]]:
+def _gaussian_kernel_matrix(
+    x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndarray[Any, np.dtype[np.float64]], sigma: float
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Optimized Gaussian RBF kernel calculation using NumPy/SciPy."""
     gamma = 1.0 / (2.0 * sigma**2)
     # cdist computes squared Euclidean distance efficiently
@@ -21,7 +24,11 @@ def _gaussian_kernel_matrix(x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndar
     return cast(np.ndarray[Any, np.dtype[np.float64]], np.exp(-gamma * dist_sq))
 
 
-def calculate_mmd(x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndarray[Any, np.dtype[np.float64]], sigma: float = 1.0) -> float:
+def calculate_mmd(
+    x: np.ndarray[Any, np.dtype[np.float64]],
+    y: np.ndarray[Any, np.dtype[np.float64]],
+    sigma: float = 1.0,
+) -> float:
     """
     Maximum Mean Discrepancy (MMD) multivariate distance.
     Uses Rust core for sub-microsecond calculation if available.
@@ -31,7 +38,11 @@ def calculate_mmd(x: np.ndarray[Any, np.dtype[np.float64]], y: np.ndarray[Any, n
     if CORE_AVAILABLE:
         try:
             # We use Any to avoid mypy complaining about dynamic module
-            val = float(cast(Any, bsopt_core).calculate_mmd(x.astype(np.float64), y.astype(np.float64), float(sigma)))
+            val = float(
+                cast(Any, bsopt_core).calculate_mmd(
+                    x.astype(np.float64), y.astype(np.float64), float(sigma)
+                )
+            )
             MMD_DRIFT_SCORE.set(val)
             return val
         except Exception as e:
@@ -65,7 +76,11 @@ class MultivariateDriftDetector:
     def __init__(self, threshold: float = 0.05) -> None:
         self.threshold = threshold
 
-    def detect_drift(self, baseline_x: np.ndarray[Any, np.dtype[np.float64]], current_x: np.ndarray[Any, np.dtype[np.float64]]) -> tuple[bool, float]:
+    def detect_drift(
+        self,
+        baseline_x: np.ndarray[Any, np.dtype[np.float64]],
+        current_x: np.ndarray[Any, np.dtype[np.float64]],
+    ) -> tuple[bool, float]:
         """Detect drift between two multivariate samples."""
         mmd_val = calculate_mmd(baseline_x, current_x, sigma=1.0)
         is_drifted = bool(mmd_val > self.threshold)

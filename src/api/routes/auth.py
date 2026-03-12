@@ -2,9 +2,8 @@
 Authentication Routes (Optimized for PG16 + Async)
 """
 
-from typing import Any, Annotated, cast
 from datetime import UTC, datetime, timedelta
-from typing import Any, cast
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
@@ -156,7 +155,7 @@ async def login(
 
 
 @router.get("/me")
-async def read_users_me(user: User = Depends(get_current_active_user)) :
+async def read_users_me(user: User = Depends(get_current_active_user)):
     return DataResponseStruct(data=UserResponse.from_orm(user))
 
 

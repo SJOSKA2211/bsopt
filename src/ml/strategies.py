@@ -186,7 +186,7 @@ class SklearnStrategy(TrainingStrategy):
 
 
 class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
-    class SimpleNet(nn.Module): # type: ignore
+    class SimpleNet(nn.Module):  # type: ignore
         def __init__(self, input_dim: int) -> None:
             super().__init__()
             self.fc = nn.Sequential(

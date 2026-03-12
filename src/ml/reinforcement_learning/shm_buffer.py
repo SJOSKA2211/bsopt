@@ -64,7 +64,9 @@ class SharedExperienceBuffer:
                 (capacity, act_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
             offset += capacity * act_dim * 4
-            self.rew: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(capacity, dtype=np.float32, buffer=self.buf, offset=offset)
+            self.rew: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
+                capacity, dtype=np.float32, buffer=self.buf, offset=offset
+            )
             offset += capacity * 4
             self.next_obs: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
                 (capacity, obs_dim), dtype=np.float32, buffer=self.buf, offset=offset
@@ -75,7 +77,13 @@ class SharedExperienceBuffer:
             logger.error("shm_replay_buffer_failed", error=str(e))
             raise
 
-    def add(self, obs: np.ndarray[Any, np.dtype[np.float32]], act: np.ndarray[Any, np.dtype[np.float32]], rew: float, next_obs: np.ndarray[Any, np.dtype[np.float32]]) -> None:
+    def add(
+        self,
+        obs: np.ndarray[Any, np.dtype[np.float32]],
+        act: np.ndarray[Any, np.dtype[np.float32]],
+        rew: float,
+        next_obs: np.ndarray[Any, np.dtype[np.float32]],
+    ) -> None:
         """Zero-copy transition push with spin-lock for multi-producer safety."""
         mv = self.buf
 
@@ -101,7 +109,14 @@ class SharedExperienceBuffer:
         finally:
             mv[0] = 0  # UNLOCK
 
-    def sample(self, batch_size: int) -> tuple[np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]]]:
+    def sample(
+        self, batch_size: int
+    ) -> tuple[
+        np.ndarray[Any, np.dtype[np.float32]],
+        np.ndarray[Any, np.dtype[np.float32]],
+        np.ndarray[Any, np.dtype[np.float32]],
+        np.ndarray[Any, np.dtype[np.float32]],
+    ]:
         """Zero-copy batch sampling with wait-free polling."""
         mv = self.buf
         while mv[0] != 0:

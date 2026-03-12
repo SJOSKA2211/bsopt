@@ -164,7 +164,9 @@ from fastapi.exceptions import RequestValidationError  # noqa: E402
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError) -> MsgspecJSONResponse:
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> MsgspecJSONResponse:
     """Handle FastAPI built-in validation errors."""
     return MsgspecJSONResponse(
         status_code=422,
@@ -200,7 +202,7 @@ app.include_router(graphql_app, prefix="/graphql")
 async def health() -> dict[str, Any]:
     from src.database import health_check
 
-    return {"status": "healthy", "database": health_check()}
+    return {"status": "healthy", "database": await health_check()}
 
 
 @app.get("/api/diagnostics/imports")

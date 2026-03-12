@@ -3,10 +3,13 @@
 Targets: Numba JIT, Parallel, Vectorized
 """
 
-from typing import Any, cast, Callable
+from collections.abc import Callable
+from typing import Any, cast
 
 import numpy as np
-from src.shared.math_utils import njit_engine, loop_prange
+from numba import prange
+
+from src.shared.math_utils import loop_prange, njit_engine
 
 # Scheme Constants
 SCHEME_EULER = 0
@@ -69,7 +72,7 @@ def _moro_inv_norm(p: float) -> float:
 
 @njit_engine(parallel=True)
 def vectorized_fast_normal_ppf_v2(
-    p: np.ndarray[Any, np.dtype[np.float64]]
+    p: np.ndarray[Any, np.dtype[np.float64]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized JIT version of fast_normal_ppf."""
     n = len(p)
@@ -116,7 +119,14 @@ def generate_log_paths_v2(
 
 @njit_engine(fastmath=True, parallel=True)
 def generate_paths_v2(
-    S0: float, T: float, r: float, sigma: float, q: float, n_paths: int, n_steps: int, scheme: int = SCHEME_EULER
+    S0: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    n_paths: int,
+    n_steps: int,
+    scheme: int = SCHEME_EULER,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Optimized path generation (JIT)."""
     if scheme == SCHEME_MILSTEIN:
@@ -136,7 +146,12 @@ def generate_paths_v2(
 
 @njit_engine(fastmath=True, parallel=True)
 def fused_arithmetic_asian_payoff_v2(
-    log_paths: np.ndarray[Any, np.dtype[np.float64]], K: float, r: float, T: float, is_call: bool, is_fixed: bool
+    log_paths: np.ndarray[Any, np.dtype[np.float64]],
+    K: float,
+    r: float,
+    T: float,
+    is_call: bool,
+    is_fixed: bool,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Fused kernel (JIT Optimized)."""
     n_steps_p1, n_paths = log_paths.shape
@@ -161,7 +176,12 @@ def fused_arithmetic_asian_payoff_v2(
 
 @njit_engine(fastmath=True, parallel=True)
 def fused_lookback_payoff_v2(
-    log_paths: np.ndarray[Any, np.dtype[np.float64]], K: float, r: float, T: float, is_call: bool, is_floating: bool
+    log_paths: np.ndarray[Any, np.dtype[np.float64]],
+    K: float,
+    r: float,
+    T: float,
+    is_call: bool,
+    is_floating: bool,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Fused kernel (JIT Optimized)."""
     n_steps_p1, n_paths = log_paths.shape
@@ -207,7 +227,7 @@ def batch_bs_price_jit_v2(
     sigma: np.ndarray[Any, np.dtype[np.float64]],
     r: np.ndarray[Any, np.dtype[np.float64]],
     q: np.ndarray[Any, np.dtype[np.float64]],
-    is_call: np.ndarray[Any, np.dtype[np.bool_]]
+    is_call: np.ndarray[Any, np.dtype[np.bool_]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     Ti = np.maximum(T, 1e-9)
     sig = np.maximum(sigma, 1e-9)
@@ -248,7 +268,7 @@ def batch_bs_price_jit_v2_out(
     r: np.ndarray[Any, np.dtype[np.float64]],
     q: np.ndarray[Any, np.dtype[np.float64]],
     is_call: np.ndarray[Any, np.dtype[np.bool_]],
-    out: np.ndarray[Any, np.dtype[np.float64]]
+    out: np.ndarray[Any, np.dtype[np.float64]],
 ) -> None:
     """Batch Black-Scholes price with pre-allocated output buffer."""
     Ti = np.maximum(T, 1e-9)
@@ -277,7 +297,6 @@ def batch_bs_price_jit_v2_out(
             ] * fast_normal_cdf_v2(-d1)
 
 
-
 @njit_engine(fastmath=True, parallel=True)
 def batch_greeks_jit_v2(
     S: np.ndarray[Any, np.dtype[np.float64]],
@@ -286,13 +305,13 @@ def batch_greeks_jit_v2(
     sigma: np.ndarray[Any, np.dtype[np.float64]],
     r: np.ndarray[Any, np.dtype[np.float64]],
     q: np.ndarray[Any, np.dtype[np.float64]],
-    is_call: np.ndarray[Any, np.dtype[np.bool_]]
+    is_call: np.ndarray[Any, np.dtype[np.bool_]],
 ) -> tuple[
     np.ndarray[Any, np.dtype[np.float64]],
     np.ndarray[Any, np.dtype[np.float64]],
     np.ndarray[Any, np.dtype[np.float64]],
     np.ndarray[Any, np.dtype[np.float64]],
-    np.ndarray[Any, np.dtype[np.float64]]
+    np.ndarray[Any, np.dtype[np.float64]],
 ]:
     n = len(S)
     delta, gamma, theta, vega, rho = np.empty(n), np.empty(n), np.empty(n), np.empty(n), np.empty(n)
@@ -315,14 +334,13 @@ def batch_greeks_jit_v2_out(
     gamma: np.ndarray[Any, np.dtype[np.float64]],
     theta: np.ndarray[Any, np.dtype[np.float64]],
     vega: np.ndarray[Any, np.dtype[np.float64]],
-    rho: np.ndarray[Any, np.dtype[np.float64]]
+    rho: np.ndarray[Any, np.dtype[np.float64]],
 ) -> None:
     """Batch Greeks calculation with pre-allocated output buffers."""
     n = len(S)
     for i in loop_prange(n):
         d, g, th, v, rh = scalar_greeks_jit_v2(S[i], K[i], T[i], sigma[i], r[i], q[i], is_call[i])
         delta[i], gamma[i], theta[i], vega[i], rho[i] = d, g, th, v, rh
-
 
 
 @njit_engine
@@ -355,7 +373,7 @@ def corrado_miller_initial_guess(
     maturity: np.ndarray[Any, np.dtype[np.float64]],
     rate: np.ndarray[Any, np.dtype[np.float64]],
     dividend: np.ndarray[Any, np.dtype[np.float64]],
-    is_call: np.ndarray[Any, np.dtype[np.bool_]]
+    is_call: np.ndarray[Any, np.dtype[np.bool_]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     n = len(market_price)
     sigma = np.empty(n)
@@ -371,7 +389,9 @@ def corrado_miller_initial_guess(
 
 
 @njit_engine
-def heston_char_func_jit(u: float, T: float, r: float, v0: float, kappa: float, theta: float, sigma: float, rho: float) -> complex:
+def heston_char_func_jit(
+    u: float, T: float, r: float, v0: float, kappa: float, theta: float, sigma: float, rho: float
+) -> complex:
     xi = kappa - sigma * rho * u * 1j
     d = np.sqrt(xi**2 + sigma**2 * (u**2 + 1j * u))
     g = (xi + d) / (xi - d)
@@ -383,7 +403,17 @@ def heston_char_func_jit(u: float, T: float, r: float, v0: float, kappa: float, 
 
 @njit_engine(fastmath=True)
 def jit_mc_european_price_v2(
-    S0: float, K: float, T: float, r: float, sigma: float, q: float, n_paths: int, is_call: bool, antithetic: bool, z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None, scheme: int = SCHEME_EULER
+    S0: float,
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    n_paths: int,
+    is_call: bool,
+    antithetic: bool,
+    z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None,
+    scheme: int = SCHEME_EULER,
 ) -> tuple[float, float]:
     actual_paths = n_paths // 2 if antithetic else n_paths
     exp_rt = np.exp(-r * T)
@@ -406,7 +436,9 @@ def jit_mc_european_price_v2(
 
 
 @njit_engine
-def scalar_bs_price_jit(S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool) -> float:
+def scalar_bs_price_jit(
+    S: float, K: float, T: float, sigma: float, r: float, q: float, is_call: bool
+) -> float:
     """Scalar Black-Scholes price."""
     Ti, sig = max(T, 1e-7), max(sigma, 1e-12)
     vol_sqrt_t = sig * np.sqrt(Ti)
@@ -420,7 +452,9 @@ def scalar_bs_price_jit(S: float, K: float, T: float, sigma: float, r: float, q:
 
 
 @njit_engine
-def _laguerre_basis_jit(x: np.ndarray[Any, np.dtype[np.float64]], n: int) -> np.ndarray[Any, np.dtype[np.float64]]:
+def _laguerre_basis_jit(
+    x: np.ndarray[Any, np.dtype[np.float64]], n: int
+) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Laguerre polynomial basis for LSM."""
     if n == 0:
         return cast(np.ndarray[Any, np.dtype[np.float64]], np.ones_like(x))
@@ -444,7 +478,7 @@ def vectorized_newton_raphson_iv_jit(
     is_call: np.ndarray[Any, np.dtype[np.bool_]],
     initial_guess: np.ndarray[Any, np.dtype[np.float64]] | None = None,
     tol: float = 1e-6,
-    max_iter: int = 100
+    max_iter: int = 100,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized IV calculation using Newton-Raphson."""
     n = len(market_price)
@@ -510,7 +544,7 @@ def thomas_algorithm(
     a: np.ndarray[Any, np.dtype[np.float64]],
     b: np.ndarray[Any, np.dtype[np.float64]],
     c: np.ndarray[Any, np.dtype[np.float64]],
-    d: np.ndarray[Any, np.dtype[np.float64]]
+    d: np.ndarray[Any, np.dtype[np.float64]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Solve tridiagonal system of linear equations."""
     n = len(d)
@@ -529,7 +563,7 @@ def thomas_algorithm_out(
     d: np.ndarray[Any, np.dtype[np.float64]],
     c_new: np.ndarray[Any, np.dtype[np.float64]],
     d_new: np.ndarray[Any, np.dtype[np.float64]],
-    x: np.ndarray[Any, np.dtype[np.float64]]
+    x: np.ndarray[Any, np.dtype[np.float64]],
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Tridiagonal solver using pre-allocated buffers."""
     n = len(d)
@@ -553,7 +587,17 @@ def thomas_algorithm_out(
 
 @njit_engine(fastmath=True)
 def jit_mc_european_price_and_greeks(
-    S0: float, K: float, T: float, r: float, sigma: float, q: float, n_paths: int, is_call: bool, antithetic: bool, z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None, scheme: int = SCHEME_EULER
+    S0: float,
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    n_paths: int,
+    is_call: bool,
+    antithetic: bool,
+    z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None,
+    scheme: int = SCHEME_EULER,
 ) -> tuple[float, float, float, float, float]:
     """
     Unified PWM kernel for price and sensitivities.
@@ -604,23 +648,21 @@ def jit_mc_european_price_and_greeks(
     dS = S0 * 0.001
     st_p = st * (1.0 + dS / S0)
     st_m = st * (1.0 - dS / S0)
-    
+
     if is_call:
         pay_p = np.maximum(st_p - K, 0.0)
         pay_m = np.maximum(st_m - K, 0.0)
     else:
         pay_p = np.maximum(K - st_p, 0.0)
         pay_m = np.maximum(K - st_m, 0.0)
-        
+
     gamma = float(np.mean(exp_rt * (pay_p - 2.0 * payoffs + pay_m) / (dS**2)))
 
     return price, delta, gamma, vega, rho
 
 
 @njit_engine(fastmath=True, parallel=True)
-def batch_mc_european_price_and_greeks(
-    S0, K, T, r, sigma, q, n_paths, is_call, antithetic
-):
+def batch_mc_european_price_and_greeks(S0, K, T, r, sigma, q, n_paths, is_call, antithetic):
     """
     Vectorized batch Monte Carlo for European options.
     """
@@ -654,7 +696,16 @@ def batch_mc_european_price_and_greeks(
 
 @njit_engine(fastmath=True, parallel=True)
 def jit_lsm_american(
-    S0: float, K: float, T: float, r: float, sigma: float, q: float, n_paths: int, n_steps: int, is_call: bool, scheme: int = SCHEME_EULER
+    S0: float,
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    n_paths: int,
+    n_steps: int,
+    is_call: bool,
+    scheme: int = SCHEME_EULER,
 ) -> float:
     """
     Longstaff-Schwartz Least Squares Monte Carlo for American options.
@@ -743,7 +794,17 @@ def jit_lsm_american(
 
 @njit_engine
 def jit_mc_european_with_control_variate(
-    S0: float, K: float, T: float, r: float, sigma: float, q: float, n_paths: int, is_call: bool, antithetic: bool, z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None, scheme: int = SCHEME_EULER
+    S0: float,
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    n_paths: int,
+    is_call: bool,
+    antithetic: bool,
+    z_innovations: np.ndarray[Any, np.dtype[np.float64]] | None = None,
+    scheme: int = SCHEME_EULER,
 ) -> tuple[float, float]:
     """
     Monte Carlo with Black-Scholes as Control Variate.
@@ -770,7 +831,14 @@ def jit_mc_european_with_control_variate(
 
 @njit_engine(fastmath=True)
 def jit_cn_solver(
-    s_grid: np.ndarray[Any, np.dtype[np.float64]], K: float, T: float, r: float, sigma: float, q: float, is_call: bool, N: int
+    s_grid: np.ndarray[Any, np.dtype[np.float64]],
+    K: float,
+    T: float,
+    r: float,
+    sigma: float,
+    q: float,
+    is_call: bool,
+    N: int,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """
     Crank-Nicolson solver for the Black-Scholes PDE.
@@ -837,9 +905,7 @@ def jit_cn_solver(
 
         # 3. Solve Tridiagonal System A * V^n = RHS
         # Use optimized out-of-place Thomas algo with pre-allocated buffers
-        U_new = thomas_algorithm_out(
-            a_lhs[1:], b_lhs, c_lhs[:-1], rhs, c_new, d_new, x_thomas
-        )
+        thomas_algorithm_out(a_lhs[1:], b_lhs, c_lhs[:-1], rhs, c_new, d_new, x_thomas)
 
         # 4. Update Boundaries
         V[0] = v_0_new

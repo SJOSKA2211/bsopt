@@ -202,7 +202,21 @@ class IncrementalDeltaTracker:
             try:
                 # Using 0.0 for Gamma/Vega and Price/Qty checks for delta-only tracker
                 ok, new_d, _, _ = bsopt_core.full_risk_check(
-                    1.0, 1, 1, trade_delta, 0.0, 0.0, self._state[0], 0.0, 0.0, 100, 0.01, 100.0, self.max_net_delta, 1e18, 1e18
+                    1.0,
+                    1,
+                    1,
+                    trade_delta,
+                    0.0,
+                    0.0,
+                    self._state[0],
+                    0.0,
+                    0.0,
+                    100,
+                    0.01,
+                    100.0,
+                    self.max_net_delta,
+                    1e18,
+                    1e18,
                 )
                 if ok:
                     self._state[0] = new_d

@@ -1,15 +1,19 @@
+from collections.abc import Callable
+from typing import Any, cast
+
 import gymnasium as gym
 import numpy as np
 import structlog
 from gymnasium import spaces
-from typing import Any, cast, Callable
 
 from .kernels import _fused_state_kernel, _trading_step_kernel
 
 logger = structlog.get_logger()
 
 
-class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]]]): # type: ignore
+class TradingEnvironment(
+    gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarray[Any, np.dtype[np.float32]]]
+):  # type: ignore
     """
     High-performance Trading Environment.
     FUSED: Uses Numba silicon kernels for zero-allocation state and reward logic.
@@ -29,7 +33,9 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
         self.window_size = window_size
 
         # Action space: target weights for 10 assets
-        self.action_space: spaces.Box = spaces.Box(low=-1.0, high=1.0, shape=(10,), dtype=np.float32)
+        self.action_space: spaces.Box = spaces.Box(
+            low=-1.0, high=1.0, shape=(10,), dtype=np.float32
+        )
 
         # Observation space: (window_size, 128) for Transformer usage
         self.observation_space: spaces.Box = spaces.Box(
@@ -37,8 +43,10 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
         )
 
         # Silicon Buffers
-        self._window_buffer: np.ndarray[Any, np.dtype[np.float32]] = np.zeros((window_size, 128), dtype=np.float32)
-        
+        self._window_buffer: np.ndarray[Any, np.dtype[np.float32]] = np.zeros(
+            (window_size, 128), dtype=np.float32
+        )
+
         # State variables
         self.balance: float = initial_balance
         self.positions: np.ndarray[Any, np.dtype[np.float32]] = np.zeros(10, dtype=np.float32)
@@ -48,7 +56,9 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
 
         self.reset()
 
-    def reset(self, seed: int | None = None, options: dict[str, Any] | None = None) -> tuple[np.ndarray[Any, np.dtype[np.float32]], dict[str, Any]]:
+    def reset(
+        self, seed: int | None = None, options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray[Any, np.dtype[np.float32]], dict[str, Any]]:
         super().reset(seed=seed)
         self.balance = self.initial_balance
         self.positions = np.zeros(10, dtype=np.float32)
@@ -92,7 +102,9 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
             self.window_size,
         )
 
-    def step(self, action: np.ndarray[Any, np.dtype[np.float32]]) -> tuple[np.ndarray[Any, np.dtype[np.float32]], float, bool, bool, dict[str, Any]]:
+    def step(
+        self, action: np.ndarray[Any, np.dtype[np.float32]]
+    ) -> tuple[np.ndarray[Any, np.dtype[np.float32]], float, bool, bool, dict[str, Any]]:
         """Execute one step in the environment using fused machine-code kernel."""
         # 1. Clip and Prepare Input
         # Use cast to Any to access .low and .high on Space
@@ -104,7 +116,10 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
         pos = np.ascontiguousarray(self.positions, dtype=np.float32)
 
         # 2. FUSION: Execute Step Kernel
-        f_step = cast(Callable[..., tuple[np.ndarray[Any, np.dtype[np.float32]], float, float, float]], _trading_step_kernel)
+        f_step = cast(
+            Callable[..., tuple[np.ndarray[Any, np.dtype[np.float32]], float, float, float]],
+            _trading_step_kernel,
+        )
         new_pos, new_balance, new_val, reward = f_step(
             action_clipped,
             prices,
@@ -122,7 +137,9 @@ class TradingEnvironment(gym.Env[np.ndarray[Any, np.dtype[np.float32]], np.ndarr
         # 4. Advance time
         self.current_step += 1
         if self.data_provider and self.current_step < len(self.data_provider):
-            self.market_data = cast(dict[str, Any], self.data_provider.get_data_at_step(self.current_step))
+            self.market_data = cast(
+                dict[str, Any], self.data_provider.get_data_at_step(self.current_step)
+            )
         else:
             self.market_data = self._get_dummy_data()
 

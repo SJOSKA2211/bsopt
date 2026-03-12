@@ -86,8 +86,10 @@ async def trigger_retraining(
     """
     from src.tasks.ml_tasks import check_threshold_and_retrain_task
 
-    task = check_threshold_and_retrain_task.delay(ticker=ticker, force=force, threshold=threshold, mode=mode)
+    task = check_threshold_and_retrain_task.delay(
+        ticker=ticker, force=force, threshold=threshold, mode=mode
+    )
     return DataResponseStruct(
         data={"task_id": task.id, "status": "dispatched", "mode": mode},
-        message=f"Retraining task ({mode}) dispatched to background worker"
+        message=f"Retraining task ({mode}) dispatched to background worker",
     )

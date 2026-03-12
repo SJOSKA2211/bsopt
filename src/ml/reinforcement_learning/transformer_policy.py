@@ -1,13 +1,14 @@
+from typing import Any, cast
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from gymnasium import spaces
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
-from typing import Any, cast
 
 
-class CausalSelfAttention(nn.Module): # type: ignore
+class CausalSelfAttention(nn.Module):  # type: ignore
     def __init__(
         self,
         n_embd: int,
@@ -54,7 +55,7 @@ class CausalSelfAttention(nn.Module): # type: ignore
         return y
 
 
-class Block(nn.Module): # type: ignore
+class Block(nn.Module):  # type: ignore
     def __init__(
         self,
         n_embd: int,
@@ -80,7 +81,7 @@ class Block(nn.Module): # type: ignore
         return x
 
 
-class DecisionTransformer(nn.Module): # type: ignore
+class DecisionTransformer(nn.Module):  # type: ignore
     def __init__(
         self,
         state_dim: int,
@@ -174,7 +175,7 @@ class DecisionTransformer(nn.Module): # type: ignore
         return state_preds, action_preds, return_preds
 
 
-class TransformerFeatureExtractor(BaseFeaturesExtractor): # type: ignore
+class TransformerFeatureExtractor(BaseFeaturesExtractor):  # type: ignore
     """Custom transformer feature extractor for RL handling 2D time-series input."""
 
     def __init__(
@@ -212,7 +213,7 @@ class TransformerFeatureExtractor(BaseFeaturesExtractor): # type: ignore
         return cast(torch.Tensor, self.out(x[:, -1, :]))
 
 
-class TransformerTD3Policy(TD3Policy): # type: ignore
+class TransformerTD3Policy(TD3Policy):  # type: ignore
     """TD3 Policy with Transformer extractor."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:

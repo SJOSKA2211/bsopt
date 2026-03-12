@@ -59,7 +59,7 @@ class ExperimentTracker:
                         mlflow.set_experiment(self.study_name)
                     except Exception as e:
                         logger.warning("set_experiment_failed", error=str(e), study=self.study_name)
-                
+
                 with mlflow.start_run() as new_run:
                     yield new_run
 

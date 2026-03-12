@@ -61,12 +61,12 @@ class GreekEngine:
                     for i in range(len(chunk)):
                         sym_bytes = chunk[i]["symbol"]
                         symbol = sym_bytes.decode("ascii").strip("\x00")
-                        
+
                         # Streaming update
                         self.greeks_stream.write_greeks_raw(
                             sym_bytes, deltas[i], gammas[i], thetas[i], vegas[i], rhos[i]
                         )
-                        
+
                         # Snapshot update
                         self.greeks_snapshot.write(
                             symbol, deltas[i], gammas[i], thetas[i], vegas[i], rhos[i]

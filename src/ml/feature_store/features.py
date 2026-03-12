@@ -1,6 +1,8 @@
+from collections.abc import Callable
+from typing import Any, cast
+
 import numpy as np
 import pandas as pd
-from typing import Any, Callable, cast
 
 from .base import Feature
 

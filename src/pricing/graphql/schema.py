@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import strawberry
+from fastapi import Request
 from strawberry.federation import Schema
 
 from src.api.graphql.types import Option
@@ -198,7 +199,6 @@ class Query:
 schema: Schema = Schema(query=Query, types=[Option])
 
 
-from fastapi import Request
 
 async def get_context(request: Request) -> dict[str, Any]:
     """GraphQL context helper."""

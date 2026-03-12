@@ -1,6 +1,5 @@
 import flwr as fl
 import structlog
-from typing import Any
 
 logger = structlog.get_logger()
 

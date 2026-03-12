@@ -4,7 +4,6 @@ Handles transitioning model versions in the registry and notifying the applicati
 """
 
 import argparse
-from typing import Any
 
 import mlflow
 import structlog

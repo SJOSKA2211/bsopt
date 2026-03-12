@@ -1,9 +1,11 @@
+from typing import Any
+
 import numpy as np
-from typing import Any, cast
-from src.shared.math_utils import njit_engine, loop_prange
+
+from src.shared.math_utils import njit_engine
 
 
-@njit_engine( # type: ignore
+@njit_engine(  # type: ignore
     cache=True,
     fastmath=True,
     error_model="numpy",
@@ -45,16 +47,16 @@ def _fused_state_kernel(
 
     # 4. 🌀 SPECTRAL FEATURES (50 dims: 51-100)
     # Prime-spaced frequencies to capture non-harmonic market cycles.
-    primes = np.array([
-        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 
-        31, 37, 41, 43, 47, 53, 59, 61, 67, 71
-    ], dtype=np.float32)
-    
+    primes = np.array(
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71],
+        dtype=np.float32,
+    )
+
     for i in range(20):
         p_norm = prices[i % 10] / 100.0
         angle = p_norm * np.pi * primes[i]
-        state[51 + i] = np.sin(angle)        # Base phase
-        state[71 + i] = np.cos(angle)        # Orthogonal phase
+        state[51 + i] = np.sin(angle)  # Base phase
+        state[71 + i] = np.cos(angle)  # Orthogonal phase
         if i < 10:
             # ⚡ MICRO-STRUCTURE JITTER PROXY
             state[91 + i] = np.tanh(np.sin(angle * 13.0))
@@ -82,7 +84,7 @@ def _fused_state_kernel(
     return out
 
 
-@njit_engine(cache=True, fastmath=True) # type: ignore
+@njit_engine(cache=True, fastmath=True)  # type: ignore
 def _calculate_reward_kernel(
     positions: np.ndarray[Any, np.dtype[np.float32]],
     current_prices: np.ndarray[Any, np.dtype[np.float32]],
@@ -99,7 +101,7 @@ def _calculate_reward_kernel(
     return float(current_val), float(ret)
 
 
-@njit_engine(cache=True, fastmath=True) # type: ignore
+@njit_engine(cache=True, fastmath=True)  # type: ignore
 def _trading_step_kernel(
     action: np.ndarray[Any, np.dtype[np.float32]],
     current_prices: np.ndarray[Any, np.dtype[np.float32]],

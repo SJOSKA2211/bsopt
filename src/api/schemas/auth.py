@@ -5,8 +5,8 @@ Pydantic models for authentication endpoints.
 """
 
 import re
-import msgspec
 
+import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from src.config import settings

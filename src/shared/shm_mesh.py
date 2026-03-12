@@ -97,7 +97,7 @@ GREEKS_BUFFER_CAPACITY = 1000
 SHM_GREEKS_NAME = "greeks_mesh_buffer"
 # Map-based Greeks Snapshot: [Symbol(8s), Delta(d), Gamma(d), Theta(d), Vega(d), Rho(d), CalcTs(q)] * 2000 symbols
 GREEKS_MAP_CAPACITY = 2000
-GREEKS_MAP_SIZE = (GREEKS_SIZE * GREEKS_MAP_CAPACITY)
+GREEKS_MAP_SIZE = GREEKS_SIZE * GREEKS_MAP_CAPACITY
 
 
 class GreeksMesh:
@@ -124,7 +124,7 @@ class GreeksMesh:
                 self.buf = sm.buf
 
             self.view = np.frombuffer(self.buf, dtype=GREEKS_DTYPE, count=GREEKS_MAP_CAPACITY)
-            
+
             # Fast index for symbol lookup: { "AAPL": index }
             self._symbol_to_idx = {}
             self._refresh_index()
@@ -158,7 +158,7 @@ class GreeksMesh:
                     idx = probe_idx
                     self._symbol_to_idx[symbol] = idx
                     break
-        
+
         if idx is not None:
             self.view[idx] = (
                 symbol.encode("ascii")[:8],
@@ -177,7 +177,7 @@ class GreeksMesh:
             # Try one full scan in case index is stale
             self._refresh_index()
             idx = self._symbol_to_idx.get(symbol)
-            
+
         if idx is not None:
             data = self.view[idx]
             return {
@@ -228,13 +228,15 @@ class GreeksBuffer:
             else:
                 raise
 
-    def write_greeks(self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float):
+    def write_greeks(
+        self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float
+    ):
         """Writer: Direct write into Greeks Mesh."""
-        self.write_greeks_raw(
-            symbol.encode("ascii")[:8], delta, gamma, theta, vega, rho
-        )
+        self.write_greeks_raw(symbol.encode("ascii")[:8], delta, gamma, theta, vega, rho)
 
-    def write_greeks_raw(self, sym_bytes: bytes, delta: float, gamma: float, theta: float, vega: float, rho: float):
+    def write_greeks_raw(
+        self, sym_bytes: bytes, delta: float, gamma: float, theta: float, vega: float, rho: float
+    ):
         """Zero-copy writer for raw bytes symbol."""
         head = struct.unpack_from("q", self.buf, 0)[0]
         idx = head % GREEKS_BUFFER_CAPACITY
