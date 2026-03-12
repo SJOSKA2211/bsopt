@@ -58,5 +58,3 @@ class ModelQuantizer:
         except Exception as e:
             logger.error("onnx_quantization_failed", error=str(e))
             raise
-
-

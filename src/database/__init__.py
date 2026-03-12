@@ -12,7 +12,6 @@ from typing import Any, TypeVar, cast
 import msgspec
 import structlog
 from sqlalchemy import Engine, create_engine, event, text
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,

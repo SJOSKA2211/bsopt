@@ -96,5 +96,3 @@ class OptionPricingNN(nn.Module):  # type: ignore
             for module, name in parameters_to_prune:
                 prune.remove(module, name)
         return self
-
-

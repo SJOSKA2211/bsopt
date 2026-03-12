@@ -199,7 +199,6 @@ class Query:
 schema: Schema = Schema(query=Query, types=[Option])
 
 
-
 async def get_context(request: Request) -> dict[str, Any]:
     """GraphQL context helper."""
     return {}

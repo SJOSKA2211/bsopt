@@ -6,8 +6,6 @@ from typing import Any
 import structlog
 
 try:
-    from docker.client import DockerClient
-
     import docker
 
     HAS_DOCKER_SDK = True

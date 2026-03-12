@@ -12,8 +12,7 @@ from typing import Any
 
 from prometheus_client import Counter, Gauge, Histogram
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.pool import NullPool
+from src.database import db_manager
 
 from src.config import settings
 from src.scrapers.discovery import get_sp500_symbols
@@ -301,18 +300,7 @@ async def nse_ingestion_task() -> list[MarketTick]:
 # ─── Bulk Insertion ──────────────────────────────────────────────────────────
 
 
-def get_db_engine():
-    """Helper to get async engine with pgbouncer awareness."""
-    db_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
-
-    pool_kwargs: dict[str, Any] = {}
-    if settings.PGBOUNCER_ENABLED:
-        pool_kwargs["poolclass"] = NullPool
-    else:
-        pool_kwargs["pool_size"] = 20
-        pool_kwargs["max_overflow"] = 40
-
-    return create_async_engine(db_url, **pool_kwargs)
+# Removed get_db_engine to use centralized db_manager
 
 
 async def bulk_insert_ticks(ticks: list[MarketTick]):
@@ -335,7 +323,7 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
 
     try:
         with DB_INSERT_DURATION.labels(table="market_ticks").time():
-            async with engine.begin() as conn:
+            async with async_engine.begin() as conn:
                 # Drop to the raw driver connection for maximum throughput
                 raw_conn = await conn.get_raw_connection()
                 # asyncpg's executemany is significantly faster than SQLAlchemy's for large batches
@@ -506,4 +494,8 @@ if __name__ == "__main__":
     start_http_server(metrics_port)
     logger.info("metrics_server_started", port=metrics_port)
 
+    # Write heartbeat before starting
+    with open('/tmp/scraper_heartbeat', 'w') as f:
+        f.write(str(time.time()))
+        
     asyncio.run(run_concurrent_ingestion())
