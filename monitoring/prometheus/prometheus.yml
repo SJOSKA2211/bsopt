@@ -4,7 +4,7 @@ global:
 scrape_configs:
   - job_name: 'bsopt-services'
     static_configs:
-      - targets: ['api:8000', 'ml-inference:8000', 'neural-pricing:8000']
+      - targets: ['api:8000', 'ml-inference:8000', 'neural-pricing:8000', 'scraper:8001']
 
   - job_name: 'ray'
     static_configs:

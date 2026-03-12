@@ -71,3 +71,22 @@ async def get_drift_metrics(
     # Note: CRUD method name assumed to be aligned with async pattern
     metrics = await get_model_drift_metrics(db, model_id)
     return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))
+
+
+@router.post("/retrain", response_model=None)
+async def trigger_retraining(
+    ticker: str = "AAPL",
+    force: bool = False,
+    threshold: int = 50000,
+) -> Any:
+    """
+    Trigger model retraining.
+    If force is False, it will only trigger if the threshold of new data is met.
+    """
+    from src.tasks.ml_tasks import check_threshold_and_retrain_task
+
+    task = check_threshold_and_retrain_task.delay(ticker=ticker, force=force, threshold=threshold)
+    return DataResponseStruct(
+        data={"task_id": task.id, "status": "dispatched"},
+        message="Retraining task dispatched to background worker"
+    )

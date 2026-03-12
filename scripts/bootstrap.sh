@@ -3,94 +3,84 @@
 # ==============================================================================
 # BS-OPT: COMPLETE STACK AUTOMATION & SECURITY BOOTSTRAPPING
 # ==============================================================================
-# This script automates the setup of the entire stack and initializes secure
-# cryptographically generated secrets.
+# Automates environment setup, secret generation, and stack deployment.
 # ==============================================================================
 
 set -e
 
-echo "========================================================="
-echo "   Initiating High-Performance Engine Bootstrapping      "
-echo "========================================================="
-
+# --- Configuration ---
 ENV_FILE=".env"
-ENV_TEST_FILE=".env.test"
+ENV_EXAMPLE=".env.example"
+DOCKER_COMPOSE_PROD="docker-compose.yml"
+DOCKER_COMPOSE_DEV="docker-compose.dev.yml"
 
-# Function to generate secure hex keys
-generate_secret() {
-    openssl rand -hex 32
-}
+echo "🚀 Initiating BS-OPT High-Performance Manifold..."
 
-echo "[*] Ensuring environment files exist..."
-
+# --- 1. Security Automation: Secret Generation ---
 if [ ! -f "$ENV_FILE" ]; then
-    echo "[+] Generating production $ENV_FILE..."
-    JWT_SECRET=$(generate_secret)
-    MFA_SECRET=$(generate_secret)
+    echo "🔐 Generating cryptographically secure secrets..."
+    
+    # Generate secrets if openssl is available
+    JWT_SECRET=$(openssl rand -hex 32)
+    # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
+    MFA_SECRET=$(openssl rand -base64 32)
+    AUTH_SECRET=$(openssl rand -hex 32)
     DB_PASSWORD=$(openssl rand -hex 16)
+    REDIS_PASSWORD=$(openssl rand -hex 16)
+    RABBITMQ_PASSWORD=$(openssl rand -hex 16)
     
-    cat <<EOF > $ENV_FILE
-# Security
-JWT_SECRET_KEY=$JWT_SECRET
-MFA_ENCRYPTION_KEY=$MFA_SECRET
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+    if [ -f "$ENV_EXAMPLE" ]; then
+        cp "$ENV_EXAMPLE" "$ENV_FILE"
+    else
+        touch "$ENV_FILE"
+    fi
+    
+    # Inject secrets (using a temporary file for safety)
+    # Use a more reliable way to replace or append
+    update_env() {
+        local key=$1
+        local value=$2
+        if grep -q "^$key=" "$ENV_FILE"; then
+            sed -i "s|^$key=.*|$key=$value|" "$ENV_FILE"
+        else
+            echo "$key=$value" >> "$ENV_FILE"
+        fi
+    }
 
-# Database
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=$DB_PASSWORD
-POSTGRES_DB=bsopt
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-DATABASE_URL=postgresql+asyncpg://admin:$DB_PASSWORD@postgres:5432/bsopt
-
-# Environment
-ENVIRONMENT=dev
-
-# Rate Limiting
-RATE_LIMIT_PER_MINUTE=100
-
-# Monitoring
-PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus_multiproc_dir
-EOF
-    echo "[+] Production secrets generated and saved."
+    update_env "JWT_SECRET" "$JWT_SECRET"
+    update_env "MFA_ENCRYPTION_KEY" "$MFA_SECRET"
+    update_env "BETTER_AUTH_SECRET" "$AUTH_SECRET"
+    update_env "POSTGRES_PASSWORD" "$DB_PASSWORD"
+    update_env "REDIS_PASSWORD" "$REDIS_PASSWORD"
+    update_env "RABBITMQ_PASSWORD" "$RABBITMQ_PASSWORD"
+    
+    # Update URLs that contain passwords
+    sed -i "s|:password@|:$DB_PASSWORD@|g" "$ENV_FILE"
+    sed -i "s|:bsopt_redis_secret@|:$REDIS_PASSWORD@|g" "$ENV_FILE"
+    
+    echo "✅ Secrets injected into $ENV_FILE"
 else
-    echo "[-] $ENV_FILE already exists, skipping secret generation."
+    echo "ℹ️  $ENV_FILE already exists. Skipping secret generation."
 fi
 
-if [ ! -f "$ENV_TEST_FILE" ]; then
-    echo "[+] Generating test $ENV_TEST_FILE..."
-    JWT_SECRET=$(generate_secret)
-    MFA_SECRET=$(generate_secret)
-    
-    cat <<EOF > $ENV_TEST_FILE
-# Security
-JWT_SECRET_KEY=$JWT_SECRET
-MFA_ENCRYPTION_KEY=$MFA_SECRET
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+# --- 2. Environment Selection ---
+ENVIRONMENT=${1:-dev}
+echo "🌍 Setting environment to: $ENVIRONMENT"
 
-# Database
-POSTGRES_USER=admin
-POSTGRES_PASSWORD=password
-POSTGRES_DB=bsopt_test
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-DATABASE_URL_TEST=postgresql+asyncpg://admin:password@postgres:5432/bsopt_test
-
-# Environment
-ENVIRONMENT=test
-EOF
-    echo "[+] Test secrets generated and saved."
+# --- 3. Automated Startup ---
+if [ "$ENVIRONMENT" == "prod" ]; then
+    echo "🏗️  Starting Production Manifold..."
+    docker-compose -f "$DOCKER_COMPOSE_PROD" up --build -d
 else
-    echo "[-] $ENV_TEST_FILE already exists, skipping secret generation."
+    echo "🛠️  Starting Development Manifold..."
+    # Ensure dev compose exists, fallback to main if not
+    if [ -f "$DOCKER_COMPOSE_DEV" ]; then
+        docker-compose -f "$DOCKER_COMPOSE_DEV" up --build -d
+    else
+        docker-compose -f "$DOCKER_COMPOSE_PROD" up --build -d
+    fi
 fi
 
-# Ensure multiproc directory for Prometheus exists
-mkdir -p /tmp/prometheus_multiproc_dir
-
-echo "========================================================="
-echo "   Bootstrapping Complete. Ready for Ignition.           "
-echo "========================================================="
-echo "To start development stack: docker compose -f docker-compose.dev.yml up -d"
-echo "To start production stack: docker compose -f docker-compose.yml up -d"
+echo "=========================================================="
+echo "⚡ BS-OPT Manifold Ignition Complete!"
+echo "=========================================================="

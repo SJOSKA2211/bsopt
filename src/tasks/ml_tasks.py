@@ -186,3 +186,36 @@ def evaluate_model_task(self, model_uri: str, dataset_path: str):
     except Exception as e:
         logger.error("model_evaluation_failed", error=str(e))
         return {"status": "failed", "error": str(e)}
+
+
+@celery_app.task(bind=True, base=MLTask, queue="ml")
+def check_threshold_and_retrain_task(self, ticker: str = "AAPL", force: bool = False, threshold: int = 50000):
+    """
+    Checks if the database has accumulated enough new market data to justify retraining.
+    """
+    logger.info("check_threshold_and_retrain_start", ticker=ticker, threshold=threshold)
+
+    try:
+        if not force:
+            from sqlalchemy import create_engine, text
+            from src.config import settings
+            
+            engine = create_engine(settings.DATABASE_URL)
+            with engine.connect() as conn:
+                # Count recent ticks since last model training or simple volume check
+                # In production, we'd check against a 'last_trained_at' timestamp
+                query = text("SELECT COUNT(*) FROM market_ticks WHERE symbol = :symbol")
+                count = conn.execute(query, {"symbol": ticker}).scalar()
+                
+                logger.info("data_volume_check", ticker=ticker, current_count=count, threshold=threshold)
+                
+                if count < threshold:
+                    logger.info("retraining_skipped_insufficient_data", ticker=ticker)
+                    return {"status": "skipped", "reason": "insufficient_data", "count": count}
+
+        # Trigger the actual retraining
+        return monitor_drift_and_retrain_task.delay(ticker=ticker).get()
+
+    except Exception as e:
+        logger.error("check_threshold_failed", error=str(e))
+        return {"status": "failed", "error": str(e)}
