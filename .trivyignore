@@ -1,0 +1,2 @@
+# Ignore jackson-core vulnerability in bundled ray_dist.jar since it cannot be patched directly in our Python environment
+GHSA-72hv-8253-57qq
