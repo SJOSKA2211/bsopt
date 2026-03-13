@@ -21,12 +21,15 @@ async def persist_ticks(data: dict):
     # Convert dict format to list of dicts for bulk insert
     ticks_list = []
     for symbol, tick in data.items():
+        # Handle both 'time' and 'timestamp' keys for backward compatibility
+        ts = tick.get("time") or tick.get("timestamp")
+
         ticks_list.append(
             {
                 "symbol": symbol,
                 "price": float(tick.get("price", 0.0)),
                 "volume": int(tick.get("volume", 0)),
-                "time": tick.get("timestamp"),  # TimescaleDB primary time column
+                "time": ts,  # TimescaleDB primary time column
                 "market": tick.get("market", "NSE"),
             }
         )

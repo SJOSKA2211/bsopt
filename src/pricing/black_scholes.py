@@ -151,12 +151,14 @@ class BlackScholesEngine(PricingStrategy):
         # GPU Acceleration Path (Numba CUDA)
         if S.size > 100:  # Threshold for GPU overhead
             try:
-                from src.core.math.gpu_kernels import gpu_price_batch
+                from src.quant.black_scholes import price_options_gpu
 
-                # Currently gpu_price_batch handles calls only in our impl
-                # but we could expand it. Using simple check for now.
-                if isinstance(is_call, bool) and is_call:
-                    return gpu_price_batch(S, K, T, sigma, r, q)
+                # Convert is_call to boolean array for CUDA
+                is_call_arr = np.atleast_1d(is_call).astype(bool)
+                if is_call_arr.shape != S.shape:
+                    is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
+
+                return price_options_gpu(S, K, T, sigma, r, q, is_call_arr)
             except Exception as e:
                 logger.warning("gpu_kernel_failed_falling_back", error=str(e))
 

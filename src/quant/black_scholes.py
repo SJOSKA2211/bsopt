@@ -4,6 +4,8 @@ import numpy as np
 import structlog
 from numba import cuda, float64, vectorize
 
+from src.utils.memory import profile_gpu_memory
+
 logger = structlog.get_logger(__name__)
 
 
@@ -82,6 +84,7 @@ def black_scholes_cuda_kernel(
             d_out[i] = K * math.exp(-r * T) * Nd2_neg - S * math.exp(-q * T) * Nd1_neg
 
 
+@profile_gpu_memory
 def price_options_gpu(
     S: np.ndarray,
     K: np.ndarray,

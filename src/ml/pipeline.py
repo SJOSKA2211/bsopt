@@ -102,8 +102,28 @@ class DataPipeline:
         df = df.sort_values(by=["symbol", "time"])
 
         # Rigorous Data Cleaning: handle NaNs, forward-fills
-        df = df.groupby("symbol").ffill().bfill()
-        df = df.dropna(subset=["last", "strike"])
+        from src.ml.pre_training import MLPreTrainer
+
+        # Use MLPreTrainer for cross-sectional features and advanced imputation
+        df = MLPreTrainer.calculate_cross_sectional_features(df)
+
+        # Feature names for imputation
+        base_features = ["last", "strike", "implied_volatility"]
+        if "option_type" in df.columns:
+            df["is_call"] = (df["option_type"] == "call").astype(float)
+            base_features.append("is_call")
+
+        # Perform advanced imputation (Spline + Forward Fill)
+        # Note: We do this per symbol to maintain time-series integrity
+        processed_dfs = []
+        for sym, group in df.groupby("symbol"):
+            normalized_data, _, _ = MLPreTrainer.prepare_features(group, base_features)
+            # Re-assign imputed values back to dataframe
+            for idx, feat in enumerate(base_features):
+                group[feat] = normalized_data[:, idx]
+            processed_dfs.append(group)
+
+        df = pd.concat(processed_dfs)
 
         # Feature Engineering: Compute base vectors
         s = df["last"].values

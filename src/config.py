@@ -80,6 +80,21 @@ class Settings(BaseSettings):
 
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
+    AUDIT_VAULT_KEY: str = Field(
+        default="changeme_32byte_key_for_god_mode!", validation_alias="AUDIT_VAULT_KEY"
+    )
+
+    # Blockchain Configuration
+    BLOCKCHAIN_RPC_URL: str = Field(
+        default="http://geth:8545", validation_alias="BLOCKCHAIN_RPC_URL"
+    )
+    BLOCKCHAIN_PRIVATE_KEY: str = Field(
+        default="0x0000000000000000000000000000000000000000000000000000000000000000",
+        validation_alias="BLOCKCHAIN_PRIVATE_KEY",
+    )
+
+    # IBM Quantum Configuration
+    IBM_QUANTUM_TOKEN: str | None = Field(default=None, validation_alias="IBM_QUANTUM_TOKEN")
 
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000

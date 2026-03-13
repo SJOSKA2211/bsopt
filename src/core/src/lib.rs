@@ -68,13 +68,13 @@ fn black_scholes_greeks(
     };
  
     let theta = if is_call {
-        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+        -(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
          - r * k * (-r * t).exp() * n.cdf(d2)
-         + d * s * (-d * t).exp() * n.cdf(d1))
+         + d * s * (-d * t).exp() * n.cdf(d1)
     } else {
-        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+        -(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
          + r * k * (-r * t).exp() * n.cdf(-d2)
-         - d * s * (-d * t).exp() * n.cdf(-d1))
+         - d * s * (-d * t).exp() * n.cdf(-d1)
     };
  
     Greeks {

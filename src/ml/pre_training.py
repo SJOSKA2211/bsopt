@@ -19,14 +19,29 @@ class MLPreTrainer:
     def prepare_features(df: pd.DataFrame, features: list[str]) -> np.ndarray:
         """
         Processes raw DataFrame into normalized NumPy tensor for PyTorch.
+        Implements mathematical imputation (Spline + Forward Fill) for NaNs.
         """
-        # 1. Cleaning with precision
+        # 1. Cleaning with advanced imputation
         df = df.copy()
+
+        # Ensure time-series ordering for imputation
+        if "time" in df.columns:
+            df = df.sort_values("time")
+
         for feat in features:
             if df[feat].isnull().any():
-                # Efficient fill
-                median_val = df[feat].median()
-                df[feat] = df[feat].fillna(median_val)
+                # Apply Forward Fill first to maintain causality
+                df[feat] = df[feat].ffill()
+
+                # Apply Cubic Spline interpolation for smoother imputation of remaining gaps
+                # if size permits (spline requires at least 4 points)
+                if df[feat].isnull().any() and len(df) > 4:
+                    try:
+                        df[feat] = df[feat].interpolate(method="cubic").bfill()
+                    except Exception:
+                        df[feat] = df[feat].fillna(df[feat].median())
+                else:
+                    df[feat] = df[feat].fillna(df[feat].median())
 
         data_raw = df[features].values.astype(np.float64)
 

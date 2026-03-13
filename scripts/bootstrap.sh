@@ -62,6 +62,36 @@ set_env_var "JWT_ES256_PUBLIC" "${ES256_PUBLIC}"
 set_env_var "MFA_TOTP_SECRET" "${TOTP_SECRET}"
 set_env_var "JWT_ALGORITHM" "RS256" # Default
 
+# Blockchain Trading Keys (Optional but encouraged for HFT pipelines)
+if ! grep -q "^BLOCKCHAIN_PRIVATE_KEY=" "${ENV_FILE}"; then
+    echo "🔗 Generating secure random Blockchain Private Key..."
+    BLOCK_KEY="0x$(openssl rand -hex 32)"
+    set_env_var "BLOCKCHAIN_PRIVATE_KEY" "${BLOCK_KEY}"
+fi
+
+# Audit Vault Key
+if ! grep -q "^AUDIT_VAULT_KEY=" "${ENV_FILE}"; then
+    echo "🔐 Generating secure random Audit Vault Key..."
+    VAULT_KEY="$(openssl rand -hex 32)"
+    set_env_var "AUDIT_VAULT_KEY" "${VAULT_KEY}"
+fi
+
+# IBM Quantum Token (Placeholder for injection)
+if ! grep -q "^IBM_QUANTUM_TOKEN=" "${ENV_FILE}"; then
+    set_env_var "IBM_QUANTUM_TOKEN" "replace_me_with_real_token"
+fi
+
+# Better Auth Secret
+if ! grep -q "^BETTER_AUTH_SECRET=" "${ENV_FILE}"; then
+    echo "🔐 Generating secure random Better Auth Secret..."
+    AUTH_SECRET="$(openssl rand -hex 32)"
+    set_env_var "BETTER_AUTH_SECRET" "${AUTH_SECRET}"
+fi
+
+# Generate secure fallback passwords
+DB_PASS=$(openssl rand -hex 16)
+REDIS_PASS=$(openssl rand -hex 16)
+
 # Check if DB pass is already set
 if ! grep -q "^POSTGRES_PASSWORD=" "${ENV_FILE}"; then
     set_env_var "POSTGRES_PASSWORD" "${DB_PASS}"

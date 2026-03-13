@@ -150,23 +150,35 @@ async def bulk_insert_options(options: list[OptionData]):
 
 
 async def run_concurrent_ingestion(us_universe: list[str]):
-    from src.tasks.data_tasks import process_market_data_task
+    from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
 
     # Discovery if needed
     if not us_universe:
         us_universe = await get_sp500_symbols()
 
-    # Placeholder for NSE task
-    # ...
+    producer = RabbitMQMarketDataProducer()
+    await producer.connect()
 
-    # Fetch yfinance
-    all_ticks = await fetch_yfinance_batch(us_universe[:50])  # Batching example
+    try:
+        # Fetch yfinance in batches to avoid OOM and hitting rate limits too hard
+        batch_size = 20
+        for i in range(0, len(us_universe), batch_size):
+            symbols = us_universe[i : i + batch_size]
+            all_ticks = await fetch_yfinance_batch(symbols)
 
-    # Phase 3: Decouple via RabbitMQ
-    tick_records = [t.model_dump(mode="json") for t in all_ticks]
-    process_market_data_task.delay(tick_records)
+            if all_ticks:
+                # Phase 2: Decouple via RabbitMQ Topic Exchange
+                # We group by symbol for the RabbitMQ payload
+                tick_records = {t.symbol: t.model_dump(mode="json") for t in all_ticks}
+                await producer.produce_market_data(tick_records, routing_key="us.ticks")
+                logger.info("ingestion_published", count=len(all_ticks), batch=i // batch_size)
 
-    logger.info("ingestion_dispatched", count=len(all_ticks))
+            # Rate limiting between batches
+            await asyncio.sleep(1)
+
+    finally:
+        await producer.close()
+        logger.info("ingestion_pipeline_complete")
 
 
 if __name__ == "__main__":
