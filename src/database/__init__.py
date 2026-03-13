@@ -299,9 +299,10 @@ async def get_async_db_context() -> AsyncGenerator[AsyncSession, None]:
 
 # --- UTILITIES ---
 async def set_user_context(session: AsyncSession, user_id: str) -> None:
-    """Sets the app.current_user_id in the Postgres session for RLS."""
+    """Sets the app.current_user_id in the Postgres session for RLS.
+    Uses set_config to securely parameterize the session variable."""
     await session.execute(
-        text("SET LOCAL app.current_user_id = :user_id"), {"user_id": str(user_id)}
+        text("SELECT set_config('app.current_user_id', :user_id, true)"), {"user_id": str(user_id)}
     )
 
 
