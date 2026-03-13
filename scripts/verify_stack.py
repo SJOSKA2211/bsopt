@@ -1,81 +1,117 @@
-#!/usr/bin/env python3
-# ==============================================================================
-# BS-OPT: THE HIGH-PERFORMANCE STACK VERIFIER (v2.0)
-# ==============================================================================
-# *
-# Validating the containerized manifold.
-# ==============================================================================
 
-import socket
+import httpx
+import asyncio
 import sys
+import time
 
-import requests
+API_URL = "http://127.0.0.1:8008"
 
-
-def check_port(host, port, name):
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
-        result = sock.connect_ex((host, port))
-        sock.close()
-        if result == 0:
-            print(f" {name:<20} UP   tcp/{port}")
-            return True
-        else:
-            print(f"❌ {name:<20} DOWN tcp/{port}")
+async def check_health():
+    print("Checking API health...")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(f"{API_URL}/health")
+            if response.status_code == 200:
+                print("✅ API is healthy!")
+                return True
+            else:
+                print(f"❌ API health check failed with status {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ API connection failed: {e}")
             return False
-    except Exception as e:
-        print(f"❌ {name:<20} ERROR: {e}")
-        return False
 
-
-def check_http(url, name):
-    try:
-        response = requests.get(url, timeout=2)
-        if response.status_code < 500:
-            print(f" {name:<20} UP   {url} -> {response.status_code}")
-            return True
-        else:
-            print(f"❌ {name:<20} FAIL {url} -> {response.status_code}")
+async def test_pricing():
+    print("Testing single option pricing...")
+    payload = {
+        "spot": 100.0,
+        "strike": 100.0,
+        "time_to_expiry": 1.0,
+        "rate": 0.05,
+        "volatility": 0.2,
+        "option_type": "call",
+        "model": "black_scholes"
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(f"{API_URL}/pricing/price", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                print(f"✅ Pricing successful: {data['price']}")
+                return True
+            else:
+                print(f"❌ Pricing failed with status {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            print(f"❌ Pricing request failed: {e}")
             return False
-    except Exception as e:
-        print(f"❌ {name:<20} ERROR: {e}")
-        return False
 
+async def test_batch_pricing():
+    print("Testing batch option pricing...")
+    payload = {
+        "options": [
+            {
+                "spot": 100.0,
+                "strike": 100.0,
+                "time_to_expiry": 1.0,
+                "rate": 0.05,
+                "volatility": 0.2,
+                "option_type": "call",
+                "model": "black_scholes"
+            },
+            {
+                "spot": 100.0,
+                "strike": 110.0,
+                "time_to_expiry": 1.0,
+                "rate": 0.05,
+                "volatility": 0.2,
+                "option_type": "call",
+                "model": "black_scholes"
+            }
+        ]
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(f"{API_URL}/pricing/batch", json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                print(f"✅ Batch pricing successful: {len(data['results'])} results")
+                return True
+            else:
+                print(f"❌ Batch pricing failed with status {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            print(f"❌ Batch pricing request failed: {e}")
+            return False
 
-print("\n High-Performance Engine's Stack Verification ")
-print("=======================================")
+async def main():
+    print("--- BSOPT Verification Script ---")
+    
+    # Wait for API to be ready
+    max_retries = 30
+    ready = False
+    for i in range(max_retries):
+        if await check_health():
+            ready = True
+            break
+        print(f"Waiting for API... ({i+1}/{max_retries})")
+        await asyncio.sleep(5)
+    
+    if not ready:
+        print("❌ API did not become ready in time.")
+        sys.exit(1)
+        
+    results = await asyncio.gather(
+        test_pricing(),
+        test_batch_pricing()
+    )
+    
+    if all(results):
+        print("\n🎉 All tests passed!")
+        sys.exit(0)
+    else:
+        print("\n❌ Some tests failed.")
+        sys.exit(1)
 
-success = True
-
-# 1. Infrastructure (Mapped Ports)
-print("\n[ Infrastructure ]")
-# Check both 5432 (Dev) and 5433 (Main Stack)
-pg_up = check_port("localhost", 5432, "Postgres (Dev)") or check_port(
-    "localhost", 5433, "Postgres (Main)"
-)
-success &= pg_up
-success &= check_port("localhost", 6379, "Redis")
-success &= check_port("localhost", 5672, "RabbitMQ")
-
-# 2. Services (Mapped Ports)
-print("\n[ App Services ]")
-success &= check_port("localhost", 8000, "API")
-success &= check_port("localhost", 3001, "Auth Service")
-success &= check_port("localhost", 5173, "Frontend")
-success &= check_port("localhost", 8001, "Neural Pricing")
-success &= check_port("localhost", 8002, "Scraper")
-
-# 3. Health Checks
-print("\n[ Health Checks ]")
-success &= check_http("http://localhost:8000/health", "API Health")
-success &= check_http("http://localhost:3001/health", "Auth Health")
-success &= check_http("http://localhost:8001/health", "Neural Health")
-
-print("=======================================")
-if success:
-    print(" System is production-ready. ")
-    sys.exit(0)
-else:
-    print("⚠️  Jerry-work detected. Run 'make logs' to diagnose.")
-    sys.exit(1)
+if __name__ == "__main__":
+    asyncio.run(main())

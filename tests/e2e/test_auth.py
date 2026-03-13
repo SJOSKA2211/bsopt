@@ -1,6 +1,7 @@
-import pytest
-import httpx
 import os
+
+import httpx
+import pytest
 
 # Base URL for the services
 # In bridge network, we use service names. On host, we use localhost.

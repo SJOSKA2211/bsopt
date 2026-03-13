@@ -87,7 +87,7 @@ $COMPOSE_CMD up -d postgres redis rabbitmq
 echo "⏳ Waiting for Database to fully initialize..."
 MAX_RETRIES=30
 COUNT=0
-until $COMPOSE_CMD ps --format json | grep -q '"Service":"postgres","Health":"healthy"'; do
+until $COMPOSE_CMD ps --format json | jq -e '. | select(.Service=="postgres" and .Health=="healthy")' > /dev/null 2>&1; do
     if [ $COUNT -ge $MAX_RETRIES ]; then
         echo "❌ Timeout: Database failed to reach healthy state."
         exit 1
@@ -100,7 +100,7 @@ echo "✅ Database is Healthy."
 
 echo "⏳ Waiting for Redis to fully initialize..."
 COUNT=0
-until $COMPOSE_CMD ps --format json | grep -q '"Service":"redis","Health":"healthy"'; do
+until $COMPOSE_CMD ps --format json | jq -e '. | select(.Service=="redis" and .Health=="healthy")' > /dev/null 2>&1; do
     if [ $COUNT -ge $MAX_RETRIES ]; then
         echo "❌ Timeout: Redis failed to reach healthy state."
         exit 1

@@ -490,8 +490,10 @@ async def run_continuous_ingestion(us_universe: list[str] | None = None):
             await run_concurrent_ingestion(us_universe)
             
             # Standard Heartbeat
-            with open('/tmp/scraper_heartbeat', 'w') as f:
-                f.write(str(time.time()))
+            def write_heartbeat():
+                with open('/tmp/scraper_heartbeat', 'w') as f:
+                    f.write(str(time.time()))
+            await asyncio.to_thread(write_heartbeat)
                 
             logger.info("ingestion_cycle_complete", next_run_in="300s")
         except Exception as e:
