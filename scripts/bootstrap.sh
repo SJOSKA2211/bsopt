@@ -1,128 +1,105 @@
-#!/usr/bin/env bash
-
-# ==============================================================================
-# Phase 0: Zero-Touch Automation, Security & Database Bootstrapping
-# ==============================================================================
-# Automates environment setup, secret generation, and stack deployment.
-# ==============================================================================
-
+#!/bin/bash
+# EquaFlow Zero-Touch Bootstrap Script
 set -e
 
+# Configuration
+KEYS_DIR="./.gemini_security"
 ENV_FILE=".env"
 ENV_EXAMPLE=".env.example"
-DOCKER_COMPOSE_PROD="docker-compose.yml"
-DOCKER_COMPOSE_DEV="docker-compose.dev.yml"
+README_FILE="README.md"
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-echo "🚀 Initiating Zero-Touch Automation..."
+echo "🚀 Starting EquaFlow Bootstrap [${TIMESTAMP}]"
 
-# --- 1. Security Automation: Secret Generation ---
-if [ ! -f "$ENV_FILE" ]; then
-    echo "🔐 Generating cryptographically secure MFA and JWT secrets..."
-    
-    JWT_SECRET=$(openssl rand -hex 32)
-    MFA_SECRET=$(openssl rand -base64 32)
-    AUTH_SECRET=$(openssl rand -hex 32)
-    ENCRYPTION_KEY=$(openssl rand -hex 32)
-    DB_PASSWORD=$(openssl rand -hex 16)
-    REDIS_PASSWORD=$(openssl rand -hex 16)
-    RABBITMQ_PASSWORD=$(openssl rand -hex 16)
-    
-    if [ -f "$ENV_EXAMPLE" ]; then
-        cp "$ENV_EXAMPLE" "$ENV_FILE"
-    else
-        touch "$ENV_FILE"
-    fi
-    
-    # Inject secrets
-    update_env() {
-        local key=$1
-        local value=$2
-        if grep -q "^$key=" "$ENV_FILE"; then
-            sed -i "s|^$key=.*|$key=$value|" "$ENV_FILE"
-        else
-            echo "$key=$value" >> "$ENV_FILE"
-        fi
-    }
-
-    update_env "JWT_SECRET" "$JWT_SECRET"
-    update_env "MFA_ENCRYPTION_KEY" "$MFA_SECRET"
-    update_env "ENCRYPTION_KEY" "$ENCRYPTION_KEY"
-    update_env "BETTER_AUTH_SECRET" "$AUTH_SECRET"
-    update_env "POSTGRES_PASSWORD" "$DB_PASSWORD"
-    update_env "REDIS_PASSWORD" "$REDIS_PASSWORD"
-    update_env "RABBITMQ_PASSWORD" "$RABBITMQ_PASSWORD"
-    update_env "POSTGRES_DB" "bsopt"
-    update_env "POSTGRES_USER" "admin"
-    
-    # Update URLs
-    sed -i "s|:password@|:$DB_PASSWORD@|g" "$ENV_FILE"
-    sed -i "s|:bsopt_redis_secret@|:$REDIS_PASSWORD@|g" "$ENV_FILE"
-    
-    echo "✅ Secrets injected into $ENV_FILE"
+# 1. Asymmetric Security & PKI Orchestration
+if [ -f "./scripts/setup_pki.sh" ]; then
+    echo "🔐 Running Advanced PKI Orchestration..."
+    bash ./scripts/setup_pki.sh
 else
-    echo "ℹ️  $ENV_FILE already exists."
+    echo "⚠️ setup_pki.sh not found. Falling back to basic key generation..."
+    mkdir -p "${KEYS_DIR}"
+    openssl genpkey -algorithm RSA -out "${KEYS_DIR}/jwt_rs256.key" -pkeyopt rsa_keygen_bits:2048
+    openssl rsa -pubout -in "${KEYS_DIR}/jwt_rs256.key" -out "${KEYS_DIR}/jwt_rs256.pub"
 fi
 
-# Extract credentials from .env to use for DB initialization
-source "$ENV_FILE"
-
-# --- 2. Environment Selection ---
-ENVIRONMENT=${1:-dev}
-echo "🌍 Setting environment to: $ENVIRONMENT"
-
-if [ "$ENVIRONMENT" == "prod" ]; then
-    COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_PROD"
-else
-    if [ -f "$DOCKER_COMPOSE_DEV" ]; then
-        COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_DEV"
-    else
-        COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_PROD"
-    fi
+# 2. .env Generation & Injection
+if [ ! -f "${ENV_FILE}" ]; then
+    echo "📄 Creating .env file from ${ENV_EXAMPLE}..."
+    cp "${ENV_EXAMPLE}" "${ENV_FILE}" || touch "${ENV_FILE}"
 fi
 
-# --- 3. Sequenced Startup & Health Gates ---
-echo "🏗️  Starting Core Infrastructure (Postgres, Redis, RabbitMQ)..."
-$COMPOSE_CMD up -d postgres redis rabbitmq
+# Inject Asymmetric Keys (Base64 encoded for env safety)
+RS256_PRIVATE=$(cat "${HOME}/.bsopt/pki/jwt_rs256.key" | base64 -w 0)
+RS256_PUBLIC=$(cat "${HOME}/.bsopt/pki/jwt_rs256.pub" | base64 -w 0)
+ES256_PRIVATE=$(cat "${HOME}/.bsopt/pki/jwt_es256.key" | base64 -w 0)
+ES256_PUBLIC=$(cat "${HOME}/.bsopt/pki/jwt_es256.pub" | base64 -w 0)
+TOTP_SECRET=$(cat "${HOME}/.bsopt/pki/totp_master.secret")
 
-echo "⏳ Waiting for Database to fully initialize..."
-MAX_RETRIES=30
-COUNT=0
-until $COMPOSE_CMD ps --format json | jq -e '. | select(.Service=="postgres" and .Health=="healthy")' > /dev/null 2>&1; do
-    if [ $COUNT -ge $MAX_RETRIES ]; then
-        echo "❌ Timeout: Database failed to reach healthy state."
-        exit 1
+set_env_var() {
+    local key=$1
+    local value=$2
+    if grep -q "^${key}=" "${ENV_FILE}"; then
+        sed -i "s|^${key}=.*|${key}=\"${value}\"|g" "${ENV_FILE}"
+    else
+        echo "${key}=\"${value}\"" >> "${ENV_FILE}"
     fi
-    printf "."
-    sleep 2
-    COUNT=$((COUNT + 1))
+}
+
+set_env_var "JWT_RS256_PRIVATE" "${RS256_PRIVATE}"
+set_env_var "JWT_RS256_PUBLIC" "${RS256_PUBLIC}"
+set_env_var "JWT_ES256_PRIVATE" "${ES256_PRIVATE}"
+set_env_var "JWT_ES256_PUBLIC" "${ES256_PUBLIC}"
+set_env_var "MFA_TOTP_SECRET" "${TOTP_SECRET}"
+set_env_var "JWT_ALGORITHM" "RS256" # Default
+
+# Check if DB pass is already set
+if ! grep -q "^POSTGRES_PASSWORD=" "${ENV_FILE}"; then
+    set_env_var "POSTGRES_PASSWORD" "${DB_PASS}"
+fi
+if ! grep -q "^REDIS_PASSWORD=" "${ENV_FILE}"; then
+    set_env_var "REDIS_PASSWORD" "${REDIS_PASS}"
+fi
+if ! grep -q "^DATABASE_URL=" "${ENV_FILE}"; then
+    # Default to admin username from compose file
+    set_env_var "DATABASE_URL" "postgresql://admin:\${POSTGRES_PASSWORD}@postgres:5432/bsopt"
+fi
+
+echo "✅ Secrets injected into ${ENV_FILE}"
+
+# Load the env vars to extract credentials
+set -a
+source "${ENV_FILE}"
+set +a
+
+# 4. Auto-update README.md
+echo "📝 Updating README.md..."
+DEPLOY_INFO="\n\n> **Latest Deployment:** ${TIMESTAMP}\n> **Public Key Locations:** \`${HOME}/.bsopt/pki/jwt_rs256.pub\` (RSA), \`${HOME}/.bsopt/pki/jwt_es256.pub\` (ECC)\n> **Status:** Bootstrapped via \`bootstrap.sh\`"
+if grep -q "Latest Deployment:" "${README_FILE}"; then
+    sed -i "/Latest Deployment:/c\> **Latest Deployment:** ${TIMESTAMP}" "${README_FILE}"
+else
+    echo -e "${DEPLOY_INFO}" >> "${README_FILE}"
+fi
+
+# 5. Sequenced Startup
+echo "🐳 Starting Docker containers..."
+docker-compose up --build -d
+
+# Wait for DB Health
+echo "⏳ Waiting for PostgreSQL/TimescaleDB to be healthy..."
+until docker exec bsopt-postgres-1 pg_isready -U admin -d bsopt || docker exec bsopt-postgres-1 pg_isready -U postgres; do
+  sleep 2
 done
-echo "✅ Database is Healthy."
+echo "✅ Database is online."
 
-echo "⏳ Waiting for Redis to fully initialize..."
-COUNT=0
-until $COMPOSE_CMD ps --format json | jq -e '. | select(.Service=="redis" and .Health=="healthy")' > /dev/null 2>&1; do
-    if [ $COUNT -ge $MAX_RETRIES ]; then
-        echo "❌ Timeout: Redis failed to reach healthy state."
-        exit 1
-    fi
-    printf "."
-    sleep 2
-    COUNT=$((COUNT + 1))
+echo "⏳ Waiting for Redis to be healthy..."
+until docker exec bsopt-redis-1 redis-cli -a "${REDIS_PASSWORD}" ping | grep -q PONG; do
+  sleep 2
 done
-echo "✅ Redis is Healthy."
+echo "✅ Redis is online."
 
-# Automatically trigger database creation using extracted credentials
-echo "🛠️  Triggering database creation & initialization scripts..."
-docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1 || true
-# The init-scripts are automatically run by the postgres image, but we ensure it's forced if needed.
+# 6. Database Initialization Scripts
+echo "📂 Running database migrations via Alembic..."
+docker exec bsopt-api-1 alembic upgrade head || echo "⚠️ Alembic migration failed or not configured yet."
 
-echo "🚀 Starting App Services (Sequential Build)..."
-SERVICES=$($COMPOSE_CMD config --services)
-for SERVICE in $SERVICES; do
-    if [[ "$SERVICE" != "postgres" && "$SERVICE" != "redis" && "$SERVICE" != "rabbitmq" ]]; then
-        echo "🏗️  Building & Starting $SERVICE..."
-        $COMPOSE_CMD up --build -d "$SERVICE"
-    fi
-done
-
-echo "✅ BS-OPT Sequenced Startup Complete!"
+echo "✨ Bootstrap Complete! EquaFlow is ready."
+echo "🔗 API Docs: http://localhost:8000/docs"

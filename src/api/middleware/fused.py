@@ -106,10 +106,34 @@ class FusedSecurityMiddleware:
 
                 # Populate request state via scope["state"] for compatibility
                 state = scope.setdefault("state", {})
-                state["user_id"] = token_data.user_id
+                user_id = token_data.user_id
+                tier = token_data.tier
+                
+                state["user_id"] = user_id
                 state["user_email"] = token_data.email
-                state["user_tier"] = token_data.tier
+                state["user_tier"] = tier
                 state["auth_type"] = token_data.token_type
+
+                # 3. Rate Limiting (Distributed Token Bucket)
+                from src.utils.rate_limit import RateLimitTier, limiter
+                
+                # Default to FREE if tier not recognized
+                try:
+                    limit_tier = RateLimitTier(tier.lower())
+                except (ValueError, AttributeError):
+                    limit_tier = RateLimitTier.FREE
+
+                if not await limiter.is_allowed(user_id, path, limit_tier):
+                    logger.warning("rate_limit_exceeded", user_id=user_id, path=path, tier=tier)
+                    resp = MsgspecJSONResponse(
+                        status_code=429,
+                        content={
+                            "detail": "Rate limit exceeded",
+                            "retry_after": "60s"
+                        }
+                    )
+                    await resp(scope, receive, send)
+                    return
 
             except Exception as e:
                 logger.warning("auth_failed", error=str(e), path=path)
@@ -119,7 +143,7 @@ class FusedSecurityMiddleware:
                 await resp(scope, receive, send)
                 return
 
-        # 3. Security Headers Wrapper
+        # 4. Security Headers Wrapper
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))

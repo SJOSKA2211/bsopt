@@ -128,8 +128,8 @@ class Settings(BaseSettings):
     # JWT Authentication
     JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
-    JWT_PRIVATE_KEY: str | None = ""
-    JWT_PUBLIC_KEY: str | None = ""
+    JWT_PRIVATE_KEY: str | None = Field(default=None, validation_alias="JWT_PRIVATE_KEY")
+    JWT_PUBLIC_KEY: str | None = Field(default=None, validation_alias="JWT_PUBLIC_KEY")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
@@ -204,18 +204,40 @@ class Settings(BaseSettings):
 
     @property
     def rsa_private_key(self) -> str:
-        """Returns the private key, ensuring it exists."""
-        if self.JWT_PRIVATE_KEY:
-            return self.JWT_PRIVATE_KEY
+        """Returns the private key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_PRIVATE_KEY
+        if raw_key:
+            import base64
+
+            try:
+                # If it's PEM format (starts with -----), return as is
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                # Otherwise assume it's base64 encoded
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_private_key", error=str(e))
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_PRIVATE_KEY is missing in production")
         return self._get_transient_key("private")
 
     @property
     def rsa_public_key(self) -> str:
-        """Returns the public key, ensuring it exists."""
-        if self.JWT_PUBLIC_KEY:
-            return self.JWT_PUBLIC_KEY
+        """Returns the public key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_PUBLIC_KEY
+        if raw_key:
+            import base64
+
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_public_key", error=str(e))
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_PUBLIC_KEY is missing in production")
         return self._get_transient_key("public")

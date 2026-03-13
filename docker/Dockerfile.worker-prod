@@ -46,7 +46,8 @@ COPY pyproject.toml .
 # Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    INSIDE_DOCKER=1
 
 # Set permissions
 RUN chown -R bsopt:bsopt /app
@@ -54,4 +55,5 @@ RUN chown -R bsopt:bsopt /app
 # Switch to non-root user
 USER bsopt
 
-CMD ["celery", "-A", "src.tasks.celery_app", "worker", "-l", "info", "--pool=threads", "--concurrency=10"]
+# Celery Weaponized: Using thread pool for I/O bound tasks
+CMD ["celery", "-A", "src.tasks.celery_app", "worker", "-l", "info", "--pool=threads", "--concurrency=20", "--prefetch-multiplier=1"]

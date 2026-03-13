@@ -133,7 +133,19 @@ class OptionData(BaseModel):
 
 # ─── Resilience & Rate Limiting ──────────────────────────────────────────────
 
+# Use distributed limiter for global coordination
+from src.utils.rate_limit import RateLimitTier, limiter as global_limiter
+
 yahoo_rate_limiter = AsyncLimiter(max_rate=10, time_period=1.0)
+
+
+async def check_global_rate_limit(symbols: list[str]):
+    """Checks global rate limits via Redis token bucket."""
+    if not await global_limiter.is_allowed("scraper_service", "yfinance", RateLimitTier.ENTERPRISE):
+        logger.warning("global_rate_limit_exceeded_yfinance", symbol_count=len(symbols))
+        await asyncio.sleep(5)  # Adaptive backoff
+        return False
+    return True
 
 
 async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
@@ -146,10 +158,18 @@ async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
         reraise=True,
     ):
         with attempt:
+            # Check global distributed limit first
+            await check_global_rate_limit(symbols)
+
             RATE_LIMIT_HITS.inc()
             async with yahoo_rate_limiter:
                 with INGESTION_BATCH_DURATION.time():
-                    logger.info("yfinance_batch_fetch_start", symbols=symbols)
+                    # OTel trace for batch fetch
+                    from opentelemetry import trace
+                    tracer = trace.get_tracer(__name__)
+                    with tracer.start_as_current_span("yfinance_batch_fetch") as span:
+                        span.set_attribute("symbols.count", len(symbols))
+                        logger.info("yfinance_batch_fetch_start", symbols=symbols)
                 data = await asyncio.to_thread(
                     yf.download,
                     tickers=" ".join(symbols),
@@ -507,8 +527,13 @@ if __name__ == "__main__":
 
     import structlog
     from prometheus_client import start_http_server
+    from src.monitoring.telemetry_init import init_telemetry, instrument_redis
 
     structlog.configure()
+
+    # Initialize Telemetry
+    init_telemetry("bsopt-scraper")
+    instrument_redis()
 
     # Start Prometheus metrics server on a configurable port
     metrics_port = int(os.getenv("METRICS_PORT", "8001"))
@@ -516,7 +541,7 @@ if __name__ == "__main__":
     logger.info("metrics_server_started", port=metrics_port)
 
     # Write heartbeat before starting
-    with open('/tmp/scraper_heartbeat', 'w') as f:
+    with open("/tmp/scraper_heartbeat", "w") as f:
         f.write(str(time.time()))
-        
+
     asyncio.run(run_continuous_ingestion())

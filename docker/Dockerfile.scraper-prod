@@ -54,8 +54,7 @@ RUN groupadd -r bsopt && useradd -r -g bsopt bsopt
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Install browsers as root (or move them to a shared location)
-# Playwright usually installs to ~/.cache/ms-playwright
+# Install browsers as root
 ENV PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/ms-playwright
 RUN playwright install chromium
 RUN playwright install-deps chromium
@@ -69,7 +68,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
     PYTHONPATH=/app \
-    PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/ms-playwright
+    INSIDE_DOCKER=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/usr/local/share/ms-playwright \
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 \
+    OTEL_SERVICE_NAME=bsopt-scraper
 
 # Set permissions
 RUN chown -R bsopt:bsopt /app && chown -R bsopt:bsopt /usr/local/share/ms-playwright
@@ -79,6 +81,6 @@ USER bsopt
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD python -c "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"
+  CMD python -c "import time; import sys; import os; sys.exit(0 if not os.path.exists('/tmp/scraper_heartbeat') or time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"
 
 CMD ["python", "src/scrapers/concurrent_ingestion.py"]

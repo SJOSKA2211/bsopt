@@ -3,7 +3,6 @@ import time
 from collections.abc import Callable
 from enum import Enum
 from functools import wraps
-from typing import Any
 
 import redis.asyncio as redis
 import structlog
@@ -180,51 +179,58 @@ class DistributedCircuitBreaker:
         return wrapper
 
 
-class CircuitBreakerFactory:
+class CircuitBreakerProxy:
     """
-    Factory to create appropriate circuit breaker instances based on environment.
-    Supports easy switching between InMemory and Distributed (Redis) implementations.
+    Proxy for Circuit Breakers to allow dynamic upgrading from In-Memory to Distributed
+    without breaking established module-level imports.
     """
 
-    @staticmethod
-    def create(
-        name: str,
-        redis_client: redis.Redis | None = None,
-        failure_threshold: int = 5,
-        recovery_timeout: int = 30,
-    ) -> Any:
-        if redis_client:
-            return DistributedCircuitBreaker(
-                name=name,
-                redis_client=redis_client,
-                failure_threshold=failure_threshold,
-                recovery_timeout=recovery_timeout,
-            )
-        return InMemoryCircuitBreaker(
-            failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
-        )
+    def __init__(self, name: str, failure_threshold: int = 5, recovery_timeout: int = 30):
+        self.name = name
+        self._cb = InMemoryCircuitBreaker(name, failure_threshold, recovery_timeout)
+
+    def upgrade(
+        self,
+        redis_client: redis.Redis,
+        failure_threshold: int | None = None,
+        recovery_timeout: int | None = None,
+    ):
+        """Upgrades the internal implementation to DistributedCircuitBreaker."""
+        ft = failure_threshold or self._cb.failure_threshold
+        rt = recovery_timeout or self._cb.recovery_timeout
+        logger.info("upgrading_circuit_breaker_to_distributed", name=self.name)
+        self._cb = DistributedCircuitBreaker(self.name, redis_client, ft, rt)
+
+    def __call__(self, func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            return await self._cb(func)(*args, **kwargs)
+
+        return wrapper
+
+    @property
+    def state(self):
+        return getattr(self._cb, "state", "UNKNOWN")
 
 
-# Global instances initialized with sensible defaults
-pricing_circuit = CircuitBreakerFactory.create("pricing", failure_threshold=10, recovery_timeout=60)
-db_circuit = CircuitBreakerFactory.create("database", failure_threshold=5, recovery_timeout=30)
-ml_client_circuit = CircuitBreakerFactory.create(
-    "ml_client", failure_threshold=5, recovery_timeout=30
-)
-nse_circuit = CircuitBreakerFactory.create("nse", failure_threshold=3, recovery_timeout=120)
-webhook_circuit = CircuitBreakerFactory.create("webhook", failure_threshold=5, recovery_timeout=30)
+# Global instances initialized as Proxies
+pricing_circuit = CircuitBreakerProxy("pricing", failure_threshold=10, recovery_timeout=60)
+db_circuit = CircuitBreakerProxy("database", failure_threshold=5, recovery_timeout=30)
+ml_client_circuit = CircuitBreakerProxy("ml_client", failure_threshold=5, recovery_timeout=30)
+nse_circuit = CircuitBreakerProxy("nse", failure_threshold=3, recovery_timeout=120)
+webhook_circuit = CircuitBreakerProxy("webhook", failure_threshold=5, recovery_timeout=30)
 
 
 async def initialize_circuits(redis_client: redis.Redis | None = None):
     """
-    Upgrade global circuit breakers to distributed mode if Redis is available.
+    Upgrade global circuit breaker proxies to distributed mode if Redis is available.
     """
-    global pricing_circuit, db_circuit, ml_client_circuit, nse_circuit
     if redis_client:
-        logger.info("upgrading_to_distributed_circuit_breakers")
-        pricing_circuit = CircuitBreakerFactory.create("pricing", redis_client, 10, 60)
-        db_circuit = CircuitBreakerFactory.create("database", redis_client, 5, 30)
-        ml_client_circuit = CircuitBreakerFactory.create("ml_client", redis_client, 5, 30)
-        nse_circuit = CircuitBreakerFactory.create("nse", redis_client, 3, 120)
+        logger.info("initializing_distributed_circuits")
+        pricing_circuit.upgrade(redis_client, 10, 60)
+        db_circuit.upgrade(redis_client, 5, 30)
+        ml_client_circuit.upgrade(redis_client, 5, 30)
+        nse_circuit.upgrade(redis_client, 3, 120)
+        webhook_circuit.upgrade(redis_client, 5, 30)
     else:
-        logger.info("retaining_in_memory_circuit_breakers")
+        logger.info("retaining_in_memory_circuits")

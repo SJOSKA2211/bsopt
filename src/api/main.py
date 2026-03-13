@@ -60,9 +60,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     db_manager.initialize()
 
+    # Initialize Telemetry (OpenTelemetry)
+    from src.monitoring.telemetry_init import init_telemetry, instrument_app, instrument_redis
+    init_telemetry("bsopt-api")
+    instrument_app(app)
+    instrument_redis()
+
     # Initialize Redis
     from src.utils.cache import init_redis_cache
-
     await init_redis_cache()
 
     # Chaos Injection

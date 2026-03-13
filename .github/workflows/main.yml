@@ -54,9 +54,22 @@ assert np.all(prices > 0), 'Negative prices detected'
 print('Math kernel validation PASSED')
 "
           
+      - name: SAST Scanning (Bandit)
+        run: |
+          pip install bandit
+          bandit -r src/ -ll -x tests/
+          
       - name: Run Tests
         run: |
           make test-all
+
+      - name: Docker Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'bsopt-api:latest'
+          format: 'table'
+          exit-code: '0' # Don't fail build yet, just report
+          severity: 'CRITICAL,HIGH'
 
   build-and-push:
     name: Build Docker Images

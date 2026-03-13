@@ -19,7 +19,8 @@ ENV UV_RETRIES=10
 
 # Copy requirements and install (API-only deps for lean image)
 COPY requirements-api.txt .
-RUN uv pip install --no-cache --system -r requirements-api.txt
+RUN uv pip install --no-cache --system -r requirements-api.txt && \
+    uv pip install --no-cache --system granian
 
 # Stage 2: Runtime image
 FROM python:3.12-slim-bookworm
@@ -46,7 +47,10 @@ COPY pyproject.toml .
 # Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    INSIDE_DOCKER=1 \
+    OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317 \
+    OTEL_SERVICE_NAME=bsopt-api
 
 # Set permissions
 RUN chown -R bsopt:bsopt /app
@@ -60,4 +64,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--http", "httptools"]
+# Granian: High-performance Rust-based HTTP server
+CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "auto", "--websockets", "--threading_mode", "runtime", "--opt"]

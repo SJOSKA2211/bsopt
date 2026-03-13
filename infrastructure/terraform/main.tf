@@ -39,12 +39,66 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
+# --- Security Groups ---
+resource "aws_security_group" "bsopt_api_sg" {
+  name        = "bsopt-api-sg"
+  description = "Security group for BS-Opt API"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Restricted in prod
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# --- IAM Roles for Service Accounts (IRSA) ---
+resource "aws_iam_role" "bsopt_scraper_role" {
+  name = "bsopt-scraper-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = "arn:aws:iam::${var.account_id}:oidc-provider/${var.oidc_provider}"
+        }
+        Condition = {
+          StringEquals = {
+            "${var.oidc_provider}:sub" : "system:serviceaccount:default:bsopt-scraper"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# --- ElastiCache (Redis) for Rate Limiting ---
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id           = "bsopt-redis"
+  engine               = "redis"
+  node_type            = "cache.t3.micro"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis7"
+  port                 = 6379
+}
+
 # --- Blue/Green Namespaces ---
 resource "kubernetes_namespace" "blue" {
   metadata {
     name = "bsopt-blue"
     labels = {
-      env = "prod"
+      env   = "prod"
       color = "blue"
     }
   }
@@ -54,14 +108,13 @@ resource "kubernetes_namespace" "green" {
   metadata {
     name = "bsopt-green"
     labels = {
-      env = "prod"
+      env   = "prod"
       color = "green"
     }
   }
 }
 
 # --- Core Service Routing (Active Environment) ---
-# This service points to the active color environment
 resource "kubernetes_service" "bsopt_active" {
   metadata {
     name      = "bsopt-active-service"
@@ -69,7 +122,6 @@ resource "kubernetes_service" "bsopt_active" {
   }
   spec {
     selector = {
-      # Change this to "green" to swap traffic
       color = var.active_environment
       app   = "bsopt-api"
     }

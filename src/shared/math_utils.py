@@ -198,14 +198,46 @@ def calculate_greeks(
         return tuple(float(arr.item()) for arr in results)
     return results
 
-def njit_engine(*args, **kwargs):
-    """Fallback decorator if needed by other components."""
-    if len(args) == 1 and callable(args[0]):
-        return njit(cache=True, fastmath=True)(args[0])
-    if "cache" not in kwargs:
-        kwargs["cache"] = True
-    if "fastmath" not in kwargs:
-        kwargs["fastmath"] = True
-    return njit(*args, **kwargs)
+@njit(cache=True, fastmath=True)
+def rk4_gbm_step(s: float, mu: float, sigma: float, dt: float, dw: float) -> float:
+    """
+    4th-order Runge-Kutta step for Geometric Brownian Motion ODE/SDE.
+    dS = mu*S*dt + sigma*S*dW
+    """
+    # Deterministic part: f(s) = mu * s
+    # Stochastic part handled via Ito interpretation or simple noise injection
+    # For GBM, RK4 is typically applied to the log-transform or the drift.
+    
+    k1 = mu * s * dt
+    k2 = mu * (s + 0.5 * k1) * dt
+    k3 = mu * (s + 0.5 * k2) * dt
+    k4 = mu * (s + k3) * dt
+    
+    drift = (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
+    diffusion = sigma * s * dw
+    
+    return s + drift + diffusion
+
+def run_gbm_simulation(
+    s0: float, 
+    mu: float, 
+    sigma: float, 
+    t: float, 
+    steps: int = 1000
+) -> np.ndarray:
+    """Runs a full GBM simulation using RK4 steps."""
+    dt = t / steps
+    prices = np.zeros(steps + 1)
+    prices[0] = s0
+    
+    # Generate Wiener process noise
+    dw = np.random.normal(0, np.sqrt(dt), steps)
+    
+    current_s = s0
+    for i in range(steps):
+        current_s = rk4_gbm_step(current_s, mu, sigma, dt, dw[i])
+        prices[i+1] = current_s
+        
+    return prices
 
 loop_prange = prange

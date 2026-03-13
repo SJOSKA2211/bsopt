@@ -411,33 +411,51 @@ class NSEScraper:
 
 
 async def main():
-    """Scraper service entry point."""
+    """Scraper service entry point with Graceful Shutdown."""
+    import signal
+
     setup_logging()
 
     scraper = NSEScraper()
     logger.info("scraper_service_active")
     start_system_metrics_loop("scraper")
 
+    # Graceful Shutdown Setup
+    shutdown_event = asyncio.Event()
+
+    def _on_signal():
+        logger.info("shutdown_signal_received")
+        shutdown_event.set()
+
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, _on_signal)
+
     try:
-        while True:
+        while not shutdown_event.is_set():
             try:
                 await scraper._refresh_cache()
                 logger.info("scraper_loop_ok")
                 # Best Practice: Robust Healthcheck Heartbeat
-                with open("/tmp/scraper_heartbeat", "w") as f:  # noqa: ASYNC230
-                    f.write(str(time.time()))
+                def _write_heartbeat():
+                    with open("/tmp/scraper_heartbeat", "w") as f:
+                        f.write(str(time.time()))
+                await asyncio.to_thread(_write_heartbeat)
             except Exception as e:
                 logger.error("scraper_loop_error", error=str(e))
 
-            await asyncio.sleep(settings.NSE_CACHE_TTL or 300)
-    except asyncio.CancelledError:
-        logger.info("scraper_service_stopping")
+            try:
+                # Wait for next refresh or shutdown signal
+                await asyncio.wait_for(shutdown_event.wait(), timeout=settings.NSE_CACHE_TTL or 300)
+            except TimeoutError:
+                continue
     finally:
+        logger.info("scraper_service_stopping_cleaning_up")
         await scraper.shutdown()
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         pass

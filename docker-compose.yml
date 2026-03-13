@@ -89,6 +89,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - ./docker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/definitions.json:/etc/rabbitmq/definitions.json:ro
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s

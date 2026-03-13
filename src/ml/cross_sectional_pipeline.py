@@ -208,25 +208,29 @@ def train_pipeline(
             train_df = df.iloc[:split_idx]
             test_df = df.iloc[split_idx:]
 
-        # --- Feature Normalization ---
-        # Critical for DNN convergence. We use training set statistics only.
-        feature_means = train_df[features].mean()
-        feature_stds = train_df[features].std().replace(0, 1)
-
-        X_train = cast(
-            np.ndarray[Any, np.dtype[np.float64]],
-            ((train_df[features] - feature_means) / feature_stds).values,
-        )
-        y_train = cast(np.ndarray[Any, np.dtype[np.float64]], train_df[target].values)
-        X_test = cast(
-            np.ndarray[Any, np.dtype[np.float64]],
-            ((test_df[features] - feature_means) / feature_stds).values,
-        )
-        y_test = cast(np.ndarray[Any, np.dtype[np.float64]], test_df[target].values)
+        # --- Feature Preparation & Normalization (Optimized) ---
+        from src.ml.pre_training import MLPreTrainer
+        
+        # Cross-sectional feature enrichment
+        df = MLPreTrainer.calculate_cross_sectional_features(df)
+        
+        # select potentially enriched features
+        features = [f for f in features if f in df.columns]
+        
+        X_all, means, stds = MLPreTrainer.prepare_features(df, features)
+        y_all = df[target].values.astype(np.float64)
 
         # Log normalization constants for inference parity
-        mlflow.log_dict(feature_means.to_dict(), "normalization/means.json")
-        mlflow.log_dict(feature_stds.to_dict(), "normalization/stds.json")
+        mlflow.log_dict({"means": means.tolist(), "features": features}, "normalization/means.json")
+        mlflow.log_dict({"stds": stds.tolist(), "features": features}, "normalization/stds.json")
+
+        # Temporal split on raw arrays
+        split_idx = len(df[df["timestamp"] < split_date])
+        if split_idx == 0 or split_idx == len(X_all):
+             split_idx = int(len(X_all) * 0.8)
+             
+        X_train, X_test = X_all[:split_idx], X_all[split_idx:]
+        y_train, y_test = y_all[:split_idx], y_all[split_idx:]
 
         # --- Model Preparation ---
         X_train_t = torch.tensor(X_train, dtype=torch.float32)

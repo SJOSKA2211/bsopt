@@ -1,22 +1,45 @@
 #!/bin/bash
-#  OPTIMIZED: Automated Internal PKI for Zero-Trust mTLS
-# Generates a Root CA and issues ephemeral certificates for platform services.
+#  OPTIMIZED: Automated Internal PKI for Zero-Trust mTLS & Asymmetric Security
+# Generates Root CA, ECC/RSA JWT keys, and TOTP secrets.
 
 set -e
 
 KEY_DIR="${HOME}/.bsopt/pki"
 mkdir -p "$KEY_DIR"
 
-# 1. Generate Root CA
+echo "🔐 Initializing Enterprise Security Layer..."
+
+# 1. Generate Root CA (RSA 4096)
 if [[ ! -f "${KEY_DIR}/root_ca.key" ]]; then
-    echo " Initializing Internal Root CA..."
+    echo "📜 Generating Root CA..."
     openssl genrsa -out "${KEY_DIR}/root_ca.key" 4096
     openssl req -x509 -new -nodes -key "${KEY_DIR}/root_ca.key" -sha256 -days 3650 \
         -out "${KEY_DIR}/root_ca.crt" \
         -subj "/C=US/ST=State/L=City/O=BSOPT-HIGH-PERFORMANCE/CN=BSOPT-Internal-CA"
 fi
 
-# 2. Function to Issue Service Certificates
+# 2. Generate Asymmetric JWT Key Pairs
+# RS256 (RSA 2048)
+if [[ ! -f "${KEY_DIR}/jwt_rs256.key" ]]; then
+    echo "🔑 Generating RS256 JWT Key Pair..."
+    openssl genrsa -out "${KEY_DIR}/jwt_rs256.key" 2048
+    openssl rsa -in "${KEY_DIR}/jwt_rs256.key" -pubout -out "${KEY_DIR}/jwt_rs256.pub"
+fi
+
+# ES256 (ECC P-256)
+if [[ ! -f "${KEY_DIR}/jwt_es256.key" ]]; then
+    echo "🔑 Generating ES256 JWT Key Pair (ECC)..."
+    openssl ecparam -name prime256v1 -genkey -noout -out "${KEY_DIR}/jwt_es256.key"
+    openssl ec -in "${KEY_DIR}/jwt_es256.key" -pubout -out "${KEY_DIR}/jwt_es256.pub"
+fi
+
+# 3. Generate TOTP Master Secret
+if [[ ! -f "${KEY_DIR}/totp_master.secret" ]]; then
+    echo "🛡️ Generating TOTP Master Secret..."
+    openssl rand -hex 32 > "${KEY_DIR}/totp_master.secret"
+fi
+
+# 4. Function to Issue Service Certificates
 issue_cert() {
     local service_name=$1
     echo "📜 Issuing certificate for $service_name..."
@@ -43,4 +66,4 @@ issue_cert "api-gateway"
 issue_cert "pricing-subgraph"
 issue_cert "ml-subgraph"
 
-echo " Internal PKI initialized in $KEY_DIR"
+echo "✅ Security Layer Finalized in $KEY_DIR"

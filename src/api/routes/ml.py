@@ -15,6 +15,7 @@ from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from src.database import get_async_db
 from src.database.crud import get_model_drift_metrics
 from src.services.ml_service import MLService, get_ml_service
+from src.utils.circuit_breaker import ml_client_circuit
 
 router = APIRouter(
     prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse
@@ -23,6 +24,7 @@ logger = structlog.get_logger(__name__)
 
 
 @router.post("/predict", response_model=None)
+@ml_client_circuit
 async def predict(
     request: InferenceRequest,
     symbol: str = "UNKNOWN",
@@ -34,6 +36,7 @@ async def predict(
 
 
 @router.get("/predictions", response_model=None)
+@ml_client_circuit
 async def get_predictions(
     symbol: str = "AAPL",
     model_type: str = "xgb",

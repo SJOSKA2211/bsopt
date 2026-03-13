@@ -112,34 +112,29 @@ class BacktestEngine:
         if "target_position" not in df.columns:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
-        # 2. Vectorized P&L Calculation
-        # Assuming target_position is number of contracts
-        df["prev_position"] = df["target_position"].shift(1).fillna(0)
-        df["trades"] = df["target_position"] - df["prev_position"]
+        # 2. Vectorized P&L Calculation using Numba Kernel
+        from src.trading.backtesting.kernel import run_simulation_kernel, calculate_metrics_kernel
+        
+        # Extract raw arrays for the kernel
+        prices = df["option_price"].values.astype(np.float64)
+        positions = df["target_position"].values.astype(np.float64)
+        
+        equity_curve, mtm_pnl, commissions = run_simulation_kernel(
+            prices, 
+            positions, 
+            self.initial_capital,
+            params.get("transaction_cost_pct", 0.001) if params else 0.001
+        )
+        
+        df["equity_curve"] = equity_curve
+        df["mtm_pnl"] = mtm_pnl
+        df["commissions"] = commissions
 
-        # Transaction costs (simulated)
-        transaction_cost_pct = 0.001
-        df["commissions"] = np.abs(df["trades"] * df["option_price"] * transaction_cost_pct)
-
-        # Mark-to-market P&L
-        df["price_change"] = df["option_price"].diff().fillna(0)
-        df["mtm_pnl"] = df["prev_position"] * df["price_change"] - df["commissions"]
-
-        # Cumulative metrics
-        df["cum_pnl"] = df["mtm_pnl"].cumsum()
-        df["equity_curve"] = self.initial_capital + df["cum_pnl"]
-
-        # 3. Calculate Performance Metrics
-        returns = df["equity_curve"].pct_change().dropna()
-        total_return = (df["equity_curve"].iloc[-1] / self.initial_capital) - 1
-
-        # Sharpe Ratio (annualized, assuming daily data)
-        sharpe = (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() > 0 else 0
-
-        # Max Drawdown
-        rolling_max = df["equity_curve"].cummax()
-        drawdown = (df["equity_curve"] - rolling_max) / rolling_max
-        max_drawdown = drawdown.min()
+        # 3. Calculate Performance Metrics using optimized kernel
+        total_return, sharpe, max_drawdown = calculate_metrics_kernel(
+            equity_curve, 
+            self.initial_capital
+        )
 
         # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get("confidence_level", 0.95) if params else 0.95
