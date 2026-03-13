@@ -431,6 +431,8 @@ def run_full_data_pipeline_task(
     except Exception as e:
         logger.error("full_pipeline_failed", error=str(e))
         raise
+
+
 @celery_app.task(
     bind=True,
     queue="data",
@@ -442,9 +444,9 @@ def process_market_data_task(self, records: list[dict[str, Any]]) -> dict[str, A
     Receives market ticks/options data and performs idempotent bulk insertion.
     """
     from src.scrapers.concurrent_ingestion import MarketTick, bulk_insert_ticks
-    
+
     ticks = [MarketTick(**r) for r in records if "price" in r]
-    
+
     # Run async insertion
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -452,5 +454,5 @@ def process_market_data_task(self, records: list[dict[str, Any]]) -> dict[str, A
         loop.run_until_complete(bulk_insert_ticks(ticks))
     finally:
         loop.close()
-        
+
     return {"status": "success", "count": len(ticks)}

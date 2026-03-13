@@ -108,7 +108,7 @@ class FusedSecurityMiddleware:
                 state = scope.setdefault("state", {})
                 user_id = token_data.user_id
                 tier = token_data.tier
-                
+
                 state["user_id"] = user_id
                 state["user_email"] = token_data.email
                 state["user_tier"] = tier
@@ -116,7 +116,7 @@ class FusedSecurityMiddleware:
 
                 # 3. Rate Limiting (Distributed Token Bucket)
                 from src.utils.rate_limit import RateLimitTier, limiter
-                
+
                 # Default to FREE if tier not recognized
                 try:
                     limit_tier = RateLimitTier(tier.lower())
@@ -127,10 +127,7 @@ class FusedSecurityMiddleware:
                     logger.warning("rate_limit_exceeded", user_id=user_id, path=path, tier=tier)
                     resp = MsgspecJSONResponse(
                         status_code=429,
-                        content={
-                            "detail": "Rate limit exceeded",
-                            "retry_after": "60s"
-                        }
+                        content={"detail": "Rate limit exceeded", "retry_after": "60s"},
                     )
                     await resp(scope, receive, send)
                     return

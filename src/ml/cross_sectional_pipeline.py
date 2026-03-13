@@ -109,9 +109,7 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
             chunk["moneyness"] = s / k
             chunk["log_moneyness"] = np.log(np.maximum(s / k, 1e-8))
             chunk["sqrt_T"] = np.sqrt(np.maximum(t, 1e-8))
-            chunk["vega_gamma_ratio"] = np.where(
-                np.abs(gamma) > 1e-12, vega / (gamma + 1e-12), 0.0
-            )
+            chunk["vega_gamma_ratio"] = np.where(np.abs(gamma) > 1e-12, vega / (gamma + 1e-12), 0.0)
 
             chunks.append(chunk)
             logger.info("ml_extraction_chunk_processed", size=len(chunk))
@@ -210,13 +208,13 @@ def train_pipeline(
 
         # --- Feature Preparation & Normalization (Optimized) ---
         from src.ml.pre_training import MLPreTrainer
-        
+
         # Cross-sectional feature enrichment
         df = MLPreTrainer.calculate_cross_sectional_features(df)
-        
+
         # select potentially enriched features
         features = [f for f in features if f in df.columns]
-        
+
         X_all, means, stds = MLPreTrainer.prepare_features(df, features)
         y_all = df[target].values.astype(np.float64)
 
@@ -227,8 +225,8 @@ def train_pipeline(
         # Temporal split on raw arrays
         split_idx = len(df[df["timestamp"] < split_date])
         if split_idx == 0 or split_idx == len(X_all):
-             split_idx = int(len(X_all) * 0.8)
-             
+            split_idx = int(len(X_all) * 0.8)
+
         X_train, X_test = X_all[:split_idx], X_all[split_idx:]
         y_train, y_test = y_all[:split_idx], y_all[split_idx:]
 

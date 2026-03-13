@@ -22,9 +22,9 @@ class RateLimitTier(StrEnum):
 
 # Default configurations: (capacity, refill_rate_per_sec)
 TIER_CONFIGS = {
-    RateLimitTier.FREE: (100, 1),           # 100 requests, refill 1/sec (60/min)
-    RateLimitTier.PRO: (1000, 10),         # 1000 requests, refill 10/sec (600/min)
-    RateLimitTier.ENTERPRISE: (10000, 100), # 10000 requests, refill 100/sec (6000/min)
+    RateLimitTier.FREE: (100, 1),  # 100 requests, refill 1/sec (60/min)
+    RateLimitTier.PRO: (1000, 10),  # 1000 requests, refill 10/sec (600/min)
+    RateLimitTier.ENTERPRISE: (10000, 100),  # 10000 requests, refill 100/sec (6000/min)
 }
 
 LUA_TOKEN_BUCKET = """
@@ -60,6 +60,7 @@ else
 end
 """
 
+
 class RedisTokenBucketLimiter:
     def __init__(self):
         self._lua_script = None
@@ -69,21 +70,24 @@ class RedisTokenBucketLimiter:
             self._lua_script = redis.register_script(LUA_TOKEN_BUCKET)
         return self._lua_script
 
-    async def is_allowed(self, user_id: str, endpoint: str, tier: RateLimitTier = RateLimitTier.FREE) -> bool:
+    async def is_allowed(
+        self, user_id: str, endpoint: str, tier: RateLimitTier = RateLimitTier.FREE
+    ) -> bool:
         redis = get_redis()
         if redis is None:
-            return True # Fail open
+            return True  # Fail open
 
         capacity, refill_rate = TIER_CONFIGS.get(tier, TIER_CONFIGS[RateLimitTier.FREE])
         key = f"rl:tb:{user_id}:{endpoint}"
         now = time.time()
-        
+
         script = await self._get_script(redis)
         try:
             result = await script(keys=[key], args=[capacity, refill_rate, now, 1])
             return bool(result)
         except Exception as e:
             logger.error("rate_limit_check_failed", error=str(e), user_id=user_id)
-            return True # Fail open
+            return True  # Fail open
+
 
 limiter = RedisTokenBucketLimiter()

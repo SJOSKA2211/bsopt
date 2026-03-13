@@ -345,7 +345,7 @@ class ConnectionManager:
                                     raise ex
                                 await asyncio.sleep(delay)
                                 delay *= 2
-                    
+
                     tasks.append(send_with_backoff(conn, encoded))
 
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))

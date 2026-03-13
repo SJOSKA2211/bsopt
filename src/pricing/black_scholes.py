@@ -152,12 +152,13 @@ class BlackScholesEngine(PricingStrategy):
         if S.size > 100:  # Threshold for GPU overhead
             try:
                 from src.core.math.gpu_kernels import gpu_price_batch
+
                 # Currently gpu_price_batch handles calls only in our impl
                 # but we could expand it. Using simple check for now.
                 if isinstance(is_call, bool) and is_call:
                     return gpu_price_batch(S, K, T, sigma, r, q)
             except Exception as e:
-                 logger.warning("gpu_kernel_failed_falling_back", error=str(e))
+                logger.warning("gpu_kernel_failed_falling_back", error=str(e))
 
         # Vectorized numpy fallback
         res = calculate_price(S, K, T, sigma, r, q, is_call)

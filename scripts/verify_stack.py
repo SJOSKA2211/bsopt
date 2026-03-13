@@ -1,4 +1,3 @@
-
 import asyncio
 import sys
 
@@ -6,6 +5,7 @@ import httpx
 
 API_URL = "http://192.168.23.33:8008"
 API_V1_URL = f"{API_URL}/api/v1"
+
 
 async def check_health():
     print("Checking API health...")
@@ -22,6 +22,7 @@ async def check_health():
             print(f"❌ API connection failed: {e}")
             return False
 
+
 async def test_pricing():
     print("Testing single option pricing...")
     payload = {
@@ -31,7 +32,7 @@ async def test_pricing():
         "rate": 0.05,
         "volatility": 0.2,
         "option_type": "call",
-        "model": "black_scholes"
+        "model": "black_scholes",
     }
     async with httpx.AsyncClient() as client:
         try:
@@ -47,6 +48,7 @@ async def test_pricing():
             print(f"❌ Pricing request failed: {e}")
             return False
 
+
 async def test_batch_pricing():
     print("Testing batch option pricing...")
     payload = {
@@ -58,7 +60,7 @@ async def test_batch_pricing():
                 "rate": 0.05,
                 "volatility": 0.2,
                 "option_type": "call",
-                "model": "black_scholes"
+                "model": "black_scholes",
             },
             {
                 "spot": 100.0,
@@ -67,8 +69,8 @@ async def test_batch_pricing():
                 "rate": 0.05,
                 "volatility": 0.2,
                 "option_type": "call",
-                "model": "black_scholes"
-            }
+                "model": "black_scholes",
+            },
         ]
     }
     async with httpx.AsyncClient() as client:
@@ -79,15 +81,18 @@ async def test_batch_pricing():
                 print(f"✅ Batch pricing successful: {len(data['results'])} results")
                 return True
             else:
-                print(f"❌ Batch pricing failed with status {response.status_code}: {response.text}")
+                print(
+                    f"❌ Batch pricing failed with status {response.status_code}: {response.text}"
+                )
                 return False
         except Exception as e:
             print(f"❌ Batch pricing request failed: {e}")
             return False
 
+
 async def main():
     print("--- BSOPT Verification Script ---")
-    
+
     # Wait for API to be ready
     max_retries = 30
     ready = False
@@ -95,24 +100,22 @@ async def main():
         if await check_health():
             ready = True
             break
-        print(f"Waiting for API... ({i+1}/{max_retries})")
+        print(f"Waiting for API... ({i + 1}/{max_retries})")
         await asyncio.sleep(5)
-    
+
     if not ready:
         print("❌ API did not become ready in time.")
         sys.exit(1)
-        
-    results = await asyncio.gather(
-        test_pricing(),
-        test_batch_pricing()
-    )
-    
+
+    results = await asyncio.gather(test_pricing(), test_batch_pricing())
+
     if all(results):
         print("\n🎉 All tests passed!")
         sys.exit(0)
     else:
         print("\n❌ Some tests failed.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

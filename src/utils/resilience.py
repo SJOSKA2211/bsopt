@@ -1,7 +1,7 @@
 """
 Resilience Utilities for BS-Opt (EquaFlow)
 =========================================
-Implements Circuit Breaker, Exponential Backoff with Jitter, 
+Implements Circuit Breaker, Exponential Backoff with Jitter,
 and advanced error handling for external dependencies.
 """
 
@@ -17,28 +17,31 @@ logger = structlog.get_logger(__name__)
 
 T = TypeVar("T")
 
+
 class CircuitState(Enum):
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
+
 
 class CircuitBreaker:
     """
     Robust Circuit Breaker implementation with configurable thresholds.
     Focuses on zero-local-state (using class attributes or being passed as singleton).
     """
+
     def __init__(
-        self, 
-        name: str, 
-        failure_threshold: int = 5, 
+        self,
+        name: str,
+        failure_threshold: int = 5,
         recovery_timeout: float = 30.0,
-        expected_exceptions: tuple = (Exception,)
+        expected_exceptions: tuple = (Exception,),
     ):
         self.name = name
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
         self.expected_exceptions = expected_exceptions
-        
+
         self.failure_count = 0
         self.state = CircuitState.CLOSED
         self.last_failure_time = 0.0
@@ -56,21 +59,21 @@ class CircuitBreaker:
 
             try:
                 result = await func(*args, **kwargs)
-                
+
                 # If we were half-open or open and succeeded, reset
                 if self.state != CircuitState.CLOSED:
                     logger.info("circuit_breaker_reset", name=self.name)
                     self.reset()
                 return result
-            
+
             except self.expected_exceptions as e:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
-                
+
                 if self.failure_count >= self.failure_threshold:
                     logger.error("circuit_breaker_tripped", name=self.name, error=str(e))
                     self.state = CircuitState.OPEN
-                
+
                 raise e
 
         return wrapper
@@ -79,6 +82,7 @@ class CircuitBreaker:
         self.failure_count = 0
         self.state = CircuitState.CLOSED
         self.last_failure_time = 0.0
+
 
 # Pre-defined breakers
 yfinance_breaker = CircuitBreaker("yfinance", failure_threshold=10, recovery_timeout=60)

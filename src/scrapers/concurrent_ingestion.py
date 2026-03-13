@@ -30,6 +30,7 @@ RATE_LIMIT_HITS = Counter("bsopt_rate_limit_hits_total", "Rate limit attempts")
 
 yahoo_rate_limiter = AsyncLimiter(max_rate=10, time_period=1.0)
 
+
 class MarketTick(BaseModel):
     symbol: str
     market: str
@@ -42,6 +43,7 @@ class MarketTick(BaseModel):
     @classmethod
     def round_floats(cls, v: float) -> float:
         return round(float(v), 4)
+
 
 class OptionData(BaseModel):
     symbol: str
@@ -56,10 +58,12 @@ class OptionData(BaseModel):
     open_interest: int
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+
 class SymbolMetadata(BaseModel):
     symbol: str
     name: str
     exchange: str
+
 
 @yfinance_breaker
 async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
@@ -71,9 +75,12 @@ async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
         with attempt:
             RATE_LIMIT_HITS.inc()
             async with yahoo_rate_limiter:
-                with INGESTION_BATCH_DURATION.time(), tracer.start_as_current_span("yfinance_batch_fetch") as span:
+                with (
+                    INGESTION_BATCH_DURATION.time(),
+                    tracer.start_as_current_span("yfinance_batch_fetch") as span,
+                ):
                     span.set_attribute("symbols.count", len(symbols))
-                    
+
                     data = await asyncio.to_thread(
                         yf.download,
                         tickers=" ".join(symbols),
@@ -91,17 +98,33 @@ async def fetch_yfinance_batch(symbols: list[str]) -> list[MarketTick]:
                     if len(symbols) == 1:
                         sym = symbols[0]
                         if not data["Close"].empty:
-                            ticks.append(MarketTick(symbol=sym, market="US", price=float(data["Close"].iloc[-1]), volume=int(data["Volume"].iloc[-1])))
+                            ticks.append(
+                                MarketTick(
+                                    symbol=sym,
+                                    market="US",
+                                    price=float(data["Close"].iloc[-1]),
+                                    volume=int(data["Volume"].iloc[-1]),
+                                )
+                            )
                     else:
                         for sym in symbols:
                             if sym in data.columns.levels[0]:
                                 sym_data = data[sym]
                                 if not sym_data["Close"].empty:
-                                    ticks.append(MarketTick(symbol=sym, market="US", price=float(sym_data["Close"].iloc[-1]), volume=int(sym_data["Volume"].iloc[-1])))
+                                    ticks.append(
+                                        MarketTick(
+                                            symbol=sym,
+                                            market="US",
+                                            price=float(sym_data["Close"].iloc[-1]),
+                                            volume=int(sym_data["Volume"].iloc[-1]),
+                                        )
+                                    )
                     return ticks
 
+
 async def bulk_insert_ticks(ticks: list[MarketTick]):
-    if not ticks: return
+    if not ticks:
+        return
     insert_query = """
         INSERT INTO market_ticks (time, symbol, market, price, volume, change)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -110,34 +133,41 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
     """
     async with db_manager.async_engine.begin() as conn:
         raw_conn = await conn.get_raw_connection()
-        await raw_conn.driver_connection.executemany(insert_query, [(t.time, t.symbol, t.market, t.price, t.volume, t.change) for t in ticks])
+        await raw_conn.driver_connection.executemany(
+            insert_query, [(t.time, t.symbol, t.market, t.price, t.volume, t.change) for t in ticks]
+        )
     logger.info("bulk_insert_ticks_success", count=len(ticks))
+
 
 async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
     # Idempotent symbol registration
     pass
 
+
 async def bulk_insert_options(options: list[OptionData]):
     # Options insertion
     pass
 
+
 async def run_concurrent_ingestion(us_universe: list[str]):
     from src.tasks.data_tasks import process_market_data_task
-    
+
     # Discovery if needed
-    if not us_universe: us_universe = await get_sp500_symbols()
-    
+    if not us_universe:
+        us_universe = await get_sp500_symbols()
+
     # Placeholder for NSE task
-    # ... 
+    # ...
 
     # Fetch yfinance
-    all_ticks = await fetch_yfinance_batch(us_universe[:50]) # Batching example
-    
+    all_ticks = await fetch_yfinance_batch(us_universe[:50])  # Batching example
+
     # Phase 3: Decouple via RabbitMQ
     tick_records = [t.model_dump(mode="json") for t in all_ticks]
     process_market_data_task.delay(tick_records)
-    
+
     logger.info("ingestion_dispatched", count=len(all_ticks))
+
 
 if __name__ == "__main__":
     asyncio.run(run_concurrent_ingestion(["AAPL", "MSFT", "TSLA"]))

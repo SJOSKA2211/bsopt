@@ -114,31 +114,30 @@ class BacktestEngine:
 
         # 2. Vectorized P&L Calculation using Numba Kernel
         from src.trading.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
-        
+
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)
         positions = df["target_position"].values.astype(np.float64)
-        
+
         equity_curve, mtm_pnl, commissions = run_simulation_kernel(
-            prices, 
-            positions, 
+            prices,
+            positions,
             self.initial_capital,
-            params.get("transaction_cost_pct", 0.001) if params else 0.001
+            params.get("transaction_cost_pct", 0.001) if params else 0.001,
         )
-        
+
         df["equity_curve"] = equity_curve
         df["mtm_pnl"] = mtm_pnl
         df["commissions"] = commissions
 
         # 3. Calculate Performance Metrics using optimized kernel
         total_return, sharpe, max_drawdown = calculate_metrics_kernel(
-            equity_curve, 
-            self.initial_capital
+            equity_curve, self.initial_capital
         )
 
         # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get("confidence_level", 0.95) if params else 0.95
-        
+
         # Calculate periodic returns from equity curve
         returns = pd.Series(equity_curve).pct_change().dropna()
 

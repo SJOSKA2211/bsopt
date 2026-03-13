@@ -137,6 +137,7 @@ async def get_options_chain(
             )
     except Exception as e:
         import structlog
+
         logger = structlog.get_logger(__name__)
         logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
         # We continue to fallback
