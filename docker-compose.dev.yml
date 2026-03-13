@@ -1,23 +1,27 @@
+version: "3.8"
+
 services:
   api:
     image: bsopt-api-dev
     build:
       context: .
       dockerfile: docker/Dockerfile.api-dev
-    network_mode: host
+    networks:
+      - bsopt-network
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PORT=6381
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
       - ./scripts:/app/scripts
     env_file:
       - .env
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8008/health').read()"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 30s
       timeout: 20s
       retries: 20
@@ -33,6 +37,8 @@ services:
       dockerfile: docker/Dockerfile.auth-service-dev
     ports:
       - "3001:3001"
+    networks:
+      - bsopt-network
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -53,6 +59,8 @@ services:
       target: development
     ports:
       - "4000:4000"
+    networks:
+      - bsopt-network
     environment:
       - PORT=4000
       - LOG_LEVEL=debug
@@ -82,6 +90,8 @@ services:
       target: development
     ports:
       - "5173:5173"
+    networks:
+      - bsopt-network
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
@@ -100,6 +110,8 @@ services:
       dockerfile: docker/Dockerfile.neural-pricing-dev
     ports:
       - "8001:8000"
+    networks:
+      - bsopt-network
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
@@ -121,10 +133,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.scraper-dev
+    networks:
+      - bsopt-network
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    network_mode: host
     environment:
       - METRICS_PORT=8009
     env_file:
@@ -155,12 +168,15 @@ services:
 
   postgres:
     image: timescale/timescaledb:latest-pg16
-    command: postgres -p 5434 -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
+    networks:
+      - bsopt-network
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    network_mode: host
+    ports:
+      - "127.0.0.1:5434:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -171,27 +187,32 @@ services:
         limits:
           memory: 2g
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5434 -U admin -d bsopt"]
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U admin -d bsopt"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    network_mode: host
-    command: redis-server --port 6381 --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    networks:
+      - bsopt-network
+    command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    ports:
+      - "127.0.0.1:6381:6379"
     deploy:
       resources:
         limits:
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "6381", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
+    networks:
+      - bsopt-network
     environment:
       - RABBITMQ_ERLANG_COOKIE=secret_cookie_for_dev
     ports:
@@ -283,6 +304,11 @@ services:
       neural-pricing:
         condition: service_healthy
     command: npx playwright test
+
+
+networks:
+  bsopt-network:
+    driver: bridge
 
 volumes:
   postgres_data_dev:

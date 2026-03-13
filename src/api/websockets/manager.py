@@ -332,8 +332,21 @@ class ConnectionManager:
                     encoded = WebSocketCodec.encode(data, proto)
 
                 for conn in conns:
-                    # Send as bytes regardless of protocol for maximum speed
-                    tasks.append(conn.send_bytes(encoded))
+                    # Exponential Backoff for sending messages
+                    async def send_with_backoff(c: WebSocket, d: bytes) -> None:
+                        retries = 3
+                        delay = 0.1
+                        for attempt in range(retries):
+                            try:
+                                await c.send_bytes(d)
+                                return
+                            except Exception as ex:
+                                if attempt == retries - 1:
+                                    raise ex
+                                await asyncio.sleep(delay)
+                                delay *= 2
+                    
+                    tasks.append(send_with_backoff(conn, encoded))
 
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:

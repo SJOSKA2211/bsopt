@@ -8,6 +8,7 @@ import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
@@ -160,7 +161,6 @@ async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSON
     )
 
 
-from fastapi.exceptions import RequestValidationError  # noqa: E402
 
 
 @app.exception_handler(RequestValidationError)

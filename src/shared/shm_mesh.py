@@ -444,7 +444,6 @@ class SharedMemoryRingBuffer:
                     logger.warning("shm_buffer_missing_using_dummy", name=SHM_NAME)
                     self.buf = memoryview(bytearray(self.shm_size))
 
-            self.buf = self.shm.buf
             # Create a numpy view of the entire tick buffer (skipping head index)
             self.data_view = np.frombuffer(
                 self.buf, dtype=TICK_DTYPE, offset=8, count=BUFFER_CAPACITY

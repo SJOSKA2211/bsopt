@@ -15,9 +15,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+# Copy and install Python dependencies using uv for speed
+RUN pip install --no-cache-dir uv
+COPY requirements-ml-cpu.txt requirements-api.txt ./
+RUN uv pip install --system --no-cache --index-strategy unsafe-best-match -r requirements-ml-cpu.txt
 
 # Copy the entire source directory for development
 COPY src/ ./src

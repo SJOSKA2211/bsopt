@@ -20,6 +20,7 @@ from src.api.schemas.pricing import (
     PriceResult,
 )
 from src.services.pricing_service import PricingService
+from src.utils.circuit_breaker import pricing_circuit
 
 logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=MsgspecJSONResponse)
@@ -27,6 +28,7 @@ pricing_service = PricingService()
 
 
 @router.post("/price", response_model=None)
+@pricing_circuit
 async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     """
     Calculate theoretical price for a single option.
@@ -42,6 +44,7 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
 
 
 @router.post("/batch", response_model=None)
+@pricing_circuit
 async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
     """
     Vectorized batch pricing.
@@ -51,6 +54,7 @@ async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult
 
 
 @router.post("/greeks/batch", response_model=None)
+@pricing_circuit
 async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResult:
     """
     Vectorized batch Greek calculation.
@@ -59,6 +63,7 @@ async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResu
 
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)
+@pricing_circuit
 async def calculate_greeks(body: GreeksRequest):
     """
     Calculate option Greeks.
@@ -84,6 +89,7 @@ class CalculateResponseStruct(msgspec.Struct):
 
 
 @router.post("/calculate")
+@pricing_circuit
 async def calculate(body: dict) -> MsgspecJSONResponse:
     """
     Convenience endpoint used by tests and demos.

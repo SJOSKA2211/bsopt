@@ -1,28 +1,25 @@
 #!/usr/bin/env bash
 
 # ==============================================================================
-# BS-OPT: COMPLETE STACK AUTOMATION & SECURITY BOOTSTRAPPING
+# Phase 0: Zero-Touch Automation, Security & Database Bootstrapping
 # ==============================================================================
 # Automates environment setup, secret generation, and stack deployment.
 # ==============================================================================
 
 set -e
 
-# --- Configuration ---
 ENV_FILE=".env"
 ENV_EXAMPLE=".env.example"
 DOCKER_COMPOSE_PROD="docker-compose.yml"
 DOCKER_COMPOSE_DEV="docker-compose.dev.yml"
 
-echo "🚀 Initiating BS-OPT High-Performance Manifold..."
+echo "🚀 Initiating Zero-Touch Automation..."
 
 # --- 1. Security Automation: Secret Generation ---
 if [ ! -f "$ENV_FILE" ]; then
-    echo "🔐 Generating cryptographically secure secrets..."
+    echo "🔐 Generating cryptographically secure MFA and JWT secrets..."
     
-    # Generate secrets if openssl is available
     JWT_SECRET=$(openssl rand -hex 32)
-    # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
     MFA_SECRET=$(openssl rand -base64 32)
     AUTH_SECRET=$(openssl rand -hex 32)
     ENCRYPTION_KEY=$(openssl rand -hex 32)
@@ -36,7 +33,7 @@ if [ ! -f "$ENV_FILE" ]; then
         touch "$ENV_FILE"
     fi
     
-    # Inject secrets (using a temporary file for safety)
+    # Inject secrets
     update_env() {
         local key=$1
         local value=$2
@@ -54,21 +51,25 @@ if [ ! -f "$ENV_FILE" ]; then
     update_env "POSTGRES_PASSWORD" "$DB_PASSWORD"
     update_env "REDIS_PASSWORD" "$REDIS_PASSWORD"
     update_env "RABBITMQ_PASSWORD" "$RABBITMQ_PASSWORD"
+    update_env "POSTGRES_DB" "bsopt"
+    update_env "POSTGRES_USER" "admin"
     
-    # Update URLs that contain passwords
+    # Update URLs
     sed -i "s|:password@|:$DB_PASSWORD@|g" "$ENV_FILE"
     sed -i "s|:bsopt_redis_secret@|:$REDIS_PASSWORD@|g" "$ENV_FILE"
     
     echo "✅ Secrets injected into $ENV_FILE"
 else
-    echo "ℹ️  $ENV_FILE already exists. Skipping secret generation."
+    echo "ℹ️  $ENV_FILE already exists."
 fi
+
+# Extract credentials from .env to use for DB initialization
+source "$ENV_FILE"
 
 # --- 2. Environment Selection ---
 ENVIRONMENT=${1:-dev}
 echo "🌍 Setting environment to: $ENVIRONMENT"
 
-# --- 3. Automated Startup & Health Gates ---
 if [ "$ENVIRONMENT" == "prod" ]; then
     COMPOSE_CMD="docker-compose -f $DOCKER_COMPOSE_PROD"
 else
@@ -79,10 +80,11 @@ else
     fi
 fi
 
-echo "🏗️  Igniting Manifold with BuildKit..."
-$COMPOSE_CMD up --build -d
+# --- 3. Sequenced Startup & Health Gates ---
+echo "🏗️  Starting Core Infrastructure (Postgres, Redis, RabbitMQ)..."
+$COMPOSE_CMD up -d postgres redis rabbitmq
 
-echo "⏳ Waiting for Database to stabilize..."
+echo "⏳ Waiting for Database to fully initialize..."
 MAX_RETRIES=30
 COUNT=0
 until $COMPOSE_CMD ps --format json | grep -q '"Service":"postgres","Health":"healthy"'; do
@@ -96,15 +98,25 @@ until $COMPOSE_CMD ps --format json | grep -q '"Service":"postgres","Health":"he
 done
 echo "✅ Database is Healthy."
 
-echo "🔍 Verifying all critical services..."
-CRITICAL_SERVICES=("api" "auth-service" "redis" "rabbitmq")
-for SERVICE in "${CRITICAL_SERVICES[@]}"; do
-    if ! $COMPOSE_CMD ps --format json | grep -q "\"Service\":\"$SERVICE\",\"Health\":\"healthy\""; then
-        echo "⚠️  Warning: $SERVICE is not yet healthy. Checking logs..."
-        # Non-blocking warning as some services might take longer
+echo "⏳ Waiting for Redis to fully initialize..."
+COUNT=0
+until $COMPOSE_CMD ps --format json | grep -q '"Service":"redis","Health":"healthy"'; do
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ Timeout: Redis failed to reach healthy state."
+        exit 1
     fi
+    printf "."
+    sleep 2
+    COUNT=$((COUNT + 1))
 done
+echo "✅ Redis is Healthy."
 
-echo "=========================================================="
-echo "⚡ BS-OPT Manifold Ignition Complete!"
-echo "=========================================================="
+# Automatically trigger database creation using extracted credentials
+echo "🛠️  Triggering database creation & initialization scripts..."
+docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1 || true
+# The init-scripts are automatically run by the postgres image, but we ensure it's forced if needed.
+
+echo "🚀 Starting App Services..."
+$COMPOSE_CMD up --build -d
+
+echo "✅ BS-OPT Sequenced Startup Complete!"

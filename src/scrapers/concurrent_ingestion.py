@@ -7,14 +7,13 @@ rate-limiting, dynamic batching, and Pydantic normalization.
 
 import asyncio
 import time
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
 
 from prometheus_client import Counter, Gauge, Histogram
 from pydantic import BaseModel, Field, field_validator
-from src.database import db_manager
 
 from src.config import settings
+from src.database import db_manager
 from src.scrapers.discovery import get_sp500_symbols
 from src.scrapers.engine import NSEScraper
 from src.shared.observability import logger
@@ -103,7 +102,7 @@ class MarketTick(BaseModel):
     price: float
     volume: int
     change: float = 0.0
-    time: datetime = Field(default_factory=datetime.utcnow)
+    time: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("price", "change")
     @classmethod
@@ -129,7 +128,7 @@ class OptionData(BaseModel):
     implied_volatility: float
     volume: int
     open_interest: int
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ─── Resilience & Rate Limiting ──────────────────────────────────────────────
@@ -304,12 +303,11 @@ async def nse_ingestion_task() -> list[MarketTick]:
 
 
 async def bulk_insert_ticks(ticks: list[MarketTick]):
-    """Bulk inserts market ticks into PostgreSQL (Optimized for asyncpg)."""
+    """Bulk inserts market ticks into PostgreSQL using centralized db_manager."""
     if not ticks:
         return
-    engine = get_db_engine()
+    async_engine = db_manager.async_engine
 
-    # Precise ordering for bulk COPY or executemany
     records = [
         (t.time, t.symbol, t.market, float(t.price), int(t.volume), float(t.change)) for t in ticks
     ]
@@ -324,9 +322,7 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
     try:
         with DB_INSERT_DURATION.labels(table="market_ticks").time():
             async with async_engine.begin() as conn:
-                # Drop to the raw driver connection for maximum throughput
                 raw_conn = await conn.get_raw_connection()
-                # asyncpg's executemany is significantly faster than SQLAlchemy's for large batches
                 await raw_conn.driver_connection.executemany(insert_query, records)
         INGESTION_TICKS_TOTAL.labels(market="US").inc(len(records))
         logger.info("bulk_insert_ticks_success", count=len(records))
@@ -334,15 +330,13 @@ async def bulk_insert_ticks(ticks: list[MarketTick]):
         INGESTION_ERRORS.labels(type="db_insert_ticks").inc()
         logger.error("bulk_insert_ticks_failed", error=str(e))
         raise
-    finally:
-        pass
 
 
 async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
-    """Bulk inserts symbol metadata (idempotent)."""
+    """Bulk inserts symbol metadata (idempotent) using centralized db_manager."""
     if not symbols:
         return
-    engine = get_db_engine()
+    async_engine = db_manager.async_engine
 
     records = [
         (
@@ -353,7 +347,7 @@ async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
             s.industry,
             s.market_cap,
             s.is_active,
-            datetime.utcnow(),
+            datetime.now(UTC),
         )
         for s in symbols
     ]
@@ -376,8 +370,6 @@ async def bulk_insert_symbols(symbols: list[SymbolMetadata]):
         logger.info("bulk_insert_symbols_success", count=len(records))
     except Exception as e:
         logger.error("bulk_insert_symbols_failed", error=str(e))
-    finally:
-        pass
 
 
 # ─── Orchestrator ────────────────────────────────────────────────────────────
