@@ -22,8 +22,9 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN uv pip install maturin
 COPY src/core ./src/core
 ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
-RUN cd src/core && maturin build --release --strip --out /tmp/wheels
-RUN uv pip install /tmp/wheels/*.whl
+RUN cd src/core && maturin build --release --strip --out /tmp/wheels \
+    && uv pip install /tmp/wheels/*.whl \
+    && rm -rf /root/.cargo /root/.rustup /tmp/wheels src/core/target
 
 FROM python:3.12-slim-bookworm AS development
 WORKDIR /app
