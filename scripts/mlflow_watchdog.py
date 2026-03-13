@@ -8,12 +8,12 @@ and automatically respawns the training job via Ray.
 """
 
 import os
-import time
 import subprocess
+import time
+
 import mlflow
-from mlflow.entities import RunStatus
-import structlog
 import ray
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -124,7 +124,7 @@ def run_watchdog():
                 # Extract parameters from the run (columns starting with 'params.')
                 params = {
                     col.replace("params.", ""): run[col]
-                    for col in run.index if col.startswith("params.") and not type(run[col]) == float and run[col] is not None
+                    for col in run.index if col.startswith("params.") and not isinstance(run[col], float) and run[col] is not None
                 }
                 
                 adapted_params = adapt_parameters(params)
