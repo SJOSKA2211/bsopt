@@ -1,0 +1,6 @@
+# Known vulnerabilities to ignore during Trivy scanning
+
+# ray_dist.jar (bundled with python 'ray' package) uses an outdated jackson-core.
+# This is a known issue but not practically exploitable in our standard ML workload
+# since we don't expose ray's Java worker directly to untrusted input.
+GHSA-72hv-8253-57qq
