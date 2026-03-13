@@ -2,7 +2,6 @@ import logging
 import os
 
 import anyio
-import torch
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,6 +45,8 @@ async def get_deep_health():
     # 2. Lazy CUDA Probe
     if os.getenv("BSOPT_USE_GPU", "0") == "1":
         try:
+            import torch
+
             cuda_available = torch.cuda.is_available()
             health["probes"]["cuda"] = {
                 "status": "available" if cuda_available else "missing",

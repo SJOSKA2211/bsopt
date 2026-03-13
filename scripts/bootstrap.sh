@@ -116,7 +116,13 @@ echo "🛠️  Triggering database creation & initialization scripts..."
 docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 1;" > /dev/null 2>&1 || true
 # The init-scripts are automatically run by the postgres image, but we ensure it's forced if needed.
 
-echo "🚀 Starting App Services..."
-$COMPOSE_CMD up --build -d
+echo "🚀 Starting App Services (Sequential Build)..."
+SERVICES=$($COMPOSE_CMD config --services)
+for SERVICE in $SERVICES; do
+    if [[ "$SERVICE" != "postgres" && "$SERVICE" != "redis" && "$SERVICE" != "rabbitmq" ]]; then
+        echo "🏗️  Building & Starting $SERVICE..."
+        $COMPOSE_CMD up --build -d "$SERVICE"
+    fi
+done
 
 echo "✅ BS-OPT Sequenced Startup Complete!"
