@@ -11,3 +11,8 @@
 **Vulnerability:** The API had defined but unused security middlewares (`IPBlockMiddleware`, `CSRFMiddleware`). These were omitted from the main application startup file, leaving the application vulnerable to IP-based attacks (e.g., brute force, DDoS) and CSRF attacks for state-changing endpoints.
 **Learning:** Adding new security middleware to the repository is not sufficient; they must be explicitly registered to the application's middleware stack in `main.py` in the correct order.
 **Prevention:** Always verify integration of new security middleware definitions in the main application entry point (`main.py`). Consider enforcing this through an automated linting or testing rule that ensures all exported security middleware classes are applied.
+
+## 2025-03-13 - [Sensitive URL Exposure in Logs]
+**Vulnerability:** The API logged plaintext URLs containing sensitive tokens (like password reset or email verification tokens) using `logger.info` in `src/api/routes/auth.py`. This exposed these tokens in application logs, leading to potential account compromise if logs are leaked.
+**Learning:** Always verify that logging statements do not include sensitive data, especially URLs that contain tokens or credentials. Logging should only convey action taken without exposing the sensitive parameters.
+**Prevention:** Introduce linting rules to prevent logging of variables named `*token*`, `*link*` or `*url*` in log statements unless properly masked. Review all authentication and email delivery endpoints for potential logging leaks.

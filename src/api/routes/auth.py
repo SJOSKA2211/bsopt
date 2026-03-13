@@ -345,7 +345,8 @@ async def _send_verification_email(email: str, token: str) -> None:
     Sends a verification email to the user using Celery.
     """
     verification_link = f"{settings.BETTER_AUTH_URL}/verify-email?token={token}"
-    logger.info("email_verification_link_generated", email=email, link=verification_link)
+    # SECURITY: Do not log sensitive tokens in plaintext
+    logger.info("email_verification_link_generated", email=email)
 
     from src.tasks.email_tasks import send_transactional_email
 
@@ -362,7 +363,8 @@ async def _send_password_reset_email(email: str, token: str) -> None:
     Sends a password reset email to the user using Celery.
     """
     reset_link = f"{settings.BETTER_AUTH_URL}/reset-password?token={token}"
-    logger.info("password_reset_link_generated", email=email, link=reset_link)
+    # SECURITY: Do not log sensitive tokens in plaintext
+    logger.info("password_reset_link_generated", email=email)
 
     from src.tasks.email_tasks import send_transactional_email
 
