@@ -35,10 +35,11 @@ async def _generate_fingerprint(request: Request) -> str:
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, redis_client, expiry: int = 3600):
+    def __init__(self, app, redis_client, expiry: int = 3600, lock_timeout: int = 60):
         super().__init__(app)
         self.redis = redis_client
         self.expiry = expiry
+        self.lock_timeout = lock_timeout
 
     async def dispatch(self, request: Request, call_next) -> Response:
         if request.method not in ("POST", "PUT", "PATCH") and not request.headers.get(
@@ -64,7 +65,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             )
 
         # 2. Acquire Lock (Simple SETNX)
-        if not await self.redis.set(lock_key, "1", nx=True, ex=60):
+        if not await self.redis.set(lock_key, "1", nx=True, ex=self.lock_timeout):
             logger.warning("idempotency_lock_conflict", key=fingerprint)
             return Response(content='{"error": "Request already in progress"}', status_code=409)
 

@@ -28,12 +28,22 @@ if [ ! -f "${ENV_FILE}" ]; then
     cp "${ENV_EXAMPLE}" "${ENV_FILE}" || touch "${ENV_FILE}"
 fi
 
-# Inject Asymmetric Keys (Base64 encoded for env safety)
-RS256_PRIVATE=$(cat "${HOME}/.bsopt/pki/jwt_rs256.key" | base64 -w 0)
-RS256_PUBLIC=$(cat "${HOME}/.bsopt/pki/jwt_rs256.pub" | base64 -w 0)
-ES256_PRIVATE=$(cat "${HOME}/.bsopt/pki/jwt_es256.key" | base64 -w 0)
-ES256_PUBLIC=$(cat "${HOME}/.bsopt/pki/jwt_es256.pub" | base64 -w 0)
-TOTP_SECRET=$(cat "${HOME}/.bsopt/pki/totp_master.secret")
+# Load Keys from PKI directory (defined in setup_pki.sh)
+PKI_DIR="${HOME}/.bsopt/pki"
+
+if [ -d "${PKI_DIR}" ]; then
+    echo "🔑 Injecting Asymmetric Keys from ${PKI_DIR}..."
+    RS256_PRIVATE=$(cat "${PKI_DIR}/jwt_rs256.key" | base64 -w 0)
+    RS256_PUBLIC=$(cat "${PKI_DIR}/jwt_rs256.pub" | base64 -w 0)
+    ES256_PRIVATE=$(cat "${PKI_DIR}/jwt_es256.key" | base64 -w 0)
+    ES256_PUBLIC=$(cat "${PKI_DIR}/jwt_es256.pub" | base64 -w 0)
+    TOTP_SECRET=$(cat "${PKI_DIR}/totp_master.secret")
+else
+    echo "⚠️ PKI directory ${PKI_DIR} not found. Using fallback keys from ${KEYS_DIR}..."
+    RS256_PRIVATE=$(cat "${KEYS_DIR}/jwt_rs256.key" | base64 -w 0)
+    RS256_PUBLIC=$(cat "${KEYS_DIR}/jwt_rs256.pub" | base64 -w 0)
+    TOTP_SECRET=$(cat "${KEYS_DIR}/mfa_secret.txt" 2>/dev/null || echo "dev-totp-secret")
+fi
 
 set_env_var() {
     local key=$1
@@ -100,6 +110,10 @@ echo "✅ Redis is online."
 # 6. Database Initialization Scripts
 echo "📂 Running database migrations via Alembic..."
 docker exec bsopt-api-1 alembic upgrade head || echo "⚠️ Alembic migration failed or not configured yet."
+
+# 7. Automated E2E Testing & UI Validation
+echo "🧪 Running E2E Test Suite..."
+docker-compose --profile test up e2e-test --build --abort-on-container-exit || echo "⚠️ E2E tests failed or not configured."
 
 echo "✨ Bootstrap Complete! EquaFlow is ready."
 echo "🔗 API Docs: http://localhost:8000/docs"

@@ -3,6 +3,44 @@ Centralized storage for Redis LUA scripts.
 Optimizes performance by reducing network overhead and ensuring atomicity.
 """
 
+# Token Bucket Rate Limiter
+# Keys: [rate_limit_key]
+# Args: [capacity, fill_rate, current_timestamp_ms, requested_tokens]
+TOKEN_BUCKET_RL = """
+local key = KEYS[1]
+local capacity = tonumber(ARGV[1])
+local fill_rate = tonumber(ARGV[2]) -- tokens per second
+local now = tonumber(ARGV[3])
+local requested = tonumber(ARGV[4])
+
+local state = redis.call('HMGET', key, 'tokens', 'last_refill')
+local tokens = tonumber(state[1])
+local last_refill = tonumber(state[2])
+
+if not tokens then
+    tokens = capacity
+    last_refill = now
+else
+    local elapsed_ms = math.max(0, now - last_refill)
+    local refill = math.floor(elapsed_ms / 1000 * fill_rate)
+    if refill > 0 then
+        tokens = math.min(capacity, tokens + refill)
+        last_refill = last_refill + math.floor(refill / fill_rate * 1000)
+    end
+end
+
+if tokens >= requested then
+    tokens = tokens - requested
+    redis.call('HMSET', key, 'tokens', tokens, 'last_refill', last_refill)
+    redis.call('PEXPIRE', key, math.ceil(capacity / fill_rate * 1000))
+    return {1, tokens}
+else
+    redis.call('HMSET', key, 'tokens', tokens, 'last_refill', last_refill)
+    redis.call('PEXPIRE', key, math.ceil(capacity / fill_rate * 1000))
+    return {0, tokens}
+end
+"""
+
 # Sliding Window Rate Limiter
 # Keys: [rate_limit_key]
 # Args: [window_size_ms, limit, current_timestamp_ms, request_id]

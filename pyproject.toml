@@ -32,6 +32,12 @@ dependencies = [
     "prometheus_api_client>=0.5.0",
     "eth_account",
     "minio",
+    "alembic>=1.13.0",
+    "aio-pika>=9.4.0",
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-exporter-otlp>=1.24.0",
 ]
 
 [project.optional-dependencies]

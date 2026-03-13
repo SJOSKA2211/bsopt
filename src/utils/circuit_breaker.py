@@ -212,6 +212,14 @@ class CircuitBreakerProxy:
     def state(self):
         return getattr(self._cb, "state", "UNKNOWN")
 
+    @property
+    def failure_count(self):
+        if isinstance(self._cb, InMemoryCircuitBreaker):
+            return self._cb.failure_count
+        # For distributed, failure count is in Redis, so we return a placeholder
+        # or we could make it async, but property must be sync.
+        return -1
+
 
 # Global instances initialized as Proxies
 pricing_circuit = CircuitBreakerProxy("pricing", failure_threshold=10, recovery_timeout=60)

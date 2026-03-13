@@ -130,6 +130,8 @@ format:
 security-scan:
 	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
 	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner bandit -c pyproject.toml -r src/
+	@echo " Running Trivy Container Scan..."
+	trivy image --severity HIGH,CRITICAL bsopt/api:latest || true
 
 # --- Build & Protos ---
 

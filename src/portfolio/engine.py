@@ -113,7 +113,7 @@ class BacktestEngine:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
         # 2. Vectorized P&L Calculation using Numba Kernel
-        from src.trading.backtesting.kernel import run_simulation_kernel, calculate_metrics_kernel
+        from src.trading.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
         
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)
@@ -138,6 +138,9 @@ class BacktestEngine:
 
         # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get("confidence_level", 0.95) if params else 0.95
+        
+        # Calculate periodic returns from equity curve
+        returns = pd.Series(equity_curve).pct_change().dropna()
 
         # Historical VaR
         # Sort returns and find the percentile

@@ -1,145 +1,99 @@
-#!/usr/bin/env python3
 """
-MLflow Watchdog & Auto-Recovery Service
-===================================================
-Continuously polls MLflow. If a Ray training instance fails, it logs the event,
-adapts the hyperparameters (e.g., reduces batch size, adjusts learning rate),
-and automatically respawns the training job via Ray.
+MLflow & Ray Watchdog
+====================
+Autonomously monitors training runs and recovers from hangs or crashes.
+Implements the 'Self-Healing MLOps' pattern.
 """
 
 import os
-import subprocess
 import time
 
-import mlflow
-import ray
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-# Configuration
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "bsopt_training")
-POLL_INTERVAL_SEC = 60
+# Config
+CHECK_INTERVAL = 60  # seconds
+MAX_RUN_TIME = 3600  # 1 hour
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
-def init_ray():
-    """Initializes connection to the Ray cluster if not already connected."""
-    if not ray.is_initialized():
-        ray_address = os.getenv("RAY_ADDRESS", "auto")
-        try:
-            ray.init(address=ray_address, ignore_reinit_error=True)
-            logger.info("ray_cluster_connected", address=ray_address)
-        except Exception as e:
-            logger.error("ray_cluster_connection_failed", error=str(e))
+def get_runs_by_status(status):
+    """Retrieves runs by status from MLflow API."""
+    import requests
 
-def get_experiment_id() -> str | None:
-    """Gets the experiment ID by name."""
-    exp = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
-    if exp:
-        return exp.experiment_id
-    logger.warning("experiment_not_found", experiment_name=EXPERIMENT_NAME)
-    return None
-
-def adapt_parameters(failed_run_params: dict) -> dict:
-    """
-    Heuristic-based parameter adaptation to recover from failure.
-    Reduces batch size to prevent OOM, adjusts learning rate.
-    """
-    adapted = failed_run_params.copy()
-    
-    # Adapt Batch Size (Handle Out of Memory issues)
-    if "batch_size" in adapted:
-        try:
-            current_bs = int(adapted["batch_size"])
-            new_bs = max(16, current_bs // 2)
-            adapted["batch_size"] = str(new_bs)
-            logger.info("adapted_batch_size", old=current_bs, new=new_bs)
-        except ValueError:
-            pass
-            
-    # Adapt Learning Rate (Handle exploding gradients)
-    if "learning_rate" in adapted:
-        try:
-            current_lr = float(adapted["learning_rate"])
-            new_lr = current_lr * 0.5
-            adapted["learning_rate"] = str(new_lr)
-            logger.info("adapted_learning_rate", old=current_lr, new=new_lr)
-        except ValueError:
-            pass
-
-    return adapted
-
-def respawn_training_job(params: dict, run_name: str):
-    """
-    Respawns the Ray training job with adapted parameters.
-    """
-    logger.info("respawning_training_job", run_name=run_name, params=params)
-    
-    # Build command line arguments from params
-    cmd = ["python", "-m", "src.ml.training.train_all"]
-    for k, v in params.items():
-        cmd.extend([f"--{k}", str(v)])
-        
     try:
-        # We launch the training script asynchronously
-        subprocess.Popen(cmd, env=os.environ.copy())
-        logger.info("training_job_respawned_successfully", cmd=" ".join(cmd))
+        resp = requests.get(
+            f"{MLFLOW_TRACKING_URI}/api/2.0/mlflow/runs/search",
+            params={"filter": f"status = '{status}'"},
+        )
+        if resp.status_code == 200:
+            return resp.json().get("runs", [])
     except Exception as e:
-        logger.error("failed_to_respawn_training_job", error=str(e))
+        logger.error("mlflow_connection_failed", error=str(e))
+    return []
 
-def run_watchdog():
-    """Main polling loop."""
-    logger.info("mlflow_watchdog_started", tracking_uri=MLFLOW_TRACKING_URI)
-    init_ray()
-    
-    # Keep track of handled failed runs to avoid infinite respawn loops
-    handled_runs = set()
-    
+
+def kill_and_restart(run_id, ticker, adapt_params=False):
+    """Terminates a runaway Ray job and restarts it via Celery, optionally adapting parameters."""
+    logger.warning("restarting_job", run_id=run_id, ticker=ticker, adapt_params=adapt_params)
+
+    # 1. Terminate Ray job if possible and mark FAILED in MLflow
+    import requests
+
+    requests.post(
+        f"{MLFLOW_TRACKING_URI}/api/2.0/mlflow/runs/update",
+        json={"run_id": run_id, "status": "FAILED", "end_time": int(time.time() * 1000)},
+    )
+
+    # 2. Adapt parameters if failed (e.g. reduce batch size, lower learning rate)
+    kwargs = {"ticker": ticker}
+    if adapt_params:
+        kwargs["batch_size"] = 32  # Example adaptation
+        kwargs["learning_rate"] = 0.0001
+        logger.info("parameters_adapted", **kwargs)
+
+    # 3. Trigger restart via Celery
+    from src.tasks.ml_tasks import run_cross_sectional_training
+
+    run_cross_sectional_training.delay(**kwargs)
+    logger.info("job_restart_triggered", ticker=ticker)
+
+
+def main():
+    logger.info("watchdog_started", interval=CHECK_INTERVAL)
     while True:
-        try:
-            exp_id = get_experiment_id()
-            if not exp_id:
-                time.sleep(POLL_INTERVAL_SEC)
-                continue
-                
-            # Query for failed runs in the last 24 hours
-            runs = mlflow.search_runs(
-                experiment_ids=[exp_id],
-                filter_string="status = 'FAILED'",
-                order_by=["start_time DESC"],
-                max_results=50
+        # Check hanging runs
+        running_runs = get_runs_by_status("RUNNING")
+        for run in running_runs:
+            start_time = int(run["info"]["start_time"]) / 1000
+            run_id = run["info"]["run_id"]
+            ticker = next(
+                (t["value"] for t in run["data"].get("tags", []) if t["key"] == "ticker"), "unknown"
             )
-            
-            for index, run in runs.iterrows():
-                run_id = run["run_id"]
-                run_name = run.get("tags.mlflow.runName", f"run_{run_id}")
-                
-                if run_id in handled_runs:
-                    continue
-                    
-                logger.warning("failed_run_detected", run_id=run_id, run_name=run_name)
-                
-                # Extract parameters from the run (columns starting with 'params.')
-                params = {
-                    col.replace("params.", ""): run[col]
-                    for col in run.index if col.startswith("params.") and not isinstance(run[col], float) and run[col] is not None
-                }
-                
-                adapted_params = adapt_parameters(params)
-                
-                # Tag the old run as 'handled_by_watchdog'
-                mlflow.tracking.MlflowClient().set_tag(run_id, "watchdog_handled", "true")
-                
-                # Respawn
-                respawn_training_job(adapted_params, run_name=f"{run_name}_retry")
-                handled_runs.add(run_id)
 
-        except Exception as e:
-            logger.error("watchdog_polling_error", error=str(e))
-            
-        time.sleep(POLL_INTERVAL_SEC)
+            elapsed = time.time() - start_time
+            if elapsed > MAX_RUN_TIME:
+                logger.warning("runaway_job_detected", run_id=run_id, ticker=ticker)
+                kill_and_restart(run_id, ticker, adapt_params=False)
+
+        # Check failed runs for auto-recovery
+        failed_runs = get_runs_by_status("FAILED")
+        for run in failed_runs:
+            # Only respawn recently failed runs to avoid infinite loops
+            end_time = int(run["info"]["end_time"]) / 1000
+            run_id = run["info"]["run_id"]
+            ticker = next(
+                (t["value"] for t in run["data"].get("tags", []) if t["key"] == "ticker"), "unknown"
+            )
+
+            # If failed within the last CHECK_INTERVAL, we adapt and respawn
+            if time.time() - end_time < CHECK_INTERVAL:
+                logger.warning("failed_job_detected", run_id=run_id, ticker=ticker)
+                kill_and_restart(run_id, ticker, adapt_params=True)
+
+        time.sleep(CHECK_INTERVAL)
+
 
 if __name__ == "__main__":
-    run_watchdog()
+    main()

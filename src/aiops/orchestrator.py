@@ -1,6 +1,7 @@
 import asyncio
+
 import structlog
-from typing import Any
+
 from src.aiops.remediators import RemediationPlanner
 from src.utils.cache import get_redis
 

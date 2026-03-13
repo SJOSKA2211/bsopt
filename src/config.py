@@ -7,7 +7,7 @@ import os
 from typing import Annotated
 
 import structlog
-from pydantic import BeforeValidator, Field, field_validator, model_validator
+from pydantic import AliasChoices, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
@@ -128,8 +128,12 @@ class Settings(BaseSettings):
     # JWT Authentication
     JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
-    JWT_PRIVATE_KEY: str | None = Field(default=None, validation_alias="JWT_PRIVATE_KEY")
-    JWT_PUBLIC_KEY: str | None = Field(default=None, validation_alias="JWT_PUBLIC_KEY")
+    JWT_PRIVATE_KEY: str | None = Field(
+        default=None, validation_alias=AliasChoices("JWT_PRIVATE_KEY", "JWT_RS256_PRIVATE")
+    )
+    JWT_PUBLIC_KEY: str | None = Field(
+        default=None, validation_alias=AliasChoices("JWT_PUBLIC_KEY", "JWT_RS256_PUBLIC")
+    )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 

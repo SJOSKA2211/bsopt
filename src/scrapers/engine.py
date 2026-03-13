@@ -19,6 +19,7 @@ from src.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
+from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
 from src.utils.cache import get_redis
 from src.utils.circuit_breaker import nse_circuit
 from src.utils.http_client import HttpClientManager
@@ -136,6 +137,9 @@ class NSEScraper:
         self._cache_ttl = settings.NSE_CACHE_TTL
         self._refresh_future: asyncio.Future | None = None
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
+
+        # High-performance RabbitMQ Producer for persistence
+        self.rabbitmq_producer = RabbitMQMarketDataProducer()
 
         # Pre-computed exact-match hash map
         self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
@@ -270,6 +274,14 @@ class NSEScraper:
                     # OPTIMIZED: Offload SHM publication to avoid blocking event loop
                     await run_sync(get_market_publisher().publish, new_cache)
 
+                    # Decoupled persistence via RabbitMQ
+                    try:
+                        await self.rabbitmq_producer.produce_market_data(
+                            new_cache, routing_key="nse.ticks"
+                        )
+                    except Exception as e:
+                        logger.error("rabbitmq_persistence_trigger_failed", error=str(e))
+
             finally:
                 if client != self.client:
                     await client.aclose()
@@ -353,8 +365,10 @@ class NSEScraper:
         return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
 
     async def shutdown(self):
-        """Gracefully close the HTTP client."""
+        """Gracefully close the HTTP client and producers."""
         await self.client.aclose()
+        if hasattr(self, "rabbitmq_producer"):
+            await self.rabbitmq_producer.close()
 
     def _clean_data(self, data: dict) -> dict:
         """Converts string values to appropriate numeric types."""

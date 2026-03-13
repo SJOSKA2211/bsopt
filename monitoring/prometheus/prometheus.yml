@@ -9,14 +9,14 @@ scrape_configs:
   # --- Core API & Pricing Services ---
   - job_name: 'bsopt-api'
     static_configs:
-      - targets: ['127.0.0.1:8008']
+      - targets: ['api:8000']
         labels:
           service: 'api'
     metrics_path: /metrics
 
   - job_name: 'bsopt-neural-pricing'
     static_configs:
-      - targets: ['127.0.0.1:8001']
+      - targets: ['neural-pricing:8000']
         labels:
           service: 'neural-pricing'
     metrics_path: /metrics
@@ -24,7 +24,7 @@ scrape_configs:
   # --- Data Ingestion ---
   - job_name: 'bsopt-scraper'
     static_configs:
-      - targets: ['127.0.0.1:8009']
+      - targets: ['scraper:8000']
         labels:
           service: 'scraper'
     metrics_path: /metrics
