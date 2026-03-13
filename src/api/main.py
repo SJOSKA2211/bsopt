@@ -161,8 +161,6 @@ async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSON
     )
 
 
-
-
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError

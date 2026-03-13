@@ -64,7 +64,7 @@ gymnasium>=0.29.1
 stable-baselines3>=2.2.1
 
 # Distributed Extra
-ray[default,train,tune]>=2.30.0
+ray[default,train,tune]>=2.42.0
 celery>=5.4.0
 aio_pika>=9.4.0
 confluent-kafka>=2.3.0

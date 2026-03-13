@@ -8,12 +8,12 @@ and automatically respawns the training job via Ray.
 """
 
 import os
-import time
 import subprocess
+import time
+
 import mlflow
-from mlflow.entities import RunStatus
-import structlog
 import ray
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -23,6 +23,7 @@ EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "bsopt_training")
 POLL_INTERVAL_SEC = 60
 
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+
 
 def init_ray():
     """Initializes connection to the Ray cluster if not already connected."""
@@ -34,6 +35,7 @@ def init_ray():
         except Exception as e:
             logger.error("ray_cluster_connection_failed", error=str(e))
 
+
 def get_experiment_id() -> str | None:
     """Gets the experiment ID by name."""
     exp = mlflow.get_experiment_by_name(EXPERIMENT_NAME)
@@ -42,13 +44,14 @@ def get_experiment_id() -> str | None:
     logger.warning("experiment_not_found", experiment_name=EXPERIMENT_NAME)
     return None
 
+
 def adapt_parameters(failed_run_params: dict) -> dict:
     """
     Heuristic-based parameter adaptation to recover from failure.
     Reduces batch size to prevent OOM, adjusts learning rate.
     """
     adapted = failed_run_params.copy()
-    
+
     # Adapt Batch Size (Handle Out of Memory issues)
     if "batch_size" in adapted:
         try:
@@ -58,7 +61,7 @@ def adapt_parameters(failed_run_params: dict) -> dict:
             logger.info("adapted_batch_size", old=current_bs, new=new_bs)
         except ValueError:
             pass
-            
+
     # Adapt Learning Rate (Handle exploding gradients)
     if "learning_rate" in adapted:
         try:
@@ -71,17 +74,18 @@ def adapt_parameters(failed_run_params: dict) -> dict:
 
     return adapted
 
+
 def respawn_training_job(params: dict, run_name: str):
     """
     Respawns the Ray training job with adapted parameters.
     """
     logger.info("respawning_training_job", run_name=run_name, params=params)
-    
+
     # Build command line arguments from params
     cmd = ["python", "-m", "src.ml.training.train_all"]
     for k, v in params.items():
         cmd.extend([f"--{k}", str(v)])
-        
+
     try:
         # We launch the training script asynchronously
         subprocess.Popen(cmd, env=os.environ.copy())
@@ -89,57 +93,62 @@ def respawn_training_job(params: dict, run_name: str):
     except Exception as e:
         logger.error("failed_to_respawn_training_job", error=str(e))
 
+
 def run_watchdog():
     """Main polling loop."""
     logger.info("mlflow_watchdog_started", tracking_uri=MLFLOW_TRACKING_URI)
     init_ray()
-    
+
     # Keep track of handled failed runs to avoid infinite respawn loops
     handled_runs = set()
-    
+
     while True:
         try:
             exp_id = get_experiment_id()
             if not exp_id:
                 time.sleep(POLL_INTERVAL_SEC)
                 continue
-                
+
             # Query for failed runs in the last 24 hours
             runs = mlflow.search_runs(
                 experiment_ids=[exp_id],
                 filter_string="status = 'FAILED'",
                 order_by=["start_time DESC"],
-                max_results=50
+                max_results=50,
             )
-            
+
             for index, run in runs.iterrows():
                 run_id = run["run_id"]
                 run_name = run.get("tags.mlflow.runName", f"run_{run_id}")
-                
+
                 if run_id in handled_runs:
                     continue
-                    
+
                 logger.warning("failed_run_detected", run_id=run_id, run_name=run_name)
-                
+
                 # Extract parameters from the run (columns starting with 'params.')
                 params = {
                     col.replace("params.", ""): run[col]
-                    for col in run.index if col.startswith("params.") and not type(run[col]) == float and run[col] is not None
+                    for col in run.index
+                    if col.startswith("params.")
+                    and not isinstance(run[col], float)
+                    and run[col] is not None
                 }
-                
+
                 adapted_params = adapt_parameters(params)
-                
+
                 # Tag the old run as 'handled_by_watchdog'
                 mlflow.tracking.MlflowClient().set_tag(run_id, "watchdog_handled", "true")
-                
+
                 # Respawn
                 respawn_training_job(adapted_params, run_name=f"{run_name}_retry")
                 handled_runs.add(run_id)
 
         except Exception as e:
             logger.error("watchdog_polling_error", error=str(e))
-            
+
         time.sleep(POLL_INTERVAL_SEC)
+
 
 if __name__ == "__main__":
     run_watchdog()

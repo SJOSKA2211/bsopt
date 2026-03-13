@@ -29,19 +29,24 @@ except ImportError:
     cp = np  # Fallback to NumPy API
     logger.warning("CuPy not found. Falling back to Numba/NumPy (CPU)")
 
+
 def to_numpy(arr: Any) -> np.ndarray:
     """Safely converts potential GPU array to NumPy."""
     if GPU_AVAILABLE and hasattr(arr, "get"):
         return arr.get()
     return np.asarray(arr)
 
+
 try:
     from numba import njit, prange
 except ImportError:
+
     def njit(*args, **kwargs):
         def decorator(func):
             return func
+
         return decorator
+
     prange = range
 
 # Constants
@@ -53,6 +58,7 @@ __all__ = [
     "calculate_greeks",
     "profile_memory",
 ]
+
 
 def profile_memory():
     """Profiles memory usage for both CPU and GPU (if available)."""
@@ -72,19 +78,29 @@ def profile_memory():
 # GPU/NumPy Vectorized Implementations (Array-native without loops)
 # -------------------------------------------------------------------------
 
+
 def _fast_normal_cdf(x: Any, backend: Any) -> Any:
     """High-precision rational approximation of normal CDF using vector operations."""
     abs_x = backend.abs(x)
     t = 1.0 / (1.0 + 0.2316419 * abs_x)
     d = INV_SQRT2PI * backend.exp(-x * x / 2.0)
-    
-    prob = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))))
-    
+
+    prob = (
+        d
+        * t
+        * (
+            0.319381530
+            + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))
+        )
+    )
+
     # Where x > 0, return 1 - prob, else return prob
     return backend.where(x > 0, 1.0 - prob, prob)
 
+
 def _fast_normal_pdf(x: Any, backend: Any) -> Any:
     return backend.exp(-0.5 * x * x) * INV_SQRT2PI
+
 
 def calculate_price(
     s: float | np.ndarray,
@@ -97,7 +113,7 @@ def calculate_price(
 ) -> float | np.ndarray:
     """Zero-Loop-Overhead GPU/CPU Vectorized Math Kernel for Black-Scholes Pricing."""
     backend = cp if GPU_AVAILABLE else np
-    
+
     s_a = backend.asarray(s, dtype=backend.float64)
     k_a = backend.asarray(k, dtype=backend.float64)
     t_a = backend.asarray(t, dtype=backend.float64)
@@ -108,24 +124,26 @@ def calculate_price(
 
     safe_t = backend.maximum(t_a, 1e-9)
     safe_sigma = backend.maximum(sigma_a, 1e-9)
-    
+
     vol_sqrt_t = safe_sigma * backend.sqrt(safe_t)
-    d1 = (backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t) / vol_sqrt_t
+    d1 = (
+        backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
+    ) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
 
     exp_qT = backend.exp(-q_a * safe_t)
     exp_rT = backend.exp(-r_a * safe_t)
-    
+
     cdf_d1 = _fast_normal_cdf(d1, backend)
     cdf_d2 = _fast_normal_cdf(d2, backend)
 
     call_price = s_a * exp_qT * cdf_d1 - k_a * exp_rT * cdf_d2
     put_price = k_a * exp_rT * (1.0 - cdf_d2) - s_a * exp_qT * (1.0 - cdf_d1)
-    
+
     out = backend.where(call_flag, call_price, put_price)
-    
+
     out = to_numpy(out)
-        
+
     if np.isscalar(s) and np.isscalar(k):
         return float(out.item())
     return out
@@ -153,9 +171,11 @@ def calculate_greeks(
 
     safe_t = backend.maximum(t_a, 1e-9)
     safe_sigma = backend.maximum(sigma_a, 1e-9)
-    
+
     vol_sqrt_t = safe_sigma * backend.sqrt(safe_t)
-    d1 = (backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t) / vol_sqrt_t
+    d1 = (
+        backend.log(s_a / k_a) + (r_a - q_a + 0.5 * safe_sigma * safe_sigma) * safe_t
+    ) / vol_sqrt_t
     d2 = d1 - vol_sqrt_t
 
     pdf_d1 = _fast_normal_pdf(d1, backend)
@@ -173,30 +193,31 @@ def calculate_greeks(
     rho = backend.where(
         call_flag,
         k_a * safe_t * exp_rT * cdf_d2 / 100.0,
-        -k_a * safe_t * exp_rT * (1.0 - cdf_d2) / 100.0
+        -k_a * safe_t * exp_rT * (1.0 - cdf_d2) / 100.0,
     )
-    
+
     theta_call = (
         -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * backend.sqrt(safe_t))
         - r_a * k_a * exp_rT * cdf_d2
         + q_a * s_a * exp_qT * cdf_d1
     ) / 365.0
-    
+
     theta_put = (
         -(s_a * safe_sigma * exp_qT * pdf_d1) / (2 * backend.sqrt(safe_t))
         + r_a * k_a * exp_rT * (1.0 - cdf_d2)
         - q_a * s_a * exp_qT * (1.0 - cdf_d1)
     ) / 365.0
-    
+
     theta = backend.where(call_flag, theta_call, theta_put)
 
     results = (delta, gamma, theta, vega, rho)
-    
+
     results = tuple(to_numpy(arr) for arr in results)
 
     if np.isscalar(s) and np.isscalar(k):
         return tuple(float(arr.item()) for arr in results)
     return results
+
 
 def njit_engine(*args, **kwargs):
     """Fallback decorator if needed by other components."""
@@ -207,5 +228,6 @@ def njit_engine(*args, **kwargs):
     if "fastmath" not in kwargs:
         kwargs["fastmath"] = True
     return njit(*args, **kwargs)
+
 
 loop_prange = prange

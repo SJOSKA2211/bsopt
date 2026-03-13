@@ -17,4 +17,4 @@ mlflow
 optuna
 gymnasium
 stable-baselines3
-ray[default,train,tune]
+ray[default,train,tune]>=2.42.0

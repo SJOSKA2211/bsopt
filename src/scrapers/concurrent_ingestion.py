@@ -476,29 +476,30 @@ async def run_concurrent_ingestion(us_universe: list[str] | None = None):
 async def run_continuous_ingestion(us_universe: list[str] | None = None):
     """Continuous orchestrator for data ingestion."""
     logger.info("continuous_ingestion_service_start")
-    
+
     # Load universe once if not provided
     if us_universe is None:
         try:
             us_universe = await get_sp500_symbols()
         except Exception as e:
             logger.error("discovery_failed", error=str(e))
-            us_universe = ["AAPL", "MSFT", "GOOGL", "TSLA", "NVDA"] # Fallback
+            us_universe = ["AAPL", "MSFT", "GOOGL", "TSLA", "NVDA"]  # Fallback
 
     while True:
         try:
             await run_concurrent_ingestion(us_universe)
-            
+
             # Standard Heartbeat
             def write_heartbeat():
-                with open('/tmp/scraper_heartbeat', 'w') as f:
+                with open("/tmp/scraper_heartbeat", "w") as f:
                     f.write(str(time.time()))
+
             await asyncio.to_thread(write_heartbeat)
-                
+
             logger.info("ingestion_cycle_complete", next_run_in="300s")
         except Exception as e:
             logger.error("ingestion_cycle_failed", error=str(e))
-        
+
         await asyncio.sleep(settings.NSE_CACHE_TTL or 300)
 
 
@@ -516,7 +517,7 @@ if __name__ == "__main__":
     logger.info("metrics_server_started", port=metrics_port)
 
     # Write heartbeat before starting
-    with open('/tmp/scraper_heartbeat', 'w') as f:
+    with open("/tmp/scraper_heartbeat", "w") as f:
         f.write(str(time.time()))
-        
+
     asyncio.run(run_continuous_ingestion())

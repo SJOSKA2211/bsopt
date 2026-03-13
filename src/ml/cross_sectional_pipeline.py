@@ -109,9 +109,7 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
             chunk["moneyness"] = s / k
             chunk["log_moneyness"] = np.log(np.maximum(s / k, 1e-8))
             chunk["sqrt_T"] = np.sqrt(np.maximum(t, 1e-8))
-            chunk["vega_gamma_ratio"] = np.where(
-                np.abs(gamma) > 1e-12, vega / (gamma + 1e-12), 0.0
-            )
+            chunk["vega_gamma_ratio"] = np.where(np.abs(gamma) > 1e-12, vega / (gamma + 1e-12), 0.0)
 
             chunks.append(chunk)
             logger.info("ml_extraction_chunk_processed", size=len(chunk))

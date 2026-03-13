@@ -15,7 +15,7 @@ gymnasium>=0.29.1
 stable-baselines3>=2.2.1
 
 # Distributed
-ray[default,train,tune]>=2.30.0
+ray[default,train,tune]>=2.42.0
 dask>=2024.2.0
 distributed>=2024.2.0
 confluent-kafka>=2.3.0
