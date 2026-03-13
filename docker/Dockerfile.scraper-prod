@@ -1,6 +1,6 @@
 # Production Dockerfile for the BS-Opt Scraper Service
 # Stage 1: Build dependencies
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ RUN uv pip install --no-cache --system -r requirements.txt \
     && uv pip install --no-cache --system playwright structlog
 
 # Stage 2: Runtime image
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 

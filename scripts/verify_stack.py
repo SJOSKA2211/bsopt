@@ -4,7 +4,8 @@ import asyncio
 import sys
 import time
 
-API_URL = "http://127.0.0.1:8008"
+API_URL = "http://192.168.23.33:8008"
+API_V1_URL = f"{API_URL}/api/v1"
 
 async def check_health():
     print("Checking API health...")
@@ -34,7 +35,7 @@ async def test_pricing():
     }
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(f"{API_URL}/pricing/price", json=payload)
+            response = await client.post(f"{API_V1_URL}/pricing/price", json=payload)
             if response.status_code == 200:
                 data = response.json()
                 print(f"✅ Pricing successful: {data['price']}")
@@ -72,7 +73,7 @@ async def test_batch_pricing():
     }
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(f"{API_URL}/pricing/batch", json=payload)
+            response = await client.post(f"{API_V1_URL}/pricing/batch", json=payload)
             if response.status_code == 200:
                 data = response.json()
                 print(f"✅ Batch pricing successful: {len(data['results'])} results")

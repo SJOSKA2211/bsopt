@@ -45,6 +45,7 @@ class FusedSecurityMiddleware:
         "/api/v1/auth/register",
         "/api/v1/auth/oauth",
         "/api/v1/auth/.well-known",
+        "/api/v1/pricing",
     )
 
     def __init__(self, app: ASGIApp):
