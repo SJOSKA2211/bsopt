@@ -191,6 +191,7 @@ class DatabaseManager:
 
         # 3. OpenTelemetry Instrumentation
         from src.monitoring.telemetry_init import instrument_sqlalchemy
+
         instrument_sqlalchemy(self._engine)
 
         self._initialized = True

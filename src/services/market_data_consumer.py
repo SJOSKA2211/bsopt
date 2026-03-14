@@ -39,10 +39,13 @@ class MarketDataConsumer:
         # Ensure time is a datetime object
         if "time" in data and isinstance(data["time"], str):
             data["time"] = datetime.fromisoformat(data["time"])
-        
+
         self.batch.append(data)
 
-        if len(self.batch) >= self.batch_size or (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval:
+        if (
+            len(self.batch) >= self.batch_size
+            or (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval
+        ):
             await self.flush_batch()
 
     async def flush_batch(self) -> None:
@@ -72,9 +75,9 @@ class MarketDataConsumer:
 if __name__ == "__main__":
     # Standalone execution logic
     consumer = MarketDataConsumer()
-    
+
     loop = asyncio.get_event_loop()
-    
+
     def shutdown():
         logger.info("shutdown_signal_received")
         for task in asyncio.all_tasks(loop):

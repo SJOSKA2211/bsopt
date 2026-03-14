@@ -247,12 +247,12 @@ class OptionPrice(Base):
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
-    __table_args__ = (
-        Index("idx_options_prices_brin", "time", postgresql_using="brin"),
-    )
+    __table_args__ = (Index("idx_options_prices_brin", "time", postgresql_using="brin"),)
 
 
 class MarketTick(Base):
@@ -268,12 +268,12 @@ class MarketTick(Base):
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
-    __table_args__ = (
-        Index("idx_market_ticks_brin", "time", postgresql_using="brin"),
-    )
+    __table_args__ = (Index("idx_market_ticks_brin", "time", postgresql_using="brin"),)
 
 
 # ML & PREDICTIONS

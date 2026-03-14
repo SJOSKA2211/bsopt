@@ -1,18 +1,15 @@
 """
 Transactional Outbox Service
 
-Ensures reliable event delivery by polling the outbox table and 
+Ensures reliable event delivery by polling the outbox table and
 dispatching events to Redis Streams or RabbitMQ.
 """
 
 import asyncio
-import time
 from datetime import UTC, datetime
 
-import orjson
 import structlog
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from src.database import get_async_db_context
 from src.database.models import OutboxEvent
@@ -63,7 +60,7 @@ class OutboxService:
                         "event_id": str(event.id),
                         "type": event.event_type,
                         "payload": event.payload,
-                        "created_at": event.created_at.isoformat()
+                        "created_at": event.created_at.isoformat(),
                     }
                     await manager.publish(data)
 

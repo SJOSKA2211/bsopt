@@ -6,7 +6,6 @@ with optimized resource allocation or backoff strategies.
 """
 
 import asyncio
-import time
 from typing import Any
 
 import mlflow
@@ -17,6 +16,7 @@ from src.config import settings
 from src.ml.distributed_training import BSOptDistributedTrainer
 
 logger = structlog.get_logger(__name__)
+
 
 class MLflowRayWatchdog:
     """
@@ -37,7 +37,7 @@ class MLflowRayWatchdog:
         Main monitoring loop.
         """
         logger.info("watchdog_started", experiment=self.experiment_name)
-        
+
         while True:
             try:
                 # 1. Fetch recent failed or killed runs
@@ -45,7 +45,7 @@ class MLflowRayWatchdog:
                     experiment_ids=[self._experiment.experiment_id],
                     filter_string=f"status = '{RunStatus.to_string(RunStatus.FAILED)}' OR status = '{RunStatus.to_string(RunStatus.KILLED)}'",
                     order_by=["start_time DESC"],
-                    max_results=5
+                    max_results=5,
                 )
 
                 for _, run in runs.iterrows():
@@ -56,13 +56,13 @@ class MLflowRayWatchdog:
                         continue
 
                     logger.warning("failed_run_detected", run_id=run_id, status=run["status"])
-                    
+
                     # 2. Trigger auto-recovery
                     await self.recover_run(run)
 
             except Exception as e:
                 logger.error("watchdog_loop_error", error=str(e))
-            
+
             await asyncio.sleep(self.check_interval)
 
     async def recover_run(self, run: Any):
@@ -71,41 +71,51 @@ class MLflowRayWatchdog:
         """
         run_id = run["run_id"]
         logger.info("initiating_recovery", run_id=run_id)
-        
+
         # Mark as recovered to avoid duplicate respawns
         mlflow.set_tag("recovered_by_watchdog", "true", run_id=run_id)
-        
+
         # Extract params from failed run to preserve configuration
         params = mlflow.get_run(run_id).data.params
-        
+
         # ⚡ Strategy: Reduce batch size on failure (common OOM recovery)
         if "batch_size" in params:
             new_batch_size = max(8, int(params["batch_size"]) // 2)
             params["batch_size"] = str(new_batch_size)
-            logger.info("recovery_strategy_applied", original_batch=params["batch_size"], new_batch=new_batch_size)
+            logger.info(
+                "recovery_strategy_applied",
+                original_batch=params["batch_size"],
+                new_batch=new_batch_size,
+            )
 
         # 3. Respawn Job via Ray
         try:
             trainer = BSOptDistributedTrainer()
             # Convert string params back to original types if necessary
             config = {k: self._infer_type(v) for k, v in params.items()}
-            
-            # Run in a separate thread/process if blocking, but BSOptDistributedTrainer.run 
+
+            # Run in a separate thread/process if blocking, but BSOptDistributedTrainer.run
             # handles Ray cluster connection.
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, trainer.run, config)
-            
+
             logger.info("recovery_job_submitted", run_id=run_id)
         except Exception as e:
             logger.error("recovery_submission_failed", run_id=run_id, error=str(e))
 
     def _infer_type(self, val: str) -> Any:
-        if val.isdigit(): return int(val)
-        try: return float(val)
-        except ValueError: pass
-        if val.lower() == "true": return True
-        if val.lower() == "false": return False
+        if val.isdigit():
+            return int(val)
+        try:
+            return float(val)
+        except ValueError:
+            pass
+        if val.lower() == "true":
+            return True
+        if val.lower() == "false":
+            return False
         return val
+
 
 if __name__ == "__main__":
     watchdog = MLflowRayWatchdog("distributed_dt_v1")

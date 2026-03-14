@@ -71,6 +71,7 @@ async def get_deep_health():
 
     # 4. Redis Probe
     from src.utils.cache import get_redis
+
     redis = get_redis()
     if redis:
         try:
@@ -85,7 +86,9 @@ async def get_deep_health():
     # 5. RabbitMQ Probe
     try:
         import aio_pika
+
         from src.config import settings
+
         # Quick connection attempt
         connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)
         await connection.close()

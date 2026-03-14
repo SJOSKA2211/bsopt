@@ -2,32 +2,34 @@ import asyncio
 import signal
 from collections.abc import Callable
 from types import FrameType
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class GracefulShutdown:
     """
     Utility to handle SIGTERM and SIGINT for graceful service shutdown.
     """
+
     def __init__(self):
         self._callbacks: list[Callable[[], Any]] = []
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
-        self._shutdown_event: Optional[asyncio.Event] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._shutdown_event: asyncio.Event | None = None
 
     def register_callback(self, callback: Callable[[], Any]):
         """Register a cleanup function to be called on shutdown."""
         self._callbacks.append(callback)
 
-    def _handle_signal(self, sig: int, frame: Optional[FrameType] = None):
+    def _handle_signal(self, sig: int, frame: FrameType | None = None):
         sig_name = signal.Signals(sig).name if hasattr(signal, "Signals") else str(sig)
         logger.info("shutdown_signal_received", signal=sig_name)
-        
+
         if self._shutdown_event is not None:
             self._shutdown_event.set()
-        
+
         # Run callbacks
         for callback in self._callbacks:
             try:
@@ -38,7 +40,7 @@ class GracefulShutdown:
             except Exception as e:
                 logger.error("shutdown_callback_failed", error=str(e))
 
-    def setup(self, loop: Optional[asyncio.AbstractEventLoop] = None):
+    def setup(self, loop: asyncio.AbstractEventLoop | None = None):
         """Setup signal handlers."""
         self._loop = loop or asyncio.get_event_loop()
         self._shutdown_event = asyncio.Event()
@@ -55,9 +57,10 @@ class GracefulShutdown:
         """Wait until a shutdown signal is received."""
         if self._shutdown_event is None:
             self.setup()
-        
+
         if self._shutdown_event is not None:
             await self._shutdown_event.wait()
         logger.info("initiating_final_shutdown")
+
 
 shutdown_handler = GracefulShutdown()

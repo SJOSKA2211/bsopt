@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from typing import Protocol
 
+import grpc
 import httpx
 import msgspec
 import pandas as pd
@@ -11,9 +12,8 @@ import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
-import grpc
-from src.protos import data_pb2, data_pb2_grpc
 from src.config import settings
+from src.protos import data_pb2, data_pb2_grpc
 from src.scrapers.mesh_publisher import get_market_publisher
 from src.shared.observability import (
     PROXY_FAILURES,
@@ -280,12 +280,14 @@ class NSEScraper:
                     try:
                         ticks = []
                         for symbol, item in new_cache.items():
-                            ticks.append(data_pb2.Tick(
-                                ticker=symbol,
-                                price=float(item.get("price", 0)),
-                                timestamp=int(time.time()),
-                                source="NSE"
-                            ))
+                            ticks.append(
+                                data_pb2.Tick(
+                                    ticker=symbol,
+                                    price=float(item.get("price", 0)),
+                                    timestamp=int(time.time()),
+                                    source="NSE",
+                                )
+                            )
                         if ticks:
                             await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=ticks))
                             logger.info("nse_ingestion_sent_to_grpc", count=len(ticks))

@@ -5,8 +5,8 @@ Handles XADD, XREADGROUP, and Consumer Group management for EquaFlow.
 """
 
 import asyncio
-import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import orjson
 import structlog
@@ -37,10 +37,14 @@ class RedisStreamManager:
         r = await self._get_redis()
         try:
             await r.xgroup_create(self.stream_name, self.group_name, id="0", mkstream=True)
-            logger.info("redis_stream_group_created", stream=self.stream_name, group=self.group_name)
+            logger.info(
+                "redis_stream_group_created", stream=self.stream_name, group=self.group_name
+            )
         except Exception as e:
             if "BUSYGROUP" in str(e):
-                logger.debug("redis_stream_group_exists", stream=self.stream_name, group=self.group_name)
+                logger.debug(
+                    "redis_stream_group_exists", stream=self.stream_name, group=self.group_name
+                )
             else:
                 logger.error("redis_stream_group_setup_failed", error=str(e))
 
@@ -54,18 +58,20 @@ class RedisStreamManager:
             # Flatten dict for Redis Stream (only supports field-value pairs)
             # We'll use a single field 'payload' with JSON string
             payload = orjson.dumps(data).decode("utf-8")
-            msg_id = await r.xadd(self.stream_name, {"payload": payload}, maxlen=max_len, approximate=True)
+            msg_id = await r.xadd(
+                self.stream_name, {"payload": payload}, maxlen=max_len, approximate=True
+            )
             return msg_id
         except Exception as e:
             logger.error("redis_stream_publish_failed", stream=self.stream_name, error=str(e))
             raise
 
     async def consume(
-        self, 
-        consumer_name: str, 
+        self,
+        consumer_name: str,
         handler: Callable[[str, dict[str, Any]], Any],
         batch_size: int = 10,
-        block_ms: int = 5000
+        block_ms: int = 5000,
     ) -> None:
         """
         Consume messages using XREADGROUP.
@@ -74,18 +80,16 @@ class RedisStreamManager:
         r = await self._get_redis()
         await self.setup_group()
 
-        logger.info("redis_stream_consumer_started", stream=self.stream_name, consumer=consumer_name)
+        logger.info(
+            "redis_stream_consumer_started", stream=self.stream_name, consumer=consumer_name
+        )
 
         while True:
             try:
                 # 1. Read new messages (ID '>')
                 streams = {self.stream_name: ">"}
                 messages = await r.xreadgroup(
-                    self.group_name, 
-                    consumer_name, 
-                    streams, 
-                    count=batch_size, 
-                    block=block_ms
+                    self.group_name, consumer_name, streams, count=batch_size, block=block_ms
                 )
 
                 if not messages:
@@ -100,7 +104,9 @@ class RedisStreamManager:
                             # 3. Acknowledge message (XACK)
                             await r.xack(self.stream_name, self.group_name, msg_id)
                         except Exception as inner_e:
-                            logger.error("redis_stream_handler_error", msg_id=msg_id, error=str(inner_e))
+                            logger.error(
+                                "redis_stream_handler_error", msg_id=msg_id, error=str(inner_e)
+                            )
                             # Depending on strategy: retry, DLQ, or drop
 
             except asyncio.CancelledError:
@@ -108,4 +114,4 @@ class RedisStreamManager:
                 break
             except Exception as e:
                 logger.error("redis_stream_consume_loop_failed", error=str(e))
-                await asyncio.sleep(1) # Backoff on connection error
+                await asyncio.sleep(1)  # Backoff on connection error

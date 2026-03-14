@@ -1,14 +1,11 @@
 import grpc
-from concurrent import futures
-import time
 import structlog
+
 from src.protos import auth_pb2, auth_pb2_grpc
 from src.security.auth import auth_service
-from src.database import get_async_db_context
-from src.database.models import User
-from sqlalchemy import select
 
 logger = structlog.get_logger(__name__)
+
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     """
@@ -19,11 +16,7 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def ValidateToken(self, request, context):
         try:
             token_data = await auth_service.validate_token(request.token)
-            return auth_pb2.TokenResponse(
-                valid=True,
-                token=request.token,
-                role=token_data.tier
-            )
+            return auth_pb2.TokenResponse(valid=True, token=request.token, role=token_data.tier)
         except Exception as e:
             logger.error("grpc_auth_validation_failed", error=str(e))
             return auth_pb2.TokenResponse(valid=False)
@@ -31,11 +24,8 @@ class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def GenerateToken(self, request, context):
         # In a real gRPC flow, this might be called after internal verification
         token_pair = auth_service.create_token_pair(request.user_id, "", request.role)
-        return auth_pb2.TokenResponse(
-            valid=True,
-            token=token_pair.access_token,
-            role=request.role
-        )
+        return auth_pb2.TokenResponse(valid=True, token=token_pair.access_token, role=request.role)
+
 
 async def serve():
     server = grpc.aio.server()
@@ -46,6 +36,8 @@ async def serve():
     await server.start()
     await server.wait_for_termination()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(serve())

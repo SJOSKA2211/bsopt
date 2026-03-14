@@ -4,14 +4,8 @@ TOTP MFA Service
 Secure TOTP-based Multi-Factor Authentication using pyotp.
 """
 
-import logging
-from datetime import UTC, datetime
-
 import pyotp
 import structlog
-from fastapi import HTTPException, status
-
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -30,10 +24,7 @@ class TOTPService:
 
     def get_provisioning_uri(self, email: str, secret: str) -> str:
         """Generate a provisioning URI for QR codes."""
-        return pyotp.totp.TOTP(secret).provisioning_uri(
-            name=email,
-            issuer_name=self.issuer_name
-        )
+        return pyotp.totp.TOTP(secret).provisioning_uri(name=email, issuer_name=self.issuer_name)
 
     def verify_token(self, secret: str, token: str) -> bool:
         """
@@ -41,7 +32,7 @@ class TOTPService:
         """
         if not secret or not token:
             return False
-            
+
         totp = pyotp.totp.TOTP(secret)
         # Allow 1 periodic interval (30s) of clock skew
         return totp.verify(token, valid_window=1)
