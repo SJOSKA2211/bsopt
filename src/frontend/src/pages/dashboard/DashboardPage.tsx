@@ -257,7 +257,8 @@ export const DashboardPage: React.FC = () => {
           direction={{ xs: 'column', lg: 'row' }}
           justifyContent="space-between"
           alignItems={{ xs: 'flex-start', lg: 'center' }}
-          sx={{ mb: 8 }}
+          className="qfd-glass qfd-holographic"
+          sx={{ mb: 8, p: 4, borderRadius: 6, position: 'relative' }}
           spacing={4}
         >
           <Box>

@@ -36,7 +36,7 @@ async def get_market_data(symbol: str) -> MarketData:
         last=data.get("price"),
         volume=data.get("volume"),
     )
-    
+
     # Enrich with real-time SHM Greeks
     shm_greeks = _greeks_mesh.read(symbol)
     if shm_greeks:
@@ -45,7 +45,7 @@ async def get_market_data(symbol: str) -> MarketData:
         md.theta = shm_greeks["theta"]
         md.vega = shm_greeks["vega"]
         md.rho = shm_greeks["rho"]
-        
+
     return md
 
 

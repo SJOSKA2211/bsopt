@@ -42,10 +42,10 @@ class WebSocketCodec:
     def decode(data: str | bytes, protocol: ProtocolType, message_type: Any | None = None) -> Any:
         if protocol == ProtocolType.JSON:
             return WebSocketCodec._json_decoder.decode(data)
-        
+
         # Binary protocols require bytes
         binary_data = data.encode() if isinstance(data, str) else data
-        
+
         if protocol == ProtocolType.MSGPACK:
             # OPTIMIZED: Use pre-allocated msgspec decoder
             return WebSocketCodec._msgpack_decoder.decode(binary_data)

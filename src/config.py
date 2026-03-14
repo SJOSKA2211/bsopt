@@ -4,10 +4,10 @@ Application configuration management.
 """
 
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 import structlog
-from pydantic import BeforeValidator, Field, field_validator, model_validator
+from pydantic import AliasChoices, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = structlog.get_logger(__name__)
@@ -80,6 +80,21 @@ class Settings(BaseSettings):
 
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
+    AUDIT_VAULT_KEY: str = Field(
+        default="changeme_32byte_key_for_god_mode!", validation_alias="AUDIT_VAULT_KEY"
+    )
+
+    # Blockchain Configuration
+    BLOCKCHAIN_RPC_URL: str = Field(
+        default="http://geth:8545", validation_alias="BLOCKCHAIN_RPC_URL"
+    )
+    BLOCKCHAIN_PRIVATE_KEY: str = Field(
+        default="0x0000000000000000000000000000000000000000000000000000000000000000",
+        validation_alias="BLOCKCHAIN_PRIVATE_KEY",
+    )
+
+    # IBM Quantum Configuration
+    IBM_QUANTUM_TOKEN: str | None = Field(default=None, validation_alias="IBM_QUANTUM_TOKEN")
 
     # Pricing Configuration
     MONTE_CARLO_GPU_THRESHOLD: int = 10000
@@ -128,8 +143,12 @@ class Settings(BaseSettings):
     # JWT Authentication
     JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
-    JWT_PRIVATE_KEY: str | None = ""
-    JWT_PUBLIC_KEY: str | None = ""
+    JWT_PRIVATE_KEY: str | None = Field(
+        default=None, validation_alias=AliasChoices("JWT_PRIVATE_KEY", "JWT_RS256_PRIVATE")
+    )
+    JWT_PUBLIC_KEY: str | None = Field(
+        default=None, validation_alias=AliasChoices("JWT_PUBLIC_KEY", "JWT_RS256_PUBLIC")
+    )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
@@ -204,30 +223,93 @@ class Settings(BaseSettings):
 
     @property
     def rsa_private_key(self) -> str:
-        """Returns the private key, ensuring it exists."""
-        if self.JWT_PRIVATE_KEY:
-            return self.JWT_PRIVATE_KEY
+        """Returns the private key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_PRIVATE_KEY
+        if raw_key:
+            import base64
+
+            try:
+                # If it's PEM format (starts with -----), return as is
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                # Otherwise assume it's base64 encoded
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_private_key", error=str(e))
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_PRIVATE_KEY is missing in production")
         return self._get_transient_key("private")
 
     @property
     def rsa_public_key(self) -> str:
-        """Returns the public key, ensuring it exists."""
-        if self.JWT_PUBLIC_KEY:
-            return self.JWT_PUBLIC_KEY
+        """Returns the public key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_PUBLIC_KEY
+        if raw_key:
+            import base64
+
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_public_key", error=str(e))
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_PUBLIC_KEY is missing in production")
         return self._get_transient_key("public")
 
+    # ES256 Keys
+    JWT_ES256_PRIVATE: str | None = Field(default=None, validation_alias="JWT_ES256_PRIVATE")
+    JWT_ES256_PUBLIC: str | None = Field(default=None, validation_alias="JWT_ES256_PUBLIC")
+
+    @property
+    def es256_private_key(self) -> str:
+        """Returns the ES256 private key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_ES256_PRIVATE
+        if raw_key:
+            import base64
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_es256_private_key", error=str(e))
+                if self.is_production:
+                    raise
+        if self.is_production:
+            raise ValueError("JWT_ES256_PRIVATE is missing in production")
+        return self._get_transient_key("private_ecc")
+
+    @property
+    def es256_public_key(self) -> str:
+        """Returns the ES256 public key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_ES256_PUBLIC
+        if raw_key:
+            import base64
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_es256_public_key", error=str(e))
+                if self.is_production:
+                    raise
+        if self.is_production:
+            raise ValueError("JWT_ES256_PUBLIC is missing in production")
+        return self._get_transient_key("public_ecc")
+
     _transient_keys: dict[str, str] = {}
 
     def _get_transient_key(self, key_type: str) -> str:
-        """Generates or retrieves a transient RSA key for development."""
+        """Generates or retrieves a transient RSA or ECC key for development."""
         if not self._transient_keys:
             from cryptography.hazmat.primitives import serialization
-            from cryptography.hazmat.primitives.asymmetric import rsa
+            from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
+            # RSA 2048
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             self._transient_keys["private"] = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -244,7 +326,24 @@ class Settings(BaseSettings):
                 .decode("utf-8")
             )
 
-            logger.warning("using_transient_rsa_keys", mode=self.ENVIRONMENT)
+            # ECC P-256
+            private_key_ecc = ec.generate_private_key(ec.SECP256R1())
+            self._transient_keys["private_ecc"] = private_key_ecc.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            ).decode("utf-8")
+
+            self._transient_keys["public_ecc"] = (
+                private_key_ecc.public_key()
+                .public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo,
+                )
+                .decode("utf-8")
+            )
+
+            logger.warning("using_transient_cryptographic_keys", mode=self.ENVIRONMENT)
 
         return self._transient_keys[key_type]
 
@@ -329,6 +428,7 @@ class Settings(BaseSettings):
 
             try:
                 import base64
+
                 decoded = base64.urlsafe_b64decode(key + "=" * (-len(key) % 4))
                 if len(decoded) < 32:
                     raise ValueError(

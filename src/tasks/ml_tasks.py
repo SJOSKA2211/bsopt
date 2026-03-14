@@ -91,11 +91,12 @@ def train_model_task(
 
 
 @celery_app.task(bind=True, base=MLTask, queue="ml")
-def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
+def monitor_drift_and_retrain_task(self, ticker: str = "AAPL", mode: str = "regressor"):
     """
     Periodic task to monitor drift and trigger the optimized MLflow pipeline via Docker.
+    Supports 'regressor' (single ticker) and 'cross_sectional' modes.
     """
-    logger.info("drift_monitoring_task_started", ticker=ticker)
+    logger.info("drift_monitoring_task_started", ticker=ticker, mode=mode)
 
     try:
         import os
@@ -104,10 +105,17 @@ def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
         # Use the central startup script
         script_path = os.path.join(os.getcwd(), "scripts/start_mlflow_pipeline.sh")
 
-        # Dispatch the job
-        # Note: We use check_call here because Celery worker should wait for dispatch to confirm success
-        subprocess.check_call(
-            [
+        if mode == "cross_sectional":
+            cmd = [
+                "bash",
+                script_path,
+                "train_cross_sectional",
+                "celery_cross_sectional_retrain",
+                "-P",
+                "epochs=5",
+            ]
+        else:
+            cmd = [
                 "bash",
                 script_path,
                 "train_regressor",
@@ -117,9 +125,11 @@ def monitor_drift_and_retrain_task(self, ticker: str = "AAPL"):
                 "-P",
                 "n_trials=10",
             ]
-        )
 
-        return {"status": "retrained_job_dispatched", "ticker": ticker}
+        # Dispatch the job
+        subprocess.check_call(cmd)
+
+        return {"status": "retrained_job_dispatched", "ticker": ticker, "mode": mode}
 
     except Exception as e:
         logger.error("drift_monitoring_task_failed", error=str(e))
@@ -185,4 +195,49 @@ def evaluate_model_task(self, model_uri: str, dataset_path: str):
         return {"status": "success", "metrics": metrics}
     except Exception as e:
         logger.error("model_evaluation_failed", error=str(e))
+        return {"status": "failed", "error": str(e)}
+
+
+@celery_app.task(bind=True, base=MLTask, queue="ml")
+def check_threshold_and_retrain_task(
+    self, ticker: str = "AAPL", force: bool = False, threshold: int = 50000, mode: str = "regressor"
+):
+    """
+    Checks if the database has accumulated enough new market data to justify retraining.
+    """
+    logger.info("check_threshold_and_retrain_start", ticker=ticker, threshold=threshold, mode=mode)
+
+    try:
+        if not force:
+            from sqlalchemy import create_engine, text
+
+            from src.config import settings
+
+            engine = create_engine(settings.DATABASE_URL)
+            with engine.connect() as conn:
+                if mode == "cross_sectional":
+                    # For cross-sectional, we check the total volume across all symbols
+                    query = text("SELECT COUNT(*) FROM market_ticks")
+                    count = conn.execute(query).scalar()
+                else:
+                    query = text("SELECT COUNT(*) FROM market_ticks WHERE symbol = :symbol")
+                    count = conn.execute(query, {"symbol": ticker}).scalar()
+
+                logger.info(
+                    "data_volume_check",
+                    ticker=ticker,
+                    current_count=count,
+                    threshold=threshold,
+                    mode=mode,
+                )
+
+                if count < threshold:
+                    logger.info("retraining_skipped_insufficient_data", ticker=ticker, mode=mode)
+                    return {"status": "skipped", "reason": "insufficient_data", "count": count}
+
+        # Trigger the actual retraining
+        return monitor_drift_and_retrain_task.delay(ticker=ticker, mode=mode).get()
+
+    except Exception as e:
+        logger.error("check_threshold_failed", error=str(e))
         return {"status": "failed", "error": str(e)}

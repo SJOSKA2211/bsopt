@@ -16,6 +16,7 @@ from src.api.schemas.common import DataResponseStruct
 from src.database import get_async_db
 from src.database.models import OptionPrice
 from src.shared.shm_mesh import GreeksMesh
+from src.utils.circuit_breaker import db_circuit
 
 router = APIRouter(prefix="/options", tags=["Options"], default_response_class=MsgspecJSONResponse)
 
@@ -43,8 +44,9 @@ class OptionChainItem(msgspec.Struct):
     time: str | None = None
 
 
-@router.get("/greeks/{symbol}")
-async def get_realtime_greeks(symbol: str) -> DataResponseStruct:
+@router.get("/greeks/{symbol}", response_model=None)
+@db_circuit
+async def get_realtime_greeks(symbol: str) -> Any:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
     if not data:
@@ -52,8 +54,9 @@ async def get_realtime_greeks(symbol: str) -> DataResponseStruct:
     return DataResponseStruct(data=data)
 
 
-@router.post("/greeks/batch")
-async def get_batch_greeks(symbols: list[str]) -> DataResponseStruct:
+@router.post("/greeks/batch", response_model=None)
+@db_circuit
+async def get_batch_greeks(symbols: list[str]) -> Any:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}
     for sym in symbols:
@@ -63,12 +66,13 @@ async def get_batch_greeks(symbols: list[str]) -> DataResponseStruct:
     return DataResponseStruct(data=results)
 
 
-@router.get("/chain")
+@router.get("/chain", response_model=None)
+@db_circuit
 async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
     db: AsyncSession = Depends(get_async_db),
-) :
+) -> Any:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""
     symbol = symbol.strip().upper()
     if not symbol.isalnum() or len(symbol) > 10:
@@ -131,9 +135,12 @@ async def get_options_chain(
                 data=enriched_data,
                 message="Real-time manifold data",
             )
-    except Exception:
-        # Fallback to synthetic if DB is empty/fails in dev
-        pass
+    except Exception as e:
+        import structlog
+
+        logger = structlog.get_logger(__name__)
+        logger.error("options_chain_db_lookup_failed", error=str(e), symbol=symbol)
+        # We continue to fallback
 
     # 2. Fallback: Synthetic data generation
     today = date.today()

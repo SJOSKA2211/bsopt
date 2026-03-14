@@ -381,7 +381,9 @@ class CalibrationEngine:
                         fit_vols = model.implied_volatility(strikes, forward, t_m)
                         # Ensure fit_vols is ndarray for mean
                         fit_vols_arr = np.atleast_1d(fit_vols)
-                        rmse = float(np.sqrt(np.mean(((fit_vols_arr - market_vols) * weights) ** 2)))
+                        rmse = float(
+                            np.sqrt(np.mean(((fit_vols_arr - market_vols) * weights) ** 2))
+                        )
 
                         if rmse < best_rmse:
                             best_rmse = rmse
@@ -440,10 +442,13 @@ class CalibrationEngine:
         fixed_beta_val = fix_beta if fix_beta is not None else -1.0  # -1 means unfixed for JIT
 
         # Objective wrapper for Scipy
-        def objective_wrapper(p: np.ndarray[Any, np.dtype[np.float64]]) -> np.ndarray[Any, np.dtype[np.float64]]:
-            return cast(np.ndarray[Any, np.dtype[np.float64]], _sabr_objective_jit(
-                p, strikes, market_vols, weights, forward, t_m, fixed_beta_val
-            ))
+        def objective_wrapper(
+            p: np.ndarray[Any, np.dtype[np.float64]],
+        ) -> np.ndarray[Any, np.dtype[np.float64]]:
+            return cast(
+                np.ndarray[Any, np.dtype[np.float64]],
+                _sabr_objective_jit(p, strikes, market_vols, weights, forward, t_m, fixed_beta_val),
+            )
 
         if fix_beta is not None:
             # params: [alpha, rho, nu]
@@ -504,7 +509,9 @@ class CalibrationEngine:
 
 class ArbitrageDetector:
     def check_butterfly_arbitrage(
-        self, strikes: np.ndarray[Any, np.dtype[np.float64]], prices: np.ndarray[Any, np.dtype[np.float64]]
+        self,
+        strikes: np.ndarray[Any, np.dtype[np.float64]],
+        prices: np.ndarray[Any, np.dtype[np.float64]],
     ) -> tuple[bool, np.ndarray[Any, np.dtype[np.float64]]]:
         # d^2C/dK^2 >= 0
         diff2 = np.diff(prices, 2)
@@ -515,7 +522,9 @@ class ArbitrageDetector:
         return bool(is_free), violations
 
     def check_calendar_arbitrage(
-        self, maturities: np.ndarray[Any, np.dtype[np.float64]], total_vars: np.ndarray[Any, np.dtype[np.float64]]
+        self,
+        maturities: np.ndarray[Any, np.dtype[np.float64]],
+        total_vars: np.ndarray[Any, np.dtype[np.float64]],
     ) -> tuple[bool, np.ndarray[Any, np.dtype[np.float64]]]:
         increments = np.diff(total_vars)
         is_free = np.all(increments >= -1e-9)

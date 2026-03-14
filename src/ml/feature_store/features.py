@@ -1,3 +1,6 @@
+from collections.abc import Callable
+from typing import Any, cast
+
 import numpy as np
 import pandas as pd
 
@@ -5,13 +8,13 @@ from .base import Feature
 
 
 class LogReturnFeature(Feature):
-    name = "log_return"
-    description = "Logarithmic return of the closing price"
+    name: str = "log_return"
+    description: str = "Logarithmic return of the closing price"
 
-    def transform(self, data: pd.DataFrame) -> pd.Series:
+    def transform(self, data: pd.DataFrame) -> pd.Series[Any]:
         if "close" not in data.columns:
             raise ValueError("Data missing 'close' column for log_return calculation")
-        return np.log(data["close"] / data["close"].shift(1)).fillna(0)
+        return cast(pd.Series[Any], np.log(data["close"] / data["close"].shift(1)).fillna(0))
 
 
 class NumbaIndicatorFeature(Feature):
@@ -19,12 +22,12 @@ class NumbaIndicatorFeature(Feature):
     High-Performance: High-performance wrapper for JIT-compiled indicators.
     """
 
-    def __init__(self, name: str, func, **kwargs):
+    def __init__(self, name: str, func: Callable[..., Any], **kwargs: Any) -> None:
         self.name = name
         self.func = func
         self.kwargs = kwargs
 
-    def transform(self, data: pd.DataFrame) -> pd.Series:
+    def transform(self, data: pd.DataFrame) -> pd.Series[Any]:
         if "close" not in data.columns:
             raise ValueError(f"Data missing 'close' for {self.name}")
 
@@ -38,21 +41,21 @@ class NumbaIndicatorFeature(Feature):
 
 
 class RSIPeature(NumbaIndicatorFeature):
-    def __init__(self, length: int = 14):
+    def __init__(self, length: int = 14) -> None:
         from src.ml.indicators import get_rsi
 
         super().__init__(f"RSI_{length}", get_rsi, length=length)
 
 
 class EMAFeature(NumbaIndicatorFeature):
-    def __init__(self, span: int = 20):
+    def __init__(self, span: int = 20) -> None:
         from src.ml.indicators import get_ema
 
         super().__init__(f"EMA_{span}", get_ema, span=span)
 
 
 class MACDFeature(NumbaIndicatorFeature):
-    def __init__(self, fast: int = 12, slow: int = 26, signal: int = 9):
+    def __init__(self, fast: int = 12, slow: int = 26, signal: int = 9) -> None:
         from src.ml.indicators import get_macd
 
         super().__init__("MACD", get_macd, fast=fast, slow=slow, signal=signal)

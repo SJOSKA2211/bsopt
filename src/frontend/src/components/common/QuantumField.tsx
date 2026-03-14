@@ -83,6 +83,22 @@ function NebulaCloud({ count = 40, color = "#7B68EE" }) {
 }
 
 /**
+ * Interactive wrapper to add parallax based on mouse position.
+ */
+function ParticleGroup({ children }: { children: React.ReactNode }) {
+    const group = useRef<THREE.Group>(null!);
+    
+    useFrame((state) => {
+        const { x, y } = state.mouse;
+        // Smoothly interpolate towards mouse position for parallax
+        group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, x * 0.5, 0.05);
+        group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, y * 0.5, 0.05);
+    });
+
+    return <group ref={group}>{children}</group>;
+}
+
+/**
  * QuantumField component provides the 3D background context for the application.
  */
 export const QuantumField: React.FC = () => {
@@ -101,10 +117,12 @@ export const QuantumField: React.FC = () => {
         >
             <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
                 <fog attach="fog" args={['#020617', 5, 20]} />
-                <Stars />
-                <NebulaCloud color="#7B68EE" count={30} />
-                <NebulaCloud color="#00FFFF" count={20} />
-                <NebulaCloud color="#D4AF37" count={15} />
+                <ParticleGroup>
+                  <Stars />
+                  <NebulaCloud color="#7B68EE" count={30} />
+                  <NebulaCloud color="#00FFFF" count={20} />
+                  <NebulaCloud color="#D4AF37" count={15} />
+                </ParticleGroup>
             </Canvas>
         </div>
     );

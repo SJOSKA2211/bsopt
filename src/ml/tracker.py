@@ -1,5 +1,7 @@
 import os
 import tempfile
+from collections.abc import Generator
+from contextlib import contextmanager
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -22,20 +24,18 @@ class ExperimentTracker:
     Handles all observability, logging, and metrics for ML training.
     """
 
-    def __init__(self, study_name: str, tracking_uri: str = None):
+    def __init__(self, study_name: str, tracking_uri: str | None = None) -> None:
         self.study_name = study_name
         if tracking_uri:
             mlflow.set_tracking_uri(tracking_uri)
 
-    def start_run(self, nested: bool = True):
+    def start_run(self, nested: bool = True) -> Any:
         """
         Starts an MLflow run, with support for nested runs and environment detection.
         """
-        import os
-        from contextlib import contextmanager
 
         @contextmanager
-        def run_context():
+        def run_context() -> Generator[Any, None, None]:
             active = mlflow.active_run()
             in_mlflow_run = "MLFLOW_RUN_ID" in os.environ
 
@@ -59,23 +59,23 @@ class ExperimentTracker:
                         mlflow.set_experiment(self.study_name)
                     except Exception as e:
                         logger.warning("set_experiment_failed", error=str(e), study=self.study_name)
-                
+
                 with mlflow.start_run() as new_run:
                     yield new_run
 
         return run_context()
 
-    def log_params(self, params: dict[str, Any]):
+    def log_params(self, params: dict[str, Any]) -> None:
         mlflow.log_params(params)
 
-    def set_tags(self, tags: dict[str, str]):
+    def set_tags(self, tags: dict[str, str]) -> None:
         mlflow.set_tags(tags)
 
-    def log_dict(self, dictionary: dict, artifact_file: str):
+    def log_dict(self, dictionary: dict[str, Any], artifact_file: str) -> None:
         """Logs a dictionary as a JSON artifact."""
         mlflow.log_dict(dictionary, artifact_file)
 
-    def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str):
+    def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str) -> None:
         mlflow.log_metric("accuracy", accuracy)
         mlflow.log_metric("rmse", rmse)
         mlflow.log_metric("duration", duration)
@@ -84,14 +84,14 @@ class ExperimentTracker:
         MODEL_ACCURACY.labels(framework=framework).set(accuracy)
         MODEL_RMSE.labels(model_type=framework, dataset="validation").set(rmse)
 
-    def log_error(self, framework: str, error: str):
+    def log_error(self, framework: str, error: str) -> None:
         TRAINING_ERRORS.labels(framework=framework).inc()
         logger.error("training_failed", framework=framework, error=error)
 
-    def log_artifact(self, local_path: str):
+    def log_artifact(self, local_path: str) -> None:
         mlflow.log_artifact(local_path)
 
-    def log_model(self, model: Any, framework: str, artifact_path: str = "model"):
+    def log_model(self, model: Any, framework: str, artifact_path: str = "model") -> None:
         if framework == "xgboost":
             mlflow.xgboost.log_model(model, artifact_path)
         elif framework == "sklearn":
@@ -101,7 +101,7 @@ class ExperimentTracker:
         else:
             mlflow.log_model(model, artifact_path)  # Generic fallback
 
-    def log_feature_importance(self, importance: dict[str, float], framework: str):
+    def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
         plt.figure(figsize=(10, 6))
         names = list(importance.keys())
         values = list(importance.values())
@@ -118,5 +118,5 @@ class ExperimentTracker:
         os.remove(plot_path)
         os.rmdir(os.path.dirname(plot_path))
 
-    def push_to_gateway(self):
+    def push_to_gateway(self) -> None:
         push_metrics(job_name=self.study_name)

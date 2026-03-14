@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Any
 
 import strawberry
 
@@ -19,10 +18,14 @@ class Option:
     ask: float | None = strawberry.federation.field(default=None, shareable=True)
     last: float | None = strawberry.federation.field(default=None, shareable=True)
     volume: int | None = strawberry.federation.field(default=None, shareable=True)
-    open_interest: int | None = strawberry.federation.field(default=None, name="openInterest", shareable=True)
+    open_interest: int | None = strawberry.federation.field(
+        default=None, name="openInterest", shareable=True
+    )
 
     # Greeks
-    implied_volatility: float | None = strawberry.federation.field(default=None, name="iv", shareable=True)
+    implied_volatility: float | None = strawberry.federation.field(
+        default=None, name="iv", shareable=True
+    )
     delta: float | None = strawberry.federation.field(default=None, shareable=True)
     gamma: float | None = strawberry.federation.field(default=None, shareable=True)
     vega: float | None = strawberry.federation.field(default=None, shareable=True)

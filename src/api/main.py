@@ -8,6 +8,7 @@ import structlog
 import uvloop
 from brotli_asgi import BrotliMiddleware
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
@@ -59,10 +60,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     db_manager.initialize()
 
+    # Initialize Telemetry (OpenTelemetry)
+    from src.monitoring.telemetry_init import init_telemetry, instrument_app, instrument_redis
+
+    init_telemetry("bsopt-api")
+    instrument_app(app)
+    instrument_redis()
+
     # Initialize Redis
-    from src.utils.cache import init_redis_cache
+    from src.utils.cache import get_redis_client, init_redis_cache
 
     await init_redis_cache()
+    redis_client = await get_redis_client()
+    
+    # Initialize Token Blacklist with Redis
+    from src.security.auth import token_blacklist
+    await token_blacklist.initialize(redis_client)
 
     # Chaos Injection
     from src.utils.chaos import monkey
@@ -160,11 +173,10 @@ async def api_exception_handler(request: Request, exc: Exception) -> MsgspecJSON
     )
 
 
-from fastapi.exceptions import RequestValidationError  # noqa: E402
-
-
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError) -> MsgspecJSONResponse:
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> MsgspecJSONResponse:
     """Handle FastAPI built-in validation errors."""
     return MsgspecJSONResponse(
         status_code=422,
@@ -200,7 +212,7 @@ app.include_router(graphql_app, prefix="/graphql")
 async def health() -> dict[str, Any]:
     from src.database import health_check
 
-    return {"status": "healthy", "database": health_check()}
+    return {"status": "healthy", "database": await health_check()}
 
 
 @app.get("/api/diagnostics/imports")

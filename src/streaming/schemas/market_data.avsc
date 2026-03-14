@@ -3,16 +3,20 @@
   "name": "MarketData",
   "fields": [
     {"name": "symbol", "type": "string"},
-    {"name": "timestamp", "type": "long"},
-    {"name": "bid", "type": "double"},
-    {"name": "ask", "type": "double"},
-    {"name": "last", "type": "double"},
-    {"name": "volume", "type": "long"},
-    {"name": "open_interest", "type": "long"},
-    {"name": "implied_volatility", "type": "double"},
-    {"name": "delta", "type": "double"},
-    {"name": "gamma", "type": "double"},
-    {"name": "vega", "type": "double"},
-    {"name": "theta", "type": "double"}
+    {"name": "time", "type": "double"},
+    {"name": "strike", "type": ["null", "double"], "default": null},
+    {"name": "expiry", "type": ["null", "string"], "default": null},
+    {"name": "option_type", "type": ["null", "string"], "default": null},
+    {"name": "bid", "type": ["null", "double"], "default": null},
+    {"name": "ask", "type": ["null", "double"], "default": null},
+    {"name": "last", "type": ["null", "double"], "default": null},
+    {"name": "volume", "type": ["null", "long"], "default": null},
+    {"name": "open_interest", "type": ["null", "long"], "default": null},
+    {"name": "source", "type": ["null", "string"], "default": null},
+    {"name": "implied_volatility", "type": ["null", "double"], "default": null},
+    {"name": "delta", "type": ["null", "double"], "default": null},
+    {"name": "gamma", "type": ["null", "double"], "default": null},
+    {"name": "vega", "type": ["null", "double"], "default": null},
+    {"name": "theta", "type": ["null", "double"], "default": null}
   ]
 }

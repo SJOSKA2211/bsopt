@@ -2,7 +2,6 @@ import logging
 import os
 
 import anyio
-import torch
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +21,7 @@ _shm_probe = None
 
 
 @router.get("/health/deep")
-async def get_deep_health() :
+async def get_deep_health():
     """High-fidelity stack probe with cached connections."""
     global _shm_probe
     health = {"status": "operational", "probes": {}}
@@ -46,6 +45,8 @@ async def get_deep_health() :
     # 2. Lazy CUDA Probe
     if os.getenv("BSOPT_USE_GPU", "0") == "1":
         try:
+            import torch
+
             cuda_available = torch.cuda.is_available()
             health["probes"]["cuda"] = {
                 "status": "available" if cuda_available else "missing",
@@ -68,15 +69,40 @@ async def get_deep_health() :
         "path": wasm_path,
     }
 
-    return DataResponseStruct(data=
-health)
+    # 4. Redis Probe
+    from src.utils.cache import get_redis
+    redis = get_redis()
+    if redis:
+        try:
+            await redis.ping()
+            health["probes"]["redis"] = {"status": "connected"}
+        except Exception as e:
+            health["probes"]["redis"] = {"status": "error", "message": str(e)}
+            health["status"] = "degraded"
+    else:
+        health["probes"]["redis"] = {"status": "not_initialized"}
+
+    # 5. RabbitMQ Probe
+    try:
+        import aio_pika
+
+        from src.config import settings
+        # Quick connection attempt
+        connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)
+        await connection.close()
+        health["probes"]["rabbitmq"] = {"status": "connected"}
+    except Exception as e:
+        health["probes"]["rabbitmq"] = {"status": "error", "message": str(e)}
+        health["status"] = "degraded"
+
+    return DataResponseStruct(data=health)
 
 
 @router.get("/status")
-async def get_system_status() :
+async def get_system_status():
     """Returns the status of various system components and circuit breakers."""
-    return DataResponseStruct(data=
-{
+    return DataResponseStruct(
+        data={
             "status": "operational",
             "circuits": {
                 "pricing": {
@@ -93,20 +119,18 @@ async def get_system_status() :
 
 
 @router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
-async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)) :
+async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     High-Performance Database Diagnostics.
     Requires Enterprise tier for high-fidelity performance metrics.
     """
-    return DataResponseStruct(data=
-await crud.get_system_health_dashboard(db))
+    return DataResponseStruct(data=await crud.get_system_health_dashboard(db))
 
 
 @router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
-async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)) :
+async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     PostgreSQL 16 I/O Performance Audit.
     Requires Enterprise tier.
     """
-    return DataResponseStruct(data=
-await crud.get_io_performance_audit(db))
+    return DataResponseStruct(data=await crud.get_io_performance_audit(db))

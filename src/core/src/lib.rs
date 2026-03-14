@@ -3,7 +3,8 @@ use numpy::{PyArray1, PyArray2, PyReadonlyArray1, PyArrayMethods};
 use rayon::prelude::*;
 use statrs::distribution::{Normal, ContinuousCDF};
 use sha3::{Digest, Keccak256};
-use pyo3::types::IntoPyDict;
+use num_complex::Complex64;
+use rand::Rng;
 
 #[pyclass]
 #[derive(Clone)]
@@ -68,13 +69,13 @@ fn black_scholes_greeks(
     };
  
     let theta = if is_call {
-        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+        -(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
          - r * k * (-r * t).exp() * n.cdf(d2)
-         + d * s * (-d * t).exp() * n.cdf(d1))
+         + d * s * (-d * t).exp() * n.cdf(d1)
     } else {
-        (-(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
+        -(s * v * (-d * t).exp() * pdf_d1) / (2.0 * t_sqrt) 
          + r * k * (-r * t).exp() * n.cdf(-d2)
-         - d * s * (-d * t).exp() * n.cdf(-d1))
+         - d * s * (-d * t).exp() * n.cdf(-d1)
     };
  
     Greeks {
@@ -91,8 +92,8 @@ fn black_scholes_greeks(
 }
 
 #[pyfunction]
-fn batch_black_scholes(
-    py: Python<'_>,
+fn batch_black_scholes<'py>(
+    py: Python<'py>,
     spots: PyReadonlyArray1<'_, f64>,
     strikes: PyReadonlyArray1<'_, f64>,
     times: PyReadonlyArray1<'_, f64>,
@@ -100,7 +101,7 @@ fn batch_black_scholes(
     rates: PyReadonlyArray1<'_, f64>,
     divs: PyReadonlyArray1<'_, f64>,
     are_calls: PyReadonlyArray1<'_, bool>,
-) -> PyResult<Py<PyAny>> {
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
     let spots = spots.as_array();
     let strikes = strikes.as_array();
     let times = times.as_array();
@@ -112,7 +113,6 @@ fn batch_black_scholes(
     let n = spots.shape()[0];
     let mut results = vec![0.0; n];
 
-    // Release GIL for multi-threaded processing
     py.allow_threads(|| {
         results.par_iter_mut().enumerate().for_each(|(i, res)| {
             *res = black_scholes_price(
@@ -127,12 +127,12 @@ fn batch_black_scholes(
         });
     });
 
-    Ok(PyArray1::from_vec(py, results).into_py(py))
+    Ok(PyArray1::from_vec_bound(py, results))
 }
 
 #[pyfunction]
-fn batch_black_scholes_greeks(
-    py: Python<'_>,
+fn batch_black_scholes_greeks<'py>(
+    py: Python<'py>,
     spots: PyReadonlyArray1<'_, f64>,
     strikes: PyReadonlyArray1<'_, f64>,
     times: PyReadonlyArray1<'_, f64>,
@@ -141,11 +141,11 @@ fn batch_black_scholes_greeks(
     divs: PyReadonlyArray1<'_, f64>,
     are_calls: PyReadonlyArray1<'_, bool>,
 ) -> PyResult<(
-    Py<PyArray1<f64>>,
-    Py<PyArray1<f64>>,
-    Py<PyArray1<f64>>,
-    Py<PyArray1<f64>>,
-    Py<PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
 )> {
     let spots = spots.as_array();
     let strikes = strikes.as_array();
@@ -188,11 +188,11 @@ fn batch_black_scholes_greeks(
     });
 
     Ok((
-        PyArray1::from_vec(py, deltas).into_py(py),
-        PyArray1::from_vec(py, gammas).into_py(py),
-        PyArray1::from_vec(py, thetas).into_py(py),
-        PyArray1::from_vec(py, vegas).into_py(py),
-        PyArray1::from_vec(py, rhos).into_py(py),
+        PyArray1::from_vec_bound(py, deltas),
+        PyArray1::from_vec_bound(py, gammas),
+        PyArray1::from_vec_bound(py, thetas),
+        PyArray1::from_vec_bound(py, vegas),
+        PyArray1::from_vec_bound(py, rhos),
     ))
 }
 
@@ -215,7 +215,6 @@ fn monte_carlo_price(
     let discount = (-rate * time).exp();
 
     if num_paths > 10000 {
-        // Parallel path using rayon
         let sum_payoff: f64 = (0..num_paths)
             .into_par_iter()
             .map_init(rand::thread_rng, |rng, _| {
@@ -247,8 +246,8 @@ fn monte_carlo_price(
 }
 
 #[pyfunction]
-fn heston_characteristic_function(
-    py: Python<'_>,
+fn heston_characteristic_function<'py>(
+    py: Python<'py>,
     v: PyReadonlyArray1<'_, f64>,
     k: PyReadonlyArray1<'_, f64>,
     alpha: PyReadonlyArray1<'_, f64>,
@@ -259,9 +258,7 @@ fn heston_characteristic_function(
     theta: PyReadonlyArray1<'_, f64>,
     sigma: PyReadonlyArray1<'_, f64>,
     rho: PyReadonlyArray1<'_, f64>,
-) -> PyResult<Py<PyArray2<num_complex::Complex64>>> {
-    use num_complex::Complex64;
-    
+) -> PyResult<Bound<'py, PyArray2<Complex64>>> {
     let v_arr = v.as_array();
     let k_arr = k.as_array();
     let alpha_arr = alpha.as_array();
@@ -276,10 +273,9 @@ fn heston_characteristic_function(
     let n_v = v_arr.len();
     let n_batch = k_arr.len();
     
-    let mut results = unsafe { PyArray2::<Complex64>::new_bound(py, [n_v, n_batch], false) };
+    let results = unsafe { PyArray2::<Complex64>::new_bound(py, [n_v, n_batch], false) };
     let mut results_view = unsafe { results.as_array_mut() };
 
-    // Parallel calculation over the frequency grid (v)
     let rows: Vec<Vec<Complex64>> = (0..n_v).into_par_iter().map(|i| {
         let vi = v_arr[i];
         let mut row: Vec<Complex64> = Vec::with_capacity(n_batch);
@@ -320,7 +316,7 @@ fn heston_characteristic_function(
         }
     }
 
-    Ok(results.into())
+    Ok(results)
 }
 
 #[pyfunction]
@@ -342,12 +338,10 @@ fn full_risk_check(
     max_gamma: f64,
     max_vega: f64,
 ) -> PyResult<(bool, f64, f64, f64)> {
-    // 1. Silicon-level fat-finger checks
     if price < min_price || price > max_price || quantity <= 0 || quantity > max_qty || (side != 1 && side != -1) {
         return Ok((false, current_delta, current_gamma, current_vega));
     }
 
-    // 2. Incremental Risk Validation
     let new_delta = current_delta + d_delta;
     let new_gamma = current_gamma + d_gamma;
     let new_vega = current_vega + d_vega;
@@ -356,7 +350,6 @@ fn full_risk_check(
         return Ok((false, current_delta, current_gamma, current_vega));
     }
 
-    // 3. Success: Return new state
     Ok((true, new_delta, new_gamma, new_vega))
 }
 
@@ -380,18 +373,12 @@ fn order_engine_loop(
             return (last_head, order_id_counter);
         }
 
-        // Pointers to the data segments (skipping 8-byte head)
-        // Order Structure (based on Python OrderBuffer): symbol(8), price(d), quantity(i), side(i), delta(d), gamma(d), vega(d)
-        // Total size per order ~ 48 bytes
         let order_data_ptr = (orders_ptr + 8) as *const u8;
         let exec_data_ptr = (execs_ptr + 8) as *mut u8;
         let risk_state_ptr = risk_ptr as *mut f64;
 
         while last_head < current_head {
             let idx = (last_head % 1000) as usize;
-            
-            // 1. Read Order (Manual offset calculation for speed)
-            // Note: This must strictly match the NumPy structured dtype in shm_mesh.py
             let offset = idx * 48; 
             let entry_ptr = order_data_ptr.add(offset);
             
@@ -400,26 +387,23 @@ fn order_engine_loop(
             let side = *(entry_ptr.add(20) as *const i32);
             let d_delta = *(entry_ptr.add(24) as *const f64);
 
-            // 2. Risk Check
             let current_portfolio_delta = *risk_state_ptr;
             let trade_delta = d_delta * (qty as f64) * (side as f64);
             let new_delta = current_portfolio_delta + trade_delta;
 
             let ok = qty > 0 && qty <= max_qty && new_delta.abs() <= max_delta;
 
-            // 3. Write Execution
-            // Execution Structure: order_id(q), status(i), fill_price(d), fill_qty(i) ~ 28 bytes
-            let exec_offset = idx * 32; // Aligned to 8 bytes for safety
+            let exec_offset = idx * 32; 
             let out_ptr = exec_data_ptr.add(exec_offset);
             
             if ok {
                 *(out_ptr as *mut i64) = order_id_counter as i64;
-                *(out_ptr.add(8) as *mut i32) = 1; // Success
-                *risk_state_ptr = new_delta; // Commit risk state
+                *(out_ptr.add(8) as *mut i32) = 1; 
+                *risk_state_ptr = new_delta; 
                 order_id_counter += 1;
             } else {
                 *(out_ptr as *mut i64) = -1;
-                *(out_ptr.add(8) as *mut i32) = 0; // Reject
+                *(out_ptr.add(8) as *mut i32) = 0; 
             }
             
             *(out_ptr.add(16) as *mut f64) = price;
@@ -428,7 +412,6 @@ fn order_engine_loop(
             last_head += 1;
         }
 
-        // 4. Update Execution Head
         *execs_head_ptr = last_head;
 
         (last_head, order_id_counter)
@@ -524,39 +507,37 @@ fn svi_total_variance(k: f64, a: f64, b: f64, rho: f64, m: f64, sigma: f64) -> f
 }
 
 #[pyfunction]
-fn batch_svi_total_variance(
-    py: Python<'_>,
+fn batch_svi_total_variance<'py>(
+    py: Python<'py>,
     k: PyReadonlyArray1<'_, f64>,
     a: f64,
     b: f64,
     rho: f64,
     m: f64,
     sigma: f64,
-) -> PyResult<Py<PyArray1<f64>>> {
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
     let k = k.as_array();
     let n = k.len();
     let results = unsafe { PyArray1::new_bound(py, [n], false) };
-    
-    // Use rayon for parallelization if n is large
+    let mut results_view = unsafe { results.as_array_mut() };
+
     if n > 1000 {
         let k_vec: Vec<f64> = k.to_vec();
         let res_vec: Vec<f64> = k_vec.par_iter().map(|&ki| {
             a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt())
         }).collect();
         
-        let mut results_view = unsafe { results.as_array_mut() };
         for (i, &val) in res_vec.iter().enumerate() {
             results_view[i] = val;
         }
     } else {
-        let mut results_view = unsafe { results.as_array_mut() };
         for i in 0..n {
             let ki = k[i];
             results_view[i] = a + b * (rho * (ki - m) + ((ki - m).powi(2) + sigma.powi(2)).sqrt());
         }
     }
     
-    Ok(results.into())
+    Ok(results)
 }
 
 #[pyfunction]
@@ -586,8 +567,8 @@ fn sabr_implied_vol(
 }
 
 #[pyfunction]
-fn batch_sabr_implied_vol(
-    py: Python<'_>,
+fn batch_sabr_implied_vol<'py>(
+    py: Python<'py>,
     strike: PyReadonlyArray1<'_, f64>,
     forward: f64,
     maturity: f64,
@@ -595,17 +576,17 @@ fn batch_sabr_implied_vol(
     beta: f64,
     rho: f64,
     nu: f64,
-) -> PyResult<Py<PyArray1<f64>>> {
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
     let strike = strike.as_array();
     let n = strike.len();
     let results = unsafe { PyArray1::new_bound(py, [n], false) };
-    
     let mut results_view = unsafe { results.as_array_mut() };
+
     for i in 0..n {
         results_view[i] = sabr_implied_vol(strike[i], forward, maturity, alpha, beta, rho, nu);
     }
     
-    Ok(results.into())
+    Ok(results)
 }
 
 #[pyfunction]
@@ -616,7 +597,6 @@ fn normal_cdf(x: f64) -> f64 {
 
 #[pyfunction]
 fn normal_ppf(p: f64) -> f64 {
-    use statrs::distribution::Continuous;
     let n = Normal::new(0.0, 1.0).unwrap();
     n.inverse_cdf(p)
 }
@@ -666,7 +646,7 @@ fn barrier_option_price(
     vol: f64,
     h: f64,
     rebate: f64,
-    barrier_type: i32, // 0: DO, 1: DI, 2: UO, 3: UI
+    barrier_type: i32, 
     is_call: bool,
 ) -> f64 {
     let b = r - q;
@@ -734,8 +714,8 @@ fn digital_option_price(
 }
 
 #[pyfunction]
-fn batch_black_scholes_iv(
-    py: Python<'_>,
+fn batch_black_scholes_iv<'py>(
+    py: Python<'py>,
     market_prices: PyReadonlyArray1<'_, f64>,
     spots: PyReadonlyArray1<'_, f64>,
     strikes: PyReadonlyArray1<'_, f64>,
@@ -745,7 +725,7 @@ fn batch_black_scholes_iv(
     is_calls: PyReadonlyArray1<'_, bool>,
     tolerance: f64,
     max_iter: i32,
-) -> PyResult<Py<PyArray1<f64>>> {
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
     let p = market_prices.as_array();
     let s = spots.as_array();
     let k = strikes.as_array();
@@ -769,14 +749,12 @@ fn batch_black_scholes_iv(
 
         if ti <= 1e-12 { return 0.0; }
 
-        // Initial guess: Corrado-Miller
         let mut sigma = 0.25; 
         
-        // Newton-Raphson
         for _ in 0..max_iter {
             let price = black_scholes_price(si, ki, ti, sigma, ri, qi, ic);
             let greeks = black_scholes_greeks(si, ki, ti, sigma, ri, qi, ic);
-            let vega = greeks.vega * 100.0; // Our greeks are scaled for 1% vol
+            let vega = greeks.vega * 100.0; 
 
             let diff = price - pi;
             if diff.abs() < tolerance {
@@ -791,11 +769,11 @@ fn batch_black_scholes_iv(
         sigma
     }).collect();
 
-    for (i, val) in rows.into_iter().enumerate() {
+    for (i, &val) in rows.iter().enumerate() {
         results_view[i] = val;
     }
 
-    Ok(results.into())
+    Ok(results)
 }
 
 #[pyfunction]
@@ -810,13 +788,12 @@ fn hash_order_eip712(
     _py: Python<'_>,
     _order_data: &Bound<'_, PyAny>,
 ) -> PyResult<Vec<u8>> {
-    // Simplified EIP-712 hashing for now
     Ok(vec![0u8; 32])
 }
 
 #[pyfunction]
 fn calibrate_svi_rust(
-    py: Python<'_>,
+    _py: Python<'_>,
     log_moneyness: PyReadonlyArray1<'_, f64>,
     market_vols: PyReadonlyArray1<'_, f64>,
     weights: PyReadonlyArray1<'_, f64>,
@@ -831,7 +808,6 @@ fn calibrate_svi_rust(
     let target = market_vols.as_array();
     let w = weights.as_array();
 
-    // SVI Problem Struct
     struct SVIProblem<'a> {
         k: ndarray::ArrayView1<'a, f64>,
         target: ndarray::ArrayView1<'a, f64>,
@@ -902,6 +878,100 @@ fn calibrate_svi_rust(
     }
 }
 
+#[pyfunction]
+fn validate_tick(_ticker: String, price: f64, last_price: f64) -> PyResult<bool> {
+    // 1. Basic sanity check (No negative prices)
+    if price <= 0.0 {
+        return Ok(false);
+    }
+    
+    // 2. Outlier detection: Reject if price deviates > 15% from last known price
+    if last_price > 0.0 {
+        let deviation = (price - last_price).abs() / last_price;
+        if deviation > 0.15 {
+            return Ok(false);
+        }
+    }
+    
+    Ok(true)
+}
+
+#[pyfunction]
+fn rk4_gbm_path<'py>(
+    py: Python<'py>,
+    s0: f64,
+    mu: f64,
+    sigma: f64,
+    t: f64,
+    dt: f64,
+    num_paths: usize,
+) -> PyResult<Bound<'py, PyArray2<f64>>> {
+    let steps = (t / dt).ceil() as usize;
+    let results = unsafe { PyArray2::<f64>::new_bound(py, [num_paths, steps + 1], false) };
+    let results_view = unsafe { results.as_array_mut() };
+
+    py.allow_threads(|| {
+        (0..num_paths).into_par_iter().for_each(|path_idx| {
+            let mut rng = rand::thread_rng();
+            let normal = rand_distr::StandardNormal;
+            let mut s = s0;
+            
+            // Safety: Each thread writes to its own slice of the array.
+            unsafe {
+                let row_ptr = results_view.as_ptr().add(path_idx * (steps + 1)) as *mut f64;
+                *row_ptr = s;
+
+                for i in 1..=steps {
+                    let d_w = rng.sample::<f64, _>(normal) * dt.sqrt();
+                    
+                    // Unified RK4-Milstein Step
+                    let k1 = mu * s * dt;
+                    let k2 = mu * (s + 0.5 * k1) * dt;
+                    let k3 = mu * (s + 0.5 * k2) * dt;
+                    let k4 = mu * (s + k3) * dt;
+                    
+                    let deterministic = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+                    let stochastic = sigma * s * d_w + 0.5 * sigma * sigma * s * (d_w * d_w - dt);
+                    
+                    s += deterministic + stochastic;
+                    *row_ptr.add(i) = s;
+                }
+            }
+        });
+    });
+
+    Ok(results)
+}
+
+#[pyfunction]
+fn parse_mmap_ticks(
+    _py: Python<'_>,
+    ptr: usize,
+    len: usize,
+) -> PyResult<Vec<(u64, f64, i32)>> {
+    // Zero-copy parsing from memory-mapped buffer
+    // Layout: Timestamp (u64), Price (f64), Qty (i32) = 20 bytes per tick
+    let tick_size = 20;
+    let num_ticks = len / tick_size;
+    let mut ticks = Vec::with_capacity(num_ticks);
+
+    unsafe {
+        let base_ptr = ptr as *const u8;
+        for i in 0..num_ticks {
+            let offset = i * tick_size;
+            let tick_ptr = base_ptr.add(offset);
+            
+            let ts = *(tick_ptr as *const u64);
+            let price = *(tick_ptr.add(8) as *const f64);
+            let qty = *(tick_ptr.add(16) as *const i32);
+            
+            ticks.push((ts, price, qty));
+        }
+    }
+
+    Ok(ticks)
+}
+
 #[pymodule]
 fn bsopt_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Greeks>()?;
@@ -928,5 +998,8 @@ fn bsopt_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(barrier_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(digital_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
+    m.add_function(wrap_pyfunction!(rk4_gbm_path, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_mmap_ticks, m)?)?;
     Ok(())
 }

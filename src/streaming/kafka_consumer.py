@@ -7,6 +7,7 @@ from typing import Any
 import msgspec
 import structlog
 from confluent_kafka import Consumer, KafkaError
+from confluent_kafka import Producer as ConfluentProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 
@@ -52,6 +53,10 @@ class MarketDataConsumer:
         self.consumer = Consumer(self.config)
         self.consumer.subscribe(topics)
         self.running = False
+        
+        # DLQ Producer
+        self.dlq_topic = f"{topics[0]}-dlq" if topics else "market-data-dlq"
+        self.dlq_producer = ConfluentProducer({"bootstrap.servers": bootstrap_servers})
 
         # Schema Registry for Avro deserialization
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
@@ -99,7 +104,14 @@ class MarketDataConsumer:
                                 topic_batches[topic] = []
                             topic_batches[topic].append(data)
                     except Exception as e:
-                        logger.error("message_processing_error", error=str(e))
+                        logger.error("message_processing_error_sending_to_dlq", error=str(e), topic=msg.topic())
+                        self.dlq_producer.produce(
+                            topic=self.dlq_topic,
+                            key=msg.key(),
+                            value=msg.value(),
+                            headers=[("error", str(e).encode("utf-8")), ("original_topic", msg.topic().encode("utf-8"))]
+                        )
+                        self.dlq_producer.poll(0)
 
                 if topic_batches:
                     start_time = time.time()

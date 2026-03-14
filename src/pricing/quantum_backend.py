@@ -1,4 +1,3 @@
-import os
 from typing import Any
 
 import structlog
@@ -19,6 +18,8 @@ try:
 except ImportError:
     IBMProvider = None  # type: ignore
     IBM_PROVIDER_AVAILABLE = False
+
+from src.config import settings
 
 logger = structlog.get_logger()
 
@@ -51,8 +52,8 @@ class QuantumBackendManager:
                 "qiskit-ibm-provider is not installed. Cannot access remote backends."
             )
 
-        token = os.environ.get("IBM_QUANTUM_TOKEN")
-        if not token:
+        token = settings.IBM_QUANTUM_TOKEN
+        if not token or token == "replace_me_with_real_token":
             raise ValueError(
                 "IBM_QUANTUM_TOKEN environment variable not set. Cannot access remote backends."
             )

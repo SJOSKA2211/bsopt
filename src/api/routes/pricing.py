@@ -2,6 +2,7 @@
 Pricing Routes (Optimized)
 """
 
+import asyncio
 import datetime
 
 import msgspec
@@ -19,6 +20,8 @@ from src.api.schemas.pricing import (
     PriceResult,
 )
 from src.services.pricing_service import PricingService
+from src.utils.cache import multi_layer_cache
+from src.utils.circuit_breaker import pricing_circuit
 
 logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=MsgspecJSONResponse)
@@ -26,6 +29,8 @@ pricing_service = PricingService()
 
 
 @router.post("/price", response_model=None)
+@pricing_circuit
+@multi_layer_cache(prefix="price", ttl=300)
 async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     """
     Calculate theoretical price for a single option.
@@ -41,6 +46,8 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
 
 
 @router.post("/batch", response_model=None)
+@pricing_circuit
+@multi_layer_cache(prefix="batch_price", ttl=60)
 async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
     """
     Vectorized batch pricing.
@@ -50,6 +57,7 @@ async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult
 
 
 @router.post("/greeks/batch", response_model=None)
+@pricing_circuit
 async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResult:
     """
     Vectorized batch Greek calculation.
@@ -58,6 +66,8 @@ async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResu
 
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)
+@pricing_circuit
+@multi_layer_cache(prefix="greeks", ttl=300)
 async def calculate_greeks(body: GreeksRequest):
     """
     Calculate option Greeks.
@@ -83,6 +93,7 @@ class CalculateResponseStruct(msgspec.Struct):
 
 
 @router.post("/calculate")
+@pricing_circuit
 async def calculate(body: dict) -> MsgspecJSONResponse:
     """
     Convenience endpoint used by tests and demos.
@@ -103,40 +114,48 @@ async def calculate(body: dict) -> MsgspecJSONResponse:
     )
     params = req.to_bs_params()
 
-    # Calculate price
-    result = await pricing_service.price_option(
+    # Concurrently calculate price and greeks
+    price_task = pricing_service.price_option(
         params=params,
         option_type=req.option_type,
         model=req.model,
         symbol=req.symbol,
     )
+    greeks_task = pricing_service.calculate_greeks(params, req.option_type)
 
-    # Also calculate greeks
+    result, greeks_result = await asyncio.gather(price_task, greeks_task, return_exceptions=True)
+
+    # Handle results and potential exceptions
+    if isinstance(result, Exception):
+        logger.error("calculate_price_failed", error=str(result))
+        result = None
+
     greeks_data = {}
-    try:
-        greeks_result = await pricing_service.calculate_greeks(params, req.option_type)
+    if not isinstance(greeks_result, Exception) and greeks_result is not None:
         if hasattr(greeks_result, "__dict__"):
             greeks_data = vars(greeks_result)
         elif isinstance(greeks_result, dict):
             greeks_data = greeks_result
         # Ensure all greeks are plain floats not numpy arrays
         greeks_data = {k: float(v) for k, v in greeks_data.items() if v is not None}
-    except Exception:
-        pass
+    elif isinstance(greeks_result, Exception):
+        logger.warning("calculate_greeks_failed", error=str(greeks_result))
 
     # Zero-copy Struct response
     resp = CalculateResponseStruct(
-        price=getattr(result, "price", 0.0),
+        price=getattr(result, "price", 0.0) if result else 0.0,
         greeks=greeks_data,
-        spot=getattr(result, "spot", req.spot),
-        strike=getattr(result, "strike", req.strike),
-        time_to_expiry=getattr(result, "time_to_expiry", req.time_to_expiry),
-        rate=getattr(result, "rate", req.rate),
-        volatility=getattr(result, "volatility", req.volatility),
-        option_type=getattr(result, "option_type", req.option_type),
-        model=getattr(result, "model", req.model),
-        computation_time_ms=getattr(result, "computation_time_ms", 0.0),
-        cached=getattr(result, "cached", False),
+        spot=getattr(result, "spot", req.spot) if result else req.spot,
+        strike=getattr(result, "strike", req.strike) if result else req.strike,
+        time_to_expiry=getattr(result, "time_to_expiry", req.time_to_expiry)
+        if result
+        else req.time_to_expiry,
+        rate=getattr(result, "rate", req.rate) if result else req.rate,
+        volatility=getattr(result, "volatility", req.volatility) if result else req.volatility,
+        option_type=getattr(result, "option_type", req.option_type) if result else req.option_type,
+        model=getattr(result, "model", req.model) if result else req.model,
+        computation_time_ms=getattr(result, "computation_time_ms", 0.0) if result else 0.0,
+        cached=getattr(result, "cached", False) if result else False,
         timestamp=getattr(result, "timestamp", datetime.datetime.now(datetime.UTC)),
     )
     return MsgspecJSONResponse(content=resp)

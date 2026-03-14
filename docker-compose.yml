@@ -89,6 +89,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - ./docker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./docker/definitions.json:/etc/rabbitmq/definitions.json:ro
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -170,6 +173,9 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
+    sysctls:
+      - net.core.somaxconn=1024
+      - net.ipv4.tcp_fastopen=3
     command: granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --websockets --opt
 
   # === Portfolio Service ===
@@ -293,8 +299,29 @@ services:
       - bsopt-network
     command: celery -A src.tasks.celery_app worker -l info
 
-  # === Scraper Service ===
-  scraper:
+  # === Persistence Worker (Kafka-to-TimescaleDB) ===
+  persistence-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+      target: development
+    volumes:
+      - ./src:/app/src
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=${DATABASE_URL}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka-1:
+        condition: service_started
+    networks:
+      - bsopt-network
+    command: python src/streaming/persistence_worker.py
+
+  # === NSE Scraper Service ===
+  nse-scraper:
     build:
       context: .
       dockerfile: docker/Dockerfile.scraper-lite
@@ -312,21 +339,57 @@ services:
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
-      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - USE_SHM=1
-    healthcheck:
-      test: ["CMD", "python", "-c", "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - INSIDE_DOCKER=1
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - ingestion-service
+    networks:
+      - bsopt-network
+    command: python src/scrapers/engine.py
+
+  # === yfinance Scraper Service ===
+  yfinance-scraper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scraper-lite
+      target: production
+    ports:
+      - "8004:8000"
+    volumes:
+      - ./src:/app/src
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1gb
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=${DATABASE_URL}
+      - INSIDE_DOCKER=1
+    depends_on:
+      - ingestion-service
+    networks:
+      - bsopt-network
+    command: python src/scrapers/yfinance_scraper.py
+
+  # === Generic Scraper Service ===
+  scraper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scraper-prod
+    volumes:
+      - ./src:/app/src
+      - shared_shm:/dev/shm
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1gb
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=${DATABASE_URL}
+      - INSIDE_DOCKER=1
+    depends_on:
+      - ingestion-service
     networks:
       - bsopt-network
 
@@ -473,7 +536,6 @@ services:
 
   # === [Specialized] Streaming Service ===
   kafka-1:
-    profiles: [ "streaming" ]
     image: confluentinc/cp-kafka:latest
     environment:
       KAFKA_PROCESS_ROLES: 'broker,controller'
@@ -485,6 +547,10 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - bsopt-network
+    sysctls:
+      - net.core.somaxconn=4096
+      - net.ipv4.tcp_max_syn_backlog=8192
+      - net.ipv4.tcp_tw_reuse=1
 
   # === [Specialized] ML Compute Cluster ===
   ray-head:
@@ -493,6 +559,7 @@ services:
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
+      - "8080:8080" # Ray Metrics
     networks:
       - bsopt-network
     environment:
@@ -511,7 +578,32 @@ services:
           cpus: '2'
           memory: 2gb
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --block
+
+  ray-worker-1:
+    profiles: [ "ml" ]
+    image: rayproject/ray:latest-py312-cpu
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
+      - INSIDE_DOCKER=1
+    networks:
+      - bsopt-network
+    volumes:
+      - ./:/app
+    shm_size: '2gb'
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2gb
+    working_dir: /app
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -537,7 +629,7 @@ services:
           cpus: '2'
           memory: 2gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:
@@ -546,7 +638,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=${DATABASE_URL}
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
       - MLFLOW_ARTIFACT_ROOT=/app/mlruns
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
     volumes:
@@ -556,7 +648,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri ${DATABASE_URL} --default-artifact-root /app/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt --default-artifact-root /app/mlruns
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
@@ -605,20 +697,79 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@localhost:6379/0
     command: python scripts/hft/bs_hft_launch.py
 
-  # === [Specialized] Reverse Proxy / Gateway ===
-  gateway:
-    profiles: [ "proxy" ]
+  # === [Institutional] Ingestion Service ===
+  ingestion-service:
     build:
       context: .
-      dockerfile: docker/Dockerfile.gateway
+      dockerfile: docker/Dockerfile.api
+      target: development
     ports:
-      - "80:80"
-      - "443:443"
+      - "50053:50053"
+    environment:
+      - PYTHONPATH=/app
+      - INSIDE_DOCKER=1
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
     depends_on:
-      - app-gateway
+      - kafka-1
+    networks:
+      - bsopt-network
+    sysctls:
+      - net.core.somaxconn=4096
+      - net.ipv4.tcp_fastopen=3
+    command: python src/services/data/ingestion_service.py
+
+  # === [Institutional] Stream Transformer ===
+  transformer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+      target: development
+    environment:
+      - PYTHONPATH=/app
+      - INSIDE_DOCKER=1
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
+    depends_on:
+      - kafka-1
+      - ingestion-service
+    networks:
+      - bsopt-network
+    command: python src/streaming/transformer.py
+
+  # === [Specialized] Envoy API Gateway (Institutional Edge) ===
+  envoy:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.envoy
+    ports:
+      - "80:8080"
+      - "443:443"
+    volumes:
+      - /home/h8t3dj4y/.bsopt/pki:/etc/envoy/ssl:ro
+    depends_on:
+      - api
       - auth-service
     networks:
       - bsopt-network
+    sysctls:
+      - net.core.somaxconn=4096
+      - net.ipv4.tcp_fastopen=3
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
+
+  # === [Specialized] Rust Core (Institutional Compute) ===
+  rust-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rust-core
+    volumes:
+      - .:/app
+      - shared_shm:/dev/shm
+    networks:
+      - bsopt-network
+    environment:
+      - INSIDE_DOCKER=1
 
   # === [Specialized] Observability Stack ===
   # === Monitoring Service ===
@@ -651,6 +802,31 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+      - loki
+    networks:
+      - bsopt-network
+
+  loki:
+    profiles: [ "observability" ]
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - bsopt-network
+
+  otel-collector:
+    profiles: [ "observability" ]
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus exporter
     networks:
       - bsopt-network
 
@@ -677,6 +853,9 @@ services:
       - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
     networks:
       - bsopt-network
+    sysctls:
+      - net.core.somaxconn=4096
+      - net.ipv4.tcp_fastopen=3
     depends_on:
       - frontend
       - auth-service
@@ -686,6 +865,14 @@ services:
 networks:
   bsopt-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: "1500"
+      com.docker.network.bridge.name: "bsopt0"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
 
 volumes:
   shared_shm:

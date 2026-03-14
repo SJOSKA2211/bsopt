@@ -32,6 +32,7 @@ const DecorativeBg: React.FC = () => (
     {GREEK_SYMBOLS.map((sym, i) => (
       <Typography
         key={i}
+        className="animate-float"
         sx={{
           position: 'absolute',
           color: alpha('#10b981', 0.04 + (i % 3) * 0.015),
@@ -43,6 +44,7 @@ const DecorativeBg: React.FC = () => (
           pointerEvents: 'none',
           fontFamily: 'serif',
           filter: 'blur(0.5px)',
+          animationDelay: `${i * 0.5}s`,
         }}
       >
         {sym}
@@ -103,19 +105,22 @@ export default function SignIn() {
     >
       <DecorativeBg />
 
-      <Paper
-        className="fade-in"
-        sx={{
-          position: 'relative',
-          zIndex: 1,
-          width: '100%',
-          maxWidth: 440,
-          mx: 2,
-          p: 4,
-          border: `1px solid ${alpha('#94a3b8', 0.1)}`,
-          boxShadow: `0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px ${alpha('#10b981', 0.08)}`,
-        }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{ width: '100%', maxWidth: 440, zIndex: 1 }}
       >
+        <Paper
+          className="qfd-glass qfd-holographic"
+          sx={{
+            position: 'relative',
+            width: '100%',
+            p: 4,
+            border: `1px solid ${alpha('#94a3b8', 0.1)}`,
+            boxShadow: `0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px ${alpha('#10b981', 0.08)}`,
+          }}
+        >
         {/* Brand */}
         <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
           <Box
@@ -281,7 +286,8 @@ export default function SignIn() {
             </Link>
           ))}
         </Stack>
-      </Paper>
+        </Paper>
+      </motion.div>
     </Box>
   );
 }

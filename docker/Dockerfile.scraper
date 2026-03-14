@@ -1,6 +1,6 @@
 # === Stage 1: Builder ===
-FROM python:3.13-slim AS builder
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+FROM python:3.12-slim-bookworm AS builder
+RUN pip install uv
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 
 # === Stage 2: Development ===
-FROM python:3.13-slim AS development
+FROM python:3.12-slim-bookworm AS development
 
 WORKDIR /app
 
@@ -57,7 +57,7 @@ CMD ["python", "src/scrapers/engine.py"]
 
 
 # === Stage 3: Production ===
-FROM python:3.13-slim AS production
+FROM python:3.12-slim-bookworm AS production
 
 WORKDIR /app
 
@@ -91,6 +91,9 @@ COPY src/ ./src
 RUN chown -R bsopt:bsopt /app
 
 USER bsopt
+
+HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["python", "src/scrapers/engine.py"]

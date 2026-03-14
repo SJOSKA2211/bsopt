@@ -14,6 +14,7 @@ from scipy.stats import ks_2samp
 
 try:
     import bsopt_core
+
     _CORE_AVAILABLE = True
 except ImportError:
     _CORE_AVAILABLE = False
@@ -127,11 +128,11 @@ class DataDriftDetector:
             try:
                 # Use pre-calculated bins for consistency
                 bins = np.histogram_bin_edges(reference, bins=self.n_bins).astype(np.float64)
-                return float(bsopt_core.calculate_psi(
-                    reference.astype(np.float64), 
-                    current.astype(np.float64), 
-                    bins
-                ))
+                return float(
+                    bsopt_core.calculate_psi(
+                        reference.astype(np.float64), current.astype(np.float64), bins
+                    )
+                )
             except Exception:
                 pass
 

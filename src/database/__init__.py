@@ -3,6 +3,7 @@ PostgreSQL Connection Management (High-Performance)
 Optimized for PG16 + TimescaleDB 2.17+ with robust pooling and retry logic.
 """
 
+import asyncio
 import time
 from collections.abc import AsyncGenerator, Generator
 from contextlib import asynccontextmanager, contextmanager
@@ -11,7 +12,6 @@ from typing import Any, TypeVar, cast
 import msgspec
 import structlog
 from sqlalchemy import Engine, create_engine, event, text
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -189,6 +189,10 @@ class DatabaseManager:
             bind=self._async_engine, class_=AsyncSession, expire_on_commit=False
         )
 
+        # 3. OpenTelemetry Instrumentation
+        from src.monitoring.telemetry_init import instrument_sqlalchemy
+        instrument_sqlalchemy(self._engine)
+
         self._initialized = True
         logger.info("database_manager_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
 
@@ -305,25 +309,26 @@ async def set_user_context(session: AsyncSession, user_id: str) -> None:
     )
 
 
-def health_check() -> dict[str, Any]:
-    """Enhanced database connectivity health check with retry."""
+async def health_check() -> dict[str, Any]:
+    """Enhanced database connectivity health check with retry (Asynchronous)."""
     status: dict[str, Any] = {"status": "unhealthy", "pgbouncer": settings.PGBOUNCER_ENABLED}
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            engine = db_manager.engine
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-                version = conn.execute(text("SHOW server_version")).scalar()
+            # Use async engine for health check
+            async_engine = db_manager.async_engine
+            async with async_engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+                version = (await conn.execute(text("SHOW server_version"))).scalar()
                 status["status"] = "healthy"
                 status["version"] = version
                 return status
-        except OperationalError as e:
+        except Exception as e:
             if attempt == max_retries - 1:
                 logger.error("database_health_check_failed", error=str(e))
                 status["error"] = str(e)
             else:
-                time.sleep(1)  # Simple backoff
+                await asyncio.sleep(1)  # Async backoff
     return status
 
 

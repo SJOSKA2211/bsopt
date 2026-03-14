@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,7 +8,7 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.td3.policies import TD3Policy
 
 
-class CausalSelfAttention(nn.Module):
+class CausalSelfAttention(nn.Module):  # type: ignore
     def __init__(
         self,
         n_embd: int,
@@ -14,7 +16,7 @@ class CausalSelfAttention(nn.Module):
         n_positions: int,
         attn_pdrop: float,
         resid_pdrop: float,
-    ):
+    ) -> None:
         super().__init__()
         assert n_embd % n_head == 0
 
@@ -44,7 +46,7 @@ class CausalSelfAttention(nn.Module):
             k,
             v,
             attn_mask=None,
-            dropout_p=self.attn_drop.p if self.training else 0,
+            dropout_p=self.attn_drop.p if self.training else 0.0,
             is_causal=True,
         )
 
@@ -53,7 +55,7 @@ class CausalSelfAttention(nn.Module):
         return y
 
 
-class Block(nn.Module):
+class Block(nn.Module):  # type: ignore
     def __init__(
         self,
         n_embd: int,
@@ -61,7 +63,7 @@ class Block(nn.Module):
         n_positions: int,
         attn_pdrop: float,
         resid_pdrop: float,
-    ):
+    ) -> None:
         super().__init__()
         self.ln1 = nn.LayerNorm(n_embd)
         self.ln2 = nn.LayerNorm(n_embd)
@@ -79,7 +81,7 @@ class Block(nn.Module):
         return x
 
 
-class DecisionTransformer(nn.Module):
+class DecisionTransformer(nn.Module):  # type: ignore
     def __init__(
         self,
         state_dim: int,
@@ -95,7 +97,7 @@ class DecisionTransformer(nn.Module):
         n_positions: int = 1024,
         resid_pdrop: float = 0.1,
         attn_pdrop: float = 0.1,
-    ):
+    ) -> None:
         super().__init__()
         self.state_dim = state_dim
         self.act_dim = act_dim
@@ -109,9 +111,10 @@ class DecisionTransformer(nn.Module):
 
         self.embed_ln = nn.LayerNorm(hidden_size)
 
-        self.predict_action = nn.Sequential(
-            *([nn.Linear(hidden_size, act_dim)] + ([nn.Tanh()] if action_tanh else []))
-        )
+        layers: list[nn.Module] = [nn.Linear(hidden_size, act_dim)]
+        if action_tanh:
+            layers.append(nn.Tanh())
+        self.predict_action = nn.Sequential(*layers)
         self.predict_return = nn.Linear(hidden_size, 1)
         self.predict_state = nn.Linear(hidden_size, state_dim)
 
@@ -149,30 +152,15 @@ class DecisionTransformer(nn.Module):
         returns_embeddings = returns_embeddings + time_embeddings
 
         # Stack embeddings: [R, s, a, R, s, a, ...]
-        # For simplicity, let's use the standard DT ordering: (R_t, s_t, a_t)
-        # But for inference we usually want a_t given (R_t, s_t).
-
         # Interleave embeddings: (batch, 3 * seq_len, hidden_size)
         stacked = torch.stack([returns_embeddings, state_embeddings, action_embeddings], dim=2)
         token_embeddings = stacked.reshape(batch_size, seq_length * 3, self.hidden_size)
 
         token_embeddings = self.embed_ln(token_embeddings)
 
-        # Transformer forward
-        # Adjust mask for 3 tokens per step
-        # (batch, 3 * seq_len)
-        all_mask = torch.zeros((batch_size, seq_length * 3), dtype=torch.long, device=states.device)
-        all_mask[:, ::3] = attention_mask
-        all_mask[:, 1::3] = attention_mask
-        all_mask[:, 2::3] = attention_mask
-
-        # We need to implement padding masking in the Attention block if we want variable length
-        # For now, assuming fixed block processing or simple causal masking (handled by CausalSelfAttention)
-
         x = self.blocks(token_embeddings)
 
         # Outputs
-        # Action prediction comes from state embedding (index 1)
         x_reshaped = x.reshape(batch_size, seq_length, 3, self.hidden_size)
 
         # Predict action given (R, s) -> using output at index 1 (state)
@@ -187,7 +175,7 @@ class DecisionTransformer(nn.Module):
         return state_preds, action_preds, return_preds
 
 
-class TransformerFeatureExtractor(BaseFeaturesExtractor):
+class TransformerFeatureExtractor(BaseFeaturesExtractor):  # type: ignore
     """Custom transformer feature extractor for RL handling 2D time-series input."""
 
     def __init__(
@@ -197,7 +185,7 @@ class TransformerFeatureExtractor(BaseFeaturesExtractor):
         d_model: int = 128,
         nhead: int = 4,
         num_layers: int = 2,
-    ):
+    ) -> None:
         super().__init__(observation_space, features_dim)
         # observation_space.shape is (window_size, 100)
         self.window_size = observation_space.shape[0]
@@ -222,12 +210,11 @@ class TransformerFeatureExtractor(BaseFeaturesExtractor):
         x = self.ln(x)
 
         # Take the latent of the *latest* token for RL policy
-        # Or we can use Global Average Pooling across the window
-        return self.out(x[:, -1, :])
+        return cast(torch.Tensor, self.out(x[:, -1, :]))
 
 
-class TransformerTD3Policy(TD3Policy):
+class TransformerTD3Policy(TD3Policy):  # type: ignore
     """TD3 Policy with Transformer extractor."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

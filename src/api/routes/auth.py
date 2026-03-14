@@ -3,10 +3,11 @@ Authentication Routes (Optimized for PG16 + Async)
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, cast
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
+from jwt.exceptions import PyJWTError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,7 @@ from src.api.schemas.auth import (
     PasswordChangeRequest,
     PasswordResetConfirmRequest,
     PasswordResetRequest,
+    RefreshTokenRequest,
     RegisterRequest,
     TokenResponse,
 )
@@ -57,7 +59,7 @@ async def register(
     background_tasks: BackgroundTasks,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Register a new user using High-Performance Native DB procedure.
     MIGRATION: Use /api/auth/sign-up in the auth-service (Node.js).
@@ -108,7 +110,7 @@ async def login(
     data: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Authenticate via Native DB procedure (High Performance).
     MIGRATION: Use /api/auth/login in the auth-service (Node.js).
@@ -150,12 +152,62 @@ async def login(
     except AuthenticationException:
         raise
     except Exception as e:
-        logger.error(f"login_native_failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Authentication system error")
+        logger.error(f"login_failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Authentication failure")
+
+
+@router.post("/refresh", response_model=None)
+async def refresh_token(
+    data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_async_db),
+) -> Any:
+    """
+    Refresh access token using a valid refresh token.
+    Implements Refresh Token Rotation for enhanced security.
+    """
+    try:
+        # 1. Decode and validate the refresh token
+        token_data = auth_service.decode_token(data.refresh_token)
+        if token_data.token_type != "refresh":
+            raise AuthenticationException(message="Invalid token type")
+
+        # 2. Check blacklist (Reuse detection)
+        if await auth_service.token_blacklist.contains(token_data.jti):
+            logger.warning(
+                "refresh_token_reuse_detected", jti=token_data.jti, user_id=token_data.user_id
+            )
+            # Potentially revoke all tokens for this user for safety
+            raise AuthenticationException(message="Token has been revoked")
+
+        # 3. Invalidate the used refresh token (Rotation)
+        await auth_service.token_blacklist.add(token_data.jti, token_data.exp)
+
+        # 4. Create new token pair
+        new_tokens = auth_service.create_token_pair(
+            token_data.user_id, token_data.email, token_data.tier
+        )
+
+        return DataResponseStruct(
+            data=TokenResponse(
+                access_token=new_tokens.access_token,
+                refresh_token=new_tokens.refresh_token,
+                token_type=new_tokens.token_type,
+                expires_in=new_tokens.expires_in,
+                user_id=token_data.user_id,
+                email=token_data.email,
+                tier=token_data.tier,
+            ),
+            message="Token refreshed successfully",
+        )
+    except PyJWTError:
+        raise AuthenticationException(message="Invalid or expired refresh token")
+    except Exception as e:
+        logger.error(f"refresh_failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Token refresh failure")
 
 
 @router.get("/me")
-async def read_users_me(user: User = Depends(get_current_active_user)) -> DataResponseStruct:
+async def read_users_me(user: User = Depends(get_current_active_user)):
     return DataResponseStruct(data=UserResponse.from_orm(user))
 
 
@@ -177,12 +229,12 @@ async def logout(
     return SuccessResponse(message="Successfully logged out")
 
 
-@router.post("/mfa/setup", deprecated=True)
+@router.post("/mfa/setup", deprecated=True, response_model=None)
 async def mfa_setup(
     response: Response,
     user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
-) -> DataResponseStruct:
+) -> Any:
     """
     [LEGACY] Initialize MFA setup for the user.
     MIGRATION: Use auth-service's two-factor plugin routes.
@@ -200,16 +252,16 @@ async def mfa_setup(
         # Decrypt existing secret for URI generation
         plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
 
-    uri = mfa_service.get_provisioning_uri(user.email, plain_secret)
-    qr_code = mfa_service.generate_qr_code(uri)
+    # Generate provisioning URI
+    uri = mfa_service.generate_provisioning_uri(user.email, plain_secret)
 
     return DataResponseStruct(
         data=MFASetupResponse(
-            secret=plain_secret,  # Return plaintext once for setup
+            secret=plain_secret,
             provisioning_uri=uri,
-            qr_code_uri=qr_code,
-        ),
-        message="MFA setup initialized",
+            qr_code_uri=None,  # Frontend generates QR from URI
+            backup_codes=[],  # Future: generate and return backup codes
+        )
     )
 
 
@@ -221,23 +273,26 @@ async def mfa_verify(
     db: AsyncSession = Depends(get_async_db),
 ) -> SuccessResponse:
     """
-    [LEGACY] Verify MFA code and enable it for the user.
-    MIGRATION: Use auth-service's two-factor plugin routes.
+    [LEGACY] Verify MFA code and enable MFA for the user.
+    MIGRATION: Use auth-service routes.
     """
     _log_legacy_warning("/mfa/verify")
     response.headers["X-API-Status"] = "deprecated"
 
     if not user.mfa_secret:
-        raise HTTPException(status_code=400, detail="MFA not initialized")
+        raise HTTPException(status_code=400, detail="MFA not setup")
 
-    # Decrypt secret for verification
+    # Decrypt secret
     plain_secret = mfa_service.decrypt_secret(user.mfa_secret)
 
-    if mfa_service.verify_code(plain_secret, data.code):
-        user.is_mfa_enabled = True
-        await db.commit()
-        return SuccessResponse(message="MFA enabled successfully (Legacy)")
-    raise ValidationException(message="Invalid MFA code")
+    if not mfa_service.verify_code(plain_secret, data.code):
+        raise AuthenticationException(message="Invalid MFA code")
+
+    # Enable MFA
+    user.mfa_enabled = True
+    await db.commit()
+
+    return SuccessResponse(message="MFA enabled successfully")
 
 
 @router.post("/password/change", deprecated=True)

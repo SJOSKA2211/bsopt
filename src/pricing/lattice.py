@@ -169,7 +169,9 @@ class LatticePricer(PricingStrategy):
 
         # Vega
         p_v_up = self.price_european(BSParameters(s, k, t, v + dv, r, q), option_type)
-        p_v_down = self.price_european(BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type)
+        p_v_down = self.price_european(
+            BSParameters(s, k, t, max(0.0001, v - dv), r, q), option_type
+        )
         vega = (p_v_up - p_v_down) / (2 * dv)
 
         # Theta (using backward difference - change in price as time passes)

@@ -1,0 +1,20 @@
+
+# ML requirements with CPU-only Torch for faster dev builds
+--index-url https://pypi.org/simple
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Core (from requirements-api.txt)
+-r requirements-api.txt
+
+# ML Extras (CPU versions) - Relaxed constraints to avoid conflicts
+torch>=2.2.0
+lightning>=2.2.0
+pytorch-forecasting>=1.0.0
+torch-geometric>=2.5.0
+xgboost>=2.0.0
+scikit-learn>=1.4.0
+mlflow
+optuna
+gymnasium
+stable-baselines3
+ray[default,train,tune]

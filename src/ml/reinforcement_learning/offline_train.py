@@ -1,5 +1,6 @@
-import pickle  # nosec B403
+import pickle  # nosec
 import time
+from typing import Any, cast
 
 import mlflow
 import mlflow.pytorch
@@ -17,14 +18,14 @@ from src.ml.reinforcement_learning.decision_transformer import (
 logger = structlog.get_logger()
 
 
-class TrajectoryDataset(Dataset):
-    def __init__(self, trajectories):
+class TrajectoryDataset(Dataset[dict[str, th.Tensor]]):  # type: ignore
+    def __init__(self, trajectories: list[dict[str, Any]]) -> None:
         self.trajectories = trajectories
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.trajectories)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> dict[str, th.Tensor]:
         traj = self.trajectories[idx]
         return {
             "states": th.tensor(traj.get("states", []), dtype=th.float32),
@@ -34,12 +35,12 @@ class TrajectoryDataset(Dataset):
         }
 
 
-def expectile_loss(diff, tau=0.7):
+def expectile_loss(diff: th.Tensor, tau: float = 0.7) -> th.Tensor:
     weight = th.where(diff > 0, tau, 1 - tau)
     return weight * (diff**2)
 
 
-def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
+def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
     """
      OPTIMIZATION: Convert bulky serialized trajectories to compressed Parquet.
     Enables zero-copy reading and sharding for Ray Data.
@@ -48,7 +49,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
 
     try:
         with open(pkl_path, "rb") as f:
-            data = pickle.load(f)
+            data = pickle.load(f)  # nosec
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)
@@ -56,7 +57,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str):
         logger.error("parquet_conversion_failed", error=str(e))
 
 
-def _log_gradient_flow(model: nn.Module, step: int):
+def _log_gradient_flow(model: nn.Module, step: int) -> None:
     """
     High-Performance: Monitor gradient flow across deep transformer layers.
     Helps detect vanishing/exploding gradients in real-time.
@@ -67,8 +68,8 @@ def _log_gradient_flow(model: nn.Module, step: int):
     for n, p in model.named_parameters():
         if p.requires_grad and ("bias" not in n) and p.grad is not None:
             layers.append(n)
-            avg_grads.append(p.grad.abs().mean().item())
-            max_grads.append(p.grad.abs().max().item())
+            avg_grads.append(float(p.grad.abs().mean().item()))
+            max_grads.append(float(p.grad.abs().max().item()))
 
     if avg_grads:
         mlflow.log_metric("grad_avg_mean", sum(avg_grads) / len(avg_grads), step=step)
@@ -81,7 +82,7 @@ def train_offline(
     batch_size: int = 64,
     iql_beta: float = 3.0,
     iql_tau: float = 0.7,
-):
+) -> None:
     """
     Advanced Offline training for Decision Transformer (v2) with IQL integration.
     OPTIMIZED: AMP, torch.compile, Cosine Annealing, Gradient Flow Monitoring.
@@ -93,10 +94,10 @@ def train_offline(
         import pandas as pd
 
         df = pd.read_parquet(dataset_path)
-        trajectories = df.to_dict("records")
+        trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
         with open(dataset_path, "rb") as f:
-            trajectories = pickle.load(f)  # nosec B301
+            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
@@ -106,12 +107,12 @@ def train_offline(
     device = th.device("cuda" if th.cuda.is_available() else "cpu")
 
     # DT-v2 Model
-    model = DecisionTransformer(state_dim=128, action_dim=10).to(device)
+    model = cast(nn.Module, DecisionTransformer(state_dim=128, action_dim=10).to(device))
 
     # IQL Components
-    q_net = QNetwork(state_dim=128, action_dim=10).to(device)
-    v_net = ValueNetwork(state_dim=128).to(device)
-    target_q_net = QNetwork(state_dim=128, action_dim=10).to(device)
+    q_net = cast(nn.Module, QNetwork(state_dim=128, action_dim=10).to(device))
+    v_net = cast(nn.Module, ValueNetwork(state_dim=128).to(device))
+    target_q_net = cast(nn.Module, QNetwork(state_dim=128, action_dim=10).to(device))
     target_q_net.load_state_dict(q_net.state_dict())
 
     #  ACCELERATION: torch.compile
@@ -149,7 +150,7 @@ def train_offline(
         global_step = 0
         for epoch in range(epochs):
             model.train()
-            epoch_loss = 0
+            epoch_loss = 0.0
             start_time = time.time()
 
             for batch in loader:
@@ -160,10 +161,10 @@ def train_offline(
 
                 # 1. Update Value Network (Expectile Regression)
                 with th.no_grad():
-                    q1, q2 = target_q_net(states, actions)
+                    q1, q2 = cast(Any, target_q_net)(states, actions)
                     target_q = th.min(q1, q2)
 
-                v = v_net(states)
+                v = cast(Any, v_net)(states)
                 v_loss = expectile_loss(target_q - v, tau=iql_tau).mean()
 
                 v_optimizer.zero_grad(set_to_none=True)
@@ -172,8 +173,8 @@ def train_offline(
 
                 # 2. Update Decision Transformer (Policy) with AWR Weighting
                 with th.no_grad():
-                    v_val = v_net(states)
-                    q1, q2 = q_net(states, actions)
+                    v_val = cast(Any, v_net)(states)
+                    q1, q2 = cast(Any, q_net)(states, actions)
                     advantage = th.min(q1, q2) - v_val
                     # Advantage Normalization
                     advantage = (advantage - advantage.mean()) / (advantage.std() + 1e-8)
@@ -181,7 +182,7 @@ def train_offline(
 
                 optimizer.zero_grad(set_to_none=True)
                 with th.amp.autocast("cuda", enabled=(device.type == "cuda")):
-                    state_preds, action_preds, return_preds = model(
+                    state_preds, action_preds, return_preds = cast(Any, model)(
                         states,
                         actions,
                         rtg,
@@ -204,7 +205,7 @@ def train_offline(
                 scaler.step(optimizer)
                 scaler.update()
 
-                epoch_loss += loss.item()
+                epoch_loss += float(loss.item())
                 global_step += 1
 
             # Step scheduler
@@ -224,7 +225,9 @@ def train_offline(
         # Log weight distributions at the end
         for name, param in model.named_parameters():
             if param.requires_grad:
-                mlflow.log_param(f"weight_norm_{name.replace('.', '_')}", param.norm().item())
+                mlflow.log_param(
+                    f"weight_norm_{name.replace('.', '_')}", float(param.norm().item())
+                )
 
         mlflow.pytorch.log_model(model, "decision_transformer_v2_god_mode")
         th.save(model.state_dict(), "models/dt_v2_final.pt")

@@ -20,7 +20,6 @@ class MLPipelineTrigger:
         logger.info("ml_pipeline_trigger", status="attempting_retraining", config=self.config)
 
         try:
-            import os
             import subprocess
 
             compose_bin = "docker"
