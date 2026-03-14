@@ -922,7 +922,7 @@ fn rk4_gbm_path<'py>(
                 *row_ptr = s;
 
                 for i in 1..=steps {
-                    let d_w = (rng.sample(normal) as f64) * dt.sqrt();
+                    let d_w = rng.sample::<f64, _>(normal) * dt.sqrt();
                     
                     // Unified RK4-Milstein Step
                     let k1 = mu * s * dt;
