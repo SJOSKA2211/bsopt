@@ -514,7 +514,6 @@ services:
 
   # === [Specialized] Streaming Service ===
   kafka-1:
-    profiles: [ "streaming" ]
     image: confluentinc/cp-kafka:latest
     environment:
       KAFKA_PROCESS_ROLES: 'broker,controller'
