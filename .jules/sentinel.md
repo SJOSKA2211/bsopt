@@ -11,3 +11,8 @@
 **Vulnerability:** The API had defined but unused security middlewares (`IPBlockMiddleware`, `CSRFMiddleware`). These were omitted from the main application startup file, leaving the application vulnerable to IP-based attacks (e.g., brute force, DDoS) and CSRF attacks for state-changing endpoints.
 **Learning:** Adding new security middleware to the repository is not sufficient; they must be explicitly registered to the application's middleware stack in `main.py` in the correct order.
 **Prevention:** Always verify integration of new security middleware definitions in the main application entry point (`main.py`). Consider enforcing this through an automated linting or testing rule that ensures all exported security middleware classes are applied.
+
+## 2024-03-14 - Secure PostgreSQL Variable Configuration
+**Vulnerability:** PostgreSQL does not natively support parameter binding for the `SET` command. Using parameters like `SET LOCAL app.current_user_id = :user_id` throws an execution error. Developers may resort to unsafe string concatenation (f-strings) to work around this, leading to potential SQL injection.
+**Learning:** `set_config` is a native PostgreSQL function that safely sets configuration variables and fully supports parameter binding, unlike the `SET` command.
+**Prevention:** Use `SELECT set_config('variable_name', :value, true)` instead of `SET LOCAL` for setting session-level PostgreSQL variables safely in SQLAlchemy.
