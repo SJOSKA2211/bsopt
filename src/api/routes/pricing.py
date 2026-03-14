@@ -20,7 +20,7 @@ from src.api.schemas.pricing import (
     PriceResult,
 )
 from src.services.pricing_service import PricingService
-from src.utils.cache import multi_layer_cache, pricing_cache
+from src.utils.cache import multi_layer_cache
 from src.utils.circuit_breaker import pricing_circuit
 
 logger = structlog.get_logger(__name__)

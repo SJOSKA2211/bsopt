@@ -1,12 +1,9 @@
+
 import grpc
-from concurrent import futures
-import time
 import structlog
+
 from src.protos import auth_pb2, auth_pb2_grpc
 from src.security.auth import auth_service
-from src.database import get_async_db_context
-from src.database.models import User
-from sqlalchemy import select
 
 logger = structlog.get_logger(__name__)
 

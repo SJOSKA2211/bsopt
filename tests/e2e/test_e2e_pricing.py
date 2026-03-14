@@ -1,4 +1,5 @@
 import os
+
 import pytest
 from playwright.async_api import async_playwright
 
@@ -30,7 +31,7 @@ async def test_pricing_e2e_flow():
             "model": "black_scholes"
         }
         
-        async with page.expect_response(f"{API_URL}/api/v1/pricing/price") as response_info:
+        async with page.expect_response(f"{API_URL}/api/v1/pricing/price"):
             response = await page.request.post(
                 f"{API_URL}/api/v1/pricing/price",
                 data=pricing_data
@@ -66,7 +67,7 @@ async def test_websocket_realtime_data():
         # Wait for some data (assuming producer is running)
         await page.wait_for_timeout(5000)
         
-        records_count = await page.evaluate("window.ws_records.length")
+        await page.evaluate("window.ws_records.length")
         # In a real environment, we'd ensure some ticks were published
         # For now, we just verify the connection attempt didn't crash
         

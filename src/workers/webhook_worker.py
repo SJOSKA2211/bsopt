@@ -1,11 +1,11 @@
 import asyncio
-import os
 import sys
 
 import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
+from src.config import settings
 from src.utils.celery import BaseAsyncTask
 from src.utils.lazy_import import lazy_import
 from src.webhooks.dispatcher import WebhookDispatcher
@@ -19,8 +19,6 @@ except ImportError:
     pass
 
 logger = structlog.get_logger()
-
-from src.config import settings
 
 celery_app = Celery("webhook_worker", broker=settings.broker_url)
 

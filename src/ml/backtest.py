@@ -1,8 +1,8 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import structlog
+
 from src.database import get_async_db_context
-from src.database.models import MLModel
 
 logger = structlog.get_logger(__name__)
 
@@ -36,12 +36,11 @@ class BacktestEngine:
 
     async def _trigger_rollback(self):
         logger.warning("backtest_performance_failed_triggering_rollback", model_id=self.model_id)
-        async with get_async_db_context() as db:
+        async with get_async_db_context():
             # 1. Flag current model as non-production
             # 2. Promote previous best model to production
             pass
 
 if __name__ == "__main__":
-    import asyncio
     engine = BacktestEngine("test_model")
     # asyncio.run(engine.run_backtest(pd.DataFrame()))

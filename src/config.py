@@ -277,7 +277,8 @@ class Settings(BaseSettings):
                 return base64.b64decode(raw_key).decode("utf-8")
             except Exception as e:
                 logger.error("failed_to_decode_jwt_es256_private_key", error=str(e))
-                if self.is_production: raise
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_ES256_PRIVATE is missing in production")
         return self._get_transient_key("private_ecc")
@@ -294,7 +295,8 @@ class Settings(BaseSettings):
                 return base64.b64decode(raw_key).decode("utf-8")
             except Exception as e:
                 logger.error("failed_to_decode_jwt_es256_public_key", error=str(e))
-                if self.is_production: raise
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_ES256_PUBLIC is missing in production")
         return self._get_transient_key("public_ecc")
@@ -305,7 +307,7 @@ class Settings(BaseSettings):
         """Generates or retrieves a transient RSA or ECC key for development."""
         if not self._transient_keys:
             from cryptography.hazmat.primitives import serialization
-            from cryptography.hazmat.primitives.asymmetric import rsa, ec
+            from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
             # RSA 2048
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

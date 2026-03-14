@@ -6,7 +6,6 @@ with optimized resource allocation or backoff strategies.
 """
 
 import asyncio
-import time
 from typing import Any
 
 import mlflow
@@ -100,11 +99,16 @@ class MLflowRayWatchdog:
             logger.error("recovery_submission_failed", run_id=run_id, error=str(e))
 
     def _infer_type(self, val: str) -> Any:
-        if val.isdigit(): return int(val)
-        try: return float(val)
-        except ValueError: pass
-        if val.lower() == "true": return True
-        if val.lower() == "false": return False
+        if val.isdigit():
+            return int(val)
+        try:
+            return float(val)
+        except ValueError:
+            pass
+        if val.lower() == "true":
+            return True
+        if val.lower() == "false":
+            return False
         return val
 
 if __name__ == "__main__":

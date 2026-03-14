@@ -5,8 +5,8 @@ Handles XADD, XREADGROUP, and Consumer Group management for EquaFlow.
 """
 
 import asyncio
-import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import orjson
 import structlog

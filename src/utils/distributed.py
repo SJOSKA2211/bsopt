@@ -82,7 +82,6 @@ class RayOrchestrator:
             memory_gb=round(object_store_memory / 1024**3, 2),
         )
 
-        import orjson
 
         address = os.getenv("RAY_ADDRESS")
         if address:

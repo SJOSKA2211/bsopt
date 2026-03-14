@@ -85,6 +85,7 @@ async def get_deep_health():
     # 5. RabbitMQ Probe
     try:
         import aio_pika
+
         from src.config import settings
         # Quick connection attempt
         connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)

@@ -1,14 +1,13 @@
 import asyncio
 import time
-import yfinance as yf
+
 import grpc
 import structlog
-from datetime import datetime, UTC
-from typing import List
+import yfinance as yf
+from aiolimiter import AsyncLimiter
+
 from src.protos import data_pb2, data_pb2_grpc
 from src.scrapers.discovery import get_sp500_symbols
-from aiolimiter import AsyncLimiter
-from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
 
 logger = structlog.get_logger(__name__)
 
@@ -17,7 +16,7 @@ class YFinanceScraper:
     High-performance yfinance scraper for the institutional universe.
     Decoupled via gRPC Ingestion Service.
     """
-    def __init__(self, symbols: List[str] = None):
+    def __init__(self, symbols: list[str] = None):
         self.symbols = symbols or []
         self.limiter = AsyncLimiter(max_rate=5, time_period=1.0)
         self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
@@ -55,7 +54,7 @@ class YFinanceScraper:
             await self.scrape_batch(batch)
             await asyncio.sleep(0.5) # Slight jitter
 
-    async def scrape_batch(self, batch: List[str]):
+    async def scrape_batch(self, batch: list[str]):
         """
         Fetches data for a batch of symbols and pushes to gRPC.
         """

@@ -6,7 +6,8 @@ from typing import Any
 
 import msgspec
 import structlog
-from confluent_kafka import Consumer, KafkaError, Producer as ConfluentProducer
+from confluent_kafka import Consumer, KafkaError
+from confluent_kafka import Producer as ConfluentProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 

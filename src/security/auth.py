@@ -304,7 +304,6 @@ class AuthService:
             return token_data
 
         # 3. Legacy Session/JWT Fallback (Local DB Check)
-        from src.database import get_async_db_context
         # ... rest of existing logic ...
 
         # 3. Legacy JWT Fallback

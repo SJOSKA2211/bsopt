@@ -6,8 +6,8 @@ inference performance on CPU-bound edge nodes.
 """
 
 import os
+
 import structlog
-import torch
 from onnxruntime.quantization import QuantType, quantize_dynamic
 
 logger = structlog.get_logger(__name__)

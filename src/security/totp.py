@@ -4,14 +4,9 @@ TOTP MFA Service
 Secure TOTP-based Multi-Factor Authentication using pyotp.
 """
 
-import logging
-from datetime import UTC, datetime
 
 import pyotp
 import structlog
-from fastapi import HTTPException, status
-
-from src.config import settings
 
 logger = structlog.get_logger(__name__)
 

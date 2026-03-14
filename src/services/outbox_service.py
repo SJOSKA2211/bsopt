@@ -6,13 +6,10 @@ dispatching events to Redis Streams or RabbitMQ.
 """
 
 import asyncio
-import time
 from datetime import UTC, datetime
 
-import orjson
 import structlog
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from src.database import get_async_db_context
 from src.database.models import OutboxEvent

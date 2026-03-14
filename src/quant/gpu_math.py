@@ -1,5 +1,5 @@
 import cupy as cp
-import numpy as np
+
 
 def gpu_black_scholes(s: cp.ndarray, k: cp.ndarray, t: cp.ndarray, v: cp.ndarray, r: cp.ndarray, is_call: cp.ndarray) -> cp.ndarray:
     """
@@ -27,7 +27,6 @@ def gpu_greeks(s: cp.ndarray, k: cp.ndarray, t: cp.ndarray, v: cp.ndarray, r: cp
     """
     sqrt_t = cp.sqrt(t)
     d1 = (cp.log(s / k) + (r + 0.5 * v * v) * t) / (v * sqrt_t)
-    d2 = d1 - v * sqrt_t
     
     def norm_cdf(x):
         return 0.5 * (1.0 + cp.erf(x / cp.sqrt(2.0)))
