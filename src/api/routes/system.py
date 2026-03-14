@@ -69,6 +69,31 @@ async def get_deep_health():
         "path": wasm_path,
     }
 
+    # 4. Redis Probe
+    from src.utils.cache import get_redis
+    redis = get_redis()
+    if redis:
+        try:
+            await redis.ping()
+            health["probes"]["redis"] = {"status": "connected"}
+        except Exception as e:
+            health["probes"]["redis"] = {"status": "error", "message": str(e)}
+            health["status"] = "degraded"
+    else:
+        health["probes"]["redis"] = {"status": "not_initialized"}
+
+    # 5. RabbitMQ Probe
+    try:
+        import aio_pika
+        from src.config import settings
+        # Quick connection attempt
+        connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)
+        await connection.close()
+        health["probes"]["rabbitmq"] = {"status": "connected"}
+    except Exception as e:
+        health["probes"]["rabbitmq"] = {"status": "error", "message": str(e)}
+        health["status"] = "degraded"
+
     return DataResponseStruct(data=health)
 
 

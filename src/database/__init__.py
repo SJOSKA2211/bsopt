@@ -189,6 +189,10 @@ class DatabaseManager:
             bind=self._async_engine, class_=AsyncSession, expire_on_commit=False
         )
 
+        # 3. OpenTelemetry Instrumentation
+        from src.monitoring.telemetry_init import instrument_sqlalchemy
+        instrument_sqlalchemy(self._engine)
+
         self._initialized = True
         logger.info("database_manager_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)
 
