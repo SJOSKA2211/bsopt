@@ -19,7 +19,8 @@ FROM node:20-alpine AS development
 WORKDIR /app
 
 COPY src/auth-service/package*.json ./
-RUN apk add --no-cache python3 make g++ && npm install
+RUN apk add --no-cache python3 make g++ \
+    && npm install --prefer-offline --no-audit --progress=false
 
 COPY src/auth-service/ .
 
