@@ -97,7 +97,7 @@ def train_offline(
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
         with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec
+            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
