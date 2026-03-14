@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from typing import Protocol
 
+import grpc
 import httpx
 import msgspec
 import pandas as pd
@@ -11,9 +12,8 @@ import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
-import grpc
-from src.protos import data_pb2, data_pb2_grpc
 from src.config import settings
+from src.protos import data_pb2, data_pb2_grpc
 from src.scrapers.mesh_publisher import get_market_publisher
 from src.shared.observability import (
     PROXY_FAILURES,

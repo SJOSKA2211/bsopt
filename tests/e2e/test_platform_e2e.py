@@ -1,7 +1,6 @@
-import asyncio
 import pytest
-from playwright.async_api import async_playwright
 import structlog
+from playwright.async_api import async_playwright
 
 logger = structlog.get_logger(__name__)
 

@@ -1,5 +1,4 @@
 import cupy as cp
-import numpy as np
 import structlog
 
 logger = structlog.get_logger(__name__)

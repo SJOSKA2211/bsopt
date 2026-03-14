@@ -305,7 +305,7 @@ class Settings(BaseSettings):
         """Generates or retrieves a transient RSA or ECC key for development."""
         if not self._transient_keys:
             from cryptography.hazmat.primitives import serialization
-            from cryptography.hazmat.primitives.asymmetric import rsa, ec
+            from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
             # RSA 2048
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

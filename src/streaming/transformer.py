@@ -1,6 +1,8 @@
 import asyncio
 import signal
+
 import structlog
+
 try:
     import bsopt_core
 except ImportError:

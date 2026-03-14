@@ -1,8 +1,8 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import structlog
+
 from src.database import get_async_db_context
-from src.database.models import MLModel
 
 logger = structlog.get_logger(__name__)
 
@@ -42,6 +42,5 @@ class BacktestEngine:
             pass
 
 if __name__ == "__main__":
-    import asyncio
     engine = BacktestEngine("test_model")
     # asyncio.run(engine.run_backtest(pd.DataFrame()))

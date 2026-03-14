@@ -1,14 +1,16 @@
 import asyncio
+
 import grpc
 import structlog
+
 try:
     import bsopt_core
 except ImportError:
     bsopt_core = None
 
+
 from src.protos import data_pb2, data_pb2_grpc
 from src.streaming.kafka_producer import MarketDataProducer
-from datetime import datetime
 
 logger = structlog.get_logger(__name__)
 

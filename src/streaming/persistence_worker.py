@@ -1,7 +1,8 @@
 import asyncio
 import signal
-import structlog
 from datetime import datetime
+
+import structlog
 
 from src.database import db_manager
 from src.database.crud import bulk_insert_market_ticks

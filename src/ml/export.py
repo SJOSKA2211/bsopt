@@ -1,6 +1,5 @@
-import onnx
-from onnxruntime.quantization import quantize_dynamic, QuantType
 import structlog
+from onnxruntime.quantization import QuantType, quantize_dynamic
 
 logger = structlog.get_logger(__name__)
 

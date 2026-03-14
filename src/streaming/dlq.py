@@ -1,7 +1,9 @@
-import structlog
-import aiokafka
-import aio_pika
 import json
+
+import aio_pika
+import aiokafka
+import structlog
+
 from src.config import settings
 
 logger = structlog.get_logger(__name__)

@@ -16,3 +16,8 @@
 **Vulnerability:** PostgreSQL does not natively support parameter binding for the `SET` command. Using parameters like `SET LOCAL app.current_user_id = :user_id` throws an execution error. Developers may resort to unsafe string concatenation (f-strings) to work around this, leading to potential SQL injection.
 **Learning:** `set_config` is a native PostgreSQL function that safely sets configuration variables and fully supports parameter binding, unlike the `SET` command.
 **Prevention:** Use `SELECT set_config('variable_name', :value, true)` instead of `SET LOCAL` for setting session-level PostgreSQL variables safely in SQLAlchemy.
+
+## 2024-03-14 - Fix Hardcoded SQL Expressions in Asyncpg
+**Vulnerability:** A hardcoded SQL expression (Bandit B608) was found in `AIOpsDataLoader` where `hours` and `self.limit` were interpolated via f-strings into a raw SQL query. While `hours` and `self.limit` are generally integers, using string formatting for SQL queries introduces an unnecessary risk of SQL injection if the types were to change or input validation failed.
+**Learning:** `asyncpg` strictly requires parameterized queries via positional arguments (`$1`, `$2`) to prevent SQL injection. For interval strings, `INTERVAL '{hours} hours'` can be safely parameterized using the PostgreSQL concatenation operator `||` alongside casting, like `($1 || ' hours')::interval`.
+**Prevention:** Always use parameterized `$1, $2` syntax when calling `asyncpg`'s `conn.fetch(query, *args)` instead of f-strings, even for internal or integer-only values, to appease static analysis tools and enforce defense in depth.
