@@ -223,6 +223,28 @@ class Order(Base):
 # MARKET DATA (Hypertables)
 
 
+class OptionPrice(Base):
+    __tablename__ = "options_prices"
+
+    time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
+    )
+    symbol: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    expiry: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False, index=True)
+    option_type: Mapped[str] = mapped_column(OptionType, nullable=False, index=True)
+    bid: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    ask: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    last: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
+    volume: Mapped[int | None] = mapped_column(Integer)
+    open_interest: Mapped[int | None] = mapped_column(Integer)
+    implied_volatility: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    delta: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    gamma: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    vega: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    theta: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    rho: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
     ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -232,6 +254,17 @@ class Order(Base):
         Index("idx_options_prices_brin", "time", postgresql_using="brin"),
     )
 
+
+class MarketTick(Base):
+    __tablename__ = "market_ticks"
+
+    time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
+    )
+    symbol: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
+    volume: Mapped[int | None] = mapped_column(Integer)
+    market: Mapped[str | None] = mapped_column(String(50))
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)

@@ -85,23 +85,30 @@ for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET; do
     fi
 done
 
-# 3. PostgreSQL Automation
+# 3. PostgreSQL Automation & Secret Orchestration
 echo "🐘 Preparing PostgreSQL initialization..."
-# Parse .env to get credentials for container health checks or initial DDL
 PG_PASS=$(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"')
 set_env_var "DATABASE_URL" "postgresql://admin:${PG_PASS}@pgbouncer:6432/bsopt"
+set_env_var "DATABASE_URL_LOCAL" "postgresql://admin:${PG_PASS}@localhost:5434/bsopt"
+set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt"
 
 # 4. Institutional Network Optimization
 echo "🌐 Optimizing Host Network Stack..."
-# Check if we can suggest sysctl improvements to the user
 if [ -f /proc/sys/net/core/somaxconn ]; then
     CURRENT_SOMAXCONN=$(cat /proc/sys/net/core/somaxconn)
-    if [ "$CURRENT_SOMAXCONN" -lt 1024 ]; then
+    if [ "$CURRENT_SOMAXCONN" -lt 4096 ]; then
         echo "⚠️  LOW LATENCY WARNING: Host 'net.core.somaxconn' is ${CURRENT_SOMAXCONN}. Recommended: 4096."
-        echo "   Run: sudo sysctl -w net.core.somaxconn=4096"
+        echo "   Suggested: sudo sysctl -w net.core.somaxconn=4096"
     fi
 fi
 
-# 5. Success Marker
+# 5. Build/Pull Core Images (Zero-Touch)
+echo "🐳 Pulling/Building Core Manifold Images..."
+# We don't run up here, just ensure images are ready if possible, 
+# or let Makefile handle it.
+
+# 6. Success Marker
 echo "✅ EquaFlow Stack Bootstrapped Successfully."
-echo "🐳 Run 'make up' to start the manifold."
+echo "🛠️  Next Steps:"
+echo "   1. run 'make up' to launch the manifold"
+echo "   2. run 'make test-all' to verify the gauntlet"

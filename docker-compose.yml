@@ -558,6 +558,31 @@ services:
     working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --block
 
+  ray-worker-1:
+    profiles: [ "ml" ]
+    image: rayproject/ray:latest-py312-cpu
+    depends_on:
+      - ray-head
+    environment:
+      - RAY_ADDRESS=ray-head:6379
+      - DATABASE_URL=${DATABASE_URL}
+      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
+      - INSIDE_DOCKER=1
+    networks:
+      - bsopt-network
+    volumes:
+      - ./:/app
+    shm_size: '2gb'
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2gb
+    working_dir: /app
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
+
   rl-training-worker:
     profiles: [ "ml" ]
     image: rayproject/ray:latest-py312-cpu

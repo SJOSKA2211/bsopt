@@ -895,6 +895,82 @@ fn validate_tick(ticker: String, price: f64, last_price: f64) -> PyResult<bool> 
     Ok(true)
 }
 
+#[pyfunction]
+fn rk4_gbm_path<'py>(
+    py: Python<'py>,
+    s0: f64,
+    mu: f64,
+    sigma: f64,
+    t: f64,
+    dt: f64,
+    num_paths: usize,
+) -> PyResult<Bound<'py, PyArray2<f64>>> {
+    let steps = (t / dt).ceil() as usize;
+    let results = unsafe { PyArray2::new_bound(py, [num_paths, steps + 1], false) };
+    let mut results_view = unsafe { results.as_array_mut() };
+
+    py.allow_threads(|| {
+        (0..num_paths).into_par_iter().for_each(|path_idx| {
+            let mut rng = rand::thread_rng();
+            let normal = rand_distr::StandardNormal;
+            let mut s = s0;
+            
+            // Safety: Each thread writes to its own slice of the array.
+            unsafe {
+                let row_ptr = results_view.as_ptr().add(path_idx * (steps + 1)) as *mut f64;
+                *row_ptr = s;
+
+                for i in 1..=steps {
+                    let d_w = (rng.sample(normal) as f64) * dt.sqrt();
+                    
+                    // Unified RK4-Milstein Step
+                    let k1 = mu * s * dt;
+                    let k2 = mu * (s + 0.5 * k1) * dt;
+                    let k3 = mu * (s + 0.5 * k2) * dt;
+                    let k4 = mu * (s + k3) * dt;
+                    
+                    let deterministic = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0;
+                    let stochastic = sigma * s * d_w + 0.5 * sigma * sigma * s * (d_w * d_w - dt);
+                    
+                    s += deterministic + stochastic;
+                    *row_ptr.add(i) = s;
+                }
+            }
+        });
+    });
+
+    Ok(results)
+}
+
+#[pyfunction]
+fn parse_mmap_ticks(
+    _py: Python<'_>,
+    ptr: usize,
+    len: usize,
+) -> PyResult<Vec<(u64, f64, i32)>> {
+    // Zero-copy parsing from memory-mapped buffer
+    // Layout: Timestamp (u64), Price (f64), Qty (i32) = 20 bytes per tick
+    let tick_size = 20;
+    let num_ticks = len / tick_size;
+    let mut ticks = Vec::with_capacity(num_ticks);
+
+    unsafe {
+        let base_ptr = ptr as *const u8;
+        for i in 0..num_ticks {
+            let offset = i * tick_size;
+            let tick_ptr = base_ptr.add(offset);
+            
+            let ts = *(tick_ptr as *const u64);
+            let price = *(tick_ptr.add(8) as *const f64);
+            let qty = *(tick_ptr.add(16) as *const i32);
+            
+            ticks.push((ts, price, qty));
+        }
+    }
+
+    Ok(ticks)
+}
+
 #[pymodule]
 fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Greeks>()?;
@@ -922,5 +998,7 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(digital_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
+    m.add_function(wrap_pyfunction!(rk4_gbm_path, m)?)?;
+    m.add_function(wrap_pyfunction!(parse_mmap_ticks, m)?)?;
     Ok(())
 }

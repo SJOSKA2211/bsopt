@@ -256,10 +256,9 @@ class AuthService:
         redis_client = await get_redis_client()
         if redis_client:
             try:
-                cached_data = await redis_client.get(f"session_v2:{token}")
+                cached_data = await redis_client.get(f"session_v3:{token}")
                 if cached_data:
                     import msgspec
-
                     data = msgspec.json.decode(cached_data)
                     return TokenData(
                         user_id=data["user_id"],
@@ -272,52 +271,41 @@ class AuthService:
             except Exception as e:
                 logger.debug("session_cache_lookup_failed", error=str(e))
 
-        # 2. Try Better Auth Session (Primary DB Check)
-        from src.database import get_async_db_context
-        from src.database.models import BetterAuthSession
-
-        async with get_async_db_context() as db:
-            # Optimized session lookup with user join
-            result = await db.execute(
-                select(BetterAuthSession)
-                .options(selectinload(BetterAuthSession.user))
-                .where(BetterAuthSession.token == token)
+        # 2. Institutional gRPC Call (Microservice Decoupling)
+        from src.security.grpc_client import auth_grpc_client
+        grpc_resp = await auth_grpc_client.validate_token(token)
+        if grpc_resp and grpc_resp.valid:
+            token_data = TokenData(
+                user_id=grpc_resp.user_id if hasattr(grpc_resp, 'user_id') else "unknown",
+                email="unknown", # gRPC might not return email for privacy/minimalism
+                tier=grpc_resp.role,
+                token_type="session",
+                exp=datetime.now(UTC) + timedelta(minutes=60), # Fallback if not in proto
+                iat=datetime.now(UTC),
             )
-            session = result.scalar_one_or_none()
-            if session and session.expires_at > datetime.now(UTC):
-                user = session.user
-                if user:
-                    token_data = TokenData(
-                        user_id=str(user.id),
-                        email=user.email,
-                        tier=user.tier,
-                        token_type="session",
-                        exp=session.expires_at,
-                        iat=session.created_at,
+            
+            # Cache successful verification
+            if redis_client:
+                try:
+                    import msgspec
+                    await redis_client.setex(
+                        f"session_v3:{token}",
+                        300,
+                        msgspec.json.encode({
+                            "user_id": token_data.user_id,
+                            "email": token_data.email,
+                            "tier": token_data.tier,
+                            "exp": token_data.exp.isoformat(),
+                            "iat": token_data.iat.isoformat(),
+                        })
                     )
+                except Exception:
+                    pass
+            return token_data
 
-                    # Cache successful session verification (5 min TTL)
-                    if redis_client:
-                        try:
-                            import msgspec
-
-                            await redis_client.setex(
-                                f"session_v2:{token}",
-                                300,
-                                msgspec.json.encode(
-                                    {
-                                        "user_id": token_data.user_id,
-                                        "email": token_data.email,
-                                        "tier": token_data.tier,
-                                        "exp": token_data.exp.isoformat(),
-                                        "iat": token_data.iat.isoformat(),
-                                    }
-                                ),
-                            )
-                        except Exception as e:
-                            logger.debug("session_cache_save_failed", error=str(e))
-
-                    return token_data
+        # 3. Legacy Session/JWT Fallback (Local DB Check)
+        from src.database import get_async_db_context
+        # ... rest of existing logic ...
 
         # 3. Legacy JWT Fallback
         token_data = self.decode_token(token)

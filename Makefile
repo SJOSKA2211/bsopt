@@ -57,23 +57,26 @@ logs:
 
 # === [Security] Institutional Hardening ===
 security-scan:
-	@echo "Running Trivy Vulnerability Scan..."
-	trivy fs --severity HIGH,CRITICAL .
-	@echo "Running Bandit Security Linter..."
-	bandit -r src/
-	@echo "Running Pip-Audit..."
-	pip-audit
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
-	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-	@$(DOCKER_COMPOSE) run --rm ruff check .
-	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
+	@echo "🛡️ Running Trivy Vulnerability Scan..."
+	@trivy fs --severity HIGH,CRITICAL .
+	@echo "🔍 Running Bandit Security Linter..."
+	@$(DOCKER_COMPOSE) run --rm api bandit -r src/
+	@echo "🕵️ Running Pip-Audit..."
+	@$(DOCKER_COMPOSE) run --rm api pip-audit
 
 test-all:
 	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
+	@echo "--- [Rust Core] ---"
+	@$(DOCKER_COMPOSE) run --rm rust-core cargo fmt -- --check
+	@$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
+	@echo "--- [Python API] ---"
+	@$(DOCKER_COMPOSE) run --rm api ruff check .
+	@$(DOCKER_COMPOSE) run --rm api ruff format --check .
 	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-	@$(DOCKER_COMPOSE) run --rm ruff check .
+	@echo "--- [E2E & Auth] ---"
 	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
+	@echo "✅ Gauntlet Passed."
 
 test-rust:
 	$(DOCKER_COMPOSE) run --rm rust-core cargo test
@@ -88,7 +91,7 @@ protos:
 	@# Python Bindings
 	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
 		-I=src/protos --python_out=src/protos --grpc_python_out=src/protos src/protos/*.proto
-	@# Rust Bindings (usually handled by tonic-build in build.rs, but can be triggered here)
+	@# Rust Bindings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo build
 
 lint:
