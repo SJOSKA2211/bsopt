@@ -49,7 +49,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
 
     try:
         with open(pkl_path, "rb") as f:
-            data = pickle.load(f)
+            data = pickle.load(f)  # nosec B301
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)

@@ -4,6 +4,7 @@ use rayon::prelude::*;
 use statrs::distribution::{Normal, ContinuousCDF};
 use sha3::{Digest, Keccak256};
 use num_complex::Complex64;
+use rand::Rng;
 
 #[pyclass]
 #[derive(Clone)]
@@ -878,7 +879,7 @@ fn calibrate_svi_rust(
 }
 
 #[pyfunction]
-fn validate_tick(ticker: String, price: f64, last_price: f64) -> PyResult<bool> {
+fn validate_tick(_ticker: String, price: f64, last_price: f64) -> PyResult<bool> {
     // 1. Basic sanity check (No negative prices)
     if price <= 0.0 {
         return Ok(false);
@@ -906,7 +907,7 @@ fn rk4_gbm_path<'py>(
     num_paths: usize,
 ) -> PyResult<Bound<'py, PyArray2<f64>>> {
     let steps = (t / dt).ceil() as usize;
-    let results = unsafe { PyArray2::new_bound(py, [num_paths, steps + 1], false) };
+    let results = unsafe { PyArray2::<f64>::new_bound(py, [num_paths, steps + 1], false) };
     let mut results_view = unsafe { results.as_array_mut() };
 
     py.allow_threads(|| {
