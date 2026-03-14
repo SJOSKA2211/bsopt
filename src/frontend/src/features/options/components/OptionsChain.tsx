@@ -60,6 +60,10 @@ export interface OptionChainRow {
   underlying_price: number;
   call_theor?: number;
   put_theor?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  call_result?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  put_result?: any;
 }
 
 const GET_OPTIONS_CHAIN = gql`
@@ -221,7 +225,20 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const processedData = useMemo(() => {
     if (!optionsData) return [];
 
-    let filtered = optionsData;
+    // Map enrichedResults BEFORE filtering, so index i maps exactly to optionsData[i]
+    let enrichedData = optionsData;
+    if (isWasmLoaded && enrichedResults.length > 0) {
+      const half = optionsData.length;
+      enrichedData = optionsData.map((row: OptionChainRow, i: number) => ({
+        ...row,
+        call_theor: enrichedResults[i]?.price,
+        put_theor: enrichedResults[i + half]?.price,
+        call_result: enrichedResults[i],
+        put_result: enrichedResults[i + half],
+      }));
+    }
+
+    let filtered = enrichedData;
 
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
@@ -230,14 +247,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       );
     }
 
-    if (!isWasmLoaded || enrichedResults.length === 0) return filtered;
-
-    const half = filtered.length;
-    return filtered.map((row: OptionChainRow, i: number) => ({
-      ...row,
-      call_theor: enrichedResults[i]?.price,
-      put_theor: enrichedResults[i + half]?.price,
-    }));
+    return filtered;
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
   const handleModelChange = React.useCallback((_: React.MouseEvent<HTMLElement> | null, value: string | null) => {
@@ -372,19 +382,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
-
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.call_iv}
-            rate={rate}
-            div={div}
-            isCall={true}
+            result={row.call_result}
           />
         );
       },
@@ -579,19 +579,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
-
         return (
           <WasmGreeksCell
-            spot={row.underlying_price}
-            strike={row.strike}
-            time={timeToExpiry}
-            vol={row.put_iv}
-            rate={rate}
-            div={div}
-            isCall={false}
+            result={row.put_result}
           />
         );
       },
