@@ -371,6 +371,28 @@ services:
       - bsopt-network
     command: python src/scrapers/yfinance_scraper.py
 
+  # === Generic Scraper Service ===
+  scraper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scraper-prod
+    volumes:
+      - ./src:/app/src
+      - shared_shm:/dev/shm
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1gb
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=${DATABASE_URL}
+      - INSIDE_DOCKER=1
+    depends_on:
+      - ingestion-service
+    networks:
+      - bsopt-network
+
   # === Neural Pricing Service ===
   neural-pricing:
     build:

@@ -908,7 +908,7 @@ fn rk4_gbm_path<'py>(
 ) -> PyResult<Bound<'py, PyArray2<f64>>> {
     let steps = (t / dt).ceil() as usize;
     let results = unsafe { PyArray2::<f64>::new_bound(py, [num_paths, steps + 1], false) };
-    let mut results_view = unsafe { results.as_array_mut() };
+    let results_view = unsafe { results.as_array_mut() };
 
     py.allow_threads(|| {
         (0..num_paths).into_par_iter().for_each(|path_idx| {
