@@ -11,12 +11,15 @@ shift 2 || true
 EXTRA_PARAMS=$@
 
 # Detection logic for docker compose
-if [ -x "./docker-compose" ]; then
-    COMPOSE_CMD="./docker-compose"
-elif docker compose version >/dev/null 2>&1; then
+if docker compose version >/dev/null 2>&1; then
     COMPOSE_CMD="docker compose"
-else
+elif command -v docker-compose >/dev/null 2>&1; then
     COMPOSE_CMD="docker-compose"
+elif [ -x "./docker-compose" ]; then
+    COMPOSE_CMD="./docker-compose"
+else
+    echo "❌ Error: docker compose not found. Please install it."
+    exit 1
 fi
 
 # Ensure we are in the project root to find the binary

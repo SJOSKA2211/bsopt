@@ -74,8 +74,8 @@ jobs:
           echo "=== Building Worker image ==="
           docker compose build worker
           
-          echo "=== Building Scraper image ==="
-          docker compose build scraper
+          echo "=== Building Scraper images ==="
+          docker compose build nse-scraper yfinance-scraper
           
           echo "=== Building Neural Pricing image ==="
           docker compose build neural-pricing

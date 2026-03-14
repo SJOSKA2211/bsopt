@@ -2,12 +2,12 @@
 set -e
 
 # Detect Docker Compose (High-Performance Detection)
-if [ -x "./docker-compose" ]; then
-    COMPOSE="./docker-compose"
+if docker compose version >/dev/null 2>&1; then
+    COMPOSE="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
     COMPOSE="docker-compose"
-elif docker compose version >/dev/null 2>&1; then
-    COMPOSE="docker compose"
+elif [ -x "./docker-compose" ]; then
+    COMPOSE="./docker-compose"
 else
     echo "❌ Docker Compose not found. Fix it, Assistant!"
     exit 1
