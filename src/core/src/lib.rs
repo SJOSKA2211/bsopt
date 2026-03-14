@@ -278,7 +278,7 @@ fn heston_characteristic_function<'py>(
 
     let rows: Vec<Vec<Complex64>> = (0..n_v).into_par_iter().map(|i| {
         let vi = v_arr[i];
-        let mut row = Vec::with_capacity(n_batch);
+        let mut row: Vec<Complex64> = Vec::with_capacity(n_batch);
         for j in 0..n_batch {
             let alphaj = alpha_arr[j];
             let tj = t_arr[j];
@@ -973,7 +973,7 @@ fn parse_mmap_ticks(
 }
 
 #[pymodule]
-fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn bsopt_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Greeks>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
