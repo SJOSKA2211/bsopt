@@ -1,6 +1,8 @@
+import asyncio
 import os
 import sys
 
+import orjson
 import ray
 import structlog
 
@@ -106,6 +108,17 @@ class RayOrchestrator:
 
 
 if __name__ == "__main__":
+    from src.utils.signals import shutdown_handler
+    
     RayOrchestrator.init()
     logger.info("ray_nodes_detected", nodes=ray.nodes())
-    RayOrchestrator.shutdown()
+    
+    # Register shutdown callback
+    shutdown_handler.register_callback(RayOrchestrator.shutdown)
+    shutdown_handler.setup()
+    
+    async def run():
+        logger.info("ray_orchestrator_running_wait_for_sigterm")
+        await shutdown_handler.wait_for_shutdown()
+        
+    asyncio.run(run())

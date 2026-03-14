@@ -332,10 +332,11 @@ class ConnectionManager:
                     encoded = WebSocketCodec.encode(data, proto)
 
                 for conn in conns:
-                    # Exponential Backoff for sending messages
+                    # Exponential Backoff with Jitter for sending messages
                     async def send_with_backoff(c: WebSocket, d: bytes) -> None:
+                        import random
                         retries = 3
-                        delay = 0.1
+                        base_delay = 0.1
                         for attempt in range(retries):
                             try:
                                 await c.send_bytes(d)
@@ -343,8 +344,9 @@ class ConnectionManager:
                             except Exception as ex:
                                 if attempt == retries - 1:
                                     raise ex
-                                await asyncio.sleep(delay)
-                                delay *= 2
+                                # Exponential backoff with jitter: (2^attempt * base_delay) + random_jitter
+                                jitter = random.uniform(0, 0.1)
+                                await asyncio.sleep((2**attempt * base_delay) + jitter)
 
                     tasks.append(send_with_backoff(conn, encoded))
 

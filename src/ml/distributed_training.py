@@ -60,11 +60,17 @@ def train_func(config: dict[str, Any]):
     # Wrap for DDP
     model = ray.train.torch.prepare_model(model)
 
-    optimizer = th.optim.AdamW(model.parameters(), lr=config.get("lr", 1e-4), weight_decay=1e-2)
+    optimizer = th.optim.AdamW(
+        model.parameters(), 
+        lr=config.get("lr", 1e-4), 
+        weight_decay=config.get("weight_decay", 1e-2),
+        betas=(0.9, 0.95) # Institutional standard for Transformers
+    )
     criterion = nn.MSELoss()
 
     # ⚡ AMP: Automatic Mixed Precision
-    scaler = th.cuda.amp.GradScaler(enabled=config.get("use_amp", True))
+    use_amp = config.get("use_amp", th.cuda.is_available())
+    scaler = th.cuda.amp.GradScaler(enabled=use_amp)
 
     # 3. Setup Data
     import ray.data
@@ -142,10 +148,13 @@ def train_func(config: dict[str, Any]):
 
         if ray.train.get_context().get_local_rank() == 0:
             mlflow.log_metric("dist_loss", avg_loss, step=epoch)
-            # Log weight distribution
+            # HIGH-PERFORMANCE: Log weight distribution and gradient flow
             for name, param in model.named_parameters():
+                if param.requires_grad and param.grad is not None:
+                    mlflow.log_metric(f"grad_norm_{name}", param.grad.norm().item(), step=epoch)
                 if "weight" in name:
-                    mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item())
+                    mlflow.log_metric(f"weight_mean_{name}", param.data.mean().item(), step=epoch)
+                    mlflow.log_metric(f"weight_std_{name}", param.data.std().item(), step=epoch)
 
 
 class BSOptDistributedTrainer:

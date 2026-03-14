@@ -151,7 +151,7 @@ class BlackScholesEngine(PricingStrategy):
         # GPU Acceleration Path (Numba CUDA)
         if S.size > 100:  # Threshold for GPU overhead
             try:
-                from src.quant.black_scholes import price_options_gpu
+                from src.quant.kernels import price_options_gpu
 
                 # Convert is_call to boolean array for CUDA
                 is_call_arr = np.atleast_1d(is_call).astype(bool)

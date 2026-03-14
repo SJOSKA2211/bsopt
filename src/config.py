@@ -261,14 +261,53 @@ class Settings(BaseSettings):
             raise ValueError("JWT_PUBLIC_KEY is missing in production")
         return self._get_transient_key("public")
 
+    # ES256 Keys
+    JWT_ES256_PRIVATE: str | None = Field(default=None, validation_alias="JWT_ES256_PRIVATE")
+    JWT_ES256_PUBLIC: str | None = Field(default=None, validation_alias="JWT_ES256_PUBLIC")
+
+    @property
+    def es256_private_key(self) -> str:
+        """Returns the ES256 private key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_ES256_PRIVATE
+        if raw_key:
+            import base64
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_es256_private_key", error=str(e))
+                if self.is_production: raise
+        if self.is_production:
+            raise ValueError("JWT_ES256_PRIVATE is missing in production")
+        return self._get_transient_key("private_ecc")
+
+    @property
+    def es256_public_key(self) -> str:
+        """Returns the ES256 public key, ensuring it exists. Decodes from base64 if needed."""
+        raw_key = self.JWT_ES256_PUBLIC
+        if raw_key:
+            import base64
+            try:
+                if raw_key.strip().startswith("-----BEGIN"):
+                    return raw_key
+                return base64.b64decode(raw_key).decode("utf-8")
+            except Exception as e:
+                logger.error("failed_to_decode_jwt_es256_public_key", error=str(e))
+                if self.is_production: raise
+        if self.is_production:
+            raise ValueError("JWT_ES256_PUBLIC is missing in production")
+        return self._get_transient_key("public_ecc")
+
     _transient_keys: dict[str, str] = {}
 
     def _get_transient_key(self, key_type: str) -> str:
-        """Generates or retrieves a transient RSA key for development."""
+        """Generates or retrieves a transient RSA or ECC key for development."""
         if not self._transient_keys:
             from cryptography.hazmat.primitives import serialization
-            from cryptography.hazmat.primitives.asymmetric import rsa
+            from cryptography.hazmat.primitives.asymmetric import rsa, ec
 
+            # RSA 2048
             private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             self._transient_keys["private"] = private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -285,7 +324,24 @@ class Settings(BaseSettings):
                 .decode("utf-8")
             )
 
-            logger.warning("using_transient_rsa_keys", mode=self.ENVIRONMENT)
+            # ECC P-256
+            private_key_ecc = ec.generate_private_key(ec.SECP256R1())
+            self._transient_keys["private_ecc"] = private_key_ecc.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption(),
+            ).decode("utf-8")
+
+            self._transient_keys["public_ecc"] = (
+                private_key_ecc.public_key()
+                .public_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo,
+                )
+                .decode("utf-8")
+            )
+
+            logger.warning("using_transient_cryptographic_keys", mode=self.ENVIRONMENT)
 
         return self._transient_keys[key_type]
 

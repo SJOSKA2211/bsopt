@@ -20,6 +20,7 @@ from src.api.schemas.pricing import (
     PriceResult,
 )
 from src.services.pricing_service import PricingService
+from src.utils.cache import multi_layer_cache, pricing_cache
 from src.utils.circuit_breaker import pricing_circuit
 
 logger = structlog.get_logger(__name__)
@@ -29,6 +30,7 @@ pricing_service = PricingService()
 
 @router.post("/price", response_model=None)
 @pricing_circuit
+@multi_layer_cache(prefix="price", ttl=300)
 async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
     """
     Calculate theoretical price for a single option.
@@ -45,6 +47,7 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
 
 @router.post("/batch", response_model=None)
 @pricing_circuit
+@multi_layer_cache(prefix="batch_price", ttl=60)
 async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
     """
     Vectorized batch pricing.
@@ -64,6 +67,7 @@ async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResu
 
 @router.post("/greeks", response_class=MsgspecJSONResponse)
 @pricing_circuit
+@multi_layer_cache(prefix="greeks", ttl=300)
 async def calculate_greeks(body: GreeksRequest):
     """
     Calculate option Greeks.
