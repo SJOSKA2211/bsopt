@@ -26,7 +26,7 @@ jobs:
       - name: Run Bandit (Security Linting)
         run: |
           pip install bandit
-          bandit -r src/
+          bandit -r src/ -c pyproject.toml
 
       - name: Run Trivy (Container Scan Placeholder)
         run: |
