@@ -82,7 +82,7 @@ fi
 
 # 4. Sequenced Startup
 echo "🐳 Starting Docker Manifold..."
-docker-compose up --build -d
+docker compose up --build -d
 
 # Wait for DB Health
 echo "⏳ Waiting for PostgreSQL/TimescaleDB (pg_isready)..."
@@ -95,7 +95,7 @@ done
 
 if [ $COUNT -eq $MAX_RETRIES ]; then
     echo "❌ FATAL: PostgreSQL failed to become healthy."
-    docker-compose logs postgres
+    docker compose logs postgres
     exit 1
 fi
 echo "✅ Database is online."
@@ -109,7 +109,7 @@ done
 
 if [ $COUNT -eq $MAX_RETRIES ]; then
     echo "❌ FATAL: Redis failed to become healthy."
-    docker-compose logs redis
+    docker compose logs redis
     exit 1
 fi
 echo "✅ Redis is online."
@@ -120,7 +120,7 @@ docker exec bsopt-api-1 alembic upgrade head || echo "⚠️ Alembic migration f
 
 # 6. Verification & E2E Proof
 echo "🧪 Triggering E2E Validation Suite..."
-docker-compose --profile test up e2e-test --abort-on-container-exit || echo "⚠️ E2E tests reached non-zero exit code."
+docker compose --profile test up e2e-test --abort-on-container-exit || echo "⚠️ E2E tests reached non-zero exit code."
 
 echo "✨ EquaFlow Stack fully automated and secured."
 echo "🔗 Gateway: http://localhost:8000"
