@@ -50,9 +50,8 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                 batch.append({
                     "time": float(tick.timestamp),
                     "symbol": ticker,
-                    "price": price,
+                    "last": price,
                     "source": tick.source,
-                    "ingested_at": datetime.utcnow().isoformat()
                 })
             
             # 2. Publish validated batch to Kafka

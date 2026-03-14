@@ -91,6 +91,17 @@ echo "🐘 Preparing PostgreSQL initialization..."
 PG_PASS=$(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"')
 set_env_var "DATABASE_URL" "postgresql://admin:${PG_PASS}@pgbouncer:6432/bsopt"
 
-# 4. Success Marker
+# 4. Institutional Network Optimization
+echo "🌐 Optimizing Host Network Stack..."
+# Check if we can suggest sysctl improvements to the user
+if [ -f /proc/sys/net/core/somaxconn ]; then
+    CURRENT_SOMAXCONN=$(cat /proc/sys/net/core/somaxconn)
+    if [ "$CURRENT_SOMAXCONN" -lt 1024 ]; then
+        echo "⚠️  LOW LATENCY WARNING: Host 'net.core.somaxconn' is ${CURRENT_SOMAXCONN}. Recommended: 4096."
+        echo "   Run: sudo sysctl -w net.core.somaxconn=4096"
+    fi
+fi
+
+# 5. Success Marker
 echo "✅ EquaFlow Stack Bootstrapped Successfully."
 echo "🐳 Run 'make up' to start the manifold."

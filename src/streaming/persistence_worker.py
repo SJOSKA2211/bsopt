@@ -1,50 +1,48 @@
 import asyncio
 import signal
-
 import structlog
+from datetime import datetime
 
 from src.database import db_manager
 from src.database.crud import bulk_insert_market_ticks
-from src.streaming.rabbitmq_consumer import RabbitMQMarketDataConsumer
+from src.streaming.kafka_consumer import MarketDataConsumer
 
 logger = structlog.get_logger(__name__)
 
-
-async def persist_ticks(data: dict):
+async def persist_ticks(batch: list[dict], topic: str):
     """
-    Process a batch of ticks and persist to TimescaleDB.
-    Expected data format: { symbol: {price, volume, timestamp, ...}, ... }
+    Process a batch of ticks from Kafka and persist to TimescaleDB.
     """
-    if not data:
+    if not batch:
         return
 
-    # Convert dict format to list of dicts for bulk insert
     ticks_list = []
-    for symbol, tick in data.items():
-        # Handle both 'time' and 'timestamp' keys for backward compatibility
-        ts = tick.get("time") or tick.get("timestamp")
-
+    for tick in batch:
+        # Map Kafka MarketData schema to DB Tick schema
         ticks_list.append(
             {
-                "symbol": symbol,
-                "price": float(tick.get("price", 0.0)),
-                "volume": int(tick.get("volume", 0)),
-                "time": ts,  # TimescaleDB primary time column
-                "market": tick.get("market", "NSE"),
+                "symbol": tick.get("symbol"),
+                "price": float(tick.get("last") or tick.get("bid") or 0.0),
+                "volume": int(tick.get("volume") or 0),
+                "time": datetime.fromtimestamp(float(tick.get("time") or 0.0)),
+                "market": tick.get("source") or "NSE",
             }
         )
 
     async with db_manager.get_async_session() as db:
         try:
             count = await bulk_insert_market_ticks(db, ticks_list)
-            logger.info("market_ticks_persisted", count=count)
+            logger.info("kafka_ticks_persisted", count=count, topic=topic)
         except Exception as e:
-            logger.error("market_ticks_persistence_failed", error=str(e))
-            raise  # Re-raise to trigger RabbitMQ NACK/DLQ
-
+            logger.error("kafka_persistence_failed", error=str(e), topic=topic)
+            raise 
 
 async def main():
-    consumer = RabbitMQMarketDataConsumer()
+    consumer = MarketDataConsumer(
+        bootstrap_servers="kafka-1:9092",
+        group_id="persistence-group",
+        topics=["market-data"]
+    )
 
     # Graceful shutdown handling
     loop = asyncio.get_running_loop()
@@ -53,30 +51,20 @@ async def main():
     def shutdown():
         logger.info("shutdown_signal_received")
         stop_event.set()
+        consumer.stop()
 
     for sig in (signal.SIGTERM, signal.SIGINT):
         loop.add_signal_handler(sig, shutdown)
 
-    logger.info("persistence_worker_starting")
+    logger.info("kafka_persistence_worker_starting")
 
     try:
         # Start consumption task
-        consume_task = asyncio.create_task(consumer.consume(persist_ticks))
-
-        # Wait for stop signal
-        await stop_event.wait()
-
-        # Cancel consumption
-        consume_task.cancel()
-        try:
-            await consume_task
-        except asyncio.CancelledError:
-            pass
-
+        await consumer.consume_messages(persist_ticks, batch_size=200)
+    except Exception as e:
+        logger.error("persistence_worker_runtime_error", error=str(e))
     finally:
-        await consumer.close()
-        logger.info("persistence_worker_stopped")
-
+        logger.info("kafka_persistence_worker_stopped")
 
 if __name__ == "__main__":
     asyncio.run(main())
