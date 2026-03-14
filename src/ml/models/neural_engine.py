@@ -1,5 +1,3 @@
-from typing import Any, cast
-
 import numpy as np
 import structlog
 import torch
@@ -14,13 +12,13 @@ from src.pricing.models import BSParameters, OptionGreeks
 logger = structlog.get_logger(__name__)
 
 
-class NeuralPricingEngine(BasePricingEngine):  # type: ignore
+class NeuralPricingEngine(BasePricingEngine):
     """
     Pricing Engine powered by a Neural Network (MLP).
     Leverages PyTorch for pricing and automatic differentiation for Greeks.
     """
 
-    def __init__(self, model_path: str | None = None) -> None:
+    def __init__(self, model_path: str | None = None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # Standard BS Inputs: Spot, Strike, Maturity, Volatility, Rate, Dividend (6)
         self.model = OptionPricingNN(input_dim=6, hidden_dims=[128, 128, 64], num_classes=1).to(
@@ -34,12 +32,12 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
 
     def train_model(
         self,
-        inputs: np.ndarray[Any, np.dtype[np.float64]],
-        targets: np.ndarray[Any, np.dtype[np.float64]],
+        inputs: np.ndarray,
+        targets: np.ndarray,
         epochs: int = 10,
         batch_size: int = 32,
         lr: float = 0.001,
-    ) -> None:
+    ):
         """
         Train the underlying neural network.
 
@@ -60,13 +58,18 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         dataset = TensorDataset(x_tensor, y_tensor)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        for _ in range(epochs):
+        for epoch in range(epochs):
+            total_loss = 0.0
             for batch_x, batch_y in loader:
                 optimizer.zero_grad()
                 outputs = self.model(batch_x)
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 optimizer.step()
+                total_loss += loss.item()
+
+            # Logging could go here, but keeping it clean.
+            pass
 
         self.model.eval()
 
@@ -100,9 +103,7 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         )
         return float(res[0])
 
-    def optimize_for_inference(
-        self, onnx_path: str | None = None, prune_amount: float = 0.2
-    ) -> "NeuralPricingEngine":
+    def optimize_for_inference(self, onnx_path: str | None = None, prune_amount: float = 0.2):
         """
         Fine-tune model for zero-latency inference.
         """
@@ -121,17 +122,18 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
 
     def price_batch(
         self,
-        spots: np.ndarray[Any, np.dtype[np.float64]],
-        strikes: np.ndarray[Any, np.dtype[np.float64]],
-        maturities: np.ndarray[Any, np.dtype[np.float64]],
-        vols: np.ndarray[Any, np.dtype[np.float64]],
-        rates: np.ndarray[Any, np.dtype[np.float64]],
-        dividends: np.ndarray[Any, np.dtype[np.float64]],
-        option_types: np.ndarray[Any, np.dtype[Any]],
-    ) -> np.ndarray[Any, np.dtype[np.float64]]:
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> np.ndarray:
         """
         High-Performance Vectorized Batch Pricing.
         """
+        n = len(spots)
         data = np.stack([spots, strikes, maturities, vols, rates, dividends], axis=1)
         input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
 
@@ -142,37 +144,25 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         is_call = (option_types == "call") | (option_types == "CALL")
 
         if np.all(is_call):
-            return cast(np.ndarray[Any, np.dtype[np.float64]], call_prices)
+            return call_prices
 
-        put_prices = (
-            call_prices
-            - spots * np.exp(-dividends * maturities)
-            + strikes * np.exp(-rates * maturities)
-        )
-        return cast(
-            np.ndarray[Any, np.dtype[np.float64]],
-            np.where(is_call, call_prices, np.maximum(put_prices, 0.0)),
-        )
+        put_prices = call_prices - spots * np.exp(-dividends * maturities) + strikes * np.exp(-rates * maturities)
+        return np.where(is_call, call_prices, np.maximum(put_prices, 0.0))
 
     def price_batch_greeks(
         self,
-        spots: np.ndarray[Any, np.dtype[np.float64]],
-        strikes: np.ndarray[Any, np.dtype[np.float64]],
-        maturities: np.ndarray[Any, np.dtype[np.float64]],
-        vols: np.ndarray[Any, np.dtype[np.float64]],
-        rates: np.ndarray[Any, np.dtype[np.float64]],
-        dividends: np.ndarray[Any, np.dtype[np.float64]],
-        option_types: np.ndarray[Any, np.dtype[Any]],
-    ) -> tuple[
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-        np.ndarray[Any, np.dtype[np.float64]],
-    ]:
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
         High-Performance Vectorized Greeks using Autograd Batching.
         """
+        n = len(spots)
         data = np.stack([spots, strikes, maturities, vols, rates, dividends], axis=1)
         input_tensor = torch.tensor(data, dtype=torch.float32, device=self.device)
         input_tensor.requires_grad_(True)
@@ -204,19 +194,11 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         theta = np.where(
             is_call,
             theta_c,
-            theta_c
-            + dividends * spots * np.exp(-dividends * maturities)
-            - rates * strikes * np.exp(-rates * maturities),
+            theta_c + dividends * spots * np.exp(-dividends * maturities) - rates * strikes * np.exp(-rates * maturities)
         )
         rho = np.where(is_call, rho_c, rho_c - strikes * maturities * np.exp(-rates * maturities))
 
-        return (
-            cast(np.ndarray[Any, np.dtype[np.float64]], delta),
-            cast(np.ndarray[Any, np.dtype[np.float64]], gamma),
-            cast(np.ndarray[Any, np.dtype[np.float64]], theta),
-            cast(np.ndarray[Any, np.dtype[np.float64]], vega),
-            cast(np.ndarray[Any, np.dtype[np.float64]], rho),
-        )
+        return delta, gamma, theta, vega, rho
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
@@ -224,12 +206,12 @@ class NeuralPricingEngine(BasePricingEngine):  # type: ignore
         Reuses the optimized vectorized path for consistency.
         """
         res = self.price_batch_greeks(
-            np.array([params.spot], dtype=np.float64),
-            np.array([params.strike], dtype=np.float64),
-            np.array([params.maturity], dtype=np.float64),
-            np.array([params.volatility], dtype=np.float64),
-            np.array([params.rate], dtype=np.float64),
-            np.array([params.dividend], dtype=np.float64),
+            np.array([params.spot]),
+            np.array([params.strike]),
+            np.array([params.maturity]),
+            np.array([params.volatility]),
+            np.array([params.rate]),
+            np.array([params.dividend]),
             np.array([option_type]),
         )
         return OptionGreeks(

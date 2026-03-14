@@ -155,14 +155,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* ------------------------------------------------------------------ */}
       <Drawer
         variant="permanent"
-        PaperProps={{
-          className: "qfd-glass",
-          sx: {
-            width: drawerWidth,
-            borderRight: `1px solid ${alpha('#94a3b8', 0.08)}`,
-            backgroundImage: 'none',
-          }
-        }}
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -181,16 +173,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           direction="row"
           spacing={1.5}
           alignItems="center"
-          className="qfd-holographic"
           sx={{
-            px: 2,
-            py: 1.5,
+            px: 1.5,
             mb: 4,
-            borderRadius: 3,
             cursor: 'pointer',
-            border: `1px solid ${alpha('#fff', 0.05)}`,
-            '&:hover': { transform: 'scale(1.02)' },
-            transition: 'all 0.3s ease',
+            '&:hover': { opacity: 0.85 },
+            transition: 'opacity 0.2s ease',
           }}
           onClick={() => navigate('/')}
         >

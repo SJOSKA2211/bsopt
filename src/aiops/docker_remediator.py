@@ -1,13 +1,13 @@
 import asyncio
 import re
 import subprocess
-from typing import Any
+from typing import Any, cast
 
 import structlog
 
 try:
     import docker
-
+    from docker.client import DockerClient
     HAS_DOCKER_SDK = True
 except ImportError:
     HAS_DOCKER_SDK = False

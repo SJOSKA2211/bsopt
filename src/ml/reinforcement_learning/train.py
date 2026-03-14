@@ -1,6 +1,6 @@
 import argparse
-import multiprocessing
 import os
+import multiprocessing
 from typing import Any
 
 import mlflow
@@ -25,7 +25,6 @@ logger = structlog.get_logger()
 
 # Global lock for SHM writes
 shm_lock = multiprocessing.Lock()
-
 
 class SHMWeightSyncCallback(BaseCallback):
     """

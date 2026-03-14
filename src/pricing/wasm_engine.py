@@ -47,28 +47,22 @@ class WASMPricingEngine(PricingStrategy):
 
         # Default to Black-Scholes
         if option_type == "call":
-            return cast(
-                float,
-                self.instance.price_call(
-                    params.spot,
-                    params.strike,
-                    params.maturity,
-                    params.volatility,
-                    params.rate,
-                    params.dividend,
-                ),
-            )
-        return cast(
-            float,
-            self.instance.price_put(
+            return cast(float, self.instance.price_call(
                 params.spot,
                 params.strike,
                 params.maturity,
                 params.volatility,
                 params.rate,
                 params.dividend,
-            ),
-        )
+            ))
+        return cast(float, self.instance.price_put(
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+        ))
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         if not self.instance:
@@ -138,20 +132,17 @@ class WASMPricingEngine(PricingStrategy):
         if not self.instance:
             return 0.0
 
-        return cast(
-            float,
-            self.instance.price_american_lsm(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-                option_type == "call",
-                num_paths,
-                num_steps,
-            ),
-        )
+        return cast(float, self.instance.price_american_lsm(
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+            option_type == "call",
+            num_paths,
+            num_steps,
+        ))
 
     def price_monte_carlo(
         self, params: BSParameters, option_type: str = "call", num_paths: int = 100000
@@ -159,19 +150,16 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Monte Carlo implementation."""
         if not self.instance:
             return 0.0
-        return cast(
-            float,
-            self.instance.price_monte_carlo(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-                option_type == "call",
-                num_paths,
-            ),
-        )
+        return cast(float, self.instance.price_monte_carlo(
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+            option_type == "call",
+            num_paths,
+        ))
 
     def price_american_cn(
         self,
@@ -183,40 +171,34 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Crank-Nicolson implementation."""
         if not self.instance:
             return 0.0
-        return cast(
-            float,
-            self.instance.price_american(
-                params.spot,
-                params.strike,
-                params.maturity,
-                params.volatility,
-                params.rate,
-                params.dividend,
-                option_type == "call",
-                m,
-                n,
-            ),
-        )
+        return cast(float, self.instance.price_american(
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+            option_type == "call",
+            m,
+            n,
+        ))
 
     def price_heston(self, params: Any, spot: float, strike: float, time: float, r: float) -> float:
         """Rust/WASM Heston implementation."""
         if not self.instance:
             return 0.0
 
-        return cast(
-            float,
-            self.instance.price_heston(
-                spot,
-                strike,
-                time,
-                r,
-                params.v0,
-                params.kappa,
-                params.theta,
-                params.sigma,
-                params.rho,
-            ),
-        )
+        return cast(float, self.instance.price_heston(
+            spot,
+            strike,
+            time,
+            r,
+            params.v0,
+            params.kappa,
+            params.theta,
+            params.sigma,
+            params.rho,
+        ))
 
     def price_heston_mc(
         self,
@@ -231,22 +213,19 @@ class WASMPricingEngine(PricingStrategy):
         """Rust/WASM Heston Monte Carlo implementation."""
         if not self.instance:
             return 0.0
-        return cast(
-            float,
-            self.instance.price_heston_mc(
-                spot,
-                strike,
-                time,
-                r,
-                params.v0,
-                params.kappa,
-                params.theta,
-                params.sigma,
-                params.rho,
-                option_type == "call",
-                num_paths,
-            ),
-        )
+        return cast(float, self.instance.price_heston_mc(
+            spot,
+            strike,
+            time,
+            r,
+            params.v0,
+            params.kappa,
+            params.theta,
+            params.sigma,
+            params.rho,
+            option_type == "call",
+            num_paths,
+        ))
 
     def batch_price_heston(
         self,

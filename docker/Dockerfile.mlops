@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv for fast dependency resolution
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Copy dependency files
 COPY pyproject.toml requirements.txt ./
@@ -36,15 +36,15 @@ COPY . .
 
 # Set environment variables
 ENV PYTHONPATH=/app
-ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-postgresql://admin:password@postgres:5432/bsopt}
+ENV MLFLOW_TRACKING_URI=postgresql://admin:password@postgres:5432/bsopt
 ENV RAY_ADDRESS=auto
 
-# Performance tuning — prevent oversubscription with Ray workers
-ENV OMP_NUM_THREADS=4
-ENV MKL_NUM_THREADS=1
-ENV OPENBLAS_NUM_THREADS=1
-ENV VECLIB_MAXIMUM_THREADS=4
-ENV NUMEXPR_NUM_THREADS=4
+# Performance tuning for numerical kernels
+ENV OMP_NUM_THREADS=8
+ENV MKL_NUM_THREADS=8
+ENV OPENBLAS_NUM_THREADS=8
+ENV VECLIB_MAXIMUM_THREADS=8
+ENV NUMEXPR_NUM_THREADS=8
 
 # Numba and Python optimization
 ENV NUMBA_CACHE_DIR=/tmp/numba_cache

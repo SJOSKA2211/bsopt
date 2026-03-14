@@ -20,7 +20,7 @@ class BaseTrainer(ABC):
     Abstract Base Class for all Model Trainers.
     """
 
-    def __init__(self, study_name: str, tracking_uri: str | None = None) -> None:
+    def __init__(self, study_name: str, tracking_uri: str | None = None):
         setup_logging()
         self.settings = get_settings()
         self.study_name = study_name
@@ -31,18 +31,18 @@ class BaseTrainer(ABC):
         mlflow.set_experiment(self.study_name)
 
     @abstractmethod
-    def train_and_evaluate(self, *args: Any, **kwargs: Any) -> Any:
+    def train_and_evaluate(self, *args, **kwargs) -> Any:
         """Execute training and return evaluation metric."""
         pass
 
-    def log_params(self, params: dict[str, Any]) -> None:
+    def log_params(self, params: dict[str, Any]):
         """Logs parameters to MLflow."""
         mlflow.log_params(params)
 
-    def log_metrics(self, metrics: dict[str, float], step: int | None = None) -> None:
+    def log_metrics(self, metrics: dict[str, float], step: int | None = None):
         """Logs metrics to MLflow."""
         mlflow.log_metrics(metrics, step=step)
 
-    def set_tags(self, tags: dict[str, str]) -> None:
+    def set_tags(self, tags: dict[str, str]):
         """Sets tags for the current MLflow run."""
         mlflow.set_tags(tags)

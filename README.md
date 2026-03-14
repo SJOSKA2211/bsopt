@@ -77,4 +77,3 @@ python3 -m src.database.verify
 
 ---
 *Created by the Joseph Kamau Maina Extension. Shut up and compute.*
-

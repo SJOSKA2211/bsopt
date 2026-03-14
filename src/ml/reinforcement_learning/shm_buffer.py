@@ -1,7 +1,6 @@
 import struct
 import time
 from multiprocessing import shared_memory
-from typing import Any, cast
 
 import numpy as np
 import structlog
@@ -22,7 +21,7 @@ class SharedExperienceBuffer:
         obs_dim: int = 100,
         act_dim: int = 10,
         create: bool = False,
-    ) -> None:
+    ):
         self.capacity = capacity
         self.obs_dim = obs_dim
         self.act_dim = act_dim
@@ -52,23 +51,21 @@ class SharedExperienceBuffer:
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
 
-            self.buf: memoryview = self.shm.buf
+            self.buf = self.shm.buf
 
             # Map buffers to NumPy arrays
             offset = 9
-            self.obs: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
+            self.obs = np.ndarray(
                 (capacity, obs_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
             offset += capacity * obs_dim * 4
-            self.act: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
+            self.act = np.ndarray(
                 (capacity, act_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
             offset += capacity * act_dim * 4
-            self.rew: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
-                capacity, dtype=np.float32, buffer=self.buf, offset=offset
-            )
+            self.rew = np.ndarray(capacity, dtype=np.float32, buffer=self.buf, offset=offset)
             offset += capacity * 4
-            self.next_obs: np.ndarray[Any, np.dtype[np.float32]] = np.ndarray(
+            self.next_obs = np.ndarray(
                 (capacity, obs_dim), dtype=np.float32, buffer=self.buf, offset=offset
             )
 
@@ -77,13 +74,7 @@ class SharedExperienceBuffer:
             logger.error("shm_replay_buffer_failed", error=str(e))
             raise
 
-    def add(
-        self,
-        obs: np.ndarray[Any, np.dtype[np.float32]],
-        act: np.ndarray[Any, np.dtype[np.float32]],
-        rew: float,
-        next_obs: np.ndarray[Any, np.dtype[np.float32]],
-    ) -> None:
+    def add(self, obs, act, rew, next_obs):
         """Zero-copy transition push with spin-lock for multi-producer safety."""
         mv = self.buf
 
@@ -97,7 +88,7 @@ class SharedExperienceBuffer:
 
         mv[0] = 1  # LOCK
         try:
-            head = int(struct.unpack("q", mv[1:9])[0])
+            head = struct.unpack("q", mv[1:9])[0]
             idx = head % self.capacity
 
             self.obs[idx] = obs
@@ -109,31 +100,24 @@ class SharedExperienceBuffer:
         finally:
             mv[0] = 0  # UNLOCK
 
-    def sample(
-        self, batch_size: int
-    ) -> tuple[
-        np.ndarray[Any, np.dtype[np.float32]],
-        np.ndarray[Any, np.dtype[np.float32]],
-        np.ndarray[Any, np.dtype[np.float32]],
-        np.ndarray[Any, np.dtype[np.float32]],
-    ]:
+    def sample(self, batch_size: int):
         """Zero-copy batch sampling with wait-free polling."""
-        mv = self.buf
+        mv = self.shm.buf
         while mv[0] != 0:
             pass  # Busy-wait for unlock
 
-        head = int(struct.unpack("q", mv[1:9])[0])
+        head = struct.unpack("q", mv[1:9])[0]
         max_idx = min(head, self.capacity)
         indices = np.random.choice(max_idx, batch_size, replace=False)
 
         return (
-            cast(np.ndarray[Any, np.dtype[np.float32]], self.obs[indices]),
-            cast(np.ndarray[Any, np.dtype[np.float32]], self.act[indices]),
-            cast(np.ndarray[Any, np.dtype[np.float32]], self.rew[indices]),
-            cast(np.ndarray[Any, np.dtype[np.float32]], self.next_obs[indices]),
+            self.obs[indices],
+            self.act[indices],
+            self.rew[indices],
+            self.next_obs[indices],
         )
 
-    def close(self, unlink: bool = False) -> None:
+    def close(self, unlink: bool = False):
         self.shm.close()
         if unlink:
             self.shm.unlink()

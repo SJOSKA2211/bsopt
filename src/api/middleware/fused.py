@@ -3,13 +3,22 @@ Fused Security Middleware (Ultra-High Performance)
 Consolidates all security layers into a single ASGI hop to minimize context-switching overhead.
 """
 
+import hashlib
+import hmac
+import os
 import re
+import secrets
+import time
+from datetime import UTC, datetime, timedelta
+from typing import Any, cast
+from urllib.parse import urlparse
 
 import structlog
-from fastapi import Request
+from fastapi import Request, status
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.api.responses import MsgspecJSONResponse
+from src.api.websockets.codec import WebSocketCodec
 from src.config import settings
 
 logger = structlog.get_logger(__name__)
@@ -45,7 +54,6 @@ class FusedSecurityMiddleware:
         "/api/v1/auth/register",
         "/api/v1/auth/oauth",
         "/api/v1/auth/.well-known",
-        "/api/v1/pricing",
     )
 
     def __init__(self, app: ASGIApp):
@@ -96,7 +104,7 @@ class FusedSecurityMiddleware:
                 resp = MsgspecJSONResponse(
                     status_code=401,
                     content={"detail": "Authentication token missing"},
-                    headers={"WWW-Authenticate": "Bearer"},
+                    headers={"WWW-Authenticate": "Bearer"}
                 )
                 await resp(scope, receive, send)
                 return
@@ -106,41 +114,21 @@ class FusedSecurityMiddleware:
 
                 # Populate request state via scope["state"] for compatibility
                 state = scope.setdefault("state", {})
-                user_id = token_data.user_id
-                tier = token_data.tier
-
-                state["user_id"] = user_id
+                state["user_id"] = token_data.user_id
                 state["user_email"] = token_data.email
-                state["user_tier"] = tier
+                state["user_tier"] = token_data.tier
                 state["auth_type"] = token_data.token_type
-
-                # 3. Rate Limiting (Distributed Token Bucket)
-                from src.utils.rate_limit import RateLimitTier, limiter
-
-                # Default to FREE if tier not recognized
-                try:
-                    limit_tier = RateLimitTier(tier.lower())
-                except (ValueError, AttributeError):
-                    limit_tier = RateLimitTier.FREE
-
-                if not await limiter.is_allowed(user_id, path, limit_tier):
-                    logger.warning("rate_limit_exceeded", user_id=user_id, path=path, tier=tier)
-                    resp = MsgspecJSONResponse(
-                        status_code=429,
-                        content={"detail": "Rate limit exceeded", "retry_after": "60s"},
-                    )
-                    await resp(scope, receive, send)
-                    return
 
             except Exception as e:
                 logger.warning("auth_failed", error=str(e), path=path)
                 resp = MsgspecJSONResponse(
-                    status_code=401, content={"detail": "Authentication failed"}
+                    status_code=401,
+                    content={"detail": "Authentication failed"}
                 )
                 await resp(scope, receive, send)
                 return
 
-        # 4. Security Headers Wrapper
+        # 3. Security Headers Wrapper
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))

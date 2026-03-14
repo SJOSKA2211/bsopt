@@ -5,6 +5,7 @@ from sqlalchemy import select
 from src.database import get_async_db_context
 from src.database.models import Portfolio as DBPortfolio
 from src.database.models import Position as DBPosition
+
 from src.shared.shm_mesh import GreeksMesh
 
 logger = structlog.get_logger(__name__)
@@ -30,7 +31,7 @@ class Position:
     def from_db(cls, db_pos: DBPosition):
         pos = cls(
             id=strawberry.ID(str(db_pos.id)),
-            contract_symbol=db_pos.symbol,  # Mapping contract_symbol to symbol
+            contract_symbol=db_pos.symbol, # Mapping contract_symbol to symbol
             quantity=db_pos.quantity,
             entry_price=float(db_pos.entry_price),
         )

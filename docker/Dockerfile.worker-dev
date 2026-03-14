@@ -1,5 +1,5 @@
 # Development Dockerfile for the Worker Service
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -15,13 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy and install Python dependencies using uv for speed
-RUN pip install --no-cache-dir uv
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_RETRIES=10
-ENV UV_TCP_KEEPALIVE=1
-COPY requirements-ml-cpu.txt requirements-api.txt ./
-RUN uv pip install --system --no-cache --index-strategy unsafe-best-match -r requirements-ml-cpu.txt
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Copy the entire source directory for development
 COPY src/ ./src

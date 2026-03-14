@@ -237,12 +237,6 @@ celery_app.conf.update(
             "schedule": crontab(hour="*/12"),  # Every 12 hours
             "options": {"queue": "ml", "priority": 1},
         },
-        "threshold-based-retraining-check": {
-            "task": "src.tasks.ml_tasks.check_threshold_and_retrain_task",
-            "schedule": crontab(hour="*/4"),  # Every 4 hours
-            "args": ("AAPL", False, 50000),
-            "options": {"queue": "ml"},
-        },
         "reconcile-risk-state": {
             "task": "src.tasks.trading_tasks.reconcile_risk_state_task",
             "schedule": timedelta(seconds=10),

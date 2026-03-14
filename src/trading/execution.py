@@ -1,5 +1,4 @@
 import asyncio
-import os
 import time
 from typing import Any
 
@@ -115,55 +114,11 @@ class OrderExecutor:
 
                 # 4. Extract params for execution
                 contract_address = params.get("contract_address")
-                token_address = params.get("token_address")  # Needed for permit
 
                 # 5. Check Circuit Breaker
                 await self.protocol._check_circuit()
 
-                # 6. Smart Order Router (SOR) Intervention
-                # Determine best venue based on current mempool conditions
-                sor_decision = await self.protocol.route_order_advanced(
-                    params.get("symbol", "UNKNOWN"), quantity, True
-                )
-                logger.info(
-                    "sor_routing_decision", venue=sor_decision["name"], price=sor_decision["price"]
-                )
-
-                # Check for Gasless Meta-Transaction Eligibility
-                is_gasless_eligible = params.get("use_gasless", True) and token_address is not None
-
-                # 7. Dispatch transaction
-                if is_gasless_eligible:
-                    # 🚀 FAST-PATH: Gasless Meta-Transaction
-                    deadline = int(time.time()) + 300  # 5 min deadline
-                    payload = await self.protocol.buy_option_gasless(
-                        token_address=token_address,
-                        contract_address=contract_address,
-                        amount=quantity,
-                        deadline=deadline,
-                        params=params,
-                    )
-
-                    # Submit payload to dummy/provided relayer
-                    relayer_url = os.environ.get(
-                        "RELAYER_URL", "http://localhost:8080/submit_meta_tx"
-                    )
-                    try:
-                        tx_hash = await self.protocol.submit_meta_transaction(relayer_url, payload)
-                        duration = (time.time() - start_time) * 1000
-                        logger.info(
-                            "order_dispatched_gasless", tx_hash=tx_hash, latency_ms=duration
-                        )
-                        return {
-                            "status": "dispatched_gasless",
-                            "tx_hash": tx_hash,
-                            "latency_ms": duration,
-                        }
-                    except Exception as e:
-                        logger.warning("gasless_submission_failed_falling_back", error=str(e))
-                        # Fallback to standard execution handled below
-
-                # 🐢 STANDARD-PATH: EIP-1559 Transaction
+                # 6. Dispatch real transaction
                 tx_hash = await self.protocol.buy_option(
                     contract_address=contract_address,
                     amount=quantity,

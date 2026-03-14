@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from src.utils.lazy_import import get_import_stats, lazy_import, preload_modules
 
@@ -8,6 +8,7 @@ from src.utils.lazy_import import get_import_stats, lazy_import, preload_modules
 __all__ = [
     # Forecasting
     "PriceTFTModel",
+    "TFTModel",
     # Reinforcement Learning
     "TradingEnvironment",
     "AugmentedRLAgent",
@@ -21,26 +22,29 @@ __all__ = [
 if TYPE_CHECKING:
     from .data_loader import DataNormalizer
     from .federated_learning.coordinator import FederatedLearningCoordinator
-    from .forecasting.tft_model import PriceTFTModel
-    from .reinforcement_learning.augmented_agent import AugmentedRLAgent
+    from .forecasting.tft_model import PriceTFTModel, TFTModel
     from .reinforcement_learning.trading_env import TradingEnvironment
+    from .rl.augmented_agent import AugmentedRLAgent
 
 # LAZY IMPORT MAPPING
 _import_map = {
     # Forecasting (PyTorch-based)
     "PriceTFTModel": ".forecasting.tft_model",
+    "TFTModel": ".forecasting.tft_model",
     # RL (Ray + Torch)
     "TradingEnvironment": ".reinforcement_learning.trading_env",
-    "AugmentedRLAgent": ".reinforcement_learning.augmented_agent",
+    "AugmentedRLAgent": ".rl.augmented_agent",
     # Federated Learning (PySyft + Torch)
     "FederatedLearningCoordinator": ".federated_learning.coordinator",
     # Data (Lightweight - can preload)
     "DataNormalizer": ".data_loader",
+    # Celery
+    "celery_app": ".celery_app",
 }
 
 
 # RUNTIME LAZY LOADING
-def __getattr__(name: str) -> Any:
+def __getattr__(name: str):
     """
     PEP 562: Module-level __getattr__ for lazy imports.
     This is called when an attribute is accessed that doesn't exist yet.
@@ -58,7 +62,7 @@ def __dir__() -> list[str]:
 
 
 # PRODUCTION PRELOADING
-def preload_critical_modules() -> None:
+def preload_critical_modules():
     """
     Preload lightweight modules in production for faster first request.
     Call this from the application startup hook (e.g., FastAPI @app.on_event("startup")).
@@ -75,6 +79,6 @@ if os.getenv("ENVIRONMENT") == "production" and os.getenv("PRELOAD_ML_MODULES") 
 
 
 # DIAGNOSTICS
-def get_ml_import_stats() -> dict[str, Any]:
+def get_ml_import_stats():
     """Get import statistics for ML module."""
     return get_import_stats()

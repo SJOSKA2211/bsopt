@@ -1,5 +1,5 @@
 # Development Dockerfile for the Scraper Service
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -30,14 +30,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy and install Python dependencies using uv for speed
-RUN pip install --no-cache-dir uv
-ENV UV_HTTP_TIMEOUT=1000
-ENV UV_TCP_KEEPALIVE=1
-ENV UV_CONCURRENT_DOWNLOADS=1
-COPY requirements-api.txt .
-RUN uv pip install --system --no-cache -r requirements-api.txt \
-    && uv pip install --system --no-cache playwright structlog
+# Copy and install Python dependencies, including playwright and structlog
+COPY requirements.txt .
+RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt \
+    && pip install --default-timeout=1000 --no-cache-dir playwright structlog
 
 # Install browsers for Playwright (to root's cache)
 RUN playwright install chromium

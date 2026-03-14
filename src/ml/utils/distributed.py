@@ -39,9 +39,7 @@ def get_dask_client(address: str | None = None) -> tuple[Client, bool]:
     return Client(cluster), True
 
 
-def train_xgboost_distributed(
-    X: Any, y: Any, params: dict[str, Any], dask_address: str | None = None
-) -> Any:
+def train_xgboost_distributed(X, y, params: dict[str, Any], dask_address: str | None = None):
     """
     Train XGBoost model using Dask for distributed execution.
     """
@@ -126,7 +124,7 @@ class RayClusterManager:
     """
 
     @staticmethod
-    def initialize(address: str = "auto", namespace: str = "bsopt") -> dict[str, Any]:
+    def initialize(address: str = "auto", namespace: str = "bsopt"):
         import ray
 
         if not ray.is_initialized():
@@ -135,7 +133,7 @@ class RayClusterManager:
         return check_ray_cluster()
 
     @staticmethod
-    def shutdown() -> None:
+    def shutdown():
         import ray
 
         if ray.is_initialized():

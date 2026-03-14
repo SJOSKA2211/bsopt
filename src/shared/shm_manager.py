@@ -1,7 +1,7 @@
 import struct
 import time
 from multiprocessing import shared_memory
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 import msgspec
 import structlog

@@ -187,36 +187,17 @@ class AuthService:
             self.refresh_token_expire,
         )
 
-    def _get_key_for_algorithm(self, algorithm: str, is_private: bool = True) -> str:
-        """Selects the correct key (RSA or ECC) based on the algorithm."""
-        if algorithm.startswith("RS"):
-            return settings.rsa_private_key if is_private else settings.rsa_public_key
-        elif algorithm.startswith("ES"):
-            # We'll need to add es256 properties to settings if they don't exist
-            # For now, let's assume settings has them or fallback
-            return getattr(settings, "es256_private_key", settings.rsa_private_key) if is_private else \
-                   getattr(settings, "es256_public_key", settings.rsa_public_key)
-        return settings.JWT_SECRET
-
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
-        """Internal helper to create a JWT token with asymmetric support."""
+        """Internal helper to create a JWT token."""
         to_encode = data.copy()
         expire = datetime.now(UTC) + expires_delta
         to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
-        
-        algorithm = self.algorithm
-        key = self._get_key_for_algorithm(algorithm, is_private=True)
-        return jwt.encode(to_encode, key, algorithm=algorithm)
+        return jwt.encode(to_encode, self.private_key, algorithm=self.algorithm)
 
     async def invalidate_token(self, token: str, request: Request) -> None:
         """Invalidate a token by adding its JTI to the blacklist."""
         try:
-            # We don't know the algorithm beforehand, so we might need to try both or rely on header
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", self.algorithm)
-            key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
-            payload = jwt.decode(token, key, algorithms=[algorithm])
+            payload = jwt.decode(token, self.public_key, algorithms=[self.algorithm])
             jti = payload.get("jti")
             exp_timestamp = payload.get("exp")
             if jti and exp_timestamp:
@@ -227,11 +208,7 @@ class AuthService:
 
     def decode_token(self, token: str) -> TokenData:
         try:
-            unverified_header = jwt.get_unverified_header(token)
-            algorithm = unverified_header.get("alg", self.algorithm)
-            key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
-            payload = jwt.decode(token, key, algorithms=[algorithm])
+            payload = jwt.decode(token, self.public_key, algorithms=[self.algorithm])
             return TokenData(
                 user_id=payload.get("sub"),
                 email=payload.get("email", ""),
@@ -258,9 +235,10 @@ class AuthService:
         redis_client = await get_redis_client()
         if redis_client:
             try:
-                cached_data = await redis_client.get(f"session_v3:{token}")
+                cached_data = await redis_client.get(f"session_v2:{token}")
                 if cached_data:
                     import msgspec
+
                     data = msgspec.json.decode(cached_data)
                     return TokenData(
                         user_id=data["user_id"],
@@ -273,40 +251,52 @@ class AuthService:
             except Exception as e:
                 logger.debug("session_cache_lookup_failed", error=str(e))
 
-        # 2. Institutional gRPC Call (Microservice Decoupling)
-        from src.security.grpc_client import auth_grpc_client
-        grpc_resp = await auth_grpc_client.validate_token(token)
-        if grpc_resp and grpc_resp.valid:
-            token_data = TokenData(
-                user_id=grpc_resp.user_id if hasattr(grpc_resp, 'user_id') else "unknown",
-                email="unknown", # gRPC might not return email for privacy/minimalism
-                tier=grpc_resp.role,
-                token_type="session",
-                exp=datetime.now(UTC) + timedelta(minutes=60), # Fallback if not in proto
-                iat=datetime.now(UTC),
-            )
-            
-            # Cache successful verification
-            if redis_client:
-                try:
-                    import msgspec
-                    await redis_client.setex(
-                        f"session_v3:{token}",
-                        300,
-                        msgspec.json.encode({
-                            "user_id": token_data.user_id,
-                            "email": token_data.email,
-                            "tier": token_data.tier,
-                            "exp": token_data.exp.isoformat(),
-                            "iat": token_data.iat.isoformat(),
-                        })
-                    )
-                except Exception:
-                    pass
-            return token_data
+        # 2. Try Better Auth Session (Primary DB Check)
+        from src.database import get_async_db_context
+        from src.database.models import BetterAuthSession
 
-        # 3. Legacy Session/JWT Fallback (Local DB Check)
-        # ... rest of existing logic ...
+        async with get_async_db_context() as db:
+            # Optimized session lookup with user join
+            result = await db.execute(
+                select(BetterAuthSession)
+                .options(selectinload(BetterAuthSession.user))
+                .where(BetterAuthSession.token == token)
+            )
+            session = result.scalar_one_or_none()
+            if session and session.expires_at > datetime.now(UTC):
+                user = session.user
+                if user:
+                    token_data = TokenData(
+                        user_id=str(user.id),
+                        email=user.email,
+                        tier=user.tier,
+                        token_type="session",
+                        exp=session.expires_at,
+                        iat=session.created_at,
+                    )
+
+                    # Cache successful session verification (5 min TTL)
+                    if redis_client:
+                        try:
+                            import msgspec
+
+                            await redis_client.setex(
+                                f"session_v2:{token}",
+                                300,
+                                msgspec.json.encode(
+                                    {
+                                        "user_id": token_data.user_id,
+                                        "email": token_data.email,
+                                        "tier": token_data.tier,
+                                        "exp": token_data.exp.isoformat(),
+                                        "iat": token_data.iat.isoformat(),
+                                    }
+                                ),
+                            )
+                        except Exception as e:
+                            logger.debug("session_cache_save_failed", error=str(e))
+
+                    return token_data
 
         # 3. Legacy JWT Fallback
         token_data = self.decode_token(token)

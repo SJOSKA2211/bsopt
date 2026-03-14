@@ -5,7 +5,6 @@ import structlog
 
 from src.pricing.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
-
 from .base import PricingStrategy
 
 try:
@@ -25,9 +24,7 @@ class BlackScholesEngine(PricingStrategy):
     """
 
     @staticmethod
-    def _extract_params(
-        params: Any | None = None, **kwargs: Any
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def _extract_params(params: Any | None = None, **kwargs: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """Helper to extract parameters."""
         if params:
             s = getattr(params, "spot", kwargs.get("spot"))
@@ -148,32 +145,20 @@ class BlackScholesEngine(PricingStrategy):
             except Exception as e:
                 logger.warning("rust_core_pricing_failed_falling_back", error=str(e))
 
-        # GPU Acceleration Path (Numba CUDA)
-        if S.size > 100:  # Threshold for GPU overhead
-            try:
-                from src.quant.kernels import price_options_gpu
-
-                # Convert is_call to boolean array for CUDA
-                is_call_arr = np.atleast_1d(is_call).astype(bool)
-                if is_call_arr.shape != S.shape:
-                    is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
-
-                return price_options_gpu(S, K, T, sigma, r, q, is_call_arr)
-            except Exception as e:
-                logger.warning("gpu_kernel_failed_falling_back", error=str(e))
-
-        # Vectorized numpy fallback
-        res = calculate_price(S, K, T, sigma, r, q, is_call)
-
+        # The shared math utility handles broadcasting and returns either scalar or array
         if kwargs.get("out") is not None:
-            out_arr = kwargs["out"]
-            if isinstance(res, np.ndarray):
-                np.copyto(out_arr, res)
-            else:
-                out_arr.fill(res)
-            return out_arr
+            from src.pricing.quant_utils import batch_bs_price_jit_v2_out
 
-        return res
+            # Ensure is_call is an array for Numba batch path
+            if np.isscalar(is_call):
+                is_call_arr = np.full(S.shape, is_call, dtype=bool)
+            else:
+                is_call_arr = np.asanyarray(is_call).astype(bool)
+
+            batch_bs_price_jit_v2_out(S, K, T, sigma, r, q, is_call_arr, kwargs["out"])
+            return cast(np.ndarray, kwargs["out"])
+
+        return calculate_price(S, K, T, sigma, r, q, is_call)
 
     @staticmethod
     def calculate_greeks(
@@ -254,23 +239,29 @@ class BlackScholesEngine(PricingStrategy):
             except Exception as e:
                 logger.warning("rust_core_greeks_failed_falling_back", error=str(e))
 
-        # Vectorized numpy fallback
-        delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
-
         if "out_delta" in kwargs:
+            from src.pricing.quant_utils import batch_greeks_jit_v2_out
 
-            def _copy(dst, src):
-                if isinstance(src, np.ndarray):
-                    np.copyto(dst, src)
-                else:
-                    dst.fill(src)
+            # Ensure is_call is an array for Numba batch path
+            if np.isscalar(is_call):
+                is_call_arr = np.full(S.shape, is_call, dtype=bool)
+            else:
+                is_call_arr = np.asanyarray(is_call).astype(bool)
 
-            _copy(kwargs["out_delta"], delta)
-            _copy(kwargs["out_gamma"], gamma)
-            _copy(kwargs["out_theta"], theta)
-            _copy(kwargs["out_vega"], vega)
-            _copy(kwargs["out_rho"], rho)
-
+            batch_greeks_jit_v2_out(
+                S,
+                K,
+                T,
+                sigma,
+                r,
+                q,
+                is_call_arr,
+                kwargs["out_delta"],
+                kwargs["out_gamma"],
+                kwargs["out_theta"],
+                kwargs["out_vega"],
+                kwargs["out_rho"],
+            )
             return OptionGreeks(
                 delta=kwargs["out_delta"],
                 gamma=kwargs["out_gamma"],
@@ -279,7 +270,10 @@ class BlackScholesEngine(PricingStrategy):
                 rho=kwargs["out_rho"],
             )
 
+        delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
+
         return OptionGreeks(delta=delta, gamma=gamma, theta=theta, vega=vega, rho=rho)
+
 
     @staticmethod
     def price_call(params: BSParameters) -> float:
@@ -290,39 +284,20 @@ class BlackScholesEngine(PricingStrategy):
         return float(BlackScholesEngine.price_options(params=params, option_type="put"))
 
     @staticmethod
-    def price_batch(
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        dividend: np.ndarray,
-        option_types: np.ndarray,
-    ) -> np.ndarray:
+    def price_batch(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, option_types: np.ndarray) -> np.ndarray:
         """Vectorized pricing returning an array."""
-        return cast(
-            np.ndarray,
-            BlackScholesEngine.price_options(
-                spot=S,
-                strike=K,
-                maturity=T,
-                volatility=sigma,
-                rate=r,
-                dividend=dividend,
-                option_type=option_types,
-            ),
-        )
+        return cast(np.ndarray, BlackScholesEngine.price_options(
+            spot=S,
+            strike=K,
+            maturity=T,
+            volatility=sigma,
+            rate=r,
+            dividend=dividend,
+            option_type=option_types,
+        ))
 
     @staticmethod
-    def price_batch_greeks(
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        dividend: np.ndarray,
-        is_call: Any = True,
-    ) -> tuple[np.ndarray, ...]:
+    def price_batch_greeks(S: np.ndarray, K: np.ndarray, T: np.ndarray, sigma: np.ndarray, r: np.ndarray, dividend: np.ndarray, is_call: Any = True) -> tuple[np.ndarray, ...]:
         """
         Specialized batch Greek calculation for GreekEngine.
         Returns a tuple of arrays: (delta, gamma, theta, vega, rho)
@@ -362,8 +337,11 @@ class BlackScholesEngine(PricingStrategy):
             except Exception as e:
                 logger.warning("rust_batch_greeks_failed_falling_back", error=str(e))
 
-        # Vectorized numpy fallback
-        d, g, th, v, rh = calculate_greeks(S, K_arr, T_arr, sig_arr, r_arr, q_arr, is_call_arr)
+        from src.pricing.quant_utils import batch_greeks_jit_v2
+
+        # Note: batch_greeks_jit_v2 returns (delta, gamma, vega, theta, rho)
+        # But GreekEngine expects (delta, gamma, theta, vega, rho)
+        d, g, v, th, rh = batch_greeks_jit_v2(S, K_arr, T_arr, sig_arr, r_arr, q_arr, is_call_arr)
         return d, g, th, v, rh
 
     @staticmethod
@@ -379,9 +357,7 @@ class BlackScholesEngine(PricingStrategy):
         }
 
     @staticmethod
-    def verify_put_call_parity(
-        S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0
-    ) -> bool:
+    def verify_put_call_parity(S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0) -> bool:
         lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
         rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - np.asanyarray(
             K
@@ -403,13 +379,7 @@ def black_scholes(*args: Any, **kwargs: Any) -> Any:
 
 
 def verify_put_call_parity(
-    params_or_S: Any,
-    K: Any = None,
-    T: Any = None,
-    r: Any = None,
-    call_price: Any = None,
-    put_price: Any = None,
-    q: float = 0.0,
+    params_or_S: Any, K: Any = None, T: Any = None, r: Any = None, call_price: Any = None, put_price: Any = None, q: float = 0.0
 ) -> bool:
     """Module-level parity verifier for test compatibility."""
     if hasattr(params_or_S, "spot") and K is None:

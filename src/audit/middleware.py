@@ -1,4 +1,5 @@
 import base64
+import os
 import time
 from typing import Any
 
@@ -7,13 +8,12 @@ import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.config import settings
 from src.utils.crypto import AES256GCM
 
 logger = structlog.get_logger(__name__)
 
 # Initialize Audit Vault
-_vault_key = settings.AUDIT_VAULT_KEY
+_vault_key = os.getenv("AUDIT_VAULT_KEY", "changeme_32byte_key_for_god_mode!")
 _vault = (
     AES256GCM(base64.urlsafe_b64encode(_vault_key.encode()[:32]).decode()) if _vault_key else None
 )

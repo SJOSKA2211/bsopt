@@ -1,42 +1,66 @@
 # ==============================================================================
-# EQUAFLOW: THE INSTITUTIONAL-GRADE MANIFOLD (Makefile v11.0)
+# BS-OPT: THE HIGH-PERFORMANCE ORCHESTRATOR (Makefile v10.0)
 # ==============================================================================
-# Unified Orchestration for Rust, Python, gRPC, and Envoy.
+# Unified Docker Orchestration for Dev, Test, and Prod.
+# *
 # ==============================================================================
 
 # Detect Docker Compose
-DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || echo "docker compose")
+DOCKER_COMPOSE := $(shell [ -x "./docker-compose" ] && echo "./docker-compose" || which docker-compose 2>/dev/null || (docker compose version >/dev/null 2>&1 && echo "docker compose") || (test -f ~/.local/bin/docker-compose && echo "~/.local/bin/docker-compose") || echo "docker compose")
 
-.PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up
+# Define COMPOSE_PROFILES for specific service profiles
+COMPOSE_PROFILES := ml
 
+.PHONY: help up down build build-prod logs clean migrate db-shell lint format security-scan protos xdp test-all manifold cli proxy check-env
+
+# Default target
 help:
-	@echo "\n 🚀 EquaFlow Advanced Orchestrator (Makefile v11.0)"
+	@echo "\n High-Performance Engine's Master Orchestrator (Makefile v10.0) "
 	@echo "======================================================="
-	@echo "Automation:"
-	@echo "  bootstrap    - Zero-Touch stack & security initialization"
-	@echo "  up           - Start the entire stack (Background)"
+	@echo "Core Commands:"
+	@echo "  up           - Start the development stack (Background)"
 	@echo "  down         - Stop and remove all containers"
-	@echo "  build        - Rebuild all core images"
-	@echo "  ps           - Show process status"
+	@echo "  build        - Rebuild all core images (Development Stage)"
+	@echo "  build-prod   - Build all images (Production Stage)"
+	@echo "  logs         - Follow logs for all services"
 	@echo ""
-	@echo "Development & Quality:"
-	@echo "  protos       - Generate gRPC/Protobuf bindings (Rust & Python)"
-	@echo "  lint         - Run high-fidelity linters (Ruff, Cargo Clippy)"
-	@echo "  format       - Auto-format codebase (Ruff, Cargo Fmt)"
+	@echo "Quality & Security:"
+	@echo "  lint         - Run Ruff linting inside container"
+	@echo "  format       - Auto-format code with Ruff"
+	@echo "  security-scan - Run pip-audit and Bandit"
 	@echo ""
-	@echo "Testing:"
-	@echo "  test-all     - Run THE GAUNTLET (Rust + Python + E2E)"
-	@echo "  test-rust    - Execute Rust unit & integration tests"
-	@echo "  test-python  - Execute Python test suite"
+	@echo "Build & Protos:"
+	@echo "  protos       - Compile Protocol Buffers inside container"
+	@echo "  xdp          - Compile Silicon-Level XDP Filter"
+	@echo "  wasm         - Compile High-Performance WASM Kernels"
 	@echo ""
-	@echo "Infrastructure:"
-	@echo "  envoy-up     - Launch the Envoy API Gateway"
-	@echo "  db-shell     - Open psql for TimescaleDB"
+	@echo "Testing & DB:"
+	@echo "  test-all     - Run ALL tests in specialized test-runner"
+	@echo "  migrate      - Run full database migration sequence"
+	@echo "  db-shell     - Open a psql shell to the database"
+	@echo "  db-optimize  - Run vacuum and manual TimescaleDB chunk compression"
+	@echo "  db-benchmark - Run High-Performance database performance benchmark"
+	@echo ""
+	@echo "Specialized Clusters:"
+	@echo "  manifold     - Launch the HFT Silicon Swarm (Privileged)"
+	@echo "  proxy        - Start the stack with Nginx Gateway"
+	@echo "  obs          - Launch Observability Stack (Prometheus/Grafana)"
+	@echo "  ml           - Launch THE BRAIN (ML Cluster: Ray + MLflow)"
+	@echo "  ml-build     - Build High-Performance MLOps Runtime Image"
+	@echo "  ml-train     - Run Autonomous ML Training (Use TICKER=\"...\")"
+	@echo "  ml-rl-train  - Run RL Trading Policy Training"
+	@echo "  ml-dt-train  - Run Distributed Decision Transformer Training"
+	@echo "  ml-offline-dt-train - Run Offline Decision Transformer Training"
+	@echo "  ml-fl-train  - Run Federated Learning Coordinator"
+	@echo "  ml-tft-train - Run TFT Forecasting Training (Use TICKER=\"...\", EPOCHS=\"...\")"
+	@echo "  ml-evaluate  - Compare Challenger run vs Production Champion"
+	@echo "  ml-promote   - Promote model to Production (Use MODEL=\"...\", RUN_ID=\"...\")"
+	@echo "  ml-rollback  - Rollback model to previous version (Use MODEL=\"...\")"
+	@echo "  ml-reload    - Trigger dynamic model reload across the manifold"
+	@echo "  cli          - Run containerized CLI (Use ARGS=\"...\")"
 	@echo "=======================================================\n"
 
-bootstrap:
-	@chmod +x bootstrap.sh
-	@./bootstrap.sh
+# --- Core Commands ---
 
 up:
 	$(DOCKER_COMPOSE) up -d
@@ -47,70 +71,168 @@ down:
 build:
 	$(DOCKER_COMPOSE) build
 
-ps:
-	$(DOCKER_COMPOSE) ps
+build-prod:
+	@echo " Building Production-ready images..."
+	docker build --target production -t bsopt/api:latest -f docker/Dockerfile.api .
+	docker build --target production -t bsopt/worker:latest -f docker/Dockerfile.worker .
+	docker build --target production -t bsopt/scraper:latest -f docker/Dockerfile.scraper-lite .
+	docker build --target production -t bsopt/auth-service:latest -f docker/Dockerfile.auth-service .
+	docker build --target production -t bsopt/neural-pricing:latest -f docker/Dockerfile.neural-pricing .
+	docker build --target production -t bsopt/frontend:latest -f docker/Dockerfile.frontend .
+	docker build --target production -t bsopt/app-gateway:latest -f docker/Dockerfile.app-gateway .
+	docker build --target production -t bsopt/portfolio:latest -f docker/Dockerfile.api .
 
 logs:
-	$(DOCKER_COMPOSE) logs -f
+	docker compose logs -f
 
-# --- Testing Hub ---
-
-# === [Security] Institutional Hardening ===
-security-scan:
-	@echo "🛡️ Running Trivy Vulnerability Scan..."
-	@trivy fs --severity HIGH,CRITICAL .
-	@echo "🔍 Running Bandit Security Linter..."
-	@$(DOCKER_COMPOSE) run --rm api bandit -r src/
-	@echo "🕵️ Running Pip-Audit..."
-	@$(DOCKER_COMPOSE) run --rm api pip-audit
-
-test-all:
-	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
-	@echo "--- [Rust Core] ---"
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo fmt -- --check
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
-	@echo "--- [Python API] ---"
-	@$(DOCKER_COMPOSE) run --rm api ruff check .
-	@$(DOCKER_COMPOSE) run --rm api ruff format --check .
-	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-	@echo "--- [E2E & Auth] ---"
-	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
-	@echo "✅ Gauntlet Passed."
-
-test-rust:
-	$(DOCKER_COMPOSE) run --rm rust-core cargo test
-
-test-python:
-	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-
-# --- Advanced Builds ---
-
-protos:
-	@echo "🧬 Generating Cross-Language gRPC Bindings..."
-	@# Python Bindings
-	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
-		-I=src/protos --python_out=src/protos --grpc_python_out=src/protos src/protos/*.proto
-	@# Rust Bindings
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo build
-
-lint:
-	$(DOCKER_COMPOSE) run --rm api ruff check .
-	$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
-
-format:
-	$(DOCKER_COMPOSE) run --rm api ruff format .
-	$(DOCKER_COMPOSE) run --rm rust-core cargo fmt
-
-envoy-up:
-	@echo "🕸️  Launching Envoy Edge Proxy..."
-	$(DOCKER_COMPOSE) up -d envoy
-
-db-shell:
-	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
+# --- Utility Commands ---
 
 clean:
 	$(DOCKER_COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf target/
-	rm -rf src/rust-core/target/
+	find . -type f -name "*.pyc" -delete
+
+migrate:
+	@echo " Running High-Performance Idempotent Deployment Sequence..."
+	$(DOCKER_COMPOSE) exec -T api bash scripts/deploy_db_updates.sh
+
+test-migrate:
+	@echo " Initializing Test Database (bsopt_test)..."
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE bsopt_test;" || true
+	$(DOCKER_COMPOSE) exec -T api bash -c "export DATABASE_URL=\$$DATABASE_URL_TEST && bash scripts/deploy_db_updates.sh"
+
+db-shell:
+	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
+
+db-audit:
+	@echo " Running High-Performance Manifold Audit..."
+	$(DOCKER_COMPOSE) exec -T api python3 src/database/verify.py
+
+db-optimize:
+	@echo " Pressurizing the Manifold (Database Optimization)..."
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "VACUUM (ANALYZE, VERBOSE);"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "REINDEX TABLE CONCURRENTLY orders; REINDEX TABLE CONCURRENTLY positions;"
+	$(DOCKER_COMPOSE) exec -T postgres psql -U admin -d bsopt -c "CALL refresh_standard_materialized_views(NULL, NULL);"
+
+# --- Quality & Security ---
+
+lint:
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner ruff check .
+
+format:
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner ruff format --check .
+
+security-scan:
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner pip-audit -r requirements.txt || true
+	$(DOCKER_COMPOSE) --profile test run --rm --no-deps test-runner bandit -c pyproject.toml -r src/
+
+# --- Build & Protos ---
+
+protos:
+	@echo " Compiling Protocol Buffers..."
+	$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
+	        -I=protos --python_out=src/protos --pyi_out=src/protos --grpc_python_out=src/protos protos/*.proto
+	@# Fix relative imports
+	@docker compose run --rm api sed -i 's/^import \(.*_pb2\)/from . import \1/' src/protos/inference_pb2.py
+	@docker compose run --rm api sed -i 's/^import \(.*_pb2\)/from . import \1/' src/protos/inference_pb2_grpc.py
+
+xdp:
+	@echo " Compiling Silicon-Level XDP Filter..."
+	docker run --rm -v $$(pwd):/app -w /app alpine:latest sh -c \
+	        "apk add --no-cache clang llvm make libbpf-dev linux-headers && \
+	         clang -O2 -target bpf -c scripts/hft/xdp_filter.c -o scripts/hft/xdp_filter.o"
+
+# Build Rust/WASM kernels inside a container
+wasm:
+	@echo " Compiling High-Performance WASM Kernels... Stand back!"
+	docker run --rm -v $$(pwd):/app -w /app rust:slim sh -c \
+	        "rustup target add wasm32-unknown-unknown && \
+	         cd src/wasm && cargo build --target wasm32-unknown-unknown --release && \
+	         cd ../pulse && cargo build --target wasm32-unknown-unknown --release"
+
+# --- Testing ---
+
+test-all:
+	@echo " Launching Containerized Test Suite (High-Performance)..."
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest -n 2 tests/
+
+test-local:
+	@echo " Launching Local Test Suite (Bare Metal)... Stand back!"
+	PYTHONPATH=src python3 -m pytest tests/
+
+# --- Specialized ---
+
+manifold:
+	@echo " Launching THE HIGH-PERFORMANCE MANIFOLD..."
+	$(DOCKER_COMPOSE) --profile hft up -d postgres redis rabbitmq
+	$(DOCKER_COMPOSE) --profile hft run --rm manifold
+
+proxy:
+	@echo " Launching stack with SECURE GATEWAY..."
+	$(DOCKER_COMPOSE) --profile proxy up -d
+
+# Launch the Observability Stack (Prometheus & Grafana)
+obs:
+	@echo " Launching THE ORACLE (Observability)... Stand back!"
+	$(DOCKER_COMPOSE) --profile observability up -d
+
+# Launch the ML Cluster (Ray + MLflow)
+ml:
+	@echo " Launching THE BRAIN (ML Cluster)... Stand back!"
+	$(DOCKER_COMPOSE) --profile ml up -d
+
+ml-build:
+	@echo " Building High-Performance MLOps Runtime..."
+	docker build -f docker/Dockerfile.mlops -t bsopt-mlops-runtime:latest .
+
+ml-train:
+	@echo " Triggering Autonomous ML Training for $(TICKER)..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_regressor -P ticker=$(TICKER) --no-conda
+
+ml-rl-train:
+	@echo " Triggering RL Trading Policy Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_rl -P timesteps=$(STEPS) --no-conda
+
+ml-dt-train:
+	@echo " Triggering Distributed Decision Transformer Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_distributed_dt -P workers=$(WORKERS) -P epochs=$(EPOCHS) --no-conda
+
+ml-offline-dt-train:
+	@echo " Triggering Offline Decision Transformer Training..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e offline_train_dt -P epochs=$(EPOCHS) --no-conda
+
+ml-fl-train:
+	@echo " Triggering Federated Learning Coordinator..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_federated -P rounds=$(ROUNDS) --no-conda
+
+ml-tft-train:
+	@echo " Triggering TFT Forecasting Training for $(TICKER)..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e train_tft -P ticker=$(TICKER) -P epochs=$(EPOCHS) --no-conda
+
+ml-evaluate:
+	@echo " Evaluating Challenger Run: $(RUN_ID) against Production..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e evaluate_challenger -P model=$(MODEL) -P challenger=$(RUN_ID) --no-conda
+
+ml-promote:
+	@echo " Promoting Model $(MODEL) [Run: $(RUN_ID)] to Production..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker mlflow run . -e promote_model -P model=$(MODEL) -P run_id=$(RUN_ID) --no-conda
+
+ml-rollback:
+	@echo " Rolling Back Model $(MODEL) to Previous Version..."
+	$(DOCKER_COMPOSE) --profile ml run --rm mlops-worker python -c "from src.ml.utils.rollback import rollback_model; rollback_model('$(MODEL)')"
+
+ml-reload:
+	@echo " Triggering Dynamic Model Reload across the Manifold..."
+	curl -X POST http://localhost:8000/ml/reload
+
+cli:
+	@echo " Launching Containerized CLI..."
+	@$(DOCKER_COMPOSE) run --rm -v $$(pwd):/app -e DATABASE_URL=postgresql://admin:password@postgres:5432/bsopt api python scripts/bs_cli.py $$(ARGS)
+
+check-env:
+	@test -f .env || echo "WARNING: .env not found."
+	@test -f .env.test || echo "WARNING: .env.test not found."
+
+db-benchmark:
+	@echo " Pressurizing the Manifold (Database Benchmark)..."
+	@$(DOCKER_COMPOSE) --profile benchmark run --rm test-runner python scripts/benchmark_db.py

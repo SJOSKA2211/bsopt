@@ -11,7 +11,7 @@ import structlog
 logger = structlog.get_logger()
 
 
-def promote_model(model_name: str, run_id: str, stage: str = "Production") -> None:
+def promote_model(model_name, run_id, stage="Production"):
     client = mlflow.tracking.MlflowClient()
 
     # 1. Register model if not already
@@ -32,7 +32,7 @@ def promote_model(model_name: str, run_id: str, stage: str = "Production") -> No
     notify_app_of_update(model_name, version.version)
 
 
-def notify_app_of_update(model_name: str, version: str) -> None:
+def notify_app_of_update(model_name, version):
     """
     Triggers a reload in the serving layer.
     """
@@ -43,7 +43,7 @@ def notify_app_of_update(model_name: str, version: str) -> None:
     serving_url = "http://api:8000/ml/reload"
     logger.info("notifying_serving_layer", model=model_name, version=version, url=serving_url)
 
-    async def trigger() -> None:
+    async def trigger():
         try:
             async with httpx.AsyncClient() as client:
                 resp = await client.post(

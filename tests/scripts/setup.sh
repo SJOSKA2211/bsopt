@@ -82,7 +82,7 @@ done
 
 echo "   ✓ PostgreSQL is ready."
 echo "   - Applying database schema..."
-$COMPOSE_CMD exec -T api bash scripts/deploy_db_updates.sh
+$COMPOSE_CMD exec api alembic upgrade head
 echo "   ✓ Database schema initialized."
 echo ""
 

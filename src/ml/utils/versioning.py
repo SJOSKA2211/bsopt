@@ -18,7 +18,7 @@ def calculate_data_hash(filepath: str) -> str:
     return hash_sha256.hexdigest()
 
 
-def tag_dataset(data_dir: str, version_name: str | None = None) -> str | None:
+def tag_dataset(data_dir: str, version_name: str | None = None):
     """
     Create a version tag for a dataset.
     Simulates DVC functionality (Optimized).

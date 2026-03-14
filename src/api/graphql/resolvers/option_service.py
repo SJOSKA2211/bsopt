@@ -48,15 +48,7 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
             res_dict = cast(dict[str, Any], res)
 
             exp_val = res_dict.get("expiry", now)
-            exp_date = (
-                exp_val.date()
-                if isinstance(exp_val, datetime)
-                else (
-                    datetime.fromisoformat(exp_val).date()
-                    if isinstance(exp_val, str)
-                    else cast(date, exp_val)
-                )
-            )
+            exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
 
             opt = Option(
                 id=strawberry.ID(symbol),
@@ -96,9 +88,7 @@ async def get_option(
     symbol: str, expiry: date | datetime, strike: float, option_type: str
 ) -> Option | None:
     """Fetch a single option using coordinates."""
-    expiry_str = (
-        expiry.strftime("%Y%m%d") if hasattr(expiry, "strftime") else str(expiry).replace("-", "")
-    )
+    expiry_str = expiry.strftime('%Y%m%d') if hasattr(expiry, 'strftime') else str(expiry).replace('-', '')
     contract_symbol = f"{symbol}_{expiry_str}_{option_type[0].upper()}_{int(strike)}"
     return await get_option_by_id(contract_symbol)
 
@@ -113,15 +103,7 @@ async def get_option_by_id(id: str) -> Option | None:
 
         now = datetime.now()
         exp_val = data.get("expiry", now)
-        exp_date = (
-            exp_val.date()
-            if isinstance(exp_val, datetime)
-            else (
-                datetime.fromisoformat(exp_val).date()
-                if isinstance(exp_val, str)
-                else cast(date, exp_val)
-            )
-        )
+        exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
 
         opt = Option(
             id=strawberry.ID(id),
@@ -201,11 +183,7 @@ async def search_options_paginated(
             contract_exp = (
                 datetime.fromisoformat(cast(str, contract["expiry"])).date()
                 if isinstance(contract["expiry"], str)
-                else (
-                    contract["expiry"].date()
-                    if isinstance(contract["expiry"], datetime)
-                    else cast(date, contract["expiry"])
-                )
+                else (contract["expiry"].date() if isinstance(contract["expiry"], datetime) else cast(date, contract["expiry"]))
             )
             if contract_exp > expiry_date:
                 continue
@@ -233,15 +211,7 @@ async def search_options_paginated(
     for contract in paged:
         symbol = cast(str, contract["symbol"])
         exp_val = contract["expiry"]
-        exp_date = (
-            exp_val.date()
-            if isinstance(exp_val, datetime)
-            else (
-                datetime.fromisoformat(exp_val).date()
-                if isinstance(exp_val, str)
-                else cast(date, exp_val)
-            )
-        )
+        exp_date = exp_val.date() if isinstance(exp_val, datetime) else (datetime.fromisoformat(exp_val).date() if isinstance(exp_val, str) else cast(date, exp_val))
 
         opt = Option(
             id=strawberry.ID(symbol),

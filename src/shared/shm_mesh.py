@@ -97,7 +97,7 @@ GREEKS_BUFFER_CAPACITY = 1000
 SHM_GREEKS_NAME = "greeks_mesh_buffer"
 # Map-based Greeks Snapshot: [Symbol(8s), Delta(d), Gamma(d), Theta(d), Vega(d), Rho(d), CalcTs(q)] * 2000 symbols
 GREEKS_MAP_CAPACITY = 2000
-GREEKS_MAP_SIZE = GREEKS_SIZE * GREEKS_MAP_CAPACITY
+GREEKS_MAP_SIZE = (GREEKS_SIZE * GREEKS_MAP_CAPACITY)
 
 
 class GreeksMesh:
@@ -228,15 +228,13 @@ class GreeksBuffer:
             else:
                 raise
 
-    def write_greeks(
-        self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float
-    ):
+    def write_greeks(self, symbol: str, delta: float, gamma: float, theta: float, vega: float, rho: float):
         """Writer: Direct write into Greeks Mesh."""
-        self.write_greeks_raw(symbol.encode("ascii")[:8], delta, gamma, theta, vega, rho)
+        self.write_greeks_raw(
+            symbol.encode("ascii")[:8], delta, gamma, theta, vega, rho
+        )
 
-    def write_greeks_raw(
-        self, sym_bytes: bytes, delta: float, gamma: float, theta: float, vega: float, rho: float
-    ):
+    def write_greeks_raw(self, sym_bytes: bytes, delta: float, gamma: float, theta: float, vega: float, rho: float):
         """Zero-copy writer for raw bytes symbol."""
         head = struct.unpack_from("q", self.buf, 0)[0]
         idx = head % GREEKS_BUFFER_CAPACITY
@@ -444,6 +442,7 @@ class SharedMemoryRingBuffer:
                     logger.warning("shm_buffer_missing_using_dummy", name=SHM_NAME)
                     self.buf = memoryview(bytearray(self.shm_size))
 
+            self.buf = self.shm.buf
             # Create a numpy view of the entire tick buffer (skipping head index)
             self.data_view = np.frombuffer(
                 self.buf, dtype=TICK_DTYPE, offset=8, count=BUFFER_CAPACITY

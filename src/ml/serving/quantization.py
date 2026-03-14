@@ -1,5 +1,3 @@
-from typing import cast
-
 import structlog
 import torch
 import torch.nn as nn
@@ -13,7 +11,7 @@ class ModelQuantizer:
     Reduces model size and increases inference speed using PyTorch quantization.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         logger.info("model_quantizer_initialized")
 
     def quantize_dynamic(self, model: nn.Module) -> nn.Module:
@@ -25,33 +23,32 @@ class ModelQuantizer:
 
         try:
             # We target Linear and LSTM layers for quantization as they are compute-heavy
-            # mypy might struggle with torch.quantization if stubs are missing, casting to nn.Module
             quantized_model = torch.quantization.quantize_dynamic(
                 model, {nn.Linear, nn.LSTM}, dtype=torch.qint8
             )
-            return cast(nn.Module, quantized_model)
+            return quantized_model
         except Exception as e:
             logger.error("quantization_failed", error=str(e))
             return model
 
-    def save_quantized_model(self, model: nn.Module, path: str) -> None:
+    def save_quantized_model(self, model: nn.Module, path: str):
         """
         Saves the quantized model state dict.
         """
         torch.save(model.state_dict(), path)
         logger.info("quantized_model_saved", path=path)
 
-    def quantize_onnx_model(self, input_path: str, output_path: str) -> None:
+    def quantize_onnx_model(self, input_path: str, output_path: str):
         """
         Performs INT8 quantization on an ONNX model for high-performance inference.
         """
-        try:
-            from onnxruntime.quantization import QuantType, quantize_dynamic  # type: ignore
+        from onnxruntime.quantization import QuantType, quantize_dynamic
 
-            logger.info("quantizing_onnx_model", input=input_path, output=output_path)
+        logger.info("quantizing_onnx_model", input=input_path, output=output_path)
+        try:
             quantize_dynamic(
-                model_input=input_path,
-                model_output=output_path,
+                input_model=input_path,
+                output_model=output_path,
                 weight_type=QuantType.QInt8,
             )
             logger.info("onnx_quantization_success")

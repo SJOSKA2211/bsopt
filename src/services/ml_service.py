@@ -5,7 +5,7 @@ Enhanced with High-Performance Persistence and Vectorized Database Ingestion.
 
 import asyncio
 import time
-from math import erf
+from math import erf, log, sqrt
 
 import grpc
 import structlog
@@ -62,16 +62,12 @@ class MLService:
                 maturity=req.time_to_expiry,
                 volatility=req.implied_volatility or 0.25,
                 rate=0.01,
-                option_type="call" if req.is_call else "put",
+                option_type="call" if req.is_call else "put"
             )
             return float(price)
         except Exception:
             # Absolute fallback
-            intrinsic = (
-                max(req.underlying_price - req.strike, 0.0)
-                if req.is_call
-                else max(req.strike - req.underlying_price, 0.0)
-            )
+            intrinsic = max(req.underlying_price - req.strike, 0.0) if req.is_call else max(req.strike - req.underlying_price, 0.0)
             return intrinsic * 0.9
 
     async def predict(

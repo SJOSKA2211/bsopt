@@ -13,14 +13,10 @@ from src.shared.shm_mesh import (
     BUFFER_CAPACITY,
     EXEC_BUFFER_CAPACITY,
     EXEC_SIZE,
-    GREEKS_BUFFER_CAPACITY,
-    GREEKS_MAP_SIZE,
-    GREEKS_SIZE,
     ORDER_BUFFER_CAPACITY,
     ORDER_SIZE,
     RISK_STATE_DTYPE,
     SHM_EXEC_NAME,
-    SHM_GREEKS_NAME,
     SHM_NAME,
     SHM_ORDER_NAME,
     SHM_RISK_NAME,
@@ -51,16 +47,6 @@ SHM_CONFIGS = [
         "description": "Execution Status Buffer",
     },
     {"name": SHM_RISK_NAME, "size": RISK_STATE_DTYPE.itemsize, "description": "Risk State Buffer"},
-    {
-        "name": SHM_GREEKS_NAME,
-        "size": (GREEKS_SIZE * GREEKS_BUFFER_CAPACITY) + 8,
-        "description": "Greeks Stream Buffer",
-    },
-    {
-        "name": "greeks_snapshot",
-        "size": GREEKS_MAP_SIZE,
-        "description": "Greeks Snapshot Map",
-    },
 ]
 
 

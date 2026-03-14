@@ -1,10 +1,8 @@
-from typing import cast
-
 import torch
 import torch.nn as nn
 
 
-class OptionPricingNN(nn.Module):  # type: ignore
+class OptionPricingNN(nn.Module):
     """
     Feed-forward Neural Network for Option Pricing.
     Supports quantization and pruning.
@@ -15,7 +13,7 @@ class OptionPricingNN(nn.Module):  # type: ignore
         input_dim: int = 9,
         hidden_dims: list[int] | None = None,
         num_classes: int = 1,
-    ) -> None:
+    ):
         super().__init__()
         if hidden_dims is None:
             hidden_dims = [128, 64, 32]
@@ -32,7 +30,7 @@ class OptionPricingNN(nn.Module):  # type: ignore
         self.model = nn.Sequential(*layers)
         self._apply_init()
 
-    def _apply_init(self) -> None:
+    def _apply_init(self):
         """Kaiming initialization for deeper networks."""
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -40,20 +38,20 @@ class OptionPricingNN(nn.Module):  # type: ignore
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return cast(torch.Tensor, self.model(x))
+    def forward(self, x):
+        return self.model(x)
 
-    def compile(self, mode: str = "reduce-overhead") -> "OptionPricingNN":
+    def compile(self, mode: str = "reduce-overhead"):
         """Compiles the model for high-performance execution using PyTorch 2.0+."""
         if hasattr(torch, "compile"):
             try:
-                self.model = torch.compile(self.model, mode=mode)  # type: ignore
+                self.model = torch.compile(self.model, mode=mode)
                 return self
             except Exception:
                 return self
         return self
 
-    def export_onnx(self, path: str, input_sample: torch.Tensor) -> None:
+    def export_onnx(self, path: str, input_sample: torch.Tensor):
         """Export model to ONNX format for efficient inference."""
         self.eval()
         torch.onnx.export(
@@ -65,7 +63,7 @@ class OptionPricingNN(nn.Module):  # type: ignore
             dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
         )
 
-    def apply_quantization(self) -> "OptionPricingNN":
+    def apply_quantization(self):
         """Apply static quantization to the model."""
         self.qconfig = torch.quantization.get_default_qconfig("fbgemm")
         torch.quantization.prepare(self, inplace=True)
@@ -74,7 +72,7 @@ class OptionPricingNN(nn.Module):  # type: ignore
         torch.quantization.convert(self, inplace=True)
         return self
 
-    def apply_pruning(self, amount: float = 0.2) -> "OptionPricingNN":
+    def apply_pruning(self, amount: float = 0.2):
         """
         Apply global unstructured pruning to linear layers.
         OPTIMIZED: Reduces model size and inference latency on supported backends.

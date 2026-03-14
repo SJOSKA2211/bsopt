@@ -151,10 +151,7 @@ class CrankNicolsonSolver(PricingStrategy):
         )
 
         vega = (
-            (
-                self.price_european(params_up, self.option_type)
-                - self.price_european(params_down, self.option_type)
-            )
+            (self.price_european(params_up, self.option_type) - self.price_european(params_down, self.option_type))
             / (2 * eps_vol)
             * 0.01
         )

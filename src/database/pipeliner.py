@@ -1,5 +1,4 @@
 import asyncio
-from typing import Any
 
 import structlog
 
@@ -12,20 +11,18 @@ class VectorizedDBEngine:
     Optimized for bulk ingestion (COPY) and fast binary retrieval.
     """
 
-    def __init__(self) -> None:
-        self._initialized: bool = False
+    def __init__(self):
+        self._initialized = False
 
-    async def connect(self) -> None:
+    async def connect(self):
         """No-op for compatibility, initialization handled by db_manager."""
         self._initialized = True
 
-    async def _get_raw_conn(self, conn: Any) -> Any:
+    async def _get_raw_conn(self, conn):
         """Extracts raw asyncpg connection from SQLAlchemy connection."""
         return await conn.get_raw_connection()
 
-    async def fetch_training_data(
-        self, symbols: list[str], limit: int = 10000
-    ) -> list[dict[str, Any]]:
+    async def fetch_training_data(self, symbols: list[str], limit: int = 10000) -> list[dict]:
         """
         High-speed retrieval of training data using binary format.
         """
@@ -54,8 +51,8 @@ class VectorizedDBEngine:
                 return []
 
     async def generic_bulk_copy(
-        self, table_name: str, records: list[tuple[Any, ...]], columns: tuple[str, ...]
-    ) -> None:
+        self, table_name: str, records: list[tuple], columns: tuple[str, ...]
+    ):
         """
         Generic high-performance bulk insert using binary COPY.
         """
@@ -87,8 +84,8 @@ class VectorizedDBEngine:
                 raise
 
     async def insert_prices_vectorized(
-        self, data: list[tuple[Any, ...]], columns: tuple[str, ...] | None = None
-    ) -> None:
+        self, data: list[tuple], columns: tuple[str, ...] | None = None
+    ):
         """
         Specialized bulk ingestion for options prices.
         """
@@ -105,24 +102,24 @@ class VectorizedDBEngine:
         )
         await self.generic_bulk_copy("options_prices", data, target_columns)
 
-    async def insert_predictions_bulk(self, predictions: list[tuple[Any, ...]]) -> None:
+    async def insert_predictions_bulk(self, predictions: list[tuple]):
         """
         Specialized bulk ingestion for ML predictions (Hypertable).
         """
         columns = ("timestamp", "symbol", "model_id", "input_features", "predicted_price")
         await self.generic_bulk_copy("model_predictions", predictions, columns)
 
-    async def close(self) -> None:
+    async def close(self):
         """Gracefully close and release resources."""
         from src.database import db_manager
 
         await db_manager.dispose()
         logger.info("db_vectorized_engine_disposed")
 
-    async def __aenter__(self) -> "VectorizedDBEngine":
+    async def __aenter__(self):
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         pass
 
 

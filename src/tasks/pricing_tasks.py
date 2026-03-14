@@ -233,15 +233,12 @@ def batch_price_options_task(
 
             # Perform vectorized pricing using JIT utilities
             is_call = types == "call"
-            prices = cast(
-                np.ndarray[Any, np.dtype[np.float64]],
-                calculate_price(spots, strikes, maturities, vols, rates, divs, is_call),
-            )
+            prices = cast(np.ndarray[Any, np.dtype[np.float64]], calculate_price(spots, strikes, maturities, vols, rates, divs, is_call))
 
             # Perform vectorized greeks using JIT utilities
             deltas, gammas, thetas, vegas, rhos = cast(
                 tuple[np.ndarray[Any, np.dtype[np.float64]], ...],
-                calculate_greeks(spots, strikes, maturities, vols, rates, divs, is_call),
+                calculate_greeks(spots, strikes, maturities, vols, rates, divs, is_call)
             )
 
             # Format results

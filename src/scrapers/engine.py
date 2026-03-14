@@ -4,16 +4,15 @@ import time
 from datetime import datetime
 from typing import Protocol
 
-import grpc
 import httpx
-import msgspec
+import numpy as np
+import orjson
 import pandas as pd
 import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
 from src.config import settings
-from src.protos import data_pb2, data_pb2_grpc
 from src.scrapers.mesh_publisher import get_market_publisher
 from src.shared.observability import (
     PROXY_FAILURES,
@@ -138,10 +137,6 @@ class NSEScraper:
         self._cache_ttl = settings.NSE_CACHE_TTL
         self._refresh_future: asyncio.Future | None = None
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
-
-        # gRPC Ingestion Client
-        self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
-        self.data_stub = data_pb2_grpc.DataServiceStub(self.channel)
 
         # Pre-computed exact-match hash map
         self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
@@ -276,22 +271,6 @@ class NSEScraper:
                     # OPTIMIZED: Offload SHM publication to avoid blocking event loop
                     await run_sync(get_market_publisher().publish, new_cache)
 
-                    # Decoupled persistence via gRPC Ingestion Service
-                    try:
-                        ticks = []
-                        for symbol, item in new_cache.items():
-                            ticks.append(data_pb2.Tick(
-                                ticker=symbol,
-                                price=float(item.get("price", 0)),
-                                timestamp=int(time.time()),
-                                source="NSE"
-                            ))
-                        if ticks:
-                            await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=ticks))
-                            logger.info("nse_ingestion_sent_to_grpc", count=len(ticks))
-                    except Exception as e:
-                        logger.error("grpc_ingestion_trigger_failed", error=str(e))
-
             finally:
                 if client != self.client:
                     await client.aclose()
@@ -375,10 +354,8 @@ class NSEScraper:
         return {"symbol": symbol, "error": "Ticker not found", "market": "NSE"}
 
     async def shutdown(self):
-        """Gracefully close the HTTP client and producers."""
+        """Gracefully close the HTTP client."""
         await self.client.aclose()
-        if hasattr(self, "rabbitmq_producer"):
-            await self.rabbitmq_producer.close()
 
     def _clean_data(self, data: dict) -> dict:
         """Converts string values to appropriate numeric types."""
@@ -402,86 +379,56 @@ class NSEScraper:
         if not items:
             return []
 
-        # Vectorized dataframe for speed
-        try:
-            df = pd.DataFrame(items)
+        cleaned = []
+        for item in items:
+            try:
+                # Direct string replacement and casting
+                if "price" in item and isinstance(item["price"], str):
+                    item["price"] = float(item["price"].replace(",", ""))
 
-            # Fast vectorized string replacements using regex without allocating python strings
-            if "price" in df:
-                df["price"] = pd.to_numeric(
-                    df["price"].astype(str).str.replace(",", ""), errors="coerce"
-                )
+                if "volume" in item and isinstance(item["volume"], str):
+                    item["volume"] = int(float(item["volume"].replace(",", "")))
 
-            if "volume" in df:
-                df["volume"] = (
-                    pd.to_numeric(df["volume"].astype(str).str.replace(",", ""), errors="coerce")
-                    .fillna(0)
-                    .astype(int)
-                )
+                if "change" in item and isinstance(item["change"], str):
+                    item["change"] = float(item["change"].replace(",", ""))
 
-            if "change" in df:
-                df["change"] = pd.to_numeric(
-                    df["change"].astype(str).str.replace(",", ""), errors="coerce"
-                )
-
-            return df.to_dict(orient="records")
-        except Exception as e:
-            logger.error("nse_batch_clean_failed", error=str(e))
-            # Fallback
-            cleaned = []
-            for item in items:
+                cleaned.append(item)
+            except (ValueError, TypeError, AttributeError) as e:
+                # On failure, append the item but maybe missing some converted fields
+                # Or fallback to safe _clean_data
                 cleaned.append(self._clean_data(item))
-            return cleaned
+
+        return cleaned
 
 
 async def main():
-    """Scraper service entry point with Graceful Shutdown."""
-    import signal
-
+    """Scraper service entry point."""
     setup_logging()
 
     scraper = NSEScraper()
     logger.info("scraper_service_active")
     start_system_metrics_loop("scraper")
 
-    # Graceful Shutdown Setup
-    shutdown_event = asyncio.Event()
-
-    def _on_signal():
-        logger.info("shutdown_signal_received")
-        shutdown_event.set()
-
-    loop = asyncio.get_running_loop()
-    for sig in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, _on_signal)
-
     try:
-        while not shutdown_event.is_set():
+        while True:
             try:
                 await scraper._refresh_cache()
                 logger.info("scraper_loop_ok")
-
                 # Best Practice: Robust Healthcheck Heartbeat
-                def _write_heartbeat():
-                    with open("/tmp/scraper_heartbeat", "w") as f:
-                        f.write(str(time.time()))
-
-                await asyncio.to_thread(_write_heartbeat)
+                with open("/tmp/scraper_heartbeat", "w") as f:  # noqa: ASYNC230
+                    f.write(str(time.time()))
             except Exception as e:
                 logger.error("scraper_loop_error", error=str(e))
 
-            try:
-                # Wait for next refresh or shutdown signal
-                await asyncio.wait_for(shutdown_event.wait(), timeout=settings.NSE_CACHE_TTL or 300)
-            except TimeoutError:
-                continue
+            await asyncio.sleep(settings.NSE_CACHE_TTL or 300)
+    except asyncio.CancelledError:
+        logger.info("scraper_service_stopping")
     finally:
-        logger.info("scraper_service_stopping_cleaning_up")
         await scraper.shutdown()
 
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
+    except KeyboardInterrupt:
         pass

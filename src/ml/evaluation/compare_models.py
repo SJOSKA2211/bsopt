@@ -4,7 +4,6 @@ Compares metrics of a new model (challenger) against the current production mode
 """
 
 import argparse
-from typing import Any
 
 import mlflow
 import structlog
@@ -12,25 +11,17 @@ import structlog
 logger = structlog.get_logger()
 
 
-def compare_models(
-    model_name: str, challenger_run_id: str, champion_stage: str = "Production"
-) -> bool:
+def compare_models(model_name, challenger_run_id, champion_stage="Production"):
     client = mlflow.tracking.MlflowClient()
 
     # 1. Get Champion Metrics
-    champion_run: Any = None
     try:
-        champion_versions = client.get_latest_versions(model_name, stages=[champion_stage])
-        if champion_versions:
-            champion_version = champion_versions[0]
-            champion_run = client.get_run(champion_version.run_id)
-            champion_rmse = champion_run.data.metrics.get("rmse", float("inf"))
-            logger.info("champion_metrics_loaded", model=model_name, rmse=champion_rmse)
-        else:
-            logger.warning("champion_not_found", model=model_name)
-            champion_rmse = float("inf")
+        champion_version = client.get_latest_versions(model_name, stages=[champion_stage])[0]
+        champion_run = client.get_run(champion_version.run_id)
+        champion_rmse = champion_run.data.metrics.get("rmse", float("inf"))
+        logger.info("champion_metrics_loaded", model=model_name, rmse=champion_rmse)
     except Exception as e:
-        logger.warning("champion_fetch_failed", error=str(e))
+        logger.warning("champion_not_found", error=str(e))
         champion_rmse = float("inf")
 
     # 2. Get Challenger Metrics

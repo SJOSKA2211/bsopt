@@ -98,11 +98,3 @@ entry_points:
       run_id: {type: string}
       stage: {type: string, default: "Production"}
     command: "python -m src.ml.registry.promote --model {model} --run_id {run_id} --stage {stage}"
-
-  train_cross_sectional:
-    parameters:
-      epochs: {type: int, default: 10}
-      batch_size: {type: int, default: 1024}
-      study_name: {type: string, default: "cross_sectional_v1"}
-      tracking_uri: {type: string, default: "http://mlflow:5000"}
-    command: "python -m src.ml.cross_sectional_pipeline --epochs {epochs} --batch_size {batch_size} --study_name {study_name} --tracking_uri {tracking_uri}"

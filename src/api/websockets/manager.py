@@ -1,5 +1,5 @@
-import asyncio
 from collections import defaultdict
+import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, cast
@@ -93,19 +93,16 @@ class ConnectionManager:
                         last_head = new_head
                         for tick in ticks:
                             if tick.symbol in self.active_connections:
-                                asyncio.create_task(
-                                    self.broadcast_to_symbol(tick.symbol, tick, from_redis=True)
-                                )
+                                asyncio.create_task(self.broadcast_to_symbol(tick.symbol, tick, from_redis=True))
 
                     # 2. Greeks Data Poll
                     import struct
-
                     g_head_tuple = struct.unpack_from("q", g_mesh.buf, 0)
                     g_head = cast(int, g_head_tuple[0])
                     if g_head > last_g_head:
                         # Read new Greeks
                         for i in range(last_g_head, g_head):
-                            idx = i % 1000  # GREEKS_BUFFER_CAPACITY
+                            idx = i % 1000 # GREEKS_BUFFER_CAPACITY
                             data = g_mesh.view[idx]
                             symbol = data["symbol"].decode("ascii").strip("\x00")
                             g_channel = f"GREEKS:{symbol}"
@@ -119,16 +116,14 @@ class ConnectionManager:
                                             "theta": float(data["theta"]),
                                             "vega": float(data["vega"]),
                                             "rho": float(data["rho"]),
-                                            "timestamp": int(data["calc_ts_ns"]),
+                                            "timestamp": int(data["calc_ts_ns"])
                                         },
-                                        from_redis=True,
+                                        from_redis=True
                                     )
                                 )
                         last_g_head = g_head
 
-                    await asyncio.sleep(
-                        0 if new_head > last_head or g_head > last_g_head else 0.001
-                    )
+                    await asyncio.sleep(0 if new_head > last_head or g_head > last_g_head else 0.001)
                 except Exception as e:
                     logger.debug("shm_multi_poll_error", error=str(e))
                     await asyncio.sleep(0.01)
@@ -332,23 +327,8 @@ class ConnectionManager:
                     encoded = WebSocketCodec.encode(data, proto)
 
                 for conn in conns:
-                    # Exponential Backoff with Jitter for sending messages
-                    async def send_with_backoff(c: WebSocket, d: bytes) -> None:
-                        import random
-                        retries = 3
-                        base_delay = 0.1
-                        for attempt in range(retries):
-                            try:
-                                await c.send_bytes(d)
-                                return
-                            except Exception as ex:
-                                if attempt == retries - 1:
-                                    raise ex
-                                # Exponential backoff with jitter: (2^attempt * base_delay) + random_jitter
-                                jitter = random.uniform(0, 0.1)
-                                await asyncio.sleep((2**attempt * base_delay) + jitter)
-
-                    tasks.append(send_with_backoff(conn, encoded))
+                    # Send as bytes regardless of protocol for maximum speed
+                    tasks.append(conn.send_bytes(encoded))
 
                 WEBSOCKET_MESSAGES_SENT_TOTAL.inc(len(conns))
             except Exception as e:
@@ -361,6 +341,7 @@ class ConnectionManager:
             for i, res in enumerate(results):
                 if isinstance(res, Exception):
                     logger.debug("ws_send_failed", symbol=symbol, error=str(res))
+
 
 
 # Global manager instance for reuse across routes

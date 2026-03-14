@@ -5,21 +5,19 @@ Sentiment Ingestion Pipeline — expected by test_sentiment_pipeline.py.
 from __future__ import annotations
 
 import structlog
+from typing import Any
 
 logger = structlog.get_logger(__name__)
 
 # Real or mock imports for dependencies that the tests patch
 try:
-    from confluent_kafka import Consumer as KafkaConsumer
-    from confluent_kafka import Producer as KafkaProducer
+    from confluent_kafka import Consumer as KafkaConsumer, Producer as KafkaProducer
 except ImportError:
-
-    class KafkaProducer:  # type: ignore
+    class KafkaProducer: # type: ignore
         pass
 
-    class KafkaConsumer:  # type: ignore
+    class KafkaConsumer: # type: ignore
         pass
-
 
 # Type-safe aliases for internal use
 Producer = KafkaProducer

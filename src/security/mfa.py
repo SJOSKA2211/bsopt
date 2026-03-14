@@ -66,12 +66,9 @@ class MfaService:
         return b64encode(buf.getvalue()).decode("utf-8")
 
     def verify_code(self, secret: str, code: str) -> bool:
-        """Verify a TOTP code against the secret (plaintext) with clock skew support."""
-        if not secret or not code:
-            return False
+        """Verify a TOTP code against the secret (plaintext)."""
         totp = pyotp.TOTP(secret)
-        # Allow 1 periodic interval (30s) of clock skew
-        return totp.verify(code, valid_window=1)
+        return totp.verify(code)
 
 
 # Global MFA service instance

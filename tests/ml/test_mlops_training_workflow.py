@@ -17,14 +17,16 @@ def test_mlops_training_workflow_contents():
     on_config = workflow.get("on")
     assert "schedule" in on_config
     assert "workflow_dispatch" in on_config
+    assert "repository_dispatch" in on_config
+    assert "data-drift" in on_config["repository_dispatch"]["types"]
 
     jobs = workflow["jobs"]
 
-    # Check containerized-training job
-    assert "containerized-training" in jobs
-    train_job = jobs["containerized-training"]
-    assert "ubuntu-latest" in str(train_job.get("runs-on"))
+    # Check Training job
+    assert "train" in jobs
+    train_job = jobs["train"]
+    assert "self-hosted" in str(train_job.get("runs-on"))
 
     steps = str(train_job["steps"])
-    assert "docker" in steps.lower()
-    assert "ray" in steps.lower()
+    assert "mlflow" in steps.lower()
+    assert "train" in steps.lower()

@@ -1,5 +1,4 @@
 import random
-from typing import Any, cast
 
 import strawberry
 from strawberry.dataloader import DataLoader
@@ -22,7 +21,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
             # Assuming 'id' contains serialized params or we fetch from DB.
             # For this optimization, we show the batch integration pattern.
             results = []
-            for _ in keys:
+            for key in keys:
                 # Simulated params for the gRPC call
                 request = inference_pb2.InferenceRequest(
                     underlying_price=150.0,
@@ -32,7 +31,7 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
                     model_type="nn",
                 )
                 response = await stub.Predict(request)
-                results.append(float(response.price))
+                results.append(response.price)
             return results
     except Exception:
         # Fallback to random if gRPC unavailable
@@ -43,17 +42,17 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
 class Option:
     id: strawberry.ID = strawberry.federation.field(external=True)
 
-    @strawberry.field  # type: ignore
-    async def fair_value(self, info: strawberry.Info[Any, Any]) -> float:
-        loader = cast(DataLoader[strawberry.ID, float], info.context["fair_value_loader"])
+    @strawberry.field
+    async def fair_value(self, info: strawberry.Info) -> float:
+        loader = info.context["fair_value_loader"]
         return await loader.load(self.id)
 
-    @strawberry.field  # type: ignore
+    @strawberry.field
     def recommendation(self) -> str:
-        return str(random.choice(["BUY", "SELL", "HOLD"]))
+        return random.choice(["BUY", "SELL", "HOLD"])
 
     @classmethod
-    def resolve_reference(cls, id: strawberry.ID) -> "Option":
+    def resolve_reference(cls, id: strawberry.ID):
         return cls(id=id)
 
 
@@ -66,23 +65,23 @@ class DriftStatus:
 
 @strawberry.type
 class Query:
-    @strawberry.field  # type: ignore
+    @strawberry.field
     def ml_status(self) -> str:
         return "GOD_MODE_ACTIVE"
 
-    @strawberry.field  # type: ignore
+    @strawberry.field
     async def drift_status(self) -> DriftStatus:
         """Expose AIOps drift metrics via GraphQL."""
         from src.shared.observability import DATA_DRIFT_SCORE, MMD_DRIFT_SCORE
 
         return DriftStatus(
-            is_drifted=bool(DATA_DRIFT_SCORE.get() > 0.2 or MMD_DRIFT_SCORE.get() > 0.05),
-            psi_score=float(DATA_DRIFT_SCORE.get()),
-            mmd_score=float(MMD_DRIFT_SCORE.get()),
+            is_drifted=DATA_DRIFT_SCORE.get() > 0.2 or MMD_DRIFT_SCORE.get() > 0.05,
+            psi_score=DATA_DRIFT_SCORE.get(),
+            mmd_score=MMD_DRIFT_SCORE.get(),
         )
 
 
-async def get_context() -> dict[str, Any]:
+async def get_context():
     return {
         "fair_value_loader": DataLoader(load_fn=load_fair_values),
     }

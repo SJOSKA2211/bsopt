@@ -8,15 +8,15 @@ logger = structlog.get_logger()
 
 
 class InMemoryFeatureStore(FeatureStore):
-    def __init__(self) -> None:
-        self.features: dict[str, Feature] = {}
+    def __init__(self):
+        self.features = {}
         # Register default features
         self.register_feature(LogReturnFeature())
         self.register_feature(RSIPeature())
         self.register_feature(EMAFeature())
         self.register_feature(MACDFeature())
 
-    def register_feature(self, feature: Feature) -> None:
+    def register_feature(self, feature: Feature):
         self.features[feature.name] = feature
 
     def get_feature(self, name: str) -> Feature:
@@ -32,7 +32,6 @@ class InMemoryFeatureStore(FeatureStore):
 
         # ... (caching logic)
         redis = get_redis()
-        cache_key = ""
         if redis:
             cache_key = f"feature_cache:{hash(tuple(feature_names))}"
             try:
@@ -68,7 +67,7 @@ class InMemoryFeatureStore(FeatureStore):
                 raise
 
         # 5. Background cache fill
-        if redis and cache_key:
+        if redis:
             try:
                 # OPTIMIZED: Dispatch to background task to avoid blocking the API response
                 import asyncio
@@ -79,7 +78,7 @@ class InMemoryFeatureStore(FeatureStore):
 
         return df
 
-    async def _background_cache_fill(self, df: pd.DataFrame, key: str) -> None:
+    async def _background_cache_fill(self, df: pd.DataFrame, key: str):
         """Persistent cache population without blocking execution."""
         try:
             from src.utils.cache import get_redis

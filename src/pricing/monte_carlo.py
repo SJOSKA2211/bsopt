@@ -128,9 +128,7 @@ class MonteCarloEngine(PricingStrategy):  # optimized
             z_innovations = np.random.standard_normal(n_needed)
 
         ds = max(params.spot * 0.001, 0.01)
-        p_base, _ = self.simulate_european(
-            params, option_type, seed=seed, z_innovations=z_innovations
-        )
+        p_base, _ = self.simulate_european(params, option_type, seed=seed, z_innovations=z_innovations)
         p_plus, _ = self.simulate_european(
             dataclasses.replace(params, spot=params.spot + ds),
             option_type,

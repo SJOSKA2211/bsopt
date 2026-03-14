@@ -16,15 +16,14 @@ class MarketData(msgspec.Struct):
 
     time: float
     symbol: str
-    strike: float | None = None
-    expiry: str | None = None
-    option_type: str | None = None
+    strike: float
+    expiry: str
+    option_type: str
     bid: float | None = None
     ask: float | None = None
     last: float | None = None
     volume: int | None = None
     open_interest: int | None = None
-    source: str | None = None
 
 
 class MarketDataProducer(Producer):

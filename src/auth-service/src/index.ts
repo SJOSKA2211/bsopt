@@ -9,12 +9,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { auth } from './auth'
 
 const port = Number(process.env.PORT) || 3001
-import { startGrpcServer } from './grpc'
 const redisUrl = process.env.REDIS_URL || 'redis://redis:6379'
 const redis = new Redis(redisUrl)
-
-// Start internal gRPC server for cross-service auth
-startGrpcServer()
 
 async function start() {
   const app = fastify({

@@ -29,36 +29,10 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-DB_HOST=${POSTGRES_HOST:-127.0.0.1}
-DB_PORT=${POSTGRES_PORT:-5432}
-DB_USER=${POSTGRES_USER:-admin}
-DB_NAME=${POSTGRES_DB:-bsopt}
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
-if [ -z "$POSTGRES_PASSWORD" ]; then
-    log "❌ ERROR: POSTGRES_PASSWORD is not set. Execution halted."
-    exit 1
-fi
-
-query_sql() {
-    local cmd=$1
-    PGPASSWORD="$POSTGRES_PASSWORD" psql -t -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" 2>/dev/null | xargs
-}
-
-run_sql_cmd() {
-    local cmd=$1
-    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
-}
-
-run_sql_file() {
-    local file=$1
-    PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" >> "$LOG_FILE" 2>&1
-}
-
 # Pre-flight Validation
 log " Pre-flight check..."
 if ! query_sql "SELECT 1" > /dev/null 2>&1; then
-    log "❌ ERROR: Cannot connect to database at $DB_HOST:$DB_PORT. Is it running?"
+    log "❌ ERROR: Cannot connect to database. Is it running?"
     exit 1
 fi
 
@@ -66,6 +40,53 @@ EXT_CHECK=$(query_sql "SELECT count(*) FROM pg_extension WHERE extname IN ('time
 if [ "$EXT_CHECK" != "2" ]; then
     log "⚠️  Warning: Core extensions (timescaledb/vector) missing. Check init-scripts."
 fi
+DB_HOST=${PGHOST:-${POSTGRES_HOST:-127.0.0.1}}
+DB_PORT=${PGPORT:-${POSTGRES_PORT:-5432}}
+DB_USER=${PGUSER:-${POSTGRES_USER:-admin}}
+DB_NAME=${PGDATABASE:-${POSTGRES_DATABASE:-bsopt}}
+POSTGRES_PASSWORD=${PGPASSWORD:-$POSTGRES_PASSWORD}
+
+if [ -z "$POSTGRES_PASSWORD" ]; then
+    log "❌ ERROR: POSTGRES_PASSWORD is not set. Execution halted."
+    exit 1
+fi
+
+# Detect environment: Prefer Docker if container is running
+USE_DOCKER=false
+if docker ps | grep -q "bsopt-postgres-1"; then
+    log "   Container 'bsopt-postgres-1' detected. Using 'docker exec'..."
+    USE_DOCKER=true
+elif ! command -v psql &> /dev/null; then
+    log "❌ ERROR: 'psql' command not found and 'bsopt-postgres-1' container not running."
+    exit 1
+fi
+
+query_sql() {
+    local cmd=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -t -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" -c "$cmd" 2>/dev/null | xargs
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -t -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" 2>/dev/null | xargs
+    fi
+}
+
+run_sql_cmd() {
+    local cmd=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$cmd" >> "$LOG_FILE" 2>&1
+    fi
+}
+
+run_sql_file() {
+    local file=$1
+    if [ "$USE_DOCKER" = true ]; then
+        docker exec -i -e PGPASSWORD="$POSTGRES_PASSWORD" bsopt-postgres-1 psql -v ON_ERROR_STOP=1 -U "$DB_USER" -d "$DB_NAME" < "$file" >> "$LOG_FILE" 2>&1
+    else
+        PGPASSWORD="$POSTGRES_PASSWORD" psql -v ON_ERROR_STOP=1 -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" >> "$LOG_FILE" 2>&1
+    fi
+}
 
 # Ensure deployment_history table exists
 log "   Initializing audit history..."

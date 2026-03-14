@@ -1,11 +1,11 @@
 import asyncio
+import os
 import sys
 
 import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
-from src.config import settings
 from src.utils.celery import BaseAsyncTask
 from src.utils.lazy_import import lazy_import
 from src.webhooks.dispatcher import WebhookDispatcher
@@ -20,17 +20,9 @@ except ImportError:
 
 logger = structlog.get_logger()
 
-celery_app = Celery("webhook_worker", broker=settings.broker_url)
-
-# High-Availability Queue Configuration
-celery_app.conf.task_queues = {
-    "webhooks": {
-        "exchange": "webhooks",
-        "routing_key": "webhooks.#",
-        "queue_arguments": {"x-queue-type": "quorum"}, # HA Quorum Queues (RabbitMQ 3.8+)
-    }
-}
-celery_app.conf.task_default_queue = "webhooks"
+celery_app = Celery(
+    "webhook_worker", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1")
+)
 
 # Initialize dispatcher outside task to reuse connections/circuit breaker state
 # In a real setup, this might be managed more dynamically or per worker process

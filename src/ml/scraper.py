@@ -4,6 +4,7 @@ import time
 
 import httpx
 import msgspec
+import numpy as np
 import pandas as pd
 import structlog
 
@@ -14,7 +15,7 @@ logger = structlog.get_logger()
 
 
 class MarketDataScraper:
-    def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3) -> None:
+    def __init__(self, api_key: str, provider: str = "alpha_vantage", max_retries: int = 3):
         self.api_key = api_key
         self.provider = provider
         self.max_retries = max_retries
@@ -24,7 +25,7 @@ class MarketDataScraper:
             else "https://api.polygon.io"
         )
 
-    def _validate_inputs(self, ticker: str, start_date: str, end_date: str) -> None:
+    def _validate_inputs(self, ticker: str, start_date: str, end_date: str):
         """Validates ticker and date formats to prevent injection/traversal."""
         if not re.match(r"^[A-Z0-9.-]{1,20}$", ticker):
             raise ValueError(f"Invalid ticker symbol: {ticker}")
@@ -63,7 +64,7 @@ class MarketDataScraper:
     ) -> pd.DataFrame:
         """Fetch historical daily data for a given ticker and date range asynchronously."""
         self._validate_inputs(ticker, start_date, end_date)
-        last_response: httpx.Response | None = None
+        last_response = None
         client = HttpClientManager.get_client()
         semaphore = HttpClientManager.get_semaphore()
 

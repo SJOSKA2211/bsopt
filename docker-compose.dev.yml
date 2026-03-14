@@ -1,30 +1,29 @@
-version: "3.8"
-
 services:
   api:
     image: bsopt-api-dev
     build:
       context: .
       dockerfile: docker/Dockerfile.api-dev
-    network_mode: host
+    ports:
+      - "8000:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_HOST=192.168.23.33
-      - REDIS_PORT=6381
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-      - ./scripts:/app/scripts
+    networks:
+      - bsopt-network-dev
     env_file:
       - .env
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://192.168.23.33:8008/health').read()"]
-      interval: 30s
-      timeout: 20s
-      retries: 20
-      start_period: 120s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     depends_on:
       - postgres
       - redis
@@ -36,8 +35,6 @@ services:
       dockerfile: docker/Dockerfile.auth-service-dev
     ports:
       - "3001:3001"
-    networks:
-      - bsopt-network
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -45,6 +42,8 @@ services:
     volumes:
       - ./src/auth-service:/app
       - /app/node_modules
+    networks:
+      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -58,8 +57,6 @@ services:
       target: development
     ports:
       - "4000:4000"
-    networks:
-      - bsopt-network
     environment:
       - PORT=4000
       - LOG_LEVEL=debug
@@ -69,17 +66,19 @@ services:
     volumes:
       - ./src/gateway:/app
       - /app/node_modules
+    networks:
+      - bsopt-network-dev
     depends_on:
       api:
         condition: service_healthy
       neural-pricing:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
-      interval: 30s
-      timeout: 20s
-      retries: 20
-      start_period: 180s
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
 
   frontend:
     image: bsopt-frontend-dev
@@ -89,11 +88,11 @@ services:
       target: development
     ports:
       - "5173:5173"
-    networks:
-      - bsopt-network
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
+    networks:
+      - bsopt-network-dev
     depends_on:
       api:
         condition: service_healthy
@@ -109,20 +108,20 @@ services:
       dockerfile: docker/Dockerfile.neural-pricing-dev
     ports:
       - "8001:8000"
-    networks:
-      - bsopt-network
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
+    networks:
+      - bsopt-network-dev
     env_file:
       - .env
     command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
-      interval: 30s
-      timeout: 20s
-      retries: 20
-      start_period: 120s
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     depends_on:
       - postgres
       - redis
@@ -132,12 +131,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.scraper-dev
-    network_mode: host
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
-    environment:
-      - METRICS_PORT=8009
+    networks:
+      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -157,6 +155,8 @@ services:
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
+    networks:
+      - bsopt-network-dev
     env_file:
       - .env
     depends_on:
@@ -166,45 +166,49 @@ services:
 
   postgres:
     image: timescale/timescaledb:latest-pg16
-    network_mode: host
-    command: postgres -p 5434 -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
       POSTGRES_USER: admin
       POSTGRES_DB: bsopt
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
       - ./docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    networks:
+      - bsopt-network-dev
     deploy:
       resources:
         limits:
           memory: 2g
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 192.168.23.33 -p 5434 -U admin -d bsopt"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d bsopt"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    network_mode: host
-    command: redis-server --port 6381 --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    ports:
+      - "6379:6379"
+    networks:
+      - bsopt-network-dev
     deploy:
       resources:
         limits:
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "192.168.23.33", "-p", "6381", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
-    networks:
-      - bsopt-network
     environment:
       - RABBITMQ_ERLANG_COOKIE=secret_cookie_for_dev
     ports:
@@ -212,6 +216,8 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data_dev:/var/lib/rabbitmq
+    networks:
+      - bsopt-network-dev
     deploy:
       resources:
         limits:
@@ -227,6 +233,8 @@ services:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
+    networks:
+      - bsopt-network-dev
     volumes:
       - .:/app
     depends_on:
@@ -240,6 +248,8 @@ services:
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
+    networks:
+      - bsopt-network-dev
     environment:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
       - REDIS_URL=redis://redis:6379/0
@@ -261,6 +271,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
       - INSIDE_DOCKER=1
+    networks:
+      - bsopt-network-dev
     volumes:
       - ./:/app
     working_dir: /app
@@ -275,6 +287,8 @@ services:
     volumes:
       - ./src/frontend:/app
       - /app/node_modules
+    networks:
+      - bsopt-network-dev
     command: npm run test -- --run
 
   e2e-test:
@@ -284,6 +298,8 @@ services:
       - .:/app
     environment:
       - PLAYWRIGHT_TEST_BASE_URL=http://frontend:5173
+    networks:
+      - bsopt-network-dev
     depends_on:
       frontend:
         condition: service_started
@@ -297,9 +313,8 @@ services:
         condition: service_healthy
     command: npx playwright test
 
-
 networks:
-  bsopt-network:
+  bsopt-network-dev:
     driver: bridge
 
 volumes:

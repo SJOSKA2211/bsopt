@@ -24,7 +24,7 @@ router = APIRouter(prefix="/users", tags=["Users"], default_response_class=Msgsp
 
 
 @router.get("/me")
-async def get_current_user_profile(user: User = Depends(get_current_user)):
+async def get_current_user_profile(user: User = Depends(get_current_user)) -> DataResponseStruct:
     """
     Fetch the authenticated user's profile.
     """
@@ -62,9 +62,7 @@ async def update_current_user_profile(
     response_model=None,
     dependencies=[Depends(require_tier(["admin", "enterprise"]))],
 )
-async def list_users(
-    db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20
-) -> PaginatedResponseStruct:
+async def list_users(db: AsyncSession = Depends(get_async_db), page: int = 1, page_size: int = 20) -> PaginatedResponseStruct:
     """
     List users (Restricted to High-Tier/Admin).
     """

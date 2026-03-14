@@ -562,51 +562,41 @@ class DeFiOptionsProtocol:
 
     async def watch_mempool(self, callback, iterations: int = -1):
         """
-        High-Performance Mempool Watcher via WebSocket Subscription with Exponential Backoff.
+        High-Performance Mempool Watcher via WebSocket Subscription.
         Bypasses polling for sub-millisecond signal detection.
         """
         if not self.rpc_url.startswith("ws"):
             logger.warning("mempool_watch_requires_websocket", url=self.rpc_url)
             return await self._watch_mempool_polling(callback, iterations)
 
-        reconnect_attempt = 0
-        count = 0
+        try:
+            import websockets
 
-        while iterations < 0 or count < iterations:
-            try:
-                import websockets
+            async with websockets.connect(
+                self.feed_url if hasattr(self, "feed_url") else self.rpc_url
+            ) as ws:
+                import orjson
 
-                async with websockets.connect(
-                    self.feed_url if hasattr(self, "feed_url") else self.rpc_url
-                ) as ws:
-                    import orjson
+                subscribe_msg = {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "eth_subscribe",
+                    "params": ["newPendingTransactions"],
+                }
+                await ws.send(orjson.dumps(subscribe_msg))
 
-                    reconnect_attempt = 0  # Reset on success
-
-                    subscribe_msg = {
-                        "jsonrpc": "2.0",
-                        "id": 1,
-                        "method": "eth_subscribe",
-                        "params": ["newPendingTransactions"],
-                    }
-                    await ws.send(orjson.dumps(subscribe_msg))
-
-                    async for message in ws:
-                        data = orjson.loads(message)
-                        if "params" in data and "result" in data["params"]:
-                            tx_hash = data["params"]["result"]
-                            await callback(tx_hash)
-                            count += 1
-                            if iterations > 0 and count >= iterations:
-                                return
-            except Exception as e:
-                logger.error("mempool_ws_error", error=str(e), attempt=reconnect_attempt)
-                reconnect_attempt += 1
-                if reconnect_attempt > 5:
-                    logger.warning("mempool_ws_max_retries_falling_back_to_polling")
-                    return await self._watch_mempool_polling(callback, iterations)
-
-                await asyncio.sleep(min(30, 2**reconnect_attempt))
+                count = 0
+                async for message in ws:
+                    data = orjson.loads(message)
+                    if "params" in data and "result" in data["params"]:
+                        tx_hash = data["params"]["result"]
+                        await callback(tx_hash)
+                        count += 1
+                        if iterations > 0 and count >= iterations:
+                            break
+        except Exception as e:
+            logger.error("mempool_ws_subscription_failed", error=str(e))
+            await self._watch_mempool_polling(callback, iterations)
 
     async def _watch_mempool_polling(self, callback, iterations: int):
         """Fallback polling-based mempool watcher."""

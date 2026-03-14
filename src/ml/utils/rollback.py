@@ -5,7 +5,7 @@ from mlflow.tracking import MlflowClient
 logger = logging.getLogger(__name__)
 
 
-def rollback_model(model_name: str, target_stage: str = "Production") -> bool:
+def rollback_model(model_name: str, target_stage: str = "Production"):
     """
     Rollback model to the previous version in the specified stage.
     """
@@ -61,7 +61,7 @@ def rollback_model(model_name: str, target_stage: str = "Production") -> bool:
         return False
 
 
-def monitor_and_rollback(model_name: str, metric_name: str, threshold: float) -> None:
+def monitor_and_rollback(model_name: str, metric_name: str, threshold: float):
     """
     Monitor model performance and trigger rollback if below threshold.
     """

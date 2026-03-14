@@ -6,7 +6,6 @@ from scipy.optimize import minimize
 
 try:
     import bsopt_core
-
     _CORE_AVAILABLE = True
 except ImportError:
     _CORE_AVAILABLE = False
@@ -26,10 +25,7 @@ def _raw_svi_kernel(
     sigma: float,
 ) -> np.ndarray[Any, np.dtype[np.float64]]:
     """Vectorized JIT SVI formula."""
-    return cast(
-        np.ndarray[Any, np.dtype[np.float64]],
-        a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2)),
-    )
+    return cast(np.ndarray[Any, np.dtype[np.float64]], a + b * (rho * (k - m) + np.sqrt((k - m) ** 2 + sigma**2)))
 
 
 class SVISurface:
@@ -100,7 +96,5 @@ class SVISurface:
     def get_implied_vol(S0: float, K: float, T: float, params: tuple[float, ...]) -> float:
         k = float(np.log(K / S0))
         # params: (a, b, rho, m, sigma)
-        total_variance = SVISurface.raw_svi(
-            k, params[0], params[1], params[2], params[3], params[4]
-        )
+        total_variance = SVISurface.raw_svi(k, params[0], params[1], params[2], params[3], params[4])
         return float(np.sqrt(max(float(cast(float, total_variance)), 1e-6) / T))

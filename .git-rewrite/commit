@@ -1,6 +1,0 @@
-tree bd44b1954e062c27ab43fbd51474aa7b613ced4c
-parent 44f8bba5e197155860bb305728c85db16fce7a0b
-author Joseph Kamau Maina <kamau2589000@gmail.com> 1770554189 +0300
-committer Joseph Kamau Maina <kamau2589000@gmail.com> 1770554189 +0300
-
-Phase 10: Silicon Lockdown. Implemented CPU pinning and real-time scheduling for XDPIngester and OnlineRLAgent. Updated Docker guide for high-performance capabilities. BSOpt Singularity physically secured.
