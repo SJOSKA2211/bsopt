@@ -17,9 +17,9 @@ try:
 except ImportError:
     pass
 
-logger = structlog.get_logger()
-
 from src.config import settings
+
+logger = structlog.get_logger()
 
 celery_app = Celery("webhook_worker", broker=settings.broker_url)
 
@@ -28,7 +28,7 @@ celery_app.conf.task_queues = {
     "webhooks": {
         "exchange": "webhooks",
         "routing_key": "webhooks.#",
-        "queue_arguments": {"x-queue-type": "quorum"}, # HA Quorum Queues (RabbitMQ 3.8+)
+        "queue_arguments": {"x-queue-type": "quorum"},  # HA Quorum Queues (RabbitMQ 3.8+)
     }
 }
 celery_app.conf.task_default_queue = "webhooks"

@@ -271,13 +271,15 @@ class Settings(BaseSettings):
         raw_key = self.JWT_ES256_PRIVATE
         if raw_key:
             import base64
+
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key
                 return base64.b64decode(raw_key).decode("utf-8")
             except Exception as e:
                 logger.error("failed_to_decode_jwt_es256_private_key", error=str(e))
-                if self.is_production: raise
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_ES256_PRIVATE is missing in production")
         return self._get_transient_key("private_ecc")
@@ -288,13 +290,15 @@ class Settings(BaseSettings):
         raw_key = self.JWT_ES256_PUBLIC
         if raw_key:
             import base64
+
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key
                 return base64.b64decode(raw_key).decode("utf-8")
             except Exception as e:
                 logger.error("failed_to_decode_jwt_es256_public_key", error=str(e))
-                if self.is_production: raise
+                if self.is_production:
+                    raise
         if self.is_production:
             raise ValueError("JWT_ES256_PUBLIC is missing in production")
         return self._get_transient_key("public_ecc")

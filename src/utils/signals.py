@@ -8,10 +8,12 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
+
 class GracefulShutdown:
     """
     Utility to handle SIGTERM and SIGINT for graceful service shutdown.
     """
+
     def __init__(self):
         self._callbacks: list[Callable[[], Any]] = []
         self._loop: asyncio.AbstractEventLoop | None = None
@@ -24,10 +26,10 @@ class GracefulShutdown:
     def _handle_signal(self, sig: int, frame: FrameType | None = None):
         sig_name = signal.Signals(sig).name if hasattr(signal, "Signals") else str(sig)
         logger.info("shutdown_signal_received", signal=sig_name)
-        
+
         if self._shutdown_event is not None:
             self._shutdown_event.set()
-        
+
         # Run callbacks
         for callback in self._callbacks:
             try:
@@ -55,9 +57,10 @@ class GracefulShutdown:
         """Wait until a shutdown signal is received."""
         if self._shutdown_event is None:
             self.setup()
-        
+
         if self._shutdown_event is not None:
             await self._shutdown_event.wait()
         logger.info("initiating_final_shutdown")
+
 
 shutdown_handler = GracefulShutdown()

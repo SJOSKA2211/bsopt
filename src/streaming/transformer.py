@@ -13,6 +13,7 @@ from src.streaming.kafka_producer import MarketDataProducer
 
 logger = structlog.get_logger(__name__)
 
+
 class MarketDataTransformer:
     """
     Kafka-to-Kafka Stream Processor for real-time feature engineering.
@@ -22,9 +23,7 @@ class MarketDataTransformer:
     def __init__(self):
         self.producer = MarketDataProducer()
         self.consumer = MarketDataConsumer(
-            bootstrap_servers="kafka-1:9092",
-            group_id="transformer-group",
-            topics=["market-data"]
+            bootstrap_servers="kafka-1:9092", group_id="transformer-group", topics=["market-data"]
         )
         self.running = True
 
@@ -39,25 +38,27 @@ class MarketDataTransformer:
                 try:
                     # Placeholder for actual spot retrieval or assumption
                     # In a real system, we'd fetch the underlying spot from Redis/SHM
-                    spot = 100.0 # Mock spot for demonstration
-                    
+                    spot = 100.0  # Mock spot for demonstration
+
                     # Calculate Greeks via Rust
                     greeks = bsopt_core.black_scholes_greeks(
                         spot,
                         tick["strike"],
-                        0.1, # Mock time to expiry
-                        0.2, # Mock volatility
-                        0.05, # Risk-free rate
-                        0.0, # Dividend yield
-                        tick["option_type"].lower() == "call"
+                        0.1,  # Mock time to expiry
+                        0.2,  # Mock volatility
+                        0.05,  # Risk-free rate
+                        0.0,  # Dividend yield
+                        tick["option_type"].lower() == "call",
                     )
-                    
+
                     tick["delta"] = greeks.delta
                     tick["gamma"] = greeks.gamma
                     tick["vega"] = greeks.vega
                     tick["theta"] = greeks.theta
                 except Exception as e:
-                    logger.error("greeks_calculation_failed", symbol=tick.get("symbol"), error=str(e))
+                    logger.error(
+                        "greeks_calculation_failed", symbol=tick.get("symbol"), error=str(e)
+                    )
 
             transformed_batch.append(tick)
 
@@ -79,10 +80,12 @@ class MarketDataTransformer:
         self.running = False
         self.consumer.stop()
 
+
 async def main():
     transformer = MarketDataTransformer()
 
     loop = asyncio.get_running_loop()
+
     def shutdown():
         logger.info("shutdown_signal_received")
         transformer.stop()
@@ -91,6 +94,7 @@ async def main():
         loop.add_signal_handler(sig, shutdown)
 
     await transformer.run()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

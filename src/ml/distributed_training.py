@@ -61,10 +61,10 @@ def train_func(config: dict[str, Any]):
     model = ray.train.torch.prepare_model(model)
 
     optimizer = th.optim.AdamW(
-        model.parameters(), 
-        lr=config.get("lr", 1e-4), 
+        model.parameters(),
+        lr=config.get("lr", 1e-4),
         weight_decay=config.get("weight_decay", 1e-2),
-        betas=(0.9, 0.95) # Institutional standard for Transformers
+        betas=(0.9, 0.95),  # Institutional standard for Transformers
     )
     criterion = nn.MSELoss()
 

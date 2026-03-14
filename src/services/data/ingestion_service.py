@@ -14,6 +14,7 @@ from src.streaming.kafka_producer import MarketDataProducer
 
 logger = structlog.get_logger(__name__)
 
+
 class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
     """
     gRPC Servicer for Centralized Data Ingestion.
@@ -35,13 +36,13 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
             for tick in request.ticks:
                 price = float(tick.price)
                 ticker = tick.ticker
-                
+
                 # 1. High-speed Rust Validation
                 is_valid = True
                 if bsopt_core:
                     last_price = self.last_price_cache.get(ticker, 0.0)
                     is_valid = bsopt_core.validate_tick(ticker, price, last_price)
-                
+
                 if not is_valid:
                     logger.warning("ingestion_tick_rejected_outlier", ticker=ticker, price=price)
                     continue
@@ -49,18 +50,24 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                 # Update cache
                 self.last_price_cache[ticker] = price
 
-                batch.append({
-                    "time": float(tick.timestamp),
-                    "symbol": ticker,
-                    "last": price,
-                    "source": tick.source,
-                })
-            
+                batch.append(
+                    {
+                        "time": float(tick.timestamp),
+                        "symbol": ticker,
+                        "last": price,
+                        "source": tick.source,
+                    }
+                )
+
             # 2. Publish validated batch to Kafka
             if batch:
                 await self.producer.produce_batch(batch, topic="market-data")
-                logger.info("ingestion_batch_processed", count=len(batch), rejected=len(request.ticks) - len(batch))
-            
+                logger.info(
+                    "ingestion_batch_processed",
+                    count=len(batch),
+                    rejected=len(request.ticks) - len(batch),
+                )
+
             return data_pb2.IngestResponse(processed_count=len(batch))
         except Exception as e:
             logger.error("ingestion_failed", error=str(e))
@@ -76,6 +83,7 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
         context.set_details("Historical data retrieval not yet implemented in DataService")
         return data_pb2.HistoryResponse()
 
+
 async def serve():
     server = grpc.aio.server()
     data_pb2_grpc.add_DataServiceServicer_to_server(DataIngestionServicer(), server)
@@ -84,6 +92,7 @@ async def serve():
     logger.info("ingestion_grpc_server_started", addr=listen_addr)
     await server.start()
     await server.wait_for_termination()
+
 
 if __name__ == "__main__":
     asyncio.run(serve())

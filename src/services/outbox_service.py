@@ -1,7 +1,7 @@
 """
 Transactional Outbox Service
 
-Ensures reliable event delivery by polling the outbox table and 
+Ensures reliable event delivery by polling the outbox table and
 dispatching events to Redis Streams or RabbitMQ.
 """
 
@@ -60,7 +60,7 @@ class OutboxService:
                         "event_id": str(event.id),
                         "type": event.event_type,
                         "payload": event.payload,
-                        "created_at": event.created_at.isoformat()
+                        "created_at": event.created_at.isoformat(),
                     }
                     await manager.publish(data)
 
