@@ -60,9 +60,9 @@ security-scan:
 	@echo "🛡️ Running Trivy Vulnerability Scan..."
 	@trivy fs --severity HIGH,CRITICAL .
 	@echo "🔍 Running Bandit Security Linter..."
-	@$(DOCKER_COMPOSE) run --rm api bandit -r src/
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner bandit -r src/
 	@echo "🕵️ Running Pip-Audit..."
-	@$(DOCKER_COMPOSE) run --rm api pip-audit
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner pip-audit
 
 test-all:
 	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
@@ -71,9 +71,9 @@ test-all:
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
 	@echo "--- [Python API] ---"
-	@$(DOCKER_COMPOSE) run --rm api ruff check .
-	@$(DOCKER_COMPOSE) run --rm api ruff format --check .
-	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner ruff check .
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner ruff format --check .
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest tests/unit
 	@echo "--- [E2E & Auth] ---"
 	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
 	@echo "✅ Gauntlet Passed."
@@ -82,24 +82,24 @@ test-rust:
 	$(DOCKER_COMPOSE) run --rm rust-core cargo test
 
 test-python:
-	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner pytest tests/unit
 
 # --- Advanced Builds ---
 
 protos:
 	@echo "🧬 Generating Cross-Language gRPC Bindings..."
 	@# Python Bindings
-	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
+	@$(DOCKER_COMPOSE) --profile test run --rm test-runner python3 -m grpc_tools.protoc \
 		-I=src/protos --python_out=src/protos --grpc_python_out=src/protos src/protos/*.proto
 	@# Rust Bindings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo build
 
 lint:
-	$(DOCKER_COMPOSE) run --rm api ruff check .
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner ruff check .
 	$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
 
 format:
-	$(DOCKER_COMPOSE) run --rm api ruff format .
+	$(DOCKER_COMPOSE) --profile test run --rm test-runner ruff format .
 	$(DOCKER_COMPOSE) run --rm rust-core cargo fmt
 
 envoy-up:
