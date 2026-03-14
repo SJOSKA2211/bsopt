@@ -1,4 +1,4 @@
-import pickle  # nosec B403
+import pickle  # nosec
 import time
 from typing import Any, cast
 
@@ -49,7 +49,7 @@ def convert_pkl_to_parquet(pkl_path: str, parquet_path: str) -> None:
 
     try:
         with open(pkl_path, "rb") as f:
-            data = pickle.load(f)  # nosec B301
+            data = pickle.load(f)  # nosec
         df = pd.DataFrame(data)
         df.to_parquet(parquet_path, compression="snappy")
         logger.info("trajectories_converted_to_parquet", path=parquet_path)
@@ -97,7 +97,7 @@ def train_offline(
         trajectories = cast(list[dict[str, Any]], df.to_dict("records"))
     else:
         with open(dataset_path, "rb") as f:
-            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec B301
+            trajectories = cast(list[dict[str, Any]], pickle.load(f))  # nosec
 
     dataset = TrajectoryDataset(trajectories)
     loader = DataLoader(
