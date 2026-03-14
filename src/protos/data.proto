@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package data;
+
+service DataService {
+  rpc IngestTicks (TickBatch) returns (IngestResponse);
+  rpc GetHistoricalData (HistoryRequest) returns (HistoryResponse);
+}
+
+message TickBatch {
+  repeated Tick ticks = 1;
+}
+
+message Tick {
+  string ticker = 1;
+  double price = 2;
+  int64 timestamp = 3;
+  string source = 4;
+}
+
+message IngestResponse {
+  int32 processed_count = 1;
+}
+
+message HistoryRequest {
+  string ticker = 1;
+  int64 start_time = 2;
+  int64 end_time = 3;
+}
+
+message HistoryResponse {
+  repeated Tick data = 1;
+}

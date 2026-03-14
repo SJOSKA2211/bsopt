@@ -631,20 +631,56 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@localhost:6379/0
     command: python scripts/hft/bs_hft_launch.py
 
-  # === [Specialized] Reverse Proxy / Gateway ===
-  gateway:
-    profiles: [ "proxy" ]
+  # === [Institutional] Ingestion Service ===
+  ingestion-service:
     build:
       context: .
-      dockerfile: docker/Dockerfile.gateway
+      dockerfile: docker/Dockerfile.api
+      target: development
     ports:
-      - "80:80"
-      - "443:443"
+      - "50053:50053"
+    environment:
+      - PYTHONPATH=/app
+      - INSIDE_DOCKER=1
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
     depends_on:
-      - app-gateway
+      - kafka-1
+    networks:
+      - bsopt-network
+    command: python src/services/data/ingestion_service.py
+
+  # === [Specialized] Envoy API Gateway (Institutional Edge) ===
+  envoy:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.envoy
+    ports:
+      - "80:8080"
+      - "443:443"
+    volumes:
+      - /home/h8t3dj4y/.bsopt/pki:/etc/envoy/ssl:ro
+    depends_on:
+      - api
       - auth-service
     networks:
       - bsopt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
+
+  # === [Specialized] Rust Core (Institutional Compute) ===
+  rust-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rust-core
+    volumes:
+      - .:/app
+      - shared_shm:/dev/shm
+    networks:
+      - bsopt-network
+    environment:
+      - INSIDE_DOCKER=1
 
   # === [Specialized] Observability Stack ===
   # === Monitoring Service ===
@@ -677,6 +713,31 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+      - loki
+    networks:
+      - bsopt-network
+
+  loki:
+    profiles: [ "observability" ]
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - bsopt-network
+
+  otel-collector:
+    profiles: [ "observability" ]
+    image: otel/opentelemetry-collector:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus exporter
     networks:
       - bsopt-network
 

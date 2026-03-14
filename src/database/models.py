@@ -15,6 +15,7 @@ from sqlalchemy import (
     DateTime,
     Double,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -222,38 +223,24 @@ class Order(Base):
 # MARKET DATA (Hypertables)
 
 
-class OptionPrice(Base):
-    __tablename__ = "options_prices"
+    # DATA LINEAGE
+    source_id: Mapped[str | None] = mapped_column(String(100), index=True)
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
-    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    symbol: Mapped[str] = mapped_column(String, primary_key=True)
-    strike: Mapped[Decimal] = mapped_column(Numeric(12, 2), primary_key=True)
-    expiry: Mapped[date] = mapped_column(Date, primary_key=True)
-    option_type: Mapped[str] = mapped_column(OptionType, primary_key=True)
-
-    bid: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    ask: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    last: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
-    volume: Mapped[int | None] = mapped_column(Integer)
-    open_interest: Mapped[int | None] = mapped_column(Integer)
-
-    # OPTIMIZED: Using Double Precision for Greeks
-    implied_volatility: Mapped[float | None] = mapped_column(Double)
-    delta: Mapped[float | None] = mapped_column(Double)
-    gamma: Mapped[float | None] = mapped_column(Double)
-    vega: Mapped[float | None] = mapped_column(Double)
-    theta: Mapped[float | None] = mapped_column(Double)
-    rho: Mapped[float | None] = mapped_column(Double)
+    __table_args__ = (
+        Index("idx_options_prices_brin", "time", postgresql_using="brin"),
+    )
 
 
-class MarketTick(Base):
-    __tablename__ = "market_ticks"
+    # DATA LINEAGE
+    source_id: Mapped[str | None] = mapped_column(String(100), index=True)
+    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
-    time: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
-    symbol: Mapped[str] = mapped_column(String, primary_key=True)
-    price: Mapped[Decimal] = mapped_column(Numeric(15, 4), nullable=False)
-    volume: Mapped[int | None] = mapped_column(Integer)
-    side: Mapped[str | None] = mapped_column(String(4))
+    __table_args__ = (
+        Index("idx_market_ticks_brin", "time", postgresql_using="brin"),
+    )
 
 
 # ML & PREDICTIONS

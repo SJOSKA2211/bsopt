@@ -11,6 +11,8 @@ import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
+import grpc
+from src.protos import data_pb2, data_pb2_grpc
 from src.config import settings
 from src.scrapers.mesh_publisher import get_market_publisher
 from src.shared.observability import (
@@ -19,7 +21,6 @@ from src.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
-from src.streaming.rabbitmq_producer import RabbitMQMarketDataProducer
 from src.utils.cache import get_redis
 from src.utils.circuit_breaker import nse_circuit
 from src.utils.http_client import HttpClientManager
@@ -138,8 +139,9 @@ class NSEScraper:
         self._refresh_future: asyncio.Future | None = None
         self.proxy_rotator = ProxyRotator(proxies) if proxies else None
 
-        # High-performance RabbitMQ Producer for persistence
-        self.rabbitmq_producer = RabbitMQMarketDataProducer()
+        # gRPC Ingestion Client
+        self.channel = grpc.aio.insecure_channel("ingestion-service:50053")
+        self.data_stub = data_pb2_grpc.DataServiceStub(self.channel)
 
         # Pre-computed exact-match hash map
         self._symbol_map = {k.upper(): v for k, v in settings.NSE_NAME_SYMBOL_MAP.items()}
@@ -274,13 +276,21 @@ class NSEScraper:
                     # OPTIMIZED: Offload SHM publication to avoid blocking event loop
                     await run_sync(get_market_publisher().publish, new_cache)
 
-                    # Decoupled persistence via RabbitMQ
+                    # Decoupled persistence via gRPC Ingestion Service
                     try:
-                        await self.rabbitmq_producer.produce_market_data(
-                            new_cache, routing_key="nse.ticks"
-                        )
+                        ticks = []
+                        for symbol, item in new_cache.items():
+                            ticks.append(data_pb2.Tick(
+                                ticker=symbol,
+                                price=float(item.get("price", 0)),
+                                timestamp=int(time.time()),
+                                source="NSE"
+                            ))
+                        if ticks:
+                            await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=ticks))
+                            logger.info("nse_ingestion_sent_to_grpc", count=len(ticks))
                     except Exception as e:
-                        logger.error("rabbitmq_persistence_trigger_failed", error=str(e))
+                        logger.error("grpc_ingestion_trigger_failed", error=str(e))
 
             finally:
                 if client != self.client:

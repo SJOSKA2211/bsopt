@@ -877,6 +877,24 @@ fn calibrate_svi_rust(
     }
 }
 
+#[pyfunction]
+fn validate_tick(ticker: String, price: f64, last_price: f64) -> PyResult<bool> {
+    // 1. Basic sanity check (No negative prices)
+    if price <= 0.0 {
+        return Ok(false);
+    }
+    
+    // 2. Outlier detection: Reject if price deviates > 15% from last known price
+    if last_price > 0.0 {
+        let deviation = (price - last_price).abs() / last_price;
+        if deviation > 0.15 {
+            return Ok(false);
+        }
+    }
+    
+    Ok(true)
+}
+
 #[pymodule]
 fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Greeks>()?;
@@ -903,5 +921,6 @@ fn bsopt_core(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(barrier_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(digital_option_price, m)?)?;
     m.add_function(wrap_pyfunction!(calibrate_svi_rust, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     Ok(())
 }
