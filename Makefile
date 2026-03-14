@@ -60,7 +60,7 @@ security-scan:
 	@echo "🛡️ Running Trivy Vulnerability Scan..."
 	@trivy fs --severity HIGH,CRITICAL .
 	@echo "🔍 Running Bandit Security Linter..."
-	@$(DOCKER_COMPOSE) run --rm api bandit -r src/
+	@$(DOCKER_COMPOSE) run --rm api bandit -r src/ -c pyproject.toml
 	@echo "🕵️ Running Pip-Audit..."
 	@$(DOCKER_COMPOSE) run --rm api pip-audit
 
