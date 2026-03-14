@@ -15,6 +15,22 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 echo "🚀 Starting EquaFlow Advanced Bootstrap [${TIMESTAMP}]"
 
+# 0. Prerequisite Check
+check_prereq() {
+    local cmd=$1
+    if ! command -v "$cmd" &> /dev/null; then
+        echo "❌ Error: $cmd is not installed."
+        exit 1
+    fi
+}
+
+check_prereq openssl
+check_prereq docker
+if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
+    echo "❌ Error: docker compose is not installed."
+    exit 1
+fi
+
 # 1. Initialize Security Layer (RSA/ECC)
 mkdir -p "${KEYS_DIR}"
 
@@ -60,8 +76,8 @@ fi
 set_env_var() {
     local key=$1
     local value=$2
+    # Ensure value is properly escaped for sed if it contains special characters
     if grep -q "^${key}=" "${ENV_FILE}"; then
-        # Use a different delimiter for sed to avoid issues with values containing /
         sed -i "s|^${key}=.*|${key}=\"${value}\"|g" "${ENV_FILE}"
     else
         echo "${key}=\"${value}\"" >> "${ENV_FILE}"
@@ -82,9 +98,9 @@ set_env_var "JWT_ES256_PRIVATE" "${ES256_PRIV}"
 set_env_var "JWT_ES256_PUBLIC" "${ES256_PUB}"
 set_env_var "MFA_TOTP_SECRET" "${TOTP_MASTER}"
 
-# Secure random passwords
+# Secure random passwords for necessary variables
 for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET; do
-    if ! grep -q "^${var}=" "${ENV_FILE}" || [[ -z $(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2) ]]; then
+    if ! grep -q "^${var}=" "${ENV_FILE}" || [[ -z $(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]]; then
         set_env_var "${var}" "$(openssl rand -hex 16)"
     fi
 done
@@ -94,6 +110,7 @@ echo "🐘 Preparing PostgreSQL initialization..."
 PG_PASS=$(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"')
 set_env_var "DATABASE_URL" "postgresql://admin:${PG_PASS}@pgbouncer:6432/bsopt"
 set_env_var "DATABASE_URL_LOCAL" "postgresql://admin:${PG_PASS}@localhost:5434/bsopt"
+set_env_var "DATABASE_URL_TEST" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt_test"
 set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt"
 set_env_var "POSTGRES_PASSWORD" "${PG_PASS}"
 
