@@ -1,0 +1,23 @@
+\n 🚀 EquaFlow Advanced Orchestrator (Makefile v11.0)
+=======================================================
+Automation:
+  bootstrap    - Zero-Touch stack & security initialization
+  up           - Start the entire stack (Background)
+  down         - Stop and remove all containers
+  build        - Rebuild all core images
+  ps           - Show process status
+
+Development & Quality:
+  protos       - Generate gRPC/Protobuf bindings (Rust & Python)
+  lint         - Run high-fidelity linters (Ruff, Cargo Clippy)
+  format       - Auto-format codebase (Ruff, Cargo Fmt)
+
+Testing:
+  test-all     - Run THE GAUNTLET (Rust + Python + E2E)
+  test-rust    - Execute Rust unit & integration tests
+  test-python  - Execute Python test suite
+
+Infrastructure:
+  envoy-up     - Launch the Envoy API Gateway
+  db-shell     - Open psql for TimescaleDB
+=======================================================\n

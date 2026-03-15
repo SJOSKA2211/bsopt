@@ -4,13 +4,26 @@
 # Unified Orchestration for Rust, Python, gRPC, and Envoy.
 # ==============================================================================
 
-# Robust Engine Detection (Podman/Docker)
-CONTAINER_ENGINE := $(shell which podman 2>/dev/null || which docker 2>/dev/null)
-# Detect Docker Compose / Podman Compose
-DOCKER_COMPOSE := $(shell which podman-compose 2>/dev/null || which docker-compose 2>/dev/null || ([ -f "./docker-compose" ] && echo "./docker-compose") || (podman compose version >/dev/null 2>&1 && echo "podman compose") || (docker compose version >/dev/null 2>&1 && echo "docker compose") || echo "docker-compose")
+# Unified Orchestration: Prioritize V2 plugins (podman compose) over V1 (podman-compose)
+PODMAN_V2 := $(shell podman compose version >/dev/null 2>&1 && echo "podman compose")
+PODMAN_V1 := $(shell which podman-compose 2>/dev/null)
+DOCKER_V2 := $(shell docker compose version >/dev/null 2>&1 && echo "docker compose")
+DOCKER_V1 := $(shell which docker-compose 2>/dev/null)
 
-ifeq ($(CONTAINER_ENGINE),)
-  $(error "Neither podman nor docker found in PATH")
+ifneq ($(PODMAN_V2),)
+  DOCKER_COMPOSE := $(PODMAN_V2)
+  CONTAINER_ENGINE := podman
+else ifneq ($(PODMAN_V1),)
+  DOCKER_COMPOSE := $(PODMAN_V1)
+  CONTAINER_ENGINE := podman
+else ifneq ($(DOCKER_V2),)
+  DOCKER_COMPOSE := $(DOCKER_V2)
+  CONTAINER_ENGINE := docker
+else ifneq ($(DOCKER_V1),)
+  DOCKER_COMPOSE := $(DOCKER_V1)
+  CONTAINER_ENGINE := docker
+else
+  $(error "No container orchestration found (podman compose, podman-compose, or docker compose)")
 endif
 
 .PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan

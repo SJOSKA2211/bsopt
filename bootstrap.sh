@@ -24,25 +24,20 @@ check_prereq() {
 
 check_prereq openssl
 
-# 1. Container Engine & Compose Detection
+# 1. Container Engine & Compose Detection (Prioritizing V2 Plugins)
 if command -v podman &> /dev/null; then
     CONTAINER_ENGINE="podman"
-    echo "🚀 Detected system: podman"
-    
     if podman compose version &> /dev/null; then
         COMPOSE_ENGINE="podman compose"
-    elif command -v podman-compose &> /dev/null; then
+    elif command -v podman-compose &> /dev/null && ! grep -q "PackageKit" <(which podman-compose 2>/dev/null); then
         COMPOSE_ENGINE="podman-compose"
-    elif [ -f "./docker-compose" ]; then
-        COMPOSE_ENGINE="./docker-compose"
     else
-        echo "❌ Error: Podman found but no compose engine detected (podman-compose or podman compose)."
-        exit 1
+        echo "⚠️ Warning: podman-compose not found or intercepted by PackageKit. Using 'podman compose' fallback."
+        COMPOSE_ENGINE="podman compose"
     fi
+    echo "🚀 Detected system: podman"
 elif command -v docker &> /dev/null; then
     CONTAINER_ENGINE="docker"
-    echo "🚀 Detected system: docker"
-    
     if docker compose version &> /dev/null; then
         COMPOSE_ENGINE="docker compose"
     elif command -v docker-compose &> /dev/null; then

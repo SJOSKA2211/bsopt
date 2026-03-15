@@ -1,0 +1,21 @@
+podman compose build
+[4m>>>> Executing external compose provider "/home/h8t3dj4y/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
+
+[0m[1/2] STEP 1/20: FROM python:3.12-slim-bookworm AS builder
+[1/2] STEP 1/21: FROM python:3.12-slim-bookworm AS builder
+[1/2] STEP 1/21: FROM python:3.12-slim-bookworm AS builder
+[1/2] STEP 1/5: FROM rust:1.75-slim-bookworm AS builder
+[1/2] STEP 1/8: FROM python:3.12-slim-bookworm AS builder
+[1/2] STEP 1/21: FROM python:3.12-slim-bookworm AS builder
+[1/2] STEP 1/20: FROM python:3.12-slim-bookworm AS builder
+[1/3] STEP 1/12: FROM python:3.12-slim-bookworm AS builder
+[2/2] STEP 1/7: FROM node:20-alpine AS development
+[1/2] STEP 1/21: FROM python:3.12-slim-bookworm AS builder
+[2/2] STEP 1/7: FROM node:20-alpine AS development
+STEP 1/3: FROM envoyproxy/envoy:v1.28-latest
+[1/2] STEP 1/20: FROM python:3.12-slim-bookworm AS builder
+Error: creating build container: short-name resolution enforced but cannot prompt without a TTY
+[1/3] STEP 1/12: FROM python:3.12-slim-bookworm AS builder
+[2/2] STEP 1/7: FROM node:20-alpine AS development
+[1/2] STEP 1/21: FROM python:3.12-slim-bookworm AS builder
+CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
