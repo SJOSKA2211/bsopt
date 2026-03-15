@@ -146,6 +146,27 @@ set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5
 
 # 4. Success Marker
 echo "✅ EquaFlow Stack Bootstrapped Successfully."
+
+# 5. Automated Live Database Startup
+echo "🏗️  Starting Live Database Environment (Postgres, Redis, PgBouncer)..."
+$COMPOSE_ENGINE up -d postgres redis pgbouncer
+
+echo "⏳ Waiting for Database to be Live & Healthy..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+until $CONTAINER_ENGINE exec bsopt-postgres-1 pg_isready -U admin > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+    echo -n "."
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    echo "❌ Error: Database failed to start within timeout."
+    exit 1
+fi
+
+echo "✅ Database Environment is LIVE and Optimized."
+
 echo "🛠️  Next Steps:"
 echo "   1. run 'make build && make up' to launch the manifold"
 echo "   2. run 'make test-all' to verify the gauntlet"
