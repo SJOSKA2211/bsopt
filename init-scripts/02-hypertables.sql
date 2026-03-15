@@ -5,7 +5,7 @@
 -- 1. Options Prices
 SELECT create_hypertable('options_prices', 'time', if_not_exists => TRUE);
 SELECT set_chunk_time_interval('options_prices', INTERVAL '1 day');
-SELECT add_dimension('options_prices', 'expiry', number_partitions => 4, if_not_exists => TRUE);
+SELECT add_dimension('options_prices', 'symbol', number_partitions => 8, if_not_exists => TRUE);
 
 -- Enable Chunk Skipping (TimescaleDB 2.17+)
 DO $$

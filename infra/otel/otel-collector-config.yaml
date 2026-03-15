@@ -2,32 +2,33 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:4318
 
 processors:
   batch:
-    timeout: 5s
-    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: service.name
+        action: upsert
+        value: "equaflow"
 
 exporters:
-  otlp:
-    endpoint: tempo:4317
-    tls:
-      insecure: True
   prometheus:
     endpoint: "0.0.0.0:8889"
   logging:
-    verbosity: basic
+    loglevel: debug
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp, logging]
+      processors: [batch, resource]
+      exporters: [logging, otlp/tempo]
     metrics:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [prometheus, logging]
+      processors: [batch, resource]
+      exporters: [logging, prometheus]

@@ -4,10 +4,16 @@
 # Unified Orchestration for Rust, Python, gRPC, and Envoy.
 # ==============================================================================
 
-# Detect Docker Compose
-DOCKER_COMPOSE := $(shell which docker-compose 2>/dev/null || echo "docker compose")
+# Robust Engine Detection (Podman/Docker)
+CONTAINER_ENGINE := $(shell which podman 2>/dev/null || which docker 2>/dev/null)
+# Detect Docker Compose / Podman Compose
+DOCKER_COMPOSE := $(shell which podman-compose 2>/dev/null || which docker-compose 2>/dev/null || ([ -f "./docker-compose" ] && echo "./docker-compose") || (podman compose version >/dev/null 2>&1 && echo "podman compose") || (docker compose version >/dev/null 2>&1 && echo "docker compose") || echo "docker-compose")
 
-.PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up
+ifeq ($(CONTAINER_ENGINE),)
+  $(error "Neither podman nor docker found in PATH")
+endif
+
+.PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan
 
 help:
 	@echo "\n 🚀 EquaFlow Advanced Orchestrator (Makefile v11.0)"
@@ -56,13 +62,21 @@ logs:
 # --- Testing Hub ---
 
 # === [Security] Institutional Hardening ===
+# === [Security] Institutional Hardening ===
 security-scan:
-	@echo "🛡️ Running Trivy Vulnerability Scan..."
+	@echo "🛡️ Running Trivy Filesystem Scan..."
 	@trivy fs --severity HIGH,CRITICAL .
 	@echo "🔍 Running Bandit Security Linter..."
 	@$(DOCKER_COMPOSE) run --rm api bandit -r src/ -c pyproject.toml
 	@echo "🕵️ Running Pip-Audit..."
 	@$(DOCKER_COMPOSE) run --rm api pip-audit
+	@echo "🐳 Running Trivy Image Scans..."
+	@trivy image equaflow-api:latest
+	@trivy image equaflow-rust-core:latest
+
+blue-green-deploy:
+	@chmod +x scripts/blue_green_deploy.sh
+	@./scripts/blue_green_deploy.sh
 
 test-all:
 	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
@@ -108,6 +122,9 @@ envoy-up:
 
 db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
+
+alembic:
+	$(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
 
 clean:
 	$(DOCKER_COMPOSE) down -v

@@ -744,7 +744,8 @@ services:
       - "80:8080"
       - "443:443"
     volumes:
-      - /home/h8t3dj4y/.bsopt/pki:/etc/envoy/ssl:ro
+      - ./docker/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./.pki:/etc/envoy/ssl:ro
     depends_on:
       - api
       - auth-service

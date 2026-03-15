@@ -4,9 +4,9 @@ import grpc
 import structlog
 
 try:
-    import bsopt_core
+    import equaflow_core
 except ImportError:
-    bsopt_core = None
+    equaflow_core = None
 
 
 from src.protos import data_pb2, data_pb2_grpc
@@ -38,9 +38,9 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
                 
                 # 1. High-speed Rust Validation
                 is_valid = True
-                if bsopt_core:
+                if equaflow_core:
                     last_price = self.last_price_cache.get(ticker, 0.0)
-                    is_valid = bsopt_core.validate_tick(ticker, price, last_price)
+                    is_valid = equaflow_core.validate_tick(ticker, price, last_price)
                 
                 if not is_valid:
                     logger.warning("ingestion_tick_rejected_outlier", ticker=ticker, price=price)

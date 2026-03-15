@@ -676,7 +676,7 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
     if not ticks_data:
         return 0
 
-    columns = ["time", "symbol", "price", "volume", "side"]
+    columns = ["time", "symbol", "price", "volume", "market", "change", "side"]
 
     try:
         conn = await db.connection()
@@ -686,10 +686,12 @@ async def bulk_insert_market_ticks(db: AsyncSession, ticks_data: list[dict]) -> 
         if hasattr(driver_conn, "copy_records_to_table"):
             records = [
                 (
-                    row.get("time"),
+                    row.get("time") or datetime.now(UTC),
                     row.get("symbol"),
                     row.get("price"),
                     row.get("volume"),
+                    row.get("market"),
+                    row.get("change") or 0.0,
                     row.get("side"),
                 )
                 for row in ticks_data
@@ -815,16 +817,15 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         return 0
 
     columns = [
-        "id",
-        "event_type",
+        "time",
+        "method",
+        "path",
+        "status_code",
         "user_id",
-        "user_email",
-        "source_ip",
+        "client_ip",
         "user_agent",
-        "request_path",
-        "request_method",
-        "details",
-        "created_at",
+        "latency_ms",
+        "metadata",
     ]
 
     try:
@@ -835,20 +836,19 @@ async def bulk_insert_audit_logs(db: AsyncSession, logs_data: list[dict]) -> int
         if hasattr(driver_conn, "copy_records_to_table"):
             records = [
                 (
-                    row.get("id") or uuid4(),
-                    row.get("event_type"),
+                    row.get("time") or datetime.now(UTC),
+                    row.get("method"),
+                    row.get("path"),
+                    row.get("status_code"),
                     row.get("user_id"),
-                    row.get("user_email"),
-                    row.get("source_ip"),
+                    row.get("client_ip"),
                     row.get("user_agent"),
-                    row.get("request_path"),
-                    row.get("request_method"),
+                    row.get("latency_ms"),
                     (
-                        orjson.dumps(row.get("details", {})).decode("utf-8")
-                        if row.get("details")
+                        orjson.dumps(row.get("metadata", {})).decode("utf-8")
+                        if row.get("metadata")
                         else None
                     ),
-                    row.get("created_at", datetime.now(UTC)),
                 )
                 for row in logs_data
             ]

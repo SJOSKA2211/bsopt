@@ -22,7 +22,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
+from sqlalchemy.dialects.postgresql import ENUM, INET, JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -59,15 +59,31 @@ MLAlgorithm = ENUM(
 )
 
 
-# USER MODEL
+# CORE MODELS
 
+class Symbol(Base):
+    __tablename__ = "symbols"
+
+    symbol: Mapped[str] = mapped_column(String, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    exchange: Mapped[str] = mapped_column(String(50), nullable=False)
+    sector: Mapped[str | None] = mapped_column(String(100))
+    industry: Mapped[str | None] = mapped_column(String(100))
+    market_cap: Mapped[Decimal | None] = mapped_column(Numeric(20, 2))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_updated: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+# USER MODEL
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=True)  # Nullable for OAuth
     full_name: Mapped[str | None] = mapped_column(String(255))
     tier: Mapped[str] = mapped_column(UserTier, default="free")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -77,11 +93,14 @@ class User(Base):
     verification_token: Mapped[str | None] = mapped_column(String(255))
     reset_token: Mapped[str | None] = mapped_column(String(255))
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    is_mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     mfa_secret: Mapped[str | None] = mapped_column(String(255))
     mfa_backup_codes: Mapped[str | None] = mapped_column(Text)
 
     portfolios: Mapped[list["Portfolio"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     oauth_clients: Mapped[list["OAuth2Client"]] = relationship(
@@ -97,8 +116,43 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan"
     )
 
+    __table_args__ = (
+        Index("idx_users_active_pro", "tier", postgresql_where=(is_active == True) & (is_verified == True)),
+        {"postgresql_fillfactor": 90},
+    )
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
+
+
+class OAuthAccount(Base):
+    __tablename__ = "oauth_accounts"
+
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    provider_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    access_token: Mapped[str | None] = mapped_column(Text)
+    refresh_token: Mapped[str | None] = mapped_column(Text)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    user: Mapped["User"] = relationship(back_populates="oauth_accounts")
+
+    __table_args__ = (UniqueConstraint("provider", "provider_id"),)
+
+
+class EmailVerificationToken(Base):
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    user_id: Mapped[UUID_TYPE] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # LOGGING & AUDIT (Hypertables)
@@ -110,17 +164,35 @@ class AuditLog(Base):
     time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
+    method: Mapped[str] = mapped_column(String(10), nullable=False)
+    path: Mapped[str] = mapped_column(Text, nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
     user_id: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
-    action: Mapped[str] = mapped_column(String(100), nullable=False)
-    resource: Mapped[str | None] = mapped_column(String(100))
-    path: Mapped[str | None] = mapped_column(Text)
-    method: Mapped[str | None] = mapped_column(String(10))
-    status_code: Mapped[int | None] = mapped_column(Integer)
-    payload: Mapped[dict[str, Any] | None] = mapped_column("payload", JSONB)
-    ip_address: Mapped[str | None] = mapped_column(String(45))
-    user_agent: Mapped[str | None] = mapped_column(Text)
-    latency_ms: Mapped[float | None] = mapped_column(Double)
+    client_ip: Mapped[str] = mapped_column(INET, nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, nullable=False)
+    latency_ms: Mapped[float] = mapped_column(Double, nullable=False)
+    metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
+
+    __table_args__ = (
+        Index("idx_audit_logs_brin_time", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 32, "autosummarize": "on"}),
+        Index("idx_audit_logs_metadata_gin", "metadata", postgresql_using="gin", postgresql_ops={"metadata": "jsonb_path_ops"}),
+        Index("idx_audit_user_time", "user_id", time.desc()),
+        {"postgresql_fillfactor": 100},
+    )
+
+
+class DataAuditLog(Base):
+    __tablename__ = "data_audit_logs"
+
+    time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
+    )
+    table_name: Mapped[str] = mapped_column(String, nullable=False)
+    operation: Mapped[str] = mapped_column(String, nullable=False)
+    user_id: Mapped[UUID_TYPE | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    changed_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    full_row: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    query: Mapped[str | None] = mapped_column(Text)
 
 
 class RequestLog(Base):
@@ -129,11 +201,16 @@ class RequestLog(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), primary_key=True, server_default=func.now()
     )
-    id: Mapped[UUID_TYPE] = mapped_column(UUID, default=uuid4)
     status_code: Mapped[int | None] = mapped_column(Integer)
     path: Mapped[str | None] = mapped_column(Text)
     method: Mapped[str | None] = mapped_column(Text)
     duration_ms: Mapped[float | None] = mapped_column(Double)
+
+    __table_args__ = (
+        Index("idx_request_logs_brin_time", "created_at", postgresql_using="brin"),
+        Index("idx_request_logs_errors", "status_code", created_at.desc(), postgresql_where=(status_code >= 400)),
+        {"postgresql_fillfactor": 100},
+    )
 
 
 # PORTFOLIO & TRADING
@@ -149,13 +226,19 @@ class Portfolio(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     cash_balance: Mapped[Decimal] = mapped_column(Numeric(15, 2), default=Decimal("0.00"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     user: Mapped["User"] = relationship(back_populates="portfolios")
     positions: Mapped[list["Position"]] = relationship(
         back_populates="portfolio", cascade="all, delete-orphan"
     )
 
-    __table_args__ = (UniqueConstraint("user_id", "name"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "name"),
+        {"postgresql_fillfactor": 90},
+    )
 
 
 class Position(Base):
@@ -183,6 +266,8 @@ class Position(Base):
     __table_args__ = (
         CheckConstraint("quantity > 0", name="chk_position_quantity_positive"),
         CheckConstraint("entry_price >= 0", name="chk_position_entry_price_non_negative"),
+        Index("idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == 'open')),
+        {"postgresql_fillfactor": 90},
     )
 
 
@@ -211,12 +296,16 @@ class Order(Base):
     broker: Mapped[str | None] = mapped_column(String(50))
     broker_order_id: Mapped[str | None] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     __table_args__ = (
         CheckConstraint("quantity > 0", name="chk_order_quantity_positive"),
         CheckConstraint("limit_price >= 0", name="chk_order_limit_price_non_negative"),
         CheckConstraint("stop_price >= 0", name="chk_order_stop_price_non_negative"),
+        Index("idx_orders_open", "user_id", created_at.desc(), postgresql_where=status.in_(['pending', 'partially_filled'])),
+        {"postgresql_fillfactor": 90},
     )
 
 
@@ -251,7 +340,12 @@ class OptionPrice(Base):
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     __table_args__ = (
-        Index("idx_options_prices_brin", "time", postgresql_using="brin"),
+        Index("idx_options_prices_brin", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 32, "autosummarize": "on"}),
+        Index("idx_options_prices_chain", "symbol", "expiry", "strike", "option_type", time.desc(),
+              postgresql_include=["bid", "ask", "last", "volume", "open_interest", "implied_volatility", "delta", "gamma", "vega", "theta", "rho"]),
+        Index("idx_options_prices_symbol_time", "symbol", time.desc()),
+        Index("idx_options_prices_expiry_only", expiry.desc()),
+        {"postgresql_fillfactor": 100},
     )
 
 
@@ -264,7 +358,9 @@ class MarketTick(Base):
     symbol: Mapped[str] = mapped_column(String, nullable=False, index=True)
     price: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     volume: Mapped[int | None] = mapped_column(Integer)
-    market: Mapped[str | None] = mapped_column(String(50))
+    market: Mapped[str] = mapped_column(String(50), nullable=False)
+    change: Mapped[Decimal] = mapped_column(Numeric(15, 4), default=Decimal("0.0"))
+    side: Mapped[str | None] = mapped_column(OrderSide)
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
@@ -272,7 +368,10 @@ class MarketTick(Base):
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     __table_args__ = (
-        Index("idx_market_ticks_brin", "time", postgresql_using="brin"),
+        Index("idx_market_ticks_brin", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 16, "autosummarize": "on"}),
+        Index("idx_market_ticks_symbol_price_time", "symbol", "price", time.desc(), postgresql_include=["volume"]),
+        Index("idx_market_ticks_symbol_time", "symbol", time.desc()),
+        {"postgresql_fillfactor": 100},
     )
 
 
@@ -295,7 +394,11 @@ class MLModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_production: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    __table_args__ = (UniqueConstraint("name", "version"),)
+    __table_args__ = (
+        UniqueConstraint("name", "version"),
+        Index("idx_ml_models_hyperparams_gin", "hyperparameters", postgresql_using="gin", postgresql_ops={"hyperparameters": "jsonb_path_ops"}),
+        Index("idx_ml_models_metrics_gin", "training_metrics", postgresql_using="gin", postgresql_ops={"training_metrics": "jsonb_path_ops"}),
+    )
 
 
 class ModelPrediction(Base):
@@ -314,6 +417,13 @@ class ModelPrediction(Base):
     actual_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     prediction_error: Mapped[Decimal | None] = mapped_column(Numeric(12, 4))
     actual_value: Mapped[Decimal | None] = mapped_column(Numeric)
+
+    __table_args__ = (
+        Index("idx_model_predictions_features_gin", "input_features", postgresql_using="gin", postgresql_ops={"input_features": "jsonb_path_ops"}),
+        Index("idx_model_predictions_symbol_time", "symbol", timestamp.desc()),
+        Index("idx_model_predictions_model_time", "model_id", timestamp.desc()),
+        {"postgresql_fillfactor": 100},
+    )
 
 
 class ModelDriftBaseline(Base):
@@ -360,6 +470,10 @@ class APIKey(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     user: Mapped["User"] = relationship(back_populates="api_keys")
+
+    __table_args__ = (
+        Index("idx_api_keys_key_hash", "key_hash"),
+    )
 
 
 class BetterAuthSession(Base):
@@ -446,6 +560,11 @@ class RateLimit(Base):
     endpoint: Mapped[str] = mapped_column(String(255), primary_key=True)
     window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
     request_count: Mapped[int] = mapped_column(Integer, default=1)
+
+    __table_args__ = (
+        Index("idx_rate_limits_lookup", "user_id", "endpoint", "window_start"),
+        {"postgresql_unlogged": True},
+    )
 
 
 class OutboxEvent(Base):

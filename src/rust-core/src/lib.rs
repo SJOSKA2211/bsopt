@@ -1,0 +1,112 @@
+use pyo3::prelude::*;
+use pyo3::types::PyBytes;
+use memmap2::Mmap;
+use std::fs::File;
+use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
+use rand::Rng;
+use rand_distr::Distribution;
+
+#[pyfunction]
+fn black_scholes_vectorized(
+    s: PyReadonlyArray1<f64>,
+    k: PyReadonlyArray1<f64>,
+    t: PyReadonlyArray1<f64>,
+    r: PyReadonlyArray1<f64>,
+    v: PyReadonlyArray1<f64>,
+) -> PyResult<Py<PyArray1<f64>>> {
+    let s = s.as_array();
+    let k = k.as_array();
+    let t = t.as_array();
+    let r = r.as_array();
+    let v = v.as_array();
+
+    let n = s.len();
+    let mut res = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let d1 = ( (s[i]/k[i]).ln() + (r[i] + 0.5 * v[i] * v[i]) * t[i] ) / (v[i] * t[i].sqrt());
+        let d2 = d1 - v[i] * t[i].sqrt();
+        
+        // Simple normal CDF approximation for d1, d2
+        let call = s[i] * norm_cdf(d1) - k[i] * (-r[i] * t[i]).exp() * norm_cdf(d2);
+        res.push(call);
+    }
+
+    Python::with_gil(|py| {
+        Ok(res.into_pyarray(py).to_owned())
+    })
+}
+
+fn norm_cdf(x: f64) -> f64 {
+    0.5 * (1.0 + statrs::erf::erf(x / std::f64::consts::SQRT_2))
+}
+
+#[pyfunction]
+fn runge_kutta_4_vectorized(
+    s0: PyReadonlyArray1<f64>,
+    mu: PyReadonlyArray1<f64>,
+    sigma: PyReadonlyArray1<f64>,
+    t: f64,
+    dt: f64,
+    steps: usize,
+) -> PyResult<Py<PyArray1<f64>>> {
+    let s0 = s0.as_array();
+    let mu = mu.as_array();
+    let sigma = sigma.as_array();
+    let n = s0.len();
+    
+    let mut s = s0.to_owned();
+    let mut rng = rand::thread_rng();
+    let normal = rand_distr::StandardNormal;
+
+    for _ in 0..steps {
+        for i in 0..n {
+            // RK4 for the drift part: f(s) = mu * s
+            let k1 = mu[i] * s[i];
+            let k2 = mu[i] * (s[i] + 0.5 * dt * k1);
+            let k3 = mu[i] * (s[i] + 0.5 * dt * k2);
+            let k4 = mu[i] * (s[i] + dt * k3);
+            
+            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+            
+            // Stochastic component (Euler-Maruyama step integration)
+            let dw: f64 = rng.sample(normal);
+            let diffusion = sigma[i] * s[i] * dw * dt.sqrt();
+            
+            s[i] += drift + diffusion;
+        }
+    }
+
+    Python::with_gil(|py| {
+        Ok(s.into_pyarray(py).to_owned())
+    })
+}
+
+#[pyfunction]
+fn mmap_parse_ticks(path: &str) -> PyResult<Vec<f64>> {
+    let file = File::open(path)?;
+    let mmap = unsafe { Mmap::map(&file)? };
+    
+    // Institutional-grade zero-copy tick parsing placeholder
+    // In production, this iterates over the mmap and parses binary/CSV ticks
+    Ok(vec![1337.0, 1.0, 2.0, 3.0])
+}
+
+#[pyfunction]
+fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> PyResult<bool> {
+    // Institutional outlier detection: reject if move > 20% without confirmation
+    if last_price == 0.0 {
+        return Ok(true);
+    }
+    let diff = (price - last_price).abs() / last_price;
+    Ok(diff < 0.20)
+}
+
+#[pymodule]
+fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(black_scholes_vectorized, m)?)?;
+    m.add_function(wrap_pyfunction!(mmap_parse_ticks, m)?)?;
+    m.add_function(wrap_pyfunction!(runge_kutta_4_vectorized, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
+    Ok(())
+}
