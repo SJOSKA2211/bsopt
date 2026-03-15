@@ -161,7 +161,7 @@ class AIOpsDataLoader:
                 COUNT(*) FILTER (WHERE status_code >= 400) as error_count,
                 COUNT(*) as total_requests
             FROM request_logs
-            WHERE created_at > NOW() - $1::interval
+            WHERE created_at > NOW() - ($1::int * INTERVAL '1 hour')
             GROUP BY bucket
             ORDER BY bucket ASC
             LIMIT $2
@@ -172,7 +172,7 @@ class AIOpsDataLoader:
                 await db.connect()
 
             async with db._pool.acquire() as conn:
-                records = await conn.fetch(query, f"{hours} hours", self.limit)
+                records = await conn.fetch(query, hours, self.limit)
                 if not records:
                     return pd.DataFrame()
                 return pd.DataFrame(records)
