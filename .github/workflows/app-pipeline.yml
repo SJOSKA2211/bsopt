@@ -95,8 +95,9 @@ jobs:
 
       - name: Lint, Format, and Security Scan via Makefile
         run: |
-          make lint
-          make format
+          pip install ruff
+          ruff check .
+          ruff format --check .
           make security-scan
 
       - name: Start Dependencies

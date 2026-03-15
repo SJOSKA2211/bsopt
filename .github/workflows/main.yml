@@ -31,8 +31,9 @@ jobs:
           
       - name: Linting
         run: |
-          make lint
-          make format
+          pip install ruff
+          ruff check .
+          ruff format --check .
 
       - name: Math Kernel Smoke Test
         run: |
