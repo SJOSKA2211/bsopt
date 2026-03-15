@@ -1,5 +1,5 @@
 # Stage 1: Builder (Optimized for CI/Test speed)
-FROM python:3.12-slim-bookworm AS builder
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
 RUN pip install uv
 
 WORKDIR /app
@@ -40,7 +40,7 @@ RUN cd src/core && maturin build --release --out /tmp/wheels
 RUN uv pip install --system /tmp/wheels/*.whl
 
 # Stage 2: Final CI/Test Image
-FROM python:3.12-slim-bookworm
+FROM docker.io/library/python:3.12-slim-bookworm
 
 WORKDIR /app
 

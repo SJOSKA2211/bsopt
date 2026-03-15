@@ -1,4 +1,4 @@
-FROM python:3.12-slim-bookworm AS builder
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
 RUN pip install uv
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=0
@@ -24,7 +24,7 @@ ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
 RUN cd src/core && maturin build --release --strip --out /tmp/wheels
 RUN uv pip install /tmp/wheels/*.whl
 
-FROM python:3.12-slim-bookworm AS development
+FROM docker.io/library/python:3.12-slim-bookworm AS development
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev gcc git curl \
@@ -37,7 +37,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 EXPOSE 8000
 CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
-FROM python:3.12-slim-bookworm AS production
+FROM docker.io/library/python:3.12-slim-bookworm AS production
 WORKDIR /app
 ENV PYTHON_JIT=all PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONOPTIMIZE=2
 RUN groupadd -g 1000 appgroup && \

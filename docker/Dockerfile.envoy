@@ -1,4 +1,4 @@
-FROM envoyproxy/envoy:v1.28-latest
+FROM docker.io/envoyproxy/envoy:v1.28-latest
 
 COPY infra/envoy/envoy.yaml /etc/envoy/envoy.yaml
 

@@ -3,7 +3,7 @@ name: bsopt
 services:
   # === Database Service ===
   postgres:
-    image: timescale/timescaledb:latest-pg16
+    image: docker.io/timescale/timescaledb:latest-pg16
     restart: unless-stopped
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
@@ -34,7 +34,7 @@ services:
 
   # === Connection Pooler ===
   pgbouncer:
-    image: edoburu/pgbouncer:latest
+    image: docker.io/edoburu/pgbouncer:latest
     restart: unless-stopped
     environment:
       AUTH_TYPE: scram-sha-256
@@ -64,7 +64,7 @@ services:
 
   # === Cache Service ===
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     restart: unless-stopped
     command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
     ports:
@@ -81,7 +81,7 @@ services:
 
   # === Message Broker ===
   rabbitmq:
-    image: rabbitmq:3-management
+    image: docker.io/library/rabbitmq:3-management
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-bsopt_admin}
@@ -510,7 +510,7 @@ services:
   # === [Specialized] Blockchain Service ===
   geth:
     profiles: [ "blockchain" ]
-    image: ethereum/client-go:stable
+    image: docker.io/ethereum/client-go:stable
     ports:
       - "8545:8545"
       - "8546:8546"
@@ -536,7 +536,7 @@ services:
 
   # === [Specialized] Streaming Service ===
   kafka-1:
-    image: confluentinc/cp-kafka:latest
+    image: docker.io/confluentinc/cp-kafka:latest
     environment:
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_NODE_ID: 1
@@ -555,7 +555,7 @@ services:
   # === [Specialized] ML Compute Cluster ===
   ray-head:
     profiles: [ "ml" ]
-    image: rayproject/ray:latest-py312-cpu
+    image: docker.io/rayproject/ray:latest-py312-cpu
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
@@ -582,7 +582,7 @@ services:
 
   ray-worker-1:
     profiles: [ "ml" ]
-    image: rayproject/ray:latest-py312-cpu
+    image: docker.io/rayproject/ray:latest-py312-cpu
     depends_on:
       - ray-head
     environment:
@@ -607,7 +607,7 @@ services:
 
   rl-training-worker:
     profiles: [ "ml" ]
-    image: rayproject/ray:latest-py312-cpu
+    image: docker.io/rayproject/ray:latest-py312-cpu
     depends_on:
       - ray-head
     environment:
@@ -775,7 +775,7 @@ services:
   # === [Specialized] Observability Stack ===
   # === Monitoring Service ===
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
     environment:
       DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt?sslmode=disable"
     depends_on:
@@ -788,7 +788,7 @@ services:
 
   prometheus:
     profiles: [ "observability" ]
-    image: prom/prometheus:latest
+    image: docker.io/prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:

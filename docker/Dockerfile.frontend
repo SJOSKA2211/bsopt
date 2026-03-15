@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # --- Stage 1: Builder (compile assets) ---
-FROM node:20-alpine AS builder
+FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY src/frontend/ ./
 RUN npm run build
 
 # --- Stage 2: Development ---
-FROM node:20-alpine AS development
+FROM docker.io/library/node:20-alpine AS development
 
 WORKDIR /app
 

@@ -1,6 +1,6 @@
 # Production Dockerfile for the BS-Opt API Service
 # Stage 1: Build dependencies
-FROM python:3.12-slim-bookworm AS builder
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ RUN uv pip install --no-cache --system -r requirements-api.txt && \
     uv pip install --no-cache --system granian
 
 # Stage 2: Runtime image
-FROM python:3.12-slim-bookworm
+FROM docker.io/library/python:3.12-slim-bookworm
 
 WORKDIR /app
 

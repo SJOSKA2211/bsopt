@@ -3,7 +3,7 @@
 # ==============================================================================
 
 # --- Stage 1: Builder ---
-FROM node:20-alpine AS builder
+FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN npm ci --legacy-peer-deps
 COPY src/gateway/ ./
 
 # --- Stage 2: Development ---
-FROM node:20-alpine AS development
+FROM docker.io/library/node:20-alpine AS development
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ EXPOSE 4000
 CMD ["node", "index.js"]
 
 # --- Stage 3: Production ---
-FROM node:20-alpine AS production
+FROM docker.io/library/node:20-alpine AS production
 
 WORKDIR /app
 
