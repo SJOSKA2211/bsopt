@@ -19,3 +19,7 @@
 **Vulnerability:** Sensitive tokens for email verification and password resets were being logged in plain text via `logger.info` in `src/api/routes/auth.py`.
 **Learning:** Application logs can inadvertently capture secrets if parameters like `link` (containing tokens) are passed directly to logger methods without stripping.
 **Prevention:** Never log sensitive URLs, parameters, or tokens. Always strip sensitive information before passing data to logging infrastructure.
+## 2026-03-15 - [Fix SQL injection in data_loader]
+**Vulnerability:** Possible SQL injection vector through string-based query construction when passing `hours` via f-strings into a TimescaleDB query in `src/ml/data_loader.py`.
+**Learning:** Using f-strings to construct SQL queries, even for integer parameters like `hours`, introduces an injection vector (CWE-89) and triggers security linting errors (Bandit B608).
+**Prevention:** Always use parameterized queries natively supported by the database driver (e.g., passing variables as arguments in `conn.fetch(query, arg1, arg2)` with ``, `` placeholders in Postgres) instead of string concatenation.
