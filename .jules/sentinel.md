@@ -23,3 +23,7 @@
 **Vulnerability:** The `fetch_system_metrics` method in `src/ml/data_loader.py` was using an f-string to insert the `hours` and `self.limit` variables directly into a SQL query. This exposes the database to SQL injection attacks if these variables are ever influenced by user input.
 **Learning:** Even internal or admin-focused data loaders must use parameterized queries when fetching data from the database. Bandit caught this with warning B608 (hardcoded SQL expressions).
 **Prevention:** Use native parameterized queries with placeholders like `$1` and `$2` when using `asyncpg`, and pass the parameters as separate arguments to `conn.fetch(query, arg1, arg2)`.
+## 2026-03-15 - [Sentinel: Fix duplicate Cargo dependency]
+**Vulnerability:** `src/core/Cargo.toml` contained a duplicate `num-complex = "0.4"` entry. While not a direct security vulnerability, it broke the Rust build via `maturin`, preventing security tests and deployments from succeeding in CI.
+**Learning:** Broken builds mask true security issues by preventing CI pipelines from completing their scan stages. Keeping build definitions clean is a prerequisite for security enforcement.
+**Prevention:** Ensure dependencies are not duplicated when manually adding libraries to `Cargo.toml`, or use `cargo add` which automatically handles deduplication.
