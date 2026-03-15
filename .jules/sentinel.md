@@ -27,3 +27,7 @@
 **Vulnerability:** `src/core/Cargo.toml` contained a duplicate `num-complex = "0.4"` entry. While not a direct security vulnerability, it broke the Rust build via `maturin`, preventing security tests and deployments from succeeding in CI.
 **Learning:** Broken builds mask true security issues by preventing CI pipelines from completing their scan stages. Keeping build definitions clean is a prerequisite for security enforcement.
 **Prevention:** Ensure dependencies are not duplicated when manually adding libraries to `Cargo.toml`, or use `cargo add` which automatically handles deduplication.
+## 2026-03-15 - [Sentinel: Fix PyJWT version in pyproject.toml]
+**Vulnerability:** The `pyproject.toml` file pinned `PyJWT==2.8.0`. PyJWT < 2.12.0 accepts unknown `crit` header extensions which is a violation of RFC 7515 and poses a security risk allowing malicious tokens to bypass restrictions.
+**Learning:** Hard-pinning older dependencies blocks security patches. Trivy scan flagged this CVE (CVE-2026-32597).
+**Prevention:** Update `pyproject.toml` dependencies to safely rely on `>=` limits for security patches, rather than strict `==` versions unless necessary.

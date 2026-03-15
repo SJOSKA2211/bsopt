@@ -118,7 +118,7 @@ class User(Base):
 
     __table_args__ = (
         Index("idx_users_active_pro", "tier", postgresql_where=(is_active.is_(True)) & (is_verified.is_(True))),  # noqa: E712
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": "90"}},
     )
 
     def __repr__(self) -> str:
@@ -177,7 +177,7 @@ class AuditLog(Base):
         Index("idx_audit_logs_brin_time", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 32, "autosummarize": "on"}),
         Index("idx_audit_logs_metadata_gin", "metadata", postgresql_using="gin", postgresql_ops={"metadata": "jsonb_path_ops"}),
         Index("idx_audit_user_time", "user_id", time.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": "100"}},
     )
 
 
@@ -209,7 +209,7 @@ class RequestLog(Base):
     __table_args__ = (
         Index("idx_request_logs_brin_time", "created_at", postgresql_using="brin"),
         Index("idx_request_logs_errors", "status_code", created_at.desc(), postgresql_where=(status_code >= 400)),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": "100"}},
     )
 
 
@@ -237,7 +237,7 @@ class Portfolio(Base):
 
     __table_args__ = (
         UniqueConstraint("user_id", "name"),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": "90"}},
     )
 
 
@@ -267,7 +267,7 @@ class Position(Base):
         CheckConstraint("quantity > 0", name="chk_position_quantity_positive"),
         CheckConstraint("entry_price >= 0", name="chk_position_entry_price_non_negative"),
         Index("idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == 'open')),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": "90"}},
     )
 
 
@@ -305,7 +305,7 @@ class Order(Base):
         CheckConstraint("limit_price >= 0", name="chk_order_limit_price_non_negative"),
         CheckConstraint("stop_price >= 0", name="chk_order_stop_price_non_negative"),
         Index("idx_orders_open", "user_id", created_at.desc(), postgresql_where=status.in_(['pending', 'partially_filled'])),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": "90"}},
     )
 
 
@@ -345,7 +345,7 @@ class OptionPrice(Base):
               postgresql_include=["bid", "ask", "last", "volume", "open_interest", "implied_volatility", "delta", "gamma", "vega", "theta", "rho"]),
         Index("idx_options_prices_symbol_time", "symbol", time.desc()),
         Index("idx_options_prices_expiry_only", expiry.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": "100"}},
     )
 
 
@@ -371,7 +371,7 @@ class MarketTick(Base):
         Index("idx_market_ticks_brin", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 16, "autosummarize": "on"}),
         Index("idx_market_ticks_symbol_price_time", "symbol", "price", time.desc(), postgresql_include=["volume"]),
         Index("idx_market_ticks_symbol_time", "symbol", time.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": "100"}},
     )
 
 
@@ -422,7 +422,7 @@ class ModelPrediction(Base):
         Index("idx_model_predictions_features_gin", "input_features", postgresql_using="gin", postgresql_ops={"input_features": "jsonb_path_ops"}),
         Index("idx_model_predictions_symbol_time", "symbol", timestamp.desc()),
         Index("idx_model_predictions_model_time", "model_id", timestamp.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": "100"}},
     )
 
 
