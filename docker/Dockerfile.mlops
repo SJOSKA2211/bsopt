@@ -1,7 +1,7 @@
 # docker/Dockerfile.mlops
 
 # === Stage 1: Runtime ===
-FROM rayproject/ray:latest-py312-cpu AS runtime
+FROM docker.io/library/rayproject/ray:latest-py312-cpu AS runtime
 
 WORKDIR /app
 
