@@ -117,7 +117,7 @@ class User(Base):
     )
 
     __table_args__ = (
-        Index("idx_users_active_pro", "tier", postgresql_where=(is_active == True) & (is_verified == True)),
+        Index("idx_users_active_pro", "tier", postgresql_where=(is_active.is_(True)) & (is_verified.is_(True))),  # noqa: E712
         {"postgresql_fillfactor": 90},
     )
 

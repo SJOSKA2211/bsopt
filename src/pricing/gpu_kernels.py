@@ -1,4 +1,3 @@
-import numpy as np
 import cupy as cp
 from pyo3_runtime import import_module
 

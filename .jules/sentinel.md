@@ -19,3 +19,7 @@
 **Vulnerability:** The password reset and email verification generated link log messages were logging the actual token values in plain text, which could lead to account compromise if log files are leaked.
 **Learning:** Hardcoded logs containing URLs with query string tokens bypass protections and could be logged by downstream collectors (like CloudWatch, Datadog).
 **Prevention:** Never log the parameters or sensitive elements of URLs sent via email or generated for users. Modify logs to remove token query variables.
+## 2026-03-15 - [Sentinel: Fix SQL Injection in data_loader.py]
+**Vulnerability:** The `fetch_system_metrics` method in `src/ml/data_loader.py` was using an f-string to insert the `hours` and `self.limit` variables directly into a SQL query. This exposes the database to SQL injection attacks if these variables are ever influenced by user input.
+**Learning:** Even internal or admin-focused data loaders must use parameterized queries when fetching data from the database. Bandit caught this with warning B608 (hardcoded SQL expressions).
+**Prevention:** Use native parameterized queries with placeholders like `$1` and `$2` when using `asyncpg`, and pass the parameters as separate arguments to `conn.fetch(query, arg1, arg2)`.
