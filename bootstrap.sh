@@ -154,7 +154,16 @@ $COMPOSE_ENGINE --env-file .env -f infra/orchestration/docker-compose.yml up -d 
 echo "⏳ Waiting for Database to be Live & Healthy..."
 MAX_RETRIES=30
 RETRY_COUNT=0
-until $CONTAINER_ENGINE exec bsopt-postgres-1 pg_isready -U admin > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+
+# Dynamically resolve container name to avoid 'bsopt-postgres-1' vs 'bsopt_postgres_1' issues
+POSTGRES_CONTAINER=$($COMPOSE_ENGINE ps --format "{{.Name}}" postgres 2>/dev/null || $COMPOSE_ENGINE ps postgres | grep postgres | awk '{print $1}')
+
+if [ -z "$POSTGRES_CONTAINER" ]; then
+    echo "⚠️  Warning: Could not resolve Postgres container name. Falling back to default."
+    POSTGRES_CONTAINER="bsopt-postgres-1"
+fi
+
+until $CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" pg_isready -U admin > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
     echo -n "."
     sleep 2
     RETRY_COUNT=$((RETRY_COUNT+1))
@@ -162,6 +171,7 @@ done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
     echo "❌ Error: Database failed to start within timeout."
+    $COMPOSE_ENGINE logs postgres
     exit 1
 fi
 

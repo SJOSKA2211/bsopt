@@ -104,12 +104,49 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
 
       case 'BATCH_CALCULATE': {
         const { payload, id } = e.data as any;
-        // The WASM binding for batch_calculate expects a specific format or array
-        // Assuming the WASM binding handles the array of objects or we map it here
-        // Since we can't easily pass complex objects to raw WASM without Serde, 
-        // we might iterate here or rely on the binding's ability to take a JsValue (array).
-        const result = engine.batch_calculate_soa(payload);
-        self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: result, id });
+        const options = payload as any[];
+        const n = options.length;
+
+        // Transform AoS to SoA for SIMD-accelerated WASM
+        const spots = new Float64Array(n);
+        const strikes = new Float64Array(n);
+        const times = new Float64Array(n);
+        const vols = new Float64Array(n);
+        const rates = new Float64Array(n);
+        const divs = new Float64Array(n);
+        const areCalls = new Float64Array(n);
+
+        options.forEach((opt, i) => {
+          spots[i] = opt.spot;
+          strikes[i] = opt.strike;
+          times[i] = opt.time;
+          vols[i] = opt.vol;
+          rates[i] = opt.rate;
+          divs[i] = opt.div;
+          areCalls[i] = opt.is_call ? 1.0 : 0.0;
+        });
+
+        const rawResults = engine.batch_calculate_soa_compact(
+          spots, strikes, times, vols, rates, divs, areCalls
+        );
+
+        // Reconstruct AoS results (Stride of 6: price, delta, gamma, vega, theta, rho)
+        const results = [];
+        for (let i = 0; i < n; i++) {
+          const offset = i * 6;
+          results.push({
+            price: rawResults[offset],
+            greeks: {
+              delta: rawResults[offset + 1],
+              gamma: rawResults[offset + 2],
+              vega: rawResults[offset + 3],
+              theta: rawResults[offset + 4],
+              rho: rawResults[offset + 5]
+            }
+          });
+        }
+
+        self.postMessage({ type: 'BATCH_CALCULATE_RESULT', payload: results, id });
         break;
       }
 

@@ -11,7 +11,7 @@ echo " Starting C100k WebSocket Stress Test..."
 echo "Target: $TARGET_URL"
 echo "Users: $USERS"
 
-.venv/bin/locust -f performance/locust_ws_stress.py \
+locust -f performance/locust_ws_stress.py \
     --headless \
     --users $USERS \
     --spawn-rate $SPAWN_RATE \

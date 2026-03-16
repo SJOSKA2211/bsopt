@@ -60,6 +60,10 @@ bootstrap:
 	@chmod +x bootstrap.sh
 	@./bootstrap.sh
 
+setup-dev:
+	@chmod +x scripts/setup_dev.sh
+	@./scripts/setup_dev.sh
+
 up:
 	$(DOCKER_COMPOSE) up -d
 
@@ -143,5 +147,5 @@ alembic:
 clean:
 	$(DOCKER_COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf target/
+	rm -rf venv/ .venv/ target/
 	rm -rf services/quant/rust-core/target/

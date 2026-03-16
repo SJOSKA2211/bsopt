@@ -99,7 +99,8 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict[str, 
         pool = get_math_pool()
         actor = await pool.get_actor()
 
-        #  HIGH-PERFORMANCE: Non-blocking await of Ray future
+        # HIGH-PERFORMANCE: Non-blocking await of Ray future
+        # Using a direct Ray call with shorter timeout path
         return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
 
     except Exception as exc:
@@ -143,7 +144,8 @@ def price_option_task(
             params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
             # OPTIMIZED: Use persistent loop from BaseAsyncTask
             cached_price = self.run_async(
-                pricing_cache.get_option_price(params, option_type, "black_scholes")
+                pricing_cache.get_option_price(params, option_type, "black_scholes"),
+                timeout=5.0
             )
             if cached_price is not None:
                 computation_time = (time.perf_counter() - start_time) * 1000
@@ -182,8 +184,8 @@ def price_option_task(
         if use_cache and not cache_hit:
             try:
                 params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
-                # OPTIMIZED: Use persistent loop from BaseAsyncTask
-                self.run_async(
+                # OPTIMIZED: Use fire-and-forget for cache updates (non-blocking)
+                self.run_forget(
                     pricing_cache.set_option_price(
                         params, option_type, "black_scholes", float(price)
                     )

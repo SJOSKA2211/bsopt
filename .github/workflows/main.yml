@@ -24,6 +24,12 @@ jobs:
         with:
           python-version: "3.12"
           
+      - name: Environment Diagnostics
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "Listing directories:"
+          ls -F
+          
       - name: Install dependencies
         run: |
           pip install uv

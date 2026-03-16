@@ -12,17 +12,12 @@ export PYTHONWARNINGS="ignore::FutureWarning:ray"
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
 export REDIS_URL="redis://localhost:6379/0"
 export JWT_SECRET="development_secret_high_performance_secure_system_key_manifold_32_char"
-export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-
-# Activate Virtual Environment
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
-fi
+export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/services
 
 # Run Uvicorn with optimized settings
 if [ "$ENVIRONMENT" == "prod" ] || [ "$ENVIRONMENT" == "production" ]; then
     echo "Running in PRODUCTION mode with multiple workers..."
-    exec python3 -m uvicorn src.api.main:app \
+    exec python3 -m uvicorn services.api.main:app \
         --host 0.0.0.0 \
         --port 8000 \
         --workers $(nproc) \
@@ -32,9 +27,5 @@ if [ "$ENVIRONMENT" == "prod" ] || [ "$ENVIRONMENT" == "production" ]; then
         --timeout-keep-alive 65
 else
     echo "Running in DEVELOPMENT mode with reload..."
-    if [ -f ".venv/bin/python3" ]; then
-        .venv/bin/python3 -m uvicorn src.api.main:app --reload --reload-dir src --port 8000 --host 0.0.0.0 --loop uvloop
-    else
-        python3 -m uvicorn src.api.main:app --reload --reload-dir src --port 8000 --host 0.0.0.0 --loop uvloop
-    fi
+    python3 -m uvicorn services.api.main:app --reload --reload-dir services/api --port 8000 --host 0.0.0.0 --loop uvloop
 fi

@@ -44,9 +44,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-CMD ["python", "src/scrapers/engine.py"]
+CMD ["python", "services/scrapers/engine.py"]
 
 
 # === Stage 3: Production ===
@@ -85,4 +83,4 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["python", "src/scrapers/engine.py"]
+CMD ["python", "services/scrapers/engine.py"]

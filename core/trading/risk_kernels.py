@@ -132,6 +132,10 @@ class RiskVectorTracker:
         """
         if CORE_AVAILABLE:
             try:
+                # OPTIMIZED: Direct float conversion in the hot-path is faster
+                # than multi-dimensional array slicing
+                s = self._state
+                l = self._limits
                 ok, new_d, new_g, new_v = bsopt_core.full_risk_check(
                     float(price),
                     int(quantity),
@@ -139,24 +143,25 @@ class RiskVectorTracker:
                     float(d_delta),
                     float(d_gamma),
                     float(d_vega),
-                    float(self._state[0]),
-                    float(self._state[1]),
-                    float(self._state[2]),
+                    float(s[0]),
+                    float(s[1]),
+                    float(s[2]),
                     int(max_qty),
                     float(min_price),
                     float(max_price),
-                    float(self._limits[0]),
-                    float(self._limits[1]),
-                    float(self._limits[2]),
+                    float(l[0]),
+                    float(l[1]),
+                    float(l[2]),
                 )
                 if ok:
-                    self._state[0] = new_d
-                    self._state[1] = new_g
-                    self._state[2] = new_v
+                    s[0] = new_d
+                    s[1] = new_g
+                    s[2] = new_v
                 return ok
             except Exception as e:
                 logger.warning("rust_risk_vector_check_failed", error=str(e))
 
+        # OPTIMIZED: Pass state and limits directly
         return bool(
             _full_risk_check_v2_kernel(
                 price,

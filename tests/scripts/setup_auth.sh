@@ -56,22 +56,6 @@ else
 fi
 echo ""
 
-# Create virtual environment
-echo "Setting up Python virtual environment..."
-if [ ! -d "venv" ]; then
-    python3 -m venv venv
-    echo -e "${GREEN}✓ Virtual environment created${NC}"
-else
-    echo -e "${GREEN}✓ Virtual environment already exists${NC}"
-fi
-echo ""
-
-# Activate virtual environment
-echo "Activating virtual environment..."
-source venv/bin/activate
-echo -e "${GREEN}✓ Virtual environment activated${NC}"
-echo ""
-
 # Install dependencies
 echo "Installing Python dependencies..."
 if [ -f "requirements-auth.txt" ]; then

@@ -237,9 +237,24 @@ def train_pipeline(
         y_test_t = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
 
         train_dataset = TensorDataset(X_train_t, y_train_t)
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=2,
+            pin_memory=True
+        )
 
         model = CrossSectionalPricingModel(input_dim=len(features))
+        
+        # HIGH-PERFORMANCE: Use torch.compile for graph optimization if available
+        if hasattr(torch, "compile"):
+            try:
+                model = torch.compile(model)
+                logger.info("pytorch_model_compiled")
+            except Exception as e:
+                logger.warning("pytorch_compile_failed", error=str(e))
+
         criterion = nn.MSELoss()
         optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
         scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)

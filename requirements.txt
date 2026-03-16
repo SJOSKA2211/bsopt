@@ -33,3 +33,4 @@ opentelemetry-instrumentation-fastapi>=0.45b0
 opentelemetry-exporter-otlp>=1.24.0
 mlflow>=2.10.0
 celery>=5.3.0
+brotli-asgi>=1.4.0

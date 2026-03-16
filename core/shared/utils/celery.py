@@ -45,10 +45,22 @@ class BaseAsyncTask(Task):
         asyncio.set_event_loop(loop)
         loop.run_forever()
 
-    def run_async(self, coro: Coroutine[Any, Any, Any]) -> Any:
+    def run_async(self, coro: Coroutine[Any, Any, Any], timeout: float | None = 30.0) -> Any:
         """
         Run a coroutine in the persistent loop and wait for result.
-        Uses run_coroutine_threadsafe for thread-safe cross-loop execution.
+        OPTIMIZED: Uses wait() with timeout to prevent worker thread exhaustion.
         """
         future = asyncio.run_coroutine_threadsafe(coro, self.loop)
-        return future.result()
+        try:
+            return future.result(timeout=timeout)
+        except TimeoutError:
+            logger.error("task_async_timeout", timeout=timeout)
+            future.cancel()
+            raise
+
+    def run_forget(self, coro: Coroutine[Any, Any, Any]) -> None:
+        """
+        Fire-and-forget execution: Dispatches to the loop without blocking.
+        Useful for non-critical logging or metrics.
+        """
+        self.loop.call_soon_threadsafe(lambda: asyncio.create_task(coro))

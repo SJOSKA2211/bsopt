@@ -6,8 +6,8 @@ set -e
 
 echo "🚀 Starting High-Volume Financial Data Ingestion..."
 
-# Set PYTHONPATH to include src
-export PYTHONPATH=$PYTHONPATH:$(pwd)
+# Set PYTHONPATH to include project root
+export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/services
 
 # Load environment variables if .env exists
 if [ -f .env ]; then
@@ -15,6 +15,6 @@ if [ -f .env ]; then
 fi
 
 # Run the concurrent ingestion orchestrator
-python3 src/scrapers/concurrent_ingestion.py
+python3 services/scrapers/concurrent_ingestion.py
 
 echo "✅ Ingestion Pipeline Complete."
