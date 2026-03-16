@@ -13,7 +13,7 @@ COPY pyproject.toml requirements.txt README.md ./
 COPY core ./core
 COPY services ./services
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r requirements.txt && uv pip install granian
+    uv pip install -r requirements.txt && uv pip install granian && uv pip install .[api,ml,quant,distributed]
 
 # Install Rust and build bsopt_core
 RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential

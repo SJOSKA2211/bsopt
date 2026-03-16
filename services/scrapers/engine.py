@@ -13,7 +13,7 @@ from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
 from services.config import settings
-from services.protos import data_pb2, data_pb2_grpc
+from core.protos import data_pb2, data_pb2_grpc
 from services.scrapers.mesh_publisher import get_market_publisher
 from services.shared.observability import (
     PROXY_FAILURES,
