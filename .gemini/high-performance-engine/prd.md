@@ -54,9 +54,8 @@ The current BS-OPT platform is built on Neon PostgreSQL and fragmented ML traini
 | P1 | 97% Test Coverage | As a maintainer, I want to ensure the mathematical validity of all kernels. |
 
 ## Assumptions
-- PostgreSQL 16+ is available.
+- PostgreSQL 16+ is available (TimeScaleDB enabled).
 - CUDA environment is correctly set up for GPU-bound tasks.
-- Python 3.13 venv is active.
 
 ## Risks & Mitigations
 - **Risk**: Partitioning complexity -> **Mitigation**: Use `pg_partman` or robust native DDL scripts.

@@ -92,8 +92,9 @@ def get_wasm_instance() -> Any:
 
     # 1. Locate the WASM file
     search_paths = [
-        "src/frontend/public/wasm/bsopt_wasm_bg.wasm",
-        "src/frontend/src/wasm/bsopt_wasm_bg.wasm",
+        "services/frontend/public/wasm/bsopt_wasm_bg.wasm",
+        "services/frontend/src/wasm/bsopt_wasm_bg.wasm",
+        "core/shared/utils/bsopt_wasm_bg.wasm",
         "wasm/bsopt_wasm_bg.wasm",
     ]
     wasm_path = next((p for p in search_paths if os.path.exists(p)), None)

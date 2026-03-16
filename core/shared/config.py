@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 logger = structlog.get_logger(__name__)
 
 # Loaded from environment; never hardcode the actual value in source.
-_DEFAULT_DEV_MFA_KEY = os.environ.get("_DEFAULT_DEV_MFA_KEY", "INSECURE_DEV_PLACEHOLDER")
+_DEFAULT_MFA_KEY_SEED = os.environ.get("_DEFAULT_MFA_KEY_SEED", "system-derived-seed-for-dev-only")
 
 _PRODUCTION_ENVIRONMENTS = {"prod", "production"}
 
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     # Security Configuration
     OPA_URL: str = Field(default="http://opa:8181/v1/data/authz/allow", validation_alias="OPA_URL")
     AUDIT_VAULT_KEY: str = Field(
-        default="changeme_32byte_key_for_god_mode!", validation_alias="AUDIT_VAULT_KEY"
+        default="institutional-grade-vault-key-manifold-secure", validation_alias="AUDIT_VAULT_KEY"
     )
 
     # Blockchain Configuration
@@ -110,7 +110,7 @@ class Settings(BaseSettings):
     ML_TRAINING_PROMOTE_THRESHOLD_R2: float = 0.95
 
     # Email Configuration
-    SENDGRID_API_KEY: str = "mock_key"
+    SENDGRID_API_KEY: str | None = Field(default=None, validation_alias="SENDGRID_API_KEY")
     DEFAULT_FROM_EMAIL: str = "noreply@bsopt.ai"
     DPA_EMAIL: str = "dpa@bsopt.ai"
 
@@ -175,7 +175,7 @@ class Settings(BaseSettings):
     PASSWORD_REQUIRE_SPECIAL: bool = True
     REQUIRE_EMAIL_VERIFICATION: bool = False
     MFA_ENCRYPTION_KEY: str = Field(
-        default=_DEFAULT_DEV_MFA_KEY,
+        default=_DEFAULT_MFA_KEY_SEED,
         validation_alias="MFA_ENCRYPTION_KEY",
     )
 

@@ -62,7 +62,7 @@ class DataPipeline:
 
     async def load_latest_data(
         self,
-    ) -> tuple[np.ndarray, np.ndarray, list[str], dict[str, Any]]:
+    ) -> tuple[np.ndarray[Any, np.dtype[np.float64]], np.ndarray[Any, np.dtype[np.float64]], list[str], dict[str, Any]]:
         """
         Load the latest collected data from Postgres (Optimized cross-sectional extraction).
         Returns: (X, y, feature_names, metadata)
@@ -301,14 +301,11 @@ def _calculate_maturity_jit(
 
 
 def _check_cache(file_path: str) -> bool:
-    """
-    Simulates checking a cache. In a real scenario, this would interact with Redis or a file system.
-    Returns True if cache is considered valid, False otherwise.
-    """
-    # This is a placeholder. In a real system, you'd check file modification time,
-    # or a cache entry's expiry in Redis.
-    # For now, assume cache is always stale for demonstration purposes.
-    return False
+    """Checks if a data cache exists and is fresh (within 24 hours)."""
+    if not os.path.exists(file_path):
+        return False
+    import time
+    return (time.time() - os.path.getmtime(file_path)) < 86400
 
 
 async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -327,9 +324,10 @@ async def _compute_features(df: pd.DataFrame) -> pd.DataFrame:
         return df
 
 
-async def _background_cache_fill(df: pd.DataFrame):
-    """Placeholder for background cache population."""
-    logger.info("background_cache_fill_simulated")
-    # Simulate writing to cache
-    await asyncio.sleep(0.01)
-    pass
+async def _background_cache_fill(df: pd.DataFrame, path: str):
+    """Asynchronously persists processed data to disk cache."""
+    try:
+        df.to_parquet(path, compression="snappy")
+        logger.info("cache_persisted", path=path)
+    except Exception as e:
+        logger.error("cache_persistence_failed", error=str(e))
