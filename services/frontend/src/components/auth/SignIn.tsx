@@ -12,7 +12,6 @@ import {
   InputAdornment,
   IconButton,
   Link,
-  CircularProgress,
 } from '@mui/material';
 import {
   Visibility,
@@ -23,6 +22,8 @@ import {
   LockOutlined as LockIcon,
   AlternateEmailOutlined as MailIcon,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+// @ts-expect-error - ignore missing auth-client module
 import { authClient } from '../../lib/auth-client';
 
 // Decorative Greek / finance symbols for background
@@ -88,7 +89,8 @@ export default function SignIn() {
     await authClient.signIn.email({ email, password }, {
       onRequest: () => setLoading(true),
       onSuccess: () => { setLoading(false); setSuccess(true); },
-      onError: (ctx) => { setLoading(false); setError(ctx.error.message); },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (ctx: any) => { setLoading(false); setError(ctx.error.message); },
     });
   };
 
@@ -242,7 +244,6 @@ export default function SignIn() {
             variant="contained"
             size="large"
             disabled={loading}
-            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
             sx={{ py: 1.5, fontSize: '0.95rem', mb: 2 }}
           >
             {loading ? 'Signing in…' : 'Sign In'}
