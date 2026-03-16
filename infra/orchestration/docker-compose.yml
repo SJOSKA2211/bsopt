@@ -17,8 +17,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ../../init-scripts:/docker-entrypoint-initdb.d:ro
       - ../../core/migrations:/migrations:ro
-      - ../../docker/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ../../docker/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
+      - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
     deploy:
       resources:
         limits:
@@ -90,8 +90,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - ../../docker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
-      - ../../docker/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./definitions.json:/etc/rabbitmq/definitions.json:ro
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -116,6 +116,7 @@ services:
     volumes:
       - ../../services/auth:/app
       - /app/node_modules
+      - ../../core/protos:/protos:ro
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1" ]
       interval: 10s
@@ -178,7 +179,7 @@ services:
     sysctls:
       - net.core.somaxconn=1024
       - net.ipv4.tcp_fastopen=3
-    command: granian --interface asgi services.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --websockets --opt
+    command: /opt/venv/bin/granian --interface asgi services.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
 
   # === Portfolio Service ===
   portfolio:
@@ -217,7 +218,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: granian --interface asgi services.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
+    command: /opt/venv/bin/granian --interface asgi services.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
@@ -430,9 +431,9 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: granian --interface asgi services.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --opt
+    command: granian --interface asgi services.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
 
-  # === App Gateway (Node.js Federation) ===
+    # === App Gateway (Node.js Federation) ===
   app-gateway:
     build:
       context: ../..

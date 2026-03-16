@@ -1,10 +1,8 @@
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
 use memmap2::Mmap;
 use std::fs::File;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use rand::Rng;
-use rand_distr::Distribution;
 
 #[pyfunction]
 fn black_scholes_vectorized(
@@ -38,7 +36,7 @@ fn black_scholes_vectorized(
 }
 
 fn norm_cdf(x: f64) -> f64 {
-    0.5 * (1.0 + statrs::erf::erf(x / std::f64::consts::SQRT_2))
+    0.5 * (1.0 + statrs::function::erf::erf(x / std::f64::consts::SQRT_2))
 }
 
 #[pyfunction]
@@ -46,7 +44,7 @@ fn runge_kutta_4_vectorized(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    t: f64,
+    _t: f64,
     dt: f64,
     steps: usize,
 ) -> PyResult<Py<PyArray1<f64>>> {
@@ -85,7 +83,7 @@ fn runge_kutta_4_vectorized(
 #[pyfunction]
 fn mmap_parse_ticks(path: &str) -> PyResult<Vec<f64>> {
     let file = File::open(path)?;
-    let mmap = unsafe { Mmap::map(&file)? };
+    let _mmap = unsafe { Mmap::map(&file)? };
     
     // Institutional-grade zero-copy tick parsing placeholder
     // In production, this iterates over the mmap and parses binary/CSV ticks
