@@ -130,19 +130,19 @@ jobs:
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: |
           python -c "
-import os, sys
-try:
-    from sqlalchemy import create_engine, text
-    engine = create_engine(os.environ['DATABASE_URL'])
-    with engine.connect() as conn:
-        count = conn.execute(text('SELECT COUNT(*) FROM market_ticks')).scalar()
-        print(f'Market ticks count: {count}')
-        if count < 50000:
-            print('Insufficient data for retraining, skipping.')
-            sys.exit(0)
-except Exception as e:
-    print(f'DB check failed: {e}')
-    sys.exit(0)
-"
+          import os, sys
+          try:
+              from sqlalchemy import create_engine, text
+              engine = create_engine(os.environ['DATABASE_URL'])
+              with engine.connect() as conn:
+                  count = conn.execute(text('SELECT COUNT(*) FROM market_ticks')).scalar()
+                  print(f'Market ticks count: {count}')
+                  if count < 50000:
+                      print('Insufficient data for retraining, skipping.')
+                      sys.exit(0)
+          except Exception as e:
+              print(f'DB check failed: {e}')
+              sys.exit(0)
+          "
           # Trigger retraining via internal API or direct pipeline execution
           python -m src.ml.cross_sectional_pipeline --epochs 10 --study_name ct_daily || true

@@ -130,7 +130,7 @@ async def login(
             raise AuthenticationException(message="Invalid email or password")
 
         # row mapping: (id, email, tier, is_active)
-        user_id, email, tier, is_active = row
+        user_id, email, tier, _ = row
 
         # 2. Sync session context for RLS
         await set_user_context(db, str(user_id))
@@ -418,7 +418,6 @@ async def _send_password_reset_email(email: str, token: str) -> None:
     """
     reset_link = f"{settings.BETTER_AUTH_URL}/reset-password?token={token}"
     logger.info("password_reset_link_generated", email=email, link=reset_link)
-    logger.info(f"User reset link: {token}")
 
     from services.tasks.email_tasks import send_transactional_email
 
