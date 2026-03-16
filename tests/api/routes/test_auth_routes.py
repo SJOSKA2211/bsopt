@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from core.database import get_async_db, get_db
+from core.database.models import User
 from services.api.main import app
 from services.api.routes.auth import (
     _send_password_reset_email,
@@ -12,8 +14,6 @@ from services.api.routes.auth import (
     get_current_active_user,
     get_current_user,
 )
-from core.database import get_async_db, get_db
-from core.database.models import User
 
 client = TestClient(app)
 

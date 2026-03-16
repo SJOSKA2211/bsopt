@@ -4,9 +4,9 @@ from gymnasium import spaces
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from services.auth.service import AuthService
-from core.shared.config import settings
 from core.database.models import Base, OAuth2Client
+from core.shared.config import settings
+from services.auth.service import AuthService
 from services.ml.reinforcement_learning.transformer_policy import (
     TransformerOptimizedExtractor,
 )

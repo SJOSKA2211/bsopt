@@ -2,10 +2,10 @@ from fastapi import Request  # Import Request
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from services.api.main import app
 from core.database import get_db
 from core.database.models import User
 from core.security.auth import get_api_key
+from services.api.main import app
 
 
 def test_api_key_authentication(

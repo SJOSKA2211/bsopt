@@ -12,9 +12,9 @@ from faker import Faker
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.orm import Session
 
-from services.api.main import app
 from core.database import get_db
 from core.database.models import User
+from services.api.main import app
 
 fake = Faker()
 

@@ -4,8 +4,8 @@ from typing import Any
 
 import structlog
 
-from core.shared.shm_mesh import SharedMemoryRingBuffer
 from core.shared.cache import get_redis
+from core.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
