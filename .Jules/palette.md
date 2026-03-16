@@ -1,0 +1,3 @@
+## 2024-03-16 - Add loading spinners to auth forms
+**Learning:** Found that Material UI async submit buttons in authentication forms (`SignIn.tsx`, `SignUp.tsx`) were lacking loading indicators, only using disabled text. Adding `CircularProgress` via the `startIcon` prop provides better immediate visual feedback to the user that their request is processing.
+**Action:** When adding async submit buttons using Material UI in the future, always include a `CircularProgress` or similar loading indicator in the `startIcon` or `endIcon` prop, not just relying on disabling the button and changing the text.

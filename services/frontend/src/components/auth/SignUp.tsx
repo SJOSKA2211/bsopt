@@ -12,6 +12,7 @@ import {
   InputAdornment,
   IconButton,
   Link,
+  CircularProgress,
 } from '@mui/material';
 import {
   Visibility,
@@ -209,6 +210,7 @@ export function SignUp() {
           variant="contained"
           size="large"
           disabled={loading}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
           sx={{ py: 1.5, fontSize: '0.95rem', mt: 2, mb: 2 }}
         >
           {loading ? 'Creating account…' : 'Sign Up'}
