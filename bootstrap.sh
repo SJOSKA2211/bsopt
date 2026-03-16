@@ -149,7 +149,7 @@ echo "✅ EquaFlow Stack Bootstrapped Successfully."
 
 # 5. Automated Live Database Startup
 echo "🏗️  Starting Live Database Environment (Postgres, Redis, PgBouncer)..."
-$COMPOSE_ENGINE up -d postgres redis pgbouncer
+(cd infra/orchestration && $COMPOSE_ENGINE up -d postgres redis pgbouncer)
 
 echo "⏳ Waiting for Database to be Live & Healthy..."
 MAX_RETRIES=30

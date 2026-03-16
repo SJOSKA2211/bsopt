@@ -66,6 +66,7 @@ td3_trading/
 *.key
 .env.local
 .env.*.local
+.pki/
 
 # Sensitive state
 sessions/

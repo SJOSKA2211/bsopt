@@ -122,7 +122,7 @@ select = ["E", "F", "I", "N", "UP", "ASYNC"]
 ignore = ["E501", "N806", "N803", "N812", "N818", "N802"]
 [tool.ruff.lint.per-file-ignores]
 "get-pip.py" = ["E402"]
-"src/protos/*" = ["N802"]
+"core/protos/*" = ["N802"]
 "tests/unit/**/*.py" = ["E402", "F401", "F811", "F821"]
 
 [tool.ruff.format]
@@ -130,7 +130,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["services", "core"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -139,9 +139,9 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=src --cov-report=term-missing --durations=10 -p no:warnings --tb=native"
+addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=services --cov=core --cov-report=term-missing --durations=10 -p no:warnings --tb=native"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["."]
 asyncio_mode = "auto"
 markers = [
     "unit: Unit tests",
@@ -152,13 +152,13 @@ markers = [
 ]
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["services", "core"]
 
 [tool.setuptools.package-dir]
 "" = "."
 
 [tool.coverage.run]
-source = ["src"]
+source = ["services", "core"]
 omit = ["*/tests/*", "*/test_*.py", "*/__pycache__/*"]
 
 [tool.coverage.report]

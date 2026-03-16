@@ -1,0 +1,41 @@
+# Optimized Development Dockerfile for the API Service
+# Uses tiered requirements for faster builds
+FROM docker.io/library/python:3.12-slim-bookworm
+
+WORKDIR /app
+
+# Install build dependencies for requirements.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    gcc \
+    git \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+
+# Install uv for fast dependency resolution
+RUN pip install --no-cache-dir uv
+
+# Layer 1: Core API dependencies (cached when unchanged)
+COPY requirements-api.txt .
+ENV UV_HTTP_TIMEOUT=300
+ENV UV_RETRIES=10
+ENV UV_TCP_KEEPALIVE=1
+ENV UV_CONCURRENT_DOWNLOADS=4
+RUN uv pip install --system --no-cache -r requirements-api.txt
+
+# Copy the entire source directory for development
+COPY core /app/core
+COPY services /app/services/
+# Copy pyproject.toml for local package references
+COPY pyproject.toml .
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+CMD ["uvicorn", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]

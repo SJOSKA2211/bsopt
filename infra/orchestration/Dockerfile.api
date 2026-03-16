@@ -1,0 +1,61 @@
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
+RUN pip install uv
+WORKDIR /app
+ENV UV_COMPILE_BYTECODE=0
+ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=300
+ENV UV_RETRIES=10
+RUN uv venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY pyproject.toml requirements.txt README.md ./
+COPY core ./core
+COPY services ./services
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r requirements.txt && uv pip install granian
+
+# Install Rust and build bsopt_core
+RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN uv pip install maturin
+COPY services/quant/rust-core ./services/quant/rust-core
+ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
+RUN cd services/quant/rust-core && maturin build --release --strip --out /tmp/wheels
+RUN uv pip install /tmp/wheels/*.whl
+
+FROM docker.io/library/python:3.12-slim-bookworm AS development
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev gcc git curl \
+    && rm -rf /var/lib/apt/lists/*
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY . .
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+EXPOSE 8000
+CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+FROM docker.io/library/python:3.12-slim-bookworm AS production
+WORKDIR /app
+ENV PYTHON_JIT=all PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONOPTIMIZE=2
+RUN groupadd -g 1000 appgroup && \
+    useradd -r -u 1000 -g appgroup appuser && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 curl tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R appuser:appgroup /app
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY core ./core
+COPY services ./services
+RUN chown -R appuser:appgroup /app
+USER appuser
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--websockets", "--opt"]

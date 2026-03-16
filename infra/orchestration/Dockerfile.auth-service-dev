@@ -1,0 +1,26 @@
+# Development Dockerfile for the Auth Service
+FROM docker.io/library/node:20-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY core /app/core
+COPY services /app/services/auth-service/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY core /app/core
+COPY services /app/services/auth-service/ .
+
+# Expose Hono port (assuming 3001 based on child-03 comments)
+EXPOSE 3001
+
+# CMD for development
+CMD ["npm", "run", "dev"]

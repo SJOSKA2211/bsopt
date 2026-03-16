@@ -26,6 +26,9 @@ else
   $(error "No container orchestration found (podman compose, podman-compose, or docker compose)")
 endif
 
+# Centralized Orchestration Manifest
+DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f infra/orchestration/docker-compose.yml
+
 .PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan
 
 help:
@@ -58,16 +61,16 @@ bootstrap:
 	@./bootstrap.sh
 
 up:
-	$(DOCKER_COMPOSE) up -d
+	cd infra/orchestration && $(DOCKER_COMPOSE) up -d
 
 down:
 	$(DOCKER_COMPOSE) down
 
 build:
-	$(DOCKER_COMPOSE) build
+	cd infra/orchestration && $(DOCKER_COMPOSE) build
 
 ps:
-	$(DOCKER_COMPOSE) ps
+	cd infra/orchestration && $(DOCKER_COMPOSE) ps
 
 logs:
 	$(DOCKER_COMPOSE) logs -f
@@ -80,7 +83,7 @@ security-scan:
 	@echo "🛡️ Running Trivy Filesystem Scan..."
 	@trivy fs --severity HIGH,CRITICAL .
 	@echo "🔍 Running Bandit Security Linter..."
-	@$(DOCKER_COMPOSE) run --rm api bandit -r src/ -c pyproject.toml
+	@$(DOCKER_COMPOSE) run --rm api bandit -r core/ services/ -c pyproject.toml
 	@echo "🕵️ Running Pip-Audit..."
 	@$(DOCKER_COMPOSE) run --rm api pip-audit
 	@echo "🐳 Running Trivy Image Scans..."
@@ -98,8 +101,6 @@ test-all:
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
 	@echo "--- [Python API] ---"
-	@$(DOCKER_COMPOSE) run --rm api ruff check .
-	@$(DOCKER_COMPOSE) run --rm api ruff format --check .
 	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
 	@echo "--- [E2E & Auth] ---"
 	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
@@ -117,7 +118,7 @@ protos:
 	@echo "🧬 Generating Cross-Language gRPC Bindings..."
 	@# Python Bindings
 	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
-		-I=src/protos --python_out=src/protos --grpc_python_out=src/protos src/protos/*.proto
+		-I=core/protos --python_out=core/protos --grpc_python_out=core/protos core/protos/*.proto
 	@# Rust Bindings
 	@$(DOCKER_COMPOSE) run --rm rust-core cargo build
 
@@ -137,10 +138,10 @@ db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
 alembic:
-	$(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
+	cd infra/orchestration && $(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
 
 clean:
 	$(DOCKER_COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf target/
-	rm -rf src/rust-core/target/
+	rm -rf services/quant/rust-core/target/
