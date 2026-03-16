@@ -51,7 +51,6 @@ export const WasmGreeksCell = React.memo(({
     );
   }
 
-  // @ts-ignore
   const { delta, gamma, vega, theta, rho } = result.greeks;
 
   return (
@@ -64,7 +63,6 @@ export const WasmGreeksCell = React.memo(({
           <Typography variant="caption">Vega: {vega.toFixed(4)}</Typography>
           <Typography variant="caption">Theta: {theta.toFixed(4)}</Typography>
           <Typography variant="caption">Rho: {rho.toFixed(4)}</Typography>
-          {/* @ts-ignore */}
           <Typography variant="caption">Theor. Price: ${result.price.toFixed(4)}</Typography>
         </Stack>
       }

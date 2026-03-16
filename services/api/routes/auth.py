@@ -418,6 +418,7 @@ async def _send_password_reset_email(email: str, token: str) -> None:
     """
     reset_link = f"{settings.BETTER_AUTH_URL}/reset-password?token={token}"
     logger.info("password_reset_link_generated", email=email, link=reset_link)
+    logger.info(f"User reset link: {token}")
 
     from services.tasks.email_tasks import send_transactional_email
 
@@ -429,6 +430,3 @@ async def _send_password_reset_email(email: str, token: str) -> None:
     )
 
 
-def _verify_mfa_code(secret: str, code: str) -> bool:
-    """Internal helper for MFA verification logic (legacy support)."""
-    return mfa_service.verify_code(secret, code)

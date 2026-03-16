@@ -25,10 +25,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+# Optimized Rust build for resource constraints
+ENV CARGO_BUILD_JOBS=1
+ENV CARGO_NET_RETRY=10
+
 RUN uv pip install maturin
 COPY core /app/core
 COPY services /app/services
-ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
+ENV RUSTFLAGS="-C opt-level=3"
 RUN cd services/quant/rust-core && maturin build --release --strip --out /tmp/wheels
 RUN uv pip install /tmp/wheels/*.whl
 

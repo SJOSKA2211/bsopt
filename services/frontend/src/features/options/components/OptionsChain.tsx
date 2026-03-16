@@ -236,7 +236,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
     return filtered.map((row: OptionChainRow, i: number) => ({
       ...row,
       call_theor: enrichedResults[i]?.price,
+      call_delta: enrichedResults[i]?.greeks?.delta ?? row.call_delta,
+      call_gamma: enrichedResults[i]?.greeks?.gamma ?? row.call_gamma,
       put_theor: enrichedResults[i + half]?.price,
+      put_delta: enrichedResults[i + half]?.greeks?.delta ?? row.put_delta,
+      put_gamma: enrichedResults[i + half]?.greeks?.gamma ?? row.put_gamma,
     }));
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
