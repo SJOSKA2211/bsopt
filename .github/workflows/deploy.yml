@@ -31,10 +31,10 @@ jobs:
           pip install ruff bandit
 
       - name: Lint with Ruff
-        run: ruff check src/
+        run: ruff check services/ core/ scripts/ tests/
 
       - name: SAST with Bandit
-        run: bandit -r src/ -ll -ii -c pyproject.toml
+        run: bandit -r services/ core/ scripts/ -ll -ii -c pyproject.toml
 
   build-and-test:
     needs: security-and-linting

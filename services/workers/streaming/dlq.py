@@ -1,6 +1,7 @@
 import json
+
 import structlog
-from aiopika import connect_robust, Message
+from aiopika import Message, connect_robust
 
 logger = structlog.get_logger(__name__)
 

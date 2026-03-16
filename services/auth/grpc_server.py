@@ -1,8 +1,10 @@
 import asyncio
+
 import grpc
-from concurrent import futures
+
 from services.protos import auth_pb2, auth_pb2_grpc
 from services.security.auth import auth_service
+
 
 class AuthServicer(auth_pb2_grpc.AuthServiceServicer):
     async def ValidateToken(self, request, context):

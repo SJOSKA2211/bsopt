@@ -1,8 +1,10 @@
 import argparse
+
 import mlflow
 import structlog
-from services.ml.evaluation.compare_models import compare_models
+
 from services.config import settings
+from services.ml.evaluation.compare_models import compare_models
 
 logger = structlog.get_logger(__name__)
 

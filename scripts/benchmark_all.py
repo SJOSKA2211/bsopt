@@ -2,11 +2,11 @@ import time
 
 import numpy as np
 
+from core.trading.risk_kernels import _full_risk_check_v2_kernel
 from services.quant.pricing.quant_utils import (
     batch_bs_price_jit_v2,
     generate_paths_v2,
 )
-from core.trading.risk_kernels import _full_risk_check_v2_kernel
 
 
 def benchmark_jit_warmup():

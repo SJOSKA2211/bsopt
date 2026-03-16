@@ -1,7 +1,7 @@
-import time
-import requests
 import os
-import subprocess
+import time
+
+import requests
 import structlog
 
 logger = structlog.get_logger(__name__)

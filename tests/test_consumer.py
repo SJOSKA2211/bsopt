@@ -109,7 +109,6 @@ async def test_consumer_error_handling(mock_schema_file):
         patch("streaming.kafka_consumer.AvroDeserializer") as mock_avro_deserializer,
     ):
         from confluent_kafka import KafkaError
-
         from streaming.kafka_consumer import MarketDataConsumer
 
         mock_instance = MagicMock()
