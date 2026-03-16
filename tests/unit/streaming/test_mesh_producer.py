@@ -2,15 +2,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.streaming.mesh_producer import MarketDataMeshProducer
+from services.workers.streaming.mesh_producer import MarketDataMeshProducer
 
 
 @pytest.mark.asyncio
 async def test_mesh_producer_calls_kafka():
     # Mock SchemaRegistry and Serializer
-    with patch("src.streaming.mesh_producer.SchemaRegistryClient"):
-        with patch("src.streaming.mesh_producer.AvroSerializer") as mock_avro:
-            with patch("src.streaming.mesh_producer.Producer") as mock_prod:
+    with patch("services.workers.streaming.mesh_producer.SchemaRegistryClient"):
+        with patch("services.workers.streaming.mesh_producer.AvroSerializer") as mock_avro:
+            with patch("services.workers.streaming.mesh_producer.Producer") as mock_prod:
                 mock_avro.return_value = lambda data, ctx: b"serialized_data"
                 producer = MarketDataMeshProducer(
                     bootstrap_servers="localhost:9092",
@@ -39,9 +39,9 @@ async def test_mesh_producer_calls_kafka():
 
 
 def test_mesh_producer_delivery_callback():
-    with patch("src.streaming.mesh_producer.SchemaRegistryClient"):
-        with patch("src.streaming.mesh_producer.AvroSerializer"):
-            with patch("src.streaming.mesh_producer.Producer"):
+    with patch("services.workers.streaming.mesh_producer.SchemaRegistryClient"):
+        with patch("services.workers.streaming.mesh_producer.AvroSerializer"):
+            with patch("services.workers.streaming.mesh_producer.Producer"):
                 producer = MarketDataMeshProducer()
                 # Test success
                 msg = MagicMock()
@@ -55,9 +55,9 @@ def test_mesh_producer_delivery_callback():
 
 @pytest.mark.asyncio
 async def test_mesh_producer_exception_handling():
-    with patch("src.streaming.mesh_producer.SchemaRegistryClient"):
-        with patch("src.streaming.mesh_producer.AvroSerializer") as mock_avro:
-            with patch("src.streaming.mesh_producer.Producer") as mock_prod:
+    with patch("services.workers.streaming.mesh_producer.SchemaRegistryClient"):
+        with patch("services.workers.streaming.mesh_producer.AvroSerializer") as mock_avro:
+            with patch("services.workers.streaming.mesh_producer.Producer") as mock_prod:
                 mock_avro.return_value = lambda data, ctx: b"serialized_data"
                 mock_prod.return_value.produce.side_effect = Exception("Kafka Error")
 
@@ -67,9 +67,9 @@ async def test_mesh_producer_exception_handling():
 
 
 def test_mesh_producer_flush():
-    with patch("src.streaming.mesh_producer.SchemaRegistryClient"):
-        with patch("src.streaming.mesh_producer.AvroSerializer"):
-            with patch("src.streaming.mesh_producer.Producer") as mock_prod:
+    with patch("services.workers.streaming.mesh_producer.SchemaRegistryClient"):
+        with patch("services.workers.streaming.mesh_producer.AvroSerializer"):
+            with patch("services.workers.streaming.mesh_producer.Producer") as mock_prod:
                 producer = MarketDataMeshProducer()
                 producer.flush()
                 assert mock_prod.return_value.flush.called

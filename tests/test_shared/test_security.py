@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.shared.security import MTLSVerifier, OPAEnforcer
+from core.shared.security import MTLSVerifier, OPAEnforcer
 
 
 def test_mtls_verifier_success():
@@ -36,7 +36,7 @@ def test_mtls_verifier_fail_dn():
 
 
 @pytest.mark.asyncio
-@patch("src.shared.security.HttpClientManager.get_client")
+@patch("core.shared.security.HttpClientManager.get_client")
 async def test_opa_enforcer_allow(mock_get_client):
     mock_client = MagicMock()
     mock_response = MagicMock()
@@ -51,7 +51,7 @@ async def test_opa_enforcer_allow(mock_get_client):
 
 
 @pytest.mark.asyncio
-@patch("src.shared.security.HttpClientManager.get_client")
+@patch("core.shared.security.HttpClientManager.get_client")
 async def test_opa_enforcer_deny(mock_get_client):
     mock_client = MagicMock()
     mock_response = MagicMock()

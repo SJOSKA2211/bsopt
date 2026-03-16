@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-# Assuming VolatilityAggregationStream will be importable from src.streaming.analytics
+# Assuming VolatilityAggregationStream will be importable from services.workers.streaming.analytics
 try:
     import sys
 

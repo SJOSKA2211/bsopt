@@ -1,7 +1,7 @@
 import pytest
 
-from src.pricing.black_scholes import BSParameters
-from src.pricing.exotic import (
+from services.quant.pricing.black_scholes import BSParameters
+from services.quant.pricing.exotic import (
     AsianOptionPricer,
     BarrierOptionPricer,
     BarrierType,
@@ -18,7 +18,7 @@ def test_geometric_asian():
     price = AsianOptionPricer.price_geometric_asian(params, "call")
     assert price > 0
     # Asian price should be lower than European (usually)
-    from src.pricing.black_scholes import BlackScholesEngine
+    from services.quant.pricing.black_scholes import BlackScholesEngine
 
     eur_price = BlackScholesEngine.price_options(params=base, option_type="call")
     assert price < eur_price

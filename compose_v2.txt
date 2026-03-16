@@ -1,7 +1,0 @@
-[4m>>>> Executing external compose provider "/home/h8t3dj4y/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
-
-[0mpodman version 5.8.1
-podman-compose version 1.5.0
-[4m>>>> Executing external compose provider "/home/h8t3dj4y/.local/bin/podman-compose". Please see podman-compose(1) for how to disable this message. <<<<
-
-[0mCONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES

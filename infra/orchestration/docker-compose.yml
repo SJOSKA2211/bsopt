@@ -114,7 +114,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3001
     volumes:
-      - ../../core/auth-service:/app
+      - ../../services/auth:/app
       - /app/node_modules
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1" ]
@@ -246,7 +246,7 @@ services:
     volumes:
       - ../../core:/ap./core
       - ../../models:/app/models
-    command: python src/ml/serving/serve.py
+    command: python services/ml/serving/serve.py
 
   # === Worker Service ===
   worker:
@@ -347,7 +347,7 @@ services:
       - ingestion-service
     networks:
       - bsopt-network
-    command: python src/scrapers/engine.py
+    command: python services/scrapers/engine.py
 
   # === yfinance Scraper Service ===
   yfinance-scraper:
@@ -372,7 +372,7 @@ services:
       - ingestion-service
     networks:
       - bsopt-network
-    command: python src/scrapers/yfinance_scraper.py
+    command: python services/scrapers/yfinance_scraper.py
 
   # === Generic Scraper Service ===
   scraper:
@@ -430,7 +430,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: granian --interface asgi src.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --opt
+    command: granian --interface asgi services.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --opt
 
   # === App Gateway (Node.js Federation) ===
   app-gateway:
@@ -442,7 +442,7 @@ services:
       - "4000:4000"
       - "4001:4001"
     volumes:
-      - ../../core/gateway:/app
+      - ../../services/gateway:/app
       - /app/node_modules
     environment:
       - PORT=4000
@@ -747,7 +747,7 @@ services:
       - "80:8080"
       - "443:443"
     volumes:
-      - ../../docker/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
       - ../../.pki:/etc/envoy/ssl:ro
     depends_on:
       - api

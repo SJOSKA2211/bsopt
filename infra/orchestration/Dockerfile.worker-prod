@@ -41,7 +41,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy source code
 COPY core /app/core
-COPY services /app/services/ ./src
+COPY services ./services
 COPY pyproject.toml .
 
 # Environment variables

@@ -56,7 +56,7 @@ def serve_model(
 
         os.environ["ONNX_MODEL_PATH"] = onnx_path
         logger.info(f"Launching high-performance ONNX server on {host}:{port}")
-        uvicorn.run("src.ml.serving.onnx_serving:app", host=host, port=port, log_level="info")
+        uvicorn.run("services.ml.serving.onnx_serving:app", host=host, port=port, log_level="info")
 
     else:
         # Legacy MLflow subprocess serving

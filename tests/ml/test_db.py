@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.database.models import MarketTick
+from core.database.models import MarketTick
 
 
 @pytest.fixture
@@ -24,11 +24,11 @@ def test_market_tick_model():
     assert hasattr(MarketTick, "volume")
 
 
-@patch("src.shared.db.create_engine")
-@patch("src.shared.db.sessionmaker")
+@patch("core.shared.db.create_engine")
+@patch("core.shared.db.sessionmaker")
 def test_db_connection(mock_sessionmaker, mock_create_engine):
     """Verify that the database connection is established correctly."""
-    from src.shared.db import get_db_session
+    from core.shared.db import get_db_session
 
     mock_create_engine.return_value = MagicMock()
     mock_sessionmaker.return_value = MagicMock()
@@ -39,10 +39,10 @@ def test_db_connection(mock_sessionmaker, mock_create_engine):
     mock_sessionmaker.assert_called_once()
 
 
-@patch("src.shared.db.Minio")
+@patch("core.shared.db.Minio")
 def test_minio_storage(mock_minio):
     """Verify that MinIO storage can be initialized and used."""
-    from src.shared.db import MinioStorage
+    from core.shared.db import MinioStorage
 
     mock_client = MagicMock()
     mock_minio.return_value = mock_client

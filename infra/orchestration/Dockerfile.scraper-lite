@@ -15,7 +15,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml README.md ./
 COPY core /app/core
-COPY services /app/services/ ./src
+COPY services/ ./services
 
 # Install Python dependencies only in builder (no playwright)
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -75,7 +75,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY core /app/core
-COPY services /app/services/ ./src
+COPY services/ ./services
 RUN chown -R appuser:appgroup /app
 
 USER appuser

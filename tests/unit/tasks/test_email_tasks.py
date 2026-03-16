@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
+from services.workers.tasks.email_tasks import send_batch_marketing_emails, send_transactional_email
 
 
 @pytest.fixture
 def mock_email_service():
-    with patch("src.tasks.email_tasks.email_service") as mock:
+    with patch("services.workers.tasks.email_tasks.email_service") as mock:
         yield mock
 
 
@@ -15,7 +15,7 @@ def mock_email_service():
 async def test_send_transactional_email_success(mock_email_service):
     mock_email_service.send_single_email.return_value = True
 
-    with patch("src.utils.cache.rate_limiter.check_rate_limit", return_value=True):
+    with patch("core.shared.cache.rate_limiter.check_rate_limit", return_value=True):
         MagicMock()
         # Signature: (self, to_email, subject, template_name, context)
         # It seems _orig_run might be bound or not depending on how it's accessed.

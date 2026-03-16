@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.ml.pipeline import MLPipeline
+from services.ml.pipeline import MLPipeline
 
 
 @pytest.fixture
@@ -37,18 +37,18 @@ def mock_df():
 
 @pytest.mark.asyncio
 async def test_pipeline_run(mock_config, mock_df):
-    with patch("src.ml.pipeline.create_engine"):
-        with patch("src.ml.pipeline.Base.metadata.create_all"):
-            with patch("src.ml.pipeline.MarketDataScraper") as MockScraper:
-                with patch("src.ml.pipeline.get_async_db_context") as mock_db_ctx:
-                    with patch("src.ml.pipeline.DriftTrigger") as MockDrift:
-                        with patch("src.ml.pipeline.InstrumentedTrainer") as MockTrainer:
+    with patch("services.ml.pipeline.create_engine"):
+        with patch("services.ml.pipeline.Base.metadata.create_all"):
+            with patch("services.ml.pipeline.MarketDataScraper") as MockScraper:
+                with patch("services.ml.pipeline.get_async_db_context") as mock_db_ctx:
+                    with patch("services.ml.pipeline.DriftTrigger") as MockDrift:
+                        with patch("services.ml.pipeline.InstrumentedTrainer") as MockTrainer:
                             with patch(
-                                "src.database.crud.bulk_insert_market_ticks",
+                                "core.database.crud.bulk_insert_market_ticks",
                                 new_callable=AsyncMock,
                             ) as mock_bulk_insert:
                                 with patch(
-                                    "src.tasks.ml_tasks.optimize_model_task.delay"
+                                    "services.workers.tasks.ml_tasks.optimize_model_task.delay"
                                 ) as mock_task:
                                     # Setup Scraper
                                     mock_scraper_instance = MockScraper.return_value
@@ -86,7 +86,7 @@ async def test_pipeline_run(mock_config, mock_df):
 
 
 def test_feature_generation(mock_config, mock_df):
-    with patch("src.ml.pipeline.create_engine"):
+    with patch("services.ml.pipeline.create_engine"):
         pipeline = MLPipeline(mock_config)
         df_featured = pipeline.generate_features(mock_df)
 
@@ -100,7 +100,7 @@ def test_feature_generation(mock_config, mock_df):
 
 @pytest.mark.asyncio
 async def test_get_current_model_performance(mock_config):
-    with patch("src.ml.pipeline.create_engine"):
+    with patch("services.ml.pipeline.create_engine"):
         pipeline = MLPipeline(mock_config)
         mock_session = AsyncMock()
 

@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from src.security.password import PasswordService, PasswordValidator
+from core.security.password import PasswordService, PasswordValidator
 
 
 def test_validator_length():
@@ -27,7 +27,7 @@ def test_validator_complexity():
 
     # Truly valid and UNIQUE to avoid pwned check failures
     # Mocking pwned check for this specific test case to be safe
-    with patch("src.security.password.pwnedpasswords.check", return_value=0):
+    with patch("core.security.password.pwnedpasswords.check", return_value=0):
         res = validator.validate("Enterprise_Secure_Password_Manifold_2026!")
         assert res.is_valid
 
@@ -39,7 +39,7 @@ def test_validator_email_similarity():
     assert any("email" in e.lower() for e in res.errors)
 
 
-@patch("src.security.password.pwnedpasswords.check")
+@patch("core.security.password.pwnedpasswords.check")
 def test_validator_pwned(mock_check):
     mock_check.return_value = 1000  # leaked 1000 times
     validator = PasswordValidator()
@@ -61,6 +61,6 @@ def test_password_service_generate():
     pw = service.generate_password(length=16)
     assert len(pw) == 16
     # It should pass service's own validation (which might mock pwned or use a different validator)
-    with patch("src.security.password.pwnedpasswords.check", return_value=0):
+    with patch("core.security.password.pwnedpasswords.check", return_value=0):
         res = service.validate_password(pw)
         assert res.is_valid

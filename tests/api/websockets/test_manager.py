@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from src.api.websockets.manager import (
+from services.api.websockets.manager import (
     ConnectionManager,
     ConnectionMetadata,
     ProtocolType,
 )
-from src.protos.market_data_pb2 import TickerUpdate
+from core.protos.market_data_pb2 import TickerUpdate
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ async def test_broadcast_encode_error(manager):
 async def test_init_redis_connection():
     from unittest.mock import patch
 
-    with patch("src.api.websockets.manager.redis.from_url") as mock_redis:
+    with patch("services.api.websockets.manager.redis.from_url") as mock_redis:
         mgr = ConnectionManager()
         mock_redis.assert_called_once()
         assert mgr.redis == mock_redis.return_value

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.trading.risk_kernels import IncrementalDeltaTracker
-from src.workers.math_worker import _recalibrate_symbol_impl
+from core.trading.risk_kernels import IncrementalDeltaTracker
+from services.workers.math_worker import _recalibrate_symbol_impl
 
 
 class TestRevampPhase1:
@@ -30,8 +30,8 @@ class TestRevampPhase1:
     async def test_math_worker_async_delegation(self):
         # Mocking external dependencies
         with (
-            patch("src.workers.math_worker.MarketDataRouter") as mock_router_cls,
-            patch("src.workers.math_worker.get_pool") as mock_get_pool,
+            patch("services.workers.math_worker.MarketDataRouter") as mock_router_cls,
+            patch("services.workers.math_worker.get_pool") as mock_get_pool,
         ):
             mock_router = mock_router_cls.return_value
             mock_router.get_option_chain_snapshot = AsyncMock(return_value=[{"price": 10.0}])
@@ -53,9 +53,9 @@ class TestRevampPhase1:
     @pytest.mark.asyncio
     async def test_math_worker_local_fallback(self):
         with (
-            patch("src.workers.math_worker.MarketDataRouter") as mock_router_cls,
-            patch("src.workers.math_worker.get_pool") as mock_get_pool,
-            patch("src.workers.math_worker.HestonCalibrator") as mock_calibrator_cls,
+            patch("services.workers.math_worker.MarketDataRouter") as mock_router_cls,
+            patch("services.workers.math_worker.get_pool") as mock_get_pool,
+            patch("services.workers.math_worker.HestonCalibrator") as mock_calibrator_cls,
         ):
             mock_router = mock_router_cls.return_value
             mock_router.get_option_chain_snapshot = AsyncMock(return_value=[{"price": 10.0}])
@@ -81,8 +81,8 @@ class TestRevampPhase1:
     @pytest.mark.asyncio
     async def test_risk_drift_correction(self):
         """Verify that check_risk_limits detects drift and resets tracker/Redis/SHM."""
-        import src.tasks.trading_tasks as tt
-        from src.trading.risk_kernels import IncrementalDeltaTracker
+        import services.workers.tasks.trading_tasks as tt
+        from core.trading.risk_kernels import IncrementalDeltaTracker
 
         # 1. Setup Tracker with DRIFT (Local = 500, DB = 1000)
         tracker = IncrementalDeltaTracker(initial_delta=500.0, max_net_delta=5000.0)
@@ -97,8 +97,8 @@ class TestRevampPhase1:
 
         try:
             with (
-                patch("src.utils.cache.get_redis") as mock_get_redis,
-                patch("src.shared.shm_mesh.RiskStateBuffer") as mock_shm_cls,
+                patch("core.shared.cache.get_redis") as mock_get_redis,
+                patch("core.shared.shm_mesh.RiskStateBuffer") as mock_shm_cls,
             ):
                 mock_redis = AsyncMock()
                 mock_get_redis.return_value = mock_redis

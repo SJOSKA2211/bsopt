@@ -1,6 +1,6 @@
 import pytest
 
-from src.shared import observability
+from core.shared import observability
 
 
 def test_setup_logging_idempotent():

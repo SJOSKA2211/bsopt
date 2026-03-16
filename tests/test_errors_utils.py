@@ -1,4 +1,4 @@
-from src.utils.errors import ServiceUnavailableException, robust_pricing_task
+from core.shared.errors import ServiceUnavailableException, robust_pricing_task
 from tests.test_utils import assert_equal
 
 

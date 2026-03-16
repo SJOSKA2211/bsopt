@@ -1,11 +1,11 @@
 import pytest
 
-from src.pricing.lattice import (
+from services.quant.pricing.lattice import (
     BinomialTreePricer,
     TrinomialTreePricer,
     validate_convergence,
 )
-from src.pricing.models import BSParameters
+from services.quant.pricing.models import BSParameters
 
 
 @pytest.fixture

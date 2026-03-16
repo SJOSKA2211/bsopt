@@ -8,7 +8,7 @@ import time
 
 import pytest
 
-from src.utils.lazy_import import (
+from core.shared.lazy_import import (
     CircularImportError,
     LazyImportError,
     get_import_stats,
@@ -34,7 +34,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'MyClass': '.submodule'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -59,7 +59,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'Valid': '.submodule'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -76,7 +76,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'A': '.a', 'B': '.b'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -95,7 +95,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'Broken': '.nonexistent'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -121,7 +121,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'Slow': '.slow'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -153,7 +153,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import, preload_modules\n"
+            "from core.shared.lazy_import import lazy_import, preload_modules\n"
             "_import_map = {'C1': '.c1', 'C2': '.c2'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
             "def preload(): preload_modules(__name__, _import_map, _import_map.keys())"
@@ -183,7 +183,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import\n"
+            "from core.shared.lazy_import import lazy_import\n"
             "_import_map = {'dump': 'ast'}\n"
             "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])"
         )
@@ -200,7 +200,7 @@ class TestLazyImports:
         pkg_dir.mkdir()
         (pkg_dir / "__init__.py").write_text(
             "import sys\n"
-            "from src.utils.lazy_import import lazy_import, preload_modules\n"
+            "from core.shared.lazy_import import lazy_import, preload_modules\n"
             "_import_map = {'Broken': '.nonexistent', 'Working': '.fine'}\n"
             "def preload(): preload_modules(__name__, _import_map, _import_map.keys())"
         )

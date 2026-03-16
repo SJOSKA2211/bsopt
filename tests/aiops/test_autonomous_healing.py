@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.aiops.remediators import RestartServiceRemediator, RetrainModelRemediator
-from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
+from services.ml.aiops.remediators import RestartServiceRemediator, RetrainModelRemediator
+from services.ml.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ class TestAutonomousHealing:
         # Create drifted data (higher mean)
         drifted_data = pd.DataFrame({"latency": np.random.normal(20, 1, 100)})
 
-        with patch("src.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
+        with patch("services.ml.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
             mock_remediate.return_value = True
             await orchestrator.run_cycle(drifted_data)
 
@@ -67,7 +67,7 @@ class TestAutonomousHealing:
         }
         mock_detector.detect.return_value = [anomaly]
 
-        with patch("src.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
+        with patch("services.ml.aiops.remediators.RestartServiceRemediator.remediate") as mock_remediate:
             mock_remediate.return_value = True
             await orchestrator.run_cycle(pd.DataFrame({"latency": [100]}))
 

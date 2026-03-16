@@ -13,13 +13,13 @@ sys.modules["redis"] = mock_redis_module
 mock_settings = MagicMock()
 mock_settings.REDIS_URL = "redis://localhost:6379/0"
 mock_settings.RABBITMQ_URL = "amqp://guest@localhost//"
-with patch("src.workers.math_worker.get_settings", return_value=mock_settings):
+with patch("services.workers.math_worker.get_settings", return_value=mock_settings):
     # Now we can safely import
-    from src.workers.math_worker import health_check, recalibrate_symbol
+    from services.workers.math_worker import health_check, recalibrate_symbol
 
 import pytest  # noqa: E402
 
-from src.pricing.models.heston_fft import HestonParams  # noqa: E402
+from services.quant.pricing.models.heston_fft import HestonParams  # noqa: E402
 
 
 @pytest.fixture
@@ -40,9 +40,9 @@ def mock_market_data():
     ]
 
 
-@patch("src.workers.math_worker.MarketDataRouter")
-@patch("src.workers.math_worker.get_pool")
-@patch("src.utils.celery.BaseAsyncTask.run_async")
+@patch("services.workers.math_worker.MarketDataRouter")
+@patch("services.workers.math_worker.get_pool")
+@patch("core.shared.celery.BaseAsyncTask.run_async")
 def test_recalibrate_symbol_success(mock_run_async, mock_get_pool, mock_router, mock_market_data):
     # 1. Mock Router
     router_instance = mock_router.return_value

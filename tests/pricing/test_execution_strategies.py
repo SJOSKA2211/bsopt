@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import numpy as np
 import pytest
 
-from src.pricing.execution_strategies import (
+from services.quant.pricing.execution_strategies import (
     RayStrategy,
     SequentialStrategy,
     SHMStrategy,
@@ -29,7 +29,7 @@ def inputs():
 @pytest.mark.asyncio
 async def test_sequential_strategy(inputs):
     strategy = SequentialStrategy()
-    with patch("src.pricing.black_scholes.BlackScholesEngine.price_options") as mock_price:
+    with patch("services.quant.pricing.black_scholes.BlackScholesEngine.price_options") as mock_price:
         mock_price.side_effect = lambda *args, **kwargs: kwargs["out"].fill(10.5)
 
         prices = await strategy.execute(inputs)
@@ -39,26 +39,26 @@ async def test_sequential_strategy(inputs):
 
 
 def test_strategy_factory_sequential():
-    with patch("src.pricing.wasm_engine.WASM_AVAILABLE", False):
+    with patch("services.quant.pricing.wasm_engine.WASM_AVAILABLE", False):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
         assert isinstance(strategy, SequentialStrategy)
 
 
 def test_strategy_factory_wasm():
-    with patch("src.pricing.wasm_engine.WASM_AVAILABLE", True):
-        with patch("src.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 100):
+    with patch("services.quant.pricing.wasm_engine.WASM_AVAILABLE", True):
+        with patch("core.shared.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 100):
             strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
             assert isinstance(strategy, WASMStrategy)
 
 
 def test_strategy_factory_shm():
-    with patch("src.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
+    with patch("core.shared.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=False)
         assert isinstance(strategy, SHMStrategy)
 
 
 def test_strategy_factory_ray():
-    with patch("src.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
+    with patch("core.shared.config.settings.PRICING_LARGE_BATCH_THRESHOLD", 5):
         strategy = StrategyFactory.get_strategy(count=10, ray_active=True)
         assert isinstance(strategy, RayStrategy)
 
@@ -68,10 +68,10 @@ async def test_shm_strategy_fallback(inputs):
     # Mock the service module to avoid ImportError
     mock_service = MagicMock()
     mock_service._worker_shared_memory_pricing = MagicMock()
-    with patch.dict("sys.modules", {"src.services.pricing_service": mock_service}):
+    with patch.dict("sys.modules", {"services.pricing_service": mock_service}):
         # Test fallback when SHM acquire fails
         strategy = SHMStrategy()
-        with patch("src.utils.shared_memory.shm_manager.acquire", return_value=None):
+        with patch("core.shared.shared_memory.shm_manager.acquire", return_value=None):
             with patch.object(SequentialStrategy, "execute", new_callable=AsyncMock) as mock_seq:
                 mock_seq.return_value = np.zeros(10)
                 await strategy.execute(inputs)
@@ -85,20 +85,20 @@ async def test_shm_strategy_success(inputs):
     # Ensure worker returns True
     mock_service._worker_shared_memory_pricing = MagicMock(return_value=True)
 
-    with patch.dict("sys.modules", {"src.services.pricing_service": mock_service}):
+    with patch.dict("sys.modules", {"services.pricing_service": mock_service}):
         strategy = SHMStrategy()
         # Mock acquire to return valid names
         with patch(
-            "src.utils.shared_memory.shm_manager.acquire",
+            "core.shared.shared_memory.shm_manager.acquire",
             side_effect=["shm_in", "shm_out"],
         ):
-            with patch("src.utils.shared_memory.shm_manager.release") as mock_release:
+            with patch("core.shared.shared_memory.shm_manager.release") as mock_release:
                 # Mock SHMContextManager
                 mock_cm = MagicMock()
                 mock_cm.__enter__.return_value = [MagicMock(buf=bytearray(10000))]
                 mock_cm.__exit__.return_value = None
 
-                with patch("src.utils.shm_worker.SHMContextManager", return_value=mock_cm):
+                with patch("core.shared.shm_worker.SHMContextManager", return_value=mock_cm):
                     prices = await strategy.execute(inputs)
                     # Result comes from the bytearray buffer (zeros)
                     assert len(prices) == 10
@@ -114,8 +114,8 @@ async def test_ray_strategy_success(inputs):
     mock_remote.remote.return_value = mock_future
     mock_service._ray_worker_pricing = mock_remote
 
-    with patch.dict("sys.modules", {"src.services.pricing_service": mock_service}):
-        with patch("src.pricing.execution_strategies.ray") as mock_ray:
+    with patch.dict("sys.modules", {"services.pricing_service": mock_service}):
+        with patch("services.quant.pricing.execution_strategies.ray") as mock_ray:
             mock_ray.put.side_effect = lambda x: x
             mock_ray.get.return_value = np.ones(10)
 

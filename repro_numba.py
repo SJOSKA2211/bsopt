@@ -2,8 +2,8 @@ import sys
 
 sys.path.append(".")
 
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.models import BSParameters
+from services.quant.pricing.black_scholes import BlackScholesEngine
+from services.quant.pricing.models import BSParameters
 
 params = BSParameters(
     spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05, dividend=0.02

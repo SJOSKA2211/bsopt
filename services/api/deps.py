@@ -1,8 +1,8 @@
 """
 API dependency re-exports.
 
-This module bridges older imports like ``src.api.deps.get_current_user`` to the
-centralized authentication helpers in ``src.security.auth`` so that route
+This module bridges older imports like ``services.api.deps.get_current_user`` to the
+centralized authentication helpers in ``core.security.auth`` so that route
 modules do not need to know where the implementations live.
 """
 

@@ -15,9 +15,9 @@ except ImportError:
 
 from web3 import AsyncWeb3, Web3
 
-from src.blockchain.nonce_manager import NonceManager
-from src.blockchain.oracle import OracleManager
-from src.utils.cache import get_redis
+from services.blockchain.nonce_manager import NonceManager
+from services.blockchain.oracle import OracleManager
+from core.shared.cache import get_redis
 
 try:
     import bsopt_core  # noqa: F401
@@ -483,7 +483,7 @@ class DeFiOptionsProtocol:
         Submit a signed EIP-712 payload to a meta-transaction relayer.
         """
         try:
-            from src.utils.http_client import HttpClientManager
+            from core.shared.http_client import HttpClientManager
 
             client = HttpClientManager.get_client()
 

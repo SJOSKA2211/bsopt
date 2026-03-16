@@ -3,8 +3,8 @@ from uuid import uuid4
 
 import pytest
 
-from src.database import crud
-from src.database.models import User
+from core.database import crud
+from core.database.models import User
 
 
 @pytest.mark.asyncio

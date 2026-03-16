@@ -1,4 +1,4 @@
-from src.config import settings
+from core.shared.config import settings
 
 
 def test_environment_variables():

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.ml.scraper import MarketDataScraper
+from services.ml.scraper import MarketDataScraper
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def scraper():
 
 @pytest.fixture
 def mock_client():
-    with patch("src.utils.http_client.HttpClientManager.get_client") as mock_get:
+    with patch("core.shared.http_client.HttpClientManager.get_client") as mock_get:
         client = AsyncMock()
         mock_get.return_value = client
         yield client

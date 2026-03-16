@@ -10,7 +10,7 @@ sys.modules["optuna"] = MagicMock()
 sys.modules["optuna.exceptions"] = MagicMock()
 sys.modules["optuna.pruners"] = MagicMock()
 
-from src.ml.trainer import ModelTrainer
+from services.ml.trainer import ModelTrainer
 
 
 class TestModelTrainerPhase5(unittest.TestCase):
@@ -21,12 +21,12 @@ class TestModelTrainerPhase5(unittest.TestCase):
 
         # Mock tracker to avoid MLflow calls
         with (
-            patch("src.ml.trainer.ExperimentTracker"),
-            patch("src.ml.trainer.ModelQuantizer"),
+            patch("services.ml.trainer.ExperimentTracker"),
+            patch("services.ml.trainer.ModelQuantizer"),
         ):
             self.trainer = ModelTrainer(study_name="test_study", n_splits=3)
 
-    @patch("src.ml.trainer.get_strategy")
+    @patch("services.ml.trainer.get_strategy")
     def test_train_and_evaluate_walk_forward(self, mock_get_strategy):
         """Verify that training uses multiple folds when n_splits > 1."""
         mock_strategy = MagicMock()
@@ -43,8 +43,8 @@ class TestModelTrainerPhase5(unittest.TestCase):
         self.assertEqual(mock_strategy.train.call_count, 3)
         self.assertIsInstance(result, float)
 
-    @patch("src.ml.trainer.ModelScorecard")
-    @patch("src.ml.trainer.get_strategy")
+    @patch("services.ml.trainer.ModelScorecard")
+    @patch("services.ml.trainer.get_strategy")
     def test_holistic_scorecard_integration(self, mock_get_strategy, mock_scorecard_cls):
         """Verify that ModelScorecard is used for evaluation."""
         mock_strategy = MagicMock()

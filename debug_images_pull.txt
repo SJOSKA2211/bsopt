@@ -1,4 +1,0 @@
-REPOSITORY                  TAG           IMAGE ID      CREATED        SIZE
-localhost/bsopt_envoy       latest        6fe783d1ca8d  2 minutes ago  153 MB
-localhost/equaflow-envoy    latest        6fe783d1ca8d  2 minutes ago  153 MB
-docker.io/envoyproxy/envoy  v1.28-latest  a37e999f9612  18 months ago  153 MB

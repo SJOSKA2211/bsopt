@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from celery.exceptions import MaxRetriesExceededError  # Import the correct exception
 
-from src.webhooks.dispatcher import WebhookDispatcher
+from services.gateway.webhooks.dispatcher import WebhookDispatcher
 
 # Import actual worker and dispatcher
-from src.workers.webhook_worker import _process_webhook_core, send_to_dlq_task
+from services.workers.webhook_worker import _process_webhook_core, send_to_dlq_task
 
 
 @pytest.fixture
@@ -33,7 +33,7 @@ async def test_process_webhook_task_success(mock_dispatcher):
 
     # Mock get_webhook_dispatcher to return our mocked dispatcher
     with patch(
-        "src.workers.webhook_worker.get_webhook_dispatcher",
+        "services.workers.webhook_worker.get_webhook_dispatcher",
         return_value=mock_dispatcher,
     ):
         # Call the core function directly
@@ -67,10 +67,10 @@ async def test_process_webhook_task_failure_and_retry(mock_dispatcher):
 
     # Patch the real send_to_dlq_task.delay in the worker module
     with patch(
-        "src.workers.webhook_worker.send_to_dlq_task.delay", new_callable=MagicMock
+        "services.workers.webhook_worker.send_to_dlq_task.delay", new_callable=MagicMock
     ) as mock_dlq_task_delay:
         with patch(
-            "src.workers.webhook_worker.get_webhook_dispatcher",
+            "services.workers.webhook_worker.get_webhook_dispatcher",
             return_value=mock_dispatcher,
         ):
             # Call the core function directly
@@ -106,10 +106,10 @@ async def test_process_webhook_task_max_retries_exceeded(mock_dispatcher):
     )  # Simulate retry failing
 
     with patch(
-        "src.workers.webhook_worker.send_to_dlq_task.delay", new_callable=MagicMock
+        "services.workers.webhook_worker.send_to_dlq_task.delay", new_callable=MagicMock
     ) as mock_dlq_task_delay:
         with patch(
-            "src.workers.webhook_worker.get_webhook_dispatcher",
+            "services.workers.webhook_worker.get_webhook_dispatcher",
             return_value=mock_dispatcher,
         ):
             await _process_webhook_core(mock_task_self, webhook_data)

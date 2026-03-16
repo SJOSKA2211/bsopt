@@ -27,7 +27,7 @@ email_service = TransactionalEmailService(
     autoretry_for=(Exception,),
     retry_backoff=True,
     retry_jitter=True,
-    name="src.tasks.email_tasks.send_transactional_email",
+    name="services.workers.tasks.email_tasks.send_transactional_email",
 )
 def send_transactional_email(self, to_email: str, subject: str, template_name: str, context: dict):
     """
@@ -84,7 +84,7 @@ def send_transactional_email(self, to_email: str, subject: str, template_name: s
     return {"status": "sent", "to": to_email}
 
 
-@celery_app.task(name="src.tasks.email_tasks.send_batch_marketing_emails")
+@celery_app.task(name="services.workers.tasks.email_tasks.send_batch_marketing_emails")
 def send_batch_marketing_emails(recipients: list, subject: str, template_name: str):
     """
     Async task to send batch emails.

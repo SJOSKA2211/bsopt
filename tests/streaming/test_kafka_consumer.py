@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-# Assuming MarketDataConsumer will be importable from src.streaming.kafka_consumer
+# Assuming MarketDataConsumer will be importable from services.workers.streaming.kafka_consumer
 try:
     import sys
 

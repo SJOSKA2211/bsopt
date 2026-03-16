@@ -4,7 +4,7 @@ import aio_pika
 import msgspec
 import structlog
 
-from src.config import settings
+from core.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 

@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.scrapers.engine import NSEScraper
+from services.scrapers.engine import NSEScraper
 
 
 @pytest.mark.asyncio

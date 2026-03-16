@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
 
-from src.auth.security import RoleChecker, get_jwks, jwks_cache, verify_token
+from services.auth.security import RoleChecker, get_jwks, jwks_cache, verify_token
 
 
 # Helper to generate RSA keys for testing
@@ -70,7 +70,7 @@ async def test_verify_token_success():
     payload = {"sub": "user123", "aud": "account", "realm_access": {"roles": ["admin"]}}
     token = jwt.encode(payload, PRIVATE_PEM, algorithm="RS256", headers={"kid": "test_kid"})
 
-    with patch("src.auth.security.get_jwks", return_value=MOCK_JWKS):
+    with patch("services.auth.security.get_jwks", return_value=MOCK_JWKS):
         verified_payload = await verify_token(token)
         assert verified_payload["sub"] == "user123"
 
@@ -80,7 +80,7 @@ async def test_verify_token_invalid_kid():
     token = jwt.encode(
         {"sub": "user123"}, "secret", algorithm="HS256", headers={"kid": "wrong_kid"}
     )
-    with patch("src.auth.security.get_jwks", return_value=MOCK_JWKS):
+    with patch("services.auth.security.get_jwks", return_value=MOCK_JWKS):
         with pytest.raises(HTTPException) as exc:
             await verify_token(token)
         assert exc.value.status_code == 401
@@ -95,7 +95,7 @@ async def test_verify_token_jwt_error():
         algorithm="HS256",
         headers={"kid": "test_kid"},
     )
-    with patch("src.auth.security.get_jwks", return_value=MOCK_JWKS):
+    with patch("services.auth.security.get_jwks", return_value=MOCK_JWKS):
         with pytest.raises(HTTPException) as exc:
             await verify_token(token)
         assert exc.value.status_code == 401

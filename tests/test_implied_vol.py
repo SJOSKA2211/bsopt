@@ -17,8 +17,8 @@ Test Categories:
 import numpy as np
 import pytest
 
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.pricing.implied_vol import (
+from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+from services.quant.pricing.implied_vol import (
     ImpliedVolatilityError,
     _calculate_intrinsic_value,
     implied_volatility,

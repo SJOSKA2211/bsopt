@@ -5,15 +5,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
-from src.api.routes.auth import (
+from services.api.main import app
+from services.api.routes.auth import (
     _send_password_reset_email,
     _send_verification_email,
     get_current_active_user,
     get_current_user,
 )
-from src.database import get_async_db, get_db
-from src.database.models import User
+from core.database import get_async_db, get_db
+from core.database.models import User
 
 client = TestClient(app)
 
@@ -50,14 +50,14 @@ def mock_all():
         return await call_next(request)
 
     # Global patches for settings and services in auth.py
-    from src.config import settings as mock_settings
+    from core.shared.config import settings as mock_settings
 
     with (
-        patch("src.api.routes.auth.auth_service", m_auth),
-        patch("src.api.routes.auth.password_service", m_pwd),
-        patch("src.api.routes.auth.settings", mock_settings),
+        patch("services.api.routes.auth.auth_service", m_auth),
+        patch("services.api.routes.auth.password_service", m_pwd),
+        patch("services.api.routes.auth.settings", mock_settings),
         patch(
-            "src.api.middleware.security.JWTAuthenticationMiddleware.dispatch",
+            "services.api.middleware.security.JWTAuthenticationMiddleware.dispatch",
             side_effect=mock_dispatch,
         ),
     ):
@@ -98,7 +98,7 @@ def test_login_flow(mock_all):
     )
     # MFA
     u.is_mfa_enabled = True
-    with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
+    with patch("services.api.routes.auth._verify_mfa_code", return_value=True):
         assert (
             client.post(
                 "/api/v1/auth/login",
@@ -131,7 +131,7 @@ def test_logout_flow(mock_all):
 
 def test_register_flow(mock_all):
     _, _, m_db = mock_all
-    with patch("src.api.routes.auth._send_verification_email", AsyncMock()):
+    with patch("services.api.routes.auth._send_verification_email", AsyncMock()):
         payload = {
             "email": "n@e.com",
             "password": "Password123!",
@@ -156,7 +156,7 @@ def test_mfa_exhaustive(mock_all):
     m_auth, _, m_db = mock_all
     u = create_mock_user(mfa_secret="s", is_mfa_enabled=True)
     app.dependency_overrides[get_current_active_user] = lambda: u
-    with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
+    with patch("services.api.routes.auth._verify_mfa_code", return_value=True):
         assert (
             client.post("/api/v1/auth/mfa/setup", headers={"Authorization": "Bearer t"}).status_code
             == 200
@@ -174,7 +174,7 @@ def test_mfa_exhaustive(mock_all):
 
 def test_helpers_final(mock_all):
     _, _, m_db = mock_all
-    with patch("src.api.routes.auth.logger") as ml:
+    with patch("services.api.routes.auth.logger") as ml:
         asyncio.run(_send_verification_email("a@b.com", "t"))
         assert ml.info.called
         ml.reset_mock()

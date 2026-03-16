@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from src.cli.config import ConfigManager, get_config
+from scripts.config import ConfigManager, get_config
 from tests.test_utils import assert_equal
 
 

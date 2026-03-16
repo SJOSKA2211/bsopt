@@ -8,8 +8,8 @@ try:
 except ImportError:
     bsopt_core = None
 
-from src.streaming.kafka_consumer import MarketDataConsumer
-from src.streaming.kafka_producer import MarketDataProducer
+from services.workers.streaming.kafka_consumer import MarketDataConsumer
+from services.workers.streaming.kafka_producer import MarketDataProducer
 
 logger = structlog.get_logger(__name__)
 

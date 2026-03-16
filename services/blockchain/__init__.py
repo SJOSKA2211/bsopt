@@ -6,7 +6,7 @@ Web3.py loads entire EVM bytecode on import (~150MB). Defer until needed.
 import sys
 from typing import TYPE_CHECKING
 
-from src.utils.lazy_import import lazy_import
+from core.shared.lazy_import import lazy_import
 
 __all__ = [
     # DeFi Protocols

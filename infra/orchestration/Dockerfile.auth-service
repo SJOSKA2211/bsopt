@@ -8,7 +8,7 @@ FROM docker.io/library/node:20-alpine AS builder
 WORKDIR /app
 
 COPY services/auth/package*.json ./
-RUN apk add --no-cache python3 make g++ && npm ci
+RUN apk add --no-cache python3 make g++ && npm install
 
 COPY services/auth ./
 RUN npm run build
@@ -37,7 +37,7 @@ RUN addgroup -S bsopt && adduser -S bsopt -G bsopt
 
 COPY --from=builder /app/package*.json ./
 RUN apk add --no-cache python3 make g++ \
-    && npm ci --omit=dev \
+    && npm install --omit=dev \
     && apk del python3 make g++
 
 COPY --from=builder /app/dist ./dist

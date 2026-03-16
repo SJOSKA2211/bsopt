@@ -1,4 +1,4 @@
-from src.security.password import PasswordService, PasswordValidator
+from core.security.password import PasswordService, PasswordValidator
 from tests.test_utils import assert_equal
 
 

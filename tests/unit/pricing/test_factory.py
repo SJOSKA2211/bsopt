@@ -2,9 +2,9 @@ from unittest.mock import patch
 
 import pytest
 
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound
-from src.pricing.monte_carlo import MonteCarloEngine
+from services.quant.pricing.black_scholes import BlackScholesEngine
+from services.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
+from services.quant.pricing.monte_carlo import MonteCarloEngine
 
 
 def test_get_engine_lazy_load():
@@ -33,9 +33,9 @@ def test_engine_not_found():
 def test_wasm_override():
     # If we force wasm, it should try to load wasm even if name is different
     # (Assuming WASMPricingEngine can be lazy-loaded)
-    with patch("src.pricing.wasm_engine.WASM_AVAILABLE", True):
+    with patch("services.quant.pricing.wasm_engine.WASM_AVAILABLE", True):
         # We need to mock the import or ensure it doesn't fail
-        with patch("src.pricing.wasm_engine.WASMPricingEngine") as mock_wasm:
+        with patch("services.quant.pricing.wasm_engine.WASMPricingEngine") as mock_wasm:
             PricingEngineFactory.register("wasm", mock_wasm)
             engine = PricingEngineFactory.get_engine("heston", execution_strategy="wasm")
             assert engine == PricingEngineFactory._instances["wasm"]

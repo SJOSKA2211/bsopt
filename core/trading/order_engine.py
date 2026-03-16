@@ -5,9 +5,9 @@ import numpy as np
 import structlog
 from numba import njit
 
-from src.shared.observability import tune_gc
-from src.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer
-from src.trading.risk_kernels import _full_risk_check_v2_kernel
+from core.shared.observability import tune_gc
+from core.shared.shm_mesh import SHM_ORDER_NAME, ExecutionBuffer, OrderBuffer
+from core.trading.risk_kernels import _full_risk_check_v2_kernel
 
 try:
     import bsopt_core
@@ -110,7 +110,7 @@ class OrderEngine:
 
         # Initialize High-Speed Risk State Buffer
         try:
-            from src.shared.shm_mesh import RiskStateBuffer
+            from core.shared.shm_mesh import RiskStateBuffer
 
             self._risk_shm = RiskStateBuffer(create=False)
             # This is a view of the current_delta, max_delta, last_sync_ts_ns

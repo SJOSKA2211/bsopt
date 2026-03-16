@@ -15,7 +15,7 @@ except Exception as e:
 
 print("\nTesting Quant Utils import and functions...")
 try:
-    from src.pricing.quant_utils import gpu_mc_european_price, scalar_bs_price_jit
+    from services.quant.pricing.quant_utils import gpu_mc_european_price, scalar_bs_price_jit
 
     print(" Quant Utils import successful")
 

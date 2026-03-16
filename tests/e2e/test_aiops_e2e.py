@@ -3,28 +3,28 @@ from unittest.mock import ANY, patch
 import numpy as np
 import pytest
 
-# Import components from src.aiops
-from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+# Import components from services.ml.aiops
+from services.ml.aiops.aiops_orchestrator import AIOpsOrchestrator
 
 
 # Mocks for all components and shared observability functions
 @pytest.fixture
 def mock_e2e_dependencies():
     with (
-        patch("src.aiops.aiops_orchestrator.PrometheusClient") as MockPrometheusClient,
+        patch("services.ml.aiops.aiops_orchestrator.PrometheusClient") as MockPrometheusClient,
         patch(
-            "src.aiops.aiops_orchestrator.IsolationForestDetector"
+            "services.ml.aiops.aiops_orchestrator.IsolationForestDetector"
         ) as MockIsolationForestDetector,
-        patch("src.aiops.aiops_orchestrator.AutoencoderDetector") as MockAutoencoderDetector,
-        patch("src.aiops.aiops_orchestrator.DataDriftDetector") as MockDataDriftDetector,
-        patch("src.aiops.aiops_orchestrator.DockerRemediator") as MockDockerRemediator,
-        patch("src.aiops.aiops_orchestrator.MLPipelineTrigger") as MockMLPipelineTrigger,
-        patch("src.aiops.aiops_orchestrator.RedisRemediator") as MockRedisRemediator,
-        patch("src.aiops.aiops_orchestrator.setup_logging") as MockSetupLogging,
-        patch("src.aiops.aiops_orchestrator.logger") as MockOrchestratorLogger,
-        patch("src.aiops.aiops_orchestrator.post_grafana_annotation") as MockPostGrafanaAnnotation,
-        patch("src.aiops.aiops_orchestrator.push_metrics") as MockPushMetrics,
-        patch("src.shared.observability.os.environ.get") as MockSharedEnvironGet,
+        patch("services.ml.aiops.aiops_orchestrator.AutoencoderDetector") as MockAutoencoderDetector,
+        patch("services.ml.aiops.aiops_orchestrator.DataDriftDetector") as MockDataDriftDetector,
+        patch("services.ml.aiops.aiops_orchestrator.DockerRemediator") as MockDockerRemediator,
+        patch("services.ml.aiops.aiops_orchestrator.MLPipelineTrigger") as MockMLPipelineTrigger,
+        patch("services.ml.aiops.aiops_orchestrator.RedisRemediator") as MockRedisRemediator,
+        patch("services.ml.aiops.aiops_orchestrator.setup_logging") as MockSetupLogging,
+        patch("services.ml.aiops.aiops_orchestrator.logger") as MockOrchestratorLogger,
+        patch("services.ml.aiops.aiops_orchestrator.post_grafana_annotation") as MockPostGrafanaAnnotation,
+        patch("services.ml.aiops.aiops_orchestrator.push_metrics") as MockPushMetrics,
+        patch("core.shared.observability.os.environ.get") as MockSharedEnvironGet,
     ):
         MockSharedEnvironGet.side_effect = lambda key, default=None: {
             "GRAFANA_URL": "http://mock-grafana:3000",

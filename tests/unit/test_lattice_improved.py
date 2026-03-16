@@ -1,6 +1,6 @@
 import unittest
 
-from src.pricing.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
+from services.quant.pricing.lattice import BinomialTreePricer, BSParameters, TrinomialTreePricer
 
 
 class TestLattice(unittest.TestCase):

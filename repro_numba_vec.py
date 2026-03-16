@@ -4,7 +4,7 @@ import numpy as np
 
 sys.path.append(".")
 
-from src.shared.math_utils import _vec_price_impl
+from core.shared.math_utils import _vec_price_impl
 
 # Force 1D arrays to trigger the vectorized path
 S = np.array([100.0], dtype=np.float64)

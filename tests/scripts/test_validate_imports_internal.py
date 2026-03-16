@@ -15,7 +15,7 @@ class TestImportValidationInternal:
 
     def test_find_lazy_loaded_modules(self, mock_structure):
         modules = _find_lazy_loaded_modules(str(mock_structure))
-        assert "src.ml" in modules or "ml" in modules
+        assert "services.ml" in modules or "ml" in modules
 
     def test_validate_lazy_imports_success(self, mock_structure, mocker):  # Added mocker
         # This will actually run against the real src/ but we mock import_module

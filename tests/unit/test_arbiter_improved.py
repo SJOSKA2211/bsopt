@@ -10,7 +10,7 @@ import sys
 sys.modules["wasmer"] = mock_wasmer
 sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
-from src.pricing.arbiter import (
+from services.quant.pricing.arbiter import (
     BSParameters,
     EngineArbiter,
     PricingModel,
@@ -21,7 +21,7 @@ from src.pricing.arbiter import (
 class TestArbiter(unittest.TestCase):
     def setUp(self):
         # Patch WASMPricingEngine to not try to load real WASM
-        with patch("src.pricing.arbiter.WASMPricingEngine") as mock_wasm:
+        with patch("services.quant.pricing.arbiter.WASMPricingEngine") as mock_wasm:
             mock_instance = mock_wasm.return_value
             mock_instance.instance = None  # Force fallback in arbiter
             self.arbiter = EngineArbiter()

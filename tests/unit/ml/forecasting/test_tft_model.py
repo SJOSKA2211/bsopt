@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.ml.forecasting.tft_model import PriceTFTModel
+from services.ml.forecasting.tft_model import PriceTFTModel
 
 
 @pytest.fixture

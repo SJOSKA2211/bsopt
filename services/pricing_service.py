@@ -12,13 +12,13 @@ import structlog
 from anyio.to_thread import run_sync
 from fastapi import HTTPException
 
-from src.api.schemas.pricing import (
+from services.api.schemas.pricing import (
     BatchGreeksResult,
     BatchPriceResult,
     PriceResult,
 )
-from src.pricing.factory import PricingEngineFactory, PricingEngineNotFound
-from src.pricing.models import BSParameters
+from services.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
+from services.quant.pricing.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
@@ -58,7 +58,7 @@ class PricingService:
                 duration_ms=round(duration_ms, 2),
             )
 
-            from src.api.schemas.pricing import OptionGreeksStruct
+            from services.api.schemas.pricing import OptionGreeksStruct
 
             return PriceResult(
                 price=float(result.price),
@@ -134,11 +134,11 @@ class PricingService:
                 divs = np.array([it[1].dividend_yield for it in items], dtype=np.float64)
                 types = np.array([it[1].option_type for it in items])
 
-                from src.api.schemas.pricing import OptionGreeksStruct
+                from services.api.schemas.pricing import OptionGreeksStruct
 
                 # Optimized Dispatch
                 if model_type == "black_scholes":
-                    from src.pricing.black_scholes import BlackScholesEngine
+                    from services.quant.pricing.black_scholes import BlackScholesEngine
 
                     # Concurrently call JIT/Rust batch kernels for price and greeks
                     prices_task = run_sync(
@@ -195,7 +195,7 @@ class PricingService:
                             ),
                         )
                 elif model_type == "neural":
-                    from src.pricing.base import VectorizedPricingStrategy
+                    from services.quant.pricing.base import VectorizedPricingStrategy
 
                     v_engine = cast(VectorizedPricingStrategy, engine)
 
@@ -296,8 +296,8 @@ class PricingService:
         divs = np.array([o.dividend_yield for o in options], dtype=np.float64)
         types = np.array([o.option_type for o in options])
 
-        from src.api.schemas.pricing import GreeksResult
-        from src.pricing.black_scholes import BlackScholesEngine
+        from services.api.schemas.pricing import GreeksResult
+        from services.quant.pricing.black_scholes import BlackScholesEngine
 
         # Using BlackScholesEngine truly vectorized batch greeks (Rust/JIT)
         g_res = await run_sync(
@@ -350,7 +350,7 @@ class PricingService:
         dividends = np.array([o.dividend_yield for o in options], dtype=np.float64)
         option_types = np.array([o.option_type for o in options])
 
-        from src.pricing.implied_vol import vectorized_implied_volatility
+        from services.quant.pricing.implied_vol import vectorized_implied_volatility
 
         vols_arr = cast(
             np.ndarray[Any, np.dtype[np.float64]],

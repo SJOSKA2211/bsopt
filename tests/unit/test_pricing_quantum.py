@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.pricing.quantum_pricing import (
+from services.quant.pricing.quantum_pricing import (
     HybridQuantumClassicalPricer,
     QuantumOptionPricer,
 )
@@ -37,9 +37,9 @@ def test_math_fallback_logic(quantum_pricer):
     assert result["backend"] == "analytical_fallback"
 
 
-@patch("src.pricing.quantum_pricing.QISKIT_AVAILABLE", True)
-@patch("src.pricing.quantum_pricing.IterativeAmplitudeEstimation")
-@patch("src.pricing.quantum_pricing.StatevectorSampler")
+@patch("services.quant.pricing.quantum_pricing.QISKIT_AVAILABLE", True)
+@patch("services.quant.pricing.quantum_pricing.IterativeAmplitudeEstimation")
+@patch("services.quant.pricing.quantum_pricing.StatevectorSampler")
 def test_price_european_call_quantum_success(mock_sampler, mock_iae_class, quantum_pricer):
     # Setup mock IAE result
     mock_iae = mock_iae_class.return_value

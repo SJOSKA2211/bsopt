@@ -12,12 +12,12 @@ class TestImportPerformance:
         """Compare lazy vs eager import times."""
 
         def lazy_import():
-            # Clear cache if 'src.ml' in sys.modules:
-            if "src.ml" in sys.modules:
-                del sys.modules["src.ml"]
-            import src.ml
+            # Clear cache if 'services.ml' in sys.modules:
+            if "services.ml" in sys.modules:
+                del sys.modules["services.ml"]
+            import services.ml
 
-            return src.ml
+            return services.ml
 
         benchmark(lazy_import)
         # Lazy import should be < 10ms
@@ -25,14 +25,14 @@ class TestImportPerformance:
 
     def test_first_access_overhead(self, benchmark):
         """Measure overhead of first attribute access."""
-        import src.ml
+        import services.ml
 
-        # Clear any cached attributes if hasattr(src.ml, 'DataNormalizer'):
-        if hasattr(src.ml, "DataNormalizer"):
-            delattr(src.ml, "DataNormalizer")
+        # Clear any cached attributes if hasattr(services.ml, 'DataNormalizer'):
+        if hasattr(services.ml, "DataNormalizer"):
+            delattr(services.ml, "DataNormalizer")
 
         def first_access():
-            return src.ml.DataNormalizer
+            return services.ml.DataNormalizer
 
         benchmark(first_access)
         # First access overhead should be reasonable
@@ -40,7 +40,7 @@ class TestImportPerformance:
 
     def test_cached_access_speed(self, benchmark):
         """Verify cached access is instant."""
-        from src.ml import DataNormalizer
+        from services.ml import DataNormalizer
 
         def cached_access():
             return DataNormalizer

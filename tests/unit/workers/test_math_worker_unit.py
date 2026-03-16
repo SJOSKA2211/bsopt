@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.workers.math_worker import (
+from services.workers.math_worker import (
     _calibration_worker,
     _recalibrate_symbol_impl,
     recalibrate_symbol,
@@ -15,7 +15,7 @@ async def test_recalibrate_symbol_async_no_data():
     mock_router = MagicMock()
     mock_router.get_option_chain_snapshot = AsyncMock(return_value=None)
 
-    with patch("src.workers.math_worker.MarketDataRouter", return_value=mock_router):
+    with patch("services.workers.math_worker.MarketDataRouter", return_value=mock_router):
         result = await _recalibrate_symbol_impl("AAPL")
         assert result["status"] == "failed"
         assert result["reason"] == "no_data"
@@ -41,8 +41,8 @@ async def test_recalibrate_symbol_async_success():
     mock_pool.get_actor.return_value = mock_actor
 
     with (
-        patch("src.workers.math_worker.MarketDataRouter", return_value=mock_router),
-        patch("src.workers.math_worker.get_pool", return_value=mock_pool),
+        patch("services.workers.math_worker.MarketDataRouter", return_value=mock_router),
+        patch("services.workers.math_worker.get_pool", return_value=mock_pool),
     ):
         result = await _recalibrate_symbol_impl("AAPL")
 
@@ -55,7 +55,7 @@ def test_calibration_worker_integration():
     mock_calibrator.calibrate.return_value = (MagicMock(), {"rmse": 0.01})
     mock_calibrator.calibrate_surface.return_value = {"1.0": [0.1]}
 
-    with patch("src.workers.math_worker.HestonCalibrator", return_value=mock_calibrator):
+    with patch("services.workers.math_worker.HestonCalibrator", return_value=mock_calibrator):
         params, metrics, surface = _calibration_worker({"data": "test"})
         assert metrics["rmse"] == 0.01
         assert "1.0" in surface
@@ -67,7 +67,7 @@ def test_recalibrate_symbol_task_failure():
     mock_self.retry = MagicMock(side_effect=Exception("Retry Triggered"))
 
     with (
-        patch("src.workers.math_worker.math_swarm", [MagicMock()]),
+        patch("services.workers.math_worker.math_swarm", [MagicMock()]),
         patch("ray.get", side_effect=Exception("Ray Exploded")),
         patch("asyncio.run") as mock_run,
     ):

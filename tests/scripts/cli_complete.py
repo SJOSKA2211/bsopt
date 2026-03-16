@@ -43,15 +43,15 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 # Import CLI utilities
-from src.cli.auth import AuthenticationError, AuthManager
-from src.cli.config import get_config
-from src.cli.portfolio import PortfolioManager, Position
-from src.config import settings
+from scripts.auth import AuthenticationError, AuthManager
+from scripts.config import get_config
+from scripts.portfolio import PortfolioManager, Position
+from core.shared.config import settings
 
 # Import pricing engines
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.pricing.finite_difference import CrankNicolsonSolver
-from src.pricing.monte_carlo import MCConfig, MonteCarloEngine
+from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+from services.quant.pricing.finite_difference import CrankNicolsonSolver
+from services.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine
 
 console = Console()
 

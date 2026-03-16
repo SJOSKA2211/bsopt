@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+from services.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
 
 class TestHestonParams:

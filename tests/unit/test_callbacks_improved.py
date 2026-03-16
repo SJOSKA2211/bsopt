@@ -1,6 +1,6 @@
 import unittest
 
-from src.ml.callbacks import EarlyStopping
+from services.ml.callbacks import EarlyStopping
 
 
 class TestCallbacks(unittest.TestCase):

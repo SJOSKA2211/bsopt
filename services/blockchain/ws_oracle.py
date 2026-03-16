@@ -6,7 +6,7 @@ import structlog
 import websockets
 from redis.asyncio import Redis
 
-from src.utils.cache import get_redis
+from core.shared.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 
@@ -33,7 +33,7 @@ class DexWebSocketOracle:
 
         # Initialize SHM for ultra-low latency local broadcast
         try:
-            from src.shared.shm_mesh import SharedMemoryRingBuffer
+            from core.shared.shm_mesh import SharedMemoryRingBuffer
 
             mesh = SharedMemoryRingBuffer(create=False)
         except Exception:

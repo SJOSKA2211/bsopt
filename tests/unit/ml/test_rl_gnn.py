@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 import torch
 
-from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor, SACGNNPolicy
-from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
+from services.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor, SACGNNPolicy
+from services.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
 
 @pytest.fixture
 def rl_agent():
-    with patch("src.ml.reinforcement_learning.online_agent.TD3") as mock_td3:
+    with patch("services.ml.reinforcement_learning.online_agent.TD3") as mock_td3:
         mock_td3.load.return_value = MagicMock()
         agent = OnlineRLAgent(model_path="mock_model", initial_balance=100000)
         return agent

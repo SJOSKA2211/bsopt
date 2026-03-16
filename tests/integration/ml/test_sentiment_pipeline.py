@@ -3,13 +3,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.ml.pipelines.sentiment_ingest import SentimentIngestor
+from services.ml.pipelines.sentiment_ingest import SentimentIngestor
 
 
 @pytest.mark.asyncio
 async def test_sentiment_ingestor_process_message():
-    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
-        with patch("src.ml.pipelines.sentiment_ingest.Producer") as mock_producer:
+    with patch("services.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
+        with patch("services.ml.pipelines.sentiment_ingest.Producer") as mock_producer:
             mock_extractor.return_value.get_sentiment_score.return_value = 0.75
             ingestor = SentimentIngestor(bootstrap_servers="localhost:9092")
 
@@ -26,7 +26,7 @@ async def test_sentiment_ingestor_process_message():
 
 @pytest.mark.asyncio
 async def test_process_empty_message():
-    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
+    with patch("services.ml.pipelines.sentiment_ingest.SentimentExtractor") as mock_extractor:
         ingestor = SentimentIngestor()
         await ingestor.process_news_message(json.dumps({"text": ""}).encode("utf-8"))
         assert not mock_extractor.return_value.get_sentiment_score.called
@@ -40,9 +40,9 @@ async def test_process_invalid_json():
 
 
 def test_sentiment_ingestor_run_loop():
-    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor"):
-        with patch("src.ml.pipelines.sentiment_ingest.Producer"):
-            with patch("src.ml.pipelines.sentiment_ingest.Consumer") as mock_cons:
+    with patch("services.ml.pipelines.sentiment_ingest.SentimentExtractor"):
+        with patch("services.ml.pipelines.sentiment_ingest.Producer"):
+            with patch("services.ml.pipelines.sentiment_ingest.Consumer") as mock_cons:
                 ingestor = SentimentIngestor()
                 # Mock poll to return None once then raise exception to break loop
                 mock_cons.return_value.poll.side_effect = [None, Exception("Stop loop")]
@@ -55,9 +55,9 @@ def test_sentiment_ingestor_run_loop():
 
 
 def test_sentiment_ingestor_run_kafka_error():
-    with patch("src.ml.pipelines.sentiment_ingest.SentimentExtractor"):
-        with patch("src.ml.pipelines.sentiment_ingest.Producer"):
-            with patch("src.ml.pipelines.sentiment_ingest.Consumer") as mock_cons:
+    with patch("services.ml.pipelines.sentiment_ingest.SentimentExtractor"):
+        with patch("services.ml.pipelines.sentiment_ingest.Producer"):
+            with patch("services.ml.pipelines.sentiment_ingest.Consumer") as mock_cons:
                 ingestor = SentimentIngestor()
                 # Mock poll to return a message with an error, then stop
                 error_msg = MagicMock()

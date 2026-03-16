@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 import torch
 
-from src.aiops.anomaly_detector import AnomalyDetector
+from services.ml.aiops.anomaly_detector import AnomalyDetector
 
 # ─── Initialization Tests ───────────────────────────────────────────────────
 

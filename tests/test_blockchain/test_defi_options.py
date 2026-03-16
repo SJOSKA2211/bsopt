@@ -3,12 +3,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.blockchain.defi_options import DeFiOptionsProtocol
+from services.blockchain.defi_options import DeFiOptionsProtocol
 
 
 @pytest.fixture
 def mock_web3():
-    with patch("src.blockchain.defi_options.AsyncWeb3") as MockW3:
+    with patch("services.blockchain.defi_options.AsyncWeb3") as MockW3:
         mock_instance = AsyncMock()
         # Fix: eth.contract should be synchronous (MagicMock)
         mock_instance.eth.contract = MagicMock()

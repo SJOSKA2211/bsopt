@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 
 def test_pricing_subgraph_exposed():
-    from src.pricing.main import app
+    from services.quant.pricing.main import app
 
     client = TestClient(app)
     response = client.get("/graphql")
@@ -10,7 +10,7 @@ def test_pricing_subgraph_exposed():
 
 
 def test_ml_subgraph_exposed():
-    from src.ml.main import app
+    from services.ml.main import app
 
     client = TestClient(app)
     response = client.get("/graphql")
@@ -19,7 +19,7 @@ def test_ml_subgraph_exposed():
 
 
 def test_portfolio_subgraph_exposed():
-    from src.portfolio.main import app
+    from services.portfolio.main import app
 
     client = TestClient(app)
     response = client.get("/graphql")
@@ -30,7 +30,7 @@ def test_portfolio_subgraph_exposed():
 
 
 def test_streaming_subgraph_exposed():
-    from src.streaming.main import app
+    from services.workers.streaming.main import app
 
     client = TestClient(app)
     response = client.get("/graphql")

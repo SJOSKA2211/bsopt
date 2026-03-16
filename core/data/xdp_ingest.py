@@ -5,7 +5,7 @@ import threading
 
 import structlog
 
-from src.shared.shm_mesh import SharedMemoryRingBuffer
+from core.shared.shm_mesh import SharedMemoryRingBuffer
 
 logger = structlog.get_logger(__name__)
 
@@ -29,7 +29,7 @@ class XDPIngester:
 
         #  RUST PULSE: Try to use the ultra-high-speed Rust extension
         try:
-            from src.shared.bsopt_pulse import RustPulse
+            from core.shared.bsopt_pulse import RustPulse
 
             self._pulse = RustPulse(interface, port)
             logger.info("using_rust_pulse_extension")

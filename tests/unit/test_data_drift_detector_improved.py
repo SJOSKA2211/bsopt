@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.aiops.data_drift_detector import DataDriftDetector
+from services.ml.aiops.data_drift_detector import DataDriftDetector
 
 
 class TestDataDriftDetector(unittest.TestCase):

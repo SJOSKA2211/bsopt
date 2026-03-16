@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.tasks.security_tasks import rehash_legacy_passwords
+from services.workers.tasks.security_tasks import rehash_legacy_passwords
 
 
 @pytest.fixture
 def mock_db():
-    with patch("src.tasks.security_tasks.get_db_session") as mock:
+    with patch("services.workers.tasks.security_tasks.get_db_session") as mock:
         session = MagicMock()
         mock.return_value = session
         yield session
@@ -18,7 +18,7 @@ def test_rehash_legacy_passwords_success(mock_db):
     mock_user.hashed_password = "bcrypt_hash"
     mock_db.execute.return_value.scalars.return_value.all.return_value = [mock_user]
 
-    with patch("src.tasks.security_tasks.get_password_service") as mock_pw_service:
+    with patch("services.workers.tasks.security_tasks.get_password_service") as mock_pw_service:
         mock_pw_service.return_value.needs_rehash.return_value = True
 
         # Use .run or .__wrapped__

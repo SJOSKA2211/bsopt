@@ -10,7 +10,7 @@ sys.modules["mlflow"] = MagicMock()
 sys.modules["mlflow.pytorch"] = MagicMock()
 sys.modules["optuna"] = MagicMock()
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from services.ml.autonomous_pipeline import AutonomousMLPipeline
 
 
 class TestAutonomousPipeline(unittest.TestCase):
@@ -24,10 +24,10 @@ class TestAutonomousPipeline(unittest.TestCase):
             "framework": "xgboost",
         }
         with (
-            patch("src.ml.autonomous_pipeline.create_engine"),
-            patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
-            patch("src.ml.autonomous_pipeline.DriftTrigger"),
-            patch("src.ml.autonomous_pipeline.MarketDataScraper"),
+            patch("services.ml.autonomous_pipeline.create_engine"),
+            patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+            patch("services.ml.autonomous_pipeline.DriftTrigger"),
+            patch("services.ml.autonomous_pipeline.MarketDataScraper"),
         ):
             self.pipeline = AutonomousMLPipeline(self.config)
 
@@ -44,9 +44,9 @@ class TestAutonomousPipeline(unittest.TestCase):
         )
         # Mock indicators
         with (
-            patch("src.ml.autonomous_pipeline.get_rsi", return_value=np.random.rand(100)),
+            patch("services.ml.autonomous_pipeline.get_rsi", return_value=np.random.rand(100)),
             patch(
-                "src.ml.autonomous_pipeline.get_macd",
+                "services.ml.autonomous_pipeline.get_macd",
                 return_value=(
                     np.random.rand(100),
                     np.random.rand(100),
@@ -54,15 +54,15 @@ class TestAutonomousPipeline(unittest.TestCase):
                 ),
             ),
             patch(
-                "src.ml.autonomous_pipeline.get_bbands",
+                "services.ml.autonomous_pipeline.get_bbands",
                 return_value=(
                     np.random.rand(100),
                     np.random.rand(100),
                     np.random.rand(100),
                 ),
             ),
-            patch("src.ml.autonomous_pipeline.get_atr", return_value=np.random.rand(100)),
-            patch("src.ml.autonomous_pipeline.get_adx", return_value=np.random.rand(100)),
+            patch("services.ml.autonomous_pipeline.get_atr", return_value=np.random.rand(100)),
+            patch("services.ml.autonomous_pipeline.get_adx", return_value=np.random.rand(100)),
         ):
             df_feat = self.pipeline.generate_features(df)
             self.assertIn("RSI_14", df_feat.columns)

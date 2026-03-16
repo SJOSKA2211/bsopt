@@ -4,7 +4,7 @@ Authentication Functional Tests (Refined Plan)
 
 import pytest
 
-from src.api.schemas.user import UserResponse
+from services.api.schemas.user import UserResponse
 
 
 @pytest.mark.asyncio

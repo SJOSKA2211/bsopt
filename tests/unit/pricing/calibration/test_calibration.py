@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.pricing.calibration.engine import HestonCalibrator, MarketOption
-from src.pricing.models.heston_fft import HestonParams
+from services.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
+from services.quant.pricing.models.heston_fft import HestonParams
 
 
 class TestHestonCalibrator:
@@ -18,7 +18,7 @@ class TestHestonCalibrator:
         maturities = [0.25, 0.5, 1.0]
         market_data = []
 
-        from src.pricing.models.heston_fft import HestonModelFFT
+        from services.quant.pricing.models.heston_fft import HestonModelFFT
 
         for T in maturities:
             model = HestonModelFFT(true_params, r=0.03, T=T)

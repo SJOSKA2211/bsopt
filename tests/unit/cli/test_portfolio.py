@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from src.cli.portfolio import PortfolioManager, Position
+from scripts.portfolio import PortfolioManager, Position
 
 
 @pytest.fixture
 def portfolio_manager(tmp_path):
-    with patch("src.cli.portfolio.Path.home", return_value=tmp_path):
+    with patch("scripts.portfolio.Path.home", return_value=tmp_path):
         yield PortfolioManager()
 
 

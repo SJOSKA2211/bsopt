@@ -5,13 +5,13 @@ from sqlalchemy.dialects import postgresql
 # Patch JSONB to use JSON for SQLite
 from sqlalchemy.orm import sessionmaker
 
-from src.database.crud import (
+from core.database.crud import (
     create_portfolio,
     create_user,
     get_user_by_email,
     get_user_portfolios,
 )
-from src.database.models import Base
+from core.database.models import Base
 
 
 @pytest.fixture(autouse=True)

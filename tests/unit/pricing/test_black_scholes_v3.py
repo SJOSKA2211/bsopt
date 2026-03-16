@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.pricing.black_scholes import BlackScholesEngine
+from services.quant.pricing.black_scholes import BlackScholesEngine
 
 
 def test_price_options_scalar():

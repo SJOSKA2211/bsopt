@@ -1,6 +1,6 @@
 import pytest
 
-from src.trading.risk_kernels import IncrementalDeltaTracker
+from core.trading.risk_kernels import IncrementalDeltaTracker
 
 
 def test_incremental_delta_tracker_success():

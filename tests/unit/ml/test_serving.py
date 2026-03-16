@@ -10,8 +10,8 @@ if importlib.util.find_spec("onnxruntime") is None:
 else:
     pass
 
-from src.api.schemas.ml import InferenceRequest
-from src.ml.serving.serve import predict, state
+from services.api.schemas.ml import InferenceRequest
+from services.ml.serving.serve import predict, state
 
 
 @pytest.mark.asyncio

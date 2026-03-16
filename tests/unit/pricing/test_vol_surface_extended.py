@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.pricing.vol_surface import (
+from services.quant.pricing.vol_surface import (
     ArbitrageDetector,
     CalibrationEngine,
     MarketQuote,

@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.database.models import SecurityIncident
-from src.security.breach_notification import BreachNotificationService
+from core.database.models import SecurityIncident
+from core.security.breach_notification import BreachNotificationService
 
 
 @pytest.mark.asyncio
-@patch("src.services.email_service.SendGridAPIClient")
+@patch("services.email_service.SendGridAPIClient")
 async def test_report_breach_to_dpa(mock_sendgrid):
     # Setup mock response
     mock_response = MagicMock()
@@ -33,7 +33,7 @@ async def test_report_breach_to_dpa(mock_sendgrid):
 
 
 @pytest.mark.asyncio
-@patch("src.services.email_service.SendGridAPIClient")
+@patch("services.email_service.SendGridAPIClient")
 async def test_notify_affected_users(mock_sendgrid):
     # Setup mock response
     mock_response = MagicMock()

@@ -5,10 +5,10 @@ import structlog
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from strawberry.fastapi import GraphQLRouter
 
-from src.api.responses import MsgspecJSONResponse
-from src.api.websockets.manager import manager as ws_manager
-from src.shared.observability import logging_middleware, setup_logging, tune_gc
-from src.streaming.graphql.schema import schema
+from services.api.responses import MsgspecJSONResponse
+from services.api.websockets.manager import manager as ws_manager
+from core.shared.observability import logging_middleware, setup_logging, tune_gc
+from services.workers.streaming.graphql.schema import schema
 
 # Optimized event loop
 try:
@@ -28,8 +28,8 @@ async def lifespan(app: FastAPI):
     tune_gc()
 
     # Initialize Redis
-    from src.config import settings
-    from src.utils.cache import init_redis_cache
+    from core.shared.config import settings
+    from core.shared.cache import init_redis_cache
 
     await init_redis_cache(
         host=settings.REDIS_HOST,

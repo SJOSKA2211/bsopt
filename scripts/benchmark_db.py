@@ -12,7 +12,7 @@ import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database import db_manager
+from core.database import db_manager
 
 logger = structlog.get_logger(__name__)
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import Request
 
-from src.api.middleware.logging import RequestLoggingMiddleware
+from services.api.middleware.logging import RequestLoggingMiddleware
 
 
 @pytest.mark.asyncio
@@ -33,9 +33,9 @@ async def test_persist_log_correctly_uses_session_local():
     mock_session = MagicMock()
 
     # We patch SessionLocal because the fix changes import from get_session to SessionLocal
-    with patch("src.database.SessionLocal", return_value=mock_session) as mock_session_local:
-        with patch("src.api.middleware.logging.logger") as mock_logger:
-            with patch("src.database.models.RequestLog"):
+    with patch("core.database.SessionLocal", return_value=mock_session) as mock_session_local:
+        with patch("services.api.middleware.logging.logger") as mock_logger:
+            with patch("core.database.models.RequestLog"):
                 await middleware._persist_log(log_entry, request)
 
             # Verify that SessionLocal was instantiated

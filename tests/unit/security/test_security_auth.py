@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from src.security.auth import AuthService, TokenBlacklist
+from core.security.auth import AuthService, TokenBlacklist
 
 
 @pytest.fixture

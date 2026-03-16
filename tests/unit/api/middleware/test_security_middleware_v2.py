@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import Request, Response
 
-from src.api.middleware.security import SecurityHeadersMiddleware
+from services.api.middleware.security import SecurityHeadersMiddleware
 
 
 @pytest.mark.asyncio

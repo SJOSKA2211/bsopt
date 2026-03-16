@@ -105,12 +105,12 @@ celery_app = Celery(
     broker=RABBITMQ_URL,
     backend=REDIS_URL,
     include=[
-        "src.tasks.pricing_tasks",
-        "src.tasks.ml_tasks",
-        "src.tasks.trading_tasks",
-        "src.tasks.data_tasks",
-        "src.tasks.email_tasks",
-        "src.scrapers.tasks",
+        "services.workers.tasks.pricing_tasks",
+        "services.workers.tasks.ml_tasks",
+        "services.workers.tasks.trading_tasks",
+        "services.workers.tasks.data_tasks",
+        "services.workers.tasks.email_tasks",
+        "services.scrapers.tasks",
     ],
 )
 
@@ -148,20 +148,20 @@ celery_app.conf.update(
     task_default_routing_key="pricing",
     # Task routing
     task_routes={
-        "src.tasks.pricing_tasks.*": {
+        "services.workers.tasks.pricing_tasks.*": {
             "queue": "pricing",
             "routing_key": "pricing",
             "persistent": False,  # Non-persistent for speed
         },
-        "src.tasks.ml_tasks.*": {
+        "services.workers.tasks.ml_tasks.*": {
             "queue": "ml",
             "routing_key": "ml",
         },
-        "src.tasks.ml_tasks.hyperparameter_search_task": {
+        "services.workers.tasks.ml_tasks.hyperparameter_search_task": {
             "queue": "batch",  # Long-running task goes to batch queue
             "routing_key": "batch",
         },
-        "src.tasks.trading_tasks.*": {
+        "services.workers.tasks.trading_tasks.*": {
             "queue": "trading",
             "routing_key": "trading",
         },
@@ -171,21 +171,21 @@ celery_app.conf.update(
     task_max_retries=3,
     # Rate limiting (tasks per second per worker)
     task_annotations={
-        "src.tasks.pricing_tasks.price_option_task": {
+        "services.workers.tasks.pricing_tasks.price_option_task": {
             "rate_limit": "1000/s",  # High throughput for pricing
             "task_result_expires": 60,  # Expire results quickly to save memory
         },
-        "src.tasks.pricing_tasks.batch_price_options_task": {
+        "services.workers.tasks.pricing_tasks.batch_price_options_task": {
             "rate_limit": "100/s",
             "task_result_expires": 300,
         },
-        "src.tasks.ml_tasks.train_model_task": {
+        "services.workers.tasks.ml_tasks.train_model_task": {
             "rate_limit": "1/m",  # Max 1 training per minute
         },
-        "src.tasks.ml_tasks.predict_task": {
+        "services.workers.tasks.ml_tasks.predict_task": {
             "rate_limit": "500/s",
         },
-        "src.tasks.trading_tasks.execute_trade_task": {
+        "services.workers.tasks.trading_tasks.execute_trade_task": {
             "rate_limit": "50/s",  # Rate limit for safety
         },
     },
@@ -196,60 +196,60 @@ celery_app.conf.update(
     # Beat scheduler (for periodic tasks)
     beat_schedule={
         "health-check-every-minute": {
-            "task": "src.tasks.celery_app.health_check",
+            "task": "services.workers.tasks.celery_app.health_check",
             "schedule": timedelta(minutes=1),
             "options": {"queue": "pricing", "priority": 1},
         },
         "cleanup-expired-results": {
-            "task": "src.tasks.celery_app.cleanup_expired_results",
+            "task": "services.workers.tasks.celery_app.cleanup_expired_results",
             "schedule": crontab(hour=2, minute=0),  # Daily at 2am
             "options": {"queue": "batch"},
         },
         "refresh-cache": {
-            "task": "src.tasks.celery_app.refresh_pricing_cache",
+            "task": "services.workers.tasks.celery_app.refresh_pricing_cache",
             "schedule": timedelta(minutes=15),
             "options": {"queue": "pricing", "priority": 3},
         },
         "refresh-materialized-views": {
-            "task": "src.tasks.data_tasks.refresh_materialized_views_task",
+            "task": "services.workers.tasks.data_tasks.refresh_materialized_views_task",
             "schedule": timedelta(minutes=30),
             "options": {"queue": "batch", "priority": 1},
         },
         "model-performance-check": {
-            "task": "src.tasks.ml_tasks.check_model_performance",
+            "task": "services.workers.tasks.ml_tasks.check_model_performance",
             "schedule": crontab(hour="*/6"),  # Every 6 hours
             "options": {"queue": "ml"},
         },
         # Daily data collection at 10am ET (15:00 UTC)
         "scheduled-data-collection-daily": {
-            "task": "src.tasks.data_tasks.scheduled_data_collection",
+            "task": "services.workers.tasks.data_tasks.scheduled_data_collection",
             "schedule": crontab(hour=15, minute=0),
             "options": {"queue": "ml", "priority": 2},
         },
         # Data freshness check - every 4 hours
         "check-data-freshness": {
-            "task": "src.tasks.data_tasks.check_data_freshness_task",
+            "task": "services.workers.tasks.data_tasks.check_data_freshness_task",
             "schedule": crontab(hour="*/4"),
             "options": {"queue": "ml", "priority": 1},
         },
         "monitor-drift-and-retrain": {
-            "task": "src.tasks.ml_tasks.monitor_drift_and_retrain_task",
+            "task": "services.workers.tasks.ml_tasks.monitor_drift_and_retrain_task",
             "schedule": crontab(hour="*/12"),  # Every 12 hours
             "options": {"queue": "ml", "priority": 1},
         },
         "threshold-based-retraining-check": {
-            "task": "src.tasks.ml_tasks.check_threshold_and_retrain_task",
+            "task": "services.workers.tasks.ml_tasks.check_threshold_and_retrain_task",
             "schedule": crontab(hour="*/4"),  # Every 4 hours
             "args": ("AAPL", False, 50000),
             "options": {"queue": "ml"},
         },
         "reconcile-risk-state": {
-            "task": "src.tasks.trading_tasks.reconcile_risk_state_task",
+            "task": "services.workers.tasks.trading_tasks.reconcile_risk_state_task",
             "schedule": timedelta(seconds=10),
             "options": {"queue": "trading", "priority": 10},
         },
         "periodic-recalibration": {
-            "task": "src.tasks.pricing_tasks.recalibrate_symbols_batch_task",
+            "task": "services.workers.tasks.pricing_tasks.recalibrate_symbols_batch_task",
             "schedule": crontab(minute=0),  # Hourly
             "args": (["TSLA", "AAPL", "BTC/USD"],),
             "options": {"queue": "pricing", "priority": 2},

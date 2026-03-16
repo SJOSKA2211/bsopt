@@ -3,7 +3,7 @@ import os
 import pytest
 import ray
 
-from src.ml.reinforcement_learning.train import train_distributed
+from services.ml.reinforcement_learning.train import train_distributed
 
 
 @pytest.fixture(scope="module")

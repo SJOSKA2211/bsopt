@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.pricing.quant_utils import (
+from services.quant.pricing.quant_utils import (
     batch_bs_price_jit_v2,
     fast_normal_cdf_v2,
     fast_normal_pdf_v2,

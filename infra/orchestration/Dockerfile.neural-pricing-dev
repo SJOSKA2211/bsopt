@@ -26,7 +26,7 @@ RUN uv pip install --system --no-cache --index-strategy unsafe-best-match -r req
 
 # Copy the entire source directory for development
 COPY core /app/core
-COPY services /app/services/ ./src
+COPY services ./services
 # Copy pyproject.toml for local package references
 COPY pyproject.toml .
 
@@ -35,4 +35,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "services.quant.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

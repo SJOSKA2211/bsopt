@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.pricing import quant_utils
+from services.quant.pricing import quant_utils
 
 
 def test_corrado_miller():

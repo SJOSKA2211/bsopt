@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from src.ml.federated_learning.coordinator import FederatedLearningCoordinator
+from services.ml.federated_learning.coordinator import FederatedLearningCoordinator
 
 
 @pytest.fixture
 def mock_flwr_server():
-    with patch("src.ml.federated_learning.coordinator.fl.server.start_server") as mock:
+    with patch("services.ml.federated_learning.coordinator.fl.server.start_server") as mock:
         yield mock
 
 

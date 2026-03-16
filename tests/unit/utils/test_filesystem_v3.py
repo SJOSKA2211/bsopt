@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.utils.filesystem import sanitize_path
+from core.shared.filesystem import sanitize_path
 
 
 def test_sanitize_path_valid():

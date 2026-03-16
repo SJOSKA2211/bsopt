@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import numpy as np
 import pytest
 
-from src.blockchain.defi_options import DeFiOptionsProtocol
-from src.blockchain.nonce_manager import NonceManager
-from src.blockchain.oracle import OracleManager
+from services.blockchain.defi_options import DeFiOptionsProtocol
+from services.blockchain.nonce_manager import NonceManager
+from services.blockchain.oracle import OracleManager
 
 
 class TestRevampPhase3:
@@ -15,7 +15,7 @@ class TestRevampPhase3:
         address = "0x1234567890123456789012345678901234567890"
         chain_id = 137
 
-        with patch("src.blockchain.nonce_manager.get_redis") as mock_get_redis:
+        with patch("services.blockchain.nonce_manager.get_redis") as mock_get_redis:
             mock_redis = AsyncMock()
             mock_get_redis.return_value = mock_redis
 
@@ -42,7 +42,7 @@ class TestRevampPhase3:
 
     @pytest.mark.asyncio
     async def test_oracle_manager_layered_discovery(self):
-        with patch("src.blockchain.oracle.get_redis") as mock_get_redis:
+        with patch("services.blockchain.oracle.get_redis") as mock_get_redis:
             mock_redis = AsyncMock()
             mock_get_redis.return_value = mock_redis
 
@@ -69,9 +69,9 @@ class TestRevampPhase3:
     async def test_defi_protocol_nonce_integration(self):
         rpc_url = "http://localhost:8545"
         with (
-            patch("src.blockchain.defi_options.AsyncWeb3"),
-            patch("src.blockchain.defi_options.NonceManager") as mock_nonce_manager_cls,
-            patch("src.blockchain.defi_options.OracleManager") as mock_oracle_manager_cls,
+            patch("services.blockchain.defi_options.AsyncWeb3"),
+            patch("services.blockchain.defi_options.NonceManager") as mock_nonce_manager_cls,
+            patch("services.blockchain.defi_options.OracleManager") as mock_oracle_manager_cls,
         ):
             mock_nonce_manager = mock_nonce_manager_cls.return_value
             mock_nonce_manager.get_next_nonce = AsyncMock(return_value=42)

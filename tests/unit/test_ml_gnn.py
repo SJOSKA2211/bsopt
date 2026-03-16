@@ -1,6 +1,6 @@
 import torch
 
-from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
+from services.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
 
 
 def test_gnn_feature_extractor_forward_pass():

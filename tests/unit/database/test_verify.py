@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from src.database.verify import verify_postgres_connection
+from core.database.verify import verify_postgres_connection
 
 
 @patch("subprocess.run")

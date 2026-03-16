@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.ml.utils.validation import WalkForwardValidator
+from services.ml.utils.validation import WalkForwardValidator
 
 
 def test_walk_forward_split():

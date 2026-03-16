@@ -3,11 +3,11 @@ from unittest.mock import ANY, MagicMock, patch
 
 import httpx
 
-from src.shared.observability import post_grafana_annotation  # Assuming new function
+from core.shared.observability import post_grafana_annotation  # Assuming new function
 
 
-@patch("src.shared.observability.httpx.post")
-@patch("src.shared.observability.os.environ.get")
+@patch("core.shared.observability.httpx.post")
+@patch("core.shared.observability.os.environ.get")
 def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):
     """Test successful posting of a Grafana annotation."""
     mock_environ_get.return_value = "http://localhost:3000"  # Mock GRAFANA_URL
@@ -28,8 +28,8 @@ def test_post_grafana_annotation_success(mock_environ_get, mock_httpx_post):
     )
 
 
-@patch("src.shared.observability.httpx.post")
-@patch("src.shared.observability.os.environ.get")
+@patch("core.shared.observability.httpx.post")
+@patch("core.shared.observability.os.environ.get")
 def test_post_grafana_annotation_no_grafana_url(mock_environ_get, mock_httpx_post):
     """Test posting annotation when GRAFANA_URL is not set."""
     mock_environ_get.return_value = None  # No GRAFANA_URL
@@ -43,8 +43,8 @@ def test_post_grafana_annotation_no_grafana_url(mock_environ_get, mock_httpx_pos
     mock_httpx_post.assert_not_called()
 
 
-@patch("src.shared.observability.httpx.post")
-@patch("src.shared.observability.os.environ.get")
+@patch("core.shared.observability.httpx.post")
+@patch("core.shared.observability.os.environ.get")
 def test_post_grafana_annotation_api_failure(mock_environ_get, mock_httpx_post):
     """Test posting annotation when Grafana API returns an error."""
     mock_environ_get.return_value = "http://localhost:3000"
@@ -65,8 +65,8 @@ def test_post_grafana_annotation_api_failure(mock_environ_get, mock_httpx_post):
     mock_httpx_post.assert_called_once()
 
 
-@patch("src.shared.observability.httpx.post", side_effect=Exception("Connection error"))
-@patch("src.shared.observability.os.environ.get")
+@patch("core.shared.observability.httpx.post", side_effect=Exception("Connection error"))
+@patch("core.shared.observability.os.environ.get")
 def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_post):
     """Test posting annotation when a connection error occurs."""
     mock_environ_get.return_value = "http://localhost:3000"
@@ -80,9 +80,9 @@ def test_post_grafana_annotation_connection_error(mock_environ_get, mock_httpx_p
     mock_httpx_post.assert_called_once()
 
 
-@patch("src.shared.observability.datetime")
-@patch("src.shared.observability.httpx.post")
-@patch("src.shared.observability.os.environ.get")
+@patch("core.shared.observability.datetime")
+@patch("core.shared.observability.httpx.post")
+@patch("core.shared.observability.os.environ.get")
 def test_post_grafana_annotation_payload_time(mock_environ_get, mock_httpx_post, mock_datetime):
     """Test that the time in the payload is correctly formatted."""
     mock_environ_get.return_value = "http://localhost:3000"

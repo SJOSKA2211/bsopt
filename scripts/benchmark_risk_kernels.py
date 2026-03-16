@@ -3,7 +3,7 @@ import time
 import numpy as np
 import structlog
 
-from src.trading.risk_kernels import IncrementalDeltaTracker, _validate_order_kernel
+from core.trading.risk_kernels import IncrementalDeltaTracker, _validate_order_kernel
 
 logger = structlog.get_logger()
 
@@ -30,7 +30,7 @@ def benchmark():
     )
 
     # 4. Benchmark Combined God-Tier Risk Kernel (Simulation of absolute hot loop)
-    from src.trading.risk_kernels import _full_risk_check_kernel
+    from core.trading.risk_kernels import _full_risk_check_kernel
 
     state = np.array([0.0], dtype=np.float64)
     start = time.perf_counter()

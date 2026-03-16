@@ -6,7 +6,7 @@ from pathlib import Path
 import structlog
 import yaml
 
-from src.tasks.ml_tasks import train_model_task
+from services.workers.tasks.ml_tasks import train_model_task
 
 logger = structlog.get_logger(__name__)
 

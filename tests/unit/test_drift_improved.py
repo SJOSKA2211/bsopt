@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.ml.drift import (
+from services.ml.drift import (
     DriftTrigger,
     PerformanceDriftMonitor,
     calculate_ks_test,

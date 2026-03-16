@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from src.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
+from services.quant.pricing.quant_utils import batch_bs_price_jit, batch_greeks_jit
 
 
 @pytest.fixture

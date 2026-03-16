@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.pricing.models import OptionGreeks
-from src.pricing.monte_carlo import (
+from services.quant.pricing.models import OptionGreeks
+from services.quant.pricing.monte_carlo import (
     BSParameters,
     MCConfig,
     MonteCarloEngine,

@@ -14,7 +14,7 @@ async def seed_core():
     """
     High-Performance Seeding: Uses native DB procedures for security and speed.
     """
-    from src.database import db_manager
+    from core.database import db_manager
 
     db_manager.initialize()
     engine = db_manager.async_engine

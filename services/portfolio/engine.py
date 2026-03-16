@@ -6,7 +6,7 @@ import ray
 import structlog
 from scipy.cluster.hierarchy import linkage
 
-from src.utils.distributed import RayOrchestrator
+from core.shared.distributed import RayOrchestrator
 
 logger = structlog.get_logger()
 
@@ -113,7 +113,7 @@ class BacktestEngine:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
         # 2. Vectorized P&L Calculation using Numba Kernel
-        from src.trading.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
+        from core.trading.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
 
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)

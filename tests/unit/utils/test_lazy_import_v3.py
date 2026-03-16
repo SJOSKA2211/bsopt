@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.utils import lazy_import
+from core.shared import lazy_import
 
 
 def test_lazy_import_success():

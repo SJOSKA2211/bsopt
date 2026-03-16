@@ -4,13 +4,13 @@ from datetime import UTC, datetime
 import structlog
 from fastapi import FastAPI
 
-from src.api.responses import MsgspecJSONResponse
-from src.api.websockets.manager import manager as ws_manager
-from src.data.xdp_ingest import XDPIngester
-from src.database.pipeliner import db_engine
-from src.shared.eternal_ledger import EternalLedger
-from src.shared.observability import setup_logging, tune_gc
-from src.streaming.kafka_consumer import MarketDataConsumer
+from services.api.responses import MsgspecJSONResponse
+from services.api.websockets.manager import manager as ws_manager
+from core.data.xdp_ingest import XDPIngester
+from core.database.pipeliner import db_engine
+from core.shared.eternal_ledger import EternalLedger
+from core.shared.observability import setup_logging, tune_gc
+from services.workers.streaming.kafka_consumer import MarketDataConsumer
 
 # Optimized event loop
 try:
@@ -102,8 +102,8 @@ class PersistenceWorker:
                     self.market_queue.task_done()
 
     async def _persist_audit_logs(self):
-        from src.database import get_async_db_context
-        from src.database.crud import bulk_insert_audit_logs
+        from core.database import get_async_db_context
+        from core.database.crud import bulk_insert_audit_logs
 
         while self.running:
             batch = await self.audit_queue.get()

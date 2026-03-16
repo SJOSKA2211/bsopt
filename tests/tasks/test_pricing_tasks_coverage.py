@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.tasks.pricing_tasks import (
+from services.workers.tasks.pricing_tasks import (
     batch_price_options_task,
     calculate_implied_volatility_task,
     generate_volatility_surface_task,
@@ -11,9 +11,9 @@ from src.tasks.pricing_tasks import (
 )
 
 
-@patch("src.tasks.pricing_tasks.calculate_greeks_scalar")
-@patch("src.tasks.pricing_tasks.calculate_price_scalar")
-@patch("src.tasks.pricing_tasks.pricing_cache")
+@patch("services.workers.tasks.pricing_tasks.calculate_greeks_scalar")
+@patch("services.workers.tasks.pricing_tasks.calculate_price_scalar")
+@patch("services.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_success(mock_cache, mock_price, mock_greeks):
     # Mocking async methods
 
@@ -42,7 +42,7 @@ def test_price_option_task_success(mock_cache, mock_price, mock_greeks):
     assert mock_cache.set_option_price.called
 
 
-@patch("src.tasks.pricing_tasks.pricing_cache")
+@patch("services.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_cache_hit(mock_cache):
     async def mock_get(*args, **kwargs):
         return 20.0
@@ -58,8 +58,8 @@ def test_price_option_task_cache_hit(mock_cache):
     assert result["cache_hit"] is True
 
 
-@patch("src.tasks.pricing_tasks.calculate_greeks")
-@patch("src.tasks.pricing_tasks.calculate_price")
+@patch("services.workers.tasks.pricing_tasks.calculate_greeks")
+@patch("services.workers.tasks.pricing_tasks.calculate_price")
 def test_batch_price_options_task_vectorized(mock_price, mock_greeks):
     # Mocking success case
 
@@ -83,7 +83,7 @@ def test_batch_price_options_task_vectorized(mock_price, mock_greeks):
     assert result["vectorized"] is True
 
 
-@patch("src.tasks.pricing_tasks.implied_volatility")
+@patch("services.workers.tasks.pricing_tasks.implied_volatility")
 def test_calculate_implied_volatility_task(mock_iv):
     mock_iv.return_value = 0.25
 
@@ -127,7 +127,7 @@ def test_price_option_task_invalid_type():
         )
 
 
-@patch("src.tasks.pricing_tasks.pricing_cache")
+@patch("services.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_cache_exception(mock_cache):
     # Trigger exception in cache lookup
 
@@ -144,9 +144,9 @@ def test_price_option_task_cache_exception(mock_cache):
     assert result["cache_hit"] is False
 
 
-@patch("src.tasks.pricing_tasks.calculate_greeks_scalar")
-@patch("src.tasks.pricing_tasks.calculate_price_scalar")
-@patch("src.tasks.pricing_tasks.pricing_cache")
+@patch("services.workers.tasks.pricing_tasks.calculate_greeks_scalar")
+@patch("services.workers.tasks.pricing_tasks.calculate_price_scalar")
+@patch("services.workers.tasks.pricing_tasks.pricing_cache")
 def test_price_option_task_cache_set_exception(mock_cache, mock_price, mock_greeks):
     mock_cache.get_option_price.return_value = None
 
@@ -163,7 +163,7 @@ def test_price_option_task_cache_set_exception(mock_cache, mock_price, mock_gree
     assert result["price"] == 15.0
 
 
-@patch("src.tasks.pricing_tasks.calculate_price_scalar")
+@patch("services.workers.tasks.pricing_tasks.calculate_price_scalar")
 def test_price_option_task_general_exception(mock_price):
     mock_price.side_effect = Exception("General error")
 

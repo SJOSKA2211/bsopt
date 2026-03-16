@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import create_engine, inspect
 
-from src.database.models import MarketTick
+from core.database.models import MarketTick
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 import asyncio
 
-from src.scrapers.engine import NSEScraper
+from services.scrapers.engine import NSEScraper
 
 
 async def test():

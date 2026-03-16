@@ -12,13 +12,13 @@ sys.modules["strawberry.federation"] = MagicMock()
 
 # Mock setup_logging and warmup_jit to avoid side effects
 with (
-    patch("src.shared.observability.setup_logging"),
-    patch("src.shared.observability.logging_middleware"),
-    patch("src.pricing.quant_utils.warmup_jit"),
-    patch("src.shared.observability.tune_gc"),
+    patch("core.shared.observability.setup_logging"),
+    patch("core.shared.observability.logging_middleware"),
+    patch("services.quant.pricing.quant_utils.warmup_jit"),
+    patch("core.shared.observability.tune_gc"),
     patch("strawberry.fastapi.GraphQLRouter"),
 ):
-    from src.pricing.main import app
+    from services.quant.pricing.main import app
 
 
 class TestPricingMain(unittest.TestCase):

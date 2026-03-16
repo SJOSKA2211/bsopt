@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../s
 
 def test_trading_env_initialization():
     """Verify that the environment initializes with correct spaces."""
-    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+    from services.ml.reinforcement_learning.trading_env import TradingEnvironment
 
     mock_data_provider = MagicMock()
     window_size = 5
@@ -30,7 +30,7 @@ def test_trading_env_initialization():
 
 def test_trading_env_reset():
     """Verify that reset returns a valid initial observation."""
-    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+    from services.ml.reinforcement_learning.trading_env import TradingEnvironment
 
     mock_data_provider = MagicMock()
     window_size = 5
@@ -53,7 +53,7 @@ def test_trading_env_reset():
 
 def test_trading_env_step():
     """Verify that step function processes actions and returns expected outputs."""
-    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+    from services.ml.reinforcement_learning.trading_env import TradingEnvironment
 
     mock_data_provider = MagicMock()
     window_size = 5
@@ -85,7 +85,7 @@ def test_trading_env_step():
 
 def test_trading_env_drawdown_truncation():
     """Verify that the environment truncates on excessive drawdown."""
-    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+    from services.ml.reinforcement_learning.trading_env import TradingEnvironment
 
     mock_data_provider = MagicMock()
     env = TradingEnvironment(data_provider=mock_data_provider, initial_balance=1000)

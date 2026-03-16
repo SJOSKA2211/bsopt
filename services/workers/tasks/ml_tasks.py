@@ -18,8 +18,8 @@ logger = structlog.get_logger(__name__)
 _IMPORT_MAP = {
     "mlflow": "mlflow",
     "pd": "pandas",
-    "ModelQuantizer": "src.ml.serving.quantization.ModelQuantizer",
-    "calc_metrics": "src.ml.evaluation.metrics.calculate_regression_metrics",
+    "ModelQuantizer": "services.ml.serving.quantization.ModelQuantizer",
+    "calc_metrics": "services.ml.evaluation.metrics.calculate_regression_metrics",
 }
 
 

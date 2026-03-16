@@ -4,7 +4,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.middleware.security import (
+from services.api.middleware.security import (
     CSRFMiddleware,
     InputSanitizationMiddleware,
     IPBlockMiddleware,
@@ -73,7 +73,7 @@ def test_jwt_auth_legacy_bypass():
 @pytest.mark.asyncio
 async def test_jwt_auth_verify_fail():
     with patch(
-        "src.api.middleware.security.auth_registry.verify_any",
+        "services.api.middleware.security.auth_registry.verify_any",
         side_effect=Exception("Invalid"),
     ):
         response = client.get("/test_route_path", headers={"Authorization": "Bearer bad-token"})
@@ -83,7 +83,7 @@ async def test_jwt_auth_verify_fail():
 def test_input_sanitization():
     # Should log warning for suspicious pattern
     # Add auth to get past JWT middleware
-    with patch("src.api.middleware.security.logger.warning") as mock_log:
+    with patch("services.api.middleware.security.logger.warning") as mock_log:
         client.post(
             "/test_route_path",
             params={"q": "<script>alert(1)</script>"},

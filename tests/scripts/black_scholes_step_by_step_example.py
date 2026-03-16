@@ -8,7 +8,7 @@ showing each computational step for educational and verification purposes.
 import numpy as np
 from scipy.stats import norm
 
-from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
 
 def step_by_step_calculation():

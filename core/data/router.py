@@ -4,8 +4,8 @@ import time
 import structlog
 from prometheus_client import Counter, Histogram
 
-from src.api.providers import PolygonProvider, YahooProvider
-from src.scrapers.engine import NSEScraper
+from services.api.providers import PolygonProvider, YahooProvider
+from services.scrapers.engine import NSEScraper
 
 logger = structlog.get_logger()
 
@@ -34,7 +34,7 @@ class MarketDataRouter:
         self.nse = NSEScraper()
         self.polygon = PolygonProvider()
         self.yahoo = YahooProvider()
-        from src.utils.cache import get_redis
+        from core.shared.cache import get_redis
 
         self.redis = get_redis()
 

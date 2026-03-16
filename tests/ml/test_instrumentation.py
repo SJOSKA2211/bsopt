@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
-from src.ml.trainer import InstrumentedTrainer
+from services.ml.autonomous_pipeline import AutonomousMLPipeline
+from services.ml.trainer import InstrumentedTrainer
 
 
 @pytest.fixture
@@ -34,10 +34,10 @@ def test_trainer_new_prometheus_metrics(sample_data):
     X, y = sample_data
     trainer = InstrumentedTrainer(study_name="metrics_test")
 
-    # Patch where they are used (src.ml.trainer)
+    # Patch where they are used (services.ml.trainer)
     with (
-        patch("src.ml.trainer.TRAINING_DURATION") as mock_hist,
-        patch("src.ml.trainer.MODEL_RMSE") as mock_rmse,
+        patch("services.ml.trainer.TRAINING_DURATION") as mock_hist,
+        patch("services.ml.trainer.MODEL_RMSE") as mock_rmse,
     ):
         mock_hist_labels = MagicMock()
         mock_hist.labels.return_value = mock_hist_labels
@@ -63,8 +63,8 @@ def test_trainer_error_metrics(sample_data):
     trainer = InstrumentedTrainer(study_name="error_test")
 
     with (
-        patch("src.ml.trainer.TRAINING_ERRORS") as mock_errors,
-        patch("src.ml.trainer.train_test_split", side_effect=Exception("Simulated crash")),
+        patch("services.ml.trainer.TRAINING_ERRORS") as mock_errors,
+        patch("services.ml.trainer.train_test_split", side_effect=Exception("Simulated crash")),
     ):
         mock_errors_labels = MagicMock()
         mock_errors.labels.return_value = mock_errors_labels
@@ -82,7 +82,7 @@ def test_structlog_configuration():
     """Verify that structlog is configured correctly."""
     import structlog
 
-    from src.shared.observability import setup_logging
+    from core.shared.observability import setup_logging
 
     setup_logging()
 
@@ -107,11 +107,11 @@ async def test_pipeline_scrape_execution():
 
     # Test Error Path
     with (
-        patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
-        patch("src.ml.autonomous_pipeline.get_async_db_context"),
-        patch("src.ml.autonomous_pipeline.create_engine"),
-        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
-        patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor"),
+        patch("services.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
+        patch("services.ml.autonomous_pipeline.get_async_db_context"),
+        patch("services.ml.autonomous_pipeline.create_engine"),
+        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("services.ml.autonomous_pipeline.PerformanceDriftMonitor"),
     ):
         mock_scraper = mock_scraper_cls.return_value
         mock_scraper.fetch_historical_data.side_effect = Exception("API Fail")
@@ -126,13 +126,13 @@ async def test_pipeline_scrape_execution():
 
     # Test Success Path
     with (
-        patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
-        patch("src.ml.autonomous_pipeline.calculate_psi") as mock_psi,
-        patch("src.ml.autonomous_pipeline.get_async_db_context"),
-        patch("src.ml.autonomous_pipeline.create_engine"),
-        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
-        patch("src.ml.autonomous_pipeline.InstrumentedTrainer"),
-        patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor"),
+        patch("services.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
+        patch("services.ml.autonomous_pipeline.calculate_psi") as mock_psi,
+        patch("services.ml.autonomous_pipeline.get_async_db_context"),
+        patch("services.ml.autonomous_pipeline.create_engine"),
+        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("services.ml.autonomous_pipeline.InstrumentedTrainer"),
+        patch("services.ml.autonomous_pipeline.PerformanceDriftMonitor"),
     ):
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd

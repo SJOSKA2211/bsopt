@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from src.shared import math_utils
+from core.shared import math_utils
 
 
 def test_fast_normal_cdf_scalar():

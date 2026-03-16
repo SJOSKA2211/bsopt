@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import the FastAPI app AFTER patching
-from src.api.main import app
+from services.api.main import app
 
 client = TestClient(app)
 
@@ -20,10 +20,10 @@ def test_get_import_diagnostics():
     assert data["failed_imports"] == 1
     assert data["total_import_time_seconds"] == pytest.approx(0.12345)
     assert len(data["slowest_imports"]) == 2
-    assert data["slowest_imports"][0]["module"] == "src.ml.HeavyModel"
+    assert data["slowest_imports"][0]["module"] == "services.ml.HeavyModel"
     assert data["slowest_imports"][0]["duration_ms"] == pytest.approx(50.0)
-    assert "src.ml.BrokenModule" in data["failures"]
-    assert data["failures"]["src.ml.BrokenModule"] == "ModuleNotFoundError"
+    assert "services.ml.BrokenModule" in data["failures"]
+    assert data["failures"]["services.ml.BrokenModule"] == "ModuleNotFoundError"
 
 
 def test_health_check():

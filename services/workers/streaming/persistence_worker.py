@@ -4,9 +4,9 @@ from datetime import datetime
 
 import structlog
 
-from src.database import db_manager
-from src.database.crud import bulk_insert_market_ticks
-from src.streaming.kafka_consumer import MarketDataConsumer
+from core.database import db_manager
+from core.database.crud import bulk_insert_market_ticks
+from services.workers.streaming.kafka_consumer import MarketDataConsumer
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +36,7 @@ async def persist_ticks(batch: list[dict], topic: str):
                 }
             )
         except Exception as e:
-            from src.streaming.dlq import dlq_manager
+            from services.workers.streaming.dlq import dlq_manager
             await dlq_manager.send_to_dlq(tick, str(e), topic)
 
     async with db_manager.get_async_session() as db:
@@ -46,7 +46,7 @@ async def persist_ticks(batch: list[dict], topic: str):
         except Exception as e:
             logger.error("kafka_persistence_failed", error=str(e), topic=topic)
             # In case of bulk failure, we could retry individually or DLQ the batch
-            from src.streaming.dlq import dlq_manager
+            from services.workers.streaming.dlq import dlq_manager
             for tick in batch:
                 await dlq_manager.send_to_dlq(tick, f"Bulk failure: {str(e)}", topic)
 

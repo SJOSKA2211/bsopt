@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
+from services.api.main import app
 
 
 def test_root_endpoint():
@@ -36,7 +36,7 @@ def test_http_exception_handler():
 
 
 def test_admin_only_success():
-    from src.auth.security import RoleChecker, verify_token
+    from services.auth.security import RoleChecker, verify_token
 
     # Bypass verify_token and RoleChecker
     app.dependency_overrides[verify_token] = lambda: {"realm_access": {"roles": ["admin"]}}
@@ -53,7 +53,7 @@ def test_admin_only_success():
 
 @pytest.mark.asyncio
 async def test_graphql_context():
-    from src.api.main import get_context
+    from services.api.main import get_context
 
     request = MagicMock()
 

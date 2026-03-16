@@ -39,9 +39,9 @@ celery_app.conf.task_default_queue = "webhooks"
 
 # Lazy Import Map
 _IMPORT_MAP = {
-    "get_redis": "src.utils.cache.get_redis",
-    "DistributedCircuitBreaker": "src.utils.circuit_breaker.DistributedCircuitBreaker",
-    "InMemoryCircuitBreaker": "src.utils.circuit_breaker.InMemoryCircuitBreaker",
+    "get_redis": "core.shared.cache.get_redis",
+    "DistributedCircuitBreaker": "core.shared.circuit_breaker.DistributedCircuitBreaker",
+    "InMemoryCircuitBreaker": "core.shared.circuit_breaker.InMemoryCircuitBreaker",
 }
 
 

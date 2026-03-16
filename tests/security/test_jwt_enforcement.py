@@ -12,14 +12,14 @@ mock_auth = MagicMock()
 mock_auth.auth_service.validate_token.return_value.user_id = "user123"
 mock_auth.auth_service.validate_token.return_value.email = "test@example.com"
 mock_auth.auth_service.validate_token.return_value.tier = "free"
-sys.modules["src.security.auth"] = mock_auth
+sys.modules["core.security.auth"] = mock_auth
 
 # Mock config settings
 mock_config = MagicMock()
 mock_config.settings.ENVIRONMENT = "dev"
-sys.modules["src.config"] = mock_config
+sys.modules["core.shared.config"] = mock_config
 
-from src.api.middleware.security import JWTAuthenticationMiddleware  # noqa: E402
+from services.api.middleware.security import JWTAuthenticationMiddleware  # noqa: E402
 
 app = FastAPI()
 app.add_middleware(JWTAuthenticationMiddleware)

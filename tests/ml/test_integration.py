@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from services.ml.autonomous_pipeline import AutonomousMLPipeline
 
 
 @pytest.fixture
@@ -18,12 +18,12 @@ def mock_config():
     }
 
 
-@patch("src.ml.autonomous_pipeline.MarketDataScraper")
-@patch("src.ml.autonomous_pipeline.get_db_session")
-@patch("src.ml.autonomous_pipeline.InstrumentedTrainer")
-@patch("src.ml.autonomous_pipeline.calculate_ks_test")
-@patch("src.ml.autonomous_pipeline.PerformanceDriftMonitor")
-@patch("src.ml.autonomous_pipeline.setup_logging")
+@patch("services.ml.autonomous_pipeline.MarketDataScraper")
+@patch("services.ml.autonomous_pipeline.get_db_session")
+@patch("services.ml.autonomous_pipeline.InstrumentedTrainer")
+@patch("services.ml.autonomous_pipeline.calculate_ks_test")
+@patch("services.ml.autonomous_pipeline.PerformanceDriftMonitor")
+@patch("services.ml.autonomous_pipeline.setup_logging")
 def test_pipeline_run(
     mock_setup_logging,
     mock_drift_monitor_class,

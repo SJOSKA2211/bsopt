@@ -3,7 +3,7 @@ import traceback
 try:
     import numpy as np
 
-    from src.shared.math_utils import _vec_price_impl
+    from core.shared.math_utils import _vec_price_impl
 
     S = np.array([100.0], dtype=np.float64)
     K = np.array([100.0], dtype=np.float64)

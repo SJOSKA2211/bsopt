@@ -1,4 +1,4 @@
-from src.ml.data_loader import DataNormalizer
+from services.ml.data_loader import DataNormalizer
 
 
 def test_normalize_incomplete_scraper_data():

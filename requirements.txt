@@ -1,7 +1,3 @@
-# Consolidated Requirements (Generated from pyproject.toml)
-# Includes Core, API, Auth, ML, and Distributed dependencies
-
-# Core
 numpy>=1.26.4,<2.3
 pandas>=2.3.3
 scipy<1.15.0
@@ -9,8 +5,8 @@ numba>=0.58.0
 structlog>=25.5.0
 orjson>=3.9.0
 msgspec>=0.18.0
-pydantic>=2.9.2
-pydantic-settings>=2.5.2
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
 sqlalchemy[asyncio]>=2.0.45
 asyncpg>=0.29.0
 psycopg2-binary>=2.9.9
@@ -20,73 +16,18 @@ redis[hiredis]==5.2.0
 python-dotenv>=1.0.0
 httpx[http2]>=0.27.0
 rich>=13.7.0
-selectolax>=0.3.21
-yfinance>=0.2.40
 aiolimiter>=1.1.0
 tenacity>=8.3.0
+selectolax>=0.3.21
+yfinance>=0.2.40
+prometheus-client>=0.20.0
+prometheus_api_client>=0.5.0
 eth_account
 minio
-prometheus-client>=0.20.0
-
-# API Extra
-fastapi>=0.111.0
-uvicorn[standard]>=0.30.0
-granian>=1.5.0
-uvloop>=0.19.0
-python-multipart>=0.0.9
-strawberry-graphql[fastapi,federation]~=0.200
-brotli-asgi>=1.4.0
-gunicorn==22.0.0
-
-# Auth Extra
-bcrypt==4.1.2
-qrcode>=7.4.2
-cryptography>=44.0.1
-PyJWT==2.8.0
-pyotp
-pwnedpasswords
-argon2-cffi
-email-validator==2.1.1
-authlib>=1.3.0
-
-# ML Extra
-torch>=2.2.0
-lightning>=2.2.0
-pytorch-forecasting>=1.0.0
-torch-geometric>=2.5.0
-dask>=2024.2.0
-distributed>=2024.2.0
-xgboost>=2.0.0
-scikit-learn>=1.4.0
-mlflow>=2.11.0
-optuna>=3.6.0
-gymnasium>=0.29.1
-stable-baselines3>=2.2.1
-
-# Distributed Extra
-ray[default,train,tune]>=2.30.0
-celery>=5.4.0
-aio_pika>=9.4.0
-confluent-kafka>=2.3.0
-grpclib>=0.4.7
-
-# Quant Extra
-qiskit>=1.0.0
-qiskit-aer>=0.13.0
-qiskit-algorithms>=0.3.0
-wasmer>=1.1.0
-wasmer-compiler-cranelift>=1.1.0
-web3>=7.0.0
-websockets>=12.0
-cachetools
-grpcio
-grpcio-tools
-
-# Observability Extra
-opentelemetry-api>=1.25.0
-opentelemetry-sdk>=1.25.0
-opentelemetry-exporter-otlp>=1.25.0
-opentelemetry-instrumentation-fastapi>=0.46b0
-opentelemetry-instrumentation-sqlalchemy>=0.46b0
-opentelemetry-instrumentation-redis>=0.46b0
-opentelemetry-instrumentation-celery>=0.46b0
+alembic>=1.13.0
+aio-pika>=9.4.0
+evidently>=0.4.0
+opentelemetry-api>=1.24.0
+opentelemetry-sdk>=1.24.0
+opentelemetry-instrumentation-fastapi>=0.45b0
+opentelemetry-exporter-otlp>=1.24.0

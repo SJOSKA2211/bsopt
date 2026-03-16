@@ -36,7 +36,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN uv pip install --system maturin
 ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
-RUN cd src/core && maturin build --release --out /tmp/wheels
+RUN cd core && maturin build --release --out /tmp/wheels
 RUN uv pip install --system /tmp/wheels/*.whl
 
 # Stage 2: Final CI/Test Image
@@ -59,7 +59,7 @@ COPY . .
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV BSOPT_TEST_MODE=1
-ENV PYTHONPATH=/app/src:/app
+ENV PYTHONPATH=/app
 ENV NUMBA_DISABLE_JIT=1
 
 # Default command for CI/Test runs

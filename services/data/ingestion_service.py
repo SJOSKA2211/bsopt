@@ -9,8 +9,8 @@ except ImportError:
     equaflow_core = None
 
 
-from src.protos import data_pb2, data_pb2_grpc
-from src.streaming.kafka_producer import MarketDataProducer
+from core.protos import data_pb2, data_pb2_grpc
+from services.workers.streaming.kafka_producer import MarketDataProducer
 
 logger = structlog.get_logger(__name__)
 

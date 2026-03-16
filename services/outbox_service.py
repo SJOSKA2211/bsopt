@@ -11,9 +11,9 @@ from datetime import UTC, datetime
 import structlog
 from sqlalchemy import select
 
-from src.database import get_async_db_context
-from src.database.models import OutboxEvent
-from src.utils.redis_streams import RedisStreamManager
+from core.database import get_async_db_context
+from core.database.models import OutboxEvent
+from core.shared.redis_streams import RedisStreamManager
 
 logger = structlog.get_logger(__name__)
 

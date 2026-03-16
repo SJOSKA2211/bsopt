@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.ml.indicators import get_adx, get_atr, get_bbands, get_ema, get_macd, get_rsi
+from services.ml.indicators import get_adx, get_atr, get_bbands, get_ema, get_macd, get_rsi
 
 
 class TestIndicators(unittest.TestCase):

@@ -9,7 +9,7 @@ sys.modules["xgboost"] = MagicMock()
 sys.modules["dask"] = MagicMock()
 sys.modules["dask.distributed"] = MagicMock()
 
-from src.ml.strategies import (
+from services.ml.strategies import (
     PyTorchStrategy,
     SklearnStrategy,
     XGBoostStrategy,
@@ -48,8 +48,8 @@ class TestStrategies(unittest.TestCase):
         preds = s.predict(model, self.X_test)
         self.assertEqual(len(preds), 20)
 
-    @patch("src.ml.strategies.xgb.train")
-    @patch("src.ml.strategies.xgb.DMatrix")
+    @patch("services.ml.strategies.xgb.train")
+    @patch("services.ml.strategies.xgb.DMatrix")
     def test_xgboost_strategy(self, mock_dmatrix, mock_train):
         mock_model = MagicMock()
         mock_model.best_iteration = 5

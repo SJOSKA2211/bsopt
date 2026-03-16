@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from src.ml.serving.serve import app, state
+from services.ml.serving.serve import app, state
 
 client = TestClient(app)
 

@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.pricing.implied_vol import (
+from services.quant.pricing.implied_vol import (
     implied_volatility,
     vectorized_implied_volatility,
 )

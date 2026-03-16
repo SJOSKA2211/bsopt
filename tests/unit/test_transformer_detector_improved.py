@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.aiops.transformer_detector import TransformerAnomalyDetector
+from services.ml.aiops.transformer_detector import TransformerAnomalyDetector
 
 
 class TestTransformerDetectorReal(unittest.TestCase):

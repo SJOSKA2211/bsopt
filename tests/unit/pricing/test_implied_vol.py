@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.pricing.black_scholes import BlackScholesEngine
-from src.pricing.implied_vol import (
+from services.quant.pricing.black_scholes import BlackScholesEngine
+from services.quant.pricing.implied_vol import (
     ImpliedVolatilityError,
     implied_volatility,
     vectorized_implied_volatility,

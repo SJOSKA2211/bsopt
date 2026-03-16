@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from src.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
+from services.ml.monitoring.mmd import MultivariateDriftDetector, calculate_mmd
 
 
 class TestMMD(unittest.TestCase):

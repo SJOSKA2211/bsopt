@@ -75,7 +75,7 @@ class DataPipeline:
 
         # In a real implementation, this would trigger scrapers or XDP ingest
         # For now, we verify database connectivity and latest sample count
-        from src.database.pipeliner import db_engine
+        from core.database.pipeliner import db_engine
 
         data = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
@@ -95,13 +95,13 @@ class DataPipeline:
         Load the latest collected data from Postgres.
         Returns: (X, y, feature_names, metadata)
         """
-        from src.database.pipeliner import db_engine
+        from core.database.pipeliner import db_engine
 
         #  OPTIMIZATION: Use native async fetch
         records = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
         if not records:
-            from src.ml.training.data_gen import (
+            from services.ml.training.data_gen import (
                 generate_synthetic_data_numba as generate_synthetic_data,
             )
 

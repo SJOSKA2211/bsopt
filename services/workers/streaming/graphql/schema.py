@@ -94,7 +94,7 @@ class MeshListener:
                 self._task = None
 
     async def _run(self):
-        from src.shared.shm_mesh import SharedMemoryRingBuffer
+        from core.shared.shm_mesh import SharedMemoryRingBuffer
 
         try:
             mesh = SharedMemoryRingBuffer(create=False)

@@ -6,9 +6,9 @@ from typing import Any
 from fastapi import Depends, FastAPI, Request
 from strawberry.fastapi import GraphQLRouter
 
-from src.portfolio.graphql.schema import schema
-from src.shared.observability import logging_middleware, setup_logging, tune_gc
-from src.shared.security import opa_authorize, verify_mtls
+from services.portfolio.graphql.schema import schema
+from core.shared.observability import logging_middleware, setup_logging, tune_gc
+from core.shared.security import opa_authorize, verify_mtls
 
 # Optimized event loop
 try:
@@ -19,7 +19,7 @@ except ImportError:
     pass
 
 
-from src.api.responses import MsgspecJSONResponse
+from services.api.responses import MsgspecJSONResponse
 
 
 @asynccontextmanager
@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     tune_gc()
 
     # Initialize Redis for caching if needed
-    from src.config import settings
-    from src.utils.cache import init_redis_cache
+    from core.shared.config import settings
+    from core.shared.cache import init_redis_cache
 
     await init_redis_cache(
         host=settings.REDIS_HOST,
@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
     # Shutdown logic
-    from src.database import dispose_engine
+    from core.database import dispose_engine
 
     await dispose_engine()
 
@@ -75,6 +75,6 @@ app.include_router(graphql_app, prefix="/graphql", dependencies=security_deps)
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    from src.database import health_check
+    from core.database import health_check
 
     return {"status": "healthy", "database": health_check()}

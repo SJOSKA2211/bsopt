@@ -1,6 +1,6 @@
 import unittest
 
-from src.shared.shm_mesh import SharedMemoryRingBuffer
+from core.shared.shm_mesh import SharedMemoryRingBuffer
 
 
 class TestSHMMesh(unittest.TestCase):

@@ -2,7 +2,7 @@ import aio_pika
 import msgspec
 import structlog
 
-from src.config import settings
+from core.shared.config import settings
 
 from .base import Producer
 

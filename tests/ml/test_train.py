@@ -2,19 +2,19 @@ from unittest.mock import ANY, MagicMock, PropertyMock, patch
 
 import pytest
 
-from src.ml.reinforcement_learning.train import train_td3
+from services.ml.reinforcement_learning.train import train_td3
 
 
 @pytest.fixture
 def mock_mlflow():
-    with patch("src.ml.reinforcement_learning.train.mlflow") as mock:
+    with patch("services.ml.reinforcement_learning.train.mlflow") as mock:
         mock.start_run.return_value.__enter__.return_value = MagicMock()
         yield mock
 
 
 @pytest.fixture
 def mock_td3():
-    with patch("src.ml.reinforcement_learning.train.TD3") as mock:
+    with patch("services.ml.reinforcement_learning.train.TD3") as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock
@@ -26,7 +26,7 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     model_path = "tmp/test_model"
 
     # Mock eval_callback to avoid AttributeError if implementation expects results from it
-    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+    with patch("services.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
         mock_eval_instance = MagicMock()
         mock_eval_instance.last_mean_reward = [10.0]
         mock_eval.return_value = mock_eval_instance
@@ -55,10 +55,10 @@ def test_train_td3_initialization(mock_mlflow, mock_td3):
     assert result["model_path"] == model_path
 
 
-@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
-@patch("src.ml.reinforcement_learning.train.ray.init")
-@patch("src.ml.reinforcement_learning.train.ray.get")
-@patch("src.ml.reinforcement_learning.train.train_td3_remote.remote")
+@patch("services.ml.reinforcement_learning.train.RAY_AVAILABLE", True)
+@patch("services.ml.reinforcement_learning.train.ray.init")
+@patch("services.ml.reinforcement_learning.train.ray.get")
+@patch("services.ml.reinforcement_learning.train.train_td3_remote.remote")
 def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ray_init):
     """Test the train_distributed function."""
     mock_train_td3_remote.return_value = "future_object"
@@ -69,7 +69,7 @@ def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ra
     ]
     mock_ray_get.return_value = mock_results
 
-    from src.ml.reinforcement_learning.train import train_distributed
+    from services.ml.reinforcement_learning.train import train_distributed
 
     num_instances = 2
     total_timesteps = 50
@@ -91,7 +91,7 @@ def test_train_distributed_function(mock_train_td3_remote, mock_ray_get, mock_ra
 def test_train_td3_logs_params(mock_mlflow, mock_td3):
     """Test that train_td3 logs parameters to MLflow."""
     # Mock eval_callback
-    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+    with patch("services.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
         mock_eval.return_value.last_mean_reward = [10.0]
         train_td3(total_timesteps=100)
 
@@ -104,7 +104,7 @@ def test_train_td3_logs_params(mock_mlflow, mock_td3):
 def test_train_td3_logs_model(mock_mlflow, mock_td3):
     """Test that train_td3 logs model to MLflow."""
     # Mock eval_callback
-    with patch("src.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
+    with patch("services.ml.reinforcement_learning.train.EvalCallback") as mock_eval:
         mock_eval.return_value.last_mean_reward = [10.0]
         train_td3(total_timesteps=100)
 
@@ -113,7 +113,7 @@ def test_train_td3_logs_model(mock_mlflow, mock_td3):
 
 def test_main_function():
     """Test the main function of train.py."""
-    with patch("src.ml.reinforcement_learning.train.train_td3") as mock_train:
+    with patch("services.ml.reinforcement_learning.train.train_td3") as mock_train:
         with patch("argparse.ArgumentParser.parse_args") as mock_args:
             mock_args.return_value = MagicMock(
                 timesteps=1000,
@@ -122,16 +122,16 @@ def test_main_function():
                 instances=2,
                 ray_address="auto",
             )
-            from src.ml.reinforcement_learning.train import main
+            from services.ml.reinforcement_learning.train import main
 
             main()
             mock_train.assert_called_once_with(total_timesteps=1000, model_path="test_model")
 
 
-@patch("src.ml.reinforcement_learning.train.mlflow")
+@patch("services.ml.reinforcement_learning.train.mlflow")
 def test_mlflow_callback(mock_mlflow_cb):
     """Test the custom MLflow callback directly."""
-    from src.ml.reinforcement_learning.train import MLflowMetricsCallback
+    from services.ml.reinforcement_learning.train import MLflowMetricsCallback
 
     callback = MLflowMetricsCallback()
 
@@ -160,12 +160,12 @@ def test_mlflow_callback(mock_mlflow_cb):
         assert metrics["rollout/ep_rew_mean"] == 10.0
 
 
-@patch("src.ml.reinforcement_learning.train.RAY_AVAILABLE", False)
+@patch("services.ml.reinforcement_learning.train.RAY_AVAILABLE", False)
 def test_train_distributed_ray_not_available():
     """Test train_distributed when Ray is not available."""
-    from src.ml.reinforcement_learning.train import train_distributed
+    from services.ml.reinforcement_learning.train import train_distributed
 
-    with patch("src.ml.reinforcement_learning.train.logger.error") as mock_logger_error:
+    with patch("services.ml.reinforcement_learning.train.logger.error") as mock_logger_error:
         result = train_distributed(num_instances=1, total_timesteps=1)
         assert result is None
         mock_logger_error.assert_called_once_with(
@@ -174,8 +174,8 @@ def test_train_distributed_ray_not_available():
         )
 
 
-@patch("src.ml.reinforcement_learning.train.train_td3")
-@patch("src.ml.reinforcement_learning.train.train_distributed")
+@patch("services.ml.reinforcement_learning.train.train_td3")
+@patch("services.ml.reinforcement_learning.train.train_distributed")
 @patch("argparse.ArgumentParser.parse_args")
 def test_main_function_distributed(mock_args, mock_train_distributed, mock_train_td3):
     """Test the main function for distributed training."""
@@ -186,7 +186,7 @@ def test_main_function_distributed(mock_args, mock_train_distributed, mock_train
         instances=3,
         ray_address="auto",
     )
-    from src.ml.reinforcement_learning.train import main
+    from services.ml.reinforcement_learning.train import main
 
     main()
     mock_train_distributed.assert_called_once_with(

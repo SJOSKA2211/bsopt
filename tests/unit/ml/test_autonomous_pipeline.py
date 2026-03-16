@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.ml.autonomous_pipeline import AutonomousMLPipeline
+from services.ml.autonomous_pipeline import AutonomousMLPipeline
 
 
 @pytest.fixture
@@ -35,20 +35,20 @@ def sample_df():
 @pytest.fixture(autouse=True)
 def mock_indicators():
     with (
-        patch("src.ml.autonomous_pipeline._numba_rsi", return_value=np.zeros(100)),
+        patch("services.ml.autonomous_pipeline._numba_rsi", return_value=np.zeros(100)),
         patch(
-            "src.ml.autonomous_pipeline._numba_macd",
+            "services.ml.autonomous_pipeline._numba_macd",
             return_value=(np.zeros(100), np.zeros(100), np.zeros(100)),
         ),
         patch(
-            "src.ml.autonomous_pipeline._numba_bbands",
+            "services.ml.autonomous_pipeline._numba_bbands",
             return_value=(np.zeros(100), np.zeros(100), np.zeros(100)),
         ),
-        patch("src.ml.autonomous_pipeline._numba_atr", return_value=np.zeros(100)),
-        patch("src.ml.autonomous_pipeline._numba_adx", return_value=np.zeros(100)),
-        patch("src.ml.autonomous_pipeline.push_metrics"),
-        patch("src.ml.trainer.ExperimentTracker"),
-        patch("src.ml.tracker.mlflow"),
+        patch("services.ml.autonomous_pipeline._numba_atr", return_value=np.zeros(100)),
+        patch("services.ml.autonomous_pipeline._numba_adx", return_value=np.zeros(100)),
+        patch("services.ml.autonomous_pipeline.push_metrics"),
+        patch("services.ml.trainer.ExperimentTracker"),
+        patch("services.ml.tracker.mlflow"),
     ):
         yield
 
@@ -71,7 +71,7 @@ async def test_generate_features(mock_config, sample_df):
 
 @pytest.mark.asyncio
 async def test_pipeline_run_success(mock_config, sample_df):
-    with patch("src.ml.autonomous_pipeline.DriftTrigger") as mock_trigger_cls:
+    with patch("services.ml.autonomous_pipeline.DriftTrigger") as mock_trigger_cls:
         mock_trigger = mock_trigger_cls.return_value
         mock_trigger.should_retrain.return_value = (True, "drift detected")
 
@@ -84,7 +84,7 @@ async def test_pipeline_run_success(mock_config, sample_df):
         mock_study.best_value = 0.85
         mock_study.best_params = {"n_estimators": 100}
 
-        with patch("src.ml.autonomous_pipeline.InstrumentedTrainer") as mock_trainer_cls:
+        with patch("services.ml.autonomous_pipeline.InstrumentedTrainer") as mock_trainer_cls:
             mock_trainer = mock_trainer_cls.return_value
             mock_trainer.optimize = MagicMock(return_value=mock_study)
 
@@ -92,7 +92,7 @@ async def test_pipeline_run_success(mock_config, sample_df):
             pipeline.get_current_model_performance = AsyncMock(return_value=0.7)
 
             # Mock model export task
-            with patch("src.tasks.ml_tasks.optimize_model_task.delay") as mock_task:
+            with patch("services.workers.tasks.ml_tasks.optimize_model_task.delay") as mock_task:
                 result = await pipeline.run()
 
                 assert result == mock_study
@@ -103,7 +103,7 @@ async def test_pipeline_run_success(mock_config, sample_df):
 
 @pytest.mark.asyncio
 async def test_pipeline_no_retrain(mock_config, sample_df):
-    with patch("src.ml.autonomous_pipeline.DriftTrigger") as mock_trigger_cls:
+    with patch("services.ml.autonomous_pipeline.DriftTrigger") as mock_trigger_cls:
         mock_trigger = mock_trigger_cls.return_value
         mock_trigger.should_retrain.return_value = (False, "no drift")
 

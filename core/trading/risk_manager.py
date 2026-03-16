@@ -2,7 +2,7 @@ from typing import Any
 
 import structlog
 
-from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
+from core.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
 logger = structlog.get_logger(__name__)
 

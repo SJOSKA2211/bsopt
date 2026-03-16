@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from src.pricing.black_scholes import (
+from services.quant.pricing.black_scholes import (
     BlackScholesEngine,
     black_scholes,
     verify_put_call_parity,
 )
-from src.pricing.models import BSParameters
+from services.quant.pricing.models import BSParameters
 
 
 @pytest.fixture

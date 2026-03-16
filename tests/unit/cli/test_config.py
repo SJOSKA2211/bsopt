@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 import pytest
 
-from src.cli.config import ConfigManager
+from scripts.config import ConfigManager
 
 
 @pytest.fixture
 def config_manager(tmp_path):
-    with patch("src.cli.config.Path.home", return_value=tmp_path):
+    with patch("scripts.config.Path.home", return_value=tmp_path):
         yield ConfigManager()
 
 
@@ -30,7 +30,7 @@ def test_config_save_load(config_manager):
 
     # New manager instance should load saved config
     with patch(
-        "src.cli.config.Path.home",
+        "scripts.config.Path.home",
         return_value=config_manager.config_file.parent.parent,
     ):
         new_manager = ConfigManager()

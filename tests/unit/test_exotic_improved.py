@@ -1,6 +1,6 @@
 import unittest
 
-from src.pricing.exotic import (
+from services.quant.pricing.exotic import (
     AsianOptionPricer,
     AsianType,
     BarrierOptionPricer,
@@ -73,7 +73,7 @@ class TestExotic(unittest.TestCase):
         self.assertGreater(price, 0)
 
     def test_price_exotic_option_dispatch(self):
-        from src.pricing.exotic import price_exotic_option
+        from services.quant.pricing.exotic import price_exotic_option
 
         p, _ = price_exotic_option(
             "asian", self.exotic_params, "call", asian_type=AsianType.GEOMETRIC

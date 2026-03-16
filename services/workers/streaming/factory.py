@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from src.config import settings
+from core.shared.config import settings
 
 from .base import Producer
 from .kafka_producer import MarketDataProducer as KafkaProducer

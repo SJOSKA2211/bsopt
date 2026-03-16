@@ -1,4 +1,4 @@
-from src.pricing.quantum_pricing import (
+from services.quant.pricing.quantum_pricing import (
     HybridQuantumClassicalPricer,
     QuantumOptionPricer,
 )

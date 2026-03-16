@@ -10,14 +10,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy package files
 COPY core /app/core
-COPY services /app/services/auth-service/package*.json ./
+COPY services /app/services/auth/package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy source code
 COPY core /app/core
-COPY services /app/services/auth-service/ .
+COPY services /app/services/auth/ .
 
 # Expose Hono port (assuming 3001 based on child-03 comments)
 EXPOSE 3001

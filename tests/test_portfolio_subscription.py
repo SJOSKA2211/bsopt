@@ -1,6 +1,6 @@
 import pytest
 
-from src.portfolio.graphql.schema import schema
+from services.portfolio.graphql.schema import schema
 
 
 @pytest.mark.asyncio

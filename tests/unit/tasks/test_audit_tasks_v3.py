@@ -2,12 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.tasks.audit_tasks import persist_audit_log
+from services.workers.tasks.audit_tasks import persist_audit_log
 
 
 @pytest.fixture
 def mock_session():
-    with patch("src.tasks.audit_tasks.get_session") as mock:
+    with patch("services.workers.tasks.audit_tasks.get_session") as mock:
         session = MagicMock()
         mock.return_value = session
         yield session

@@ -61,16 +61,16 @@ bootstrap:
 	@./bootstrap.sh
 
 up:
-	cd infra/orchestration && $(DOCKER_COMPOSE) up -d
+	$(DOCKER_COMPOSE) up -d
 
 down:
 	$(DOCKER_COMPOSE) down
 
 build:
-	cd infra/orchestration && $(DOCKER_COMPOSE) build
+	$(DOCKER_COMPOSE) build
 
 ps:
-	cd infra/orchestration && $(DOCKER_COMPOSE) ps
+	$(DOCKER_COMPOSE) ps
 
 logs:
 	$(DOCKER_COMPOSE) logs -f
@@ -138,7 +138,7 @@ db-shell:
 	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
 
 alembic:
-	cd infra/orchestration && $(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
+	$(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
 
 clean:
 	$(DOCKER_COMPOSE) down -v

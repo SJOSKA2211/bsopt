@@ -2,8 +2,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.ml.distributed_training import BSOptDistributedTrainer
-from src.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
+from services.ml.distributed_training import BSOptDistributedTrainer
+from services.quant.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
 
 
 class TestRevampPhase4:
@@ -26,8 +26,8 @@ class TestRevampPhase4:
 
     def test_distributed_trainer_config(self):
         with (
-            patch("src.ml.distributed_training.TorchTrainer") as mock_trainer_cls,
-            patch("src.ml.distributed_training.ScalingConfig") as mock_scaling_cls,
+            patch("services.ml.distributed_training.TorchTrainer") as mock_trainer_cls,
+            patch("services.ml.distributed_training.ScalingConfig") as mock_scaling_cls,
         ):
             # Setup ScalingConfig mock to return a known object
             mock_scaling_instance = MagicMock()

@@ -6,12 +6,12 @@ import unittest
 
 import numpy as np
 
-from src.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
-from src.pricing.implied_vol import (
+from services.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from services.quant.pricing.implied_vol import (
     implied_volatility,
     vectorized_implied_volatility,
 )
-from src.pricing.models import BSParameters
+from services.quant.pricing.models import BSParameters
 
 
 class TestOptimizedPricing(unittest.TestCase):
@@ -103,7 +103,7 @@ class TestOptimizedPricing(unittest.TestCase):
     def test_wasm_simd_speedup(self):
         """OPTIMIZED: Verify WASM SIMD pricing if available."""
         try:
-            from src.wasm.engine import BlackScholesWASM
+            from core.wasm.engine import BlackScholesWASM
 
             engine = BlackScholesWASM()
             # Test case: S=100, K=100, T=1, sigma=0.2, r=0.05
@@ -130,7 +130,7 @@ class TestOptimizedPricing(unittest.TestCase):
     def test_lsm_american_accuracy(self):
         """OPTIMIZED: Verify Optimized LSM American Pricing."""
         try:
-            from src.wasm.engine import AmericanOptionsWASM
+            from core.wasm.engine import AmericanOptionsWASM
 
             engine = AmericanOptionsWASM()
             # Standard American Call on non-dividend paying stock = European Call

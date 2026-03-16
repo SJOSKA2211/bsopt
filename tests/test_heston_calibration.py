@@ -1,5 +1,5 @@
-from src.pricing.calibration.engine import HestonCalibrator, MarketOption
-from src.pricing.models.heston_fft import HestonModelFFT, HestonParams
+from services.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
+from services.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
 
 class TestHestonCalibration:
@@ -54,7 +54,7 @@ class TestHestonCalibration:
         ivs = [0.35, 0.25, 0.2, 0.22, 0.3]
 
         market_data = []
-        from src.pricing.black_scholes import BlackScholesEngine, BSParameters
+        from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
         engine = BlackScholesEngine()
         for k, v in zip(strikes, ivs):

@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import structlog
 
-from src.services.pricing_service import PricingService
-from src.utils.filesystem import sanitize_path
-from src.utils.shared_memory import shm_manager
+from services.pricing_service import PricingService
+from core.shared.filesystem import sanitize_path
+from core.shared.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
@@ -167,7 +167,7 @@ class BatchPricingService:
 
         if compute_greeks:
             # Fallback to standard greeks for now, or implement calculate_greeks_batch_arrays
-            from src.api.schemas.pricing import PriceRequest
+            from services.api.schemas.pricing import PriceRequest
 
             options_data = []
             for i in range(len(df)):

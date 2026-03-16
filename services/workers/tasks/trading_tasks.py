@@ -21,11 +21,11 @@ logger = structlog.get_logger(__name__)
 _IMPORT_MAP = {
     "pd": "pandas",
     "np": "numpy",
-    "BacktestEngine": "src.portfolio.engine.BacktestEngine",
-    "OrderExecutor": "src.trading.execution.OrderExecutor",
-    "IncrementalDeltaTracker": "src.trading.risk_kernels.IncrementalDeltaTracker",
-    "validate_risk": "src.trading.risk_kernels._validate_order_kernel",
-    "validate_delta": "src.trading.risk_kernels._validate_delta_exposure_kernel",
+    "BacktestEngine": "services.portfolio.engine.BacktestEngine",
+    "OrderExecutor": "core.trading.execution.OrderExecutor",
+    "IncrementalDeltaTracker": "core.trading.risk_kernels.IncrementalDeltaTracker",
+    "validate_risk": "core.trading.risk_kernels._validate_order_kernel",
+    "validate_delta": "core.trading.risk_kernels._validate_delta_exposure_kernel",
 }
 
 

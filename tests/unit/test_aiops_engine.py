@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.aiops.aiops_orchestrator import AIOpsOrchestrator
+from services.ml.aiops.aiops_orchestrator import AIOpsOrchestrator
 
 
 @pytest.fixture
@@ -19,8 +19,8 @@ def orchestrator_config():
     }
 
 
-@patch("src.aiops.aiops_orchestrator.PrometheusClient")
-@patch("src.aiops.aiops_orchestrator.post_grafana_annotation")
+@patch("services.ml.aiops.aiops_orchestrator.PrometheusClient")
+@patch("services.ml.aiops.aiops_orchestrator.post_grafana_annotation")
 def test_orchestrator_remediates_high_error_rate(
     mock_notify, mock_prometheus_class, orchestrator_config
 ):
@@ -49,7 +49,7 @@ def test_orchestrator_remediates_high_error_rate(
     assert mock_notify.called
 
 
-@patch("src.aiops.aiops_orchestrator.PrometheusClient")
+@patch("services.ml.aiops.aiops_orchestrator.PrometheusClient")
 def test_orchestrator_detects_data_drift(mock_prometheus_class, orchestrator_config):
     mock_prometheus = mock_prometheus_class.return_value
     mock_prometheus.get_5xx_error_rate.return_value = 0.01

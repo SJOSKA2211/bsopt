@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 from prometheus_client import Histogram
 
-from src.ml.trainer import InstrumentedTrainer
-from src.shared import observability
+from services.ml.trainer import InstrumentedTrainer
+from core.shared import observability
 
 
 def test_training_duration_is_histogram():
@@ -19,7 +19,7 @@ def test_training_duration_is_histogram():
 def test_push_metrics_integration():
     """Verify push_metrics uses the correct gateway URL and job name."""
     with (
-        patch("src.shared.observability.push_to_gateway") as mock_push,
+        patch("core.shared.observability.push_to_gateway") as mock_push,
         patch.dict("os.environ", {"PUSHGATEWAY_URL": "http://pushgateway:9091"}),
     ):
         observability.push_metrics(job_name="test_job")
@@ -44,7 +44,7 @@ def test_trainer_updates_rmse():
     y = np.random.randint(0, 2, 10)
     trainer = InstrumentedTrainer(study_name="rmse_test")
 
-    with patch("src.ml.tracker.MODEL_RMSE") as mock_rmse:
+    with patch("services.ml.tracker.MODEL_RMSE") as mock_rmse:
         mock_labels = MagicMock()
         mock_rmse.labels.return_value = mock_labels
 
@@ -66,19 +66,19 @@ def test_pipeline_updates_drift_score():
         "n_trials": 1,
     }
 
-    from src.ml.autonomous_pipeline import AutonomousMLPipeline
+    from services.ml.autonomous_pipeline import AutonomousMLPipeline
 
     pipeline = AutonomousMLPipeline(config)
 
     # Mock dependencies to reach drift check
     with (
-        patch("src.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
-        patch("src.ml.autonomous_pipeline.get_async_db_context"),
-        patch("src.ml.autonomous_pipeline.create_engine"),
-        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
-        patch("src.ml.autonomous_pipeline.InstrumentedTrainer"),
-        patch("src.ml.drift.DATA_DRIFT_SCORE") as mock_drift_gauge,
-        patch("src.ml.drift.KS_TEST_SCORE") as mock_ks_gauge,
+        patch("services.ml.autonomous_pipeline.MarketDataScraper") as mock_scraper_cls,
+        patch("services.ml.autonomous_pipeline.get_async_db_context"),
+        patch("services.ml.autonomous_pipeline.create_engine"),
+        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("services.ml.autonomous_pipeline.InstrumentedTrainer"),
+        patch("services.ml.drift.DATA_DRIFT_SCORE") as mock_drift_gauge,
+        patch("services.ml.drift.KS_TEST_SCORE") as mock_ks_gauge,
     ):
         mock_scraper = mock_scraper_cls.return_value
         import pandas as pd
@@ -107,7 +107,7 @@ def test_structlog_json_formatting():
     """Verify that structlog is configured with JSONRenderer."""
     import structlog
 
-    from src.shared.observability import setup_logging
+    from core.shared.observability import setup_logging
 
     # Reset structlog config to test our setup
     structlog.reset_defaults()

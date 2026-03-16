@@ -5,10 +5,10 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
-from src.database import get_db
-from src.database.models import User
-from src.security.auth import get_current_active_user
+from services.api.main import app
+from core.database import get_db
+from core.database.models import User
+from core.security.auth import get_current_active_user
 
 client = TestClient(app)
 

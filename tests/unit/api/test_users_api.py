@@ -5,11 +5,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.exceptions import AuthenticationException
-from src.api.main import app
-from src.database import get_db
-from src.database.models import User
-from src.security.auth import get_current_active_user, get_current_user
+from services.api.exceptions import AuthenticationException
+from services.api.main import app
+from core.database import get_db
+from core.database.models import User
+from core.security.auth import get_current_active_user, get_current_user
 
 client = TestClient(app)
 
@@ -162,7 +162,7 @@ def test_update_me_persistence_error(mock_user):
 
 
 @pytest.mark.skip(reason="Endpoint/Feature missing in implementation")
-@patch("src.api.routes.users.publish_to_redis", new_callable=AsyncMock)
+@patch("services.api.routes.users.publish_to_redis", new_callable=AsyncMock)
 def test_delete_me_success(mock_publish_to_redis, mock_user):
     app.dependency_overrides[get_current_active_user] = lambda: mock_user
     app.dependency_overrides[get_current_user] = lambda: mock_user

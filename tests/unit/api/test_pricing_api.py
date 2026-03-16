@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.main import app
-from src.security.auth import get_current_user_flexible
-from src.security.rate_limit import rate_limit
-from src.utils.cache import get_redis_client
+from services.api.main import app
+from core.security.auth import get_current_user_flexible
+from core.security.rate_limit import rate_limit
+from core.shared.cache import get_redis_client
 
 
 def create_mock_redis():
@@ -45,8 +45,8 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
-    from src.api.routes.pricing import pricing_service
-    from src.utils.circuit_breaker import pricing_circuit
+    from services.api.routes.pricing import pricing_service
+    from core.shared.circuit_breaker import pricing_circuit
 
     pricing_circuit.reset()
     pricing_service.clear_cache()
@@ -66,7 +66,7 @@ def mock_strategy():
 @pytest.mark.asyncio
 async def test_calculate_price_success(mock_strategy):
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -79,7 +79,7 @@ async def test_calculate_price_success(mock_strategy):
             "model": "black_scholes",
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -94,7 +94,7 @@ async def test_calculate_price_success(mock_strategy):
 def test_calculate_price_invalid_params(mock_strategy):
     mock_strategy.price.side_effect = ValueError("Invalid spot price")
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -107,7 +107,7 @@ def test_calculate_price_invalid_params(mock_strategy):
             "model": "black_scholes",
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -120,7 +120,7 @@ def test_calculate_price_invalid_params(mock_strategy):
 def test_calculate_price_unexpected_error(mock_strategy):
     mock_strategy.price.side_effect = Exception("System crash")
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -133,7 +133,7 @@ def test_calculate_price_unexpected_error(mock_strategy):
             "model": "black_scholes",
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -149,7 +149,7 @@ def test_calculate_price_validation_error():
 
 def test_calculate_batch_prices_success(mock_strategy):
     with patch(
-        "src.api.routes.pricing.PricingEngineFactory.get_strategy",
+        "services.api.routes.pricing.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -175,7 +175,7 @@ def test_calculate_batch_prices_success(mock_strategy):
             ]
         }
         with patch(
-            "src.api.routes.pricing.pricing_cache.get_option_price",
+            "services.api.routes.pricing.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -189,7 +189,7 @@ def test_calculate_batch_prices_success(mock_strategy):
 def test_calculate_batch_prices_with_error(mock_strategy):
     mock_strategy.price.side_effect = [10.5, Exception("Price error")]
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -215,7 +215,7 @@ def test_calculate_batch_prices_with_error(mock_strategy):
             ]
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -228,7 +228,7 @@ def test_calculate_batch_prices_with_error(mock_strategy):
 def test_calculate_price_circuit_breaker(mock_strategy):
     mock_strategy.price.side_effect = Exception("Circuit Breaker is open")
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -241,7 +241,7 @@ def test_calculate_price_circuit_breaker(mock_strategy):
             "model": "black_scholes",
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -251,7 +251,7 @@ def test_calculate_price_circuit_breaker(mock_strategy):
 
 def test_calculate_greeks_success(mock_strategy):
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -263,7 +263,7 @@ def test_calculate_greeks_success(mock_strategy):
             "option_type": "call",
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_greeks",
+            "services.pricing_service.pricing_cache.get_greeks",
             new_callable=AsyncMock,
         ) as mock_get_cache:
             mock_get_cache.return_value = None
@@ -275,7 +275,7 @@ def test_calculate_greeks_success(mock_strategy):
 
 
 def test_calculate_iv_success():
-    with patch("src.services.pricing_service.implied_volatility", return_value=0.25):
+    with patch("services.pricing_service.implied_volatility", return_value=0.25):
         payload = {
             "option_price": 10.0,
             "spot": 100.0,
@@ -292,7 +292,7 @@ def test_calculate_iv_success():
 
 def test_calculate_exotic_price_success():
     with patch(
-        "src.services.pricing_service.price_exotic_option",
+        "services.pricing_service.price_exotic_option",
         return_value=(15.0, [14.5, 15.5]),
     ):
         payload = {
@@ -344,7 +344,7 @@ def test_calculate_exotic_price_invalid_barrier_type():
 
 def test_calculate_price_cache_hit():
     with patch(
-        "src.services.pricing_service.pricing_cache.get_option_price",
+        "services.pricing_service.pricing_cache.get_option_price",
         new_callable=AsyncMock,
     ) as mock_get:
         mock_get.return_value = 12.34
@@ -365,7 +365,7 @@ def test_calculate_price_cache_hit():
 
 def test_calculate_batch_prices_cache_hit(mock_strategy):
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_strategy,
     ):
         payload = {
@@ -382,7 +382,7 @@ def test_calculate_batch_prices_cache_hit(mock_strategy):
             ]
         }
         with patch(
-            "src.services.pricing_service.pricing_cache.get_option_price",
+            "services.pricing_service.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = 10.5
@@ -394,10 +394,10 @@ def test_calculate_batch_prices_cache_hit(mock_strategy):
 def test_calculate_greeks_cache_hit():
     with (
         patch(
-            "src.services.pricing_service.pricing_cache.get_greeks",
+            "services.pricing_service.pricing_cache.get_greeks",
             new_callable=AsyncMock,
         ) as mock_get,
-        patch("src.services.pricing_service.PricingEngineFactory.get_strategy") as mock_factory,
+        patch("services.pricing_service.PricingEngineFactory.get_strategy") as mock_factory,
     ):
         mock_get.return_value = MagicMock(delta=0.5, gamma=0.05, theta=-0.01, vega=0.1, rho=0.02)
         mock_factory.return_value.price.return_value = 10.5
@@ -416,7 +416,7 @@ def test_calculate_greeks_cache_hit():
 
 def test_calculate_greeks_error():
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         side_effect=Exception("Factory error"),
     ):
         payload = {
@@ -433,7 +433,7 @@ def test_calculate_greeks_error():
 
 def test_calculate_iv_value_error():
     with patch(
-        "src.services.pricing_service.implied_volatility",
+        "services.pricing_service.implied_volatility",
         side_effect=ValueError("IV error"),
     ):
         payload = {
@@ -450,7 +450,7 @@ def test_calculate_iv_value_error():
 
 def test_calculate_iv_generic_exception():
     with patch(
-        "src.services.pricing_service.implied_volatility",
+        "services.pricing_service.implied_volatility",
         side_effect=Exception("Crash"),
     ):
         payload = {
@@ -467,7 +467,7 @@ def test_calculate_iv_generic_exception():
 
 def test_calculate_exotic_price_generic_exception():
     with patch(
-        "src.services.pricing_service.price_exotic_option",
+        "services.pricing_service.price_exotic_option",
         side_effect=Exception("Pricing fail"),
     ):
         payload = {
@@ -548,7 +548,7 @@ async def test_calculate_price_heston_stale_fallback():
     mock_bs.price.return_value = 5.67
 
     with patch(
-        "src.services.pricing_service.PricingEngineFactory.get_strategy",
+        "services.pricing_service.PricingEngineFactory.get_strategy",
         return_value=mock_bs,
     ):
         response = client.post("/api/v1/pricing/price", json=payload)

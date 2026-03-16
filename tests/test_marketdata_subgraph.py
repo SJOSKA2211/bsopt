@@ -1,7 +1,7 @@
 import pytest
 from strawberry.types import ExecutionResult
 
-from src.streaming.graphql.schema import schema
+from services.workers.streaming.graphql.schema import schema
 
 
 @pytest.mark.asyncio

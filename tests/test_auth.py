@@ -7,8 +7,8 @@ Fixed field names and formats to match RegisterRequest schema.
 
 import pytest
 
-from src.config import get_settings
-from src.database.models import User
+from core.shared.config import get_settings
+from core.database.models import User
 from tests.test_utils import assert_equal
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"
@@ -161,7 +161,7 @@ def test_mfa_secret_is_encrypted(logged_in_client, mock_db_session):
     assert user.mfa_secret != original_secret
 
     # 4. Assert the secret is correctly encrypted
-    from src.utils.crypto import AES256GCM
+    from core.shared.crypto import AES256GCM
 
     settings = get_settings()
     crypto = AES256GCM(settings.MFA_ENCRYPTION_KEY)

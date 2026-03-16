@@ -3,11 +3,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd
 import pytest
 
-from src.aiops.self_healing_orchestrator import SelfHealingOrchestrator
+from services.ml.aiops.self_healing_orchestrator import SelfHealingOrchestrator
 
 
-@patch("src.aiops.self_healing_orchestrator.logger")
-@patch("src.aiops.self_healing_orchestrator.setup_logging")
+@patch("services.ml.aiops.self_healing_orchestrator.logger")
+@patch("services.ml.aiops.self_healing_orchestrator.setup_logging")
 class TestSelfHealingOrchestrator:
     def test_init(self, mock_setup_logging, mock_logger):
         """Test initialization of SelfHealingOrchestrator."""
@@ -78,7 +78,7 @@ class TestSelfHealingOrchestrator:
         orchestrator._detect_system_anomalies = AsyncMock(return_value=[])
         orchestrator.planner.plan = MagicMock(return_value=[mock_remediator])
 
-        with patch("src.aiops.self_healing_orchestrator.post_grafana_annotation") as mock_notify:
+        with patch("services.ml.aiops.self_healing_orchestrator.post_grafana_annotation") as mock_notify:
             await orchestrator.run_cycle(pd.DataFrame({"latency": [5.0]}))
 
             mock_detector.detect.assert_called_once()
