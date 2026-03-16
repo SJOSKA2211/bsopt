@@ -204,7 +204,7 @@ class BSOptDistributedTrainer:
             logger.error("ray_train_missing")
             return None
 
-        from services.utils.ray_cluster_manager import RayClusterManager
+        from core.shared.utils.ray_cluster_manager import RayClusterManager
 
         if not RayClusterManager.initialize():
             raise RuntimeError("Failed to initialize Ray cluster via RayClusterManager.")

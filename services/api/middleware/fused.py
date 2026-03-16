@@ -115,7 +115,7 @@ class FusedSecurityMiddleware:
                 state["auth_type"] = token_data.token_type
 
                 # 3. Rate Limiting (Distributed Token Bucket)
-                from services.utils.rate_limit import RateLimitTier, limiter
+                from core.shared.utils.rate_limit import RateLimitTier, limiter
 
                 # Default to FREE if tier not recognized
                 try:

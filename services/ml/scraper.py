@@ -8,7 +8,7 @@ import pandas as pd
 import structlog
 
 from services.shared.observability import SCRAPE_DURATION, SCRAPE_ERRORS
-from services.utils.http_client import HttpClientManager
+from core.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 

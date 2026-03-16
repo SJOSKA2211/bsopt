@@ -2,7 +2,7 @@ import os
 import sys
 from typing import TYPE_CHECKING, Any
 
-from services.utils.lazy_import import get_import_stats, lazy_import, preload_modules
+from core.shared.utils.lazy_import import get_import_stats, lazy_import, preload_modules
 
 # PUBLIC API
 __all__ = [

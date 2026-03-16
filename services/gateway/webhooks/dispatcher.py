@@ -6,8 +6,8 @@ from typing import Any
 import orjson
 import structlog
 
-from services.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
-from services.utils.http_client import HttpClientManager
+from core.shared.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
+from core.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger()
 

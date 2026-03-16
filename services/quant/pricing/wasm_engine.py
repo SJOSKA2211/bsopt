@@ -13,7 +13,7 @@ try:
     # Typically via a wrapper like wasmer or by calling a node process,
     # or if we've built a python extension using the same rust code.
     # For this architecture, we'll assume a 'wasm_loader' utility exists.
-    from services.utils.wasm_loader import get_wasm_instance
+    from core.shared.utils.wasm_loader import get_wasm_instance
 
     WASM_AVAILABLE = True
 except ImportError:
@@ -112,7 +112,7 @@ class WASMPricingEngine(PricingStrategy):
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
         #  Use zero-copy mapping to write directly to WASM heap
-        from services.utils.wasm_loader import WasmModuleCache
+        from core.shared.utils.wasm_loader import WasmModuleCache
 
         heap = WasmModuleCache.map_wasm_memory(self.instance)
 
@@ -272,7 +272,7 @@ class WASMPricingEngine(PricingStrategy):
 
         input_data = np.column_stack([spot, strike, time, r, v0, kappa, theta, sigma, rho]).ravel()
 
-        from services.utils.wasm_loader import WasmModuleCache
+        from core.shared.utils.wasm_loader import WasmModuleCache
 
         heap = WasmModuleCache.map_wasm_memory(self.instance)
         heap[: len(input_data)] = input_data
@@ -301,7 +301,7 @@ class WASMPricingEngine(PricingStrategy):
         num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
-        from services.utils.wasm_loader import WasmModuleCache
+        from core.shared.utils.wasm_loader import WasmModuleCache
 
         heap = WasmModuleCache.map_wasm_memory(self.instance)
         heap[: len(input_data)] = input_data
@@ -331,7 +331,7 @@ class WASMPricingEngine(PricingStrategy):
         num_options = len(S)
         input_data = np.column_stack([S, K, T, sigma, r, q, is_call.astype(np.float64)]).ravel()
 
-        from services.utils.wasm_loader import WasmModuleCache
+        from core.shared.utils.wasm_loader import WasmModuleCache
 
         heap = WasmModuleCache.map_wasm_memory(self.instance)
         heap[: len(input_data)] = input_data

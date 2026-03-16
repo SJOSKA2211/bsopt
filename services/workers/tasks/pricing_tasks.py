@@ -19,10 +19,10 @@ from services.shared.math_utils import (
     calculate_price,
     calculate_price_scalar,
 )
-from services.utils.cache import pricing_cache
-from services.utils.celery import BaseAsyncTask
-from services.utils.distributed import RayOrchestrator
-from services.utils.ray_pool import RayActorPool
+from core.shared.utils.cache import pricing_cache
+from core.shared.utils.celery import BaseAsyncTask
+from core.shared.utils.distributed import RayOrchestrator
+from core.shared.utils.ray_pool import RayActorPool
 
 from .celery_app import PricingTask, celery_app
 

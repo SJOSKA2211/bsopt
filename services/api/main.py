@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     instrument_redis()
 
     # Initialize Redis
-    from services.utils.cache import get_redis_client, init_redis_cache
+    from core.shared.utils.cache import get_redis_client, init_redis_cache
 
     await init_redis_cache()
     redis_client = await get_redis_client()
@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await token_blacklist.initialize(redis_client)
 
     # Chaos Injection
-    from services.utils.chaos import monkey
+    from core.shared.utils.chaos import monkey
 
     if monkey.enabled:
         logger.warning("chaos_mode_active_injecting_startup_latency")
@@ -89,7 +89,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shutdown
     from services.api.websockets.manager import manager
     from services.database import dispose_engine
-    from services.utils.cache import close_redis_cache
+    from core.shared.utils.cache import close_redis_cache
 
     await manager.close()
     await dispose_engine()

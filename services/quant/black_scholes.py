@@ -4,7 +4,7 @@ import numpy as np
 import structlog
 from numba import cuda, float64, vectorize
 
-from services.utils.memory import profile_gpu_memory
+from core.shared.utils.memory import profile_gpu_memory
 
 logger = structlog.get_logger(__name__)
 

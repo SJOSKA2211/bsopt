@@ -5,8 +5,8 @@ import numpy as np
 import ray
 import structlog
 
-from services.utils.distributed import RayOrchestrator
-from services.utils.http_client import HttpClientManager
+from core.shared.utils.distributed import RayOrchestrator
+from core.shared.utils.http_client import HttpClientManager
 
 logger = structlog.get_logger(__name__)
 

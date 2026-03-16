@@ -9,8 +9,8 @@ import time
 
 import structlog
 
-from services.utils.celery import BaseAsyncTask
-from services.utils.lazy_import import lazy_import
+from core.shared.utils.celery import BaseAsyncTask
+from core.shared.utils.lazy_import import lazy_import
 
 from .celery_app import celery_app
 
@@ -46,7 +46,7 @@ async def _reconcile_risk_state_impl():
     """Implementation of risk state synchronization (Multi-Dimensional)."""
     from services.config import get_settings
     from services.shared.shm_mesh import RiskStateBuffer
-    from services.utils.cache import get_redis
+    from core.shared.utils.cache import get_redis
 
     settings = get_settings()
     redis = get_redis()
@@ -118,7 +118,7 @@ def execute_trade_task(self, order: dict):
 async def get_persistent_delta_tracker():
     """Retrieve or initialize IncrementalDeltaTracker with Redis-backed state."""
     from services.config import get_settings
-    from services.utils.cache import get_redis
+    from core.shared.utils.cache import get_redis
 
     settings = get_settings()
     redis = get_redis()
@@ -182,7 +182,7 @@ def check_risk_limits(self, portfolio_id: str):
             tracker.reset(actual_delta)
 
             # Sync back to Redis for persistent workers
-            from services.utils.cache import get_redis
+            from core.shared.utils.cache import get_redis
 
             redis = get_redis()
             if redis:

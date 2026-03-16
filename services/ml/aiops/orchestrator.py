@@ -3,7 +3,7 @@ import asyncio
 import structlog
 
 from services.aiops.remediators import RemediationPlanner
-from services.utils.cache import get_redis
+from core.shared.utils.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 

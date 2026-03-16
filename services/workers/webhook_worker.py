@@ -6,8 +6,8 @@ from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
 from services.config import settings
-from services.utils.celery import BaseAsyncTask
-from services.utils.lazy_import import lazy_import
+from core.shared.utils.celery import BaseAsyncTask
+from core.shared.utils.lazy_import import lazy_import
 from services.webhooks.dispatcher import WebhookDispatcher
 
 # Optimized event loop

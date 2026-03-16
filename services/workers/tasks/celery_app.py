@@ -20,7 +20,7 @@ from celery import Celery, signals
 from celery.schedules import crontab
 from kombu import Exchange, Queue
 
-from services.utils.celery import BaseAsyncTask
+from core.shared.utils.celery import BaseAsyncTask
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +352,7 @@ def refresh_pricing_cache(self):
     logger.info("Refreshing pricing cache...")
     # Import here to avoid circular imports
     try:
-        from services.utils.cache import warm_cache
+        from core.shared.utils.cache import warm_cache
 
         # Use persistent loop from BaseAsyncTask
         return self.run_async(warm_cache())

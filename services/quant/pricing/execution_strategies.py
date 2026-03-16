@@ -19,7 +19,7 @@ except ImportError:
 import structlog
 
 from services.config import settings
-from services.utils.shared_memory import shm_manager
+from core.shared.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
@@ -123,7 +123,7 @@ class SHMStrategy(ExecutionStrategy):
             return await SequentialStrategy().execute(inputs)
 
         try:
-            from services.utils.shm_worker import SHMContextManager
+            from core.shared.utils.shm_worker import SHMContextManager
 
             with SHMContextManager(shm_in_name) as shms:
                 shm_in = shms[0]

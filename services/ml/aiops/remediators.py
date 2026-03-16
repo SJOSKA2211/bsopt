@@ -51,7 +51,7 @@ class ClearRedisCacheRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        from services.utils.cache import get_redis
+        from core.shared.utils.cache import get_redis
 
         logger.warning("remediator_clear_cache_initiated")
         try:

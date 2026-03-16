@@ -62,7 +62,7 @@ class ConnectionManager:
 
     async def _get_pubsub(self) -> Any:
         if self._pubsub is None:
-            from services.utils.cache import get_redis
+            from core.shared.utils.cache import get_redis
 
             redis_client = get_redis()
             if redis_client:
@@ -290,7 +290,7 @@ class ConnectionManager:
         """
         if not from_redis:
             # Originating locally: Encode to binary once and push to Redis
-            from services.utils.cache import get_redis
+            from core.shared.utils.cache import get_redis
 
             redis_client = get_redis()
             if redis_client:

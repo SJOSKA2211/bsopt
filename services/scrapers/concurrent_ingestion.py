@@ -18,7 +18,7 @@ from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
 
 from services.database import db_manager
 from services.scrapers.discovery import get_sp500_symbols
-from services.utils.resilience import yfinance_breaker
+from core.shared.utils.resilience import yfinance_breaker
 
 logger = structlog.get_logger(__name__)
 tracer = trace.get_tracer(__name__)

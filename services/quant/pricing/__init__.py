@@ -10,7 +10,7 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from services.utils.lazy_import import lazy_import, preload_modules
+from core.shared.utils.lazy_import import lazy_import, preload_modules
 
 __all__ = [
     # Classical Pricing

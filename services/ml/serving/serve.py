@@ -27,7 +27,7 @@ from services.api.schemas.ml import (
     InferenceResponse,
 )
 from services.ml.utils.inference import ONNXInferenceEngine
-from services.utils.circuit_breaker import (  # Import both
+from core.shared.utils.circuit_breaker import (  # Import both
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,
 )
@@ -78,7 +78,7 @@ async def startup():
     # Attempt to initialize DistributedCircuitBreaker if Redis is available
     global ml_circuit
     try:
-        from services.utils.cache import _redis_pool
+        from core.shared.utils.cache import _redis_pool
 
         redis_client = _redis_pool
 

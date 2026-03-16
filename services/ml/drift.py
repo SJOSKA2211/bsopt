@@ -49,7 +49,7 @@ class PerformanceDriftMonitor:
         """Sync local history with Redis state (Synchronous attempt)."""
         import asyncio
 
-        from services.utils.cache import get_redis
+        from core.shared.utils.cache import get_redis
 
         redis = get_redis()
         if not redis:
@@ -85,7 +85,7 @@ class PerformanceDriftMonitor:
         """Adds a new performance metric to the historical baseline and persists to Redis."""
         self.history.append(value)
 
-        from services.utils.cache import get_redis
+        from core.shared.utils.cache import get_redis
 
         redis = get_redis()
         if redis:

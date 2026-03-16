@@ -10,7 +10,7 @@ from services.api.schemas.common import DataResponseStruct
 from services.database import crud, get_async_db
 from services.security.auth import require_tier
 from services.shared.shm_mesh import SharedMemoryRingBuffer
-from services.utils.circuit_breaker import db_circuit, pricing_circuit
+from core.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 
 router = APIRouter(prefix="/system", tags=["System"], default_response_class=MsgspecJSONResponse)
 logger = logging.getLogger(__name__)
@@ -70,7 +70,7 @@ async def get_deep_health():
     }
 
     # 4. Redis Probe
-    from services.utils.cache import get_redis
+    from core.shared.utils.cache import get_redis
     redis = get_redis()
     if redis:
         try:

@@ -16,7 +16,7 @@ from services.api.schemas.common import DataResponseStruct
 from services.database import get_async_db
 from services.database.models import OptionPrice
 from services.shared.shm_mesh import GreeksMesh
-from services.utils.circuit_breaker import db_circuit
+from core.shared.utils.circuit_breaker import db_circuit
 
 router = APIRouter(prefix="/options", tags=["Options"], default_response_class=MsgspecJSONResponse)
 

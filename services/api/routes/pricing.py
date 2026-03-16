@@ -20,8 +20,8 @@ from services.api.schemas.pricing import (
     PriceResult,
 )
 from services.services.pricing_service import PricingService
-from services.utils.cache import multi_layer_cache
-from services.utils.circuit_breaker import pricing_circuit
+from core.shared.utils.cache import multi_layer_cache
+from core.shared.utils.circuit_breaker import pricing_circuit
 
 logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/pricing", tags=["Pricing"], default_response_class=MsgspecJSONResponse)

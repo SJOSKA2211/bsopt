@@ -28,7 +28,7 @@ class InMemoryFeatureStore(FeatureStore):
         """
         Computes requested features with Redis-backed caching.
         """
-        from services.utils.cache import get_redis
+        from core.shared.utils.cache import get_redis
 
         # ... (caching logic)
         redis = get_redis()
@@ -82,7 +82,7 @@ class InMemoryFeatureStore(FeatureStore):
     async def _background_cache_fill(self, df: pd.DataFrame, key: str) -> None:
         """Persistent cache population without blocking execution."""
         try:
-            from services.utils.cache import get_redis
+            from core.shared.utils.cache import get_redis
 
             redis = get_redis()
             if redis:

@@ -21,10 +21,10 @@ from services.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
-from services.utils.cache import get_redis
-from services.utils.circuit_breaker import nse_circuit
-from services.utils.http_client import HttpClientManager
-from services.utils.resilience import retry_with_backoff
+from core.shared.utils.cache import get_redis
+from core.shared.utils.circuit_breaker import nse_circuit
+from core.shared.utils.http_client import HttpClientManager
+from core.shared.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger()
 

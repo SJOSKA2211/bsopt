@@ -282,7 +282,7 @@ class QuantumOptionPricer:
         try:
             # We use the WASM module for sub-microsecond classical calc
             # This is significantly faster than scipy.stats.norm for batch or repeated calls
-            from services.utils.wasm_loader import get_wasm_instance
+            from core.shared.utils.wasm_loader import get_wasm_instance
 
             instance = get_wasm_instance()
             if instance is None:

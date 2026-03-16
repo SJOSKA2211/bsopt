@@ -15,7 +15,7 @@ from services.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from services.database import get_async_db
 from services.database.crud import get_model_drift_metrics
 from services.services.ml_service import MLService, get_ml_service
-from services.utils.circuit_breaker import ml_client_circuit
+from core.shared.utils.circuit_breaker import ml_client_circuit
 
 router = APIRouter(
     prefix="/ml", tags=["Machine Learning"], default_response_class=MsgspecJSONResponse
@@ -45,7 +45,7 @@ async def get_predictions(
     """
     Convenience endpoint for the frontend dashboard.
     """
-    from services.utils.sanitization import sanitize_alphanumeric
+    from core.shared.utils.sanitization import sanitize_alphanumeric
 
     symbol = sanitize_alphanumeric(symbol.strip().upper())
     if not symbol or len(symbol) > 10:
