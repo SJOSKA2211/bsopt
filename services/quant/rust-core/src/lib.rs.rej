@@ -1,0 +1,24 @@
+--- lib.rs
++++ lib.rs
+@@ -57,16 +56,16 @@
+
+     for _ in 0..steps {
+         for i in 0..n {
+             // RK4 for the drift part: f(s) = mu * s
+             let k1 = mu[i] * s[i];
+-            let k2 = mu[i] * (s[i] + 0.5 * dt * k1);
+-            let k3 = mu[i] * (s[i] + 0.5 * dt * k2);
+-            let k4 = mu[i] * (s[i] + dt * k3);
++            let k2 = mu[i] * (s[i] + 0.5 * _dt * k1);
++            let k3 = mu[i] * (s[i] + 0.5 * _dt * k2);
++            let k4 = mu[i] * (s[i] + _dt * k3);
+
+-            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
++            let drift = (_dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+
+             // Stochastic component (Euler-Maruyama step integration)
+             let dw: f64 = rng.sample(normal);
+-            let diffusion = sigma[i] * s[i] * dw * dt.sqrt();
++            let diffusion = sigma[i] * s[i] * dw * _dt.sqrt();
+
+             s[i] += drift + diffusion;

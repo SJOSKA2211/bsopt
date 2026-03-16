@@ -7,10 +7,10 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # Detect Docker Compose (High-Performance Detection)
-if [ -x "./docker-compose" ]; then
-    COMPOSE_BIN="./docker-compose"
-elif command -v docker-compose >/dev/null 2>&1; then
-    COMPOSE_BIN="docker-compose"
+if [ -x "./docker compose" ]; then
+    COMPOSE_BIN="./docker compose"
+elif command -v docker compose >/dev/null 2>&1; then
+    COMPOSE_BIN="docker compose"
 elif docker compose version >/dev/null 2>&1; then
     COMPOSE_BIN="docker compose"
 else
@@ -18,7 +18,7 @@ else
     exit 1
 fi
 
-DOCKER_COMPOSE="$COMPOSE_BIN -f docker-compose.dev.yml"
+DOCKER_COMPOSE="$COMPOSE_BIN -f docker compose.dev.yml"
 
 # Trap Ctrl-C to shut down containers if requested (optional, usually we keep them up)
 cleanup() {

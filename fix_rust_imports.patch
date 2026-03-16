@@ -1,0 +1,10 @@
+--- services/quant/rust-core/src/lib.rs
++++ services/quant/rust-core/src/lib.rs
+@@ -4,6 +4,7 @@
+ use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
+ use rand::Rng;
+ use statrs::function::erf;
++use rand_distr::Distribution;
+
+ #[pyfunction]
+ fn black_scholes_vectorized(

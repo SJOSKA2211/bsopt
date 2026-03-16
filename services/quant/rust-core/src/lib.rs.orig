@@ -25,7 +25,7 @@ fn black_scholes_vectorized(
     for i in 0..n {
         let d1 = ( (s[i]/k[i]).ln() + (r[i] + 0.5 * v[i] * v[i]) * t[i] ) / (v[i] * t[i].sqrt());
         let d2 = d1 - v[i] * t[i].sqrt();
-        
+
         // Simple normal CDF approximation for d1, d2
         let call = s[i] * norm_cdf(d1) - k[i] * (-r[i] * t[i]).exp() * norm_cdf(d2);
         res.push(call);
@@ -45,18 +45,18 @@ fn runge_kutta_4_vectorized(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    _t: f64,
-    dt: f64,
+    t: f64,
+    _dt: f64,
     steps: usize,
 ) -> PyResult<Py<PyArray1<f64>>> {
     let s0 = s0.as_array();
     let mu = mu.as_array();
     let sigma = sigma.as_array();
     let n = s0.len();
-    
+
     let mut s = s0.to_owned();
     let mut rng = rand::thread_rng();
-    let normal = rand_distr::StandardNormal; // We actually need rand_distr::Distribution for this to work
+    let normal = rand_distr::StandardNormal;
 
     for _ in 0..steps {
         for i in 0..n {
@@ -65,13 +65,13 @@ fn runge_kutta_4_vectorized(
             let k2 = mu[i] * (s[i] + 0.5 * dt * k1);
             let k3 = mu[i] * (s[i] + 0.5 * dt * k2);
             let k4 = mu[i] * (s[i] + dt * k3);
-            
+
             let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-            
+
             // Stochastic component (Euler-Maruyama step integration)
             let dw: f64 = rng.sample(normal);
             let diffusion = sigma[i] * s[i] * dw * dt.sqrt();
-            
+
             s[i] += drift + diffusion;
         }
     }
@@ -85,7 +85,7 @@ fn runge_kutta_4_vectorized(
 fn mmap_parse_ticks(path: &str) -> PyResult<Vec<f64>> {
     let file = File::open(path)?;
     let _mmap = unsafe { Mmap::map(&file)? };
-    
+
     // Institutional-grade zero-copy tick parsing placeholder
     // In production, this iterates over the mmap and parses binary/CSV ticks
     Ok(vec![1337.0, 1.0, 2.0, 3.0])

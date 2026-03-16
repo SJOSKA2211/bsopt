@@ -13,7 +13,7 @@ if [ -d ".venv" ]; then
     source .venv/bin/activate
 fi
 
-# Run Uvicorn with reload on port 8001 (as per docker-compose mapping 8001:8000)
+# Run Uvicorn with reload on port 8001 (as per docker compose mapping 8001:8000)
 if [ -f ".venv/bin/python3" ]; then
     .venv/bin/python3 -m uvicorn src.pricing.main:app --reload --reload-dir src --port 8001 --host 0.0.0.0
 else

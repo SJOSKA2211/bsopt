@@ -11,12 +11,12 @@ shift 2 || true
 EXTRA_PARAMS=$@
 
 # Detection logic for docker compose
-if [ -x "./docker-compose" ]; then
-    COMPOSE_CMD="./docker-compose"
+if [ -x "./docker compose" ]; then
+    COMPOSE_CMD="./docker compose"
 elif docker compose version >/dev/null 2>&1; then
     COMPOSE_CMD="docker compose"
 else
-    COMPOSE_CMD="docker-compose"
+    COMPOSE_CMD="docker compose"
 fi
 
 # Ensure we are in the project root to find the binary
