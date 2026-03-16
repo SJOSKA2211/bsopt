@@ -12,7 +12,9 @@ import {
   InputAdornment,
   IconButton,
   Link,
+  CircularProgress,
 } from '@mui/material';
+import { motion } from 'framer-motion';
 import {
   Visibility,
   VisibilityOff,
@@ -243,7 +245,11 @@ export default function SignIn() {
             disabled={loading}
             sx={{ py: 1.5, fontSize: '0.95rem', mb: 2 }}
           >
-            {loading ? 'Signing in…' : 'Sign In'}
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Sign In'
+            )}
           </Button>
         </Box>
 

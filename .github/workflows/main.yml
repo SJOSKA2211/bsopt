@@ -41,7 +41,7 @@ jobs:
       - name: SAST Scanning (Bandit)
         run: |
           pip install bandit
-          bandit -r src/ -ll -x tests/ -c pyproject.toml
+          bandit -r services/ core/ -ll -x tests/ -c pyproject.toml
           
       - name: Run Tests
         run: |
@@ -145,4 +145,4 @@ jobs:
               sys.exit(0)
           "
           # Trigger retraining via internal API or direct pipeline execution
-          python -m src.ml.cross_sectional_pipeline --epochs 10 --study_name ct_daily || true
+          python -m services.ml.cross_sectional_pipeline --epochs 10 --study_name ct_daily || true
