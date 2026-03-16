@@ -1,0 +1,28 @@
+--- services/ml/data_loader.py
++++ services/ml/data_loader.py
+@@ -154,16 +154,16 @@
+
+     async def _fetch_prometheus_data(self, hours: int) -> pd.DataFrame:
+         # Optimized query using TimescaleDB hyper-functions for bucketing
+-        query = f"""
++        query = """
+             SELECT
+                 time_bucket('1 minute', created_at) AS bucket,
+                 AVG(duration_ms) as avg_latency,
+                 COUNT(*) FILTER (WHERE status_code >= 400) as error_count,
+                 COUNT(*) as total_requests
+             FROM request_logs
+-            WHERE created_at > NOW() - INTERVAL '{hours} hours'
++            WHERE created_at > NOW() - ($1::int * INTERVAL '1 hour')
+             GROUP BY bucket
+             ORDER BY bucket ASC
+-            LIMIT {self.limit}
++            LIMIT $2::int
+         """
+
+         try:
+             async with self.db_pool.acquire() as conn:
+-                records = await conn.fetch(query)
++                records = await conn.fetch(query, hours, self.limit)
+
+             if not records:

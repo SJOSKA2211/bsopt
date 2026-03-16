@@ -31,10 +31,10 @@ jobs:
           pip install ruff bandit
 
       - name: Lint with Ruff
-        run: ruff check src/
+        run: ruff check .
 
       - name: SAST with Bandit
-        run: bandit -r src/ -ll -ii -c pyproject.toml
+        run: bandit -r core/ services/ scripts/ -ll -ii -c pyproject.toml
 
   build-and-test:
     needs: security-and-linting
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build local container for scanning
-        run: docker build -t equaflow-api:local -f docker/Dockerfile.api --target production .
+        run: docker build -t equaflow-api:local -f infra/orchestration/Dockerfile.api --target production .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

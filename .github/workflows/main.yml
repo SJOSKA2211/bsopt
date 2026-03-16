@@ -41,7 +41,7 @@ jobs:
       - name: SAST Scanning (Bandit)
         run: |
           pip install bandit
-          bandit -r src/ -ll -x tests/ -c pyproject.toml
+          bandit -r core/ services/ scripts/ -ll -x tests/ -c pyproject.toml
           
       - name: Run Tests
         run: |
