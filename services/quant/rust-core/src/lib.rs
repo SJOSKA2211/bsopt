@@ -3,6 +3,8 @@ use memmap2::Mmap;
 use std::fs::File;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
 use rand::Rng;
+use rayon::prelude::*;
+use ndarray::prelude::*;
 
 #[pyfunction]
 fn black_scholes_vectorized(
@@ -19,16 +21,16 @@ fn black_scholes_vectorized(
     let v = v.as_array();
 
     let n = s.len();
-    let mut res = Vec::with_capacity(n);
-
-    for i in 0..n {
-        let d1 = ( (s[i]/k[i]).ln() + (r[i] + 0.5 * v[i] * v[i]) * t[i] ) / (v[i] * t[i].sqrt());
-        let d2 = d1 - v[i] * t[i].sqrt();
+    
+    // Using rayon for parallel iterator performance
+    let res: Vec<f64> = (0..n).into_par_iter().map(|i| {
+        let sqrt_t = t[i].sqrt();
+        let d1 = ( (s[i]/k[i]).ln() + (r[i] + 0.5 * v[i] * v[i]) * t[i] ) / (v[i] * sqrt_t);
+        let d2 = d1 - v[i] * sqrt_t;
         
-        // Simple normal CDF approximation for d1, d2
         let call = s[i] * norm_cdf(d1) - k[i] * (-r[i] * t[i]).exp() * norm_cdf(d2);
-        res.push(call);
-    }
+        call
+    }).collect();
 
     Python::with_gil(|py| {
         Ok(res.into_pyarray(py).to_owned())
@@ -53,26 +55,33 @@ fn runge_kutta_4_vectorized(
     let sigma = sigma.as_array();
     let n = s0.len();
     
+    // Convert to owned array for modification
     let mut s = s0.to_owned();
-    let mut rng = rand::thread_rng();
-    let normal = rand_distr::StandardNormal;
-
+    
+    // Note: RNG within parallel iterators requires careful seeding
+    // For simplicity in this kernel, we'll keep the outer loop for steps
+    // but parallelize the inner loop across the vector of assets.
+    
     for _ in 0..steps {
-        for i in 0..n {
+        // Parallelize across assets
+        s.as_slice_mut().unwrap().par_iter_mut().enumerate().for_each(|(i, si)| {
+            let mut rng = rand::thread_rng();
+            let normal = rand_distr::StandardNormal;
+
             // RK4 for the drift part: f(s) = mu * s
-            let k1 = mu[i] * s[i];
-            let k2 = mu[i] * (s[i] + 0.5 * dt * k1);
-            let k3 = mu[i] * (s[i] + 0.5 * dt * k2);
-            let k4 = mu[i] * (s[i] + dt * k3);
+            let k1 = mu[i] * (*si);
+            let k2 = mu[i] * ((*si) + 0.5 * dt * k1);
+            let k3 = mu[i] * ((*si) + 0.5 * dt * k2);
+            let k4 = mu[i] * ((*si) + dt * k3);
             
             let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
             
-            // Stochastic component (Euler-Maruyama step integration)
+            // Stochastic component
             let dw: f64 = rng.sample(normal);
-            let diffusion = sigma[i] * s[i] * dw * dt.sqrt();
+            let diffusion = sigma[i] * (*si) * dw * dt.sqrt();
             
-            s[i] += drift + diffusion;
-        }
+            *si += drift + diffusion;
+        });
     }
 
     Python::with_gil(|py| {
@@ -83,16 +92,24 @@ fn runge_kutta_4_vectorized(
 #[pyfunction]
 fn mmap_parse_ticks(path: &str) -> PyResult<Vec<f64>> {
     let file = File::open(path)?;
-    let _mmap = unsafe { Mmap::map(&file)? };
+    let mmap = unsafe { Mmap::map(&file)? };
     
-    // Institutional-grade zero-copy tick parsing placeholder
-    // In production, this iterates over the mmap and parses binary/CSV ticks
-    Ok(vec![1337.0, 1.0, 2.0, 3.0])
+    // Zero-copy parsing of binary f64 ticks from memory-mapped file
+    let data: &[f64] = unsafe {
+        let ptr = mmap.as_ptr() as *const f64;
+        let len = mmap.len() / std::mem::size_of::<f64>();
+        std::slice::from_raw_parts(ptr, len)
+    };
+    
+    // Return a subset or the whole vec (this copies into a Vec for Python, 
+    // but the read from mmap was zero-copy).
+    // To be TRULY zero-copy into Python, we would return a numpy array 
+    // pointing at the mmap, but that requires careful lifetime management.
+    Ok(data.to_vec())
 }
 
 #[pyfunction]
 fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> PyResult<bool> {
-    // Institutional outlier detection: reject if move > 20% without confirmation
     if last_price == 0.0 {
         return Ok(true);
     }
@@ -108,3 +125,4 @@ fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     Ok(())
 }
+

@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import path from 'path';
 import { auth } from './auth';
+import { JWTService } from './jwt';
 
 const PROTO_PATH = path.resolve(__dirname, '../../protos/auth.proto');
 
@@ -22,7 +23,25 @@ export function startGrpcServer() {
         validateToken: async (call: any, callback: any) => {
             const { token } = call.request;
             try {
-                // Better Auth session validation (using public key if configured as asymmetric JWT)
+                // 1. Institutional High-Performance Asymmetric Validation (ES256)
+                let decoded;
+                try {
+                    decoded = JWTService.verifyES256(token);
+                } catch (e) {
+                    // Fallback to RS256 for legacy compatibility
+                    decoded = JWTService.verifyRS256(token);
+                }
+
+                if (decoded) {
+                    callback(null, { 
+                        valid: true, 
+                        token, 
+                        role: decoded.role || 'user' 
+                    });
+                    return;
+                }
+
+                // 2. Fallback to session check if JWT fails but might be a session ID
                 const session = await auth.api.getSession({
                     headers: new Headers({
                         Authorization: `Bearer ${token}`
@@ -39,19 +58,25 @@ export function startGrpcServer() {
                     callback(null, { valid: false });
                 }
             } catch (err) {
-                callback(err);
+                callback(null, { valid: false });
             }
         },
         generateToken: async (call: any, callback: any) => {
-            // Internal token generation logic if needed
-            callback({
-                code: grpc.status.UNIMPLEMENTED,
-                message: 'GenerateToken not implemented on gRPC yet. Use HTTP login.',
-            });
+            const { user_id, role } = call.request;
+            try {
+                const token = JWTService.signES256({
+                    sub: user_id,
+                    email: '', // Not always available in internal rpc
+                    role: role || 'user'
+                });
+                callback(null, { valid: true, token, role });
+            } catch (err) {
+                callback(err);
+            }
         },
         revokeToken: async (call: any, callback: any) => {
             const { token } = call.request;
-            // Add to Redis blocklist or revoke via Better Auth
+            // TODO: Add to Redis blocklist
             callback(null, { success: true });
         },
     });

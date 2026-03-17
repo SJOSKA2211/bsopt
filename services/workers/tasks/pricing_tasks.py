@@ -95,13 +95,27 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict[str, 
         if not valid_symbols:
             return []
 
-        # 2. Delegate to Ray Actor Pool
+        # 2. Parallel Delegation across Ray Actor Pool
         pool = get_math_pool()
-        actor = await pool.get_actor()
-
-        # HIGH-PERFORMANCE: Non-blocking await of Ray future
-        # Using a direct Ray call with shorter timeout path
-        return await actor.run_calibration_batch.remote(valid_symbols, valid_data)
+        
+        # Split symbols into chunks for each actor in the pool
+        num_actors = pool._count
+        chunk_size = (len(valid_symbols) + num_actors - 1) // num_actors
+        
+        tasks = []
+        for i in range(0, len(valid_symbols), chunk_size):
+            s_chunk = valid_symbols[i:i + chunk_size]
+            d_chunk = valid_data[i:i + chunk_size]
+            
+            # Get next actor in RR order
+            actor = await pool.get_actor()
+            tasks.append(actor.run_calibration_batch.remote(s_chunk, d_chunk))
+            
+        # 3. Wait for all chunks to complete in parallel
+        chunk_results = await asyncio.gather(*tasks)
+        
+        # Flatten results
+        return [item for sublist in chunk_results for item in sublist]
 
     except Exception as exc:
         logger.error("batch_calib_impl_error", symbols=symbols, error=str(exc))

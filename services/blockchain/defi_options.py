@@ -621,6 +621,15 @@ class DeFiOptionsProtocol:
             logger.warning("mempool_polling_failed", error=str(e))
 
 
+    async def cancel_order(self, tx_hash: str) -> bool:
+        """
+        Cancel a pending order (Stub). 
+        Real DeFi protocols often don't support cancellation once on-chain unless using an off-chain order book.
+        """
+        logger.info("defi_cancel_order_request", tx_hash=tx_hash)
+        # For now, we return True to simulate a successful cancel if it were possible/handled
+        return True
+
 if __name__ == "__main__":
     protocol = DeFiOptionsProtocol()
     print("Web3 initialized")

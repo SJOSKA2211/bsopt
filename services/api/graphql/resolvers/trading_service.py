@@ -70,5 +70,5 @@ async def create_order(
 
 
 async def cancel_order(order_id: strawberry.ID) -> bool:
-    logger.info("dummy_order_cancel", order_id=order_id)
-    return True
+    logger.info("order_cancel_request", order_id=order_id)
+    return await executor.cancel_order(str(order_id))

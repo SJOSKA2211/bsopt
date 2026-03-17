@@ -62,29 +62,29 @@ mkdir -p "${KEYS_DIR}"
 generate_keys() {
     echo "🔐 Generating Asymmetric Key Pairs (Institutional Grade)..."
     
-    # RSA 4096 (RS256)
+    # RSA 4096 (RS256) for legacy compatibility
     if [ ! -f "${KEYS_DIR}/jwt_rs256.key" ]; then
         openssl genrsa -out "${KEYS_DIR}/jwt_rs256.key" 4096
         openssl rsa -in "${KEYS_DIR}/jwt_rs256.key" -pubout -out "${KEYS_DIR}/jwt_rs256.pub"
     fi
 
-    # ECC P-256 (ES256)
+    # ECC P-256 (ES256) for modern high-performance auth
     if [ ! -f "${KEYS_DIR}/jwt_es256.key" ]; then
         openssl ecparam -name prime256v1 -genkey -noout -out "${KEYS_DIR}/jwt_es256.key"
         openssl ec -in "${KEYS_DIR}/jwt_es256.key" -pubout -out "${KEYS_DIR}/jwt_es256.pub"
     fi
 
-    # Argon2id Hashing Salt
+    # Argon2id Hashing Salt (Global Salt if needed, though per-user is standard)
     if [ ! -f "${KEYS_DIR}/argon2_salt.secret" ]; then
         openssl rand -hex 32 > "${KEYS_DIR}/argon2_salt.secret"
     fi
 
-    # TOTP Master Secret
+    # TOTP Master Secret (for system-wide MFA seeds)
     if [ ! -f "${KEYS_DIR}/totp_master.secret" ]; then
         openssl rand -hex 32 > "${KEYS_DIR}/totp_master.secret"
     fi
     
-    # Envoy SSL Cert (Self-Signed for Dev Edge)
+    # Envoy SSL Cert (Self-Signed for Dev Edge Termination)
     if [ ! -f "${KEYS_DIR}/envoy_edge.key" ]; then
         openssl req -x509 -newkey rsa:4096 -keyout "${KEYS_DIR}/envoy_edge.key" -out "${KEYS_DIR}/envoy_edge.crt" \
             -days 365 -nodes -subj "/C=US/ST=State/L=City/O=EquaFlow/CN=localhost"
@@ -106,7 +106,9 @@ fi
 set_env_var() {
     local key=$1
     local value=$2
+    # Ensure value is quoted for multi-line support (like keys)
     if grep -q "^${key}=" "${ENV_FILE}"; then
+        # Use a different delimiter for sed since keys have slashes
         sed -i "s|^${key}=.*|${key}=\"${value}\"|g" "${ENV_FILE}"
     else
         echo "${key}=\"${value}\"" >> "${ENV_FILE}"
@@ -131,10 +133,12 @@ set_env_var "MFA_TOTP_SECRET" "${TOTP_MASTER}"
 
 # Secure random passwords for necessary variables
 for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET RABBITMQ_PASSWORD; do
+    # Only set if not already present or is empty
     if ! grep -q "^${var}=" "${ENV_FILE}" || [[ -z $(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'") ]]; then
-        set_env_var "${var}" "$(openssl rand -hex 16)"
+        set_env_var "${var}" "$(openssl rand -hex 32)"
     fi
 done
+
 
 # 3. PostgreSQL Automation & Secret Orchestration
 echo "🐘 Preparing PostgreSQL initialization..."

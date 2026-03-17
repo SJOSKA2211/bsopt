@@ -184,6 +184,13 @@ class OrderExecutor:
                 logger.error("order_execution_failed", error=str(e))
                 return {"status": "failed", "error": str(e)}
 
+    async def cancel_order(self, order_id: str) -> bool:
+        """
+        Cancel an existing order.
+        """
+        logger.info("order_cancel_request", order_id=order_id)
+        return await self.protocol.cancel_order(order_id)
+
     async def monitor_transaction(self, tx_hash: str):
         logger.info("monitoring_transaction", tx_hash=tx_hash)
         pass

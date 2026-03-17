@@ -47,7 +47,7 @@ class DataPipeline:
         """
         logger.info("data_pipeline_start", symbols=self.config.symbols)
 
-        from services.database.pipeliner import db_engine
+        from core.database.pipeliner import db_engine
 
         data = await db_engine.fetch_training_data(self.config.symbols, self.config.max_samples)
 
@@ -69,7 +69,7 @@ class DataPipeline:
         """
         import pandas as pd
 
-        from services.database.pipeliner import db_engine
+        from core.database.pipeliner import db_engine
         from services.shared.math_utils import calculate_greeks
 
         # Use chunked extraction to handle large cross-sectional datasets efficiently

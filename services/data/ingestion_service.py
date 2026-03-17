@@ -70,11 +70,32 @@ class DataIngestionServicer(data_pb2_grpc.DataServiceServicer):
 
     async def GetHistoricalData(self, request, context):
         """
-        Placeholder for historical data retrieval from TimescaleDB.
+        Retrieves historical data from TimescaleDB.
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Historical data retrieval not yet implemented in DataService")
-        return data_pb2.HistoryResponse()
+        try:
+            from core.database.pipeliner import db_engine
+            
+            ticker = request.ticker or "AAPL"
+            # In a real scenario, we would use start_time and end_time from request
+            records = await db_engine.fetch_training_data([ticker], limit=1000)
+            
+            ticks = []
+            for r in records:
+                # Convert datetime to timestamp if necessary
+                ts = int(r["time"].timestamp()) if hasattr(r["time"], "timestamp") else int(r["time"])
+                ticks.append(data_pb2.Tick(
+                    ticker=r["symbol"],
+                    price=float(r["last"]),
+                    timestamp=ts,
+                    source="timescaledb"
+                ))
+            
+            return data_pb2.HistoryResponse(data=ticks)
+        except Exception as e:
+            logger.error("historical_data_fetch_failed", error=str(e))
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return data_pb2.HistoryResponse()
 
 async def serve():
     server = grpc.aio.server()

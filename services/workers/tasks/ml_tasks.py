@@ -156,11 +156,56 @@ def optimize_model_task(self, model_path: str, output_path: str):
         return {"status": "failed", "error": str(e)}
 
 
-@celery_app.task(bind=True, queue="ml")
+@celery_app.task(bind=True, base=MLTask, queue="ml")
 def hyperparameter_search_task(self, model_type: str = "xgboost"):
-    """Dummy hyperparameter search task."""
+    """
+    Optimized hyperparameter search task using Optuna.
+    """
     logger.info("hyperparameter_search_start", model_type=model_type)
-    return {"status": "success", "best_params": {}}
+
+    try:
+        # 1. Pipeline to get data
+        config = {"ticker": "AAPL", "framework": model_type}
+        pipeline = MLPipeline(config)
+
+        # Load data asynchronously using the task's event loop
+        X, y, features, meta = self.run_async(pipeline.data_pipeline.load_latest_data())
+
+        # 2. Define Objective for Optuna
+        def objective(trial):
+            if model_type == "xgboost":
+                params = {
+                    "framework": "xgboost",
+                    "max_depth": trial.suggest_int("max_depth", 3, 10),
+                    "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+                    "n_estimators": trial.suggest_int("n_estimators", 50, 500),
+                }
+            elif model_type == "sklearn":
+                params = {
+                    "framework": "sklearn",
+                    "n_estimators": trial.suggest_int("n_estimators", 10, 100),
+                    "max_depth": trial.suggest_int("max_depth", 2, 20),
+                }
+            else:
+                params = {"framework": model_type}
+
+            # trainer.train_and_evaluate returns a score (mean r2)
+            return pipeline.trainer.train_and_evaluate(X, y, params, features, meta)
+
+        # 3. Optimize
+        study = pipeline.trainer.optimize(objective, n_trials=10)
+
+        logger.info("hyperparameter_search_complete", best_params=study.best_params, best_value=study.best_value)
+
+        return {
+            "status": "success",
+            "best_params": study.best_params,
+            "best_score": study.best_value,
+            "task_id": self.request.id
+        }
+    except Exception as e:
+        logger.error("hyperparameter_search_failed", error=str(e))
+        raise e
 
 
 @celery_app.task(bind=True, queue="ml")
