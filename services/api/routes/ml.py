@@ -14,7 +14,7 @@ from services.api.schemas.common import DataResponseStruct
 from services.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from services.database import get_async_db
 from services.database.crud import get_model_drift_metrics
-from services.services.ml_service import MLService, get_ml_service
+from services.ml.service import MLService, get_ml_service
 from core.shared.utils.circuit_breaker import ml_client_circuit
 
 router = APIRouter(

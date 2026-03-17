@@ -53,7 +53,7 @@ class MLService:
 
     def _black_scholes_price(self, req: InferenceRequest) -> float:
         # Optimized Black-Scholes using core engines
-        from services.quant.pricing.black_scholes import BlackScholesEngine
+        from services.pricing.black_scholes import BlackScholesEngine
 
         try:
             price = BlackScholesEngine.price_options(

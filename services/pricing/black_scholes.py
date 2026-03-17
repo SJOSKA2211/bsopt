@@ -4,13 +4,12 @@ import numpy as np
 import structlog
 
 from services.pricing.models import BSParameters, OptionGreeks
-from services.shared.math_utils import calculate_greeks, calculate_price
+from core.shared.math_utils import calculate_greeks, calculate_price
 
 from .base import PricingStrategy
 
 try:
     import bsopt_core
-
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -59,7 +58,6 @@ class BlackScholesEngine(PricingStrategy):
         d_arr = np.atleast_1d(d).astype(np.float64)
 
         # Broadcast all to a common shape
-        # np.broadcast() will raise an error if they are not compatible
         try:
             target_shape = np.broadcast(s_arr, k_arr, t_arr, v_arr, r_arr, d_arr).shape
         except ValueError as e:
@@ -119,12 +117,10 @@ class BlackScholesEngine(PricingStrategy):
             try:
                 # Optimized Rust path
                 if S.size > 1:
-                    # Ensure is_call is broadcast to S.shape for Rust core
                     is_call_arr = np.atleast_1d(is_call).astype(bool)
                     if is_call_arr.shape != S.shape:
                         is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
-                    # Ensure 1D arrays for the Rust batch function
                     return bsopt_core.batch_black_scholes(
                         S.ravel(),
                         K.ravel(),
@@ -151,9 +147,8 @@ class BlackScholesEngine(PricingStrategy):
         # GPU Acceleration Path (Numba CUDA)
         if S.size > 100:  # Threshold for GPU overhead
             try:
-                from services.quant.kernels import price_options_gpu
+                from services.pricing.cuda_kernels import price_options_gpu
 
-                # Convert is_call to boolean array for CUDA
                 is_call_arr = np.atleast_1d(is_call).astype(bool)
                 if is_call_arr.shape != S.shape:
                     is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
@@ -212,7 +207,6 @@ class BlackScholesEngine(PricingStrategy):
         if CORE_AVAILABLE:
             try:
                 if S.size == 1:
-                    # Optimized Rust scalar path
                     res = bsopt_core.black_scholes_greeks(
                         float(S[0]),
                         float(K[0]),
@@ -230,7 +224,6 @@ class BlackScholesEngine(PricingStrategy):
                         rho=res.rho,
                     )
                 else:
-                    # Optimized Rust batch path
                     is_call_arr = np.atleast_1d(is_call).astype(bool)
                     if is_call_arr.shape != S.shape:
                         is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
@@ -258,7 +251,6 @@ class BlackScholesEngine(PricingStrategy):
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
         if "out_delta" in kwargs:
-
             def _copy(dst, src):
                 if isinstance(src, np.ndarray):
                     np.copyto(dst, src)
@@ -313,81 +305,6 @@ class BlackScholesEngine(PricingStrategy):
             ),
         )
 
-    @staticmethod
-    def price_batch_greeks(
-        S: np.ndarray,
-        K: np.ndarray,
-        T: np.ndarray,
-        sigma: np.ndarray,
-        r: np.ndarray,
-        dividend: np.ndarray,
-        is_call: Any = True,
-    ) -> tuple[np.ndarray, ...]:
-        """
-        Specialized batch Greek calculation for GreekEngine.
-        Returns a tuple of arrays: (delta, gamma, theta, vega, rho)
-        """
-        # Ensure arrays for broadcasting
-        n = len(S)
-        K_arr = np.full(n, K) if np.isscalar(K) else np.asanyarray(K)
-        T_arr = np.full(n, T) if np.isscalar(T) else np.asanyarray(T)
-        sig_arr = np.full(n, sigma) if np.isscalar(sigma) else np.asanyarray(sigma)
-        r_arr = np.full(n, r) if np.isscalar(r) else np.asanyarray(r)
-        q_arr = np.full(n, dividend) if np.isscalar(dividend) else np.asanyarray(dividend)
-
-        if np.isscalar(is_call):
-            is_call_arr = np.full(n, is_call, dtype=bool)
-        else:
-            is_call_arr = np.asanyarray(is_call).astype(bool)
-
-        if CORE_AVAILABLE:
-            try:
-                # Optimized Rust batch path
-                d, g, th, v, rh = bsopt_core.batch_black_scholes_greeks(
-                    S.ravel().astype(np.float64),
-                    K_arr.ravel().astype(np.float64),
-                    T_arr.ravel().astype(np.float64),
-                    sig_arr.ravel().astype(np.float64),
-                    r_arr.ravel().astype(np.float64),
-                    q_arr.ravel().astype(np.float64),
-                    is_call_arr.ravel().astype(bool),
-                )
-                return (
-                    d.reshape(S.shape),
-                    g.reshape(S.shape),
-                    th.reshape(S.shape),
-                    v.reshape(S.shape),
-                    rh.reshape(S.shape),
-                )
-            except Exception as e:
-                logger.warning("rust_batch_greeks_failed_falling_back", error=str(e))
-
-        # Vectorized numpy fallback
-        d, g, th, v, rh = calculate_greeks(S, K_arr, T_arr, sig_arr, r_arr, q_arr, is_call_arr)
-        return d, g, th, v, rh
-
-    @staticmethod
-    def calculate_greeks_batch(**kwargs: Any) -> dict[str, np.ndarray]:
-        """Vectorized Greeks calculation returning a dictionary."""
-        greeks = BlackScholesEngine.calculate_greeks(**kwargs)
-        return {
-            "delta": cast(np.ndarray, greeks.delta),
-            "gamma": cast(np.ndarray, greeks.gamma),
-            "theta": cast(np.ndarray, greeks.theta),
-            "vega": cast(np.ndarray, greeks.vega),
-            "rho": cast(np.ndarray, greeks.rho),
-        }
-
-    @staticmethod
-    def verify_put_call_parity(
-        S: Any, K: Any, T: Any, r: Any, call_price: Any, put_price: Any, q: float = 0.0
-    ) -> bool:
-        lhs = np.asanyarray(call_price) - np.asanyarray(put_price)
-        rhs = np.asanyarray(S) * np.exp(-np.asanyarray(q) * np.asanyarray(T)) - np.asanyarray(
-            K
-        ) * np.exp(-np.asanyarray(r) * np.asanyarray(T))
-        return bool(np.allclose(lhs, rhs, atol=1e-5))
-
     def price_european(
         self, params: BSParameters, option_type: str = "call", **kwargs: Any
     ) -> float:
@@ -400,23 +317,3 @@ def black_scholes(*args: Any, **kwargs: Any) -> Any:
     if len(args) == 5 or "params" in kwargs:
         return {"price": result}
     return result
-
-
-def verify_put_call_parity(
-    params_or_S: Any,
-    K: Any = None,
-    T: Any = None,
-    r: Any = None,
-    call_price: Any = None,
-    put_price: Any = None,
-    q: float = 0.0,
-) -> bool:
-    """Module-level parity verifier for test compatibility."""
-    if hasattr(params_or_S, "spot") and K is None:
-        p = params_or_S
-        cp = BlackScholesEngine.price_options(params=p, option_type="call")
-        pp = BlackScholesEngine.price_options(params=p, option_type="put")
-        return BlackScholesEngine.verify_put_call_parity(
-            p.spot, p.strike, p.maturity, p.rate, cp, pp, p.dividend
-        )
-    return BlackScholesEngine.verify_put_call_parity(params_or_S, K, T, r, call_price, put_price, q)

@@ -3,7 +3,7 @@ import logging
 import os
 
 from services.config import get_settings
-from services.services.email_service import TransactionalEmailService
+from services.shared.email import TransactionalEmailService
 from core.shared.utils.cache import RateLimitTier, rate_limiter
 
 from .celery_app import celery_app

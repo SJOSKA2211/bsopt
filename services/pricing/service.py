@@ -17,8 +17,8 @@ from services.api.schemas.pricing import (
     BatchPriceResult,
     PriceResult,
 )
-from services.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
-from services.quant.pricing.models import BSParameters
+from services.pricing.factory import PricingEngineFactory, PricingEngineNotFound
+from services.pricing.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
@@ -138,7 +138,7 @@ class PricingService:
 
                 # Optimized Dispatch
                 if model_type == "black_scholes":
-                    from services.quant.pricing.black_scholes import BlackScholesEngine
+                    from services.pricing.black_scholes import BlackScholesEngine
 
                     # Concurrently call JIT/Rust batch kernels for price and greeks
                     prices_task = run_sync(
@@ -195,7 +195,7 @@ class PricingService:
                             ),
                         )
                 elif model_type == "neural":
-                    from services.quant.pricing.base import VectorizedPricingStrategy
+                    from services.pricing.base import VectorizedPricingStrategy
 
                     v_engine = cast(VectorizedPricingStrategy, engine)
 
@@ -281,6 +281,121 @@ class PricingService:
             computation_time_ms=(time.perf_counter() - start_time) * 1000,
         )
 
+    async def price_batch_arrays(
+        self,
+        spots: np.ndarray,
+        strikes: np.ndarray,
+        maturities: np.ndarray,
+        vols: np.ndarray,
+        rates: np.ndarray,
+        dividends: np.ndarray,
+        option_types: np.ndarray,
+        models: np.ndarray,
+        symbols: np.ndarray,
+    ) -> np.ndarray:
+        """
+        ULTRA-HIGH PERFORMANCE: Direct array-based pricing without Pydantic overhead.
+        Used by BatchPricingService for zero-allocation paths.
+        """
+        n = len(spots)
+        results = np.zeros(n, dtype=np.float64)
+
+        # Batch processes models to use vectorized kernels
+        unique_models = np.unique(models)
+        for model in unique_models:
+            indices = np.where(models == model)[0]
+            if len(indices) == 0:
+                continue
+
+            try:
+                engine = self.factory.get_engine(str(model))
+                
+                # Check for vectorized interface
+                from .base import VectorizedPricingStrategy
+                if isinstance(engine, VectorizedPricingStrategy):
+                    # Convert types to boolean array
+                    is_calls = (option_types[indices] == "call")
+                    
+                    prices = await run_sync(
+                        engine.price_batch,
+                        spots[indices],
+                        strikes[indices],
+                        maturities[indices],
+                        vols[indices],
+                        rates[indices],
+                        dividends[indices],
+                        is_calls
+                    )
+                    results[indices] = prices
+                else:
+                    # Fallback to scalar pricing for non-vectorized engines
+                    for idx in indices:
+                        params = BSParameters(
+                            spot=float(spots[idx]),
+                            strike=float(strikes[idx]),
+                            maturity=float(maturities[idx]),
+                            volatility=float(vols[idx]),
+                            rate=float(rates[idx]),
+                            dividend=float(dividends[idx])
+                        )
+                        res = await run_sync(engine.price_european, params, option_types[idx])
+                        results[idx] = res.price
+            except Exception as e:
+                logger.error("array_batch_pricing_failed", model=model, error=str(e))
+
+        return results
+
+    async def price_batch_shm(
+        self,
+        shm_in_name: str,
+        shm_out_name: str,
+        shape: tuple[int, int],
+        model: str = "black_scholes"
+    ) -> bool:
+        """
+        ULTRA-LOW LATENCY: Pricing via Shared Memory segments.
+        Direct memory interaction for zero-copy data transfer.
+        """
+        from core.shared.shared_memory import shm_manager
+        
+        try:
+            shm_in = shm_manager.get_segment(shm_in_name)
+            shm_out = shm_manager.get_segment(shm_out_name)
+            
+            # Input layout: [spot, strike, T, vol, r, q, is_call]
+            n = shape[0]
+            input_data = np.ndarray(shape, dtype=np.float64, buffer=shm_in.buf)
+            output_data = np.ndarray((n,), dtype=np.float64, buffer=shm_out.buf)
+
+            if model == "black_scholes":
+                from .black_scholes import BlackScholesEngine
+                
+                # Extract columns
+                S = input_data[:, 0]
+                K = input_data[:, 1]
+                T = input_data[:, 2]
+                sigma = input_data[:, 3]
+                r = input_data[:, 4]
+                q = input_data[:, 5]
+                is_call = input_data[:, 6].astype(bool)
+
+                # Execute vectorized pricing
+                prices = await run_sync(
+                    BlackScholesEngine.price_batch,
+                    S, K, T, sigma, r, q, is_call
+                )
+                
+                # Copy results to output SHM
+                output_data[:] = prices
+                return True
+            
+            # Add other models as needed
+            return False
+
+        except Exception as e:
+            logger.error("shm_batch_pricing_failed", error=str(e))
+            return False
+
     async def calculate_greeks_batch(self, options: list[Any]) -> BatchGreeksResult:
         """
         HIGH-PERFORMANCE: Batch Greeks calculation.
@@ -297,7 +412,7 @@ class PricingService:
         types = np.array([o.option_type for o in options])
 
         from services.api.schemas.pricing import GreeksResult
-        from services.quant.pricing.black_scholes import BlackScholesEngine
+        from services.pricing.black_scholes import BlackScholesEngine
 
         # Using BlackScholesEngine truly vectorized batch greeks (Rust/JIT)
         g_res = await run_sync(
@@ -350,7 +465,7 @@ class PricingService:
         dividends = np.array([o.dividend_yield for o in options], dtype=np.float64)
         option_types = np.array([o.option_type for o in options])
 
-        from services.quant.pricing.implied_vol import vectorized_implied_volatility
+        from services.pricing.implied_vol import vectorized_implied_volatility
 
         vols_arr = cast(
             np.ndarray[Any, np.dtype[np.float64]],

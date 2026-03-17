@@ -118,7 +118,7 @@ class Query:
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
         from services.api.schemas.ml import InferenceRequest
-        from services.services.ml_service import get_ml_service
+        from services.ml.service import get_ml_service
 
         ml_service = get_ml_service()
 

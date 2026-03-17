@@ -19,7 +19,7 @@ from services.api.schemas.pricing import (
     PriceRequest,
     PriceResult,
 )
-from services.services.pricing_service import PricingService
+from services.services.pricing.service import PricingService
 from core.shared.utils.cache import multi_layer_cache
 from core.shared.utils.circuit_breaker import pricing_circuit
 
