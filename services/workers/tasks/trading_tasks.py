@@ -12,7 +12,7 @@ import structlog
 from core.shared.utils.celery import BaseAsyncTask
 from core.shared.utils.lazy_import import lazy_import
 
-from .celery_app import celery_app
+from services.workers.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 

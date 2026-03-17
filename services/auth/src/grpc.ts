@@ -4,6 +4,8 @@ import path from 'path';
 import { auth } from './auth';
 import { JWTService } from './jwt';
 
+import { redis } from './redis';
+
 const PROTO_PATH = path.resolve(__dirname, '../../protos/auth.proto');
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
@@ -23,6 +25,13 @@ export function startGrpcServer() {
         validateToken: async (call: any, callback: any) => {
             const { token } = call.request;
             try {
+                // 0. Check Redis blocklist
+                const isRevoked = await redis.get(`revoked_token:${token}`);
+                if (isRevoked) {
+                    callback(null, { valid: false });
+                    return;
+                }
+
                 // 1. Institutional High-Performance Asymmetric Validation (ES256)
                 let decoded;
                 try {
@@ -76,8 +85,13 @@ export function startGrpcServer() {
         },
         revokeToken: async (call: any, callback: any) => {
             const { token } = call.request;
-            // TODO: Add to Redis blocklist
-            callback(null, { success: true });
+            try {
+                // Add to Redis blocklist with 7 days expiration (matching JWT expiry)
+                await redis.set(`revoked_token:${token}`, '1', 'EX', 7 * 24 * 60 * 60);
+                callback(null, { success: true });
+            } catch (err) {
+                callback(err);
+            }
         },
     });
 

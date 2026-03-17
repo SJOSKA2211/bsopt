@@ -1,4 +1,4 @@
-from ..pricing.wasm_engine import WASMPricingEngine
+from services.pricing.wasm_engine import WASMPricingEngine
 
 
 class BlackScholesWASM(WASMPricingEngine):

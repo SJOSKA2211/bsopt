@@ -6,7 +6,7 @@ from confluent_kafka import Producer as ConfluentProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 
-from .base import Producer
+from services.pricing.base import Producer
 
 logger = structlog.get_logger()
 

@@ -30,14 +30,14 @@ from services.api.schemas.user import UserResponse
 from services.config import settings
 from services.database import get_async_db, set_user_context
 from services.database.models import User
-from services.security.auth import (
+from core.security.auth import (
     auth_service,
     get_current_active_user,
     get_current_user,
 )
-from services.security.mfa import mfa_service
-from services.security.password import password_service
-from services.security.rate_limit import rate_limit
+from core.security.mfa import mfa_service
+from core.security.password import password_service
+from core.security.rate_limit import rate_limit
 
 logger = structlog.get_logger(__name__)
 

@@ -83,7 +83,7 @@ class FusedSecurityMiddleware:
         is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
 
         if not is_public:
-            from services.security.auth import auth_service
+            from core.security.auth import auth_service
 
             token = None
             auth_header = request.headers.get("Authorization")

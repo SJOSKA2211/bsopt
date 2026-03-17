@@ -4,7 +4,7 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
-from .base import Feature
+from services.pricing.base import Feature
 
 
 class LogReturnFeature(Feature):

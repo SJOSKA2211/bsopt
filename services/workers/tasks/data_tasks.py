@@ -14,7 +14,7 @@ from typing import Any
 
 import structlog
 
-from .celery_app import MLTask, celery_app
+from services.workers.tasks.celery_app import MLTask, celery_app
 
 logger = structlog.get_logger(__name__)
 

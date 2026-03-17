@@ -83,12 +83,44 @@ class NeuralPricingStrategy(PricingStrategy):
 
     def calculate_greeks(self, params: BSParameters, option_type: str = "call") -> OptionGreeks:
         """
-        Greeks via Automatic Differentiation or Finite Differences.
-        Neural models are differentiable, but ONNX inference is just the forward pass.
-        We use finite differences on the neural surface.
+        Greeks via Finite Differences on the neural surface.
         """
-        # OPTIMIZED: Reuse standard finite difference logic but on the fast neural surface
-        from services.pricing.black_scholes import BlackScholesEngine
+        if not self.ort_session:
+            from services.pricing.black_scholes import BlackScholesEngine
+            return BlackScholesEngine().calculate_greeks(params, option_type)
 
-        # Temporary fallback to BS greeks until neural greeks are requested specifically
-        return BlackScholesEngine().calculate_greeks(params, option_type)
+        def get_price(s, k, t, v, r, q):
+            p = BSParameters(spot=s, strike=k, maturity=t, volatility=v, rate=r, dividend=q)
+            return self.price_european(p, option_type)
+
+        s, k, t, v, r, q = params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
+        eps = 1e-4
+
+        # Delta & Gamma
+        p_plus = get_price(s + eps, k, t, v, r, q)
+        p_minus = get_price(s - eps, k, t, v, r, q)
+        p_mid = get_price(s, k, t, v, r, q)
+        
+        delta = (p_plus - p_minus) / (2 * eps)
+        gamma = (p_plus - 2 * p_mid + p_minus) / (eps**2)
+
+        # Vega
+        p_v_plus = get_price(s, k, t, v + eps, r, q)
+        vega = (p_v_plus - p_mid) / eps
+
+        # Theta (using 1 day step)
+        dt = 1/365.0
+        p_t_minus = get_price(s, k, max(0, t - dt), v, r, q)
+        theta = (p_t_minus - p_mid) / dt
+
+        # Rho
+        p_r_plus = get_price(s, k, t, v, r + eps, q)
+        rho = (p_r_plus - p_mid) / eps
+
+        return OptionGreeks(
+            delta=float(delta),
+            gamma=float(gamma),
+            vega=float(vega),
+            theta=float(theta),
+            rho=float(rho)
+        )

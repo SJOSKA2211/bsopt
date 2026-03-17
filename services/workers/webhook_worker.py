@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import time
 
 import structlog
 from celery import Celery
@@ -123,5 +124,21 @@ def send_to_dlq_task(webhook_data: dict, reason: str = "unknown_failure"):
         reason=reason,
         webhook_data=webhook_data,
     )
-    # In a real system, this would store the webhook in a persistent DLQ
-    # for manual inspection or re-processing later.
+    
+    # PERMANENT DLQ: Store in Redis for manual retry/inspection
+    try:
+        get_redis = _get_attr("get_redis")
+        redis_client = get_redis()
+        if redis_client:
+            import json
+            dlq_entry = {
+                "data": webhook_data,
+                "reason": reason,
+                "timestamp": time.time()
+            }
+            # Push to the 'webhooks:dlq' list
+            # Note: Using run_async if we want to be consistent, 
+            # but this is a standard celery task (sync wrapper)
+            return asyncio.run(redis_client.lpush("webhooks:dlq", json.dumps(dlq_entry)))
+    except Exception as e:
+        logger.critical("dlq_storage_failed", error=str(e), url=webhook_data.get("url"))

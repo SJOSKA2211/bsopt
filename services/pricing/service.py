@@ -213,9 +213,14 @@ class PricingService:
                         ),
                     )
 
-                    # Assume Greeks for neural if defined in specialized strategy
-                    # For now minimal placeholder
+                    # Optimized Dispatch for Neural Greeks
+                    greeks_results = await asyncio.gather(*[
+                        run_sync(engine.calculate_greeks, it[1].to_bs_params(), it[1].option_type)
+                        for it in items
+                    ])
+
                     for idx, (original_idx, req) in enumerate(items):
+                        g_res = greeks_results[idx]
                         results[original_idx] = PriceResult(
                             price=float(prices_arr[idx]),
                             spot=req.spot,
@@ -226,7 +231,13 @@ class PricingService:
                             option_type=req.option_type,
                             model=model_type,
                             computation_time_ms=0.0,
-                            greeks=None,
+                            greeks=OptionGreeksStruct(
+                                delta=float(g_res.delta),
+                                gamma=float(g_res.gamma),
+                                theta=float(g_res.theta),
+                                vega=float(g_res.vega),
+                                rho=float(g_res.rho),
+                            ) if g_res else None,
                         )
                 else:
                     # Fallback to concurrent scalar pricing for non-vectorized engines
@@ -311,7 +322,7 @@ class PricingService:
                 engine = self.factory.get_engine(str(model))
                 
                 # Check for vectorized interface
-                from .base import VectorizedPricingStrategy
+                from services.pricing.base import VectorizedPricingStrategy
                 if isinstance(engine, VectorizedPricingStrategy):
                     # Convert types to boolean array
                     is_calls = (option_types[indices] == "call")
@@ -368,7 +379,7 @@ class PricingService:
             output_data = np.ndarray((n,), dtype=np.float64, buffer=shm_out.buf)
 
             if model == "black_scholes":
-                from .black_scholes import BlackScholesEngine
+                from services.pricing.black_scholes import BlackScholesEngine
                 
                 # Extract columns
                 S = input_data[:, 0]

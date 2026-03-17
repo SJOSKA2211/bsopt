@@ -621,6 +621,13 @@ class DeFiOptionsProtocol:
             logger.warning("mempool_polling_failed", error=str(e))
 
 
+    async def wait_for_receipt(self, tx_hash: str, timeout: int = 120) -> dict:
+        """Wait for a transaction receipt with a timeout."""
+        return await asyncio.wait_for(
+            self.w3.eth.wait_for_transaction_receipt(tx_hash),
+            timeout=timeout
+        )
+
     async def cancel_order(self, tx_hash: str) -> bool:
         """
         Cancel a pending order (Stub). 

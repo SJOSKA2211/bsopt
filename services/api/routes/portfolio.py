@@ -16,7 +16,7 @@ from services.api.responses import MsgspecJSONResponse
 from services.api.schemas.common import DataResponseStruct, SuccessResponse
 from services.database import get_async_db, set_user_context
 from services.database.models import Portfolio, Position, User
-from services.security.auth import get_current_active_user
+from core.security.auth import get_current_active_user
 
 router = APIRouter(
     prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse

@@ -13,7 +13,7 @@ import numpy as np
 from services.pricing.models import BSParameters, OptionGreeks
 from services.pricing.quant_utils import jit_cn_solver
 
-from .base import PricingStrategy
+from services.pricing.base import PricingStrategy
 
 logger = logging.getLogger(__name__)
 

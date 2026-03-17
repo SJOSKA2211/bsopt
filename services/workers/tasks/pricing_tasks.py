@@ -24,7 +24,7 @@ from core.shared.utils.celery import BaseAsyncTask
 from core.shared.utils.distributed import RayOrchestrator
 from core.shared.utils.ray_pool import RayActorPool
 
-from .celery_app import PricingTask, celery_app
+from services.workers.tasks.celery_app import PricingTask, celery_app
 
 logger = structlog.get_logger(__name__)
 

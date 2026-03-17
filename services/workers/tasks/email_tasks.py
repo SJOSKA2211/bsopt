@@ -6,7 +6,7 @@ from services.config import get_settings
 from services.shared.email import TransactionalEmailService
 from core.shared.utils.cache import RateLimitTier, rate_limiter
 
-from .celery_app import celery_app
+from services.workers.tasks.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ import structlog
 from services.ml.pipeline import MLPipeline
 from core.shared.utils.lazy_import import lazy_import
 
-from .celery_app import MLTask, celery_app
+from services.workers.tasks.celery_app import MLTask, celery_app
 
 logger = structlog.get_logger(__name__)
 

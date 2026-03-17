@@ -27,7 +27,7 @@ from services.api.routes import (
     websocket_router,
 )
 from services.config import settings
-from services.security.auth import RoleChecker
+from core.security.auth import RoleChecker
 from services.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging
@@ -74,7 +74,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     redis_client = await get_redis_client()
     
     # Initialize Token Blacklist with Redis
-    from services.security.auth import token_blacklist
+    from core.security.auth import token_blacklist
     await token_blacklist.initialize(redis_client)
 
     # Chaos Injection

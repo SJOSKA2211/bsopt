@@ -6,7 +6,7 @@ import structlog
 from services.pricing.models import BSParameters, OptionGreeks
 from core.shared.math_utils import calculate_greeks, calculate_price
 
-from .base import PricingStrategy
+from services.pricing.base import PricingStrategy
 
 try:
     import bsopt_core

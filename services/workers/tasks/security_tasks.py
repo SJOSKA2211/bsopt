@@ -11,7 +11,7 @@ import structlog
 from sqlalchemy import select
 
 from services.database.models import User
-from services.security.password import get_password_service
+from core.security.password import get_password_service
 from services.shared.db import get_db_session
 from services.workers.tasks.celery_app import BaseTaskWithRetry, celery_app
 

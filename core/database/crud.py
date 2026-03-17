@@ -20,7 +20,7 @@ from sqlalchemy import and_, insert, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .models import (
+from core.database.models import (
     AuditLog,
     MarketTick,
     MLModel,
@@ -797,7 +797,7 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
             return len(mesh_data)
 
         # Fallback to standard insert
-        from .models import MarketDataMesh
+        from core.database.models import MarketDataMesh
 
         await db.execute(insert(MarketDataMesh), mesh_data)
         await db.commit()

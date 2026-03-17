@@ -4,7 +4,7 @@ import structlog
 
 from core.shared.config import settings
 
-from .base import Producer
+from services.pricing.base import Producer
 
 logger = structlog.get_logger(__name__)
 

@@ -18,7 +18,7 @@ from services.api.schemas.common import (
 from services.api.schemas.user import UserResponse, UserUpdateRequest
 from services.database import get_async_db, set_user_context
 from services.database.models import User
-from services.security.auth import get_current_user, require_tier
+from core.security.auth import get_current_user, require_tier
 
 router = APIRouter(prefix="/users", tags=["Users"], default_response_class=MsgspecJSONResponse)
 

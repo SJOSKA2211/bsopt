@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from services.api.responses import MsgspecJSONResponse
 from services.api.schemas.common import DataResponseStruct
 from services.database import crud, get_async_db
-from services.security.auth import require_tier
+from core.security.auth import require_tier
 from services.shared.shm_mesh import SharedMemoryRingBuffer
 from core.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 

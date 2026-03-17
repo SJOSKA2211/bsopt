@@ -9,7 +9,7 @@ from services.api.exceptions import (
 from services.api.responses import MsgspecJSONResponse
 from services.api.schemas.common import DataResponse, ErrorResponse
 from services.database import get_async_db, health_check
-from services.security.auth import require_tier
+from core.security.auth import require_tier
 
 router = APIRouter(
     prefix="/debug",

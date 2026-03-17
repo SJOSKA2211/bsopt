@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from core.shared.config import settings
 
-from .base import Producer
+from services.pricing.base import Producer
 from .kafka_producer import MarketDataProducer as KafkaProducer
 from .zmq_producer import ZMQMarketDataProducer
 

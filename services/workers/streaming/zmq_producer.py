@@ -5,7 +5,7 @@ import structlog
 import zmq
 import zmq.asyncio
 
-from .base import Producer
+from services.pricing.base import Producer
 
 logger = structlog.get_logger()
 

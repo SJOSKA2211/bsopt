@@ -492,7 +492,7 @@ class JWTAuthenticationMiddleware(BaseHTTPMiddleware):
         ):
             return await call_next(request)
 
-        from services.security.auth import auth_service
+        from core.security.auth import auth_service
 
         # 1. Extract Token (Support Header or Cookie)
         token = None

@@ -14,7 +14,7 @@ from services.pricing.quant_utils import (
     jit_mc_european_with_control_variate,
 )
 
-from .base import PricingStrategy
+from services.pricing.base import PricingStrategy
 
 try:
     import bsopt_core

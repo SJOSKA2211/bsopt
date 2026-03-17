@@ -30,7 +30,7 @@ async def market_data_ws(
         return
 
     try:
-        from services.security.auth import auth_service
+        from core.security.auth import auth_service
 
         await auth_service.validate_token(token)
     except Exception:
@@ -103,7 +103,7 @@ async def greeks_ws(
         return
 
     try:
-        from services.security.auth import auth_service
+        from core.security.auth import auth_service
 
         await auth_service.validate_token(token)
     except Exception:

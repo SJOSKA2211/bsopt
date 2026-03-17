@@ -192,5 +192,19 @@ class OrderExecutor:
         return await self.protocol.cancel_order(order_id)
 
     async def monitor_transaction(self, tx_hash: str):
-        logger.info("monitoring_transaction", tx_hash=tx_hash)
-        pass
+        """
+        Monitor a transaction until it is mined or times out.
+        Updates internal state based on the receipt.
+        """
+        logger.info("monitoring_transaction_started", tx_hash=tx_hash)
+        try:
+            receipt = await self.protocol.wait_for_receipt(tx_hash)
+            if receipt["status"] == 1:
+                logger.info("transaction_confirmed", tx_hash=tx_hash, block=receipt["blockNumber"])
+                # OPTIMIZED: Trigger post-trade analytics or state sync here
+            else:
+                logger.error("transaction_failed_on_chain", tx_hash=tx_hash)
+        except asyncio.TimeoutError:
+            logger.warning("transaction_monitoring_timeout", tx_hash=tx_hash)
+        except Exception as e:
+            logger.error("monitoring_failed", tx_hash=tx_hash, error=str(e))
