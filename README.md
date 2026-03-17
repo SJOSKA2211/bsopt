@@ -59,16 +59,7 @@ make cli ARGS="status"
 .
 ├── core/                # Shared logic, trading kernels, and config
 ├── docs/                # Consolidated documentation
-│   ├── architecture/    # System design and specifications
-│   ├── history/         # Legacy tickets and research
-│   ├── api/             # API documentation
-│   ├── mlops/           # MLOps and build protocols
-│   └── plans/           # Implementation plans and PRDs
 ├── infrastructure/      # Infrastructure and orchestration
-│   ├── docker/          # Dockerfiles
-│   ├── terraform/       # IaC
-│   ├── init-scripts/    # Database initialization
-│   └── orchestration/   # docker-compose and deployment
 ├── protos/              # gRPC/Protobuf definitions
 ├── scripts/             # Utility and maintenance scripts
 ├── services/            # Microservices (auth, pricing, ml, etc.)

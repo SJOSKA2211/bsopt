@@ -70,7 +70,30 @@ function debugString(val) {
     if (val instanceof Error) {
         return `${val.name}: ${val.message}\n${val.stack}`;
     }
-    // TODO we could test for more things here, like `Set`s and `Map`s.
+    // Sets
+    if (val instanceof Set) {
+        let debug = 'Set {';
+        let first = true;
+        val.forEach((v) => {
+            if (!first) debug += ', ';
+            debug += debugString(v);
+            first = false;
+        });
+        debug += '}';
+        return debug;
+    }
+    // Maps
+    if (val instanceof Map) {
+        let debug = 'Map {';
+        let first = true;
+        val.forEach((v, k) => {
+            if (!first) debug += ', ';
+            debug += debugString(k) + ' => ' + debugString(v);
+            first = false;
+        });
+        debug += '}';
+        return debug;
+    }
     return className;
 }
 
