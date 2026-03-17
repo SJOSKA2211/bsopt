@@ -78,7 +78,7 @@ class OPAEnforcer:
     """
 
     def __init__(self, opa_url: str | None = None):
-        from core.config import settings
+        from core.shared.config import settings
 
         self.opa_url = opa_url or settings.OPA_URL
 
@@ -130,7 +130,7 @@ class MTLSVerifier:
         mTLS bypass and unauthorized access.
         """
         # Bypass mTLS in local/dev environments
-        from core.config import settings
+        from core.shared.config import settings
 
         if (
             not settings.is_production
@@ -173,7 +173,7 @@ def opa_authorize(action: str, resource: str):
     async def _authorize(request: Request):
         import os
 
-        from core.config import settings
+        from core.shared.config import settings
 
         if (
             not settings.is_production

@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.concurrency import run_in_threadpool
 
-from core.config import settings
+from core.shared.config import settings
 from core.database import get_async_db
 from core.database.models import APIKey, User
 

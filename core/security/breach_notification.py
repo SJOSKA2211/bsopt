@@ -7,7 +7,7 @@ Service for handling data breach notifications as required by GDPR.
 import logging
 from datetime import UTC, datetime
 
-from core.config import settings
+from core.shared.config import settings
 from core.database.models import SecurityIncident, User
 from core.services.email_service import TransactionalEmailService
 

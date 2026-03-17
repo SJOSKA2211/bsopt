@@ -7,7 +7,7 @@ import structlog
 from fastapi import BackgroundTasks, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core.config import settings
+from core.shared.config import settings
 from core.utils.crypto import AES256GCM
 
 logger = structlog.get_logger(__name__)

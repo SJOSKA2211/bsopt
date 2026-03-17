@@ -19,7 +19,7 @@ import pwnedpasswords
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from core.config import settings
+from core.shared.config import settings
 
 logger = logging.getLogger(__name__)
 

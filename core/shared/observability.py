@@ -24,7 +24,7 @@ from prometheus_client import (
     push_to_gateway,
 )
 
-from core.config import settings
+from core.shared.config import settings
 from core.shared.off_heap_logger import omega_logger
 
 # Pre-compiled patterns for IP and Email

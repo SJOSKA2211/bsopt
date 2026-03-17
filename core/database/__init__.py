@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool, QueuePool
 
-from core.config import settings
+from core.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 

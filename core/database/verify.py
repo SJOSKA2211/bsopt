@@ -2,7 +2,7 @@ import sys
 
 from sqlalchemy import text
 
-from core.config import get_settings
+from core.shared.config import get_settings
 from core.database import get_engine
 
 

@@ -19,7 +19,7 @@ import structlog
 from cachetools import TTLCache
 from redis.asyncio import Redis, RedisError
 
-from core.pricing.models import BSParameters, OptionGreeks
+from services.pricing.models import BSParameters, OptionGreeks
 
 logger = structlog.get_logger(__name__)
 
@@ -30,7 +30,7 @@ def get_redis() -> Redis | None:
     """Get or initialize the global Redis client instance."""
     global _redis
     if _redis is None:
-        from core.config import settings
+        from core.shared.config import settings
 
         try:
             # OPTIMIZED: Use a standard from_url which works with both real and mocked redis

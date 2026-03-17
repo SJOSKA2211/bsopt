@@ -12,7 +12,7 @@ import pyotp
 import qrcode
 from cryptography.fernet import Fernet
 
-from core.config import settings
+from core.shared.config import settings
 
 logger = logging.getLogger(__name__)
 

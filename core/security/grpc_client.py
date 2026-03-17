@@ -1,7 +1,7 @@
 import grpc
 import structlog
 
-from core.config import settings
+from core.shared.config import settings
 from core.protos import auth_pb2, auth_pb2_grpc
 
 logger = structlog.get_logger(__name__)
