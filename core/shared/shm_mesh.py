@@ -130,6 +130,9 @@ class GreeksMesh:
             self._refresh_index()
         except Exception as e:
             if not create:
+                if os.getenv("ENVIRONMENT") == "prod":
+                    logger.error("greeks_snapshot_missing_in_prod", error=str(e))
+                    raise
                 logger.warning("greeks_snapshot_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
                 self.view = np.frombuffer(self.buf, dtype=GREEKS_DTYPE, count=GREEKS_MAP_CAPACITY)
@@ -220,6 +223,9 @@ class GreeksBuffer:
             )
         except Exception as e:
             if not create:
+                if os.getenv("ENVIRONMENT") == "prod":
+                    logger.error("greeks_shm_missing_in_prod", error=str(e))
+                    raise
                 logger.warning("greeks_shm_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
                 self.view = np.frombuffer(
@@ -269,6 +275,9 @@ class RiskStateBuffer:
             self.view = np.frombuffer(self.buf, dtype=RISK_STATE_DTYPE, count=1)
         except Exception as e:
             if not create:
+                if os.getenv("ENVIRONMENT") == "prod":
+                    logger.error("risk_shm_missing_in_prod", error=str(e))
+                    raise
                 logger.warning("risk_shm_missing_using_dummy", error=str(e))
                 local_data = bytearray(self.size)
                 self.buf = memoryview(local_data)
@@ -335,6 +344,9 @@ class OrderBuffer:
             )
         except Exception as e:
             if not create:
+                if os.getenv("ENVIRONMENT") == "prod":
+                    logger.error("order_shm_missing_in_prod", error=str(e))
+                    raise
                 logger.warning("order_shm_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
                 self.view = np.frombuffer(
@@ -391,6 +403,9 @@ class ExecutionBuffer:
             )
         except Exception as e:
             if not create:
+                if os.getenv("ENVIRONMENT") == "prod":
+                    logger.error("exec_shm_missing_in_prod", error=str(e))
+                    raise
                 logger.warning("exec_shm_missing_using_dummy", error=str(e))
                 self.buf = memoryview(bytearray(self.size))
                 self.view = np.frombuffer(

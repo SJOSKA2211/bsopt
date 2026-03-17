@@ -4,7 +4,7 @@ import structlog
 
 from services.database import get_session
 from services.database.models import AuditLog
-from services.tasks.celery_app import celery_app
+from services.workers.tasks.celery_app import celery_app
 
 logger = structlog.get_logger(__name__)
 

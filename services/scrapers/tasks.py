@@ -1,7 +1,7 @@
 import structlog
 
 from services.scrapers.engine import NSEScraper
-from services.tasks.celery_app import BaseTaskWithRetry, celery_app
+from services.workers.tasks.celery_app import BaseTaskWithRetry, celery_app
 
 logger = structlog.get_logger(__name__)
 

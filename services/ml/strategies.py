@@ -159,6 +159,22 @@ class DaskXGBoostStrategy(TrainingStrategy):
         return result
 
 
+    def export_onnx(self, model: Any, path: str, input_dim: int) -> None:
+        """Export XGBoost model to ONNX."""
+        try:
+            import onnxmltools
+            from skl2onnx.common.data_types import FloatTensorType
+            
+            logger.info("exporting_xgboost_to_onnx", path=path)
+            initial_type = [("float_input", FloatTensorType([None, input_dim]))]
+            onx = onnxmltools.convert_xgboost(model, initial_types=initial_type, target_opset=14)
+            
+            with open(path, "wb") as f:
+                f.write(onx.SerializeToString())
+            logger.info("xgboost_onnx_export_success", path=path)
+        except Exception as e:
+            logger.error("xgboost_onnx_export_failed", error=str(e))
+
 class SklearnStrategy(TrainingStrategy):
     def train(
         self,
@@ -184,6 +200,22 @@ class SklearnStrategy(TrainingStrategy):
         importances = model.feature_importances_
         return {name: float(imp) for name, imp in zip(feature_names, importances, strict=False)}
 
+
+    def export_onnx(self, model: Any, path: str, input_dim: int) -> None:
+        """Export Sklearn model to ONNX."""
+        try:
+            import skl2onnx
+            from skl2onnx.common.data_types import FloatTensorType
+            
+            logger.info("exporting_sklearn_to_onnx", path=path)
+            initial_type = [("float_input", FloatTensorType([None, input_dim]))]
+            onx = skl2onnx.convert_sklearn(model, initial_types=initial_type, target_opset=14)
+            
+            with open(path, "wb") as f:
+                f.write(onx.SerializeToString())
+            logger.info("sklearn_onnx_export_success", path=path)
+        except Exception as e:
+            logger.error("sklearn_onnx_export_failed", error=str(e))
 
 class PyTorchStrategy(TrainingStrategy, ONNXOptimizationMixin):
     class SimpleNet(nn.Module):  # type: ignore

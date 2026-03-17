@@ -265,7 +265,7 @@ class DriftTrigger:
         """Asynchronously trigger the Celery retraining task."""
         try:
             # Avoid circular import
-            from services.tasks.ml_tasks import train_model_task
+            from services.workers.tasks.ml_tasks import train_model_task
 
             logger.info("triggering_autonomous_retrain", ticker=ticker, model_type=model_type)
             train_model_task.delay(ticker=ticker, model_type=model_type)

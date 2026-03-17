@@ -403,7 +403,7 @@ async def _send_verification_email(email: str, token: str) -> None:
     # Omit the full link from logs for security
     logger.info("email_verification_link_generated", email=email, link="[REDACTED]")
 
-    from services.tasks.email_tasks import send_transactional_email
+    from services.workers.tasks.email_tasks import send_transactional_email
 
     send_transactional_email.delay(
         to_email=email,
@@ -421,7 +421,7 @@ async def _send_password_reset_email(email: str, token: str) -> None:
     # Omit the full link from logs for security
     logger.info("password_reset_link_generated", email=email, link="[REDACTED]")
 
-    from services.tasks.email_tasks import send_transactional_email
+    from services.workers.tasks.email_tasks import send_transactional_email
 
     send_transactional_email.delay(
         to_email=email,

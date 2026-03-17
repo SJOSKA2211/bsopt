@@ -87,7 +87,7 @@ async def trigger_retraining(
     Trigger model retraining.
     Modes: 'regressor' (single ticker), 'cross_sectional' (entire universe).
     """
-    from services.tasks.ml_tasks import check_threshold_and_retrain_task
+    from services.workers.tasks.ml_tasks import check_threshold_and_retrain_task
 
     task = check_threshold_and_retrain_task.delay(
         ticker=ticker, force=force, threshold=threshold, mode=mode

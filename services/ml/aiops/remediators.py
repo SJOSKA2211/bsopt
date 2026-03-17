@@ -4,7 +4,7 @@ from typing import Any
 
 import structlog
 
-from services.tasks.ml_tasks import monitor_drift_and_retrain_task
+from services.workers.tasks.ml_tasks import monitor_drift_and_retrain_task
 
 logger = structlog.get_logger(__name__)
 

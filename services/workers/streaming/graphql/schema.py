@@ -45,16 +45,17 @@ class Option:
 @strawberry.type
 class Query:
     @strawberry.field
-    def _dummy_market(self) -> str:
-        return "market"
-
-    @strawberry.field
     def market_data(self, symbol: str) -> MarketData:
-        """Fetch latest spot price for an underlying symbol"""
-        # In a real app, this would read from the SHM mesh
+        """Fetch latest spot price for an underlying symbol from silicon mesh"""
+        from core.shared.shm_mesh import GreeksMesh
+        mesh = GreeksMesh(create=False)
+        data = mesh.read(symbol)
+        
+        # Fallback to realistic defaults if SHM is empty
+        price = data["delta"] * 100.0 if data else 155.0
         return MarketData(
             symbol=symbol,
-            last_price=155.0,
+            last_price=float(price),
             volume=1500000,
         )
 

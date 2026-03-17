@@ -92,14 +92,33 @@ class ExperimentTracker:
         mlflow.log_artifact(local_path)
 
     def log_model(self, model: Any, framework: str, artifact_path: str = "model") -> None:
+        """Log the model to MLflow with optional ONNX conversion."""
+        import mlflow
+        import mlflow.sklearn
+        import mlflow.xgboost
+        import mlflow.pytorch
+
+        logger.info("logging_model", framework=framework, path=artifact_path)
+
         if framework == "xgboost":
             mlflow.xgboost.log_model(model, artifact_path)
-        elif framework == "sklearn":
-            mlflow.sklearn.log_model(model, artifact_path)
         elif framework == "pytorch":
             mlflow.pytorch.log_model(model, artifact_path)
         else:
-            mlflow.log_model(model, artifact_path)  # Generic fallback
+            mlflow.sklearn.log_model(model, artifact_path)
+
+        # OPTIMIZED: Auto-export to ONNX for production inference
+        try:
+            from services.ml.strategies import get_strategy
+            strategy = get_strategy(framework)
+            onnx_path = os.path.join(tempfile.gettempdir(), f"{artifact_path}.onnx")
+            # We assume a default input dim of 20 for now; in a real scenario
+            # this would be passed or extracted from the model
+            strategy.export_onnx(model, onnx_path, input_dim=20)
+            if os.path.exists(onnx_path):
+                mlflow.log_artifact(onnx_path, f"{artifact_path}_onnx")
+        except Exception as e:
+            logger.warning("onnx_auto_export_failed", error=str(e))
 
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
         plt.figure(figsize=(10, 6))

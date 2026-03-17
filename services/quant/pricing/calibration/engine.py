@@ -77,12 +77,20 @@ class HestonCalibrator:
                     # Handle Expiry/T
                     t_val = d.get("T") or d.get("maturity") or d.get("expiry")
                     if isinstance(t_val, str):
-                        # Simple placeholder for date parsing if needed,
-                        # for now assume float years if it looks like one
                         try:
+                            # Try parsing as float years first
                             T = float(t_val)
                         except ValueError:
-                            T = 1.0  # Default to 1 year
+                            # Try parsing as ISO date or relative date
+                            try:
+                                from dateutil.parser import parse
+                                from datetime import datetime
+                                expiry_date = parse(t_val)
+                                now = datetime.now()
+                                T = (expiry_date - now).days / 365.25
+                                if T <= 0: T = 1/252.0 # Minimum 1 day
+                            except Exception:
+                                T = 1.0  # Default to 1 year
                     else:
                         T = float(t_val) if t_val is not None else 1.0
 
