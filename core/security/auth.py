@@ -253,7 +253,7 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         # 1. Try Cache First (Redis)
-        from core.utils.cache import get_redis_client
+        from core.shared.utils.cache import get_redis_client
 
         redis_client = await get_redis_client()
         if redis_client:

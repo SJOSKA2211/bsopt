@@ -4,9 +4,9 @@ import redis.asyncio as redis
 import structlog
 from fastapi import Depends, HTTPException, Request, status
 
-from core.config import settings
+from core.shared.config import settings
 from core.shared.lua_scripts import TOKEN_BUCKET_RL
-from core.utils.cache import get_redis_client
+from core.shared.utils.cache import get_redis_client
 
 logger = structlog.get_logger(__name__)
 

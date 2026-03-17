@@ -6,7 +6,7 @@ import msgspec
 import structlog
 from fastapi import Request, Response
 
-from core.utils.cache import get_redis
+from core.shared.utils.cache import get_redis
 
 logger = structlog.get_logger()
 
