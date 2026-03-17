@@ -10,7 +10,9 @@ class TestBlockchainLazyLoading:
     def setup_method(self):
         # Clear any cached imports from previous tests
         modules_to_clear = [
-            mod for mod in sys.modules.keys() if mod.startswith("services.blockchain") or mod == "web3"
+            mod
+            for mod in sys.modules.keys()
+            if mod.startswith("services.blockchain") or mod == "web3"
         ]
         for mod in modules_to_clear:
             del sys.modules[mod]

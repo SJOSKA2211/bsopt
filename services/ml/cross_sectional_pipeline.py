@@ -238,15 +238,11 @@ def train_pipeline(
 
         train_dataset = TensorDataset(X_train_t, y_train_t)
         train_loader = DataLoader(
-            train_dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=2,
-            pin_memory=True
+            train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True
         )
 
         model = CrossSectionalPricingModel(input_dim=len(features))
-        
+
         # HIGH-PERFORMANCE: Use torch.compile for graph optimization if available
         if hasattr(torch, "compile"):
             try:

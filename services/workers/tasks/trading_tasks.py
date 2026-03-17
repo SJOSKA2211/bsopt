@@ -44,9 +44,9 @@ def reconcile_risk_state_task(self):
 
 async def _reconcile_risk_state_impl():
     """Implementation of risk state synchronization (Multi-Dimensional)."""
+    from core.shared.utils.cache import get_redis
     from services.config import get_settings
     from services.shared.shm_mesh import RiskStateBuffer
-    from core.shared.utils.cache import get_redis
 
     settings = get_settings()
     redis = get_redis()
@@ -117,8 +117,8 @@ def execute_trade_task(self, order: dict):
 
 async def get_persistent_delta_tracker():
     """Retrieve or initialize IncrementalDeltaTracker with Redis-backed state."""
-    from services.config import get_settings
     from core.shared.utils.cache import get_redis
+    from services.config import get_settings
 
     settings = get_settings()
     redis = get_redis()

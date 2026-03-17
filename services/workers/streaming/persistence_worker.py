@@ -10,6 +10,7 @@ from services.workers.streaming.kafka_consumer import MarketDataConsumer
 
 logger = structlog.get_logger(__name__)
 
+
 async def persist_ticks(batch: list[dict], topic: str):
     """
     Process a batch of ticks from Kafka and persist to TimescaleDB.
@@ -31,12 +32,13 @@ async def persist_ticks(batch: list[dict], topic: str):
                     "source_id": f"kafka-{topic}-{tick.get('symbol')}",
                     "audit_trail": {
                         "original_source": tick.get("source"),
-                        "raw_payload_checksum": hash(str(tick)) # Simple hash for lineage
-                    }
+                        "raw_payload_checksum": hash(str(tick)),  # Simple hash for lineage
+                    },
                 }
             )
         except Exception as e:
             from services.workers.streaming.dlq import dlq_manager
+
             await dlq_manager.send_to_dlq(tick, str(e), topic)
 
     async with db_manager.get_async_session() as db:
@@ -47,14 +49,14 @@ async def persist_ticks(batch: list[dict], topic: str):
             logger.error("kafka_persistence_failed", error=str(e), topic=topic)
             # In case of bulk failure, we could retry individually or DLQ the batch
             from services.workers.streaming.dlq import dlq_manager
+
             for tick in batch:
                 await dlq_manager.send_to_dlq(tick, f"Bulk failure: {str(e)}", topic)
 
+
 async def main():
     consumer = MarketDataConsumer(
-        bootstrap_servers="kafka-1:9092",
-        group_id="persistence-group",
-        topics=["market-data"]
+        bootstrap_servers="kafka-1:9092", group_id="persistence-group", topics=["market-data"]
     )
 
     # Graceful shutdown handling
@@ -78,6 +80,7 @@ async def main():
         logger.error("persistence_worker_runtime_error", error=str(e))
     finally:
         logger.info("kafka_persistence_worker_stopped")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

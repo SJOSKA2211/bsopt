@@ -78,7 +78,9 @@ class TestSelfHealingOrchestrator:
         orchestrator._detect_system_anomalies = AsyncMock(return_value=[])
         orchestrator.planner.plan = MagicMock(return_value=[mock_remediator])
 
-        with patch("services.ml.aiops.self_healing_orchestrator.post_grafana_annotation") as mock_notify:
+        with patch(
+            "services.ml.aiops.self_healing_orchestrator.post_grafana_annotation"
+        ) as mock_notify:
             await orchestrator.run_cycle(pd.DataFrame({"latency": [5.0]}))
 
             mock_detector.detect.assert_called_once()

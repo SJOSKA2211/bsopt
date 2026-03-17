@@ -10,7 +10,6 @@ try:
 
     sys.path.append(os.path.join(os.path.dirname(__file__), "../../src"))
     from confluent_kafka import KafkaError  # Needed for mocking KafkaError
-
     from streaming.kafka_consumer import MarketDataConsumer
 except ImportError:
     MarketDataConsumer = None

@@ -11,6 +11,10 @@ import msgspec
 import numpy as np
 import structlog
 
+from core.shared.utils.cache import pricing_cache
+from core.shared.utils.celery import BaseAsyncTask
+from core.shared.utils.distributed import RayOrchestrator
+from core.shared.utils.ray_pool import RayActorPool
 from services.pricing.implied_vol import implied_volatility
 from services.pricing.models import BSParameters
 from services.shared.math_utils import (
@@ -19,10 +23,6 @@ from services.shared.math_utils import (
     calculate_price,
     calculate_price_scalar,
 )
-from core.shared.utils.cache import pricing_cache
-from core.shared.utils.celery import BaseAsyncTask
-from core.shared.utils.distributed import RayOrchestrator
-from core.shared.utils.ray_pool import RayActorPool
 
 from .celery_app import PricingTask, celery_app
 
@@ -97,23 +97,23 @@ async def _recalibrate_symbols_batch_impl(symbols: list[str]) -> list[dict[str, 
 
         # 2. Parallel Delegation across Ray Actor Pool
         pool = get_math_pool()
-        
+
         # Split symbols into chunks for each actor in the pool
         num_actors = pool._count
         chunk_size = (len(valid_symbols) + num_actors - 1) // num_actors
-        
+
         tasks = []
         for i in range(0, len(valid_symbols), chunk_size):
-            s_chunk = valid_symbols[i:i + chunk_size]
-            d_chunk = valid_data[i:i + chunk_size]
-            
+            s_chunk = valid_symbols[i : i + chunk_size]
+            d_chunk = valid_data[i : i + chunk_size]
+
             # Get next actor in RR order
             actor = await pool.get_actor()
             tasks.append(actor.run_calibration_batch.remote(s_chunk, d_chunk))
-            
+
         # 3. Wait for all chunks to complete in parallel
         chunk_results = await asyncio.gather(*tasks)
-        
+
         # Flatten results
         return [item for sublist in chunk_results for item in sublist]
 
@@ -158,8 +158,7 @@ def price_option_task(
             params = BSParameters(spot, strike, maturity, volatility, rate, dividend)
             # OPTIMIZED: Use persistent loop from BaseAsyncTask
             cached_price = self.run_async(
-                pricing_cache.get_option_price(params, option_type, "black_scholes"),
-                timeout=5.0
+                pricing_cache.get_option_price(params, option_type, "black_scholes"), timeout=5.0
             )
             if cached_price is not None:
                 computation_time = (time.perf_counter() - start_time) * 1000

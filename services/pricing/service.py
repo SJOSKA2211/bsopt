@@ -309,13 +309,14 @@ class PricingService:
 
             try:
                 engine = self.factory.get_engine(str(model))
-                
+
                 # Check for vectorized interface
                 from .base import VectorizedPricingStrategy
+
                 if isinstance(engine, VectorizedPricingStrategy):
                     # Convert types to boolean array
-                    is_calls = (option_types[indices] == "call")
-                    
+                    is_calls = option_types[indices] == "call"
+
                     prices = await run_sync(
                         engine.price_batch,
                         spots[indices],
@@ -324,7 +325,7 @@ class PricingService:
                         vols[indices],
                         rates[indices],
                         dividends[indices],
-                        is_calls
+                        is_calls,
                     )
                     results[indices] = prices
                 else:
@@ -336,7 +337,7 @@ class PricingService:
                             maturity=float(maturities[idx]),
                             volatility=float(vols[idx]),
                             rate=float(rates[idx]),
-                            dividend=float(dividends[idx])
+                            dividend=float(dividends[idx]),
                         )
                         res = await run_sync(engine.price_european, params, option_types[idx])
                         results[idx] = res.price
@@ -350,18 +351,18 @@ class PricingService:
         shm_in_name: str,
         shm_out_name: str,
         shape: tuple[int, int],
-        model: str = "black_scholes"
+        model: str = "black_scholes",
     ) -> bool:
         """
         ULTRA-LOW LATENCY: Pricing via Shared Memory segments.
         Direct memory interaction for zero-copy data transfer.
         """
         from core.shared.shared_memory import shm_manager
-        
+
         try:
             shm_in = shm_manager.get_segment(shm_in_name)
             shm_out = shm_manager.get_segment(shm_out_name)
-            
+
             # Input layout: [spot, strike, T, vol, r, q, is_call]
             n = shape[0]
             input_data = np.ndarray(shape, dtype=np.float64, buffer=shm_in.buf)
@@ -369,7 +370,7 @@ class PricingService:
 
             if model == "black_scholes":
                 from .black_scholes import BlackScholesEngine
-                
+
                 # Extract columns
                 S = input_data[:, 0]
                 K = input_data[:, 1]
@@ -381,14 +382,13 @@ class PricingService:
 
                 # Execute vectorized pricing
                 prices = await run_sync(
-                    BlackScholesEngine.price_batch,
-                    S, K, T, sigma, r, q, is_call
+                    BlackScholesEngine.price_batch, S, K, T, sigma, r, q, is_call
                 )
-                
+
                 # Copy results to output SHM
                 output_data[:] = prices
                 return True
-            
+
             # Add other models as needed
             return False
 

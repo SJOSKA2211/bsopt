@@ -3,13 +3,14 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
-from services.pricing.models import BSParameters, OptionGreeks
 from core.shared.math_utils import calculate_greeks, calculate_price
+from services.pricing.models import BSParameters, OptionGreeks
 
 from .base import PricingStrategy
 
 try:
     import bsopt_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -251,6 +252,7 @@ class BlackScholesEngine(PricingStrategy):
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
         if "out_delta" in kwargs:
+
             def _copy(dst, src):
                 if isinstance(src, np.ndarray):
                     np.copyto(dst, src)

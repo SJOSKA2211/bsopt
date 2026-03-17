@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from services.api.main import app
 from core.security.auth import get_current_user_flexible
 from core.security.rate_limit import rate_limit
 from core.shared.cache import get_redis_client
+from services.api.main import app
 
 
 def create_mock_redis():
@@ -45,8 +45,8 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def reset_circuits():
-    from services.api.routes.pricing import pricing_service
     from core.shared.circuit_breaker import pricing_circuit
+    from services.api.routes.pricing import pricing_service
 
     pricing_circuit.reset()
     pricing_service.clear_cache()

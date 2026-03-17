@@ -175,7 +175,9 @@ class TestQuantumHardware:
     def test_quantum_pricer_hardware_init_mock(self, mocker):
         """Verify that QuantumOptionPricer attempts to use QuantumBackendManager when use_real_quantum is True."""
         # Mock QuantumBackendManager
-        mock_manager_class = mocker.patch("services.quant.pricing.quantum_pricing.QuantumBackendManager")
+        mock_manager_class = mocker.patch(
+            "services.quant.pricing.quantum_pricing.QuantumBackendManager"
+        )
         mock_manager_instance = mock_manager_class.return_value
         mock_backend = MagicMock()
         mock_manager_instance.get_backend.return_value = mock_backend
@@ -192,7 +194,9 @@ class TestQuantumHardware:
 
     def test_quantum_pricer_hardware_fallback_on_error(self, mocker):
         """Verify that the pricer falls back to AerSimulator if backend retrieval fails."""
-        mock_manager_class = mocker.patch("services.quant.pricing.quantum_pricing.QuantumBackendManager")
+        mock_manager_class = mocker.patch(
+            "services.quant.pricing.quantum_pricing.QuantumBackendManager"
+        )
         mock_manager_instance = mock_manager_class.return_value
         mock_manager_instance.get_backend.side_effect = Exception("Backend Error")
 

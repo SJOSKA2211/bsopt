@@ -64,6 +64,7 @@ class MarketDataProducer(Producer):
         # Schema Registry for Avro serialization
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
         import os
+
         schema_path = os.path.join(os.path.dirname(__file__), "schemas/market_data.avsc")
         with open(schema_path) as f:
             self.market_data_schema = f.read()

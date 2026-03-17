@@ -16,9 +16,9 @@ from prometheus_client import Counter, Histogram
 from pydantic import BaseModel, Field, field_validator
 from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
 
+from core.shared.utils.resilience import yfinance_breaker
 from services.database import db_manager
 from services.scrapers.discovery import get_sp500_symbols
-from core.shared.utils.resilience import yfinance_breaker
 
 logger = structlog.get_logger(__name__)
 tracer = trace.get_tracer(__name__)

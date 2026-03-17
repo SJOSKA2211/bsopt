@@ -172,7 +172,9 @@ async def test_idempotency_streaming_not_cached(mock_redis):
         return StreamingResponse(fake_stream())
 
     client = TestClient(app)
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="stream-fp"):
+    with patch(
+        "services.api.middleware.idempotency._generate_fingerprint", return_value="stream-fp"
+    ):
         response = client.post("/test")
         assert response.status_code == 200
         # Should NOT call redis.set for caching streaming response

@@ -7,8 +7,8 @@ from typing import Any
 
 import structlog
 
-from services.ml.pipeline import MLPipeline
 from core.shared.utils.lazy_import import lazy_import
+from services.ml.pipeline import MLPipeline
 
 from .celery_app import MLTask, celery_app
 
@@ -195,13 +195,17 @@ def hyperparameter_search_task(self, model_type: str = "xgboost"):
         # 3. Optimize
         study = pipeline.trainer.optimize(objective, n_trials=10)
 
-        logger.info("hyperparameter_search_complete", best_params=study.best_params, best_value=study.best_value)
+        logger.info(
+            "hyperparameter_search_complete",
+            best_params=study.best_params,
+            best_value=study.best_value,
+        )
 
         return {
             "status": "success",
             "best_params": study.best_params,
             "best_score": study.best_value,
-            "task_id": self.request.id
+            "task_id": self.request.id,
         }
     except Exception as e:
         logger.error("hyperparameter_search_failed", error=str(e))

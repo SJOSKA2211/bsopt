@@ -4,12 +4,12 @@ from datetime import UTC, datetime
 import structlog
 from fastapi import FastAPI
 
-from services.api.responses import MsgspecJSONResponse
-from services.api.websockets.manager import manager as ws_manager
 from core.data.xdp_ingest import XDPIngester
 from core.database.pipeliner import db_engine
 from core.shared.eternal_ledger import EternalLedger
 from core.shared.observability import setup_logging, tune_gc
+from services.api.responses import MsgspecJSONResponse
+from services.api.websockets.manager import manager as ws_manager
 from services.workers.streaming.kafka_consumer import MarketDataConsumer
 
 # Optimized event loop

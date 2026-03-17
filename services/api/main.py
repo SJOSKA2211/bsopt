@@ -72,9 +72,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     await init_redis_cache()
     redis_client = await get_redis_client()
-    
+
     # Initialize Token Blacklist with Redis
     from services.security.auth import token_blacklist
+
     await token_blacklist.initialize(redis_client)
 
     # Chaos Injection
@@ -87,9 +88,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Shutdown
+    from core.shared.utils.cache import close_redis_cache
     from services.api.websockets.manager import manager
     from services.database import dispose_engine
-    from core.shared.utils.cache import close_redis_cache
 
     await manager.close()
     await dispose_engine()

@@ -271,6 +271,7 @@ class Settings(BaseSettings):
         raw_key = self.JWT_ES256_PRIVATE
         if raw_key:
             import base64
+
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key
@@ -289,6 +290,7 @@ class Settings(BaseSettings):
         raw_key = self.JWT_ES256_PUBLIC
         if raw_key:
             import base64
+
             try:
                 if raw_key.strip().startswith("-----BEGIN"):
                     return raw_key

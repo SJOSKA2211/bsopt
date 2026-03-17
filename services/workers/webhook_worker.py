@@ -5,9 +5,9 @@ import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
-from services.config import settings
 from core.shared.utils.celery import BaseAsyncTask
 from core.shared.utils.lazy_import import lazy_import
+from services.config import settings
 from services.webhooks.dispatcher import WebhookDispatcher
 
 # Optimized event loop
@@ -27,7 +27,7 @@ celery_app.conf.task_queues = {
     "webhooks": {
         "exchange": "webhooks",
         "routing_key": "webhooks.#",
-        "queue_arguments": {"x-queue-type": "quorum"}, # HA Quorum Queues (RabbitMQ 3.8+)
+        "queue_arguments": {"x-queue-type": "quorum"},  # HA Quorum Queues (RabbitMQ 3.8+)
     }
 }
 celery_app.conf.task_default_queue = "webhooks"

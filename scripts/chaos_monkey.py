@@ -1,7 +1,8 @@
-import time
-import subprocess
-import random
 import os
+import random
+import subprocess
+import time
+
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -14,8 +15,9 @@ TARGET_CONTAINERS = [
     "bsopt-ml-inference-1",
     "bsopt-worker-1",
     "bsopt-nse-scraper-1",
-    "bsopt-envoy-1"
+    "bsopt-envoy-1",
 ]
+
 
 def kill_container(container_name):
     """Randomly kill a container to test system resilience."""
@@ -31,49 +33,74 @@ def kill_container(container_name):
         except Exception as e:
             logger.error("chaos_monkey_attack_failed", target=container_name, error=str(e))
 
+
 def monitor_recovery(container_name, timeout=60):
     """Monitor if the system (docker restart policy) recovers the container."""
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
             # Check if container is running
-            output = subprocess.check_output(["docker", "inspect", "-f", "{{.State.Running}}", container_name]).decode().strip()
+            output = (
+                subprocess.check_output(
+                    ["docker", "inspect", "-f", "{{.State.Running}}", container_name]
+                )
+                .decode()
+                .strip()
+            )
             if output == "true":
-                logger.info("chaos_monkey_recovery_verified", target=container_name, duration=time.time() - start_time)
+                logger.info(
+                    "chaos_monkey_recovery_verified",
+                    target=container_name,
+                    duration=time.time() - start_time,
+                )
                 return True
         except Exception:
             try:
-                output = subprocess.check_output(["podman", "inspect", "-f", "{{.State.Running}}", container_name]).decode().strip()
+                output = (
+                    subprocess.check_output(
+                        ["podman", "inspect", "-f", "{{.State.Running}}", container_name]
+                    )
+                    .decode()
+                    .strip()
+                )
                 if output == "true":
-                    logger.info("chaos_monkey_recovery_verified", target=container_name, duration=time.time() - start_time)
+                    logger.info(
+                        "chaos_monkey_recovery_verified",
+                        target=container_name,
+                        duration=time.time() - start_time,
+                    )
                     return True
             except Exception:
                 pass
         time.sleep(5)
-    
+
     logger.error("chaos_monkey_recovery_failed", target=container_name, timeout=timeout)
     return False
+
 
 def chaos_loop(interval=300):
     """Continuous Chaos Engineering Loop."""
     logger.info("chaos_monkey_started", interval=interval, targets=TARGET_CONTAINERS)
-    
+
     while True:
         target = random.choice(TARGET_CONTAINERS)
         kill_container(target)
-        
+
         # Give it a moment to realize it's dead and for restart policy to kick in
         time.sleep(10)
         monitor_recovery(target)
-        
+
         # Wait for the next chaos event
         wait_time = random.randint(interval // 2, interval * 2)
         logger.info("chaos_monkey_sleeping", next_attack_in=wait_time)
         time.sleep(wait_time)
+
 
 if __name__ == "__main__":
     # Ensure we don't run chaos in production by accident without a flag
     if os.getenv("CHAOS_ENABLED") == "1":
         chaos_loop()
     else:
-        logger.error("chaos_monkey_aborted", reason="CHAOS_ENABLED environment variable not set to 1")
+        logger.error(
+            "chaos_monkey_aborted", reason="CHAOS_ENABLED environment variable not set to 1"
+        )

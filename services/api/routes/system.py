@@ -5,12 +5,12 @@ import anyio
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 from services.api.responses import MsgspecJSONResponse
 from services.api.schemas.common import DataResponseStruct
 from services.database import crud, get_async_db
 from services.security.auth import require_tier
 from services.shared.shm_mesh import SharedMemoryRingBuffer
-from core.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 
 router = APIRouter(prefix="/system", tags=["System"], default_response_class=MsgspecJSONResponse)
 logger = logging.getLogger(__name__)
@@ -71,6 +71,7 @@ async def get_deep_health():
 
     # 4. Redis Probe
     from core.shared.utils.cache import get_redis
+
     redis = get_redis()
     if redis:
         try:
@@ -87,6 +88,7 @@ async def get_deep_health():
         import aio_pika
 
         from services.config import settings
+
         # Quick connection attempt
         connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)
         await connection.close()

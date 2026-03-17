@@ -10,11 +10,11 @@ from math import erf
 import grpc
 import structlog
 
-from services.api.schemas.ml import InferenceRequest, InferenceResponse
-from core.shared.config import settings
 from core.database.pipeliner import db_engine
 from core.protos import inference_pb2, inference_pb2_grpc
+from core.shared.config import settings
 from core.shared.observability import ML_PROXY_PREDICT_LATENCY
+from services.api.schemas.ml import InferenceRequest, InferenceResponse
 
 logger = structlog.get_logger(__name__)
 

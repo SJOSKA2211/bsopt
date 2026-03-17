@@ -2,9 +2,9 @@ import asyncio
 import logging
 import os
 
+from core.shared.utils.cache import RateLimitTier, rate_limiter
 from services.config import get_settings
 from services.shared.email import TransactionalEmailService
-from core.shared.utils.cache import RateLimitTier, rate_limiter
 
 from .celery_app import celery_app
 

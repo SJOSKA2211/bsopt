@@ -18,8 +18,8 @@ except ImportError:
     ray = RayMock()
 import structlog
 
-from services.config import settings
 from core.shared.utils.shared_memory import shm_manager
+from services.config import settings
 
 logger = structlog.get_logger(__name__)
 

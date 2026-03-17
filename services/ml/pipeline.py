@@ -62,7 +62,12 @@ class DataPipeline:
 
     async def load_latest_data(
         self,
-    ) -> tuple[np.ndarray[Any, np.dtype[np.float64]], np.ndarray[Any, np.dtype[np.float64]], list[str], dict[str, Any]]:
+    ) -> tuple[
+        np.ndarray[Any, np.dtype[np.float64]],
+        np.ndarray[Any, np.dtype[np.float64]],
+        list[str],
+        dict[str, Any],
+    ]:
         """
         Load the latest collected data from Postgres (Optimized cross-sectional extraction).
         Returns: (X, y, feature_names, metadata)
@@ -305,6 +310,7 @@ def _check_cache(file_path: str) -> bool:
     if not os.path.exists(file_path):
         return False
     import time
+
     return (time.time() - os.path.getmtime(file_path)) < 86400
 
 

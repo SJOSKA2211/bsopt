@@ -6,10 +6,10 @@ import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
-from services.api.main import app
 from core.database import get_db
 from core.database.models import User
 from core.security.auth import get_current_active_user, get_current_user
+from services.api.main import app
 
 client = TestClient(app)
 
@@ -346,7 +346,9 @@ def test_refresh_token_success(mock_user):
 def test_refresh_token_invalid_type():
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch("core.security.auth.auth_service.validate_token", new_callable=AsyncMock) as mock_val:
+    with patch(
+        "core.security.auth.auth_service.validate_token", new_callable=AsyncMock
+    ) as mock_val:
         mock_val.return_value = MagicMock(token_type="access")
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "token"})
         assert response.status_code == 401
@@ -357,7 +359,9 @@ def test_refresh_token_user_inactive(mock_user):
     mock_user.is_active = False
     mock_db = MagicMock()
     app.dependency_overrides[get_db] = lambda: mock_db
-    with patch("core.security.auth.auth_service.validate_token", new_callable=AsyncMock) as mock_val:
+    with patch(
+        "core.security.auth.auth_service.validate_token", new_callable=AsyncMock
+    ) as mock_val:
         mock_val.return_value = MagicMock(user_id=str(mock_user.id), token_type="refresh")
         mock_db.query.return_value.filter.return_value.first.return_value = mock_user
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "token"})

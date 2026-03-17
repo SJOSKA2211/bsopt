@@ -94,9 +94,9 @@ class ExperimentTracker:
     def log_model(self, model: Any, framework: str, artifact_path: str = "model") -> None:
         """Log the model to MLflow with optional ONNX conversion."""
         import mlflow
+        import mlflow.pytorch
         import mlflow.sklearn
         import mlflow.xgboost
-        import mlflow.pytorch
 
         logger.info("logging_model", framework=framework, path=artifact_path)
 
@@ -110,6 +110,7 @@ class ExperimentTracker:
         # OPTIMIZED: Auto-export to ONNX for production inference
         try:
             from services.ml.strategies import get_strategy
+
             strategy = get_strategy(framework)
             onnx_path = os.path.join(tempfile.gettempdir(), f"{artifact_path}.onnx")
             # We assume a default input dim of 20 for now; in a real scenario

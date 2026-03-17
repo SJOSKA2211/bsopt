@@ -21,7 +21,9 @@ async def test_retrainer_trigger_success(retrainer):
 
 @pytest.mark.asyncio
 async def test_retrainer_with_drift(retrainer):
-    with patch("services.ml.aiops.data_drift_detector.DataDriftDetector.detect_drift") as mock_drift:
+    with patch(
+        "services.ml.aiops.data_drift_detector.DataDriftDetector.detect_drift"
+    ) as mock_drift:
         mock_drift.return_value = {"is_drift_detected": True}
         with pytest.raises(ValueError, match="data drift"):
             await retrainer.retrain_now(data=[1, 2, 3])

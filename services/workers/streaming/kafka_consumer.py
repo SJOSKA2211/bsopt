@@ -53,7 +53,7 @@ class MarketDataConsumer:
         self.consumer = Consumer(self.config)
         self.consumer.subscribe(topics)
         self.running = False
-        
+
         # DLQ Producer
         self.dlq_topic = f"{topics[0]}-dlq" if topics else "market-data-dlq"
         self.dlq_producer = ConfluentProducer({"bootstrap.servers": bootstrap_servers})
@@ -61,6 +61,7 @@ class MarketDataConsumer:
         # Schema Registry for Avro deserialization
         self.schema_registry = SchemaRegistryClient({"url": schema_registry_url})
         import os
+
         schema_path = os.path.join(os.path.dirname(__file__), "schemas/market_data.avsc")
         with open(schema_path) as f:
             self.market_data_schema = f.read()
@@ -106,12 +107,19 @@ class MarketDataConsumer:
                                 topic_batches[topic] = []
                             topic_batches[topic].append(data)
                     except Exception as e:
-                        logger.error("message_processing_error_sending_to_dlq", error=str(e), topic=msg.topic())
+                        logger.error(
+                            "message_processing_error_sending_to_dlq",
+                            error=str(e),
+                            topic=msg.topic(),
+                        )
                         self.dlq_producer.produce(
                             topic=self.dlq_topic,
                             key=msg.key(),
                             value=msg.value(),
-                            headers=[("error", str(e).encode("utf-8")), ("original_topic", msg.topic().encode("utf-8"))]
+                            headers=[
+                                ("error", str(e).encode("utf-8")),
+                                ("original_topic", msg.topic().encode("utf-8")),
+                            ],
                         )
                         self.dlq_producer.poll(0)
 

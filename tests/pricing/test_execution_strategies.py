@@ -29,7 +29,9 @@ def inputs():
 @pytest.mark.asyncio
 async def test_sequential_strategy(inputs):
     strategy = SequentialStrategy()
-    with patch("services.quant.pricing.black_scholes.BlackScholesEngine.price_options") as mock_price:
+    with patch(
+        "services.quant.pricing.black_scholes.BlackScholesEngine.price_options"
+    ) as mock_price:
         mock_price.side_effect = lambda *args, **kwargs: kwargs["out"].fill(10.5)
 
         prices = await strategy.execute(inputs)

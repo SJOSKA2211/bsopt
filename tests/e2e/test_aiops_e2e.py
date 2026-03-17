@@ -15,14 +15,18 @@ def mock_e2e_dependencies():
         patch(
             "services.ml.aiops.aiops_orchestrator.IsolationForestDetector"
         ) as MockIsolationForestDetector,
-        patch("services.ml.aiops.aiops_orchestrator.AutoencoderDetector") as MockAutoencoderDetector,
+        patch(
+            "services.ml.aiops.aiops_orchestrator.AutoencoderDetector"
+        ) as MockAutoencoderDetector,
         patch("services.ml.aiops.aiops_orchestrator.DataDriftDetector") as MockDataDriftDetector,
         patch("services.ml.aiops.aiops_orchestrator.DockerRemediator") as MockDockerRemediator,
         patch("services.ml.aiops.aiops_orchestrator.MLPipelineTrigger") as MockMLPipelineTrigger,
         patch("services.ml.aiops.aiops_orchestrator.RedisRemediator") as MockRedisRemediator,
         patch("services.ml.aiops.aiops_orchestrator.setup_logging") as MockSetupLogging,
         patch("services.ml.aiops.aiops_orchestrator.logger") as MockOrchestratorLogger,
-        patch("services.ml.aiops.aiops_orchestrator.post_grafana_annotation") as MockPostGrafanaAnnotation,
+        patch(
+            "services.ml.aiops.aiops_orchestrator.post_grafana_annotation"
+        ) as MockPostGrafanaAnnotation,
         patch("services.ml.aiops.aiops_orchestrator.push_metrics") as MockPushMetrics,
         patch("core.shared.observability.os.environ.get") as MockSharedEnvironGet,
     ):

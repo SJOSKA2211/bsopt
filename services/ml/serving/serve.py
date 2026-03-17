@@ -18,6 +18,10 @@ from prometheus_client import (
     generate_latest,
 )
 
+from core.shared.utils.circuit_breaker import (  # Import both
+    DistributedCircuitBreaker,
+    InMemoryCircuitBreaker,
+)
 from services.api.responses import MsgspecJSONResponse, Response
 from services.api.schemas.common import DataResponse
 from services.api.schemas.ml import (
@@ -27,10 +31,6 @@ from services.api.schemas.ml import (
     InferenceResponse,
 )
 from services.ml.utils.inference import ONNXInferenceEngine
-from core.shared.utils.circuit_breaker import (  # Import both
-    DistributedCircuitBreaker,
-    InMemoryCircuitBreaker,
-)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

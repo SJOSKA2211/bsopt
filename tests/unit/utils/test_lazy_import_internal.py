@@ -168,7 +168,9 @@ def test_ml_init_logic():
             "core.shared.lazy_import.preload_modules"
         ) as mock_preload:  # Patch the actual function called
             importlib.reload(services.ml)  # Reload to ensure the env var check is re-evaluated
-            mock_preload.assert_called_with("services.ml", services.ml._import_map, {"DataNormalizer"})
+            mock_preload.assert_called_with(
+                "services.ml", services.ml._import_map, {"DataNormalizer"}
+            )
 
 
 def test_import_stack_cleanup_on_error():
