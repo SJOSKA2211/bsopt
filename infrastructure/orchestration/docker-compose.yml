@@ -15,7 +15,7 @@ services:
       - "127.0.0.1:5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../../init-scripts:/docker-entrypoint-initdb.d:ro
+      - ../../infrastructure/init-scripts/init-scripts:/docker-entrypoint-initdb.d:ro
       - ../../core/migrations:/migrations:ro
       - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw

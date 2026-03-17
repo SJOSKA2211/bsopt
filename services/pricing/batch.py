@@ -8,7 +8,7 @@ import structlog
 
 from services.pricing.service import PricingService
 from core.shared.filesystem import sanitize_path
-from core.shared.shared_memory import shm_manager
+from core.shared.utils.shared_memory import shm_manager
 
 logger = structlog.get_logger(__name__)
 
