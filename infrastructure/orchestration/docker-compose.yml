@@ -104,7 +104,7 @@ services:
   auth-service:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.auth-service
+      dockerfile: infrastructure/orchestration/Dockerfile.auth-service
       target: development
     ports:
       - "3001:3001"
@@ -135,7 +135,7 @@ services:
   api:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.api
+      dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
       - ../../core:/app/core
@@ -187,7 +187,7 @@ services:
   portfolio:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.api
+      dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
       - ../../core:/app/core
@@ -226,7 +226,7 @@ services:
   ml-inference:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.api
+      dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     ports:
       - "5001:5001"
@@ -255,7 +255,7 @@ services:
   worker:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.worker
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
       - ../../core:/ap./core
@@ -309,7 +309,7 @@ services:
   persistence-worker:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.worker
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
       - ../../core:/ap./core
@@ -330,7 +330,7 @@ services:
   nse-scraper:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.scraper-lite
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper-lite
       target: production
     ports:
       - "8002:8000"
@@ -356,7 +356,7 @@ services:
   yfinance-scraper:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.scraper-lite
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper-lite
       target: production
     ports:
       - "8004:8000"
@@ -381,7 +381,7 @@ services:
   scraper:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.scraper-prod
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper-prod
     volumes:
       - ../../core:/ap./core
       - shared_shm:/dev/shm
@@ -403,7 +403,7 @@ services:
   neural-pricing:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.neural-pricing
+      dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
       target: development
     ports:
       - "8001:8000"
@@ -439,7 +439,7 @@ services:
   app-gateway:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.app-gateway
+      dockerfile: infrastructure/orchestration/Dockerfile.app-gateway
       target: development
     ports:
       - "4000:4000"
@@ -472,7 +472,7 @@ services:
   frontend:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.frontend
+      dockerfile: infrastructure/orchestration/Dockerfile.frontend
       target: development
     ports:
       - "5173:5173"
@@ -497,7 +497,7 @@ services:
     profiles: [ "test", "benchmark" ]
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.ci
+      dockerfile: infrastructure/orchestration/Dockerfile.ci
     environment:
       - ENVIRONMENT=test
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt_test
@@ -527,7 +527,7 @@ services:
     profiles: [ "blockchain" ]
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.worker
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     environment:
       - BLOCKCHAIN_RPC_URL=http://geth:8545
@@ -661,7 +661,7 @@ services:
     profiles: [ "ml" ]
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.mlops
+      dockerfile: infrastructure/orchestration/Dockerfile.mlops
     shm_size: '2gb'
     deploy:
       resources:
@@ -688,7 +688,7 @@ services:
     profiles: [ "hft" ]
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.worker
+      dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: production
     network_mode: host
     cap_add:
@@ -707,7 +707,7 @@ services:
   ingestion-service:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.api
+      dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     ports:
       - "50053:50053"
@@ -728,7 +728,7 @@ services:
   transformer:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.api
+      dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     environment:
       - PYTHONPATH=/app
@@ -745,7 +745,7 @@ services:
   envoy:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.envoy
+      dockerfile: infrastructure/orchestration/Dockerfile.envoy
     ports:
       - "80:8080"
       - "443:443"
@@ -769,7 +769,7 @@ services:
   rust-core:
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.rust-core
+      dockerfile: infrastructure/orchestration/Dockerfile.rust-core
     volumes:
       - ../../:/app
       - shared_shm:/dev/shm
@@ -842,7 +842,7 @@ services:
     profiles: [ "test" ]
     build:
       context: ../..
-      dockerfile: infra/orchestration/Dockerfile.frontend
+      dockerfile: infrastructure/orchestration/Dockerfile.frontend
       target: development
     volumes:
       - ../../core/frontend:/app

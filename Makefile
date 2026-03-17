@@ -27,7 +27,7 @@ else
 endif
 
 # Centralized Orchestration Manifest
-DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file .env -f infra/orchestration/docker-compose.yml
+DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file .env -f infrastructure/orchestration/docker-compose.yml
 
 .PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan
 

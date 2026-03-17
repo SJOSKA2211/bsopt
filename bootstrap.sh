@@ -150,7 +150,7 @@ set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5
 
 # 4. Automated Live Database Startup
 echo "🏗️  Starting Live Database Environment (Postgres, Redis, PgBouncer)..."
-$COMPOSE_ENGINE --env-file .env -f infra/orchestration/docker-compose.yml up -d postgres redis pgbouncer
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d postgres redis pgbouncer
 
 echo "⏳ Waiting for Database to be Live & Healthy..."
 MAX_RETRIES=30
