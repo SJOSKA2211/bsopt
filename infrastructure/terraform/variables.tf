@@ -1,23 +1,23 @@
 variable "aws_region" {
-  description = "AWS Region"
-  type        = string
+  description = "The AWS region to deploy to"
+  type        = "string"
   default     = "us-east-1"
 }
 
-variable "cluster_name" {
-  description = "EKS Cluster Name"
-  type        = string
-  default     = "bsopt-prod-cluster"
+variable "project_name" {
+  description = "The name of the project"
+  type        = "string"
+  default     = "bsopt"
 }
 
-variable "active_environment" {
-  description = "The active color for the Blue-Green deployment (blue or green)"
-  type        = string
-  default     = "blue"
+variable "environment" {
+  description = "The deployment environment"
+  type        = "string"
+  default     = "dev"
 }
 
-variable "docker_image_tag" {
-  description = "The docker image tag to deploy"
-  type        = string
-  default     = "latest"
+variable "vpc_cidr" {
+  description = "The CIDR block for the VPC"
+  type        = "string"
+  default     = "10.0.0.0/16"
 }

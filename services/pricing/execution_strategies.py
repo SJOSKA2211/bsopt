@@ -72,7 +72,7 @@ class RayStrategy(ExecutionStrategy):
         inputs: dict[str, np.ndarray],
         executor: concurrent.futures.ProcessPoolExecutor | None = None,
     ) -> np.ndarray:
-        from services.services.pricing.service import _ray_worker_pricing
+        from services.pricing.service import _ray_worker_pricing
 
         s_ref = ray.put(inputs["spots"])
         k_ref = ray.put(inputs["strikes"])
@@ -98,7 +98,7 @@ class SHMStrategy(ExecutionStrategy):
         inputs: dict[str, np.ndarray],
         executor: concurrent.futures.ProcessPoolExecutor | None = None,
     ) -> np.ndarray:
-        from services.services.pricing.service import _worker_shared_memory_pricing
+        from services.pricing.service import _worker_shared_memory_pricing
 
         n = len(inputs["spots"])
         input_data = np.stack(
