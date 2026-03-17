@@ -6,11 +6,11 @@ from typing import Any
 import numpy as np
 import structlog
 
-from core.shared.cache import get_redis
+from services.blockchain.defi_options import DeFiOptionsProtocol
 from core.shared.config import settings
 from core.shared.lua_scripts import ADVANCED_RISK_MATRIX
 from core.trading.risk_kernels import RiskVectorTracker
-from services.blockchain.defi_options import DeFiOptionsProtocol
+from core.shared.cache import get_redis
 
 logger = structlog.get_logger(__name__)
 

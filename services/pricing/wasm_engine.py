@@ -340,4 +340,4 @@ class WASMPricingEngine(PricingStrategy):
         heap[: len(input_data)] = input_data
 
         self.instance.batch_price_american_mapped(0, num_options, m, n)
-        return cast("np.ndarray[Any, np.dtype[np.float64]]", heap[:num_options])
+        return cast(np.ndarray[Any, np.dtype[np.float64]], heap[:num_options])

@@ -1,9 +1,9 @@
 import structlog
 
-from core.shared.utils.http_client import HttpClientManager
-from core.shared.utils.resilience import retry_with_backoff
 from services.config import settings
 from services.scrapers.stealth import default_stealth_client
+from core.shared.utils.http_client import HttpClientManager
+from core.shared.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger(__name__)
 

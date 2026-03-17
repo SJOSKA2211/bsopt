@@ -15,9 +15,9 @@ except ImportError:
 
 from web3 import AsyncWeb3, Web3
 
-from core.shared.cache import get_redis
 from services.blockchain.nonce_manager import NonceManager
 from services.blockchain.oracle import OracleManager
+from core.shared.cache import get_redis
 
 try:
     import bsopt_core  # noqa: F401

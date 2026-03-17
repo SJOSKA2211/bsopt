@@ -88,9 +88,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     # Shutdown
-    from core.shared.utils.cache import close_redis_cache
     from services.api.websockets.manager import manager
     from services.database import dispose_engine
+    from core.shared.utils.cache import close_redis_cache
 
     await manager.close()
     await dispose_engine()

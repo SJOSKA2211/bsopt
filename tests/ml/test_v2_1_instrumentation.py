@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 from prometheus_client import Histogram
 
-from core.shared import observability
 from services.ml.trainer import InstrumentedTrainer
+from core.shared import observability
 
 
 def test_training_duration_is_histogram():

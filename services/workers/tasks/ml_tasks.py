@@ -7,8 +7,8 @@ from typing import Any
 
 import structlog
 
-from core.shared.utils.lazy_import import lazy_import
 from services.ml.pipeline import MLPipeline
+from core.shared.utils.lazy_import import lazy_import
 
 from .celery_app import MLTask, celery_app
 

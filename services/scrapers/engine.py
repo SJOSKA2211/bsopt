@@ -12,12 +12,8 @@ import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
-from core.protos import data_pb2, data_pb2_grpc
-from core.shared.utils.cache import get_redis
-from core.shared.utils.circuit_breaker import nse_circuit
-from core.shared.utils.http_client import HttpClientManager
-from core.shared.utils.resilience import retry_with_backoff
 from services.config import settings
+from core.protos import data_pb2, data_pb2_grpc
 from services.scrapers.mesh_publisher import get_market_publisher
 from services.shared.observability import (
     PROXY_FAILURES,
@@ -25,6 +21,10 @@ from services.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
+from core.shared.utils.cache import get_redis
+from core.shared.utils.circuit_breaker import nse_circuit
+from core.shared.utils.http_client import HttpClientManager
+from core.shared.utils.resilience import retry_with_backoff
 
 logger = structlog.get_logger()
 

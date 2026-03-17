@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 import structlog
 
+from services.pricing.service import PricingService
 from core.shared.filesystem import sanitize_path
 from core.shared.shared_memory import shm_manager
-from services.pricing.service import PricingService
 
 logger = structlog.get_logger(__name__)
 

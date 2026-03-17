@@ -27,9 +27,9 @@ class TestPricingAPIHeston:
         mock_redis.get = AsyncMock(return_value=json.dumps(mock_cache))
 
         # Override dependencies
+        from services.api.main import app
         from core.security.auth import get_current_user_flexible
         from core.security.rate_limit import rate_limit
-        from services.api.main import app
 
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
         app.dependency_overrides[get_current_user_flexible] = lambda: {
@@ -65,10 +65,10 @@ class TestPricingAPIHeston:
         mock_redis = MagicMock()
         mock_redis.get = AsyncMock(return_value=None)
 
+        from services.api.main import app
         from core.security.auth import get_current_user_flexible
         from core.security.rate_limit import rate_limit
         from core.shared.cache import get_redis_client
-        from services.api.main import app
 
         app.dependency_overrides[get_redis_client] = lambda: mock_redis
         app.dependency_overrides[get_current_user_flexible] = lambda: {

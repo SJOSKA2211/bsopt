@@ -1,8 +1,7 @@
-import os
-import random
-import subprocess
 import time
-
+import subprocess
+import random
+import os
 import structlog
 
 logger = structlog.get_logger(__name__)

@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from core.protos.market_data_pb2 import TickerUpdate
 from services.api.websockets.manager import (
     ConnectionManager,
     ConnectionMetadata,
     ProtocolType,
 )
+from core.protos.market_data_pb2 import TickerUpdate
 
 
 @pytest.fixture

@@ -17,9 +17,7 @@ from services.aiops.anomaly_detector import AnomalyDetector
 from services.aiops.docker_remediator import DockerRemediator
 from services.aiops.prometheus_adapter import PrometheusClient
 from services.aiops.remediators import RemediationPlanner
-from services.shared.observability import (
-    post_grafana_annotation,  # noqa: F401 (re-exported for tests)
-)
+from services.shared.observability import post_grafana_annotation  # noqa: F401 (re-exported for tests)
 
 logger = structlog.get_logger(__name__)
 

@@ -5,9 +5,9 @@ import structlog
 from celery import Celery
 from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
 
+from services.config import settings
 from core.shared.utils.celery import BaseAsyncTask
 from core.shared.utils.lazy_import import lazy_import
-from services.config import settings
 from services.webhooks.dispatcher import WebhookDispatcher
 
 # Optimized event loop

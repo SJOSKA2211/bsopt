@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from services.quant.pricing.black_scholes import BSParameters
 from core.shared.cache import (
     IdempotencyManager,
     PricingCache,
@@ -9,7 +10,6 @@ from core.shared.cache import (
     RateLimitTier,
     generate_cache_key,
 )
-from services.quant.pricing.black_scholes import BSParameters
 
 
 def test_generate_cache_key():

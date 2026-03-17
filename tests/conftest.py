@@ -153,8 +153,8 @@ def api_client():
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
 
-    from core.shared.config import settings
     from services.api.main import app
+    from core.shared.config import settings
 
     # Truncate users to avoid ConflictException
     engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))

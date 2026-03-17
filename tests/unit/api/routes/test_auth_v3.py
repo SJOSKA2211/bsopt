@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from fastapi import BackgroundTasks, Request
 
-from core.database.models import User
 from services.api.routes.auth import (
     change_password,
     mfa_setup,
@@ -17,6 +16,7 @@ from services.api.schemas.auth import (
     PasswordChangeRequest,
     PasswordResetRequest,
 )
+from core.database.models import User
 
 # Surgically insert pyotp into sys.modules
 mock_pyotp = MagicMock()

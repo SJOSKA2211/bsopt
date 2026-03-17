@@ -6,9 +6,9 @@ from typing import Any
 from fastapi import Depends, FastAPI, Request
 from strawberry.fastapi import GraphQLRouter
 
+from services.portfolio.graphql.schema import schema
 from core.shared.observability import logging_middleware, setup_logging, tune_gc
 from core.shared.security import opa_authorize, verify_mtls
-from services.portfolio.graphql.schema import schema
 
 # Optimized event loop
 try:
@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     tune_gc()
 
     # Initialize Redis for caching if needed
-    from core.shared.cache import init_redis_cache
     from core.shared.config import settings
+    from core.shared.cache import init_redis_cache
 
     await init_redis_cache(
         host=settings.REDIS_HOST,

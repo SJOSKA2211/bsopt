@@ -3,8 +3,8 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
-from core.shared.math_utils import calculate_greeks, calculate_price
 from services.pricing.models import BSParameters, OptionGreeks
+from core.shared.math_utils import calculate_greeks, calculate_price
 
 from .base import PricingStrategy
 

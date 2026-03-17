@@ -7,8 +7,8 @@ Fixed field names and formats to match RegisterRequest schema.
 
 import pytest
 
-from core.database.models import User
 from core.shared.config import get_settings
+from core.database.models import User
 from tests.test_utils import assert_equal
 
 TEST_EMAIL = "test_auth_unique_2025@example.com"

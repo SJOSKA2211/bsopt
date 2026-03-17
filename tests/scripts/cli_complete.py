@@ -46,7 +46,6 @@ from rich.table import Table
 from scripts.auth import AuthenticationError, AuthManager
 from scripts.config import get_config
 from scripts.portfolio import PortfolioManager, Position
-
 from core.shared.config import settings
 
 # Import pricing engines
