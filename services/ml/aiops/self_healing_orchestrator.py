@@ -259,6 +259,10 @@ class SelfHealingOrchestrator:
             await asyncio.sleep(self.check_interval)
 
     def stop(self):
-        """Stop the orchestrator loop."""
+        """Stop the orchestrator loop and cleanup resources."""
         self.is_running = False
+        if hasattr(self.detector, "shutdown"):
+            self.detector.shutdown()
+        if self.forecaster and hasattr(self.forecaster, "close"):
+            self.forecaster.close()
         logger.info("self_healing_orchestrator_stopped")

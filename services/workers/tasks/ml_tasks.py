@@ -54,9 +54,11 @@ def run_pipeline_task(self, config: dict[str, Any]):
         raise e
     finally:
         try:
+            # OPTIMIZED: Synchronous wait for cleanup to ensure it completes before task exit
             self.run_async(pipeline.shutdown())
-        except Exception:
-            pass
+            logger.info("celery_task_cleanup_complete", task_id=self.request.id)
+        except Exception as e:
+            logger.warning("celery_task_cleanup_failed", error=str(e), task_id=self.request.id)
 
 
 @celery_app.task(bind=True, base=MLTask, queue="ml")

@@ -128,3 +128,12 @@ class DockerRemediator:
         ]
 
         return await self._run_cmd(cmd)
+
+    def close(self) -> None:
+        """Release Docker SDK resources."""
+        if self.client:
+            try:
+                self.client.close()
+                logger.info("docker_remediator_closed")
+            except Exception as e:
+                logger.error("docker_remediator_close_error", error=str(e))

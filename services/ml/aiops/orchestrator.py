@@ -70,4 +70,6 @@ class AutonomousHealthOrchestrator:
 
     def stop(self):
         self.running = False
+        if hasattr(self.planner, "close"):
+            self.planner.close()
         logger.info("autonomous_health_orchestrator_stopped")

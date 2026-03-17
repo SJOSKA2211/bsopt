@@ -276,3 +276,11 @@ class AnomalyDetector:
                     )
 
         return anomalies
+
+    def shutdown(self):
+        """Cleanup detector resources and clear GPU memory if applicable."""
+        self.model = None
+        self.optimizer = None
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        logger.info("anomaly_detector_shutdown", engine=self.engine)

@@ -123,7 +123,7 @@ class VectorizedDBEngine:
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        pass
+        await self.close()
 
 
 db_engine = VectorizedDBEngine()

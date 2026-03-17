@@ -382,3 +382,10 @@ class RemediationPlanner:
             if a_type in r.supported_types and r.can_run():
                 actions.append(r)
         return sorted(actions, key=lambda x: x.name)
+
+    def close(self):
+        """Cleanup all registered remediators."""
+        for r in self.remediators.values():
+            if hasattr(r, "close"):
+                r.close()
+        logger.info("remediation_planner_closed")

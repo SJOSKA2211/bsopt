@@ -57,8 +57,11 @@ class DataPipeline:
             "duration_seconds": 1.0,
             "status": "ready",
         }
-        logger.info("data_pipeline_status", report=self.last_run_report)
-        return self.last_run_report
+    async def run_shutdown(self) -> None:
+        """Cleanup data pipeline resources."""
+        from core.database.pipeliner import db_engine
+        await db_engine.close()
+        logger.info("data_pipeline_shutdown_complete")
 
     async def load_latest_data(
         self,
@@ -222,7 +225,10 @@ class MLPipeline:
 
     async def shutdown(self):
         """Cleanup resources."""
-        pass
+        logger.info("ml_pipeline_shutdown", ticker=self.symbols[0])
+        await self.data_pipeline.run_shutdown()
+        if hasattr(self.trainer, "tracker"):
+             self.trainer.tracker.end_run()
 
 
 if __name__ == "__main__":
