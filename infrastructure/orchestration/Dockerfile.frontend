@@ -7,10 +7,10 @@ FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY services/frontend/package*.json ./
+COPY src/frontend/package*.json ./
 RUN npm install
 
-COPY services/frontend ./
+COPY src/frontend ./
 RUN npm run build
 
 # --- Stage 2: Development ---
@@ -18,10 +18,10 @@ FROM docker.io/library/node:20-alpine AS development
 
 WORKDIR /app
 
-COPY services/frontend/package*.json ./
+COPY src/frontend/package*.json ./
 RUN npm install
 
-COPY services/frontend .
+COPY src/frontend .
 
 EXPOSE 5173
 

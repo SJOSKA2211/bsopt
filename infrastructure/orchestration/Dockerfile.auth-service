@@ -18,11 +18,11 @@ FROM docker.io/library/node:20-alpine AS development
 
 WORKDIR /app
 
-COPY services/auth/package*.json ./
+COPY src/auth/package*.json ./
 RUN apk add --no-cache python3 make g++ \
     && npm install --prefer-offline --no-audit --progress=false
 
-COPY services/auth .
+COPY src/auth .
 
 EXPOSE 3001
 

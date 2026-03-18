@@ -7,12 +7,10 @@ FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY core /app/core
-COPY services/gateway/package*.json ./
+COPY src/gateway/package*.json ./
 RUN npm install --legacy-peer-deps
 
-COPY core /app/core
-COPY services/gateway/ ./
+COPY src/gateway/ ./
 
 # --- Stage 2: Development ---
 FROM docker.io/library/node:20-alpine AS development
