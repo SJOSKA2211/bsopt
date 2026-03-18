@@ -10,7 +10,6 @@ import argparse
 from typing import Any, cast
 
 import mlflow
-import ray
 import numpy as np
 import pandas as pd
 import structlog
@@ -119,6 +118,7 @@ def extract_and_engineer_features(chunk_size: int = 50000) -> pd.DataFrame:
         return pd.DataFrame()
 
     final_df = pd.concat(chunks, ignore_index=True)
+    engine.dispose()
     logger.info("ml_extraction_complete", total_rows=len(final_df))
     return final_df
 
@@ -168,9 +168,6 @@ def train_pipeline(
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(study_name)
     mlflow.autolog()
-    
-    if not ray.is_initialized():
-        ray.init(address="auto", ignore_reinit_error=True)
 
     with mlflow.start_run() as run:
         logger.info("ml_pipeline_ignition", run_id=run.info.run_id)
@@ -197,19 +194,7 @@ def train_pipeline(
             "sqrt_T",
         ]
         target = "market_price"
-
-        # --- Temporal Data Partitioning ---
-        # We split by date to ensure the model generalizes to future market regimes.
         split_date = pd.to_datetime("2025-01-01", utc=True)
-        train_df = df[df["timestamp"] < split_date].copy()
-        test_df = df[df["timestamp"] >= split_date].copy()
-
-        if train_df.empty or test_df.empty:
-            logger.warning("ml_pipeline_insufficient_temporal_data", split_date=str(split_date))
-            # Fallback to simple ratio split if temporal data is sparse
-            split_idx = int(len(df) * 0.8)
-            train_df = df.iloc[:split_idx]
-            test_df = df.iloc[split_idx:]
 
         # --- Feature Preparation & Normalization (Optimized) ---
         from src.ml.pre_training import MLPreTrainer
@@ -227,10 +212,11 @@ def train_pipeline(
         mlflow.log_dict({"means": means.tolist(), "features": features}, "normalization/means.json")
         mlflow.log_dict({"stds": stds.tolist(), "features": features}, "normalization/stds.json")
 
-        # Temporal split on raw arrays
+        # Temporal split on raw arrays — fallback to ratio split if data is sparse
         split_idx = len(df[df["timestamp"] < split_date])
         if split_idx == 0 or split_idx == len(X_all):
             split_idx = int(len(X_all) * 0.8)
+            logger.warning("ml_pipeline_insufficient_temporal_data", split_date=str(split_date))
 
         X_train, X_test = X_all[:split_idx], X_all[split_idx:]
         y_train, y_test = y_all[:split_idx], y_all[split_idx:]
@@ -331,7 +317,7 @@ def train_pipeline(
         # Calculate final R2 Score
         from sklearn.metrics import mean_absolute_error, r2_score
 
-        final_preds = model(X_test_t).detach().numpy()
+        final_preds = model(X_test_t).cpu().detach().numpy()
         r2 = r2_score(y_test, final_preds)
         mae = mean_absolute_error(y_test, final_preds)
         rmse = float(np.sqrt(test_loss))
