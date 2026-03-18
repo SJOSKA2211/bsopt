@@ -1,0 +1,3 @@
+## 2024-03-18 - Add ARIA Labels to Interactive UI Controls in OptionsChain
+**Learning:** Found an accessibility pattern specifically around MUI components (`TextField` and `ToggleButtonGroup`) missing `aria-label` definitions in interactive sections like the market options chain, making them opaque to screen readers despite visual cues like placeholder text.
+**Action:** When adding or auditing complex filter inputs and toggle button groups in this application, specifically ensure the `inputProps={{ 'aria-label': '...' }}` strategy is used for MUI TextFields, and explicit `aria-label="..."` are added to ToggleButtonGroups that rely on abbreviated text.
