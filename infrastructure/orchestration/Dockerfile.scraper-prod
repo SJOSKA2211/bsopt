@@ -61,8 +61,7 @@ RUN playwright install chromium
 RUN playwright install-deps chromium
 
 # Copy source code
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 COPY pyproject.toml .
 
 # Environment variables
@@ -85,4 +84,4 @@ USER bsopt
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD python -c "import time; import sys; import os; sys.exit(0 if not os.path.exists('/tmp/scraper_heartbeat') or time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)"
 
-CMD ["python", "services/scrapers/concurrent_ingestion.py"]
+CMD ["python", "src/scrapers/concurrent_ingestion.py"]

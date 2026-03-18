@@ -120,14 +120,14 @@ exclude = [
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "ASYNC"]
 ignore = ["E501", "N806", "N803", "N812", "N818", "N802"]
-per-file-ignores = { "get-pip.py" = ["E402"], "core/protos/*" = ["N802"], "tests/unit/**/*.py" = ["E402", "F401", "F811", "F821"] }
+per-file-ignores = { "get-pip.py" = ["E402"], "src/**/*" = ["N802"], "tests/unit/**/*.py" = ["E402", "F401", "F811", "F821"] }
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.isort]
-known-first-party = ["services", "core"]
+known-first-party = ["src"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -136,7 +136,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=services --cov=core --cov-report=term-missing --durations=10 -p no:warnings --tb=native"
+addopts = "-v -ra --showlocals --strict-markers --strict-config --cov=src --cov-report=term-missing --durations=10 -p no:warnings --tb=native"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
@@ -148,14 +148,12 @@ markers = [
     "performance: Performance tests",
 ]
 
-[tool.setuptools]
-packages = ["services", "core"]
-
-[tool.setuptools.package-dir]
-"" = "."
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
 
 [tool.coverage.run]
-source = ["services", "core"]
+source = ["src"]
 omit = ["*/tests/*", "*/test_*.py", "*/__pycache__/*"]
 
 [tool.coverage.report]

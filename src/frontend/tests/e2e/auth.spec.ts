@@ -9,20 +9,21 @@ test.describe('Authentication Flow & Token Rotation', () => {
 
   test('User Registration, Login, and Refresh Token Rotation', async ({ page }) => {
     // 1. Registration
-    await page.goto('/register');
+    await page.goto('/signup');
     await page.fill('input[name="name"]', testUser.name);
     await page.fill('input[name="email"]', testUser.email);
     await page.fill('input[name="password"]', testUser.password);
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to login or dashboard
-    await page.waitForURL('**/login', { timeout: 10000 }).catch(() => {});
-    
+    // Wait for redi
+    // rect to login or dashboard
+    await page.waitForURL('**/login', { timeout: 10000 }).catch(() => { });
+
     // 2. Login
     await page.goto('/login');
     await page.fill('input[name="email"]', testUser.email);
     await page.fill('input[name="password"]', testUser.password);
-    
+
     // Intercept the login response to capture tokens
     const [loginResponse] = await Promise.all([
       page.waitForResponse(res => res.url().includes('/api/auth/login') && res.status() === 200),
@@ -50,10 +51,10 @@ test.describe('Authentication Flow & Token Rotation', () => {
 
     // Check that a new access token is issued
     expect(refreshResponse).toHaveProperty('access_token');
-    
+
     // If rotation is fully implemented, a new refresh token is also issued
     if (refreshResponse.refresh_token) {
-        expect(refreshResponse.refresh_token).not.toEqual(loginData.refresh_token);
+      expect(refreshResponse.refresh_token).not.toEqual(loginData.refresh_token);
     }
   });
 });

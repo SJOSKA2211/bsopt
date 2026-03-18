@@ -40,8 +40,7 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy source code
-COPY core /app/core
-COPY services ./services
+COPY src /app/src
 COPY pyproject.toml .
 
 # Environment variables
@@ -57,4 +56,4 @@ RUN chown -R bsopt:bsopt /app
 USER bsopt
 
 # Celery Weaponized: Using thread pool for I/O bound tasks
-CMD ["celery", "-A", "services.workers.tasks.celery_app", "worker", "-l", "info", "--pool=threads", "--concurrency=20", "--prefetch-multiplier=1"]
+CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--pool=threads", "--concurrency=20", "--prefetch-multiplier=1"]

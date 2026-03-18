@@ -15,8 +15,7 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml README.md ./
-COPY core /app/core
-COPY services ./services
+COPY src /app/src
 
 # Install Python dependencies only in builder
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -88,8 +87,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install Playwright browsers natively in production stage
 RUN playwright install --with-deps chromium
 
-COPY core /app/core
-COPY services/ ./services
+COPY src /app/src
 RUN chown -R bsopt:bsopt /app
 
 USER bsopt
@@ -98,4 +96,4 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import sys; sys.exit(0)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["python", "services/scrapers/engine.py"]
+CMD ["python", "src/scrapers/engine.py"]

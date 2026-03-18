@@ -44,8 +44,7 @@ RUN playwright install chromium
 RUN playwright install-deps chromium
 
 # Copy the entire source directory for development
-COPY core /app/core
-COPY services ./services
+COPY src /app/src
 # Copy pyproject.toml for local package references
 COPY pyproject.toml .
 
@@ -53,4 +52,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONOPTIMIZE=2
 
-CMD ["python", "services/scrapers/engine.py"]
+CMD ["python", "src/scrapers/engine.py"]

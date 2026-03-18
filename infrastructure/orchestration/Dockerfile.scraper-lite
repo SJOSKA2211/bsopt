@@ -14,8 +14,7 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY pyproject.toml README.md ./
-COPY core /app/core
-COPY services/ ./services
+COPY src /app/src
 
 # Install Python dependencies only in builder (no playwright)
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -44,7 +43,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 
 ENV PYTHONDONTWRITEBYTECODE=1
-CMD ["python", "services/scrapers/engine.py"]
+CMD ["python", "src/scrapers/engine.py"]
 
 
 # === Stage 3: Production ===
@@ -72,8 +71,7 @@ RUN groupadd -g 1000 appgroup && \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY core /app/core
-COPY services/ ./services
+COPY src /app/src
 RUN chown -R appuser:appgroup /app
 
 USER appuser
@@ -83,4 +81,4 @@ HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import time; import sys; sys.exit(0 if time.time() - float(open('/tmp/scraper_heartbeat').read().strip()) < 300 else 1)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["python", "services/scrapers/engine.py"]
+CMD ["python", "src/scrapers/engine.py"]

@@ -30,10 +30,9 @@ ENV CARGO_BUILD_JOBS=1
 ENV CARGO_NET_RETRY=10
 
 RUN uv pip install maturin
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 ENV RUSTFLAGS="-C opt-level=3"
-RUN cd services/quant/rust-core && maturin build --release --strip --out /tmp/wheels
+RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 RUN uv pip install /tmp/wheels/*.whl
 
 
@@ -88,8 +87,7 @@ RUN groupadd -g 1000 appgroup && \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 RUN chown -R appuser:appgroup /app
 
 USER appuser

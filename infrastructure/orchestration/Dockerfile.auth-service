@@ -1,57 +1,47 @@
-# ==============================================================================
-# Auth Service — Multi-stage Dockerfile
-# ==============================================================================
-
-# --- Stage 1: Builder (compile TypeScript) ---
-FROM docker.io/library/node:20-alpine AS builder
-
+# Auth Service — Python gRPC Server
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
+RUN pip install uv
 WORKDIR /app
+ENV UV_COMPILE_BYTECODE=0
+ENV UV_LINK_MODE=copy
+ENV UV_HTTP_TIMEOUT=300
+ENV UV_RETRIES=10
+RUN uv venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-COPY src/auth/package*.json ./
-RUN apk add --no-cache python3 make g++ && npm install
+COPY pyproject.toml requirements.txt ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r requirements.txt && uv pip install .
 
-COPY src/auth ./
-RUN npm run build
-
-# --- Stage 2: Development ---
-FROM docker.io/library/node:20-alpine AS development
-
+FROM docker.io/library/python:3.12-slim-bookworm AS development
 WORKDIR /app
-
-COPY src/auth/package*.json ./
-RUN apk add --no-cache python3 make g++ \
-    && npm install --prefer-offline --no-audit --progress=false
-
-COPY src/auth .
-
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev gcc git curl \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY src /app/src
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 EXPOSE 3001
+CMD ["python", "-m", "src.auth.auth_server"]
 
-CMD ["npm", "run", "dev"]
-
-# --- Stage 3: Production ---
-FROM docker.io/library/node:20-alpine AS production
-
+FROM docker.io/library/python:3.12-slim-bookworm AS production
 WORKDIR /app
-
-RUN addgroup -S bsopt && adduser -S bsopt -G bsopt
-
-COPY --from=builder /app/package*.json ./
-RUN apk add --no-cache python3 make g++ \
-    && npm install --omit=dev \
-    && apk del python3 make g++
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src ./src
-
-RUN chown -R bsopt:bsopt /app
-USER bsopt
-
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONOPTIMIZE=2
+RUN groupadd -g 1000 appgroup && \
+    useradd -r -u 1000 -g appgroup appuser && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 curl tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R appuser:appgroup /app
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+COPY src /app/src
+RUN chown -R appuser:appgroup /app
+USER appuser
 EXPOSE 3001
-
-ENV NODE_ENV=production
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -qO- http://localhost:3001/health || exit 1
-
-CMD ["node", "dist/index.js"]
-
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3001/health').read()" || exit 1
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["python", "-m", "src.auth.auth_server"]

@@ -31,10 +31,9 @@ ENV CARGO_BUILD_JOBS=1
 ENV CARGO_NET_RETRY=10
 
 RUN uv pip install maturin
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 ENV RUSTFLAGS="-C opt-level=3"
-RUN cd services/quant/rust-core && maturin build --release --strip --out /tmp/wheels
+RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 RUN uv pip install /tmp/wheels/*.whl
 
 # === Stage 2: Development ===
@@ -93,8 +92,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy source code
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 RUN chown -R appuser:appgroup /app
 
 USER appuser
@@ -105,4 +103,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["uvicorn", "services.quant.pricing.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["granian", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--threads", "1", "services.quant.pricing.main:app"]

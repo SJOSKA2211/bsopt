@@ -1,7 +1,7 @@
 [package]
 name = "bsopt-wasm"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 authors = ["Kamau"]
 description = "High-performance financial pricing engine for BS-Opt"
 

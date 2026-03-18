@@ -28,8 +28,7 @@ ENV UV_CONCURRENT_DOWNLOADS=4
 RUN uv pip install --system --no-cache -r requirements-api.txt
 
 # Copy the entire source directory for development
-COPY core /app/core
-COPY services /app/services/
+COPY src /app/src/
 # Copy pyproject.toml for local package references
 COPY pyproject.toml .
 
@@ -38,4 +37,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["uvicorn", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--no-access-log"]

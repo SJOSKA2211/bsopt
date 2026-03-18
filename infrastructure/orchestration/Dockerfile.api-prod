@@ -41,8 +41,7 @@ COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy source code
-COPY core /app/core
-COPY services /app/services
+COPY src /app/src
 COPY pyproject.toml .
 
 # Environment variables
@@ -66,4 +65,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
 # Granian: High-performance Rust-based HTTP server
-CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "auto", "--websockets", "--threading_mode", "runtime", "--opt"]
+CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "auto", "--websockets", "--threading_mode", "runtime", "--opt"]

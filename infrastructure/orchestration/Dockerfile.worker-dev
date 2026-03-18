@@ -24,13 +24,12 @@ COPY requirements-ml-cpu.txt requirements-api.txt ./
 RUN uv pip install --system --no-cache --index-strategy unsafe-best-match -r requirements-ml-cpu.txt
 
 # Copy the entire source directory for development
-COPY core /app/core
-COPY services /app/services/
+COPY src /app/src/
 # Copy pyproject.toml for local package references
 COPY pyproject.toml .
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Corrected CMD to use services.workers.tasks.celery_app for development
-CMD ["celery", "-A", "services.workers.tasks.celery_app", "worker", "-l", "info"]
+# Corrected CMD to use src.workers.tasks.celery_app for development
+CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info"]

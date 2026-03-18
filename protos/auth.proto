@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package equaflow.auth;
+
+option go_package = "github.com/equaflow/auth";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service AuthService {
+  rpc ValidateToken(TokenRequest) returns (TokenResponse);
+  rpc RefreshToken(RefreshRequest) returns (TokenResponse);
+  rpc RevokeToken(RevokeRequest) returns (google.protobuf.Empty);
+  rpc GetUserInfo(TokenRequest) returns (UserInfo);
+  rpc CreateTokenPair(CreateTokenRequest) returns (TokenPairResponse);
+  rpc ValidateAPIKey(APIKeyRequest) returns (APIKeyResponse);
+  rpc IntrospectToken(TokenRequest) returns (IntrospectionResponse);
+}
+
+message TokenRequest {
+  string token = 1;
+}
+
+message TokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string email = 3;
+  string tier = 4;
+  int64 expires_at = 5;
+  int64 issued_at = 6;
+  string token_type = 7;
+  repeated string roles = 8;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RevokeRequest {
+  string token = 1;
+  string token_type_hint = 2;
+}
+
+message UserInfo {
+  string user_id = 1;
+  string email = 2;
+  string tier = 3;
+  string full_name = 4;
+  bool is_verified = 5;
+  bool mfa_enabled = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp last_login = 8;
+  repeated string roles = 9;
+  map<string, string> metadata = 10;
+}
+
+message CreateTokenRequest {
+  string user_id = 1;
+  string email = 2;
+  string tier = 3;
+  int32 access_token_minutes = 4;
+  int32 refresh_token_days = 5;
+}
+
+message TokenPairResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int32 expires_in = 4;
+  google.protobuf.Timestamp issued_at = 5;
+}
+
+message APIKeyRequest {
+  string api_key = 1;
+}
+
+message APIKeyResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string email = 3;
+  string tier = 4;
+  string key_name = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+  repeated string scopes = 8;
+}
+
+message IntrospectionResponse {
+  bool active = 1;
+  string sub = 2;
+  string client_id = 3;
+  string username = 4;
+  string token_type = 5;
+  int64 exp = 6;
+  int64 iat = 7;
+  string scope = 8;
+  string iss = 9;
+}
+
+message AuthChallenge {
+  string method = 1;
+  string challenge = 2;
+  string session_id = 3;
+}
+
+message AuthResponse {
+  bool authenticated = 1;
+  string user_id = 2;
+  repeated string factors_verified = 3;
+}

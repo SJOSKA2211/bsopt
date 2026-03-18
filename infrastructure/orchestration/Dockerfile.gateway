@@ -1,7 +1,5 @@
-# Production Dockerfile for Nginx Gateway
 FROM docker.io/library/nginx:alpine
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
-# Ensure conf.d exists, even if empty or managed differently
 RUN mkdir -p /etc/nginx/conf.d
+COPY infrastructure/configs/envoy.yaml /etc/nginx/nginx.conf 2>/dev/null || true
 EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]

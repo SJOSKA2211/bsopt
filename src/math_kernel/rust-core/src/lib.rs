@@ -1,8 +1,11 @@
 use pyo3::prelude::*;
 use memmap2::Mmap;
 use std::fs::File;
-use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1};
+use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1, PyArray2};
 use rand::Rng;
+use rand::SeedableRng;
+use rand::rngs::StdRng;
+use rand_distr::{StandardNormal, Distribution};
 use rayon::prelude::*;
 
 fn norm_cdf(x: f64) -> f64 {
@@ -143,48 +146,7 @@ fn batch_black_scholes_greeks(
 
     let n = s.len();
     
-    let mut delta_vec = vec![0.0; n];
-    let mut gamma_vec = vec![0.0; n];
-    let mut theta_vec = vec![0.0; n];
-    let mut vega_vec  = vec![0.0; n];
-    let mut rho_vec   = vec![0.0; n];
-
-    (0..n).into_par_iter().map(|i| {
-        let si = s[i]; let ki = k[i]; let ti = t[i];
-        let vi = v[i]; let ri = r[i]; let qi = q[i]; let call = is_call[i];
-
-        if ti <= 0.0 {
-            let cd = if si > ki { 1.0 } else { 0.0 };
-            let pd = if si < ki { -1.0 } else { 0.0 };
-            return (if call { cd } else { pd }, 0.0, 0.0, 0.0, 0.0);
-        }
-        
-        let sqrt_t = ti.sqrt();
-        let d1 = ( (si/ki).ln() + (ri - qi + 0.5 * vi * vi) * ti ) / (vi * sqrt_t);
-        let d2 = d1 - vi * sqrt_t;
-
-        let nd1 = norm_pdf(d1);
-        let cdf_d1 = norm_cdf(d1);
-        
-        let exp_qt = (-qi * ti).exp();
-        let exp_rt = (-ri * ti).exp();
-
-        let delta = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
-        let gamma = exp_qt * nd1 / (si * vi * sqrt_t);
-        let vega = si * exp_qt * nd1 * sqrt_t * 0.01;
-
-        let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) 
-                         + (qi * si * exp_qt * cdf_d1) 
-                         - (ri * ki * exp_rt * norm_cdf(d2));
-        
-        let theta = if call { theta_call / 365.0 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) / 365.0 };
-        let rho = if call { ki * ti * exp_rt * norm_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm_cdf(-d2) * 0.01 };
-
-        (delta, gamma, theta, vega, rho)
-    }).collect_into_vec(&mut (delta_vec.iter_mut().zip(gamma_vec.iter_mut()).zip(theta_vec.iter_mut()).zip(vega_vec.iter_mut()).zip(rho_vec.iter_mut()).map(|((((a, b), c), d), e)| (*a, *b, *c, *d, *e)).collect::<Vec<_>>())); // Wait, collect_into_vec won't work easily on tuples.
-
-    // Manual unzip
-    let results: Vec<_> = (0..n).into_par_iter().map(|i| {
+    let results: Vec<(f64, f64, f64, f64, f64)> = (0..n).into_par_iter().map(|i| {
         let si = s[i]; let ki = k[i]; let ti = t[i];
         let vi = v[i]; let ri = r[i]; let qi = q[i]; let call = is_call[i];
 
@@ -218,12 +180,18 @@ fn batch_black_scholes_greeks(
         (delta, gamma, theta, vega, rho)
     }).collect();
 
-    for i in 0..n {
-        delta_vec[i] = results[i].0;
-        gamma_vec[i] = results[i].1;
-        theta_vec[i] = results[i].2;
-        vega_vec[i]  = results[i].3;
-        rho_vec[i]   = results[i].4;
+    let mut delta_vec = Vec::with_capacity(n);
+    let mut gamma_vec = Vec::with_capacity(n);
+    let mut theta_vec = Vec::with_capacity(n);
+    let mut vega_vec = Vec::with_capacity(n);
+    let mut rho_vec = Vec::with_capacity(n);
+
+    for (d, g, th, v, rh) in results {
+        delta_vec.push(d);
+        gamma_vec.push(g);
+        theta_vec.push(th);
+        vega_vec.push(v);
+        rho_vec.push(rh);
     }
 
     Python::with_gil(|py| {
@@ -238,37 +206,170 @@ fn batch_black_scholes_greeks(
 }
 
 #[pyfunction]
+fn runge_kutta_4_gbm(
+    s0: PyReadonlyArray1<f64>,
+    mu: PyReadonlyArray1<f64>,
+    sigma: PyReadonlyArray1<f64>,
+    t: f64,
+    dt: f64,
+    steps: usize,
+    seed: Option<u64>,
+) -> PyResult<Py<PyArray2<f64>>> {
+    let s0 = s0.as_array();
+    let mu = mu.as_array();
+    let sigma = sigma.as_array();
+    let n = s0.len();
+    let n_paths = s0.len();
+    
+    let sqrt_dt = dt.sqrt();
+    let n_steps = steps;
+    
+    let mut rng = match seed {
+        Some(s) => StdRng::seed_from_u64(s),
+        None => StdRng::from_entropy(),
+    };
+    
+    let normal = StandardNormal;
+    
+    let mut paths = vec![vec![0.0; n_steps + 1]; n_paths];
+    
+    for i in 0..n_paths {
+        paths[i][0] = s0[i];
+    }
+    
+    for step in 0..n_steps {
+        for i in 0..n_paths {
+            let si = paths[i][step];
+            let mu_i = mu[i];
+            let sigma_i = sigma[i];
+            
+            let dw: f64 = normal.sample(&mut rng);
+            
+            let k1 = mu_i * si;
+            let k2 = mu_i * (si + 0.5 * dt * k1);
+            let k3 = mu_i * (si + 0.5 * dt * k2);
+            let k4 = mu_i * (si + dt * k3);
+            
+            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+            
+            let diffusion = sigma_i * si * dw * sqrt_dt;
+            
+            let milstein_correction = 0.5 * sigma_i * sigma_i * si * (dw * dw - dt);
+            
+            paths[i][step + 1] = si + drift + diffusion + milstein_correction;
+            
+            if paths[i][step + 1] < 0.0 {
+                paths[i][step + 1] = 0.0001;
+            }
+        }
+    }
+
+    let flat: Vec<f64> = paths.into_iter().flatten().collect();
+    
+    Python::with_gil(|py| {
+        let numpy_array = PyArray2::from_vec2(py, &flat.chunks(n_steps + 1).map(|v| v.to_vec()).collect::<Vec<_>>())?;
+        Ok(numpy_array.to_owned())
+    })
+}
+
+#[pyfunction]
+fn simulate_gbm_euler(
+    s0: PyReadonlyArray1<f64>,
+    mu: PyReadonlyArray1<f64>,
+    sigma: PyReadonlyArray1<f64>,
+    t: f64,
+    dt: f64,
+    seed: Option<u64>,
+) -> PyResult<Py<PyArray2<f64>>> {
+    let s0 = s0.as_array();
+    let mu = mu.as_array();
+    let sigma = sigma.as_array();
+    let n_paths = s0.len();
+    
+    let sqrt_dt = dt.sqrt();
+    let n_steps = (t / dt) as usize;
+    
+    let mut rng = match seed {
+        Some(s) => StdRng::seed_from_u64(s),
+        None => StdRng::from_entropy(),
+    };
+    
+    let normal = StandardNormal;
+    
+    let mut paths = vec![vec![0.0; n_steps + 1]; n_paths];
+    
+    for i in 0..n_paths {
+        paths[i][0] = s0[i];
+    }
+    
+    for step in 0..n_steps {
+        for i in 0..n_paths {
+            let si = paths[i][step];
+            let dw: f64 = normal.sample(&mut rng);
+            
+            let drift = mu[i] * si * dt;
+            let diffusion = sigma[i] * si * sqrt_dt * dw;
+            
+            paths[i][step + 1] = si + drift + diffusion;
+            
+            if paths[i][step + 1] < 0.0 {
+                paths[i][step + 1] = 0.0001;
+            }
+        }
+    }
+
+    Python::with_gil(|py| {
+        Ok(PyArray2::from_vec2(py, &paths)?.to_owned())
+    })
+}
+
+#[pyfunction]
 fn runge_kutta_4_vectorized(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    _t: f64,
+    t: f64,
     dt: f64,
     steps: usize,
+    seed: Option<u64>,
 ) -> PyResult<Py<PyArray1<f64>>> {
     let s0 = s0.as_array();
     let mu = mu.as_array();
     let sigma = sigma.as_array();
     let n = s0.len();
     
+    let sqrt_dt = dt.sqrt();
+    let mut rng = match seed {
+        Some(s) => StdRng::seed_from_u64(s),
+        None => StdRng::from_entropy(),
+    };
+    
+    let normal = StandardNormal;
+    
     let mut s = s0.to_owned();
     
     for _ in 0..steps {
-        s.as_slice_mut().unwrap().par_iter_mut().enumerate().for_each(|(i, si)| {
-            let mut rng = rand::thread_rng();
-            let normal = rand_distr::StandardNormal;
-
-            let k1 = mu[i] * (*si);
-            let k2 = mu[i] * ((*si) + 0.5 * dt * k1);
-            let k3 = mu[i] * ((*si) + 0.5 * dt * k2);
-            let k4 = mu[i] * ((*si) + dt * k3);
+        for i in 0..n {
+            let si = s[i];
+            let dw: f64 = normal.sample(&mut rng);
+            
+            let k1 = mu[i] * si;
+            let k2 = mu[i] * (si + 0.5 * dt * k1);
+            let k3 = mu[i] * (si + 0.5 * dt * k2);
+            let k4 = mu[i] * (si + dt * k3);
             
             let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-            let dw: f64 = rng.sample(normal);
-            let diffusion = sigma[i] * (*si) * dw * dt.sqrt();
             
-            *si += drift + diffusion;
-        });
+            let diffusion = sigma[i] * si * dw * sqrt_dt;
+            
+            let milstein = 0.5 * sigma[i] * sigma[i] * si * (dw * dw - dt);
+            
+            s[i] = si + drift + diffusion + milstein;
+            
+            if s[i] < 0.0 {
+                s[i] = 0.0001;
+            }
+        }
     }
 
     Python::with_gil(|py| {
@@ -295,7 +396,11 @@ fn mmap_parse_ticks(path: &str) -> PyResult<Py<PyArray1<f64>>> {
 
 #[pyfunction]
 fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> PyResult<bool> {
-    if last_price == 0.0 { Ok(true) } else { Ok(((price - last_price).abs() / last_price) < 0.20) }
+    if last_price == 0.0 { 
+        Ok(true) 
+    } else { 
+        Ok(((price - last_price).abs() / last_price) < 0.20) 
+    }
 }
 
 #[pymodule]
@@ -306,6 +411,8 @@ fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(mmap_parse_ticks, m)?)?;
     m.add_function(wrap_pyfunction!(runge_kutta_4_vectorized, m)?)?;
+    m.add_function(wrap_pyfunction!(runge_kutta_4_gbm, m)?)?;
+    m.add_function(wrap_pyfunction!(simulate_gbm_euler, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     Ok(())
 }

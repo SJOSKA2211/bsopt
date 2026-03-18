@@ -83,7 +83,11 @@ d004/
 e005/
 e5fc8af4/
 f006/
-infrastructure/
+# === Infrastructure (allow configs) ===
+# infrastructure/  (removed to allow configs)
+infrastructure/**/
+!infrastructure/configs/
+!infrastructure/orchestration/
 init-scripts/
 logs/
 monitoring/
