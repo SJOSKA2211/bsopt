@@ -5,7 +5,7 @@ import pytest
 
 
 def test_src_directories_exist():
-    """Verify that core source directories exist."""
+    """Verify that src.shared source directories exist."""
     assert os.path.isdir("src/ml")
     assert os.path.isdir("src/shared")
 
@@ -29,7 +29,7 @@ def test_tests_directory_exists():
     ],
 )
 def test_dependencies_installed(module_name):
-    """Verify that core dependencies are loadable."""
+    """Verify that src.shared dependencies are loadable."""
     try:
         importlib.import_module(module_name)
     except ImportError:

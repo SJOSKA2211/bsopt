@@ -5,7 +5,7 @@ The BS-OPT platform uses a hybrid distributed architecture combining **Celery** 
 
 ## Component Map
 - **Task Broker**: Redis (v5.2.0) handles the message queuing for Celery.
-- **Orchestration**: `Celery` (`src/workers/math_worker.py`) receives tasks from the API or other services.
+- **Orchestration**: `Celery` (`src/workers/math_worker.py`) receives tasks from the API or other src.
 - **Compute Engine**: `Ray` handles the actual computation via `MathActor` instances.
 
 ## Execution Flow: `recalibrate_symbol`

@@ -12,7 +12,7 @@ This document outlines the security measures and platform hardening steps implem
 - **Argon2id Hashing**: Standardized on Argon2id for all password hashing (Memory: 64MB, Time: 3, Parallelism: 4).
 - **Session Verification**: Python backend verifies `better_auth_sessions` with Redis caching (5-minute TTL) for performance.
 - **MFA (Two-Factor)**: MFA is enforced via the `better-auth` two-factor plugin, replacing the custom legacy implementation.
-- **Rate Limiting**: Distributed sliding window rate limiting implemented in Redis LUA for both Node.js and Python services.
+- **Rate Limiting**: Distributed sliding window rate limiting implemented in Redis LUA for both Node.js and Python src.
 - **Timing Attack Protection**: Constant-time comparison and dummy hashing implemented in legacy `AuthService.authenticate_user`.
 
 ## 3. Webhook Security
@@ -20,7 +20,7 @@ This document outlines the security measures and platform hardening steps implem
 - **Verification**: Signatures are verified using a shared secret and HMAC-SHA256 over the raw request body.
 
 ## 4. Platform Hardening
-- **Infrastructure**: Docker containers use `cpuset` for core pinning and resource isolation.
+- **Infrastructure**: Docker containers use `cpuset` for src.shared pinning and resource isolation.
 - **Logging**: PII (like Client IPs) is automatically masked in logs.
 - **Concurrency**: Local builds are limited to 1 worker process to prevent system freezing (see `Anti-Freeze Guide`).
 

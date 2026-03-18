@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.shared.lazy_import import (
+from src.shared.lazy_import import (
     CircularImportError,
     LazyImportError,
     get_import_stats,
@@ -48,7 +48,7 @@ def test_lazy_import_circular():
     MockModule()
 
     # We need to manually trigger the circular detection by nested calls if we want to test the logic
-    from core.shared.lazy_import import _track_import_stack
+    from src.shared.lazy_import import _track_import_stack
 
     with _track_import_stack("src.circular"):
         with pytest.raises(CircularImportError):
@@ -75,7 +75,7 @@ def test_lazy_import_circular_reraise():
     cache_module = MockModule()
     import_map = {"circular": "src.circular"}
 
-    with patch("core.shared.lazy_import._track_import_stack") as mock_track:
+    with patch("src.shared.lazy_import._track_import_stack") as mock_track:
         mock_track.side_effect = CircularImportError("Circular")
         with pytest.raises(CircularImportError):
             lazy_import("src", import_map, "circular", cache_module)
@@ -113,7 +113,7 @@ def test_preload_modules_failure():
     cache_module = MockModule()
     import_map = {"path": "os"}
 
-    with patch("core.shared.lazy_import.lazy_import", side_effect=Exception("Preload fail")):
+    with patch("src.shared.lazy_import.lazy_import", side_effect=Exception("Preload fail")):
         # Should not raise exception, just log warning
         preload_modules("src", import_map, ["path"], cache_module_override=cache_module)
 

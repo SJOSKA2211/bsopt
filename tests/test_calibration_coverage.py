@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from services.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
+from src.quant.pricing.calibration.engine import HestonCalibrator, MarketOption
 
 
 def test_market_option_spread():
@@ -72,7 +72,7 @@ def test_weighted_objective_exception_continue():
 
     params = np.array([2.0, 0.04, 0.1, 0.0, 0.04])
     with patch(
-        "services.quant.pricing.calibration.engine.HestonModelFFT",
+        "src.quant.pricing.calibration.engine.HestonModelFFT",
         side_effect=Exception("mock fail"),
     ):
         res = calibrator._weighted_objective(params, [opt])

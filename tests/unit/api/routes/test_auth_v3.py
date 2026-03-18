@@ -5,18 +5,18 @@ from uuid import uuid4
 import pytest
 from fastapi import BackgroundTasks, Request
 
-from services.api.routes.auth import (
+from src.api.routes.auth import (
     change_password,
     mfa_setup,
     mfa_verify,
     request_password_reset,
 )
-from services.api.schemas.auth import (
+from src.api.schemas.auth import (
     MFAVerifyRequest,
     PasswordChangeRequest,
     PasswordResetRequest,
 )
-from core.database.models import User
+from src.database.models import User
 
 # Surgically insert pyotp into sys.modules
 mock_pyotp = MagicMock()
@@ -59,7 +59,7 @@ async def test_mfa_setup_success(mock_db):
 async def test_mfa_verify_success(mock_db):
     data = MFAVerifyRequest(code="123456")
     mock_user = User(id=uuid4(), email="engineer@bsopt.com", is_active=True, mfa_secret="secret")
-    with patch("services.api.routes.auth._verify_mfa_code", return_value=True):
+    with patch("src.api.routes.auth._verify_mfa_code", return_value=True):
         res = await mfa_verify(data, mock_user, mock_db)
         assert "Successfully" in res["message"] or "MFA" in res["message"]
 
@@ -73,7 +73,7 @@ async def test_change_password_success(mock_db):
         new_password_confirm="NewStrongPassword123!",
     )
     mock_user = User(id=uuid4(), email="engineer@bsopt.com", hashed_password="old_hashed")
-    with patch("services.api.routes.auth.password_service") as mock_pw:
+    with patch("src.api.routes.auth.password_service") as mock_pw:
         mock_pw.verify_password.return_value = True
         mock_pw.validate_password.return_value.is_valid = True
         mock_pw.hash_password.return_value = "new_hashed"
@@ -86,7 +86,7 @@ async def test_password_reset_flow(mock_db, mock_bg):
     req_data = PasswordResetRequest(email="engineer@bsopt.com")
     mock_user = User(id=uuid4(), email="engineer@bsopt.com")
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
-    with patch("services.api.routes.auth.password_service") as mock_pw:
+    with patch("src.api.routes.auth.password_service") as mock_pw:
         mock_pw.generate_reset_token.return_value = "token"
         res = await request_password_reset(req_data, mock_bg, mock_db)
         assert "sent" in res["message"].lower()

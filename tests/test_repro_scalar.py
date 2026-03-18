@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from core.shared.math_utils import calculate_price_core
+from src.shared.math_utils import calculate_price_core
 
 
 def test_minimal_jit_scalar():

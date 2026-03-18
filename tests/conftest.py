@@ -67,7 +67,7 @@ def startup_session():
     # Optimized: Run only essential SQL init scripts and handle DB name replace
     for script_name in [
         "00-extensions.sql",
-        "01-core-schema.sql",
+        "01-src.shared-schema.sql",
         "09-security.sql",
         "10-missing-tables.sql",
     ]:
@@ -88,14 +88,14 @@ def startup_session():
             print(f"Warning: Failed to apply {script_name}: {e}")
 
     # Fallback to create_all for any missing ORM-only models
-    from core.database import create_tables
+    from src.database import create_tables
 
     create_tables()
 
     # 3. Init Redis mock/client
     import asyncio
 
-    from core.shared.cache import init_redis_cache
+    from src.shared.cache import init_redis_cache
 
     try:
         loop = asyncio.get_event_loop()
@@ -135,16 +135,16 @@ def env_setup(monkeypatch):
 
 @pytest.fixture
 def unmocked_config_settings(monkeypatch):
-    """Fixture to provide a clean core.shared.config.Settings class for validation testing."""
+    """Fixture to provide a clean src.shared.config.Settings class for validation testing."""
     import importlib
 
-    import core.shared.config
+    import src.shared.config
 
     # Reload to ensure we have the real class if it was mocked
-    importlib.reload(core.shared.config)
+    importlib.reload(src.shared.config)
     yield
     # Reload again after test to restore any previous state
-    importlib.reload(core.shared.config)
+    importlib.reload(src.shared.config)
 
 
 @pytest.fixture
@@ -153,8 +153,8 @@ def api_client():
     from fastapi.testclient import TestClient
     from sqlalchemy import create_engine, text
 
-    from services.api.main import app
-    from core.shared.config import settings
+    from src.api.main import app
+    from src.shared.config import settings
 
     # Truncate users to avoid ConflictException
     engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))

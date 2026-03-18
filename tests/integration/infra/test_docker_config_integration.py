@@ -12,17 +12,17 @@ def test_docker_neural_pricing_optimization():
     with open(compose_path) as f:
         config = yaml.safe_load(f)
 
-    services = config.get("services", {})
-    assert "neural-pricing" in services, "neural-pricing service should be defined"
+    src = config.get("src", {})
+    assert "neural-pricing" in src, "neural-pricing service should be defined"
 
-    np_service = services["neural-pricing"]
+    np_service = src["neural-pricing"]
 
-    # Check for core pinning
+    # Check for src.shared pinning
     # Note: cpuset is usually in deploy.resources.reservations or similar in v3,
     # but in compose it can be top level
     assert "cpuset" in np_service or "cpuset" in np_service.get("deploy", {}).get(
         "resources", {}
-    ).get("reservations", {}), "CPU core pinning (cpuset) should be configured"
+    ).get("reservations", {}), "CPU src.shared pinning (cpuset) should be configured"
 
     # Check for environment variables
     env = np_service.get("environment", [])

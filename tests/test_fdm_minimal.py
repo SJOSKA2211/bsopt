@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 try:
     import numpy as np
 
-    from services.quant.pricing.black_scholes import BSParameters
-    from services.quant.pricing.finite_difference import CrankNicolsonSolver
+    from src.quant.pricing.black_scholes import BSParameters
+    from src.quant.pricing.finite_difference import CrankNicolsonSolver
 
     print("Testing Crank-Nicolson Finite Difference Solver")
     print("=" * 60)

@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from core.database import crud
+from src.database import crud
 
 
 @pytest.mark.asyncio

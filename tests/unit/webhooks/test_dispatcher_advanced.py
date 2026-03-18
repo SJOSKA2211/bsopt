@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import orjson
 import pytest
 
-from services.gateway.webhooks.dispatcher import (
+from src.api.webhooks.dispatcher import (
     WebhookDispatcher,
     _generate_signature,
     _verify_signature,
@@ -61,7 +61,7 @@ async def test_dispatch_webhook_success():
     mock_client = AsyncMock()
     mock_client.post.return_value = MagicMock(status_code=200)
 
-    with patch("core.shared.http_client.HttpClientManager.get_client", return_value=mock_client):
+    with patch("src.shared.http_client.HttpClientManager.get_client", return_value=mock_client):
         dispatcher = WebhookDispatcher(celery_app=None, circuit_breaker=mock_cb, dlq_task=None)
         await dispatcher.dispatch_webhook("http://example.com", {"a": 1}, {}, "secret")
 
@@ -93,7 +93,7 @@ async def test_dispatch_webhook_general_failure():
     mock_client = AsyncMock()
     mock_client.post.side_effect = Exception("HTTP Error")
 
-    with patch("core.shared.http_client.HttpClientManager.get_client", return_value=mock_client):
+    with patch("src.shared.http_client.HttpClientManager.get_client", return_value=mock_client):
         dispatcher = WebhookDispatcher(celery_app=None, circuit_breaker=mock_cb, dlq_task=None)
         with pytest.raises(Exception) as exc:
             await dispatcher.dispatch_webhook("http://example.com", {}, {}, "secret")

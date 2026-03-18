@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 import torch
 
-from services.ml.reinforcement_learning.kernels import _fused_state_kernel
-from services.ml.reinforcement_learning.transformer_policy import CausalSelfAttention
+from src.ml.reinforcement_learning.kernels import _fused_state_kernel
+from src.ml.reinforcement_learning.transformer_policy import CausalSelfAttention
 
 
 class TestRevampPhase2:

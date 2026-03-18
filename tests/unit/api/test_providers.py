@@ -1,6 +1,6 @@
 import pytest
 
-from services.api.providers.market_data import PolygonProvider, YahooProvider
+from src.api.providers.market_data import PolygonProvider, YahooProvider
 
 
 @pytest.mark.asyncio

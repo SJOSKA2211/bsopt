@@ -16,8 +16,8 @@ import time
 import numpy as np
 import pytest
 
-from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
-from services.quant.pricing.exotic import (
+from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.quant.pricing.exotic import (
     AsianOptionPricer,
     AsianType,
     BarrierOptionPricer,

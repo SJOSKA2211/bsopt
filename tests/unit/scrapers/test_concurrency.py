@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from services.scrapers.engine import NSEScraper
+from src.ingestion.engine import NSEScraper
 
 
 @pytest.mark.asyncio
@@ -34,7 +34,7 @@ async def test_tab_multiplexing_concurrency():
     mock_playwright_instance = AsyncMock()
     mock_playwright_instance.chromium.launch = AsyncMock(return_value=mock_browser)
 
-    with patch("services.scrapers.engine.async_playwright") as mock_ap:
+    with patch("src.ingestion.engine.async_playwright") as mock_ap:
         # async_playwright() returns a context manager, but in my code I used .start()
         # self.playwright = await async_playwright().start()
         mock_ap.return_value.start = AsyncMock(return_value=mock_playwright_instance)

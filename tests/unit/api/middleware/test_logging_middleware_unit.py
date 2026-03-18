@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from services.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
+from src.api.middleware.logging import RequestLoggingMiddleware, StructuredLogger
 
 
 def test_structured_logger_full():
@@ -13,11 +13,11 @@ def test_structured_logger_full():
     sl.set_default_fields(app="bsopt")
 
     with (
-        patch("services.api.middleware.logging.logging.Logger.debug") as mock_debug,
-        patch("services.api.middleware.logging.logging.Logger.info") as mock_info,
-        patch("services.api.middleware.logging.logging.Logger.warning") as mock_warn,
-        patch("services.api.middleware.logging.logging.Logger.error") as mock_error,
-        patch("services.api.middleware.logging.logging.Logger.critical") as mock_crit,
+        patch("src.api.middleware.logging.logging.Logger.debug") as mock_debug,
+        patch("src.api.middleware.logging.logging.Logger.info") as mock_info,
+        patch("src.api.middleware.logging.logging.Logger.warning") as mock_warn,
+        patch("src.api.middleware.logging.logging.Logger.error") as mock_error,
+        patch("src.api.middleware.logging.logging.Logger.critical") as mock_crit,
     ):
         sl.debug("dbg")
         sl.info("inf")
@@ -65,7 +65,7 @@ def test_request_logging_middleware_basic():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         client.get("/test")
         assert mock_log.called
 
@@ -79,7 +79,7 @@ def test_request_logging_malformed_json():
         return {"ok": True}
 
     client = TestClient(app)
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         # Use valid UTF-8 but not JSON
         response = client.post("/malformed", content=b"not a json")
         assert response.status_code == 200
@@ -109,15 +109,15 @@ def test_request_logging_user_info():
 
     client = TestClient(app)
 
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         client.get("/user-test")
         log_entry = json.loads(mock_log.call_args[0][1])
         assert log_entry["user_email"] == "user@test.com"
 
 
-@patch("core.database.get_session")
+@patch("src.database.get_session")
 def test_persist_log_full(mock_get_session):
-    with patch("core.database.models.RequestLog"):
+    with patch("src.database.models.RequestLog"):
         mock_session = MagicMock()
         mock_get_session.return_value = mock_session
 
@@ -152,7 +152,7 @@ def test_request_logging_error_capture():
 
     client = TestClient(app, raise_server_exceptions=False)
 
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         response = client.get("/error")
         assert response.status_code == 500
         log_entry = json.loads(mock_log.call_args[0][1])

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from services.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
+from src.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
 
 
 @pytest.fixture

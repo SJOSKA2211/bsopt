@@ -1,4 +1,4 @@
-from core.shared.sanitization import mask_email, sanitize_email, sanitize_string
+from src.shared.sanitization import mask_email, sanitize_email, sanitize_string
 
 
 def test_sanitize_string():

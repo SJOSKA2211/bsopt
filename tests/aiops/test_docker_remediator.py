@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import docker
-from services.ml.aiops.docker_remediator import DockerRemediator
+from src.ml.aiops.docker_remediator import DockerRemediator
 
 
-@patch("services.ml.aiops.docker_remediator.logger")
-@patch("services.ml.aiops.docker_remediator.docker.from_env")
+@patch("src.ml.aiops.docker_remediator.logger")
+@patch("src.ml.aiops.docker_remediator.docker.from_env")
 class TestDockerRemediator:
     @pytest.mark.asyncio
     async def test_docker_remediator_init_success(self, mock_from_env, mock_logger):
@@ -70,7 +70,7 @@ class TestDockerRemediator:
         mock_logger.reset_mock()
         service_name = "worker"
 
-        with patch("services.ml.aiops.docker_remediator.subprocess.run") as mock_run:
+        with patch("src.ml.aiops.docker_remediator.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(stdout="restarted")
             result = await remediator.restart_service(service_name)
 
@@ -91,7 +91,7 @@ class TestDockerRemediator:
     @pytest.mark.asyncio
     async def test_scale_service_success(self, mock_from_env, mock_logger):
         remediator = DockerRemediator()
-        with patch("services.ml.aiops.docker_remediator.subprocess.run") as mock_run:
+        with patch("src.ml.aiops.docker_remediator.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(stdout="scaled")
             result = await remediator.scale_service("api", 3)
             assert result is True

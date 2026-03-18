@@ -46,12 +46,12 @@ from rich.table import Table
 from scripts.auth import AuthenticationError, AuthManager
 from scripts.config import get_config
 from scripts.portfolio import PortfolioManager, Position
-from core.shared.config import settings
+from src.shared.config import settings
 
 # Import pricing engines
-from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
-from services.quant.pricing.finite_difference import CrankNicolsonSolver
-from services.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine
+from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.quant.pricing.finite_difference import CrankNicolsonSolver
+from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine
 
 console = Console()
 

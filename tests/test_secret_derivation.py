@@ -3,7 +3,7 @@ import hashlib
 
 import pytest
 
-from core.shared.config import _DEFAULT_DEV_MFA_KEY, Settings
+from src.shared.config import _DEFAULT_DEV_MFA_KEY, Settings
 
 
 def test_secret_derivation_from_better_auth_secret():

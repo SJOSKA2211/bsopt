@@ -1,6 +1,6 @@
 import pytest
 
-from services.quant.pricing.exotic import (
+from src.quant.pricing.exotic import (
     AsianOptionPricer,
     BarrierType,
     BSParameters,

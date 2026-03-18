@@ -9,7 +9,7 @@ logger = structlog.get_logger()
 async def check_database():
     print("Checking Database [PG16]...", end=" ", flush=True)
     try:
-        from core.database import db_manager
+        from src.database import db_manager
 
         db_manager.initialize()
         engine = db_manager.engine
@@ -32,7 +32,7 @@ async def check_redis():
     try:
         import socket
 
-        from core.shared.cache import get_redis
+        from src.shared.cache import get_redis
 
         try:
             socket.gethostbyname("redis")
@@ -63,7 +63,7 @@ async def check_shm():
     try:
         from multiprocessing import shared_memory
 
-        from core.shared.shm_init import SHM_CONFIGS
+        from src.shared.shm_init import SHM_CONFIGS
 
         missing = []
         for config in SHM_CONFIGS:

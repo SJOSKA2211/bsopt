@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.shared.shm_mesh import BUFFER_CAPACITY, TICK_SIZE, SharedMemoryRingBuffer
+from src.shared.shm_mesh import BUFFER_CAPACITY, TICK_SIZE, SharedMemoryRingBuffer
 
 
 @pytest.fixture
 def mock_shm():
-    with patch("core.shared.shm_mesh.shared_memory.SharedMemory") as MockSHM:
+    with patch("src.shared.shm_mesh.shared_memory.SharedMemory") as MockSHM:
         instance = MagicMock()
         # Create a real buffer for logic testing
         instance.buf = bytearray((TICK_SIZE * BUFFER_CAPACITY) + 8)

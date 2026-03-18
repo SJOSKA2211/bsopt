@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # We need to mock settings before importing the worker because it initializes redis_client at module level
-with patch("core.shared.config.get_settings") as mock_settings_getter:
+with patch("src.shared.config.get_settings") as mock_settings_getter:
     mock_settings = MagicMock()
     mock_settings.REDIS_URL = "redis://localhost:6379/0"
     mock_settings.RABBITMQ_URL = "amqp://guest@localhost:5672//"
@@ -21,9 +21,9 @@ def event_loop():
 
 
 class TestMathWorkerIntegration:
-    @patch("services.workers.math_worker.HestonCalibrator")
-    @patch("services.workers.math_worker.MarketDataRouter")
-    @patch("services.workers.math_worker.async_redis_client", new_callable=AsyncMock)
+    @patch("src.workers.math_worker.HestonCalibrator")
+    @patch("src.workers.math_worker.MarketDataRouter")
+    @patch("src.workers.math_worker.async_redis_client", new_callable=AsyncMock)
     def test_recalibrate_symbol_flow(self, mock_redis, mock_router, mock_calibrator, event_loop):
         """Verify the recalibrate_symbol task stores data in Redis."""
         # 1. Setup mock market data

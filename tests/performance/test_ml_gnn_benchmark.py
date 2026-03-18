@@ -2,7 +2,7 @@ import time
 
 import torch
 
-from services.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
+from src.ml.reinforcement_learning.gnn_policy import GNNFeatureExtractor
 
 
 def test_gnn_feature_extractor_latency_benchmark():

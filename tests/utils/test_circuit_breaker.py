@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from core.shared.circuit_breaker import (
+from src.shared.circuit_breaker import (
     CircuitState,
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,

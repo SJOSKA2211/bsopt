@@ -3,18 +3,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import structlog
 
-from core.shared import observability
+from src.shared import observability
 
 
 @pytest.fixture
 def mock_gateway():
-    with patch("core.shared.observability.push_to_gateway") as mock:
+    with patch("src.shared.observability.push_to_gateway") as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_httpx():
-    with patch("core.shared.observability.httpx.AsyncClient") as MockClient:
+    with patch("src.shared.observability.httpx.AsyncClient") as MockClient:
         instance = MockClient.return_value
         instance.post = AsyncMock()
         yield instance

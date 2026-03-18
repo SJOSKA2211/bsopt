@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from core.shared.config import DEFAULT_DEV_MFA_KEY, Settings
+from src.shared.config import DEFAULT_DEV_MFA_KEY, Settings
 
 
 def test_mfa_key_security_dev():

@@ -4,7 +4,7 @@ import msgspec
 import pytest
 from fastapi import Request, Response
 
-from services.api.middleware.idempotency import IdempotencyMiddleware
+from src.api.middleware.idempotency import IdempotencyMiddleware
 
 
 @pytest.fixture

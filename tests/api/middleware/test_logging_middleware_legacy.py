@@ -5,7 +5,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from services.api.middleware.logging import RequestLoggingMiddleware
+from src.api.middleware.logging import RequestLoggingMiddleware
 
 app = FastAPI()
 
@@ -31,7 +31,7 @@ client = TestClient(app)
 
 
 def test_request_logging_basic():
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         response = client.get("/test")
         assert response.status_code == 200
         mock_log.assert_called()
@@ -43,7 +43,7 @@ def test_request_logging_basic():
 
 
 def test_request_logging_redaction():
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         client.get(
             "/test",
             params={"password": "secret_pass"},
@@ -56,13 +56,13 @@ def test_request_logging_redaction():
 
 
 def test_request_logging_skip():
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         client.get("/health")
         mock_log.assert_not_called()
 
 
 def test_request_logging_error():
-    with patch("services.api.middleware.logging.request_logger.log") as mock_log:
+    with patch("src.api.middleware.logging.request_logger.log") as mock_log:
         with pytest.raises(ValueError):
             client.get("/error")
 

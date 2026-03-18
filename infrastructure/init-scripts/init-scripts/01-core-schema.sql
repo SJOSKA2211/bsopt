@@ -201,8 +201,10 @@ CREATE TABLE IF NOT EXISTS model_predictions (
     actual_price NUMERIC(12, 4),
     prediction_error NUMERIC(12, 4),
     actual_value NUMERIC,
-    PRIMARY KEY (id, timestamp)
-) WITH (FILLFACTOR = 100);
+    PRIMARY KEY (timestamp, id)
+) PARTITION BY RANGE (timestamp);
+
+CREATE TABLE IF NOT EXISTS model_predictions_default PARTITION OF model_predictions DEFAULT;
 
 -- 7. Utility Tables
 CREATE UNLOGGED TABLE IF NOT EXISTS rate_limits (
@@ -241,3 +243,15 @@ CREATE TRIGGER update_sessions_updated_at BEFORE UPDATE ON sessions FOR EACH ROW
 
 DROP TRIGGER IF EXISTS update_oauth_accounts_updated_at ON oauth_accounts;
 CREATE TRIGGER update_oauth_accounts_updated_at BEFORE UPDATE ON oauth_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- LISTEN/NOTIFY for real-time market data
+CREATE OR REPLACE FUNCTION notify_market_tick()
+RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM pg_notify('market_tick_channel', row_to_json(NEW)::text);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS market_tick_notify_trigger ON market_ticks;
+CREATE TRIGGER market_tick_notify_trigger AFTER INSERT ON market_ticks FOR EACH ROW EXECUTE FUNCTION notify_market_tick();

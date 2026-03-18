@@ -28,7 +28,7 @@ def analyze_failures(output: str):
     Parses logs for known error patterns and suggests/applies fixes.
     """
     # 1. Check for gRPC/Protobuf mismatches
-    if "ModuleNotFoundError: No module named 'core.protos.auth_pb2'" in output:
+    if "ModuleNotFoundError: No module named 'src.shared.protos.auth_pb2'" in output:
         print("🔧 HEAL: Protobuf bindings missing. Running make protos...")
         subprocess.run(["make", "protos"])
     
@@ -39,7 +39,7 @@ def analyze_failures(output: str):
         
     # 3. Check for Rust Cargo.lock drift
     if "Cargo.lock" in output and "error" in output.lower():
-        print("🔧 HEAL: Cargo.lock drift. Running cargo build in rust-core...")
+        print("🔧 HEAL: Cargo.lock drift. Running cargo build in rust-src.shared...")
         # Note: In real scenarios, this runs inside the container
         
     # 4. Check for Pydantic V2 validation errors

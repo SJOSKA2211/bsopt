@@ -2,10 +2,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from services.ml.celery_app import run_pipeline_task
+from src.ml.celery_app import run_pipeline_task
 
 
-@patch("services.workers.tasks.ml_tasks.MLPipeline")
+@patch("src.workers.tasks.ml_tasks.MLPipeline")
 def test_run_pipeline_task_success(mock_pipeline_class):
     """Verify that the Celery task runs the pipeline successfully."""
     mock_model = MagicMock()
@@ -36,7 +36,7 @@ def test_run_pipeline_task_success(mock_pipeline_class):
     assert result["model_promoted"] is True
 
 
-@patch("services.workers.tasks.ml_tasks.MLPipeline")
+@patch("src.workers.tasks.ml_tasks.MLPipeline")
 def test_run_pipeline_task_failure(mock_pipeline_class):
     """Verify that the Celery task handles failures correctly."""
 

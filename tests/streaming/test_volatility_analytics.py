@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-# Assuming services.workers.streaming.analytics.py is correctly in the path
-from services.workers.streaming.analytics import VolatilityAggregationStream
+# Assuming src.workers.streaming.analytics.py is correctly in the path
+from src.workers.streaming.analytics import VolatilityAggregationStream
 
 
 @pytest.fixture
 def mock_faust_app():
     """Mocks the faust.App for isolated testing."""
-    with patch("services.workers.streaming.analytics.App", autospec=True) as MockApp:
+    with patch("src.workers.streaming.analytics.App", autospec=True) as MockApp:
         mock_app_instance = MockApp.return_value
         mock_app_instance.topic = MagicMock(return_value=MagicMock())
         mock_app_instance.Table = MagicMock(return_value=MagicMock())

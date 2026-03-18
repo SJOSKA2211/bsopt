@@ -3,7 +3,7 @@ import yaml
 
 def test_blockchain_quantum_configured():
     """
-    Verifies that Geth and Quantum Simulator services are configured in docker-compose.yml.
+    Verifies that Geth and Quantum Simulator src are configured in docker-compose.yml.
     This test currently only checks for the presence of the configuration due to
     user instruction not to run Docker containers.
     """
@@ -12,9 +12,9 @@ def test_blockchain_quantum_configured():
     with open(docker_compose_path) as f:
         compose_config = yaml.safe_load(f)
 
-    assert "services" in compose_config, "docker-compose.yml must define services"
+    assert "src" in compose_config, "docker-compose.yml must define src"
 
-    geth_service = compose_config["services"].get("geth")
+    geth_service = compose_config["src"].get("geth")
     assert geth_service, "Geth service not found in docker-compose.yml"
     assert "image" in geth_service and "ethereum/client-go" in geth_service["image"], (
         "Geth image not correctly specified"
@@ -23,7 +23,7 @@ def test_blockchain_quantum_configured():
         "Geth network not correctly specified"
     )
 
-    quantum_simulator_service = compose_config["services"].get("quantum-simulator")
+    quantum_simulator_service = compose_config["src"].get("quantum-simulator")
     assert quantum_simulator_service, "Quantum Simulator service not found in docker-compose.yml"
     assert "build" in quantum_simulator_service, "Quantum Simulator build context not specified"
     assert (

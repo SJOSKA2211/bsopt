@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pandas as pd
 
-from core.data.validation import OptionsDataValidator
+from src.ingestion.validation import OptionsDataValidator
 from tests.test_utils import assert_equal
 
 

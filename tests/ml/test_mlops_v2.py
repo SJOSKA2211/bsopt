@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 import yaml
 
-from services.ml.drift import calculate_psi
-from services.ml.models.neural_engine import NeuralPricingEngine
-from services.ml.reinforcement_learning.trading_env import TradingEnvironment
-from services.quant.pricing.models import BSParameters
+from src.ml.drift import calculate_psi
+from src.ml.models.neural_engine import NeuralPricingEngine
+from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+from src.quant.pricing.models import BSParameters
 
 
 def test_mlproject_integrity():

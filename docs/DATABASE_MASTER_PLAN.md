@@ -13,14 +13,14 @@ This document outlines the "Weaponized" PostgreSQL architecture implemented for 
 - **Driver Layer**: 
     - Synchronous: `psycopg` (v3) for optimized prepared statements.
     - Asynchronous: `asyncpg` with high-performance `Binary COPY` support.
-- **Pooling**: Adaptive strategy using `NullPool` for transaction-mode PGBouncer and `QueuePool` for direct internal services.
+- **Pooling**: Adaptive strategy using `NullPool` for transaction-mode PGBouncer and `QueuePool` for direct internal src.
 - **Retry Logic**: Implemented in `DatabaseManager` with exponential backoff for transient operational errors.
 
 ## 3. Schema & TimescaleDB Optimization
 - **Hypertables**: All high-volume tables (`options_prices`, `market_ticks`, `audit_logs`) are hypertables with optimized chunk intervals.
 - **Compression**: SIMD-vectorized compression enabled for all time-series data older than 1 day.
 - **Continuous Aggregates**: Hierarchical stats (Minute -> Hour -> Day) to offload dashboard query latency.
-- **Data Integrity**: Centralized Enum management in `00-extensions.sql` ensuring strict alignment across all services.
+- **Data Integrity**: Centralized Enum management in `00-extensions.sql` ensuring strict alignment across all src.
 
 ## 4. Indexing Strategy
 - **BRIN Indexes**: Used for multi-gigabyte time-ordered tables to save 90%+ index space compared to B-tree.

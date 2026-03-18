@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from services.quant.pricing.models import BSParameters
-from services.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
+from src.quant.pricing.models import BSParameters
+from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 
 
 class TestMonteCarloEngine:

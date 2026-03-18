@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from services.ml.autonomous_pipeline import AutonomousMLPipeline
+from src.ml.autonomous_pipeline import AutonomousMLPipeline
 
 
 @pytest.fixture
@@ -21,8 +21,8 @@ def pipeline_config():
 
 def test_pipeline_init(pipeline_config):
     with (
-        patch("services.ml.autonomous_pipeline.create_engine"),
-        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("src.ml.autonomous_pipeline.create_engine"),
+        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
     ):
         pipeline = AutonomousMLPipeline(pipeline_config)
         assert pipeline.ticker == "AAPL"
@@ -30,8 +30,8 @@ def test_pipeline_init(pipeline_config):
 
 def test_generate_features(pipeline_config):
     with (
-        patch("services.ml.autonomous_pipeline.create_engine"),
-        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("src.ml.autonomous_pipeline.create_engine"),
+        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
     ):
         pipeline = AutonomousMLPipeline(pipeline_config)
 
@@ -53,8 +53,8 @@ def test_generate_features(pipeline_config):
 @pytest.mark.asyncio
 async def test_get_current_model_performance(pipeline_config):
     with (
-        patch("services.ml.autonomous_pipeline.create_engine"),
-        patch("services.ml.autonomous_pipeline.Base.metadata.create_all"),
+        patch("src.ml.autonomous_pipeline.create_engine"),
+        patch("src.ml.autonomous_pipeline.Base.metadata.create_all"),
     ):
         pipeline = AutonomousMLPipeline(pipeline_config)
 

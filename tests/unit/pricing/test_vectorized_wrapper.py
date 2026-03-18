@@ -1,6 +1,6 @@
 import numpy as np
 
-from services.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
 
 
 def test_deprecated_wrapper_price():

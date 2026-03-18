@@ -1,6 +1,6 @@
 import numpy as np
 
-from services.ml import indicators
+from src.ml import indicators
 
 
 def test_numba_ema():

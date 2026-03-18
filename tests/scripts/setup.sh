@@ -57,12 +57,12 @@ fi
 echo ""
 
 # --- Build and Start Services ---
-echo "3. Building and starting Docker services..."
+echo "3. Building and starting Docker src..."
 echo "   - Building images..."
 $COMPOSE_CMD build
-echo "   - Starting services in detached mode..."
+echo "   - Starting src in detached mode..."
 $COMPOSE_CMD up -d
-echo "   ✓ All services started."
+echo "   ✓ All src started."
 echo ""
 
 # --- Database Initialization ---
@@ -102,5 +102,5 @@ echo "  - RabbitMQ: http://localhost:15672"
 echo ""
 echo "Next steps:"
 echo "  - To view logs: $COMPOSE_CMD logs -f"
-echo "  - To stop services: $COMPOSE_CMD down"
+echo "  - To stop src: $COMPOSE_CMD down"
 echo ""

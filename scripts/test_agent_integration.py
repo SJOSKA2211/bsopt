@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import structlog
 
-from services.ml.reinforcement_learning.online_agent import OnlineRLAgent
+from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 
 logger = structlog.get_logger()
 

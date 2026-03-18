@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from services.api.exceptions import (
+from src.api.exceptions import (
     AuthenticationException,
     BaseAPIException,
     ConflictException,
@@ -11,7 +11,7 @@ from services.api.exceptions import (
     ServiceUnavailableException,
     ValidationException,
 )
-from services.api.main import api_exception_handler
+from src.api.main import api_exception_handler
 
 # Create a minimal app for testing exceptions
 app = FastAPI()

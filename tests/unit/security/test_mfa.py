@@ -10,7 +10,7 @@ if importlib.util.find_spec("qrcode") is None:
 else:
     pass
 
-from core.security.mfa import MfaService
+from src.auth.mfa import MfaService
 
 
 @pytest.fixture

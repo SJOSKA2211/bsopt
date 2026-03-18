@@ -1,6 +1,6 @@
 import pytest
 
-from services.quant.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
+from src.quant.pricing.quantum_pricing import QISKIT_AVAILABLE, QuantumOptionPricer
 
 
 def test_qiskit_availability():

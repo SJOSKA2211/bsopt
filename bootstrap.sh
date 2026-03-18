@@ -148,21 +148,19 @@ set_env_var "DATABASE_URL_LOCAL" "postgresql://admin:${PG_PASS}@localhost:5434/b
 set_env_var "DATABASE_URL_TEST" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt_test"
 set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt"
 
-# 4. Automated Live Database Startup
-echo "🏗️  Starting Live Database Environment (Postgres, Redis, PgBouncer)..."
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d postgres redis pgbouncer
+# We must use make build first to ensure all images exist before standing them up sequentially
+echo "🏗️ Building all images before sequential startup..."
+make build
 
-echo "⏳ Waiting for Database to be Live & Healthy..."
+# 4. Sequential Database Startup & Health Checks
+echo "🏗️ Starting sequentially: Postgres -> Redis -> PgBouncer"
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d postgres
+
+echo "⏳ Waiting for Postgres to be Live & Healthy..."
 MAX_RETRIES=30
 RETRY_COUNT=0
-
-# Dynamically resolve container name to avoid 'bsopt-postgres-1' vs 'bsopt_postgres_1' issues
-POSTGRES_CONTAINER=$($COMPOSE_ENGINE ps --format "{{.Name}}" postgres 2>/dev/null | head -n 1)
-
-if [ -z "$POSTGRES_CONTAINER" ]; then
-    echo "⚠️  Warning: Could not resolve Postgres container name. Falling back to default."
-    POSTGRES_CONTAINER="bsopt-postgres-1"
-fi
+POSTGRES_CONTAINER=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps --format "{{.Name}}" postgres 2>/dev/null | head -n 1)
+[ -z "$POSTGRES_CONTAINER" ] && POSTGRES_CONTAINER="bsopt-postgres-1"
 
 until $CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" pg_isready -U admin > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
     echo -n "."
@@ -171,28 +169,50 @@ until $CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" pg_isready -U admin > /dev/nu
 done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "❌ Error: Database failed to start within timeout."
-    $COMPOSE_ENGINE logs postgres
+    echo "❌ Error: Postgres failed to start."
     exit 1
 fi
+echo "✅ Postgres is LIVE."
 
-echo "✅ Database Environment is LIVE."
-
-# 5. Phase 3: Runtime Database Tuning
-echo "⚙️  Injecting Hyper-Optimized SQL Tuning Commands..."
+# Inject Hyper-Optimized SQL Tuning
+echo "⚙️ Injecting Hyper-Optimized SQL Tuning Commands..."
 $CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/15-runtime-tuning.sql > /dev/null 2>&1 || true
-echo "✅ Database Parameters Optimized for NVMe/SSD IO."
 
-# 6. Success & Manifold Execution
-echo "=============================================================================="
-echo "✅ EQUAFLOW STACK BOOTSTRAPPED SUCCESSFULLY (Zero-Touch v4.0)"
-echo "=============================================================================="
-echo "🚀 Engine: $CONTAINER_ENGINE ($COMPOSE_ENGINE)"
-echo "🔐 Security: Asymmetric Keys (RSA/ECC) & Argon2 Salts Generated."
-echo "🐘 Database: PostgreSQL/TimescaleDB Tuned and Healthy."
-echo "🧬 Orchestration: Ray Cluster, MLflow, and Envoy Gateway Ready."
-echo "=============================================================================="
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d redis
+echo "⏳ Waiting for Redis..."
+REDIS_CONTAINER=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps --format "{{.Name}}" redis 2>/dev/null | head -n 1)
+[ -z "$REDIS_CONTAINER" ] && REDIS_CONTAINER="bsopt-redis-1"
+sleep 5 # Allow init
+until $CONTAINER_ENGINE exec "$REDIS_CONTAINER" redis-cli ping > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+    echo -n "."
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+echo "✅ Redis is LIVE."
 
-# Final Directive: Execute the Manifold
-echo "🔥 Launching the Manifold..."
-make build && make up
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer
+echo "✅ PgBouncer is LIVE (Assuming healthy after DB/Redis)."
+
+# 5. Kafka Infrastructure
+echo "🚀 Starting Kafka..."
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d kafka-1
+sleep 10 # Allow Kafka broker initialization
+
+# 6. Ray Head & ML
+echo "🚀 Starting Ray Head..."
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d ray-head
+sleep 5
+echo "✅ Ray Head is LIVE."
+
+# 7. Core APIs
+echo "🚀 Starting API & Auth Services..."
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d api auth-service
+sleep 5
+
+# 8. Start remaining services
+echo "🚀 Starting remaining components (Frontend, Envoy, Workers)..."
+$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d envoy frontend
+
+echo "=============================================================================="
+echo "✅ EQUAFLOW STACK EXECUTED SEQUENTIALLY (Zero-Touch)"
+echo "=============================================================================="

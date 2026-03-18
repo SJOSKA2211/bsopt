@@ -2,7 +2,7 @@ import time
 
 import structlog
 
-from core.trading.risk_kernels import _validate_incremental_delta_kernel, _validate_order_kernel
+from src.math_kernel.risk_kernels import _validate_incremental_delta_kernel, _validate_order_kernel
 
 logger = structlog.get_logger()
 

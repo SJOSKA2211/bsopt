@@ -1,7 +1,7 @@
 import pytest
 import ray
 
-from services.ml.distributed_training import HAS_RAY_TRAIN, BSOptDistributedTrainer
+from src.ml.distributed_training import HAS_RAY_TRAIN, BSOptDistributedTrainer
 
 
 @pytest.fixture(scope="module")

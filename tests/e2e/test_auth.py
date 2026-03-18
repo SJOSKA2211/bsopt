@@ -3,7 +3,7 @@ import os
 import httpx
 import pytest
 
-# Base URL for the services
+# Base URL for the src
 # In bridge network, we use service names. On host, we use localhost.
 AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL", "http://auth-service:3001")
 API_URL = os.getenv("API_URL", "http://api:8000")

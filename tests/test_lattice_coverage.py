@@ -1,4 +1,4 @@
-from services.quant.pricing.lattice import (
+from src.quant.pricing.lattice import (
     BinomialTreePricer,
     BSParameters,
     TrinomialTreePricer,

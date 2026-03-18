@@ -10,7 +10,7 @@ global:
   environment: production
   domain: bsopt.local
 
-# Default settings for all services
+# Default settings for all src
 defaults:
   replicaCount: 2
   image:

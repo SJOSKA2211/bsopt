@@ -12,8 +12,8 @@ import mlflow
 import structlog
 from mlflow.entities import RunStatus
 
-from core.shared.config import settings
-from services.ml.distributed_training import BSOptDistributedTrainer
+from src.shared.config import settings
+from src.ml.distributed_training import BSOptDistributedTrainer
 
 logger = structlog.get_logger(__name__)
 

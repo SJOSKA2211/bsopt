@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.data.router import MarketDataRouter
+from src.ingestion.router import MarketDataRouter
 
 
 @pytest.mark.asyncio
 async def test_router_nse_suffix():
-    with patch("core.data.router.NSEScraper") as mock_nse:
+    with patch("src.ingestion.router.NSEScraper") as mock_nse:
         mock_nse.return_value.get_ticker_data = AsyncMock(return_value={"price": 10.0})
         router = MarketDataRouter()
 
@@ -18,7 +18,7 @@ async def test_router_nse_suffix():
 
 @pytest.mark.asyncio
 async def test_router_nse_market_flag():
-    with patch("core.data.router.NSEScraper") as mock_nse:
+    with patch("src.ingestion.router.NSEScraper") as mock_nse:
         mock_nse.return_value.get_ticker_data = AsyncMock(return_value={"price": 10.0})
         router = MarketDataRouter()
 
@@ -30,7 +30,7 @@ async def test_router_nse_market_flag():
 @pytest.mark.asyncio
 async def test_router_crypto_detection():
     # This is a placeholder as CCXT logic is omitted in the snippet but mentioned in PRD
-    with patch("core.data.router.PolygonProvider") as mock_poly:
+    with patch("src.ingestion.router.PolygonProvider") as mock_poly:
         mock_poly.return_value.get_ticker_data = AsyncMock(return_value={"price": 50000.0})
         router = MarketDataRouter()
         result = await router.get_live_quote("BTC-USD")
@@ -39,7 +39,7 @@ async def test_router_crypto_detection():
 
 @pytest.mark.asyncio
 async def test_router_polygon_success():
-    with patch("core.data.router.PolygonProvider") as mock_poly:
+    with patch("src.ingestion.router.PolygonProvider") as mock_poly:
         mock_poly.return_value.get_ticker_data = AsyncMock(return_value={"price": 150.0})
         router = MarketDataRouter()
 
@@ -50,8 +50,8 @@ async def test_router_polygon_success():
 
 @pytest.mark.asyncio
 async def test_router_fallback_to_yahoo():
-    with patch("core.data.router.PolygonProvider") as mock_poly:
-        with patch("core.data.router.YahooProvider") as mock_yahoo:
+    with patch("src.ingestion.router.PolygonProvider") as mock_poly:
+        with patch("src.ingestion.router.YahooProvider") as mock_yahoo:
             mock_poly.return_value.get_ticker_data = AsyncMock(side_effect=Exception("API limit"))
             mock_yahoo.return_value.get_ticker_data = AsyncMock(return_value={"price": 155.0})
 

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from services.quant.pricing.black_scholes import BSParameters
-from core.shared.cache import (
+from src.quant.pricing.black_scholes import BSParameters
+from src.shared.cache import (
     IdempotencyManager,
     PricingCache,
     RateLimiter,
@@ -20,7 +20,7 @@ def test_generate_cache_key():
 
 
 @pytest.mark.asyncio
-@patch("core.shared.cache.get_redis")
+@patch("src.shared.cache.get_redis")
 async def test_pricing_cache(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis
@@ -44,7 +44,7 @@ async def test_pricing_cache(mock_get_redis):
 
 
 @pytest.mark.asyncio
-@patch("core.shared.cache.get_redis")
+@patch("src.shared.cache.get_redis")
 async def test_idempotency_manager(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis
@@ -61,7 +61,7 @@ async def test_idempotency_manager(mock_get_redis):
 
 
 @pytest.mark.asyncio
-@patch("core.shared.cache.get_redis")
+@patch("src.shared.cache.get_redis")
 async def test_rate_limiter(mock_get_redis):
     mock_redis = AsyncMock()
     mock_get_redis.return_value = mock_redis

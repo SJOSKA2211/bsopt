@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from services.blockchain.defi_options import DeFiOptionsProtocol
+from src.blockchain.defi_options import DeFiOptionsProtocol
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def blockchain_config():
 
 
 @pytest.mark.asyncio
-@patch("services.blockchain.defi_options.AsyncWeb3")
+@patch("src.blockchain.defi_options.AsyncWeb3")
 async def test_defi_options_protocol_initialization(mock_web3_class, blockchain_config):
     mock_web3 = mock_web3_class.return_value
     # Async methods need to be mocked appropriately
@@ -27,8 +27,8 @@ async def test_defi_options_protocol_initialization(mock_web3_class, blockchain_
 
 
 @pytest.mark.asyncio
-@patch("services.blockchain.defi_options.AsyncWeb3")
-@patch("services.blockchain.defi_options.Web3")
+@patch("src.blockchain.defi_options.AsyncWeb3")
+@patch("src.blockchain.defi_options.Web3")
 async def test_defi_options_buy_logic(mock_web3_sync, mock_web3_class, blockchain_config):
     mock_web3 = mock_web3_class.return_value
     mock_web3.eth.get_transaction_count = AsyncMock(return_value=10)

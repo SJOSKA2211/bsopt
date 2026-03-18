@@ -6,8 +6,8 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.database import crud
-from core.database.models import Base, User
+from src.database import crud
+from src.database.models import Base, User
 
 
 # Setup in-memory sqlite for fast CRUD testing
@@ -26,7 +26,7 @@ async def db_session():
 @pytest.mark.asyncio
 async def test_user_crud(db_session):
     email = "test@example.com"
-    with patch("core.database.crud.password_service.hash_password", return_value="hashed"):
+    with patch("src.database.crud.password_service.hash_password", return_value="hashed"):
         user = await crud.create_user(db_session, email, "pass", "Full Name")
         assert user.email == email
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from services.workers.tasks.pricing_tasks import (
+from src.workers.tasks.pricing_tasks import (
     batch_price_options_task,
     generate_volatility_surface_task,
     price_option_task,
@@ -11,7 +11,7 @@ from services.workers.tasks.pricing_tasks import (
 
 
 def test_vectorized_black_scholes_logic():
-    from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+    from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
     spots = np.array([100.0, 110.0])
     strikes = np.array([100.0, 100.0])
@@ -46,7 +46,7 @@ def test_price_option_task_invalid_input():
         price_option_task(-100.0, 105.0, 0.5, 0.2, 0.05, 0.02, "call", False)
 
 
-@patch("services.workers.tasks.pricing_tasks.price_option_task.apply")
+@patch("src.workers.tasks.pricing_tasks.price_option_task.apply")
 def test_batch_price_options_task_small(mock_apply):
     mock_self = MagicMock()
     mock_self.request.id = "batch-id"

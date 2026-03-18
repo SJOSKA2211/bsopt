@@ -5,7 +5,7 @@ import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 
-from services.api.middleware.idempotency import IdempotencyMiddleware
+from src.api.middleware.idempotency import IdempotencyMiddleware
 
 # Note: We create fresh app per test to avoid middleware stacking issues
 
@@ -33,7 +33,7 @@ async def test_idempotency_new_request(mock_redis):
 
     client = TestClient(app)
 
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
         response = client.post("/test", json={"data": 1})
 
         assert response.status_code == 200
@@ -66,7 +66,7 @@ async def test_idempotency_duplicate_cached(mock_redis):
 
     client = TestClient(app)
 
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
         response = client.post("/test", headers={"X-Idempotency-Key": "key1"})
 
         assert response.status_code == 200
@@ -89,7 +89,7 @@ async def test_idempotency_conflict_in_progress(mock_redis):
 
     client = TestClient(app)
 
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="test-fp"):
         response = client.post("/test", headers={"X-Idempotency-Key": "key1"})
 
         assert response.status_code == 409
@@ -106,7 +106,7 @@ async def test_idempotency_skip_get(mock_redis):
         return {"m": "get"}
 
     client = TestClient(app)
-    with patch("services.api.middleware.idempotency._generate_fingerprint") as mock_fp:
+    with patch("src.api.middleware.idempotency._generate_fingerprint") as mock_fp:
         response = client.get("/test")
         assert response.status_code == 200
         assert not mock_fp.called
@@ -125,7 +125,7 @@ async def test_idempotency_error_re_raises(mock_redis):
         raise ValueError("App Error")
 
     client = TestClient(app)
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="err-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="err-fp"):
         with pytest.raises(ValueError):
             client.post("/test")
 
@@ -147,7 +147,7 @@ async def test_idempotency_not_cached_on_500(mock_redis):
         return JSONResponse(status_code=500, content={"error": "failed"})
 
     client = TestClient(app)
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="500-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="500-fp"):
         response = client.post("/test")
         assert response.status_code == 500
         # Should NOT call redis.set for caching
@@ -172,7 +172,7 @@ async def test_idempotency_streaming_not_cached(mock_redis):
         return StreamingResponse(fake_stream())
 
     client = TestClient(app)
-    with patch("services.api.middleware.idempotency._generate_fingerprint", return_value="stream-fp"):
+    with patch("src.api.middleware.idempotency._generate_fingerprint", return_value="stream-fp"):
         response = client.post("/test")
         assert response.status_code == 200
         # Should NOT call redis.set for caching streaming response

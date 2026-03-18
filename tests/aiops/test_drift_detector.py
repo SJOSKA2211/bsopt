@@ -1,6 +1,6 @@
 import pytest
 
-from services.ml.aiops.drift_detector import PricingDriftDetector
+from src.ml.aiops.drift_detector import PricingDriftDetector
 
 
 @pytest.mark.asyncio

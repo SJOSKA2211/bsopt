@@ -1,6 +1,6 @@
 name: bsopt
 
-services:
+src:
   # === Database Service ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
@@ -16,7 +16,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../../infrastructure/init-scripts/init-scripts:/docker-entrypoint-initdb.d:ro
-      - ../../core/migrations:/migrations:ro
+      - ../../src.shared/migrations:/migrations:ro
       - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
     deploy:
@@ -116,9 +116,9 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
     volumes:
-      - ../../services/auth:/app
+      - ../../src/auth:/app
       - /app/node_modules
-      - ../../core/protos:/protos:ro
+      - ../../src.shared/protos:/protos:ro
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1" ]
       interval: 10s
@@ -138,8 +138,8 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
-      - ../../core:/app/core
-      - ../../services/api:/app/services/api
+      - ../../src.shared:/app/src.shared
+      - ../../src/api:/app/src/api
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
     ports:
@@ -179,9 +179,9 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=1024
+      - net.src.shared.somaxconn=1024
       - net.ipv4.tcp_fastopen=3
-    command: /opt/venv/bin/granian --interface asgi services.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
+    command: /opt/venv/bin/granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
 
   # === Portfolio Service ===
   portfolio:
@@ -190,8 +190,8 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
-      - ../../core:/app/core
-      - ../../services/portfolio:/app/services/portfolio
+      - ../../src.shared:/app/src.shared
+      - ../../src/portfolio:/app/src/portfolio
       - ../../pyproject.toml:/app/pyproject.toml
     ports:
       - "8003:8000"
@@ -220,7 +220,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: /opt/venv/bin/granian --interface asgi services.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
+    command: /opt/venv/bin/granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
@@ -247,9 +247,9 @@ services:
     networks:
       - bsopt-network
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
       - ../../models:/app/models
-    command: python services/ml/serving/serve.py
+    command: python src/ml/serving/serve.py
 
   # === Worker Service ===
   worker:
@@ -258,7 +258,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
     ports:
@@ -288,7 +288,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - USE_SHM=1
     healthcheck:
-      test: [ "CMD-SHELL", "celery -A services.workers.tasks.celery_app inspect ping" ]
+      test: [ "CMD-SHELL", "celery -A src.workers.tasks.celery_app inspect ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -303,7 +303,7 @@ services:
         condition: service_started
     networks:
       - bsopt-network
-    command: celery -A services.workers.tasks.celery_app worker -l info
+    command: celery -A src.workers.tasks.celery_app worker -l info
 
   # === Persistence Worker (Kafka-to-TimescaleDB) ===
   persistence-worker:
@@ -312,7 +312,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
@@ -324,7 +324,7 @@ services:
         condition: service_started
     networks:
       - bsopt-network
-    command: python services/streaming/persistence_worker.py
+    command: python src/streaming/persistence_worker.py
 
   # === NSE Scraper Service ===
   nse-scraper:
@@ -335,7 +335,7 @@ services:
     ports:
       - "8002:8000"
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
@@ -350,7 +350,7 @@ services:
       - ingestion-service
     networks:
       - bsopt-network
-    command: python services/scrapers/engine.py
+    command: python src/scrapers/engine.py
 
   # === yfinance Scraper Service ===
   yfinance-scraper:
@@ -361,7 +361,7 @@ services:
     ports:
       - "8004:8000"
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
     deploy:
       resources:
         limits:
@@ -375,7 +375,7 @@ services:
       - ingestion-service
     networks:
       - bsopt-network
-    command: python services/scrapers/yfinance_scraper.py
+    command: python src/scrapers/yfinance_scraper.py
 
   # === Generic Scraper Service ===
   scraper:
@@ -383,7 +383,7 @@ services:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper-prod
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
@@ -408,7 +408,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ../../core:/ap./core
+      - ../../src.shared:/ap./src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
@@ -433,7 +433,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: granian --interface asgi services.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
+    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
 
     # === App Gateway (Node.js Federation) ===
   app-gateway:
@@ -445,7 +445,7 @@ services:
       - "4000:4000"
       - "4001:4001"
     volumes:
-      - ../../services/gateway:/app
+      - ../../src/gateway:/app
       - /app/node_modules
     environment:
       - PORT=4000
@@ -477,7 +477,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ../../core/frontend:/app
+      - ../../src.shared/frontend:/app
       - /app/node_modules
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:5173/ || exit 1" ]
@@ -538,7 +538,7 @@ services:
       - redis
     networks:
       - bsopt-network
-    command: python services/blockchain/worker.py
+    command: python src/blockchain/worker.py
 
   # === [Specialized] Streaming Service ===
   kafka-1:
@@ -554,7 +554,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=4096
+      - net.src.shared.somaxconn=4096
       - net.ipv4.tcp_max_syn_backlog=8192
       - net.ipv4.tcp_tw_reuse=1
 
@@ -720,9 +720,9 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=4096
+      - net.src.shared.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
-    command: python services/data/ingestion_service.py
+    command: python src/data/ingestion_service.py
 
   # === [Institutional] Stream Transformer ===
   transformer:
@@ -739,7 +739,7 @@ services:
       - ingestion-service
     networks:
       - bsopt-network
-    command: python services/streaming/transformer.py
+    command: python src/streaming/transformer.py
 
   # === [Specialized] Envoy API Gateway (Institutional Edge) ===
   envoy:
@@ -758,7 +758,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=4096
+      - net.src.shared.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
     deploy:
       resources:
@@ -766,10 +766,10 @@ services:
           memory: 512mb
 
   # === [Specialized] Rust Core (Institutional Compute) ===
-  rust-core:
+  rust-src.shared:
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.rust-core
+      dockerfile: infrastructure/orchestration/Dockerfile.rust-src.shared
     volumes:
       - ../../:/app
       - shared_shm:/dev/shm
@@ -777,7 +777,7 @@ services:
       - bsopt-network
     environment:
       - INSIDE_DOCKER=1
-    working_dir: /app/services/quant/rust-core
+    working_dir: /app/src/quant/rust-src.shared
 
   # === [Specialized] Observability Stack ===
   # === Monitoring Service ===
@@ -845,7 +845,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
       target: development
     volumes:
-      - ../../core/frontend:/app
+      - ../../src.shared/frontend:/app
       - /app/node_modules
     networks:
       - bsopt-network
@@ -854,7 +854,7 @@ services:
   e2e-test:
     profiles: [ "test" ]
     image: mcr.microsoft.com/playwright:v1.58.2-jammy
-    working_dir: /app/services/frontend
+    working_dir: /app/src/frontend
     volumes:
       - .:/app
     environment:
@@ -862,7 +862,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=4096
+      - net.src.shared.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
     depends_on:
       - frontend

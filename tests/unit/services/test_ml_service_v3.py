@@ -3,20 +3,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from services.api.schemas.ml import InferenceRequest
-from services.ml_service import MLService
+from src.api.schemas.ml import InferenceRequest
+from src.ml_service import MLService
 
 
 @pytest.fixture
 def mock_grpc():
-    with patch("services.ml_service.Channel") as mock_chan:
-        with patch("services.ml_service.MLInferenceStub") as mock_stub:
+    with patch("src.ml_service.Channel") as mock_chan:
+        with patch("src.ml_service.MLInferenceStub") as mock_stub:
             yield mock_chan, mock_stub
 
 
 @pytest.fixture
 def mock_shm():
-    with patch("services.ml_service.SHMManager") as mock:
+    with patch("src.ml_service.SHMManager") as mock:
         shm = mock.return_value
         shm.name = "ml_shm"
         yield shm

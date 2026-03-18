@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from services.ml.aiops.remediators import (
+from src.ml.aiops.remediators import (
     ClearRedisCacheRemediator,
     DatabasePoolRemediator,
     KernelTuningRemediator,
@@ -16,7 +16,7 @@ from services.ml.aiops.remediators import (
 async def test_clear_redis_remediator():
     remediator = ClearRedisCacheRemediator()
 
-    with patch("services.ml.aiops.remediators.redis.from_url") as mock_from_url:
+    with patch("src.ml.aiops.remediators.redis.from_url") as mock_from_url:
         mock_client = MagicMock()
         mock_client.flushdb = AsyncMock()
         mock_from_url.return_value = mock_client
@@ -30,7 +30,7 @@ async def test_clear_redis_remediator():
 async def test_restart_service_remediator_success():
     remediator = RestartServiceRemediator()
 
-    with patch("services.ml.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
+    with patch("src.ml.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
         mock_docker = MagicMock()
         mock_docker.restart_service = AsyncMock(return_value=True)
         mock_docker_cls.return_value = mock_docker
@@ -42,7 +42,7 @@ async def test_restart_service_remediator_success():
 
 @pytest.mark.asyncio
 async def test_docker_remediator_invalid():
-    from services.ml.aiops.docker_remediator import DockerRemediator
+    from src.ml.aiops.docker_remediator import DockerRemediator
 
     remediator = DockerRemediator()
 
@@ -56,7 +56,7 @@ async def test_docker_remediator_invalid():
 
 @pytest.mark.asyncio
 async def test_docker_remediator_scale_bounds():
-    from services.ml.aiops.docker_remediator import DockerRemediator
+    from src.ml.aiops.docker_remediator import DockerRemediator
 
     remediator = DockerRemediator()
     remediator.loop = MagicMock()
@@ -106,7 +106,7 @@ async def test_remediation_planner():
 async def test_db_pool_remediator_success():
     remediator = DatabasePoolRemediator()
 
-    with patch("core.database.get_engine") as mock_get_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
         mock_engine = MagicMock()
         mock_engine.dispose = MagicMock()
         mock_get_engine.return_value = mock_engine
@@ -122,7 +122,7 @@ async def test_db_pool_remediator_success():
 async def test_db_pool_remediator_critical_pressure():
     remediator = DatabasePoolRemediator()
 
-    with patch("core.database.get_engine") as mock_get_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
         mock_engine = MagicMock()
         mock_engine.dispose = MagicMock()
         mock_get_engine.return_value = mock_engine
@@ -137,7 +137,7 @@ async def test_db_pool_remediator_critical_pressure():
 async def test_db_pool_remediator_failure():
     remediator = DatabasePoolRemediator()
 
-    with patch("core.database.get_engine") as mock_get_engine:
+    with patch("src.database.get_engine") as mock_get_engine:
         mock_engine = MagicMock()
         mock_engine.dispose.side_effect = Exception("Connection refused")
         mock_get_engine.return_value = mock_engine
@@ -193,7 +193,7 @@ async def test_rabbitmq_congestion_remediator_restart_consumers():
         mock_conn.channel.return_value = mock_channel
         mock_connect.return_value = mock_conn
 
-        with patch("services.ml.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
+        with patch("src.ml.aiops.docker_remediator.DockerRemediator") as mock_docker_cls:
             mock_docker = MagicMock()
             mock_docker.restart_service = AsyncMock(return_value=True)
             mock_docker_cls.return_value = mock_docker

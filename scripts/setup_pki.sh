@@ -62,7 +62,7 @@ issue_cert() {
     chmod 600 "${KEY_DIR}/${service_name}.key"
 }
 
-# Issue certs for the core microservices triad
+# Issue certs for the src.shared microservices triad
 issue_cert "api-gateway"
 issue_cert "pricing-subgraph"
 issue_cert "ml-subgraph"

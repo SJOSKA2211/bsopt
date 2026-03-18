@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from services.gateway.webhooks.dispatcher import _generate_signature, _verify_signature
+from src.api.webhooks.dispatcher import _generate_signature, _verify_signature
 
 
 @pytest.mark.asyncio

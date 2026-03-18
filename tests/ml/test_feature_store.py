@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from services.ml.feature_store.features import LogReturnFeature, SyntheticOHLCFeature
-from services.ml.feature_store.store import feature_store
+from src.ml.feature_store.features import LogReturnFeature, SyntheticOHLCFeature
+from src.ml.feature_store.store import feature_store
 
 
 def test_log_return_feature():

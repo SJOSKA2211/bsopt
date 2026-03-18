@@ -7,13 +7,13 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.database import crud
-from core.database.models import Base, OptionPrice
+from src.database import crud
+from src.database.models import Base, OptionPrice
 
 
 @pytest.fixture(autouse=True)
 def mock_password_service():
-    with patch("core.database.crud.password_service") as mock:
+    with patch("src.database.crud.password_service") as mock:
         mock.hash_password.return_value = "hashed_password"
         mock.generate_reset_token.return_value = "token"
         yield mock

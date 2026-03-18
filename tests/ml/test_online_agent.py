@@ -5,7 +5,7 @@ import pytest
 
 # We anticipate the module path but it doesn't exist yet
 try:
-    from services.ml.reinforcement_learning.online_agent import OnlineRLAgent
+    from src.ml.reinforcement_learning.online_agent import OnlineRLAgent
 except ImportError:
     # This is expected in the RED phase of TDD
     OnlineRLAgent = None

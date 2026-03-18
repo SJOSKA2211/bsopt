@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from services.ml.trainer import InstrumentedTrainer
+from src.ml.trainer import InstrumentedTrainer
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ def test_trainer_train_xgboost(sample_data):
     assert trainer.model is not None
 
 
-@patch("services.ml.trainer.logger")
+@patch("src.ml.trainer.logger")
 def test_trainer_logging(mock_logger, sample_data):
     X, y = sample_data
     trainer = InstrumentedTrainer(study_name="test_study")
@@ -63,7 +63,7 @@ def test_trainer_logging(mock_logger, sample_data):
 
 def test_trainer_prometheus_metrics_usage(sample_data):
     """Verify that Prometheus metrics are updated during training."""
-    from core.shared import observability
+    from src.shared import observability
 
     X, y = sample_data
     trainer = InstrumentedTrainer(study_name="test_study")
@@ -127,7 +127,7 @@ def test_trainer_frameworks(sample_data):
     assert acc_torch >= 0
 
 
-@patch("services.ml.trainer.train_xgboost_distributed")
+@patch("src.ml.trainer.train_xgboost_distributed")
 def test_trainer_dask_xgboost(mock_train_dist, sample_data):
     """Verify that DaskXGBoostTrainer correctly calls the distributed training utility."""
     X, y = sample_data

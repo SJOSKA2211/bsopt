@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.shared.lazy_import import (
+from src.shared.lazy_import import (
     CircularImportError,
     LazyImportError,
     _failed_imports,
@@ -161,14 +161,14 @@ def test_lazy_import_circular_error_propagation(mocker):
 def test_ml_init_logic():
     import importlib  # noqa: E402
 
-    import services.ml  # noqa: E402
+    import src.ml  # noqa: E402
 
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_ML_MODULES": "true"}):
         with patch(
-            "core.shared.lazy_import.preload_modules"
+            "src.shared.lazy_import.preload_modules"
         ) as mock_preload:  # Patch the actual function called
-            importlib.reload(services.ml)  # Reload to ensure the env var check is re-evaluated
-            mock_preload.assert_called_with("services.ml", services.ml._import_map, {"DataNormalizer"})
+            importlib.reload(src.ml)  # Reload to ensure the env var check is re-evaluated
+            mock_preload.assert_called_with("src.ml", src.ml._import_map, {"DataNormalizer"})
 
 
 def test_import_stack_cleanup_on_error():
@@ -201,7 +201,7 @@ def test_preload_modules_failure_logging(mocker):
     reset_import_stats()
     # Mock lazy_import to fail when called from preload_modules
     mocker.patch(
-        "core.shared.lazy_import.lazy_import",
+        "src.shared.lazy_import.lazy_import",
         side_effect=ModuleNotFoundError("No module named 'bad_module'"),
     )
 
@@ -251,38 +251,38 @@ def test_preload_modules_failure_logging(mocker):
     )
 
 
-# Add new tests for services.ml/__init__.py coverage
+# Add new tests for src.ml/__init__.py coverage
 def test_ml_getattr(mocker):
-    # Ensure services.ml is reloaded to get a fresh state
-    # We must delete services.ml from sys.modules first to ensure a clean slate
-    if "services.ml" in sys.modules:
-        del sys.modules["services.ml"]
+    # Ensure src.ml is reloaded to get a fresh state
+    # We must delete src.ml from sys.modules first to ensure a clean slate
+    if "src.ml" in sys.modules:
+        del sys.modules["src.ml"]
 
-    # We also need to ensure core.shared.lazy_import is clean to use our patch
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    # We also need to ensure src.shared.lazy_import is clean to use our patch
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
     # Create the mock object that lazy_import should return
     expected_returned_object = MagicMock(name="MockedDataNormalizerInstance")
 
-    # Mock core.shared.lazy_import.lazy_import to return our specific mock object
-    # This directly mocks what services.ml.__getattr__ calls.
+    # Mock src.shared.lazy_import.lazy_import to return our specific mock object
+    # This directly mocks what src.ml.__getattr__ calls.
     mock_lazy_import = mocker.patch(
-        "core.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
-    # Now, import services.ml. This will load services.ml and its __getattr__ logic.
-    # Since core.shared.lazy_import might be imported during this process,
+    # Now, import src.ml. This will load src.ml and its __getattr__ logic.
+    # Since src.shared.lazy_import might be imported during this process,
     # and it relies on a module-level import of `import_module`,
     # we need to be careful.
-    import services.ml
+    import src.ml
 
     # Access a lazy-loaded attribute to trigger __getattr__
-    result = services.ml.DataNormalizer
+    result = src.ml.DataNormalizer
 
     # Assert that lazy_import was called correctly
     mock_lazy_import.assert_called_once_with(
-        "services.ml", services.ml._import_map, "DataNormalizer", sys.modules["services.ml"]
+        "src.ml", src.ml._import_map, "DataNormalizer", sys.modules["src.ml"]
     )
 
     # Assert that the result is the expected mock object
@@ -290,12 +290,12 @@ def test_ml_getattr(mocker):
 
 
 def test_ml_get_ml_import_stats():
-    import services.ml
+    import src.ml
 
-    importlib.reload(services.ml)  # Ensure a clean state
+    importlib.reload(src.ml)  # Ensure a clean state
 
     # Call the function to get import stats
-    stats = services.ml.get_ml_import_stats()
+    stats = src.ml.get_ml_import_stats()
     assert isinstance(stats, dict)  # Assuming get_import_stats returns a dict
     # Add more specific assertions if needed based on expected stats content
 
@@ -309,11 +309,11 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from services.ml.forecasting.tft_model import PriceTFTModel, TFTModel
-    from services.ml.reinforcement_learning.trading_env import TradingEnvironment
-    from services.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
-    from services.ml.federated_learning.coordinator import FederatedLearningCoordinator
-    from services.ml.data_loader import DataNormalizer
+    from src.ml.forecasting.tft_model import PriceTFTModel, TFTModel
+    from src.ml.reinforcement_learning.trading_env import TradingEnvironment
+    from src.ml.reinforcement_learning.augmented_agent import AugmentedRLAgent
+    from src.ml.federated_learning.coordinator import FederatedLearningCoordinator
+    from src.ml.data_loader import DataNormalizer
 
 DUMMY_VAR = True
     """
@@ -336,12 +336,12 @@ DUMMY_VAR = True
         if name == "dummy_ml_module":
             return original_builtin_import(name, globals, locals, fromlist, level)
 
-        # Track imports that are submodules of services.ml
-        if name.startswith("services.ml."):
+        # Track imports that are submodules of src.ml
+        if name.startswith("src.ml."):
             attempted_imports.add(name)
             return MagicMock(name=f"MockedModuleForTypeChecking_{name}")
 
-        # Allow core Python modules and 'typing', 'sys', 'os', 'builtins' to import normally.
+        # Allow src.shared Python modules and 'typing', 'sys', 'os', 'builtins' to import normally.
         # Everything else gets a MagicMock to prevent loading real dependencies.
         if name in [
             "sys",
@@ -361,11 +361,11 @@ DUMMY_VAR = True
 
         assert dummy_ml_module.DUMMY_VAR is True
 
-        assert "services.ml.forecasting.tft_model" in attempted_imports
-        assert "services.ml.reinforcement_learning.trading_env" in attempted_imports
-        assert "services.ml.reinforcement_learning.augmented_agent" in attempted_imports
-        assert "services.ml.federated_learning.coordinator" in attempted_imports
-        assert "services.ml.data_loader" in attempted_imports
+        assert "src.ml.forecasting.tft_model" in attempted_imports
+        assert "src.ml.reinforcement_learning.trading_env" in attempted_imports
+        assert "src.ml.reinforcement_learning.augmented_agent" in attempted_imports
+        assert "src.ml.federated_learning.coordinator" in attempted_imports
+        assert "src.ml.data_loader" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))
@@ -377,56 +377,56 @@ DUMMY_VAR = True
 
 # New tests for src/pricing/__init__.py coverage
 def test_pricing_getattr(mocker):
-    if "services.quant.pricing" in sys.modules:
-        del sys.modules["services.quant.pricing"]
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    if "src.quant.pricing" in sys.modules:
+        del sys.modules["src.quant.pricing"]
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedBlackScholesEngineInstance")
     mock_lazy_import = mocker.patch(
-        "core.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
-    import services.quant.pricing
+    import src.quant.pricing
 
-    result = services.quant.pricing.BlackScholesEngine
+    result = src.quant.pricing.BlackScholesEngine
 
     mock_lazy_import.assert_called_once_with(
-        "services.quant.pricing",
-        services.quant.pricing._import_map,
+        "src.quant.pricing",
+        src.quant.pricing._import_map,
         "BlackScholesEngine",
-        sys.modules["services.quant.pricing"],
+        sys.modules["src.quant.pricing"],
     )
     assert result is expected_returned_object
 
 
 def test_pricing_dir():
-    if "services.quant.pricing" in sys.modules:
-        del sys.modules["services.quant.pricing"]
-    import services.quant.pricing
+    if "src.quant.pricing" in sys.modules:
+        del sys.modules["src.quant.pricing"]
+    import src.quant.pricing
 
     # Make sure we don't accidentally lazy load something by just calling dir
     # And make sure __all__ elements are present
-    assert sorted(services.quant.pricing.__all__) == sorted(dir(services.quant.pricing))
+    assert sorted(src.quant.pricing.__all__) == sorted(dir(src.quant.pricing))
 
 
 def test_preload_classical_pricers(mocker):
-    # Ensure services.quant.pricing is removed from sys.modules for a fresh import
-    if "services.quant.pricing" in sys.modules:
-        del sys.modules["services.quant.pricing"]
+    # Ensure src.quant.pricing is removed from sys.modules for a fresh import
+    if "src.quant.pricing" in sys.modules:
+        del sys.modules["src.quant.pricing"]
 
-    # Ensure core.shared.lazy_import is removed from sys.modules to guarantee our patch is applied
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    # Ensure src.shared.lazy_import is removed from sys.modules to guarantee our patch is applied
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
-    # Patch preload_modules directly using mocker. This needs to happen BEFORE services.quant.pricing is imported
-    # because services.quant.pricing imports core.shared.lazy_import at the top level.
-    mock_preload_modules = mocker.patch("core.shared.lazy_import.preload_modules")
+    # Patch preload_modules directly using mocker. This needs to happen BEFORE src.quant.pricing is imported
+    # because src.quant.pricing imports src.shared.lazy_import at the top level.
+    mock_preload_modules = mocker.patch("src.shared.lazy_import.preload_modules")
 
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_PRICING": "true"}):
-        # Now import services.quant.pricing. This will be its first import in this test,
+        # Now import src.quant.pricing. This will be its first import in this test,
         # and the module-level 'if' condition will be evaluated exactly once.
-        import services.quant.pricing
+        import src.quant.pricing
 
         expected_fast_modules = {
             "HestonModelFFT",
@@ -435,7 +435,7 @@ def test_preload_classical_pricers(mocker):
             "SVISurface",
         }
         mock_preload_modules.assert_called_once_with(
-            "services.quant.pricing", services.quant.pricing._import_map, expected_fast_modules
+            "src.quant.pricing", src.quant.pricing._import_map, expected_fast_modules
         )
 
 
@@ -446,13 +446,13 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from services.quant.pricing.models.heston_fft import HestonModelFFT
-    from services.quant.pricing.calibration.engine import HestonCalibrator
-    from services.quant.pricing.black_scholes import BlackScholesEngine
-    from services.quant.pricing.monte_carlo import MonteCarloEngine
-    from services.quant.pricing.calibration.svi_surface import SVISurface
-    from services.quant.pricing.vol_surface import SABRModel
-    from services.quant.pricing.quantum_pricing import QuantumOptionPricer
+    from src.quant.pricing.models.heston_fft import HestonModelFFT
+    from src.quant.pricing.calibration.engine import HestonCalibrator
+    from src.quant.pricing.black_scholes import BlackScholesEngine
+    from src.quant.pricing.monte_carlo import MonteCarloEngine
+    from src.quant.pricing.calibration.svi_surface import SVISurface
+    from src.quant.pricing.vol_surface import SABRModel
+    from src.quant.pricing.quantum_pricing import QuantumOptionPricer
 
 DUMMY_VAR = True
     """
@@ -470,7 +470,7 @@ DUMMY_VAR = True
         if name == "dummy_pricing_module":
             return original_builtin_import(name, globals, locals, fromlist, level)
 
-        if name.startswith("services.quant.pricing."):
+        if name.startswith("src.quant.pricing."):
             attempted_imports.add(name)
             return MagicMock(name=f"MockedModuleForTypeChecking_{name}")
 
@@ -486,13 +486,13 @@ DUMMY_VAR = True
 
         assert dummy_pricing_module.DUMMY_VAR is True
 
-        assert "services.quant.pricing.models.heston_fft" in attempted_imports
-        assert "services.quant.pricing.calibration.engine" in attempted_imports
-        assert "services.quant.pricing.black_scholes" in attempted_imports
-        assert "services.quant.pricing.monte_carlo" in attempted_imports
-        assert "services.quant.pricing.calibration.svi_surface" in attempted_imports
-        assert "services.quant.pricing.vol_surface" in attempted_imports
-        assert "services.quant.pricing.quantum_pricing" in attempted_imports
+        assert "src.quant.pricing.models.heston_fft" in attempted_imports
+        assert "src.quant.pricing.calibration.engine" in attempted_imports
+        assert "src.quant.pricing.black_scholes" in attempted_imports
+        assert "src.quant.pricing.monte_carlo" in attempted_imports
+        assert "src.quant.pricing.calibration.svi_surface" in attempted_imports
+        assert "src.quant.pricing.vol_surface" in attempted_imports
+        assert "src.quant.pricing.quantum_pricing" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))
@@ -503,52 +503,52 @@ DUMMY_VAR = True
 
 
 def test_streaming_getattr(mocker):
-    if "services.workers.streaming" in sys.modules:
-        del sys.modules["services.workers.streaming"]
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    if "src.workers.streaming" in sys.modules:
+        del sys.modules["src.workers.streaming"]
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedMarketDataProducerInstance")
     mock_lazy_import = mocker.patch(
-        "core.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
-    import services.workers.streaming
+    import src.workers.streaming
 
-    result = services.workers.streaming.MarketDataProducer
+    result = src.workers.streaming.MarketDataProducer
 
     mock_lazy_import.assert_called_once_with(
-        "services.workers.streaming",
-        services.workers.streaming._import_map,
+        "src.workers.streaming",
+        src.workers.streaming._import_map,
         "MarketDataProducer",
-        sys.modules["services.workers.streaming"],
+        sys.modules["src.workers.streaming"],
     )
     assert result is expected_returned_object
 
 
 def test_streaming_dir():
-    if "services.workers.streaming" in sys.modules:
-        del sys.modules["services.workers.streaming"]
-    import services.workers.streaming
+    if "src.workers.streaming" in sys.modules:
+        del sys.modules["src.workers.streaming"]
+    import src.workers.streaming
 
-    assert sorted(services.workers.streaming.__all__) == sorted(dir(services.workers.streaming))
+    assert sorted(src.workers.streaming.__all__) == sorted(dir(src.workers.streaming))
 
 
 def test_preload_streaming_modules(mocker):
-    if "services.workers.streaming" in sys.modules:
-        del sys.modules["services.workers.streaming"]
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    if "src.workers.streaming" in sys.modules:
+        del sys.modules["src.workers.streaming"]
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
-    mock_preload_modules = mocker.patch("core.shared.lazy_import.preload_modules")
+    mock_preload_modules = mocker.patch("src.shared.lazy_import.preload_modules")
 
-    import services.workers.streaming
+    import src.workers.streaming
 
-    services.workers.streaming.preload_streaming_modules()
+    src.workers.streaming.preload_streaming_modules()
 
     expected_modules = {"MarketDataProducer", "MarketDataConsumer"}
     mock_preload_modules.assert_called_once_with(
-        "services.workers.streaming", services.workers.streaming._import_map, expected_modules
+        "src.workers.streaming", src.workers.streaming._import_map, expected_modules
     )
 
 
@@ -559,8 +559,8 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from services.workers.streaming.kafka_producer import MarketDataProducer
-    from services.workers.streaming.kafka_consumer import MarketDataConsumer
+    from src.workers.streaming.kafka_producer import MarketDataProducer
+    from src.workers.streaming.kafka_consumer import MarketDataConsumer
 
 DUMMY_VAR = True
     """
@@ -578,7 +578,7 @@ DUMMY_VAR = True
         if name == "dummy_streaming_module":
             return original_builtin_import(name, globals, locals, fromlist, level)
 
-        if name.startswith("services.workers.streaming."):
+        if name.startswith("src.workers.streaming."):
             attempted_imports.add(name)
             return MagicMock(name=f"MockedModuleForTypeChecking_{name}")
 
@@ -594,8 +594,8 @@ DUMMY_VAR = True
 
         assert dummy_streaming_module.DUMMY_VAR is True
 
-        assert "services.workers.streaming.kafka_producer" in attempted_imports
-        assert "services.workers.streaming.kafka_consumer" in attempted_imports
+        assert "src.workers.streaming.kafka_producer" in attempted_imports
+        assert "src.workers.streaming.kafka_consumer" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))
@@ -606,35 +606,35 @@ DUMMY_VAR = True
 
 
 def test_blockchain_getattr(mocker):
-    if "services.blockchain" in sys.modules:
-        del sys.modules["services.blockchain"]
-    if "core.shared.lazy_import" in sys.modules:
-        del sys.modules["core.shared.lazy_import"]
+    if "src.blockchain" in sys.modules:
+        del sys.modules["src.blockchain"]
+    if "src.shared.lazy_import" in sys.modules:
+        del sys.modules["src.shared.lazy_import"]
 
     expected_returned_object = MagicMock(name="MockedDeFiOptionsProtocolInstance")
     mock_lazy_import = mocker.patch(
-        "core.shared.lazy_import.lazy_import", return_value=expected_returned_object
+        "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
-    import services.blockchain
+    import src.blockchain
 
-    result = services.blockchain.DeFiOptionsProtocol
+    result = src.blockchain.DeFiOptionsProtocol
 
     mock_lazy_import.assert_called_once_with(
-        "services.blockchain",
-        services.blockchain._import_map,
+        "src.blockchain",
+        src.blockchain._import_map,
         "DeFiOptionsProtocol",
-        sys.modules["services.blockchain"],
+        sys.modules["src.blockchain"],
     )
     assert result is expected_returned_object
 
 
 def test_blockchain_dir():
-    if "services.blockchain" in sys.modules:
-        del sys.modules["services.blockchain"]
-    import services.blockchain
+    if "src.blockchain" in sys.modules:
+        del sys.modules["src.blockchain"]
+    import src.blockchain
 
-    assert sorted(services.blockchain.__all__) == sorted(dir(services.blockchain))
+    assert sorted(src.blockchain.__all__) == sorted(dir(src.blockchain))
 
 
 def test_blockchain_type_checking_imports_with_dummy_module(tmp_path, mocker):
@@ -644,7 +644,7 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from services.blockchain.defi_options import DeFiOptionsProtocol
+    from src.blockchain.defi_options import DeFiOptionsProtocol
 
 DUMMY_VAR = True
     """
@@ -662,7 +662,7 @@ DUMMY_VAR = True
         if name == "dummy_blockchain_module":
             return original_builtin_import(name, globals, locals, fromlist, level)
 
-        if name.startswith("services.blockchain."):
+        if name.startswith("src.blockchain."):
             attempted_imports.add(name)
             return MagicMock(name=f"MockedModuleForTypeChecking_{name}")
 
@@ -678,7 +678,7 @@ DUMMY_VAR = True
 
         assert dummy_blockchain_module.DUMMY_VAR is True
 
-        assert "services.blockchain.defi_options" in attempted_imports
+        assert "src.blockchain.defi_options" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))
@@ -694,7 +694,7 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
     pkg_path.mkdir()
     (pkg_path / "__init__.py").write_text(
         "import sys\n"  # Added sys import
-        "from core.shared.lazy_import import lazy_import\n"
+        "from src.shared.lazy_import import lazy_import\n"
         "_import_map = {'BlackScholesEngine': '.black_scholes'}\n"
         "def __getattr__(name): return lazy_import(__name__, _import_map, name, sys.modules[__name__])\n"
     )
@@ -703,11 +703,11 @@ def test_pricing_init(tmp_path, mocker):  # Added mocker fixture
     # Mock importlib.import_module to prevent leakage from other tests
     # Ensure that when lazy_import tries to import '.black_scholes', it returns a valid mock.
     mocker.patch(
-        "core.shared.lazy_import.import_module",
+        "src.shared.lazy_import.import_module",
         side_effect=lambda name, package=None: (
             MagicMock()
             if name == "my_pricing_pkg.black_scholes"
-            or name == "core.shared.lazy_import"
+            or name == "src.shared.lazy_import"
             or name == "structlog"
             else importlib.import_module(name, package)
         ),
@@ -733,7 +733,7 @@ def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Adde
     pkg_path.mkdir()
     (pkg_path / "__init__.py").write_text(
         f"import sys\n"
-        f"from core.shared.lazy_import import lazy_import\n"
+        f"from src.shared.lazy_import import lazy_import\n"
         f"_import_map={{'my_attr':'.submodule'}}\n"
         f"def __getattr__(name): return lazy_import('{pkg_name}', _import_map, name, sys.modules[__name__])\n"
     )
@@ -743,11 +743,11 @@ def test_lazy_import_full_module_path_starts_with_dot(tmp_path, mocker):  # Adde
 
     # Mock importlib.import_module to prevent leakage from other tests
     mocker.patch(
-        "core.shared.lazy_import.import_module",
+        "src.shared.lazy_import.import_module",
         side_effect=lambda name, package=None: (
             MagicMock()
             if name == f"{pkg_name}.submodule"
-            or name == "core.shared.lazy_import"
+            or name == "src.shared.lazy_import"
             or name == "structlog"
             else importlib.import_module(name, package)
         ),

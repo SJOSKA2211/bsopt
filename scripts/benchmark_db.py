@@ -1,6 +1,6 @@
 """
 Database Benchmarking Suite (The Optimizer - High-Performance)
-Measures latency and throughput of core database operations in BS-OPT.
+Measures latency and throughput of src.shared database operations in BS-OPT.
 """
 
 import asyncio
@@ -12,7 +12,7 @@ import structlog
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import db_manager
+from src.database import db_manager
 
 logger = structlog.get_logger(__name__)
 

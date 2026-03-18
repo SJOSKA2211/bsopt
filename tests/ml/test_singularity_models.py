@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from services.ml.reinforcement_learning.transformer_policy import DecisionTransformer
-from services.ml.trainer_v2 import Trainer
+from src.ml.reinforcement_learning.transformer_policy import DecisionTransformer
+from src.ml.trainer_v2 import Trainer
 
 
 def test_decision_transformer_forward():

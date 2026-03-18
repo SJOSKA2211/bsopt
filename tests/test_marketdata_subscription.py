@@ -1,6 +1,6 @@
 import pytest
 
-from services.workers.streaming.graphql.schema import schema
+from src.workers.streaming.graphql.schema import schema
 
 
 @pytest.mark.asyncio

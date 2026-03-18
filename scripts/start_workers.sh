@@ -11,22 +11,22 @@ export PYTHONWARNINGS="ignore"
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
 export REDIS_URL="redis://localhost:6379/0"
 export RABBITMQ_URL="amqp://guest:guest@localhost:5672//"
-export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/services
+export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 export RAY_ADDRESS="auto"
 
 # Start Celery Worker
 if [ -f "/usr/local/bin/celery" ] || command -v celery >/dev/null 2>&1; then
-    celery -A services.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
+    celery -A src.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
 else
-    python3 -m celery -A services.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
+    python3 -m celery -A src.workers.tasks.celery_app worker --loglevel=info --concurrency=2 -n worker1@%h &
 fi
 PID_WORKER=$!
 
 # Start Celery Beat (Scheduler)
 if [ -f "/usr/local/bin/celery" ] || command -v celery >/dev/null 2>&1; then
-    celery -A services.workers.tasks.celery_app beat --loglevel=info &
+    celery -A src.workers.tasks.celery_app beat --loglevel=info &
 else
-    python3 -m celery -A services.workers.tasks.celery_app beat --loglevel=info &
+    python3 -m celery -A src.workers.tasks.celery_app beat --loglevel=info &
 fi
 PID_BEAT=$!
 

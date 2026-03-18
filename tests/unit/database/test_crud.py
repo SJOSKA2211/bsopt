@@ -5,13 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
 
-from core.database.crud import (
+from src.database.crud import (
     create_portfolio,
     create_user,
     get_user_by_email,
     get_user_portfolios,
 )
-from core.database.models import Base
+from src.database.models import Base
 
 
 # Patch JSONB for SQLite

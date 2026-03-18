@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from services.api.middleware.security import InputSanitizationMiddleware
+from src.api.middleware.security import InputSanitizationMiddleware
 
 app = FastAPI()
 app.add_middleware(InputSanitizationMiddleware, log_suspicious=True)

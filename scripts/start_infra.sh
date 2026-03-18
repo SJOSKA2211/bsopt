@@ -37,6 +37,6 @@ fi
 
 # Run BSOpt Verification
 echo " Running High-Performance Manifold Audit (Containerized)..."
-$COMPOSE -f docker-compose.dev.yml run --rm test-runner python3 -m core.database.verify
+$COMPOSE -f docker-compose.dev.yml run --rm test-runner python3 -m src.database.verify
 
 echo " Infrastructure containers launched and audited."

@@ -1,6 +1,6 @@
 import unittest
 
-from services.quant.pricing.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
+from src.quant.pricing.monte_carlo import BSParameters, MCConfig, MonteCarloEngine
 
 
 class TestMonteCarlo(unittest.TestCase):

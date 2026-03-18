@@ -3,11 +3,11 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from services.ml.drift import calculate_ks_test, calculate_psi
+from src.ml.drift import calculate_ks_test, calculate_psi
 
 
-@patch("services.ml.drift.logger")
-@patch("services.ml.drift.KS_TEST_SCORE")
+@patch("src.ml.drift.logger")
+@patch("src.ml.drift.KS_TEST_SCORE")
 def test_ks_test_instrumentation(mock_gauge, mock_logger):
     expected = np.random.normal(0, 1, 100)
     actual = np.random.normal(0, 1, 100)
@@ -42,8 +42,8 @@ def test_calculate_ks_test_significant_drift():
     assert p_value < 0.01
 
 
-@patch("services.ml.drift.logger")
-@patch("services.ml.drift.DATA_DRIFT_SCORE")
+@patch("src.ml.drift.logger")
+@patch("src.ml.drift.DATA_DRIFT_SCORE")
 def test_drift_instrumentation(mock_gauge, mock_logger):
     expected = np.array([0.1, 0.2, 0.3, 0.4])
     actual = np.array([0.1, 0.2, 0.3, 0.4])
@@ -90,7 +90,7 @@ def test_calculate_psi_zero_bin_handling():
 
 def test_performance_drift_monitor():
     """Verify that performance drift is correctly detected."""
-    from services.ml.drift import PerformanceDriftMonitor
+    from src.ml.drift import PerformanceDriftMonitor
 
     # Initialize monitor with a window size of 3
     monitor = PerformanceDriftMonitor(window_size=3, threshold=0.1)
@@ -110,10 +110,10 @@ def test_performance_drift_monitor():
     assert monitor.detect_drift(0.95) is False
 
 
-@patch("services.ml.drift.PERFORMANCE_DRIFT_ALERT")
+@patch("src.ml.drift.PERFORMANCE_DRIFT_ALERT")
 def test_performance_drift_alert_instrumentation(mock_alert):
     """Verify that PerformanceDriftMonitor updates the Prometheus alert gauge."""
-    from services.ml.drift import PerformanceDriftMonitor
+    from src.ml.drift import PerformanceDriftMonitor
 
     monitor = PerformanceDriftMonitor(window_size=2, threshold=0.1)
     monitor.add_metric(0.9)
@@ -130,7 +130,7 @@ def test_performance_drift_alert_instrumentation(mock_alert):
 
 def test_performance_drift_insufficient_history():
     """Verify that drift detection is skipped when history is insufficient."""
-    from services.ml.drift import PerformanceDriftMonitor
+    from src.ml.drift import PerformanceDriftMonitor
 
     monitor = PerformanceDriftMonitor(window_size=5)
     monitor.add_metric(0.8)

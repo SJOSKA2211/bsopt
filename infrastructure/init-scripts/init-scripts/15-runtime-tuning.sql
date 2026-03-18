@@ -4,21 +4,21 @@
 -- This script injects PostgreSQL engine parameters for massive NVMe/SSD IO.
 -- ============================================================================
 
--- Memory & Performance Tuning
-ALTER SYSTEM SET shared_buffers = '1GB';
-ALTER SYSTEM SET effective_cache_size = '3GB';
-ALTER SYSTEM SET work_mem = '64MB';
-ALTER SYSTEM SET maintenance_work_mem = '512MB';
+-- Memory & Performance Tuning (NVMe/SSD Optimized)
+ALTER SYSTEM SET shared_buffers = '8GB';
+ALTER SYSTEM SET effective_cache_size = '24GB';
+ALTER SYSTEM SET work_mem = '256MB';
+ALTER SYSTEM SET maintenance_work_mem = '2GB';
 
 -- I/O Specialization
 ALTER SYSTEM SET random_page_cost = 1.0;
 ALTER SYSTEM SET effective_io_concurrency = 300;
 
 -- Write Ahead Log (WAL) Optimization
-ALTER SYSTEM SET wal_level = 'logical';
-ALTER SYSTEM SET wal_buffers = '32MB';
-ALTER SYSTEM SET synchronous_commit = 'off';
-ALTER SYSTEM SET checkpoint_timeout = '15min';
+ALTER SYSTEM SET wal_level = 'replica'; -- Logical is overhead if unused, 'replica' is safest minimum for modern Postgres
+ALTER SYSTEM SET wal_buffers = '64MB';
+ALTER SYSTEM SET synchronous_commit = 'local';
+ALTER SYSTEM SET checkpoint_timeout = '30min';
 ALTER SYSTEM SET checkpoint_completion_target = 0.9;
 
 -- Worker Parallelism

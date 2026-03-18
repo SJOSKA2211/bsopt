@@ -4,12 +4,12 @@ This document outlines the high-performance PostgreSQL 16 and TimescaleDB 2.17+ 
 
 ## 1. Engine Configuration (`postgresql.conf`)
 
-The core engine is tuned for maximum throughput within tight memory constraints:
+The src.shared engine is tuned for maximum throughput within tight memory constraints:
 - **Memory Management**: 
   - `shared_buffers = 512MB` (25% of RAM)
   - `effective_cache_size = 1536MB` (75% of RAM)
   - `work_mem = 8MB` (Prevents OOM during concurrent complex joins)
-- **Parallelism**: Enabled PG16 partition-wise joins and aggregates to leverage multi-core processing for hypertable chunks.
+- **Parallelism**: Enabled PG16 partition-wise joins and aggregates to leverage multi-src.shared processing for hypertable chunks.
 - **Write Optimization**: 
   - `checkpoint_timeout = 15min` (Reduces I/O spikes)
   - `autovacuum_vacuum_scale_factor = 0.05` (Aggressive cleaning for high-churn tables)

@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.database import crud
-from core.database.models import Base, MarketTick, Portfolio, Position
+from src.database import crud
+from src.database.models import Base, MarketTick, Portfolio, Position
 
 # In-memory SQLite for high-speed testing
 DATABASE_URL = "sqlite+aiosqlite:///:memory:"

@@ -17,10 +17,10 @@ def prod_compose_config():
 
 def test_neural_pricing_resource_pinning(prod_compose_config):
     """Test that neural-pricing service has CPU pinning (cpuset) configured."""
-    services = prod_compose_config.get("services", {})
-    assert "neural-pricing" in services, "neural-pricing service missing from prod compose"
+    src = prod_compose_config.get("src", {})
+    assert "neural-pricing" in src, "neural-pricing service missing from prod compose"
 
-    pricing_service = services["neural-pricing"]
+    pricing_service = src["neural-pricing"]
     # Check for cpuset configuration (Kernel Bypass/Locality optimization)
     assert "cpuset" in pricing_service, "cpuset (CPU pinning) not configured for neural-pricing"
     assert pricing_service["cpuset"] == "0-1", "neural-pricing should be pinned to specific cores"
@@ -28,8 +28,8 @@ def test_neural_pricing_resource_pinning(prod_compose_config):
 
 def test_neural_pricing_thread_concurrency(prod_compose_config):
     """Test that thread contention is prevented via environment variables."""
-    services = prod_compose_config.get("services", {})
-    pricing_service = services.get("neural-pricing", {})
+    src = prod_compose_config.get("src", {})
+    pricing_service = src.get("neural-pricing", {})
 
     env = pricing_service.get("environment", {})
     if isinstance(env, list):
@@ -46,9 +46,9 @@ def test_neural_pricing_thread_concurrency(prod_compose_config):
 
 
 def test_model_quantization_env(prod_compose_config):
-    """Test that quantization flags are enabled for neural services."""
-    services = prod_compose_config.get("services", {})
-    pricing_service = services.get("neural-pricing", {})
+    """Test that quantization flags are enabled for neural src."""
+    src = prod_compose_config.get("src", {})
+    pricing_service = src.get("neural-pricing", {})
 
     env = pricing_service.get("environment", {})
     if isinstance(env, list):

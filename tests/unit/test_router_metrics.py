@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.data.router import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS, MarketDataRouter
+from src.ingestion.router import ROUTING_COUNT, SCRAPER_PARSE_SUCCESS, MarketDataRouter
 
 
 @pytest.mark.asyncio
 async def test_router_metrics_increment():
-    with patch("core.data.router.NSEScraper") as mock_nse:
+    with patch("src.ingestion.router.NSEScraper") as mock_nse:
         mock_nse.return_value.get_ticker_data = AsyncMock(return_value={"price": 10.0})
         router = MarketDataRouter()
 

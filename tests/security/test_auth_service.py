@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from core.database.models import User
-from core.security.auth import auth_service, token_blacklist
+from src.database.models import User
+from src.auth.auth import auth_service, token_blacklist
 
 
 @pytest.mark.asyncio
@@ -45,8 +45,8 @@ async def test_authenticate_user_success():
     user = User(id=uuid.uuid4(), email="test@example.com", hashed_password="hashed")
     db.query.return_value.filter.return_value.first.return_value = user
 
-    with patch("core.security.auth.password_service.verify_password", return_value=True):
-        with patch("core.security.auth.password_service.needs_rehash", return_value=False):
+    with patch("src.auth.auth.password_service.verify_password", return_value=True):
+        with patch("src.auth.auth.password_service.needs_rehash", return_value=False):
             authenticated = await auth_service.authenticate_user(
                 db, "test@example.com", "pass", MagicMock()
             )
@@ -59,7 +59,7 @@ async def test_authenticate_user_fail_password():
     user = User(id=uuid.uuid4(), email="test@example.com", hashed_password="hashed")
     db.query.return_value.filter.return_value.first.return_value = user
 
-    with patch("core.security.auth.password_service.verify_password", return_value=False):
+    with patch("src.auth.auth.password_service.verify_password", return_value=False):
         authenticated = await auth_service.authenticate_user(
             db, "test@example.com", "wrong", MagicMock()
         )
@@ -70,7 +70,7 @@ async def test_authenticate_user_fail_password():
 async def test_validate_token_revoked():
     token = auth_service._create_token({"sub": "123", "jti": "revoked"}, timedelta(minutes=5))
 
-    with patch("core.security.auth.token_blacklist.contains", return_value=True):
+    with patch("src.auth.auth.token_blacklist.contains", return_value=True):
         with pytest.raises(HTTPException) as exc:
             await auth_service.validate_token(token)
         assert exc.value.status_code == 401

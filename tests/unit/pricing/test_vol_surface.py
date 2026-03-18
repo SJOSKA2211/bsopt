@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from services.quant.pricing.vol_surface import (
+from src.quant.pricing.vol_surface import (
     SABRModel,
     SABRParameters,
     SVIModel,
@@ -53,7 +53,7 @@ def test_vol_surface_interpolation():
 
 
 def test_calibration_engine_svi():
-    from services.quant.pricing.vol_surface import CalibrationEngine, MarketQuote
+    from src.quant.pricing.vol_surface import CalibrationEngine, MarketQuote
 
     quotes = [
         MarketQuote(strike=90, maturity=1.0, implied_vol=0.25, forward=100),
@@ -67,7 +67,7 @@ def test_calibration_engine_svi():
 
 
 def test_arbitrage_detector():
-    from services.quant.pricing.vol_surface import ArbitrageDetector
+    from src.quant.pricing.vol_surface import ArbitrageDetector
 
     detector = ArbitrageDetector()
     strikes = np.array([90, 100, 110])

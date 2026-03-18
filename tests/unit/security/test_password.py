@@ -1,6 +1,6 @@
 import pytest
 
-from core.security.password import PasswordService, PasswordValidator
+from src.auth.password import PasswordService, PasswordValidator
 
 
 @pytest.fixture

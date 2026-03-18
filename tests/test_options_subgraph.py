@@ -1,7 +1,7 @@
 import pytest
 from strawberry.types import ExecutionResult
 
-from services.api.graphql.options import schema
+from src.api.graphql.options import schema
 
 
 @pytest.mark.asyncio
@@ -55,7 +55,7 @@ def test_graphql_endpoint():
 
     from fastapi.testclient import TestClient
 
-    from services.api.main import app
+    from src.api.main import app
 
     client = TestClient(app)
 
@@ -74,7 +74,7 @@ def test_graphql_endpoint():
         "X-User-Role": "admin",
     }
 
-    with patch("core.shared.security.OPAEnforcer.is_authorized", return_value=True):
+    with patch("src.shared.security.OPAEnforcer.is_authorized", return_value=True):
         response = client.post("/graphql", headers=headers, json={"query": query})
 
     assert response.status_code == 200

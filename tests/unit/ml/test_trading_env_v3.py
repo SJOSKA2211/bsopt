@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 
-from services.ml.reinforcement_learning.trading_env import TradingEnvironment
+from src.ml.reinforcement_learning.trading_env import TradingEnvironment
 
 
 def test_trading_env_reset():

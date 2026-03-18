@@ -6,8 +6,8 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import crud
-from core.database.models import Position, User
+from src.database import crud
+from src.database.models import Position, User
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ async def test_create_user(mock_db):
 
     # Mock password hashing
     with patch(
-        "core.security.password.password_service.hash_password",
+        "src.auth.password.password_service.hash_password",
         return_value="hashed_secret",
     ):
         user = await crud.create_user(mock_db, email, password, full_name)

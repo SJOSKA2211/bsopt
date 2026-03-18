@@ -7,7 +7,7 @@ import numpy as np
 sys.path.append(os.path.abspath("."))
 
 try:
-    from core.shared.math_utils import calculate_greeks, calculate_price
+    from src.shared.math_utils import calculate_greeks, calculate_price
 
     print("[+] Successfully imported math_utils")
 

@@ -3,14 +3,14 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from services.api.main import app
+from src.api.main import app
 
 client = TestClient(app)
 
 
 @pytest.mark.performance
 def test_pricing_api_latency():
-    """Benchmark the latency of the core pricing API endpoint."""
+    """Benchmark the latency of the src.shared pricing API endpoint."""
     payload = {
         "spot": 100.0,
         "strike": 100.0,

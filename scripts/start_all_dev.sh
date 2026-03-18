@@ -44,7 +44,7 @@ fi
 # 2. Check Infrastructure status
 echo " Checking Infrastructure status..."
 # Check for key infra containers (postgres is the best signal)
-INFRA_RUNNING=$($DOCKER_COMPOSE ps --services --filter "status=running" | grep -q "^postgres$" && echo true || echo false)
+INFRA_RUNNING=$($DOCKER_COMPOSE ps --src --filter "status=running" | grep -q "^postgres$" && echo true || echo false)
 
 if [ "$INFRA_RUNNING" = "false" ]; then
     echo " Infrastructure missing. Launching via start_infra.sh..."
@@ -91,9 +91,9 @@ until check_app_health || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
 done
 
 if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo -e "\n❌ Some services failed to stabilize. Check 'docker compose logs'."
+    echo -e "\n❌ Some src failed to stabilize. Check 'docker compose logs'."
 else
-    echo -e "\n All services are UP and HEALTHY. High-Performance Active."
+    echo -e "\n All src are UP and HEALTHY. High-Performance Active."
 fi
 
 if [ "$NO_TAIL" = true ]; then

@@ -10,7 +10,7 @@ sys.modules["optuna"] = MagicMock()
 sys.modules["optuna.exceptions"] = MagicMock()
 sys.modules["optuna.pruners"] = MagicMock()
 
-from services.ml.trainer import ModelTrainer
+from src.ml.trainer import ModelTrainer
 
 
 class TestTrainer(unittest.TestCase):
@@ -20,13 +20,13 @@ class TestTrainer(unittest.TestCase):
         self.params = {"framework": "sklearn", "n_estimators": 10}
 
         with (
-            patch("services.ml.trainer.ExperimentTracker"),
-            patch("services.ml.trainer.ModelQuantizer"),
+            patch("src.ml.trainer.ExperimentTracker"),
+            patch("src.ml.trainer.ModelQuantizer"),
         ):
             self.trainer = ModelTrainer(study_name="test_study")
 
-    @patch("services.ml.trainer.get_strategy")
-    @patch("services.ml.trainer.calculate_regression_metrics")
+    @patch("src.ml.trainer.get_strategy")
+    @patch("src.ml.trainer.calculate_regression_metrics")
     def test_train_and_evaluate(self, mock_metrics, mock_get_strategy):
         mock_strategy = MagicMock()
         mock_strategy.train.return_value = MagicMock()
@@ -39,7 +39,7 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual(r2, 0.9)
         self.assertTrue(mock_strategy.train.called)
 
-    @patch("services.ml.trainer.optuna.create_study")
+    @patch("src.ml.trainer.optuna.create_study")
     def test_optimize(self, mock_create_study):
         mock_study = MagicMock()
         mock_study.best_params = {"max_depth": 5}

@@ -57,13 +57,20 @@ make cli ARGS="status"
 
 ```text
 .
-├── core/                # Shared logic, trading kernels, and config
 ├── docs/                # Consolidated documentation
 ├── infrastructure/      # Infrastructure and orchestration
 ├── protos/              # gRPC/Protobuf definitions
 ├── scripts/             # Utility and maintenance scripts
-├── services/            # Microservices (auth, pricing, ml, etc.)
-│   └── data/            # Static data and local artifacts
+├── src/                 # Microservices (auth, pricing, ml, etc.)
+│   ├── api/             # API & Gateways
+│   ├── auth/            # Auth & Security Pipelines
+│   ├── database/        # Database Schemas & TimescaleDB configuration
+│   ├── frontend/        # Next.js UI Dashboard
+│   ├── ingestion/       # Scrapers and Data Ingestion
+│   ├── math_kernel/     # Rust & Numba Math/Pricing Kernels
+│   ├── ml/              # Machine Learning pipelines and Ray serving
+│   ├── portfolio/       # Portfolio & Trading Management
+│   └── shared/          # Shared logic, configurations, and utilities
 ├── tests/               # Unit and integration tests
 ├── Makefile             # Unified orchestration
 └── pyproject.toml       # Python dependencies and tools

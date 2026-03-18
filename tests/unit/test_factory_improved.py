@@ -7,7 +7,7 @@ mock_wasmer = MagicMock()
 sys.modules["wasmer"] = mock_wasmer
 sys.modules["wasmer_compiler_cranelift"] = MagicMock()
 
-from services.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
+from src.quant.pricing.factory import PricingEngineFactory, PricingEngineNotFound
 
 
 class TestPricingFactory(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestPricingFactory(unittest.TestCase):
         # Clear instances for testing
         PricingEngineFactory._instances = {}
         # Mock WASM_AVAILABLE to False to avoid auto-routing to WASM
-        self.wasm_patcher = patch("services.quant.pricing.wasm_engine.WASM_AVAILABLE", False)
+        self.wasm_patcher = patch("src.quant.pricing.wasm_engine.WASM_AVAILABLE", False)
         self.wasm_patcher.start()
 
     def tearDown(self):

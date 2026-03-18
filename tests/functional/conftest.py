@@ -12,9 +12,9 @@ from faker import Faker
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.orm import Session
 
-from services.api.main import app
-from core.database import get_db
-from core.database.models import User
+from src.api.main import app
+from src.database import get_db
+from src.database.models import User
 
 fake = Faker()
 
@@ -100,7 +100,7 @@ def mock_db():
 # 11. API Client (httpx.AsyncClient)
 @pytest_asyncio.fixture
 async def client(mock_db):
-    from core.database import get_async_db
+    from src.database import get_async_db
 
     # Mock Async Session
     async def mock_get_async_db():
@@ -120,7 +120,7 @@ async def client(mock_db):
 
         yield m_session
 
-    from core.security.auth import get_current_user_flexible
+    from src.auth.auth import get_current_user_flexible
 
     # Mock Current User
     def mock_get_current_user_flexible():
@@ -133,7 +133,7 @@ async def client(mock_db):
     app.dependency_overrides[get_current_user_flexible] = mock_get_current_user_flexible
 
     # 69. Test Framework: mock.patch audit logs
-    with patch("core.security.audit.log_audit"):
+    with patch("src.auth.audit.log_audit"):
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://testserver"
         ) as ac:

@@ -8,9 +8,9 @@ import pytest
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
-from services.workers.streaming.analytics import VolatilityAggregationStream
-from services.workers.streaming.consumer import MarketDataConsumer
-from services.workers.streaming.producer import MarketDataProducer
+from src.workers.streaming.analytics import VolatilityAggregationStream
+from src.workers.streaming.consumer import MarketDataConsumer
+from src.workers.streaming.producer import MarketDataProducer
 
 
 @pytest.mark.asyncio
@@ -20,13 +20,13 @@ async def test_streaming_e2e_flow():
     We mock the underlying Kafka library to simulate message passing.
     """
     with (
-        patch("services.workers.streaming.producer.Producer"),
-        patch("services.workers.streaming.producer.SchemaRegistryClient"),
-        patch("services.workers.streaming.producer.AvroSerializer"),
-        patch("services.workers.streaming.consumer.Consumer") as mock_kafka_consumer,
-        patch("services.workers.streaming.consumer.SchemaRegistryClient"),
-        patch("services.workers.streaming.consumer.AvroDeserializer"),
-        patch("services.workers.streaming.analytics.App"),
+        patch("src.workers.streaming.producer.Producer"),
+        patch("src.workers.streaming.producer.SchemaRegistryClient"),
+        patch("src.workers.streaming.producer.AvroSerializer"),
+        patch("src.workers.streaming.consumer.Consumer") as mock_kafka_consumer,
+        patch("src.workers.streaming.consumer.SchemaRegistryClient"),
+        patch("src.workers.streaming.consumer.AvroDeserializer"),
+        patch("src.workers.streaming.analytics.App"),
     ):
         # 1. Initialize components
         MarketDataProducer()

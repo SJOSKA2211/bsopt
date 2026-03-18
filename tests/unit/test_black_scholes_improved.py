@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
 
 @pytest.fixture
@@ -102,8 +102,8 @@ def test_instance_price(params):
 
 
 def test_module_level_funcs(params):
-    from services.quant.pricing.black_scholes import black_scholes
-    from services.quant.pricing.black_scholes import verify_put_call_parity as vpcp
+    from src.quant.pricing.black_scholes import black_scholes
+    from src.quant.pricing.black_scholes import verify_put_call_parity as vpcp
 
     # When called with kwargs, returns float directly
     res = black_scholes(spot=100.0, strike=100.0, maturity=1.0, volatility=0.2, rate=0.05)

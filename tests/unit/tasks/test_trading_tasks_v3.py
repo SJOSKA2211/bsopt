@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from services.workers.tasks.trading_tasks import (
+from src.workers.tasks.trading_tasks import (
     backtest_strategy_task,
     check_risk_limits,
     execute_trade_task,
@@ -44,7 +44,7 @@ def test_backtest_strategy_task_success():
     mock_self = MagicMock()
     mock_self.request.id = "test-id"
 
-    with patch("services.workers.tasks.trading_tasks.BacktestEngine") as mock_engine_cls:
+    with patch("src.workers.tasks.trading_tasks.BacktestEngine") as mock_engine_cls:
         mock_engine = mock_engine_cls.return_value
         mock_engine.run_vectorized.return_value = {
             "total_return": 0.15,

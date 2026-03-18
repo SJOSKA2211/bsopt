@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from core.database.models import MarketTick, OptionPrice, User
+from src.database.models import MarketTick, OptionPrice, User
 
 
 def test_models_creation():

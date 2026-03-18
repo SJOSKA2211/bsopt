@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from services.api.main import app
+from src.api.main import app
 
 
 @pytest.mark.asyncio
@@ -31,7 +31,7 @@ async def test_pricing_rate_limit():
 
         # Mock cache to return None so it proceeds to pricing logic
         with patch(
-            "services.api.routes.pricing.pricing_cache.get_option_price",
+            "src.api.routes.pricing.pricing_cache.get_option_price",
             new_callable=AsyncMock,
         ) as mock_get:
             mock_get.return_value = None

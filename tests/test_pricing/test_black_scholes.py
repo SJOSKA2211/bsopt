@@ -1,4 +1,4 @@
-from services.quant.pricing.black_scholes import BlackScholesEngine
+from src.quant.pricing.black_scholes import BlackScholesEngine
 
 
 def test_bs_price_call():

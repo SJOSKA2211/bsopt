@@ -2,11 +2,11 @@ import time
 
 import numpy as np
 
-from services.quant.pricing.quant_utils import (
+from src.quant.pricing.quant_utils import (
     batch_bs_price_jit_v2,
     generate_paths_v2,
 )
-from core.trading.risk_kernels import _full_risk_check_v2_kernel
+from src.math_kernel.risk_kernels import _full_risk_check_v2_kernel
 
 
 def benchmark_jit_warmup():
@@ -77,8 +77,8 @@ def benchmark_risk():
 
 def benchmark_exotic():
     print("\n--- Exotic Option Benchmarks (Rust/JIT) ---")
-    from services.quant.pricing.exotic import AsianOptionPricer, ExoticParameters
-    from services.quant.pricing.models import BSParameters
+    from src.quant.pricing.exotic import AsianOptionPricer, ExoticParameters
+    from src.quant.pricing.models import BSParameters
 
     params = ExoticParameters(
         base_params=BSParameters(
@@ -97,8 +97,8 @@ def benchmark_exotic():
 
 def benchmark_heston():
     print("\n--- Heston Model Benchmarks (FFT + Rust CF) ---")
-    from services.quant.pricing.models import HestonParams
-    from services.quant.pricing.models.heston_fft import HestonModelFFT
+    from src.quant.pricing.models import HestonParams
+    from src.quant.pricing.models.heston_fft import HestonModelFFT
 
     h_params = HestonParams(v0=0.04, kappa=2.0, theta=0.04, sigma=0.3, rho=-0.7)
     model = HestonModelFFT(h_params, r=0.05, T=1.0)

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import FastAPI, Request
 
-from core.security.audit.middleware import AuditMiddleware
+from src.auth.audit.middleware import AuditMiddleware
 
 
 @pytest.mark.asyncio

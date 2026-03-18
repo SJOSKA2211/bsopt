@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from services.api.main import app
-from services.auth.security import verify_token
+from src.api.main import app
+from src.auth.security import verify_token
 
 client = TestClient(app)
 
@@ -14,7 +14,7 @@ def test_admin_only_success():
     # Mock RoleChecker to allow access
     payload = {"sub": "admin_user", "realm_access": {"roles": ["admin"]}}
 
-    with patch("services.api.main.verify_token", return_value=payload):
+    with patch("src.api.main.verify_token", return_value=payload):
         # We need to override the dependency in the app
         app.dependency_overrides[verify_token] = lambda: payload
         # RoleChecker is also a dependency, but it uses verify_token
@@ -31,7 +31,7 @@ def test_admin_only_success():
 def test_admin_only_forbidden():
     payload = {"sub": "regular_user", "realm_access": {"roles": ["user"]}}
 
-    with patch("services.api.main.verify_token", return_value=payload):
+    with patch("src.api.main.verify_token", return_value=payload):
         app.dependency_overrides[verify_token] = lambda: payload
 
         response = client.get("/admin-only")

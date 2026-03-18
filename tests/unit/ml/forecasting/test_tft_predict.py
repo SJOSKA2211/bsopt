@@ -1,6 +1,6 @@
 import pandas as pd
 
-from services.ml.forecasting.tft_model import PriceTFTModel
+from src.ml.forecasting.tft_model import PriceTFTModel
 
 
 def test_tft_prediction_stub():

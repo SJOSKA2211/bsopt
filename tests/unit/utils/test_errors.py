@@ -1,4 +1,4 @@
-from core.shared.errors import ServiceUnavailableException, robust_pricing_task
+from src.shared.errors import ServiceUnavailableException, robust_pricing_task
 
 
 def test_robust_pricing_task_decorator():

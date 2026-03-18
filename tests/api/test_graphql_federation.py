@@ -4,10 +4,10 @@ import pytest
 import strawberry.federation
 from httpx import ASGITransport, AsyncClient
 
-from services.api.main import (
+from src.api.main import (
     GraphQLRouter as OriginalGraphQLRouter,
 )  # Import original for patching
-from services.api.main import app
+from src.api.main import app
 
 print("DEBUG: Strawberry Federation:", strawberry.federation)
 
@@ -19,15 +19,15 @@ def patch_graphql_router():
     Also mocks OPAEnforcer for authorization checks.
     """
     with (
-        patch("services.api.main.GraphQLRouter") as MockGraphQLRouter,
-        patch("core.shared.security.OPAEnforcer.is_authorized", return_value=True),
+        patch("src.api.main.GraphQLRouter") as MockGraphQLRouter,
+        patch("src.shared.security.OPAEnforcer.is_authorized", return_value=True),
     ):
         # Mimic the constructor but without context_getter
         def mock_init(schema, graphql_ide=False, *args, **kwargs):
             return OriginalGraphQLRouter(schema, graphql_ide=graphql_ide, *args, **kwargs)
 
         MockGraphQLRouter.side_effect = mock_init
-        yield  # Correctly import app from services.api.main
+        yield  # Correctly import app from src.api.main
 
 
 @pytest.mark.asyncio

@@ -2,11 +2,11 @@ from unittest.mock import MagicMock, call, patch
 
 import pytest
 
-from services.ml.aiops.ml_pipeline_trigger import MLPipelineTrigger  # Assuming this path
+from src.ml.aiops.ml_pipeline_trigger import MLPipelineTrigger  # Assuming this path
 
 
-@patch("services.ml.aiops.ml_pipeline_trigger.logger")
-@patch("services.ml.aiops.ml_pipeline_trigger.AutonomousMLPipeline")
+@patch("src.ml.aiops.ml_pipeline_trigger.logger")
+@patch("src.ml.aiops.ml_pipeline_trigger.AutonomousMLPipeline")
 class TestMLPipelineTrigger:
     def test_ml_pipeline_trigger_init_success(self, mock_pipeline_class, mock_logger):
         """Test successful initialization of MLPipelineTrigger."""

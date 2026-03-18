@@ -3,8 +3,8 @@ import time
 
 import pytest
 
-from core.data.xdp_ingest import XDPIngester
-from services.workers.streaming.kafka_consumer import MarketDataConsumer
+from src.ingestion.xdp_ingest import XDPIngester
+from src.workers.streaming.kafka_consumer import MarketDataConsumer
 
 
 @pytest.mark.asyncio

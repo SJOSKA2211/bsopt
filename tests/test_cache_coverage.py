@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-import core.shared.cache
-from core.shared.cache import (
+import src.shared.cache
+from src.shared.cache import (
     BSParameters,
     OptionGreeks,
     PricingCache,
@@ -34,7 +34,7 @@ async def test_generate_cache_key():
 @pytest.mark.asyncio
 async def test_pricing_cache_ops(monkeypatch):
     mock_redis = AsyncMock()
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     pc = PricingCache()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
@@ -67,7 +67,7 @@ async def test_rate_limiter(monkeypatch):
     mock_pipe = AsyncMock()
     mock_pipe.execute.return_value = [1]
     mock_redis.pipeline.return_value = mock_pipe
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     rl = RateLimiter()
     allowed = await rl.check_rate_limit("user1", "price", RateLimitTier.FREE)
@@ -79,20 +79,20 @@ async def test_init_close_redis(monkeypatch):
     # Mock redis
     mock_redis = AsyncMock()
     mock_redis.ping.return_value = True
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     await init_redis_cache()
     # verify it was called
     assert mock_redis.ping.called
 
     await close_redis_cache()
-    assert core.shared.cache._redis is None
+    assert src.shared.cache._redis is None
 
 
 @pytest.mark.asyncio
 async def test_warm_cache(monkeypatch):
     mock_redis = AsyncMock()
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
     await warm_cache()
     assert mock_redis.setex.called
 
@@ -101,7 +101,7 @@ async def test_warm_cache(monkeypatch):
 async def test_idempotency(monkeypatch):
     mock_redis = AsyncMock()
     mock_redis.set.return_value = True
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     res = await idempotency_manager.check_and_set("key1")
     assert res is True
@@ -111,7 +111,7 @@ async def test_idempotency(monkeypatch):
 async def test_db_cache(monkeypatch):
     mock_redis = AsyncMock()
     mock_redis.get.return_value = json.dumps({"name": "user"})
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     user = await db_cache.get_user("123")
     assert user["name"] == "user"
@@ -123,23 +123,23 @@ async def test_db_cache(monkeypatch):
 @pytest.mark.asyncio
 async def test_publish_to_redis(monkeypatch):
     mock_redis = AsyncMock()
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
     await publish_to_redis("chan", {"msg": "hi"})
     assert mock_redis.publish.called
 
 
 @pytest.mark.asyncio
 async def test_get_redis_client(mocker):
-    import core.shared.cache
+    import src.shared.cache
 
     mock_redis = AsyncMock()
     # Directly set the private variable
-    core.shared.cache._redis = mock_redis
+    src.shared.cache._redis = mock_redis
 
     r = await get_redis_client()
     assert r == mock_redis
 
-    core.shared.cache._redis = None
+    src.shared.cache._redis = None
     from fastapi import HTTPException
 
     with pytest.raises(HTTPException):
@@ -148,9 +148,9 @@ async def test_get_redis_client(mocker):
 
 @pytest.mark.asyncio
 async def test_cache_no_redis(mocker):
-    from core.shared.cache import PricingCache, RateLimiter, db_cache, idempotency_manager
+    from src.shared.cache import PricingCache, RateLimiter, db_cache, idempotency_manager
 
-    mocker.patch("core.shared.cache.get_redis", return_value=None)
+    mocker.patch("src.shared.cache.get_redis", return_value=None)
     pc = PricingCache()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
 
@@ -169,14 +169,14 @@ async def test_cache_no_redis(mocker):
 
 
 def test_redis_error_is_class():
-    from core.shared.cache import RedisError
+    from src.shared.cache import RedisError
 
     assert issubclass(RedisError, Exception)
 
 
 @pytest.mark.asyncio
 async def test_cache_errors(mocker):
-    from core.shared.cache import PricingCache, RateLimiter, RedisError, db_cache, publish_to_redis
+    from src.shared.cache import PricingCache, RateLimiter, RedisError, db_cache, publish_to_redis
 
     mock_redis = AsyncMock()
     mock_redis.get.side_effect = RedisError("Redis error")
@@ -186,7 +186,7 @@ async def test_cache_errors(mocker):
     mock_pipe.execute.side_effect = RedisError("Pipe error")
     mock_redis.pipeline.return_value = mock_pipe
 
-    mocker.patch("core.shared.cache.get_redis", return_value=mock_redis)
+    mocker.patch("src.shared.cache.get_redis", return_value=mock_redis)
     pc = PricingCache()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)
 
@@ -207,10 +207,10 @@ async def test_cache_errors(mocker):
 
 @pytest.mark.asyncio
 async def test_get_redis_direct(monkeypatch):
-    import core.shared.cache
+    import src.shared.cache
 
     # We just want to call the code once
-    core.shared.cache.get_redis()
+    src.shared.cache.get_redis()
     assert True
 
 
@@ -219,7 +219,7 @@ async def test_init_redis_exception(monkeypatch):
     # This should trigger the except block in init_redis_cache
     mock_redis = AsyncMock()
     mock_redis.ping.side_effect = Exception("Init failed")
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
     await init_redis_cache()
     # It should catch and log
     assert True
@@ -240,7 +240,7 @@ async def test_generate_cache_key_numpy():
 async def test_pricing_cache_miss(monkeypatch):
     mock_redis = AsyncMock()
     mock_redis.get.return_value = None
-    monkeypatch.setattr("core.shared.cache.get_redis", lambda: mock_redis)
+    monkeypatch.setattr("src.shared.cache.get_redis", lambda: mock_redis)
 
     pc = PricingCache()
     params = BSParameters(100, 100, 1.0, 0.2, 0.05)

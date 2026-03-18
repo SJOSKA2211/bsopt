@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from services.scrapers.engine import NSEScraper, ProxyRotator
+from src.ingestion.engine import NSEScraper, ProxyRotator
 
 
 @pytest.fixture
@@ -16,7 +16,7 @@ def mock_redis():
 @pytest.mark.asyncio
 async def test_proxy_rotator(mock_redis):
     proxies = ["http://p1", "http://p2"]
-    with patch("services.scrapers.engine.get_redis", return_value=mock_redis):
+    with patch("src.ingestion.engine.get_redis", return_value=mock_redis):
         rotator = ProxyRotator(proxies)
 
         # Test getting proxy
@@ -40,7 +40,7 @@ async def test_proxy_rotator(mock_redis):
 
 
 def test_map_name_to_symbol():
-    with patch("services.scrapers.engine.settings") as mock_settings:
+    with patch("src.ingestion.engine.settings") as mock_settings:
         mock_settings.NSE_NAME_SYMBOL_MAP = {"Safaricom": "SCOM", "KCB": "KCB"}
         scraper = NSEScraper()
 
@@ -51,11 +51,11 @@ def test_map_name_to_symbol():
 
 @pytest.mark.asyncio
 async def test_refresh_cache_success():
-    with patch("services.scrapers.engine.HttpClientManager.get_client") as MockClient:
-        with patch("services.scrapers.engine.settings") as mock_settings:
-            with patch("services.scrapers.engine.LexborHTMLParser") as MockParser:
+    with patch("src.ingestion.engine.HttpClientManager.get_client") as MockClient:
+        with patch("src.ingestion.engine.settings") as mock_settings:
+            with patch("src.ingestion.engine.LexborHTMLParser") as MockParser:
                 with patch(
-                    "services.scrapers.engine.run_sync",
+                    "src.ingestion.engine.run_sync",
                     side_effect=lambda f, *args: f(*args),
                 ):
                     mock_settings.NSE_CACHE_TTL = 0
@@ -107,7 +107,7 @@ async def test_refresh_cache_success():
                     scraper = NSEScraper()
 
                     # Mock mesh publisher
-                    with patch("services.scrapers.mesh_publisher.get_market_publisher"):
+                    with patch("src.ingestion.mesh_publisher.get_market_publisher"):
                         await scraper._refresh_cache()
 
                     data = await scraper.get_ticker_data("TST")

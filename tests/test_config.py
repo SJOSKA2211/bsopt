@@ -5,13 +5,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-import core.shared.config
+import src.shared.config
 from tests.test_utils import assert_equal
 
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_initialization():
-    from core.shared.config import Settings
+    from src.shared.config import Settings
 
     settings = Settings(
         DATABASE_URL="postgresql://user:pass@localhost/db",
@@ -25,7 +25,7 @@ def test_settings_initialization():
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_settings_validation():
-    from core.shared.config import Settings
+    from src.shared.config import Settings
 
     # Test valid expiration
     settings = Settings(
@@ -51,7 +51,7 @@ def test_settings_validation():
 
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_password_min_length_validation():
-    from core.shared.config import Settings
+    from src.shared.config import Settings
 
     with pytest.raises(ValueError):
         Settings(
@@ -66,7 +66,7 @@ def test_password_min_length_validation():
 # Reuse the fixture from conftest.py which handles reload
 @pytest.mark.usefixtures("unmocked_config_settings")
 def test_validators_coverage():
-    from core.shared.config import Settings
+    from src.shared.config import Settings
 
     # Test valid defaults
     s = Settings(
@@ -220,13 +220,13 @@ def test_validators_coverage():
 
 def test_fallback_initialization_no_reload(monkeypatch):
     """Test fallback by patching functions in place without reload."""
-    # We need to patch get_settings in core.shared.config
+    # We need to patch get_settings in src.shared.config
 
     def mock_get_settings_fail():
         # Raise ValidationError to trigger the first except block
         raise ValidationError.from_exception_data("mock", [])
 
-    monkeypatch.setattr(core.shared.config, "get_settings", mock_get_settings_fail)
+    monkeypatch.setattr(src.shared.config, "get_settings", mock_get_settings_fail)
 
     # Also patch Settings class to fail when called in fallback
     # The fallback tries: settings = Settings(...)
@@ -235,14 +235,14 @@ def test_fallback_initialization_no_reload(monkeypatch):
     def mock_settings_fail(*args, **kwargs):
         raise ValueError("Simulated failure in fallback Settings init")
 
-    monkeypatch.setattr(core.shared.config, "Settings", mock_settings_fail)
+    monkeypatch.setattr(src.shared.config, "Settings", mock_settings_fail)
 
     # Run initialization
-    core.shared.config._initialize_settings()
+    src.shared.config._initialize_settings()
 
     # Verify fallback to MagicMock
-    assert isinstance(core.shared.config.settings, MagicMock)
-    assert core.shared.config.settings.ENVIRONMENT == "dev"
+    assert isinstance(src.shared.config.settings, MagicMock)
+    assert src.shared.config.settings.ENVIRONMENT == "dev"
 
 
 def test_configure_logging_execution(monkeypatch):
@@ -251,10 +251,10 @@ def test_configure_logging_execution(monkeypatch):
         if "pytest" in sys.modules:
             del sys.modules["pytest"]
 
-        with patch("core.shared.config.configure_logging") as mock_log:
+        with patch("src.shared.config.configure_logging") as mock_log:
             # We also need get_settings to succeed or return something
             # It's currently mocked by pytest_configure to return mock_settings
             # That's fine.
-            core.shared.config._initialize_settings()
+            src.shared.config._initialize_settings()
 
             mock_log.assert_called_once()

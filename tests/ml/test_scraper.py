@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pandas as pd
 import pytest
 
-from services.ml.scraper import MarketDataScraper
+from src.ml.scraper import MarketDataScraper
 
 
 @pytest.fixture
@@ -33,15 +33,15 @@ def mock_response():
 
 
 @pytest.mark.asyncio
-@patch("services.ml.scraper.HttpClientManager.get_client")
-@patch("services.ml.scraper.logger")
+@patch("src.ml.scraper.HttpClientManager.get_client")
+@patch("src.ml.scraper.logger")
 async def test_fetch_historical_data_success(mock_logger, mock_get_client, mock_response):
     """Verify that the scraper correctly fetches and parses data."""
     mock_client = AsyncMock()
     mock_get_client.return_value = mock_client
     mock_client.get.return_value = mock_response
 
-    from core.shared import observability
+    from src.shared import observability
 
     with patch.object(observability.SCRAPE_DURATION, "labels") as mock_duration_labels:
         mock_observe = MagicMock()
@@ -61,7 +61,7 @@ async def test_fetch_historical_data_success(mock_logger, mock_get_client, mock_
 
 
 @pytest.mark.asyncio
-@patch("services.ml.scraper.HttpClientManager.get_client")
+@patch("src.ml.scraper.HttpClientManager.get_client")
 async def test_fetch_historical_data_retry_logic(mock_get_client, mock_response):
     """Verify that the scraper retries on failure."""
     mock_client = AsyncMock()
@@ -71,7 +71,7 @@ async def test_fetch_historical_data_retry_logic(mock_get_client, mock_response)
     fail_response.status_code = 500
     mock_client.get.side_effect = [fail_response, fail_response, mock_response]
 
-    from core.shared import observability
+    from src.shared import observability
 
     with patch.object(observability.SCRAPE_ERRORS, "labels") as mock_error_labels:
         mock_inc = MagicMock()
@@ -89,7 +89,7 @@ async def test_fetch_historical_data_retry_logic(mock_get_client, mock_response)
 
 
 @pytest.mark.asyncio
-@patch("services.ml.scraper.HttpClientManager.get_client")
+@patch("src.ml.scraper.HttpClientManager.get_client")
 async def test_fetch_historical_data_failure(mock_get_client):
     """Verify that the scraper raises an error after max retries."""
     mock_client = AsyncMock()

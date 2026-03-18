@@ -85,7 +85,7 @@ class PortfolioManager:
         """
         Calculate current value and P&L for a position.
         """
-        from services.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
+        from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
 
         params = BSParameters(
             spot=position.spot,
@@ -125,7 +125,7 @@ class PortfolioManager:
                 "greeks": {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0, "rho": 0.0},
             }
 
-        from services.quant.pricing.black_scholes import BlackScholesEngine
+        from src.quant.pricing.black_scholes import BlackScholesEngine
 
         # 1. Batch extract params
         spots = np.array([p.spot for p in self.positions], dtype=np.float64)

@@ -1,7 +1,7 @@
 import json
 from unittest.mock import mock_open, patch
 
-from core.shared.dashboard import generate_html_dashboard
+from src.shared.dashboard import generate_html_dashboard
 
 
 def test_generate_html_dashboard():

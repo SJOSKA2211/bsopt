@@ -20,7 +20,7 @@ def test_pyproject_toml_exists():
 
 
 def test_dependencies_loadable():
-    """Verify that core dependencies can be imported."""
+    """Verify that src.shared dependencies can be imported."""
 
     import importlib
 
@@ -40,4 +40,4 @@ def test_dependencies_loadable():
             importlib.import_module(dep)
 
         except ImportError as e:
-            pytest.fail(f"Failed to import core dependency: {dep}. Error: {e}")
+            pytest.fail(f"Failed to import src.shared dependency: {dep}. Error: {e}")

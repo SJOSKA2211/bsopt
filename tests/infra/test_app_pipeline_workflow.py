@@ -48,11 +48,11 @@ def test_app_pipeline_matrix_build():
     # Check matrix
     strategy = bp_job.get("strategy", {})
     matrix = strategy.get("matrix", {})
-    services = matrix.get("service", [])
-    assert "api" in services
-    assert "worker-pricing" in services
-    assert "worker-ml" in services
-    assert "scraper" in services
+    src = matrix.get("service", [])
+    assert "api" in src
+    assert "worker-pricing" in src
+    assert "worker-ml" in src
+    assert "scraper" in src
 
     # Check build/push steps
     steps = str(bp_job["steps"])
@@ -84,8 +84,8 @@ def test_app_pipeline_gitops_update():
 
 def test_infrastructure_manifests_exist():
     """Verify that the infrastructure manifests exist."""
-    services = ["api", "worker-pricing", "worker-ml", "scraper"]
-    for service in services:
+    src = ["api", "worker-pricing", "worker-ml", "scraper"]
+    for service in src:
         assert os.path.exists(f"infrastructure/manifests/{service}-deployment.yaml")
 
 

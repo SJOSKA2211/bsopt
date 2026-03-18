@@ -8,8 +8,8 @@ def test_github_exporter_in_docker_compose():
     with open("docker-compose.yml") as f:
         config = yaml.safe_load(f)
 
-    assert "github-exporter" in config["services"]
-    exporter = config["services"]["github-exporter"]
+    assert "github-exporter" in config["src"]
+    exporter = config["src"]["github-exporter"]
     assert "caarlos0/github-exporter" in exporter["image"]
     assert "9101:9101" in exporter["ports"]
 

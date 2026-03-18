@@ -1,7 +1,7 @@
 import pytest
 
-from services.quant.pricing.base import PricingEngine, PricingStrategy, VectorizedPricingStrategy
-from services.quant.pricing.models import BSParameters
+from src.quant.pricing.base import PricingEngine, PricingStrategy, VectorizedPricingStrategy
+from src.quant.pricing.models import BSParameters
 
 
 class MockPricingStrategy(PricingStrategy):

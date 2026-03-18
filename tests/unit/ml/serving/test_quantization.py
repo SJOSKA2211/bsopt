@@ -4,7 +4,7 @@ from unittest.mock import patch
 import torch
 import torch.nn as nn
 
-from services.ml.serving.quantization import ModelQuantizer
+from src.ml.serving.quantization import ModelQuantizer
 
 
 class SimpleNet(nn.Module):

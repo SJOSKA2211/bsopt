@@ -87,3 +87,27 @@ BEGIN
         );
     END IF;
 END $$;
+
+-- 5. pg_cron Scheduled Jobs: Native Partition Maintenance
+CREATE OR REPLACE FUNCTION maintain_model_predictions_partitions()
+RETURNS void AS $$
+DECLARE
+    next_month DATE := date_trunc('month', NOW() + INTERVAL '1 month');
+    table_name TEXT := 'model_predictions_' || to_char(next_month, 'YYYY_MM');
+    start_date TEXT := to_char(next_month, 'YYYY-MM-DD');
+    end_date TEXT := to_char(next_month + INTERVAL '1 month', 'YYYY-MM-DD');
+BEGIN
+    EXECUTE format('CREATE TABLE IF NOT EXISTS %I PARTITION OF model_predictions FOR VALUES FROM (%L) TO (%L)', table_name, start_date, end_date);
+    RAISE NOTICE 'Created partition % for model_predictions', table_name;
+END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        -- Run daily at 00:00 to ensure next month's partition exists
+        PERFORM cron.schedule('maintain_predictions_partitions', '0 0 * * *', 'SELECT maintain_model_predictions_partitions();');
+    ELSE
+        RAISE WARNING 'pg_cron extension not found, skipping cron schedule.';
+    END IF;
+END $$;

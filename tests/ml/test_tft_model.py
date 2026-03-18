@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from services.ml.forecasting.tft_model import TFTModel
-from services.ml.utils.validation import WalkForwardValidator
+from src.ml.forecasting.tft_model import TFTModel
+from src.ml.utils.validation import WalkForwardValidator
 
 
 @pytest.fixture
@@ -84,7 +84,7 @@ def test_prepare_data_logic(sample_data, tft_config):
 
 
 @pytest.mark.asyncio
-@patch("services.ml.forecasting.tft_model.mlflow")
+@patch("src.ml.forecasting.tft_model.mlflow")
 async def test_tft_model_train(mock_mlflow, sample_data, tft_config):
     """Test the training process and MLflow integration."""
     model = TFTModel(config=tft_config)

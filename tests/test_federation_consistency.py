@@ -2,7 +2,7 @@ from strawberry.federation import Schema
 
 
 def test_options_subgraph():
-    from services.api.graphql.schema import schema
+    from src.api.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
@@ -13,7 +13,7 @@ def test_options_subgraph():
 
 
 def test_pricing_subgraph():
-    from services.quant.pricing.graphql.schema import schema
+    from src.quant.pricing.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
@@ -23,7 +23,7 @@ def test_pricing_subgraph():
 
 
 def test_ml_subgraph():
-    from services.ml.graphql.schema import schema
+    from src.ml.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
@@ -33,7 +33,7 @@ def test_ml_subgraph():
 
 
 def test_portfolio_subgraph():
-    from services.portfolio.graphql.schema import schema
+    from src.portfolio.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()
@@ -44,7 +44,7 @@ def test_portfolio_subgraph():
 
 
 def test_marketdata_subgraph():
-    from services.workers.streaming.graphql.schema import schema
+    from src.workers.streaming.graphql.schema import schema
 
     assert isinstance(schema, Schema)
     sdl = schema.as_str()

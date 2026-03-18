@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from core.shared.circuit_breaker import (
+from src.shared.circuit_breaker import (
     CircuitBreaker,
     CircuitState,
     DistributedCircuitBreaker,
@@ -162,7 +162,7 @@ async def test_distributed_circuit_breaker_fail():
 @pytest.mark.asyncio
 async def test_pricing_circuit_global():
     # Reset global state for test
-    from core.shared.circuit_breaker import CircuitState
+    from src.shared.circuit_breaker import CircuitState
 
     pricing_circuit.state = CircuitState.CLOSED
     pricing_circuit.failure_count = 0

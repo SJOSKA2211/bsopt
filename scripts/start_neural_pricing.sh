@@ -6,7 +6,7 @@ echo " Starting Neural Pricing Service (Local)..."
 # Setup Environment
 export DATABASE_URL="postgresql://admin:password@localhost:5432/bsopt"
 export REDIS_URL="redis://localhost:6379/0"
-export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/services
+export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/src
 
 # Run Uvicorn with reload on port 8001 (as per docker-compose mapping 8001:8000)
-python3 -m uvicorn services.quant.pricing.main:app --reload --reload-dir services/quant/pricing --port 8001 --host 0.0.0.0
+python3 -m uvicorn src.quant.pricing.main:app --reload --reload-dir src/quant/pricing --port 8001 --host 0.0.0.0

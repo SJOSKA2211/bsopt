@@ -12,9 +12,9 @@ def test_kafka_kraft_configured():
     with open(docker_compose_path) as f:
         compose_config = yaml.safe_load(f)
 
-    assert "services" in compose_config, "docker-compose.yml must define services"
+    assert "src" in compose_config, "docker-compose.yml must define src"
 
-    kafka_service = compose_config["services"].get("kafka-1")
+    kafka_service = compose_config["src"].get("kafka-1")
     assert kafka_service, "Kafka service 'kafka-1' not found in docker-compose.yml"
 
     environment = kafka_service.get("environment", {})

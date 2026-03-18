@@ -63,22 +63,7 @@ BEGIN
 EXCEPTION WHEN others THEN NULL;
 END $$;
 
--- 4. Model Predictions
-SELECT create_hypertable('model_predictions', 'timestamp', if_not_exists => TRUE);
-SELECT set_chunk_time_interval('model_predictions', INTERVAL '1 day');
-
--- Compression Policy
-DO $$
-BEGIN
-    ALTER TABLE model_predictions SET (timescaledb.compress, timescaledb.compress_segmentby = 'symbol, model_id', timescaledb.compress_orderby = 'timestamp DESC');
-EXCEPTION WHEN others THEN NULL;
-END $$;
-
-DO $$
-BEGIN
-    PERFORM add_compression_policy('model_predictions', INTERVAL '7 days');
-EXCEPTION WHEN others THEN NULL;
-END $$;
+-- Model Predictions now uses Native Partitioning defined in 01-core-schema.sql
 
 -- 4. Request Logs
 SELECT create_hypertable('request_logs', 'created_at', if_not_exists => TRUE);

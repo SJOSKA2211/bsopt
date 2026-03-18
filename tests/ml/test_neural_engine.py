@@ -1,7 +1,7 @@
 import numpy as np
 
-from services.quant.pricing.factory import PricingEngineFactory
-from services.quant.pricing.models import BSParameters
+from src.quant.pricing.factory import PricingEngineFactory
+from src.quant.pricing.models import BSParameters
 
 
 def test_neural_engine_lifecycle():

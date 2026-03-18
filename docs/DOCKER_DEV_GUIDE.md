@@ -52,12 +52,12 @@ To enable ultra-low latency features (AF_XDP Ingestion and CPU Pinning), the con
 
 Add the following to your `docker-compose.override.yml`:
 ```yaml
-services:
+src:
   worker:
     cap_add:
       - NET_RAW
       - SYS_NICE
-    # For core pinning to work correctly, use host networking if possible
+    # For src.shared pinning to work correctly, use host networking if possible
     # network_mode: host 
 ```
 

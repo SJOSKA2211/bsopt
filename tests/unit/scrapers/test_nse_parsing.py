@@ -1,6 +1,6 @@
 import pytest
 
-from services.scrapers.engine import NSEScraper
+from src.ingestion.engine import NSEScraper
 
 
 def test_nse_cleaning_logic():

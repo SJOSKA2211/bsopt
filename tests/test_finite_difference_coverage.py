@@ -1,7 +1,7 @@
 import pytest
 
-from services.quant.pricing.black_scholes import BSParameters
-from services.quant.pricing.finite_difference import CrankNicolsonSolver
+from src.quant.pricing.black_scholes import BSParameters
+from src.quant.pricing.finite_difference import CrankNicolsonSolver
 
 
 def test_fdm_call_price():

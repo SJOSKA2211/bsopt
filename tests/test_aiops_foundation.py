@@ -1,6 +1,6 @@
 import pytest
 
-from services.ml.aiops.prometheus_adapter import PrometheusClient
+from src.ml.aiops.prometheus_adapter import PrometheusClient
 
 
 def test_prometheus_client_init():
@@ -21,7 +21,7 @@ def test_prometheus_client_connectivity_fail():
 
 def test_prometheus_client_connectivity_success(mocker):
     """Test that connectivity succeeds if Prometheus is reachable."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     client = PrometheusClient(url="http://localhost:9090")
     client.check_connectivity()
     mock_prom.return_value.all_metrics.assert_called_once()
@@ -29,7 +29,7 @@ def test_prometheus_client_connectivity_success(mocker):
 
 def test_fetch_5xx_errors(mocker):
     """Test fetching 5xx error rate from Prometheus."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     # Mock return value for custom_query
     mock_prom.return_value.custom_query.return_value = [{"value": [1234567890, "0.05"]}]
 
@@ -42,7 +42,7 @@ def test_fetch_5xx_errors(mocker):
 
 def test_fetch_5xx_errors_fail(mocker):
     """Test fetching 5xx error rate failure."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     mock_prom.return_value.custom_query.side_effect = Exception("Query failed")
 
     client = PrometheusClient(url="http://localhost:9090")
@@ -54,7 +54,7 @@ def test_fetch_5xx_errors_fail(mocker):
 
 def test_fetch_5xx_errors_empty(mocker):
     """Test fetching 5xx error rate with empty result."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     mock_prom.return_value.custom_query.return_value = []
 
     client = PrometheusClient(url="http://localhost:9090")
@@ -65,7 +65,7 @@ def test_fetch_5xx_errors_empty(mocker):
 
 def test_fetch_p95_latency(mocker):
     """Test fetching p95 latency from Prometheus."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     mock_prom.return_value.custom_query.return_value = [{"value": [1234567890, "0.15"]}]
 
     client = PrometheusClient(url="http://localhost:9090")
@@ -77,7 +77,7 @@ def test_fetch_p95_latency(mocker):
 
 def test_fetch_p95_latency_fail(mocker):
     """Test fetching p95 latency failure."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     mock_prom.return_value.custom_query.side_effect = Exception("Query failed")
 
     client = PrometheusClient(url="http://localhost:9090")
@@ -88,7 +88,7 @@ def test_fetch_p95_latency_fail(mocker):
 
 def test_fetch_p95_latency_empty(mocker):
     """Test fetching p95 latency with empty result."""
-    mock_prom = mocker.patch("services.ml.aiops.prometheus_adapter.PrometheusConnect")
+    mock_prom = mocker.patch("src.ml.aiops.prometheus_adapter.PrometheusConnect")
     mock_prom.return_value.custom_query.return_value = []
 
     client = PrometheusClient(url="http://localhost:9090")

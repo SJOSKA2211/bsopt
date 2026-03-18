@@ -19,7 +19,7 @@ def test_model_promotion_logic(mock_client_class, mock_register):
     Verify the high-level logic for model promotion.
     This is a structural test to ensure the expected components are in place.
     """
-    from services.ml.registry.promote import promote_model
+    from src.ml.registry.promote import promote_model
 
     # Mock MLflow client behavior
     client_instance = mock_client_class.return_value

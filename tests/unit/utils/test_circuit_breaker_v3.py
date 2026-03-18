@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from core.shared.circuit_breaker import CircuitState, InMemoryCircuitBreaker
+from src.shared.circuit_breaker import CircuitState, InMemoryCircuitBreaker
 
 
 @pytest.mark.asyncio

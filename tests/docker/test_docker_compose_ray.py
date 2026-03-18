@@ -3,7 +3,7 @@ import yaml
 
 def test_ray_shm_size_configured():
     """
-    Verifies that shm_size is configured for Ray services in docker-compose.yml.
+    Verifies that shm_size is configured for Ray src in docker-compose.yml.
     This test currently only checks for the presence of the configuration due to
     user instruction not to run Docker containers.
     """
@@ -20,13 +20,13 @@ def test_ray_shm_size_configured():
     with open(docker_compose_path) as f:
         compose_config = yaml.safe_load(f)
 
-    assert "services" in compose_config, "docker-compose.yml must define services"
+    assert "src" in compose_config, "docker-compose.yml must define src"
 
-    ray_head_service = compose_config["services"].get("ray-head")
+    ray_head_service = compose_config["src"].get("ray-head")
     assert ray_head_service, "Ray head service not found in docker-compose.yml"
     assert "shm_size" in ray_head_service, "shm_size not configured for ray-head service"
 
-    rl_training_worker_service = compose_config["services"].get("rl-training-worker")
+    rl_training_worker_service = compose_config["src"].get("rl-training-worker")
     assert rl_training_worker_service, "RL training worker service not found in docker-compose.yml"
     assert "shm_size" in rl_training_worker_service, (
         "shm_size not configured for rl-training-worker service"

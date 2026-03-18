@@ -1,7 +1,7 @@
 # Architecture: Market Mesh (Shared Memory) 
 
 ## Overview
-The "Market Mesh" is a low-latency IPC (Inter-Process Communication) system for zero-copy market data distribution. It uses POSIX shared memory to distribute market ticks and order updates across services (Scrapers, Trading Engine, ML Orchestrator) without the overhead of standard network or file-based IPC.
+The "Market Mesh" is a low-latency IPC (Inter-Process Communication) system for zero-copy market data distribution. It uses POSIX shared memory to distribute market ticks and order updates across src (Scrapers, Trading Engine, ML Orchestrator) without the overhead of standard network or file-based IPC.
 
 ## Implementation Details
 - **Core Manager**: `src/shared/shm_manager.py` (`SHMManager`).

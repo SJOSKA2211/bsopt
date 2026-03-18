@@ -3,7 +3,7 @@ from unittest.mock import patch
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from core.shared.security import opa_authorize, verify_mtls
+from src.shared.security import opa_authorize, verify_mtls
 
 app = FastAPI()
 
@@ -24,7 +24,7 @@ client = TestClient(app)
 
 def test_mtls_and_opa_success():
     """Test successful mTLS and OPA authorization."""
-    with patch("core.shared.security.OPAEnforcer.is_authorized", return_value=True):
+    with patch("src.shared.security.OPAEnforcer.is_authorized", return_value=True):
         headers = {
             "X-SSL-Client-Verify": "SUCCESS",
             "X-SSL-Client-S-DN": "CN=service-a",
@@ -50,7 +50,7 @@ def test_mtls_failure():
 
 def test_opa_failure():
     """Test OPA authorization failure."""
-    with patch("core.shared.security.OPAEnforcer.is_authorized", return_value=False):
+    with patch("src.shared.security.OPAEnforcer.is_authorized", return_value=False):
         headers = {
             "X-SSL-Client-Verify": "SUCCESS",
             "X-SSL-Client-S-DN": "CN=service-a",

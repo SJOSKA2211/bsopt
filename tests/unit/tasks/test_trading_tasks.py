@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from services.workers.tasks.trading_tasks import (
+from src.workers.tasks.trading_tasks import (
     backtest_strategy_task,
     check_risk_limits,
     execute_trade_task,
@@ -12,7 +12,7 @@ def test_check_risk_limits():
     assert check_risk_limits({"quantity": 1000, "limit_price": 200}) is False
 
 
-@patch("services.workers.tasks.trading_tasks.celery_app.Task.request")
+@patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_success(mock_request):
     order = {"symbol": "AAPL", "quantity": 10, "limit_price": 150.0, "side": "buy"}
     mock_request.id = "test-id-12345678"
@@ -23,7 +23,7 @@ def test_execute_trade_task_success(mock_request):
         assert result["symbol"] == "AAPL"
 
 
-@patch("services.workers.tasks.trading_tasks.celery_app.Task.request")
+@patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_risk_reject(mock_request):
     order = {"symbol": "AAPL", "quantity": 1000, "limit_price": 200.0}
     mock_request.id = "test-id"
@@ -33,7 +33,7 @@ def test_execute_trade_task_risk_reject(mock_request):
     assert result["reason"] == "risk_limit_exceeded"
 
 
-@patch("services.workers.tasks.trading_tasks.celery_app.Task.request")
+@patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_execute_trade_task_invalid(mock_request):
     order = {}  # Missing params
     mock_request.id = "test-id"
@@ -43,7 +43,7 @@ def test_execute_trade_task_invalid(mock_request):
     assert "Invalid order parameters" in result["error"]
 
 
-@patch("services.workers.tasks.trading_tasks.celery_app.Task.request")
+@patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_backtest_strategy_task_success(mock_request):
     strategy = "Mean Reversion"
     mock_request.id = "backtest-id"
@@ -60,7 +60,7 @@ def test_backtest_strategy_task_success(mock_request):
         assert result["strategy"] == strategy
 
 
-@patch("services.workers.tasks.trading_tasks.celery_app.Task.request")
+@patch("src.workers.tasks.trading_tasks.celery_app.Task.request")
 def test_backtest_strategy_task_error(mock_request):
     mock_request.id = "backtest-id"
     with patch("time.sleep", side_effect=Exception("Simulated error")):

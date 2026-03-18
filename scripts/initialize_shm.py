@@ -11,7 +11,7 @@ import sys
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from core.shared.shm_init import SHM_CONFIGS, initialize_all_shm
+from src.shared.shm_init import SHM_CONFIGS, initialize_all_shm
 
 
 def main():

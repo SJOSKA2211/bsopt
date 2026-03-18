@@ -1,6 +1,6 @@
 import pytest
 
-from services.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
+from src.quant.pricing.models.heston_fft import HestonModelFFT, HestonParams
 
 
 def test_heston_params_validation():
@@ -79,7 +79,7 @@ def test_heston_price_call_high_error():
     model = HestonModelFFT(params, r=0.05, T=1.0)
     from unittest.mock import patch
 
-    with patch("services.quant.pricing.models.heston_fft.quad", return_value=(1.0, 0.1)):
+    with patch("src.quant.pricing.models.heston_fft.quad", return_value=(1.0, 0.1)):
         model.price_call(100, 100)
 
 
@@ -88,7 +88,7 @@ def test_heston_price_call_exceeds_spot():
     model = HestonModelFFT(params, r=0.05, T=1.0)
     from unittest.mock import patch
 
-    with patch("services.quant.pricing.models.heston_fft.quad", return_value=(1e10, 0.0)):
+    with patch("src.quant.pricing.models.heston_fft.quad", return_value=(1e10, 0.0)):
         price = model.price_call(100, 100)
         assert price <= 100.0
 

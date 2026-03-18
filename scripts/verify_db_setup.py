@@ -2,7 +2,7 @@ import sys
 
 from sqlalchemy import text
 
-from core.database import create_tables, db_manager
+from src.database import create_tables, db_manager
 
 
 def verify_god_mode():

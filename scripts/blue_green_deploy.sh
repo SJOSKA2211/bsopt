@@ -14,7 +14,7 @@ NEW_COLOR=$([[ "$CURRENT_COLOR" == "blue" ]] && echo "green" || echo "blue")
 echo "🚀 Starting Blue-Green Deployment: [Current: $CURRENT_COLOR] -> [Target: $NEW_COLOR]"
 
 # 2. Spin up the NEW stack
-# We use a suffix for services in the compose file or manage multiple projects
+# We use a suffix for src in the compose file or manage multiple projects
 echo "🏗️ Building and starting $NEW_COLOR stack..."
 export ENV_COLOR=$NEW_COLOR
 podman-compose -p "bsopt-$NEW_COLOR" up -d --build
