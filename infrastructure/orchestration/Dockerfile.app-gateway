@@ -19,12 +19,10 @@ FROM docker.io/library/node:20-alpine AS development
 
 WORKDIR /app
 
-COPY core /app/core
-COPY services/gateway/package*.json ./
+COPY src/gateway/package*.json ./
 RUN npm install --legacy-peer-deps --prefer-offline --no-audit --progress=false
 
-COPY core /app/core
-COPY services/gateway/ .
+COPY src/gateway/ .
 
 EXPOSE 4000
 

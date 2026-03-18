@@ -10,6 +10,7 @@ import argparse
 from typing import Any, cast
 
 import mlflow
+import ray
 import numpy as np
 import pandas as pd
 import structlog
@@ -166,6 +167,10 @@ def train_pipeline(
     """
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(study_name)
+    mlflow.autolog()
+    
+    if not ray.is_initialized():
+        ray.init(address="auto", ignore_reinit_error=True)
 
     with mlflow.start_run() as run:
         logger.info("ml_pipeline_ignition", run_id=run.info.run_id)

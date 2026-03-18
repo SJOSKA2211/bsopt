@@ -7,10 +7,10 @@ FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY services/auth/package*.json ./
+COPY src/auth/package*.json ./
 RUN apk add --no-cache python3 make g++ && npm install
 
-COPY services/auth ./
+COPY src/auth ./
 RUN npm run build
 
 # --- Stage 2: Development ---

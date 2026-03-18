@@ -46,6 +46,9 @@ const OptionsChain = lazy(() =>
 const GreeksHeatmap = lazy(() =>
   import('../../features/options/components/GreeksHeatmap').then(m => ({ default: m.GreeksHeatmap }))
 );
+const ComparisonDashboard = lazy(() =>
+  import('../../features/comparison/components/ComparisonDashboard').then(m => ({ default: m.ComparisonDashboard }))
+);
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
@@ -476,6 +479,13 @@ export const DashboardPage: React.FC = () => {
               </motion.div>
             </Stack>
           </motion.div>
+        </Grid>
+
+        {/* Human vs Machine Alpha Comparison */}
+        <Grid item xs={12}>
+          <Suspense fallback={<LoadingFallback />}>
+            <ComparisonDashboard />
+          </Suspense>
         </Grid>
 
 

@@ -154,64 +154,80 @@ make build
 
 # 4. Sequential Database Startup & Health Checks
 echo "🏗️ Starting sequentially: Postgres -> Redis -> PgBouncer"
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d postgres
+wait_for_service() {
+    local service_name=$1
+    local health_command=$2
+    local max_retries=${3:-30}
+    local retry_interval=${4:-2}
+    local retry_count=0
+    local container_id=""
 
-echo "⏳ Waiting for Postgres to be Live & Healthy..."
-MAX_RETRIES=30
-RETRY_COUNT=0
-POSTGRES_CONTAINER=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps --format "{{.Name}}" postgres 2>/dev/null | head -n 1)
-[ -z "$POSTGRES_CONTAINER" ] && POSTGRES_CONTAINER="bsopt-postgres-1"
+    echo "⏳ Waiting for $service_name to be LIVE & HEALTHY..."
 
-until $CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" pg_isready -U admin > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
-    echo -n "."
-    sleep 2
-    RETRY_COUNT=$((RETRY_COUNT+1))
-done
+    # Ensure the service is up first
+    $COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d $service_name
 
-if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "❌ Error: Postgres failed to start."
-    exit 1
-fi
-echo "✅ Postgres is LIVE."
+    # Give it a moment to start the container process
+    sleep 5
 
-# Inject Hyper-Optimized SQL Tuning
+    container_id=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps -q $service_name | head -n 1)
+
+    if [ -z "$container_id" ]; then
+        echo "❌ Error: Could not get container ID for $service_name."
+        exit 1
+    fi
+
+    until $CONTAINER_ENGINE exec "$container_id" bash -c "$health_command" > /dev/null 2>&1 || [ $retry_count -eq $max_retries ]; do
+        echo -n "."
+        sleep "$retry_interval"
+        retry_count=$((retry_count+1))
+    done
+
+    if [ $retry_count -eq $max_retries ]; then
+        echo "❌ Error: $service_name failed to start or become healthy after $max_retries retries."
+        # Optional: Print logs for debugging
+        $COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml logs $service_name
+        exit 1
+    fi
+    echo "✅ $service_name is LIVE."
+}
+
+# 4. Sequential Database Startup & Health Checks
+echo "🏗️ Starting sequentially: Postgres -> Redis -> PgBouncer"
+
+wait_for_service "postgres" "pg_isready -U admin -d bsopt"
+POSTGRES_CONTAINER_ID=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps -q postgres | head -n 1)
 echo "⚙️ Injecting Hyper-Optimized SQL Tuning Commands..."
-$CONTAINER_ENGINE exec "$POSTGRES_CONTAINER" psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/15-runtime-tuning.sql > /dev/null 2>&1 || true
+$CONTAINER_ENGINE exec "$POSTGRES_CONTAINER_ID" psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/15-runtime-tuning.sql > /dev/null 2>&1 || true
 
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d redis
-echo "⏳ Waiting for Redis..."
-REDIS_CONTAINER=$($COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml ps --format "{{.Name}}" redis 2>/dev/null | head -n 1)
-[ -z "$REDIS_CONTAINER" ] && REDIS_CONTAINER="bsopt-redis-1"
-sleep 5 # Allow init
-until $CONTAINER_ENGINE exec "$REDIS_CONTAINER" redis-cli ping > /dev/null 2>&1 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
-    echo -n "."
-    sleep 2
-    RETRY_COUNT=$((RETRY_COUNT+1))
-done
-echo "✅ Redis is LIVE."
+wait_for_service "redis" "redis-cli ping"
 
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d pgbouncer
-echo "✅ PgBouncer is LIVE (Assuming healthy after DB/Redis)."
+wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin -d bsopt" # Use localhost for pgbouncer internal check
 
 # 5. Kafka Infrastructure
 echo "🚀 Starting Kafka..."
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d kafka-1
-sleep 10 # Allow Kafka broker initialization
+wait_for_service "kafka-1" "kafka-topics --bootstrap-server localhost:9092 --list"
 
-# 6. Ray Head & ML
-echo "🚀 Starting Ray Head..."
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d ray-head
-sleep 5
-echo "✅ Ray Head is LIVE."
+# 6. Ray Head & MLflow Infrastructure
+echo "🚀 Starting Ray Head and MLflow..."
+wait_for_service "ray-head" "ray status"
+wait_for_service "mlflow" "wget -qO- http://localhost:5000/health || exit 1" # Assuming MLflow has a health endpoint
 
 # 7. Core APIs
 echo "🚀 Starting API & Auth Services..."
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d api auth-service
-sleep 5
+# Assuming these services have healthchecks defined in docker-compose.yml
+wait_for_service "auth-service" "wget -qO- http://localhost:3001/ || exit 1"
+wait_for_service "api" "python -c 'import urllib.request; urllib.request.urlopen(\'http://localhost:8000/health\').read()'"
 
 # 8. Start remaining services
-echo "🚀 Starting remaining components (Frontend, Envoy, Workers)..."
-$COMPOSE_ENGINE --env-file .env -f infrastructure/orchestration/docker-compose.yml up -d envoy frontend
+echo "🚀 Starting remaining components (Frontend, Envoy, Workers, ML Pipeline)..."
+wait_for_service "envoy" "wget -qO- http://localhost:8080/health || exit 1" # Assuming Envoy's health endpoint
+wait_for_service "frontend" "wget -qO- http://localhost:5173/ || exit 1"
+wait_for_service "worker" "celery -A src.workers.tasks.celery_app inspect ping" # Celery worker health check
+wait_for_service "ml-inference" "python -c 'import urllib.request; urllib.request.urlopen(\'http://localhost:5001/health\').read()'" # Assuming ML Inference has a health endpoint
+wait_for_service "mlops-worker" "celery -A src.mlops.tasks.celery_app inspect ping" # Assuming MLops worker has a celery app
+wait_for_service "ray-worker-1" "ray status"
+
 
 echo "=============================================================================="
 echo "✅ EQUAFLOW STACK EXECUTED SEQUENTIALLY (Zero-Touch)"

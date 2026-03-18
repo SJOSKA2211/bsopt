@@ -1,6 +1,6 @@
 name: bsopt
 
-src:
+services:
   # === Database Service ===
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
@@ -244,6 +244,11 @@ src:
       - INSIDE_DOCKER=1
       - ML_SERVICE_PORT=5001
       - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - bsopt-network
     volumes:
@@ -477,7 +482,7 @@ src:
     ports:
       - "5173:5173"
     volumes:
-      - ../../src.shared/frontend:/app
+      - ../../src/frontend:/app
       - /app/node_modules
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:5173/ || exit 1" ]
@@ -769,7 +774,7 @@ src:
   rust-src.shared:
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.rust-src.shared
+      dockerfile: infrastructure/orchestration/Dockerfile.rust-core
     volumes:
       - ../../:/app
       - shared_shm:/dev/shm
@@ -845,7 +850,7 @@ src:
       dockerfile: infrastructure/orchestration/Dockerfile.frontend
       target: development
     volumes:
-      - ../../src.shared/frontend:/app
+      - ../../src/frontend:/app
       - /app/node_modules
     networks:
       - bsopt-network
