@@ -928,10 +928,12 @@ networks:
           gateway: 172.28.0.1
 
 volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
   shared_shm:
+    driver: local
     driver_opts:
       type: tmpfs
       device: tmpfs
       o: "size=2048m"
-  postgres_data:
-  redis_data:
