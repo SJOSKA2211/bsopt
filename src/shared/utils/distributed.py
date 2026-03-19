@@ -20,7 +20,7 @@ class RayOrchestrator:
         """Pin the current process to a specific CPU src.shared."""
         try:
             os.sched_setaffinity(0, {core_id})
-            logger.info("cpu_affinity_set", src.shared=core_id)
+            logger.info("cpu_affinity_set", core_id=core_id)
         except Exception as e:
             logger.warning("cpu_pinning_failed", error=str(e))
 
@@ -82,7 +82,6 @@ class RayOrchestrator:
             memory_gb=round(object_store_memory / 1024**3, 2),
         )
 
-
         address = os.getenv("RAY_ADDRESS")
         if address:
             ray.init(address=address, ignore_reinit_error=True)
@@ -108,16 +107,16 @@ class RayOrchestrator:
 
 if __name__ == "__main__":
     from src.shared.utils.signals import shutdown_handler
-    
+
     RayOrchestrator.init()
     logger.info("ray_nodes_detected", nodes=ray.nodes())
-    
+
     # Register shutdown callback
     shutdown_handler.register_callback(RayOrchestrator.shutdown)
     shutdown_handler.setup()
-    
+
     async def run():
         logger.info("ray_orchestrator_running_wait_for_sigterm")
         await shutdown_handler.wait_for_shutdown()
-        
+
     asyncio.run(run())

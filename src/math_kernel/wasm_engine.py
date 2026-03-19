@@ -3,8 +3,8 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
-from src.math_kernel.base import PricingStrategy
 from src.database.models import BSParameters, OptionGreeks
+from src.math_kernel.base import PricingStrategy
 
 logger = structlog.get_logger()
 
