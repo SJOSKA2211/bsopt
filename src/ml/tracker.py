@@ -114,6 +114,17 @@ class ExperimentTracker:
         model_uri = f"runs:/{run_id}/{artifact_path}"
         return mlflow.register_model(model_uri, model_name)
 
+    def transition_model_stage(self, model_name: str, version: int, stage: str) -> None:
+        """Promote or rollback a model version in the registry."""
+        client = mlflow.tracking.MlflowClient()
+        client.transition_model_version_stage(
+            name=model_name,
+            version=version,
+            stage=stage,
+            archive_existing_versions=True if stage == "Production" else False
+        )
+        logger.info("model_stage_transitioned", name=model_name, version=version, stage=stage)
+
         # OPTIMIZED: Auto-export to ONNX for production inference
         try:
             from src.ml.strategies import get_strategy
