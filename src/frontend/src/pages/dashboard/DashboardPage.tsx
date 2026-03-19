@@ -14,9 +14,11 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useMotion } from '../../hooks/useMotion';
+import {
   Zap,
   Globe,
 } from '../../components/common/Icons';
+import {
   WaterfallChart as GreeksIconMui,
   Bolt as MLIconMui,
   AccountBalance as PortfolioIconMui,
