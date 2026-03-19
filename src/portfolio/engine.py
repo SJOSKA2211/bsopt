@@ -178,10 +178,39 @@ class BacktestEngine:
         res = minimize(objective, n * [1./n], method='SLSQP', bounds=bounds, constraints=constraints)
         return res.x
 
-    def optimize_black_litterman(self, views: np.ndarray, confidences: np.ndarray) -> np.ndarray:
-        """Black-Litterman model for institutional view incorporation."""
-        # Simplified implementation
-        return self.optimize_mvo() # Fallback for now, in reality combines prior + views
+    def optimize_black_litterman(self, views: np.ndarray, confidences: np.ndarray, tau: float = 0.05) -> np.ndarray:
+        """
+        Black-Litterman model for institutional view incorporation.
+        Combines market prior (equilibrium) with investor views.
+        """
+        from scipy.optimize import minimize
+        n = len(self.symbols)
+        
+        # 1. Prior Returns (Pi) - Simplified equilibrium returns
+        delta = 2.5 # Risk aversion coefficient
+        w_eq = np.ones(n) / n # Neutral prior
+        pi = delta * np.dot(self.cov_matrix, w_eq)
+        
+        # 2. View Integration
+        # P: Pick matrix (identity for absolute views on each asset)
+        P = np.eye(n)
+        # Omega: Uncertainty of views (diagonal matrix of variances)
+        omega = np.diag(confidences)
+        
+        # 3. Posterior Returns (Combined)
+        # Er = [(tau * Cov)^-1 + P' * Omega^-1 * P]^-1 * [(tau * Cov)^-1 * Pi + P' * Omega^-1 * Q]
+        term1 = np.linalg.inv(np.linalg.inv(tau * self.cov_matrix) + np.dot(P.T, np.dot(np.linalg.inv(omega), P)))
+        term2 = np.dot(np.linalg.inv(tau * self.cov_matrix), pi) + np.dot(P.T, np.dot(np.linalg.inv(omega), views))
+        er = np.dot(term1, term2)
+        
+        # 4. Final Optimization with Posterior Returns
+        def objective(w):
+            return -np.dot(w, er) + (delta/2) * np.dot(w.T, np.dot(self.cov_matrix, w))
+            
+        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+        bounds = tuple((0, 1) for _ in range(n))
+        res = minimize(objective, w_eq, method='SLSQP', bounds=bounds, constraints=constraints)
+        return res.x
 
     @staticmethod
     def sample_momentum_strategy(df: pd.DataFrame, params: dict = None) -> pd.DataFrame:
