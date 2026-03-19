@@ -73,3 +73,13 @@ def test_ml_admin_routes(mock_user_free, mock_user_admin):
         assert response.status_code == 201
 
     app.dependency_overrides.clear()
+
+def test_options_chain_auth_required():
+    """Verify options chain requires authentication."""
+    response = client.get("/api/v1/options/chain")
+    assert response.status_code == 401
+
+def test_pricing_calculate_auth_required():
+    """Verify pricing calculation requires authentication."""
+    response = client.post("/api/v1/pricing/calculate", json={"s": 100, "k": 100, "t": 1, "r": 0.05, "sigma": 0.2})
+    assert response.status_code == 401

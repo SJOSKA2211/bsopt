@@ -14,7 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
 from src.database import get_async_db
-from src.database.models import OptionPrice
+from src.database.models import OptionPrice, User
+from src.auth.auth import get_current_active_user
 from src.shared.shm_mesh import GreeksMesh
 from src.shared.utils.circuit_breaker import db_circuit
 
@@ -46,7 +47,10 @@ class OptionChainItem(msgspec.Struct):
 
 @router.get("/greeks/{symbol}", response_model=None)
 @db_circuit
-async def get_realtime_greeks(symbol: str) -> Any:
+async def get_realtime_greeks(
+    symbol: str, 
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
     if not data:
@@ -56,7 +60,10 @@ async def get_realtime_greeks(symbol: str) -> Any:
 
 @router.post("/greeks/batch", response_model=None)
 @db_circuit
-async def get_batch_greeks(symbols: list[str]) -> Any:
+async def get_batch_greeks(
+    symbols: list[str], 
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}
     for sym in symbols:
@@ -71,6 +78,7 @@ async def get_batch_greeks(symbols: list[str]) -> Any:
 async def get_options_chain(
     symbol: str = Query("AAPL", description="Underlying symbol"),
     expiry: str = Query("all", description="Expiry bucket filter"),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
     """Return the options chain for the requested symbol (Optimized DB lookup)."""

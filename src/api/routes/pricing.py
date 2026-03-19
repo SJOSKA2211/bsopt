@@ -7,7 +7,7 @@ import datetime
 
 import msgspec
 import structlog
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.pricing import (
@@ -19,6 +19,8 @@ from src.api.schemas.pricing import (
     PriceRequest,
     PriceResult,
 )
+from src.database.models import User
+from src.auth.auth import get_current_active_user
 from src.math_kernel.service import PricingService
 from src.shared.utils.cache import multi_layer_cache
 from src.shared.utils.circuit_breaker import pricing_circuit
@@ -31,7 +33,11 @@ pricing_service = PricingService()
 @router.post("/price", response_model=None)
 @pricing_circuit
 @multi_layer_cache(prefix="price", ttl=300)
-async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
+async def calculate_price(
+    body: PriceRequest, 
+    request: Request,
+    current_user: User = Depends(get_current_active_user)
+) -> PriceResult:
     """
     Calculate theoretical price for a single option.
     OPTIMIZED: Returns msgspec Struct for ultra-fast serialization.
@@ -48,7 +54,10 @@ async def calculate_price(body: PriceRequest, request: Request) -> PriceResult:
 @router.post("/batch", response_model=None)
 @pricing_circuit
 @multi_layer_cache(prefix="batch_price", ttl=60)
-async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult:
+async def calculate_batch_prices(
+    request: BatchPriceRequest,
+    current_user: User = Depends(get_current_active_user)
+) -> BatchPriceResult:
     """
     Vectorized batch pricing.
     OPTIMIZED: Zero-overhead batch response using msgspec Structs.
@@ -58,7 +67,10 @@ async def calculate_batch_prices(request: BatchPriceRequest) -> BatchPriceResult
 
 @router.post("/greeks/batch", response_model=None)
 @pricing_circuit
-async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResult:
+async def calculate_batch_greeks(
+    request: BatchGreeksRequest,
+    current_user: User = Depends(get_current_active_user)
+) -> BatchGreeksResult:
     """
     Vectorized batch Greek calculation.
     """
@@ -68,7 +80,10 @@ async def calculate_batch_greeks(request: BatchGreeksRequest) -> BatchGreeksResu
 @router.post("/greeks", response_class=MsgspecJSONResponse)
 @pricing_circuit
 @multi_layer_cache(prefix="greeks", ttl=300)
-async def calculate_greeks(body: GreeksRequest):
+async def calculate_greeks(
+    body: GreeksRequest,
+    current_user: User = Depends(get_current_active_user)
+):
     """
     Calculate option Greeks.
     """
@@ -94,7 +109,10 @@ class CalculateResponseStruct(msgspec.Struct):
 
 @router.post("/calculate")
 @pricing_circuit
-async def calculate(body: dict) -> MsgspecJSONResponse:
+async def calculate(
+    body: dict,
+    current_user: User = Depends(get_current_active_user)
+) -> MsgspecJSONResponse:
     """
     Convenience endpoint used by tests and demos.
     Maps {s, k, t, r, sigma, option_type, model} → {price, greeks}.

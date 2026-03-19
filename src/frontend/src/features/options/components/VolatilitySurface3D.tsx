@@ -12,15 +12,14 @@ interface VolatilitySurface3DProps {
 
 const Surface: React.FC<{ theme: Theme, data: number[] }> = ({ theme, data }) => {
   const geometry = useMemo(() => {
-    const segments = 30;
+    const segments = 50; // Increased fidelity
     const geo = new THREE.PlaneGeometry(10, 10, segments, segments);
     const vertices = geo.attributes.position.array;
 
-    // Map WASM results to vertices
     for (let i = 0; i < vertices.length; i += 3) {
       const index = i / 3;
       if (data[index] !== undefined) {
-        vertices[i + 2] = data[index] * 0.5; // Scale height for visibility
+        vertices[i + 2] = data[index] * 0.8; // Enhanced elevation
       }
     }
     
@@ -30,12 +29,21 @@ const Surface: React.FC<{ theme: Theme, data: number[] }> = ({ theme, data }) =>
 
   return (
     <mesh geometry={geometry} rotation={[-Math.PI / 3, 0, 0]}>
+      {/* Institutional Glassmorphism Material */}
       <meshStandardMaterial
         color={theme.palette.primary.main}
+        wireframe={false}
+        transparent={true}
+        opacity={0.8}
+        roughness={0.1}
+        metalness={0.5}
+        side={THREE.DoubleSide}
+      />
+      <meshBasicMaterial
+        color={theme.palette.secondary.main}
         wireframe={true}
         transparent={true}
-        opacity={0.6}
-        side={THREE.DoubleSide}
+        opacity={0.2}
       />
     </mesh>
   );
