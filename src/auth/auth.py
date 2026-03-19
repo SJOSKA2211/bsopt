@@ -460,7 +460,7 @@ async def get_current_user_flexible(
             user = await get_current_user(request, token, db, auth_service)
             if user:
                 return user
-        except HTTPException:
-            pass  # Fallback to anonymous if needed, or re-raise if strictly required
+        except HTTPException as e:
+            logger.debug("Token validation failed during optional auth", error=str(e))
 
     return None

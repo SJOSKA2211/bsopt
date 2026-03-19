@@ -735,6 +735,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           exclusive
           onChange={handleExpiryChange}
           size="small"
+          aria-label="Expiry Filter"
           sx={{
             bgcolor: alpha('#f8fafc', 0.05),
             borderRadius: 3,
@@ -807,6 +808,10 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         />
       </Box>
     </Box>
+  );
+});
+
+export default OptionsChain;Box>
   );
 });
 
