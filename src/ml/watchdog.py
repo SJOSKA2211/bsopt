@@ -43,12 +43,43 @@ class MLflowWatchdog:
                     
                     async def check_drift():
                         async with db_manager.async_engine.connect() as conn:
-                            # Check drift in greeks_drift_cagg
+                            # 1. Simple Threshold Check (Institutional Fast-Path)
                             result = await conn.execute(text("SELECT MAX(delta_stddev) FROM greeks_drift_cagg WHERE bucket > NOW() - INTERVAL '1 hour'"))
                             drift_val = result.scalar()
-                            if drift_val and drift_val > 0.15: # Threshold for institutional drift
+                            
+                            if drift_val and drift_val > 0.15:
                                 logger.warning("significant_data_drift_detected", drift=drift_val)
-                                self._trigger_retraining("neural_pricing_v2")
+                                
+                                # 2. Advanced Analysis with Evidently
+                                try:
+                                    from evidently.report import Report
+                                    from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
+                                    import pandas as pd
+                                    from src.shared.utils.storage import storage_manager
+
+                                    # Fetch sample data for Evidently
+                                    raw_data = await conn.execute(text("SELECT * FROM market_ticks WHERE time > NOW() - INTERVAL '2 hours'"))
+                                    df = pd.DataFrame(raw_data.fetchall())
+                                    
+                                    # Split into reference and current
+                                    mid = len(df) // 2
+                                    reference = df.iloc[:mid]
+                                    current = df.iloc[mid:]
+
+                                    report = Report(metrics=[DataDriftPreset(), TargetDriftPreset()])
+                                    report.run(reference_data=reference, current_data=current)
+                                    
+                                    report_path = "/tmp/drift_report.html"
+                                    report.save_html(report_path)
+                                    
+                                    # Upload to MinIO
+                                    storage_manager.upload_file("equaflow-artifacts", f"drift/report_{int(time.time())}.html", report_path)
+                                    logger.info("evidently_report_uploaded", bucket="equaflow-artifacts")
+                                    
+                                    self._trigger_retraining("neural_pricing_v2")
+                                except ImportError:
+                                    logger.warning("evidently_not_installed_skipping_advanced_analysis")
+                                    self._trigger_retraining("neural_pricing_v2")
 
                     asyncio.run(check_drift())
                 except Exception as e:
