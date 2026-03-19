@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
-from src.database import crud, get_async_db
 from src.auth.auth import require_tier
+from src.database import crud, get_async_db
 from src.shared.shm_mesh import SharedMemoryRingBuffer
 from src.shared.utils.circuit_breaker import db_circuit, pricing_circuit
 
@@ -71,6 +71,7 @@ async def get_deep_health():
 
     # 4. Redis Probe
     from src.shared.utils.cache import get_redis
+
     redis = get_redis()
     if redis:
         try:
@@ -87,6 +88,7 @@ async def get_deep_health():
         import aio_pika
 
         from src.config import settings
+
         # Quick connection attempt
         connection = await aio_pika.connect_robust(settings.RABBITMQ_URL, timeout=2)
         await connection.close()
@@ -118,7 +120,7 @@ async def get_system_status():
     )
 
 
-@router.get("/diagnostics/db", dependencies=[Depends(require_tier("enterprise"))])
+@router.get("/diagnostics/db", dependencies=[Depends(require_tier(["enterprise"]))])
 async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     High-Performance Database Diagnostics.
@@ -127,7 +129,7 @@ async def get_db_diagnostics(db: AsyncSession = Depends(get_async_db)):
     return DataResponseStruct(data=await crud.get_system_health_dashboard(db))
 
 
-@router.get("/diagnostics/io", dependencies=[Depends(require_tier("enterprise"))])
+@router.get("/diagnostics/io", dependencies=[Depends(require_tier(["enterprise"]))])
 async def get_io_diagnostics(db: AsyncSession = Depends(get_async_db)):
     """
     PostgreSQL 16 I/O Performance Audit.
