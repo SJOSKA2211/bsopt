@@ -65,7 +65,26 @@ def _get_rec_bisec(cov, sort_ix):
 
 
 class PortfolioOptimizer:
-    # ... (init and optimize_weights stay same)
+    """
+    Advanced Portfolio Optimization Engine.
+    Supports MVO, HRP, and Black-Litterman models.
+    """
+    def __init__(self, symbols: list[str], returns_df: pd.DataFrame):
+        self.symbols = symbols
+        self.returns = returns_df[symbols]
+        self.cov_matrix = self.returns.cov().values
+        self.mean_returns = self.returns.mean().values
+
+    def optimize_weights(self, method: str = "hrp", **kwargs) -> np.ndarray:
+        """Unified interface for weight optimization."""
+        if method == "hrp":
+            return self.optimize_hrp()
+        elif method == "mvo":
+            return self.optimize_mvo()
+        elif method == "black_litterman":
+            return self.optimize_black_litterman(kwargs.get("views"), kwargs.get("confidences"))
+        else:
+            raise ValueError(f"Unknown optimization method: {method}")
 
     def optimize_hrp(self) -> np.ndarray:
         """Hierarchical Risk Parity (HRP) allocation."""
@@ -221,3 +240,27 @@ class BacktestEngine:
         # Signal: 1 if price > EMA, else 0
         df["target_position"] = np.where(df["underlying_price"] > df["ema"], 10, 0)
         return df
+
+class RebalancingEngine:
+    """
+    Dynamic Portfolio Rebalancing Engine.
+    Generates execution-ready trade signals to align current portfolio with target weights.
+    """
+    def __init__(self, current_positions: dict[str, float], prices: dict[str, float]):
+        self.current = current_positions
+        self.prices = prices
+
+    def calculate_rebalance(self, target_weights: dict[str, float], total_nav: float) -> dict[str, float]:
+        """Calculate necessary trades (buy/sell amount in units)."""
+        rebalance_orders = {}
+        for symbol, weight in target_weights.items():
+            target_value = total_nav * weight
+            current_value = self.current.get(symbol, 0.0) * self.prices.get(symbol, 0.0)
+            diff_value = target_value - current_value
+            
+            # Simple linear trade (in units)
+            diff_units = diff_value / self.prices.get(symbol, 1.0)
+            rebalance_orders[symbol] = diff_units
+            
+        logger.info("rebalance_calculated", orders=rebalance_orders)
+        return rebalance_orders
