@@ -36,13 +36,14 @@ class WASMPricingEngine(PricingStrategy):
             return 0.0  # Fallback should be handled by factory
 
         # Route to specialized WASM solvers based on model type
-        if self.model in ["monte_carlo", "mc"]:
-            return self.price_monte_carlo(params, option_type)
-        if self.model in ["fdm", "crank_nicolson"]:
-            return self.price_american_cn(params, option_type)
-        if self.model == "heston":
-            # Heston requires specific parameters not in BSParameters directly, handled via symbol lookup.
-            return 0.0
+        try:
+            if self.model in ["monte_carlo", "mc"]:
+                return self.price_monte_carlo(params, option_type)
+            if self.model in ["fdm", "crank_nicolson"]:
+                return self.price_american_cn(params, option_type)
+            if self.model == "heston":
+                # Heston requires specific parameters not in BSParameters directly, handled via symbol lookup.
+                return 0.0
         except Exception as e:
             logger.error("wasm_pricing_failed", error=str(e))
             return 0.0
