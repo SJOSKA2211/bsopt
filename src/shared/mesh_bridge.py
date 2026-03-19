@@ -31,7 +31,7 @@ class MeshBridge:
         self.running = True
         try:
             os.sched_setaffinity(0, {cpu_core})
-            logger.info("mesh_broadcaster_pinned", src.shared=cpu_core)
+            logger.info("mesh_broadcaster_pinned", shared_core=cpu_core)
         except Exception:
             pass
 

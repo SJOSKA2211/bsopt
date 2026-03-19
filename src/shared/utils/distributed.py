@@ -20,7 +20,7 @@ class RayOrchestrator:
         """Pin the current process to a specific CPU src.shared."""
         try:
             os.sched_setaffinity(0, {core_id})
-            logger.info("cpu_affinity_set", src.shared=core_id)
+            logger.info("cpu_affinity_set", shared_core=core_id)
         except Exception as e:
             logger.warning("cpu_pinning_failed", error=str(e))
 

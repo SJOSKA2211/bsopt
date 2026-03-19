@@ -87,7 +87,7 @@ class OnlineRLAgent:
         """Hot loop: Pinned, spinning, and plastic."""
         try:
             os.sched_setaffinity(0, {cpu_core})
-            logger.info("agent_pinned_to_core", src.shared=cpu_core)
+            logger.info("agent_pinned_to_core", shared_core=cpu_core)
         except Exception as e:
             logger.error("agent_pinning_failed", error=str(e))
 

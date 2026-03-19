@@ -33,7 +33,7 @@ class GreekEngine:
         """Hot loop: Zero-latency Greek calculations."""
         try:
             os.sched_setaffinity(0, {cpu_core})
-            logger.info("greek_engine_pinned", src.shared=cpu_core)
+            logger.info("greek_engine_pinned", shared_core=cpu_core)
         except Exception:
             pass
 

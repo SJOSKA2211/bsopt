@@ -126,7 +126,7 @@ class OrderEngine:
         """Hot loop: Zero-latency order processing via Rust or Numba kernel."""
         try:
             os.sched_setaffinity(0, {cpu_core})
-            logger.info("order_engine_pinned", src.shared=cpu_core)
+            logger.info("order_engine_pinned", shared_core=cpu_core)
         except Exception:
             pass
 

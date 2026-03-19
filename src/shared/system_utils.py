@@ -18,7 +18,7 @@ def set_thread_affinity(core_id: int) -> None:
             available_cores = os.sched_getaffinity(0)
             if core_id in available_cores:
                 os.sched_setaffinity(0, {core_id})
-                logger.info("thread_pinned", src.shared=core_id)
+                logger.info("thread_pinned", shared_core=core_id)
             else:
                 logger.warning(
                     "core_not_available_for_affinity",
@@ -28,7 +28,7 @@ def set_thread_affinity(core_id: int) -> None:
         else:
             logger.debug("affinity_not_supported_on_platform")
     except Exception as e:
-        logger.error("affinity_setting_failed", error=str(e), src.shared=core_id)
+        logger.error("affinity_setting_failed", error=str(e), shared_core=core_id)
 
 
 def tune_gc(mode: str = "high_frequency") -> None:

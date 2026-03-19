@@ -45,7 +45,7 @@ class XDPIngester:
         if self._pulse:
             shm_path = f"/dev/shm/{SHM_NAME}"
             self._pulse.start(shm_path, cpu_core)
-            logger.info("rust_pulse_active_pinned", src.shared=cpu_core)
+            logger.info("rust_pulse_active_pinned", shared_core=cpu_core)
             return
 
         try:
@@ -61,7 +61,7 @@ class XDPIngester:
 
             self._thread = threading.Thread(target=self._run_loop, args=(cpu_core,), daemon=True)
             self._thread.start()
-            logger.info("python_ingest_started", src.shared=cpu_core)
+            logger.info("python_ingest_started", shared_core=cpu_core)
         except Exception as e:
             logger.error("ingest_start_failed", error=str(e))
             self._running = False
