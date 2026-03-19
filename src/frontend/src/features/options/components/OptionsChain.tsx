@@ -62,6 +62,22 @@ export interface OptionChainRow {
   put_theor?: number;
 }
 
+interface OptionNode {
+  id: string;
+  strike: number;
+  expiry: string;
+  optionType: string;
+  bid: number;
+  ask: number;
+  lastPrice: number;
+  volume: number;
+  openInterest: number;
+  iv: number;
+  price: number;
+  delta: number;
+  gamma: number;
+}
+
 const GET_OPTIONS_CHAIN = gql`
   query GetOptionsChain($symbol: String!, $expiryBucket: String) {
     marketData(symbol: $symbol) {
@@ -125,11 +141,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
 
-    const nodes = gqlData.options.edges.map((e: any) => e.node);
+    const nodes: OptionNode[] = gqlData.options.edges.map((e: { node: OptionNode }) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
-    nodes.forEach((node: any) => {
+    nodes.forEach((node: OptionNode) => {
       const key = `${node.strike}-${node.expiry}`;
       if (!groups[key]) {
         groups[key] = {
