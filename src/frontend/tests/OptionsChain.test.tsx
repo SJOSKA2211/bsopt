@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
+import { expect, test } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OptionsChain } from '../src/features/options/components/OptionsChain';
 import { ThemeProvider } from '@mui/material/styles';

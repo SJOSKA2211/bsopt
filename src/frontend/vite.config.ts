@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
       testTimeout: 15000,
       alias: {
         // Handle CSS imports (modules and regular)
-        "\.(css|less|scss|sass)$": 'identity-obj-proxy',
+        [/\.(css|less|scss|sass)$/.source]: 'identity-obj-proxy',
       },
       server: {
         deps: {

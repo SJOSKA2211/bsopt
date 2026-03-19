@@ -110,9 +110,9 @@ blue-green-deploy:
 test-all:
 	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
 	@echo "--- [Rust Core] ---"
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo fmt -- --check
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo test
+	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt -- --check
+	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
+	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
 	@echo "--- [Python API] ---"
 	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
 	@echo "--- [E2E & Auth] ---"
@@ -120,7 +120,7 @@ test-all:
 	@echo "✅ Gauntlet Passed."
 
 test-rust:
-	$(DOCKER_COMPOSE) run --rm rust-core cargo test
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
 
 test-python:
 	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
@@ -141,15 +141,15 @@ protos:
 	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
 		-I=core/protos --python_out=core/protos --grpc_python_out=core/protos core/protos/*.proto
 	@# Rust Bindings
-	@$(DOCKER_COMPOSE) run --rm rust-core cargo build
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo build
 
 lint:
 	$(DOCKER_COMPOSE) run --rm api ruff check .
-	$(DOCKER_COMPOSE) run --rm rust-core cargo clippy -- -D warnings
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
 
 format:
 	$(DOCKER_COMPOSE) run --rm api ruff format .
-	$(DOCKER_COMPOSE) run --rm rust-core cargo fmt
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt
 
 envoy-up:
 	@echo "🕸️  Launching Envoy Edge Proxy..."

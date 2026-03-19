@@ -38,15 +38,15 @@ global.ResizeObserver = class {
 
 // Mock Worker for WASM-based pricing
 global.Worker = class {
-  onmessage: ((ev: MessageEvent) => any) | null = null;
-  onmessageerror: ((ev: MessageEvent) => any) | null = null;
-  onerror: ((ev: ErrorEvent) => any) | null = null;
+  onmessage: ((ev: MessageEvent) => unknown) | null = null;
+  onmessageerror: ((ev: MessageEvent) => unknown) | null = null;
+  onerror: ((ev: ErrorEvent) => unknown) | null = null;
   postMessage() {}
   terminate() {}
   addEventListener() {}
   removeEventListener() {}
   dispatchEvent() { return true; }
-} as any;
+} as unknown as typeof Worker;
 
 // Mock Canvas getContext
 HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
@@ -74,7 +74,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
   transform: vi.fn(),
   rect: vi.fn(),
   clip: vi.fn(),
-})) as any;
+})) as unknown as RenderingContext;
 
 // Mock matchMedia which is used by some MUI components
 Object.defineProperty(window, 'matchMedia', {
@@ -93,7 +93,7 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock Apollo Client globally for components that do not have their own provider mock
 vi.mock('@apollo/client/react', async (importOriginal) => {
-  const actual: any = await importOriginal();
+  const actual = await importOriginal() as Record<string, unknown>;
   return {
     ...actual,
     useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
