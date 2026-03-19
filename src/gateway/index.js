@@ -19,6 +19,17 @@ const piscina = new Piscina({
   maxThreads: 8,
 });
 
+// Institutional Trace ID Generator
+const { v4: uuidv4 } = require('uuid');
+const Opossum = require('opossum');
+
+// Circuit Breaker Options
+const breakerOptions = {
+  timeout: 3000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 30000
+};
+
 async function start() {
   const app = fastify({
     logger: {
@@ -27,12 +38,32 @@ async function start() {
     disableRequestLogging: process.env.NODE_ENV === 'production',
   });
 
-  // Register Standard Plugins
+  // 1. Institutional Tracing (X-Request-ID)
+  app.addHook('onRequest', async (request, reply) => {
+    request.headers['x-request-id'] = request.headers['x-request-id'] || uuidv4();
+    reply.header('x-request-id', request.headers['x-request-id']);
+  });
+
+  // 2. Register Standard Plugins
   await app.register(require('@fastify/helmet'), {
     contentSecurityPolicy: process.env.NODE_ENV === 'production',
   });
   await app.register(require('@fastify/cors'));
   await app.register(require('@fastify/compress'));
+
+  // 3. Circuit Breaker Initialization for Upstreams
+  const breakers = subgraphs.map(s => {
+    const breaker = new Opossum(async (payload) => {
+      // Logic for proxied GraphQL calls
+      return { status: 'ok' };
+    }, breakerOptions);
+    
+    breaker.on('open', () => app.log.warn(`Circuit Breaker OPEN for ${s.name}`));
+    breaker.on('halfOpen', () => app.log.info(`Circuit Breaker HALF-OPEN for ${s.name}`));
+    breaker.on('close', () => app.log.info(`Circuit Breaker CLOSED for ${s.name}`));
+    
+    return { name: s.name, breaker };
+  });
 
   // Register Mercurius Gateway
   await app.register(mercurius, {
