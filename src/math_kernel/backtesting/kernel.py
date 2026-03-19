@@ -52,10 +52,15 @@ def calculate_metrics_kernel(equity_curve: np.ndarray, initial_capital: float):
     """Annualized metrics calculation in the kernel."""
     returns = np.diff(equity_curve) / equity_curve[:-1]
 
-    # Sharpe Ratio (Daily -> Annualized)
+    # Standard Metrics
     mean_ret = np.mean(returns)
     std_ret = np.std(returns)
     sharpe = (mean_ret / std_ret) * np.sqrt(252) if std_ret > 0 else 0.0
+
+    # Sortino Ratio (Downside-only standard deviation)
+    downside_returns = returns[returns < 0.0]
+    std_downside = np.std(downside_returns) if len(downside_returns) > 0 else 0.0
+    sortino = (mean_ret / std_downside) * np.sqrt(252) if std_downside > 0 else 0.0
 
     # Max Drawdown
     peak = equity_curve[0]
@@ -67,6 +72,8 @@ def calculate_metrics_kernel(equity_curve: np.ndarray, initial_capital: float):
         if dd < max_dd:
             max_dd = dd
 
+    # Calmar Ratio (Annualized Return / Max Drawdown)
     total_return = (equity_curve[-1] / initial_capital) - 1.0
+    calmar = (total_return / abs(max_dd)) if max_dd < 0 else 0.0
 
-    return total_return, sharpe, max_dd
+    return total_return, sharpe, sortino, calmar, max_dd

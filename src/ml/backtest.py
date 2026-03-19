@@ -20,7 +20,7 @@ def ray_backtest_task(
     equity_curve, mtm_pnl, commissions = run_simulation_kernel(
         prices, positions, initial_capital
     )
-    total_return, sharpe, max_dd = calculate_metrics_kernel(
+    total_return, sharpe, sortino, calmar, max_dd = calculate_metrics_kernel(
         equity_curve, initial_capital
     )
     
@@ -28,6 +28,8 @@ def ray_backtest_task(
         "ticker": ticker,
         "total_return": total_return,
         "sharpe": sharpe,
+        "sortino": sortino,
+        "calmar": calmar,
         "max_drawdown": max_dd,
         "final_equity": equity_curve[-1]
     }
