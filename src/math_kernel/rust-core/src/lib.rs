@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use memmap2::Mmap;
 use std::fs::File;
 use numpy::{IntoPyArray, PyArray1, PyReadonlyArray1, PyArray2};
-use rand::Rng;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use rand_distr::{StandardNormal, Distribution};
@@ -210,7 +209,7 @@ fn runge_kutta_4_gbm(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    t: f64,
+    _t: f64,
     dt: f64,
     steps: usize,
     seed: Option<u64>,
@@ -218,7 +217,6 @@ fn runge_kutta_4_gbm(
     let s0 = s0.as_array();
     let mu = mu.as_array();
     let sigma = sigma.as_array();
-    let n = s0.len();
     let n_paths = s0.len();
     
     let sqrt_dt = dt.sqrt();
@@ -328,7 +326,7 @@ fn runge_kutta_4_vectorized(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    t: f64,
+    _t: f64,
     dt: f64,
     steps: usize,
     seed: Option<u64>,
