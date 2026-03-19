@@ -17,14 +17,19 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import jwt
 import structlog
 from fastapi import HTTPException, Request, Response
-from jwt.exceptions import ExpiredSignatureError, InvalidAudienceError, InvalidTokenError, PyJWTError
+from jwt.exceptions import (
+    ExpiredSignatureError,
+    InvalidTokenError,
+    PyJWTError,
+)
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
@@ -37,15 +42,15 @@ logger = structlog.get_logger(__name__)
 class JWTClaims:
     """Validated JWT claims."""
     sub: str
-    email: Optional[str] = None
+    email: str | None = None
     tier: str = "free"
     roles: list[str] = None
     exp: int = 0
     iat: int = 0
-    jti: Optional[str] = None
+    jti: str | None = None
     token_type: str = "access"
-    issuer: Optional[str] = None
-    audience: Optional[str] = None
+    issuer: str | None = None
+    audience: str | None = None
 
     def __post_init__(self):
         if self.roles is None:
@@ -59,7 +64,7 @@ class JWTValidator:
 
     def __init__(
         self,
-        redis_client: Optional[Any] = None,
+        redis_client: Any | None = None,
         cache_ttl: int = 300,
         blacklist_ttl: int = 3600,
     ):
@@ -72,7 +77,7 @@ class JWTValidator:
         token_hash = hashlib.sha256(token.encode()).hexdigest()[:32]
         return f"jwt:validated:{token_hash}"
 
-    async def _get_from_cache(self, token: str) -> Optional[JWTClaims]:
+    async def _get_from_cache(self, token: str) -> JWTClaims | None:
         """Retrieve validated claims from cache."""
         if not self.redis:
             return None
@@ -260,7 +265,7 @@ class JWTValidator:
         else:
             expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         exp = now + expires_delta
 
         payload = {
@@ -308,8 +313,8 @@ class JWTValidatorMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        redis_client: Optional[Any] = None,
-        excluded_paths: Optional[set[str]] = None,
+        redis_client: Any | None = None,
+        excluded_paths: set[str] | None = None,
     ):
         super().__init__(app)
         self.validator = JWTValidator(redis_client=redis_client)

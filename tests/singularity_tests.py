@@ -5,11 +5,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.auth.service import AuthService
-from src.shared.config import settings
 from src.database.models import Base, OAuth2Client
 from src.ml.reinforcement_learning.transformer_policy import (
     TransformerOptimizedExtractor,
 )
+from src.shared.config import settings
 
 # --- DATABASE & AUTH TESTS ---
 

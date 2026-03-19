@@ -6,8 +6,8 @@ import structlog
 import yfinance as yf
 from aiolimiter import AsyncLimiter
 
-from src.shared.protos import data_pb2, data_pb2_grpc
 from src.ingestion.discovery import get_sp500_symbols
+from src.shared.protos import data_pb2, data_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 

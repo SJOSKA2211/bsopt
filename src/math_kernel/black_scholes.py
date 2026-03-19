@@ -3,10 +3,9 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
+from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
-
-from src.math_kernel.base import PricingStrategy
 
 try:
     import equaflow_core

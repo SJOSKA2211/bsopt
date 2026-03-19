@@ -3,9 +3,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from src.api.main import app
+from src.auth.auth import get_api_key
 from src.database import get_db
 from src.database.models import User
-from src.auth.auth import get_api_key
 
 
 def test_api_key_authentication(

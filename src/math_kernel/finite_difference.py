@@ -10,10 +10,9 @@ from typing import Any
 
 import numpy as np
 
+from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.quant_utils import jit_cn_solver
-
-from src.math_kernel.base import PricingStrategy
 
 logger = logging.getLogger(__name__)
 

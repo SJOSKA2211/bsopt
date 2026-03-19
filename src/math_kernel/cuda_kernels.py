@@ -12,14 +12,12 @@ For CPU-only mode (AVX-512), CuPy uses optimized BLAS libraries.
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import structlog
 
 try:
-    from numba import cuda
-    from numba import float64
+    from numba import cuda, float64
     from numba.core.extending import vectorize
     CUDA_AVAILABLE = cuda.is_available()
 except ImportError:
@@ -454,6 +452,6 @@ if __name__ == "__main__":
     start = time.perf_counter()
     portfolio = portfolio_greeks_cupy(positions, s, k, t, sigma, r, q, is_call)
     elapsed = time.perf_counter() - start
-    print(f"\nPortfolio Greeks:")
+    print("\nPortfolio Greeks:")
     for k, v in portfolio.items():
         print(f"  {k}: {v:.2f}")

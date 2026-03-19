@@ -8,8 +8,8 @@ from src.api.exceptions import (
 )
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponse, ErrorResponse
-from src.database import get_async_db, health_check
 from src.auth.auth import require_tier
+from src.database import get_async_db, health_check
 
 router = APIRouter(
     prefix="/debug",

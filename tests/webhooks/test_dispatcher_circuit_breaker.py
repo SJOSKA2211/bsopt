@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
+from src.api.webhooks.dispatcher import WebhookDispatcher
 from src.shared.circuit_breaker import (
     CircuitBreaker,
 )
-from src.api.webhooks.dispatcher import WebhookDispatcher
 
 
 # Placeholder for Celery task for red phase. Will be replaced by actual Celery task in next step

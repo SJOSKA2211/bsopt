@@ -94,9 +94,9 @@ class ExperimentTracker:
     def log_model(self, model: Any, framework: str, artifact_path: str = "model") -> None:
         """Log the model to MLflow with optional ONNX conversion."""
         import mlflow
+        import mlflow.pytorch
         import mlflow.sklearn
         import mlflow.xgboost
-        import mlflow.pytorch
 
         logger.info("logging_model", framework=framework, path=artifact_path)
 

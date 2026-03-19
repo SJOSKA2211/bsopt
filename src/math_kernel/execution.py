@@ -7,10 +7,10 @@ import numpy as np
 import structlog
 
 from src.blockchain.defi_options import DeFiOptionsProtocol
-from src.shared.config import settings
-from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 from src.math_kernel.risk_kernels import RiskVectorTracker
 from src.shared.cache import get_redis
+from src.shared.config import settings
+from src.shared.lua_scripts import ADVANCED_RISK_MATRIX
 
 logger = structlog.get_logger(__name__)
 
@@ -204,7 +204,7 @@ class OrderExecutor:
                 # OPTIMIZED: Trigger post-trade analytics or state sync here
             else:
                 logger.error("transaction_failed_on_chain", tx_hash=tx_hash)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("transaction_monitoring_timeout", tx_hash=tx_hash)
         except Exception as e:
             logger.error("monitoring_failed", tx_hash=tx_hash, error=str(e))

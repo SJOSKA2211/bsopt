@@ -2,8 +2,8 @@
 import grpc
 import structlog
 
-from src.shared.protos import auth_pb2, auth_pb2_grpc
 from src.auth.auth import auth_service
+from src.shared.protos import auth_pb2, auth_pb2_grpc
 
 logger = structlog.get_logger(__name__)
 

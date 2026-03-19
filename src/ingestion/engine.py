@@ -13,7 +13,6 @@ from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
 from src.config import settings
-from src.shared.protos import data_pb2, data_pb2_grpc
 from src.ingestion.mesh_publisher import get_market_publisher
 from src.shared.observability import (
     PROXY_FAILURES,
@@ -21,6 +20,7 @@ from src.shared.observability import (
     setup_logging,
     start_system_metrics_loop,
 )
+from src.shared.protos import data_pb2, data_pb2_grpc
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
 from src.shared.utils.http_client import HttpClientManager

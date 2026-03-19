@@ -13,14 +13,12 @@ Features:
 
 from __future__ import annotations
 
-import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import mlflow
 import structlog
-from mlflow.entities import RunStatus
 from mlflow.tracking import MlflowClient
 
 from src.shared.config import settings
@@ -58,11 +56,11 @@ class ModelComparator:
     Compares candidate model against production model.
     """
 
-    def __init__(self, model_name: str, client: Optional[MlflowClient] = None):
+    def __init__(self, model_name: str, client: MlflowClient | None = None):
         self.model_name = model_name
         self.client = client or MlflowClient()
 
-    def get_production_model(self) -> Optional[dict[str, Any]]:
+    def get_production_model(self) -> dict[str, Any] | None:
         """Get current production model version."""
         try:
             prod_versions = self.client.search_model_versions(
@@ -214,7 +212,7 @@ class ModelPromoter:
     def promote_candidate(
         self,
         run_id: str,
-        config: Optional[RollbackConfig] = None,
+        config: RollbackConfig | None = None,
     ) -> dict[str, Any]:
         """
         Promote candidate model to production.
@@ -345,7 +343,7 @@ class ModelPromoter:
 def automate_deployment(
     model_name: str,
     challenger_run_id: str,
-    config: Optional[RollbackConfig] = None,
+    config: RollbackConfig | None = None,
 ) -> dict[str, Any]:
     """
     CLI-friendly deployment automation.

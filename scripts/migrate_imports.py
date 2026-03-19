@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
-import shutil
 import re
+import shutil
 
 ROOT = "/home/kamau/bsopt"
 MAPPINGS = {
@@ -92,7 +92,7 @@ def rewrite_imports():
                 continue
                 
             filepath = os.path.join(root, file)
-            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+            with open(filepath, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
                 
             new_content = content

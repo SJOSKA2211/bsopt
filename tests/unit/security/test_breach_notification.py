@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.database.models import SecurityIncident
 from src.auth.breach_notification import BreachNotificationService
+from src.database.models import SecurityIncident
 
 
 @pytest.mark.asyncio

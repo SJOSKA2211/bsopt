@@ -5,9 +5,9 @@ import numpy as np
 import structlog
 from prometheus_client import Gauge
 
+from src.math_kernel.factory import PricingEngineFactory
 from src.ml.drift import calculate_ks_test, calculate_psi
 from src.ml.monitoring.mmd import MultivariateDriftDetector
-from src.math_kernel.factory import PricingEngineFactory
 
 logger = structlog.get_logger()
 

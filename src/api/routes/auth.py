@@ -27,9 +27,6 @@ from src.api.schemas.auth import (
 )
 from src.api.schemas.common import DataResponseStruct, SuccessResponse
 from src.api.schemas.user import UserResponse
-from src.config import settings
-from src.database import get_async_db, set_user_context
-from src.database.models import User
 from src.auth.auth import (
     auth_service,
     get_current_active_user,
@@ -38,6 +35,9 @@ from src.auth.auth import (
 from src.auth.mfa import mfa_service
 from src.auth.password import password_service
 from src.auth.rate_limit import rate_limit
+from src.config import settings
+from src.database import get_async_db, set_user_context
+from src.database.models import User
 
 logger = structlog.get_logger(__name__)
 
