@@ -23,6 +23,7 @@ class MarketDataScraper:
             if provider == "alpha_vantage"
             else "https://api.polygon.io"
         )
+        self._yfinance_enabled = provider in ["yfinance", "auto"]
 
     def _validate_inputs(self, ticker: str, start_date: str, end_date: str) -> None:
         """Validates ticker and date formats to prevent injection/traversal."""
@@ -270,6 +271,27 @@ class MarketDataScraper:
                     raise Exception(
                         f"Failed to fetch data for {ticker} after {self.max_retries} retries."
                     ) from e
+
+        # yfinance Implementation (Institutional Fallback)
+        if self._yfinance_enabled:
+            try:
+                import yfinance as yf
+                logger.info("scraping_via_yfinance", ticker=ticker)
+                data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+                if not data.empty:
+                    df = data.reset_index()
+                    df.columns = [c.lower() for c in df.columns]
+                    # Map to institutional standard
+                    df = df.rename(columns={"date": "timestamp", "adj close": "close"})
+                    # Convert to ms timestamp
+                    df["timestamp"] = (df["timestamp"].view("int64") // 10**6)
+                    
+                    duration = time.time() - start_time
+                    SCRAPE_DURATION.labels(api="yfinance").observe(duration)
+                    logger.info("scrape_success", ticker=ticker, api="yfinance")
+                    return df[["timestamp", "open", "high", "low", "close", "volume"]]
+            except Exception as e:
+                logger.warning("yfinance_scrape_failed", ticker=ticker, error=str(e))
 
         status_code = last_response.status_code if last_response else "No response"
         raise Exception(f"Failed to fetch data for {ticker}. Status: {status_code}")
