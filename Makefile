@@ -161,6 +161,17 @@ db-shell:
 alembic:
 	$(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
 
+institutional-ready:
+	@echo "🏢 Initializing Institutional Verification Flow..."
+	@$(MAKE) up
+	@echo "🩺 Running Containerized Readiness Checks..."
+	@$(DOCKER_COMPOSE) run --rm api python3 scripts/verify_readiness.py
+	@echo "🚀 Executing Institutional Smoke Test..."
+	@$(DOCKER_COMPOSE) run --rm api python3 scripts/institutional_smoke_test.py
+	@echo "📊 Benchmarking System Latency..."
+	@$(DOCKER_COMPOSE) run --rm api python3 scripts/benchmark_latency.py
+	@echo "✅ INSTITUTIONAL STATUS: GREEN"
+
 clean:
 	$(DOCKER_COMPOSE) down -v
 	find . -type d -name "__pycache__" -exec rm -rf {} +
