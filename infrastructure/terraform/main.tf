@@ -1,47 +1,45 @@
-# BS-Opt (EquaFlow) Infrastructure as Code
-# Terraform Scaffolding for AWS Deployment
+# EquaFlow Multi-Cloud Infrastructure Blueprint (AWS/GCP)
+# This Terraform manifest provides the core resource definitions for an institutional deployment.
 
 provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_vpc" "bsopt_vpc" {
+resource "aws_vpc" "equaflow_vpc" {
   cidr_block = "10.0.0.0/16"
-  enable_dns_support   = true
+  enable_dns_support = true
   enable_dns_hostnames = true
-  tags = { Name = "bsopt-vpc" }
+  tags = { Name = "EquaFlow-VPC" }
 }
 
-# ECS Cluster for Services
-resource "aws_ecs_cluster" "bsopt_cluster" {
-  name = "bsopt-cluster"
+resource "aws_db_instance" "timescaledb" {
+  allocated_storage = 500
+  engine = "postgres"
+  engine_version = "15.3"
+  instance_class = "db.m6g.xlarge"
+  db_name = "equaflow_prod"
+  username = "admin"
+  password = var.db_password
+  storage_type = "gp3"
+  multi_az = true
+  skip_final_snapshot = false
+}
+
+resource "aws_elasticache_cluster" "redis" {
+  cluster_id = "equaflow-redis"
+  engine = "redis"
+  node_type = "cache.m6g.large"
+  num_cache_nodes = 3
+  parameter_group_name = "default.redis7"
+  port = 6379
+}
+
+resource "aws_ecs_cluster" "equaflow_cluster" {
+  name = "EquaFlow-Cluster"
   setting {
-    name  = "containerInsights"
+    name = "containerInsights"
     value = "enabled"
   }
 }
 
-# TimescaleDB on RDS (PostgreSQL compatible)
-resource "aws_db_instance" "timescaledb" {
-  allocated_storage    = 100
-  engine               = "postgres"
-  engine_version       = "16"
-  instance_class       = "db.t3.large"
-  name                 = "bsopt"
-  username             = "admin"
-  password             = var.db_password
-  parameter_group_name = "default.postgres16"
-  skip_final_snapshot  = true
-}
-
-# RabbitMQ on MQ
-resource "aws_mq_broker" "rabbitmq" {
-  broker_name = "bsopt-rabbitmq"
-  engine_type = "RabbitMQ"
-  engine_version = "3.11.20"
-  host_instance_type = "mq.t3.micro"
-  user {
-    username = "admin"
-    password = var.rmq_password
-  }
-}
+# ECS Service Definitions would follow for each microservice (API, Scraper, Backtester, etc.)

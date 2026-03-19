@@ -22,6 +22,20 @@ This platform has undergone a 13-phase institutional hardening process:
 | **11** | **Risk Attribution** | MVO, Black-Litterman & Greeks | ✅ Complete |
 | **12** | **Compliance** | Institutional Audit Log & Circuit Breakers | ✅ Complete |
 | **13** | **Validation** | Day-0 Smoke Test & Readiness Suite | ✅ Complete |
+| **14** | **Institutional Launch** | Multi-Asset Expansion | ⏳ In Progress |
+| **15** | **Portfolio P&L Explain** | Advanced Attribution & Reporting | ⏳ In Progress |
+| **16** | **Performance & Environment Alignment** | Benchmarking & Optimization | ⏳ In Progress |
+| **17** | **Portfolio Rebalancing** | Dynamic Asset Allocation | ⏳ In Progress |
+| **18** | **Institutional Governance** | Handoff & Documentation | ⏳ In Progress |
+| **19** | **UI/UX Polishing** | 3D Analytics & Visualization | ⏳ In Progress |
+| **20** | **Global Launch** | Multi-Cloud Provisioning | ⏳ In Progress |
+
+## 🏛️ Maintenance & Scaling
+- **Horizontal Scaling**: Use `ray scale --up` to increase compute power for backtesting.
+- **Database Cleanup**: TimescaleDB continuous aggregates automatically age out data according to the policy in `Makefile`.
+- **Security Audit**: Run `make security-scan` weekly.
+
+**EquaFlow: The Institutional Standard.**
 
 ## 🏛️ Advanced Architecture
 
