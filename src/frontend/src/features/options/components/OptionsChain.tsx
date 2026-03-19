@@ -213,15 +213,26 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         })
       ];
 
-      let results;
-      if (pricingModel === 'black_scholes') {
-        results = await batchCalculate(allParams);
-      } else if (pricingModel === 'monte_carlo') {
-        results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
-      } else if (pricingModel === 'crank_nicolson') {
-        results = await Promise.all(allParams.map(p => priceAmerican(p)));
-      } else if (pricingModel === 'heston') {
-        results = await Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
+      interface WasmPricingResult {
+        delta: number;
+        gamma: number;
+        price: number;
+        iv: number;
+      }
+      let results: WasmPricingResult[] | undefined;
+      try {
+        if (pricingModel === 'black_scholes') {
+          results = await batchCalculate(allParams);
+        } else if (pricingModel === 'monte_carlo') {
+          results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
+        } else if (pricingModel === 'crank_nicolson') {
+          results = await Promise.all(allParams.map(p => priceAmerican(p)));
+        } else if (pricingModel === 'heston') {
+          results = await Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
+        }
+      } catch (e: unknown) {
+        console.error('WASM Batch enrichment failed:', e);
+        return;
       }
 
       if (results) {
