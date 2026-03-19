@@ -13,6 +13,17 @@ interface WasmGreeksCellProps {
   isCall: boolean;
 }
 
+interface WasmResult {
+  price: number;
+  greeks: {
+    delta: number;
+    gamma: number;
+    vega: number;
+    theta: number;
+    rho: number;
+  };
+}
+
 export const WasmGreeksCell = React.memo(({
   spot,
   strike,
@@ -24,7 +35,7 @@ export const WasmGreeksCell = React.memo(({
 }: WasmGreeksCellProps) => {
   const { priceOption, isLoaded } = useWasmPricing();
 
-  const [result, setResult] = React.useState<any>(null);
+  const [result, setResult] = React.useState<WasmResult | null>(null);
 
   React.useEffect(() => {
     if (!isLoaded) return;

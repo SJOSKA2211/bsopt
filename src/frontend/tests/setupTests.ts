@@ -30,23 +30,29 @@ vi.mock('lightweight-charts', () => ({
 }));
 
 // Mock ResizeObserver which is used by lightweight-charts and echarts but not present in jsdom
-(globalThis as any).ResizeObserver = class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+Object.defineProperty(globalThis, 'ResizeObserver', {
+  value: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+  writable: true
+});
 
 // Mock Worker for WASM-based pricing
-(globalThis as any).Worker = class {
-  onmessage: ((ev: MessageEvent) => unknown) | null = null;
-  onmessageerror: ((ev: MessageEvent) => unknown) | null = null;
-  onerror: ((ev: ErrorEvent) => unknown) | null = null;
-  postMessage() {}
-  terminate() {}
-  addEventListener() {}
-  removeEventListener() {}
-  dispatchEvent() { return true; }
-} as unknown as typeof Worker;
+Object.defineProperty(globalThis, 'Worker', {
+  value: class {
+    onmessage: ((ev: MessageEvent) => unknown) | null = null;
+    onmessageerror: ((ev: MessageEvent) => unknown) | null = null;
+    onerror: ((ev: ErrorEvent) => unknown) | null = null;
+    postMessage() {}
+    terminate() {}
+    addEventListener() {}
+    removeEventListener() {}
+    dispatchEvent() { return true; }
+  },
+  writable: true
+});
 
 // Mock Canvas getContext
 (HTMLCanvasElement.prototype.getContext as unknown) = vi.fn(() => ({

@@ -78,6 +78,13 @@ interface OptionNode {
   gamma: number;
 }
 
+interface WasmPricingResult {
+  delta: number;
+  gamma: number;
+  price: number;
+  iv: number;
+}
+
 const GET_OPTIONS_CHAIN = gql`
   query GetOptionsChain($symbol: String!, $expiryBucket: String) {
     marketData(symbol: $symbol) {
@@ -118,7 +125,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
   const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
-  const [enrichedResults, setEnrichedResults] = useState<Record<string, any>[]>([]);
+  const [enrichedResults, setEnrichedResults] = useState<WasmPricingResult[]>([]);
   const [lastSpot, setLastSpot] = useState<number>(0);
 
   // Fetch options chain data via Federated GraphQL
@@ -141,7 +148,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
 
-    const nodes: OptionNode[] = gqlData.options.edges.map((e: { node: OptionNode }) => e.node);
+    const nodes: OptionNode[] = (gqlData?.options?.edges || []).map((e: { node: OptionNode }) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
@@ -213,12 +220,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         })
       ];
 
-      interface WasmPricingResult {
-        delta: number;
-        gamma: number;
-        price: number;
-        iv: number;
-      }
       let results: WasmPricingResult[] | undefined;
       try {
         if (pricingModel === 'black_scholes') {
