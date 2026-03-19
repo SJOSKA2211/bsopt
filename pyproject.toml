@@ -149,7 +149,8 @@ markers = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["src*"]
 namespaces = false
 
 [tool.coverage.run]
