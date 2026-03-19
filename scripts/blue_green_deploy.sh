@@ -41,12 +41,17 @@ if [ "$HEALTHY" = false ]; then
     exit 1
 fi
 
-# 4. Traffic Switch (Envoy Update)
+# 4. Traffic Switch (Envoy Hot-Reload)
 echo "🔄 Switching traffic to $NEW_COLOR stack..."
-# Repoint the 'api' upstream in Envoy config
-sed -i "s/api-$CURRENT_COLOR/api-$NEW_COLOR/g" docker/envoy.yaml
-# Hot-reload Envoy (using SIGHUP if supported or restart)
-podman kill -s SIGHUP envoy || podman restart envoy
+# Ensure health checks are solid before switch
+if ! curl -s "http://localhost:$( [[ $NEW_COLOR == "green" ]] && echo "5002" || echo "5001" )/ready" | grep -q "ready"; then
+    echo "❌ $NEW_COLOR stack is NOT ready for traffic. Aborting."
+    exit 1
+fi
+
+ENVOY_CONTAINER=$(docker ps --format "{{.Names}}" | grep envoy || podman ps --format "{{.Names}}" | grep envoy)
+docker cp infrastructure/orchestration/envoy.yaml "$ENVOY_CONTAINER":/etc/envoy/envoy.yaml
+docker kill -s SIGHUP "$ENVOY_CONTAINER" || podman kill -s SIGHUP "$ENVOY_CONTAINER"
 
 # 5. Cleanup (Optional: keep Blue for 5 mins then scale down)
 echo "🧹 Deployment successful. $NEW_COLOR is now LIVE."
