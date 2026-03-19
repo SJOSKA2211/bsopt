@@ -280,12 +280,14 @@ class NSEScraper:
                     try:
                         ticks = []
                         for symbol, item in new_cache.items():
-                            ticks.append(data_pb2.Tick(
-                                ticker=symbol,
-                                price=float(item.get("price", 0)),
-                                timestamp=int(time.time()),
-                                source="NSE"
-                            ))
+                            ticks.append(
+                                data_pb2.Tick(
+                                    ticker=symbol,
+                                    price=float(item.get("price", 0)),
+                                    timestamp=int(time.time()),
+                                    source="NSE",
+                                )
+                            )
                         if ticks:
                             await self.data_stub.IngestTicks(data_pb2.TickBatch(ticks=ticks))
                             logger.info("nse_ingestion_sent_to_grpc", count=len(ticks))

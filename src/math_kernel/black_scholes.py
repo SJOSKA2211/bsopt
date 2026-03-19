@@ -10,6 +10,7 @@ from src.math_kernel.base import PricingStrategy
 
 try:
     import equaflow_core
+
     CORE_AVAILABLE = True
 except ImportError:
     CORE_AVAILABLE = False
@@ -251,6 +252,7 @@ class BlackScholesEngine(PricingStrategy):
         delta, gamma, theta, vega, rho = calculate_greeks(S, K, T, sigma, r, q, is_call)
 
         if "out_delta" in kwargs:
+
             def _copy(dst, src):
                 if isinstance(src, np.ndarray):
                     np.copyto(dst, src)

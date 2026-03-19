@@ -31,6 +31,6 @@ def test_pricing_loads_dep_on_attribute_access():
     from src.shared.lazy_import import get_import_stats
 
     stats = get_import_stats()
-    assert any("src.quant.pricing.QuantumOptionPricer" in k for k in stats["slowest_imports"]) or any(
-        "src.quant.pricing.QuantumOptionPricer" in k for k in stats["failures"]
-    )
+    assert any(
+        "src.quant.pricing.QuantumOptionPricer" in k for k in stats["slowest_imports"]
+    ) or any("src.quant.pricing.QuantumOptionPricer" in k for k in stats["failures"])

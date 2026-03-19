@@ -29,6 +29,7 @@ logger = structlog.get_logger(__name__)
 
 class TrainingTrigger(Enum):
     """Training trigger types."""
+
     SCHEDULED = "scheduled"
     MANUAL = "manual"
     DATA_DRIFT = "data_drift"
@@ -38,6 +39,7 @@ class TrainingTrigger(Enum):
 
 class TrainingStatus(Enum):
     """Training job status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -48,6 +50,7 @@ class TrainingStatus(Enum):
 @dataclass
 class TrainingConfig:
     """Configuration for training job."""
+
     model_name: str
     experiment_name: str
     symbols: list[str] = field(default_factory=list)
@@ -65,6 +68,7 @@ class TrainingConfig:
 @dataclass
 class TrainingResult:
     """Result of a training job."""
+
     status: TrainingStatus
     run_id: Optional[str] = None
     metrics: dict[str, float] = field(default_factory=dict)
@@ -93,6 +97,7 @@ class HealthChecker:
         """Check if database is accessible."""
         try:
             from src.database import db_manager
+
             db_manager.initialize()
             async with db_manager.session() as session:
                 result = await session.execute("SELECT 1")
@@ -107,6 +112,7 @@ class HealthChecker:
         """Check if Ray cluster is accessible."""
         try:
             import ray
+
             if not ray.is_initialized():
                 ray.init(ignore_reinit_error=True)
 
@@ -295,16 +301,18 @@ class AutoTrainer:
             with mlflow.start_run(tags=config.tags) as run:
                 result.run_id = run.info.run_id
 
-                mlflow.log_params({
-                    "model_name": config.model_name,
-                    "symbols": ",".join(config.symbols),
-                    "market_type": config.market_type,
-                    "epochs": config.epochs,
-                    "batch_size": config.batch_size,
-                    "learning_rate": config.learning_rate,
-                    "trigger": config.trigger.value,
-                    **{k: str(v) for k, v in config.hyperparameters.items()},
-                })
+                mlflow.log_params(
+                    {
+                        "model_name": config.model_name,
+                        "symbols": ",".join(config.symbols),
+                        "market_type": config.market_type,
+                        "epochs": config.epochs,
+                        "batch_size": config.batch_size,
+                        "learning_rate": config.learning_rate,
+                        "trigger": config.trigger.value,
+                        **{k: str(v) for k, v in config.hyperparameters.items()},
+                    }
+                )
 
                 from src.ml.distributed_training import BSOptDistributedTrainer
 
@@ -312,12 +320,14 @@ class AutoTrainer:
 
                 metrics = await asyncio.get_event_loop().run_in_executor(
                     None,
-                    lambda: trainer.run({
-                        "symbols": config.symbols,
-                        "epochs": config.epochs,
-                        "batch_size": config.batch_size,
-                        "learning_rate": config.learning_rate,
-                    }),
+                    lambda: trainer.run(
+                        {
+                            "symbols": config.symbols,
+                            "epochs": config.epochs,
+                            "batch_size": config.batch_size,
+                            "learning_rate": config.learning_rate,
+                        }
+                    ),
                 )
 
                 for key, value in metrics.items():

@@ -75,17 +75,17 @@ def setup_tracing(
         logger.info("tracing_disabled", service=service_name)
         return
 
-    otlp_endpoint = otlp_endpoint or os.getenv(
-        "OTEL_EXPORTER_OTLP_ENDPOINT", "http://tempo:4317"
-    )
+    otlp_endpoint = otlp_endpoint or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://tempo:4317")
 
-    resource = Resource.create({
-        SERVICE_NAME: service_name,
-        SERVICE_VERSION: service_version,
-        "deployment.environment": env,
-        "host.name": os.getenv("HOSTNAME", "unknown"),
-        "process.pid": os.getpid(),
-    })
+    resource = Resource.create(
+        {
+            SERVICE_NAME: service_name,
+            SERVICE_VERSION: service_version,
+            "deployment.environment": env,
+            "host.name": os.getenv("HOSTNAME", "unknown"),
+            "process.pid": os.getpid(),
+        }
+    )
 
     if sampling_ratio >= 1.0:
         sampler = AlwaysOnSampler()
@@ -292,6 +292,7 @@ def trace_function(
         def my_function(x, y):
             return x + y
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
@@ -310,6 +311,7 @@ def trace_function(
                 return await func(*args, **kwargs)
 
         import asyncio
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
@@ -420,6 +422,7 @@ if __name__ == "__main__":
     @trace_function("example_async_operation", attributes={"async": True})
     async def example_async_function(x: int) -> int:
         import asyncio
+
         await asyncio.sleep(0.1)
         return x * 2
 

@@ -1,7 +1,7 @@
 """
 HashiCorp Vault Secret Management Service
 
-Handles rotational secret fetching, JWT key management, and 
+Handles rotational secret fetching, JWT key management, and
 secure configuration injection for EquaFlow.
 """
 
@@ -12,6 +12,7 @@ import hvac
 import structlog
 
 logger = structlog.get_logger(__name__)
+
 
 class VaultService:
     """
@@ -55,5 +56,6 @@ class VaultService:
             "ECC_PRIVATE": keys.get("ECC_PRIVATE_KEY", ""),
             "ECC_PUBLIC": keys.get("ECC_PUBLIC_KEY", ""),
         }
+
 
 vault_service = VaultService()

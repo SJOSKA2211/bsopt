@@ -31,6 +31,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class PerformanceMetrics:
     """Model performance metrics."""
+
     sharpe_ratio: float
     max_drawdown: float
     accuracy: float
@@ -46,6 +47,7 @@ class PerformanceMetrics:
 @dataclass
 class RollbackConfig:
     """Configuration for rollback decisions."""
+
     sharpe_degradation_threshold: float = 0.05
     max_drawdown_threshold: float = 0.10
     accuracy_degradation_threshold: float = 0.05
@@ -172,9 +174,7 @@ class ModelComparator:
 
         if cand_drawdown > prod_drawdown + config.max_drawdown_threshold:
             should_deploy = False
-            rollback_reasons.append(
-                f"Max drawdown increased by {drawdown_change * 100:.2f}%"
-            )
+            rollback_reasons.append(f"Max drawdown increased by {drawdown_change * 100:.2f}%")
 
         if prod_accuracy > 0 and accuracy_change < -config.accuracy_degradation_threshold:
             should_deploy = False
@@ -237,9 +237,7 @@ class ModelPromoter:
             }
 
         try:
-            existing_versions = self.client.search_model_versions(
-                f"name='{self.model_name}'"
-            )
+            existing_versions = self.client.search_model_versions(f"name='{self.model_name}'")
 
             model_uri = f"runs:/{run_id}/model"
             mv = self.client.create_model_version(

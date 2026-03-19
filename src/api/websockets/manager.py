@@ -335,6 +335,7 @@ class ConnectionManager:
                     # Exponential Backoff with Jitter for sending messages
                     async def send_with_backoff(c: WebSocket, d: bytes) -> None:
                         import random
+
                         retries = 3
                         base_delay = 0.1
                         for attempt in range(retries):

@@ -194,8 +194,11 @@ class AuthService:
         elif algorithm.startswith("ES"):
             # We'll need to add es256 properties to settings if they don't exist
             # For now, let's assume settings has them or fallback
-            return getattr(settings, "es256_private_key", settings.rsa_private_key) if is_private else \
-                   getattr(settings, "es256_public_key", settings.rsa_public_key)
+            return (
+                getattr(settings, "es256_private_key", settings.rsa_private_key)
+                if is_private
+                else getattr(settings, "es256_public_key", settings.rsa_public_key)
+            )
         return settings.JWT_SECRET
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
@@ -203,7 +206,7 @@ class AuthService:
         to_encode = data.copy()
         expire = datetime.now(UTC) + expires_delta
         to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
-        
+
         algorithm = self.algorithm
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -215,7 +218,7 @@ class AuthService:
             unverified_header = jwt.get_unverified_header(token)
             algorithm = unverified_header.get("alg", self.algorithm)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
+
             payload = jwt.decode(token, key, algorithms=[algorithm])
             jti = payload.get("jti")
             exp_timestamp = payload.get("exp")
@@ -230,7 +233,7 @@ class AuthService:
             unverified_header = jwt.get_unverified_header(token)
             algorithm = unverified_header.get("alg", self.algorithm)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
+
             payload = jwt.decode(token, key, algorithms=[algorithm])
             return TokenData(
                 user_id=payload.get("sub"),
@@ -261,6 +264,7 @@ class AuthService:
                 cached_data = await redis_client.get(f"session_v3:{token}")
                 if cached_data:
                     import msgspec
+
                     data = msgspec.json.decode(cached_data)
                     return TokenData(
                         user_id=data["user_id"],

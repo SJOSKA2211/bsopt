@@ -1,7 +1,7 @@
 """
 Data Imputation Service for EquaFlow
 
-Handles missing value imputation using advanced statistical methods 
+Handles missing value imputation using advanced statistical methods
 (KNN, Iterative Imputer) to ensure high-quality data for ML pipelines.
 """
 
@@ -15,6 +15,7 @@ from sklearn.impute import KNNImputer, SimpleImputer
 
 logger = structlog.get_logger(__name__)
 
+
 class DataImputationService(BaseEstimator, TransformerMixin):
     """
     Institutional-grade imputation service for financial time-series.
@@ -24,7 +25,7 @@ class DataImputationService(BaseEstimator, TransformerMixin):
         self.method = method
         self.n_neighbors = n_neighbors
         self.imputer: BaseEstimator | None = None
-        
+
         if method == "knn":
             self.imputer = KNNImputer(n_neighbors=n_neighbors)
         elif method == "median":
@@ -49,28 +50,26 @@ class DataImputationService(BaseEstimator, TransformerMixin):
         """
         if self.imputer is None:
             raise RuntimeError("Imputer has not been initialized.")
-        
+
         missing_count = X.isnull().sum().sum()
         if missing_count == 0:
             return X
 
         logger.info("imputing_missing_values", count=missing_count)
-        
+
         # ⚡ OPTIMIZED: sklearn-native transform
         X_imputed = self.imputer.transform(X)
-        
+
         # Restore columns and index
         return pd.DataFrame(X_imputed, columns=X.columns, index=X.index)
 
     def fit_transform(self, X: pd.DataFrame, y: Any = None) -> pd.DataFrame:
         return self.fit(X).transform(X)
 
+
 if __name__ == "__main__":
     # Test block
-    data = pd.DataFrame({
-        "a": [1, 2, np.nan, 4],
-        "b": [np.nan, 5, 6, 7]
-    })
+    data = pd.DataFrame({"a": [1, 2, np.nan, 4], "b": [np.nan, 5, 6, 7]})
     imputer = DataImputationService(method="knn")
     imputed_data = imputer.fit_transform(data)
     print(imputed_data)

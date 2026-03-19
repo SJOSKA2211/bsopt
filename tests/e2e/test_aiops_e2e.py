@@ -22,7 +22,9 @@ def mock_e2e_dependencies():
         patch("src.ml.aiops.aiops_orchestrator.RedisRemediator") as MockRedisRemediator,
         patch("src.ml.aiops.aiops_orchestrator.setup_logging") as MockSetupLogging,
         patch("src.ml.aiops.aiops_orchestrator.logger") as MockOrchestratorLogger,
-        patch("src.ml.aiops.aiops_orchestrator.post_grafana_annotation") as MockPostGrafanaAnnotation,
+        patch(
+            "src.ml.aiops.aiops_orchestrator.post_grafana_annotation"
+        ) as MockPostGrafanaAnnotation,
         patch("src.ml.aiops.aiops_orchestrator.push_metrics") as MockPushMetrics,
         patch("src.shared.observability.os.environ.get") as MockSharedEnvironGet,
     ):

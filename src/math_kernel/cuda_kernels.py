@@ -21,6 +21,7 @@ try:
     from numba import cuda
     from numba import float64
     from numba.core.extending import vectorize
+
     CUDA_AVAILABLE = cuda.is_available()
 except ImportError:
     CUDA_AVAILABLE = False
@@ -29,6 +30,7 @@ except ImportError:
 try:
     import cupy as cp
     from cupyx.scipy.special import erf as cupy_erf
+
     CUPY_AVAILABLE = True
 except ImportError:
     cp = np
@@ -200,9 +202,9 @@ def black_scholes_cupy(
 ) -> np.ndarray:
     """
     GPU-accelerated Black-Scholes option pricing via CuPy.
-    
+
     Falls back to CPU with SIMD optimization if CUDA is unavailable.
-    
+
     Args:
         s: Spot price(s) - shape (n,)
         k: Strike price(s) - shape (n,)
@@ -211,7 +213,7 @@ def black_scholes_cupy(
         r: Risk-free rate - shape (n,)
         q: Dividend yield - shape (n,)
         is_call: True for call, False for put - shape (n,)
-    
+
     Returns:
         Option prices - shape (n,)
     """
@@ -223,36 +225,36 @@ def black_scholes_cupy(
         r = cp.asarray(r, dtype=cp.float64)
         q = cp.asarray(q, dtype=cp.float64)
         is_call = cp.asarray(is_call, dtype=cp.bool_)
-        
+
         sqrt_t = cp.sqrt(t)
-        d1 = (cp.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
+        d1 = (cp.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
         d2 = d1 - sigma * sqrt_t
-        
+
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
-        
+
         exp_qt = cp.exp(-q * t)
         exp_rt = cp.exp(-r * t)
-        
+
         call_price = s * exp_qt * cdf_d1 - k * exp_rt * cdf_d2
         put_price = k * exp_rt * (1 - cdf_d2) - s * exp_qt * (1 - cdf_d1)
-        
+
         result = cp.where(is_call, call_price, put_price)
         return cp.asnumpy(result)
     else:
         sqrt_t = np.sqrt(t)
-        d1 = (np.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
+        d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
         d2 = d1 - sigma * sqrt_t
-        
+
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
-        
+
         exp_qt = np.exp(-q * t)
         exp_rt = np.exp(-r * t)
-        
+
         call_price = s * exp_qt * cdf_d1 - k * exp_rt * cdf_d2
         put_price = k * exp_rt * (1 - cdf_d2) - s * exp_qt * (1 - cdf_d1)
-        
+
         return np.where(is_call, call_price, put_price)
 
 
@@ -267,7 +269,7 @@ def black_scholes_greeks_cupy(
 ) -> dict[str, np.ndarray]:
     """
     GPU-accelerated Black-Scholes Greeks computation via CuPy.
-    
+
     Returns:
         Dictionary with delta, gamma, theta, vega, rho
     """
@@ -279,37 +281,39 @@ def black_scholes_greeks_cupy(
         r = cp.asarray(r, dtype=cp.float64)
         q = cp.asarray(q, dtype=cp.float64)
         is_call = cp.asarray(is_call, dtype=cp.bool_)
-        
+
         sqrt_t = cp.sqrt(t)
-        d1 = (cp.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
+        d1 = (cp.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
         d2 = d1 - sigma * sqrt_t
-        
-        pdf_d1 = (1.0 / cp.sqrt(2 * cp.pi)) * cp.exp(-0.5 * d1 ** 2)
+
+        pdf_d1 = (1.0 / cp.sqrt(2 * cp.pi)) * cp.exp(-0.5 * d1**2)
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
-        
+
         exp_qt = cp.exp(-q * t)
         exp_rt = cp.exp(-r * t)
-        
+
         call_delta = exp_qt * cdf_d1
         put_delta = exp_qt * (cdf_d1 - 1.0)
         delta = cp.where(is_call, call_delta, put_delta)
-        
+
         gamma = exp_qt * pdf_d1 / (s * sigma * sqrt_t)
         vega = s * exp_qt * pdf_d1 * sqrt_t * 0.01
-        
-        theta_call = (-(s * sigma * exp_qt * pdf_d1) / (2.0 * sqrt_t)) + \
-                     (q * s * exp_qt * cdf_d1) - \
-                     (r * k * exp_rt * cdf_d2)
-        
+
+        theta_call = (
+            (-(s * sigma * exp_qt * pdf_d1) / (2.0 * sqrt_t))
+            + (q * s * exp_qt * cdf_d1)
+            - (r * k * exp_rt * cdf_d2)
+        )
+
         theta_call_per_day = theta_call / 365.0
         theta_put_per_day = (theta_call + r * k * exp_rt - q * s * exp_qt) / 365.0
         theta = cp.where(is_call, theta_call_per_day, theta_put_per_day)
-        
+
         rho_call = k * t * exp_rt * cdf_d2 * 0.01
         rho_put = -k * t * exp_rt * (1 - cdf_d2) * 0.01
         rho = cp.where(is_call, rho_call, rho_put)
-        
+
         return {
             "delta": cp.asnumpy(delta),
             "gamma": cp.asnumpy(gamma),
@@ -319,35 +323,37 @@ def black_scholes_greeks_cupy(
         }
     else:
         sqrt_t = np.sqrt(t)
-        d1 = (np.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
+        d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t) / (sigma * sqrt_t)
         d2 = d1 - sigma * sqrt_t
-        
-        pdf_d1 = (1.0 / np.sqrt(2 * np.pi)) * np.exp(-0.5 * d1 ** 2)
+
+        pdf_d1 = (1.0 / np.sqrt(2 * np.pi)) * np.exp(-0.5 * d1**2)
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
-        
+
         exp_qt = np.exp(-q * t)
         exp_rt = np.exp(-r * t)
-        
+
         call_delta = exp_qt * cdf_d1
         put_delta = exp_qt * (cdf_d1 - 1.0)
         delta = np.where(is_call, call_delta, put_delta)
-        
+
         gamma = exp_qt * pdf_d1 / (s * sigma * sqrt_t)
         vega = s * exp_qt * pdf_d1 * sqrt_t * 0.01
-        
-        theta_call = (-(s * sigma * exp_qt * pdf_d1) / (2.0 * sqrt_t)) + \
-                     (q * s * exp_qt * cdf_d1) - \
-                     (r * k * exp_rt * cdf_d2)
-        
+
+        theta_call = (
+            (-(s * sigma * exp_qt * pdf_d1) / (2.0 * sqrt_t))
+            + (q * s * exp_qt * cdf_d1)
+            - (r * k * exp_rt * cdf_d2)
+        )
+
         theta_call_per_day = theta_call / 365.0
         theta_put_per_day = (theta_call + r * k * exp_rt - q * s * exp_qt) / 365.0
         theta = np.where(is_call, theta_call_per_day, theta_put_per_day)
-        
+
         rho_call = k * t * exp_rt * cdf_d2 * 0.01
         rho_put = -k * t * exp_rt * (1 - cdf_d2) * 0.01
         rho = np.where(is_call, rho_call, rho_put)
-        
+
         return {
             "delta": delta,
             "gamma": gamma,
@@ -368,7 +374,7 @@ def batch_price_cupy(
 ) -> np.ndarray:
     """
     Batch pricing for large option portfolios.
-    
+
     Optimized for pricing thousands of options simultaneously.
     Uses CuPy for GPU acceleration when available.
     """
@@ -386,7 +392,7 @@ def batch_greeks_cupy(
 ) -> dict[str, np.ndarray]:
     """
     Batch Greeks computation for large option portfolios.
-    
+
     Returns:
         Dictionary with delta, gamma, theta, vega, rho arrays
     """
@@ -405,32 +411,32 @@ def portfolio_greeks_cupy(
 ) -> dict[str, float]:
     """
     Calculate portfolio-level Greeks from position array.
-    
+
     Args:
         positions: Position quantities (positive for long, negative for short)
         s, k, t, sigma, r, q, is_call: Standard BS parameters for each position
-    
+
     Returns:
         Portfolio-level delta, gamma, theta, vega, rho
     """
     greeks = black_scholes_greeks_cupy(s, k, t, sigma, r, q, is_call)
-    
+
     portfolio_greeks = {}
     for greek_name, greek_values in greeks.items():
         portfolio_greeks[f"net_{greek_name}"] = float(np.sum(positions * greek_values))
-    
+
     return portfolio_greeks
 
 
 if __name__ == "__main__":
     import time
-    
+
     print(f"CUDA available: {CUDA_AVAILABLE}")
     print(f"CuPy available: {CUPY_AVAILABLE}")
-    
+
     n = 100_000
     print(f"\nBenchmarking {n:,} options...")
-    
+
     s = np.random.uniform(90, 110, n)
     k = np.random.uniform(90, 110, n)
     t = np.random.uniform(0.1, 2.0, n)
@@ -438,18 +444,18 @@ if __name__ == "__main__":
     r = np.full(n, 0.05)
     q = np.full(n, 0.02)
     is_call = np.random.choice([True, False], n)
-    
+
     if CUPY_AVAILABLE:
         start = time.perf_counter()
         prices = black_scholes_cupy(s, k, t, sigma, r, q, is_call)
         elapsed = time.perf_counter() - start
-        print(f"CuPy Pricing: {elapsed:.4f}s ({n/elapsed:,.0f} options/sec)")
-        
+        print(f"CuPy Pricing: {elapsed:.4f}s ({n / elapsed:,.0f} options/sec)")
+
         start = time.perf_counter()
         greeks = black_scholes_greeks_cupy(s, k, t, sigma, r, q, is_call)
         elapsed = time.perf_counter() - start
-        print(f"CuPy Greeks: {elapsed:.4f}s ({n/elapsed:,.0f} options/sec)")
-    
+        print(f"CuPy Greeks: {elapsed:.4f}s ({n / elapsed:,.0f} options/sec)")
+
     positions = np.random.choice([-1, 1], n) * np.random.randint(1, 100, n)
     start = time.perf_counter()
     portfolio = portfolio_greeks_cupy(positions, s, k, t, sigma, r, q, is_call)

@@ -24,6 +24,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class MarketTick:
     """Market tick data structure."""
+
     symbol: str
     price: float
     volume: int
@@ -82,6 +83,7 @@ class MarketTick:
 @dataclass
 class ProducerConfig:
     """Kafka producer configuration."""
+
     bootstrap_servers: str = "localhost:9092"
     client_id: str = "equaflow-producer"
     acks: str = "all"
@@ -316,7 +318,9 @@ class MarketDataProducer:
         return {
             "status": "running",
             "delivery_reports_queued": len(self._delivery_reports),
-            "out_queue_length": self._producer._queue_buffer.qsize() if hasattr(self._producer, '_queue_buffer') else 0,
+            "out_queue_length": self._producer._queue_buffer.qsize()
+            if hasattr(self._producer, "_queue_buffer")
+            else 0,
         }
 
 
@@ -348,6 +352,7 @@ class MultiTopicProducer:
     def _get_topic(self, symbol: str) -> str:
         """Determine topic based on symbol pattern."""
         import re
+
         for pattern, topic in self.topic_routes.items():
             if re.match(pattern, symbol):
                 return topic
@@ -384,7 +389,7 @@ if __name__ == "__main__":
             )
 
             result = producer.send_tick(tick)
-            print(f"Sent tick {i+1}: {tick.symbol} @ {tick.price:.2f} -> {result}")
+            print(f"Sent tick {i + 1}: {tick.symbol} @ {tick.price:.2f} -> {result}")
 
             if i % 10 == 0:
                 producer._producer.poll(1)
