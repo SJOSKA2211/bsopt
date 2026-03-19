@@ -229,8 +229,8 @@ class AuthService:
             if jti and exp_timestamp:
                 exp = datetime.fromtimestamp(exp_timestamp, tz=UTC)
                 await token_blacklist.add(jti, exp)
-        except PyJWTError:
-            pass
+        except PyJWTError as e:
+            logger.warning("Token decode failed during invalidation", error=str(e))
 
     def decode_token(self, token: str) -> TokenData:
         try:

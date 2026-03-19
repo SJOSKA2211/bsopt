@@ -52,6 +52,42 @@ class RiskAttributor:
             "vega_impact": vega_pnl
         }
 
+class PnLExplainer:
+    """
+    Institutional P&L Explain Engine.
+    Decomposes realized P&L into Greek-level components for performance attribution.
+    """
+    def __init__(self, start_greeks: Dict[str, float], end_greeks: Dict[str, float]):
+        self.start = start_greeks
+        self.end = end_greeks
+
+    def explain_pnl(self, spot_move: float, vol_move: float, dt: float) -> Dict[str, float]:
+        """
+        P&L Explain (Attribution).
+        dP = Delta*dS + 0.5*Gamma*dS^2 + Vega*dV + Theta*dt + Residual
+        """
+        delta_pnl = self.start.get("delta", 0.0) * spot_move
+        gamma_pnl = 0.5 * self.start.get("gamma", 0.0) * (spot_move ** 2)
+        vega_pnl = self.start.get("vega", 0.0) * vol_move
+        theta_pnl = self.start.get("theta", 0.0) * dt
+        
+        explained_pnl = delta_pnl + gamma_pnl + vega_pnl + theta_pnl
+        
+        logger.info("pnl_explained", 
+                    delta=delta_pnl, 
+                    gamma=gamma_pnl, 
+                    vega=vega_pnl, 
+                    theta=theta_pnl,
+                    total=explained_pnl)
+        
+        return {
+            "delta_pnl": delta_pnl,
+            "gamma_pnl": gamma_pnl,
+            "vega_pnl": vega_pnl,
+            "theta_pnl": theta_pnl,
+            "explained_total": explained_pnl
+        }
+
 if __name__ == "__main__":
     # Mock data for demonstration
     mock_portfolio = [

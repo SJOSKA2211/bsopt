@@ -690,6 +690,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           placeholder="Filter strike..."
           value={searchTerm}
           onChange={handleSearchChange}
+          inputProps={{
+            'aria-label': 'Filter strike',
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -711,6 +714,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           exclusive
           onChange={handleModelChange}
           size="small"
+          aria-label="Pricing Model"
           sx={{
             bgcolor: alpha('#f8fafc', 0.05),
             borderRadius: 3,
@@ -808,10 +812,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         />
       </Box>
     </Box>
-  );
-});
-
-export default OptionsChain;Box>
   );
 });
 

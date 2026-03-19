@@ -86,7 +86,7 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
   return (
     <Box
       data-testid="volatility-surface-container"
-      sx={{ width: '100%', height: '100%', minHeight: 400, bgcolor: 'background.paper', borderRadius: 1, position: 'relative' }}
+      aria-label="3D Volatility Surface Visualization"
     >
       <Typography variant="subtitle2" align="center" sx={{ pt: 1, color: 'text.secondary' }}>
         3D Theoretical Price Surface (WASM) - {symbol}
