@@ -78,7 +78,7 @@ const DonutChart: React.FC = () => {
 
   return (
     <Box>
-      <svg viewBox="0 0 180 180" style={{ width: '100%', maxWidth: 180 }}>
+      <svg role="img" aria-label="Portfolio Allocation Donut Chart" viewBox="0 0 180 180" style={{ width: '100%', maxWidth: 180 }}>
         {paths.map((p) => (
           <path
             key={p.label}
@@ -122,7 +122,7 @@ const PnlChart: React.FC = () => {
     .join(' L ');
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 120, overflow: 'visible' }}>
+    <svg role="img" aria-label="Portfolio P&L Trajectory Chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 120, overflow: 'visible' }}>
       <defs>
         <linearGradient id="pnl-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
@@ -151,7 +151,7 @@ export const PortfolioPage: React.FC = () => {
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
             <Typography
-              variant="h3"
+              variant="h2"
               sx={{
                 fontWeight: 900,
                 mb: 0.5,
@@ -202,7 +202,7 @@ export const PortfolioPage: React.FC = () => {
                       {kpi.label}
                     </Typography>
                     <Typography
-                      variant="h4"
+                      variant="h2"
                       sx={{
                         fontWeight: 900,
                         my: 1,
@@ -239,8 +239,8 @@ export const PortfolioPage: React.FC = () => {
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
-              <AllocationIcon sx={{ color: 'secondary.main', fontSize: 20 }} />
-              <Typography variant="body1" sx={{ fontWeight: 900, fontFamily: 'Outfit' }}>
+              <AllocationIcon sx={{ color: 'secondary.main', fontSize: 20 }} aria-label="Allocation Chart" />
+              <Typography variant="h3" sx={{ fontWeight: 900, fontFamily: 'Outfit', fontSize: '1.25rem' }}>
                 Allocation
               </Typography>
             </Stack>

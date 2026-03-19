@@ -714,6 +714,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <TextField
           size="small"
           placeholder="Filter strike..."
+          aria-label="Search by strike price"
           value={searchTerm}
           onChange={handleSearchChange}
           inputProps={{
@@ -722,7 +723,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <Search sx={{ fontSize: 18, opacity: 0.5 }} />
+                <Search sx={{ color: 'text.secondary', opacity: 0.5 }} />
               </InputAdornment>
             ),
           }}
@@ -738,9 +739,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <ToggleButtonGroup
           value={pricingModel}
           exclusive
-          onChange={handleModelChange}
+          onChange={(_, val) => val && setPricingModel(val)}
+          aria-label="Select pricing model"
           size="small"
-          aria-label="Pricing Model"
           sx={{
             bgcolor: alpha('#f8fafc', 0.05),
             borderRadius: 3,
@@ -790,6 +791,8 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <DataGrid
           rows={processedData}
           columns={columns}
+          aria-label="Options Chain Data Grid"
+          getRowId={(row) => row.id}
           loading={isLoading}
           disableRowSelectionOnClick
           onRowClick={handleRowClick}

@@ -147,6 +147,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography
               variant="overline"
+              id={`kpi-label-${label.replace(/\s+/g, '-').toLowerCase()}`}
               sx={{
                 color: alpha(theme.palette.text.primary, 0.5),
                 fontWeight: 900,
@@ -158,6 +159,8 @@ const KpiCard: React.FC<KpiCardProps> = ({
             </Typography>
             <Box
               className="card-icon"
+              role="img"
+              aria-label={`${label} icon`}
               sx={{
                 color: alpha(accentColor, 0.6),
                 transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -171,7 +174,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
 
           <Box>
             <Typography
-              variant="h3"
+              variant="h2"
               sx={{
                 fontWeight: 900,
                 fontFamily: 'JetBrains Mono',
@@ -214,6 +217,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
               <LinearProgress
                 variant="determinate"
                 value={progress}
+                aria-labelledby={`kpi-label-${label.replace(/\s+/g, '-').toLowerCase()}`}
                 sx={{
                   height: 6,
                   borderRadius: 3,
@@ -398,7 +402,7 @@ export const DashboardPage: React.FC = () => {
             >
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
                 <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 900, letterSpacing: '-0.03em' }}>Temporal Trajectory</Typography>
+                  <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.03em', fontSize: '1.5rem' }}>Temporal Trajectory</Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600 }}>Live market telemetry from SHM Ringbuffer</Typography>
                 </Box>
                 <Stack direction="row" spacing={1} sx={{ bgcolor: alpha('#000', 0.2), p: 0.5, borderRadius: 3 }}>
@@ -446,9 +450,9 @@ export const DashboardPage: React.FC = () => {
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
                     <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1) }}>
-                      <MLIconMui sx={{ color: qfd?.electrum, fontSize: 20 }} />
+                      <MLIconMui sx={{ color: qfd?.electrum, fontSize: 20 }} aria-label="Neural Inference Chart" />
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 900 }}>Neural Inference</Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 900, fontSize: '1.25rem' }}>Neural Inference</Typography>
                   </Stack>
                   <Suspense fallback={<LoadingFallback />}>
                     <MLPredictions symbol="SPX" />
@@ -459,9 +463,9 @@ export const DashboardPage: React.FC = () => {
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
                     <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.1) }}>
-                      <GreeksIconMui sx={{ color: qfd?.nebula, fontSize: 20 }} />
+                      <GreeksIconMui sx={{ color: qfd?.nebula, fontSize: 20 }} aria-label="Greeks Heatmap" />
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 900 }}>Greeks Surface</Typography>
+                    <Typography variant="h3" sx={{ fontWeight: 900, fontSize: '1.25rem' }}>Greeks Surface</Typography>
                   </Stack>
                   <Suspense fallback={<LoadingFallback />}>
                     <GreeksHeatmap symbol="SPX" greek="delta" />
