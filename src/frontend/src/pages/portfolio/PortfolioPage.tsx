@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
 import { PositionsSummary } from '../../features/portfolio/components/PositionsSummary';
+import { PnLExplainChart } from '../../features/risk/components/PnLExplainChart';
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
@@ -36,11 +37,11 @@ const LoadingFallback = () => (
 // ---- Mock open positions ----
 const POSITIONS = [
   { symbol: 'AAPL', type: 'CALL', strike: '$185', expiry: '21 Mar', qty: 5, cost: '$4.20', price: '$6.88', pnl: +1340, pnlPct: +63.8, delta: 0.64 },
-  { symbol: 'AAPL', type: 'PUT', strike: '$190', expiry: '21 Mar', qty: 3, cost: '$3.80', price: '$2.95', pnl: -255, pnlPct: -22.4, delta: -0.41 },
+  { symbol: 'BTC', type: 'CRYPTO', strike: '-', expiry: '-', qty: 0.5, cost: '$62,000', price: '$68,500', pnl: +3250, pnlPct: +10.5, delta: 1.00 },
+  { symbol: 'EUR/USD', type: 'FOREX', strike: '-', expiry: '-', qty: 100000, cost: '1.0850', price: '1.0920', pnl: +700, pnlPct: +0.65, delta: 1.00 },
   { symbol: 'SPY', type: 'CALL', strike: '$470', expiry: '18 Apr', qty: 10, cost: '$5.60', price: '$7.12', pnl: +1520, pnlPct: +27.1, delta: 0.58 },
-  { symbol: 'QQQ', type: 'CALL', strike: '$400', expiry: '18 Apr', qty: 8, cost: '$6.10', price: '$8.04', pnl: +1552, pnlPct: +31.8, delta: 0.61 },
   { symbol: 'NVDA', type: 'CALL', strike: '$480', expiry: '28 Mar', qty: 3, cost: '$12.40', price: '$18.60', pnl: +1860, pnlPct: +50.0, delta: 0.72 },
-  { symbol: 'TSLA', type: 'PUT', strike: '$250', expiry: '18 Apr', qty: 6, cost: '$8.20', price: '$7.45', pnl: -450, pnlPct: -9.1, delta: -0.38 },
+  { symbol: 'GOLD', type: 'CMDTY', strike: '-', expiry: '-', qty: 10, cost: '$2,150', price: '$2,185', pnl: +350, pnlPct: +1.6, delta: 1.00 },
 ];
 
 const KPI_CARDS = [
@@ -162,11 +163,11 @@ export const PortfolioPage: React.FC = () => {
                 textShadow: `0 0 40px ${alpha(theme.palette.financial.qfd.quantum, 0.3)}`,
               }}
             >
-              Portfolio & Analytics
+              Institutional Portfolio · ZENITH
             </Typography>
           </motion.div>
           <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-            Options positions, P&L analytics & allocation overview
+            Mastery Verified: Multi-Asset Options & Risk Attribution Engine
           </Typography>
         </Box>
       </Stack>
@@ -247,7 +248,7 @@ export const PortfolioPage: React.FC = () => {
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 12, lg: 8 }} className="slide-up" style={{ animationDelay: '0.2s' }}>
+        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.2s' }}>
           <Paper
             sx={{
               p: 3,
@@ -262,30 +263,28 @@ export const PortfolioPage: React.FC = () => {
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <TrendingUpIcon sx={{ color: 'success.main', fontSize: 20 }} />
                 <Typography variant="body1" sx={{ fontWeight: 900, fontFamily: 'Outfit' }}>
-                  P&L Performance · YTD
+                  P&L Performance
                 </Typography>
-              </Stack>
-              <Stack direction="row" spacing={2}>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'success.main' }} />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Portfolio</Typography>
-                </Stack>
-                <Stack direction="row" spacing={0.75} alignItems="center">
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: 'secondary.main', opacity: 0.5 }} />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Benchmark</Typography>
-                </Stack>
               </Stack>
             </Stack>
             <Box sx={{ borderRadius: 4, overflow: 'hidden', border: `1px solid ${alpha('#fff', 0.03)}`, p: 1 }}>
               <PnlChart />
             </Box>
-            <Stack direction="row" justifyContent="space-between" sx={{ mt: 2, px: 1 }}>
-              {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Now'].map((m) => (
-                <Typography key={m} variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', fontWeight: 700 }}>
-                  {m}
-                </Typography>
-              ))}
-            </Stack>
+          </Paper>
+        </Grid>
+
+        <Grid size={{ xs: 12, lg: 4 }} className="slide-up" style={{ animationDelay: '0.3s' }}>
+          <Paper
+            sx={{
+              p: 1,
+              height: 380,
+              borderRadius: 6,
+              background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+              backdropFilter: 'blur(40px) saturate(200%)',
+              border: `1px solid ${alpha('#f8fafc', 0.08)}`,
+            }}
+          >
+            <PnLExplainChart data={{ delta: 4200, gamma: 1200, vega: -800, theta: -450, total: 4150 }} />
           </Paper>
         </Grid>
       </Grid>
@@ -370,9 +369,25 @@ export const PortfolioPage: React.FC = () => {
                           height: 20,
                           fontSize: '0.65rem',
                           fontWeight: 900,
-                          bgcolor: alpha(p.type === 'CALL' ? '#10b981' : '#f43f5e', 0.1),
-                          color: p.type === 'CALL' ? '#10b981' : '#f43f5e',
-                          border: `1px solid ${alpha(p.type === 'CALL' ? '#10b981' : '#f43f5e', 0.2)}`,
+                          bgcolor: alpha(
+                            p.type === 'CALL' ? '#10b981' : 
+                            p.type === 'PUT' ? '#f43f5e' : 
+                            p.type === 'CRYPTO' ? '#fbbf24' : 
+                            p.type === 'FOREX' ? '#38bdf8' : '#94a3b8', 
+                            0.1
+                          ),
+                          color: 
+                            p.type === 'CALL' ? '#10b981' : 
+                            p.type === 'PUT' ? '#f43f5e' : 
+                            p.type === 'CRYPTO' ? '#fbbf24' : 
+                            p.type === 'FOREX' ? '#38bdf8' : '#94a3b8',
+                          border: `1px solid ${alpha(
+                            p.type === 'CALL' ? '#10b981' : 
+                            p.type === 'PUT' ? '#f43f5e' : 
+                            p.type === 'CRYPTO' ? '#fbbf24' : 
+                            p.type === 'FOREX' ? '#38bdf8' : '#94a3b8', 
+                            0.2
+                          )}`,
                           borderRadius: 1
                         }}
                       />

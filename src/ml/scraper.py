@@ -60,9 +60,9 @@ class MarketDataScraper:
         return final_results
 
     async def fetch_historical_data(
-        self, ticker: str, start_date: str, end_date: str
+        self, ticker: str, start_date: str, end_date: str, asset_class: str = "equity", interval: str = "1d"
     ) -> pd.DataFrame:
-        """Fetch historical daily data for a given ticker and date range asynchronously."""
+        """Fetch historical data for a given ticker and range (Institutional Grade)."""
         self._validate_inputs(ticker, start_date, end_date)
         last_response: httpx.Response | None = None
         client = HttpClientManager.get_client()

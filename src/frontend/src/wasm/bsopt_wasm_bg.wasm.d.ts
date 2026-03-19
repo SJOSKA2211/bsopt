@@ -1,5 +1,5 @@
 /* tslint:disable */
-/* eslint-disable */
+ 
 export const memory: WebAssembly.Memory;
 export const __wbg_americanoptionswasm_free: (a: number, b: number) => void;
 export const __wbg_blackscholeswasm_free: (a: number, b: number) => void;
