@@ -1,6 +1,12 @@
-import React, { useMemo, useEffect, useState } from 'react';
-import { Box, Typography, useTheme, CircularProgress } from '@mui/material';
-import type { Theme } from '@mui/material';
+import React, { useState, useMemo, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Stack,
+  CircularProgress,
+  useTheme,
+  alpha,
+} from '@mui/material';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -10,40 +16,33 @@ interface VolatilitySurface3DProps {
   symbol: string;
 }
 
-const Surface: React.FC<{ theme: Theme, data: number[] }> = ({ theme, data }) => {
+const Surface: React.FC<{ theme: any; data: number[] }> = ({ theme, data }) => {
+  const meshRef = React.useRef<THREE.Mesh>(null);
+  const size = Math.sqrt(data.length);
+  
   const geometry = useMemo(() => {
-    const segments = 50; // Increased fidelity
-    const geo = new THREE.PlaneGeometry(10, 10, segments, segments);
-    const vertices = geo.attributes.position.array;
-
-    for (let i = 0; i < vertices.length; i += 3) {
-      const index = i / 3;
-      if (data[index] !== undefined) {
-        vertices[i + 2] = data[index] * 0.8; // Enhanced elevation
-      }
+    const geo = new THREE.PlaneGeometry(10, 10, size - 1, size - 1);
+    const vertices = geo.attributes.position.array as Float32Array;
+    
+    for (let i = 0; i < data.length; i++) {
+      // Index 2 is Z-axis in Three.js plane
+      vertices[i * 3 + 2] = data[i] * 2; 
     }
     
     geo.computeVertexNormals();
     return geo;
-  }, [data]);
+  }, [data, size]);
 
   return (
-    <mesh geometry={geometry} rotation={[-Math.PI / 3, 0, 0]}>
-      {/* Institutional Glassmorphism Material */}
-      <meshStandardMaterial
+    <mesh ref={meshRef} geometry={geometry} rotation={[-Math.PI / 2, 0, 0]}>
+      <meshPhongMaterial
         color={theme.palette.primary.main}
-        wireframe={false}
-        transparent={true}
-        opacity={0.8}
-        roughness={0.1}
-        metalness={0.5}
+        specular={0x111111}
+        shininess={100}
         side={THREE.DoubleSide}
-      />
-      <meshBasicMaterial
-        color={theme.palette.secondary.main}
-        wireframe={true}
-        transparent={true}
-        opacity={0.2}
+        transparent
+        opacity={0.8}
+        wireframe
       />
     </mesh>
   );
@@ -51,30 +50,28 @@ const Surface: React.FC<{ theme: Theme, data: number[] }> = ({ theme, data }) =>
 
 export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol }) => {
   const theme = useTheme();
-  const { batchCalculate, isLoaded } = useWasmPricing();
+  const { isLoaded, batchCalculate } = useWasmPricing();
   const [surfaceData, setSurfaceData] = useState<number[]>([]);
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    // Generate grid points for the surface
-    const segments = 30;
-    const size = segments + 1;
+    // Generate grid points for surface
+    const strikes = [140, 145, 150, 155, 160, 165, 170, 175, 180, 185];
+    const times = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+    
     const params: any[] = [];
-    const spot = 150; // Mock spot
+    const spot = 155.5;
+    const vol = 0.25;
     const rate = 0.05;
-    const div = 0.0;
+    const div = 0.01;
 
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        const time = 0.1 + (i / segments) * 2.0; // 0.1 to 2.1 years
-        const strike = spot * (0.7 + (j / segments) * 0.6); // 70% to 130% of spot
-        const vol = 0.2 + Math.abs(strike - spot) / spot * 0.5; // Smile mock
-
+    for (const t of times) {
+      for (const k of strikes) {
         params.push({
           spot,
-          strike,
-          time,
+          strike: k,
+          time: t,
           vol,
           rate,
           div,
