@@ -38,10 +38,11 @@ async function start() {
     disableRequestLogging: process.env.NODE_ENV === 'production',
   });
 
-  // 1. Institutional Tracing (X-Request-ID)
+  // 1. Institutional Tracing (X-Request-ID) & Versioning
   app.addHook('onRequest', async (request, reply) => {
     request.headers['x-request-id'] = request.headers['x-request-id'] || uuidv4();
     reply.header('x-request-id', request.headers['x-request-id']);
+    reply.header('x-api-version', 'v1');
   });
 
   // 2. Register Standard Plugins

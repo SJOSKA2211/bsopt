@@ -13,7 +13,9 @@ from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
 from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
 from src.database import get_async_db
+from src.database.models import User
 from src.database.crud import get_model_drift_metrics
+from src.auth.auth import get_current_active_user, require_tier
 from src.ml.service import MLService, get_ml_service
 from src.shared.utils.circuit_breaker import ml_client_circuit
 
@@ -29,6 +31,7 @@ async def predict(
     request: InferenceRequest,
     symbol: str = "UNKNOWN",
     model_type: str = "xgb",
+    current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
 ) -> Any:
     """Predict option price using ML models."""
@@ -40,6 +43,7 @@ async def predict(
 async def get_predictions(
     symbol: str = "AAPL",
     model_type: str = "xgb",
+    current_user: User = Depends(get_current_active_user),
     ml_service: MLService = Depends(get_ml_service),
 ) -> Any:
     """
@@ -66,7 +70,7 @@ async def get_predictions(
     return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
 
 
-@router.get("/drift-metrics", response_model=None)
+@router.get("/drift-metrics", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))])
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
 ) -> Any:
@@ -76,7 +80,7 @@ async def get_drift_metrics(
     return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))
 
 
-@router.post("/retrain", response_model=None)
+@router.post("/retrain", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))])
 async def trigger_retraining(
     ticker: str = "AAPL",
     force: bool = False,
