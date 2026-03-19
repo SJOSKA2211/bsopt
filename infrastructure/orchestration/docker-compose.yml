@@ -741,6 +741,9 @@ services:
     volumes:
       - /dev/shm:/dev/shm
     environment:
+      - MESH_NAME=bsopt_hft_mesh
+      - MESH_SIZE_MB=256
+      - LATENCY_CRITICAL_MS=50
       - DATABASE_URL=${DATABASE_URL_LOCAL}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@localhost:6379/0
     command: python scripts/hft/bs_hft_launch.py
