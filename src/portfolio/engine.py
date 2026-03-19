@@ -130,33 +130,34 @@ class BacktestEngine:
         df["mtm_pnl"] = mtm_pnl
         df["commissions"] = commissions
 
-        # 3. Calculate Performance Metrics using optimized kernel
-        total_return, sharpe, max_drawdown = calculate_metrics_kernel(
+        # 3. Calculate Performance Metrics using optimized 5-metric kernel
+        total_return, sharpe, sortino, calmar, max_drawdown = calculate_metrics_kernel(
             equity_curve, self.initial_capital
         )
 
         # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get("confidence_level", 0.95) if params else 0.95
-
+        
         # Calculate periodic returns from equity curve
-        returns = pd.Series(equity_curve).pct_change().dropna()
-
+        returns_series = pd.Series(equity_curve).pct_change().dropna()
+        
         # Historical VaR
-        # Sort returns and find the percentile
-        var_95 = np.percentile(returns, (1 - confidence_level) * 100) if not returns.empty else 0.0
-
-        # Expected Shortfall (Average of returns worse than VaR)
-        es_95 = returns[returns <= var_95].mean() if not returns.empty else 0.0
+        var_95 = np.percentile(returns_series, (1 - confidence_level) * 100) if not returns_series.empty else 0.0
+        
+        # Expected Shortfall
+        es_95 = returns_series[returns_series <= var_95].mean() if not returns_series.empty else 0.0
 
         duration = (pd.Timestamp.now() - start_time).total_seconds()
 
         result = {
             "total_return": float(total_return),
             "sharpe_ratio": float(sharpe),
+            "sortino_ratio": float(sortino),
+            "calmar_ratio": float(calmar),
             "max_drawdown": float(max_drawdown),
             "var_95": float(var_95),
             "es_95": float(es_95),
-            "trades_count": int(np.abs(df["trades"]).sum() > 0),  # Simplified
+            "trades_count": int(np.abs(df["target_position"].diff()).sum() > 0),
             "final_value": float(df["equity_curve"].iloc[-1]),
             "duration_seconds": duration,
             "status": "completed",
@@ -164,6 +165,23 @@ class BacktestEngine:
 
         logger.info("backtest_completed", metrics=result)
         return result
+
+    def optimize_mvo(self) -> np.ndarray:
+        """Markowitz Mean-Variance Optimization (MVO)."""
+        from scipy.optimize import minimize
+        n = len(self.symbols)
+        def objective(w):
+            return np.dot(w.T, np.dot(self.cov_matrix, w))
+        
+        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+        bounds = tuple((0, 1) for _ in range(n))
+        res = minimize(objective, n * [1./n], method='SLSQP', bounds=bounds, constraints=constraints)
+        return res.x
+
+    def optimize_black_litterman(self, views: np.ndarray, confidences: np.ndarray) -> np.ndarray:
+        """Black-Litterman model for institutional view incorporation."""
+        # Simplified implementation
+        return self.optimize_mvo() # Fallback for now, in reality combines prior + views
 
     @staticmethod
     def sample_momentum_strategy(df: pd.DataFrame, params: dict = None) -> pd.DataFrame:
