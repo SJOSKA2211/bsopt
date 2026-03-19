@@ -94,7 +94,7 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
       
       {!isLoaded && (
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, textAlign: 'center' }}>
-          <CircularProgress size={24} sx={{ mb: 1 }} />
+          <CircularProgress size={24} sx={{ mb: 1 }} aria-label="Loading WASM Engine" />
           <Typography variant="caption" display="block">Loading WASM Engine...</Typography>
         </Box>
       )}
