@@ -9,12 +9,18 @@ import * as THREE from 'three';
 function Stars({ count = 1500 }) {
     const points = useRef<THREE.Points>(null!);
 
+    // Stable pseudo-random generator to satisfy React 19 purity rules
+    const seededRandom = (seed: number) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    };
+
     const positions = useMemo(() => {
         const pos = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            pos[i * 3] = (Math.random() - 0.5) * 20;
-            pos[i * 3 + 1] = (Math.random() - 0.5) * 20;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 20;
+            pos[i * 3] = (seededRandom(i * 1.1) - 0.5) * 20;
+            pos[i * 3 + 1] = (seededRandom(i * 1.2) - 0.5) * 20;
+            pos[i * 3 + 2] = (seededRandom(i * 1.3) - 0.5) * 20;
         }
         return pos;
     }, [count]);
@@ -46,15 +52,20 @@ function Stars({ count = 1500 }) {
 function NebulaCloud({ count = 40, color = "#7B68EE" }) {
     const points = useRef<THREE.Points>(null!);
 
+    const seededRandom = (seed: number) => {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+    };
+
     const positions = useMemo(() => {
         const pos = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
             // Clumped distribution
-            const theta = Math.random() * Math.PI * 2;
-            const r = 2 + Math.random() * 3;
-            pos[i * 3] = Math.cos(theta) * r + (Math.random() - 0.5) * 4;
-            pos[i * 3 + 1] = Math.sin(theta) * r + (Math.random() - 0.5) * 4;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 6;
+            const theta = seededRandom(i * 2.1) * Math.PI * 2;
+            const r = 2 + seededRandom(i * 2.2) * 3;
+            pos[i * 3] = Math.cos(theta) * r + (seededRandom(i * 2.3) - 0.5) * 4;
+            pos[i * 3 + 1] = Math.sin(theta) * r + (seededRandom(i * 2.4) - 0.5) * 4;
+            pos[i * 3 + 2] = (seededRandom(i * 2.5) - 0.5) * 6;
         }
         return pos;
     }, [count]);

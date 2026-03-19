@@ -96,13 +96,13 @@ interface OptionsChainProps {
 
 export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
   const theme = useTheme();
-  // @ts-ignore - palette expansion defined in theme index
+  // @ts-expect-error - palette expansion defined in theme index
   const qfd = theme.palette.financial?.qfd;
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
   const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
-  const [enrichedResults, setEnrichedResults] = useState<any[]>([]);
+  const [enrichedResults, setEnrichedResults] = useState<Record<string, any>[]>([]);
   const [lastSpot, setLastSpot] = useState<number>(0);
 
   // Fetch options chain data via Federated GraphQL
@@ -115,12 +115,11 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const { tick } = useMarketData(symbol);
 
   useEffect(() => {
-    if (tick?.lastPrice) {
-      setLastSpot(tick.lastPrice);
-    } else if (gqlData?.marketData?.lastPrice) {
-      setLastSpot(gqlData.marketData.lastPrice);
+    const newSpot = tick?.lastPrice || gqlData?.marketData?.lastPrice;
+    if (newSpot && newSpot !== lastSpot) {
+      setLastSpot(newSpot);
     }
-  }, [tick, gqlData]);
+  }, [tick, gqlData, lastSpot]);
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {

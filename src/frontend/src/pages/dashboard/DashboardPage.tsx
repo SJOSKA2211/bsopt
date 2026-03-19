@@ -12,19 +12,11 @@ import {
   CircularProgress,
   LinearProgress,
 } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMotion } from '../../hooks/useMotion';
-import {
-  GreeksIcon,
-  MLIcon,
-  PortfolioIcon,
   Zap,
   Globe,
-  Layers,
-  TrendingUp,
-} from '../../components/common/Icons'; // Assuming these exist or using Mui icons
-import {
-  TrendingUp as TrendingUpIcon,
+} from '../../components/common/Icons';
   WaterfallChart as GreeksIconMui,
   Bolt as MLIconMui,
   AccountBalance as PortfolioIconMui,
@@ -36,9 +28,6 @@ const LivePriceChart = lazy(() =>
 );
 const MLPredictions = lazy(() =>
   import('../../features/options/components/MLPredictions').then(m => ({ default: m.MLPredictions }))
-);
-const PortfolioSummary = lazy(() =>
-  import('../../features/portfolio/components/PortfolioSummary').then(m => ({ default: m.PortfolioSummary }))
 );
 const OptionsChain = lazy(() =>
   import('../../features/options/components/OptionsChain').then(m => ({ default: m.OptionsChain }))

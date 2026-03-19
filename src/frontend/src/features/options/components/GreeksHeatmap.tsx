@@ -1,13 +1,3 @@
-import React, { useMemo } from 'react';
-import ReactECharts from 'echarts-for-react/lib/src.shared';
-import * as echarts from 'echarts/src.shared';
-import { HeatmapChart } from 'echarts/charts';
-import {
-  TooltipComponent,
-  GridComponent,
-  VisualMapComponent
-} from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
@@ -205,7 +195,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       }],
       backgroundColor: 'transparent'
     };
-  }, [optionsData, greek, theme]);
+  }, [processedData, greek, theme]);
 
   if (isLoading) {
     return (

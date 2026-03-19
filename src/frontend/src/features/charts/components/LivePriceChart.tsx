@@ -39,7 +39,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
   // Fetch historical data
-  const { data: historicalData, loading: histLoading } = useQuery(GET_HISTORICAL_DATA, {
+  const { data: historicalData } = useQuery(GET_HISTORICAL_DATA, {
     variables: { symbol },
   });
 
@@ -86,7 +86,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
     // Set historical data when loaded
     if (historicalData?.historicalData) {
-      candleSeries.setData(historicalData.historicalData.map((d: any) => ({
+      candleSeries.setData(historicalData.historicalData.map((d: { time: Time, open: number, high: number, low: number, close: number }) => ({
         ...d,
         time: (d.time as Time)
       })));
@@ -123,7 +123,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [theme]);
+  }, [theme, historicalData]);
 
   // Update chart when new data arrives
   useEffect(() => {

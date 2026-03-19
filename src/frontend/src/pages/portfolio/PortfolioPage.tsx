@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import {
   Container,
   Grid,
@@ -25,7 +25,6 @@ import {
   Assessment as AllocationIcon,
 } from '@mui/icons-material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
-import { PositionsSummary } from '../../features/portfolio/components/PositionsSummary';
 import { PnLExplainChart } from '../../features/risk/components/PnLExplainChart';
 
 const LoadingFallback = () => (
@@ -53,6 +52,7 @@ const KPI_CARDS = [
 
 // Simple SVG donut chart
 const DonutChart: React.FC = () => {
+  const theme = useTheme();
   const segments = [
     { label: 'AAPL', pct: 28, color: theme.palette.financial.qfd.quantum },
     { label: 'SPY', pct: 22, color: theme.palette.financial.qfd.nebula },
@@ -112,8 +112,8 @@ const DonutChart: React.FC = () => {
   );
 };
 
-// Simple SVG P&L line chart
 const PnlChart: React.FC = () => {
+  const theme = useTheme();
   const points = [0, 1200, 800, 2400, 1800, 3600, 3200, 4800, 4200, 6000, 5400, 7200, 8942];
   const maxV = Math.max(...points);
   const w = 400, h = 120;
@@ -179,8 +179,8 @@ export const PortfolioPage: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          {KPI_CARDS.map((kpi, idx) => {
-            const accentColor = (theme.palette.financial.qfd as any)[kpi.type] || theme.palette.primary.main;
+          {KPI_CARDS.map((kpi) => {
+            const accentColor = (theme.palette.financial.qfd as Record<string, string>)[kpi.type] || theme.palette.primary.main;
             return (
               <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
                 <motion.div whileHover={{ translateY: -5 }} transition={{ duration: 0.2 }}>
