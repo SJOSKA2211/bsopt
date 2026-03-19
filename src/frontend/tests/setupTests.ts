@@ -1,5 +1,6 @@
 // src/frontend/setupTests.ts
 import '@testing-library/jest-dom';
+import React from 'react';
 import { vi } from 'vitest';
 
 // Mock lightweight-charts globally for tests
@@ -105,5 +106,35 @@ vi.mock('@apollo/client/react', async (importOriginal) => {
     useQuery: vi.fn(() => ({ data: undefined, loading: true, error: undefined, refetch: vi.fn() })),
     useSubscription: vi.fn(() => ({ data: undefined, loading: true, error: undefined })),
     useMutation: vi.fn(() => [vi.fn(), { data: undefined, loading: false, error: undefined }]),
+  };
+});
+
+// Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
+vi.mock('three', () => ({
+  WebGLRenderer: vi.fn(() => ({
+    setSize: vi.fn(),
+    render: vi.fn(),
+  })),
+  Scene: vi.fn(),
+  PerspectiveCamera: vi.fn(),
+  Mesh: vi.fn(),
+  BoxGeometry: vi.fn(),
+  MeshStandardMaterial: vi.fn(),
+  DirectionalLight: vi.fn(),
+  AmbientLight: vi.fn(),
+  Vector3: vi.fn(),
+  Color: vi.fn(),
+}));
+
+vi.mock('@react-three/fiber', async (importOriginal) => {
+  const actual = await importOriginal() as Record<string, unknown>;
+  return {
+    ...actual,
+    Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'canvas' }, children),
+    useFrame: vi.fn(),
+    useThree: vi.fn(() => ({
+      viewport: { width: 0, height: 0, factor: 0 },
+      size: { width: 0, height: 0 },
+    })),
   };
 });

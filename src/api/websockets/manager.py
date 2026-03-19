@@ -177,8 +177,8 @@ class ConnectionManager:
                 logger.warning("ws_heartbeat_timeout", symbol=symbol)
                 try:
                     await ws.close(code=1001, reason="Heartbeat timeout")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("ws_close_error", error=str(e))
                 await self.disconnect(ws, symbol)
 
     async def connect(self, websocket: WebSocket) -> None:
@@ -266,8 +266,8 @@ class ConnectionManager:
         if self._pubsub:
             try:
                 await self._pubsub.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("ws_resource_cleanup_error", error=str(e))
 
         # Close all active connections
         async with self._lock:
@@ -275,8 +275,8 @@ class ConnectionManager:
                 for ws in list(connections):
                     try:
                         await ws.close(code=1001, reason="Server shutting down")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug("ws_connection_close_error", error=str(e))
             self.active_connections.clear()
 
         logger.info("ws_manager_shutdown_complete")

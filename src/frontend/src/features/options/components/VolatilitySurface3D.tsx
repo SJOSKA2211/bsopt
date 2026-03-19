@@ -4,7 +4,6 @@ import {
   Typography,
   CircularProgress,
   useTheme,
-  alpha,
 } from '@mui/material';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
@@ -15,7 +14,7 @@ interface VolatilitySurface3DProps {
   symbol: string;
 }
 
-const Surface: React.FC<{ theme: any; data: number[] }> = ({ theme, data }) => {
+const Surface: React.FC<{ theme: { palette: { primary: { main: string } } }; data: number[] }> = ({ theme, data }) => {
   const meshRef = React.useRef<THREE.Mesh>(null);
   const size = Math.sqrt(data.length);
   
@@ -47,6 +46,10 @@ const Surface: React.FC<{ theme: any; data: number[] }> = ({ theme, data }) => {
   );
 };
 
+interface PricingResult {
+  price: number;
+}
+
 export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol }) => {
   const theme = useTheme();
   const { isLoaded, batchCalculate } = useWasmPricing();
@@ -59,7 +62,7 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
     const strikes = [140, 145, 150, 155, 160, 165, 170, 175, 180, 185];
     const times = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
     
-    const params: any[] = [];
+    const params: unknown[] = [];
     const spot = 155.5;
     const vol = 0.25;
     const rate = 0.05;
@@ -80,9 +83,9 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
     }
 
     const fetchData = async () => {
-      // @ts-ignore
-      const results = await batchCalculate(params);
-      setSurfaceData(results.map((r: any) => r.price));
+      // @ts-expect-error - batchCalculate types in hooks need refinement
+      const results: PricingResult[] = await batchCalculate(params);
+      setSurfaceData(results.map((r: PricingResult) => r.price));
     };
     fetchData();
   }, [isLoaded, batchCalculate]);

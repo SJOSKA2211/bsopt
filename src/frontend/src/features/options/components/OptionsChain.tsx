@@ -140,6 +140,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   useEffect(() => {
     const newSpot = tick?.lastPrice || gqlData?.marketData?.lastPrice;
     if (newSpot && newSpot !== lastSpot) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastSpot(newSpot);
     }
   }, [tick, gqlData, lastSpot]);
@@ -715,7 +716,6 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <TextField
           size="small"
           placeholder="Filter strike..."
-          aria-label="Search by strike price"
           value={searchTerm}
           onChange={handleSearchChange}
           inputProps={{
@@ -740,7 +740,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         <ToggleButtonGroup
           value={pricingModel}
           exclusive
-          onChange={(_, val) => val && setPricingModel(val)}
+          onChange={handleModelChange}
           aria-label="Select pricing model"
           size="small"
           sx={{

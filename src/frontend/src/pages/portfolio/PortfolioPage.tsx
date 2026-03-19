@@ -9,7 +9,6 @@ import {
   Box,
   alpha,
   useTheme,
-  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -20,18 +19,9 @@ import {
 import { motion } from 'framer-motion';
 import {
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  AccountBalance as PortfolioIcon,
-  Assessment as AllocationIcon,
 } from '@mui/icons-material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
 import { PnLExplainChart } from '../../features/risk/components/PnLExplainChart';
-
-const LoadingFallback = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={28} />
-  </Box>
-);
 
 // ---- Mock open positions ----
 const POSITIONS = [

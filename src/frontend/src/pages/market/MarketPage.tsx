@@ -158,7 +158,8 @@ export const MarketPage: React.FC = () => {
             }
           >
             {MARKET_PULSE.map((stat) => {
-              const accentColor = (theme.palette.financial.qfd as any)[stat.type] || theme.palette.text.primary;
+              const qfd = theme.palette.financial.qfd as Record<string, string>;
+              const accentColor = qfd[stat.type] || theme.palette.text.primary;
               return (
                 <Box
                   key={stat.label}
