@@ -144,16 +144,28 @@ class BlackScholesEngine(PricingStrategy):
             except Exception as e:
                 logger.warning("rust_core_pricing_failed_falling_back", error=str(e))
 
-        # GPU Acceleration Path (Numba CUDA)
-        if S.size > 100:  # Threshold for GPU overhead
+        # GPU Acceleration Path (CuPy)
+        if S.size > 500:  # Higher threshold for CuPy to offset data transfer
             try:
-                from src.math_kernel.cuda_kernels import price_options_gpu
+                from src.math_kernel.cuda_kernels import black_scholes_cupy, CUPY_AVAILABLE
+                if CUPY_AVAILABLE:
+                    is_call_arr = np.atleast_1d(is_call).astype(bool)
+                    if is_call_arr.shape != S.shape:
+                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
+                    return black_scholes_cupy(S, K, T, sigma, r, q, is_call_arr)
+            except Exception as e:
+                logger.warning("cupy_kernel_failed_falling_back", error=str(e))
 
-                is_call_arr = np.atleast_1d(is_call).astype(bool)
-                if is_call_arr.shape != S.shape:
-                    is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
+        # Legacy CUDA/Numba Path
+        if S.size > 1000:
+            try:
+                from src.math_kernel.cuda_kernels import price_options_gpu, CUDA_AVAILABLE
+                if CUDA_AVAILABLE:
+                    is_call_arr = np.atleast_1d(is_call).astype(bool)
+                    if is_call_arr.shape != S.shape:
+                        is_call_arr = np.broadcast_to(is_call_arr, S.shape).copy()
 
-                return price_options_gpu(S, K, T, sigma, r, q, is_call_arr)
+                    return price_options_gpu(S, K, T, sigma, r, q, is_call_arr)
             except Exception as e:
                 logger.warning("gpu_kernel_failed_falling_back", error=str(e))
 

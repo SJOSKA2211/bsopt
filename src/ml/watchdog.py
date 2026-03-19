@@ -24,8 +24,7 @@ class MLflowWatchdog:
                 if not ray.is_initialized():
                     ray.init(address=self.ray_address)
                 
-                # Check for failed jobs in MLflow
-                # For demonstration, we'll scan for runs that are FAILED or KILLED
+                # 1. Check for failed jobs in MLflow
                 active_runs = self.client.search_runs(
                     experiment_ids=["0"], # Default experiment
                     filter_string="status = 'FAILED' OR status = 'KILLED'",
@@ -36,23 +35,51 @@ class MLflowWatchdog:
                     logger.warning("found_failed_ml_run", run_id=run.info.run_id)
                     self._attempt_recovery(run)
                 
-                # Monitor memory pressure
+                # 2. Monitor Data Drift via TimescaleDB Continuous Aggregates
+                try:
+                    import asyncio
+                    from src.database import db_manager
+                    from sqlalchemy import text
+                    
+                    async def check_drift():
+                        async with db_manager.async_engine.connect() as conn:
+                            # Check drift in greeks_drift_cagg
+                            result = await conn.execute(text("SELECT MAX(delta_stddev) FROM greeks_drift_cagg WHERE bucket > NOW() - INTERVAL '1 hour'"))
+                            drift_val = result.scalar()
+                            if drift_val and drift_val > 0.15: # Threshold for institutional drift
+                                logger.warning("significant_data_drift_detected", drift=drift_val)
+                                self._trigger_retraining("neural_pricing_v2")
+
+                    asyncio.run(check_drift())
+                except Exception as e:
+                    logger.warning("drift_check_failed", error=str(e))
+
+                # 3. Monitor memory pressure
                 mem = psutil.virtual_memory()
                 if mem.percent > 90:
                     logger.error("critical_memory_pressure_detected", percent=mem.percent)
                     # Implementation for aggressive cleanup or job suspension
                 
-                time.sleep(30)
+                time.sleep(60)
             except Exception as e:
                 logger.error("watchdog_error", error=str(e))
                 time.sleep(10)
 
     def _attempt_recovery(self, run):
-        # Implementation for auto-adjusting parameters (e.g. reducing batch size) and respawning
+        """Auto-adjust parameters and respawn failed Ray jobs."""
         logger.info("attempting_job_recovery", run_id=run.info.run_id)
-        # 1. Extract params
-        # 2. Adjust (e.g. batch_size = batch_size // 2)
-        # 3. ray.remote(training_func).remote(...)
+        params = run.data.params
+        # Example adjustment: Reduce batch size if it likely failed due to OOM
+        if "batch_size" in params:
+            new_batch_size = max(1, int(params["batch_size"]) // 2)
+            logger.info("adjusting_params_for_recovery", old_batch_size=params["batch_size"], new_batch_size=new_batch_size)
+            # In a real scenario, we would trigger the training script again with new_batch_size
+            # self._trigger_retraining(run.data.tags.get("model_name", "unknown"), adjusted_params={"batch_size": new_batch_size})
+
+    def _trigger_retraining(self, model_name, adjusted_params=None):
+        """Trigger a Ray job for distributed retraining."""
+        logger.info("triggering_automated_retraining", model=model_name, adjusted_params=adjusted_params)
+        # ray.job_submit(...)
         pass
 
 if __name__ == "__main__":

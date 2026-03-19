@@ -102,10 +102,17 @@ class ExperimentTracker:
 
         if framework == "xgboost":
             mlflow.xgboost.log_model(model, artifact_path)
-        elif framework == "pytorch":
+        elif framework == "pytorch" or framework == "torch":
             mlflow.pytorch.log_model(model, artifact_path)
+        elif framework == "tensorflow" or framework == "keras":
+            mlflow.tensorflow.log_model(model, artifact_path)
         else:
             mlflow.sklearn.log_model(model, artifact_path)
+
+    def register_model(self, model_name: str, run_id: str, artifact_path: str = "model") -> Any:
+        """Register the model in the MLflow Model Registry."""
+        model_uri = f"runs:/{run_id}/{artifact_path}"
+        return mlflow.register_model(model_uri, model_name)
 
         # OPTIMIZED: Auto-export to ONNX for production inference
         try:

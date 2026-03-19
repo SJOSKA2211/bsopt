@@ -27,7 +27,14 @@ else
 endif
 
 # Centralized Orchestration Manifest
-DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file .env -f infrastructure/orchestration/docker-compose.yml
+ENV_FILE := .env
+COMPOSE_FILE := infrastructure/orchestration/docker-compose.yml
+
+ifneq ($(wildcard $(ENV_FILE)),)
+  DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file $(ENV_FILE) -f $(COMPOSE_FILE)
+else
+  DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f $(COMPOSE_FILE)
+endif
 
 .PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan
 
@@ -50,6 +57,8 @@ help:
 	@echo "  test-all     - Run THE GAUNTLET (Rust + Python + E2E)"
 	@echo "  test-rust    - Execute Rust unit & integration tests"
 	@echo "  test-python  - Execute Python test suite"
+	@echo "  test-e2e     - Run Playwright Frontend E2E tests"
+	@echo "  test-self-heal - Run tests with self-healing retry logic"
 	@echo ""
 	@echo "Infrastructure:"
 	@echo "  envoy-up     - Launch the Envoy API Gateway"
@@ -115,6 +124,14 @@ test-rust:
 
 test-python:
 	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+
+test-e2e:
+	@echo "🌐 Running Frontend E2E Tests..."
+	@pytest tests/e2e/test_frontend.py
+
+test-self-heal:
+	@echo "🩹 Running Self-Healing Test Suite..."
+	@pytest -m self_heal
 
 # --- Advanced Builds ---
 

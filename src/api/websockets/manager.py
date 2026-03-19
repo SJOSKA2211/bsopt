@@ -324,6 +324,20 @@ class ConnectionManager:
                 # Optimized Encoding: Encode once per protocol
                 if is_raw and proto == ProtocolType.MSGPACK:
                     encoded = message  # Pass-through bytes
+                elif proto == ProtocolType.PROTO:
+                    # Dynamically select message type based on symbol or channel
+                    from src.protos import market_data_pb2
+                    if decoded_data is None and is_raw:
+                        decoded_data = WebSocketCodec.decode(message, ProtocolType.MSGPACK)
+                    
+                    data = decoded_data if is_raw else message
+                    
+                    # Assume TickerUpdate for simplicity, or handle based on symbol/prefix
+                    pb_msg = market_data_pb2.TickerUpdate(
+                        symbol=data.get("symbol", symbol),
+                        price=float(data.get("price", 0.0))
+                    )
+                    encoded = WebSocketCodec.encode(pb_msg, ProtocolType.PROTO)
                 else:
                     if decoded_data is None and is_raw:
                         decoded_data = WebSocketCodec.decode(message, ProtocolType.MSGPACK)

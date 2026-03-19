@@ -192,17 +192,24 @@ class AuthService:
         if algorithm.startswith("RS"):
             return settings.rsa_private_key if is_private else settings.rsa_public_key
         elif algorithm.startswith("ES"):
-            # We'll need to add es256 properties to settings if they don't exist
-            # For now, let's assume settings has them or fallback
-            return getattr(settings, "es256_private_key", settings.rsa_private_key) if is_private else \
-                   getattr(settings, "es256_public_key", settings.rsa_public_key)
+            return settings.es256_private_key if is_private else settings.es256_public_key
+        
+        # Zero-Trust Directive: Forbid symmetric signing in production
+        if settings.ENVIRONMENT in ("prod", "production"):
+            raise ValueError(f"Symmetric algorithm {algorithm} forbidden in production.")
         return settings.JWT_SECRET
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
         """Internal helper to create a JWT token with asymmetric support."""
         to_encode = data.copy()
-        expire = datetime.now(UTC) + expires_delta
-        to_encode.update({"exp": expire, "iat": datetime.now(UTC), "jti": secrets.token_hex(16)})
+        now = datetime.now(UTC)
+        expire = now + expires_delta
+        to_encode.update({
+            "exp": expire,
+            "iat": now,
+            "jti": secrets.token_hex(16),
+            "iss": "equaflow-auth-v2",
+        })
         
         algorithm = self.algorithm
         key = self._get_key_for_algorithm(algorithm, is_private=True)
@@ -252,15 +259,15 @@ class AuthService:
         if not token:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
-        # 1. Try Cache First (Redis)
+        # 1. High-Performance Session Cache (Redis + Msgspec)
         from src.shared.utils.cache import get_redis_client
+        import msgspec
 
         redis_client = await get_redis_client()
         if redis_client:
             try:
-                cached_data = await redis_client.get(f"session_v3:{token}")
+                cached_data = await redis_client.get(f"session_v2:{token}")
                 if cached_data:
-                    import msgspec
                     data = msgspec.json.decode(cached_data)
                     return TokenData(
                         user_id=data["user_id"],
@@ -269,14 +276,32 @@ class AuthService:
                         token_type="session",
                         exp=datetime.fromisoformat(data["exp"]),
                         iat=datetime.fromisoformat(data["iat"]),
+                        jti=data.get("jti"),
                     )
             except Exception as e:
                 logger.debug("session_cache_lookup_failed", error=str(e))
 
-        # 2. Native JWT Validation (Local DB Check)
+        # 2. Asymmetric JWT Validation
         token_data = self.decode_token(token)
+        
+        # 3. Check Revocation List
         if token_data.jti and await token_blacklist.contains(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")
+            
+        # 4. Success - Cache if valid session
+        if redis_client and token_data.token_type == "access":
+            cache_payload = {
+                "user_id": token_data.user_id,
+                "email": token_data.email,
+                "tier": token_data.tier,
+                "exp": token_data.exp.isoformat(),
+                "iat": token_data.iat.isoformat(),
+                "jti": token_data.jti
+            }
+            ttl = int((token_data.exp - datetime.now(UTC)).total_seconds())
+            if ttl > 0:
+                await redis_client.setex(f"session_v2:{token}", ttl, msgspec.json.encode(cache_payload))
+
         return token_data
 
 

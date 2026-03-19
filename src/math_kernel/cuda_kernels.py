@@ -190,68 +190,71 @@ def price_options_gpu(
 
 
 def black_scholes_cupy(
-    s: np.ndarray,
-    k: np.ndarray,
-    t: np.ndarray,
-    sigma: np.ndarray,
-    r: np.ndarray,
-    q: np.ndarray,
-    is_call: np.ndarray,
+    s: np.ndarray | cp.ndarray,
+    k: np.ndarray | cp.ndarray,
+    t: np.ndarray | cp.ndarray,
+    sigma: np.ndarray | cp.ndarray,
+    r: np.ndarray | cp.ndarray,
+    q: np.ndarray | cp.ndarray,
+    is_call: np.ndarray | cp.ndarray,
 ) -> np.ndarray:
     """
     GPU-accelerated Black-Scholes option pricing via CuPy.
-    
-    Falls back to CPU with SIMD optimization if CUDA is unavailable.
-    
-    Args:
-        s: Spot price(s) - shape (n,)
-        k: Strike price(s) - shape (n,)
-        t: Time to maturity - shape (n,) or scalar (in years)
-        sigma: Volatility - shape (n,)
-        r: Risk-free rate - shape (n,)
-        q: Dividend yield - shape (n,)
-        is_call: True for call, False for put - shape (n,)
-    
-    Returns:
-        Option prices - shape (n,)
+    Strictly typed and optimized for large-scale batches.
     """
     if CUPY_AVAILABLE:
-        s = cp.asarray(s, dtype=cp.float64)
-        k = cp.asarray(k, dtype=cp.float64)
-        t = cp.asarray(t, dtype=cp.float64)
-        sigma = cp.asarray(sigma, dtype=cp.float64)
-        r = cp.asarray(r, dtype=cp.float64)
-        q = cp.asarray(q, dtype=cp.float64)
-        is_call = cp.asarray(is_call, dtype=cp.bool_)
-        
-        sqrt_t = cp.sqrt(t)
-        d1 = (cp.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
-        d2 = d1 - sigma * sqrt_t
-        
+        # Move to GPU if not already there
+        s_gpu = cp.asarray(s, dtype=cp.float64)
+        k_gpu = cp.asarray(k, dtype=cp.float64)
+        t_gpu = cp.asarray(t, dtype=cp.float64)
+        sigma_gpu = cp.asarray(sigma, dtype=cp.float64)
+        r_gpu = cp.asarray(r, dtype=cp.float64)
+        q_gpu = cp.asarray(q, dtype=cp.float64)
+        is_call_gpu = cp.asarray(is_call, dtype=cp.bool_)
+
+        # Guard against T <= 0
+        t_pos = cp.maximum(t_gpu, 1e-10)
+        sqrt_t = cp.sqrt(t_pos)
+
+        d1 = (cp.log(s_gpu / k_gpu) + (r_gpu - q_gpu + 0.5 * sigma_gpu**2) * t_pos) / (
+            sigma_gpu * sqrt_t
+        )
+        d2 = d1 - sigma_gpu * sqrt_t
+
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
+
+        exp_qt = cp.exp(-q_gpu * t_pos)
+        exp_rt = cp.exp(-r_gpu * t_pos)
+
+        call_price = s_gpu * exp_qt * cdf_d1 - k_gpu * exp_rt * cdf_d2
+        put_price = k_gpu * exp_rt * (1.0 - cdf_d2) - s_gpu * exp_qt * (1.0 - cdf_d1)
+
+        # Handle T=0 explicitly
+        intrinsic_call = cp.maximum(s_gpu - k_gpu, 0.0)
+        intrinsic_put = cp.maximum(k_gpu - s_gpu, 0.0)
         
-        exp_qt = cp.exp(-q * t)
-        exp_rt = cp.exp(-r * t)
-        
-        call_price = s * exp_qt * cdf_d1 - k * exp_rt * cdf_d2
-        put_price = k * exp_rt * (1 - cdf_d2) - s * exp_qt * (1 - cdf_d1)
-        
-        result = cp.where(is_call, call_price, put_price)
+        call_price = cp.where(t_gpu <= 0, intrinsic_call, call_price)
+        put_price = cp.where(t_gpu <= 0, intrinsic_put, put_price)
+
+        result = cp.where(is_call_gpu, call_price, put_price)
         return cp.asnumpy(result)
     else:
-        sqrt_t = np.sqrt(t)
-        d1 = (np.log(s / k) + (r - q + 0.5 * sigma ** 2) * t) / (sigma * sqrt_t)
+        # CPU Fallback (Optimized NumPy)
+        s = np.asanyarray(s)
+        t_pos = np.maximum(t, 1e-10)
+        sqrt_t = np.sqrt(t_pos)
+        d1 = (np.log(s / k) + (r - q + 0.5 * sigma**2) * t_pos) / (sigma * sqrt_t)
         d2 = d1 - sigma * sqrt_t
-        
         cdf_d1 = _norm_cdf(d1)
         cdf_d2 = _norm_cdf(d2)
-        
-        exp_qt = np.exp(-q * t)
-        exp_rt = np.exp(-r * t)
-        
+        exp_qt = np.exp(-q * t_pos)
+        exp_rt = np.exp(-r * t_pos)
         call_price = s * exp_qt * cdf_d1 - k * exp_rt * cdf_d2
-        put_price = k * exp_rt * (1 - cdf_d2) - s * exp_qt * (1 - cdf_d1)
+        put_price = k * exp_rt * (1.0 - cdf_d2) - s * exp_qt * (1.0 - cdf_d1)
+        
+        call_price = np.where(t <= 0, np.maximum(s - k, 0.0), call_price)
+        put_price = np.where(t <= 0, np.maximum(k - s, 0.0), put_price)
         
         return np.where(is_call, call_price, put_price)
 

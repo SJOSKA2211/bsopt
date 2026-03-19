@@ -102,40 +102,36 @@ class FusedSecurityMiddleware:
                 return
 
             try:
+                # 3. Dedicated Auth Service Hop
                 token_data = await auth_service.validate_token(token)
 
-                # Populate request state via scope["state"] for compatibility
+                # 4. Populate scope["state"] for downstream accessibility
                 state = scope.setdefault("state", {})
-                user_id = token_data.user_id
-                tier = token_data.tier
-
-                state["user_id"] = user_id
+                state["user_id"] = token_data.user_id
                 state["user_email"] = token_data.email
-                state["user_tier"] = tier
+                state["user_tier"] = token_data.tier
                 state["auth_type"] = token_data.token_type
 
-                # 3. Rate Limiting (Distributed Token Bucket)
+                # 5. Zero-Trust Rate Limiting
                 from src.shared.utils.rate_limit import RateLimitTier, limiter
 
-                # Default to FREE if tier not recognized
-                try:
-                    limit_tier = RateLimitTier(tier.lower())
-                except (ValueError, AttributeError):
-                    limit_tier = RateLimitTier.FREE
+                tier_str = token_data.tier.upper() if token_data.tier else "FREE"
+                limit_tier = getattr(RateLimitTier, tier_str, RateLimitTier.FREE)
 
-                if not await limiter.is_allowed(user_id, path, limit_tier):
-                    logger.warning("rate_limit_exceeded", user_id=user_id, path=path, tier=tier)
+                if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
+                    logger.warning("rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str)
                     resp = MsgspecJSONResponse(
                         status_code=429,
-                        content={"detail": "Rate limit exceeded", "retry_after": "60s"},
+                        content={"detail": "Too many requests. Upgrade tier for higher limits."},
+                        headers={"X-RateLimit-Limit": str(limit_tier.value)}
                     )
                     await resp(scope, receive, send)
                     return
 
             except Exception as e:
-                logger.warning("auth_failed", error=str(e), path=path)
+                logger.warning("zero_trust_auth_intercept_failed", error=str(e), path=path)
                 resp = MsgspecJSONResponse(
-                    status_code=401, content={"detail": "Authentication failed"}
+                    status_code=401, content={"detail": "Unauthorized: Zero-Trust validation failed."}
                 )
                 await resp(scope, receive, send)
                 return

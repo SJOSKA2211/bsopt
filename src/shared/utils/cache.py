@@ -431,6 +431,71 @@ async def publish_to_redis(channel: str, message: dict[str, Any]) -> None:
             logger.error("redis_publish_failed", error=str(e), channel=channel)
 
 
+class RedisStreamManager:
+    """
+    High-Performance Redis Streams Manager.
+    Supports Consumer Groups and ACK-based delivery guarantees.
+    """
+
+    @staticmethod
+    async def xadd(stream: str, fields: dict[str, Any], maxlen: int = 10000) -> str | None:
+        """Append to a Redis Stream with ultra-fast msgspec encoding."""
+        redis = get_redis()
+        if not redis:
+            return None
+        try:
+            # Flatten dict for XADD (Redis streams require flat key-value pairs)
+            flat_fields = {k: msgspec.json.encode(v) if not isinstance(v, (str, bytes, int, float)) else v for k, v in fields.items()}
+            return await redis.xadd(stream, flat_fields, maxlen=maxlen, approximate=True)
+        except Exception as e:
+            logger.error("redis_xadd_failed", error=str(e), stream=stream)
+            return None
+
+    @staticmethod
+    async def create_consumer_group(stream: str, group: str, start_id: str = "$") -> bool:
+        """Create a Redis consumer group for horizontal scaling."""
+        redis = get_redis()
+        if not redis:
+            return False
+        try:
+            await redis.xgroup_create(stream, group, id=start_id, mkstream=True)
+            return True
+        except Exception as e:
+            if "BUSYGROUP" in str(e):
+                return True
+            logger.error("redis_xgroup_create_failed", error=str(e), stream=stream)
+            return False
+
+    @staticmethod
+    async def xread_group(stream: str, group: str, consumer: str, count: int = 10, block_ms: int = 1000) -> list[Any]:
+        """Read from a Redis stream as part of a consumer group."""
+        redis = get_redis()
+        if not redis:
+            return []
+        try:
+            streams = {stream: ">"}
+            response = await redis.xreadgroup(group, consumer, streams, count=count, block=block_ms)
+            return response
+        except Exception as e:
+            logger.error("redis_xreadgroup_failed", error=str(e), stream=stream)
+            return []
+
+    @staticmethod
+    async def xack(stream: str, group: str, *ids: str) -> int:
+        """Acknowledge processed stream messages."""
+        redis = get_redis()
+        if not redis:
+            return 0
+        try:
+            return await redis.xack(stream, group, *ids)
+        except Exception as e:
+            logger.error("redis_xack_failed", error=str(e), stream=stream)
+            return 0
+
+
+stream_manager = RedisStreamManager()
+
+
 async def get_redis_client() -> Redis:
     """FastAPI dependency to get the Redis client."""
     redis = get_redis()

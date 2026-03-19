@@ -533,21 +533,16 @@ class SharedMemoryRingBuffer:
         if view is None or len(view) == 0:
             return [], head
 
-        # Vectorized decoding of all symbols at once
+        # Vectorized decoding of all symbols at once (High-Performance)
         symbols = np.char.decode(view["symbol"], "ascii")
-        prices = view["price"]
-        volumes = view["volume"]
-        timestamps = view["timestamp"]
-        r_ts = view["receive_ts_ns"]
-
-        # List comprehension is faster than append in a loop for msgspec creation
+        # Ensure we're using raw view data directly to minimize copies
         ticks = [
             MarketTick(
-                symbol=str(symbols[i]).strip("\x00"),
-                price=float(prices[i]),
-                volume=int(volumes[i]),
-                timestamp=float(timestamps[i]),
-                receive_ts_ns=int(r_ts[i]),
+                symbol=symbols[i].rstrip("\x00"),
+                price=float(view["price"][i]),
+                volume=int(view["volume"][i]),
+                timestamp=float(view["timestamp"][i]),
+                receive_ts_ns=int(view["receive_ts_ns"][i]),
             )
             for i in range(len(view))
         ]

@@ -49,25 +49,16 @@ check_prereq openssl
 detect_container_engine() {
     log_info "Detecting container engine..."
     
-    # Detect podman (prioritized for rootless operation)
     if command -v podman &> /dev/null; then
         CONTAINER_ENGINE="podman"
         if podman compose version &> /dev/null; then
             COMPOSE_ENGINE="podman compose"
         elif command -v podman-compose &> /dev/null; then
-            if grep -q "PackageKit" <(which podman-compose 2>/dev/null 2>&1) 2>/dev/null; then
-                log_warn "podman-compose intercepted by PackageKit. Using 'podman compose' fallback."
-                COMPOSE_ENGINE="podman compose"
-            else
-                COMPOSE_ENGINE="podman-compose"
-            fi
+            COMPOSE_ENGINE="podman-compose"
         else
-            log_warn "No podman compose plugin found. Using 'podman compose' fallback."
             COMPOSE_ENGINE="podman compose"
         fi
-        log_success "Detected: podman"
-    
-    # Detect docker (fallback)
+        log_success "Detected: podman ($COMPOSE_ENGINE)"
     elif command -v docker &> /dev/null; then
         CONTAINER_ENGINE="docker"
         if docker compose version &> /dev/null; then
@@ -78,18 +69,20 @@ detect_container_engine() {
             log_error "Docker found but no compose engine detected."
             exit 1
         fi
-        log_success "Detected: docker"
+        log_success "Detected: docker ($COMPOSE_ENGINE)"
     else
-        log_error "Neither podman nor docker found. Please install one of them."
+        log_error "No container engine (podman/docker) found."
         exit 1
     fi
-    
-    log_info "Using $CONTAINER_ENGINE with $COMPOSE_ENGINE"
 }
 
 # Compose command wrapper
 compose_cmd() {
-    $COMPOSE_ENGINE --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+    if [ -f "$ENV_FILE" ]; then
+        $COMPOSE_ENGINE --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+    else
+        $COMPOSE_ENGINE -f "$COMPOSE_FILE" "$@"
+    fi
 }
 
 # Container exec wrapper
@@ -319,10 +312,13 @@ main() {
     generate_passwords
     setup_database_urls
     
-    # Step 4: Build images
-    log_info "Building all images..."
-    compose_cmd build --parallel 2>/dev/null || true
-    log_success "Images built"
+    # Step 4: Build images (Sequential for reliability)
+    log_info "Building images sequentially..."
+    for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing app-gateway frontend envoy; do
+        log_info "Building $service..."
+        compose_cmd build "$service" || log_warn "Failed to build $service, continuing..."
+    done
+    log_success "Build phase complete"
     
     # ==========================================================================
     # Phase A: Core Infrastructure (Postgres -> Redis -> PgBouncer)

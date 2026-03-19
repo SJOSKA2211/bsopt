@@ -254,52 +254,25 @@ def simulate_gbm_milstein(
     return paths
 
 
-def simulate_gbm_rk4(
+def simulate_gbm(
     s0: np.ndarray,
     mu: np.ndarray,
     sigma: np.ndarray,
     t: float,
     dt: float,
     seed: Optional[int] = None,
+    method: str = "rk4",
 ) -> np.ndarray:
     """
-    Simulate Geometric Brownian Motion using RK4 with Milstein correction.
-    
-    Strong convergence O(dt²) for drift, O(dt) for diffusion.
-    Best balance of accuracy and performance for most applications.
-    
-    Args:
-        s0: Initial prices - shape (n_paths,)
-        mu: Annual drift (μ) - shape (n_paths,) or scalar
-        sigma: Annual volatility (σ) - shape (n_paths,) or scalar
-        t: Time horizon in years
-        dt: Time step size in years
-        seed: Random seed for reproducibility
-    
-    Returns:
-        Price paths - shape (n_steps + 1, n_paths)
+    Unified high-performance GBM simulation.
+    Defaults to RK4-Milstein for institutional-grade precision.
     """
-    if seed is not None:
-        np.random.seed(seed)
-    
-    s0 = np.atleast_1d(s0).astype(np.float64)
-    mu = np.atleast_1d(mu).astype(np.float64)
-    sigma = np.atleast_1d(sigma).astype(np.float64)
-    
-    n_steps = int(t / dt)
-    n_paths = len(s0)
-    
-    sqrt_dt = np.sqrt(dt)
-    
-    paths = np.zeros((n_steps + 1, n_paths), dtype=np.float64)
-    paths[0] = s0
-    
-    current = s0.copy()
-    for step in range(n_steps):
-        current = _rk4_milstein_step(current, mu, sigma, dt, sqrt_dt)
-        paths[step + 1] = current
-    
-    return paths
+    if method == "rk4":
+        return simulate_gbm_rk4(s0, mu, sigma, t, dt, seed=seed)
+    elif method == "milstein":
+        return simulate_gbm_milstein(s0, mu, sigma, t, dt, seed=seed)
+    else:
+        return simulate_gbm_euler(s0, mu, sigma, t, dt, seed=seed)
 
 
 def simulate_gbm_antithetic(

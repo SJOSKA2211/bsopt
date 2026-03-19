@@ -218,55 +218,47 @@ fn runge_kutta_4_gbm(
     let mu = mu.as_array();
     let sigma = sigma.as_array();
     let n_paths = s0.len();
-    
     let sqrt_dt = dt.sqrt();
-    let n_steps = steps;
     
-    let mut rng = match seed {
-        Some(s) => StdRng::seed_from_u64(s),
-        None => StdRng::from_entropy(),
-    };
-    
-    let normal = StandardNormal;
-    
-    let mut paths = vec![vec![0.0; n_steps + 1]; n_paths];
-    
-    for i in 0..n_paths {
-        paths[i][0] = s0[i];
-    }
-    
-    for step in 0..n_steps {
-        for i in 0..n_paths {
-            let si = paths[i][step];
-            let mu_i = mu[i];
-            let sigma_i = sigma[i];
+    // Parallelize path generation using Rayon
+    let result_flat: Vec<f64> = (0..n_paths).into_par_iter().map(|i| {
+        let mut path = Vec::with_capacity(steps + 1);
+        let mut si = s0[i];
+        let mu_i = mu[i];
+        let sigma_i = sigma[i];
+        
+        let mut local_rng = match seed {
+            Some(s) => StdRng::seed_from_u64(s + i as u64),
+            None => StdRng::from_entropy(),
+        };
+        let normal = StandardNormal;
+        
+        path.push(si);
+        
+        for _ in 0..steps {
+            let dw: f64 = normal.sample(&mut local_rng);
             
-            let dw: f64 = normal.sample(&mut rng);
-            
+            // RK4 Deterministic Drift
             let k1 = mu_i * si;
             let k2 = mu_i * (si + 0.5 * dt * k1);
             let k3 = mu_i * (si + 0.5 * dt * k2);
             let k4 = mu_i * (si + dt * k3);
-            
             let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
             
+            // Stochastic Diffusion (Milstein Correction for Strong Convergence)
             let diffusion = sigma_i * si * dw * sqrt_dt;
+            let milstein = 0.5 * sigma_i * sigma_i * si * (dw * dw - dt);
             
-            let milstein_correction = 0.5 * sigma_i * sigma_i * si * (dw * dw - dt);
-            
-            paths[i][step + 1] = si + drift + diffusion + milstein_correction;
-            
-            if paths[i][step + 1] < 0.0 {
-                paths[i][step + 1] = 0.0001;
-            }
+            si = si + drift + diffusion + milstein;
+            if si < 0.0 { si = 1e-10; }
+            path.push(si);
         }
-    }
+        path
+    }).flatten().collect();
 
-    let flat: Vec<f64> = paths.into_iter().flatten().collect();
-    
     Python::with_gil(|py| {
-        let numpy_array = PyArray2::from_vec2(py, &flat.chunks(n_steps + 1).map(|v| v.to_vec()).collect::<Vec<_>>())?;
-        Ok(numpy_array.to_owned())
+        let res = PyArray2::from_vec2(py, &result_flat.chunks(steps + 1).map(|v| v.to_vec()).collect::<Vec<_>>())?;
+        Ok(res.to_owned())
     })
 }
 
@@ -393,12 +385,31 @@ fn mmap_parse_ticks(path: &str) -> PyResult<Py<PyArray1<f64>>> {
 }
 
 #[pyfunction]
-fn validate_tick(_ticker: &str, price: f64, last_price: f64) -> PyResult<bool> {
-    if last_price == 0.0 { 
-        Ok(true) 
-    } else { 
-        Ok(((price - last_price).abs() / last_price) < 0.20) 
+fn mmap_parse_structured_ticks(path: &str) -> PyResult<(Py<PyArray1<f64>>, Py<PyArray1<f64>>)> {
+    let file = File::open(path)?;
+    let mmap = unsafe { Mmap::map(&file)? };
+    
+    // Assumption: Binary format [Timestamp (f64), Price (f64)]
+    let record_size = std::mem::size_of::<f64>() * 2;
+    let n_records = mmap.len() / record_size;
+    
+    let mut timestamps = Vec::with_capacity(n_records);
+    let mut prices = Vec::with_capacity(n_records);
+    
+    unsafe {
+        let ptr = mmap.as_ptr() as *const f64;
+        for i in 0..n_records {
+            timestamps.push(*ptr.add(i * 2));
+            prices.push(*ptr.add(i * 2 + 1));
+        }
     }
+    
+    Python::with_gil(|py| {
+        Ok((
+            timestamps.into_pyarray(py).to_owned(),
+            prices.into_pyarray(py).to_owned(),
+        ))
+    })
 }
 
 #[pymodule]
@@ -408,6 +419,7 @@ fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(mmap_parse_ticks, m)?)?;
+    m.add_function(wrap_pyfunction!(mmap_parse_structured_ticks, m)?)?;
     m.add_function(wrap_pyfunction!(runge_kutta_4_vectorized, m)?)?;
     m.add_function(wrap_pyfunction!(runge_kutta_4_gbm, m)?)?;
     m.add_function(wrap_pyfunction!(simulate_gbm_euler, m)?)?;

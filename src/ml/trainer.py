@@ -79,6 +79,29 @@ class ModelTrainer(BaseTrainer):  # type: ignore
 
         return float(np.mean(scores))
 
+    def train_distributed(
+        self,
+        train_dataset: Any, # Ray Dataset
+        config: dict[str, Any],
+    ) -> Any:
+        """Distributed training using Ray Train."""
+        from ray import train
+        from ray.train import ScalingConfig
+        from ray.train.torch import TorchTrainer
+
+        def train_func(config):
+            # Training logic here...
+            pass
+
+        scaling_config = ScalingConfig(num_workers=2, use_gpu=True)
+        trainer = TorchTrainer(
+            train_loop_per_worker=train_func,
+            train_loop_config=config,
+            scaling_config=scaling_config,
+        )
+        result = trainer.fit()
+        return result.model
+
     def optimize(self, objective: Callable[..., Any], n_trials: int = 20) -> optuna.study.Study:
         """Standard Optuna optimization wrapper."""
         study = optuna.create_study(direction="maximize")

@@ -1,36 +1,63 @@
+# Core Data & Math
 numpy>=1.26.4,<2.3
 pandas>=2.3.3
 scipy<1.15.0
 numba>=0.58.0
-structlog>=25.5.0
-orjson>=3.9.0
-msgspec>=0.18.0
-pydantic>=2.4.0
+cupy-cuda12x>=13.0.0
+
+# API & Validation
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
 pydantic-settings>=2.0.0
+msgspec>=0.18.0
+orjson>=3.9.0
+brotli-asgi>=1.4.0
+
+# Security & Auth
+PyJWT>=2.8.0
+argon2-cffi>=23.1.0
+eth_account
+
+# Database & Storage
 sqlalchemy[asyncio]>=2.0.45
+alembic>=1.13.0
 asyncpg>=0.29.0
-psycopg2-binary>=2.9.9
 psycopg[binary]>=3.1.18
 pgvector>=0.2.5
 redis[hiredis]==5.2.0
-python-dotenv>=1.0.0
+minio
+
+# Networking & Utilities
 httpx[http2]>=0.27.0
-rich>=13.7.0
 aiolimiter>=1.1.0
 tenacity>=8.3.0
+python-dotenv>=1.0.0
+rich>=13.7.0
+structlog>=25.5.0
+
+# Scraping
 selectolax>=0.3.21
 yfinance>=0.2.40
+
+# Observability
 prometheus-client>=0.20.0
 prometheus_api_client>=0.5.0
-eth_account
-minio
-alembic>=1.13.0
-aio-pika>=9.4.0
-evidently>=0.4.0
 opentelemetry-api>=1.24.0
 opentelemetry-sdk>=1.24.0
 opentelemetry-instrumentation-fastapi>=0.45b0
 opentelemetry-exporter-otlp>=1.24.0
+
+# ML & Distributed Computing
 mlflow>=2.10.0
+ray[default,serve,train,tune]>=2.10.0
 celery>=5.3.0
-brotli-asgi>=1.4.0
+aio-pika>=9.4.0
+evidently>=0.4.0
+
+# Rust Integration
+maturin>=1.5.0
+
+# Misc
+gpxpy>=1.6.2
+grpcio-health-checking>=1.62.0
