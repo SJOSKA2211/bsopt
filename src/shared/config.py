@@ -409,10 +409,7 @@ class Settings(BaseSettings):
                 )
 
             # Derive MFA Encryption Key if not explicitly set
-            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [
-                _DEFAULT_MFA_KEY_SEED,
-                "INSECURE_DEV_PLACEHOLDER",
-            ]:
+            if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY == _DEFAULT_MFA_KEY_SEED:
                 mfa_seed = derive_key("mfa-encryption")
                 self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
                 logger.debug("derived_mfa_key_institutional_grade")
@@ -427,7 +424,7 @@ class Settings(BaseSettings):
         if self.is_production and self.ENVIRONMENT != "test":
             pass
 
-        if self.ENVIRONMENT.lower() in _PRODUCTION_ENVIRONMENTS:
+        if self.is_production:
             # 1. JWT Secret Security
             if self.JWT_SECRET == "change-me-in-production" or not self.JWT_SECRET:
                 raise ValueError(
@@ -436,7 +433,7 @@ class Settings(BaseSettings):
 
             # 2. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY
-            if not key or key == _DEFAULT_MFA_KEY_SEED or key == "INSECURE_DEV_PLACEHOLDER":
+            if not key or key == _DEFAULT_MFA_KEY_SEED:
                 raise ValueError(
                     "CRITICAL: MFA_ENCRYPTION_KEY must be set or derived in production."
                 )

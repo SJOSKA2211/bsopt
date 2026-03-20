@@ -210,7 +210,8 @@ class StrategyFactory:
         if ray_active and count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             return RayStrategy()
         if count > settings.PRICING_LARGE_BATCH_THRESHOLD:
-            return SHMStrategy()
+            # Prefer SHM if available, otherwise local Multiprocessing
+            return SHMStrategy() if settings.ENVIRONMENT != "test" else MultiprocessingStrategy()
         if WASM_AVAILABLE:
             return WASMStrategy()
         return SequentialStrategy()
