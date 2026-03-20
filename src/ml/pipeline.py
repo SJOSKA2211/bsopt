@@ -60,15 +60,22 @@ class DataPipeline:
             "duration_seconds": 1.0,
             "status": "ready",
         }
+
     async def run_shutdown(self) -> None:
         """Cleanup data pipeline resources."""
         from src.database.pipeliner import db_engine
+
         await db_engine.close()
         logger.info("data_pipeline_shutdown_complete")
 
     async def load_latest_data(
         self,
-    ) -> tuple[np.ndarray[Any, np.dtype[np.float64]], np.ndarray[Any, np.dtype[np.float64]], list[str], dict[str, Any]]:
+    ) -> tuple[
+        np.ndarray[Any, np.dtype[np.float64]],
+        np.ndarray[Any, np.dtype[np.float64]],
+        list[str],
+        dict[str, Any],
+    ]:
         """
         Load the latest collected data from Postgres (Optimized cross-sectional extraction).
         Returns: (X, y, feature_names, metadata)
@@ -231,7 +238,7 @@ class MLPipeline:
         logger.info("ml_pipeline_shutdown", ticker=self.symbols[0])
         await self.data_pipeline.run_shutdown()
         if hasattr(self.trainer, "tracker"):
-             self.trainer.tracker.end_run()
+            self.trainer.tracker.end_run()
 
 
 if __name__ == "__main__":
@@ -314,6 +321,7 @@ def _check_cache(file_path: str) -> bool:
     if not os.path.exists(file_path):
         return False
     import time
+
     return (time.time() - os.path.getmtime(file_path)) < 86400
 
 

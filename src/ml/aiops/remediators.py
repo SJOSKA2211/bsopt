@@ -111,6 +111,7 @@ class RetrainModelRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         from src.shared.config import settings
+
         ticker = anomaly.get("metrics", {}).get("ticker", settings.DEFAULT_TICKER)
         logger.warning("remediator_retrain_initiated", ticker=ticker, score=anomaly.get("score"))
         monitor_drift_and_retrain_task.delay(ticker=ticker)
@@ -135,7 +136,7 @@ class ArgoCDRollbackRemediator(BaseRemediator):
 
         service = anomaly.get("service", "unknown")
         logger.warning("remediator_argocd_rollback_initiated", app=service)
-        
+
         argocd_url = getattr(settings, "ARGOCD_URL", None)
         if not argocd_url:
             logger.warning("argocd_not_configured_skipping_rollback_request", app=service)
@@ -147,7 +148,7 @@ class ArgoCDRollbackRemediator(BaseRemediator):
                 resp = await client.post(
                     f"{argocd_url}/api/v1/applications/{service}/rollback",
                     headers={"Authorization": f"Bearer {settings.ARGOCD_TOKEN}"},
-                    json={"revision": "HEAD~1"}
+                    json={"revision": "HEAD~1"},
                 )
                 resp.raise_for_status()
                 logger.info("remediator_argocd_rollback_completed", app=service)

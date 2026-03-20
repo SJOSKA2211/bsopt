@@ -28,16 +28,17 @@ class TradingEnvironment(
         symbol: str = "AAPL",
     ) -> None:
         super().__init__()
-        
+
         # Fallback to institutional data provider if none injected
         if data_provider is None:
             from datetime import date, timedelta
 
             from .data_providers import TimescaleDataProvider
+
             today = str(date.today())
             last_year = str(date.today() - timedelta(days=365))
             data_provider = TimescaleDataProvider(symbol, last_year, today)
-            
+
         self.data_provider = data_provider
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
@@ -80,7 +81,9 @@ class TradingEnvironment(
         if self.data_provider and len(self.data_provider) > 0:
             self.market_data = cast(dict[str, Any], self.data_provider.get_data_at_step(0))
         else:
-            raise RuntimeError("TradingEnvironment initialized without valid data provider or empty dataset")
+            raise RuntimeError(
+                "TradingEnvironment initialized without valid data provider or empty dataset"
+            )
 
         return self._get_observation(), {}
 
@@ -183,4 +186,3 @@ class TradingEnvironment(
             ret -= 0.05 * (dd - 0.1)
 
         return float(ret)
-

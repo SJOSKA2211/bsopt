@@ -61,6 +61,7 @@ MLAlgorithm = ENUM(
 
 # CORE MODELS
 
+
 class Symbol(Base):
     __tablename__ = "symbols"
 
@@ -77,6 +78,7 @@ class Symbol(Base):
 
 
 # USER MODEL
+
 
 class User(Base):
     __tablename__ = "users"
@@ -174,8 +176,18 @@ class AuditLog(Base):
     metadata: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB)
 
     __table_args__ = (
-        Index("idx_audit_logs_brin_time", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 32, "autosummarize": "on"}),
-        Index("idx_audit_logs_metadata_gin", "metadata", postgresql_using="gin", postgresql_ops={"metadata": "jsonb_path_ops"}),
+        Index(
+            "idx_audit_logs_brin_time",
+            "time",
+            postgresql_using="brin",
+            postgresql_with={"pages_per_range": 32, "autosummarize": "on"},
+        ),
+        Index(
+            "idx_audit_logs_metadata_gin",
+            "metadata",
+            postgresql_using="gin",
+            postgresql_ops={"metadata": "jsonb_path_ops"},
+        ),
         Index("idx_audit_user_time", "user_id", time.desc()),
         {"postgresql_fillfactor": 100},
     )
@@ -208,7 +220,12 @@ class RequestLog(Base):
 
     __table_args__ = (
         Index("idx_request_logs_brin_time", "created_at", postgresql_using="brin"),
-        Index("idx_request_logs_errors", "status_code", created_at.desc(), postgresql_where=(status_code >= 400)),
+        Index(
+            "idx_request_logs_errors",
+            "status_code",
+            created_at.desc(),
+            postgresql_where=(status_code >= 400),
+        ),
         {"postgresql_fillfactor": 100},
     )
 
@@ -266,7 +283,9 @@ class Position(Base):
     __table_args__ = (
         CheckConstraint("quantity > 0", name="chk_position_quantity_positive"),
         CheckConstraint("entry_price >= 0", name="chk_position_entry_price_non_negative"),
-        Index("idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == 'open')),
+        Index(
+            "idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == "open")
+        ),
         {"postgresql_fillfactor": 90},
     )
 
@@ -304,7 +323,12 @@ class Order(Base):
         CheckConstraint("quantity > 0", name="chk_order_quantity_positive"),
         CheckConstraint("limit_price >= 0", name="chk_order_limit_price_non_negative"),
         CheckConstraint("stop_price >= 0", name="chk_order_stop_price_non_negative"),
-        Index("idx_orders_open", "user_id", created_at.desc(), postgresql_where=status.in_(['pending', 'partially_filled'])),
+        Index(
+            "idx_orders_open",
+            "user_id",
+            created_at.desc(),
+            postgresql_where=status.in_(["pending", "partially_filled"]),
+        ),
         {"postgresql_fillfactor": 90},
     )
 
@@ -336,13 +360,39 @@ class OptionPrice(Base):
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     __table_args__ = (
-        Index("idx_options_prices_brin", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 32, "autosummarize": "on"}),
-        Index("idx_options_prices_chain", "symbol", "expiry", "strike", "option_type", time.desc(),
-              postgresql_include=["bid", "ask", "last", "volume", "open_interest", "implied_volatility", "delta", "gamma", "vega", "theta", "rho"]),
+        Index(
+            "idx_options_prices_brin",
+            "time",
+            postgresql_using="brin",
+            postgresql_with={"pages_per_range": 32, "autosummarize": "on"},
+        ),
+        Index(
+            "idx_options_prices_chain",
+            "symbol",
+            "expiry",
+            "strike",
+            "option_type",
+            time.desc(),
+            postgresql_include=[
+                "bid",
+                "ask",
+                "last",
+                "volume",
+                "open_interest",
+                "implied_volatility",
+                "delta",
+                "gamma",
+                "vega",
+                "theta",
+                "rho",
+            ],
+        ),
         Index("idx_options_prices_symbol_time", "symbol", time.desc()),
         Index("idx_options_prices_expiry_only", expiry.desc()),
         {"postgresql_fillfactor": 100},
@@ -364,12 +414,25 @@ class MarketTick(Base):
 
     # DATA LINEAGE
     source_id: Mapped[str | None] = mapped_column(String(100), index=True)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     audit_trail: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     __table_args__ = (
-        Index("idx_market_ticks_brin", "time", postgresql_using="brin", postgresql_with={"pages_per_range": 16, "autosummarize": "on"}),
-        Index("idx_market_ticks_symbol_price_time", "symbol", "price", time.desc(), postgresql_include=["volume"]),
+        Index(
+            "idx_market_ticks_brin",
+            "time",
+            postgresql_using="brin",
+            postgresql_with={"pages_per_range": 16, "autosummarize": "on"},
+        ),
+        Index(
+            "idx_market_ticks_symbol_price_time",
+            "symbol",
+            "price",
+            time.desc(),
+            postgresql_include=["volume"],
+        ),
         Index("idx_market_ticks_symbol_time", "symbol", time.desc()),
         {"postgresql_fillfactor": 100},
     )
@@ -396,8 +459,18 @@ class MLModel(Base):
 
     __table_args__ = (
         UniqueConstraint("name", "version"),
-        Index("idx_ml_models_hyperparams_gin", "hyperparameters", postgresql_using="gin", postgresql_ops={"hyperparameters": "jsonb_path_ops"}),
-        Index("idx_ml_models_metrics_gin", "training_metrics", postgresql_using="gin", postgresql_ops={"training_metrics": "jsonb_path_ops"}),
+        Index(
+            "idx_ml_models_hyperparams_gin",
+            "hyperparameters",
+            postgresql_using="gin",
+            postgresql_ops={"hyperparameters": "jsonb_path_ops"},
+        ),
+        Index(
+            "idx_ml_models_metrics_gin",
+            "training_metrics",
+            postgresql_using="gin",
+            postgresql_ops={"training_metrics": "jsonb_path_ops"},
+        ),
     )
 
 
@@ -419,7 +492,12 @@ class ModelPrediction(Base):
     actual_value: Mapped[Decimal | None] = mapped_column(Numeric)
 
     __table_args__ = (
-        Index("idx_model_predictions_features_gin", "input_features", postgresql_using="gin", postgresql_ops={"input_features": "jsonb_path_ops"}),
+        Index(
+            "idx_model_predictions_features_gin",
+            "input_features",
+            postgresql_using="gin",
+            postgresql_ops={"input_features": "jsonb_path_ops"},
+        ),
         Index("idx_model_predictions_symbol_time", "symbol", timestamp.desc()),
         Index("idx_model_predictions_model_time", "model_id", timestamp.desc()),
         {"postgresql_fillfactor": 100},
@@ -471,9 +549,7 @@ class APIKey(Base):
 
     user: Mapped["User"] = relationship(back_populates="api_keys")
 
-    __table_args__ = (
-        Index("idx_api_keys_key_hash", "key_hash"),
-    )
+    __table_args__ = (Index("idx_api_keys_key_hash", "key_hash"),)
 
 
 class BetterAuthSession(Base):

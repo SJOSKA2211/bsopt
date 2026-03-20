@@ -173,6 +173,8 @@ def mock_db_session(mocker):
 
     session = mocker.MagicMock(spec=Session)
     return session
+
+
 @pytest.fixture(autouse=True)
 def self_healing_retry(request):
     """
@@ -190,9 +192,9 @@ def self_healing_retry(request):
             # 2. Restart a microservice
             # 3. Increase timeouts
             # 4. Toggle from GPU to CPU fallback
-            
+
             # For now, we simulate a successful 'healing' and retry
-            # Note: Actual re-execution in pytest is complex, 
+            # Note: Actual re-execution in pytest is complex,
             # so we just log the intent for the institutional architecture.
             print("[Self-Healing] Environment stabilized. Retrying...")
             # In a real implementation, we might use pytest-rerunfailures with a dynamic hook

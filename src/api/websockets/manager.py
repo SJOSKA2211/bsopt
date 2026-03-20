@@ -327,15 +327,15 @@ class ConnectionManager:
                 elif proto == ProtocolType.PROTO:
                     # Dynamically select message type based on symbol or channel
                     from src.protos import market_data_pb2
+
                     if decoded_data is None and is_raw:
                         decoded_data = WebSocketCodec.decode(message, ProtocolType.MSGPACK)
-                    
+
                     data = decoded_data if is_raw else message
-                    
+
                     # Assume TickerUpdate for simplicity, or handle based on symbol/prefix
                     pb_msg = market_data_pb2.TickerUpdate(
-                        symbol=data.get("symbol", symbol),
-                        price=float(data.get("price", 0.0))
+                        symbol=data.get("symbol", symbol), price=float(data.get("price", 0.0))
                     )
                     encoded = WebSocketCodec.encode(pb_msg, ProtocolType.PROTO)
                 else:
@@ -349,6 +349,7 @@ class ConnectionManager:
                     # Exponential Backoff with Jitter for sending messages
                     async def send_with_backoff(c: WebSocket, d: bytes) -> None:
                         import random
+
                         retries = 3
                         base_delay = 0.1
                         for attempt in range(retries):

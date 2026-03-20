@@ -401,5 +401,3 @@ async def _send_password_reset_email(email: str, token: str) -> None:
         template_name="password_reset.html",
         context={"reset_link": reset_link, "email": email},
     )
-
-

@@ -50,24 +50,24 @@ class RayRLTrainer:
             # OPTIMIZED: Gather experience from remote workers in parallel
             worker_tasks = [w.gather_experience.remote(weights={}) for w in self.workers]
             results = ray.get(worker_tasks)
-            
+
             # Aggregate rewards and samples
             batch_samples = sum(r["samples"] for r in results)
             avg_reward = np.mean([r["reward"] for r in results])
-            
+
             steps_done += batch_samples
             logger.info(
                 "distributed_training_step",
                 steps=steps_done,
                 avg_reward=avg_reward,
-                batch_size=batch_samples
+                batch_size=batch_samples,
             )
 
             # INTEGRATION PATH:
             # 1. Replace RolloutWorker with ray.train.torch.TorchWorker
             # 2. Use Ray Train's TorchTrainer for distributed gradient descent
             # 3. Use Ray Data for efficient experience buffer management
-            
+
         logger.info("ray_distributed_training_complete", total_steps=steps_done)
         return {"status": "success", "steps": steps_done}
 

@@ -122,11 +122,12 @@ if __name__ == "__main__":
 
     # Production-grade model loading for standalone testing
     from src.ingestion.storage_manager import get_storage_manager
+
     storage = get_storage_manager()
-    
+
     xgb_path = "models/latest_xgb.onnx"
     nn_path = "models/latest_nn.onnx"
-    
+
     # Attempt to load from storage or fallback to local
     try:
         xgb = ort.InferenceSession(xgb_path)

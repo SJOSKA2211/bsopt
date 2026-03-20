@@ -7,15 +7,17 @@ from mlflow.tracking import MlflowClient
 
 logger = structlog.get_logger(__name__)
 
+
 class MLflowWatchdog:
     """
     Institutional-grade MLOps Watchdog.
     Monitors Ray jobs and auto-respawns with adjusted params on failure/OOM.
     """
+
     def __init__(self, ray_address="auto"):
         self.ray_address = ray_address
         self.client = MlflowClient()
-        
+
     def monitor_and_heal(self):
         logger.info("mlflow_watchdog_started")
         while True:
@@ -23,18 +25,18 @@ class MLflowWatchdog:
                 # Check Ray cluster health
                 if not ray.is_initialized():
                     ray.init(address=self.ray_address)
-                
+
                 # 1. Check for failed jobs in MLflow
                 active_runs = self.client.search_runs(
-                    experiment_ids=["0"], # Default experiment
+                    experiment_ids=["0"],  # Default experiment
                     filter_string="status = 'FAILED' OR status = 'KILLED'",
-                    max_results=10
+                    max_results=10,
                 )
-                
+
                 for run in active_runs:
                     logger.warning("found_failed_ml_run", run_id=run.info.run_id)
                     self._attempt_recovery(run)
-                
+
                 # 2. Monitor Data Drift via TimescaleDB Continuous Aggregates
                 try:
                     import asyncio
@@ -42,16 +44,20 @@ class MLflowWatchdog:
                     from sqlalchemy import text
 
                     from src.database import db_manager
-                    
+
                     async def check_drift():
                         async with db_manager.async_engine.connect() as conn:
                             # 1. Simple Threshold Check (Institutional Fast-Path)
-                            result = await conn.execute(text("SELECT MAX(delta_stddev) FROM greeks_drift_cagg WHERE bucket > NOW() - INTERVAL '1 hour'"))
+                            result = await conn.execute(
+                                text(
+                                    "SELECT MAX(delta_stddev) FROM greeks_drift_cagg WHERE bucket > NOW() - INTERVAL '1 hour'"
+                                )
+                            )
                             drift_val = result.scalar()
-                            
+
                             if drift_val and drift_val > 0.15:
                                 logger.warning("significant_data_drift_detected", drift=drift_val)
-                                
+
                                 # 2. Advanced Analysis with Evidently
                                 try:
                                     import pandas as pd
@@ -64,27 +70,41 @@ class MLflowWatchdog:
                                     from src.shared.utils.storage import storage_manager
 
                                     # Fetch sample data for Evidently
-                                    raw_data = await conn.execute(text("SELECT * FROM market_ticks WHERE time > NOW() - INTERVAL '2 hours'"))
+                                    raw_data = await conn.execute(
+                                        text(
+                                            "SELECT * FROM market_ticks WHERE time > NOW() - INTERVAL '2 hours'"
+                                        )
+                                    )
                                     df = pd.DataFrame(raw_data.fetchall())
-                                    
+
                                     # Split into reference and current
                                     mid = len(df) // 2
                                     reference = df.iloc[:mid]
                                     current = df.iloc[mid:]
 
-                                    report = Report(metrics=[DataDriftPreset(), TargetDriftPreset()])
+                                    report = Report(
+                                        metrics=[DataDriftPreset(), TargetDriftPreset()]
+                                    )
                                     report.run(reference_data=reference, current_data=current)
-                                    
+
                                     report_path = "/tmp/drift_report.html"
                                     report.save_html(report_path)
-                                    
+
                                     # Upload to MinIO
-                                    storage_manager.upload_file("equaflow-artifacts", f"drift/report_{int(time.time())}.html", report_path)
-                                    logger.info("evidently_report_uploaded", bucket="equaflow-artifacts")
-                                    
+                                    storage_manager.upload_file(
+                                        "equaflow-artifacts",
+                                        f"drift/report_{int(time.time())}.html",
+                                        report_path,
+                                    )
+                                    logger.info(
+                                        "evidently_report_uploaded", bucket="equaflow-artifacts"
+                                    )
+
                                     self._trigger_retraining("neural_pricing_v2")
                                 except ImportError:
-                                    logger.warning("evidently_not_installed_skipping_advanced_analysis")
+                                    logger.warning(
+                                        "evidently_not_installed_skipping_advanced_analysis"
+                                    )
                                     self._trigger_retraining("neural_pricing_v2")
 
                     asyncio.run(check_drift())
@@ -96,7 +116,7 @@ class MLflowWatchdog:
                 if mem.percent > 90:
                     logger.error("critical_memory_pressure_detected", percent=mem.percent)
                     # Implementation for aggressive cleanup or job suspension
-                
+
                 time.sleep(60)
             except Exception as e:
                 logger.error("watchdog_error", error=str(e))
@@ -109,15 +129,22 @@ class MLflowWatchdog:
         # Example adjustment: Reduce batch size if it likely failed due to OOM
         if "batch_size" in params:
             new_batch_size = max(1, int(params["batch_size"]) // 2)
-            logger.info("adjusting_params_for_recovery", old_batch_size=params["batch_size"], new_batch_size=new_batch_size)
+            logger.info(
+                "adjusting_params_for_recovery",
+                old_batch_size=params["batch_size"],
+                new_batch_size=new_batch_size,
+            )
             # In a real scenario, we would trigger the training script again with new_batch_size
             # self._trigger_retraining(run.data.tags.get("model_name", "unknown"), adjusted_params={"batch_size": new_batch_size})
 
     def _trigger_retraining(self, model_name, adjusted_params=None):
         """Trigger a Ray job for distributed retraining."""
-        logger.info("triggering_automated_retraining", model=model_name, adjusted_params=adjusted_params)
+        logger.info(
+            "triggering_automated_retraining", model=model_name, adjusted_params=adjusted_params
+        )
         # ray.job_submit(...)
         pass
+
 
 if __name__ == "__main__":
     watchdog = MLflowWatchdog()

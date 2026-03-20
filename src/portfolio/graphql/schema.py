@@ -70,11 +70,14 @@ class Mutation:
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio, None]:
+    async def portfolio_updates(
+        self, portfolio_id: strawberry.ID
+    ) -> AsyncGenerator[Portfolio, None]:
         """
         Stream real-time portfolio updates via Redis PubSub.
         """
         from src.shared.utils.cache import get_redis
+
         redis = get_redis()
         if not redis:
             # Fallback to single fetch if Redis is unavailable
@@ -86,7 +89,7 @@ class Subscription:
         pubsub = redis.pubsub()
         channel = f"portfolio_updates:{portfolio_id}"
         await pubsub.subscribe(channel)
-        
+
         try:
             async for message in pubsub.listen():
                 if message["type"] == "message":
@@ -100,4 +103,3 @@ class Subscription:
 
 
 schema = Schema(query=Query, mutation=Mutation, subscription=Subscription)
-

@@ -87,20 +87,28 @@ class NeuralPricingStrategy(PricingStrategy):
         """
         if not self.ort_session:
             from src.math_kernel.black_scholes import BlackScholesEngine
+
             return BlackScholesEngine().calculate_greeks(params, option_type)
 
         def get_price(s, k, t, v, r, q):
             p = BSParameters(spot=s, strike=k, maturity=t, volatility=v, rate=r, dividend=q)
             return self.price_european(p, option_type)
 
-        s, k, t, v, r, q = params.spot, params.strike, params.maturity, params.volatility, params.rate, params.dividend
+        s, k, t, v, r, q = (
+            params.spot,
+            params.strike,
+            params.maturity,
+            params.volatility,
+            params.rate,
+            params.dividend,
+        )
         eps = 1e-4
 
         # Delta & Gamma
         p_plus = get_price(s + eps, k, t, v, r, q)
         p_minus = get_price(s - eps, k, t, v, r, q)
         p_mid = get_price(s, k, t, v, r, q)
-        
+
         delta = (p_plus - p_minus) / (2 * eps)
         gamma = (p_plus - 2 * p_mid + p_minus) / (eps**2)
 
@@ -109,7 +117,7 @@ class NeuralPricingStrategy(PricingStrategy):
         vega = (p_v_plus - p_mid) / eps
 
         # Theta (using 1 day step)
-        dt = 1/365.0
+        dt = 1 / 365.0
         p_t_minus = get_price(s, k, max(0, t - dt), v, r, q)
         theta = (p_t_minus - p_mid) / dt
 
@@ -122,5 +130,5 @@ class NeuralPricingStrategy(PricingStrategy):
             gamma=float(gamma),
             vega=float(vega),
             theta=float(theta),
-            rho=float(rho)
+            rho=float(rho),
         )

@@ -69,6 +69,7 @@ class PortfolioOptimizer:
     Advanced Portfolio Optimization Engine.
     Supports MVO, HRP, and Black-Litterman models.
     """
+
     def __init__(self, symbols: list[str], returns_df: pd.DataFrame):
         self.symbols = symbols
         self.returns = returns_df[symbols]
@@ -159,13 +160,17 @@ class BacktestEngine:
 
         # 4. OPTIMIZED Risk Metrics: VaR and Expected Shortfall (Vectorized)
         confidence_level = params.get("confidence_level", 0.95) if params else 0.95
-        
+
         # Calculate periodic returns from equity curve
         returns_series = pd.Series(equity_curve).pct_change().dropna()
-        
+
         # Historical VaR
-        var_95 = np.percentile(returns_series, (1 - confidence_level) * 100) if not returns_series.empty else 0.0
-        
+        var_95 = (
+            np.percentile(returns_series, (1 - confidence_level) * 100)
+            if not returns_series.empty
+            else 0.0
+        )
+
         # Expected Shortfall
         es_95 = returns_series[returns_series <= var_95].mean() if not returns_series.empty else 0.0
 
@@ -191,47 +196,58 @@ class BacktestEngine:
     def optimize_mvo(self) -> np.ndarray:
         """Markowitz Mean-Variance Optimization (MVO)."""
         from scipy.optimize import minimize
+
         n = len(self.symbols)
+
         def objective(w):
             return np.dot(w.T, np.dot(self.cov_matrix, w))
-        
-        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+
+        constraints = {"type": "eq", "fun": lambda x: np.sum(x) - 1}
         bounds = tuple((0, 1) for _ in range(n))
-        res = minimize(objective, n * [1./n], method='SLSQP', bounds=bounds, constraints=constraints)
+        res = minimize(
+            objective, n * [1.0 / n], method="SLSQP", bounds=bounds, constraints=constraints
+        )
         return res.x
 
-    def optimize_black_litterman(self, views: np.ndarray, confidences: np.ndarray, tau: float = 0.05) -> np.ndarray:
+    def optimize_black_litterman(
+        self, views: np.ndarray, confidences: np.ndarray, tau: float = 0.05
+    ) -> np.ndarray:
         """
         Black-Litterman model for institutional view incorporation.
         Combines market prior (equilibrium) with investor views.
         """
         from scipy.optimize import minimize
+
         n = len(self.symbols)
-        
+
         # 1. Prior Returns (Pi) - Simplified equilibrium returns
-        delta = 2.5 # Risk aversion coefficient
-        w_eq = np.ones(n) / n # Neutral prior
+        delta = 2.5  # Risk aversion coefficient
+        w_eq = np.ones(n) / n  # Neutral prior
         pi = delta * np.dot(self.cov_matrix, w_eq)
-        
+
         # 2. View Integration
         # P: Pick matrix (identity for absolute views on each asset)
         P = np.eye(n)
         # Omega: Uncertainty of views (diagonal matrix of variances)
         omega = np.diag(confidences)
-        
+
         # 3. Posterior Returns (Combined)
         # Er = [(tau * Cov)^-1 + P' * Omega^-1 * P]^-1 * [(tau * Cov)^-1 * Pi + P' * Omega^-1 * Q]
-        term1 = np.linalg.inv(np.linalg.inv(tau * self.cov_matrix) + np.dot(P.T, np.dot(np.linalg.inv(omega), P)))
-        term2 = np.dot(np.linalg.inv(tau * self.cov_matrix), pi) + np.dot(P.T, np.dot(np.linalg.inv(omega), views))
+        term1 = np.linalg.inv(
+            np.linalg.inv(tau * self.cov_matrix) + np.dot(P.T, np.dot(np.linalg.inv(omega), P))
+        )
+        term2 = np.dot(np.linalg.inv(tau * self.cov_matrix), pi) + np.dot(
+            P.T, np.dot(np.linalg.inv(omega), views)
+        )
         er = np.dot(term1, term2)
-        
+
         # 4. Final Optimization with Posterior Returns
         def objective(w):
-            return -np.dot(w, er) + (delta/2) * np.dot(w.T, np.dot(self.cov_matrix, w))
-            
-        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+            return -np.dot(w, er) + (delta / 2) * np.dot(w.T, np.dot(self.cov_matrix, w))
+
+        constraints = {"type": "eq", "fun": lambda x: np.sum(x) - 1}
         bounds = tuple((0, 1) for _ in range(n))
-        res = minimize(objective, w_eq, method='SLSQP', bounds=bounds, constraints=constraints)
+        res = minimize(objective, w_eq, method="SLSQP", bounds=bounds, constraints=constraints)
         return res.x
 
     @staticmethod
@@ -244,26 +260,30 @@ class BacktestEngine:
         df["target_position"] = np.where(df["underlying_price"] > df["ema"], 10, 0)
         return df
 
+
 class RebalancingEngine:
     """
     Dynamic Portfolio Rebalancing Engine.
     Generates execution-ready trade signals to align current portfolio with target weights.
     """
+
     def __init__(self, current_positions: dict[str, float], prices: dict[str, float]):
         self.current = current_positions
         self.prices = prices
 
-    def calculate_rebalance(self, target_weights: dict[str, float], total_nav: float) -> dict[str, float]:
+    def calculate_rebalance(
+        self, target_weights: dict[str, float], total_nav: float
+    ) -> dict[str, float]:
         """Calculate necessary trades (buy/sell amount in units)."""
         rebalance_orders = {}
         for symbol, weight in target_weights.items():
             target_value = total_nav * weight
             current_value = self.current.get(symbol, 0.0) * self.prices.get(symbol, 0.0)
             diff_value = target_value - current_value
-            
+
             # Simple linear trade (in units)
             diff_units = diff_value / self.prices.get(symbol, 1.0)
             rebalance_orders[symbol] = diff_units
-            
+
         logger.info("rebalance_calculated", orders=rebalance_orders)
         return rebalance_orders

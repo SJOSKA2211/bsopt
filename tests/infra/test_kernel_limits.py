@@ -29,7 +29,9 @@ def test_somaxconn():
     # Prevents connection drops during traffic spikes
     somaxconn = get_sysctl("net.src.shared.somaxconn")
     assert somaxconn is not None
-    assert int(somaxconn) >= 4096, f"net.src.shared.somaxconn should be at least 4096, got {somaxconn}"
+    assert int(somaxconn) >= 4096, (
+        f"net.src.shared.somaxconn should be at least 4096, got {somaxconn}"
+    )
 
 
 def test_ulimit_nofile():

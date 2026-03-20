@@ -34,9 +34,7 @@ pricing_service = PricingService()
 @pricing_circuit
 @multi_layer_cache(prefix="price", ttl=300)
 async def calculate_price(
-    body: PriceRequest, 
-    request: Request,
-    current_user: User = Depends(get_current_active_user)
+    body: PriceRequest, request: Request, current_user: User = Depends(get_current_active_user)
 ) -> PriceResult:
     """
     Calculate theoretical price for a single option.
@@ -55,8 +53,7 @@ async def calculate_price(
 @pricing_circuit
 @multi_layer_cache(prefix="batch_price", ttl=60)
 async def calculate_batch_prices(
-    request: BatchPriceRequest,
-    current_user: User = Depends(get_current_active_user)
+    request: BatchPriceRequest, current_user: User = Depends(get_current_active_user)
 ) -> BatchPriceResult:
     """
     Vectorized batch pricing.
@@ -68,8 +65,7 @@ async def calculate_batch_prices(
 @router.post("/greeks/batch", response_model=None)
 @pricing_circuit
 async def calculate_batch_greeks(
-    request: BatchGreeksRequest,
-    current_user: User = Depends(get_current_active_user)
+    request: BatchGreeksRequest, current_user: User = Depends(get_current_active_user)
 ) -> BatchGreeksResult:
     """
     Vectorized batch Greek calculation.
@@ -81,8 +77,7 @@ async def calculate_batch_greeks(
 @pricing_circuit
 @multi_layer_cache(prefix="greeks", ttl=300)
 async def calculate_greeks(
-    body: GreeksRequest,
-    current_user: User = Depends(get_current_active_user)
+    body: GreeksRequest, current_user: User = Depends(get_current_active_user)
 ):
     """
     Calculate option Greeks.
@@ -110,8 +105,7 @@ class CalculateResponseStruct(msgspec.Struct):
 @router.post("/calculate")
 @pricing_circuit
 async def calculate(
-    body: dict,
-    current_user: User = Depends(get_current_active_user)
+    body: dict, current_user: User = Depends(get_current_active_user)
 ) -> MsgspecJSONResponse:
     """
     Convenience endpoint used by tests and demos.

@@ -16,6 +16,7 @@ logger = structlog.get_logger(__name__)
 class NeuralGreeksRetrainer:
     def __init__(self, ticker: str | None = None, n_samples: int = 100) -> None:
         from src.shared.config import settings
+
         self.ticker = ticker or settings.DEFAULT_TICKER
         self.n_samples = n_samples
 

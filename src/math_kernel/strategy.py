@@ -38,6 +38,7 @@ class DynamicPricingService:
                 "allocations": {"control": 0.5, "variant_a": 0.5},
             }
         }
+
     def calculate_impact(self, volume: float, avg_daily_volume: float, volatility: float) -> float:
         """
         Square-root market impact model.
@@ -48,7 +49,9 @@ class DynamicPricingService:
             return 0.0
         return Y * volatility * np.sqrt(volume / avg_daily_volume)
 
-    def analyze_elasticity(self, tier: str, volume: float = 1000, adv: float = 100000, vol: float = 0.2) -> float:
+    def analyze_elasticity(
+        self, tier: str, volume: float = 1000, adv: float = 100000, vol: float = 0.2
+    ) -> float:
         """
         Calculate dynamic price elasticity based on market impact model.
         Returns the expected price change for a given execution volume.
@@ -88,15 +91,29 @@ class DynamicPricingService:
 
         return round(adjusted_price, 2)
 
-
-    def automate_adjustments(self, competitor_prices: list[float]) -> PricingStrategy:
-        """Suggest a strategy based on competitor data."""
-        avg_comp = np.mean(competitor_prices)
-        # Logic to stay competitive
-        if avg_comp < 50:
-            return PricingStrategy.PENETRATION
-        if avg_comp > 200:
+    def automate_adjustments(
+        self, 
+        competitor_prices: list[float], 
+        usage_factor: float = 1.0, 
+        volatility: float = 0.2
+    ) -> PricingStrategy:
+        """
+        Suggest a strategy based on competitor data, platform usage, and market volatility.
+        """
+        avg_comp = np.mean(competitor_prices) if competitor_prices else 100.0
+        
+        # High volatility or high usage suggests a PREMIUM or AGGRESSIVE strategy
+        if volatility > 0.4 or usage_factor > 2.0:
             return PricingStrategy.PREMIUM
+            
+        # Low competitor prices or low usage suggests a PENETRATION strategy
+        if avg_comp < 50 or usage_factor < 0.5:
+            return PricingStrategy.PENETRATION
+            
+        # Aggressive if we are in the middle but want to capture market share
+        if 50 <= avg_comp <= 100:
+            return PricingStrategy.AGGRESSIVE
+            
         return PricingStrategy.BASE
 
 

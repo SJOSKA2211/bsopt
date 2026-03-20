@@ -72,9 +72,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     await init_redis_cache()
     redis_client = await get_redis_client()
-    
+
     # Initialize Token Blacklist with Redis
     from src.auth.auth import token_blacklist
+
     await token_blacklist.initialize(redis_client)
 
     # Chaos Injection

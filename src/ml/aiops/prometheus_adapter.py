@@ -73,9 +73,10 @@ class PrometheusClient:
         )
 
         from datetime import datetime
+
         end_time = datetime.now()
         start_time = end_time - self._parse_duration(duration)
-        
+
         try:
             # Construct a query that targets the specific service and container
             query = f'sum(rate({metric_name}{{container="{service}"}}[5m]))'
@@ -98,7 +99,7 @@ class PrometheusClient:
             df["price"] = df["price"].astype(float)
             df["symbol"] = service
             df["time_idx"] = np.arange(len(df))
-            
+
             logger.info("metric_range_fetched_successfully", rows=len(df), service=service)
             return df
         except Exception as e:

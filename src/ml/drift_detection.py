@@ -52,18 +52,22 @@ if __name__ == "__main__":
     import numpy as np
 
     # 1. Generate reference data (Normal distribution)
-    ref_df = pd.DataFrame({
-        "feature1": np.random.normal(0, 1, 1000),
-        "feature2": np.random.normal(5, 2, 1000),
-        "target": np.random.normal(10, 5, 1000)
-    })
+    ref_df = pd.DataFrame(
+        {
+            "feature1": np.random.normal(0, 1, 1000),
+            "feature2": np.random.normal(5, 2, 1000),
+            "target": np.random.normal(10, 5, 1000),
+        }
+    )
 
     # 2. Generate current data with DRIFT (Shifted mean)
-    cur_df = pd.DataFrame({
-        "feature1": np.random.normal(0.5, 1, 1000),  # Drifted
-        "feature2": np.random.normal(5, 2, 1000),    # Stable
-        "target": np.random.normal(12, 5, 1000)      # Target Drifted
-    })
+    cur_df = pd.DataFrame(
+        {
+            "feature1": np.random.normal(0.5, 1, 1000),  # Drifted
+            "feature2": np.random.normal(5, 2, 1000),  # Stable
+            "target": np.random.normal(12, 5, 1000),  # Target Drifted
+        }
+    )
 
     detector = DriftDetector(ref_df)
     results = detector.detect_drift(cur_df)

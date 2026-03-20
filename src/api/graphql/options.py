@@ -1,4 +1,3 @@
-
 import strawberry
 from strawberry.federation import Schema
 
@@ -15,4 +14,3 @@ class Query:
 
 
 schema = Schema(query=Query)
-

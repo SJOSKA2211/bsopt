@@ -74,6 +74,9 @@ ml = [
     "optuna>=3.6.0",
     "gymnasium>=0.29.1",
     "stable-baselines3>=2.2.1",
+    "onnx>=1.16.0",
+    "onnxmltools>=1.12.0",
+    "skl2onnx>=1.16.0",
 ]
 quant = [
     "qiskit>=1.0.0",

@@ -214,10 +214,14 @@ class PricingService:
                     )
 
                     # Optimized Dispatch for Neural Greeks
-                    greeks_results = await asyncio.gather(*[
-                        run_sync(engine.calculate_greeks, it[1].to_bs_params(), it[1].option_type)
-                        for it in items
-                    ])
+                    greeks_results = await asyncio.gather(
+                        *[
+                            run_sync(
+                                engine.calculate_greeks, it[1].to_bs_params(), it[1].option_type
+                            )
+                            for it in items
+                        ]
+                    )
 
                     for idx, (original_idx, req) in enumerate(items):
                         g_res = greeks_results[idx]
@@ -237,7 +241,9 @@ class PricingService:
                                 theta=float(g_res.theta),
                                 vega=float(g_res.vega),
                                 rho=float(g_res.rho),
-                            ) if g_res else None,
+                            )
+                            if g_res
+                            else None,
                         )
                 else:
                     # Fallback to concurrent scalar pricing for non-vectorized engines
@@ -320,13 +326,14 @@ class PricingService:
 
             try:
                 engine = self.factory.get_engine(str(model))
-                
+
                 # Check for vectorized interface
                 from src.math_kernel.base import VectorizedPricingStrategy
+
                 if isinstance(engine, VectorizedPricingStrategy):
                     # Convert types to boolean array
-                    is_calls = (option_types[indices] == "call")
-                    
+                    is_calls = option_types[indices] == "call"
+
                     prices = await run_sync(
                         engine.price_batch,
                         spots[indices],
@@ -335,7 +342,7 @@ class PricingService:
                         vols[indices],
                         rates[indices],
                         dividends[indices],
-                        is_calls
+                        is_calls,
                     )
                     results[indices] = prices
                 else:
@@ -347,7 +354,7 @@ class PricingService:
                             maturity=float(maturities[idx]),
                             volatility=float(vols[idx]),
                             rate=float(rates[idx]),
-                            dividend=float(dividends[idx])
+                            dividend=float(dividends[idx]),
                         )
                         res = await run_sync(engine.price_european, params, option_types[idx])
                         results[idx] = res.price
@@ -361,18 +368,18 @@ class PricingService:
         shm_in_name: str,
         shm_out_name: str,
         shape: tuple[int, int],
-        model: str = "black_scholes"
+        model: str = "black_scholes",
     ) -> bool:
         """
         ULTRA-LOW LATENCY: Pricing via Shared Memory segments.
         Direct memory interaction for zero-copy data transfer.
         """
         from src.shared.shared_memory import shm_manager
-        
+
         try:
             shm_in = shm_manager.get_segment(shm_in_name)
             shm_out = shm_manager.get_segment(shm_out_name)
-            
+
             # Input layout: [spot, strike, T, vol, r, q, is_call]
             n = shape[0]
             input_data = np.ndarray(shape, dtype=np.float64, buffer=shm_in.buf)
@@ -380,7 +387,7 @@ class PricingService:
 
             if model == "black_scholes":
                 from src.math_kernel.black_scholes import BlackScholesEngine
-                
+
                 # Extract columns
                 S = input_data[:, 0]
                 K = input_data[:, 1]
@@ -392,14 +399,13 @@ class PricingService:
 
                 # Execute vectorized pricing
                 prices = await run_sync(
-                    BlackScholesEngine.price_batch,
-                    S, K, T, sigma, r, q, is_call
+                    BlackScholesEngine.price_batch, S, K, T, sigma, r, q, is_call
                 )
-                
+
                 # Copy results to output SHM
                 output_data[:] = prices
                 return True
-            
+
             # Add other models as needed
             return False
 

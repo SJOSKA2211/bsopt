@@ -49,25 +49,28 @@ async def get_historical_data(
         WHERE symbol = :symbol AND time BETWEEN :start AND :end
         ORDER BY time ASC
     """)
-    
+
     results = []
     with _engine.connect() as conn:
         rows = conn.execute(query, {"symbol": symbol, "start": start_time, "end": end_time})
         for row in rows:
-            results.append(MarketData(
-                symbol=symbol,
-                timestamp=row.timestamp,
-                bid=row.bid,
-                ask=row.ask,
-                last=row.price,
-                volume=row.volume
-            ))
-            
+            results.append(
+                MarketData(
+                    symbol=symbol,
+                    timestamp=row.timestamp,
+                    bid=row.bid,
+                    ask=row.ask,
+                    last=row.price,
+                    volume=row.volume,
+                )
+            )
+
     # Fallback to live point if no history and range is very recent
     if not results and (datetime.now() - start_time).total_seconds() < 3600:
         results.append(await get_market_data(symbol))
-        
+
     return results
+
 
 async def get_historical_ohlcv(
     symbol: str, start_time: datetime, end_time: datetime, interval_minutes: int = 1
@@ -89,23 +92,22 @@ async def get_historical_ohlcv(
         GROUP BY bucket
         ORDER BY bucket ASC
     """)
-    
+
     results = []
     with _engine.connect() as conn:
-        rows = conn.execute(query, {
-            "symbol": symbol, 
-            "start": start_time, 
-            "end": end_time, 
-            "interval": interval
-        })
+        rows = conn.execute(
+            query, {"symbol": symbol, "start": start_time, "end": end_time, "interval": interval}
+        )
         for row in rows:
-            results.append(OHLCV(
-                time=row.bucket.isoformat(),
-                open=float(row.open),
-                high=float(row.high),
-                low=float(row.low),
-                close=float(row.close),
-                volume=int(row.volume or 0)
-            ))
-            
+            results.append(
+                OHLCV(
+                    time=row.bucket.isoformat(),
+                    open=float(row.open),
+                    high=float(row.high),
+                    low=float(row.low),
+                    close=float(row.close),
+                    volume=int(row.volume or 0),
+                )
+            )
+
     return results

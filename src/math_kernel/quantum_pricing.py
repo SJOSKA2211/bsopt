@@ -131,7 +131,7 @@ class QuantumOptionPricer:
         Uses discretized price points.
         """
         qc = self._create_state_prep(S0, sigma, T, num_qubits)
-        
+
         # Real Log-Normal price discretization
         low = S0 * np.exp((mu - 0.5 * sigma**2) * T - 3 * sigma * np.sqrt(T))
         high = S0 * np.exp((mu - 0.5 * sigma**2) * T + 3 * sigma * np.sqrt(T))
@@ -165,7 +165,7 @@ class QuantumOptionPricer:
                 # In a full implementation, this would be a multi-controlled CRY
                 # For this manifold, we use the optimized _create_payoff_circuit approach
                 pass
-        
+
         # Fallback to the optimized helper to ensure production-grade depth
         payoff_circ = self._create_payoff_circuit(K, num_qubits)
         qc.compose(payoff_circ, range(num_qubits + 1), inplace=True)

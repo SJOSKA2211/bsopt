@@ -5,11 +5,13 @@ from web3 import Web3
 
 logger = structlog.get_logger(__name__)
 
+
 class OnChainOracle:
     """
     On-Chain Volatility Oracle Sync.
     Bridges internal Greeks state with DeFi oracle protocols.
     """
+
     def __init__(self):
         self.rpc_url = os.getenv("BLOCKCHAIN_RPC_URL", "http://geth:8545")
         self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
@@ -26,5 +28,6 @@ class OnChainOracle:
         logger.info("fetching_external_greeks")
         # Implementation for fetching from on-chain price feeds
         return {"IV": 0.25, "Delta": 0.5}
+
 
 oracle = OnChainOracle()

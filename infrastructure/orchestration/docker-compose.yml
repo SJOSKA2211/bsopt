@@ -789,7 +789,7 @@ services:
       - bsopt-network
     environment:
       - INSIDE_DOCKER=1
-    working_dir: /app/src/quant/rust-src.shared
+    working_dir: /app/src/math_kernel/rust-core
 
   # === [Specialized] Observability Stack ===
   # === Monitoring Service ===

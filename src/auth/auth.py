@@ -193,7 +193,7 @@ class AuthService:
             return settings.rsa_private_key if is_private else settings.rsa_public_key
         elif algorithm.startswith("ES"):
             return settings.es256_private_key if is_private else settings.es256_public_key
-        
+
         # Zero-Trust Directive: Forbid symmetric signing in production
         if settings.ENVIRONMENT in ("prod", "production"):
             raise ValueError(f"Symmetric algorithm {algorithm} forbidden in production.")
@@ -204,13 +204,15 @@ class AuthService:
         to_encode = data.copy()
         now = datetime.now(UTC)
         expire = now + expires_delta
-        to_encode.update({
-            "exp": expire,
-            "iat": now,
-            "jti": secrets.token_hex(16),
-            "iss": "equaflow-auth-v2",
-        })
-        
+        to_encode.update(
+            {
+                "exp": expire,
+                "iat": now,
+                "jti": secrets.token_hex(16),
+                "iss": "equaflow-auth-v2",
+            }
+        )
+
         algorithm = self.algorithm
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -222,7 +224,7 @@ class AuthService:
             unverified_header = jwt.get_unverified_header(token)
             algorithm = unverified_header.get("alg", self.algorithm)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
+
             payload = jwt.decode(token, key, algorithms=[algorithm])
             jti = payload.get("jti")
             exp_timestamp = payload.get("exp")
@@ -237,7 +239,7 @@ class AuthService:
             unverified_header = jwt.get_unverified_header(token)
             algorithm = unverified_header.get("alg", self.algorithm)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
-            
+
             payload = jwt.decode(token, key, algorithms=[algorithm])
             return TokenData(
                 user_id=payload.get("sub"),
@@ -284,11 +286,11 @@ class AuthService:
 
         # 2. Asymmetric JWT Validation
         token_data = self.decode_token(token)
-        
+
         # 3. Check Revocation List
         if token_data.jti and await token_blacklist.contains(token_data.jti):
             raise HTTPException(status_code=401, detail="Token revoked")
-            
+
         # 4. Success - Cache if valid session
         if redis_client and token_data.token_type == "access":
             cache_payload = {
@@ -297,11 +299,13 @@ class AuthService:
                 "tier": token_data.tier,
                 "exp": token_data.exp.isoformat(),
                 "iat": token_data.iat.isoformat(),
-                "jti": token_data.jti
+                "jti": token_data.jti,
             }
             ttl = int((token_data.exp - datetime.now(UTC)).total_seconds())
             if ttl > 0:
-                await redis_client.setex(f"session_v2:{token}", ttl, msgspec.json.encode(cache_payload))
+                await redis_client.setex(
+                    f"session_v2:{token}", ttl, msgspec.json.encode(cache_payload)
+                )
 
         return token_data
 

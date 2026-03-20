@@ -7,17 +7,19 @@ from web3 import Web3
 
 logger = structlog.get_logger(__name__)
 
+
 class BlockchainSettlementWorker:
     """
     Institutional Blockchain Settlement Worker.
     Handles on-chain options settlement and treasury management.
     """
+
     def __init__(self):
         self.rpc_url = os.getenv("BLOCKCHAIN_RPC_URL", "http://geth:8545")
         self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         self.private_key = os.getenv("SETTLEMENT_PRIVATE_KEY")
         self.account = Account.from_key(self.private_key) if self.private_key else None
-        
+
         if self.account:
             logger.info("blockchain_worker_initialized", address=self.account.address)
         else:
@@ -45,44 +47,44 @@ class BlockchainSettlementWorker:
 
         trade_id = trade_data.get("id", "0x0")
         logger.info("initiating_on_chain_settlement", trade_id=trade_id)
-        
+
         # 1. Prepare Transaction with Real Data
         data_payload = self._encode_settle_call(trade_id)
-        
+
         # Dynamic Gas Estimation
-        target_address = trade_data.get("contract_address", "0x0000000000000000000000000000000000000000")
-        
+        target_address = trade_data.get(
+            "contract_address", "0x0000000000000000000000000000000000000000"
+        )
+
         try:
-            gas_estimate = self.w3.eth.estimate_gas({
-                'to': target_address,
-                'from': self.account.address,
-                'data': data_payload
-            })
+            gas_estimate = self.w3.eth.estimate_gas(
+                {"to": target_address, "from": self.account.address, "data": data_payload}
+            )
         except Exception:
             gas_estimate = 250000  # Fallback for complex settlement logic
-            
+
         tx = {
-            'chainId': self.w3.eth.chain_id,
-            'gas': int(gas_estimate * 1.2), # 20% buffer
-            'maxFeePerGas': self.w3.eth.gas_price * 2,
-            'maxPriorityFeePerGas': self.w3.eth.max_priority_fee,
-            'nonce': self.w3.eth.get_transaction_count(self.account.address),
-            'to': target_address,
-            'value': 0,
-            'data': data_payload,
-            'type': 2 # EIP-1559
+            "chainId": self.w3.eth.chain_id,
+            "gas": int(gas_estimate * 1.2),  # 20% buffer
+            "maxFeePerGas": self.w3.eth.gas_price * 2,
+            "maxPriorityFeePerGas": self.w3.eth.max_priority_fee,
+            "nonce": self.w3.eth.get_transaction_count(self.account.address),
+            "to": target_address,
+            "value": 0,
+            "data": data_payload,
+            "type": 2,  # EIP-1559
         }
-        
+
         # 2. Sign and Send
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        
+
         logger.info("settlement_tx_sent", tx_hash=tx_hash.hex())
-        
+
         # 3. Wait for Receipt
         receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
         logger.info("settlement_confirmed", block=receipt.blockNumber, status=receipt.status)
-        
+
         return tx_hash.hex()
 
     async def monitor_mempool(self):
@@ -90,6 +92,7 @@ class BlockchainSettlementWorker:
         logger.info("starting_mempool_monitor")
         # Implementation for event log filtering...
         pass
+
 
 if __name__ == "__main__":
     worker = BlockchainSettlementWorker()

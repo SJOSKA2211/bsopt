@@ -114,19 +114,61 @@ class ExperimentTracker:
         model_uri = f"runs:/{run_id}/{artifact_path}"
         return mlflow.register_model(model_uri, model_name)
 
-    def transition_model_stage(self, model_name: str, version: int, stage: str) -> None:
+    def transition_model_stage(self, model_name: str, version: int, stage: str, model: Any = None, framework: str = "sklearn") -> None:
         """Promote or rollback a model version in the registry."""
         client = mlflow.tracking.MlflowClient()
         client.transition_model_version_stage(
             name=model_name,
             version=version,
             stage=stage,
-            archive_existing_versions=True if stage == "Production" else False
+            archive_existing_versions=True if stage == "Production" else False,
         )
         logger.info("model_stage_transitioned", name=model_name, version=version, stage=stage)
 
-        # TODO: Auto-export to ONNX for production inference requires model and framework references
-        pass
+        if stage == "Production" and model is not None:
+            self.export_to_onnx(model, framework, f"{model_name}_v{version}.onnx")
+
+    def export_to_onnx(self, model: Any, framework: str, filename: str) -> str | None:
+        """Export a model to ONNX format for production inference."""
+        import tempfile
+        import onnx
+        
+        temp_dir = tempfile.mkdtemp()
+        onx_path = os.path.join(temp_dir, filename)
+        
+        try:
+            if framework == "xgboost":
+                import onnxmltools
+                from onnxmltools.convert.common.data_types import FloatTensorType
+                initial_type = [('float_input', FloatTensorType([None, 10]))]
+                onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
+                onnxmltools.utils.save_model(onnx_model, onx_path)
+            elif framework in ["pytorch", "torch"]:
+                import torch
+                dummy_input = torch.randn(1, 10)
+                torch.onnx.export(model, dummy_input, onx_path)
+            elif framework == "sklearn":
+                from skl2onnx import convert_sklearn
+                from skl2onnx.common.data_types import FloatTensorType
+                initial_type = [('float_input', FloatTensorType([None, 10]))]
+                onx = convert_sklearn(model, initial_types=initial_type)
+                with open(onx_path, "wb") as f:
+                    f.write(onx.SerializeToString())
+            else:
+                logger.warning("unsupported_framework_for_onnx", framework=framework)
+                return None
+
+            self.log_artifact(onx_path)
+            logger.info("onnx_model_exported", path=onx_path)
+            return onx_path
+        except Exception as e:
+            logger.error("onnx_export_failed", error=str(e), framework=framework)
+            return None
+        finally:
+            if os.path.exists(onx_path):
+                os.remove(onx_path)
+            if os.path.exists(temp_dir):
+                os.rmdir(temp_dir)
 
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
         plt.figure(figsize=(10, 6))

@@ -60,7 +60,12 @@ class MarketDataScraper:
         return final_results
 
     async def fetch_historical_data(
-        self, ticker: str, start_date: str, end_date: str, asset_class: str = "equity", interval: str = "1d"
+        self,
+        ticker: str,
+        start_date: str,
+        end_date: str,
+        asset_class: str = "equity",
+        interval: str = "1d",
     ) -> pd.DataFrame:
         """Fetch historical data for a given ticker and range (Institutional Grade)."""
         self._validate_inputs(ticker, start_date, end_date)
@@ -276,6 +281,7 @@ class MarketDataScraper:
         if self._yfinance_enabled:
             try:
                 import yfinance as yf
+
                 logger.info("scraping_via_yfinance", ticker=ticker)
                 data = yf.download(ticker, start=start_date, end=end_date, progress=False)
                 if not data.empty:
@@ -284,8 +290,8 @@ class MarketDataScraper:
                     # Map to institutional standard
                     df = df.rename(columns={"date": "timestamp", "adj close": "close"})
                     # Convert to ms timestamp
-                    df["timestamp"] = (df["timestamp"].view("int64") // 10**6)
-                    
+                    df["timestamp"] = df["timestamp"].view("int64") // 10**6
+
                     duration = time.time() - start_time
                     SCRAPE_DURATION.labels(api="yfinance").observe(duration)
                     logger.info("scrape_success", ticker=ticker, api="yfinance")
@@ -297,26 +303,27 @@ class MarketDataScraper:
         if self._yfinance_enabled:
             try:
                 import yfinance as yf
+
                 logger.info("scraping_via_yfinance", ticker=ticker, asset_class=asset_class)
-                
+
                 # Specialized interval mapping for multi-asset
                 interval_map = {"1m": "1m", "5m": "5m", "1d": "1d"}
                 yf_interval = interval_map.get(interval, "1d")
-                
+
                 # Fetch data
                 data = yf.download(ticker, period="1mo", interval=yf_interval, progress=False)
-                
+
                 if not data.empty:
                     # Uniform formatting for Institutional Manifold
                     df = data.reset_index()
                     df.columns = [c.lower() for c in df.columns]
                     # Map 'date' or 'datetime' to 'timestamp'
-                    if 'date' in df.columns:
-                        df.rename(columns={'date': 'timestamp'}, inplace=True)
-                    if 'datetime' in df.columns:
-                        df.rename(columns={'datetime': 'timestamp'}, inplace=True)
+                    if "date" in df.columns:
+                        df.rename(columns={"date": "timestamp"}, inplace=True)
+                    if "datetime" in df.columns:
+                        df.rename(columns={"datetime": "timestamp"}, inplace=True)
                     return df
-                    
+
             except Exception as e:
                 logger.warning("yfinance_fetch_failed", error=str(e))
 

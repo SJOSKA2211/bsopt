@@ -10,21 +10,17 @@ from src.ml.tracker import ExperimentTracker
 
 logger = structlog.get_logger(__name__)
 
+
 @ray.remote
 def ray_backtest_task(
-    ticker: str,
-    prices: np.ndarray,
-    positions: np.ndarray,
-    initial_capital: float
+    ticker: str, prices: np.ndarray, positions: np.ndarray, initial_capital: float
 ) -> dict[str, Any]:
     """Ray task for parallel backtesting of a single ticker."""
-    equity_curve, mtm_pnl, commissions = run_simulation_kernel(
-        prices, positions, initial_capital
-    )
+    equity_curve, mtm_pnl, commissions = run_simulation_kernel(prices, positions, initial_capital)
     total_return, sharpe, sortino, calmar, max_dd = calculate_metrics_kernel(
         equity_curve, initial_capital
     )
-    
+
     return {
         "ticker": ticker,
         "total_return": total_return,
@@ -32,14 +28,16 @@ def ray_backtest_task(
         "sortino": sortino,
         "calmar": calmar,
         "max_drawdown": max_dd,
-        "final_equity": equity_curve[-1]
+        "final_equity": equity_curve[-1],
     }
+
 
 class BacktestEngine:
     """
     Institutional-grade Backtesting Engine.
     Orchestrates parallel simulations across tickers using Ray and Numba.
     """
+
     def __init__(self, model_name: str, trackers: ExperimentTracker = None):
         self.model_name = model_name
         self.tracker = trackers or ExperimentTracker(study_name="BacktestAudit")
@@ -48,7 +46,7 @@ class BacktestEngine:
         self,
         batch_data: dict[str, pd.DataFrame],
         initial_capital: float = 100000.0,
-        sharpe_threshold: float = 1.5
+        sharpe_threshold: float = 1.5,
     ) -> bool:
         """
         Execute parallel backtests and validate against institutional thresholds.
@@ -62,36 +60,36 @@ class BacktestEngine:
             prices = df["close"].values.astype(np.float64)
             # Simulated positions for demonstration; in reality, these come from the model
             positions = df["target_pos"].values.astype(np.float64)
-            
-            futures.append(
-                ray_backtest_task.remote(ticker, prices, positions, initial_capital)
-            )
+
+            futures.append(ray_backtest_task.remote(ticker, prices, positions, initial_capital))
 
         results = ray.get(futures)
-        
+
         # Aggregate performance
         avg_sharpe = np.mean([r["sharpe"] for r in results])
         total_pnl = sum([r["final_equity"] for r in results]) - (initial_capital * len(results))
-        
-        logger.info("batch_backtest_complete", 
-                    avg_sharpe=avg_sharpe, 
-                    total_pnl=total_pnl,
-                    threshold=sharpe_threshold)
+
+        logger.info(
+            "batch_backtest_complete",
+            avg_sharpe=avg_sharpe,
+            total_pnl=total_pnl,
+            threshold=sharpe_threshold,
+        )
 
         # Institutional Audit Logging
         with self.tracker.start_run():
             self.tracker.log_metrics(
-                accuracy=avg_sharpe, # Using sharpe as a proxy for 'accuracy' in this context
-                rmse=total_pnl, 
-                duration=0.0, 
-                framework="backtest"
+                accuracy=avg_sharpe,  # Using sharpe as a proxy for 'accuracy' in this context
+                rmse=total_pnl,
+                duration=0.0,
+                framework="backtest",
             )
             self.tracker.log_dict({"results": results}, "backtest_results.json")
 
         if avg_sharpe < sharpe_threshold:
             logger.warning("institutional_threshold_not_met_rollback_advise")
             return False
-            
+
         return True
 
     async def promote_model(self, version: int):

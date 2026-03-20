@@ -14,5 +14,6 @@ def check_performance_libs():
             print(f"⚠️ WARNING: Performance library missing: {lib}.")
             print("Engine requires numba and msgspec for optimized pricing.")
 
+
 if __name__ == "__main__":
     check_performance_libs()

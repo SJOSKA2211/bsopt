@@ -7,11 +7,13 @@ import structlog
 
 logger = structlog.get_logger()
 
+
 class MessageBroker:
     """
     Asynchronous Message Broker (RabbitMQ/aio-pika).
     Handles task distribution and inter-service signaling.
     """
+
     def __init__(self):
         self.url = os.getenv("RABBITMQ_URL", "amqp://bsopt_admin:bsopt_rmq_secret@rabbitmq:5672/")
         self.connection: aio_pika.RobustConnection | None = None
@@ -28,8 +30,7 @@ class MessageBroker:
         """Publish a message to a specific queue."""
         await self.connect()
         await self.channel.default_exchange.publish(
-            aio_pika.Message(body=message, priority=priority),
-            routing_key=queue_name
+            aio_pika.Message(body=message, priority=priority), routing_key=queue_name
         )
         logger.debug("message_published", queue=queue_name)
 
@@ -47,5 +48,6 @@ class MessageBroker:
         if self.connection:
             await self.connection.close()
             logger.info("rabbitmq_connection_closed")
+
 
 broker = MessageBroker()

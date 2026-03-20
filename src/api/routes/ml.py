@@ -70,7 +70,11 @@ async def get_predictions(
     return DataResponseStruct(data=await ml_service.predict(req, model_type, symbol))
 
 
-@router.get("/drift-metrics", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))])
+@router.get(
+    "/drift-metrics",
+    response_model=None,
+    dependencies=[Depends(require_tier(["admin", "enterprise"]))],
+)
 async def get_drift_metrics(
     model_id: UUID | None = None, db: AsyncSession = Depends(get_async_db)
 ) -> Any:
@@ -80,7 +84,9 @@ async def get_drift_metrics(
     return DataResponseStruct(data=DriftMetricsResponse(metrics=metrics))
 
 
-@router.post("/retrain", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))])
+@router.post(
+    "/retrain", response_model=None, dependencies=[Depends(require_tier(["admin", "enterprise"]))]
+)
 async def trigger_retraining(
     ticker: str = "AAPL",
     force: bool = False,

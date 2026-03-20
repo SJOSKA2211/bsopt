@@ -17,7 +17,10 @@ async def main():
         help="Promote the model to production if successful",
     )
     from src.shared.config import settings
-    parser.add_argument("--ticker", type=str, default=settings.DEFAULT_TICKER, help="Ticker symbol for training")
+
+    parser.add_argument(
+        "--ticker", type=str, default=settings.DEFAULT_TICKER, help="Ticker symbol for training"
+    )
 
     args = parser.parse_args()
 

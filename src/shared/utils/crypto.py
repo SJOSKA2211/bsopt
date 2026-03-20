@@ -51,17 +51,19 @@ class AES256GCM:
         """Standard decryption from URL-safe Base64 string."""
         return self.decrypt_raw(base64.urlsafe_b64decode(token_base64))
 
+
 class EIP712Signer:
     """
     Institutional EIP-712 Message Signer.
     Ensures secure, structured data signing for DeFi settlement.
     """
+
     @staticmethod
     def sign_settlement(private_key: str, trade_id: str, amount: int, recipient: str) -> bytes:
         from eth_account import Account
-        
+
         account = Account.from_key(private_key)
-        
+
         structured_data = {
             "types": {
                 "EIP712Domain": [
@@ -80,7 +82,7 @@ class EIP712Signer:
             "domain": {
                 "name": "EquaFlowSettlement",
                 "version": "1",
-                "chainId": 1, 
+                "chainId": 1,
                 "verifyingContract": "0x0000000000000000000000000000000000000000",
             },
             "message": {
@@ -89,6 +91,6 @@ class EIP712Signer:
                 "recipient": recipient,
             },
         }
-        
+
         signed = account.sign_typed_data(full_message=structured_data)
         return signed.signature

@@ -48,7 +48,6 @@ class MLPrediction:
     last_updated: datetime = strawberry.field(name="last_updated")
 
 
-
 @strawberry.federation.type(shareable=True)
 class Query:
     """Root Query for Options subgraph"""
@@ -86,7 +85,7 @@ class Query:
 
         now = datetime.now(UTC)
         start = now - timedelta(hours=24)
-        
+
         try:
             return await get_historical_ohlcv(symbol, start, now)
         except Exception:
@@ -110,7 +109,7 @@ class Query:
         from src.ml.service import get_ml_service
 
         ml_service = get_ml_service()
-        
+
         # In a real scenario, we'd fetch current market features here
         req = InferenceRequest(
             underlying_price=150.0,
@@ -129,7 +128,7 @@ class Query:
         now = datetime.now(UTC)
         # Add some realistic variance to confidence based on error if available
         confidence = 0.95 - (abs(res.price - 150.0) / 150.0) if res.price else 0.95
-        
+
         return MLPrediction(
             id=strawberry.ID(f"pred-{symbol}-{int(now.timestamp())}"),
             symbol=symbol,

@@ -9,14 +9,16 @@ SERVICES = {
     "Auth": "http://auth-service:3001/health",
     "API": "http://api:8000/health",
     "ML": "http://ml-inference:5001/health",
-    "Pricing": "http://neural-pricing:8000/health"
+    "Pricing": "http://neural-pricing:8000/health",
 }
+
 
 class SystemSentinel:
     """
     Institutional System Sentinel.
     Aggregates health status and latency across all microservices.
     """
+
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=2.0)
 
@@ -29,7 +31,7 @@ class SystemSentinel:
                 results[name] = "HEALTHY" if resp.status_code == 200 else "DEGRADED"
             except Exception:
                 results[name] = "DOWN"
-        
+
         return results
 
     async def sentinel_loop(self):
@@ -40,8 +42,9 @@ class SystemSentinel:
             if any(status != "HEALTHY" for status in health.values()):
                 logger.warning("system_degradation_detected", status=health)
                 # In a real scenario, this would push top-level alerts to PagerDuty/Slack
-            
+
             await asyncio.sleep(60)
+
 
 if __name__ == "__main__":
     sentinel = SystemSentinel()

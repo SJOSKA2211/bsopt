@@ -41,6 +41,7 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class JWTClaims:
     """Validated JWT claims."""
+
     sub: str
     email: str | None = None
     tier: str = "free"
@@ -103,18 +104,20 @@ class JWTValidator:
             await self.redis.setex(
                 cache_key,
                 self.cache_ttl,
-                json.dumps({
-                    "sub": claims.sub,
-                    "email": claims.email,
-                    "tier": claims.tier,
-                    "roles": claims.roles,
-                    "exp": claims.exp,
-                    "iat": claims.iat,
-                    "jti": claims.jti,
-                    "token_type": claims.token_type,
-                    "issuer": claims.issuer,
-                    "audience": claims.audience,
-                }),
+                json.dumps(
+                    {
+                        "sub": claims.sub,
+                        "email": claims.email,
+                        "tier": claims.tier,
+                        "roles": claims.roles,
+                        "exp": claims.exp,
+                        "iat": claims.iat,
+                        "jti": claims.jti,
+                        "token_type": claims.token_type,
+                        "issuer": claims.issuer,
+                        "audience": claims.audience,
+                    }
+                ),
             )
         except Exception as e:
             logger.warning("jwt_cache_write_failed", error=str(e))
@@ -170,7 +173,17 @@ class JWTValidator:
         return jwt.decode(
             token,
             options={"verify_signature": False, "verify_exp": False},
-            algorithms=["RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "HS256", "HS384", "HS512"],
+            algorithms=[
+                "RS256",
+                "RS384",
+                "RS512",
+                "ES256",
+                "ES384",
+                "ES512",
+                "HS256",
+                "HS384",
+                "HS512",
+            ],
         )
 
     async def validate(self, token: str) -> JWTClaims:

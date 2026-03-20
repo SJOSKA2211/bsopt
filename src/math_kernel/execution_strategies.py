@@ -7,15 +7,39 @@ import numpy as np
 try:
     import ray
 except ImportError:
-
     class RayMock:
-        def put(self, obj):
-            return obj
-
-        def get(self, obj):
-            return obj
-
+        """Fallback mock for local-mode identity when Ray is missing."""
+        def put(self, obj): return obj
+        def get(self, obj): return obj
     ray = RayMock()
+
+class MultiprocessingStrategy(ExecutionStrategy):
+    """Local parallel execution using ProcessPoolExecutor (Fallback for Ray)."""
+
+    async def execute(
+        self,
+        inputs: dict[str, np.ndarray],
+        executor: concurrent.futures.ProcessPoolExecutor | None = None,
+    ) -> np.ndarray:
+        from src.math_kernel.service import _worker_pricing
+        
+        loop = asyncio.get_event_loop()
+        # Flatten inputs for the worker
+        args = [
+            inputs["spots"],
+            inputs["strikes"],
+            inputs["maturities"],
+            inputs["vols"],
+            inputs["rates"],
+            inputs["dividends"],
+            inputs["is_call"],
+        ]
+        
+        return await loop.run_in_executor(
+            executor,
+            _worker_pricing,
+            *args
+        )
 import structlog
 
 from src.config import settings

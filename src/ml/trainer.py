@@ -81,7 +81,7 @@ class ModelTrainer(BaseTrainer):  # type: ignore
 
     def train_distributed(
         self,
-        train_dataset: Any, # Ray Dataset
+        train_dataset: Any,  # Ray Dataset
         config: dict[str, Any],
     ) -> Any:
         """Distributed training using Ray Train."""

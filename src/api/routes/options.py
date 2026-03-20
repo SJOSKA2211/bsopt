@@ -48,8 +48,7 @@ class OptionChainItem(msgspec.Struct):
 @router.get("/greeks/{symbol}", response_model=None)
 @db_circuit
 async def get_realtime_greeks(
-    symbol: str, 
-    current_user: User = Depends(get_current_active_user)
+    symbol: str, current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """Return real-time Greeks from SHM for a symbol."""
     data = _greeks_mesh.read(symbol.upper().strip())
@@ -61,8 +60,7 @@ async def get_realtime_greeks(
 @router.post("/greeks/batch", response_model=None)
 @db_circuit
 async def get_batch_greeks(
-    symbols: list[str], 
-    current_user: User = Depends(get_current_active_user)
+    symbols: list[str], current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """Batch lookup of real-time Greeks from SHM."""
     results = {}

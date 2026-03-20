@@ -106,23 +106,19 @@ async def get_portfolio(id: str) -> Portfolio | None:
 async def create_portfolio(user_id: str, name: str, initial_cash: float) -> Portfolio:
     """Implement real portfolio creation (Async SQLAlchemy Persistence)."""
     logger.info("portfolio_create_initiated", user_id=user_id, name=name)
-    
+
     async with get_async_db_context() as session:
         try:
-            new_port = DBPortfolio(
-                user_id=user_id,
-                name=name,
-                cash_balance=initial_cash
-            )
+            new_port = DBPortfolio(user_id=user_id, name=name, cash_balance=initial_cash)
             session.add(new_port)
             await session.commit()
             await session.refresh(new_port)
-            
+
             logger.info("portfolio_created_successfully", portfolio_id=new_port.id)
             return Portfolio(
                 id=strawberry.ID(str(new_port.id)),
                 user_id=str(new_port.user_id),
-                cash_balance=float(new_port.cash_balance)
+                cash_balance=float(new_port.cash_balance),
             )
         except Exception as e:
             await session.rollback()

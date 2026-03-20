@@ -119,11 +119,13 @@ class FusedSecurityMiddleware:
                 limit_tier = getattr(RateLimitTier, tier_str, RateLimitTier.FREE)
 
                 if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
-                    logger.warning("rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str)
+                    logger.warning(
+                        "rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str
+                    )
                     resp = MsgspecJSONResponse(
                         status_code=429,
                         content={"detail": "Too many requests. Upgrade tier for higher limits."},
-                        headers={"X-RateLimit-Limit": str(limit_tier.value)}
+                        headers={"X-RateLimit-Limit": str(limit_tier.value)},
                     )
                     await resp(scope, receive, send)
                     return
@@ -131,7 +133,8 @@ class FusedSecurityMiddleware:
             except Exception as e:
                 logger.warning("zero_trust_auth_intercept_failed", error=str(e), path=path)
                 resp = MsgspecJSONResponse(
-                    status_code=401, content={"detail": "Unauthorized: Zero-Trust validation failed."}
+                    status_code=401,
+                    content={"detail": "Unauthorized: Zero-Trust validation failed."},
                 )
                 await resp(scope, receive, send)
                 return

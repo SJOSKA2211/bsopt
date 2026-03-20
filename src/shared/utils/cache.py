@@ -445,7 +445,10 @@ class RedisStreamManager:
             return None
         try:
             # Flatten dict for XADD (Redis streams require flat key-value pairs)
-            flat_fields = {k: msgspec.json.encode(v) if not isinstance(v, (str, bytes, int, float)) else v for k, v in fields.items()}
+            flat_fields = {
+                k: msgspec.json.encode(v) if not isinstance(v, (str, bytes, int, float)) else v
+                for k, v in fields.items()
+            }
             return await redis.xadd(stream, flat_fields, maxlen=maxlen, approximate=True)
         except Exception as e:
             logger.error("redis_xadd_failed", error=str(e), stream=stream)
@@ -467,7 +470,9 @@ class RedisStreamManager:
             return False
 
     @staticmethod
-    async def xread_group(stream: str, group: str, consumer: str, count: int = 10, block_ms: int = 1000) -> list[Any]:
+    async def xread_group(
+        stream: str, group: str, consumer: str, count: int = 10, block_ms: int = 1000
+    ) -> list[Any]:
         """Read from a Redis stream as part of a consumer group."""
         redis = get_redis()
         if not redis:

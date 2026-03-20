@@ -139,13 +139,13 @@ class GreeksMesh:
 
     def recover_from_persistence(self):
         """
-        Production-grade recovery: Pull latest Greeks from Redis/Postgres 
+        Production-grade recovery: Pull latest Greeks from Redis/Postgres
         and populate the local buffer for warm start.
         """
         try:
             # Synchronous loop-run or background task for recovery
             logger.info("shm_persistence_recovery_triggered", mesh="greeks")
-            # In real implementation, this would be: 
+            # In real implementation, this would be:
             # latest = await db_engine.get_latest_greeks_snapshot()
             # for sym, g in latest.items(): self.write(sym, **g)
         except Exception as e:
@@ -484,6 +484,7 @@ class SharedMemoryRingBuffer:
         except Exception as e:
             logger.error("shm_initialization_failed", error=str(e))
             raise
+
     def recover_from_persistence(self):
         """Recover latest tick state from TimescaleDB for warm start."""
         logger.info("shm_persistence_recovery_triggered", mesh="ticks")

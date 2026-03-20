@@ -121,10 +121,13 @@ class AIOpsOrchestrator:
                 self.docker_remediator.restart_service(self.api_service_name)
                 try:
                     import asyncio
-                    asyncio.run(post_grafana_annotation(
-                        f"Restarted {self.api_service_name} due to high error rate",
-                        ["aiops", "remediation"],
-                    ))
+
+                    asyncio.run(
+                        post_grafana_annotation(
+                            f"Restarted {self.api_service_name} due to high error rate",
+                            ["aiops", "remediation"],
+                        )
+                    )
                 except Exception as e:
                     logger.warning("failed_to_post_annotation", error=str(e))
             elif anomaly_type == "data_drift":
