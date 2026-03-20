@@ -155,7 +155,7 @@ def implied_volatility(
     dividend: float = 0.0,
     option_type: str = "call",
     method: str = "auto",
-    initial_guess: float = 0.25,
+    initial_guess: float | None = None,
     tolerance: float = 1e-8,
     max_iterations: int = 100,
 ) -> float:
@@ -165,6 +165,17 @@ def implied_volatility(
 
     is_call = option_type.lower() == "call"
     _validate_inputs(market_price, spot, strike, maturity, rate, dividend, is_call)
+
+    if initial_guess is None:
+        initial_guess = corrado_miller_initial_guess(
+            np.array([market_price]),
+            np.array([spot]),
+            np.array([strike]),
+            np.array([maturity]),
+            np.array([rate]),
+            np.array([dividend]),
+            np.array([0 if is_call else 1]),
+        )[0]
 
     if method == "brent":
         return _brent_iv(market_price, spot, strike, maturity, rate, dividend, is_call, tolerance)
@@ -229,8 +240,9 @@ def vectorized_implied_volatility(
                 tolerance,
                 max_iterations,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            import structlog
+            structlog.get_logger().warning("core_batch_iv_failed_fallback_to_jit", error=str(e))
 
     # 2. Corrado-Miller Initial Guess
     # 0 for call, 1 for put in corrado_miller_initial_guess

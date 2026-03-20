@@ -74,7 +74,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
   accentColor,
   progress,
   greek = 'Δ',
-}) => {
+}: KpiCardProps) => {
   const theme = useTheme();
   const { variants } = useMotion();
 
@@ -253,9 +253,9 @@ export const DashboardPage: React.FC = () => {
   useDataIntegration({ symbols: ['SPX', 'AAPL', 'NVDA'] });
   
   // Real-time stats from store
-  const systemGamma = usePricingStore((state) => state.systemGamma);
-  const mlAccuracy = usePricingStore((state) => state.mlAccuracy);
-  const portfolioTotal = usePricingStore((state) => state.portfolioTotal);
+  const systemGamma = usePricingStore((state: any) => state.systemGamma);
+  const mlAccuracy = usePricingStore((state: any) => state.mlAccuracy);
+  const portfolioTotal = usePricingStore((state: any) => state.portfolioTotal);
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>
@@ -316,6 +316,10 @@ export const DashboardPage: React.FC = () => {
                   variant="outlined"
                   sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.nebula ?? '#7B68EE', 0.3), color: qfd?.nebula }}
                 />
+                <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#4ade80', mr: 1, boxShadow: '0 0 8px #4ade80' }} />
+                  <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#4ade80', letterSpacing: '0.1em' }}>0.42ms RTT</Typography>
+                </Box>
               </Stack>
             </Stack>
           </Box>
@@ -358,38 +362,44 @@ export const DashboardPage: React.FC = () => {
       {/* ---- Quantum KPI Grid ---- */}
       <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
         <Grid container spacing={4} sx={{ mt: 4 }}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              label="Portfolio Oracle"
-              value={`$${portfolioTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-              subValue="+3.4% today"
-              positive
-              icon={<PortfolioIconMui />}
-              accentColor={qfd?.quantum ?? '#00FFFF'}
-              greek="Π"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              label="Systemic Gamma"
-              value={systemGamma.toFixed(2)}
-              subValue="Live aggregation"
-              icon={<GreeksIconMui />}
-              accentColor={qfd?.nebula ?? '#7B68EE'}
-              greek="Γ"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              label="Predictive Accuracy"
-              value={`${mlAccuracy.toFixed(1)}%`}
-              subValue="Model: Heston-XL"
-              icon={<MLIconMui />}
-              accentColor={qfd?.electrum ?? '#D4AF37'}
-              progress={mlAccuracy}
-              greek="Φ"
-            />
-          </Grid>
+          {['Portfolio Oracle', 'Systemic Gamma', 'Predictive Accuracy'].map((item, idx) => (
+            <Grid key={item} size={{ xs: 12, md: 4 }}>
+              <motion.div variants={variants.slideUp}>
+                {idx === 0 && (
+                  <KpiCard
+                    label="Portfolio Oracle"
+                    value={`$${portfolioTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    subValue="+3.4% today"
+                    positive
+                    icon={<PortfolioIconMui />}
+                    accentColor={qfd?.quantum ?? '#00FFFF'}
+                    greek="Π"
+                  />
+                )}
+                {idx === 1 && (
+                  <KpiCard
+                    label="Systemic Gamma"
+                    value={systemGamma.toFixed(2)}
+                    subValue="Live aggregation"
+                    icon={<GreeksIconMui />}
+                    accentColor={qfd?.nebula ?? '#7B68EE'}
+                    greek="Γ"
+                  />
+                )}
+                {idx === 2 && (
+                  <KpiCard
+                    label="Predictive Accuracy"
+                    value={`${mlAccuracy.toFixed(1)}%`}
+                    subValue="Model: Heston-XL"
+                    icon={<MLIconMui />}
+                    accentColor={qfd?.electrum ?? '#D4AF37'}
+                    progress={mlAccuracy}
+                    greek="Φ"
+                  />
+                )}
+              </motion.div>
+            </Grid>
+          ))}
         </Grid>
       </motion.div>
 

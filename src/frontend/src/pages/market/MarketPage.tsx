@@ -1,4 +1,5 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useState, useMemo, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Box,
   Container,
@@ -13,7 +14,6 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
-import { motion } from 'framer-motion';
 import {
   TrendingFlat as IVIcon,
   BarChart as HVIcon,
@@ -47,13 +47,17 @@ export const MarketPage: React.FC = () => {
   const theme = useTheme();
   const [symbol, setSymbol] = useState(0);
 
+  const handleSymbolChange = useCallback((_: React.SyntheticEvent, newValue: number) => {
+    setSymbol(newValue);
+  }, []);
+
   const currentSymbol = SYMBOLS[symbol];
   
   // Establish unified real-time connection
   const { isConnected } = useDataIntegration({ symbols: [currentSymbol] });
   
   // Get live price and stats from high perf store
-  const priceData = usePricingStore((state) => state.prices[currentSymbol]);
+  const priceData = usePricingStore((state: any) => state.prices[currentSymbol]);
   const livePrice = priceData?.price ?? 0;
 
   // Compute reference price from real prev_close data
@@ -69,13 +73,13 @@ export const MarketPage: React.FC = () => {
   const vol = priceData?.volume != null ? `${(priceData.volume / 1_000_000).toFixed(1)}M` : '—';
   const oi = priceData?.open_interest != null ? `${(priceData.open_interest / 1_000_000_000).toFixed(2)}B` : '—';
 
-  const MARKET_PULSE = [
+  const MARKET_PULSE = useMemo(() => [
     { label: 'IV Rank', value: ivRank, type: 'nebula', icon: <IVIcon sx={{ fontSize: 14 }} /> },
     { label: 'HV30', value: hv30, type: 'sky', icon: <HVIcon sx={{ fontSize: 14 }} /> },
     { label: 'P/C Ratio', value: pcr, type: 'quantum', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
     { label: 'Volume', value: vol, type: 'electrum', icon: null },
     { label: 'Open Int.', value: oi, type: 'electrum', icon: null },
-  ];
+  ], [ivRank, hv30, pcr, vol, oi]);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, pb: 6 }}>
@@ -130,7 +134,7 @@ export const MarketPage: React.FC = () => {
       >
         <Tabs
           value={symbol}
-          onChange={(_, v) => setSymbol(v)}
+          onChange={handleSymbolChange}
           sx={{
             mb: 3,
             '& .MuiTab-root': {
@@ -181,7 +185,7 @@ export const MarketPage: React.FC = () => {
               <Box sx={{ width: 1, bgcolor: alpha('#94a3b8', 0.1) }} />
             }
           >
-            {MARKET_PULSE.map((stat) => {
+            {MARKET_PULSE.map((stat: any) => {
               const qfd = theme.palette.financial.qfd as Record<string, string>;
               const accentColor = qfd[stat.type] || theme.palette.text.primary;
               return (
@@ -325,9 +329,19 @@ export const MarketPage: React.FC = () => {
               Greeks · Delta Heatmap
             </Typography>
             <Box sx={{ borderRadius: 4, overflow: 'hidden', border: `1px solid ${alpha('#fff', 0.03)}` }}>
-              <Suspense fallback={<LoadingFallback />}>
-                <GreeksHeatmap symbol={currentSymbol} greek="delta" />
-              </Suspense>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSymbol}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Suspense fallback={<LoadingFallback />}>
+                    <GreeksHeatmap symbol={currentSymbol} greek="delta" />
+                  </Suspense>
+                </motion.div>
+              </AnimatePresence>
             </Box>
           </Paper>
         </Grid>

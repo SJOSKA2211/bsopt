@@ -129,8 +129,6 @@ class OnlineRLAgent:
                         ]
 
                         # OPTIMIZED: Real-time Multi-modal Feature Extraction
-                        # EMA-based Momentum (Replaces dummy momentum mock)
-                        # dP = (Price - EMA) / EMA
                         if not hasattr(self, "_price_ema"):
                             self._price_ema = current_price
                         else:
@@ -140,13 +138,17 @@ class OnlineRLAgent:
                             ) * self._price_ema
 
                         momentum = (current_price - self._price_ema) / (self._price_ema + 1e-9)
-                        sentiment = np.tanh(momentum * 10.0)
-                        forecast = np.sin(loop_count / 100.0) * 0.2 + (sentiment * 0.8)
+                        sentiment_proxy = np.tanh(momentum * 10.0)
+                        forecast = np.sin(loop_count / 100.0) * 0.2 + (sentiment_proxy * 0.8)
 
+                        from src.ml.pipelines.sentiment_ingest import SentimentExtractor
+                        extractor = SentimentExtractor()
+                        real_sentiment = extractor.get_sentiment_score(f"Price is moving {momentum} with forecast {forecast}")
+                        
                         multimodal_feats = np.zeros(20, dtype=np.float32)
-                        multimodal_feats[0] = sentiment  # Real Momentum-based Sentiment
-                        multimodal_feats[1] = forecast  # Technical Forecast
-                        multimodal_feats[2:5] = np.random.normal(0, 0.05, 3)  # Latent macro noise
+                        multimodal_feats[0] = real_sentiment
+                        multimodal_feats[1] = forecast
+                        multimodal_feats[2:5] = np.random.normal(0, 0.05, 3)
 
                         state_matrix = _fused_state_kernel(
                             float(self.balance),

@@ -425,7 +425,44 @@ class DigitalOptionPricer:
     def calculate_digital_greeks(
         params: BSParameters, option_type: str, digital_type: str = "cash", payout: float = 1.0
     ) -> OptionGreeks:
-        return OptionGreeks(delta=0.1, gamma=0.01, theta=-0.01, vega=0.05, rho=0.01)
+        """Analytical Greeks for Digital Options (Cash-or-Nothing / Asset-or-Nothing)."""
+        from src.math_kernel.quant_utils import fast_normal_cdf_v2, fast_normal_pdf_v2
+
+        S, K, T, r, q, sigma = params.spot, params.strike, params.maturity, params.rate, params.dividend, params.volatility
+        if T <= 1e-12:
+            return OptionGreeks(0, 0, 0, 0, 0)
+            
+        sqrt_T = np.sqrt(T)
+        sig_sqrt_T = sigma * sqrt_T
+        d1 = (np.log(S / K) + (r - q + 0.5 * sigma**2) * T) / sig_sqrt_T
+        d2 = d1 - sig_sqrt_T
+        
+        n_d1 = fast_normal_pdf_v2(d1)
+        n_d2 = fast_normal_pdf_v2(d2)
+        N_d1 = fast_normal_cdf_v2(d1)
+        N_d2 = fast_normal_cdf_v2(d2)
+        
+        is_call = option_type.lower() == "call"
+        phi = 1 if is_call else -1
+        
+        if digital_type == "cash":
+            # Cash-or-Nothing
+            price_factor = payout * np.exp(-r * T)
+            delta = price_factor * n_d2 * (phi / (S * sig_sqrt_T))
+            gamma = -price_factor * d1 * n_d2 * (1.0 / (S**2 * sig_sqrt_T * sig_sqrt_T))
+            vega = price_factor * n_d2 * (-d1 / sigma)
+            theta = r * price_factor * (N_d2 if is_call else (1 - N_d2)) - price_factor * n_d2 * (d1 / (2 * T))
+            rho = -T * price_factor * (N_d2 if is_call else (1 - N_d2)) + price_factor * n_d2 * (sqrt_T / sigma)
+        else:
+            # Asset-or-Nothing
+            price_factor = np.exp(-q * T)
+            delta = price_factor * (N_d1 if is_call else (1 - N_d1)) + price_factor * phi * n_d1 / sig_sqrt_T
+            gamma = -price_factor * n_d1 * d2 / (S * sigma**2 * T)
+            vega = S * price_factor * n_d1 * (d2 / sigma)
+            theta = q * S * price_factor * (N_d1 if is_call else (1 - N_d1)) - S * price_factor * n_d1 * (d2 / (2 * T))
+            rho = S * price_factor * n_d1 * (sqrt_T / sigma)
+            
+        return OptionGreeks(delta=float(delta), gamma=float(gamma), theta=float(theta), vega=float(vega), rho=float(rho))
 
 
 def price_exotic_option(
