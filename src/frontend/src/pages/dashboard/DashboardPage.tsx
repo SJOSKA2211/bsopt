@@ -43,7 +43,7 @@ const ComparisonDashboard = lazy(() =>
 
 const LoadingFallback = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
-    <CircularProgress size={28} />
+    <CircularProgress size={28} aria-label="Loading component" />
   </Box>
 );
 
@@ -347,8 +347,8 @@ export const DashboardPage: React.FC = () => {
 
       {/* ---- Quantum KPI Grid ---- */}
       <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
-        <Grid container spacing={3} sx={{ mb: 8 }}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={4} sx={{ mt: 4 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Portfolio Oracle"
               value="$1,248,392.42"
@@ -359,7 +359,7 @@ export const DashboardPage: React.FC = () => {
               greek="Π"
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Systemic Gamma"
               value="342.18"
@@ -369,7 +369,7 @@ export const DashboardPage: React.FC = () => {
               greek="Γ"
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Predictive Accuracy"
               value="98.2%"
@@ -387,10 +387,11 @@ export const DashboardPage: React.FC = () => {
       {/* ---- Intelligence Cluster ---- */}
       <Grid container spacing={4}>
         {/* Main Observation Deck */}
-        <Grid item xs={12} xl={8}>
+        <Grid size={{ xs: 12, xl: 8 }}>
           <motion.div variants={variants.slideUp} initial="initial" animate="animate">
             <Paper
               className="qfd-glass"
+              data-testid="live-price-chart-paper"
               sx={{
                 p: 4,
                 height: 650,
@@ -443,12 +444,12 @@ export const DashboardPage: React.FC = () => {
 
 
         {/* Cognitive Sidebars */}
-        <Grid item xs={12} xl={4}>
+        <Grid size={{ xs: 12, xl: 4 }}>
           <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
             <Stack spacing={4}>
               <motion.div variants={variants.slideUp}>
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" data-testid="ml-predictions-paper" sx={{ mb: 2.5 }}>
                     <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1) }}>
                       <MLIconMui sx={{ color: qfd?.electrum, fontSize: 20 }} aria-label="Neural Inference Chart" />
                     </Box>
@@ -461,7 +462,7 @@ export const DashboardPage: React.FC = () => {
               </motion.div>
               <motion.div variants={variants.slideUp}>
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center" data-testid="greeks-heatmap-paper" sx={{ mb: 2.5 }}>
                     <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.1) }}>
                       <GreeksIconMui sx={{ color: qfd?.nebula, fontSize: 20 }} aria-label="Greeks Heatmap" />
                     </Box>
@@ -477,7 +478,7 @@ export const DashboardPage: React.FC = () => {
         </Grid>
 
         {/* Human vs Machine Alpha Comparison */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Suspense fallback={<LoadingFallback />}>
             <ComparisonDashboard />
           </Suspense>
@@ -485,10 +486,11 @@ export const DashboardPage: React.FC = () => {
 
 
         {/* Transdimensional Matrix (Options) */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <motion.div variants={variants.slideUp} initial="initial" animate="animate">
             <Paper
               className="qfd-glass"
+              data-testid="options-chain-container"
               sx={{
                 height: 700,
                 overflow: 'hidden',

@@ -412,6 +412,14 @@ fn mmap_parse_structured_ticks(path: &str) -> PyResult<(Py<PyArray1<f64>>, Py<Py
     })
 }
 
+#[pyfunction]
+fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
+    if timestamp <= 0.0 || price <= 0.0 || volume < 0.0 {
+        return Ok(false);
+    }
+    Ok(true)
+}
+
 #[pymodule]
 fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;

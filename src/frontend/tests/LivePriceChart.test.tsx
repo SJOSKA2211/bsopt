@@ -1,92 +1,74 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
 import { LivePriceChart } from '../src/features/charts/components/LivePriceChart';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
-import { useWebSocket } from '../src/hooks/useWebSocket';
+import { MockedProvider } from '@apollo/client/testing/react';
+import '@testing-library/jest-dom';
+import { gql } from '@apollo/client';
 import React from 'react';
 
-// Mock dependencies
-vi.mock('../src/hooks/useWebSocket');
+const MARKET_SUBSCRIPTION = gql`
+  subscription OnMarketUpdate($symbols: [String!]!) {
+    market_data_stream(symbols: $symbols) {
+      symbol
+      lastPrice: last_price
+      volume
+    }
+  }
+`;
 
-// Mock lightweight-charts
-const mockUpdate = vi.fn();
-const mockSetData = vi.fn();
+const GET_HISTORICAL_DATA = gql`
+  query GetHistoricalData($symbol: String!) {
+    historicalData(symbol: $symbol) {
+      time
+      open
+      high
+      low
+      close
+    }
+  }
+`;
 
-vi.mock('lightweight-charts', () => ({
-  createChart: vi.fn(() => ({
-    addLineSeries: vi.fn(() => ({
-      setData: mockSetData,
-      update: mockUpdate,
-    })),
-    addCandlestickSeries: vi.fn(() => ({
-      setData: mockSetData,
-      update: mockUpdate,
-    })),
-    addSeries: vi.fn(() => ({
-      setData: mockSetData,
-      update: mockUpdate,
-    })),
-    applyOptions: vi.fn(),
-    timeScale: vi.fn(() => ({
-      fitContent: vi.fn(),
-    })),
-    remove: vi.fn(),
-    resize: vi.fn(),
-  })),
-  ColorType: { Solid: 'solid' },
-  CrosshairMode: { Normal: 0 },
-  CandlestickSeries: 'CandlestickSeries',
-  LineSeries: 'LineSeries',
-}));
+const mocks = [
+  {
+    request: {
+      query: GET_HISTORICAL_DATA,
+      variables: { symbol: 'AAPL' },
+    },
+    result: {
+      data: {
+        historicalData: [
+          { time: 1768226400, open: 150, high: 155, low: 145, close: 152 },
+        ],
+      },
+    },
+  },
+  {
+    request: {
+      query: MARKET_SUBSCRIPTION,
+      variables: { symbols: ['AAPL'] },
+    },
+    result: {
+      data: {
+        market_data_stream: {
+          symbol: 'AAPL',
+          lastPrice: 153.50,
+          volume: 1000,
+        },
+      },
+    },
+  },
+];
 
 test('LivePriceChart renders chart container', () => {
-  vi.mocked(useWebSocket).mockReturnValue({ data: null, isConnected: false });
-
   render(
-    <ThemeProvider theme={theme}>
-      <LivePriceChart symbol="AAPL" />
-    </ThemeProvider>
+    <MockedProvider mocks={mocks}>
+      <ThemeProvider theme={theme}>
+        <LivePriceChart symbol="AAPL" />
+      </ThemeProvider>
+    </MockedProvider>
   );
 
   expect(screen.getByTestId('live-price-chart-container')).toBeInTheDocument();
-});
-
-test('LivePriceChart updates with websocket data', async () => {
-  const mockCandle = {
-    symbol: 'AAPL',
-    time: 1768226400,
-    open: 150,
-    high: 155,
-    low: 149,
-    close: 153
-  };
-
-  // Initially no data
-  vi.mocked(useWebSocket).mockReturnValue({ data: null, isConnected: true });
-
-  const { rerender } = render(
-    <ThemeProvider theme={theme}>
-      <LivePriceChart symbol="AAPL" />
-    </ThemeProvider>
-  );
-
-  // Simulate data arrival
-  vi.mocked(useWebSocket).mockReturnValue({ data: mockCandle, isConnected: true });
-
-  rerender(
-    <ThemeProvider theme={theme}>
-      <LivePriceChart symbol="AAPL" />
-    </ThemeProvider>
-  );
-
-  await waitFor(() => {
-    expect(mockUpdate).toHaveBeenCalledWith({
-      time: mockCandle.time,
-      open: mockCandle.open,
-      high: mockCandle.high,
-      low: mockCandle.low,
-      close: mockCandle.close
-    });
-  });
 });

@@ -19,6 +19,8 @@ import {
 import { motion } from 'framer-motion';
 import {
   TrendingUp as TrendingUpIcon,
+  PieChart as AllocationIcon,
+  AccountBalanceWallet as PortfolioIcon,
 } from '@mui/icons-material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
 import { PnLExplainChart } from '../../features/risk/components/PnLExplainChart';

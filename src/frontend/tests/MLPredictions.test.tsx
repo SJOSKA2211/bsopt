@@ -1,44 +1,39 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test, beforeAll, afterEach, afterAll } from 'vitest';
-import { MLPredictions } from '../src/features/options/components/MLPredictions';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { expect, test } from 'vitest';
+import { MLPredictions, GET_ML_PREDICTION } from '../src/features/options/components/MLPredictions';
+import { MockedProvider } from '@apollo/client/testing/react';
+import '@testing-library/jest-dom';
 import React from 'react';
 
-// Mock Server Setup
-const handlers = [
-  http.get('/api/v1/ml/predictions', () => {
-    return HttpResponse.json({
-      symbol: 'AAPL',
-      predictedPrice: 155.20,
-      confidenceInterval: [153.50, 157.00],
-      drift: 0.02,
-      modelName: 'XGBoost-V4-Optimized',
-      lastUpdated: new Date().toISOString(),
-    });
-  }),
+const mocks = [
+  {
+    request: {
+      query: GET_ML_PREDICTION,
+      variables: { symbol: 'AAPL' },
+    },
+    result: {
+      data: {
+        mlPrediction: {
+          symbol: 'AAPL',
+          predictedPrice: 155.20,
+          confidenceInterval: [153.50, 157.00],
+          drift: 0.02,
+          modelName: 'XGBoost-V4-Optimized',
+          lastUpdated: '2026-03-19T00:00:00Z',
+        },
+      },
+    },
+  },
 ];
 
-const server = setupServer(...handlers);
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
-const createWrapper = () => {
-  const queryClient = new QueryClient();
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
-
 test('MLPredictions renders prediction data correctly', async () => {
-  render(<MLPredictions symbol="AAPL" />, { wrapper: createWrapper() });
+  render(
+    <MockedProvider mocks={mocks}>
+      <MLPredictions symbol="AAPL" />
+    </MockedProvider>
+  );
 
-  expect(await screen.findByText(/155\.20/)).toBeInTheDocument();
+  expect(await screen.findByText(/\$155\.20/)).toBeInTheDocument();
   expect(screen.getByText(/XGBoost-V4-Optimized/i)).toBeInTheDocument();
-  expect(screen.getByText(/\+2\.00%/)).toBeInTheDocument(); // 0.02 drift
+  expect(screen.getByText(/\+2\.00%/)).toBeInTheDocument();
 });

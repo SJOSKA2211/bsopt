@@ -108,7 +108,7 @@ export const ComparisonDashboard: React.FC = () => {
 
                 <Grid container spacing={4}>
                     {/* Headers */}
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 1, borderBottom: `1px solid ${alpha('#fff', 0.1)}`, mb: 1 }}>
                             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%' }}>METRIC</Typography>
                             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%', textAlign: 'right' }}>YOUR STRATEGY</Typography>

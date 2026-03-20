@@ -30,7 +30,7 @@ interface PredictionData {
   lastUpdated: string;
 }
 
-const GET_ML_PREDICTION = gql`
+export const GET_ML_PREDICTION = gql`
   query GetMLPrediction($symbol: String!) {
     mlPrediction(symbol: $symbol) {
       symbol
