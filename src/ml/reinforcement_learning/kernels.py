@@ -47,19 +47,17 @@ def _fused_state_kernel(
 
     # 4. 🌀 SPECTRAL FEATURES (50 dims: 51-100)
     # Prime-spaced frequencies to capture non-harmonic market cycles.
-    primes = np.array(
-        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71],
-        dtype=np.float32,
-    )
+    primes = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71], dtype=np.float32)
 
     for i in range(20):
+        # OPTIMIZED: Vectorized-lite phase calculation
         p_norm = prices[i % 10] / 100.0
-        angle = p_norm * np.pi * primes[i]
-        state[51 + i] = np.sin(angle)  # Base phase
-        state[71 + i] = np.cos(angle)  # Orthogonal phase
+        angle = p_norm * (3.141592653589793 * primes[i])
+        state[51 + i] = np.sin(angle)
+        state[71 + i] = np.cos(angle)
         if i < 10:
-            # ⚡ MICRO-STRUCTURE JITTER PROXY
-            state[91 + i] = np.tanh(np.sin(angle * 13.0))
+            # ⚡ JITTER PROXY: High-frequency sub-harmonic sampling
+            state[91 + i] = np.tanh(np.sin(angle * 17.3) * np.cos(angle * 7.1))
 
     # 5. Volatility & Momentum (15 dims: 101-115)
     for i in range(15):

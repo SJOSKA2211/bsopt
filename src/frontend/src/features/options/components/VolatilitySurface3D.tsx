@@ -5,9 +5,10 @@ import {
   CircularProgress,
   useTheme,
   alpha,
+  Stack,
 } from '@mui/material';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Text, Html, Float } from '@react-three/drei';
+import { Canvas, ThreeEvent } from '@react-three/fiber';
+import { OrbitControls, PerspectiveCamera, Text, Html, Float, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
@@ -33,7 +34,7 @@ const Surface: React.FC<{
   const sizeX = strikes.length;
   const sizeY = times.length;
   
-  const { geometry, colorArray } = useMemo(() => {
+  const { geometry } = useMemo(() => {
     const geo = new THREE.PlaneGeometry(10, 10, sizeX - 1, sizeY - 1);
     const vertices = geo.attributes.position.array as Float32Array;
     const colors = new Float32Array(vertices.length);
@@ -46,10 +47,7 @@ const Surface: React.FC<{
     if (maxPrice === minPrice) maxPrice += 0.001;
 
     for (let i = 0; i < data.length; i++) {
-      // Three.js PlaneGeometry layout: vertices are row-major
-      // but the data is structured as [time1[strike1...strikeN], time2[...], ...]
-      // We need to map data index to vertex height correctly.
-      vertices[i * 3 + 2] = data[i] * 2; 
+      vertices[i * 3 + 2] = data[i] * 3; // Scale height for drama
       
       const t = (data[i] - minPrice) / (maxPrice - minPrice);
       const color = new THREE.Color().lerpColors(colorLow, colorHigh, t);
@@ -60,48 +58,42 @@ const Surface: React.FC<{
     
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geo.computeVertexNormals();
-    return { geometry: geo, colorArray: colors };
+    return { geometry: geo };
   }, [data, sizeX, sizeY, theme]);
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     if (!e.face) return;
-
-    const { x, y, z } = e.point;
-    // Map world coordinates back to strike/time
-    // Plane is 10x10, centered at 0,0. Rotation is -PI/2 on X, so Z is now Y in world space?
-    // Actually, we rotated the mesh: rotation={[-Math.PI / 2, 0, 0]}
-    // So world X is strike (-5 to 5), world Z is time (-5 to 5), world Y is price.
-    
-    const strikeIdx = Math.round(((x + 5) / 10) * (sizeX - 1));
-    const timeIdx = Math.round(((z + 5) / 10) * (sizeY - 1));
-    
+    const strikeIdx = Math.round(((e.point.x + 5) / 10) * (sizeX - 1));
+    const timeIdx = Math.round(((e.point.z + 5) / 10) * (sizeY - 1));
     const strike = strikes[strikeIdx];
     const time = times[timeIdx];
     const price = data[timeIdx * sizeX + strikeIdx];
-
     onHover({ strike, time, price, point: e.point });
   }, [data, strikes, times, sizeX, sizeY, onHover]);
 
   return (
-    <mesh 
-      ref={meshRef} 
-      geometry={geometry} 
-      rotation={[-Math.PI / 2, 0, 0]}
-      onPointerMove={handlePointerMove}
-      onPointerOut={() => onHover(null)}
-    >
-      <meshStandardMaterial
-        vertexColors
-        side={THREE.DoubleSide}
-        transparent
-        opacity={0.9}
-        roughness={0.3}
-        metalness={0.8}
-        emissive={theme.palette.primary.main}
-        emissiveIntensity={0.1}
-      />
-    </mesh>
+    <group rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh 
+        ref={meshRef} 
+        geometry={geometry} 
+        onPointerMove={handlePointerMove}
+        onPointerOut={() => onHover(null)}
+      >
+        <meshStandardMaterial
+          vertexColors
+          side={THREE.DoubleSide}
+          wireframe={false}
+          transparent
+          opacity={0.8}
+          roughness={0.1}
+          metalness={0.9}
+        />
+      </mesh>
+      <mesh geometry={geometry}>
+        <meshBasicMaterial vertexColors wireframe transparent opacity={0.15} />
+      </mesh>
+    </group>
   );
 };
 
@@ -111,24 +103,18 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
   const [surfaceData, setSurfaceData] = useState<number[]>([]);
   const [hovered, setHovered] = useState<HoverData | null>(null);
 
-  const strikes = useMemo(() => [140, 145, 150, 155, 160, 165, 170, 175, 180, 185], []);
-  const times = useMemo(() => [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], []);
+  const strikes = useMemo(() => Array.from({ length: 15 }, (_, i) => 140 + i * 5), []);
+  const times = useMemo(() => Array.from({ length: 15 }, (_, i) => 0.1 + i * 0.1), []);
 
   useEffect(() => {
     if (!isLoaded) return;
-
     const params: any[] = [];
     const spot = 155.5;
-    const vol = 0.25;
-    const rate = 0.045;
-    const div = 0.01;
-
     for (const t of times) {
       for (const k of strikes) {
-        params.push({ spot, strike: k, time: t, vol, rate, div, is_call: true });
+        params.push({ spot, strike: k, time: t, vol: 0.25, rate: 0.045, div: 0.01, is_call: true });
       }
     }
-
     const fetchData = async () => {
       const results: any = await batchCalculate(params);
       setSurfaceData(results.map((r: any) => r.price));
@@ -138,52 +124,49 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
 
   return (
     <Box
-      data-testid="volatility-surface-container"
-      aria-label="3D Volatility Surface Visualization"
-      role="figure"
       sx={{ 
         width: '100%', 
         height: '100%', 
         position: 'relative',
-        borderRadius: 4,
+        borderRadius: 6,
         overflow: 'hidden',
-        background: `radial-gradient(circle at 50% 50%, ${alpha(theme.palette.background.default, 0.8)} 0%, ${theme.palette.background.default} 100%)`,
-        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        background: `radial-gradient(circle at 50% 50%, ${alpha('#0f172a', 0.8)} 0%, #020617 100%)`,
+        border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+        boxShadow: `0 0 40px ${alpha('#000', 0.6)} inset`
       }}
     >
-      <Box sx={{ position: 'absolute', top: 16, left: 16, zIndex: 10 }}>
-        <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main', textShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.5)}` }}>
-          VOLATILITY MANIFOLD
+      <Box sx={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>
+        <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main', letterSpacing: '-0.02em' }}>
+          VolX Manifold: {symbol}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>
-          {symbol} • THEORETICAL PRICE SURFACE
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+          Theoretical Neural Surface • WASM Accelerated
         </Typography>
       </Box>
-      
+
       {!isLoaded && (
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, textAlign: 'center' }}>
-          <CircularProgress size={24} sx={{ mb: 1 }} aria-label="Loading volatility surface" />
+          <CircularProgress size={24} sx={{ mb: 1 }} />
           <Typography variant="caption" display="block">Initializing Neural Rendering...</Typography>
         </Box>
       )}
-
-      <Box sx={{ height: '100%', width: '100%', opacity: isLoaded ? 1 : 0.3 }}>
+      
+      <Box sx={{ height: '100%', width: '100%' }}>
         <Canvas shadows dpr={[1, 2]}>
-          <PerspectiveCamera makeDefault position={[12, 12, 12]} fov={40} />
+          <PerspectiveCamera makeDefault position={[15, 15, 15]} fov={35} />
           <OrbitControls 
             enableDamping 
             dampingFactor={0.05} 
-            rotateSpeed={0.5} 
-            maxPolarAngle={Math.PI / 2.1}
-            minDistance={5}
-            maxDistance={25}
+            maxPolarAngle={Math.PI / 2.2}
+            minDistance={8}
+            maxDistance={30}
           />
           
-          <ambientLight intensity={0.4} />
-          <pointLight position={[10, 10, 10]} intensity={1.5} castShadow />
-          <spotLight position={[-10, 20, 10]} angle={0.15} penumbra={1} intensity={2} castShadow />
+          <ambientLight intensity={0.5} />
+          <spotLight position={[10, 20, 10]} angle={0.15} penumbra={1} intensity={2} color={theme.palette.primary.main} />
+          <pointLight position={[-10, -10, -10]} intensity={1} color={theme.palette.secondary.main} />
 
-          <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+          <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.3}>
             {surfaceData.length > 0 && (
               <Surface 
                 theme={theme} 
@@ -195,39 +178,47 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
             )}
           </Float>
 
-          <gridHelper args={[20, 20, alpha(theme.palette.primary.main, 0.2), alpha(theme.palette.divider, 0.05)]} position={[0, -0.1, 0]} />
+          <gridHelper args={[20, 20, alpha(theme.palette.primary.main, 0.3), alpha(theme.palette.divider, 0.05)]} position={[0, -0.01, 0]} />
           
+          {/* Labels */}
+          <Billboard position={[6, 0, 0]}>
+            <Text fontSize={0.35} color={theme.palette.text.secondary} fontWeight={900}>STRIKE (K)</Text>
+          </Billboard>
+          <Billboard position={[0, 0, 6]}>
+            <Text fontSize={0.35} color={theme.palette.text.secondary} fontWeight={900} rotation={[0, Math.PI / 2, 0]}>TIME (T)</Text>
+          </Billboard>
+
           {/* Tooltip */}
           {hovered && (
-            <Html position={[hovered.point.x, hovered.point.y + 0.5, hovered.point.z]} center distanceFactor={15}>
+            <Html position={[hovered.point.x, hovered.point.y + 1, hovered.point.z]} center distanceFactor={12}>
               <Box sx={{ 
-                bgcolor: alpha(theme.palette.background.paper, 0.9),
-                backdropFilter: 'blur(10px)',
-                p: 1.5,
-                borderRadius: 2,
-                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                boxShadow: `0 10px 30px rgba(0,0,0,0.5), 0 0 20px ${alpha(theme.palette.primary.main, 0.2)}`,
-                minWidth: 120,
+                bgcolor: alpha('#0f172a', 0.95),
+                backdropFilter: 'blur(16px)',
+                p: 2,
+                borderRadius: 3,
+                border: `1px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+                boxShadow: `0 20px 50px rgba(0,0,0,0.8), 0 0 30px ${alpha(theme.palette.primary.main, 0.2)}`,
+                minWidth: 160,
                 pointerEvents: 'none'
               }}>
-                <Typography variant="caption" display="block" sx={{ color: 'text.secondary', fontWeight: 800 }}>
-                  STRIKE: <Box component="span" sx={{ color: 'text.primary' }}>${hovered.strike}</Box>
-                </Typography>
-                <Typography variant="caption" display="block" sx={{ color: 'text.secondary', fontWeight: 800 }}>
-                  EXPIRY: <Box component="span" sx={{ color: 'text.primary' }}>{hovered.time.toFixed(2)}Y</Box>
-                </Typography>
-                <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 900, mt: 0.5 }}>
-                  ${hovered.price.toFixed(4)}
-                </Typography>
+                <Stack spacing={0.5}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 900, textTransform: 'uppercase', fontSize: '0.6rem' }}>
+                    Surface Parameters
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 900, color: 'text.primary', fontFamily: 'JetBrains Mono' }}>
+                    K: ${hovered.strike} | T: {hovered.time.toFixed(2)}Y
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 900, fontFamily: 'JetBrains Mono' }}>
+                    ${hovered.price.toFixed(4)}
+                  </Typography>
+                </Stack>
               </Box>
             </Html>
           )}
-
-          {/* Core Labels */}
-          <Text position={[6, 0, 0]} fontSize={0.4} color={theme.palette.text.secondary} rotation={[-Math.PI / 2, 0, 0]}>STRIKE →</Text>
-          <Text position={[0, 0, 6]} fontSize={0.4} color={theme.palette.text.secondary} rotation={[-Math.PI / 2, 0, -Math.PI / 2]}>TIME →</Text>
         </Canvas>
       </Box>
     </Box>
   );
 };
+
+export default VolatilitySurface3D;

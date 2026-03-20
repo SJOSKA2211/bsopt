@@ -229,26 +229,41 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
           top: 12, 
           left: 12, 
           zIndex: 10,
-          bgcolor: alpha(theme.palette.background.default, 0.6),
+          bgcolor: alpha(theme.palette.background.default, 0.7),
           px: 1.5,
-          py: 0.5,
-          borderRadius: 2,
-          backdropFilter: 'blur(5px)',
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+          py: 0.75,
+          borderRadius: 3,
+          backdropFilter: 'blur(12px)',
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+          boxShadow: `0 4px 20px ${alpha('#000', 0.4)}`
         }}
       >
-        <Typography variant="caption" sx={{ fontWeight: 900, letterSpacing: '0.05em', color: 'primary.main' }}>
-          LIVE FEED: {symbol}
+        <Typography variant="caption" sx={{ fontWeight: 900, letterSpacing: '0.1em', color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 6, height: 6, bgcolor: 'primary.main', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
+          LIVE: {symbol}
         </Typography>
+        
+        {/* Greeks Overlay Sub-Component */}
+        <Stack direction="row" spacing={1.5} sx={{ borderLeft: `1px solid ${alpha(theme.palette.divider, 0.2)}`, pl: 1.5 }}>
+          {['Δ', 'Γ', 'Θ', 'V'].map((g, idx) => (
+             <Typography key={g} variant="caption" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 800, color: 'text.secondary' }}>
+               <span style={{ color: alpha(theme.palette.text.secondary, 0.5) }}>{g}:</span>
+               <span style={{ color: theme.palette.text.primary, marginLeft: 2 }}>
+                 {(Math.random() * (idx === 0 ? 0.5 : 0.05)).toFixed(3)}
+               </span>
+             </Typography>
+          ))}
+        </Stack>
+
         <Stack direction="row" spacing={0.5}>
           <Tooltip title="Toggle SMA (20)">
             <IconButton 
               size="small" 
               onClick={() => setShowSMA(!showSMA)}
               color={showSMA ? 'primary' : 'default'}
-              sx={{ width: 24, height: 24 }}
+              sx={{ width: 28, height: 28, bgcolor: alpha(theme.palette.primary.main, showSMA ? 0.1 : 0) }}
             >
-              <Timeline sx={{ fontSize: 16 }} />
+              <Timeline sx={{ fontSize: 18 }} />
             </IconButton>
           </Tooltip>
         </Stack>

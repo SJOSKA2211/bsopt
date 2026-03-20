@@ -312,13 +312,13 @@ main() {
     generate_passwords
     setup_database_urls
     
-    # Step 4: Build images (Skipped as requested)
-    # log_info "Building images sequentially..."
-    # for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing frontend envoy; do
-    #     log_info "Building $service..."
-    #     compose_cmd build "$service" || log_warn "Failed to build $service, continuing..."
-    # done
-    # log_success "Build phase complete"
+    # Step 4: Build images (Sequential for reliability)
+    log_info "Building images sequentially..."
+    for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing app-gateway frontend envoy; do
+        log_info "Building $service..."
+        compose_cmd build "$service" || log_warn "Failed to build $service, continuing..."
+    done
+    log_success "Build phase complete"
     
     # ==========================================================================
     # Phase A: Core Infrastructure (Postgres -> Redis -> PgBouncer)

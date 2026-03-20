@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Container,
-  Grid,
+  Grid2 as Grid,
   Paper,
   Typography,
   Stack,
@@ -26,36 +26,37 @@ import { usePortfolio } from '../../features/portfolio/hooks/usePortfolio';
 // KPI constants removed - now dynamic
 
 // Simple SVG donut chart
-const DonutChart: React.FC<{ positions: any[], totalValue: number }> = ({ positions, totalValue }) => {
+const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.memo(({ positions, totalValue }) => {
   const theme = useTheme();
   
-  const colors = [
+  const colors = useMemo(() => [
     theme.palette.financial.qfd.quantum,
     theme.palette.financial.qfd.nebula,
     theme.palette.financial.qfd.electrum,
     theme.palette.info.main,
     theme.palette.warning.main,
-  ];
+  ], [theme.palette.financial.qfd, theme.palette.info.main, theme.palette.warning.main]);
 
-  const segments = positions.length > 0 
-    ? positions.slice(0, 4).map((p, idx) => {
-        const val = p.quantity * (p.current_price || p.entry_price || 0);
-        const pct = totalValue > 0 ? Math.round((val / totalValue) * 100) : 0;
-        return { label: p.symbol || p.contract_symbol, pct, color: colors[idx % colors.length] };
-      })
-    : [
-        { label: 'Cash', pct: 100, color: theme.palette.text.disabled },
-      ];
+  const segments = useMemo(() => {
+    const rawSegments = positions.length > 0 
+      ? positions.slice(0, 4).map((p, idx) => {
+          const val = p.quantity * (p.current_price || p.entry_price || 0);
+          const pct = totalValue > 0 ? Math.round((val / totalValue) * 100) : 0;
+          return { label: p.symbol || p.contract_symbol, pct, color: colors[idx % colors.length] };
+        })
+      : [{ label: 'Cash', pct: 100, color: theme.palette.text.disabled }];
+    
+    const allocatedPct = rawSegments.reduce((sum, s) => sum + s.pct, 0);
+    if (allocatedPct < 100 && positions.length > 0) {
+        rawSegments.push({ label: 'Cash', pct: 100 - allocatedPct, color: theme.palette.text.disabled });
+    }
+    return rawSegments;
+  }, [positions, totalValue, colors, theme.palette.text.disabled]);
   
-  // Fill remainder as Cash
-  const allocatedPct = segments.reduce((sum, s) => sum + s.pct, 0);
-  if (allocatedPct < 100 && positions.length > 0) {
-      segments.push({ label: 'Cash', pct: 100 - allocatedPct, color: theme.palette.text.disabled });
-  }
-
-  let cumulative = 0;
   const r = 70, cx = 90, cy = 90;
-  const paths = segments.map((seg) => {
+  let cumulative = 0;
+  
+  const paths = useMemo(() => segments.map((seg) => {
     const start = cumulative;
     cumulative += seg.pct;
     const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
@@ -66,42 +67,53 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = ({ positi
     const y2 = cy + r * Math.sin(endAngle);
     const large = seg.pct > 50 ? 1 : 0;
     return { ...seg, d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z` };
-  });
+  }), [segments]);
 
   return (
-    <Box>
-      <svg role="img" aria-label="Portfolio Allocation Donut Chart" viewBox="0 0 180 180" style={{ width: '100%', maxWidth: 180 }}>
-        {paths.map((p) => (
-          <path
-            key={p.label}
-            d={p.d}
-            fill={p.color}
-            opacity={0.85}
-            style={{ transition: 'opacity 0.2s', cursor: 'pointer' }}
-            onMouseEnter={(e) => ((e.target as SVGPathElement).style.opacity = '1')}
-            onMouseLeave={(e) => ((e.target as SVGPathElement).style.opacity = '0.85')}
-          />
-        ))}
-        {/* Hole */}
-        <text x={cx} y={cy - 4} textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="bold">AUM</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="#10b981" fontSize="11">${((totalValue || 0) / 1000).toFixed(1)}k</text>
-      </svg>
-      <Stack spacing={0.75} sx={{ mt: 1 }}>
-        {segments.map(s => (
-          <Stack key={s.label} direction="row" justifyContent="space-between" alignItems="center">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: s.color, flexShrink: 0 }} />
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{s.label}</Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ position: 'relative', width: 220, height: 220 }}>
+        <svg role="img" aria-label="Portfolio Allocation Donut Chart" viewBox="0 0 180 180" style={{ width: '100%', height: '100%' }}>
+          {paths.map((p, idx) => (
+            <motion.path
+              key={p.label}
+              d={p.d}
+              fill={p.color}
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.85 }}
+              transition={{ duration: 0.8, delay: idx * 0.1, ease: "easeOut" }}
+              whileHover={{ opacity: 1, scale: 1.02 }}
+            />
+          ))}
+          <circle cx={cx} cy={cy} r={r * 0.6} fill={alpha('#0f172a', 0.8)} />
+          <text x={cx} y={cy - 4} textAnchor="middle" fill="#f8fafc" fontSize="11" fontWeight="900" style={{ pointerEvents: 'none' }}>AUM</text>
+          <text x={cx} y={cy + 14} textAnchor="middle" fill="#10b981" fontSize="13" fontWeight="900" style={{ pointerEvents: 'none', fontFamily: 'JetBrains Mono' }}>
+            ${((totalValue || 0) / 1000).toFixed(1)}k
+          </text>
+        </svg>
+      </Box>
+      <Stack spacing={1} sx={{ mt: 2, width: '100%', px: 2 }}>
+        {segments.map((s, idx) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 + idx * 0.05 }}
+          >
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Box sx={{ width: 10, height: 10, borderRadius: 1, bgcolor: s.color, boxShadow: `0 0 10px ${alpha(s.color, 0.4)}` }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, fontSize: '0.75rem' }}>{s.label}</Typography>
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 900, fontFamily: 'JetBrains Mono' }}>
+                {s.pct}%
+              </Typography>
             </Stack>
-            <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: '"JetBrains Mono", monospace' }}>
-              {s.pct}%
-            </Typography>
-          </Stack>
+          </motion.div>
         ))}
       </Stack>
     </Box>
   );
-};
+});
 
 
 
@@ -270,21 +282,43 @@ export const PortfolioPage: React.FC = () => {
                   const isPositive = pnl >= 0;
 
                   return (
-                    <TableRow key={p.id || idx}>
-                      <TableCell sx={{ fontWeight: 900, color: 'primary.main' }}>{p.symbol || p.contract_symbol}</TableCell>
-                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>{p.quantity}</TableCell>
-                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
-                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${currentPrice.toFixed(2)}</TableCell>
-                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main' }}>
+                    <motion.tr
+                      key={p.id || idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + idx * 0.05 }}
+                      style={{ borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}` }}
+                    >
+                      <TableCell sx={{ fontWeight: 900, color: 'primary.main', borderBottom: 'none' }}>{p.symbol || p.contract_symbol}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono', borderBottom: 'none' }}>{p.quantity}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono', borderBottom: 'none' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono', borderBottom: 'none' }}>${currentPrice.toFixed(2)}</TableCell>
+                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main', borderBottom: 'none' }}>
                         {isPositive ? '+' : ''}${pnl.toFixed(2)}
                       </TableCell>
-                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main' }}>
-                        {isPositive ? '+' : ''}{pnlPct.toFixed(2)}%
+                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main', borderBottom: 'none' }}>
+                        <Box sx={{ 
+                          px: 1, py: 0.5, borderRadius: 1.5, display: 'inline-block',
+                          bgcolor: alpha(isPositive ? theme.palette.success.main : theme.palette.error.main, 0.1) 
+                        }}>
+                          {isPositive ? '+' : ''}{pnlPct.toFixed(2)}%
+                        </Box>
                       </TableCell>
-                      <TableCell>
-                        <Button size="small" variant="contained" sx={{ bgcolor: alpha('#f43f5e', 0.1), color: '#f43f5e' }}>LIQUIDATE</Button>
+                      <TableCell sx={{ borderBottom: 'none' }}>
+                        <Button 
+                          size="small" 
+                          variant="contained" 
+                          sx={{ 
+                            bgcolor: alpha('#f43f5e', 0.1), 
+                            color: '#f43f5e',
+                            fontWeight: 900,
+                            '&:hover': { bgcolor: alpha('#f43f5e', 0.2) }
+                          }}
+                        >
+                          LIQUIDATE
+                        </Button>
                       </TableCell>
-                    </TableRow>
+                    </motion.tr>
                   );
                 })}
                 {!positions.length && (
