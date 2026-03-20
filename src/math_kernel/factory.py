@@ -112,6 +112,10 @@ class PricingEngineFactory:
                 from src.math_kernel.models.heston_strategy import HestonPricingStrategy
 
                 cls.register("heston", HestonPricingStrategy)
+            elif name == "rust":
+                from src.math_kernel.rust_engine import RustPricingEngine
+
+                cls.register("rust", RustPricingEngine)
             # Add more as needed
         except ImportError as e:
             logger.error("lazy_load_failed", engine=name, error=str(e))

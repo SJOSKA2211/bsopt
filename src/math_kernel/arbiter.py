@@ -15,6 +15,7 @@ class PricingModel(StrEnum):
     MONTE_CARLO = "monte_carlo"
     WASM = "wasm"
     QUANTUM = "quantum"
+    RUST = "rust"
 
 
 @dataclass
@@ -43,7 +44,12 @@ class EngineArbiter:
         Routes the pricing request to the optimal engine.
         """
         # 1. Resolve Engine via Factory (Handles dynamic AIOps overrides)
-        strategy = "wasm" if request.model == PricingModel.WASM else None
+        strategy = None
+        if request.model == PricingModel.WASM:
+            strategy = "wasm"
+        elif request.model == PricingModel.RUST:
+            strategy = "rust"
+
         engine = self.factory.get_engine(
             request.model or "black_scholes", execution_strategy=strategy
         )
@@ -74,10 +80,24 @@ class EngineArbiter:
         """
         # OPTIMIZED: Respect explicit model choice, otherwise auto-select based on size
         if model is None:
-            use_wasm = len(S) > 1000
-            engine_name = "wasm" if use_wasm else "black_scholes"
+            if len(S) > 10000:
+                engine_name = "rust"
+            elif len(S) > 1000:
+                engine_name = "wasm"
+            else:
+                engine_name = "black_scholes"
         else:
             engine_name = str(model)
+
+        # High-speed Rust path for massive CPU-parallel batches
+        if engine_name == "rust":
+            try:
+                import equaflow_core
+                q = np.zeros_like(S)
+                return equaflow_core.batch_black_scholes(S, K, T, sigma, r, q, is_call.astype(bool))
+            except ImportError:
+                logger.warning("rust_core_not_available_falling_back")
+                engine_name = "black_scholes"
 
         engine = self.factory.get_engine(engine_name)
 

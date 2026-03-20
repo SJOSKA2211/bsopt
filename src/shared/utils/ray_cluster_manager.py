@@ -36,6 +36,8 @@ class RayClusterManager:
                 cpus=resources.get("CPU", 0),
                 gpus=resources.get("GPU", 0),
                 memory_gb=resources.get("memory", 0) / 1e9,
+                object_store_gb=resources.get("object_store_memory", 0) / 1e9,
+                node_count=len(ray.nodes()),
             )
             return True
         except Exception as e:

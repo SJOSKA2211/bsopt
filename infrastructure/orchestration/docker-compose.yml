@@ -5,7 +5,7 @@ services:
   postgres:
     image: docker.io/timescale/timescaledb:latest-pg16
     restart: unless-stopped
-    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf' -c 'ident_file=/etc/postgresql/pg_ident.conf'
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-bsopt}
       POSTGRES_USER: ${POSTGRES_USER:-admin}
@@ -19,6 +19,10 @@ services:
       - ../../src.shared/migrations:/migrations:ro
       - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
+      - ../../.pki/postgres.crt:/etc/postgresql/postgres.crt:ro
+      - ../../.pki/postgres.key:/etc/postgresql/postgres.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../configs/pg_ident.conf:/etc/postgresql/pg_ident.conf:ro
     deploy:
       resources:
         limits:
@@ -66,11 +70,18 @@ services:
   redis:
     image: docker.io/library/redis:7-alpine
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      - ../configs/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 2.5g
+    sysctls:
+      - net.core.somaxconn=1024
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping" ]
       interval: 5s
@@ -92,6 +103,10 @@ services:
     volumes:
       - ../configs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
       - ./definitions.json:/etc/rabbitmq/definitions.json:ro
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "check_running" ]
       interval: 10s
@@ -102,7 +117,7 @@ services:
 
   # === Object Storage (MinIO) ===
   minio:
-    image: docker.io/minio/minio:latest
+    image: docker.io/library/minio:latest
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
@@ -122,7 +137,7 @@ services:
       retries: 5
 
   minio-mc:
-    image: docker.io/minio/mc:latest
+    image: docker.io/library/minio/mc:latest
     depends_on:
       minio:
         condition: service_healthy
@@ -168,7 +183,6 @@ services:
       - bsopt-network
 
   # === API Service ===
-  # === API Service ===
   api:
     build:
       context: ../..
@@ -184,8 +198,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '4'
+          memory: 4gb
     logging:
       driver: "json-file"
       options:
@@ -216,9 +230,9 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.src.shared.somaxconn=1024
+      - net.core.somaxconn=1024
       - net.ipv4.tcp_fastopen=3
-    command: /opt/venv/bin/granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
+    command: /opt/venv/bin/granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --ws
 
   # === Portfolio Service ===
   portfolio:
@@ -235,8 +249,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 1gb
+          cpus: '2'
+          memory: 2gb
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
@@ -257,7 +271,10 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: /opt/venv/bin/granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --opt
+    sysctls:
+      - net.core.somaxconn=1024
+      - net.ipv4.tcp_fastopen=3
+    command: /opt/venv/bin/granian --interface asgi src.portfolio.main:app --host 0.0.0.0 --port 8000 --workers 2 --loop uvloop --opt
 
   # === [Specialized] ML Inference Manifold ===
   ml-inference:
@@ -271,8 +288,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '4'
+          memory: 4gb
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
@@ -281,6 +298,11 @@ services:
       - INSIDE_DOCKER=1
       - ML_SERVICE_PORT=5001
       - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       postgres:
         condition: service_healthy
@@ -289,9 +311,10 @@ services:
     networks:
       - bsopt-network
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app.src.shared
+      - ../../src/ml:/app/src/ml
       - ../../models:/app/models
-    command: python src/ml/serving/serve.py
+    command: /opt/venv/bin/granian --interface asgi src.ml.serving.serve:app --host 0.0.0.0 --port 5001 --workers 4 --loop uvloop --ws
 
   # === Worker Service ===
   worker:
@@ -300,7 +323,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
     ports:
@@ -345,7 +368,7 @@ services:
         condition: service_started
     networks:
       - bsopt-network
-    command: celery -A src.workers.tasks.celery_app worker -l info
+    command: celery -A src.workers.tasks.celery_app worker -l info --concurrency=4 --prefetch-multiplier=1
 
   # === Persistence Worker (Kafka-to-TimescaleDB) ===
   persistence-worker:
@@ -354,7 +377,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=${DATABASE_URL}
@@ -377,7 +400,7 @@ services:
     ports:
       - "8002:8000"
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
@@ -403,7 +426,7 @@ services:
     ports:
       - "8004:8000"
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
     deploy:
       resources:
         limits:
@@ -425,7 +448,7 @@ services:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.scraper-prod
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
@@ -450,12 +473,13 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ../../src.shared:/ap./src.shared
+      - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
     deploy:
       resources:
         limits:
           cpus: '4'
+          memory: 4gb
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
@@ -475,7 +499,7 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
+    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --opt --ws
 
     # === App Gateway (Node.js Federation) ===
   frontend:
@@ -485,6 +509,10 @@ services:
       target: development
     ports:
       - "5173:5173"
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     volumes:
       - ../../src/frontend:/app
       - /app/node_modules
@@ -525,7 +553,7 @@ services:
   # === [Specialized] Blockchain Service ===
   geth:
     profiles: [ "blockchain" ]
-    image: docker.io/ethereum/client-go:stable
+    image: docker.io/library/ethereum/client-go:stable
     ports:
       - "8545:8545"
       - "8546:8546"
@@ -551,7 +579,7 @@ services:
 
   # === [Specialized] Streaming Service ===
   kafka-1:
-    image: docker.io/confluentinc/cp-kafka:latest
+    image: docker.io/library/confluentinc/cp-kafka:latest
     environment:
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_NODE_ID: 1
@@ -563,14 +591,14 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.src.shared.somaxconn=4096
+      - net.core.somaxconn=4096
       - net.ipv4.tcp_max_syn_backlog=8192
       - net.ipv4.tcp_tw_reuse=1
 
   # === [Specialized] ML Compute Cluster ===
   ray-head:
     profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
+    image: docker.io/library/rayproject/ray:latest-py312-cpu
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
@@ -583,21 +611,25 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     volumes:
       - ../../:/app
-    shm_size: '2gb'
+    shm_size: '4gb'
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '4'
+          memory: 4gb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8265/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --block
 
   ray-worker-1:
     profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
+    image: docker.io/library/rayproject/ray:latest-py312-cpu
     depends_on:
       - ray-head
     environment:
@@ -611,18 +643,18 @@ services:
       - bsopt-network
     volumes:
       - ../../:/app
-    shm_size: '2gb'
+    shm_size: '4gb'
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '4'
+          memory: 4gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
-    image: docker.io/rayproject/ray:latest-py312-cpu
+    image: docker.io/library/rayproject/ray:latest-py312-cpu
     depends_on:
       - ray-head
     environment:
@@ -632,17 +664,16 @@ services:
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
     networks:
       - bsopt-network
     volumes:
       - ../../:/app
-    shm_size: '2gb'
+    shm_size: '4gb'
     deploy:
       resources:
         limits:
-          cpus: '2'
-          memory: 2gb
+          cpus: '4'
+          memory: 4gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
 
@@ -654,16 +685,31 @@ services:
       - "5000:5000"
     environment:
       - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
-      - MLFLOW_ARTIFACT_ROOT=/app/mlruns
+      - MLFLOW_ARTIFACT_ROOT=s3://equaflow-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minio_secret_key}
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
     volumes:
       - ../../mlruns:/app/mlruns
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt --default-artifact-root /app/mlruns
+    command: mlflow server --workers 4 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt --default-artifact-root s3://equaflow-artifacts/mlflow
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
@@ -671,11 +717,11 @@ services:
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.mlops
-    shm_size: '2gb'
+    shm_size: '4gb'
     deploy:
       resources:
         limits:
-          memory: 2gb
+          memory: 4gb
           cpus: '2'
     depends_on:
       - mlflow
@@ -686,6 +732,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
+    command: ["mlflow", "run", ".", "--entry-point", "watchdog", "--env-manager", "local"]
     networks:
       - bsopt-network
     volumes:
@@ -732,7 +779,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.src.shared.somaxconn=4096
+      - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
     command: python src/data/ingestion_service.py
 
@@ -761,6 +808,7 @@ services:
     ports:
       - "80:8080"
       - "443:443"
+      - "9901:9901"
     volumes:
       - ../configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
       - ../../.pki:/etc/envoy/ssl:ro
@@ -770,7 +818,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.src.shared.somaxconn=4096
+      - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
     deploy:
       resources:
@@ -805,13 +853,35 @@ services:
     profiles:
       - observability
 
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
+    depends_on:
+      - redis
+    networks:
+      - bsopt-network
+    profiles:
+      - observability
+
   prometheus:
     profiles: [ "observability" ]
-    image: docker.io/prom/prometheus:latest
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
     volumes:
       - ../monitoring/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 2g
     networks:
       - bsopt-network
 
@@ -823,6 +893,13 @@ services:
     depends_on:
       - prometheus
       - loki
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../monitoring/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    deploy:
+      resources:
+        limits:
+          memory: 1g
     networks:
       - bsopt-network
 
@@ -833,7 +910,12 @@ services:
       - "3100:3100"
     volumes:
       - ../monitoring/monitoring/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 2g
     networks:
       - bsopt-network
 
@@ -874,7 +956,7 @@ services:
     networks:
       - bsopt-network
     sysctls:
-      - net.src.shared.somaxconn=4096
+      - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
     depends_on:
       - frontend
@@ -898,6 +980,9 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
   shared_shm:
     driver: local
     driver_opts:

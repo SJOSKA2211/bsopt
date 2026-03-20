@@ -17,15 +17,15 @@ class HFTManifoldLauncher:
     Orchestrates low-latency execution and shared-memory initialization.
     """
 
-    def __init__(self, mesh_name: str = "bsopt_hft_mesh", size_mb: int = 128):
+    def __init__(self, mesh_name: str = "bsopt_hft_mesh", size_mb: int = 256):
         self.mesh_name = mesh_name
         self.size_bytes = size_mb * 1024 * 1024
         self.shm = None
         self.running = True
 
-        # Latency Thresholds (Institutional Standard)
-        self.LATENCY_CRITICAL_MS = 50.0
-        self.LATENCY_WARNING_MS = 10.0
+        # Latency Thresholds (Institutional Standard - HARDENED)
+        self.LATENCY_CRITICAL_MS = 20.0
+        self.LATENCY_WARNING_MS = 5.0
 
     def initialize_mesh(self):
         """Atomic initialization of the shared memory mesh."""

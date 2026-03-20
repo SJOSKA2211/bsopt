@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
         '/graphql': {
-          target: process.env.GATEWAY_URL || 'http://app-gateway:4000',
+          target: process.env.GATEWAY_URL || 'http://envoy:8080',
           changeOrigin: true,
         },
         '/health': {

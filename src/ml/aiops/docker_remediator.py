@@ -23,7 +23,7 @@ ALLOWED_SERVICES = {
     "neural-pricing",
     "portfolio",
     "scraper",
-    "app-gateway",
+    "envoy",
     "frontend",
 }
 

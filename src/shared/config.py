@@ -362,8 +362,10 @@ class Settings(BaseSettings):
         return self.DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
 
     # Dask & Distributed
-    DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = 1
-    DASK_ARRAY_DEFAULT_CHUNKS_FRACTION: int = 10
+    DASK_LOCAL_CLUSTER_THREADS_PER_WORKER: int = 4
+    DASK_ARRAY_DEFAULT_CHUNKS_FRACTION: int = 20
+    RAY_CPU_PER_NODE: int = 4
+    RAY_MEMORY_GB_PER_NODE: int = 4
 
     model_config = SettingsConfigDict(
         env_file=(".env", ".env.test"),

@@ -14,7 +14,7 @@ readonly LOG_DIR="${SCRIPT_DIR}/logs"
 
 # Standardized Service Groups
 readonly CORE_INFRA="postgres redis rabbitmq"
-readonly CORE_APPS="auth-service api worker scraper neural-pricing frontend portfolio app-gateway"
+readonly CORE_APPS="auth-service api worker scraper neural-pricing frontend portfolio envoy"
 
 # Profile handling
 PROFILES=""

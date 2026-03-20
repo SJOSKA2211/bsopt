@@ -21,6 +21,13 @@ scrape_configs:
           service: 'neural-pricing'
     metrics_path: /metrics
 
+  - job_name: 'bsopt-ml-inference'
+    static_configs:
+      - targets: ['ml-inference:5001']
+        labels:
+          service: 'ml-inference'
+    metrics_path: /metrics
+
   # --- Data Ingestion ---
   - job_name: 'bsopt-scraper'
     static_configs:
@@ -55,3 +62,9 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  # --- Edge Proxy ---
+  - job_name: 'envoy'
+    static_configs:
+      - targets: ['envoy:9901']
+    metrics_path: /stats/prometheus

@@ -205,7 +205,7 @@ services:
   # === [Specialized] ML Compute Cluster (Containerized Dev) ===
   ray-head:
     image: rayproject/ray:latest-py312-cpu
-    shm_size: '2gb'
+    shm_size: '4gb'
     ports:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
@@ -216,12 +216,17 @@ services:
       - INSIDE_DOCKER=1
     volumes:
       - ./:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
     working_dir: /app
     command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --block
 
   rl-training-worker:
     image: rayproject/ray:latest-py312-cpu
-    shm_size: '2gb'
+    shm_size: '4gb'
     depends_on:
       - ray-head
     environment:
@@ -232,6 +237,11 @@ services:
       - INSIDE_DOCKER=1
     volumes:
       - ./:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4gb
     working_dir: /app
     command: ray start --address=ray-head:6379 --block
 

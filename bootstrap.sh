@@ -96,51 +96,17 @@ container_exec() {
 # 2. Security Layer (RSA/ECC Key Generation)
 # ==============================================================================
 generate_keys() {
-    log_info "Generating Asymmetric Key Pairs (Institutional Grade)..."
-    mkdir -p "${KEYS_DIR}"
+    log_info "Initializing PKI and Asymmetric Key Pairs..."
     
-    # RSA 4096 (RS256) for legacy compatibility
-    if [ ! -f "${KEYS_DIR}/jwt_rs256.key" ]; then
-        log_info "Generating RSA 4096 key pair..."
-        openssl genrsa -out "${KEYS_DIR}/jwt_rs256.key" 4096
-        openssl rsa -in "${KEYS_DIR}/jwt_rs256.key" -pubout -out "${KEYS_DIR}/jwt_rs256.pub"
-        log_success "RSA 4096 key pair generated"
+    # Call the expanded PKI setup script
+    if [ -f "scripts/setup_pki.sh" ]; then
+        bash scripts/setup_pki.sh
     else
-        log_info "RSA 4096 keys already exist, skipping"
-    fi
-
-    # ECC P-256 (ES256) for modern high-performance auth
-    if [ ! -f "${KEYS_DIR}/jwt_es256.key" ]; then
-        log_info "Generating ECC P-256 key pair..."
-        openssl ecparam -name prime256v1 -genkey -noout -out "${KEYS_DIR}/jwt_es256.key"
-        openssl ec -in "${KEYS_DIR}/jwt_es256.key" -pubout -out "${KEYS_DIR}/jwt_es256.pub"
-        log_success "ECC P-256 key pair generated"
-    else
-        log_info "ECC P-256 keys already exist, skipping"
-    fi
-
-    # Argon2id Hashing Salt
-    if [ ! -f "${KEYS_DIR}/argon2_salt.secret" ]; then
-        openssl rand -hex 32 > "${KEYS_DIR}/argon2_salt.secret"
-        log_success "Argon2 salt generated"
-    fi
-
-    # TOTP Master Secret
-    if [ ! -f "${KEYS_DIR}/totp_master.secret" ]; then
-        openssl rand -hex 32 > "${KEYS_DIR}/totp_master.secret"
-        log_success "TOTP master secret generated"
+        log_error "scripts/setup_pki.sh not found!"
+        exit 1
     fi
     
-    # Envoy SSL Cert (Self-Signed for Dev)
-    if [ ! -f "${KEYS_DIR}/envoy_edge.key" ]; then
-        log_info "Generating Envoy SSL certificate..."
-        openssl req -x509 -newkey rsa:4096 \
-            -keyout "${KEYS_DIR}/envoy_edge.key" \
-            -out "${KEYS_DIR}/envoy_edge.crt" \
-            -days 365 -nodes \
-            -subj "/C=US/ST=State/L=City/O=EquaFlow/CN=localhost"
-        log_success "Envoy SSL certificate generated"
-    fi
+    log_success "Security Layer initialized"
 }
 
 # ==============================================================================
@@ -244,7 +210,7 @@ wait_for_service() {
     
     # Polling with exponential backoff
     while [ $retry_count -lt $max_retries ]; do
-        if container_exec "$container_id" bash -c "$health_command" > /dev/null 2>&1; then
+        if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
             log_success "$service_name is healthy"
             return 0
         fi
@@ -314,7 +280,7 @@ main() {
     
     # Step 4: Build images (Sequential for reliability)
     log_info "Building images sequentially..."
-    for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing app-gateway frontend envoy; do
+    for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing mlops-worker frontend envoy; do
         log_info "Building $service..."
         compose_cmd build "$service" || log_warn "Failed to build $service, continuing..."
     done
@@ -340,7 +306,7 @@ main() {
     
     # Redis
     REDIS_PASS=$(grep "^REDIS_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
-    wait_for_service "redis" "redis-cli -a ${REDIS_PASS:-bsopt_redis_secret} --no-auth-warning ping | grep -q PONG" 30 1
+    wait_for_service "redis" "redis-cli -h 127.0.0.1 -a ${REDIS_PASS:-bsopt_redis_secret} --no-auth-warning ping" 30 1
     
     # PgBouncer
     wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin" 30 1

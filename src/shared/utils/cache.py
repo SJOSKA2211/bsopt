@@ -37,13 +37,13 @@ def get_redis() -> Redis | None:
             _redis = Redis.from_url(
                 settings.REDIS_URL,
                 decode_responses=False,
-                max_connections=50,
+                max_connections=100,
                 socket_connect_timeout=5,
                 socket_keepalive=True,
                 retry_on_timeout=True,
             )
 
-            logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=50)
+            logger.info("redis_client_initialized", url=settings.REDIS_URL, max_connections=100)
         except Exception as e:
             logger.error("redis_initialization_failed", error=str(e))
             return None

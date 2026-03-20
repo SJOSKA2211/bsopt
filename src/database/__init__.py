@@ -190,9 +190,9 @@ class DatabaseManager:
         )
 
         # 3. OpenTelemetry Instrumentation
-        from src.shared.monitoring.telemetry_init import instrument_sqlalchemy
+        from src.shared.tracing import instrument_database
 
-        instrument_sqlalchemy(self._engine)
+        instrument_database(self._engine)
 
         self._initialized = True
         logger.info("database_manager_initialized", pgbouncer=settings.PGBOUNCER_ENABLED)

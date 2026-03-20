@@ -474,7 +474,6 @@ fn mmap_parse_structured_ticks(path: &str) -> PyResult<(Py<PyArray1<f64>>, Py<Py
         ))
     })
 }
-
 #[pyfunction]
 fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
     if timestamp <= 0.0 || price <= 0.0 || volume < 0.0 {
@@ -483,9 +482,55 @@ fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
     Ok(true)
 }
 
+#[pyclass]
+pub struct TickDataBuffer {
+    mmap: std::sync::Arc<Mmap>,
+}
+
+#[pymethods]
+impl TickDataBuffer {
+    #[new]
+    pub fn new(path: &str) -> PyResult<Self> {
+        let file = File::open(path)?;
+        let mmap = unsafe { Mmap::map(&file)? };
+        Ok(Self {
+            mmap: std::sync::Arc::new(mmap),
+        })
+    }
+
+    pub fn size(&self) -> usize {
+        self.mmap.len()
+    }
+
+    /// Optimized batch parser for fixed-size 32-byte binary ticks
+    /// Format: Symbol (8b), Price (8b f64), Volume (8b i64), Timestamp (8b f64)
+    pub fn parse_ticks_32b(&self, offset: usize, count: usize) -> PyResult<Vec<(String, f64, i64, f64)>> {
+        let tick_size = 32;
+        if offset + (count * tick_size) > self.mmap.len() {
+            return Err(pyo3::exceptions::PyIOError::new_err("Buffer overflow during tick parsing"));
+        }
+
+        let mut ticks = Vec::with_capacity(count);
+        for i in 0..count {
+            let start = offset + (i * tick_size);
+            let slice = &self.mmap[start..start + tick_size];
+
+            let symbol = String::from_utf8_lossy(&slice[0..8]).trim_end_matches('\0').to_string();
+            let price = f64::from_le_bytes(slice[8..16].try_into().unwrap());
+            let volume = i64::from_le_bytes(slice[16..24].try_into().unwrap());
+            let timestamp = f64::from_le_bytes(slice[24..32].try_into().unwrap());
+
+            ticks.push((symbol, price, volume, timestamp));
+        }
+        Ok(ticks)
+    }
+}
+
 #[pymodule]
 fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<TickDataBuffer>()?;
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
+...
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;

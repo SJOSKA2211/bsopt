@@ -228,8 +228,11 @@ def start_system_metrics_loop(service_name: str, interval: int = 15) -> None:
 
 
 # Common Metrics
-SCRAPE_DURATION = Summary(
-    "market_scrape_duration_seconds", "Time spent scraping market data", ["api"]
+SCRAPE_DURATION = Histogram(
+    "market_scrape_duration_seconds",
+    "Time spent scraping market data",
+    ["api"],
+    buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0],
 )
 SCRAPE_ERRORS = Counter(
     "market_scrape_errors_total",
@@ -251,7 +254,10 @@ TRAINING_ERRORS = Counter("ml_training_errors_total", "Total training failures",
 
 # Blockchain Metrics
 BLOCKCHAIN_RPC_LATENCY = Histogram(
-    "blockchain_rpc_latency_seconds", "Latency of RPC calls", ["method"]
+    "blockchain_rpc_latency_seconds",
+    "Latency of RPC calls",
+    ["method"],
+    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0],
 )
 BLOCKCHAIN_RPC_ERRORS = Counter(
     "blockchain_rpc_errors_total", "Total number of RPC errors", ["method"]
@@ -259,7 +265,12 @@ BLOCKCHAIN_RPC_ERRORS = Counter(
 BLOCKCHAIN_GAS_PRICE = Gauge("blockchain_gas_price_gwei", "Current network gas price")
 
 # Proxy/Scraper Metrics
-PROXY_LATENCY = Histogram("proxy_latency_seconds", "Latency of requests per proxy", ["proxy_url"])
+PROXY_LATENCY = Histogram(
+    "proxy_latency_seconds",
+    "Latency of requests per proxy",
+    ["proxy_url"],
+    buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
+)
 PROXY_FAILURES = Counter("proxy_failures_total", "Total failures per proxy", ["proxy_url"])
 
 # RL Agent Metrics
@@ -279,7 +290,10 @@ HESTON_FELLER_MARGIN = Gauge(
     "heston_feller_margin", "Margin above Feller condition (2κθ - σ²)", ["symbol"]
 )
 CALIBRATION_DURATION = Histogram(
-    "calibration_duration_seconds", "Time spent in calibration", ["symbol"]
+    "calibration_duration_seconds",
+    "Time spent in calibration",
+    ["symbol"],
+    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
 )
 HESTON_R_SQUARED = Gauge(
     "heston_r_squared",
@@ -294,15 +308,20 @@ HESTON_PARAMS_FRESHNESS = Gauge(
 
 # ONNX & Pricing Service Metrics
 ONNX_INFERENCE_LATENCY = Histogram(
-    "onnx_inference_latency_ms", "Latency of ONNX inference in milliseconds"
+    "onnx_inference_latency_ms",
+    "Latency of ONNX inference in milliseconds",
+    buckets=[0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0],
 )
 PRICING_SERVICE_DURATION = Histogram(
     "pricing_service_duration_seconds",
     "Time spent in PricingService methods",
     ["method"],
+    buckets=[0.0001, 0.0005, 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.5, 1.0],
 )
 ML_PROXY_PREDICT_LATENCY = Histogram(
-    "ml_proxy_predict_latency_seconds", "Latency of ML model predictions via proxy"
+    "ml_proxy_predict_latency_seconds",
+    "Latency of ML model predictions via proxy",
+    buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
 )
 
 # Pre-instantiate a dedicated thread pool for off-heap metrics ingestion

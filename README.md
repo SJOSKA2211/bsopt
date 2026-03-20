@@ -33,6 +33,7 @@ This platform has undergone a 13-phase institutional hardening process:
 | **22** | **Final Alignment** | Infrastructure & Volume Security | ✅ Complete |
 | **23** | **God-Tier Finish** | 100% Zero-Warning Build Health | ✅ Complete |
 | **24** | **A11y & Hierarchy** | Institutional Accessibility Refinement | ✅ Complete |
+| **25** | **Infra & Observability** | Revamp Redis, Prometheus, Ray & MLflow | ✅ Complete |
 
 ## 🏛️ Maintenance & Scaling
 - **Horizontal Scaling**: Use `ray scale --up` to increase compute power for backtesting.
@@ -61,16 +62,22 @@ This platform has undergone a 13-phase institutional hardening process:
 - **Ray Actor Pool**: Robust `RayActorPool` with round-robin balancing and thread-safe actor management.
 
 ### The Manifold: MLOps & Autonomous Training (v2026)
-- **God-Tier Optimizations**: Comprehensive revamp of all mathematical kernels, API serialization, and data ingestion paths achieving the theoretical limits of the hardware.
+- **God-Tier Optimizations**: Comprehensive revamp of all mathematical kernels, API serialization, and data ingestion paths.
+- **High-Throughput ASGI**: Standardized on **Granian** with the **uvloop** engine for all core APIs, achieving institutional-grade I/O throughput.
+- **Enterprise MLOps**: MLflow artifact storage migrated to **S3 (MinIO)**, enabling distributed model management and concurrent model logging.
+- **Resource Hardening**: Standardized 4GB memory limits and 4-core CPU allocations for mission-critical pricing and inference services.
 - **CPU-Vectorized Pipelines**: Data ingestion and feature engineering utilizing Numba `@njit(parallel=True)` for sub-millisecond execution.
-- **Shared Memory Replay**: Multi-producer safe shared memory buffers with optimized spin-locks for high-throughput RL experience collection.
 - **Autonomous Self-Healing**: AIOps-integrated retraining triggers that automatically initiate MLflow runs upon drift detection.
-- **Zero-Dependency Orchestration**: Unified `MLproject` and startup scripts for one-line deployment of distributed RL and HPO pipelines.
 
 ### The Intelligence: Blockchain & Quantum
 - **Speed-v1 Oracle**: Hybrid WebSocket/RPC oracle with confidence-based scoring for real-time DeFi data.
 - **Quantum QAE-v2**: Option pricing engine using **Iterative Amplitude Estimation (IAE)** for quadratic speedup.
 - **Gas-Aware SOR**: Smart Order Router factoring in slippage and gas for optimal DeFi execution.
+
+### The Shield: Observability & Persistence
+- **Deep Telemetry**: OpenTelemetry backbone with high-resolution latency histograms (1ms precision) for precision bottleneck detection.
+- **Persistence Layer**: Optimized Redis configuration with AOF persistence, lazy-free eviction, and scaled connection pooling (100+).
+- **Automated Dashboards**: Grafana datasource provisioning for Prometheus and Loki, ensuring immediate visibility into the manifold's health.
 
 ## 🛠️ Prerequisites & Toolchains
 The BS-OPT platform requires several low-level toolchains for its "Hardware-Fluid" features:

@@ -45,7 +45,10 @@ app = FastAPI(
 
 # Metrics
 INFERENCE_LATENCY = Histogram(
-    "ml_inference_latency_seconds", "Time spent processing prediction", ["model_type"]
+    "ml_inference_latency_seconds",
+    "Time spent processing prediction",
+    ["model_type"],
+    buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0],
 )
 PREDICTION_COUNT = Counter(
     "ml_predictions_total", "Total number of predictions", ["status", "model_type"]

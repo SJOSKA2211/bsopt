@@ -106,3 +106,13 @@ entry_points:
       study_name: {type: string, default: "cross_sectional_v1"}
       tracking_uri: {type: string, default: "http://mlflow:5000"}
     command: "python -m src.ml.cross_sectional_pipeline --epochs {epochs} --batch_size {batch_size} --study_name {study_name} --tracking_uri {tracking_uri}"
+
+  watchdog:
+    parameters:
+      experiment: {type: string, default: "distributed_dt_v1"}
+    command: "python scripts/mlflow_watchdog.py"
+
+  rollback_check:
+    parameters:
+      model: {type: string, default: "OptionPricingModel_v2"}
+    command: "python src/ml/aiops/backtest_evaluator.py"
