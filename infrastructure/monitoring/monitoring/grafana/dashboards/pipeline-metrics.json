@@ -95,11 +95,9 @@
       "id": 5,
       "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(bsopt_ingestion_batch_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p50", "refId": "A" },
-        { "expr": "histogram_quantile(0.95, sum(rate(bsopt_ingestion_batch_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95", "refId": "B" },
-        { "expr": "histogram_quantile(0.99, sum(rate(bsopt_ingestion_batch_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99", "refId": "C" }
+        { "expr": "job:ingestion_latency:p99", "legendFormat": "p99", "refId": "A" }
       ],
-      "title": "Batch Fetch Latency (p50/p95/p99)",
+      "title": "Batch Ingestion Latency (p99 - Optimized)",
       "type": "timeseries"
     },
     {
@@ -126,10 +124,9 @@
       "id": 7,
       "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(pricing_service_duration_seconds_bucket[5m])) by (le, method))", "legendFormat": "p50 {{method}}", "refId": "A" },
-        { "expr": "histogram_quantile(0.99, sum(rate(pricing_service_duration_seconds_bucket[5m])) by (le, method))", "legendFormat": "p99 {{method}}", "refId": "B" }
+        { "expr": "job:pricing_latency:p99", "legendFormat": "p99 {{method}}", "refId": "A" }
       ],
-      "title": "Pricing Service Latency",
+      "title": "Pricing Service Latency (p99 - Optimized)",
       "type": "timeseries"
     },
     {

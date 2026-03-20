@@ -1,10 +1,8 @@
 """
-OAuth2 Authentication Service (Async)
+OAuth2 Authentication Service (DEPRECATED)
 
-Refactored to support full OAuth2 flows:
-- Authorization Code (for user-facing apps)
-- Client Credentials (for machine-to-machine)
-- Resource Owner Password Credentials (legacy support)
+DEPRECATED: This module is marked for deletion.
+All logic has been consolidated into src/auth/auth.py (AuthService).
 """
 
 import logging

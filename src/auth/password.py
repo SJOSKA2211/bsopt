@@ -1,11 +1,8 @@
 """
-Password Security Module
+Password Security Module (DEPRECATED)
 
-Secure password handling with:
-- Bcrypt hashing with configurable rounds
-- Password strength validation
-- Secure password generation
-- Password history tracking
+DEPRECATED: This module is marked for deletion.
+All logic has been consolidated into src/auth/auth.py (AuthService).
 """
 
 import logging

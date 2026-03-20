@@ -23,6 +23,10 @@ class ONNXInferenceEngine:
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         sess_options.add_session_config_entry("session.use_device_allocator_for_initializers", "1")
 
+        # OPTIMIZED: Threading for 4-core allocation
+        sess_options.intra_op_num_threads = 1  # Standard for multi-worker ASGI
+        sess_options.inter_op_num_threads = 2  # Balance between latency and concurrency
+
         # 2. Select Providers
         if providers is None:
             available = ort.get_available_providers()

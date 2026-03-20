@@ -1,7 +1,8 @@
 """
-TOTP MFA Service
+TOTP MFA Service (DEPRECATED)
 
-Secure TOTP-based Multi-Factor Authentication using pyotp.
+DEPRECATED: This module is marked for deletion.
+All logic has been consolidated into src/auth/auth.py (AuthService).
 """
 
 import pyotp

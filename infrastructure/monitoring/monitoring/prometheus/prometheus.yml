@@ -3,7 +3,7 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  - /etc/prometheus/rules/*.yml
+  - /etc/prometheus/recording_rules.yml
 
 scrape_configs:
   # --- [Institutional] High-Resolution Hot Path ---

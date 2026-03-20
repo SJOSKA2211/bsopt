@@ -109,6 +109,7 @@ services:
 
   # === Message Broker ===
   rabbitmq:
+    env_file: ../../.env
     image: docker.io/library/rabbitmq:3-management
     restart: unless-stopped
     environment:
@@ -134,6 +135,7 @@ services:
 
   # === Object Storage (MinIO) ===
   minio:
+    env_file: ../../.env
     image: docker.io/library/minio:latest
     restart: unless-stopped
     environment:
@@ -145,6 +147,10 @@ services:
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     networks:
       - bsopt-network
     healthcheck:
@@ -177,6 +183,10 @@ services:
       target: development
     ports:
       - "3001:3001"
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
       - PGBOUNCER_ENABLED=True
@@ -255,12 +265,14 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     networks:
       - bsopt-network
     sysctls:
-      - net.core.somaxconn=1024
+      - net.core.somaxconn=2048
       - net.ipv4.tcp_fastopen=3
-    command: /opt/venv/bin/granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --ws
+    command: /opt/venv/bin/granian --interface asgi src.api.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --ws
 
   # === Portfolio Service ===
   portfolio:
@@ -349,6 +361,8 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     networks:
       - bsopt-network
     volumes:
@@ -541,6 +555,7 @@ services:
 
   # === Neural Pricing Service ===
   neural-pricing:
+    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.neural-pricing
@@ -580,7 +595,10 @@ services:
         condition: service_started
     networks:
       - bsopt-network
-    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --opt --ws
+    sysctls:
+      - net.core.somaxconn=2048
+      - net.ipv4.tcp_fastopen=3
+    command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --backlog 2048 --loop uvloop --opt --ws
 
     # === App Gateway (Node.js Federation) ===
   frontend:
@@ -644,6 +662,10 @@ services:
     ports:
       - "8545:8545"
       - "8546:8546"
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
     networks:
       - bsopt-network
 
@@ -653,6 +675,10 @@ services:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     environment:
       - BLOCKCHAIN_RPC_URL=http://geth:8545
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
@@ -675,6 +701,10 @@ services:
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka-1:9092'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
     networks:
       - bsopt-network
     sysctls:
@@ -778,6 +808,7 @@ services:
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:
+    env_file: ../../.env
     profiles: [ "ml" ]
     image: ghcr.io/mlflow/mlflow:latest
     ports:
@@ -816,10 +847,11 @@ services:
           memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --workers 4 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
+    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
+    env_file: ../../.env
     profiles: [ "ml" ]
     build:
       context: ../..
@@ -829,7 +861,7 @@ services:
       resources:
         limits:
           memory: 4gb
-          cpus: '2'
+          cpus: '4'
     depends_on:
       - mlflow
       - ray-head
@@ -868,6 +900,10 @@ services:
       - SYS_NICE
     ulimits:
       memlock: -1
+    deploy:
+      resources:
+        limits:
+          memory: 2gb
     volumes:
       - /dev/shm:/dev/shm
     environment:
@@ -880,6 +916,7 @@ services:
 
   # === [Institutional] Ingestion Service ===
   ingestion-service:
+    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -912,6 +949,7 @@ services:
 
   # === [Institutional] Stream Transformer ===
   transformer:
+    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.api
@@ -940,6 +978,7 @@ services:
 
   # === [Specialized] Envoy API Gateway (Institutional Edge) ===
   envoy:
+    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.envoy
@@ -965,6 +1004,7 @@ services:
 
   # === [Specialized] Rust Core (Institutional Compute) ===
   rust-src.shared:
+    env_file: ../../.env
     build:
       context: ../..
       dockerfile: infrastructure/orchestration/Dockerfile.rust-core
@@ -988,8 +1028,6 @@ services:
         condition: service_healthy
     networks:
       - bsopt-network
-    profiles:
-      - observability
 
   redis-exporter:
     image: oliver006/redis_exporter:latest
@@ -1000,11 +1038,8 @@ services:
       - redis
     networks:
       - bsopt-network
-    profiles:
-      - observability
 
   prometheus:
-    profiles: [ "observability" ]
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
@@ -1015,17 +1050,22 @@ services:
       - '--web.enable-lifecycle'
     volumes:
       - ../monitoring/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/monitoring/prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml:ro
       - ../monitoring/monitoring/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     deploy:
       resources:
         limits:
           memory: 2g
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 
   grafana:
-    profiles: [ "observability" ]
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
@@ -1039,11 +1079,15 @@ services:
       resources:
         limits:
           memory: 1g
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 
   loki:
-    profiles: [ "observability" ]
     image: grafana/loki:latest
     ports:
       - "3100:3100"
@@ -1055,11 +1099,15 @@ services:
       resources:
         limits:
           memory: 2g
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 
   otel-collector:
-    profiles: [ "observability" ]
     image: otel/opentelemetry-collector:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
@@ -1068,6 +1116,12 @@ services:
       - "4317:4317" # OTLP gRPC
       - "4318:4318" # OTLP HTTP
       - "8889:8889" # Prometheus exporter
+      - "13133:13133" # Health check extension
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 

@@ -1,9 +1,8 @@
 """
-Security Module
+Security Module (EquaFlow Phase 2)
 
 Comprehensive security implementation for the BSOPT platform:
-- JWT authentication with access and refresh tokens
-- Password hashing with bcrypt
+- Unified AuthService (Argon2id, TOTP MFA, Asymmetric JWT)
 - Role-based access control
 - Security utilities and validators
 - Audit logging
@@ -12,12 +11,27 @@ Comprehensive security implementation for the BSOPT platform:
 from src.database.models import AuditLog
 
 from .audit import AuditEvent, log_audit
-from .password import PasswordService, PasswordValidator
+from .auth import (
+    AuthService,
+    auth_service,
+    get_auth_service,
+    get_current_user,
+    get_current_active_user,
+    RoleChecker,
+    TokenData,
+    TokenPair,
+)
 
 __all__ = [
-    # Password
-    "PasswordService",
-    "PasswordValidator",
+    # Unified Auth
+    "AuthService",
+    "auth_service",
+    "get_auth_service",
+    "get_current_user",
+    "get_current_active_user",
+    "RoleChecker",
+    "TokenData",
+    "TokenPair",
     # Audit
     "AuditEvent",
     "log_audit",

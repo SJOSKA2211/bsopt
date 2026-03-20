@@ -1,7 +1,8 @@
 """
-MFA Service
+MFA Service (DEPRECATED)
 
-Handles Multi-Factor Authentication using Time-based One-Time Passwords (TOTP).
+DEPRECATED: This module is marked for deletion.
+All logic has been consolidated into src/auth/auth.py (AuthService).
 """
 
 import io

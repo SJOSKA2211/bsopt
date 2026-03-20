@@ -66,6 +66,13 @@ class ExperimentTracker:
                         logger.warning("set_experiment_failed", error=str(e), study=self.study_name)
 
                 with mlflow.start_run() as new_run:
+                    # Injection of Galactic Governance Tags
+                    import socket
+                    mlflow.set_tags({
+                        "bsopt.host": socket.gethostname(),
+                        "bsopt.environment": os.getenv("ENVIRONMENT", "production"),
+                        "bsopt.layer": "ML-Manifold"
+                    })
                     yield new_run
 
         return run_context()
@@ -135,63 +142,61 @@ class ExperimentTracker:
             self.export_to_onnx(model, framework, f"{model_name}_v{version}.onnx")
 
     def export_to_onnx(self, model: Any, framework: str, filename: str) -> str | None:
-        """Export a model to ONNX format for production inference."""
-        import tempfile
+        """Export a model to ONNX format for production inference (Galactic Optimized)."""
         import onnx
         
-        temp_dir = tempfile.mkdtemp()
-        onx_path = os.path.join(temp_dir, filename)
-        
-        try:
-            if framework == "xgboost":
-                import onnxmltools
-                from onnxmltools.convert.common.data_types import FloatTensorType
-                initial_type = [('float_input', FloatTensorType([None, 10]))]
-                onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
-                onnxmltools.utils.save_model(onnx_model, onx_path)
-            elif framework in ["pytorch", "torch"]:
-                import torch
-                dummy_input = torch.randn(1, 10)
-                torch.onnx.export(model, dummy_input, onx_path)
-            elif framework == "sklearn":
-                from skl2onnx import convert_sklearn
-                from skl2onnx.common.data_types import FloatTensorType
-                initial_type = [('float_input', FloatTensorType([None, 10]))]
-                onx = convert_sklearn(model, initial_types=initial_type)
-                with open(onx_path, "wb") as f:
-                    f.write(onx.SerializeToString())
-            else:
-                logger.warning("unsupported_framework_for_onnx", framework=framework)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            onx_path = os.path.join(temp_dir, filename)
+            
+            try:
+                if framework == "xgboost":
+                    import onnxmltools
+                    from onnxmltools.convert.common.data_types import FloatTensorType
+                    initial_type = [('float_input', FloatTensorType([None, 10]))]
+                    onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
+                    onnxmltools.utils.save_model(onnx_model, onx_path)
+                elif framework in ["pytorch", "torch"]:
+                    import torch
+                    dummy_input = torch.randn(1, 10)
+                    torch.onnx.export(model, dummy_input, onx_path)
+                elif framework == "sklearn":
+                    from skl2onnx import convert_sklearn
+                    from skl2onnx.common.data_types import FloatTensorType
+                    initial_type = [('float_input', FloatTensorType([None, 10]))]
+                    onx = convert_sklearn(model, initial_types=initial_type)
+                    with open(onx_path, "wb") as f:
+                        f.write(onx.SerializeToString())
+                else:
+                    logger.warning("unsupported_framework_for_onnx", framework=framework)
+                    return None
+
+                self.log_artifact(onx_path)
+                logger.info("onnx_model_exported", path=onx_path)
+                # Note: The file will be deleted when the TemporaryDirectory context exits, 
+                # but MLflow has already uploaded it.
+                return onx_path
+            except Exception as e:
+                logger.error("onnx_export_failed", error=str(e), framework=framework)
                 return None
 
-            self.log_artifact(onx_path)
-            logger.info("onnx_model_exported", path=onx_path)
-            return onx_path
-        except Exception as e:
-            logger.error("onnx_export_failed", error=str(e), framework=framework)
-            return None
-        finally:
-            if os.path.exists(onx_path):
-                os.remove(onx_path)
-            if os.path.exists(temp_dir):
-                os.rmdir(temp_dir)
-
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
-        plt.figure(figsize=(10, 6))
+        """Saves and logs feature importance plots (Institutional Standard)."""
+        plt.figure(figsize=(12, 8))
         names = list(importance.keys())
         values = list(importance.values())
-        plt.barh(names, values)
-        plt.title(f"Feature Importance ({framework})")
-        plt.xlabel("Importance")
+        
+        # Sort for better visual representation
+        sorted_idx = [i for i, _ in sorted(enumerate(values), key=lambda x: x[1])]
+        plt.barh([names[i] for i in sorted_idx], [values[i] for i in sorted_idx], color='royalblue')
+        plt.title(f"Galactic Feature Importance ({framework})", fontsize=14)
+        plt.xlabel("Importance Score")
+        plt.grid(axis='x', linestyle='--', alpha=0.7)
 
-        temp_dir = tempfile.mkdtemp()
-        plot_path = os.path.join(temp_dir, "feature_importance.png")
-        plt.savefig(plot_path)
-        plt.close()
-
-        self.log_artifact(plot_path)
-        os.remove(plot_path)
-        os.rmdir(os.path.dirname(plot_path))
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plot_path = os.path.join(temp_dir, "feature_importance.png")
+            plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            self.log_artifact(plot_path)
 
     def push_to_gateway(self) -> None:
         push_metrics(job_name=self.study_name)
