@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/cache/*
 
 RUN pip3 install maturin --break-system-packages
-RUN rustup component add rustfmt
+RUN rustup component add rustfmt clippy
 
 # Development stage: keep source for testing
 FROM builder as development

@@ -405,21 +405,17 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
         const isHot = row.call_volume > row.call_oi * 1.5 && row.call_volume > 100;
+        const intensity = Math.min(row.call_volume / 2000, 0.4);
         return (
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, color: isHot ? 'warning.main' : 'inherit' }}>
+          <Box sx={{ 
+            width: '100%', height: '100%', display: 'flex', alignItems: 'center', px: 1,
+            bgcolor: isHot ? alpha(theme.palette.warning.main, 0.15) : (intensity > 0.05 ? alpha(theme.palette.primary.main, intensity) : 'transparent'),
+          }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isHot ? 'warning.main' : 'inherit' }}>
               {params.value?.toLocaleString()}
             </Typography>
-            {isHot && (
-              <Box
-                component={motion.div}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <TrendingUp sx={{ fontSize: 12, color: 'warning.main' }} />
-              </Box>
-            )}
-          </Stack>
+            {isHot && <TrendingUp sx={{ fontSize: 12, color: 'warning.main', ml: 0.5 }} />}
+          </Box>
         );
       }
     },
@@ -441,9 +437,15 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title="Implied Volatility">
-          <Typography variant="percentage" sx={{ color: qfd?.electrum, opacity: 0.9 }}>
-            {(params.value * 100).toFixed(1)}%
-          </Typography>
+          <Box sx={{ 
+            width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            bgcolor: alpha(qfd?.electrum ?? '#D4AF37', Math.min(params.value as number, 0.45)),
+            borderLeft: `1px solid ${alpha('#fff', 0.1)}`
+          }}>
+            <Typography variant="percentage" sx={{ color: '#fff', fontWeight: 900, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+              {(params.value * 100).toFixed(1)}%
+            </Typography>
+          </Box>
         </Tooltip>
       ),
     },
@@ -630,21 +632,17 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
         const isHot = row.put_volume > row.put_oi * 1.5 && row.put_volume > 100;
+        const intensity = Math.min(row.put_volume / 2000, 0.4);
         return (
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, color: isHot ? 'warning.main' : 'inherit' }}>
+          <Box sx={{ 
+            width: '100%', height: '100%', display: 'flex', alignItems: 'center', px: 1,
+            bgcolor: isHot ? alpha(theme.palette.warning.main, 0.15) : (intensity > 0.05 ? alpha(theme.palette.primary.main, intensity) : 'transparent'),
+          }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: isHot ? 'warning.main' : 'inherit' }}>
               {params.value?.toLocaleString()}
             </Typography>
-            {isHot && (
-              <Box
-                component={motion.div}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <TrendingUp sx={{ fontSize: 12, color: 'warning.main' }} />
-              </Box>
-            )}
-          </Stack>
+            {isHot && <TrendingUp sx={{ fontSize: 12, color: 'warning.main', ml: 0.5 }} />}
+          </Box>
         );
       }
     },
@@ -666,9 +664,15 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title="Implied Volatility">
-          <Typography variant="percentage" sx={{ color: qfd?.electrum, opacity: 0.9 }}>
-            {(params.value * 100).toFixed(1)}%
-          </Typography>
+          <Box sx={{ 
+            width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            bgcolor: alpha(qfd?.electrum ?? '#D4AF37', Math.min(params.value as number, 0.45)),
+            borderRight: `1px solid ${alpha('#fff', 0.1)}`
+          }}>
+            <Typography variant="percentage" sx={{ color: '#fff', fontWeight: 900, textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>
+              {(params.value * 100).toFixed(1)}%
+            </Typography>
+          </Box>
         </Tooltip>
       ),
     },
