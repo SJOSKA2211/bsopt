@@ -8,12 +8,15 @@ import grpc
 import httpx
 import msgspec
 import pandas as pd
+import numpy as np
 import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
 
 from src.config import settings
 from src.ingestion.mesh_publisher import get_market_publisher
+from src.ingestion.rust_parser import RustTickParser
+from src.shared.utils.binary_format import EquaRecord
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
@@ -434,6 +437,48 @@ class NSEScraper:
             for item in items:
                 cleaned.append(self._clean_data(item))
             return cleaned
+
+
+class HighThroughputIngestor:
+    """
+    High-throughput ingestion engine using Rust-accelerated zero-copy parsing.
+    Optimized for processing large EQUA binary files.
+    """
+
+    def __init__(self, file_path: str):
+        self.parser = RustTickParser(file_path)
+
+    async def process_batch_vectorized(self):
+        """
+        Process all ticks in the file using NumPy vectorized operations.
+        """
+        views = self.parser.get_views()
+        if not views:
+            logger.warning("no_views_available_for_processing")
+            return
+
+        prices = views.get("prices")
+        volumes = views.get("volumes")
+        
+        if prices is None or len(prices) == 0:
+            logger.info("empty_binary_file_nothing_to_process")
+            return
+
+        # Example: Calculate VWAP or other metrics using NumPy
+        # This demonstrates high-throughput processing on zero-copy views
+        try:
+            total_volume = np.sum(volumes)
+            if total_volume > 0:
+                vwap = np.sum(prices * volumes) / total_volume
+                logger.info("vectorized_metrics_calculated", vwap=float(vwap), count=len(prices))
+        except Exception as e:
+            logger.error("vectorized_processing_failed", error=str(e))
+
+    def get_validated_records(self, offset: int = 0, count: int = 100) -> list[EquaRecord]:
+        """
+        Returns a list of validated EquaRecord objects for application-layer use.
+        """
+        return self.parser.to_pydantic(offset, count)
 
 
 async def main():

@@ -40,6 +40,16 @@ static_resources:
           generate_request_id: true
           preserve_external_request_id: true
           
+          tracing:
+            provider:
+              name: envoy.tracers.opentelemetry
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig
+                grpc_service:
+                  envoy_grpc:
+                    cluster_name: opentelemetry_collector
+                service_name: envoy-edge-proxy
+          
           # Local reply on upstream errors
           stream_error_on_invalid_http_message: true
           
@@ -51,6 +61,12 @@ static_resources:
           # Route configuration
           route_config:
             name: local_route
+            response_headers_to_add:
+              - header: { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" }
+              - header: { key: "X-Content-Type-Options", value: "nosniff" }
+              - header: { key: "X-Frame-Options", value: "DENY" }
+              - header: { key: "X-XSS-Protection", value: "1; mode=block" }
+              - header: { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none';" }
             virtual_hosts:
             - name: local_service
               domains: ["*"]
@@ -378,6 +394,22 @@ static_resources:
       - max_pending_requests: 10
         max_requests: 20
         max_connections: 10
+
+  # OpenTelemetry Collector (gRPC)
+  - name: opentelemetry_collector
+    connect_timeout: 1s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {}
+    load_assignment:
+      cluster_name: opentelemetry_collector
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: otel-collector
+                port_value: 4317
 
 # ============================================================================
 # Runtime Configuration

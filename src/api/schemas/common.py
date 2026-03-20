@@ -1,14 +1,17 @@
 """
 Common API Schemas (Optimized)
 
-Shared schemas for API responses and pagination using msgspec for zero-copy performance.
+Shared schemas for API responses and pagination using msgspec for zero-copy performance
+and Pydantic V2 for request validation and complex logic.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, TypeVar, Generic
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, Field
+
+T = TypeVar("T")
 
 
 class DataResponseStruct(msgspec.Struct):
@@ -45,6 +48,17 @@ class ErrorDetail(BaseModel):
     field: str | None = None
     code: str | None = None
 
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={
+            "example": {
+                "message": "Field is required",
+                "field": "email",
+                "code": "missing_field",
+            }
+        },
+    )
+
 
 class ErrorResponse(BaseModel):
     """Standard error response."""
@@ -55,6 +69,37 @@ class ErrorResponse(BaseModel):
     request_id: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
 
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={
+            "example": {
+                "error": "Validation Error",
+                "message": "One or more fields failed validation",
+                "details": [
+                    {"message": "Invalid email format", "field": "email", "code": "invalid_format"}
+                ],
+                "request_id": "req_123456",
+            }
+        },
+    )
+
+    @classmethod
+    def from_proto(cls, proto_msg: Any) -> "ErrorResponse":
+        """Bridge from gRPC ErrorResponse."""
+        details = None
+        if proto_msg.errors:
+            details = [
+                ErrorDetail(message=e.message, field=e.field, code=e.code) for e in proto_msg.errors
+            ]
+
+        return cls(
+            error=proto_msg.code,
+            message=proto_msg.message,
+            details=details,
+            request_id=proto_msg.request_id,
+            timestamp=proto_msg.timestamp.to_datetime() if proto_msg.HasField("timestamp") else datetime.utcnow(),
+        )
+
 
 class SuccessResponse(BaseModel):
     """Standard success response."""
@@ -63,8 +108,10 @@ class SuccessResponse(BaseModel):
     success: bool = True
     data: dict[str, Any] | None = None
 
+    model_config = ConfigDict(frozen=True)
 
-class DataResponse[T](BaseModel):
+
+class DataResponse(BaseModel, Generic[T]):
     """Standard response wrapper with data field."""
 
     data: T
@@ -72,7 +119,7 @@ class DataResponse[T](BaseModel):
     message: str | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
 
 class PaginationMeta(BaseModel):
@@ -85,14 +132,28 @@ class PaginationMeta(BaseModel):
     has_next: bool
     has_prev: bool
 
+    model_config = ConfigDict(frozen=True)
 
-class PaginatedResponse[T](BaseModel):
+    @classmethod
+    def from_proto(cls, proto_msg: Any) -> "PaginationMeta":
+        """Bridge from gRPC PaginationResponse."""
+        return cls(
+            total=proto_msg.total_items,
+            page=proto_msg.current_page,
+            page_size=proto_msg.page_size,
+            total_pages=proto_msg.total_pages,
+            has_next=proto_msg.has_next,
+            has_prev=proto_msg.has_previous,
+        )
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
     """Paginated response wrapper."""
 
     items: list[T]
     pagination: PaginationMeta
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
 
 class HealthResponse(BaseModel):
@@ -102,3 +163,5 @@ class HealthResponse(BaseModel):
     version: str
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
     checks: dict[str, dict[str, Any]] = Field(default_factory=dict)
+
+    model_config = ConfigDict(frozen=True)

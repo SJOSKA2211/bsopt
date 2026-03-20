@@ -13,6 +13,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "127.0.0.1:5434:5432"
+    shm_size: '1gb'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../../infrastructure/init-scripts/init-scripts:/docker-entrypoint-initdb.d:ro
@@ -63,6 +64,10 @@ services:
       CLIENT_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
     ports:
       - "127.0.0.1:6432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
     volumes:
       - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro
       - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key:ro
@@ -347,7 +352,7 @@ services:
     networks:
       - bsopt-network
     volumes:
-      - ../../src.shared:/app.src.shared
+      - ../../src.shared:/app/src.shared
       - ../../src/ml:/app/src/ml
       - ../../models:/app/models
       - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
@@ -711,7 +716,7 @@ services:
       timeout: 5s
       retries: 5
     working_dir: /app
-    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --block
+    command: ray start --head --port=6379 --dashboard-host=0.0.0.0 --include-dashboard=true --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
   ray-worker-1:
     profiles: [ "ml" ]
@@ -740,7 +745,7 @@ services:
           cpus: '4'
           memory: 4gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
   rl-training-worker:
     profiles: [ "ml" ]
@@ -769,7 +774,7 @@ services:
           cpus: '4'
           memory: 4gb
     working_dir: /app
-    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --block
+    command: ray start --address=ray-head:6379 --metrics-export-port=8080 --object-store-memory=2147483648 --block
 
   # === [Specialized] MLOps Tracking Server ===
   mlflow:

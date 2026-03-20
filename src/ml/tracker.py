@@ -13,7 +13,10 @@ from src.shared.observability import (
     MODEL_RMSE,
     TRAINING_DURATION,
     TRAINING_ERRORS,
+    increment_counter,
+    observe_latency,
     push_metrics,
+    set_gauge,
 )
 
 logger = structlog.get_logger()
@@ -25,9 +28,11 @@ class ExperimentTracker:
     """
 
     def __init__(self, study_name: str, tracking_uri: str | None = None) -> None:
+        from src.shared.config import settings
+
         self.study_name = study_name
-        if tracking_uri:
-            mlflow.set_tracking_uri(tracking_uri)
+        uri = tracking_uri or settings.tracking_uri
+        mlflow.set_tracking_uri(uri)
 
     def start_run(self, nested: bool = True) -> Any:
         """
@@ -76,16 +81,17 @@ class ExperimentTracker:
         mlflow.log_dict(dictionary, artifact_file)
 
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str) -> None:
-        mlflow.log_metric("accuracy", accuracy)
-        mlflow.log_metric("rmse", rmse)
-        mlflow.log_metric("duration", duration)
+        # OPTIMIZED: Batch MLflow metrics to reduce network overhead
+        mlflow.log_metrics(
+            {"accuracy": accuracy, "rmse": rmse, "duration": duration}
+        )
 
-        TRAINING_DURATION.labels(framework=framework).observe(duration)
-        MODEL_ACCURACY.labels(framework=framework).set(accuracy)
-        MODEL_RMSE.labels(model_type=framework, dataset="validation").set(rmse)
+        observe_latency(TRAINING_DURATION, duration, {"framework": framework})
+        set_gauge(MODEL_ACCURACY, accuracy, {"framework": framework})
+        set_gauge(MODEL_RMSE, rmse, {"model_type": framework, "dataset": "validation"})
 
     def log_error(self, framework: str, error: str) -> None:
-        TRAINING_ERRORS.labels(framework=framework).inc()
+        increment_counter(TRAINING_ERRORS, labels={"framework": framework})
         logger.error("training_failed", framework=framework, error=error)
 
     def log_artifact(self, local_path: str) -> None:

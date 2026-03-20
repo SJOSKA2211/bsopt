@@ -1,10 +1,13 @@
 """
-Authentication Schemas
+Authentication Schemas (Optimized)
 
-Pydantic models for authentication endpoints.
+High-performance schemas for authentication endpoints using msgspec for responses
+and Pydantic V2 for request validation.
 """
 
 import re
+from datetime import datetime
+from typing import Any
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -13,7 +16,7 @@ from src.config import settings
 
 
 class LoginRequest(BaseModel):
-    """User login request."""
+    """User login request (Pydantic V2)."""
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=1, description="User password")
@@ -21,18 +24,19 @@ class LoginRequest(BaseModel):
     mfa_code: str | None = Field(None, description="MFA code if enabled")
 
     model_config = ConfigDict(
+        frozen=True,
         json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "SecurePassword123!",
                 "remember_me": False,
             }
-        }
+        },
     )
 
 
-class LoginResponse(msgspec.Struct):
-    """Successful login response."""
+class TokenResponse(msgspec.Struct):
+    """Successful token response (OPTIMIZED: msgspec)."""
 
     access_token: str | None = None
     refresh_token: str | None = None
@@ -43,9 +47,49 @@ class LoginResponse(msgspec.Struct):
     tier: str | None = None
     requires_mfa: bool = False
 
+    @classmethod
+    def from_proto(cls, proto_msg: Any) -> "TokenResponse":
+        """Bridge from gRPC TokenPairResponse."""
+        return cls(
+            access_token=proto_msg.access_token,
+            refresh_token=proto_msg.refresh_token,
+            token_type=proto_msg.token_type,
+            expires_in=proto_msg.expires_in,
+        )
+
+    def to_proto(self) -> Any:
+        """Bridge to gRPC TokenPairResponse (Mock/Interface)."""
+        return {
+            "access_token": self.access_token or "",
+            "refresh_token": self.refresh_token or "",
+            "token_type": self.token_type,
+            "expires_in": self.expires_in or 0,
+        }
+
+
+# Alias for backward compatibility or specific use cases
+LoginResponse = TokenResponse
+
+
+class AuthResponse(msgspec.Struct):
+    """Internal authentication state response."""
+
+    authenticated: bool
+    user_id: str
+    factors_verified: list[str] = []
+
+    @classmethod
+    def from_proto(cls, proto_msg: Any) -> "AuthResponse":
+        """Bridge from gRPC AuthResponse."""
+        return cls(
+            authenticated=proto_msg.authenticated,
+            user_id=proto_msg.user_id,
+            factors_verified=list(proto_msg.factors_verified),
+        )
+
 
 class RegisterRequest(BaseModel):
-    """User registration request."""
+    """User registration request (Pydantic V2)."""
 
     email: EmailStr = Field(..., description="User email address")
     password: str = Field(..., min_length=8, description="User password")
@@ -96,6 +140,7 @@ class RegisterRequest(BaseModel):
         return v
 
     model_config = ConfigDict(
+        frozen=True,
         json_schema_extra={
             "example": {
                 "email": "newuser@example.com",
@@ -104,7 +149,7 @@ class RegisterRequest(BaseModel):
                 "full_name": "John Doe",
                 "accept_terms": True,
             }
-        }
+        },
     )
 
 
@@ -117,26 +162,14 @@ class RegisterResponse(msgspec.Struct):
     verification_required: bool = True
 
 
-class TokenResponse(msgspec.Struct):
-    """Successful token response."""
-
-    access_token: str | None = None
-    refresh_token: str | None = None
-    token_type: str = "bearer"
-    expires_in: int | None = None
-    user_id: str | None = None
-    email: str | None = None
-    tier: str | None = None
-    requires_mfa: bool = False
-
-
 class RefreshTokenRequest(BaseModel):
     """Token refresh request."""
 
     refresh_token: str = Field(..., description="Current refresh token")
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}}
+        frozen=True,
+        json_schema_extra={"example": {"refresh_token": "eyJhbGciOiJIUzI1NiIs..."}},
     )
 
 
@@ -145,7 +178,10 @@ class PasswordResetRequest(BaseModel):
 
     email: EmailStr = Field(..., description="Email address for password reset")
 
-    model_config = ConfigDict(json_schema_extra={"example": {"email": "user@example.com"}})
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={"example": {"email": "user@example.com"}},
+    )
 
 
 class PasswordResetConfirmRequest(BaseModel):
@@ -187,13 +223,14 @@ class PasswordResetConfirmRequest(BaseModel):
         return v
 
     model_config = ConfigDict(
+        frozen=True,
         json_schema_extra={
             "example": {
                 "token": "abc123def456",
                 "new_password": "NewSecurePassword123!",
                 "new_password_confirm": "NewSecurePassword123!",
             }
-        }
+        },
     )
 
 
@@ -220,6 +257,8 @@ class PasswordChangeRequest(BaseModel):
             raise ValueError("Passwords do not match")
         return v
 
+    model_config = ConfigDict(frozen=True)
+
 
 class MFASetupResponse(msgspec.Struct):
     """MFA setup response with secret and QR code."""
@@ -245,7 +284,10 @@ class MFAVerifyRequest(BaseModel):
             raise ValueError("Code must contain only digits")
         return clean_code
 
-    model_config = ConfigDict(json_schema_extra={"example": {"code": "123456"}})
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={"example": {"code": "123456"}},
+    )
 
 
 class EmailVerificationRequest(BaseModel):
@@ -253,4 +295,7 @@ class EmailVerificationRequest(BaseModel):
 
     token: str = Field(..., description="Verification token from email")
 
-    model_config = ConfigDict(json_schema_extra={"example": {"token": "abc123def456"}})
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={"example": {"token": "abc123def456"}},
+    )

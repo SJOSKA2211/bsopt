@@ -46,9 +46,9 @@ scrape_configs:
   # --- Ray ML Cluster ---
   - job_name: 'ray-cluster'
     static_configs:
-      - targets: ['ray-head:8080']
+      - targets: ['ray-head:8080', 'ray-worker-1:8080', 'rl-training-worker:8080']
         labels:
-          component: 'ray-head'
+          cluster: 'bsopt-ray'
 
   # --- Infrastructure ---
   - job_name: 'postgres'
