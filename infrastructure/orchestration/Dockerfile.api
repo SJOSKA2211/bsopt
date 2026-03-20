@@ -31,14 +31,17 @@ RUN uv pip install /tmp/wheels/*.whl
 FROM docker.io/library/python:3.12-slim-bookworm AS development
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev gcc git curl \
+    build-essential libpq-dev gcc git curl openssl \
     && rm -rf /var/lib/apt/lists/*
 # Copy virtualenv from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 EXPOSE 8000
+ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM docker.io/library/python:3.12-slim-bookworm AS production
@@ -47,17 +50,19 @@ ENV PYTHON_JIT=all PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONOPTIMIZE=2
 RUN groupadd -g 1000 appgroup && \
     useradd -r -u 1000 -g appgroup appuser && \
     apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 curl tini \
+    libpq5 curl tini openssl \
     && rm -rf /var/lib/apt/lists/* \
     && chown -R appuser:appgroup /app
 # Copy virtualenv from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY src ./src
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 RUN chown -R appuser:appgroup /app
 USER appuser
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--loop", "uvloop", "--websockets", "--opt"]

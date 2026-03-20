@@ -53,8 +53,20 @@ services:
       MAX_PREPARED_STATEMENTS: 100
       ADMIN_USERS: ${POSTGRES_USER}
       STATS_PERIOD: 60
+      SERVER_TLS_SSLMODE: verify-full
+      SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
+      SERVER_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
+      SERVER_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
+      CLIENT_TLS_SSLMODE: verify-full
+      CLIENT_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
+      CLIENT_TLS_CERT_FILE: /etc/pgbouncer/pgbouncer.crt
+      CLIENT_TLS_KEY_FILE: /etc/pgbouncer/pgbouncer.key
     ports:
       - "127.0.0.1:6432:5432"
+    volumes:
+      - ../../.pki/pgbouncer.crt:/etc/pgbouncer/pgbouncer.crt:ro
+      - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key:ro
+      - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER}"]
       interval: 10s
@@ -161,8 +173,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
+      - PGBOUNCER_ENABLED=True
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=http://localhost:3001
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
@@ -171,6 +183,10 @@ services:
       - ../../src/auth:/app
       - /app/node_modules
       - ../../src.shared/protos:/protos:ro
+      - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
+      - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:3001/ || exit 1" ]
       interval: 10s
@@ -179,6 +195,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
     networks:
       - bsopt-network
 
@@ -193,6 +211,10 @@ services:
       - ../../src/api:/app/src/api
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
+      - ../../.pki/api.crt:/etc/postgresql/api.crt:ro
+      - ../../.pki/api.key:/etc/postgresql/api.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     ports:
       - "8000:8000"
     deploy:
@@ -209,12 +231,11 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - ML_SERVICE_GRPC_URL=ml-inference:50051
       - USE_SHM=1
     healthcheck:
@@ -225,6 +246,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
     networks:
@@ -244,6 +267,10 @@ services:
       - ../../src.shared:/app/src.shared
       - ../../src/portfolio:/app/src/portfolio
       - ../../pyproject.toml:/app/pyproject.toml
+      - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
+      - ../../.pki/portfolio.key:/etc/postgresql/portfolio.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     ports:
       - "8003:8000"
     deploy:
@@ -254,8 +281,8 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -267,6 +294,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
     networks:
@@ -293,7 +322,8 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
       - ML_SERVICE_PORT=5001
@@ -306,6 +336,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
     networks:
@@ -314,6 +346,10 @@ services:
       - ../../src.shared:/app.src.shared
       - ../../src/ml:/app/src/ml
       - ../../models:/app/models
+      - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
+      - ../../.pki/ml-inference.key:/etc/postgresql/ml-inference.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     command: /opt/venv/bin/granian --interface asgi src.ml.serving.serve:app --host 0.0.0.0 --port 5001 --workers 4 --loop uvloop --ws
 
   # === Worker Service ===
@@ -326,6 +362,10 @@ services:
       - ../../src.shared:/app/src.shared
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
+      - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
+      - ../../.pki/worker.key:/etc/postgresql/worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     ports:
       - "50052:50051" # Changed to avoid collision if run on host
     deploy:
@@ -342,11 +382,10 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-bsopt_rmq_secret}@rabbitmq:5672//
       - ML_SERVICE_GRPC_URL=ml-inference:50051
       - JWT_SECRET=${JWT_SECRET}
@@ -360,6 +399,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
       rabbitmq:
@@ -378,18 +419,28 @@ services:
       target: development
     volumes:
       - ../../src.shared:/app/src.shared
+      - ../../.pki/persistence-worker.crt:/etc/postgresql/persistence-worker.crt:ro
+      - ../../.pki/persistence-worker.key:/etc/postgresql/persistence-worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/persistence-worker.crt&sslkey=/etc/postgresql/persistence-worker.key
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       kafka-1:
         condition: service_started
     networks:
       - bsopt-network
-    command: python src/streaming/persistence_worker.py
+    command: python src/ingestion/consumer.py
 
   # === NSE Scraper Service ===
   nse-scraper:
@@ -402,6 +453,10 @@ services:
     volumes:
       - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
+      - ../../.pki/nse-scraper.crt:/etc/postgresql/nse-scraper.crt:ro
+      - ../../.pki/nse-scraper.key:/etc/postgresql/nse-scraper.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     deploy:
       resources:
         limits:
@@ -409,10 +464,11 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/nse-scraper.crt&sslkey=/etc/postgresql/nse-scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
+      - pgbouncer
     networks:
       - bsopt-network
     command: python src/scrapers/engine.py
@@ -427,6 +483,10 @@ services:
       - "8004:8000"
     volumes:
       - ../../src.shared:/app/src.shared
+      - ../../.pki/yfinance-scraper.crt:/etc/postgresql/yfinance-scraper.crt:ro
+      - ../../.pki/yfinance-scraper.key:/etc/postgresql/yfinance-scraper.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     deploy:
       resources:
         limits:
@@ -434,10 +494,11 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/yfinance-scraper.crt&sslkey=/etc/postgresql/yfinance-scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
+      - pgbouncer
     networks:
       - bsopt-network
     command: python src/scrapers/yfinance_scraper.py
@@ -450,6 +511,10 @@ services:
     volumes:
       - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
+      - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
+      - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     deploy:
       resources:
         limits:
@@ -457,10 +522,11 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
+      - pgbouncer
     networks:
       - bsopt-network
 
@@ -475,14 +541,18 @@ services:
     volumes:
       - ../../src.shared:/app/src.shared
       - shared_shm:/dev/shm
+      - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
+      - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     deploy:
       resources:
         limits:
           cpus: '4'
           memory: 4gb
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - OMP_NUM_THREADS=4
       - MKL_NUM_THREADS=4
@@ -497,6 +567,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
     networks:
       - bsopt-network
     command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --loop uvloop --opt --ws
@@ -537,18 +609,24 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.ci
     environment:
       - ENVIRONMENT=test
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt_test
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt_test?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/test-runner.crt&sslkey=/etc/postgresql/test-runner.key
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/1
       - JWT_SECRET=test_secret_key_change_me_in_prod
+    volumes:
+      - .:/app
+      - ../../.pki/test-runner.crt:/etc/postgresql/test-runner.crt:ro
+      - ../../.pki/test-runner.key:/etc/postgresql/test-runner.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
     networks:
       - bsopt-network
-    volumes:
-      - .:/app
 
   # === [Specialized] Blockchain Service ===
   geth:
@@ -606,13 +684,17 @@ services:
     networks:
       - bsopt-network
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-head.crt&sslkey=/etc/postgresql/ray-head.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
     volumes:
       - ../../:/app
+      - ../../.pki/ray-head.crt:/etc/postgresql/ray-head.crt:ro
+      - ../../.pki/ray-head.key:/etc/postgresql/ray-head.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     shm_size: '4gb'
     deploy:
       resources:
@@ -634,8 +716,8 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-worker-1.crt&sslkey=/etc/postgresql/ray-worker-1.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
@@ -643,6 +725,10 @@ services:
       - bsopt-network
     volumes:
       - ../../:/app
+      - ../../.pki/ray-worker-1.crt:/etc/postgresql/ray-worker-1.crt:ro
+      - ../../.pki/ray-worker-1.key:/etc/postgresql/ray-worker-1.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     shm_size: '4gb'
     deploy:
       resources:
@@ -659,8 +745,8 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=${DATABASE_URL}
-      - PGBOUNCER_ENABLED=${PGBOUNCER_ENABLED:-False}
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/rl-training-worker.crt&sslkey=/etc/postgresql/rl-training-worker.key
+      - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
       - INSIDE_DOCKER=1
@@ -668,6 +754,10 @@ services:
       - bsopt-network
     volumes:
       - ../../:/app
+      - ../../.pki/rl-training-worker.crt:/etc/postgresql/rl-training-worker.crt:ro
+      - ../../.pki/rl-training-worker.key:/etc/postgresql/rl-training-worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     shm_size: '4gb'
     deploy:
       resources:
@@ -684,7 +774,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
       - MLFLOW_ARTIFACT_ROOT=s3://equaflow-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
@@ -693,9 +783,15 @@ services:
       - MLFLOW_S3_IGNORE_TLS=true
     volumes:
       - ../../mlruns:/app/mlruns
+      - ../../.pki/mlflow.crt:/etc/postgresql/mlflow.crt:ro
+      - ../../.pki/mlflow.key:/etc/postgresql/mlflow.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       minio:
         condition: service_healthy
     healthcheck:
@@ -709,7 +805,7 @@ services:
           memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --workers 4 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt --default-artifact-root s3://equaflow-artifacts/mlflow
+    command: mlflow server --workers 4 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
@@ -729,7 +825,7 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
     command: ["mlflow", "run", ".", "--entry-point", "watchdog", "--env-manager", "local"]
@@ -738,6 +834,10 @@ services:
     volumes:
       - ../../:/app
       - ../../mlruns:/app/mlruns
+      - ../../.pki/mlops-worker.crt:/etc/postgresql/mlops-worker.crt:ro
+      - ../../.pki/mlops-worker.key:/etc/postgresql/mlops-worker.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
 
   # === [Specialized] HFT Manifold Launcher ===
   manifold:
@@ -774,10 +874,17 @@ services:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
     depends_on:
       - kafka-1
+      - pgbouncer
     networks:
       - bsopt-network
+    volumes:
+      - ../../.pki/ingestion-service.crt:/etc/postgresql/ingestion-service.crt:ro
+      - ../../.pki/ingestion-service.key:/etc/postgresql/ingestion-service.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     sysctls:
       - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
@@ -793,11 +900,18 @@ services:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/transformer.crt&sslkey=/etc/postgresql/transformer.key
     depends_on:
       - kafka-1
       - ingestion-service
+      - pgbouncer
     networks:
       - bsopt-network
+    volumes:
+      - ../../.pki/transformer.crt:/etc/postgresql/transformer.crt:ro
+      - ../../.pki/transformer.key:/etc/postgresql/transformer.key:ro
+      - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
+      - ../../.pki/vault.key:/app/keys/vault.key:ro
     command: python src/streaming/transformer.py
 
   # === [Specialized] Envoy API Gateway (Institutional Edge) ===

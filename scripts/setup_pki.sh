@@ -109,6 +109,12 @@ CLIENT_SERVICES=(
     "neural-pricing"
     "mlops-worker"
     "persistence-worker"
+    "mlflow"
+    "ray-head"
+    "ray-worker-1"
+    "rl-training-worker"
+    "test-runner"
+    "pgbouncer"
 )
 
 for service in "${CLIENT_SERVICES[@]}"; do

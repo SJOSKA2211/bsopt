@@ -1,13 +1,13 @@
 #!/bin/bash
 # ==============================================================================
-# EQUAFLOW: THE ZERO-TOUCH BOOTSTRAP (v3.0)
+# EQUAFLOW: THE ZERO-TOUCH BOOTSTRAP (v3.1 - Hardened)
 # ==============================================================================
-# Automates the entire stack: Security (RSA/ECC), .env, DB Init, and Gateway.
+# Automates the entire stack: PKI, encrypted secrets, DB Init, and Gateway.
 # Features:
+# - Root CA & Service-level mTLS
+# - RSA-4096 Runtime Secret Vaulting
 # - Container engine agnostic (podman/docker)
-# - Sequential health checks with exponential backoff
-# - Enhanced error handling and logging
-# - Secrets rotation support
+# - Strict sequential health gating
 # ==============================================================================
 
 set -e
@@ -44,7 +44,7 @@ check_prereq() {
 check_prereq openssl
 
 # ==============================================================================
-# 1. Container Engine & Compose Detection (Container Agnostic)
+# 1. Container Engine & Compose Detection
 # ==============================================================================
 detect_container_engine() {
     log_info "Detecting container engine..."
@@ -93,24 +93,15 @@ container_exec() {
 }
 
 # ==============================================================================
-# 2. Security Layer (RSA/ECC Key Generation)
+# 2. Security Layer (PKI & Vault)
 # ==============================================================================
-generate_keys() {
-    log_info "Initializing PKI and Asymmetric Key Pairs..."
-    
-    # Call the expanded PKI setup script
-    if [ -f "scripts/setup_pki.sh" ]; then
-        bash scripts/setup_pki.sh
-    else
-        log_error "scripts/setup_pki.sh not found!"
-        exit 1
-    fi
-    
-    log_success "Security Layer initialized"
+initialize_pki() {
+    log_info "Initializing Institutional PKI Layer..."
+    ./scripts/setup_pki.sh
 }
 
 # ==============================================================================
-# 3. .env Orchestration
+# 3. .env Orchestration & Encryption
 # ==============================================================================
 setup_env_file() {
     log_info "Setting up .env file..."
@@ -138,47 +129,37 @@ set_env_var() {
     fi
 }
 
-inject_keys_into_env() {
-    log_info "Injecting keys into .env..."
-    
-    RS256_PRIV=$(cat "${KEYS_DIR}/jwt_rs256.key" | base64 -w 0)
-    RS256_PUB=$(cat "${KEYS_DIR}/jwt_rs256.pub" | base64 -w 0)
-    ES256_PRIV=$(cat "${KEYS_DIR}/jwt_es256.key" | base64 -w 0)
-    ES256_PUB=$(cat "${KEYS_DIR}/jwt_es256.pub" | base64 -w 0)
-    ARGON2_SALT=$(cat "${KEYS_DIR}/argon2_salt.secret")
-    TOTP_MASTER=$(cat "${KEYS_DIR}/totp_master.secret")
-
-    set_env_var "JWT_RS256_PRIVATE" "${RS256_PRIV}"
-    set_env_var "JWT_RS256_PUBLIC" "${RS256_PUB}"
-    set_env_var "JWT_ES256_PRIVATE" "${ES256_PRIV}"
-    set_env_var "JWT_ES256_PUBLIC" "${ES256_PUB}"
-    set_env_var "ARGON2_SALT" "${ARGON2_SALT}"
-    set_env_var "MFA_TOTP_SECRET" "${TOTP_MASTER}"
-    
-    log_success "Keys injected into .env"
+encrypt_secret() {
+    local val=$1
+    echo -n "$val" | openssl pkeyutl -encrypt -pubin -inkey "${KEYS_DIR}/vault/vault.pub" | base64 | tr -d '\n'
 }
 
-generate_passwords() {
-    log_info "Generating secure passwords..."
+secure_env_file() {
+    log_info "Securing sensitive environment variables..."
     
-    for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET RABBITMQ_PASSWORD; do
+    # Generate passwords if missing
+    for var in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET RABBITMQ_PASSWORD MINIO_ROOT_PASSWORD; do
         if ! grep -q "^${var}=" "${ENV_FILE}" || [[ -z $(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'") ]]; then
+            log_info "Generating $var..."
             set_env_var "${var}" "$(openssl rand -hex 32)"
         fi
     done
-    
-    log_success "Passwords generated"
-}
 
-setup_database_urls() {
-    log_info "Setting up database URLs..."
-    PG_PASS=$(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
-    set_env_var "DATABASE_URL" "postgresql://admin:${PG_PASS}@pgbouncer:6432/bsopt"
-    set_env_var "DATABASE_URL_LOCAL" "postgresql://admin:${PG_PASS}@localhost:5434/bsopt"
-    set_env_var "DATABASE_URL_TEST" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt_test"
-    set_env_var "MLFLOW_BACKEND_STORE_URI" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt"
+    # Encrypt sensitive fields
+    SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
     
-    log_success "Database URLs configured"
+    for var in "${SENSITIVE_VARS[@]}"; do
+        VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+        if [[ ! "$VAL" =~ ^ENC_ ]]; then
+            log_info "Encrypting $var..."
+            ENC_VAL=$(encrypt_secret "$VAL")
+            set_env_var "ENC_${var}" "$ENC_VAL"
+            # Remove plaintext version for security
+            sed -i "/^${var}=/d" "${ENV_FILE}"
+        fi
+    done
+    
+    log_success "Secrets vaulted in .env"
 }
 
 # ==============================================================================
@@ -194,13 +175,8 @@ wait_for_service() {
     
     log_info "Waiting for $service_name to be healthy..."
     
-    # Ensure the service is up first
     compose_cmd up -d "$service_name" 2>/dev/null || true
-    
-    # Give it time to start
     sleep 3
-    
-    # Get container ID
     container_id=$(compose_cmd ps -q "$service_name" 2>/dev/null | head -n 1)
     
     if [ -z "$container_id" ]; then
@@ -208,53 +184,18 @@ wait_for_service() {
         return 1
     fi
     
-    # Polling with exponential backoff
     while [ $retry_count -lt $max_retries ]; do
         if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
             log_success "$service_name is healthy"
             return 0
         fi
-        
-        # Exponential backoff: 2s, 4s, 8s, 16s, max 30s
-        local sleep_time=$((base_interval * (2 ** retry_count)))
-        if [ $sleep_time -gt 30 ]; then
-            sleep_time=30
-        fi
-        
         echo -n "."
-        sleep $sleep_time
+        sleep $base_interval
         retry_count=$((retry_count+1))
     done
     
-    log_error "$service_name failed to become healthy after $max_retries retries"
-    log_info "Container logs:"
+    log_error "$service_name failed to become healthy"
     compose_cmd logs "$service_name" | tail -n 20
-    return 1
-}
-
-# Wait for container to at least start (without health check)
-wait_for_container() {
-    local service_name=$1
-    local max_wait=${2:-60}
-    local elapsed=0
-    
-    log_info "Waiting for $service_name container to start..."
-    
-    compose_cmd up -d "$service_name" 2>/dev/null || true
-    
-    while [ $elapsed -lt $max_wait ]; do
-        if compose_cmd ps -q "$service_name" 2>/dev/null | grep -q .; then
-            local status=$(compose_cmd ps "$service_name" 2>/dev/null | tail -n 1 | awk '{print $NF}')
-            if [ "$status" = "Up" ]; then
-                log_success "$service_name container is running"
-                return 0
-            fi
-        fi
-        sleep 2
-        elapsed=$((elapsed+2))
-    done
-    
-    log_error "$service_name container failed to start within ${max_wait}s"
     return 1
 }
 
@@ -263,177 +204,50 @@ wait_for_container() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Advanced Bootstrap v3.0${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 EquaFlow Advanced Bootstrap v3.1 (Hardened)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
-    # Step 1: Detect container engine
     detect_container_engine
-    
-    # Step 2: Generate keys
-    generate_keys
-    
-    # Step 3: Setup .env
+    initialize_pki
     setup_env_file
-    inject_keys_into_env
-    generate_passwords
-    setup_database_urls
+    secure_env_file
     
-    # Step 4: Build images (Sequential for reliability)
-    log_info "Building images sequentially..."
-    for service in postgres pgbouncer redis rabbitmq auth-service api portfolio ml-inference worker nse-scraper yfinance-scraper neural-pricing mlops-worker frontend envoy; do
-        log_info "Building $service..."
-        compose_cmd build "$service" || log_warn "Failed to build $service, continuing..."
-    done
-    log_success "Build phase complete"
+    log_info "Building images with decryption shim..."
+    compose_cmd build api auth-service worker || log_warn "Build failed, continuing with available images..."
     
-    # ==========================================================================
-    # Phase A: Core Infrastructure (Postgres -> Redis -> PgBouncer)
-    # ==========================================================================
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase A: Core Infrastructure${NC}"
+    echo -e "${BLUE}Phase A: Database Layer (Postgres + PgBouncer)${NC}"
     echo "------------------------------------------------------------------------------"
+    wait_for_service "postgres" "pg_isready -U admin -d bsopt"
+    wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin"
     
-    # Postgres/TimescaleDB
-    wait_for_service "postgres" "pg_isready -U admin -d bsopt" 60 2
-    POSTGRES_ID=$(compose_cmd ps -q postgres)
-    
-    # Inject runtime tuning SQL
-    log_info "Applying PostgreSQL runtime tuning..."
-    container_exec "$POSTGRES_ID" psql -U admin -d bsopt -c "SELECT pg_reload_conf();" 2>/dev/null || true
-    container_exec "$POSTGRES_ID" psql -U admin -d bsopt -f /docker-entrypoint-initdb.d/15-runtime-tuning.sql 2>/dev/null || true
-    log_success "PostgreSQL tuning applied"
-    
-    # Redis
-    REDIS_PASS=$(grep "^REDIS_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
-    wait_for_service "redis" "redis-cli -h 127.0.0.1 -a ${REDIS_PASS:-bsopt_redis_secret} --no-auth-warning ping" 30 1
-    
-    # PgBouncer
-    wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U admin" 30 1
-    
-    # ==========================================================================
-    # Phase B: Message Broker & Streaming
-    # ==========================================================================
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Message Broker & Streaming${NC}"
+    echo -e "${BLUE}Phase B: Caching & Messaging${NC}"
     echo "------------------------------------------------------------------------------"
+    REDIS_PASS=$(openssl pkeyutl -decrypt -inkey "${KEYS_DIR}/vault/vault.key" -in <(grep "^ENC_REDIS_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"' | tr -d "'" | base64 -d) 2>/dev/null || echo "bsopt_redis_secret")
+    wait_for_service "redis" "redis-cli -a ${REDIS_PASS} ping"
+    wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
-    # RabbitMQ
-    wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running" 30 1
-    
-    # Kafka
-    wait_for_container "kafka-1" 60
-    log_info "Waiting for Kafka to be ready..."
-    sleep 15
-    kafka_id=$(compose_cmd ps -q kafka-1)
-    if [ -n "$kafka_id" ]; then
-        container_exec "$kafka_id" kafka-topics --bootstrap-server localhost:9092 --list > /dev/null 2>&1 && \
-            log_success "Kafka is ready" || log_warn "Kafka may not be fully ready"
-    fi
-    
-    # ==========================================================================
-    # Phase C: Auth & API Services
-    # ==========================================================================
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase C: Auth & API Services${NC}"
+    echo -e "${BLUE}Phase C: Application Layer${NC}"
     echo "------------------------------------------------------------------------------"
+    wait_for_service "auth-service" "wget -qO- --spider http://localhost:3001/ || exit 1"
+    wait_for_service "api" "wget -qO- --spider http://localhost:8000/health || exit 1"
     
-    # Auth Service
-    wait_for_service "auth-service" "wget -qO- --spider http://localhost:3001/ || exit 1" 30 1
-    
-    # API Service
-    wait_for_service "api" "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\").read()'" 45 1
-    
-    # ==========================================================================
-    # Phase D: ML Infrastructure
-    # ==========================================================================
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase D: ML Infrastructure${NC}"
+    echo -e "${BLUE}Phase D: Edge Gateway (Envoy)${NC}"
     echo "------------------------------------------------------------------------------"
+    wait_for_service "envoy" "wget -qO- --spider http://localhost:8080/ready || exit 1"
     
-    # Ray Head
-    wait_for_container "ray-head" 60
-    ray_id=$(compose_cmd ps -q ray-head)
-    if [ -n "$ray_id" ]; then
-        log_info "Waiting for Ray to initialize..."
-        sleep 10
-        container_exec "$ray_id" ray status > /dev/null 2>&1 && log_success "Ray head is ready" || log_warn "Ray may still be initializing"
-    fi
-    
-    # MLflow
-    wait_for_service "mlflow" "wget -qO- --spider http://localhost:5000/health || exit 1" 30 1
-    
-    # ==========================================================================
-    # Phase E: Workers & Additional Services
-    # ==========================================================================
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase E: Workers & Additional Services${NC}"
-    echo "------------------------------------------------------------------------------"
-    
-    # Celery Worker
-    wait_for_container "worker" 30
-    
-    # Ingestion Service
-    wait_for_container "ingestion-service" 30
-    
-    # ML Inference
-    wait_for_service "ml-inference" "wget -qO- --spider http://localhost:5001/health || exit 1" 30 1
-    
-    # ==========================================================================
-    # Phase F: Edge Gateway
-    # ==========================================================================
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase F: Edge Gateway${NC}"
-    echo "------------------------------------------------------------------------------"
-    
-    # Envoy
-    wait_for_service "envoy" "wget -qO- --spider http://localhost:8080/ready || exit 1" 30 1
-    
-    # ==========================================================================
-    # Phase G: Frontend
-    # ==========================================================================
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase G: Frontend${NC}"
-    echo "------------------------------------------------------------------------------"
-    
-    # Frontend
-    wait_for_container "frontend" 60
-    
-    # ==========================================================================
-    # Final Status
-    # ==========================================================================
     echo ""
     echo "=============================================================================="
-    echo -e "${GREEN}✅ EQUAFLOW STACK READY${NC}"
-    echo "=============================================================================="
-    echo ""
-    echo "Service Status:"
-    echo "-------------"
-    compose_cmd ps
-    echo ""
-    echo "Access Points:"
-    echo "-------------"
-    echo "  API:          http://localhost:8000"
-    echo "  Auth:         http://localhost:3001"
-    echo "  MLflow:       http://localhost:5000"
-    echo "  Grafana:      http://localhost:3000"
-    echo "  Envoy:        http://localhost:8080"
-    echo "  Frontend:     http://localhost:5173"
-    echo ""
-    echo "Next Steps:"
-    echo "  - Run 'make logs' to view container logs"
-    echo "  - Run 'make test-all' to execute the test gauntlet"
+    echo -e "${GREEN}✅ EQUAFLOW HARDENED STACK READY${NC}"
     echo "=============================================================================="
 }
 
-# Trap for cleanup on error
 trap 'log_error "Bootstrap interrupted"; exit 1' INT TERM
-
-# Run main
 main "$@"

@@ -47,6 +47,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     git \
     curl \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtualenv from builder
@@ -55,10 +56,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy everything for dev (hot-reloading)
 COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
+ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "services.workers.tasks.celery_app", "worker", "-l", "info"]
 
 
@@ -79,6 +83,7 @@ RUN groupadd -g 1000 appgroup && \
     libpq5 \
     curl \
     tini \
+    openssl \
     && rm -rf /var/lib/apt/lists/* \
     && chown -R appuser:appgroup /app
 
@@ -87,9 +92,11 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY src /app/src
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 RUN chown -R appuser:appgroup /app
 
 USER appuser
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["celery", "-A", "services.workers.tasks.celery_app", "worker", "-l", "info"]
