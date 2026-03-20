@@ -42,7 +42,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
     }
 
     const updateInterval = 1000 / (options.updateFrequency || 10);
-    let reconnectTimer: NodeJS.Timeout | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let isMounted = true;
 
     const connect = () => {

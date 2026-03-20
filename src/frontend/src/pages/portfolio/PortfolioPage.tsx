@@ -26,15 +26,32 @@ import { usePortfolio } from '../../features/portfolio/hooks/usePortfolio';
 // KPI constants removed - now dynamic
 
 // Simple SVG donut chart
-const DonutChart: React.FC = () => {
+const DonutChart: React.FC<{ positions: any[], totalValue: number }> = ({ positions, totalValue }) => {
   const theme = useTheme();
-  const segments = [
-    { label: 'AAPL', pct: 28, color: theme.palette.financial.qfd.quantum },
-    { label: 'SPY', pct: 22, color: theme.palette.financial.qfd.nebula },
-    { label: 'QQQ', pct: 18, color: theme.palette.financial.qfd.electrum },
-    { label: 'NVDA', pct: 15, color: theme.palette.info.main },
-    { label: 'Cash', pct: 17, color: theme.palette.text.disabled },
+  
+  const colors = [
+    theme.palette.financial.qfd.quantum,
+    theme.palette.financial.qfd.nebula,
+    theme.palette.financial.qfd.electrum,
+    theme.palette.info.main,
+    theme.palette.warning.main,
   ];
+
+  const segments = positions.length > 0 
+    ? positions.slice(0, 4).map((p, idx) => {
+        const val = p.quantity * (p.current_price || p.entry_price || 0);
+        const pct = totalValue > 0 ? Math.round((val / totalValue) * 100) : 0;
+        return { label: p.symbol || p.contract_symbol, pct, color: colors[idx % colors.length] };
+      })
+    : [
+        { label: 'Cash', pct: 100, color: theme.palette.text.disabled },
+      ];
+  
+  // Fill remainder as Cash
+  const allocatedPct = segments.reduce((sum, s) => sum + s.pct, 0);
+  if (allocatedPct < 100 && positions.length > 0) {
+      segments.push({ label: 'Cash', pct: 100 - allocatedPct, color: theme.palette.text.disabled });
+  }
 
   let cumulative = 0;
   const r = 70, cx = 90, cy = 90;
@@ -66,9 +83,8 @@ const DonutChart: React.FC = () => {
           />
         ))}
         {/* Hole */}
-        <circle cx={cx} cy={cy} r={42} fill="#0f172a" />
         <text x={cx} y={cy - 4} textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="bold">AUM</text>
-        <text x={cx} y={cy + 14} textAnchor="middle" fill="#10b981" fontSize="11">$48.4k</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" fill="#10b981" fontSize="11">${((totalValue || 0) / 1000).toFixed(1)}k</text>
       </svg>
       <Stack spacing={0.75} sx={{ mt: 1 }}>
         {segments.map(s => (
@@ -90,6 +106,7 @@ const DonutChart: React.FC = () => {
 
 
 export const PortfolioPage: React.FC = () => {
+  const theme = useTheme();
   const { data: portfolioData } = usePortfolio();
 
   const positions = portfolioData?.positions || [];
@@ -200,7 +217,7 @@ export const PortfolioPage: React.FC = () => {
                 Allocation
               </Typography>
             </Stack>
-            <DonutChart />
+            <DonutChart positions={positions} totalValue={portfolioData?.totalValue || 0} />
           </Paper>
         </Grid>
         {/* ... Other charts ... */}
@@ -246,19 +263,30 @@ export const PortfolioPage: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {positions.map((p: any, idx: number) => (
-                  <TableRow key={p.id || idx}>
-                    <TableCell sx={{ fontWeight: 900, color: 'primary.main' }}>{p.symbol || p.contract_symbol}</TableCell>
-                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>{p.quantity}</TableCell>
-                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
-                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
-                    <TableCell sx={{ fontWeight: 900, color: 'success.main' }}>$0.00</TableCell>
-                    <TableCell sx={{ fontWeight: 900, color: 'success.main' }}>0.0%</TableCell>
-                    <TableCell>
-                      <Button size="small" variant="contained" sx={{ bgcolor: alpha('#f43f5e', 0.1), color: '#f43f5e' }}>LIQUIDATE</Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {positions.map((p: any, idx: number) => {
+                  const currentPrice = p.current_price || p.entry_price || 0;
+                  const pnl = (currentPrice - (p.entry_price || 0)) * p.quantity;
+                  const pnlPct = p.entry_price > 0 ? ((currentPrice - p.entry_price) / p.entry_price) * 100 : 0;
+                  const isPositive = pnl >= 0;
+
+                  return (
+                    <TableRow key={p.id || idx}>
+                      <TableCell sx={{ fontWeight: 900, color: 'primary.main' }}>{p.symbol || p.contract_symbol}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>{p.quantity}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
+                      <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${currentPrice.toFixed(2)}</TableCell>
+                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main' }}>
+                        {isPositive ? '+' : ''}${pnl.toFixed(2)}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 900, color: isPositive ? 'success.main' : 'error.main' }}>
+                        {isPositive ? '+' : ''}{pnlPct.toFixed(2)}%
+                      </TableCell>
+                      <TableCell>
+                        <Button size="small" variant="contained" sx={{ bgcolor: alpha('#f43f5e', 0.1), color: '#f43f5e' }}>LIQUIDATE</Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {!positions.length && (
                   <TableRow>
                      <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4, color: 'text.disabled' }}>No active positions found.</TableCell>
