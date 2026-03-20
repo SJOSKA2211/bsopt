@@ -5,6 +5,7 @@ import strawberry
 from strawberry.federation import Schema
 
 from src.api.graphql.resolvers.portfolio_service import (
+    
     Portfolio,
     Position,
     create_portfolio as service_create_portfolio,
@@ -66,14 +67,30 @@ class Subscription:
     @strawberry.subscription
     async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio, None]:
         """
-        Stream real-time portfolio updates from the service.
-        In production, this hooks into a Redis PubSub or SHM mesh event.
+        Stream real-time portfolio updates via Redis PubSub.
         """
-        while True:
+        from src.shared.utils.cache import get_redis
+        redis = get_redis()
+        if not redis:
+            # Fallback to single fetch if Redis is unavailable
             port = await service_get_portfolio(str(portfolio_id))
-            if port:
-                yield port
-            await asyncio.sleep(1)
+            if port: yield port
+            return
+
+        pubsub = redis.pubsub()
+        channel = f"portfolio_updates:{portfolio_id}"
+        await pubsub.subscribe(channel)
+        
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    # Re-fetch from DB to ensure consistency or decode from message
+                    port = await service_get_portfolio(str(portfolio_id))
+                    if port:
+                        yield port
+        finally:
+            await pubsub.unsubscribe(channel)
+            await pubsub.close()
 
 
 schema = Schema(query=Query, mutation=Mutation, subscription=Subscription)

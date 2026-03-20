@@ -38,12 +38,24 @@ class DynamicPricingService:
                 "allocations": {"control": 0.5, "variant_a": 0.5},
             }
         }
-        # Mocked elasticity data: {tier: {price_change: demand_change}}
-        self.elasticity_data: dict[str, list[float]] = {
-            "free": [0.0, 0.0],
-            "pro": [0.1, -0.05],  # 10% price increase led to 5% demand drop
-            "enterprise": [0.2, -0.02],
-        }
+    def calculate_impact(self, volume: float, avg_daily_volume: float, volatility: float) -> float:
+        """
+        Square-root market impact model.
+        Impact = Y * Volatility * sqrt(Volume / ADV)
+        """
+        Y = 1.0  # Constant factor (Institutional grade)
+        if avg_daily_volume == 0:
+            return 0.0
+        return Y * volatility * np.sqrt(volume / avg_daily_volume)
+
+    def analyze_elasticity(self, tier: str, volume: float = 1000, adv: float = 100000, vol: float = 0.2) -> float:
+        """
+        Calculate dynamic price elasticity based on market impact model.
+        Returns the expected price change for a given execution volume.
+        """
+        sensitivity = {"free": 1.5, "pro": 1.0, "enterprise": 0.5}.get(tier, 1.0)
+        impact = self.calculate_impact(volume, adv, vol)
+        return impact * sensitivity
 
     def get_user_variant(self, user_id: str, experiment_name: str) -> str:
         """Deterministically assign a user to an A/B test variant."""

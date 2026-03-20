@@ -114,14 +114,10 @@ class DataPipeline:
         last_prices = np.array([r["last"] for r in records], dtype=np.float64)
         ivs = np.array([r["implied_volatility"] or 0.2 for r in records], dtype=np.float64)
 
-        # DateTime handling (Mocked for speed if timestamps aren't available)
-        # In real scenario, we'd extract float timestamps
-        expiries = np.array(
-            [r["expiry"].timestamp() if hasattr(r["expiry"], "timestamp") else 0.0 for r in records]
-        )
-        times = np.array(
-            [r["time"].timestamp() if hasattr(r["time"], "timestamp") else 0.0 for r in records]
-        )
+        # Production-grade DateTime Handling
+        # Vectorized conversion using Pandas for performance and TZ-awareness
+        expiries = pd.to_datetime([r["expiry"] for r in records]).view(np.int64) // 1e9
+        times = pd.to_datetime([r["time"] for r in records]).view(np.int64) // 1e9
 
         maturities = _calculate_maturity_jit(expiries, times)
         maturities = np.where(maturities <= 0, 0.5, maturities)  # Fallback

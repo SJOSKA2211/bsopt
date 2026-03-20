@@ -120,9 +120,22 @@ if __name__ == "__main__":
     # Example manual execution for testing
     logging.basicConfig(level=logging.INFO)
 
-    # Mock models for standalone testing if needed
-    xgb = None
-    nn = None
+    # Production-grade model loading for standalone testing
+    from src.ingestion.storage_manager import get_storage_manager
+    storage = get_storage_manager()
+    
+    xgb_path = "models/latest_xgb.onnx"
+    nn_path = "models/latest_nn.onnx"
+    
+    # Attempt to load from storage or fallback to local
+    try:
+        xgb = ort.InferenceSession(xgb_path)
+        nn = ort.InferenceSession(nn_path)
+        logger.info("models_loaded_for_grpc_standalone")
+    except Exception as e:
+        logger.warning("failed_to_load_models_using_proxies", error=str(e))
+        xgb = None
+        nn = None
 
     loop = asyncio.get_event_loop()
     try:

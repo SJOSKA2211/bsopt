@@ -62,7 +62,19 @@ class AsyncStorageManager:
         return task
 
 
-# Example usage (Mock)
-async def test_storage() -> None:
-    AsyncStorageManager("http://localhost:9000", "admin", "password", "models")
-    # await manager.upload_file("model.pt", "v1/model.pt")
+_manager: AsyncStorageManager | None = None
+
+
+def get_storage_manager() -> AsyncStorageManager:
+    """Singleton factory for the storage manager."""
+    global _manager
+    if _manager is None:
+        from src.shared.config import settings
+
+        _manager = AsyncStorageManager(
+            endpoint_url=f"http://{settings.REDIS_HOST}:9000",  # MinIO endpoint
+            access_key="admin",
+            secret_key="password",
+            bucket_name="models",
+        )
+    return _manager

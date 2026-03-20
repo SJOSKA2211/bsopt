@@ -97,11 +97,33 @@ class PnLExplainer:
             "explained_total": explained_pnl
         }
 
+    @classmethod
+    async def from_service(cls, user_id: str) -> "RiskAttributor":
+        """
+        Factory method to create a RiskAttributor from real portfolio data.
+        """
+        from src.api.graphql.resolvers.portfolio_service import service_get_portfolio
+        portfolio = await service_get_portfolio(user_id)
+        # Flatten strawberry types to dicts for simpler internal handling if needed
+        data = []
+        if portfolio and portfolio.positions:
+            for pos in portfolio.positions:
+                data.append({
+                    "symbol": pos.symbol,
+                    "quantity": pos.quantity,
+                    "delta": pos.delta or 0.0,
+                    "gamma": pos.gamma or 0.0,
+                    "vega": pos.vega or 0.0,
+                    "theta": pos.theta or 0.0,
+                    "type": "CALL" if "C" in pos.symbol else ("PUT" if "P" in pos.symbol else "STOCK")
+                })
+        return cls(data)
+
 if __name__ == "__main__":
-    # Mock data for demonstration
-    mock_portfolio = [
-        {"symbol": "NIFTY_CALL_25000", "quantity": 100, "delta": 0.5, "gamma": 0.02, "vega": 10.0, "theta": -5.0},
-        {"symbol": "NIFTY_PUT_24000", "quantity": -50, "delta": -0.3, "gamma": 0.01, "vega": 8.0, "theta": -3.0}
+    # Institutional-grade test case
+    institutional_portfolio = [
+        {"symbol": "SPX_260320_C_5200", "quantity": 500, "delta": 0.65, "gamma": 0.0012, "vega": 450.0, "theta": -120.0},
+        {"symbol": "SPX_260320_P_5000", "quantity": -200, "delta": -0.15, "gamma": 0.0008, "vega": 320.0, "theta": -85.0}
     ]
-    attributor = RiskAttributor(mock_portfolio)
-    print(attributor.run_stress_test(spot_move=100, vol_move=0.05))
+    attributor = RiskAttributor(institutional_portfolio)
+    print("Stress Test Result (Institutional):", attributor.run_stress_test(spot_move=50, vol_move=0.02))
