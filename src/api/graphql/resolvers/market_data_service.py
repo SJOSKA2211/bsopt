@@ -2,11 +2,14 @@ from datetime import datetime
 
 import strawberry
 
+from src.config import settings
 from src.ingestion.router import MarketDataRouter
 from src.shared.shm_mesh import GreeksMesh
+from sqlalchemy import create_engine, text
 
 router = MarketDataRouter()
 _greeks_mesh = GreeksMesh(create=False)
+_engine = create_engine(settings.DATABASE_URL)
 
 
 @strawberry.federation.type(shareable=True)
@@ -53,17 +56,30 @@ async def get_historical_data(
     symbol: str, start_time: datetime, end_time: datetime
 ) -> list[MarketData]:
     """
-    Fetch historical data (Placeholder - requires TimescaleDB integration).
+    Fetch historical data from TimescaleDB (market_ticks).
     """
-    # For now, return a single point using the router
-    data = await router.get_live_quote(symbol)
-    return [
-        MarketData(
-            symbol=symbol,
-            timestamp=datetime.now(),
-            bid=data.get("bid"),
-            ask=data.get("ask"),
-            last=data.get("price"),
-            volume=data.get("volume"),
-        )
-    ]
+    query = text("""
+        SELECT time as timestamp, price, volume, bid, ask
+        FROM market_ticks
+        WHERE symbol = :symbol AND time BETWEEN :start AND :end
+        ORDER BY time ASC
+    """)
+    
+    results = []
+    with _engine.connect() as conn:
+        rows = conn.execute(query, {"symbol": symbol, "start": start_time, "end": end_time})
+        for row in rows:
+            results.append(MarketData(
+                symbol=symbol,
+                timestamp=row.timestamp,
+                bid=row.bid,
+                ask=row.ask,
+                last=row.price,
+                volume=row.volume
+            ))
+            
+    # Fallback to live point if no history and range is very recent
+    if not results and (datetime.now() - start_time).total_seconds() < 3600:
+        results.append(await get_market_data(symbol))
+        
+    return results

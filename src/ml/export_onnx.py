@@ -57,6 +57,6 @@ def quantize_onnx_model(onnx_path: str, quantized_path: str):
 
 if __name__ == "__main__":
     # Example usage
-    INPUT_DIM = 15  # Placeholder, should match engineered features
+    INPUT_DIM = 12  # Matches features list in cross_sectional_pipeline.py
     export_to_onnx("models/latest_model.pt", "models/model.onnx", INPUT_DIM)
     quantize_onnx_model("models/model.onnx", "models/model_quantized.onnx")

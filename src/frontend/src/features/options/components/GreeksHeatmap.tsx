@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
@@ -105,6 +105,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   useEffect(() => {
     if (!optionsData || !isWasmLoaded) {
       if (processedData.length !== (optionsData?.length || 0)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setProcessedData(optionsData || []);
       }
       return;
@@ -146,7 +147,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   const chartOptions = useMemo(() => {
     if (!processedData || processedData.length === 0) return null;
 
-    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a, b) => a - b);
+    const strikes = Array.from(new Set(processedData.map((d: any) => d.strike))).sort((a: any, b: any) => a - b);
     const expiries = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
 
     const data = processedData.map((d: OptionData) => {

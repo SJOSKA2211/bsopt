@@ -28,16 +28,33 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+interface EnrichedPosition {
+  contract_symbol: string;
+  option_type?: string;
+  strike: number;
+  expiry: string;
+  quantity: number;
+  underlying_price?: number;
+  current_pnl: number;
+  theor_greeks?: {
+    delta: number;
+    gamma: number;
+    vega: number;
+    theta: number;
+    rho: number;
+  };
+}
+
 export const PositionsSummary: React.FC = React.memo(() => {
   const theme = useTheme();
   const { data, isLoading, error } = usePortfolio();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const [enrichedPositions, setEnrichedPositions] = React.useState<unknown[]>([]);
+  const [enrichedPositions, setEnrichedPositions] = React.useState<EnrichedPosition[]>([]);
 
   React.useEffect(() => {
     if (!data || !isWasmLoaded) {
-      setEnrichedPositions(data?.positions || []);
+      setEnrichedPositions((data?.positions as EnrichedPosition[]) || []);
       return;
     }
 
@@ -63,7 +80,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
 
       const results = await batchCalculate(params);
 
-      setEnrichedPositions(data.positions.map((pos, i) => ({
+      setEnrichedPositions(data.positions.map((pos: any, i) => ({
         ...pos,
         theor_greeks: results[i]?.greeks
       })));

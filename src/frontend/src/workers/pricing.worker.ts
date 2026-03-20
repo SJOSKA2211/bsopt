@@ -1,6 +1,8 @@
 /// <reference lib="webworker" />
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import init, { BlackScholesWASM, MonteCarloWASM, CrankNicolsonWASM, HestonWASM } from '../wasm/bsopt_wasm';
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 interface OptionPayload {
   spot: number;
@@ -50,11 +52,17 @@ type PricingMessage =
   | { type: 'BATCH_PRICE_HESTON'; payload: number[]; id: string };
 
 let engine: BlackScholesWASM | null = null;
+let mcEngine: MonteCarloWASM | null = null;
+let cnEngine: CrankNicolsonWASM | null = null;
+let hestonEngine: HestonWASM | null = null;
 
 const initializeWasm = async () => {
   try {
     await init();
     engine = new BlackScholesWASM();
+    mcEngine = new MonteCarloWASM();
+    cnEngine = new CrankNicolsonWASM();
+    hestonEngine = new HestonWASM();
     self.postMessage({ type: 'INIT_SUCCESS' });
   } catch (error) {
     self.postMessage({ type: 'ERROR', error: String(error) });
@@ -69,7 +77,7 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
     return;
   }
 
-  if (!engine || !mcEngine || !cnEngine) {
+  if (!engine || !mcEngine || !cnEngine || !hestonEngine) {
     const id = 'id' in e.data ? e.data.id : undefined;
     self.postMessage({ type: 'ERROR', error: 'WASM engine not initialized', id });
     return;
@@ -114,7 +122,7 @@ self.onmessage = async (e: MessageEvent<PricingMessage>) => {
       case 'PRICE_HESTON': {
         const { payload, id } = e.data;
         const { spot, strike, time, r, v0, kappa, theta, sigma, rho } = payload;
-        const price = hestonEngine.price_call(
+        const price = hestonEngine!.price_call(
           spot, strike, time, r, v0, kappa, theta, sigma, rho
         );
         self.postMessage({ type: 'PRICE_OPTION_RESULT', payload: { price }, id });

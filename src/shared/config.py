@@ -392,26 +392,33 @@ class Settings(BaseSettings):
             import base64
             import hashlib
 
+            # Institutional-grade key derivation (PBKDF2-HMAC-SHA256)
+            salt = b"equaflow-manifold-derivation-v1"
+            iterations = 100_000
+
+            def derive_key(purpose: str, length: int = 32) -> bytes:
+                return hashlib.pbkdf2_hmac(
+                    "sha256",
+                    self.BETTER_AUTH_SECRET.encode(),
+                    salt + purpose.encode(),
+                    iterations,
+                    length
+                )
+
             # Derive MFA Encryption Key if not explicitly set
             if not self.MFA_ENCRYPTION_KEY or self.MFA_ENCRYPTION_KEY in [
-                _DEFAULT_DEV_MFA_KEY,
+                _DEFAULT_MFA_KEY_SEED,
                 "INSECURE_DEV_PLACEHOLDER",
             ]:
-                # Deterministic derivation: PBKDF2 or Hmac is better, but simple SHA256 satisfies current revamp needs
-                # MFA Key must be 32 URL-safe base64-encoded bytes for Fernet
-                mfa_seed = hashlib.sha256(
-                    f"mfa-derivation-{self.BETTER_AUTH_SECRET}".encode()
-                ).digest()
+                mfa_seed = derive_key("mfa-encryption")
                 self.MFA_ENCRYPTION_KEY = base64.urlsafe_b64encode(mfa_seed).decode()
-                logger.debug("derived_mfa_key_from_master_secret")
+                logger.debug("derived_mfa_key_institutional_grade")
 
             # Derive JWT Secret if not explicitly set
             if not self.JWT_SECRET or self.JWT_SECRET == "change-me-in-production":
-                jwt_seed = hashlib.sha256(
-                    f"jwt-derivation-{self.BETTER_AUTH_SECRET}".encode()
-                ).hexdigest()
-                self.JWT_SECRET = jwt_seed
-                logger.debug("derived_jwt_secret_from_master_secret")
+                jwt_seed = derive_key("jwt-signing", length=64)
+                self.JWT_SECRET = jwt_seed.hex()
+                logger.debug("derived_jwt_secret_institutional_grade")
 
         # Enforce email verification in production by default if not set
         if self.is_production and self.ENVIRONMENT != "test":
@@ -426,7 +433,7 @@ class Settings(BaseSettings):
 
             # 2. MFA Key Security
             key = self.MFA_ENCRYPTION_KEY
-            if not key or key == _DEFAULT_DEV_MFA_KEY or key == "INSECURE_DEV_PLACEHOLDER":
+            if not key or key == _DEFAULT_MFA_KEY_SEED or key == "INSECURE_DEV_PLACEHOLDER":
                 raise ValueError(
                     "CRITICAL: MFA_ENCRYPTION_KEY must be set or derived in production."
                 )
