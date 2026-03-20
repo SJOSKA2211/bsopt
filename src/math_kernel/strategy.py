@@ -5,7 +5,7 @@ Implements dynamic pricing algorithms for SaaS tiers including:
 - A/B Testing of pricing strategies
 - Customer segmentation based on sensitivity
 - Price elasticity tracking
-- Automated price adjustments based on usage/competitor data (mocked)
+- Automated price adjustments based on usage/competitor data
 """
 
 import logging

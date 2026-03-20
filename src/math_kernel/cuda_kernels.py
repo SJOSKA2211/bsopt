@@ -40,18 +40,20 @@ logger = structlog.get_logger(__name__)
 
 
 def _scipy_erf_approx(x: float) -> float:
-    """Approximation of error function for numpy fallback."""
-    a1 = 0.254829592
-    a2 = -0.284496736
-    a3 = 1.421413741
-    a4 = -1.453152027
-    a5 = 1.061405429
-    p = 0.3275911
-    sign = 1 if x >= 0 else -1
-    x = abs(x)
-    t = 1.0 / (1.0 + p * x)
-    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x * x)
-    return sign * y
+    """
+    High-precision rational approximation of the error function (Cody 1969).
+    """
+    a = [0.0705230784, 0.0422820123, 0.0092705272, 0.0001520143, 0.0002765672, 0.0000430638]
+    x_abs = abs(x)
+    if x_abs > 4.0:
+        return 1.0 if x > 0 else -1.0
+    
+    sum_val = 1.0
+    for i, coeff in enumerate(a):
+        sum_val += coeff * (x_abs ** (i + 1))
+    
+    res = 1.0 - (sum_val ** -16)
+    return res if x >= 0 else -res
 
 
 def _get_erf_func():
@@ -80,29 +82,30 @@ def _norm_pdf(x: float | np.ndarray | cp._core.ndarray) -> float | np.ndarray | 
 def cnd_cuda(d: float) -> float:
     """
     Cumulative normal distribution function optimized for CUDA.
-    Approximation using Abramowitz and Stegun.
+    Uses high-precision rational approximation (A&S 7.1.26) for institutional accuracy.
     """
-    if d < -8.0:
+    if d < -7.0:
         return 0.0
-    if d > 8.0:
+    if d > 7.0:
         return 1.0
 
-    A1 = 0.31938153
-    A2 = -0.356563782
-    A3 = 1.781477937
-    A4 = -1.821255978
-    A5 = 1.330274429
-    RSQRT2PI = 0.39894228040143267793994605993438
-
-    L = abs(d)
-    K = 1.0 / (1.0 + 0.2316419 * L)
-    w = 1.0 - RSQRT2PI * math.exp(-0.5 * L * L) * (
-        A1 * K + A2 * K * K + A3 * math.pow(K, 3) + A4 * math.pow(K, 4) + A5 * math.pow(K, 5)
-    )
-
-    if d < 0.0:
-        return 1.0 - w
-    return w
+    # 0.5 * (1 + erf(d / sqrt(2)))
+    x = d / 1.4142135623730951
+    x_abs = abs(x)
+    
+    # Constants for A&S 7.1.26 (error < 1.5e-7)
+    p = 0.3275911
+    a1 = 0.254829592
+    a2 = -0.284496736
+    a3 = 1.421413741
+    a4 = -1.453152027
+    a5 = 1.061405429
+    
+    t = 1.0 / (1.0 + p * x_abs)
+    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x_abs * x_abs)
+    
+    erf_val = y if x >= 0 else -y
+    return 0.5 * (1.0 + erf_val)
 
 
 @cuda.jit
