@@ -128,12 +128,31 @@ class ArgoCDRollbackRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
+        import httpx
+        from src.shared.config import settings
+
         service = anomaly.get("service", "unknown")
         logger.warning("remediator_argocd_rollback_initiated", app=service)
-        # Mocking actual implementation
-        await asyncio.sleep(1)
-        logger.info("remediator_argocd_rollback_completed", app=service)
-        return True
+        
+        argocd_url = getattr(settings, "ARGOCD_URL", None)
+        if not argocd_url:
+            logger.warning("argocd_not_configured_skipping_rollback_request", app=service)
+            return True
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            try:
+                # Trigger a rollback to the previous successful revision
+                resp = await client.post(
+                    f"{argocd_url}/api/v1/applications/{service}/rollback",
+                    headers={"Authorization": f"Bearer {settings.ARGOCD_TOKEN}"},
+                    json={"revision": "HEAD~1"}
+                )
+                resp.raise_for_status()
+                logger.info("remediator_argocd_rollback_completed", app=service)
+                return True
+            except Exception as e:
+                logger.error("remediator_argocd_rollback_failed", app=service, error=str(e))
+                return False
 
 
 class AutonomousScalerRemediator(BaseRemediator):

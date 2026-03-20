@@ -73,32 +73,34 @@ class PrometheusClient:
             duration=duration,
         )
 
-        # In a real environment, we'd use prom.get_metric_range_data
-        # For this manifold, we'll simulate the range fetch if the mock returns empty
+        from datetime import datetime
+        end_time = datetime.now()
+        start_time = end_time - self._parse_duration(duration)
+        
         try:
             # Construct a query that targets the specific service and container
             query = f'sum(rate({metric_name}{{container="{service}"}}[5m]))'
 
-            # Simulated range logic for the Documentarian Pass
-            # In production: result = self.prom.custom_query_range(query, start, end, step)
-            result = self.prom.custom_query(query)
+            # OPTIMIZED: Use Prometheus standard range query for real data
+            result = self.prom.custom_query_range(
+                query=query,
+                start_time=start_time,
+                end_time=end_time,
+                step=step,
+            )
 
             if not result:
+                logger.warning("prometheus_range_query_empty", query=query)
                 return pd.DataFrame()
 
-            # Mocking range expansion for the verification suite
-            current_val = float(result[0]["value"][1])
-            timestamps = [int(time.time()) - i * 60 for i in range(60)]  # 1 hour of minutely data
-            values = [current_val * (1 + np.random.normal(0, 0.05)) for _ in range(60)]
-
-            df = pd.DataFrame(
-                {
-                    "timestamp": timestamps[::-1],
-                    "price": values[::-1],
-                    "symbol": [service] * 60,
-                }
-            )
+            # Parse Prometheus response format: [[timestamp, value], ...]
+            data_points = result[0]["values"]
+            df = pd.DataFrame(data_points, columns=["timestamp", "price"])
+            df["price"] = df["price"].astype(float)
+            df["symbol"] = service
             df["time_idx"] = np.arange(len(df))
+            
+            logger.info("metric_range_fetched_successfully", rows=len(df), service=service)
             return df
         except Exception as e:
             logger.error("metric_range_fetch_failed", error=str(e))

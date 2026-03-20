@@ -25,8 +25,18 @@ class TradingEnvironment(
         initial_balance: float = 100000.0,
         transaction_cost: float = 0.0001,
         window_size: int = 5,
+        symbol: str = "AAPL",
     ) -> None:
         super().__init__()
+        
+        # Fallback to institutional data provider if none injected
+        if data_provider is None:
+            from .data_providers import TimescaleDataProvider
+            from datetime import date, timedelta
+            today = str(date.today())
+            last_year = str(date.today() - timedelta(days=365))
+            data_provider = TimescaleDataProvider(symbol, last_year, today)
+            
         self.data_provider = data_provider
         self.initial_balance = initial_balance
         self.transaction_cost = transaction_cost
@@ -66,10 +76,10 @@ class TradingEnvironment(
         self.portfolio_values = [self.initial_balance]
         self._window_buffer.fill(0)
 
-        if self.data_provider:
+        if self.data_provider and len(self.data_provider) > 0:
             self.market_data = cast(dict[str, Any], self.data_provider.get_data_at_step(0))
         else:
-            self.market_data = self._get_dummy_data()
+            raise RuntimeError("TradingEnvironment initialized without valid data provider or empty dataset")
 
         return self._get_observation(), {}
 
@@ -141,7 +151,8 @@ class TradingEnvironment(
                 dict[str, Any], self.data_provider.get_data_at_step(self.current_step)
             )
         else:
-            self.market_data = self._get_dummy_data()
+            # End of data reached
+            pass
 
         terminated = bool(self.data_provider and self.current_step >= len(self.data_provider) - 1)
         truncated = bool(new_val <= self.initial_balance * 0.5)
@@ -172,11 +183,3 @@ class TradingEnvironment(
 
         return float(ret)
 
-    def _get_dummy_data(self) -> dict[str, Any]:
-        """Generate random data for fallback/tests"""
-        return {
-            "prices": np.random.uniform(90, 110, 10),
-            "strikes": np.random.uniform(90, 110, 10),
-            "greeks": np.random.uniform(-1, 1, (10, 5)),
-            "indicators": np.random.uniform(0, 1, 20),
-        }

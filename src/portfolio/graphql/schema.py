@@ -1,85 +1,31 @@
 import asyncio
-import random
-from collections.abc import AsyncGenerator
-from datetime import datetime
+from typing import Any, AsyncGenerator
 
 import strawberry
 from strawberry.federation import Schema
 
-
-@strawberry.federation.type(keys=["id"], extend=True)
-class Option:
-    id: strawberry.ID = strawberry.federation.field(external=True)
-
-
-@strawberry.type
-class Position:
-    id: strawberry.ID = strawberry.federation.field(shareable=True)
-    contract_symbol: str
-    quantity: int
-    entry_price: float
-
-    @strawberry.field
-    def option(self) -> Option:
-        return Option(id=strawberry.ID(self.contract_symbol))
-
-
-@strawberry.federation.type(keys=["id"], shareable=True)
-class Portfolio:
-    id: strawberry.ID = strawberry.federation.field(shareable=True)
-    user_id: str = strawberry.federation.field(shareable=True)
-    cash_balance: float = strawberry.federation.field(shareable=True)
-    balance: float = strawberry.federation.field(shareable=True)
-    frozen_capital: float = strawberry.federation.field(shareable=True)
-    risk_score: float = strawberry.federation.field(shareable=True)
-    total_value: float = strawberry.federation.field(shareable=True)
-    daily_pnl: float = strawberry.federation.field(shareable=True)
-    daily_pnl_percent: float = strawberry.federation.field(shareable=True)
-    positions_count: int = strawberry.federation.field(shareable=True)
-    positions: list[Position]
-
-
-@strawberry.type
-class Order:
-    id: strawberry.ID = strawberry.federation.field(shareable=True)
-    portfolio_id: strawberry.ID = strawberry.federation.field(shareable=True)
-    contract_symbol: str
-    side: str  # BUY/SELL
-    quantity: int
-    order_type: str  # LIMIT/MARKET
-    status: str  # PENDING/FILLED/CANCELLED
-    limit_price: float | None = None
-    created_at: datetime
-    updated_at: datetime
+from src.api.graphql.resolvers.portfolio_service import (
+    Portfolio,
+    Position,
+    create_portfolio as service_create_portfolio,
+    get_portfolio as service_get_portfolio,
+)
+from src.api.graphql.resolvers.trading_service import (
+    Order,
+    cancel_order as service_cancel_order,
+    create_order as service_create_order,
+)
 
 
 @strawberry.type
 class Query:
     @strawberry.field
-    def portfolio(self, user_id: str) -> Portfolio | None:
-        # Mock data
-        if user_id == "user_123":
-            return Portfolio(
-                id=strawberry.ID("port_123"),
-                user_id=user_id,
-                cash_balance=150000.0,
-                balance=150000.0,
-                frozen_capital=25000.0,
-                risk_score=0.35,
-                total_value=175000.0,
-                daily_pnl=1250.75,
-                daily_pnl_percent=0.72,
-                positions_count=1,
-                positions=[
-                    Position(
-                        id=strawberry.ID("pos_1"),
-                        contract_symbol="AAPL_20260115_C_150",
-                        quantity=10,
-                        entry_price=5.50,
-                    )
-                ],
-            )
-        return None
+    async def portfolio(self, user_id: str) -> Portfolio | None:
+        """Fetch real portfolio data from the portfolio service."""
+        # Using user_id as lookup; in a real scenario, we might resolve port_id via user_id first
+        # For now, we assume user_id 123 maps to port_123 for backward compatibility but using real DB
+        port_id = "port_123" if user_id == "user_123" else user_id
+        return await service_get_portfolio(port_id)
 
 
 @strawberry.type
@@ -94,46 +40,41 @@ class Mutation:
         order_type: str,
         limit_price: float | None = None,
     ) -> Order:
-        # Mock order creation
-        return Order(
-            id=strawberry.ID(f"order_{random.randint(1000, 9999)}"),  # nosec B311
+        """Dispatch real order to the trading executor."""
+        return await service_create_order(
             portfolio_id=portfolio_id,
             contract_symbol=contract_symbol,
             side=side,
             quantity=quantity,
             order_type=order_type,
-            status="PENDING",
             limit_price=limit_price,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
         )
 
     @strawberry.mutation
     async def cancel_order(self, order_id: strawberry.ID) -> bool:
-        return True
+        """Cancel an existing order via the trading executor."""
+        return await service_cancel_order(order_id)
 
     @strawberry.mutation
     async def create_portfolio(self, user_id: str, name: str, initial_cash: float) -> Portfolio:
-        return Portfolio(
-            id=strawberry.ID(f"port_{random.randint(1000, 9999)}"),  # nosec B311
-            user_id=user_id,
-            cash_balance=initial_cash,
-            positions=[],
-        )
+        """Persist a new portfolio to the database."""
+        return await service_create_portfolio(user_id=user_id, name=name, initial_cash=initial_cash)
 
 
 @strawberry.type
 class Subscription:
     @strawberry.subscription
-    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio]:
+    async def portfolio_updates(self, portfolio_id: strawberry.ID) -> AsyncGenerator[Portfolio, None]:
+        """
+        Stream real-time portfolio updates from the service.
+        In production, this hooks into a Redis PubSub or SHM mesh event.
+        """
         while True:
-            yield Portfolio(
-                id=portfolio_id,
-                user_id="user_123",
-                cash_balance=10000.0 + random.uniform(-100, 100),  # nosec B311
-                positions=[],
-            )
+            port = await service_get_portfolio(str(portfolio_id))
+            if port:
+                yield port
             await asyncio.sleep(1)
 
 
 schema = Schema(query=Query, mutation=Mutation, subscription=Subscription)
+

@@ -41,11 +41,12 @@ const PORTFOLIO_UPDATES = gql`
 
 export const usePortfolio = () => {
   const { data: sessionData } = authClient.useSession();
-  const userId = sessionData?.user?.id || "user_123";
+  const userId = sessionData?.user?.id;
 
   // Initial fetch and polling fallback
   const { data, loading, error, refetch } = useQuery(GET_PORTFOLIO, {
     variables: { userId },
+    skip: !userId,
     pollInterval: 10000, // Increased poll interval since we have subscriptions
   });
 

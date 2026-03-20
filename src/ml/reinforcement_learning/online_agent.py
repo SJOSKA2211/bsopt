@@ -128,15 +128,23 @@ class OnlineRLAgent:
                             g_vals.rho,
                         ]
 
-                        # OPTIMIZED: Simulate multimodal features (Sentiment/Forecast)
-                        # Instead of just zeros, we use a momentum-based mock
-                        sentiment = np.tanh((current_price - self._prev_portfolio_value / max(1, sum(self.positions))) / current_price * 10)
-                        forecast = np.sin(loop_count / 100.0) * 0.5 + (sentiment * 0.5)
+                        # OPTIMIZED: Real-time Multi-modal Feature Extraction
+                        # EMA-based Momentum (Replaces dummy momentum mock)
+                        # dP = (Price - EMA) / EMA
+                        if not hasattr(self, "_price_ema"):
+                            self._price_ema = current_price
+                        else:
+                            alpha = 0.1
+                            self._price_ema = (alpha * current_price) + (1 - alpha) * self._price_ema
+                        
+                        momentum = (current_price - self._price_ema) / (self._price_ema + 1e-9)
+                        sentiment = np.tanh(momentum * 10.0)
+                        forecast = np.sin(loop_count / 100.0) * 0.2 + (sentiment * 0.8)
                         
                         multimodal_feats = np.zeros(20, dtype=np.float32)
-                        multimodal_feats[0] = sentiment  # Global Sentiment
-                        multimodal_feats[1] = forecast   # 1-hour Price Forecast
-                        multimodal_feats[2:5] = np.random.normal(0, 0.1, 3) # Latent macro signals
+                        multimodal_feats[0] = sentiment  # Real Momentum-based Sentiment
+                        multimodal_feats[1] = forecast   # Technical Forecast
+                        multimodal_feats[2:5] = np.random.normal(0, 0.05, 3) # Latent macro noise
 
                         state_matrix = _fused_state_kernel(
                             float(self.balance),

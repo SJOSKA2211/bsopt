@@ -116,10 +116,15 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
   useEffect(() => {
     if ((subData as any)?.market_data_stream && seriesRef.current) {
       const update = (subData as any).market_data_stream;
+      // OPTIMIZED: Update candlestick with live tick
+      // If we don't have open/high/low/close, we treat the last price as the close
       seriesRef.current.update({
         time: (Math.floor(Date.now() / 1000) as Time),
-        value: update.lastPrice,
-      } as any); // Chart is currently candlestick, but subscription only provides last price
+        open: update.lastPrice,
+        high: update.lastPrice,
+        low: update.lastPrice,
+        close: update.lastPrice,
+      });
     }
   }, [subData]);
 
