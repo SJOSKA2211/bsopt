@@ -7,8 +7,8 @@ Service for handling data breach notifications as required by GDPR.
 import logging
 from datetime import UTC, datetime
 
-from src.shared.config import settings
 from src.database.models import SecurityIncident, User
+from src.shared.config import settings
 from src.shared.src.email_service import TransactionalEmailService
 
 logger = logging.getLogger(__name__)

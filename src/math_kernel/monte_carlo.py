@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from src.config import settings
+from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.math_kernel.quant_utils import (
     _laguerre_basis_jit,
@@ -13,8 +14,6 @@ from src.math_kernel.quant_utils import (
     jit_mc_european_price_and_greeks,
     jit_mc_european_with_control_variate,
 )
-
-from src.math_kernel.base import PricingStrategy
 
 try:
     import bsopt_core

@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime, timedelta
 import strawberry
 from strawberry.federation import Schema
 
-from src.api.graphql.types import Option, MarketData, OHLCV
+from src.api.graphql.types import OHLCV, MarketData, Option
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)

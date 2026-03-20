@@ -1,10 +1,11 @@
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import ray
 import structlog
-from typing import List, Dict, Any
 
-from src.math_kernel.backtesting.kernel import run_simulation_kernel, calculate_metrics_kernel
+from src.math_kernel.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
 from src.ml.tracker import ExperimentTracker
 
 logger = structlog.get_logger(__name__)
@@ -15,7 +16,7 @@ def ray_backtest_task(
     prices: np.ndarray,
     positions: np.ndarray,
     initial_capital: float
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Ray task for parallel backtesting of a single ticker."""
     equity_curve, mtm_pnl, commissions = run_simulation_kernel(
         prices, positions, initial_capital
@@ -45,7 +46,7 @@ class BacktestEngine:
 
     async def run_batch_backtest(
         self,
-        batch_data: Dict[str, pd.DataFrame],
+        batch_data: dict[str, pd.DataFrame],
         initial_capital: float = 100000.0,
         sharpe_threshold: float = 1.5
     ) -> bool:

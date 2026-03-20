@@ -130,6 +130,7 @@ class ArgoCDRollbackRemediator(BaseRemediator):
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
         import httpx
+
         from src.shared.config import settings
 
         service = anomaly.get("service", "unknown")

@@ -1,12 +1,12 @@
 import os
-import time
 import signal
-import structlog
-import numpy as np
+import time
 from typing import NoReturn
 
+import structlog
+
+from src.shared.observability import LATENCY_MS
 from src.shared.shm_mesh import SharedMemoryRingBuffer
-from src.shared.observability import LATENCY_MS, push_metrics
 
 logger = structlog.get_logger(__name__)
 

@@ -24,9 +24,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from starlette.concurrency import run_in_threadpool
 
-from src.shared.config import settings
 from src.database import get_async_db
 from src.database.models import APIKey, User
+from src.shared.config import settings
 
 from .password import password_service
 
@@ -260,8 +260,9 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Not authenticated")
 
         # 1. High-Performance Session Cache (Redis + Msgspec)
-        from src.shared.utils.cache import get_redis_client
         import msgspec
+
+        from src.shared.utils.cache import get_redis_client
 
         redis_client = await get_redis_client()
         if redis_client:

@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 import structlog
@@ -28,8 +28,8 @@ class MarketTick:
     price: float
     volume: int
     timestamp: float = field(default_factory=time.time)
-    bid: Optional[float] = None
-    ask: Optional[float] = None
+    bid: float | None = None
+    ask: float | None = None
     market: str = "unknown"
     source: str = "unknown"
     metadata: dict[str, Any] = field(default_factory=dict)

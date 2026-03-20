@@ -1,7 +1,8 @@
 import os
 import time
+from typing import Any
+
 import structlog
-from typing import Dict, Any
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +15,7 @@ class InstitutionalAuditLog:
         self.service_name = os.getenv("SERVICE_NAME", "EquaFlow")
         self.log_target = os.getenv("AUDIT_LOG_TARGET", "database") # 'database' or 'stdout'
         
-    def log_action(self, actor_id: str, action: str, metadata: Dict[str, Any]):
+    def log_action(self, actor_id: str, action: str, metadata: dict[str, Any]):
         """
         Log a critical institutional action.
         """

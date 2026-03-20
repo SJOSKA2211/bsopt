@@ -14,9 +14,9 @@ from sqlalchemy.orm import selectinload
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct, SuccessResponse
+from src.auth.auth import get_current_active_user
 from src.database import get_async_db, set_user_context
 from src.database.models import Portfolio, Position, User
-from src.auth.auth import get_current_active_user
 
 router = APIRouter(
     prefix="/portfolio", tags=["Portfolio"], default_response_class=MsgspecJSONResponse

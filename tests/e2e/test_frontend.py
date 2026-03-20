@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import Page, expect
 
+
 @pytest.mark.e2e
 def test_dashboard_load(page: Page):
     """Verify the primary dashboard loads with all institutional components."""

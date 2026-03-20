@@ -14,10 +14,8 @@ Author: EquaFlow Quant Team
 
 from __future__ import annotations
 
-import structlog
-from typing import Optional, Tuple
-
 import numpy as np
+import structlog
 from numba import njit, prange
 
 logger = structlog.get_logger(__name__)
@@ -168,7 +166,7 @@ def simulate_gbm_euler(
     sigma: np.ndarray,
     t: float,
     dt: float,
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> np.ndarray:
     """
     Simulate Geometric Brownian Motion using Euler-Maruyama method.
@@ -213,7 +211,7 @@ def simulate_gbm_milstein(
     sigma: np.ndarray,
     t: float,
     dt: float,
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> np.ndarray:
     """
     Simulate Geometric Brownian Motion using Milstein method.
@@ -260,7 +258,7 @@ def simulate_gbm(
     sigma: np.ndarray,
     t: float,
     dt: float,
-    seed: Optional[int] = None,
+    seed: int | None = None,
     method: str = "rk4",
 ) -> np.ndarray:
     """
@@ -281,8 +279,8 @@ def simulate_gbm_antithetic(
     sigma: np.ndarray,
     t: float,
     dt: float,
-    seed: Optional[int] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+    seed: int | None = None,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Simulate GBM with antithetic variates for variance reduction.
     
@@ -333,7 +331,7 @@ def monte_carlo_price(
     n_paths: int = 100_000,
     dt: float = 1 / 252,
     method: str = "milstein",
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> dict:
     """
     Price European option using Monte Carlo simulation of GBM.
@@ -393,7 +391,7 @@ def monte_carlo_price(
 def gbm_parameters_from_historical(
     prices: np.ndarray,
     dt: float = 1 / 252,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Estimate GBM parameters (μ, σ) from historical price data.
     
@@ -431,7 +429,7 @@ if __name__ == "__main__":
     n_paths = 500_000
     dt = 1 / 252
     
-    print(f"\nParameters:")
+    print("\nParameters:")
     print(f"  S0={s0}, K={k}, T={t}, r={r}, σ={sigma}")
     print(f"  Paths={n_paths:,}, Steps={int(t/dt)}")
     

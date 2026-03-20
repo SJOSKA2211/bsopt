@@ -83,8 +83,9 @@ class HestonCalibrator:
                         except ValueError:
                             # Try parsing as ISO date or relative date
                             try:
-                                from dateutil.parser import parse
                                 from datetime import datetime
+
+                                from dateutil.parser import parse
                                 expiry_date = parse(t_val)
                                 now = datetime.now()
                                 T = (expiry_date - now).days / 365.25

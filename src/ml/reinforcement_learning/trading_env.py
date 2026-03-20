@@ -31,8 +31,9 @@ class TradingEnvironment(
         
         # Fallback to institutional data provider if none injected
         if data_provider is None:
-            from .data_providers import TimescaleDataProvider
             from datetime import date, timedelta
+
+            from .data_providers import TimescaleDataProvider
             today = str(date.today())
             last_year = str(date.today() - timedelta(days=365))
             data_provider = TimescaleDataProvider(symbol, last_year, today)

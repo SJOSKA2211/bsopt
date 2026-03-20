@@ -1,5 +1,6 @@
+from typing import Any
+
 import structlog
-from typing import Dict, Any
 
 logger = structlog.get_logger(__name__)
 
@@ -12,7 +13,7 @@ class InstitutionalGovernance:
         self.threshold = high_stakes_threshold
         self.pending_approvals = {}
 
-    def validate_action(self, actor_id: str, action_type: str, data: Dict[str, Any]) -> bool:
+    def validate_action(self, actor_id: str, action_type: str, data: dict[str, Any]) -> bool:
         """
         Validate an action against institutional policies.
         Returns True if approved, False if pending multi-sig.

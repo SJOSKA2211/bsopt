@@ -1,5 +1,6 @@
-import strawberry
 from datetime import date, datetime
+
+import strawberry
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)

@@ -59,7 +59,6 @@ class EIP712Signer:
     @staticmethod
     def sign_settlement(private_key: str, trade_id: str, amount: int, recipient: str) -> bytes:
         from eth_account import Account
-        from eth_account.messages import encode_typed_data
         
         account = Account.from_key(private_key)
         

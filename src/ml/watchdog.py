@@ -38,8 +38,10 @@ class MLflowWatchdog:
                 # 2. Monitor Data Drift via TimescaleDB Continuous Aggregates
                 try:
                     import asyncio
-                    from src.database import db_manager
+
                     from sqlalchemy import text
+
+                    from src.database import db_manager
                     
                     async def check_drift():
                         async with db_manager.async_engine.connect() as conn:
@@ -52,9 +54,13 @@ class MLflowWatchdog:
                                 
                                 # 2. Advanced Analysis with Evidently
                                 try:
-                                    from evidently.report import Report
-                                    from evidently.metric_preset import DataDriftPreset, TargetDriftPreset
                                     import pandas as pd
+                                    from evidently.metric_preset import (
+                                        DataDriftPreset,
+                                        TargetDriftPreset,
+                                    )
+                                    from evidently.report import Report
+
                                     from src.shared.utils.storage import storage_manager
 
                                     # Fetch sample data for Evidently

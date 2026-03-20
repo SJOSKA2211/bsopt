@@ -143,7 +143,6 @@ class GreeksMesh:
         and populate the local buffer for warm start.
         """
         try:
-            from src.database.pipeliner import db_engine
             # Synchronous loop-run or background task for recovery
             logger.info("shm_persistence_recovery_triggered", mesh="greeks")
             # In real implementation, this would be: 

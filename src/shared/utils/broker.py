@@ -1,8 +1,9 @@
-import asyncio
 import os
+from collections.abc import Callable
+from typing import Any
+
 import aio_pika
 import structlog
-from typing import Callable, Any
 
 logger = structlog.get_logger()
 

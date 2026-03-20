@@ -1,6 +1,7 @@
+from datetime import datetime
+
 import pandas as pd
 import structlog
-from datetime import datetime
 
 logger = structlog.get_logger(__name__)
 

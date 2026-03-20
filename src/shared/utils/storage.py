@@ -1,8 +1,9 @@
 import os
+from typing import BinaryIO
+
 import boto3
-from botocore.client import Config
-from typing import BinaryIO, Optional
 import structlog
+from botocore.client import Config
 
 logger = structlog.get_logger()
 

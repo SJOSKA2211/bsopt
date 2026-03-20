@@ -1,8 +1,9 @@
 import numpy as np
-import pandas as pd
 from sqlalchemy import select
+
 from src.database import get_db_context
-from src.database.models import OptionPrice, MarketTick
+from src.database.models import OptionPrice
+
 
 class TimescaleDataProvider:
     """

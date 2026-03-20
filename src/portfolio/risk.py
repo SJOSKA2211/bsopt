@@ -1,6 +1,6 @@
-import numpy as np
+from typing import Any
+
 import structlog
-from typing import Dict, List, Any
 
 logger = structlog.get_logger(__name__)
 
@@ -9,10 +9,10 @@ class RiskAttributor:
     Institutional Greeks Risk Attributor.
     Aggregates exposure and runs stress tests for the EquaFlow platform.
     """
-    def __init__(self, portfolio_data: List[Dict[str, Any]]):
+    def __init__(self, portfolio_data: list[dict[str, Any]]):
         self.portfolio = portfolio_data
 
-    def aggregate_greeks(self) -> Dict[str, float]:
+    def aggregate_greeks(self) -> dict[str, float]:
         """Aggregate Delta, Gamma, Vega, Theta across all positions (Multi-Asset aware)."""
         totals = {"delta": 0.0, "gamma": 0.0, "vega": 0.0, "theta": 0.0}
         for pos in self.portfolio:
@@ -34,7 +34,7 @@ class RiskAttributor:
         logger.info("greeks_aggregated", totals=totals)
         return totals
 
-    def run_stress_test(self, spot_move: float, vol_move: float) -> Dict[str, float]:
+    def run_stress_test(self, spot_move: float, vol_move: float) -> dict[str, float]:
         """
         Estimate P&L impact under a defined stress scenario.
         Using a Taylor Series expansion (Greeks-based).
@@ -66,11 +66,11 @@ class PnLExplainer:
     Institutional P&L Explain Engine.
     Decomposes realized P&L into Greek-level components for performance attribution.
     """
-    def __init__(self, start_greeks: Dict[str, float], end_greeks: Dict[str, float]):
+    def __init__(self, start_greeks: dict[str, float], end_greeks: dict[str, float]):
         self.start = start_greeks
         self.end = end_greeks
 
-    def explain_pnl(self, spot_move: float, vol_move: float, dt: float) -> Dict[str, float]:
+    def explain_pnl(self, spot_move: float, vol_move: float, dt: float) -> dict[str, float]:
         """
         P&L Explain (Attribution).
         dP = Delta*dS + 0.5*Gamma*dS^2 + Vega*dV + Theta*dt + Residual

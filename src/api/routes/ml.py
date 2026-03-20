@@ -12,10 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
 from src.api.schemas.ml import DriftMetricsResponse, InferenceRequest
-from src.database import get_async_db
-from src.database.models import User
-from src.database.crud import get_model_drift_metrics
 from src.auth.auth import get_current_active_user, require_tier
+from src.database import get_async_db
+from src.database.crud import get_model_drift_metrics
+from src.database.models import User
 from src.ml.service import MLService, get_ml_service
 from src.shared.utils.circuit_breaker import ml_client_circuit
 

@@ -1,7 +1,7 @@
 import asyncio
+
 import httpx
 import structlog
-from typing import Dict, List
 
 logger = structlog.get_logger(__name__)
 
@@ -20,7 +20,7 @@ class SystemSentinel:
     def __init__(self):
         self.client = httpx.AsyncClient(timeout=2.0)
 
-    async def check_health(self) -> Dict[str, str]:
+    async def check_health(self) -> dict[str, str]:
         """Aggregate health status from all services."""
         results = {}
         for name, url in SERVICES.items():

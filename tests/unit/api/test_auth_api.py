@@ -7,9 +7,9 @@ from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from src.api.main import app
+from src.auth.auth import get_current_active_user, get_current_user
 from src.database import get_db
 from src.database.models import User
-from src.auth.auth import get_current_active_user, get_current_user
 
 client = TestClient(app)
 

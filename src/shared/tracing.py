@@ -14,45 +14,42 @@ Features:
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any
 
+import structlog
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.celery import CeleryInstrumentor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
+from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import (
     BatchSpanProcessor,
     ConsoleSpanExporter,
-    SimpleSpanProcessor,
 )
 from opentelemetry.sdk.trace.sampling import (
     AlwaysOffSampler,
     AlwaysOnSampler,
     ParentBased,
-    RatioSampler,
     TraceIdRatioBased,
 )
-from opentelemetry.trace import Status, StatusCode, Span
+from opentelemetry.trace import Span, Status, StatusCode
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
-
-import structlog
 
 logger = structlog.get_logger(__name__)
 
-_tracer: Optional[trace.Tracer] = None
+_tracer: trace.Tracer | None = None
 _propagator = TraceContextTextMapPropagator()
 
 
 def setup_tracing(
     service_name: str,
     service_version: str = "1.0.0",
-    otlp_endpoint: Optional[str] = None,
+    otlp_endpoint: str | None = None,
     sampling_ratio: float = 1.0,
     enable_console_export: bool = False,
 ) -> None:
@@ -124,7 +121,7 @@ def setup_tracing(
 
 def instrument_app(
     app: Any,
-    excluded_urls: Optional[list[str]] = None,
+    excluded_urls: list[str] | None = None,
 ) -> None:
     """
     Instrument FastAPI application with OpenTelemetry.
@@ -242,7 +239,7 @@ def instrument_ray() -> None:
 def create_span(
     name: str,
     kind: trace.SpanKind = trace.SpanKind.INTERNAL,
-    attributes: Optional[dict[str, Any]] = None,
+    attributes: dict[str, Any] | None = None,
 ):
     """
     Create a new span for tracing.
@@ -275,9 +272,9 @@ def create_span(
 
 
 def trace_function(
-    name: Optional[str] = None,
+    name: str | None = None,
     kind: trace.SpanKind = trace.SpanKind.INTERNAL,
-    attributes: Optional[dict[str, Any]] = None,
+    attributes: dict[str, Any] | None = None,
 ) -> Callable:
     """
     Decorator to trace a function.
@@ -342,7 +339,7 @@ def extract_trace_context(carrier: dict[str, str]) -> Any:
     return _propagator.extract(carrier)
 
 
-def get_current_span() -> Optional[Span]:
+def get_current_span() -> Span | None:
     """Get the current active span."""
     return trace.get_current_span()
 
@@ -365,7 +362,7 @@ class TraceContextManager:
             await some_async_operation()
     """
 
-    def __init__(self, carrier: Optional[dict[str, str]] = None):
+    def __init__(self, carrier: dict[str, str] | None = None):
         self.carrier = carrier or {}
         self.context = None
 

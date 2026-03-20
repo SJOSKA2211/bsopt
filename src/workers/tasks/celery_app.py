@@ -1,8 +1,10 @@
 import os
+
+import structlog
 from celery import Celery
 from celery.signals import worker_process_init
 from kombu import Exchange, Queue
-import structlog
+
 from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)

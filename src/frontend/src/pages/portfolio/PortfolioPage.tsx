@@ -18,12 +18,9 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
-  TrendingUp as TrendingUpIcon,
   PieChart as AllocationIcon,
-  AccountBalanceWallet as PortfolioIcon,
 } from '@mui/icons-material';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
-import { PnLExplainChart } from '../../features/risk/components/PnLExplainChart';
 import { usePortfolio } from '../../features/portfolio/hooks/usePortfolio';
 
 // KPI constants removed - now dynamic
@@ -90,34 +87,10 @@ const DonutChart: React.FC = () => {
   );
 };
 
-const PnlChart: React.FC = () => {
-  const theme = useTheme();
-  const points = [0, 1200, 800, 2400, 1800, 3600, 3200, 4800, 4200, 6000, 5400, 7200, 8942];
-  const maxV = Math.max(...points);
-  const w = 400, h = 120;
-  const pts = points
-    .map((v, i) => `${(i / (points.length - 1)) * w},${h - (v / maxV) * h}`)
-    .join(' L ');
 
-  return (
-    <svg role="img" aria-label="Portfolio P&L Trajectory Chart" viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 120, overflow: 'visible' }}>
-      <defs>
-        <linearGradient id="pnl-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`M ${pts} L ${w},${h} L 0,${h} Z`} fill="url(#pnl-grad)" />
-      <path d={`M ${pts}`} fill="none" stroke={theme.palette.financial.qfd.quantum} strokeWidth="2" strokeLinejoin="round" />
-      {/* Benchmark */}
-      <line x1={0} y1={h * 0.7} x2={w} y2={h * 0.35} stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="6 4" opacity={0.5} />
-    </svg>
-  );
-};
 
 export const PortfolioPage: React.FC = () => {
-  const theme = useTheme();
-  const { data: portfolioData, isLoading } = usePortfolio();
+  const { data: portfolioData } = usePortfolio();
 
   const positions = portfolioData?.positions || [];
   
@@ -273,12 +246,12 @@ export const PortfolioPage: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {positions.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell sx={{ fontWeight: 900, color: 'primary.main' }}>{p.contract_symbol}</TableCell>
+                {positions.map((p: any, idx: number) => (
+                  <TableRow key={p.id || idx}>
+                    <TableCell sx={{ fontWeight: 900, color: 'primary.main' }}>{p.symbol || p.contract_symbol}</TableCell>
                     <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>{p.quantity}</TableCell>
-                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${p.entry_price.toFixed(2)}</TableCell>
-                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${p.entry_price.toFixed(2)}</TableCell>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
+                    <TableCell sx={{ fontFamily: 'JetBrains Mono' }}>${(p.entry_price || 0).toFixed(2)}</TableCell>
                     <TableCell sx={{ fontWeight: 900, color: 'success.main' }}>$0.00</TableCell>
                     <TableCell sx={{ fontWeight: 900, color: 'success.main' }}>0.0%</TableCell>
                     <TableCell>

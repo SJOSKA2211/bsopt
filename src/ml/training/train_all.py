@@ -10,8 +10,8 @@ import os
 
 import structlog
 
-from src.shared.config import get_settings
 from src.ml.pipeline import MLPipeline
+from src.shared.config import get_settings
 
 logger = structlog.get_logger()
 

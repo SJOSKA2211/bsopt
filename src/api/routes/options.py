@@ -13,9 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.common import DataResponseStruct
+from src.auth.auth import get_current_active_user
 from src.database import get_async_db
 from src.database.models import OptionPrice, User
-from src.auth.auth import get_current_active_user
 from src.shared.shm_mesh import GreeksMesh
 from src.shared.utils.circuit_breaker import db_circuit
 

@@ -3,10 +3,9 @@ from typing import Any, cast
 import numpy as np
 import structlog
 
+from src.math_kernel.base import PricingStrategy
 from src.math_kernel.models import BSParameters, OptionGreeks
 from src.shared.math_utils import calculate_greeks, calculate_price
-
-from src.math_kernel.base import PricingStrategy
 
 try:
     import equaflow_core
@@ -147,7 +146,7 @@ class BlackScholesEngine(PricingStrategy):
         # GPU Acceleration Path (CuPy)
         if S.size > 500:  # Higher threshold for CuPy to offset data transfer
             try:
-                from src.math_kernel.cuda_kernels import black_scholes_cupy, CUPY_AVAILABLE
+                from src.math_kernel.cuda_kernels import CUPY_AVAILABLE, black_scholes_cupy
                 if CUPY_AVAILABLE:
                     is_call_arr = np.atleast_1d(is_call).astype(bool)
                     if is_call_arr.shape != S.shape:
@@ -159,7 +158,7 @@ class BlackScholesEngine(PricingStrategy):
         # Legacy CUDA/Numba Path
         if S.size > 1000:
             try:
-                from src.math_kernel.cuda_kernels import price_options_gpu, CUDA_AVAILABLE
+                from src.math_kernel.cuda_kernels import CUDA_AVAILABLE, price_options_gpu
                 if CUDA_AVAILABLE:
                     is_call_arr = np.atleast_1d(is_call).astype(bool)
                     if is_call_arr.shape != S.shape:

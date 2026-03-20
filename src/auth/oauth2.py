@@ -19,8 +19,8 @@ from jwt.exceptions import ExpiredSignatureError, PyJWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.shared.config import settings
 from src.database.models import OAuth2Client
+from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 

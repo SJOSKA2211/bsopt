@@ -1,9 +1,10 @@
-import os
 import base64
+import os
+
+import structlog
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import structlog
 
 logger = structlog.get_logger(__name__)
 

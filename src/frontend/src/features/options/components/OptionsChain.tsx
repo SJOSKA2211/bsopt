@@ -34,7 +34,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
-import { useMarketData } from '../../../hooks/useMarketData';
+import { usePricingStore } from '../../../store/usePricingStore';
 
 // Types
 export interface OptionChainRow {
@@ -152,7 +152,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   });
 
   // Subscribe to real-time spot updates
-  const { tick } = useMarketData(symbol);
+  const priceData = usePricingStore((state) => state.prices[symbol]);
+  const tick = priceData ? { lastPrice: priceData.price } : null;
 
   useEffect(() => {
     const newSpot = tick?.lastPrice || (gqlData as GqlData)?.marketData?.lastPrice;

@@ -1,6 +1,8 @@
-import numpy as np
+from typing import cast
+
 import cupy as cp
-from typing import Union, cast
+import numpy as np
+
 try:
     from pyo3_runtime import import_module
 except ImportError:
@@ -16,11 +18,11 @@ except ImportError:
     equaflow_core = None
 
 def gpu_black_scholes(
-    S: Union[float, np.ndarray],
-    K: Union[float, np.ndarray],
-    T: Union[float, np.ndarray],
-    R: Union[float, np.ndarray],
-    V: Union[float, np.ndarray],
+    S: float | np.ndarray,
+    K: float | np.ndarray,
+    T: float | np.ndarray,
+    R: float | np.ndarray,
+    V: float | np.ndarray,
     is_call: bool = True
 ) -> np.ndarray:
     """
@@ -59,9 +61,9 @@ def gpu_black_scholes(
     return cast(np.ndarray, cp.asnumpy(price))
 
 def runge_kutta_4(
-    S0: Union[float, np.ndarray],
-    mu: Union[float, np.ndarray],
-    sigma: Union[float, np.ndarray],
+    S0: float | np.ndarray,
+    mu: float | np.ndarray,
+    sigma: float | np.ndarray,
     T: float,
     dt: float,
     steps: int
@@ -106,11 +108,11 @@ def runge_kutta_4(
     return cast(np.ndarray, cp.asnumpy(S))
 
 def hybrid_compute_bs(
-    S: Union[float, np.ndarray],
-    K: Union[float, np.ndarray],
-    T: Union[float, np.ndarray],
-    R: Union[float, np.ndarray],
-    V: Union[float, np.ndarray]
+    S: float | np.ndarray,
+    K: float | np.ndarray,
+    T: float | np.ndarray,
+    R: float | np.ndarray,
+    V: float | np.ndarray
 ) -> np.ndarray:
     """
     Hybrid Compute Manifold: Prefers Rust (equaflow_core) for low-latency CPU 
@@ -124,8 +126,8 @@ def hybrid_compute_bs(
 
 def mmap_accelerated_runge_kutta_4(
     mmap_file_path: str,
-    mu: Union[float, np.ndarray],
-    sigma: Union[float, np.ndarray],
+    mu: float | np.ndarray,
+    sigma: float | np.ndarray,
     T: float,
     dt: float,
     steps: int

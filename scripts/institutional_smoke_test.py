@@ -1,6 +1,7 @@
-import time
-import structlog
 import random
+import time
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 

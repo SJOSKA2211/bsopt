@@ -19,8 +19,8 @@ from src.api.schemas.pricing import (
     PriceRequest,
     PriceResult,
 )
-from src.database.models import User
 from src.auth.auth import get_current_active_user
+from src.database.models import User
 from src.math_kernel.service import PricingService
 from src.shared.utils.cache import multi_layer_cache
 from src.shared.utils.circuit_breaker import pricing_circuit

@@ -132,7 +132,10 @@ class BacktestEngine:
             raise ValueError("Strategy function must add 'target_position' column to DataFrame")
 
         # 2. Vectorized P&L Calculation using Numba Kernel
-        from src.math_kernel.backtesting.kernel import calculate_metrics_kernel, run_simulation_kernel
+        from src.math_kernel.backtesting.kernel import (
+            calculate_metrics_kernel,
+            run_simulation_kernel,
+        )
 
         # Extract raw arrays for the kernel
         prices = df["option_price"].values.astype(np.float64)

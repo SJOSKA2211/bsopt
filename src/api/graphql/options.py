@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import strawberry
 from strawberry.federation import Schema

@@ -85,7 +85,6 @@ class ModelTrainer(BaseTrainer):  # type: ignore
         config: dict[str, Any],
     ) -> Any:
         """Distributed training using Ray Train."""
-        from ray import train
         from ray.train import ScalingConfig
         from ray.train.torch import TorchTrainer
 

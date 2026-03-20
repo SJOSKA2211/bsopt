@@ -26,8 +26,8 @@ from src.api.routes import (
     users_router,
     websocket_router,
 )
-from src.config import settings
 from src.auth.auth import RoleChecker
+from src.config import settings
 from src.shared.observability import logging_middleware, start_system_metrics_loop
 
 # Initialize logging

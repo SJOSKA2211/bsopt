@@ -1,9 +1,11 @@
 import asyncio
+
 import grpc
-from concurrent import futures
-from src.protos import pricing_pb2, pricing_pb2_grpc
-from src.math_kernel.service import PricingService
+
 from src.math_kernel.black_scholes import BSParameters
+from src.math_kernel.service import PricingService
+from src.protos import pricing_pb2, pricing_pb2_grpc
+
 
 class PricingServicer(pricing_pb2_grpc.PricingServiceServicer):
     def __init__(self):

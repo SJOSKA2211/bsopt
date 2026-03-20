@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from src.database.models import User
 from src.auth.audit import AuditEvent, log_audit
+from src.database.models import User
 
 
 @patch("src.workers.tasks.audit_tasks.persist_audit_log.delay")

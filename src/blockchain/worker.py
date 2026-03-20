@@ -1,9 +1,9 @@
 import os
-import asyncio
-from web3 import Web3
-from eth_account import Account
+from typing import Any
+
 import structlog
-from typing import Dict, Any
+from eth_account import Account
+from web3 import Web3
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +36,7 @@ class BlockchainSettlementWorker:
         padded_id = clean_id.zfill(64)
         return f"{method_id}{padded_id}"
 
-    async def settle_trade(self, trade_data: Dict[str, Any]) -> str:
+    async def settle_trade(self, trade_data: dict[str, Any]) -> str:
         """
         Settle a trade on-chain using real RLP-encoded payloads.
         """

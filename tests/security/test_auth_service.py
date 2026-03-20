@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.database.models import User
 from src.auth.auth import auth_service, token_blacklist
+from src.database.models import User
 
 
 @pytest.mark.asyncio

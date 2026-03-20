@@ -17,10 +17,9 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -66,12 +65,12 @@ class TrainingConfig:
 class TrainingResult:
     """Result of a training job."""
     status: TrainingStatus
-    run_id: Optional[str] = None
+    run_id: str | None = None
     metrics: dict[str, float] = field(default_factory=dict)
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    error: Optional[str] = None
-    model_path: Optional[str] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    error: str | None = None
+    model_path: str | None = None
 
 
 class HealthChecker:
@@ -126,6 +125,7 @@ class HealthChecker:
         """Check if MLflow server is accessible."""
         try:
             import mlflow
+
             from src.shared.config import settings
 
             mlflow.set_tracking_uri(settings.tracking_uri)
@@ -189,13 +189,14 @@ class AutoTrainer:
         self.check_interval = check_interval
         self.training_interval = training_interval
         self._running = False
-        self._last_training_time: Optional[float] = None
-        self._current_result: Optional[TrainingResult] = None
+        self._last_training_time: float | None = None
+        self._current_result: TrainingResult | None = None
 
     async def _get_available_symbols(self) -> list[str]:
         """Get list of available symbols from database."""
         try:
-            from sqlalchemy import select, func
+            from sqlalchemy import func, select
+
             from src.database.models import Symbol
 
             async with self.db_manager.session() as session:
@@ -227,7 +228,8 @@ class AutoTrainer:
         Returns:
             Dictionary with training/validation/test splits
         """
-        from sqlalchemy import select, text
+        from sqlalchemy import select
+
         from src.database.models import MarketTick
 
         try:
@@ -281,12 +283,12 @@ class AutoTrainer:
         """
         result = TrainingResult(
             status=TrainingStatus.RUNNING,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
         )
 
         try:
             import mlflow
-            import ray
+
             from src.shared.config import settings
 
             mlflow.set_tracking_uri(settings.tracking_uri)
@@ -326,7 +328,7 @@ class AutoTrainer:
                 result.metrics = metrics
 
             result.status = TrainingStatus.COMPLETED
-            result.end_time = datetime.now(timezone.utc)
+            result.end_time = datetime.now(UTC)
             result.model_path = f"runs:/{result.run_id}/model"
 
             logger.info(
@@ -338,7 +340,7 @@ class AutoTrainer:
         except Exception as e:
             result.status = TrainingStatus.FAILED
             result.error = str(e)
-            result.end_time = datetime.now(timezone.utc)
+            result.end_time = datetime.now(UTC)
             logger.error("training_failed", error=str(e))
 
         return result

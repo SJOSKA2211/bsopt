@@ -1,9 +1,8 @@
 import asyncio
-import os
 import sys
+
 import httpx
 import structlog
-from typing import Dict
 
 logger = structlog.get_logger(__name__)
 

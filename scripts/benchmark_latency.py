@@ -1,8 +1,8 @@
-import time
 import asyncio
+import time
+
 import numpy as np
 import structlog
-from typing import List
 
 logger = structlog.get_logger(__name__)
 

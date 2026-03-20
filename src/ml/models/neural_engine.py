@@ -7,9 +7,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
-from src.ml.architectures.neural_network import OptionPricingNN
 from src.math_kernel.base import BasePricingEngine
 from src.math_kernel.models import BSParameters, OptionGreeks
+from src.ml.architectures.neural_network import OptionPricingNN
 
 logger = structlog.get_logger(__name__)
 

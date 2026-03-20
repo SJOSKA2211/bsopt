@@ -2,8 +2,8 @@ import sys
 
 from sqlalchemy import text
 
-from src.shared.config import get_settings
 from src.database import get_engine
+from src.shared.config import get_settings
 
 
 def verify_connection():
