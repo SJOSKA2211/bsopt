@@ -1,15 +1,10 @@
-"""
-Order Engine — Lock-free order life-cycle and risk orchestration.
-"""
-
 from __future__ import annotations
 
-import time
-import structlog
 import numpy as np
+import structlog
 
-from src.shared.shm_mesh import OrderBuffer, ExecutionBuffer
 from src.math_kernel.risk_kernels import RiskVectorTracker
+from src.shared.shm_mesh import ExecutionBuffer, OrderBuffer
 
 logger = structlog.get_logger(__name__)
 
