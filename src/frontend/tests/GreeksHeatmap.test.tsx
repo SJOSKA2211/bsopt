@@ -3,25 +3,71 @@ import { expect, test, vi, beforeAll, afterEach, afterAll } from 'vitest';
 import { GreeksHeatmap } from '../src/features/options/components/GreeksHeatmap';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
+import { MockedProvider } from '@apollo/client/testing/react';
+import { gql } from '@apollo/client';
 import React from 'react';
 
-// Mock Server Setup
-const handlers = [
-  http.get('/api/v1/options/chain', () => {
-    return HttpResponse.json([
-      { strike: 150, expiry: '2026-01-20', call_delta: 0.5, call_gamma: 0.05, call_iv: 0.2, put_delta: -0.5, put_gamma: 0.05, put_iv: 0.2 },
-    ]);
-  }),
+const GET_OPTIONS_FOR_HEATMAP = gql`
+  query GetOptionsForHeatmap($symbol: String!) {
+    marketData(symbol: $symbol) {
+      lastPrice
+    }
+    options(underlying: $symbol) {
+      edges {
+        node {
+          id
+          strike
+          expiry
+          optionType
+          iv
+          delta
+          gamma
+        }
+      }
+    }
+  }
+`;
+
+const mocks = [
+  {
+    request: {
+      query: GET_OPTIONS_FOR_HEATMAP,
+      variables: { symbol: 'AAPL' },
+    },
+    result: {
+      data: {
+        marketData: { lastPrice: 155.0 },
+        options: {
+          edges: [
+            {
+              node: {
+                id: 'opt1',
+                strike: 150,
+                expiry: '2026-01-20',
+                optionType: 'CALL',
+                iv: 0.2,
+                delta: 0.5,
+                gamma: 0.05,
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
 ];
 
-const server = setupServer(...handlers);
+// Remove MSW setup as we'll use MockedProvider
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+// Mock useWasmPricing
+vi.mock('../src/hooks/useWasmPricing', () => ({
+  useWasmPricing: () => ({
+    isLoaded: true,
+    batchCalculate: vi.fn().mockResolvedValue([
+      { greeks: { delta: 0.5, gamma: 0.05, vega: 0.1, theta: -0.01 } }
+    ])
+  })
+}));
 
 // Mock echarts-for-react
 vi.mock('echarts-for-react/lib/src.shared', () => ({
@@ -29,13 +75,12 @@ vi.mock('echarts-for-react/lib/src.shared', () => ({
 }));
 
 const createWrapper = () => {
-  const queryClient = new QueryClient();
   return ({ children }: { children: React.ReactNode }) => (
-    <ThemeProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
+    <MockedProvider mocks={mocks}>
+      <ThemeProvider theme={theme}>
         {children}
-      </QueryClientProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </MockedProvider>
   );
 };
 

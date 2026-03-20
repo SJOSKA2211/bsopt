@@ -112,18 +112,30 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     }
 
     const runEnrichment = async () => {
+      const now = new Date();
+      // PROD-CHECK: Shared risk parameters matching PositionsSummary
+      const riskFreeRate = 0.045;
+      const dividendYield = 0.015;
+
       // Generate all params for batch calculation
-      const params = optionsData.map(d => ({
-        spot: d.underlying_price,
-        strike: d.strike,
-        time: 30 / 365, // Mock time
-        vol: d.call_iv,
-        rate: 0.05,
-        div: 0.0,
-        is_call: true
-      }));
+      const params = optionsData.map(d => {
+        const expiryDate = new Date(d.expiry);
+        // Calculate dynamic Time to Expiry (T)
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+
+        return {
+          spot: d.underlying_price,
+          strike: d.strike,
+          time: timeToExpiry,
+          vol: d.call_iv || 0.25,
+          rate: riskFreeRate,
+          div: dividendYield,
+          is_call: true // Heatmap typically shows Call side or user-selected
+        };
+      });
 
       const results = await batchCalculate(params);
+      if (!results) return;
 
       const enriched = optionsData.map((d, i) => {
         const result = results[i];
@@ -147,7 +159,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   const chartOptions = useMemo(() => {
     if (!processedData || processedData.length === 0) return null;
 
-    const strikes = Array.from(new Set(processedData.map((d: any) => d.strike))).sort((a: any, b: any) => a - b);
+    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
     const expiries = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
 
     const data = processedData.map((d: OptionData) => {

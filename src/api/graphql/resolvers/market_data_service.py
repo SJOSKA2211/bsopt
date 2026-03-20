@@ -1,30 +1,13 @@
 from datetime import datetime
-
-import strawberry
-
+from sqlalchemy import create_engine, text
+from src.api.graphql.types import MarketData, OHLCV
 from src.config import settings
 from src.ingestion.router import MarketDataRouter
 from src.shared.shm_mesh import GreeksMesh
-from sqlalchemy import create_engine, text
 
 router = MarketDataRouter()
 _greeks_mesh = GreeksMesh(create=False)
 _engine = create_engine(settings.DATABASE_URL)
-
-
-@strawberry.federation.type(shareable=True)
-class MarketData:
-    symbol: str
-    timestamp: datetime
-    bid: float | None = None
-    ask: float | None = None
-    last: float | None = None
-    volume: int | None = None
-    delta: float | None = None
-    gamma: float | None = None
-    theta: float | None = None
-    vega: float | None = None
-    rho: float | None = None
 
 
 async def get_market_data(symbol: str) -> MarketData:
@@ -82,4 +65,45 @@ async def get_historical_data(
     if not results and (datetime.now() - start_time).total_seconds() < 3600:
         results.append(await get_market_data(symbol))
         
+    return results
+
+async def get_historical_ohlcv(
+    symbol: str, start_time: datetime, end_time: datetime, interval_minutes: int = 1
+) -> list[OHLCV]:
+    """
+    Fetch historical OHLCV data using TimescaleDB time_bucket.
+    """
+    interval = f"{interval_minutes} minutes"
+    query = text("""
+        SELECT 
+            time_bucket(:interval, time) AS bucket,
+            first(price, time) as open,
+            max(price) as high,
+            min(price) as low,
+            last(price, time) as close,
+            sum(volume) as volume
+        FROM market_ticks
+        WHERE symbol = :symbol AND time BETWEEN :start AND :end
+        GROUP BY bucket
+        ORDER BY bucket ASC
+    """)
+    
+    results = []
+    with _engine.connect() as conn:
+        rows = conn.execute(query, {
+            "symbol": symbol, 
+            "start": start_time, 
+            "end": end_time, 
+            "interval": interval
+        })
+        for row in rows:
+            results.append(OHLCV(
+                time=row.bucket.isoformat(),
+                open=float(row.open),
+                high=float(row.high),
+                low=float(row.low),
+                close=float(row.close),
+                volume=int(row.volume or 0)
+            ))
+            
     return results

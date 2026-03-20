@@ -10,7 +10,6 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
-  Grid,
   Card,
   CardContent,
   alpha,
@@ -20,6 +19,7 @@ import {
 } from '@mui/material';
 import { usePortfolio } from '../hooks/usePortfolio';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
+import Grid from '@mui/material/Grid2';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -59,9 +59,9 @@ export const PositionsSummary: React.FC = React.memo(() => {
     }
 
     const runEnrichment = async () => {
-      const now = new Date();
-      const rate = 0.05;
-      const div = 0.0;
+      // PROD-CHECK: These should ideally be fetched from a central Settings/Risk service
+      const riskFreeRate = 0.045; // Approximately 4.5% (UST 10Y/3M proxy)
+      const dividendYield = 0.015; // S&P 500 average proxy
 
       const params = data.positions.map(pos => {
         const expiryDate = pos.expiry ? new Date(pos.expiry) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
@@ -71,19 +71,20 @@ export const PositionsSummary: React.FC = React.memo(() => {
           spot: pos.underlying_price || 150,
           strike: pos.strike || 150,
           time: timeToExpiry,
-          vol: pos.implied_volatility || 0.2,
-          rate,
-          div,
+          vol: pos.implied_volatility || 0.25, // Default to 25% if IV is missing
+          rate: riskFreeRate,
+          div: dividendYield,
           is_call: pos.option_type === 'call'
         };
       });
 
       const results = await batchCalculate(params);
+      if (!results) return;
 
-      setEnrichedPositions(data.positions.map((pos: any, i) => ({
+      setEnrichedPositions(data.positions.map((pos, i) => ({
         ...pos,
         theor_greeks: results[i]?.greeks
-      })));
+      })) as EnrichedPosition[]);
     };
 
     runEnrichment();

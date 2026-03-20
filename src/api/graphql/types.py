@@ -1,6 +1,5 @@
-from datetime import date, datetime
-
 import strawberry
+from datetime import date, datetime
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)
@@ -33,6 +32,26 @@ class Option:
     rho: float | None = strawberry.federation.field(default=None, shareable=True)
 
     time: datetime = strawberry.federation.field(shareable=True)
+
+
+@strawberry.federation.type(shareable=True)
+class MarketData:
+    symbol: str
+    last_price: float = strawberry.field(name="last_price")
+    bid: float | None
+    ask: float | None
+    volume: int | None
+    timestamp: datetime
+
+
+@strawberry.federation.type(shareable=True)
+class OHLCV:
+    time: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: int
 
     @classmethod
     async def resolve_reference(cls, id: strawberry.ID) -> "Option | None":

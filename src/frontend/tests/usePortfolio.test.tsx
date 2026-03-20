@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { expect, test } from 'vitest';
-import { MockedProvider } from '@apollo/client/testing';
+import { MockedProvider } from '@apollo/client/testing/react';
 import { usePortfolio } from '../src/features/portfolio/hooks/usePortfolio';
 import { gql } from '@apollo/client';
 import React from 'react';
@@ -28,22 +28,23 @@ const GET_PORTFOLIO = gql`
         id
         contract_symbol
         quantity
-        average_price
-        current_price
-        unrealized_pnl
+        entry_price
       }
     }
   }
 `;
 
-const PORTFOLIO_UPDATED = gql`
-  subscription PortfolioUpdated($userId: String!) {
-    portfolioUpdated(userId: $userId) {
+const PORTFOLIO_UPDATES = gql`
+  subscription OnPortfolioUpdate($portfolioId: ID!) {
+    portfolioUpdates(portfolioId: $portfolioId) {
       id
       balance
-      totalValue: total_value
-      dailyPnL: daily_pnl
-      dailyPnLPercent: daily_pnl_percent
+      frozen_capital
+      risk_score
+      total_value
+      daily_pnl
+      daily_pnl_percent
+      positions_count
     }
   }
 `;
@@ -65,24 +66,34 @@ const mocks = [
           dailyPnL: 1200.25,
           dailyPnLPercent: 0.97,
           positionsCount: 12,
-          positions: [],
+          positions: [
+            {
+              id: 'pos-1',
+              contract_symbol: 'AAPL',
+              quantity: 10,
+              entry_price: 150.0
+            }
+          ],
         }
       }
     }
   },
   {
     request: {
-      query: PORTFOLIO_UPDATED,
-      variables: { userId: 'test-user-id' },
+      query: PORTFOLIO_UPDATES,
+      variables: { portfolioId: 'port-1' },
     },
     result: {
       data: {
-        portfolioUpdated: {
+        portfolioUpdates: {
           id: 'port-1',
           balance: 100000,
-          totalValue: 125000.50,
-          dailyPnL: 1200.25,
-          dailyPnLPercent: 0.97,
+          frozen_capital: 25000,
+          risk_score: 0.15,
+          total_value: 125000.50,
+          daily_pnl: 1200.25,
+          daily_pnl_percent: 0.97,
+          positions_count: 12,
         }
       }
     }
@@ -91,7 +102,7 @@ const mocks = [
 
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider mocks={mocks}>
       {children}
     </MockedProvider>
   );
