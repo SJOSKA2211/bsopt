@@ -6,13 +6,29 @@ use rand::SeedableRng;
 use rand_distr::{Distribution, StandardNormal};
 use rayon::prelude::*;
 use std::fs::File;
+use std::sync::Arc;
 
-fn norm_cdf(x: f64) -> f64 {
-    0.5 * (1.0 + statrs::function::erf::erf(x / std::f64::consts::SQRT_2))
-}
+const INV_SQRT_2PI: f64 = 0.398942280401432677939946059934381868;
 
 fn norm_pdf(x: f64) -> f64 {
-    (1.0 / std::f64::consts::SQRT_2 / std::f64::consts::PI.sqrt()) * (-0.5 * x * x).exp()
+    (-0.5 * x * x).exp() * INV_SQRT_2PI
+}
+
+/// Normal CDF using A&S 7.1.26 rational approximation (10^-7 precision)
+fn norm_cdf(x: f64) -> f64 {
+    if x < 0.0 {
+        return 1.0 - norm_cdf(-x);
+    }
+    let p = 0.2316419;
+    let a1 = 0.319381530;
+    let a2 = -0.356563782;
+    let a3 = 1.781477937;
+    let a4 = -1.821255978;
+    let a5 = 1.330274429;
+
+    let t = 1.0 / (1.0 + p * x);
+    let poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))));
+    1.0 - norm_pdf(x) * poly
 }
 
 #[pyfunction]
@@ -262,12 +278,11 @@ fn batch_black_scholes_greeks(
 }
 
 #[pyfunction]
-fn runge_kutta_4_gbm(
+fn exact_gbm_path(
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,
-    _t: f64,
-    dt: f64,
+    t: f64,
     steps: usize,
     seed: Option<u64>,
 ) -> PyResult<Py<PyArray2<f64>>> {
@@ -275,14 +290,14 @@ fn runge_kutta_4_gbm(
     let mu = mu.as_array();
     let sigma = sigma.as_array();
     let n_paths = s0.len();
+    let dt = t / steps as f64;
     let sqrt_dt = dt.sqrt();
 
-    // Parallelize path generation using Rayon
     let result_flat: Vec<f64> = (0..n_paths)
         .into_par_iter()
         .map(|i| {
             let mut path = Vec::with_capacity(steps + 1);
-            let mut si = s0[i];
+            let s0_i = s0[i];
             let mu_i = mu[i];
             let sigma_i = sigma[i];
 
@@ -292,27 +307,16 @@ fn runge_kutta_4_gbm(
             };
             let normal = StandardNormal;
 
-            path.push(si);
+            path.push(s0_i);
+            let mut current_w = 0.0;
+            let drift_const = mu_i - 0.5 * sigma_i * sigma_i;
 
-            for _ in 0..steps {
+            for step in 1..=steps {
                 let dw: f64 = normal.sample(&mut local_rng);
-
-                // RK4 Deterministic Drift
-                let k1 = mu_i * si;
-                let k2 = mu_i * (si + 0.5 * dt * k1);
-                let k3 = mu_i * (si + 0.5 * dt * k2);
-                let k4 = mu_i * (si + dt * k3);
-                let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-
-                // Stochastic Diffusion (Milstein Correction for Strong Convergence)
-                let diffusion = sigma_i * si * dw * sqrt_dt;
-                let milstein = 0.5 * sigma_i * sigma_i * si * (dw * dw - dt);
-
-                si = si + drift + diffusion + milstein;
-                if si < 0.0 {
-                    si = 1e-10;
-                }
-                path.push(si);
+                current_w += dw * sqrt_dt;
+                let time = step as f64 * dt;
+                let st = s0_i * (drift_const * time + sigma_i * current_w).exp();
+                path.push(st);
             }
             path
         })
@@ -320,160 +324,15 @@ fn runge_kutta_4_gbm(
         .collect();
 
     Python::with_gil(|py| {
-        let res = PyArray2::from_vec2(
+        let res = PyArray2::from_shape_vec(
             py,
-            &result_flat
-                .chunks(steps + 1)
-                .map(|v| v.to_vec())
-                .collect::<Vec<_>>(),
+            (n_paths, steps + 1),
+            result_flat,
         )?;
         Ok(res.to_owned())
     })
 }
 
-#[pyfunction]
-fn simulate_gbm_euler(
-    s0: PyReadonlyArray1<f64>,
-    mu: PyReadonlyArray1<f64>,
-    sigma: PyReadonlyArray1<f64>,
-    t: f64,
-    dt: f64,
-    seed: Option<u64>,
-) -> PyResult<Py<PyArray2<f64>>> {
-    let s0 = s0.as_array();
-    let mu = mu.as_array();
-    let sigma = sigma.as_array();
-    let n_paths = s0.len();
-
-    let sqrt_dt = dt.sqrt();
-    let n_steps = (t / dt) as usize;
-
-    let mut rng = match seed {
-        Some(s) => StdRng::seed_from_u64(s),
-        None => StdRng::from_entropy(),
-    };
-
-    let normal = StandardNormal;
-
-    let mut paths = vec![vec![0.0; n_steps + 1]; n_paths];
-
-    for i in 0..n_paths {
-        paths[i][0] = s0[i];
-    }
-
-    for step in 0..n_steps {
-        for i in 0..n_paths {
-            let si = paths[i][step];
-            let dw: f64 = normal.sample(&mut rng);
-
-            let drift = mu[i] * si * dt;
-            let diffusion = sigma[i] * si * sqrt_dt * dw;
-
-            paths[i][step + 1] = si + drift + diffusion;
-
-            if paths[i][step + 1] < 0.0 {
-                paths[i][step + 1] = 0.0001;
-            }
-        }
-    }
-
-    Python::with_gil(|py| Ok(PyArray2::from_vec2(py, &paths)?.to_owned()))
-}
-
-#[pyfunction]
-fn runge_kutta_4_vectorized(
-    s0: PyReadonlyArray1<f64>,
-    mu: PyReadonlyArray1<f64>,
-    sigma: PyReadonlyArray1<f64>,
-    _t: f64,
-    dt: f64,
-    steps: usize,
-    seed: Option<u64>,
-) -> PyResult<Py<PyArray1<f64>>> {
-    let s0 = s0.as_array();
-    let mu = mu.as_array();
-    let sigma = sigma.as_array();
-    let n = s0.len();
-
-    let sqrt_dt = dt.sqrt();
-    let mut rng = match seed {
-        Some(s) => StdRng::seed_from_u64(s),
-        None => StdRng::from_entropy(),
-    };
-
-    let normal = StandardNormal;
-
-    let mut s = s0.to_owned();
-
-    for _ in 0..steps {
-        for i in 0..n {
-            let si = s[i];
-            let dw: f64 = normal.sample(&mut rng);
-
-            let k1 = mu[i] * si;
-            let k2 = mu[i] * (si + 0.5 * dt * k1);
-            let k3 = mu[i] * (si + 0.5 * dt * k2);
-            let k4 = mu[i] * (si + dt * k3);
-
-            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
-
-            let diffusion = sigma[i] * si * dw * sqrt_dt;
-
-            let milstein = 0.5 * sigma[i] * sigma[i] * si * (dw * dw - dt);
-
-            s[i] = si + drift + diffusion + milstein;
-
-            if s[i] < 0.0 {
-                s[i] = 0.0001;
-            }
-        }
-    }
-
-    Python::with_gil(|py| Ok(s.into_pyarray(py).to_owned()))
-}
-
-#[pyfunction]
-fn mmap_parse_ticks(path: &str) -> PyResult<Py<PyArray1<f64>>> {
-    let file = File::open(path)?;
-    let mmap = unsafe { Mmap::map(&file)? };
-
-    let data: &[f64] = unsafe {
-        let ptr = mmap.as_ptr() as *const f64;
-        let len = mmap.len() / std::mem::size_of::<f64>();
-        std::slice::from_raw_parts(ptr, len)
-    };
-
-    let vec_data = data.to_vec();
-    Python::with_gil(|py| Ok(vec_data.into_pyarray(py).to_owned()))
-}
-
-#[pyfunction]
-fn mmap_parse_structured_ticks(path: &str) -> PyResult<(Py<PyArray1<f64>>, Py<PyArray1<f64>>)> {
-    let file = File::open(path)?;
-    let mmap = unsafe { Mmap::map(&file)? };
-
-    // Assumption: Binary format [Timestamp (f64), Price (f64)]
-    let record_size = std::mem::size_of::<f64>() * 2;
-    let n_records = mmap.len() / record_size;
-
-    let mut timestamps = Vec::with_capacity(n_records);
-    let mut prices = Vec::with_capacity(n_records);
-
-    unsafe {
-        let ptr = mmap.as_ptr() as *const f64;
-        for i in 0..n_records {
-            timestamps.push(*ptr.add(i * 2));
-            prices.push(*ptr.add(i * 2 + 1));
-        }
-    }
-
-    Python::with_gil(|py| {
-        Ok((
-            timestamps.into_pyarray(py).to_owned(),
-            prices.into_pyarray(py).to_owned(),
-        ))
-    })
-}
 #[pyfunction]
 fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
     if timestamp <= 0.0 || price <= 0.0 || volume < 0.0 {
@@ -484,7 +343,7 @@ fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
 
 #[pyclass]
 pub struct TickDataBuffer {
-    mmap: std::sync::Arc<Mmap>,
+    mmap: Arc<Mmap>,
 }
 
 #[pymethods]
@@ -494,7 +353,7 @@ impl TickDataBuffer {
         let file = File::open(path)?;
         let mmap = unsafe { Mmap::map(&file)? };
         Ok(Self {
-            mmap: std::sync::Arc::new(mmap),
+            mmap: Arc::new(mmap),
         })
     }
 
@@ -502,43 +361,51 @@ impl TickDataBuffer {
         self.mmap.len()
     }
 
-    /// Optimized batch parser for fixed-size 32-byte binary ticks
-    /// Format: Symbol (8b), Price (8b f64), Volume (8b i64), Timestamp (8b f64)
-    pub fn parse_ticks_32b(&self, offset: usize, count: usize) -> PyResult<Vec<(String, f64, i64, f64)>> {
+    /// Returns a zero-copy numpy view of the tick data.
+    /// Format: 8-byte EQUA header, followed by 32-byte records.
+    /// Columns: Symbol (bits), Price (f64), Volume (bits), Timestamp (f64)
+    pub fn as_numpy(slf: PyRef<'_, Self>) -> PyResult<Py<PyArray2<f64>>> {
+        let py = slf.py();
+        let header_size = 8;
         let tick_size = 32;
-        if offset + (count * tick_size) > self.mmap.len() {
-            return Err(pyo3::exceptions::PyIOError::new_err("Buffer overflow during tick parsing"));
+        
+        if slf.mmap.len() < header_size {
+            return Err(pyo3::exceptions::PyValueError::new_err("File too small for EQUA header"));
         }
 
-        let mut ticks = Vec::with_capacity(count);
-        for i in 0..count {
-            let start = offset + (i * tick_size);
-            let slice = &self.mmap[start..start + tick_size];
-
-            let symbol = String::from_utf8_lossy(&slice[0..8]).trim_end_matches('\0').to_string();
-            let price = f64::from_le_bytes(slice[8..16].try_into().unwrap());
-            let volume = i64::from_le_bytes(slice[16..24].try_into().unwrap());
-            let timestamp = f64::from_le_bytes(slice[24..32].try_into().unwrap());
-
-            ticks.push((symbol, price, volume, timestamp));
+        let data_len = slf.mmap.len() - header_size;
+        let n_records = data_len / tick_size;
+        
+        if n_records == 0 {
+            return Ok(unsafe { PyArray2::zeros(py, [0, 4], false).to_owned() });
         }
-        Ok(ticks)
+
+        let ptr = unsafe { slf.mmap.as_ptr().add(header_size) as *const f64 as *mut f64 };
+        
+        let array = unsafe {
+            PyArray2::from_borrowed_ptr(py, ptr, [n_records, 4])
+        };
+
+        // Set base to self to ensure Mmap stays alive
+        unsafe {
+            let array_ptr = array.as_array_ptr() as *mut numpy::ffi::PyArrayObject;
+            let base_obj = slf.to_object(py);
+            let base_ptr = base_obj.into_ptr();
+            (*array_ptr).base = base_ptr;
+        }
+
+        Ok(array.to_owned())
     }
 }
 
 #[pymodule]
 fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<TickDataBuffer>()?;
-    m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
-...
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
-    m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
-    m.add_function(wrap_pyfunction!(mmap_parse_ticks, m)?)?;
-    m.add_function(wrap_pyfunction!(mmap_parse_structured_ticks, m)?)?;
-    m.add_function(wrap_pyfunction!(runge_kutta_4_vectorized, m)?)?;
-    m.add_function(wrap_pyfunction!(runge_kutta_4_gbm, m)?)?;
-    m.add_function(wrap_pyfunction!(simulate_gbm_euler, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
+    m.add_function(wrap_pyfunction!(exact_gbm_path, m)?)?;
     m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
     Ok(())
 }

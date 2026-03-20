@@ -471,7 +471,7 @@ services:
       - pgbouncer
     networks:
       - bsopt-network
-    command: python src/scrapers/engine.py
+    command: python src/ingestion/engine.py
 
   # === yfinance Scraper Service ===
   yfinance-scraper:
@@ -501,7 +501,7 @@ services:
       - pgbouncer
     networks:
       - bsopt-network
-    command: python src/scrapers/yfinance_scraper.py
+    command: python src/ingestion/yfinance_scraper.py
 
   # === Generic Scraper Service ===
   scraper:
@@ -885,10 +885,14 @@ services:
       - ../../.pki/ingestion-service.key:/etc/postgresql/ingestion-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../../.pki/vault.key:/app/keys/vault.key:ro
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
     sysctls:
       - net.core.somaxconn=4096
       - net.ipv4.tcp_fastopen=3
-    command: python src/data/ingestion_service.py
+    command: python src/ingestion/ingestion_service.py
 
   # === [Institutional] Stream Transformer ===
   transformer:
@@ -912,7 +916,11 @@ services:
       - ../../.pki/transformer.key:/etc/postgresql/transformer.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
       - ../../.pki/vault.key:/app/keys/vault.key:ro
-    command: python src/streaming/transformer.py
+    deploy:
+      resources:
+        limits:
+          memory: 1gb
+    command: python src/ingestion/concurrent_ingestion.py
 
   # === [Specialized] Envoy API Gateway (Institutional Edge) ===
   envoy:
@@ -991,6 +999,7 @@ services:
       - '--web.enable-lifecycle'
     volumes:
       - ../monitoring/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/monitoring/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
     deploy:
       resources:
