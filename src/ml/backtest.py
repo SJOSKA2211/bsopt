@@ -79,7 +79,7 @@ class BacktestEngine:
                     threshold=sharpe_threshold)
 
         # Institutional Audit Logging
-        with self.tracker.start_run() as run:
+        with self.tracker.start_run():
             self.tracker.log_metrics(
                 accuracy=avg_sharpe, # Using sharpe as a proxy for 'accuracy' in this context
                 rmse=total_pnl, 

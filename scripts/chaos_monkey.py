@@ -62,7 +62,6 @@ def chaos_loop(interval=300):
         
         # Give it a moment to realize it's dead and for restart policy to kick in
         time.sleep(10)
-        monitor_recovery(target)
         
         # Wait for the next chaos event
         wait_time = random.randint(interval // 2, interval * 2)

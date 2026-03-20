@@ -310,6 +310,7 @@ def _calculate_maturity_jit(
 
 def _check_cache(file_path: str) -> bool:
     """Checks if a data cache exists and is fresh (within 24 hours)."""
+    import os
     if not os.path.exists(file_path):
         return False
     import time

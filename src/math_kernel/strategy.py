@@ -88,12 +88,6 @@ class DynamicPricingService:
 
         return round(adjusted_price, 2)
 
-    def analyze_elasticity(self, tier: str) -> float:
-        """Calculate price elasticity of demand: % Change in Q / % Change in P."""
-        data = self.elasticity_data.get(tier)
-        if not data or data[0] == 0:
-            return 0.0
-        return data[1] / data[0]
 
     def automate_adjustments(self, competitor_prices: list[float]) -> PricingStrategy:
         """Suggest a strategy based on competitor data."""

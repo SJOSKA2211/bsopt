@@ -1,26 +1,60 @@
 import React from 'react';
 import { IconButton, Tooltip, Stack, Typography } from '@mui/material';
 import { ShowChart } from '@mui/icons-material';
+import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
 interface WasmGreeksCellProps {
-  price?: number;
-  greeks?: {
+  spot: number;
+  strike: number;
+  time: number; // Time to maturity in years
+  vol: number;
+  rate: number;
+  div: number;
+  isCall: boolean;
+}
+
+interface WasmResult {
+  price: number;
+  greeks: {
     delta: number;
     gamma: number;
     vega: number;
     theta: number;
     rho: number;
   };
-  isLoaded?: boolean;
 }
 
 export const WasmGreeksCell = React.memo(({
-  price,
-  greeks,
-  isLoaded = true,
+  spot,
+  strike,
+  time,
+  vol,
+  rate,
+  div,
+  isCall,
 }: WasmGreeksCellProps) => {
+  const { priceOption, isLoaded } = useWasmPricing();
 
-  if (!isLoaded || !greeks || price === undefined) {
+  const [result, setResult] = React.useState<WasmResult | null>(null);
+
+  React.useEffect(() => {
+    if (!isLoaded) return;
+    const fetch = async () => {
+      const res = await priceOption({
+        spot,
+        strike,
+        time,
+        vol,
+        rate,
+        div,
+        is_call: isCall,
+      });
+      setResult(res);
+    };
+    fetch();
+  }, [isLoaded, spot, strike, time, vol, rate, div, isCall, priceOption]);
+
+  if (!isLoaded || !result) {
     return (
       <IconButton size="small" disabled aria-label="Greeks calculation pending">
         <ShowChart fontSize="small" color="disabled" />
@@ -28,7 +62,7 @@ export const WasmGreeksCell = React.memo(({
     );
   }
 
-  const { delta, gamma, vega, theta, rho } = greeks;
+  const { delta, gamma, vega, theta, rho } = result.greeks;
 
   return (
     <Tooltip
@@ -40,7 +74,7 @@ export const WasmGreeksCell = React.memo(({
           <Typography variant="caption">Vega: {vega.toFixed(4)}</Typography>
           <Typography variant="caption">Theta: {theta.toFixed(4)}</Typography>
           <Typography variant="caption">Rho: {rho.toFixed(4)}</Typography>
-          <Typography variant="caption">Theor. Price: ${price.toFixed(4)}</Typography>
+          <Typography variant="caption">Theor. Price: ${result.price.toFixed(4)}</Typography>
         </Stack>
       }
     >

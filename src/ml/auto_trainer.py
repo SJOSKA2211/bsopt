@@ -197,7 +197,7 @@ class AutoTrainer:
         try:
             from sqlalchemy import func, select
 
-            from src.database.models import Symbol
+            from src.database.models import MarketTick, Symbol
 
             async with self.db_manager.session() as session:
                 result = await session.execute(

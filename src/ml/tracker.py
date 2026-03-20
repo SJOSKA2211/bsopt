@@ -114,8 +114,18 @@ class ExperimentTracker:
         model_uri = f"runs:/{run_id}/{artifact_path}"
         return mlflow.register_model(model_uri, model_name)
 
-    def transition_model_stage(self, model_name: str, version: int, stage: str) -> None:
+    def transition_model_stage(
+        self,
+        model_name: str,
+        version: int,
+        stage: str,
+        framework: str = "pytorch",
+        model: Any = None,
+        artifact_path: str = "model"
+    ) -> None:
         """Promote or rollback a model version in the registry."""
+        import os
+        import tempfile
         client = mlflow.tracking.MlflowClient()
         client.transition_model_version_stage(
             name=model_name,
@@ -126,17 +136,18 @@ class ExperimentTracker:
         logger.info("model_stage_transitioned", name=model_name, version=version, stage=stage)
 
         # OPTIMIZED: Auto-export to ONNX for production inference
-        try:
-            from src.ml.strategies import get_strategy
-            strategy = get_strategy(framework)
-            onnx_path = os.path.join(tempfile.gettempdir(), f"{artifact_path}.onnx")
-            # We assume a default input dim of 20 for now; in a real scenario
-            # this would be passed or extracted from the model
-            strategy.export_onnx(model, onnx_path, input_dim=20)
-            if os.path.exists(onnx_path):
-                mlflow.log_artifact(onnx_path, f"{artifact_path}_onnx")
-        except Exception as e:
-            logger.warning("onnx_auto_export_failed", error=str(e))
+        if model is not None:
+            try:
+                from src.ml.strategies import get_strategy
+                strategy = get_strategy(framework)
+                onnx_path = os.path.join(tempfile.gettempdir(), f"{artifact_path}.onnx")
+                # We assume a default input dim of 20 for now; in a real scenario
+                # this would be passed or extracted from the model
+                strategy.export_onnx(model, onnx_path, input_dim=20)
+                if os.path.exists(onnx_path):
+                    mlflow.log_artifact(onnx_path, f"{artifact_path}_onnx")
+            except Exception as e:
+                logger.warning("onnx_auto_export_failed", error=str(e))
 
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
         plt.figure(figsize=(10, 6))
