@@ -205,47 +205,6 @@ def simulate_gbm_euler(
     return paths
 
 
-def simulate_gbm_rk4(
-    s0: np.ndarray,
-    mu: np.ndarray,
-    sigma: np.ndarray,
-    t: float,
-    dt: float,
-    seed: int | None = None,
-) -> np.ndarray:
-    """Runge-Kutta 4th order numerical solver for Geometric Brownian Motion.
-
-    Warning: This is an approximation as standard RK methods are meant for ODEs,
-    not SDEs. Milstein is generally preferred for stochastic systems.
-    Included for backward compatibility.
-    """
-    n_steps = int(t / dt)
-    n_paths = s0.size
-
-    paths = np.zeros((n_steps + 1, n_paths), dtype=np.float64)
-    paths[0] = s0
-
-    current = s0.copy()
-
-    if seed is not None:
-        np.random.seed(seed)
-
-    for step in range(n_steps):
-        # Generate standard normal random variables
-        z = np.random.standard_normal(n_paths)
-        dw = z * np.sqrt(dt)
-
-        # RK4 Steps
-        k1 = mu * current * dt + sigma * current * dw
-        k2 = mu * (current + 0.5 * k1) * dt + sigma * (current + 0.5 * k1) * dw
-        k3 = mu * (current + 0.5 * k2) * dt + sigma * (current + 0.5 * k2) * dw
-        k4 = mu * (current + k3) * dt + sigma * (current + k3) * dw
-
-        current = current + (k1 + 2*k2 + 2*k3 + k4) / 6.0
-        paths[step + 1] = current
-
-    return paths
-
 def simulate_gbm_milstein(
     s0: np.ndarray,
     mu: np.ndarray,

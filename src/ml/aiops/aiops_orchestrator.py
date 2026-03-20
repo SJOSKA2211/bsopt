@@ -18,7 +18,6 @@ from src.aiops.docker_remediator import DockerRemediator
 from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.remediators import RemediationPlanner
 from src.shared.config import settings
-from src.shared.observability import post_grafana_annotation
 
 logger = structlog.get_logger(__name__)
 
@@ -119,19 +118,10 @@ class AIOpsOrchestrator:
         for anomaly_type in anomalies:
             if anomaly_type == "high_error_rate":
                 self.docker_remediator.restart_service(self.api_service_name)
-                # post_grafana_annotation is async, but we're in a sync method.
-                # Running it in the event loop properly for a "fire-and-forget" annotation.
-                try:
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(post_grafana_annotation(
-                        f"Restarted {self.api_service_name} due to high error rate",
-                        ["aiops", "remediation"],
-                    ))
-                except RuntimeError:
-                    asyncio.run(post_grafana_annotation(
-                        f"Restarted {self.api_service_name} due to high error rate",
-                        ["aiops", "remediation"],
-                    ))
+                post_grafana_annotation(
+                    f"Restarted {self.api_service_name} due to high error rate",
+                    ["aiops", "remediation"],
+                )
             elif anomaly_type == "data_drift":
                 logger.warning("triggering_mlflow_retrain_run")
                 try:

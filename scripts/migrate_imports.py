@@ -47,8 +47,7 @@ IMPORT_MAPPINGS = {
 
 def move_files():
     for old_rel, new_rel in MAPPINGS.items():
-        if '.' in old_rel:
-            continue # skip pure import mappings
+        if '.' in old_rel: continue # skip pure import mappings
         
         old_path = os.path.join(ROOT, old_rel)
         new_path = os.path.join(ROOT, new_rel)
@@ -77,7 +76,7 @@ def move_files():
         
         try:
             os.rmdir(old_path)
-        except OSError:
+        except:
             pass
 
 def rewrite_imports():

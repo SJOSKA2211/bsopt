@@ -79,8 +79,7 @@ class Subscription:
         if not redis:
             # Fallback to single fetch if Redis is unavailable
             port = await service_get_portfolio(str(portfolio_id))
-            if port:
-                yield port
+            if port: yield port
             return
 
         pubsub = redis.pubsub()

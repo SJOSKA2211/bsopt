@@ -144,12 +144,12 @@ protos:
 	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo build
 
 lint:
-	ruff check .
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings || true
+	$(DOCKER_COMPOSE) run --rm api ruff check .
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
 
 format:
-	ruff format .
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt || true
+	$(DOCKER_COMPOSE) run --rm api ruff format .
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt
 
 envoy-up:
 	@echo "🕸️  Launching Envoy Edge Proxy..."

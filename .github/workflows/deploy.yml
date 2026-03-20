@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Compose
-        run: docker compose version
+        run: docker-compose --version
 
       - name: Bootstrap and run E2E
         run: |
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build local container for scanning
-        run: docker build -t equaflow-api:local -f infrastructure/docker/Dockerfile.api --target production .
+        run: docker build -t equaflow-api:local -f docker/Dockerfile.api --target production .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

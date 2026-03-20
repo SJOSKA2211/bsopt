@@ -235,8 +235,7 @@ class ModelPromoter:
             }
 
         try:
-            # Check existing versions to ensure model is registered
-            self.client.search_model_versions(
+            existing_versions = self.client.search_model_versions(
                 f"name='{self.model_name}'"
             )
 

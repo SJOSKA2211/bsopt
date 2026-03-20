@@ -14,8 +14,8 @@ class MessageBroker:
     """
     def __init__(self):
         self.url = os.getenv("RABBITMQ_URL", "amqp://bsopt_admin:bsopt_rmq_secret@rabbitmq:5672/")
-        self.connection: aio_pika.RobustConnection | None = None
-        self.channel: aio_pika.RobustChannel | None = None
+        self.connection: Optional[aio_pika.RobustConnection] = None
+        self.channel: Optional[aio_pika.RobustChannel] = None
 
     async def connect(self):
         """Establish a robust connection to RabbitMQ."""
