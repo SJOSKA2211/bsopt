@@ -32,32 +32,44 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
   
   useEffect(() => {
-    if (!options.enabled) return;
+    if (!options.enabled) {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      setIsConnected(false);
+      return;
+    }
 
-    const updateInterval = 1000 / (options.updateFrequency || 10); // Default 10Hz
+    const updateInterval = 1000 / (options.updateFrequency || 10);
+    let reconnectTimer: NodeJS.Timeout | null = null;
+    let isMounted = true;
 
     const connect = () => {
+      if (!isMounted || !options.enabled) return;
+
       const ws = new WebSocket(options.url);
       if (options.useProtobuf) ws.binaryType = 'arraybuffer';
       wsRef.current = ws;
 
       ws.onopen = () => {
+        if (!isMounted) return;
         setIsConnected(true);
         ws.send(JSON.stringify({ type: 'subscribe', symbols: options.symbols }));
       };
 
       ws.onmessage = (event) => {
+        if (!isMounted) return;
         try {
           let parsed: T;
           if (options.useProtobuf && protoRootRef.current) {
-            const MessageType = (protoRootRef.current as { lookupType: (n: string) => { decode: (d: unknown) => unknown; toObject: (d: unknown) => T } }).lookupType('bsopt.OptionsData');
+            const MessageType = (protoRootRef.current as any).lookupType('bsopt.OptionsData');
             const decoded = MessageType.decode(new Uint8Array(event.data));
             parsed = MessageType.toObject(decoded) as T;
           } else {
             parsed = JSON.parse(event.data);
           }
 
-          // OPTIMIZED: Throttled State Dispatch
           bufferRef.current = parsed;
           const now = performance.now();
           if (now - lastUpdateRef.current > updateInterval) {
@@ -70,14 +82,29 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
       };
 
       ws.onclose = () => {
+        if (!isMounted) return;
         setIsConnected(false);
-        setTimeout(connect, 3000);
+        wsRef.current = null;
+        if (options.enabled) {
+          reconnectTimer = setTimeout(connect, 1000); // 1s reconnect
+        }
+      };
+
+      ws.onerror = () => {
+        if (!isMounted) return;
+        ws.close();
       };
     };
 
     connect();
+
     return () => {
-      if (wsRef.current) wsRef.current.close();
+      isMounted = false;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [options.url, options.enabled, symbolsString, options.symbols, options.useProtobuf, options.updateFrequency]);
 

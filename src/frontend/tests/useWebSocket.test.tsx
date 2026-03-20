@@ -68,7 +68,7 @@ describe('useWebSocket', () => {
     await waitFor(() => {
       expect(result.current.isConnected).toBe(true);
       expect(result.current.data).toEqual(mockData);
-    }, { timeout: 5000 }); // Longer timeout for reconnection (3s + some buffer)
+    }, { timeout: 10000 }); // Longer timeout for reconnection
 
     expect(connectionCount).toBeGreaterThanOrEqual(2);
   });

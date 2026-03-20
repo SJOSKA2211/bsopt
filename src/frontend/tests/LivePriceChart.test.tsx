@@ -22,12 +22,15 @@ import { useMotionValue } from 'framer-motion';
 // Mock lightweight-charts
 vi.mock('lightweight-charts', () => ({
   createChart: vi.fn().mockReturnValue({
-    addLineSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
-    addCandlestickSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
+    addSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
     remove: vi.fn(),
     applyOptions: vi.fn(),
     timeScale: vi.fn().mockReturnValue({ fitContent: vi.fn() }),
+    resize: vi.fn(),
   }),
+  ColorType: { Solid: 0 },
+  CrosshairMode: { Normal: 0 },
+  CandlestickSeries: 'CandlestickSeries',
 }));
 
 const mockHistoricalData = [

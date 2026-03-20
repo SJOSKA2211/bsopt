@@ -109,6 +109,12 @@ vi.mock('@apollo/client/react', async (importOriginal) => {
   };
 });
 
+vi.mock('@react-three/drei', () => ({
+  Points: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-points' }, children),
+  PointMaterial: () => null,
+  Float: ({ children }: any) => React.createElement('div', { 'data-testid': 'drei-float' }, children),
+}));
+
 // Mock Three.js and R3F to prevent unrecognized tag errors in jsdom
 vi.mock('three', () => ({
   WebGLRenderer: vi.fn(() => ({
@@ -118,15 +124,20 @@ vi.mock('three', () => ({
   Scene: vi.fn(),
   PerspectiveCamera: vi.fn(),
   Mesh: vi.fn(),
+  Group: vi.fn(),
+  Points: vi.fn(),
   BoxGeometry: vi.fn(),
   MeshStandardMaterial: vi.fn(),
   DirectionalLight: vi.fn(),
   AmbientLight: vi.fn(),
   PointLight: vi.fn(() => ({ position: { set: vi.fn() } })),
-  Vector3: vi.fn(),
+  Vector3: vi.fn(() => ({ set: vi.fn(), lerp: vi.fn() })),
   Color: vi.fn(),
   AdditiveBlending: 2,
   ShaderMaterial: vi.fn(),
+  MathUtils: {
+    lerp: (a: number, b: number, t: number) => a + (b - a) * t,
+  },
 }));
 
 vi.mock('@react-three/fiber', async (importOriginal) => {
@@ -136,8 +147,10 @@ vi.mock('@react-three/fiber', async (importOriginal) => {
     Canvas: ({ children }: { children: React.ReactNode }) => React.createElement('div', { 'data-testid': 'canvas' }, children),
     useFrame: vi.fn(),
     useThree: vi.fn(() => ({
-      viewport: { width: 0, height: 0, factor: 0 },
-      size: { width: 0, height: 0 },
+      viewport: { width: 1000, height: 1000, factor: 1 },
+      size: { width: 1000, height: 1000 },
+      mouse: { x: 0, y: 0 },
+      camera: { position: { x: 0, y: 0, z: 8 } },
     })),
   };
 });
