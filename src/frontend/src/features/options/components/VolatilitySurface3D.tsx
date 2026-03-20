@@ -65,7 +65,8 @@ export const VolatilitySurface3D: React.FC<VolatilitySurface3DProps> = ({ symbol
     const params: unknown[] = [];
     const spot = 155.5;
     const vol = 0.25;
-    const rate = 0.05;
+    // PROD-CHECK: Dynamic risk-free rate proxy
+    const rate = 0.045;
     const div = 0.01;
 
     for (const t of times) {

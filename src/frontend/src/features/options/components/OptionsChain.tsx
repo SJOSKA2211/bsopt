@@ -206,8 +206,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
     if (!optionsData.length || !isWasmLoaded) return;
 
     const runWasmEnrichment = async () => {
-      const rate = 0.05;
-      const div = 0.0;
+      // PROD-CHECK: Shared proxy parameters consistent with PositionsSummary
+      const riskFreeRate = 0.045;
+      const dividendYield = 0.015;
       const now = new Date();
 
       const allParams = [
@@ -218,9 +219,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
             spot: row.underlying_price,
             strike: row.strike,
             time: timeToExpiry,
-            vol: row.call_iv,
-            rate,
-            div,
+            vol: row.call_iv || 0.25,
+            rate: riskFreeRate,
+            div: dividendYield,
             is_call: true
           };
         }),
@@ -231,9 +232,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
             spot: row.underlying_price,
             strike: row.strike,
             time: timeToExpiry,
-            vol: row.put_iv,
-            rate,
-            div,
+            vol: row.put_iv || 0.25,
+            rate: riskFreeRate,
+            div: dividendYield,
             is_call: false
           };
         })
@@ -437,16 +438,18 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
+        const now = new Date();
+        const expiryDate = new Date(row.expiry);
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        const rate = 0.045;
+        const div = 0.015;
 
         return (
           <WasmGreeksCell
             spot={row.underlying_price}
             strike={row.strike}
             time={timeToExpiry}
-            vol={row.call_iv}
+            vol={row.call_iv || 0.25}
             rate={rate}
             div={div}
             isCall={true}
@@ -644,16 +647,18 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
-        const timeToExpiry = 30 / 365;
-        const rate = 0.05;
-        const div = 0.0;
+        const now = new Date();
+        const expiryDate = new Date(row.expiry);
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        const rate = 0.045;
+        const div = 0.015;
 
         return (
           <WasmGreeksCell
             spot={row.underlying_price}
             strike={row.strike}
             time={timeToExpiry}
-            vol={row.put_iv}
+            vol={row.put_iv || 0.25}
             rate={rate}
             div={div}
             isCall={false}

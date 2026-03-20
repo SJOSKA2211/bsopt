@@ -91,20 +91,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
         time: (d.time as Time)
       })));
     } else {
-      // Mock historical data if query fails or is empty for demo
-      const data = [];
-      const now = new Date();
-      for (let i = 0; i < 100; i++) {
-        const time = new Date(now.getTime() - (100 - i) * 60000);
-        data.push({
-          time: (Math.floor(time.getTime() / 1000) as Time),
-          open: 150 + Math.random() * 10,
-          high: 165 + Math.random() * 10,
-          low: 145 + Math.random() * 10,
-          close: 155 + Math.random() * 10,
-        });
-      }
-      candleSeries.setData(data);
+      console.log(`[Zenith] No historical data for ${symbol}. Waiting for live ticks.`);
     }
 
     chartRef.current = chart;
