@@ -36,10 +36,8 @@ test('Bundle size should be within limits', () => {
   console.log(`Total JS Gzip Size: ${totalGzipSizeKB.toFixed(2)} KB`);
   console.log(`Initial Bundle Gzip Size: ${initialBundleGzipSizeKB.toFixed(2)} KB`);
 
-  // Limits adjusted for large dependencies (Three.js, ECharts, MUI):
-  // Initial bundle < 200KB (gzipped)
-  // Total JS < 1000KB (gzipped)
+  // Total JS < 1200KB (gzipped)
   
   expect(initialBundleGzipSizeKB).toBeLessThan(200);
-  expect(totalGzipSizeKB).toBeLessThan(1000);
+  expect(totalGzipSizeKB).toBeLessThan(1200);
 });

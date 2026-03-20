@@ -7,22 +7,22 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePortfolio } from '../src/features/portfolio/hooks/usePortfolio';
 import React from 'react';
 
-// Mock the hook
+// Mock the hooks
 vi.mock('../src/features/portfolio/hooks/usePortfolio');
+vi.mock('../src/hooks/useWasmPricing', () => ({
+  useWasmPricing: () => ({
+    isLoaded: true,
+    batchCalculate: vi.fn().mockResolvedValue([
+      { greeks: { delta: 0.1, gamma: 0.01, vega: 0.05, theta: -0.002, rho: 0.001 } },
+      { greeks: { delta: -0.2, gamma: 0.02, vega: 0.08, theta: -0.005, rho: 0.002 } }
+    ])
+  })
+}));
 
 const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
   return ({ children }: { children: React.ReactNode }) => (
     <ThemeProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      {children}
     </ThemeProvider>
   );
 };

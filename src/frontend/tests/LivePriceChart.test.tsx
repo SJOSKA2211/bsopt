@@ -1,73 +1,61 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { LivePriceChart } from '../src/features/charts/components/LivePriceChart';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';
-import { MockedProvider } from '@apollo/client/testing/react';
 import '@testing-library/jest-dom';
-import { gql } from '@apollo/client';
 import React from 'react';
 
-const MARKET_SUBSCRIPTION = gql`
-  subscription OnMarketUpdate($symbols: [String!]!) {
-    market_data_stream(symbols: $symbols) {
-      symbol
-      lastPrice: last_price
-      volume
-    }
-  }
-`;
+// Mock Apollo hooks
+vi.mock('@apollo/client/react', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    useQuery: vi.fn(),
+    useSubscription: vi.fn(),
+  };
+});
 
-const GET_HISTORICAL_DATA = gql`
-  query GetHistoricalData($symbol: String!) {
-    historicalData(symbol: $symbol) {
-      time
-      open
-      high
-      low
-      close
-    }
-  }
-`;
+import { useQuery, useSubscription } from '@apollo/client/react';
+import { useMotionValue } from 'framer-motion';
 
-const mocks = [
-  {
-    request: {
-      query: GET_HISTORICAL_DATA,
-      variables: { symbol: 'AAPL' },
-    },
-    result: {
-      data: {
-        historicalData: [
-          { time: 1768226400, open: 150, high: 155, low: 145, close: 152 },
-        ],
-      },
-    },
-  },
-  {
-    request: {
-      query: MARKET_SUBSCRIPTION,
-      variables: { symbols: ['AAPL'] },
-    },
-    result: {
-      data: {
-        market_data_stream: {
-          symbol: 'AAPL',
-          lastPrice: 153.50,
-          volume: 1000,
-        },
-      },
-    },
-  },
+// Mock lightweight-charts
+vi.mock('lightweight-charts', () => ({
+  createChart: vi.fn().mockReturnValue({
+    addLineSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
+    addCandlestickSeries: vi.fn().mockReturnValue({ setData: vi.fn(), update: vi.fn() }),
+    remove: vi.fn(),
+    applyOptions: vi.fn(),
+    timeScale: vi.fn().mockReturnValue({ fitContent: vi.fn() }),
+  }),
+}));
+
+const mockHistoricalData = [
+  { time: 1768226400, open: 150, high: 155, low: 145, close: 152 },
 ];
 
+const mockUpdate = {
+  symbol: 'AAPL',
+  lastPrice: 153.50,
+  volume: 1000,
+};
+
 test('LivePriceChart renders chart container', () => {
+  (useQuery as any).mockReturnValue({
+    data: { historicalData: mockHistoricalData },
+    loading: false,
+    error: null,
+  });
+
+  (useSubscription as any).mockReturnValue({
+    data: { market_data_stream: mockUpdate },
+    loading: false,
+  });
+
   render(
-    <MockedProvider mocks={mocks}>
-      <ThemeProvider theme={theme}>
-        <LivePriceChart symbol="AAPL" />
-      </ThemeProvider>
-    </MockedProvider>
+    <ThemeProvider theme={theme}>
+      <LivePriceChart symbol="AAPL" />
+    </ThemeProvider>
   );
 
   expect(screen.getByTestId('live-price-chart-container')).toBeInTheDocument();

@@ -122,8 +122,11 @@ vi.mock('three', () => ({
   MeshStandardMaterial: vi.fn(),
   DirectionalLight: vi.fn(),
   AmbientLight: vi.fn(),
+  PointLight: vi.fn(() => ({ position: { set: vi.fn() } })),
   Vector3: vi.fn(),
   Color: vi.fn(),
+  AdditiveBlending: 2,
+  ShaderMaterial: vi.fn(),
 }));
 
 vi.mock('@react-three/fiber', async (importOriginal) => {
