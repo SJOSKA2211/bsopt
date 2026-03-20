@@ -41,13 +41,7 @@ const LoadingFallback: React.FC = () => (
 
 const SYMBOLS = ['AAPL', 'SPY', 'QQQ', 'NVDA', 'TSLA'];
 
-const MARKET_PULSE = [
-  { label: 'IV Rank', value: '42.3%', type: 'nebula', icon: <IVIcon sx={{ fontSize: 14 }} /> },
-  { label: 'HV30', value: '28.1%', type: 'sky', icon: <HVIcon sx={{ fontSize: 14 }} /> },
-  { label: 'P/C Ratio', value: '0.87', type: 'quantum', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
-  { label: 'Volume', value: '73.2M', type: 'electrum', icon: null },
-  { label: 'Open Int.', value: '4.82B', type: 'electrum', icon: null },
-];
+
 
 export const MarketPage: React.FC = () => {
   const theme = useTheme();
@@ -60,12 +54,28 @@ export const MarketPage: React.FC = () => {
   
   // Get live price and stats from high perf store
   const priceData = usePricingStore((state) => state.prices[currentSymbol]);
-  const livePrice = priceData?.price ?? 189.42;
+  const livePrice = priceData?.price ?? 0;
 
-  // Derive static mocks to give appearance of live movement
-  const isPriceUp = livePrice > 185;
-  const priceDiff = Math.abs(livePrice - 185).toFixed(2);
-  const pricePct = ((Number(priceDiff) / 185) * 100).toFixed(2);
+  // Compute reference price from real prev_close data
+  const prevClose = priceData?.prev_close ?? priceData?.price ?? 0;
+  const isPriceUp = prevClose > 0 ? livePrice >= prevClose : true;
+  const priceDiff = prevClose > 0 ? Math.abs(livePrice - prevClose).toFixed(2) : '0.00';
+  const pricePct = prevClose > 0 ? (Math.abs(livePrice - prevClose) / prevClose * 100).toFixed(2) : '0.00';
+
+  // Compute market pulse stats from live data
+  const ivRank = priceData?.iv_rank != null ? `${(priceData.iv_rank * 100).toFixed(1)}%` : '—';
+  const hv30 = priceData?.hv30 != null ? `${(priceData.hv30 * 100).toFixed(1)}%` : '—';
+  const pcr = priceData?.put_call_ratio != null ? priceData.put_call_ratio.toFixed(2) : '—';
+  const vol = priceData?.volume != null ? `${(priceData.volume / 1_000_000).toFixed(1)}M` : '—';
+  const oi = priceData?.open_interest != null ? `${(priceData.open_interest / 1_000_000_000).toFixed(2)}B` : '—';
+
+  const MARKET_PULSE = [
+    { label: 'IV Rank', value: ivRank, type: 'nebula', icon: <IVIcon sx={{ fontSize: 14 }} /> },
+    { label: 'HV30', value: hv30, type: 'sky', icon: <HVIcon sx={{ fontSize: 14 }} /> },
+    { label: 'P/C Ratio', value: pcr, type: 'quantum', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
+    { label: 'Volume', value: vol, type: 'electrum', icon: null },
+    { label: 'Open Int.', value: oi, type: 'electrum', icon: null },
+  ];
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, pb: 6 }}>

@@ -21,7 +21,13 @@ class PolygonProvider:
     @retry_with_backoff(retries=3, exceptions=(Exception,))
     async def get_ticker_data(self, symbol: str) -> dict:
         if self.api_key == "DEMO_KEY":
-            return {"symbol": symbol, "price": 150.0, "provider": "Polygon (Mock)"}
+            logger.warning(
+                "polygon_demo_key_detected",
+                symbol=symbol,
+                action="falling_back_to_yahoo",
+            )
+            yahoo = YahooProvider()
+            return await yahoo.get_ticker_data(symbol)
 
         url = f"https://api.polygon.io/v2/last/trade/{symbol}?apiKey={self.api_key}"
         response = await self.client.get(url)

@@ -7,6 +7,13 @@ interface PriceData {
   delta: number;
   gamma: number;
   timestamp: number;
+  // Extended market data fields (optional, from live data provider)
+  prev_close?: number;
+  iv_rank?: number;
+  hv30?: number;
+  put_call_ratio?: number;
+  volume?: number;
+  open_interest?: number;
 }
 
 interface PricingState {

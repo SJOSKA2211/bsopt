@@ -37,7 +37,9 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
         wsRef.current.close();
         wsRef.current = null;
       }
-      setIsConnected(false);
+      // Schedule state update asynchronously to avoid calling setState
+      // synchronously within an effect (which triggers cascading renders)
+      queueMicrotask(() => setIsConnected(false));
       return;
     }
 

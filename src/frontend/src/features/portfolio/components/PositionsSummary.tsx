@@ -62,6 +62,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
       // PROD-CHECK: These should ideally be fetched from a central Settings/Risk service
       const riskFreeRate = 0.045; // Approximately 4.5% (UST 10Y/3M proxy)
       const dividendYield = 0.015; // S&P 500 average proxy
+      const now = new Date();
 
       const params = data.positions.map(pos => {
         const expiryDate = pos.expiry ? new Date(pos.expiry) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
