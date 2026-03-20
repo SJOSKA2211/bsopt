@@ -328,6 +328,10 @@ services:
       - INSIDE_DOCKER=1
       - ML_SERVICE_PORT=5001
       - ML_SERVICE_GRPC_URL=0.0.0.0:50051
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+      - MLFLOW_S3_UPLOAD_CONCURRENCY=5
+      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=10
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health').read()"]
       interval: 10s
@@ -781,6 +785,8 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minio_secret_key}
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
       - MLFLOW_S3_IGNORE_TLS=true
+      - MLFLOW_S3_UPLOAD_CONCURRENCY=10
+      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=10
     volumes:
       - ../../mlruns:/app/mlruns
       - ../../.pki/mlflow.crt:/etc/postgresql/mlflow.crt:ro
@@ -828,6 +834,11 @@ services:
       - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
+      - RAY_WORKERS=4
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+      - MLFLOW_S3_UPLOAD_CONCURRENCY=5
+      - MLFLOW_S3_DOWNLOAD_CONCURRENCY=5
     command: ["mlflow", "run", ".", "--entry-point", "watchdog", "--env-manager", "local"]
     networks:
       - bsopt-network

@@ -324,8 +324,35 @@ ML_PROXY_PREDICT_LATENCY = Histogram(
     buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
 )
 
-# Pre-instantiate a dedicated thread pool for off-heap metrics ingestion
-_METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="metrics_pusher")
+def observe_latency(histogram: Histogram, value: float, labels: dict[str, str] | None = None):
+    """
+    Non-blocking histogram observation.
+    Dispatches to a background thread to prevent telemetry impact on pricing hot-loops.
+    """
+    if labels:
+        _METRICS_EXECUTOR.submit(histogram.labels(**labels).observe, value)
+    else:
+        _METRICS_EXECUTOR.submit(histogram.observe, value)
+
+
+def increment_counter(counter: Counter, amount: float = 1.0, labels: dict[str, str] | None = None):
+    """
+    Non-blocking counter increment.
+    """
+    if labels:
+        _METRICS_EXECUTOR.submit(counter.labels(**labels).inc, amount)
+    else:
+        _METRICS_EXECUTOR.submit(counter.inc, amount)
+
+
+def set_gauge(gauge: Gauge, value: float, labels: dict[str, str] | None = None):
+    """
+    Non-blocking gauge update.
+    """
+    if labels:
+        _METRICS_EXECUTOR.submit(gauge.labels(**labels).set, value)
+    else:
+        _METRICS_EXECUTOR.submit(gauge.set, value)
 
 
 def push_metrics(job_name: str) -> None:

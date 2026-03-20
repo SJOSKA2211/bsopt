@@ -27,6 +27,11 @@ from src.api.schemas.ml import (
     InferenceResponse,
 )
 from src.ml.utils.inference import ONNXInferenceEngine
+from src.shared.observability import (
+    increment_counter,
+    observe_latency,
+    set_gauge,
+)
 from src.shared.utils.circuit_breaker import (  # Import both
     DistributedCircuitBreaker,
     InMemoryCircuitBreaker,
@@ -259,7 +264,7 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
             raise HTTPException(status_code=400, detail=f"Unsupported model type: {model_type}")
 
         latency_ms = (time.perf_counter() - start_time) * 1000
-        INFERENCE_LATENCY.labels(model_type=model_type).observe(latency_ms / 1000)
+        observe_latency(INFERENCE_LATENCY, latency_ms / 1000, {"model_type": model_type})
         PREDICTION_COUNT.labels(status="success", model_type=model_type).inc()
 
         return DataResponse(
@@ -269,10 +274,10 @@ async def predict(request: InferenceRequest, model_type: str = "xgb") -> DataRes
         )
 
     except HTTPException:
-        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc()
+        increment_counter(PREDICTION_COUNT, labels={"status": "error", "model_type": model_type})
         raise
     except Exception as e:
-        PREDICTION_COUNT.labels(status="error", model_type=model_type).inc()
+        increment_counter(PREDICTION_COUNT, labels={"status": "error", "model_type": model_type})
         logger.error(f"Inference processing error: {e}")
         raise HTTPException(status_code=500, detail="Internal inference error") from e
 
@@ -345,8 +350,8 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
         avg_latency = total_latency_ms / len(predictions)
 
         # Log metrics once for the batch to save overhead
-        INFERENCE_LATENCY.labels(model_type=model_type).observe(total_latency_ms / 1000)
-        PREDICTION_COUNT.labels(status="success", model_type=model_type).inc(len(predictions))
+        observe_latency(INFERENCE_LATENCY, total_latency_ms / 1000, {"model_type": model_type})
+        increment_counter(PREDICTION_COUNT, len(predictions), {"status": "success", "model_type": model_type})
 
         response_items = [
             InferenceResponse(
@@ -424,3 +429,6 @@ if __name__ == "__main__":
     from src.config import settings
 
     uvicorn.run(app, host=settings.ML_SERVICE_HOST, port=settings.ML_SERVICE_PORT)
+ORT)
+CE_PORT)
+ORT)
