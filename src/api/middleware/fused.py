@@ -1,9 +1,10 @@
 """
-Fused Security Middleware (Ultra-High Performance)
+Zero-Trust Security Middleware (Ultra-High Performance)
 Consolidates all security layers into a single ASGI hop to minimize context-switching overhead.
 """
 
 import re
+from typing import Optional
 
 import structlog
 from fastapi import Request
@@ -11,14 +12,15 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.api.responses import MsgspecJSONResponse
 from src.config import settings
+from src.shared.security import SecurityContext, is_trusted_proxy
 
 logger = structlog.get_logger(__name__)
 
 
-class FusedSecurityMiddleware:
+class ZeroTrustMiddleware:
     """
     All-in-one security middleware optimized for speed.
-    Layers: IP Blocking -> Security Headers -> CSRF -> JWT Auth -> Input Sanitization.
+    Layers: IP Blocking -> Proxy Trust -> JWT Auth -> mTLS (Internal) -> Rate Limiting.
     """
 
     # Compiled regex for high-performance pattern matching
@@ -48,10 +50,14 @@ class FusedSecurityMiddleware:
         "/api/v1/pricing",
     )
 
+    INTERNAL_PREFIXES = (
+        "/api/internal/",
+        "/admin/",
+    )
+
     def __init__(self, app: ASGIApp):
         self.app = app
         self.blocked_ips: set[str] = set()
-        self.trusted_proxies = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
         self.csrf_secret = settings.JWT_SECRET.encode()
 
         # CSP and other headers pre-built for speed
@@ -72,15 +78,30 @@ class FusedSecurityMiddleware:
         request = Request(scope, receive)
         path = request.url.path
 
-        # 1. IP Blocking
+        # 1. IP Blocking & Proxy Trust
         client_ip = request.client.host if request.client else "unknown"
         if client_ip in self.blocked_ips:
             resp = MsgspecJSONResponse(status_code=403, content={"detail": "Access denied"})
             await resp(scope, receive, send)
             return
 
-        # 2. JWT Auth (Fast Path)
+        # Verify against TRUSTED_PROXIES
+        is_trusted = is_trusted_proxy(client_ip, settings.TRUSTED_PROXIES)
+        ssl_verify = None
+        ssl_dn = None
+        if is_trusted:
+            ssl_verify = request.headers.get("X-SSL-Client-Verify")
+            ssl_dn = request.headers.get("X-SSL-Client-S-DN")
+
+        # 2. Auth Path Determination
         is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
+        is_internal = path.startswith(self.INTERNAL_PREFIXES)
+
+        # Initialize SecurityContext
+        security_context = SecurityContext(
+            is_internal=is_internal,
+            service_id=ssl_dn if is_trusted else None
+        )
 
         if not is_public:
             from src.auth.auth import auth_service
@@ -105,14 +126,33 @@ class FusedSecurityMiddleware:
                 # 3. Dedicated Auth Service Hop
                 token_data = await auth_service.validate_token(token)
 
-                # 4. Populate scope["state"] for downstream accessibility
+                # 4. Internal Path Cryptographic Certainty
+                if is_internal and ssl_verify != "SUCCESS":
+                    logger.warning("internal_access_denied_no_mtls", path=path, client_ip=client_ip)
+                    resp = MsgspecJSONResponse(
+                        status_code=403,
+                        content={"detail": "Internal access requires valid client certificate."},
+                    )
+                    await resp(scope, receive, send)
+                    return
+
+                # 5. Populate SecurityContext
+                security_context.user_id = token_data.user_id
+                security_context.email = token_data.email
+                security_context.tier = token_data.tier
+                security_context.auth_type = token_data.token_type
+
+                # Attach to scope state
                 state = scope.setdefault("state", {})
+                state["security_context"] = security_context
+                
+                # Legacy support for existing code
                 state["user_id"] = token_data.user_id
                 state["user_email"] = token_data.email
                 state["user_tier"] = token_data.tier
                 state["auth_type"] = token_data.token_type
 
-                # 5. Zero-Trust Rate Limiting
+                # 6. Zero-Trust Rate Limiting
                 from src.shared.utils.rate_limit import RateLimitTier, limiter
 
                 tier_str = token_data.tier.upper() if token_data.tier else "FREE"
@@ -138,8 +178,11 @@ class FusedSecurityMiddleware:
                 )
                 await resp(scope, receive, send)
                 return
+        else:
+            # Public path, still attach security context
+            scope.setdefault("state", {})["security_context"] = security_context
 
-        # 4. Security Headers Wrapper
+        # 7. Security Headers Wrapper
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
                 headers = dict(message.get("headers", []))

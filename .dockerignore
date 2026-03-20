@@ -86,9 +86,6 @@ f006/
 # === Infrastructure (allow configs) ===
 # infrastructure/  (removed to allow configs)
 infrastructure/**/
-!infrastructure/configs/
-!infrastructure/orchestration/
-!infrastructure/scripts/
 init-scripts/
 logs/
 monitoring/
@@ -99,3 +96,8 @@ src/frontend/node_modules/
 src/auth-service/node_modules/
 src/gateway/node_modules/
 .ruff_cache
+
+# === Whitelists (Must be at the end) ===
+!infrastructure/configs/
+!infrastructure/orchestration/
+!infrastructure/scripts/

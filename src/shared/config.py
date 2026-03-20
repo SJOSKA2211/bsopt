@@ -125,6 +125,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_PRO: int = 1000
     RATE_LIMIT_ENTERPRISE: int = 10000
 
+    # Trusted Proxies for Zero Trust
+    TRUSTED_PROXIES: set[str] = {"127.0.0.1", "::1", "172.16.0.0/12", "10.0.0.0/8"}
+
     @property
     def rate_limit_tiers(self) -> dict[str, int]:
         """Maps user tiers to their rate limits."""

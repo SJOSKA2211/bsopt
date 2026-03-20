@@ -29,7 +29,7 @@ services:
         limits:
           memory: 4g
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -43,16 +43,16 @@ services:
     restart: unless-stopped
     environment:
       AUTH_TYPE: scram-sha-256
-      DB_USER: ${POSTGRES_USER}
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_HOST: postgres
-      DB_NAME: ${POSTGRES_DB}
+      DB_NAME: ${POSTGRES_DB:-bsopt}
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
       DEFAULT_POOL_SIZE: 50
       RESERVE_POOL_SIZE: 10
       MAX_PREPARED_STATEMENTS: 100
-      ADMIN_USERS: ${POSTGRES_USER}
+      ADMIN_USERS: ${POSTGRES_USER:-admin}
       STATS_PERIOD: 60
       SERVER_TLS_SSLMODE: verify-full
       SERVER_TLS_CA_FILE: /etc/pgbouncer/root_ca.crt
@@ -73,7 +73,7 @@ services:
       - ../../.pki/pgbouncer.key:/etc/pgbouncer/pgbouncer.key:ro
       - ../../.pki/root_ca.crt:/etc/pgbouncer/root_ca.crt:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -188,10 +188,10 @@ services:
         limits:
           memory: 1gb
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/auth-service.crt&sslkey=/etc/postgresql/auth-service.key
       - PGBOUNCER_ENABLED=True
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
-      - BETTER_AUTH_URL=http://localhost:3001
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
     volumes:
@@ -246,7 +246,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/api.crt&sslkey=/etc/postgresql/api.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
@@ -298,11 +298,11 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/portfolio.crt&sslkey=/etc/postgresql/portfolio.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s
@@ -339,7 +339,7 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ml-inference.crt&sslkey=/etc/postgresql/ml-inference.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
@@ -405,14 +405,14 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/worker.crt&sslkey=/etc/postgresql/worker.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
       - CELERY_BROKER_URL=amqp://${RABBITMQ_USER:-bsopt_admin}:${RABBITMQ_PASSWORD:-bsopt_rmq_secret}@rabbitmq:5672//
       - ML_SERVICE_GRPC_URL=ml-inference:50051
-      - JWT_SECRET=${JWT_SECRET:-}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
       - USE_SHM=1
     healthcheck:
       test: [ "CMD-SHELL", "celery -A src.workers.tasks.celery_app inspect ping" ]
@@ -448,7 +448,7 @@ services:
       - ../../.pki/vault.key:/app/keys/vault.key:ro
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/persistence-worker.crt&sslkey=/etc/postgresql/persistence-worker.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/persistence-worker.crt&sslkey=/etc/postgresql/persistence-worker.key
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
     deploy:
       resources:
@@ -487,7 +487,7 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/nse-scraper.crt&sslkey=/etc/postgresql/nse-scraper.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/nse-scraper.crt&sslkey=/etc/postgresql/nse-scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
@@ -517,7 +517,7 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/yfinance-scraper.crt&sslkey=/etc/postgresql/yfinance-scraper.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/yfinance-scraper.crt&sslkey=/etc/postgresql/yfinance-scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
@@ -545,7 +545,7 @@ services:
           memory: 1gb
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/scraper.crt&sslkey=/etc/postgresql/scraper.key
       - INSIDE_DOCKER=1
     depends_on:
       - ingestion-service
@@ -575,13 +575,13 @@ services:
           cpus: '4'
           memory: 4gb
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/${POSTGRES_DB:-bsopt}?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/neural-pricing.crt&sslkey=/etc/postgresql/neural-pricing.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - OMP_NUM_THREADS=4
       - MKL_NUM_THREADS=4
-      - JWT_SECRET=${JWT_SECRET:-}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
+      - JWT_SECRET=${JWT_SECRET:-local_dev_secret}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
       - USE_SHM=1
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
@@ -636,7 +636,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.ci
     environment:
       - ENVIRONMENT=test
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt_test?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/test-runner.crt&sslkey=/etc/postgresql/test-runner.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt_test?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/test-runner.crt&sslkey=/etc/postgresql/test-runner.key
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/1
       - JWT_SECRET=test_secret_key_change_me_in_prod
     volumes:
@@ -723,7 +723,7 @@ services:
     networks:
       - bsopt-network
     environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-head.crt&sslkey=/etc/postgresql/ray-head.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-head.crt&sslkey=/etc/postgresql/ray-head.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
@@ -755,7 +755,7 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-worker-1.crt&sslkey=/etc/postgresql/ray-worker-1.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ray-worker-1.crt&sslkey=/etc/postgresql/ray-worker-1.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
@@ -784,7 +784,7 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/rl-training-worker.crt&sslkey=/etc/postgresql/rl-training-worker.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/rl-training-worker.crt&sslkey=/etc/postgresql/rl-training-worker.key
       - PGBOUNCER_ENABLED=True
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
@@ -811,10 +811,12 @@ services:
     env_file: ../../.env
     profiles: [ "ml" ]
     image: ghcr.io/mlflow/mlflow:latest
+    restart: unless-stopped
+    stop_grace_period: 30s
     ports:
       - "5000:5000"
     environment:
-      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
+      - MLFLOW_BACKEND_STORE_URI=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key
       - MLFLOW_ARTIFACT_ROOT=s3://equaflow-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
@@ -847,7 +849,7 @@ services:
           memory: 2g
     networks:
       - bsopt-network
-    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
+    command: mlflow server --workers 8 --host 0.0.0.0 --port 5000 --backend-store-uri postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlflow.crt&sslkey=/etc/postgresql/mlflow.key --default-artifact-root s3://equaflow-artifacts/mlflow
 
   # === [Specialized] MLOps Pipeline Worker ===
   mlops-worker:
@@ -868,7 +870,7 @@ services:
     environment:
       - MLFLOW_TRACKING_URI=http://mlflow:5000
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/mlops-worker.crt&sslkey=/etc/postgresql/mlops-worker.key
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@redis:6379/0
       - INSIDE_DOCKER=1
       - RAY_WORKERS=4
@@ -910,7 +912,7 @@ services:
       - MESH_NAME=bsopt_hft_mesh
       - MESH_SIZE_MB=256
       - LATENCY_CRITICAL_MS=50
-      - DATABASE_URL=${DATABASE_URL_LOCAL}
+      - DATABASE_URL=${DATABASE_URL_LOCAL:-postgresql://admin:password@localhost:5434/bsopt}
       - REDIS_URL=redis://:${REDIS_PASSWORD:-bsopt_redis_secret}@localhost:6379/0
     command: python scripts/hft/bs_hft_launch.py
 
@@ -927,7 +929,7 @@ services:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/ingestion-service.crt&sslkey=/etc/postgresql/ingestion-service.key
     depends_on:
       - kafka-1
       - pgbouncer
@@ -958,7 +960,7 @@ services:
       - PYTHONPATH=/app
       - INSIDE_DOCKER=1
       - KAFKA_BOOTSTRAP_SERVERS=kafka-1:9092
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/transformer.crt&sslkey=/etc/postgresql/transformer.key
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@pgbouncer:6432/bsopt?sslmode=verify-full&sslrootcert=/etc/postgresql/ca.crt&sslcert=/etc/postgresql/transformer.crt&sslkey=/etc/postgresql/transformer.key
     depends_on:
       - kafka-1
       - ingestion-service
@@ -1022,7 +1024,7 @@ services:
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:latest
     environment:
-      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD:-password}@postgres:5432/bsopt?sslmode=disable"
     depends_on:
       postgres:
         condition: service_healthy
@@ -1117,6 +1119,10 @@ services:
       - "4318:4318" # OTLP HTTP
       - "8889:8889" # Prometheus exporter
       - "13133:13133" # Health check extension
+    deploy:
+      resources:
+        limits:
+          memory: 1g
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
       interval: 10s

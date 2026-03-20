@@ -14,7 +14,7 @@ from starlette.middleware.cors import CORSMiddleware
 from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql.schema import schema
-from src.api.middleware.fused import FusedSecurityMiddleware
+from src.api.middleware.fused import ZeroTrustMiddleware
 from src.api.responses import MsgspecJSONResponse
 from src.api.routes import (
     auth_router,
@@ -124,7 +124,7 @@ app.add_middleware(
 app.middleware("http")(logging_middleware)
 
 # OPTIMIZED: Single fused security hop
-app.add_middleware(FusedSecurityMiddleware)
+app.add_middleware(ZeroTrustMiddleware)
 
 
 # Exception Handler
