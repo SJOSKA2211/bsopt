@@ -8,17 +8,17 @@ services:
       dockerfile: docker/Dockerfile.api-dev
     network_mode: host
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_HOST=192.168.23.33
+      - DATABASE_URL=${DATABASE_URL:-postgresql://admin:password@localhost:5434/bsopt}
+      - REDIS_HOST=127.0.0.1
       - REDIS_PORT=6381
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
       - ./scripts:/app/scripts
     env_file:
       - ../.env
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
+    command: ["/opt/venv/bin/granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--workers", "4", "--backlog", "2048", "--loop", "uvloop", "--ws"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://192.168.23.33:8008/health').read()"]
       interval: 30s
@@ -39,9 +39,9 @@ services:
     networks:
       - bsopt-network
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-      - BETTER_AUTH_URL=http://localhost:3001
+      - DATABASE_URL=${DATABASE_URL:-postgresql://admin:password@localhost:5434/bsopt}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
     volumes:
       - ./src/auth-service:/app
       - /app/node_modules
@@ -85,7 +85,7 @@ services:
       - ./.env:/app/.env
     env_file:
       - ../.env
-    command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["/opt/venv/bin/granian", "--interface", "asgi", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--backlog", "2048", "--loop", "uvloop", "--opt", "--ws"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 30s
@@ -138,9 +138,9 @@ services:
     network_mode: host
     command: postgres -p 5434 -c 'config_file=/etc/postgresql/postgresql.conf' -c 'hba_file=/etc/postgresql/pg_hba.conf'
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_DB: bsopt
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=bsopt
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -165,7 +165,7 @@ services:
         limits:
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "192.168.23.33", "-p", "6381", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "6381", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -193,7 +193,7 @@ services:
       dockerfile: docker/Dockerfile.ci
     environment:
       - ENVIRONMENT=dev
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
     volumes:
@@ -210,7 +210,7 @@ services:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
     environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
       - INSIDE_DOCKER=1
@@ -231,7 +231,7 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET=dev_secret_key
       - INSIDE_DOCKER=1

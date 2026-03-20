@@ -1024,10 +1024,15 @@ services:
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:latest
     environment:
-      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD:-password}@postgres:5432/bsopt?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt?sslmode=disable"
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9187/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 
@@ -1038,6 +1043,11 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
     depends_on:
       - redis
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9121/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - bsopt-network
 
@@ -1187,4 +1197,4 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
-      o: "size=2048m"
+      o: "size=4096m"

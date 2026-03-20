@@ -34,18 +34,18 @@ class MLflowWatchdog:
         return False
 
     def get_ray_memory_usage(self) -> Optional[float]:
-        """Check Ray object store utilization."""
+        """Check Ray object store utilization across all active nodes."""
         try:
-            # Query Ray internal metrics via dashboard API
-            resp = requests.get(f"{RAY_DASHBOARD_URL}/api/nodes/", timeout=5)
+            resp = requests.get(f"{RAY_DASHBOARD_URL}/api/nodes/", timeout=10)
             if resp.status_code == 200:
                 nodes = resp.json().get("data", {}).get("nodes", [])
-                if nodes:
-                    # Return max utilization across all nodes for conservative monitoring
-                    utils = [n.get("object_store_utilization", 0.0) for n in nodes]
+                active_nodes = [n for n in nodes if n.get("state") == "ALIVE"]
+                if active_nodes:
+                    # Monitor both RAM and Object Store pressure
+                    utils = [n.get("object_store_utilization", 0.0) for n in active_nodes]
                     return max(utils)
-        except Exception as e:
-            logger.warning("failed_to_fetch_ray_memory_metrics", error=str(e))
+        except (requests.exceptions.RequestException, ValueError) as e:
+            logger.warning("failed_to_fetch_ray_metrics_retrying", error=str(e))
         return None
 
     def check_mlflow_status(self) -> bool:
