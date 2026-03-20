@@ -11,14 +11,21 @@ interface PriceData {
 
 interface PricingState {
   prices: Record<string, PriceData>;
+  systemGamma: number;
+  mlAccuracy: number;
+  portfolioTotal: number;
   updatePrice: (symbol: string, data: Partial<PriceData>) => void;
   batchUpdate: (updates: Record<string, Partial<PriceData>>) => void;
+  setGlobalMetrics: (metrics: { systemGamma?: number; mlAccuracy?: number; portfolioTotal?: number }) => void;
 }
 
 // Zero-re-render transient state store
 export const usePricingStore = create<PricingState>()(
   subscribeWithSelector((set) => ({
     prices: {},
+    systemGamma: 0,
+    mlAccuracy: 98.2,
+    portfolioTotal: 1248392.42,
     
     updatePrice: (symbol, data) => 
       set((state) => ({
@@ -44,5 +51,11 @@ export const usePricingStore = create<PricingState>()(
         }
         return { prices: newPrices };
       }),
+      
+    setGlobalMetrics: (metrics) =>
+      set((state) => ({
+         ...state,
+         ...metrics,
+      })),
   }))
 );

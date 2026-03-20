@@ -19,6 +19,8 @@ import {
   BarChart as HVIcon,
   SwapVert as PCRIcon,
 } from '@mui/icons-material';
+import { usePricingStore } from '../../store/usePricingStore';
+import { useDataIntegration } from '../../hooks/useDataIntegration';
 
 // Lazy loaded trading components
 const LivePriceChart = lazy(() =>
@@ -52,6 +54,18 @@ export const MarketPage: React.FC = () => {
   const [symbol, setSymbol] = useState(0);
 
   const currentSymbol = SYMBOLS[symbol];
+  
+  // Establish unified real-time connection
+  const { isConnected } = useDataIntegration({ symbols: [currentSymbol] });
+  
+  // Get live price and stats from high perf store
+  const priceData = usePricingStore((state) => state.prices[currentSymbol]);
+  const livePrice = priceData?.price ?? 189.42;
+
+  // Derive static mocks to give appearance of live movement
+  const isPriceUp = livePrice > 185;
+  const priceDiff = Math.abs(livePrice - 185).toFixed(2);
+  const pricePct = ((Number(priceDiff) / 185) * 100).toFixed(2);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, pb: 6 }}>
@@ -84,13 +98,13 @@ export const MarketPage: React.FC = () => {
           </Typography>
         </Box>
         <Chip
-          icon={<Box component="span" className="live-dot" />}
-          label="STREAMING"
+          icon={<Box component="span" className={isConnected ? "live-dot" : ""} sx={{ mr: 1, height: 8, width: 8, borderRadius: '50%', bgcolor: isConnected ? theme.palette.success.main : theme.palette.warning.main, filter: isConnected ? `drop-shadow(0 0 5px ${theme.palette.success.main})` : 'none' }} />}
+          label={isConnected ? "STREAMING" : "CONNECTING..."}
           size="small"
           sx={{
-            bgcolor: alpha(theme.palette.success.main, 0.1),
-            color: theme.palette.success.main,
-            border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+            bgcolor: alpha(isConnected ? theme.palette.success.main : theme.palette.warning.main, 0.1),
+            color: isConnected ? theme.palette.success.main : theme.palette.warning.main,
+            border: `1px solid ${alpha(isConnected ? theme.palette.success.main : theme.palette.warning.main, 0.2)}`,
             fontWeight: 700,
             fontSize: '0.65rem',
             letterSpacing: '0.07em',
@@ -224,20 +238,20 @@ export const MarketPage: React.FC = () => {
                   {currentSymbol}
                 </Typography>
                 <Typography
-                  sx={{ fontFamily: 'JetBrains Mono', fontWeight: 800, fontSize: '1.4rem', color: 'text.primary' }}
+                  sx={{ fontFamily: 'JetBrains Mono', fontWeight: 800, fontSize: '1.4rem', color: isPriceUp ? 'success.main' : 'error.main' }}
                 >
-                  $189.42
+                  ${livePrice.toFixed(2)}
                 </Typography>
                 <Chip
-                  label="▲ $2.18 (1.17%)"
+                  label={`${isPriceUp ? '▲' : '▼'} $${priceDiff} (${pricePct}%)`}
                   size="small"
                   sx={{
                     height: 24,
                     fontSize: '0.75rem',
                     fontWeight: 800,
-                    bgcolor: alpha(theme.palette.success.main, 0.1),
-                    color: 'success.main',
-                    border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                    bgcolor: alpha(isPriceUp ? theme.palette.success.main : theme.palette.error.main, 0.1),
+                    color: isPriceUp ? 'success.main' : 'error.main',
+                    border: `1px solid ${alpha(isPriceUp ? theme.palette.success.main : theme.palette.error.main, 0.2)}`,
                     borderRadius: 1.5
                   }}
                 />

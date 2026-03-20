@@ -6,6 +6,8 @@ import pandas as pd
 import structlog
 from numba import njit, prange
 
+from src.shared.config import settings
+
 logger = structlog.get_logger(__name__)
 
 
@@ -14,7 +16,7 @@ class PipelineConfig:
 
     def __init__(
         self,
-        symbols: list[str] = ["AAPL"],
+        symbols: list[str] = [settings.DEFAULT_TICKER],
         min_samples: int = 1000,
         max_samples: int = 10000,
         use_multi_source: bool = False,
@@ -178,7 +180,7 @@ class MLPipeline:
 
     def __init__(self, config: dict[str, Any]):
         self.config = config
-        self.symbols = [config.get("ticker", "AAPL")]
+        self.symbols = [config.get("ticker", settings.DEFAULT_TICKER)]
         self.data_pipeline = DataPipeline(PipelineConfig(symbols=self.symbols))
         from src.ml.trainer import ModelTrainer
 
@@ -237,7 +239,7 @@ if __name__ == "__main__":
     import mlflow
 
     parser = argparse.ArgumentParser(description="BS-OPT Autonomous ML Pipeline")
-    parser.add_argument("--ticker", type=str, default="AAPL")
+    parser.add_argument("--ticker", type=str, default=settings.DEFAULT_TICKER)
     parser.add_argument("--framework", type=str, default="xgboost")
     parser.add_argument("--n_trials", type=int, default=20)
     parser.add_argument("--study_name", type=str, default="regressor_v1")

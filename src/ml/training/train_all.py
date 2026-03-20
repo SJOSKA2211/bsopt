@@ -10,7 +10,7 @@ import os
 
 import structlog
 
-from src.config import get_settings
+from src.shared.config import get_settings
 from src.ml.pipeline import MLPipeline
 
 logger = structlog.get_logger()
@@ -27,7 +27,7 @@ async def train_all():
         "api_key": os.getenv("ALPHA_VANTAGE_API_KEY", "DEMO_KEY"),
         "provider": "auto",  # auto-select provider
         "db_url": settings.DATABASE_URL,
-        "ticker": os.getenv("TICKER", "AAPL"),
+        "ticker": os.getenv("TICKER", settings.DEFAULT_TICKER),
         "study_name": os.getenv("STUDY_NAME", "autonomous_opt_v1"),
         "n_trials": int(os.getenv("N_TRIALS", "20")),
         "framework": os.getenv("FRAMEWORK", "xgboost"),

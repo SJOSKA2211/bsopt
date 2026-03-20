@@ -110,7 +110,8 @@ class RetrainModelRemediator(BaseRemediator):
         )
 
     async def remediate(self, anomaly: dict[str, Any]) -> bool:
-        ticker = anomaly.get("metrics", {}).get("ticker", "AAPL")
+        from src.shared.config import settings
+        ticker = anomaly.get("metrics", {}).get("ticker", settings.DEFAULT_TICKER)
         logger.warning("remediator_retrain_initiated", ticker=ticker, score=anomaly.get("score"))
         monitor_drift_and_retrain_task.delay(ticker=ticker)
         logger.info("remediator_retrain_task_queued", ticker=ticker)

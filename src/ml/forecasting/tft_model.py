@@ -12,6 +12,8 @@ from pytorch_forecasting import TemporalFusionTransformer, TimeSeriesDataSet
 from pytorch_forecasting.data import GroupNormalizer
 from pytorch_forecasting.metrics import QuantileLoss
 
+from src.shared.config import settings
+
 logger = structlog.get_logger()
 
 
@@ -275,7 +277,7 @@ if __name__ == "__main__":
     from src.ml.pipeline import MLPipeline
 
     parser = argparse.ArgumentParser(description="Train Temporal Fusion Transformer")
-    parser.add_argument("--ticker", type=str, default="AAPL")
+    parser.add_argument("--ticker", type=str, default=settings.DEFAULT_TICKER)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--hidden_size", type=int, default=16)

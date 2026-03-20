@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = Field(default="dev")
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
+    DEFAULT_TICKER: str = "SPY"
 
     @field_validator("LOG_LEVEL")
     @classmethod

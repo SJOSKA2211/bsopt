@@ -2,18 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Box, useTheme, alpha } from '@mui/material';
 import { createChart, ColorType, CrosshairMode, CandlestickSeries } from 'lightweight-charts';
 import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
-import { useSubscription, useQuery } from '@apollo/client/react';
+import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
-
-const MARKET_SUBSCRIPTION = gql`
-  subscription OnMarketUpdate($symbols: [String!]!) {
-    market_data_stream(symbols: $symbols) {
-      symbol
-      lastPrice: last_price
-      volume
-    }
-  }
-`;
+import { usePricingStore } from '../../../store/usePricingStore';
 
 const GET_HISTORICAL_DATA = gql`
   query GetHistoricalData($symbol: String!) {
@@ -43,10 +34,8 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
     variables: { symbol },
   });
 
-  // Sub for live updates
-  const { data: subData } = useSubscription(MARKET_SUBSCRIPTION, {
-    variables: { symbols: [symbol] },
-  });
+  // Access the live price tick directly from store
+  const priceData = usePricingStore((state) => state.prices[symbol]);
 
 
   useEffect(() => {
@@ -114,19 +103,18 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
   // Update chart when new data arrives
   useEffect(() => {
-    if ((subData as any)?.market_data_stream && seriesRef.current) {
-      const update = (subData as any).market_data_stream;
+    if (priceData && seriesRef.current) {
       // OPTIMIZED: Update candlestick with live tick
       // If we don't have open/high/low/close, we treat the last price as the close
       seriesRef.current.update({
-        time: (Math.floor(Date.now() / 1000) as Time),
-        open: update.lastPrice,
-        high: update.lastPrice,
-        low: update.lastPrice,
-        close: update.lastPrice,
+        time: (Math.floor(priceData.timestamp / 1000) as Time),
+        open: priceData.price,
+        high: priceData.price,
+        low: priceData.price,
+        close: priceData.price,
       });
     }
-  }, [subData]);
+  }, [priceData]);
 
 
   return (

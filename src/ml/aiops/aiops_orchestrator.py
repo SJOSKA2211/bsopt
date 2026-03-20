@@ -17,7 +17,7 @@ from src.aiops.anomaly_detector import AnomalyDetector
 from src.aiops.docker_remediator import DockerRemediator
 from src.aiops.prometheus_adapter import PrometheusClient
 from src.aiops.remediators import RemediationPlanner
-from src.shared.observability import post_grafana_annotation  # noqa: F401 (re-exported for tests)
+from src.shared.config import settings
 
 logger = structlog.get_logger(__name__)
 
@@ -142,9 +142,9 @@ class AIOpsOrchestrator:
                             "-e",
                             "train_regressor",
                             "-P",
-                            f"ticker={self.config.get('ticker', 'AAPL')}",
+                            f"ticker={self.config.get('ticker', settings.DEFAULT_TICKER)}",
                             "--experiment-name",
-                            f"aiops_retrain_{self.config.get('ticker', 'AAPL')}",
+                            f"aiops_retrain_{self.config.get('ticker', settings.DEFAULT_TICKER)}",
                             "--env-manager",
                             "local",
                         ]

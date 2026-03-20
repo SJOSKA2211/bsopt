@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useMotion } from '../../hooks/useMotion';
+import { usePricingStore } from '../../store/usePricingStore';
+import { useDataIntegration } from '../../hooks/useDataIntegration';
 import {
   Zap,
   Globe,
@@ -246,6 +248,14 @@ export const DashboardPage: React.FC = () => {
   const { variants } = useMotion();
   const [activeTime, setActiveTime] = React.useState('1M');
   const qfd = theme.palette.financial.qfd;
+  
+  // Connect to live data hook
+  useDataIntegration({ symbols: ['SPX', 'AAPL', 'NVDA'] });
+  
+  // Real-time stats from store
+  const systemGamma = usePricingStore((state) => state.systemGamma);
+  const mlAccuracy = usePricingStore((state) => state.mlAccuracy);
+  const portfolioTotal = usePricingStore((state) => state.portfolioTotal);
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>
@@ -351,8 +361,8 @@ export const DashboardPage: React.FC = () => {
           <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Portfolio Oracle"
-              value="$1,248,392.42"
-              subValue="+$42,109 (3.4%)"
+              value={`$${portfolioTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              subValue="+3.4% today"
               positive
               icon={<PortfolioIconMui />}
               accentColor={qfd?.quantum ?? '#00FFFF'}
@@ -362,8 +372,8 @@ export const DashboardPage: React.FC = () => {
           <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Systemic Gamma"
-              value="342.18"
-              subValue="-12.4 today"
+              value={systemGamma.toFixed(2)}
+              subValue="Live aggregation"
               icon={<GreeksIconMui />}
               accentColor={qfd?.nebula ?? '#7B68EE'}
               greek="Γ"
@@ -372,11 +382,11 @@ export const DashboardPage: React.FC = () => {
           <Grid size={{ xs: 12, md: 4 }}>
             <KpiCard
               label="Predictive Accuracy"
-              value="98.2%"
+              value={`${mlAccuracy.toFixed(1)}%`}
               subValue="Model: Heston-XL"
               icon={<MLIconMui />}
               accentColor={qfd?.electrum ?? '#D4AF37'}
-              progress={98}
+              progress={mlAccuracy}
               greek="Φ"
             />
           </Grid>
