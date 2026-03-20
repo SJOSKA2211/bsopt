@@ -125,18 +125,8 @@ class ExperimentTracker:
         )
         logger.info("model_stage_transitioned", name=model_name, version=version, stage=stage)
 
-        # OPTIMIZED: Auto-export to ONNX for production inference
-        try:
-            from src.ml.strategies import get_strategy
-            strategy = get_strategy(framework)
-            onnx_path = os.path.join(tempfile.gettempdir(), f"{artifact_path}.onnx")
-            # We assume a default input dim of 20 for now; in a real scenario
-            # this would be passed or extracted from the model
-            strategy.export_onnx(model, onnx_path, input_dim=20)
-            if os.path.exists(onnx_path):
-                mlflow.log_artifact(onnx_path, f"{artifact_path}_onnx")
-        except Exception as e:
-            logger.warning("onnx_auto_export_failed", error=str(e))
+        # TODO: Auto-export to ONNX for production inference requires model and framework references
+        pass
 
     def log_feature_importance(self, importance: dict[str, float], framework: str) -> None:
         plt.figure(figsize=(10, 6))

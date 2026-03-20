@@ -1,6 +1,6 @@
 version: "3.8"
 
-src:
+services:
   api:
     image: bsopt-api-dev
     build:
@@ -17,7 +17,7 @@ src:
       - ./.env:/app/.env
       - ./scripts:/app/scripts
     env_file:
-      - .env
+      - ../.env
     command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8008", "--reload"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://192.168.23.33:8008/health').read()"]
@@ -46,40 +46,9 @@ src:
       - ./src/auth-service:/app
       - /app/node_modules
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - postgres
-
-  app-gateway:
-    image: bsopt-app-gateway-dev
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.app-gateway
-      target: development
-    ports:
-      - "4000:4000"
-    networks:
-      - bsopt-network
-    environment:
-      - PORT=4000
-      - LOG_LEVEL=debug
-      - API_URL=http://api:8000/graphql
-      - PORTFOLIO_URL=http://api:8000/graphql
-      - PRICING_URL=http://neural-pricing:8000/graphql
-    volumes:
-      - ./src/gateway:/app
-      - /app/node_modules
-    depends_on:
-      api:
-        condition: service_healthy
-      neural-pricing:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
-      interval: 30s
-      timeout: 20s
-      retries: 20
-      start_period: 180s
 
   frontend:
     image: bsopt-frontend-dev
@@ -99,7 +68,7 @@ src:
         condition: service_healthy
       auth-service:
         condition: service_started
-      app-gateway:
+      envoy:
         condition: service_healthy
 
   neural-pricing:
@@ -115,7 +84,7 @@ src:
       - ./src:/app/src
       - ./.env:/app/.env
     env_file:
-      - .env
+      - ../.env
     command: ["uvicorn", "src.pricing.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
@@ -139,7 +108,7 @@ src:
     environment:
       - METRICS_PORT=8009
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - postgres
       - redis
@@ -158,7 +127,7 @@ src:
       - ./src:/app/src
       - ./.env:/app/.env
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - postgres
       - redis
@@ -291,12 +260,38 @@ src:
         condition: service_started
       api:
         condition: service_healthy
-      app-gateway:
+      envoy:
         condition: service_healthy
       neural-pricing:
         condition: service_healthy
     command: npx playwright test
 
+
+
+  envoy:
+    image: envoyproxy/envoy:v1.30-latest
+    ports:
+      - "80:8080"
+      - "443:443"
+    volumes:
+      - ./infrastructure/configs/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./.pki:/etc/envoy/ssl:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - bsopt-network
+    deploy:
+      resources:
+        limits:
+          memory: 512mb
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   bsopt-network:

@@ -135,7 +135,7 @@ class RiskVectorTracker:
                 # OPTIMIZED: Direct float conversion in the hot-path is faster
                 # than multi-dimensional array slicing
                 s = self._state
-                l = self._limits
+                limits = self._limits
                 ok, new_d, new_g, new_v = bsopt_core.full_risk_check(
                     float(price),
                     int(quantity),
@@ -149,9 +149,9 @@ class RiskVectorTracker:
                     int(max_qty),
                     float(min_price),
                     float(max_price),
-                    float(l[0]),
-                    float(l[1]),
-                    float(l[2]),
+                    float(limits[0]),
+                    float(limits[1]),
+                    float(limits[2]),
                 )
                 if ok:
                     s[0] = new_d

@@ -478,39 +478,6 @@ services:
     command: granian --interface asgi src.quant.pricing.main:app --host 0.0.0.0 --port 8000 --workers 4 --ws
 
     # === App Gateway (Node.js Federation) ===
-  app-gateway:
-    build:
-      context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.app-gateway
-      target: development
-    ports:
-      - "4000:4000"
-      - "4001:4001"
-    volumes:
-      - ../../src/gateway:/app
-      - /app/node_modules
-    environment:
-      - PORT=4000
-      - LOG_LEVEL=debug
-      - API_URL=http://api:8000/graphql
-      - PORTFOLIO_URL=http://portfolio:8000/graphql
-      - PRICING_URL=http://neural-pricing:8000/graphql
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health || exit 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      api:
-        condition: service_healthy
-      portfolio:
-        condition: service_healthy
-      neural-pricing:
-        condition: service_healthy
-    networks:
-      - bsopt-network
-
-  # === Frontend Service ===
   frontend:
     build:
       context: ../..
@@ -527,7 +494,7 @@ services:
       timeout: 10s
       retries: 3
     depends_on:
-      app-gateway:
+      envoy:
         condition: service_healthy
       auth-service:
         condition: service_started

@@ -152,7 +152,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   });
 
   // Subscribe to real-time spot updates
-  const priceData = usePricingStore((state) => state.prices[symbol]);
+  const priceData = usePricingStore((state: any) => state.prices[symbol]);
   const tick = priceData ? { lastPrice: priceData.price } : null;
 
   useEffect(() => {
@@ -245,7 +245,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       try {
         if (pricingModel === 'black_scholes') {
           const raw = await batchCalculate(allParams);
-          results = raw.map(r => ({
+          results = raw.map((r: any) => ({
             price: r.price,
             delta: r.greeks.delta,
             gamma: r.greeks.gamma,
@@ -402,11 +402,26 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerName: 'Vol',
       width: 70,
       headerClassName: 'call-header',
-      renderCell: (params: GridRenderCellParams) => (
-        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
-          {params.value?.toLocaleString()}
-        </Typography>
-      )
+      renderCell: (params: GridRenderCellParams) => {
+        const row = params.row as OptionChainRow;
+        const isHot = row.call_volume > row.call_oi * 1.5 && row.call_volume > 100;
+        return (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, color: isHot ? 'warning.main' : 'inherit' }}>
+              {params.value?.toLocaleString()}
+            </Typography>
+            {isHot && (
+              <Box
+                component={motion.div}
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              >
+                <TrendingUp sx={{ fontSize: 12, color: 'warning.main' }} />
+              </Box>
+            )}
+          </Stack>
+        );
+      }
     },
     {
       field: 'call_oi',
@@ -493,8 +508,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              backgroundColor: isATM
-                ? alpha(qfd?.quantum ?? '#00FFFF', 0.15)
+              background: isATM
+                ? `linear-gradient(90deg, ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)} 0%, ${alpha(qfd?.quantum ?? '#00FFFF', 0.15)} 50%, ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)} 100%)`
                 : 'transparent',
               '&::before': {
                 content: '""',
@@ -502,9 +517,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: 3,
-                bgcolor: isITM_Call ? theme.palette.success.main : 'transparent',
-                opacity: 0.5
+                width: 4,
+                background: isITM_Call ? `linear-gradient(to bottom, ${theme.palette.success.main}, ${alpha(theme.palette.success.main, 0.3)})` : 'transparent',
+                borderRadius: '0 2px 2px 0'
               },
               '&::after': {
                 content: '""',
@@ -512,9 +527,9 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
                 right: 0,
                 top: 0,
                 bottom: 0,
-                width: 3,
-                bgcolor: isITM_Put ? theme.palette.error.main : 'transparent',
-                opacity: 0.5
+                width: 4,
+                background: isITM_Put ? `linear-gradient(to bottom, ${theme.palette.error.main}, ${alpha(theme.palette.error.main, 0.3)})` : 'transparent',
+                borderRadius: '2px 0 0 2px'
               }
             }}
           >
@@ -524,7 +539,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
                 fontWeight: 900,
                 fontFamily: 'JetBrains Mono',
                 color: isATM ? qfd?.quantum : 'text.primary',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                textShadow: isATM ? `0 0 10px ${alpha(qfd?.quantum ?? '#00FFFF', 0.5)}` : 'none'
               }}
             >
               ${params.value}
@@ -611,11 +627,26 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerName: 'Vol',
       width: 70,
       headerClassName: 'put-header',
-      renderCell: (params: GridRenderCellParams) => (
-        <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8 }}>
-          {params.value?.toLocaleString()}
-        </Typography>
-      )
+      renderCell: (params: GridRenderCellParams) => {
+        const row = params.row as OptionChainRow;
+        const isHot = row.put_volume > row.put_oi * 1.5 && row.put_volume > 100;
+        return (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.8, color: isHot ? 'warning.main' : 'inherit' }}>
+              {params.value?.toLocaleString()}
+            </Typography>
+            {isHot && (
+              <Box
+                component={motion.div}
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              >
+                <TrendingUp sx={{ fontSize: 12, color: 'warning.main' }} />
+              </Box>
+            )}
+          </Stack>
+        );
+      }
     },
     {
       field: 'put_oi',
@@ -832,46 +863,51 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
           rows={processedData}
           columns={columns}
           aria-label="Options Chain Data Grid"
-          getRowId={(row) => row.id}
+          getRowId={(row: any) => row.id}
           loading={isLoading}
           disableRowSelectionOnClick
           onRowClick={handleRowClick}
           sx={{
             border: 'none',
             '& .MuiDataGrid-columnHeaders': {
-              bgcolor: alpha('#020617', 0.4),
-              minHeight: '40px !important'
+              bgcolor: alpha(theme.palette.background.paper, 0.5),
+              minHeight: '48px !important',
+              borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
             },
             '& .MuiDataGrid-columnHeaderTitle': {
               fontWeight: 900,
-              fontSize: '0.7rem',
-              letterSpacing: '0.05em',
+              fontSize: '0.75rem',
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              opacity: 0.6
+              color: theme.palette.text.secondary
             },
             '& .call-header': {
-              borderBottom: `2px solid ${alpha(theme.palette.success.main, 0.3)}`,
+              borderBottom: `2px solid ${alpha(theme.palette.success.main, 0.5)} !important`,
+              '& .MuiDataGrid-columnHeaderTitle': { color: theme.palette.success.main, opacity: 0.8 }
             },
             '& .put-header': {
-              borderBottom: `2px solid ${alpha(theme.palette.error.main, 0.3)}`,
+              borderBottom: `2px solid ${alpha(theme.palette.error.main, 0.5)} !important`,
+              '& .MuiDataGrid-columnHeaderTitle': { color: theme.palette.error.main, opacity: 0.8 }
             },
             '& .strike-header': {
-              borderBottom: `2px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}`,
+              borderBottom: `2px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.5)} !important`,
+              '& .MuiDataGrid-columnHeaderTitle': { color: qfd?.quantum, opacity: 0.8 }
             },
             '& .MuiDataGrid-row': {
-              minHeight: '52px !important',
-              transition: 'all 0.2s ease',
-              borderBottom: `0.5px solid ${alpha(theme.palette.divider, 0.05)}`
+              minHeight: '56px !important',
+              transition: 'background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}`
             },
             '& .MuiDataGrid-row:hover': {
-              backgroundColor: alpha(qfd?.quantum ?? '#00FFFF', 0.03),
-              boxShadow: `inset 0 0 15px ${alpha(qfd?.quantum ?? '#00FFFF', 0.05)}`,
+              backgroundColor: alpha(qfd?.quantum ?? '#00FFFF', 0.04),
+              boxShadow: `inset 0 0 20px ${alpha(qfd?.quantum ?? '#00FFFF', 0.08)}`,
               cursor: 'pointer',
             },
             '& .MuiDataGrid-cell': {
               border: 'none',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              px: 2
             }
           }}
           initialState={{

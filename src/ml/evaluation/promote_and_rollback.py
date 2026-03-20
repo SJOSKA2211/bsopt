@@ -235,7 +235,7 @@ class ModelPromoter:
             }
 
         try:
-            existing_versions = self.client.search_model_versions(
+            self.client.search_model_versions(
                 f"name='{self.model_name}'"
             )
 

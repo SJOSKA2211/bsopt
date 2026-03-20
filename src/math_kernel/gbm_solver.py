@@ -252,6 +252,53 @@ def simulate_gbm_milstein(
     return paths
 
 
+def simulate_gbm_rk4(
+    s0: np.ndarray,
+    mu: np.ndarray,
+    sigma: np.ndarray,
+    t: float,
+    dt: float,
+    seed: int | None = None,
+) -> np.ndarray:
+    """
+    Simulate Geometric Brownian Motion using RK4-Milstein method.
+    
+    Highest precision numerical solver for stochastic differential equations.
+    
+    Args:
+        s0: Initial prices
+        mu: Annual drift
+        sigma: Annual volatility
+        t: Time horizon
+        dt: Time step size
+        seed: Random seed
+    
+    Returns:
+        Price paths - shape (n_steps + 1, n_paths)
+    """
+    if seed is not None:
+        np.random.seed(seed)
+    
+    s0 = np.atleast_1d(s0).astype(np.float64)
+    mu = np.atleast_1d(mu).astype(np.float64)
+    sigma = np.atleast_1d(sigma).astype(np.float64)
+    
+    n_steps = int(t / dt)
+    n_paths = len(s0)
+    
+    sqrt_dt = np.sqrt(dt)
+    
+    paths = np.zeros((n_steps + 1, n_paths), dtype=np.float64)
+    paths[0] = s0
+    
+    current = s0.copy()
+    for step in range(n_steps):
+        current = _rk4_milstein_step(current, mu, sigma, dt, sqrt_dt)
+        paths[step + 1] = current
+    
+    return paths
+
+
 def simulate_gbm(
     s0: np.ndarray,
     mu: np.ndarray,

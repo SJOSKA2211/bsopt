@@ -52,7 +52,7 @@ interface GqlData {
   options?: { edges: { node: Record<string, unknown> }[] };
 }
 
-export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }) => {
+export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }: GreeksHeatmapProps) => {
   const theme = useTheme();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
@@ -60,22 +60,15 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     variables: { symbol },
   });
 
-  // Transform flat GraphQL nodes into aggregated OptionData
   const optionsData = useMemo(() => {
     if (!(gqlData as GqlData)?.options?.edges) return [];
-
-    const nodes = (gqlData as GqlData).options?.edges.map((e: { node: Record<string, unknown> }) => e.node) || [];
+    const nodes = (gqlData as GqlData).options?.edges.map((e: any) => e.node) || [];
     const spot = (gqlData as GqlData).marketData?.lastPrice || 155.0;
     const groups: Record<string, OptionData> = {};
 
-    nodes.forEach((node: Record<string, unknown>) => {
+    nodes.forEach((node: any) => {
       const strike = Number(node.strike);
       const expiry = String(node.expiry);
-      const optionType = String(node.optionType).toUpperCase();
-      const iv = Number(node.iv);
-      const delta = Number(node.delta);
-      const gamma = Number(node.gamma);
-
       const key = `${strike}-${expiry}`;
       if (!groups[key]) {
         groups[key] = {
@@ -86,177 +79,140 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
           put_delta: 0, put_gamma: 0, put_iv: 0,
         };
       }
-
-      const isCall = optionType === 'CALL';
+      const isCall = String(node.optionType).toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
-
-      const target = groups[key] as unknown as Record<string, string | number | undefined>;
-      target[`${prefix}iv`] = iv;
-      target[`${prefix}delta`] = delta;
-      target[`${prefix}gamma`] = gamma;
+      const target = groups[key] as any;
+      target[`${prefix}iv`] = Number(node.iv);
+      target[`${prefix}delta`] = Number(node.delta);
+      target[`${prefix}gamma`] = Number(node.gamma);
     });
-
     return Object.values(groups);
   }, [gqlData]);
 
   const [processedData, setProcessedData] = useState<OptionData[]>([]);
 
-  // Enrich data with WASM for Greeks if loaded
   useEffect(() => {
     if (!optionsData || !isWasmLoaded) {
       if (processedData.length !== (optionsData?.length || 0)) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setProcessedData(optionsData || []);
       }
       return;
     }
-
     const runEnrichment = async () => {
       const now = new Date();
-      // PROD-CHECK: Shared risk parameters matching PositionsSummary
-      const riskFreeRate = 0.045;
-      const dividendYield = 0.015;
-
-      // Generate all params for batch calculation
-      const params = optionsData.map(d => {
-        const expiryDate = new Date(d.expiry);
-        // Calculate dynamic Time to Expiry (T)
-        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
-
-        return {
-          spot: d.underlying_price,
-          strike: d.strike,
-          time: timeToExpiry,
-          vol: d.call_iv || 0.25,
-          rate: riskFreeRate,
-          div: dividendYield,
-          is_call: true // Heatmap typically shows Call side or user-selected
-        };
-      });
-
+      const params = optionsData.map(d => ({
+        spot: d.underlying_price,
+        strike: d.strike,
+        time: Math.max(0.001, (new Date(d.expiry).getTime() - now.getTime()) / (31536000000)),
+        vol: d.call_iv || 0.25,
+        rate: 0.045,
+        div: 0.015,
+        is_call: true
+      }));
       const results = await batchCalculate(params);
       if (!results) return;
-
-      const enriched = optionsData.map((d, i) => {
-        const result = results[i];
-        if (result) {
-          return {
-            ...d,
-            call_delta: result.greeks.delta,
-            call_gamma: result.greeks.gamma,
-            call_vega: result.greeks.vega,
-            call_theta: result.greeks.theta,
-          };
-        }
-        return d;
-      });
-      setProcessedData(enriched);
+      setProcessedData(optionsData.map((d, i) => {
+        const r = results[i];
+        return r ? { ...d, call_delta: r.greeks.delta, call_gamma: r.greeks.gamma, call_vega: r.greeks.vega, call_theta: r.greeks.theta } : d;
+      }));
     };
-
     runEnrichment();
   }, [optionsData, isWasmLoaded, batchCalculate]);
 
-  const chartOptions = useMemo(() => {
-    if (!processedData || processedData.length === 0) return null;
-
-    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
-    const expiries = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
-
-    const data = processedData.map((d: OptionData) => {
-      const strikeIdx = strikes.indexOf(d.strike);
-      const expiryIdx = expiries.indexOf(d.expiry);
-
-      let value = 0;
-      if (greek === 'delta') value = d.call_delta;
-      else if (greek === 'gamma') value = d.call_gamma;
-      else if (greek === 'iv') value = d.call_iv;
-      else if (greek === 'theta') value = d.call_theta || 0;
-      else if (greek === 'vega') value = d.call_vega || 0;
-
-      return [strikeIdx, expiryIdx, value];
+  const { strikes, expiries, data } = useMemo(() => {
+    const s = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
+    const e = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
+    const d = processedData.map((opt: OptionData) => {
+      const val = greek === 'delta' ? opt.call_delta : greek === 'gamma' ? opt.call_gamma : greek === 'iv' ? opt.call_iv : greek === 'theta' ? opt.call_theta || 0 : opt.call_vega || 0;
+      return [s.indexOf(opt.strike), e.indexOf(opt.expiry), val];
     });
+    return { strikes: s, expiries: e, data: d };
+  }, [processedData, greek]);
 
+  const chartOptions = useMemo(() => {
+    if (data.length === 0) return null;
+    const greekColors = (theme.palette as any).financial?.greeks?.[greek] || theme.palette.primary.main;
     return {
       tooltip: {
         position: 'top',
-        formatter: (params: { data: [number, number, number] }) => {
-          return `Strike: $${strikes[params.data[0]]}<br/>Expiry: ${expiries[params.data[1]]}<br/>${greek.toUpperCase()}: ${params.data[2].toFixed(4)}`;
+        backgroundColor: alpha(theme.palette.background.paper, 0.9),
+        borderColor: alpha(greekColors, 0.3),
+        borderWidth: 1,
+        textStyle: { color: theme.palette.text.primary, fontFamily: 'JetBrains Mono', fontSize: 12 },
+        formatter: (params: any) => {
+          const val = params.data;
+          return `
+            <div style="padding: 4px;">
+              <div style="color: ${theme.palette.text.secondary}; font-size: 10px; font-weight: 800; margin-bottom: 4px;">OPTION DETECTORS</div>
+              <div style="margin-bottom: 2px;">STRIKE: <span style="color: ${theme.palette.text.primary}; font-weight: 700;">$${strikes[val[0]]}</span></div>
+              <div style="margin-bottom: 4px;">EXPIRY: <span style="color: ${theme.palette.text.primary}; font-weight: 700;">${expiries[val[1]]}</span></div>
+              <div style="border-top: 1px solid ${alpha(theme.palette.divider, 0.1)}; padding-top: 4px;">
+                <span style="color: ${greekColors}; font-weight: 900;">${greek.toUpperCase()}: ${val[2].toFixed(4)}</span>
+              </div>
+            </div>
+          `;
         }
       },
-      grid: {
-        height: '80%',
-        top: '10%',
-        left: '10%',
-        right: '5%'
-      },
+      grid: { height: '75%', top: '10%', left: '12%', right: '5%', bottom: '15%' },
       xAxis: {
         type: 'category',
         data: strikes.map(s => `$${s}`),
-        splitArea: { show: true },
-        axisLabel: { color: theme.palette.text.secondary }
+        axisLine: { lineStyle: { color: alpha(theme.palette.divider, 0.1) } },
+        axisLabel: { color: theme.palette.text.secondary, fontFamily: 'JetBrains Mono', fontSize: 10 }
       },
       yAxis: {
         type: 'category',
         data: expiries,
-        splitArea: { show: true },
-        axisLabel: { color: theme.palette.text.secondary }
+        axisLine: { lineStyle: { color: alpha(theme.palette.divider, 0.1) } },
+        axisLabel: { color: theme.palette.text.secondary, fontFamily: 'JetBrains Mono', fontSize: 10 }
       },
       visualMap: {
-        min: 0,
-        max: 1,
+        min: greek === 'delta' ? 0 : greek === 'theta' ? -1 : 0,
+        max: greek === 'delta' ? 1 : greek === 'gamma' ? 0.1 : 1,
         calculable: true,
         orient: 'horizontal',
         left: 'center',
         bottom: '0%',
-        inRange: {
-          color: [
-            alpha(theme.palette.primary.main, 0.1),
-            theme.palette.primary.main,
-            theme.palette.secondary.main
-          ]
-        },
-        textStyle: { color: theme.palette.text.secondary }
+        inRange: { color: [alpha(greekColors, 0.05), alpha(greekColors, 0.4), greekColors] },
+        textStyle: { color: theme.palette.text.secondary, fontFamily: 'JetBrains Mono', fontSize: 10 }
       },
       series: [{
         name: `${greek.toUpperCase()} Heatmap`,
         type: 'heatmap',
         data: data,
         label: { show: false },
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(0, 0, 0, 0.5)'
-          }
-        }
+        itemStyle: { borderColor: theme.palette.mode === 'dark' ? '#020617' : '#fff', borderWidth: 1 },
+        emphasis: { itemStyle: { shadowBlur: 20, shadowColor: alpha(greekColors, 0.5), borderWidth: 2, borderColor: greekColors } }
       }],
       backgroundColor: 'transparent'
     };
-  }, [processedData, greek, theme]);
+  }, [data, greek, theme, strikes, expiries]);
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 300 }}>
-        <CircularProgress aria-label="Loading Greeks heatmap" />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
+        <CircularProgress size={30} />
       </Box>
     );
   }
 
   if (error || !optionsData) {
     return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography color="error">Error loading heatmap data</Typography>
+      <Box sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography color="error" variant="caption" sx={{ fontWeight: 800 }}>ERROR SYNCHRONIZING MARKET MANIFOLD</Typography>
       </Box>
     );
   }
 
   return (
-    <Box data-testid="greeks-heatmap-container" sx={{ width: '100%', height: '100%', minHeight: 400 }}>
+    <Box data-testid="greeks-heatmap-container" sx={{ width: '100%', height: '100%', minHeight: 450, position: 'relative', p: 1 }}>
       {chartOptions && (
         <ReactECharts
           echarts={echarts}
           option={chartOptions}
           style={{ height: '100%', width: '100%' }}
           theme={theme.palette.mode === 'dark' ? 'dark' : undefined}
+          notMerge={true}
         />
       )}
     </Box>

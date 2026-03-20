@@ -45,6 +45,32 @@ def kill_container(container_name):
             logger.info("chaos_monkey_attack_success", target=container_name, engine="podman")
         except Exception as e:
             logger.error("chaos_monkey_attack_failed", target=container_name, error=str(e))
+def monitor_recovery(container_name, timeout=60):
+    """Wait for a container to return to 'running' state."""
+    logger.info("monitoring_recovery", target=container_name)
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            output = subprocess.check_output(
+                ["docker", "inspect", "-f", "{{.State.Running}}", container_name]
+            ).decode().strip()
+            if output == "true":
+                logger.info("recovery_detected", target=container_name)
+                return True
+        except Exception:
+            try:
+                output = subprocess.check_output(
+                    ["podman", "inspect", "-f", "{{.State.Running}}", container_name]
+                ).decode().strip()
+                if output == "true":
+                    logger.info("recovery_detected", target=container_name, engine="podman")
+                    return True
+            except Exception:
+                pass
+        time.sleep(2)
+    logger.error("recovery_timeout", target=container_name)
+    return False
+
 
 def chaos_loop(interval=300):
     """Continuous Chaos Engineering Loop with dynamic discovery."""

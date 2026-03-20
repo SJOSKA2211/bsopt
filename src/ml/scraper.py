@@ -311,8 +311,10 @@ class MarketDataScraper:
                     df = data.reset_index()
                     df.columns = [c.lower() for c in df.columns]
                     # Map 'date' or 'datetime' to 'timestamp'
-                    if 'date' in df.columns: df.rename(columns={'date': 'timestamp'}, inplace=True)
-                    if 'datetime' in df.columns: df.rename(columns={'datetime': 'timestamp'}, inplace=True)
+                    if 'date' in df.columns:
+                        df.rename(columns={'date': 'timestamp'}, inplace=True)
+                    if 'datetime' in df.columns:
+                        df.rename(columns={'datetime': 'timestamp'}, inplace=True)
                     return df
                     
             except Exception as e:
