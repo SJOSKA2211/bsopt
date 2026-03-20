@@ -34,6 +34,36 @@ impl TickDataBuffer {
         }
         Ok(self.mmap[offset..offset + len].to_vec())
     }
+
+    /// Optimized batch parser for fixed-size 32-byte binary ticks
+    /// Format: Symbol (8b), Price (8b f64), Volume (8b i64), Timestamp (8b f64)
+    pub fn parse_ticks_32b(&self, offset: usize, count: usize) -> PyResult<Vec<(String, f64, i64, f64)>> {
+        let tick_size = 32;
+        if offset + (count * tick_size) > self.mmap.len() {
+            return Err(PyIOError::new_err("Buffer overflow during tick parsing"));
+        }
+
+        let mut ticks = Vec::with_capacity(count);
+        for i in 0..count {
+            let start = offset + (i * tick_size);
+            let slice = &self.mmap[start..start + tick_size];
+            
+            // Symbol (8 bytes)
+            let symbol = String::from_utf8_lossy(&slice[0..8]).trim_end_matches('\0').to_string();
+            
+            // Price (f64)
+            let price = f64::from_le_bytes(slice[8..16].try_into().unwrap());
+            
+            // Volume (i64)
+            let volume = i64::from_le_bytes(slice[16..24].try_into().unwrap());
+            
+            // Timestamp (f64)
+            let timestamp = f64::from_le_bytes(slice[24..32].try_into().unwrap());
+            
+            ticks.push((symbol, price, volume, timestamp));
+        }
+        Ok(ticks)
+    }
 }
 
 /// Black-Scholes Vectorized (CPU Parallel)
