@@ -75,6 +75,11 @@ class Settings(BaseSettings):
         """Constructs the RabbitMQ URL from credentials."""
         return f"amqp://{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}@{self.RABBITMQ_HOST}:5672//"
 
+    @property
+    def CELERY_BROKER_URL(self) -> str:
+        """Constructs the Celery Broker URL from RabbitMQ credentials."""
+        return self.RABBITMQ_URL
+
     # ML Serving Configuration
     ML_SERVICE_GRPC_URL: str = "worker:50051"
 

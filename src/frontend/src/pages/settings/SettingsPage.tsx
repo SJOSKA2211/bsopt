@@ -19,15 +19,12 @@ import { motion } from 'framer-motion';
 import {
   Security,
   Bolt,
-  SettingsInputComponent,
   Wifi,
-  History,
   ShieldMoon,
   AccountBalanceWallet,
 } from '@mui/icons-material';
 
 const SettingsSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => {
-  const theme = useTheme();
   return (
     <Box sx={{ mb: 6 }}>
       <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>

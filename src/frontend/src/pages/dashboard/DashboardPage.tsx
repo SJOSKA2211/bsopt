@@ -312,7 +312,7 @@ export const DashboardPage: React.FC = () => {
           <Stack direction="row" spacing={2}>
             <Button
               variant="text"
-              startIcon={<Globe sx={{ fontSize: 18 }} />}
+              startIcon={<Globe size={18} />}
               sx={{
                 fontWeight: 800,
                 color: 'text.secondary',

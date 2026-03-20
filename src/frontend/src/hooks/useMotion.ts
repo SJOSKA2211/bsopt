@@ -22,7 +22,7 @@ export const useMotion = () => {
             stiffness: 400,
             damping: 10,
         }
-    }), []);
+    } as const), []);
 
     const variants: Record<string, Variants> = useMemo(() => ({
         fadeIn: {

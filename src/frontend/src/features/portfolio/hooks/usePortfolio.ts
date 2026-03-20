@@ -49,7 +49,7 @@ export const usePortfolio = () => {
     pollInterval: 10000, // Increased poll interval since we have subscriptions
   });
 
-  const portfolioId = data?.portfolio?.id;
+  const portfolioId = (data as any)?.portfolio?.id;
 
   // Real-time updates via WebSocket
   useSubscription(PORTFOLIO_UPDATES, {
@@ -57,12 +57,12 @@ export const usePortfolio = () => {
     skip: !portfolioId,
     onData: ({ data: subData }) => {
       // Apollo Cache will automatically merge this if the __typename and id match
-      console.log('Portfolio real-time update received:', subData.data?.portfolioUpdates);
+      console.log('Portfolio real-time update received:', (subData.data as any)?.portfolioUpdates);
     }
   });
 
   return {
-    data: data?.portfolio as PortfolioData | undefined,
+    data: (data as any)?.portfolio as PortfolioData | undefined,
     isLoading: loading,
     isError: !!error,
     error,
