@@ -44,17 +44,31 @@ class RayRLTrainer:
         # 1. Initialize master pricer (on head node)
         RLTrainer("ray_distributed_core")
 
-        # 2. Distributed Loop
+        # 2. Distributed Loop (Simulated Orchestration)
         steps_done = 0
         while steps_done < total_timesteps:
-            # Placeholder for actual Ray Train / RLlib orchestration
-            # In a real implementation, we'd use ray.train.torch.TorchTrainer
-            # or a custom PPO/TD3 distributed implementation.
+            # OPTIMIZED: Gather experience from remote workers in parallel
+            worker_tasks = [w.gather_experience.remote(weights={}) for w in self.workers]
+            results = ray.get(worker_tasks)
+            
+            # Aggregate rewards and samples
+            batch_samples = sum(r["samples"] for r in results)
+            avg_reward = np.mean([r["reward"] for r in results])
+            
+            steps_done += batch_samples
+            logger.info(
+                "distributed_training_step",
+                steps=steps_done,
+                avg_reward=avg_reward,
+                batch_size=batch_samples
+            )
 
-            logger.debug("distributed_step_complete", steps=steps_done)
-            steps_done += 1000
-
-        logger.info("ray_distributed_training_complete")
+            # INTEGRATION PATH:
+            # 1. Replace RolloutWorker with ray.train.torch.TorchWorker
+            # 2. Use Ray Train's TorchTrainer for distributed gradient descent
+            # 3. Use Ray Data for efficient experience buffer management
+            
+        logger.info("ray_distributed_training_complete", total_steps=steps_done)
         return {"status": "success", "steps": steps_done}
 
 

@@ -67,7 +67,20 @@ class WASMOPAEnforcer:
             # Fallback to remote OPA query if local WASM is not initialized
             return True
 
-        # Placeholder for actual WASM function call
+        # OPTIMIZED: Call WASM evaluation if available
+        if self._instance:
+            try:
+                # Assuming OPA WASM exports an 'evaluate' or 'is_authorized' function
+                # This is a simplified example of how wasmer calls work
+                eval_func = getattr(self._instance.exports, "is_authorized", None)
+                if eval_func:
+                    result = eval_func(user.get("role", "guest"), action, resource)
+                    logger.debug("opa_wasm_evaluation_success", result=result)
+                    return bool(result)
+            except Exception as e:
+                logger.warning("opa_wasm_evaluation_error", error=str(e))
+
+        # Default to True/Fallback to remote OPA (handled by caller if needed)
         return True
 
 

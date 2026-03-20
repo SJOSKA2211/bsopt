@@ -8,10 +8,20 @@
 const { isMainThread } = require('worker_threads');
 
 async function processData(data) {
-  // Placeholder for expensive transformation or validation
-  // In a real high-frequency scenario, we might parse large JSON bodies here
-  // or perform complex business logic that shouldn't block the main event loop.
-  return data;
+  const toSnakeCase = (str) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+  
+  const transform = (obj) => {
+    if (Array.isArray(obj)) return obj.map(transform);
+    if (obj !== null && typeof obj === 'object') {
+      return Object.entries(obj).reduce((acc, [key, value]) => {
+        acc[toSnakeCase(key)] = transform(value);
+        return acc;
+      }, {});
+    }
+    return obj;
+  };
+
+  return transform(data);
 }
 
 module.exports = async (task) => {
