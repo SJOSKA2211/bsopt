@@ -54,7 +54,7 @@ export function SignUp() {
         setSuccess(true);
         setTimeout(() => navigate('/login'), 2000);
       },
-      onError: (ctx) => { 
+      onError: (ctx: any) => { 
         setLoading(false); 
         setError(ctx.error.message); 
       },

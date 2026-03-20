@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 import { LivePriceChart } from '../src/features/charts/components/LivePriceChart';
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from '../src/theme/index';

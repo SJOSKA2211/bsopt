@@ -83,6 +83,10 @@ interface WasmPricingResult {
   gamma: number;
   price: number;
   iv: number;
+  greeks?: {
+    delta: number;
+    gamma: number;
+  };
 }
 
 const GET_OPTIONS_CHAIN = gql`
@@ -119,8 +123,7 @@ interface OptionsChainProps {
 
 export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
   const theme = useTheme();
-  // @ts-expect-error - palette expansion defined in theme index
-  const qfd = theme.palette.financial?.qfd;
+  const qfd = (theme.palette as any).financial?.qfd;
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
@@ -138,7 +141,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const { tick } = useMarketData(symbol);
 
   useEffect(() => {
-    const newSpot = tick?.lastPrice || gqlData?.marketData?.lastPrice;
+    const newSpot = tick?.lastPrice || (gqlData as any)?.marketData?.lastPrice;
     if (newSpot && newSpot !== lastSpot) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastSpot(newSpot);
@@ -147,9 +150,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {
-    if (!gqlData?.options?.edges) return [];
+    if (!(gqlData as any)?.options?.edges) return [];
 
-    const nodes: OptionNode[] = (gqlData?.options?.edges || []).map((e: { node: OptionNode }) => e.node);
+    const nodes: OptionNode[] = ((gqlData as any)?.options?.edges || []).map((e: { node: OptionNode }) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
@@ -169,15 +172,16 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       const isCall = node.optionType.toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      groups[key][`${prefix}bid` as keyof OptionChainRow] = node.bid;
-      groups[key][`${prefix}ask` as keyof OptionChainRow] = node.ask;
-      groups[key][`${prefix}last` as keyof OptionChainRow] = node.lastPrice;
-      groups[key][`${prefix}volume` as keyof OptionChainRow] = node.volume;
-      groups[key][`${prefix}oi` as keyof OptionChainRow] = node.openInterest;
-      groups[key][`${prefix}iv` as keyof OptionChainRow] = node.iv;
-      groups[key][`${prefix}delta` as keyof OptionChainRow] = node.delta;
-      groups[key][`${prefix}gamma` as keyof OptionChainRow] = node.gamma;
-      groups[key][`${prefix}theor` as keyof OptionChainRow] = node.price;
+      const item = groups[key] as any;
+      item[`${prefix}bid`] = node.bid;
+      item[`${prefix}ask`] = node.ask;
+      item[`${prefix}last`] = node.lastPrice;
+      item[`${prefix}volume`] = node.volume;
+      item[`${prefix}oi`] = node.openInterest;
+      item[`${prefix}iv`] = node.iv;
+      item[`${prefix}delta`] = node.delta;
+      item[`${prefix}gamma`] = node.gamma;
+      item[`${prefix}theor`] = node.price;
     });
 
     return Object.values(groups);
@@ -221,7 +225,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         })
       ];
 
-      let results: WasmPricingResult[] | undefined;
+      let results: any[] | undefined;
       try {
         if (pricingModel === 'black_scholes') {
           results = await batchCalculate(allParams);
@@ -690,7 +694,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
               >
                 ${lastSpot.toFixed(2)}
               </Typography>
-              {tick?.lastPrice && tick.lastPrice > (gqlData?.marketData?.lastPrice || 0) ?
+              {tick?.lastPrice && tick.lastPrice > ((gqlData as any)?.marketData?.lastPrice || 0) ?
                 <TrendingUp sx={{ fontSize: 14, color: 'success.main' }} /> :
                 <TrendingDown sx={{ fontSize: 14, color: 'error.main' }} />
               }
@@ -700,7 +704,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
             <Chip
               label="WASM SIMD"
               size="small"
-              icon={<Zap sx={{ fontSize: '12px !important' }} />}
+              icon={<Zap size={12} />}
               sx={{
                 height: 20,
                 fontSize: '0.65rem',

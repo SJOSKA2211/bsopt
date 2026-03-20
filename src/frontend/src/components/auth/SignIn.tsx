@@ -89,7 +89,7 @@ export default function SignIn() {
     await authClient.signIn.email({ email, password }, {
       onRequest: () => setLoading(true),
       onSuccess: () => { setLoading(false); setSuccess(true); },
-      onError: (ctx) => { setLoading(false); setError(ctx.error.message); },
+      onError: (ctx: any) => { setLoading(false); setError(ctx.error.message); },
     });
   };
 

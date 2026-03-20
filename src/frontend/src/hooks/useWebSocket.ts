@@ -1,5 +1,5 @@
 // src/frontend/src/hooks/useWebSocket.ts (Optimized)
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 // import { protobuf } from 'protobufjs'; // Removed unused import causing build error
 
 /**
@@ -25,7 +25,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   const [data, setData] = useState<T | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const protoRootRef = useRef<any>(null);
+  const protoRootRef = useRef<unknown>(null);
   const bufferRef = useRef<T | null>(null);
   const lastUpdateRef = useRef<number>(0);
 
@@ -73,11 +73,12 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
       };
     };
 
+    const symbolsString = options.symbols.join(',');
     connect();
     return () => {
       if (wsRef.current) wsRef.current.close();
     };
-  }, [options.url, options.enabled, options.symbols.join(','), options.useProtobuf, options.updateFrequency]);
+  }, [options.url, options.enabled, symbolsString, options.useProtobuf, options.updateFrequency]);
 
   return { data, isConnected };
 }

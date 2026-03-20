@@ -21,14 +21,7 @@ interface MLPredictionsProps {
   symbol: string;
 }
 
-interface PredictionData {
-  symbol: string;
-  predictedPrice: number;
-  confidenceInterval: [number, number];
-  drift: number;
-  modelName: string;
-  lastUpdated: string;
-}
+
 
 export const GET_ML_PREDICTION = gql`
   query GetMLPrediction($symbol: String!) {
@@ -52,7 +45,7 @@ export const MLPredictions: React.FC<MLPredictionsProps> = React.memo(({ symbol 
     pollInterval: 10000,
   });
 
-  const data = gqlData?.mlPrediction;
+  const data = (gqlData as any)?.mlPrediction;
 
 
 

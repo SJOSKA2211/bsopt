@@ -85,8 +85,8 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
     });
 
     // Set historical data when loaded
-    if (historicalData?.historicalData) {
-      candleSeries.setData(historicalData.historicalData.map((d: { time: Time, open: number, high: number, low: number, close: number }) => ({
+    if ((historicalData as any)?.historicalData) {
+      candleSeries.setData((historicalData as any).historicalData.map((d: { time: Time, open: number, high: number, low: number, close: number }) => ({
         ...d,
         time: (d.time as Time)
       })));
@@ -127,8 +127,8 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }) => {
 
   // Update chart when new data arrives
   useEffect(() => {
-    if (subData?.market_data_stream && seriesRef.current) {
-      const update = subData.market_data_stream;
+    if ((subData as any)?.market_data_stream && seriesRef.current) {
+      const update = (subData as any).market_data_stream;
       seriesRef.current.update({
         time: (Math.floor(Date.now() / 1000) as Time),
         value: update.lastPrice,

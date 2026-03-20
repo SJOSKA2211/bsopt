@@ -33,37 +33,43 @@ export const PositionsSummary: React.FC = React.memo(() => {
   const { data, isLoading, error } = usePortfolio();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const enrichedPositions = useMemo(() => {
-    if (!data || !isWasmLoaded) return data?.positions || [];
+  const [enrichedPositions, setEnrichedPositions] = React.useState<any[]>([]);
 
-    const now = new Date();
-    const rate = 0.05;
-    const div = 0.0;
+  React.useEffect(() => {
+    if (!data || !isWasmLoaded) {
+      setEnrichedPositions(data?.positions || []);
+      return;
+    }
 
-    const params = data.positions.map(pos => {
-      // Assuming pos has expiry and strike
-      const expiryDate = pos.expiry ? new Date(pos.expiry) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-      const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
-      
-      return {
-        spot: pos.underlying_price || 150, // Fallback if missing
-        strike: pos.strike || 150,
-        time: timeToExpiry,
-        vol: pos.implied_volatility || 0.2,
-        rate,
-        div,
-        is_call: pos.option_type === 'call'
-      };
-    });
+    const runEnrichment = async () => {
+      const now = new Date();
+      const rate = 0.05;
+      const div = 0.0;
 
-    // @ts-ignore
-    const results = batchCalculate(params);
+      const params = data.positions.map(pos => {
+        const expiryDate = pos.expiry ? new Date(pos.expiry) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        
+        return {
+          spot: pos.underlying_price || 150,
+          strike: pos.strike || 150,
+          time: timeToExpiry,
+          vol: pos.implied_volatility || 0.2,
+          rate,
+          div,
+          is_call: pos.option_type === 'call'
+        };
+      });
 
-    return data.positions.map((pos, i) => ({
-      ...pos,
-      // @ts-ignore
-      theor_greeks: results[i]?.greeks
-    }));
+      const results = await batchCalculate(params);
+
+      setEnrichedPositions(data.positions.map((pos, i) => ({
+        ...pos,
+        theor_greeks: results[i]?.greeks
+      })));
+    };
+
+    runEnrichment();
   }, [data, isWasmLoaded, batchCalculate]);
 
   if (isLoading) {

@@ -35,7 +35,7 @@ export const useMarketData = (symbols: string | string[]) => {
     });
 
     return {
-        tick: (data as any)?.marketDataStream as MarketTick | undefined,
+        tick: (data as { marketDataStream?: MarketTick })?.marketDataStream,
         isLoading: loading,
         isError: !!error,
         error,

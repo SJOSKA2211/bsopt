@@ -20,7 +20,15 @@ const simulateComparisonStream = (): ReturnType<typeof setInterval> => {
     }, 2000);
 }
 
-const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency = false }: any) => {
+interface MetricRowProps {
+    label: string;
+    userValue: number;
+    aiValue: number;
+    isPercentage?: boolean;
+    isCurrency?: boolean;
+}
+
+const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency = false }: MetricRowProps) => {
     const theme = useTheme();
     const qfd = theme.palette.financial?.qfd;
     const formatValue = (val: number) => {

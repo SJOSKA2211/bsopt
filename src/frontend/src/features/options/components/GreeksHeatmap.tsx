@@ -1,4 +1,7 @@
+import React, { useMemo } from 'react';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
@@ -52,10 +55,10 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   // Transform flat GraphQL nodes into aggregated OptionData
   const optionsData = useMemo(() => {
-    if (!gqlData?.options?.edges) return [];
+    if (!(gqlData as any)?.options?.edges) return [];
 
-    const nodes = gqlData.options.edges.map((e: any) => e.node);
-    const spot = gqlData.marketData?.lastPrice || 155.0;
+    const nodes = (gqlData as any).options.edges.map((e: { node: any }) => e.node);
+    const spot = (gqlData as any).marketData?.lastPrice || 155.0;
     const groups: Record<string, OptionData> = {};
 
     nodes.forEach((node: any) => {
@@ -73,7 +76,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       const isCall = node.optionType.toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      const target = groups[key] as any;
+      const target = groups[key] as Record<string, any>;
       target[`${prefix}iv`] = node.iv;
       target[`${prefix}delta`] = node.delta;
       target[`${prefix}gamma`] = node.gamma;
@@ -97,23 +100,17 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       is_call: true
     }));
 
-    // @ts-ignore
-    const results = batchCalculate(params);
+    const results = (batchCalculate as any)(params);
 
     return optionsData.map((d, i) => {
-      // @ts-ignore
-      const result = results[i];
+      const result = (results as any)[i];
       if (result) {
         return {
           ...d,
-          // @ts-ignore
-          call_delta: result.greeks.delta,
-          // @ts-ignore
-          call_gamma: result.greeks.gamma,
-          // @ts-ignore
-          call_vega: result.greeks.vega,
-          // @ts-ignore
-          call_theta: result.greeks.theta,
+          call_delta: (result as any).greeks?.delta,
+          call_gamma: (result as any).greeks?.gamma,
+          call_vega: (result as any).greeks?.vega,
+          call_theta: (result as any).greeks?.theta,
         };
       }
       return d;
@@ -123,7 +120,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   const chartOptions = useMemo(() => {
     if (!processedData || processedData.length === 0) return null;
 
-    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
+    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: any, b: any) => a - b);
     const expiries = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
 
     const data = processedData.map((d: OptionData) => {
