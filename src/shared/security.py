@@ -1,8 +1,10 @@
 import os
-from typing import Any
+import ipaddress
+from typing import Any, Optional
 
 import structlog
 from fastapi import Depends, HTTPException, Request, status
+from msgspec import Struct
 
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import DistributedCircuitBreaker
@@ -14,6 +16,34 @@ logger = structlog.get_logger()
 # Uses DistributedCircuitBreaker to sync state across nodes
 _security_circuit = None
 
+class SecurityContext(Struct):
+    """
+    Consolidated security context for the request.
+    Stored in request.state.security_context.
+    """
+    user_id: Optional[str] = None
+    email: Optional[str] = None
+    tier: Optional[str] = None
+    service_id: Optional[str] = None
+    is_internal: bool = False
+    auth_type: Optional[str] = None
+
+def is_trusted_proxy(ip: str, trusted_proxies: set[str]) -> bool:
+    """
+    Check if an IP address is within the set of trusted proxies.
+    Supports CIDR notation.
+    """
+    try:
+        ip_obj = ipaddress.ip_address(ip)
+        for proxy in trusted_proxies:
+            if "/" in proxy:
+                if ip_obj in ipaddress.ip_network(proxy):
+                    return True
+            elif ip == proxy:
+                return True
+    except ValueError:
+        return False
+    return False
 
 def get_security_circuit():
     global _security_circuit
@@ -70,7 +100,7 @@ class WASMOPAEnforcer:
         # OPTIMIZED: Call WASM evaluation if available
         if self._instance:
             try:
-                # Assuming OPA WASM exports an 'evaluate' or 'is_authorized' function
+                # Assuming OPA WASM exports an "evaluate" or "is_authorized" function
                 # This is a simplified example of how wasmer calls work
                 eval_func = getattr(self._instance.exports, "is_authorized", None)
                 if eval_func:
@@ -136,7 +166,7 @@ class MTLSVerifier:
         Commonly passed by a reverse proxy like Nginx or Envoy.
 
         CRITICAL SECURITY NOTE:
-        The headers 'X-SSL-Client-Verify' and 'X-SSL-Client-S-DN' MUST be
+        The headers "X-SSL-Client-Verify" and "X-SSL-Client-S-DN" MUST be
         set by a trusted upstream component (e.g., API Gateway, TLS terminator)
         and MUST NOT be directly exposed to or modifiable by external clients.
         Failure to enforce this at the infrastructure layer will lead to

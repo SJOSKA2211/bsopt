@@ -75,3 +75,8 @@ scrape_configs:
     static_configs:
       - targets: ['envoy:9901']
     metrics_path: /stats/prometheus
+
+  # --- Telemetry Infrastructure ---
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888', 'otel-collector:8889', 'otel-collector:13133']
