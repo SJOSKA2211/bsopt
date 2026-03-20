@@ -49,7 +49,7 @@ export const QuickTradeButton: React.FC<QuickTradeButtonProps> = React.memo(({ o
       const { apiFetch } = await import('../../../lib/api-client');
       const data = await apiFetch<{ message?: string }>('/api/v1/trades/execute', {
         method: 'POST',
-        body: { optionId: option.id, type, action, amount: 1 } as any,
+        body: JSON.stringify({ optionId: option.id, type, action, amount: 1 }),
       });
       setSnackbar({ open: true, message: data.message || 'Trade executed successfully', severity: 'success' });
       setOpen(false);

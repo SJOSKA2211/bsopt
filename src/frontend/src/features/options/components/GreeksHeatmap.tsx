@@ -39,10 +39,17 @@ interface OptionData {
   call_delta: number;
   call_gamma: number;
   call_iv: number;
+  call_theta?: number;
+  call_vega?: number;
   put_delta: number;
   put_gamma: number;
   put_iv: number;
   underlying_price: number;
+}
+
+interface GqlData {
+  marketData?: { lastPrice: number };
+  options?: { edges: { node: Record<string, unknown> }[] };
 }
 
 export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }) => {
@@ -55,72 +62,91 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   // Transform flat GraphQL nodes into aggregated OptionData
   const optionsData = useMemo(() => {
-    if (!(gqlData as any)?.options?.edges) return [];
+    if (!(gqlData as GqlData)?.options?.edges) return [];
 
-    const nodes = (gqlData as any).options.edges.map((e: { node: any }) => e.node);
-    const spot = (gqlData as any).marketData?.lastPrice || 155.0;
+    const nodes = (gqlData as GqlData).options?.edges.map((e: { node: Record<string, unknown> }) => e.node) || [];
+    const spot = (gqlData as GqlData).marketData?.lastPrice || 155.0;
     const groups: Record<string, OptionData> = {};
 
-    nodes.forEach((node: any) => {
-      const key = `${node.strike}-${node.expiry}`;
+    nodes.forEach((node: Record<string, unknown>) => {
+      const strike = Number(node.strike);
+      const expiry = String(node.expiry);
+      const optionType = String(node.optionType).toUpperCase();
+      const iv = Number(node.iv);
+      const delta = Number(node.delta);
+      const gamma = Number(node.gamma);
+
+      const key = `${strike}-${expiry}`;
       if (!groups[key]) {
         groups[key] = {
-          strike: node.strike,
-          expiry: node.expiry,
+          strike,
+          expiry,
           underlying_price: spot,
           call_delta: 0, call_gamma: 0, call_iv: 0,
           put_delta: 0, put_gamma: 0, put_iv: 0,
         };
       }
 
-      const isCall = node.optionType.toUpperCase() === 'CALL';
+      const isCall = optionType === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      const target = groups[key] as Record<string, any>;
-      target[`${prefix}iv`] = node.iv;
-      target[`${prefix}delta`] = node.delta;
-      target[`${prefix}gamma`] = node.gamma;
+      const target = groups[key] as unknown as Record<string, string | number | undefined>;
+      target[`${prefix}iv`] = iv;
+      target[`${prefix}delta`] = delta;
+      target[`${prefix}gamma`] = gamma;
     });
 
     return Object.values(groups);
   }, [gqlData]);
 
+  const [processedData, setProcessedData] = useState<OptionData[]>([]);
+
   // Enrich data with WASM for Greeks if loaded
-  const processedData = useMemo(() => {
-    if (!optionsData || !isWasmLoaded) return optionsData || [];
-
-    // Generate all params for batch calculation
-    const params = optionsData.map(d => ({
-      spot: d.underlying_price,
-      strike: d.strike,
-      time: 30 / 365, // Mock time
-      vol: d.call_iv,
-      rate: 0.05,
-      div: 0.0,
-      is_call: true
-    }));
-
-    const results = (batchCalculate as any)(params);
-
-    return optionsData.map((d, i) => {
-      const result = (results as any)[i];
-      if (result) {
-        return {
-          ...d,
-          call_delta: (result as any).greeks?.delta,
-          call_gamma: (result as any).greeks?.gamma,
-          call_vega: (result as any).greeks?.vega,
-          call_theta: (result as any).greeks?.theta,
-        };
+  useEffect(() => {
+    if (!optionsData || !isWasmLoaded) {
+      if (processedData.length !== (optionsData?.length || 0)) {
+        setProcessedData(optionsData || []);
       }
-      return d;
-    });
+      return;
+    }
+
+    const runEnrichment = async () => {
+      // Generate all params for batch calculation
+      const params = optionsData.map(d => ({
+        spot: d.underlying_price,
+        strike: d.strike,
+        time: 30 / 365, // Mock time
+        vol: d.call_iv,
+        rate: 0.05,
+        div: 0.0,
+        is_call: true
+      }));
+
+      const results = await batchCalculate(params);
+
+      const enriched = optionsData.map((d, i) => {
+        const result = results[i];
+        if (result) {
+          return {
+            ...d,
+            call_delta: result.greeks.delta,
+            call_gamma: result.greeks.gamma,
+            call_vega: result.greeks.vega,
+            call_theta: result.greeks.theta,
+          };
+        }
+        return d;
+      });
+      setProcessedData(enriched);
+    };
+
+    runEnrichment();
   }, [optionsData, isWasmLoaded, batchCalculate]);
 
   const chartOptions = useMemo(() => {
     if (!processedData || processedData.length === 0) return null;
 
-    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: any, b: any) => a - b);
+    const strikes = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a, b) => a - b);
     const expiries = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
 
     const data = processedData.map((d: OptionData) => {
@@ -131,8 +157,8 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       if (greek === 'delta') value = d.call_delta;
       else if (greek === 'gamma') value = d.call_gamma;
       else if (greek === 'iv') value = d.call_iv;
-      else if (greek === 'theta') value = (d as any).call_theta || 0;
-      else if (greek === 'vega') value = (d as any).call_vega || 0;
+      else if (greek === 'theta') value = d.call_theta || 0;
+      else if (greek === 'vega') value = d.call_vega || 0;
 
       return [strikeIdx, expiryIdx, value];
     });

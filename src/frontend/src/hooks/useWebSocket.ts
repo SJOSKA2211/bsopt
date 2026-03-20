@@ -29,6 +29,8 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
   const bufferRef = useRef<T | null>(null);
   const lastUpdateRef = useRef<number>(0);
 
+  const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
+  
   useEffect(() => {
     if (!options.enabled) return;
 
@@ -48,7 +50,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
         try {
           let parsed: T;
           if (options.useProtobuf && protoRootRef.current) {
-            const MessageType = protoRootRef.current.lookupType('bsopt.OptionsData');
+            const MessageType = (protoRootRef.current as { lookupType: (n: string) => { decode: (d: unknown) => unknown; toObject: (d: unknown) => T } }).lookupType('bsopt.OptionsData');
             const decoded = MessageType.decode(new Uint8Array(event.data));
             parsed = MessageType.toObject(decoded) as T;
           } else {
@@ -73,12 +75,11 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
       };
     };
 
-    const symbolsString = options.symbols.join(',');
     connect();
     return () => {
       if (wsRef.current) wsRef.current.close();
     };
-  }, [options.url, options.enabled, symbolsString, options.useProtobuf, options.updateFrequency]);
+  }, [options.url, options.enabled, symbolsString, options.symbols, options.useProtobuf, options.updateFrequency]);
 
   return { data, isConnected };
 }

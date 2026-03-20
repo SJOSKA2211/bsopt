@@ -133,6 +133,7 @@ class DistributedCircuitBreaker:
             f"{name}:cb_last_failure",
         ]
         self._check_script = redis_client.register_script(self.CHECK_LUA)
+        self._failure_count_cache = 0
 
     def __call__(self, func: Callable):
         from anyio.to_thread import run_sync
@@ -161,15 +162,23 @@ class DistributedCircuitBreaker:
 
                 if current_state == "HALF_OPEN":
                     await self.redis_client.delete(self.keys[0], self.keys[1])  # Reset
+                    self._failure_count_cache = 0
                     logger.info("circuit_breaker_closed", name=self.name)
+
+                # Periodically sync failure count from Redis (e.g., every 5 calls or if cache is 0)
+                if now % 5 == 0 or self._failure_count_cache == 0:
+                    val = await self.redis_client.get(self.keys[1])
+                    self._failure_count_cache = int(val) if val else 0
 
                 return result
             except Exception as e:
                 # Increment failures and update timestamp
                 await self.redis_client.incr(self.keys[1])
                 await self.redis_client.set(self.keys[2], now)
+                self._failure_count_cache += 1
 
                 failures = int(await self.redis_client.get(self.keys[1]) or 0)
+                self._failure_count_cache = failures
                 if failures >= self.failure_threshold:
                     await self.redis_client.set(self.keys[0], "OPEN", ex=self.recovery_timeout)
                     logger.error("circuit_breaker_opened", name=self.name, failures=failures)
@@ -177,6 +186,10 @@ class DistributedCircuitBreaker:
                 raise e
 
         return wrapper
+
+    @property
+    def failure_count(self):
+        return self._failure_count_cache
 
 
 class CircuitBreakerProxy:
@@ -216,8 +229,8 @@ class CircuitBreakerProxy:
     def failure_count(self):
         if isinstance(self._cb, InMemoryCircuitBreaker):
             return self._cb.failure_count
-        # For distributed, failure count is in Redis, so we return a placeholder
-        # or we could make it async, but property must be sync.
+        if isinstance(self._cb, DistributedCircuitBreaker):
+            return self._cb.failure_count
         return -1
 
 

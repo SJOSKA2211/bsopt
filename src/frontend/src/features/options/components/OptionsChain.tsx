@@ -78,6 +78,11 @@ interface OptionNode {
   gamma: number;
 }
 
+interface GqlData {
+  marketData?: { lastPrice: number };
+  options?: { edges: { node: OptionNode }[] };
+}
+
 interface WasmPricingResult {
   delta: number;
   gamma: number;
@@ -121,13 +126,22 @@ interface OptionsChainProps {
   onOptionSelect?: (option: OptionChainRow) => void;
 }
 
-export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, onOptionSelect }) => {
+export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChainProps) => {
   const theme = useTheme();
-  const qfd = (theme.palette as any).financial?.qfd;
+  const qfd = (theme.palette as unknown as { financial?: { qfd?: Record<string, string> } }).financial?.qfd;
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
-  const { isLoaded: isWasmLoaded, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston } = useWasmPricing();
+  const { 
+    isLoaded: isWasmLoaded, 
+    batchCalculate, 
+    priceMonteCarlo, 
+    priceAmerican, 
+    priceHeston,
+    batchPriceMonteCarlo,
+    batchPriceAmerican,
+    batchPriceHeston 
+  } = useWasmPricing();
   const [enrichedResults, setEnrichedResults] = useState<WasmPricingResult[]>([]);
   const [lastSpot, setLastSpot] = useState<number>(0);
 
@@ -141,7 +155,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
   const { tick } = useMarketData(symbol);
 
   useEffect(() => {
-    const newSpot = tick?.lastPrice || (gqlData as any)?.marketData?.lastPrice;
+    const newSpot = tick?.lastPrice || (gqlData as GqlData)?.marketData?.lastPrice;
     if (newSpot && newSpot !== lastSpot) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastSpot(newSpot);
@@ -150,9 +164,9 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {
-    if (!(gqlData as any)?.options?.edges) return [];
+    if (!(gqlData as GqlData)?.options?.edges) return [];
 
-    const nodes: OptionNode[] = ((gqlData as any)?.options?.edges || []).map((e: { node: OptionNode }) => e.node);
+    const nodes: OptionNode[] = ((gqlData as GqlData).options?.edges || []).map((e: { node: OptionNode }) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
@@ -172,7 +186,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
       const isCall = node.optionType.toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      const item = groups[key] as any;
+      const item = groups[key] as unknown as Record<string, string | number | undefined>;
       item[`${prefix}bid`] = node.bid;
       item[`${prefix}ask`] = node.ask;
       item[`${prefix}last`] = node.lastPrice;
@@ -225,16 +239,31 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
         })
       ];
 
-      let results: any[] | undefined;
+      let results: WasmPricingResult[] | undefined;
       try {
         if (pricingModel === 'black_scholes') {
-          results = await batchCalculate(allParams);
+          const raw = await batchCalculate(allParams);
+          results = raw.map(r => ({
+            price: r.price,
+            delta: r.greeks.delta,
+            gamma: r.greeks.gamma,
+            iv: 0, 
+            greeks: r.greeks
+          }));
         } else if (pricingModel === 'monte_carlo') {
-          results = await Promise.all(allParams.map(p => priceMonteCarlo(p, 10000)));
+          const flatParams = allParams.flatMap(p => [p.spot, p.strike, p.time, p.vol, p.rate, p.div, p.is_call ? 1 : 0]);
+          const prices = await (batchPriceMonteCarlo as (p: number[], n?: number) => Promise<Float64Array>)(flatParams, 10000);
+          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
         } else if (pricingModel === 'crank_nicolson') {
-          results = await Promise.all(allParams.map(p => priceAmerican(p)));
+          const flatParams = allParams.flatMap(p => [p.spot, p.strike, p.time, p.vol, p.rate, p.div, p.is_call ? 1 : 0]);
+          const prices = await (batchPriceAmerican as (p: number[], m?: number, n?: number) => Promise<Float64Array>)(flatParams, 200, 200);
+          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
         } else if (pricingModel === 'heston') {
-          results = await Promise.all(allParams.map(p => priceHeston({ ...p, v0: 0.04, kappa: 2.0, theta: 0.04, sigma: 0.3, rho: -0.7 })));
+          const flatParams = allParams.flatMap(p => [
+            p.spot, p.strike, p.time, p.rate, 0.04, 2.0, 0.04, 0.3, -0.7 // spot, strike, time, r, v0, kappa, theta, sigma, rho
+          ]);
+          const prices = await (batchPriceHeston as (p: number[]) => Promise<Float64Array>)(flatParams);
+          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
         }
       } catch (e: unknown) {
         console.error('WASM Batch enrichment failed:', e);
@@ -694,7 +723,7 @@ export const OptionsChain: React.FC<OptionsChainProps> = React.memo(({ symbol, o
               >
                 ${lastSpot.toFixed(2)}
               </Typography>
-              {tick?.lastPrice && tick.lastPrice > ((gqlData as any)?.marketData?.lastPrice || 0) ?
+              {tick?.lastPrice && tick.lastPrice > ((gqlData as GqlData)?.marketData?.lastPrice || 0) ?
                 <TrendingUp sx={{ fontSize: 14, color: 'success.main' }} /> :
                 <TrendingDown sx={{ fontSize: 14, color: 'error.main' }} />
               }

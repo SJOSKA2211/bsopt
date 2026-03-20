@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -33,7 +33,7 @@ export const PositionsSummary: React.FC = React.memo(() => {
   const { data, isLoading, error } = usePortfolio();
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const [enrichedPositions, setEnrichedPositions] = React.useState<any[]>([]);
+  const [enrichedPositions, setEnrichedPositions] = React.useState<unknown[]>([]);
 
   React.useEffect(() => {
     if (!data || !isWasmLoaded) {

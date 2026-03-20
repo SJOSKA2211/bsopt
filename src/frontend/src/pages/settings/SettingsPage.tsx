@@ -60,8 +60,7 @@ const SettingRow: React.FC<{ label: string; description: string; action: React.R
 
 export const SettingsPage: React.FC = () => {
   const theme = useTheme();
-  // @ts-ignore
-  const qfd = theme.palette.financial?.qfd;
+  const qfd = (theme.palette as any).financial?.qfd;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, pb: 10 }}>

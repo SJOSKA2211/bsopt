@@ -129,11 +129,26 @@ export const useWasmPricing = () => {
     return _sendWorkerMessage('PRICE_HESTON', params);
   }, [_sendWorkerMessage]);
 
+  const batchPriceAmerican = useCallback(async (params: number[], m?: number, n?: number): Promise<Float64Array> => {
+    return _sendWorkerMessage('BATCH_PRICE_AMERICAN', { payload: params, m, n });
+  }, [_sendWorkerMessage]);
+
+  const batchPriceMonteCarlo = useCallback(async (params: number[], num_paths?: number): Promise<Float64Array> => {
+    return _sendWorkerMessage('BATCH_PRICE_MONTE_CARLO', { payload: params, num_paths });
+  }, [_sendWorkerMessage]);
+
+  const batchPriceHeston = useCallback(async (params: number[]): Promise<Float64Array> => {
+    return _sendWorkerMessage('BATCH_PRICE_HESTON', { payload: params });
+  }, [_sendWorkerMessage]);
+
   return {
     isLoaded,
     priceOption,
     calculateIV,
     batchCalculate,
+    batchPriceAmerican,
+    batchPriceMonteCarlo,
+    batchPriceHeston,
     priceAmerican,
     priceMonteCarlo,
     priceHeston

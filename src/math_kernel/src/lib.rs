@@ -121,6 +121,77 @@ impl BlackScholesWASM {
         vol
     }
 
+    pub fn price_american(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64, is_call: bool, m: usize, n: usize) -> f64 {
+        let engine = CrankNicolsonWASM::new();
+        engine.price_american(spot, strike, time, vol, rate, div, is_call, m, n)
+    }
+
+    pub fn price_heston_mc(&self, spot: f64, strike: f64, time: f64, r: f64, v0: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, is_call: bool, num_paths: usize) -> f64 {
+        let engine = HestonWASM::new();
+        engine.price_monte_carlo(spot, strike, time, r, v0, kappa, theta, sigma, rho, is_call, num_paths)
+    }
+
+    pub fn price_monte_carlo(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64, is_call: bool, num_paths: usize) -> f64 {
+        let engine = MonteCarloWASM::new();
+        engine.price_european(spot, strike, time, vol, rate, div, is_call, num_paths, false)
+    }
+
+    pub fn price_american_lsm(&self, spot: f64, strike: f64, time: f64, vol: f64, rate: f64, div: f64, is_call: bool, num_paths: usize, num_steps: usize) -> f64 {
+        let engine = AmericanOptionsWASM::new();
+        engine.price_lsm(spot, strike, time, vol, rate, div, is_call, num_paths, num_steps)
+    }
+
+    #[cfg(feature = "js")]
+    pub fn batch_price_american(&self, params: &[f64], m: usize, n: usize) -> Float64Array {
+        let stride_in = 7;
+        let num_options = params.len() / stride_in;
+        let mut results = Vec::with_capacity(num_options);
+        let engine = CrankNicolsonWASM::new();
+        
+        for i in 0..num_options {
+            let off = i * stride_in;
+            results.push(engine.price_american(
+                params[off], params[off+1], params[off+2], params[off+3], 
+                params[off+4], params[off+5], params[off+6] > 0.5, m, n
+            ));
+        }
+        Float64Array::from(results.as_slice())
+    }
+
+    #[cfg(feature = "js")]
+    pub fn batch_price_monte_carlo(&self, params: &[f64], num_paths: usize) -> Float64Array {
+        let stride_in = 7;
+        let num_options = params.len() / stride_in;
+        let mut results = Vec::with_capacity(num_options);
+        let engine = MonteCarloWASM::new();
+        
+        for i in 0..num_options {
+            let off = i * stride_in;
+            results.push(engine.price_european(
+                params[off], params[off+1], params[off+2], params[off+3], 
+                params[off+4], params[off+5], params[off+6] > 0.5, num_paths, false
+            ));
+        }
+        Float64Array::from(results.as_slice())
+    }
+
+    #[cfg(feature = "js")]
+    pub fn batch_price_heston(&self, params: &[f64]) -> Float64Array {
+        let stride_in = 9; // [spot, strike, time, r, v0, kappa, theta, sigma, rho]
+        let num_options = params.len() / stride_in;
+        let mut results = Vec::with_capacity(num_options);
+        let engine = HestonWASM::new();
+        
+        for i in 0..num_options {
+            let off = i * stride_in;
+            results.push(engine.price_call(
+                params[off], params[off+1], params[off+2], params[off+3], 
+                params[off+4], params[off+5], params[off+6], params[off+7], params[off+8]
+            ));
+        }
+        Float64Array::from(results.as_slice())
+    }
+
     #[cfg(feature = "js")]
     pub fn batch_calculate_soa(&self, params: JsValue) -> Result<JsValue, serde_wasm_bindgen::Error> {
         let p: BatchOptionParams = serde_wasm_bindgen::from_value(params)?;

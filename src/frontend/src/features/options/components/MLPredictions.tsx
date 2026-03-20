@@ -45,7 +45,17 @@ export const MLPredictions: React.FC<MLPredictionsProps> = React.memo(({ symbol 
     pollInterval: 10000,
   });
 
-  const data = (gqlData as any)?.mlPrediction;
+  interface GqlData {
+    mlPrediction?: {
+      predictedPrice: number;
+      confidenceInterval: [number, number];
+      drift: number;
+      modelName: string;
+      lastUpdated: string;
+    };
+  }
+
+  const data = (gqlData as GqlData)?.mlPrediction;
 
 
 
