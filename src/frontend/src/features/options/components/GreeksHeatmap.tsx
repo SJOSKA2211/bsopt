@@ -191,7 +191,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-        <CircularProgress size={30} />
+        <CircularProgress size={30} aria-label="Loading Greeks Heatmap" />
       </Box>
     );
   }

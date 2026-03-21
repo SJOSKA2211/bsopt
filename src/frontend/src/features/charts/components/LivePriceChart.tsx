@@ -262,6 +262,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
               onClick={() => setShowSMA(!showSMA)}
               color={showSMA ? 'primary' : 'default'}
               sx={{ width: 28, height: 28, bgcolor: alpha(theme.palette.primary.main, showSMA ? 0.1 : 0) }}
+              aria-label="Toggle Simple Moving Average"
             >
               <Timeline sx={{ fontSize: 18 }} />
             </IconButton>
@@ -277,7 +278,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       
       {loading && (
         <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-          <CircularProgress size={30} thickness={4} />
+          <CircularProgress size={30} thickness={4} aria-label="Loading Chart Data" />
         </Box>
       )}
     </Box>

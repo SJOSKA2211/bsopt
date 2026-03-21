@@ -246,7 +246,7 @@ export default function SignIn() {
             sx={{ py: 1.5, fontSize: '0.95rem', mb: 2 }}
           >
             {loading ? (
-              <CircularProgress size={24} color="inherit" />
+              <CircularProgress size={24} color="inherit" aria-label="Signing in" />
             ) : (
               'Sign In'
             )}
