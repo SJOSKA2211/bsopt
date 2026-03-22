@@ -21,6 +21,7 @@ except ImportError:
         SamplerV2 = Sampler  # Fallback for slightly older versions
     except ImportError:
         QISKIT_AVAILABLE = False
+        QuantumCircuit = Any
 
 from src.math_kernel.models import BSParameters
 from src.math_kernel.quantum_backend import QuantumBackendManager
@@ -32,7 +33,7 @@ class QuantumCircuitOptimizer:
     """HARDENED: High-performance quantum circuit transpilation & optimization."""
 
     @staticmethod
-    def optimize(qc: QuantumCircuit, optimization_level: int = 3) -> QuantumCircuit:
+    def optimize(qc: "QuantumCircuit", optimization_level: int = 3) -> "QuantumCircuit":
         if not QISKIT_AVAILABLE:
             # Mock reduction for tests
             if qc.size() > 0:
@@ -43,7 +44,7 @@ class QuantumCircuitOptimizer:
 
         return transpile(qc, optimization_level=optimization_level)
 
-    def optimize_circuit(self, qc: QuantumCircuit) -> QuantumCircuit:
+    def optimize_circuit(self, qc: "QuantumCircuit") -> "QuantumCircuit":
         """Legacy compatibility method."""
         return self.optimize(qc)
 
@@ -125,7 +126,7 @@ class QuantumOptionPricer:
 
     def create_stock_price_distribution(
         self, S0: float, mu: float, sigma: float, T: float, num_qubits: int
-    ) -> tuple[QuantumCircuit, np.ndarray]:
+    ) -> tuple["QuantumCircuit", np.ndarray]:
         """
         Create a Quantum Circuit that prepares a Log-Normal state.
         Uses discretized price points.
@@ -138,7 +139,7 @@ class QuantumOptionPricer:
         prices = np.linspace(low, high, 2**num_qubits)
         return qc, prices
 
-    def add_payoff_operator(self, qc: QuantumCircuit, prices: np.ndarray, K: float, S0: float):
+    def add_payoff_operator(self, qc: "QuantumCircuit", prices: np.ndarray, K: float, S0: float):
         """
         Adds a real linear payoff operator f(S) = max(S-K, 0) to the circuit.
         Uses controlled rotations proportional to the payoff values.
@@ -175,7 +176,7 @@ class QuantumOptionPricer:
 
     def _create_state_prep(
         self, spot: float, vol: float, t: float, num_qubits: int
-    ) -> QuantumCircuit:
+    ) -> "QuantumCircuit":
         """
          HIGH-PERFORMANCE: Precise Log-Normal Basis State Prep.
         Uses a discretized Log-Normal distribution mapped to qubit grid.
@@ -213,7 +214,7 @@ class QuantumOptionPricer:
 
         return qc
 
-    def _create_payoff_circuit(self, strike: float, num_qubits: int) -> QuantumCircuit:
+    def _create_payoff_circuit(self, strike: float, num_qubits: int) -> "QuantumCircuit":
         """
          OPTIMIZED: Linear Payoff Operator.
         Encodes f(S) = max(S-K, 0) into the objective qubit.
