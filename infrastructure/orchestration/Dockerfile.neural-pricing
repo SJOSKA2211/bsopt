@@ -18,9 +18,9 @@ COPY pyproject.toml requirements.txt ./
 ENV UV_HTTP_TIMEOUT=300
 ENV UV_RETRIES=10
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple && \
-    uv pip install granian
+    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple && \
+    uv pip install --system granian
 
 # Install Rust and build bsopt_core
 RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential
@@ -30,11 +30,11 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CARGO_BUILD_JOBS=1
 ENV CARGO_NET_RETRY=10
 
-RUN uv pip install maturin
+RUN uv pip install --system maturin
 COPY src /app/src
 ENV RUSTFLAGS="-C opt-level=3"
 RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
-RUN uv pip install /tmp/wheels/*.whl
+RUN uv pip install --system /tmp/wheels/*.whl
 
 # === Stage 2: Development ===
 FROM docker.io/library/python:3.12-slim-bookworm AS development

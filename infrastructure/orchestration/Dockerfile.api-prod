@@ -19,8 +19,8 @@ ENV UV_RETRIES=10
 
 # Copy requirements and install (API-only deps for lean image)
 COPY requirements-api.txt .
-RUN uv pip install --no-cache --system -r requirements-api.txt && \
-    uv pip install --no-cache --system granian
+RUN uv pip install --system --no-cache -r requirements-api.txt && \
+    uv pip install --system --no-cache granian
 
 # Stage 2: Runtime image
 FROM docker.io/library/python:3.12-slim-bookworm

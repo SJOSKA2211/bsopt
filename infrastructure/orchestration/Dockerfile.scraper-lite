@@ -18,7 +18,7 @@ COPY src /app/src
 
 # Install Python dependencies only in builder (no playwright)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install .
+    uv pip install --system .
 
 
 # === Stage 2: Development ===
