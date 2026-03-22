@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 import aioboto3
 import structlog
@@ -73,8 +74,8 @@ def get_storage_manager() -> AsyncStorageManager:
 
         _manager = AsyncStorageManager(
             endpoint_url=f"http://{settings.REDIS_HOST}:9000",  # MinIO endpoint
-            access_key="admin",
-            secret_key="password",
+            access_key=os.getenv("MINIO_ROOT_USER", "admin"),
+            secret_key=os.getenv("MINIO_ROOT_PASSWORD", "password"),
             bucket_name="models",
         )
     return _manager
