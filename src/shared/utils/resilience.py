@@ -5,6 +5,8 @@ Implements Circuit Breaker, Exponential Backoff with Jitter,
 and advanced error handling for external dependencies.
 """
 
+import asyncio
+import random
 import time
 from collections.abc import Callable
 from enum import Enum
@@ -84,8 +86,7 @@ class CircuitBreaker:
         self.last_failure_time = 0.0
 
 
-import random
-import asyncio
+
 
 def retry_with_backoff(retries=3, initial_delay=1.0, backoff_factor=2.0, exceptions=(Exception,)):
     def decorator(func):
