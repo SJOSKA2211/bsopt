@@ -1,3 +1,4 @@
+# ruff: noqa: I001
 from unittest.mock import MagicMock, patch
 
 import pytest
