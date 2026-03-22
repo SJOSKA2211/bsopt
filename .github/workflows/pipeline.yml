@@ -50,13 +50,13 @@ jobs:
           pip install .[dev,api,auth,ml,distributed]
 
       - name: Run Unit Tests
-        run: PYTHONPATH=src pytest tests/unit
+        run: PYTHONPATH=. pytest tests/unit
 
       - name: Run E2E Tests (Playwright)
         run: |
           pip install playwright
           playwright install --with-deps chromium
-          PYTHONPATH=src pytest tests/e2e
+          PYTHONPATH=. pytest tests/e2e
 
   build:
     name: Build & Push

@@ -10,8 +10,8 @@ COPY requirements.txt ./
 
 # Lightning-fast dependency resolution
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --no-cache -r requirements.txt \
-    && uv pip install --no-cache playwright
+    uv pip install --system --no-cache -r requirements.txt \
+    && uv pip install --system --no-cache playwright
 
 # Install ONLY Chromium
 RUN playwright install --with-deps chromium
