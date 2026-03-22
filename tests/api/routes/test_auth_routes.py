@@ -179,10 +179,10 @@ def test_helpers_final(mock_all):
         ml.info.assert_called_once()
         _, kwargs = ml.info.call_args
         assert kwargs["email"] == "a@b.com"
-        assert "link" in kwargs  # Verify link is present but redacted
+        assert kwargs["link"] == "[REDACTED]"  # Verify link is present but redacted
         ml.reset_mock()
         asyncio.run(_send_password_reset_email("a@b.com", "t"))
         ml.info.assert_called_once()
         _, kwargs = ml.info.call_args
         assert kwargs["email"] == "a@b.com"
-        assert "link" in kwargs
+        assert kwargs["link"] == "[REDACTED]"
