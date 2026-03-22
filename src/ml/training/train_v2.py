@@ -23,8 +23,20 @@ class SyntheticOptionsDataset(Dataset):
         self.sigma = torch.rand(self.n, 1) * 0.5 + 0.1
 
         self.features = torch.cat([self.s, self.k, self.t, self.sigma], dim=1)
-        # Mock label (e.g. Price or Greek)
-        self.labels = self.features.mean(dim=1, keepdim=True)
+        
+        # Mathematical Truth: Labels are derived from the BS pricing kernel
+        # instead of a simplistic mean() fallback.
+        from src.math_kernel.quant_utils import fast_normal_cdf_v2
+        
+        def calculate_bs_price(s, k, t, v):
+            r = 0.05 # Baseline risk-free rate
+            d1 = (torch.log(s / k) + (r + 0.5 * v**2) * t) / (v * torch.sqrt(t))
+            d2 = d1 - v * torch.sqrt(t)
+            # Use torch-native approx for CDF matching the quant_utils speed
+            price = s * 0.5 * (1 + torch.erf(d1 / 2**0.5)) - k * torch.exp(-r * t) * 0.5 * (1 + torch.erf(d2 / 2**0.5))
+            return price
+
+        self.labels = calculate_bs_price(self.s, self.k, self.t, self.sigma)
 
     def __len__(self):
         return self.n

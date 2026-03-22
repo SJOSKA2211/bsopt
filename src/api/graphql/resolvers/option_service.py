@@ -32,17 +32,7 @@ async def _load_options_vectorized(keys: list[str]) -> list[Option]:
         is_error = isinstance(res, Exception) or (isinstance(res, dict) and "error" in res)
 
         if is_error:
-            # Fallback to minimal object
-            results.append(
-                Option(
-                    id=strawberry.ID(symbol),
-                    symbol=symbol,
-                    strike=100.0,
-                    expiry=now.date(),
-                    option_type="CALL",
-                    time=now,
-                )
-            )
+            results.append(Exception(f"Failed to load vector graph node for contract symbol: {symbol}"))
         else:
             # At this point, res is guaranteed to be a successful dict
             res_dict = cast(dict[str, Any], res)
@@ -149,17 +139,11 @@ async def get_option_by_id(id: str) -> Option | None:
             opt.rho = data.get("rho")
 
         return opt
-    except Exception:
-        # Minimal return for federation compatibility
-        now = datetime.now()
-        return Option(
-            id=strawberry.ID(id),
-            symbol=id,
-            strike=100.0,
-            expiry=now.date(),
-            option_type="CALL",
-            time=now,
-        )
+    except Exception as e:
+        import structlog
+        logger = structlog.get_logger()
+        logger.warning("graphql_option_resolve_failure", id=id, error=str(e))
+        return None
 
 
 async def search_options_paginated(
@@ -230,6 +214,10 @@ async def search_options_paginated(
 
     results = []
     now = datetime.now()
+    
+    # Hoisted exactly O(1) SHM lookup tracking the paginated parent underlying mappings
+    shm_greeks = _greeks_mesh.read(underlying)
+    
     for contract in paged:
         symbol = cast(str, contract["symbol"])
         exp_val = contract["expiry"]
@@ -253,14 +241,12 @@ async def search_options_paginated(
             time=cast(datetime, contract.get("time", now)),
         )
 
-        # Enrich with real-time SHM Greeks
-        shm_greeks = _greeks_mesh.read(symbol)
         if shm_greeks:
-            opt.delta = shm_greeks["delta"]
-            opt.gamma = shm_greeks["gamma"]
-            opt.theta = shm_greeks["theta"]
-            opt.vega = shm_greeks["vega"]
-            opt.rho = shm_greeks["rho"]
+            opt.delta = shm_greeks.get("delta")
+            opt.gamma = shm_greeks.get("gamma")
+            opt.theta = shm_greeks.get("theta")
+            opt.vega = shm_greeks.get("vega")
+            opt.rho = shm_greeks.get("rho")
         else:
             opt.delta = contract.get("delta")
             opt.gamma = contract.get("gamma")

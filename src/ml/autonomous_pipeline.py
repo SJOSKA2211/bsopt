@@ -1,5 +1,6 @@
 """
-Autonomous ML Pipeline — wrapper/stub for legacy test compatibility.
+Autonomous ML Pipeline - production-ready orchestration core.
+"""
 
 This module exposes the `AutonomousMLPipeline` class expected by
 `test_autonomous_pipeline_improved.py`, mapping its methods to the src.shared

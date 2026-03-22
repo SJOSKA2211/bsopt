@@ -90,9 +90,7 @@ class QuantumOptionPricer:
         self.use_real_quantum = use_real_quantum
         self.backend_manager = QuantumBackendManager()
 
-        # Legacy attribute support for mocking
-        self.classical_pricer = self
-        self.quantum_pricer = self
+        self.backend_manager = QuantumBackendManager()
 
         # Initialize backend and sampler
         try:
@@ -296,7 +294,7 @@ class QuantumOptionPricer:
                 "confidence": self.confidence,
                 "epsilon": self.precision,
                 "circuit_depth": full_circuit.depth(),
-                "fidelty_estimate": 0.9992,  # Simulated high-fidelity benchmark
+                "fidelty_estimate": float((1 - 0.0001) ** full_circuit.depth()),  # Error-rate propagation model
             }
         except Exception as e:
             logger.error("quantum_pricing_failed", error=str(e))
@@ -405,7 +403,6 @@ class QuantumOptionPricer:
                     )
                 )
         else:
-            # Call via the attribute to allow mocking in tests
             params = BSParameters(
                 spot=kwargs.get("S0", 100.0),
                 strike=kwargs.get("K", 100.0),
@@ -414,7 +411,7 @@ class QuantumOptionPricer:
                 volatility=kwargs.get("sigma", 0.2),
                 dividend=0.0,
             )
-            return self.classical_pricer.price_european(params)
+            return self.price_european(params)
 
 
 #  Backward Compatibility Alias

@@ -57,26 +57,15 @@ class Query:
         """Fetch latest market data for a symbol using optimized router."""
         from src.api.graphql.resolvers.option_service import router
 
-        try:
-            data = await router.get_live_quote(symbol)
-            return MarketData(
-                symbol=symbol,
-                last_price=data.get("price", 0.0),
-                bid=data.get("bid"),
-                ask=data.get("ask"),
-                volume=data.get("volume"),
-                timestamp=datetime.now(UTC),
-            )
-        except Exception:
-            # Fallback for demo
-            return MarketData(
-                symbol=symbol,
-                last_price=150.25,
-                bid=150.20,
-                ask=150.30,
-                volume=5000,
-                timestamp=datetime.now(UTC),
-            )
+        data = await router.get_live_quote(symbol)
+        return MarketData(
+            symbol=symbol,
+            last_price=data.get("price", 0.0),
+            bid=data.get("bid"),
+            ask=data.get("ask"),
+            volume=data.get("volume"),
+            timestamp=datetime.now(UTC),
+        )
 
     @strawberry.field
     async def historical_data(self, symbol: str) -> list[OHLCV]:
@@ -86,21 +75,7 @@ class Query:
         now = datetime.now(UTC)
         start = now - timedelta(hours=24)
 
-        try:
-            return await get_historical_ohlcv(symbol, start, now)
-        except Exception:
-            # Fallback for demo if DB query fails
-            return [
-                OHLCV(
-                    time=(now - timedelta(minutes=i)).isoformat(),
-                    open=150.0 + i % 5,
-                    high=152.0 + i % 5,
-                    low=148.0 + i % 5,
-                    close=150.5 + i % 5,
-                    volume=1000,
-                )
-                for i in range(50)
-            ]
+        return await get_historical_ohlcv(symbol, start, now)
 
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:

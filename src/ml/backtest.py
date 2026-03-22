@@ -56,9 +56,12 @@ class BacktestEngine:
 
         futures = []
         for ticker, df in batch_data.items():
-            # Ensure data is pre-processed and has 'price' and 'target_pos'
+            # Institutional Requirement: target_pos must be pre-computed by the ML Model
+            if "target_pos" not in df.columns:
+                logger.error("backtest_failed_missing_target_pos", ticker=ticker)
+                continue
+                
             prices = df["close"].values.astype(np.float64)
-            # Simulated positions for demonstration; in reality, these come from the model
             positions = df["target_pos"].values.astype(np.float64)
 
             futures.append(ray_backtest_task.remote(ticker, prices, positions, initial_capital))
