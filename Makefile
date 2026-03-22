@@ -124,11 +124,19 @@ blue-green-deploy:
 test-all:
 	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
 	@echo "--- [Rust Core] ---"
-	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt -- --check
-	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
-	@$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
+ifdef GITHUB_ACTIONS
+	if [ -d "src.shared" ]; then cd src.shared && cargo fmt -- --check && cargo clippy -- -D warnings && cargo test; fi
+else
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt -- --check
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
+	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
+endif
 	@echo "--- [Python API] ---"
-	@$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+ifdef GITHUB_ACTIONS
+	pytest tests/unit
+else
+	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+endif
 	@echo "--- [E2E & Auth] ---"
 	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
 	@echo "✅ Gauntlet Passed."
@@ -137,7 +145,11 @@ test-rust:
 	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
 
 test-python:
+ifdef GITHUB_ACTIONS
+	pytest tests/unit
+else
 	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
+endif
 
 test-e2e:
 	@echo "🌐 Running Frontend E2E Tests..."
@@ -158,12 +170,23 @@ protos:
 	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo build
 
 lint:
+ifdef GITHUB_ACTIONS
+	ruff check .
+	# cargo clippy if rust-src.shared exists locally
+	if [ -d "src.shared" ]; then cd src.shared && cargo clippy -- -D warnings; fi
+else
 	$(DOCKER_COMPOSE) run --rm api ruff check .
 	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
+endif
 
 format:
+ifdef GITHUB_ACTIONS
+	ruff format .
+	if [ -d "src.shared" ]; then cd src.shared && cargo fmt; fi
+else
 	$(DOCKER_COMPOSE) run --rm api ruff format .
 	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt
+endif
 
 envoy-up:
 	@echo "🕸️  Launching Envoy Edge Proxy..."
