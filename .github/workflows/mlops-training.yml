@@ -37,33 +37,33 @@ jobs:
       # keep logs clean and avoid path validation errors.
       - name: Build ML Cluster Images
         run: |
-          docker compose --profile ml build ray-head rl-training-worker api postgres redis
+          docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml build ray-head rl-training-worker api postgres redis
       - name: Run Training in Ray Cluster
         run: |
           # Start the ML infrastructure
-          docker compose --profile ml up -d ray-head rl-training-worker postgres redis
+          docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml up -d ray-head rl-training-worker postgres redis
           # Wait for postgres to be healthy (it has 19 init scripts to run)
           echo "Waiting for postgres to become healthy..."
           for i in $(seq 1 60); do
-            if docker compose --profile ml exec -T postgres pg_isready -U admin -d bsopt; then
+            if docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml exec -T postgres pg_isready -U admin -d bsopt; then
               echo "Postgres is ready after ~${i}0 seconds"
               # Final check to ensure init scripts finished
-              if docker compose --profile ml exec -T postgres psql -U admin -d bsopt -c "SELECT 1" > /dev/null 2>&1; then
+              if docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml exec -T postgres psql -U admin -d bsopt -c "SELECT 1" > /dev/null 2>&1; then
                 break
               fi
             fi
             if [ "$i" -eq 60 ]; then
               echo "Postgres failed to become healthy after 600 seconds"
-              docker compose --profile ml logs postgres
+              docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml logs postgres
               exit 1
             fi
             sleep 10
           done
           # Run the orchestrator
           # Run the orchestrator with SHM growth for Ray components and MLFlow fallback
-          docker compose --profile ml run --rm \
+          docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml run --rm \
             -e MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-./mlruns} \
             api python -m services.ml.pipelines.orchestrator --model-type xgboost --promote-to-production
       - name: Teardown ML Cluster
         if: always()
-        run: docker compose --profile ml down -v
+        run: docker compose -f infrastructure/orchestration/docker-compose.yml --profile ml down -v
