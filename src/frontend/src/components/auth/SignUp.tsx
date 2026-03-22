@@ -210,13 +210,10 @@ export function SignUp() {
           variant="contained"
           size="large"
           disabled={loading}
+          startIcon={loading ? <CircularProgress size={20} color="inherit" aria-label="Signing Up" /> : null}
           sx={{ py: 1.5, fontSize: '0.95rem', mt: 2, mb: 2 }}
         >
-          {loading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            'Sign Up'
-          )}
+          {loading ? 'Signing Up...' : 'Sign Up'}
         </Button>
       </Box>
 

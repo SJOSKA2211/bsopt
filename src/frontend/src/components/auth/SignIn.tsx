@@ -243,13 +243,10 @@ export default function SignIn() {
             variant="contained"
             size="large"
             disabled={loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" aria-label="Signing In" /> : null}
             sx={{ py: 1.5, fontSize: '0.95rem', mb: 2 }}
           >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              'Sign In'
-            )}
+            {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </Box>
 
