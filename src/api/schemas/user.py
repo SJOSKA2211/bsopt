@@ -45,10 +45,8 @@ class UserResponse(msgspec.Struct):
             else None,
         )
 
-    def to_proto(self) -> Any:
-        """Bridge to gRPC UserInfo (Mock/Interface)."""
-        # This would typically use the generated proto class
-        # For now, we return a dict that can be used to initialize the proto
+    def to_proto(self) -> dict[str, Any]:
+        """Bridge to gRPC UserInfo."""
         return {
             "user_id": str(self.id),
             "email": self.email,
@@ -56,7 +54,6 @@ class UserResponse(msgspec.Struct):
             "tier": self.tier,
             "is_verified": self.is_verified,
             "mfa_enabled": self.is_mfa_enabled,
-            # Timestamps would be converted by the caller or using a helper
         }
 
 

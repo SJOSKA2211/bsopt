@@ -1,5 +1,5 @@
 // src/frontend/src/hooks/useWebSocket.ts (Optimized)
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 // import { protobuf } from 'protobufjs'; // Removed unused import causing build error
 
 /**
@@ -24,91 +24,99 @@ interface WebSocketHookOptions {
 export function useWebSocket<T>(options: WebSocketHookOptions) {
   const [data, setData] = useState<T | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
-  const protoRootRef = useRef<unknown>(null);
+  const reconnectCountRef = useRef(0);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bufferRef = useRef<T | null>(null);
   const lastUpdateRef = useRef<number>(0);
+  const isMountedRef = useRef(true);
 
   const symbolsString = useMemo(() => options.symbols.join(','), [options.symbols]);
   
-  useEffect(() => {
-    if (!options.enabled) {
-      if (wsRef.current) {
+  const connect = useCallback(() => {
+    if (!isMountedRef.current || !options.enabled) return;
+
+    // Clean up existing connection
+    if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
-      }
-      // Schedule state update asynchronously to avoid calling setState
-      // synchronously within an effect (which triggers cascading renders)
-      queueMicrotask(() => setIsConnected(false));
-      return;
     }
 
-    const updateInterval = 1000 / (options.updateFrequency || 10);
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let isMounted = true;
+    try {
+        const ws = new WebSocket(options.url);
+        if (options.useProtobuf) ws.binaryType = 'arraybuffer';
+        wsRef.current = ws;
 
-    const connect = () => {
-      if (!isMounted || !options.enabled) return;
+        ws.onopen = () => {
+            if (!isMountedRef.current) return;
+            setIsConnected(true);
+            setError(null);
+            reconnectCountRef.current = 0;
+            ws.send(JSON.stringify({ type: 'subscribe', symbols: options.symbols }));
+        };
 
-      const ws = new WebSocket(options.url);
-      if (options.useProtobuf) ws.binaryType = 'arraybuffer';
-      wsRef.current = ws;
+        ws.onmessage = (event) => {
+            if (!isMountedRef.current) return;
+            try {
+                const parsed = JSON.parse(event.data) as T;
+                bufferRef.current = parsed;
+                
+                const updateInterval = 1000 / (options.updateFrequency || 10);
+                const now = performance.now();
+                if (now - lastUpdateRef.current > updateInterval) {
+                    setData(bufferRef.current);
+                    lastUpdateRef.current = now;
+                }
+            } catch (e) {
+                console.error('[WebSocket] Parse error:', e);
+            }
+        };
 
-      ws.onopen = () => {
-        if (!isMounted) return;
-        setIsConnected(true);
-        ws.send(JSON.stringify({ type: 'subscribe', symbols: options.symbols }));
-      };
+        ws.onclose = (event) => {
+            if (!isMountedRef.current) return;
+            setIsConnected(false);
+            wsRef.current = null;
 
-      ws.onmessage = (event) => {
-        if (!isMounted) return;
-        try {
-          let parsed: T;
-          if (options.useProtobuf && protoRootRef.current) {
-            const MessageType = (protoRootRef.current as any).lookupType('bsopt.OptionsData');
-            const decoded = MessageType.decode(new Uint8Array(event.data));
-            parsed = MessageType.toObject(decoded) as T;
-          } else {
-            parsed = JSON.parse(event.data);
-          }
+            if (options.enabled && !event.wasClean) {
+                const backoff = Math.min(1000 * Math.pow(2, reconnectCountRef.current), 30000);
+                console.log(`[WebSocket] Reconnecting in ${backoff}ms...`);
+                reconnectCountRef.current += 1;
+                reconnectTimeoutRef.current = setTimeout(connect, backoff);
+            }
+        };
 
-          bufferRef.current = parsed;
-          const now = performance.now();
-          if (now - lastUpdateRef.current > updateInterval) {
-            setData(bufferRef.current);
-            lastUpdateRef.current = now;
-          }
-        } catch (e) {
-          console.error('WS_PARSE_ERROR', e);
-        }
-      };
+        ws.onerror = (err) => {
+            if (!isMountedRef.current) return;
+            setError(new Error('WebSocket connection error'));
+            console.error('[WebSocket] Error:', err);
+        };
+    } catch (err) {
+        console.error('[WebSocket] Failed to connect:', err);
+        setError(err as Error);
+    }
+  }, [options.url, options.enabled, options.symbols, options.useProtobuf, options.updateFrequency]);
 
-      ws.onclose = () => {
-        if (!isMounted) return;
-        setIsConnected(false);
-        wsRef.current = null;
-        if (options.enabled) {
-          reconnectTimer = setTimeout(connect, 1000); // 1s reconnect
-        }
-      };
-
-      ws.onerror = () => {
-        if (!isMounted) return;
-        ws.close();
-      };
-    };
-
+  useEffect(() => {
+    isMountedRef.current = true;
     connect();
 
     return () => {
-      isMounted = false;
-      if (reconnectTimer) clearTimeout(reconnectTimer);
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
+        isMountedRef.current = false;
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+        if (wsRef.current) {
+            wsRef.current.close();
+            wsRef.current = null;
+        }
     };
-  }, [options.url, options.enabled, symbolsString, options.symbols, options.useProtobuf, options.updateFrequency]);
+  }, [connect]);
 
-  return { data, isConnected };
+  const sendMessage = useCallback((msg: any) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(msg));
+    }
+  }, []);
+
+  return { data, isConnected, error, sendMessage };
 }

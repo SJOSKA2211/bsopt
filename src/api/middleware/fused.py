@@ -72,6 +72,61 @@ class ZeroTrustMiddleware:
         if settings.is_production:
             self.security_headers.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
 
+
+    async def _handle_auth(self, request: Request, path: str, is_trusted: bool, ssl_verify: str | None, ssl_dn: str | None) -> SecurityContext:
+        """Dedicated auth layer for Zero-Trust validation."""
+        is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
+        is_internal = path.startswith(self.INTERNAL_PREFIXES)
+
+        # Initialize SecurityContext
+        security_context = SecurityContext(
+            is_internal=is_internal, service_id=ssl_dn if is_trusted else None
+        )
+
+        if is_public:
+            return security_context
+
+        from src.auth.auth import auth_service
+
+        token = request.headers.get("Authorization")
+        if token and token.startswith("Bearer "):
+            token = token.split(" ")[1]
+        else:
+            token = request.cookies.get("better-auth.session_token")
+
+        if not token:
+            raise HTTPException(status_code=401, detail="Authentication token missing")
+
+        # 3. Dedicated Auth Service Hop
+        token_data = await auth_service.validate_token(token)
+
+        # 4. Internal Path Cryptographic Certainty
+        if is_internal and ssl_verify != "SUCCESS":
+            logger.warning("internal_access_denied_no_mtls", path=path)
+            raise HTTPException(status_code=403, detail="Internal access requires valid client certificate.")
+
+        # 5. Populate SecurityContext
+        security_context.user_id = token_data.user_id
+        security_context.email = token_data.email
+        security_context.tier = token_data.tier
+        security_context.auth_type = token_data.token_type
+
+        # 6. Zero-Trust Rate Limiting
+        from src.shared.utils.rate_limit import RateLimitTier, limiter
+
+        tier_str = (token_data.tier or "FREE").upper()
+        limit_tier = getattr(RateLimitTier, tier_str, RateLimitTier.FREE)
+
+        if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
+            logger.warning("rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str)
+            raise HTTPException(
+                status_code=429,
+                detail="Too many requests. Upgrade tier for higher limits.",
+                headers={"X-RateLimit-Limit": str(limit_tier.value)},
+            )
+
+        return security_context
+
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
@@ -89,99 +144,39 @@ class ZeroTrustMiddleware:
 
         # Verify against TRUSTED_PROXIES
         is_trusted = is_trusted_proxy(client_ip, settings.TRUSTED_PROXIES)
-        ssl_verify = None
-        ssl_dn = None
-        if is_trusted:
-            ssl_verify = request.headers.get("X-SSL-Client-Verify")
-            ssl_dn = request.headers.get("X-SSL-Client-S-DN")
+        ssl_verify = request.headers.get("X-SSL-Client-Verify") if is_trusted else None
+        ssl_dn = request.headers.get("X-SSL-Client-S-DN") if is_trusted else None
 
-        # 2. Auth Path Determination
-        is_public = path in self.PUBLIC_PATHS or path.startswith(self.PUBLIC_PREFIXES)
-        is_internal = path.startswith(self.INTERNAL_PREFIXES)
+        try:
+            security_context = await self._handle_auth(request, path, is_trusted, ssl_verify, ssl_dn)
+            
+            # Attach to scope state
+            state = scope.setdefault("state", {})
+            state["security_context"] = security_context
 
-        # Initialize SecurityContext
-        security_context = SecurityContext(
-            is_internal=is_internal, service_id=ssl_dn if is_trusted else None
-        )
+            # Legacy support for existing code
+            if security_context.user_id:
+                state["user_id"] = security_context.user_id
+                state["user_email"] = security_context.email
+                state["user_tier"] = security_context.tier
+                state["auth_type"] = security_context.auth_type
 
-        if not is_public:
-            from src.auth.auth import auth_service
-
-            token = None
-            auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.split(" ")[1]
-            else:
-                token = request.cookies.get("better-auth.session_token")
-
-            if not token:
-                resp = MsgspecJSONResponse(
-                    status_code=401,
-                    content={"detail": "Authentication token missing"},
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-                await resp(scope, receive, send)
-                return
-
-            try:
-                # 3. Dedicated Auth Service Hop
-                token_data = await auth_service.validate_token(token)
-
-                # 4. Internal Path Cryptographic Certainty
-                if is_internal and ssl_verify != "SUCCESS":
-                    logger.warning("internal_access_denied_no_mtls", path=path, client_ip=client_ip)
-                    resp = MsgspecJSONResponse(
-                        status_code=403,
-                        content={"detail": "Internal access requires valid client certificate."},
-                    )
-                    await resp(scope, receive, send)
-                    return
-
-                # 5. Populate SecurityContext
-                security_context.user_id = token_data.user_id
-                security_context.email = token_data.email
-                security_context.tier = token_data.tier
-                security_context.auth_type = token_data.token_type
-
-                # Attach to scope state
-                state = scope.setdefault("state", {})
-                state["security_context"] = security_context
-
-                # Legacy support for existing code
-                state["user_id"] = token_data.user_id
-                state["user_email"] = token_data.email
-                state["user_tier"] = token_data.tier
-                state["auth_type"] = token_data.token_type
-
-                # 6. Zero-Trust Rate Limiting
-                from src.shared.utils.rate_limit import RateLimitTier, limiter
-
-                tier_str = token_data.tier.upper() if token_data.tier else "FREE"
-                limit_tier = getattr(RateLimitTier, tier_str, RateLimitTier.FREE)
-
-                if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
-                    logger.warning(
-                        "rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str
-                    )
-                    resp = MsgspecJSONResponse(
-                        status_code=429,
-                        content={"detail": "Too many requests. Upgrade tier for higher limits."},
-                        headers={"X-RateLimit-Limit": str(limit_tier.value)},
-                    )
-                    await resp(scope, receive, send)
-                    return
-
-            except Exception as e:
-                logger.warning("zero_trust_auth_intercept_failed", error=str(e), path=path)
-                resp = MsgspecJSONResponse(
-                    status_code=401,
-                    content={"detail": "Unauthorized: Zero-Trust validation failed."},
-                )
-                await resp(scope, receive, send)
-                return
-        else:
-            # Public path, still attach security context
-            scope.setdefault("state", {})["security_context"] = security_context
+        except HTTPException as e:
+            resp = MsgspecJSONResponse(
+                status_code=e.status_code,
+                content={"detail": e.detail},
+                headers=e.headers,
+            )
+            await resp(scope, receive, send)
+            return
+        except Exception as e:
+            logger.warning("zero_trust_auth_intercept_failed", error=str(e), path=path)
+            resp = MsgspecJSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized: Zero-Trust validation failed."},
+            )
+            await resp(scope, receive, send)
+            return
 
         # 7. Security Headers Wrapper (High-Performance Zero-Copy Tuple Extend)
         async def send_wrapper(message):

@@ -492,8 +492,9 @@ class SharedMemoryRingBuffer:
 
     def write_tick_raw(self, sym_bytes: bytes, price: float, volume: int, timestamp: float):
         """Zero-copy writer for raw bytes symbol."""
+        buf = self.buf
         # Lock-free head calculation from the prefix
-        current_head = struct.unpack_from("q", self.buf, 0)[0]
+        current_head = struct.unpack_from("q", buf, 0)[0]
         idx = current_head % BUFFER_CAPACITY
 
         receive_ts_ns = time.time_ns()
@@ -502,7 +503,7 @@ class SharedMemoryRingBuffer:
         self.data_view[idx] = (sym_bytes, price, volume, timestamp, receive_ts_ns)
 
         # 2. Atomic Head update (Memory Barrier)
-        struct.pack_into("q", self.buf, 0, current_head + 1)
+        struct.pack_into("q", buf, 0, current_head + 1)
 
     def read_latest_slices(self, last_head: int) -> tuple[list[np.ndarray], int]:
         """

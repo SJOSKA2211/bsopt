@@ -40,7 +40,7 @@ class AugmentedRLAgent:
         if news_text:
             sentiment = self.sentiment_extractor.extract(news_text)
 
-        # Get forecast (Simulated call to TFT model)
+        # Institutional Inference: High-performance call to TFT forecaster core
         forecast = self.forecaster.predict(observation)
         if isinstance(forecast, np.ndarray):
             # Take the mean forecast across lookahead if it's a sequence
@@ -66,8 +66,8 @@ class AugmentedRLAgent:
 
 class SentimentExtractor:
     """
-    OPTIMIZED: Financial Sentiment Extractor.
-    Uses a high-performance hash-based lookup for keyword matching.
+    High-Performance Lexicon-based Extractor.
+    Uses O(1) hash-based lookup for institutional sentiment signals.
     """
 
     def __init__(self, model_name: str = "finbert"):

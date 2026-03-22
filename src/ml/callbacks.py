@@ -1,9 +1,21 @@
-from typing import Any
+from typing import Any, Dict, Optional
+import os
+import torch
+import structlog
 
+logger = structlog.get_logger(__name__)
 
-class EarlyStopping:
-    """Simple early stopping callback."""
+class BaseCallback:
+    """Institutional-grade base class for all ML training hooks."""
+    def on_train_begin(self, params: Dict[str, Any]) -> None: pass
+    def on_train_end(self) -> None: pass
+    def on_epoch_begin(self, epoch: int) -> None: pass
+    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None: pass
+    def on_batch_begin(self, batch: int) -> None: pass
+    def on_batch_end(self, batch: int, logs: Dict[str, Any]) -> None: pass
 
+class EarlyStopping(BaseCallback):
+    """Robust early stopping hook with patience and delta steering."""
     def __init__(self, patience: int = 5, min_delta: float = 0.0) -> None:
         self.patience = patience
         self.min_delta = min_delta
@@ -11,7 +23,10 @@ class EarlyStopping:
         self.best_loss = float("inf")
         self.early_stop = False
 
-    def __call__(self, val_loss: float) -> None:
+    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None:
+        val_loss = metrics.get("val_loss")
+        if val_loss is None: return
+
         if val_loss < self.best_loss - self.min_delta:
             self.best_loss = val_loss
             self.counter = 0
@@ -19,48 +34,52 @@ class EarlyStopping:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
+                logger.info("early_stopping_triggered", epoch=epoch, best_loss=self.best_loss)
 
-
-class MLflowCallback:
-    """
-    High-Performance: MLflow logging callback for custom training loops.
-    """
-
-    def __init__(self, run_name: str | None = None) -> None:
+class MLflowCallback(BaseCallback):
+    """Real-time MLflow telemetry hook."""
+    def __init__(self, run_name: Optional[str] = None) -> None:
         import mlflow
-
         self.mlflow = mlflow
         self.run_name = run_name
 
-    def on_epoch_end(self, epoch: int, metrics: dict[str, float]) -> None:
+    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None:
         self.mlflow.log_metrics(metrics, step=epoch)
 
-
-class ModelCheckpoint:
+class ModelCheckpoint(BaseCallback):
     """
-    Automated model checkpointing with stage promotion support.
+    Automated high-fidelity model persistence hook.
+    Ensures atomic writes and stage promotion support.
     """
-
     def __init__(self, filepath: str, monitor: str = "val_loss", mode: str = "min") -> None:
         self.filepath = filepath
         self.monitor = monitor
         self.mode = mode
         self.best_score = float("inf") if mode == "min" else -float("inf")
 
-    def __call__(self, current_score: float, model: Any) -> bool:
-        import os
+    def on_epoch_end(self, epoch: int, metrics: Dict[str, float], model: Any = None) -> None:
+        if model is None: return
+        
+        current_score = metrics.get(self.monitor)
+        if current_score is None: return
 
-        import torch
-
-        is_best = (
-            (current_score < self.best_score)
-            if self.mode == "min"
-            else (current_score > self.best_score)
-        )
+        is_best = (current_score < self.best_score) if self.mode == "min" else (current_score > self.best_score)
 
         if is_best:
             self.best_score = current_score
-            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-            torch.save(model.state_dict(), self.filepath)
-            return True
-        return False
+            self._save_atomic(model, epoch)
+
+    def _save_atomic(self, model: Any, epoch: int) -> None:
+        """Saves model state using an atomic rename to prevent corruption."""
+        temp_path = f"{self.filepath}.tmp"
+        os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
+        
+        # institutional-grade persistence
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'best_score': self.best_score,
+        }, temp_path)
+        
+        os.replace(temp_path, self.filepath)
+        logger.info("model_checkpoint_saved", path=self.filepath, score=self.best_score)

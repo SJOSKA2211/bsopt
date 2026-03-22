@@ -3,9 +3,9 @@ import os
 
 import structlog
 from celery import Celery
-from celery.exceptions import MaxRetriesExceededError  # Import MaxRetriesExceededError
+from celery.exceptions import MaxRetriesExceededError
 
-from src.webhooks.dispatcher import WebhookDispatcher
+from src.shared.webhooks.dispatcher import WebhookDispatcher
 
 # Optimized event loop
 try:
@@ -14,38 +14,34 @@ try:
 except ImportError:
     pass
 
-logger = structlog.get_logger()
+logger = structlog.get_logger(__name__)
 
 celery_app = Celery("webhook_worker", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/1"))
 
-# Initialize dispatcher outside task to reuse connections/circuit breaker state
-# In a real setup, this might be managed more dynamically or per worker process
-# For simplicity, we initialize once.
 _webhook_dispatcher = None
 
 def get_webhook_dispatcher():
     global _webhook_dispatcher
     if _webhook_dispatcher is None:
-        from src.utils.cache import get_redis
-        from src.utils.circuit_breaker import DistributedCircuitBreaker
+        from src.shared.utils.cache import get_redis_client
+        from src.shared.utils.circuit_breaker import DistributedCircuitBreaker, InMemoryCircuitBreaker
         
-        redis_client = get_redis()
-        if redis_client is None:
-            # Fallback for tests or local dev without redis
-            from src.utils.circuit_breaker import InMemoryCircuitBreaker
-            logger.warning("webhook_dispatcher_fallback_in_memory")
-            circuit_breaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
-        else:
+        # This is a bit synchronous for a getter, but in Celery workers it runs in an init hook or first task
+        # We'll use a simplified check for circuit breaker
+        try:
+            # We don't want to block indefinitely here
             circuit_breaker = DistributedCircuitBreaker(
                 name="webhook_dispatch",
-                redis_client=redis_client,
+                redis_client=None, # Will be set on first use or use fallback
                 failure_threshold=5,
                 recovery_timeout=30
             )
+        except Exception:
+            circuit_breaker = InMemoryCircuitBreaker(failure_threshold=5, recovery_timeout=30)
             
         _webhook_dispatcher = WebhookDispatcher(
-            celery_app=celery_app, 
             circuit_breaker=circuit_breaker,
+            celery_app=celery_app,
             dlq_task=send_to_dlq_task
         )
     return _webhook_dispatcher
@@ -54,62 +50,49 @@ async def _process_webhook_core(task_self, webhook_data: dict):
     dispatcher = get_webhook_dispatcher()
     url = webhook_data["url"]
     payload = webhook_data["payload"]
-    headers = webhook_data["headers"]
-    secret = webhook_data["secret"]
+    headers = webhook_data.get("headers", {})
+    secret = webhook_data.get("secret")
+    retries = task_self.request.retries
     
     try:
         await dispatcher.dispatch_webhook(
             url=url, 
             payload=payload, 
             headers=headers, 
-            secret=secret
+            secret=secret,
+            retries=retries
         )
-        logger.info("process_webhook_task_completed", url=url)
+        logger.info("webhook_worker_success", url=url)
     except Exception as e:
         error_str = str(e)
         if "Circuit Breaker" in error_str and "OPEN" in error_str:
-            # For circuit breaker, retry with a longer delay or send to DLQ
-            logger.warning("webhook_worker_circuit_breaker_open", url=url)
-            raise task_self.retry(exc=e, countdown=60) # Long delay
+            logger.warning("webhook_worker_cb_open", url=url)
+            raise task_self.retry(exc=e, countdown=60)
             
-        logger.error("process_webhook_task_failed", url=url, error=error_str, retries=task_self.request.retries)
+        logger.error("webhook_worker_failed", url=url, error=error_str, retry=retries)
         try:
-            # Use exponential backoff for retries
-            retry_delay = 2 ** task_self.request.retries
+            retry_delay = 2 ** retries
             raise task_self.retry(exc=e, countdown=retry_delay)
         except MaxRetriesExceededError:
-            logger.error("process_webhook_task_max_retries", url=url)
-            send_to_dlq_task.delay(webhook_data, reason=f"celery_max_retries: {error_str}")
+            logger.error("webhook_worker_max_retries", url=url)
+            send_to_dlq_task.delay(webhook_data, reason=f"max_retries: {error_str}")
 
 @celery_app.task(bind=True, max_retries=5)
 def process_webhook_task(self, webhook_data: dict):
-    loop = asyncio.get_event_loop()
-    if loop.is_running():
-        # In a running loop (unlikely for pure Celery prefork, but good for safety)
-        future = asyncio.run_coroutine_threadsafe(_process_webhook_core(self, webhook_data), loop)
-        return future.result()
-    else:
-        return asyncio.run(_process_webhook_core(self, webhook_data))
+    return asyncio.run(_process_webhook_core(self, webhook_data))
 
 @celery_app.task
-def send_to_dlq_task(webhook_data: dict, reason: str = "unknown_failure"):
-    """
-    Task to handle webhooks that failed after all retries or due to circuit breaker.
-    """
-    logger.error("webhook_sent_to_dlq", url=webhook_data.get("url"), reason=reason)
+def send_to_dlq_task(webhook_data: dict, reason: str = "unknown"):
+    """Persists failed webhooks to Redis DLQ."""
+    logger.error("webhook_dlq_entry", url=webhook_data.get("url"), reason=reason)
     try:
         from src.shared.utils.cache import get_redis_client
         import json
         
-        payload = json.dumps({"reason": reason, "data": webhook_data})
-        async def push_to_dlq():
+        async def _persist():
             redis = await get_redis_client()
-            await redis.lpush("webhook:dlq", payload)
+            await redis.lpush("webhook:dlq", json.dumps({"reason": reason, "data": webhook_data}))
         
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            loop.create_task(push_to_dlq())
-        else:
-            asyncio.run(push_to_dlq())
+        asyncio.run(_persist())
     except Exception as e:
-        logger.error("failed_to_persist_dlq_record", error=str(e))
+        logger.error("webhook_dlq_persist_failed", error=str(e))

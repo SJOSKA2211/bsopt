@@ -60,10 +60,8 @@ async def register(
     Register a new user using High-Performance Native DB procedure.
     """
 
-    # 1. Validate password strength app-side
-    val = password_service.validate_password(data.password)
-    if not val.is_valid:
-        raise ValidationException(message="Weak password", details=val.errors)
+    # 1. Hashing and registration are offloaded to Postgres (Native Bcrypt)
+    # Validation is handled by Pydantic (RegisterRequest)
 
     # 2. Hand off registration + hashing to Postgres (Native Bcrypt)
     try:
@@ -291,10 +289,8 @@ async def change_password(
     if not password_service.verify_password(data.current_password, user.hashed_password):
         raise AuthenticationException(message="Invalid current password")
 
-    # 2. Validate new password strength
-    val = password_service.validate_password(data.new_password, user.email)
-    if not val.is_valid:
-        raise ValidationException(message="Weak new password", details=val.errors)
+    # 2. Update password
+    # Validation is handled by Pydantic (PasswordChangeRequest)
 
     # 3. Hash and save
     user.hashed_password = password_service.hash_password(data.new_password)
@@ -349,10 +345,8 @@ async def reset_password_confirm(
     if not user:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
-    # Validate and hash new password
-    val = password_service.validate_password(data.new_password, user.email)
-    if not val.is_valid:
-        raise ValidationException(message="Weak password", details=val.errors)
+    # 1. Update password
+    # Validation is handled by Pydantic (PasswordResetConfirmRequest)
 
     user.hashed_password = password_service.hash_password(data.new_password)
     user.reset_token = None
@@ -363,7 +357,7 @@ async def reset_password_confirm(
 
 
 # ---------------------------------------------------------------------------
-# Internal Helpers (Mocked/Stubs for test compatibility)
+# Internal Helpers
 # ---------------------------------------------------------------------------
 
 

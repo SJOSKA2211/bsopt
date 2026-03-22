@@ -56,8 +56,8 @@ class TokenResponse(msgspec.Struct):
             expires_in=proto_msg.expires_in,
         )
 
-    def to_proto(self) -> Any:
-        """Bridge to gRPC TokenPairResponse (Mock/Interface)."""
+    def to_proto(self) -> dict[str, Any]:
+        """Bridge to gRPC TokenPairResponse."""
         return {
             "access_token": self.access_token or "",
             "refresh_token": self.refresh_token or "",

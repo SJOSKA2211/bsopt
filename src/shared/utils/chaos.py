@@ -25,12 +25,14 @@ class ChaosMonkey:
             return
 
         try:
-            # Find actors by name in the Ray registry (simplified)
-            # In production, this would use ray.state to find specific IDs
+            # FIND: Find actors by name in the Ray registry
+            # REAL: Proactive termination to verify AIOps remediation
             logger.error("chaos_injecting_actor_failure", name=actor_name)
-            # ray.get_actor(actor_name).exit()
-            # (Simulating failure for the AIOps loop to detect)
-            os.environ[f"SIMULATE_FAILURE_{actor_name}"] = "1"
+            try:
+                ray.get_actor(actor_name).exit()
+            except Exception:
+                # Fallback to process-level signaling if actor handle was lost
+                os.environ[f"SIMULATE_FAILURE_{actor_name}"] = "1"
         except Exception as e:
             logger.error("chaos_injection_failed", error=str(e))
 

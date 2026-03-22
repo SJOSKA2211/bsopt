@@ -496,7 +496,7 @@ async def create_model(
     db: AsyncSession,
     name: str,
     algorithm: str,
-    model_artifact_url: str = "s3://models/null",
+    model_artifact_url: str,
     created_by: UUID | None = None,
     hyperparameters: dict | None = None,
     training_metrics: dict | None = None,
@@ -756,6 +756,7 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
         driver_conn = raw_conn.driver_connection
 
         if hasattr(driver_conn, "copy_records_to_table"):
+            import msgspec
             records = [
                 (
                     row.get("time") or datetime.now(UTC),
@@ -768,7 +769,7 @@ async def bulk_insert_mesh_data(db: AsyncSession, mesh_data: list[dict]) -> int:
                     row.get("volume"),
                     row.get("source_type", "scraper"),
                     (
-                        orjson.dumps(row.get("metadata", {})).decode("utf-8")
+                        msgspec.json.encode(row.get("metadata", {})).decode("utf-8")
                         if row.get("metadata")
                         else None
                     ),

@@ -160,19 +160,23 @@ class ExperimentTracker:
                     import onnxmltools
                     from onnxmltools.convert.common.data_types import FloatTensorType
 
-                    initial_type = [("float_input", FloatTensorType([None, 10]))]
+                    # Institutional Standard: Detect input dimension dynamically
+                    input_dim = getattr(model, "n_features_in_", 10)
+                    initial_type = [("float_input", FloatTensorType([None, input_dim]))]
                     onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
                     onnxmltools.utils.save_model(onnx_model, onx_path)
                 elif framework in ["pytorch", "torch"]:
                     import torch
 
-                    dummy_input = torch.randn(1, 10)
+                    input_dim = next(model.parameters()).shape[1] if hasattr(model, "parameters") else 10
+                    dummy_input = torch.randn(1, input_dim)
                     torch.onnx.export(model, dummy_input, onx_path)
                 elif framework == "sklearn":
                     from skl2onnx import convert_sklearn
                     from skl2onnx.common.data_types import FloatTensorType
 
-                    initial_type = [("float_input", FloatTensorType([None, 10]))]
+                    input_dim = getattr(model, "n_features_in_", 10)
+                    initial_type = [("float_input", FloatTensorType([None, input_dim]))]
                     onx = convert_sklearn(model, initial_types=initial_type)
                     with open(onx_path, "wb") as f:
                         f.write(onx.SerializeToString())

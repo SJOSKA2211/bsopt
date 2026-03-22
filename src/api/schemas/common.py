@@ -14,8 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field
 T = TypeVar("T")
 
 
-class DataResponseStruct(msgspec.Struct):
-    """OPTIMIZED: Zero-copy response wrapper."""
+class DataResponseStruct(msgspec.Struct, frozen=True):
+    """OPTIMIZED: Zero-copy response wrapper (msgspec)."""
 
     data: Any
     success: bool = True
@@ -23,8 +23,8 @@ class DataResponseStruct(msgspec.Struct):
     timestamp: datetime = msgspec.field(default_factory=lambda: datetime.utcnow())
 
 
-class PaginationMetaStruct(msgspec.Struct):
-    """OPTIMIZED: Pagination metadata."""
+class PaginationMetaStruct(msgspec.Struct, frozen=True):
+    """OPTIMIZED: Pagination metadata (msgspec)."""
 
     total: int
     page: int
@@ -34,15 +34,15 @@ class PaginationMetaStruct(msgspec.Struct):
     has_prev: bool
 
 
-class PaginatedResponseStruct(msgspec.Struct):
-    """OPTIMIZED: Paginated response wrapper."""
+class PaginatedResponseStruct(msgspec.Struct, frozen=True):
+    """OPTIMIZED: Paginated response wrapper (msgspec)."""
 
     items: list[Any]
     pagination: PaginationMetaStruct
 
 
 class ErrorDetail(BaseModel):
-    """Detailed error information."""
+    """Detailed error information (Pydantic)."""
 
     message: str
     field: str | None = None
@@ -61,7 +61,7 @@ class ErrorDetail(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Standard error response."""
+    """Standard error response (Pydantic)."""
 
     error: str
     message: str
@@ -87,24 +87,24 @@ class ErrorResponse(BaseModel):
     def from_proto(cls, proto_msg: Any) -> "ErrorResponse":
         """Bridge from gRPC ErrorResponse."""
         details = None
-        if proto_msg.errors:
+        if hasattr(proto_msg, "errors") and proto_msg.errors:
             details = [
                 ErrorDetail(message=e.message, field=e.field, code=e.code) for e in proto_msg.errors
             ]
 
         return cls(
-            error=proto_msg.code,
-            message=proto_msg.message,
+            error=proto_msg.code if hasattr(proto_msg, "code") else "INTERNAL_ERROR",
+            message=proto_msg.message if hasattr(proto_msg, "message") else "Unexpected error",
             details=details,
-            request_id=proto_msg.request_id,
+            request_id=proto_msg.request_id if hasattr(proto_msg, "request_id") else None,
             timestamp=proto_msg.timestamp.to_datetime()
-            if proto_msg.HasField("timestamp")
+            if hasattr(proto_msg, "HasField") and proto_msg.HasField("timestamp")
             else datetime.utcnow(),
         )
 
 
 class SuccessResponse(BaseModel):
-    """Standard success response."""
+    """Standard success response (Pydantic)."""
 
     message: str
     success: bool = True
@@ -114,7 +114,7 @@ class SuccessResponse(BaseModel):
 
 
 class DataResponse[T](BaseModel):
-    """Standard response wrapper with data field."""
+    """Standard response wrapper with data field (Pydantic)."""
 
     data: T
     success: bool = True
@@ -125,7 +125,7 @@ class DataResponse[T](BaseModel):
 
 
 class PaginationMeta(BaseModel):
-    """Pagination metadata."""
+    """Pagination metadata (Pydantic)."""
 
     total: int
     page: int
@@ -150,7 +150,7 @@ class PaginationMeta(BaseModel):
 
 
 class PaginatedResponse[T](BaseModel):
-    """Paginated response wrapper."""
+    """Paginated response wrapper (Pydantic)."""
 
     items: list[T]
     pagination: PaginationMeta
@@ -159,7 +159,7 @@ class PaginatedResponse[T](BaseModel):
 
 
 class HealthResponse(BaseModel):
-    """Health check response."""
+    """Health check response (Pydantic)."""
 
     status: str
     version: str

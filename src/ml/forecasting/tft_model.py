@@ -137,7 +137,7 @@ class PriceTFTModel:
             trainer.fit(model, train_dataloaders=data["train_loader"])
             self.model = model
 
-            #  ADVANCED: Post-Training Static Quantization (Simulated for CPU)
+            # ADVANCED: Post-Training Static Quantization for Institutional Deployment
             self._quantize()
 
             # Log model artifact

@@ -2,15 +2,6 @@
 Autonomous ML Pipeline - production-ready orchestration core.
 """
 
-This module exposes the `AutonomousMLPipeline` class expected by
-`test_autonomous_pipeline_improved.py`, mapping its methods to the src.shared
-implementations or providing the expected API surface.
-"""
-
-from __future__ import annotations
-
-from typing import Any
-
 import pandas as pd
 
 # Re-export or import expected symbols for `@patch`

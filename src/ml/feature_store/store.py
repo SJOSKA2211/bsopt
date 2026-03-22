@@ -27,22 +27,24 @@ class InMemoryFeatureStore(FeatureStore):
 
     async def compute_features(self, data: pd.DataFrame, feature_names: list[str]) -> pd.DataFrame:
         """
-        Computes requested features with Redis-backed caching.
+        Computes requested features with Redis-backed caching (msgspec).
         """
         from src.shared.utils.cache import get_redis
 
-        # ... (caching logic)
         redis = get_redis()
         cache_key = ""
         if redis:
-            cache_key = f"feature_cache:{hash(tuple(feature_names))}"
+            # Hash includes data shape and sorted feature names for stability
+            data_hash = hash(data.values.tobytes())
+            cache_key = f"feature_cache:{data_hash}:{hash(tuple(sorted(feature_names)))}"
             try:
                 cached = await redis.get(cache_key)
                 if cached:
-                    # ...
-                    pass
-            except Exception:
-                pass
+                    logger.info("feature_cache_hit", key=cache_key)
+                    cached_data = msgspec.json.decode(cached)
+                    return pd.DataFrame(cached_data)
+            except Exception as e:
+                logger.warning("feature_cache_read_failed", error=str(e))
 
         # 3. Resolve and sort features
         requested_features = []
@@ -71,9 +73,7 @@ class InMemoryFeatureStore(FeatureStore):
         # 5. Background cache fill
         if redis and cache_key:
             try:
-                # OPTIMIZED: Dispatch to background task to avoid blocking the API response
                 import asyncio
-
                 asyncio.create_task(self._background_cache_fill(df, cache_key))
             except Exception:
                 pass

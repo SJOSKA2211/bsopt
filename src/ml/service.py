@@ -112,11 +112,14 @@ class MLService:
         return InferenceResponse(price=price, model_type=source, latency_ms=duration)
 
     async def _persist_prediction(self, symbol: str, price: float, request: InferenceRequest):
-        """Asynchronously log prediction to the hypertable."""
+        """Asynchronously log prediction to the hypertable (Optimized)."""
         try:
             from datetime import UTC, datetime
 
             import msgspec
+
+            # OPTIMIZED: Use msgspec.json.encode directly on the Pydantic model for speed
+            input_features_json = msgspec.json.encode(request).decode()
 
             # Format for VectorizedDBEngine.insert_predictions_bulk
             # columns: (timestamp, symbol, model_id, input_features, predicted_price)
@@ -124,8 +127,8 @@ class MLService:
                 (
                     datetime.now(UTC),
                     symbol,
-                    None,  # model_id (NULL for BS fallback)
-                    msgspec.json.encode(request),
+                    None,  # model_id
+                    input_features_json,
                     price,
                 )
             ]

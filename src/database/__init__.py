@@ -90,13 +90,28 @@ class DatabaseManager:
         return sync_url, async_url
 
     def _setup_events(self, engine: Engine | AsyncEngine) -> None:
-        """Attaches performance monitoring events to the engine."""
+        """Attaches institutional-grade performance monitoring events to the engine."""
+        from src.shared.tracing import get_tracer
+
+        tracer = get_tracer(__name__)
+
+        def _normalize_statement(statement: str) -> str:
+            """Simple normalization to group similar queries."""
+            import re
+            # Replace numeric literals and UUIDs with placeholders
+            s = re.sub(r"'\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b'", "?", statement)
+            s = re.sub(r"\b\d+\b", "?", s)
+            return " ".join(s.split())
 
         @event.listens_for(engine, "before_cursor_execute")
         def before_cursor_execute(
             conn: Any, cursor: Any, statement: str, parameters: Any, context: Any, executemany: bool
         ) -> None:
             conn.info.setdefault("query_start_time", []).append(time.time())
+            
+            # Start a manual span if tracing is enabled and we're in a trace context
+            if hasattr(context, "attributes"):
+                 context.attributes["db.statement.normalized"] = _normalize_statement(statement)
 
         @event.listens_for(engine, "after_cursor_execute")
         def after_cursor_execute(
@@ -104,12 +119,17 @@ class DatabaseManager:
         ) -> None:
             if not conn.info.get("query_start_time"):
                 return
-            total_time = (time.time() - conn.info["query_start_time"].pop()) * 1000
-            if total_time > settings.SLOW_QUERY_THRESHOLD_MS:
+            
+            start_time = conn.info["query_start_time"].pop()
+            duration_ms = (time.time() - start_time) * 1000
+            
+            if duration_ms > settings.SLOW_QUERY_THRESHOLD_MS:
+                normalized = _normalize_statement(statement)
                 logger.warning(
                     "slow_query_detected",
-                    duration_ms=round(total_time, 2),
-                    statement=statement[:500],
+                    duration_ms=round(duration_ms, 2),
+                    statement_norm=normalized[:500],
+                    original_sample=statement[:100] + "..." if len(statement) > 100 else statement
                 )
 
     def initialize(self) -> None:

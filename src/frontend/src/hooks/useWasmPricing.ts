@@ -30,11 +30,13 @@ const pendingRequests = new Map<string, { resolve: (val: unknown) => void; rejec
 let isWorkerReady = false;
 const listeners = new Set<() => void>();
 
+let requestIdCounter = 0;
+const generateId = () => `req_${Date.now()}_${requestIdCounter++}`;
+
 // Initialize worker (lazy)
 const getWorker = () => {
   if (sharedWorker) return sharedWorker;
 
-  // Initialize Web Worker
   try {
     sharedWorker = new Worker(new URL('../workers/pricing.worker.ts', import.meta.url), {
       type: 'module'
@@ -45,7 +47,7 @@ const getWorker = () => {
 
       if (type === 'INIT_SUCCESS') {
         isWorkerReady = true;
-        console.log('WASM Worker initialized successfully');
+        console.log('[WASM] Worker initialized');
         listeners.forEach(listener => listener());
         return;
       }
@@ -53,29 +55,22 @@ const getWorker = () => {
       if (id && pendingRequests.has(id)) {
         const resolver = pendingRequests.get(id);
         pendingRequests.delete(id);
-
-        if (error) {
-          resolver?.reject(error);
-        } else {
-          resolver?.resolve(payload);
-        }
+        if (error) resolver?.reject(error);
+        else resolver?.resolve(payload);
       }
     };
 
     sharedWorker.postMessage({ type: 'INIT' });
   } catch (err) {
-    console.error('Failed to create WASM worker:', err);
+    console.error('[WASM] Failed to create worker:', err);
   }
   
   return sharedWorker;
 };
 
-// External store subscription
 const subscribe = (callback: () => void) => {
   listeners.add(callback);
-  return () => {
-    listeners.delete(callback);
-  };
+  return () => listeners.delete(callback);
 };
 
 const getSnapshot = () => isWorkerReady;
@@ -84,73 +79,37 @@ export const useWasmPricing = () => {
   const isLoaded = useSyncExternalStore(subscribe, getSnapshot);
 
   useEffect(() => {
-    // Ensure worker is initialized
     getWorker();
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const _sendWorkerMessage = useCallback((type: string, payload: any): Promise<any> => {
+  const _callWorker = useCallback((type: string, payload: any): Promise<any> => {
     return new Promise((resolve, reject) => {
       const worker = getWorker();
       if (!worker || !isWorkerReady) {
-        // Fallback or early return if worker not ready
         resolve(null);
         return;
       }
-
-      const id = Math.random().toString(36).substring(7);
+      const id = generateId();
       pendingRequests.set(id, { resolve, reject });
       worker.postMessage({ type, payload, id });
     });
   }, []);
 
-  const priceOption = useCallback(async (params: OptionParams): Promise<OptionResult | null> => {
-    return _sendWorkerMessage('PRICE_OPTION', params);
-  }, [_sendWorkerMessage]);
-
-  const calculateIV = useCallback(async (price: number, params: Omit<OptionParams, 'vol'>): Promise<number | null> => {
-    return _sendWorkerMessage('CALCULATE_IV', { price, ...params });
-  }, [_sendWorkerMessage]);
-
-  const batchCalculate = useCallback(async (params: OptionParams[]): Promise<OptionResult[]> => {
-     return _sendWorkerMessage('BATCH_CALCULATE', params) as Promise<OptionResult[]>;
-  }, [_sendWorkerMessage]);
-
-  const priceAmerican = useCallback(async (params: OptionParams, m?: number, n?: number): Promise<{ price: number } | null> => {
-    return _sendWorkerMessage('PRICE_AMERICAN', { ...params, m, n });
-  }, [_sendWorkerMessage]);
-
-  const priceMonteCarlo = useCallback(async (params: OptionParams, num_paths?: number): Promise<{ price: number } | null> => {
-    return _sendWorkerMessage('PRICE_MONTE_CARLO', { ...params, num_paths });
-  }, [_sendWorkerMessage]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const priceHeston = useCallback(async (params: any): Promise<{ price: number } | null> => {
-    return _sendWorkerMessage('PRICE_HESTON', params);
-  }, [_sendWorkerMessage]);
-
-  const batchPriceAmerican = useCallback(async (params: number[], m?: number, n?: number): Promise<Float64Array> => {
-    return _sendWorkerMessage('BATCH_PRICE_AMERICAN', { payload: params, m, n });
-  }, [_sendWorkerMessage]);
-
-  const batchPriceMonteCarlo = useCallback(async (params: number[], num_paths?: number): Promise<Float64Array> => {
-    return _sendWorkerMessage('BATCH_PRICE_MONTE_CARLO', { payload: params, num_paths });
-  }, [_sendWorkerMessage]);
-
-  const batchPriceHeston = useCallback(async (params: number[]): Promise<Float64Array> => {
-    return _sendWorkerMessage('BATCH_PRICE_HESTON', { payload: params });
-  }, [_sendWorkerMessage]);
-
   return {
     isLoaded,
-    priceOption,
-    calculateIV,
-    batchCalculate,
-    batchPriceAmerican,
-    batchPriceMonteCarlo,
-    batchPriceHeston,
-    priceAmerican,
-    priceMonteCarlo,
-    priceHeston
+    priceOption: (params: OptionParams) => _callWorker('PRICE_OPTION', params),
+    calculateIV: (price: number, params: Omit<OptionParams, 'vol'>) => 
+        _callWorker('CALCULATE_IV', { price, ...params }),
+    batchCalculate: (params: OptionParams[]) => _callWorker('BATCH_CALCULATE', params),
+    priceAmerican: (params: OptionParams, m?: number, n?: number) => 
+        _callWorker('PRICE_AMERICAN', { ...params, m, n }),
+    priceMonteCarlo: (params: OptionParams, num_paths?: number) => 
+        _callWorker('PRICE_MONTE_CARLO', { ...params, num_paths }),
+    priceHeston: (params: any) => _callWorker('PRICE_HESTON', params),
+    batchPriceAmerican: (params: number[], m?: number, n?: number) => 
+        _callWorker('BATCH_PRICE_AMERICAN', { payload: params, m, n }),
+    batchPriceMonteCarlo: (params: number[], num_paths?: number) => 
+        _callWorker('BATCH_PRICE_MONTE_CARLO', { payload: params, num_paths }),
+    batchPriceHeston: (params: number[]) => _callWorker('BATCH_PRICE_HESTON', { payload: params }),
   };
 };
