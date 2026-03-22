@@ -1,7 +1,8 @@
-import docker
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+import docker
 from src.ml.aiops.docker_remediator import DockerRemediator
 
 
