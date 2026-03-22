@@ -2,8 +2,8 @@ import dataclasses
 
 import pytest
 
-from src.quant.pricing.models import BSParameters
-from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
+from src.math_kernel.models import BSParameters
+from src.math_kernel.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.quant.pricing.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
-from src.quant.pricing.models import OptionGreeks
+from src.math_kernel.black_scholes import BlackScholesEngine as VectorizedBlackScholesEngine
+from src.math_kernel.models import OptionGreeks
 
 
 def test_vectorized_bs_scalar_greeks():

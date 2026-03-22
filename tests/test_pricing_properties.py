@@ -4,8 +4,8 @@ import numpy as np
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.quant.pricing.implied_vol import implied_volatility
+from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
+from src.math_kernel.implied_vol import implied_volatility
 
 # Strategy for valid option parameters
 bs_params = st.builds(

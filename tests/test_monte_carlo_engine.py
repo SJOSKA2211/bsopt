@@ -1,5 +1,5 @@
-from src.quant.pricing.black_scholes import BSParameters
-from src.quant.pricing.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
+from src.math_kernel.black_scholes import BSParameters
+from src.math_kernel.monte_carlo import MCConfig, MonteCarloEngine, geometric_asian_price
 from tests.test_utils import assert_equal
 
 

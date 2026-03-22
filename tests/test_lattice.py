@@ -14,8 +14,8 @@ Tests cover:
 import numpy as np
 import pytest
 
-from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.quant.pricing.lattice import (
+from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
+from src.math_kernel.lattice import (
     BinomialTreePricer,
     LatticeParameters,
     TrinomialTreePricer,

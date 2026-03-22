@@ -1,11 +1,11 @@
 import pytest
 
-from src.quant.pricing.black_scholes import BlackScholesEngine
-from src.quant.pricing.factory import PricingEngineFactory
-from src.quant.pricing.finite_difference import CrankNicolsonSolver
-from src.quant.pricing.lattice import BinomialTreePricer
-from src.quant.pricing.monte_carlo import MonteCarloEngine
-from src.quant.pricing.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
+from src.math_kernel.black_scholes import BlackScholesEngine
+from src.math_kernel.factory import PricingEngineFactory
+from src.math_kernel.finite_difference import CrankNicolsonSolver
+from src.math_kernel.lattice import BinomialTreePricer
+from src.math_kernel.monte_carlo import MonteCarloEngine
+from src.math_kernel.wasm_engine import WASM_AVAILABLE, WASMPricingEngine
 
 
 def test_factory_get_strategy():

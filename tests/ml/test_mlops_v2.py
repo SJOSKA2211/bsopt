@@ -7,7 +7,7 @@ import yaml
 from src.ml.drift import calculate_psi
 from src.ml.models.neural_engine import NeuralPricingEngine
 from src.ml.reinforcement_learning.trading_env import TradingEnvironment
-from src.quant.pricing.models import BSParameters
+from src.math_kernel.models import BSParameters
 
 
 def test_mlproject_integrity():

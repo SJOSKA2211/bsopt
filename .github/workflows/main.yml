@@ -41,8 +41,10 @@ jobs:
           make format
 
       - name: Math Kernel Smoke Test
+        env:
+          PYTHONPATH: .
         run: |
-          python -c "from core.shared.math_utils import calculate_greeks, calculate_price; import numpy as np; s = np.array([100.0, 110.0, 90.0]); k = np.array([100.0, 100.0, 100.0]); t = np.array([0.25, 0.5, 1.0]); sigma = np.array([0.2, 0.25, 0.3]); r = np.array([0.05, 0.05, 0.05]); q = np.array([0.01, 0.01, 0.01]); is_call = np.array([True, True, False]); delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call); assert delta.shape == s.shape, 'Greeks shape mismatch'; assert np.all(np.isfinite(delta)), 'Non-finite Greeks detected'; prices = calculate_price(s, k, t, sigma, r, q, is_call); assert np.all(prices > 0), 'Negative prices detected'; print('Math kernel validation PASSED')"
+          python -c "from src.shared.math_utils import calculate_greeks, calculate_price; import numpy as np; s = np.array([100.0, 110.0, 90.0]); k = np.array([100.0, 100.0, 100.0]); t = np.array([0.25, 0.5, 1.0]); sigma = np.array([0.2, 0.25, 0.3]); r = np.array([0.05, 0.05, 0.05]); q = np.array([0.01, 0.01, 0.01]); is_call = np.array([True, True, False]); delta, gamma, theta, vega, rho = calculate_greeks(s, k, t, sigma, r, q, is_call); assert delta.shape == s.shape, 'Greeks shape mismatch'; assert np.all(np.isfinite(delta)), 'Non-finite Greeks detected'; prices = calculate_price(s, k, t, sigma, r, q, is_call); assert np.all(prices > 0), 'Negative prices detected'; print('Math kernel validation PASSED')"
           
       - name: SAST Scanning (Bandit)
         run: |

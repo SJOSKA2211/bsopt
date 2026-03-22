@@ -1,6 +1,6 @@
 import unittest
 
-from src.quant.pricing.models import (
+from src.math_kernel.models import (
     BSParameters,
     HestonParams,
     OptionGreeks,

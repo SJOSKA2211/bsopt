@@ -120,7 +120,7 @@ class User(Base):
 
     __table_args__ = (
         Index("idx_users_active_pro", "tier", postgresql_where=(is_active) & (is_verified)),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": 90}},
     )
 
     def __repr__(self) -> str:
@@ -189,7 +189,7 @@ class AuditLog(Base):
             postgresql_ops={"metadata": "jsonb_path_ops"},
         ),
         Index("idx_audit_user_time", "user_id", time.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": 100}},
     )
 
 
@@ -226,7 +226,7 @@ class RequestLog(Base):
             created_at.desc(),
             postgresql_where=(status_code >= 400),
         ),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": 100}},
     )
 
 
@@ -254,7 +254,7 @@ class Portfolio(Base):
 
     __table_args__ = (
         UniqueConstraint("user_id", "name"),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": 90}},
     )
 
 
@@ -286,7 +286,7 @@ class Position(Base):
         Index(
             "idx_positions_active", "portfolio_id", "symbol", postgresql_where=(status == "open")
         ),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": 90}},
     )
 
 
@@ -329,7 +329,7 @@ class Order(Base):
             created_at.desc(),
             postgresql_where=status.in_(["pending", "partially_filled"]),
         ),
-        {"postgresql_fillfactor": 90},
+        {"postgresql_with": {"fillfactor": 90}},
     )
 
 
@@ -395,7 +395,7 @@ class OptionPrice(Base):
         ),
         Index("idx_options_prices_symbol_time", "symbol", time.desc()),
         Index("idx_options_prices_expiry_only", expiry.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": 100}},
     )
 
 
@@ -434,7 +434,7 @@ class MarketTick(Base):
             postgresql_include=["volume"],
         ),
         Index("idx_market_ticks_symbol_time", "symbol", time.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": 100}},
     )
 
 
@@ -500,7 +500,7 @@ class ModelPrediction(Base):
         ),
         Index("idx_model_predictions_symbol_time", "symbol", timestamp.desc()),
         Index("idx_model_predictions_model_time", "model_id", timestamp.desc()),
-        {"postgresql_fillfactor": 100},
+        {"postgresql_with": {"fillfactor": 100}},
     )
 
 

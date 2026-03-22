@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.quant.pricing.arbiter import EngineArbiter, PricingModel, PricingRequest
-from src.quant.pricing.models import BSParameters
+from src.math_kernel.arbiter import EngineArbiter, PricingModel, PricingRequest
+from src.math_kernel.models import BSParameters
 
 
 @pytest.fixture

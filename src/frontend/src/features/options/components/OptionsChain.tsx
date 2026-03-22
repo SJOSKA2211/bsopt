@@ -289,38 +289,31 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   const processedData = useMemo(() => {
     if (!optionsData) return [];
 
-    let filtered = optionsData;
+    let result = optionsData;
+
+    if (isWasmLoaded && enrichedResults.length > 0) {
+      const half = optionsData.length;
+      result = optionsData.map((row: OptionChainRow, i: number) => ({
+        ...row,
+        call_theor: enrichedResults[i]?.price,
+        call_delta: enrichedResults[i]?.greeks?.delta ?? row.call_delta,
+        call_gamma: enrichedResults[i]?.greeks?.gamma ?? row.call_gamma,
+        call_greeks: enrichedResults[i]?.greeks,
+        put_theor: enrichedResults[i + half]?.price,
+        put_delta: enrichedResults[i + half]?.greeks?.delta ?? row.put_delta,
+        put_gamma: enrichedResults[i + half]?.greeks?.gamma ?? row.put_gamma,
+        put_greeks: enrichedResults[i + half]?.greeks,
+      }));
+    }
 
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter((row: OptionChainRow) =>
+      result = result.filter((row: OptionChainRow) =>
         row.strike.toString().includes(search)
       );
     }
 
-    if (!isWasmLoaded || enrichedResults.length === 0) return filtered;
-
-    const half = optionsData.length;
-    const enriched = optionsData.map((row: OptionChainRow, i: number) => ({
-      ...row,
-      call_theor: enrichedResults[i]?.price,
-      call_delta: enrichedResults[i]?.greeks?.delta ?? row.call_delta,
-      call_gamma: enrichedResults[i]?.greeks?.gamma ?? row.call_gamma,
-      call_greeks: enrichedResults[i]?.greeks,
-      put_theor: enrichedResults[i + half]?.price,
-      put_delta: enrichedResults[i + half]?.greeks?.delta ?? row.put_delta,
-      put_gamma: enrichedResults[i + half]?.greeks?.gamma ?? row.put_gamma,
-      put_greeks: enrichedResults[i + half]?.greeks,
-    }));
-
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      return enriched.filter((row: OptionChainRow) =>
-        row.strike.toString().includes(search)
-      );
-    }
-
-    return enriched;
+    return result;
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
   const handleModelChange = React.useCallback((_: React.MouseEvent<HTMLElement> | null, value: string | null) => {

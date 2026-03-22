@@ -1,7 +1,7 @@
 import pytest
 
-from src.quant.pricing.finite_difference import CrankNicolsonSolver
-from src.quant.pricing.models import BSParameters
+from src.math_kernel.finite_difference import CrankNicolsonSolver
+from src.math_kernel.models import BSParameters
 
 
 @pytest.fixture

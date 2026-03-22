@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 
-from src.quant.pricing.main import app
+from src.math_kernel.main import app
 
 
 def test_pricing_health():

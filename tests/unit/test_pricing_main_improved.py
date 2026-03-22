@@ -14,11 +14,11 @@ sys.modules["strawberry.federation"] = MagicMock()
 with (
     patch("src.shared.observability.setup_logging"),
     patch("src.shared.observability.logging_middleware"),
-    patch("src.quant.pricing.quant_utils.warmup_jit"),
+    patch("src.math_kernel.quant_utils.warmup_jit"),
     patch("src.shared.observability.tune_gc"),
     patch("strawberry.fastapi.GraphQLRouter"),
 ):
-    from src.quant.pricing.main import app
+    from src.math_kernel.main import app
 
 
 class TestPricingMain(unittest.TestCase):

@@ -1,7 +1,7 @@
 import pytest
 from strawberry.types import ExecutionResult
 
-from src.quant.pricing.graphql.schema import schema
+from src.math_kernel.graphql.schema import schema
 
 
 @pytest.mark.asyncio

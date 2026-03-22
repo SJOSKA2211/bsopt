@@ -84,6 +84,26 @@ class CircuitBreaker:
         self.last_failure_time = 0.0
 
 
+import random
+import asyncio
+
+def retry_with_backoff(retries=3, initial_delay=1.0, backoff_factor=2.0, exceptions=(Exception,)):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            delay = initial_delay
+            for attempt in range(retries):
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as e:
+                    if attempt == retries - 1:
+                        raise e
+                    logger.warning(f"Retry {attempt + 1}/{retries} after error: {e}")
+                    await asyncio.sleep(delay + random.uniform(0, 0.1))
+                    delay *= backoff_factor
+        return wrapper
+    return decorator
+
 # Pre-defined breakers
 yfinance_breaker = CircuitBreaker("yfinance", failure_threshold=10, recovery_timeout=60)
 nse_breaker = CircuitBreaker("nse", failure_threshold=5, recovery_timeout=30)

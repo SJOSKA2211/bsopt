@@ -377,8 +377,8 @@ DUMMY_VAR = True
 
 # New tests for src/pricing/__init__.py coverage
 def test_pricing_getattr(mocker):
-    if "src.quant.pricing" in sys.modules:
-        del sys.modules["src.quant.pricing"]
+    if "src.math_kernel" in sys.modules:
+        del sys.modules["src.math_kernel"]
     if "src.shared.lazy_import" in sys.modules:
         del sys.modules["src.shared.lazy_import"]
 
@@ -387,46 +387,46 @@ def test_pricing_getattr(mocker):
         "src.shared.lazy_import.lazy_import", return_value=expected_returned_object
     )
 
-    import src.quant.pricing
+    import src.math_kernel
 
-    result = src.quant.pricing.BlackScholesEngine
+    result = src.math_kernel.BlackScholesEngine
 
     mock_lazy_import.assert_called_once_with(
-        "src.quant.pricing",
-        src.quant.pricing._import_map,
+        "src.math_kernel",
+        src.math_kernel._import_map,
         "BlackScholesEngine",
-        sys.modules["src.quant.pricing"],
+        sys.modules["src.math_kernel"],
     )
     assert result is expected_returned_object
 
 
 def test_pricing_dir():
-    if "src.quant.pricing" in sys.modules:
-        del sys.modules["src.quant.pricing"]
-    import src.quant.pricing
+    if "src.math_kernel" in sys.modules:
+        del sys.modules["src.math_kernel"]
+    import src.math_kernel
 
     # Make sure we don't accidentally lazy load something by just calling dir
     # And make sure __all__ elements are present
-    assert sorted(src.quant.pricing.__all__) == sorted(dir(src.quant.pricing))
+    assert sorted(src.math_kernel.__all__) == sorted(dir(src.math_kernel))
 
 
 def test_preload_classical_pricers(mocker):
-    # Ensure src.quant.pricing is removed from sys.modules for a fresh import
-    if "src.quant.pricing" in sys.modules:
-        del sys.modules["src.quant.pricing"]
+    # Ensure src.math_kernel is removed from sys.modules for a fresh import
+    if "src.math_kernel" in sys.modules:
+        del sys.modules["src.math_kernel"]
 
     # Ensure src.shared.lazy_import is removed from sys.modules to guarantee our patch is applied
     if "src.shared.lazy_import" in sys.modules:
         del sys.modules["src.shared.lazy_import"]
 
-    # Patch preload_modules directly using mocker. This needs to happen BEFORE src.quant.pricing is imported
-    # because src.quant.pricing imports src.shared.lazy_import at the top level.
+    # Patch preload_modules directly using mocker. This needs to happen BEFORE src.math_kernel is imported
+    # because src.math_kernel imports src.shared.lazy_import at the top level.
     mock_preload_modules = mocker.patch("src.shared.lazy_import.preload_modules")
 
     with patch.dict(os.environ, {"ENVIRONMENT": "production", "PRELOAD_PRICING": "true"}):
-        # Now import src.quant.pricing. This will be its first import in this test,
+        # Now import src.math_kernel. This will be its first import in this test,
         # and the module-level 'if' condition will be evaluated exactly once.
-        import src.quant.pricing
+        import src.math_kernel
 
         expected_fast_modules = {
             "HestonModelFFT",
@@ -435,7 +435,7 @@ def test_preload_classical_pricers(mocker):
             "SVISurface",
         }
         mock_preload_modules.assert_called_once_with(
-            "src.quant.pricing", src.quant.pricing._import_map, expected_fast_modules
+            "src.math_kernel", src.math_kernel._import_map, expected_fast_modules
         )
 
 
@@ -446,13 +446,13 @@ import sys
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.quant.pricing.models.heston_fft import HestonModelFFT
-    from src.quant.pricing.calibration.engine import HestonCalibrator
-    from src.quant.pricing.black_scholes import BlackScholesEngine
-    from src.quant.pricing.monte_carlo import MonteCarloEngine
-    from src.quant.pricing.calibration.svi_surface import SVISurface
-    from src.quant.pricing.vol_surface import SABRModel
-    from src.quant.pricing.quantum_pricing import QuantumOptionPricer
+    from src.math_kernel.models.heston_fft import HestonModelFFT
+    from src.math_kernel.calibration.engine import HestonCalibrator
+    from src.math_kernel.black_scholes import BlackScholesEngine
+    from src.math_kernel.monte_carlo import MonteCarloEngine
+    from src.math_kernel.calibration.svi_surface import SVISurface
+    from src.math_kernel.vol_surface import SABRModel
+    from src.math_kernel.quantum_pricing import QuantumOptionPricer
 
 DUMMY_VAR = True
     """
@@ -470,7 +470,7 @@ DUMMY_VAR = True
         if name == "dummy_pricing_module":
             return original_builtin_import(name, globals, locals, fromlist, level)
 
-        if name.startswith("src.quant.pricing."):
+        if name.startswith("src.math_kernel."):
             attempted_imports.add(name)
             return MagicMock(name=f"MockedModuleForTypeChecking_{name}")
 
@@ -486,13 +486,13 @@ DUMMY_VAR = True
 
         assert dummy_pricing_module.DUMMY_VAR is True
 
-        assert "src.quant.pricing.models.heston_fft" in attempted_imports
-        assert "src.quant.pricing.calibration.engine" in attempted_imports
-        assert "src.quant.pricing.black_scholes" in attempted_imports
-        assert "src.quant.pricing.monte_carlo" in attempted_imports
-        assert "src.quant.pricing.calibration.svi_surface" in attempted_imports
-        assert "src.quant.pricing.vol_surface" in attempted_imports
-        assert "src.quant.pricing.quantum_pricing" in attempted_imports
+        assert "src.math_kernel.models.heston_fft" in attempted_imports
+        assert "src.math_kernel.calibration.engine" in attempted_imports
+        assert "src.math_kernel.black_scholes" in attempted_imports
+        assert "src.math_kernel.monte_carlo" in attempted_imports
+        assert "src.math_kernel.calibration.svi_surface" in attempted_imports
+        assert "src.math_kernel.vol_surface" in attempted_imports
+        assert "src.math_kernel.quantum_pricing" in attempted_imports
 
     finally:
         sys.path.remove(str(tmp_path))

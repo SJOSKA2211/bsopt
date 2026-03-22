@@ -1,7 +1,7 @@
 import numpy as np
 
-from src.quant.pricing.black_scholes import BlackScholesEngine, BSParameters
-from src.quant.pricing.quant_utils import batch_greeks_jit
+from src.math_kernel.black_scholes import BlackScholesEngine, BSParameters
+from src.math_kernel.quant_utils import batch_greeks_jit
 
 
 def test_batch_greeks_vs_single():

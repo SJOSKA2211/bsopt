@@ -19,7 +19,7 @@ from decimal import Decimal
 import numpy as np
 import pytest
 
-from src.quant.pricing.vol_surface import (
+from src.math_kernel.vol_surface import (
     ArbitrageDetector,
     CalibrationConfig,
     CalibrationEngine,

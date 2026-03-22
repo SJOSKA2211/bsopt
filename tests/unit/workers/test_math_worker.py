@@ -19,7 +19,7 @@ with patch("src.workers.math_worker.get_settings", return_value=mock_settings):
 
 import pytest  # noqa: E402
 
-from src.quant.pricing.models.heston_fft import HestonParams  # noqa: E402
+from src.math_kernel.models.heston_fft import HestonParams  # noqa: E402
 
 
 @pytest.fixture
