@@ -79,7 +79,7 @@ async def verify_security() -> bool:
     required_keys = ["jwt_rs256.key", "jwt_rs256.pub", "jwt_es256.key", "jwt_es256.pub"]
     all_present = True
     for key in required_keys:
-        if not os.path.exists(os.path.join(pki_path, key)):
+        if not os.path.exists(os.path.join(pki_path, key)):  # noqa: ASYNC240
             print(f"❌ Security Key Missing: {key}")
             all_present = False
 

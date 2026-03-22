@@ -17,7 +17,7 @@ async def test_pillar_1_ingestion():
 
         # Create a mock 1MB tick file
         tick_file = "/tmp/smoke_ticks.bin"
-        with open(tick_file, "wb") as f:
+        with open(tick_file, "wb") as f:  # noqa: ASYNC230  # noqa: ASYNC230
             f.write(os.urandom(1024 * 32))  # 1024 ticks
 
         parser = equaflow_core.TickDataBuffer(tick_file)
@@ -69,7 +69,7 @@ async def test_pillar_4_security():
     """Verify Zero-Trust Auth infrastructure."""
     print("🛡️  Pillar 4: Zero-Trust Security Infrastructure...")
     pki_path = ".pki"
-    if os.path.exists(os.path.join(pki_path, "jwt_es256.key")):
+    if os.path.exists(os.path.join(pki_path, "jwt_es256.key")):  # noqa: ASYNC240
         print("   ✅ Asymmetric ECC P-256 keys detected.")
     else:
         print("   ❌ Security Pillar Failed: Key pairs missing.")

@@ -820,7 +820,7 @@ services:
       - MLFLOW_ARTIFACT_ROOT=s3://equaflow-artifacts/mlflow
       - MLFLOW_SERVER_ALLOWED_HOSTS=*
       - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER:-minio_admin}
-      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-minio_secret_key}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
       - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
       - MLFLOW_S3_IGNORE_TLS=true
       - MLFLOW_S3_UPLOAD_CONCURRENCY=10
@@ -1024,7 +1024,7 @@ services:
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:latest
     environment:
-      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/bsopt?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@postgres:5432/bsopt?sslmode=disable"
     depends_on:
       postgres:
         condition: service_healthy
@@ -1040,7 +1040,7 @@ services:
     image: oliver006/redis_exporter:latest
     environment:
       - REDIS_ADDR=redis://redis:6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     depends_on:
       - redis
     healthcheck:

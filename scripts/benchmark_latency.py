@@ -77,7 +77,7 @@ async def benchmark_mmap_parser():
 
         # Create a dummy 32MB file (1M ticks of 32 bytes)
         file_path = "/tmp/benchmark_ticks.bin"
-        with open(file_path, "wb") as f:
+        with open(file_path, "wb") as f:  # noqa: ASYNC230
             f.write(os.urandom(1024 * 1024 * 32))
 
         buffer = equaflow_core.TickDataBuffer(file_path)
