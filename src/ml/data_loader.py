@@ -154,17 +154,17 @@ class AIOpsDataLoader:
         from src.database.pipeliner import db_engine
 
         # Optimized query using TimescaleDB hyper-functions for bucketing
-        query = f"""
+        query = """
             SELECT 
                 time_bucket('1 minute', created_at) AS bucket,
                 AVG(duration_ms) as avg_latency,
                 COUNT(*) FILTER (WHERE status_code >= 400) as error_count,
                 COUNT(*) as total_requests
             FROM request_logs
-            WHERE created_at > NOW() - INTERVAL '{hours} hours'
+            WHERE created_at > NOW() - (INTERVAL '1 hour' * $1)
             GROUP BY bucket
             ORDER BY bucket ASC
-            LIMIT {self.limit}
+            LIMIT $2
         """
 
         async with db_engine as db:
@@ -172,7 +172,7 @@ class AIOpsDataLoader:
                 await db.connect()
 
             async with db._pool.acquire() as conn:
-                records = await conn.fetch(query)
+                records = await conn.fetch(query, hours, self.limit)
                 if not records:
                     return pd.DataFrame()
                 return pd.DataFrame(records)

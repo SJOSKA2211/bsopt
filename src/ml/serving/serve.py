@@ -429,6 +429,3 @@ if __name__ == "__main__":
     from src.config import settings
 
     uvicorn.run(app, host=settings.ML_SERVICE_HOST, port=settings.ML_SERVICE_PORT)
-ORT)
-CE_PORT)
-ORT)
