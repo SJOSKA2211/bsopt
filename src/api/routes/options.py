@@ -105,6 +105,10 @@ async def get_options_chain(
         if prices:
             # OPTIMIZED: Enrich DB records with real-time SHM greeks
             enriched_data = []
+            
+            # Hoisted exactly O(1) SHM lookup per chain instead of loop bound N calls
+            shm_greeks = _greeks_mesh.read(symbol)
+            
             for p in prices:
                 item = OptionChainItem(
                     id=f"{p.symbol}-{p.expiry}-{p.strike}-{p.option_type}",
@@ -126,14 +130,12 @@ async def get_options_chain(
                     time=p.time.isoformat() if p.time else None,
                 )
 
-                # Check SHM for live overrides
-                shm_greeks = _greeks_mesh.read(p.symbol)
                 if shm_greeks:
-                    item.delta = shm_greeks["delta"]
-                    item.gamma = shm_greeks["gamma"]
-                    item.vega = shm_greeks["vega"]
-                    item.theta = shm_greeks["theta"]
-                    item.rho = shm_greeks["rho"]
+                    item.delta = shm_greeks.get("delta", item.delta)
+                    item.gamma = shm_greeks.get("gamma", item.gamma)
+                    item.vega = shm_greeks.get("vega", item.vega)
+                    item.theta = shm_greeks.get("theta", item.theta)
+                    item.rho = shm_greeks.get("rho", item.rho)
 
                 enriched_data.append(item)
 

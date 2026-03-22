@@ -18,19 +18,39 @@ async def load_fair_values(keys: list[strawberry.ID]) -> list[float]:
     try:
         async with grpc.aio.insecure_channel(settings.ML_SERVICE_GRPC_URL) as channel:
             stub = inference_pb2_grpc.MLInferenceStub(channel)
-            # In a real scenario, we'd need more data than just 'id' to price.
-            # Assuming 'id' contains serialized params or we fetch from DB.
-            # For this optimization, we show the batch integration pattern.
+            from src.api.graphql.resolvers.option_service import get_option_by_id
+            from datetime import datetime, UTC
             results = []
-            for _ in keys:
-                # Simulated params for the gRPC call
-                request = inference_pb2.InferenceRequest(
-                    underlying_price=150.0,
-                    strike=150.0,
-                    time_to_expiry=0.1,
-                    is_call=True,
-                    model_type="nn",
-                )
+            for key in keys:
+                opt = await get_option_by_id(str(key))
+                
+                if opt:
+                    expiry_val = opt.expiry
+                    # Calculate DTE safely
+                    dte = 30.0 / 365.0
+                    if hasattr(expiry_val, "year") and hasattr(expiry_val, "month") and hasattr(expiry_val, "day"):
+                        try:
+                            # convert date to datetime to do subtraction
+                            exp_dt = datetime(expiry_val.year, expiry_val.month, expiry_val.day, tzinfo=UTC)
+                            dte = max(0.001, (exp_dt - datetime.now(UTC)).days / 365.0)
+                        except Exception:
+                            pass
+                    
+                    request = inference_pb2.InferenceRequest(
+                        underlying_price=float(opt.last or 150.0),
+                        strike=float(opt.strike),
+                        time_to_expiry=dte,
+                        is_call=bool(opt.option_type == "CALL"),
+                        model_type="nn",
+                    )
+                else:
+                    request = inference_pb2.InferenceRequest(
+                        underlying_price=150.0,
+                        strike=150.0,
+                        time_to_expiry=0.1,
+                        is_call=True,
+                        model_type="nn",
+                    )
                 response = await stub.Predict(request)
                 results.append(float(response.price))
             return results

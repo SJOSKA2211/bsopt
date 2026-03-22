@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-equaflow}
+      POSTGRES_USER: ${POSTGRES_USER:-equaflow_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-equaflow_admin} -d ${POSTGRES_DB:-equaflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  envoy:
+    image: envoyproxy/envoy:v1.27-latest
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8080:8080" # Edge Routing Port
+      - "9901:9901" # Admin Port
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

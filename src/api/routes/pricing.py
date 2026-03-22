@@ -126,32 +126,26 @@ async def calculate(
     )
     params = req.to_bs_params()
 
-    # Concurrently calculate price and greeks
-    price_task = pricing_service.price_option(
-        params=params,
-        option_type=req.option_type,
-        model=req.model,
-        symbol=req.symbol,
-    )
-    greeks_task = pricing_service.calculate_greeks(params, req.option_type)
-
-    result, greeks_result = await asyncio.gather(price_task, greeks_task, return_exceptions=True)
-
-    # Handle results and potential exceptions
-    if isinstance(result, Exception):
-        logger.error("calculate_price_failed", error=str(result))
+    # Calculate price and implicitly yield greeks natively
+    try:
+        result = await pricing_service.price_option(
+            params=params,
+            option_type=req.option_type,
+            model=req.model,
+            symbol=req.symbol,
+        )
+    except Exception as e:
+        logger.error("calculate_price_failed", error=str(e))
         result = None
 
     greeks_data = {}
-    if not isinstance(greeks_result, Exception) and greeks_result is not None:
-        if hasattr(greeks_result, "__dict__"):
-            greeks_data = vars(greeks_result)
-        elif isinstance(greeks_result, dict):
-            greeks_data = greeks_result
-        # Ensure all greeks are plain floats not numpy arrays
+    if result and getattr(result, "greeks", None):
+        greeks_raw = result.greeks
+        if hasattr(greeks_raw, "__dict__"):
+            greeks_data = vars(greeks_raw)
+        elif isinstance(greeks_raw, dict):
+            greeks_data = greeks_raw
         greeks_data = {k: float(v) for k, v in greeks_data.items() if v is not None}
-    elif isinstance(greeks_result, Exception):
-        logger.warning("calculate_greeks_failed", error=str(greeks_result))
 
     # Zero-copy Struct response
     resp = CalculateResponseStruct(

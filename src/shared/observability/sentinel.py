@@ -41,7 +41,14 @@ class SystemSentinel:
             health = await self.check_health()
             if any(status != "HEALTHY" for status in health.values()):
                 logger.warning("system_degradation_detected", status=health)
-                # In a real scenario, this would push top-level alerts to PagerDuty/Slack
+                import os
+                slack_url = os.getenv("SLACK_WEBHOOK_URL")
+                if slack_url:
+                    try:
+                        alert = {"text": f"🚨 *System Degradation Detected*\n```{health}```"}
+                        await self.client.post(slack_url, json=alert)
+                    except Exception as e:
+                        logger.error("failed_to_send_slack_alert", error=str(e))
 
             await asyncio.sleep(60)
 

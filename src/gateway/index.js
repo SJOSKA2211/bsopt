@@ -2,7 +2,6 @@
 
 const fastify = require('fastify');
 const mercurius = require('mercurius');
-const Piscina = require('piscina');
 const path = require('path');
 
 // Configuration
@@ -12,12 +11,7 @@ const subgraphs = [
   { name: 'neural-pricing', url: process.env.PRICING_URL || 'http://neural-pricing:8000/graphql' },
 ];
 
-// Initialize Piscina worker pool
-const piscina = new Piscina({
-  filename: path.resolve(__dirname, 'worker.js'),
-  minThreads: 2,
-  maxThreads: 8,
-});
+
 
 // Institutional Trace ID Generator
 const { v4: uuidv4 } = require('uuid');
@@ -79,12 +73,21 @@ async function start() {
       return mercurius.defaultErrorFormatter(execution, context);
     },
     context: async (request) => {
-      // Use Piscina to transform incoming headers or metadata if needed
-      const headers = await piscina.run({
-        type: 'PROCESS_DATA',
-        payload: request.headers,
-      });
-      return { headers };
+      // Synchronously transform headers using main thread natively bypassing isolate serialization
+      const toSnakeCase = (str) => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      
+      const transform = (obj) => {
+        if (Array.isArray(obj)) return obj.map(transform);
+        if (obj !== null && typeof obj === 'object') {
+          return Object.entries(obj).reduce((acc, [key, value]) => {
+            acc[toSnakeCase(key)] = transform(value);
+            return acc;
+          }, {});
+        }
+        return obj;
+      };
+
+      return { headers: transform(request.headers) };
     },
   });
 
@@ -93,10 +96,6 @@ async function start() {
     return {
       status: 'operational',
       service: 'gateway',
-      piscina: {
-        threads: piscina.threads.length,
-        queueSize: piscina.queueSize,
-      },
       timestamp: new Date().toISOString(),
     };
   });

@@ -34,10 +34,6 @@ class QuantumCircuitOptimizer:
     @staticmethod
     def optimize(qc: QuantumCircuit, optimization_level: int = 3) -> QuantumCircuit:
         if not QISKIT_AVAILABLE:
-            # Mock reduction for tests
-            if qc.size() > 0:
-                new_qc = QuantumCircuit(qc.num_qubits)
-                return new_qc
             return qc
         from qiskit import transpile
 

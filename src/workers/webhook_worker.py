@@ -96,6 +96,20 @@ def send_to_dlq_task(webhook_data: dict, reason: str = "unknown_failure"):
     """
     Task to handle webhooks that failed after all retries or due to circuit breaker.
     """
-    logger.error("webhook_sent_to_dlq", url=webhook_data.get("url"), reason=reason, webhook_data=webhook_data)
-    # In a real system, this would store the webhook in a persistent DLQ
-    # for manual inspection or re-processing later.
+    logger.error("webhook_sent_to_dlq", url=webhook_data.get("url"), reason=reason)
+    try:
+        from src.shared.utils.cache import get_redis_client
+        import json
+        
+        payload = json.dumps({"reason": reason, "data": webhook_data})
+        async def push_to_dlq():
+            redis = await get_redis_client()
+            await redis.lpush("webhook:dlq", payload)
+        
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop.create_task(push_to_dlq())
+        else:
+            asyncio.run(push_to_dlq())
+    except Exception as e:
+        logger.error("failed_to_persist_dlq_record", error=str(e))

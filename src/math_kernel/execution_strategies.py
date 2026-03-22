@@ -14,17 +14,7 @@ logger = structlog.get_logger(__name__)
 try:
     import ray
 except ImportError:
-
-    class RayMock:
-        """Fallback mock for local-mode identity when Ray is missing."""
-
-        def put(self, obj):
-            return obj
-
-        def get(self, obj):
-            return obj
-
-    ray = RayMock()
+    ray = None
 
 
 class ExecutionStrategy(ABC):
@@ -99,6 +89,8 @@ class RayStrategy(ExecutionStrategy):
         inputs: dict[str, np.ndarray],
         executor: concurrent.futures.ProcessPoolExecutor | None = None,
     ) -> np.ndarray:
+        if ray is None:
+            raise ImportError("Ray Strategy invoked but Ray framework is not installed.")
         from src.math_kernel.service import _ray_worker_pricing
 
         s_ref = ray.put(inputs["spots"])
@@ -210,7 +202,7 @@ class StrategyFactory:
         if CORE_AVAILABLE:
             return SequentialStrategy()  # SequentialStrategy uses vectorized Rust call
 
-        if ray_active and count > settings.PRICING_LARGE_BATCH_THRESHOLD:
+        if ray_active and ray is not None and count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             return RayStrategy()
         if count > settings.PRICING_LARGE_BATCH_THRESHOLD:
             # Prefer SHM if available, otherwise local Multiprocessing

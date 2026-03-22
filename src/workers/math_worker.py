@@ -131,6 +131,7 @@ async def _recalibrate_symbol_async(self, symbol: str) -> dict:
                 svi_params=cache_value['surface']
             )
             db.add(db_res)
+            await db.commit()
         
         duration = time.time() - start_time
         CALIBRATION_DURATION.labels(symbol=symbol).observe(duration)

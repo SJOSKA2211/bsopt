@@ -122,18 +122,29 @@ class Query:
         from src.api.schemas.ml import InferenceRequest
         from src.ml.service import get_ml_service
 
+        from src.api.graphql.resolvers.option_service import router
+        
         ml_service = get_ml_service()
 
-        # Simulated request for the fair value prediction
+        try:
+            live_data = await router.get_live_quote(symbol)
+            underlying_price = float(live_data.get("price", 150.0))
+            strike = float(live_data.get("strike", underlying_price))
+            is_call = 1 if str(live_data.get("type", "CALL")).upper() == "CALL" else 0
+        except Exception:
+            underlying_price = 150.0
+            strike = 150.0
+            is_call = 1
+
         req = InferenceRequest(
-            underlying_price=150.0,
-            strike=150.0,
-            time_to_expiry=0.1,
-            is_call=1,
-            moneyness=1.0,
+            underlying_price=underlying_price,
+            strike=strike,
+            time_to_expiry=30.0 / 365.0,
+            is_call=is_call,
+            moneyness=underlying_price / strike if strike else 1.0,
             log_moneyness=0.0,
-            sqrt_time_to_expiry=0.316,
-            days_to_expiry=36.5,
+            sqrt_time_to_expiry=0.286,
+            days_to_expiry=30.0,
             implied_volatility=0.2,
         )
 

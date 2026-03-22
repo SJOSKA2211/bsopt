@@ -59,15 +59,18 @@ class ZeroTrustMiddleware:
         self.blocked_ips: set[str] = set()
         self.csrf_secret = settings.JWT_SECRET.encode()
 
-        # CSP and other headers pre-built for speed
-        self.security_headers = {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-            "X-XSS-Protection": "1; mode=block",
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-            "Permissions-Policy": "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
-            "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'",
-        }
+        # CSP and other headers pre-built for speed (Binary encoded bounds)
+        self.security_headers = [
+            (b"x-content-type-options", b"nosniff"),
+            (b"x-frame-options", b"DENY"),
+            (b"x-xss-protection", b"1; mode=block"),
+            (b"referrer-policy", b"strict-origin-when-cross-origin"),
+            (b"permissions-policy", b"accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"),
+            (b"content-security-policy", b"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"),
+        ]
+        
+        if settings.is_production:
+            self.security_headers.append((b"strict-transport-security", b"max-age=31536000; includeSubDomains"))
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -180,19 +183,12 @@ class ZeroTrustMiddleware:
             # Public path, still attach security context
             scope.setdefault("state", {})["security_context"] = security_context
 
-        # 7. Security Headers Wrapper
+        # 7. Security Headers Wrapper (High-Performance Zero-Copy Tuple Extend)
         async def send_wrapper(message):
             if message["type"] == "http.response.start":
-                headers = dict(message.get("headers", []))
-                # Inject pre-built headers
-                for k, v in self.security_headers.items():
-                    headers[k.lower().encode()] = v.encode()
-
-                # HSTS
-                if settings.is_production:
-                    headers[b"strict-transport-security"] = b"max-age=31536000; includeSubDomains"
-
-                message["headers"] = list(headers.items())
+                headers = message.get("headers", [])
+                headers.extend(self.security_headers)
+                message["headers"] = headers
             await send(message)
 
         await self.app(scope, receive, send_wrapper)

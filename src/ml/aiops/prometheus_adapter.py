@@ -121,9 +121,12 @@ class PrometheusClient:
             if cpu_df.empty or mem_df.empty:
                 return np.array([])
 
-            # Align and stack
-            # For simplicity, we assume they are already aligned by the mock
-            return np.column_stack([cpu_df["price"].values, mem_df["price"].values])
+            # Properly align timestamps with bounds mapping to gracefully handle scrape skews
+            import pandas as pd
+            merged_df = pd.merge(cpu_df, mem_df, on="timestamp", how="outer", suffixes=('_cpu', '_mem'))
+            merged_df = merged_df.sort_values("timestamp").ffill().bfill()
+            
+            return np.column_stack([merged_df["price_cpu"].values, merged_df["price_mem"].values])
         except Exception as e:
             logger.error("multivariate_data_fetch_failed", error=str(e))
             return np.array([])

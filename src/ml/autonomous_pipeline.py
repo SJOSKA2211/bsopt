@@ -15,17 +15,7 @@ import pandas as pd
 # Re-export or import expected symbols for `@patch`
 
 
-# Need a fake Base for the test's `patch("...Base.metadata.create_all")`
-class _FakeMetadata:
-    def create_all(self, *args: Any, **kwargs: Any) -> None:
-        pass
-
-
-class _FakeBase:
-    metadata = _FakeMetadata()
-
-
-Base = _FakeBase()
+from src.database.models import Base
 
 
 class AutonomousMLPipeline:
