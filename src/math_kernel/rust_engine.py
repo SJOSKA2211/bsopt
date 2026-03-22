@@ -6,12 +6,12 @@ Implements the high-performance CPU parallel path using equaflow_core (Rust/PyO3
 
 import numpy as np
 import structlog
-from typing import Any
 
 from src.math_kernel.base import BasePricingEngine
 from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
+
 
 class RustPricingEngine(BasePricingEngine):
     """
@@ -22,6 +22,7 @@ class RustPricingEngine(BasePricingEngine):
     def __init__(self):
         try:
             import equaflow_core
+
             self.core = equaflow_core
             self.available = True
         except ImportError:
@@ -33,8 +34,9 @@ class RustPricingEngine(BasePricingEngine):
         if not self.available:
             # Fallback logic handled by Factory/Arbiter, but for safety:
             from src.math_kernel.black_scholes import BlackScholesEngine
+
             return BlackScholesEngine().price(params, option_type)
-            
+
         return self.core.black_scholes_price(
             params.S, params.K, params.T, params.sigma, params.r, params.q, option_type == "call"
         )
@@ -52,6 +54,7 @@ class RustPricingEngine(BasePricingEngine):
         """High-performance batch pricing."""
         if not self.available:
             from src.math_kernel.black_scholes import BlackScholesEngine
+
             return BlackScholesEngine().price_batch(S, K, T, sigma, r, q, option_types)
 
         is_call = np.where(option_types == "call", True, False)
@@ -61,6 +64,7 @@ class RustPricingEngine(BasePricingEngine):
         """Compute Greeks using Rust."""
         if not self.available:
             from src.math_kernel.black_scholes import BlackScholesEngine
+
             return BlackScholesEngine().greeks(params, option_type)
 
         d, g, t, v, r = self.core.black_scholes_greeks(
@@ -74,6 +78,7 @@ class RustPricingEngine(BasePricingEngine):
         """High-order RK4 GBM simulation using Rust."""
         if not self.available:
             from src.math_kernel.gbm_solver import GBMSolver
+
             return GBMSolver().simulate(S0, mu, sigma, T, dt)
 
         return self.core.runge_kutta_4_gbm(S0, mu, sigma, T, dt, steps, None)

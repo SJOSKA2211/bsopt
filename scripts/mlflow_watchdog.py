@@ -1,14 +1,16 @@
 import os
 import time
+from typing import Any
+
 import requests
 import structlog
-from typing import Optional, Dict, Any
 
 logger = structlog.get_logger(__name__)
 
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
 RAY_DASHBOARD_URL = os.getenv("RAY_DASHBOARD_URL", "http://ray-head:8265")
 CHECK_INTERVAL = 30
+
 
 class MLflowWatchdog:
     """
@@ -30,10 +32,12 @@ class MLflowWatchdog:
                 return True
         except Exception as e:
             self.consecutive_ray_failures += 1
-            logger.error("ray_dashboard_unreachable", error=str(e), consecutive=self.consecutive_ray_failures)
+            logger.error(
+                "ray_dashboard_unreachable", error=str(e), consecutive=self.consecutive_ray_failures
+            )
         return False
 
-    def get_ray_memory_usage(self) -> Optional[float]:
+    def get_ray_memory_usage(self) -> float | None:
         """Check Ray object store utilization across all active nodes."""
         try:
             resp = requests.get(f"{RAY_DASHBOARD_URL}/api/nodes/", timeout=10)
@@ -66,7 +70,7 @@ class MLflowWatchdog:
                 for job in jobs:
                     job_id = job.get("job_id")
                     status = job.get("status")
-                    
+
                     if status in ["FAILED", "STOPPED"] and job_id not in self.failed_jobs:
                         logger.warning("ray_job_failure_detected", job_id=job_id, status=status)
                         self.handle_job_failure(job)
@@ -74,13 +78,13 @@ class MLflowWatchdog:
         except Exception as e:
             logger.error("failed_to_query_jobs", error=str(e))
 
-    def handle_job_failure(self, job: Dict[str, Any]):
+    def handle_job_failure(self, job: dict[str, Any]):
         """Trigger auto-recovery logic."""
         job_id = job.get("job_id")
         error_msg = job.get("message", "").lower()
-        
+
         logger.info("initiating_self_healing", job_id=job_id)
-        
+
         # OOM Detection
         if "out of memory" in error_msg or "oom" in error_msg:
             logger.warning("oom_detected_adjusting_resources", job_id=job_id)
@@ -91,7 +95,7 @@ class MLflowWatchdog:
             logger.info("general_failure_respawning", job_id=job_id)
             self.respawn_job(job, adjust_resources=False)
 
-    def respawn_job(self, job: Dict[str, Any], adjust_resources: bool = False):
+    def respawn_job(self, job: dict[str, Any], adjust_resources: bool = False):
         """Simulate or trigger job respawn."""
         # In a real environment, we'd use the job submission API or a CLI call
         entrypoint = job.get("entrypoint")
@@ -105,7 +109,9 @@ class MLflowWatchdog:
 
     def monitor_and_heal(self):
         """Main self-healing loop."""
-        logger.info("mlflow_watchdog_started", tracking_uri=MLFLOW_TRACKING_URI, ray_url=RAY_DASHBOARD_URL)
+        logger.info(
+            "mlflow_watchdog_started", tracking_uri=MLFLOW_TRACKING_URI, ray_url=RAY_DASHBOARD_URL
+        )
 
         while True:
             ray_healthy = self.check_ray_health()
@@ -120,13 +126,14 @@ class MLflowWatchdog:
 
             if ray_healthy:
                 self.detect_failed_jobs()
-                
+
                 mem_util = self.get_ray_memory_usage()
                 if mem_util and mem_util > 0.9:
                     logger.warning("ray_memory_pressure_high", utilization=mem_util)
                     # Potential: shed load or stop low-priority jobs
 
             time.sleep(CHECK_INTERVAL)
+
 
 if __name__ == "__main__":
     watchdog = MLflowWatchdog()

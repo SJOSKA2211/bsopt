@@ -72,7 +72,9 @@ def setup_tracing(
         logger.info("tracing_disabled", service=service_name)
         return
 
-    otlp_endpoint = otlp_endpoint or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+    otlp_endpoint = otlp_endpoint or os.getenv(
+        "OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317"
+    )
 
     resource = Resource.create(
         {

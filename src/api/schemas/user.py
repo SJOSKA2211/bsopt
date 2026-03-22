@@ -40,7 +40,9 @@ class UserResponse(msgspec.Struct):
             is_verified=proto_msg.is_verified,
             is_mfa_enabled=proto_msg.mfa_enabled,
             created_at=proto_msg.created_at.to_datetime(),
-            last_login=proto_msg.last_login.to_datetime() if proto_msg.HasField("last_login") else None,
+            last_login=proto_msg.last_login.to_datetime()
+            if proto_msg.HasField("last_login")
+            else None,
         )
 
     def to_proto(self) -> Any:

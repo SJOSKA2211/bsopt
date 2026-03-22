@@ -242,6 +242,7 @@ def vectorized_implied_volatility(
             )
         except Exception as e:
             import structlog
+
             structlog.get_logger().warning("core_batch_iv_failed_fallback_to_jit", error=str(e))
 
     # 2. Corrado-Miller Initial Guess

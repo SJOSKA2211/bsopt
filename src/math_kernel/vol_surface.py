@@ -269,15 +269,19 @@ class SVIModel:
         # w(k) = a + b * (rho * (k - m) + sqrt((k - m)^2 + sigma^2))
         sqrt_val = np.sqrt((k - p.m) ** 2 + p.sigma**2)
         w = p.a + p.b * (p.rho * (k - p.m) + sqrt_val)
-        
+
         w_prime = p.b * (p.rho + (k - p.m) / sqrt_val)
         w_double_prime = p.b * p.sigma**2 / (sqrt_val**3)
-        
+
         # Avoid division by zero
         w_safe = np.maximum(w, 1e-9)
-        
-        g_k = (1.0 - k * w_prime / (2.0 * w_safe)) ** 2 - (w_prime**2 / 4.0) * (1.0 / w_safe + 0.25) + w_double_prime / 2.0
-        
+
+        g_k = (
+            (1.0 - k * w_prime / (2.0 * w_safe)) ** 2
+            - (w_prime**2 / 4.0) * (1.0 / w_safe + 0.25)
+            + w_double_prime / 2.0
+        )
+
         return g_k >= 0
 
 

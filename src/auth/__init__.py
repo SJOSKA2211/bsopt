@@ -13,13 +13,13 @@ from src.database.models import AuditLog
 from .audit import AuditEvent, log_audit
 from .auth import (
     AuthService,
-    auth_service,
-    get_auth_service,
-    get_current_user,
-    get_current_active_user,
     RoleChecker,
     TokenData,
     TokenPair,
+    auth_service,
+    get_auth_service,
+    get_current_active_user,
+    get_current_user,
 )
 
 __all__ = [

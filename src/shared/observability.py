@@ -20,12 +20,14 @@ from prometheus_client import (
     Counter,
     Gauge,
     Histogram,
-    Summary,
     push_to_gateway,
 )
 
 from src.shared.config import settings
 from src.shared.off_heap_logger import omega_logger
+
+# Thread pool for non-blocking telemetry and metric pushes
+_METRICS_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="telemetry_background")
 
 # Pre-compiled patterns for IP and Email
 _IP_PATTERN = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.[\d]{1,3}\b")
@@ -323,6 +325,7 @@ ML_PROXY_PREDICT_LATENCY = Histogram(
     "Latency of ML model predictions via proxy",
     buckets=[0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0],
 )
+
 
 def observe_latency(histogram: Histogram, value: float, labels: dict[str, str] | None = None):
     """

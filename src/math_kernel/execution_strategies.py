@@ -3,49 +3,28 @@ import concurrent.futures
 from abc import ABC, abstractmethod
 
 import numpy as np
+import structlog
+
+from src.config import settings
+from src.math_kernel import service
+from src.shared.utils.shared_memory import shm_manager
+
+logger = structlog.get_logger(__name__)
 
 try:
     import ray
 except ImportError:
+
     class RayMock:
         """Fallback mock for local-mode identity when Ray is missing."""
-        def put(self, obj): return obj
-        def get(self, obj): return obj
+
+        def put(self, obj):
+            return obj
+
+        def get(self, obj):
+            return obj
+
     ray = RayMock()
-
-class MultiprocessingStrategy(ExecutionStrategy):
-    """Local parallel execution using ProcessPoolExecutor (Fallback for Ray)."""
-
-    async def execute(
-        self,
-        inputs: dict[str, np.ndarray],
-        executor: concurrent.futures.ProcessPoolExecutor | None = None,
-    ) -> np.ndarray:
-        from src.math_kernel.service import _worker_pricing
-        
-        loop = asyncio.get_event_loop()
-        # Flatten inputs for the worker
-        args = [
-            inputs["spots"],
-            inputs["strikes"],
-            inputs["maturities"],
-            inputs["vols"],
-            inputs["rates"],
-            inputs["dividends"],
-            inputs["is_call"],
-        ]
-        
-        return await loop.run_in_executor(
-            executor,
-            _worker_pricing,
-            *args
-        )
-import structlog
-
-from src.config import settings
-from src.shared.utils.shared_memory import shm_manager
-
-logger = structlog.get_logger(__name__)
 
 
 class ExecutionStrategy(ABC):
@@ -58,6 +37,30 @@ class ExecutionStrategy(ABC):
         executor: concurrent.futures.ProcessPoolExecutor | None = None,
     ) -> np.ndarray:
         pass
+
+
+class MultiprocessingStrategy(ExecutionStrategy):
+    """Local parallel execution using ProcessPoolExecutor (Fallback for Ray)."""
+
+    async def execute(
+        self,
+        inputs: dict[str, np.ndarray],
+        executor: concurrent.futures.ProcessPoolExecutor | None = None,
+    ) -> np.ndarray:
+
+        loop = asyncio.get_event_loop()
+        # Flatten inputs for the worker
+        args = [
+            inputs["spots"],
+            inputs["strikes"],
+            inputs["maturities"],
+            inputs["vols"],
+            inputs["rates"],
+            inputs["dividends"],
+            inputs["is_call"],
+        ]
+
+        return await loop.run_in_executor(executor, service._worker_pricing, *args)
 
 
 class SequentialStrategy(ExecutionStrategy):

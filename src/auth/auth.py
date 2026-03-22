@@ -16,7 +16,6 @@ import hashlib
 import logging
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Any, List, Optional
 
 import jwt
 import msgspec
@@ -24,16 +23,16 @@ import pyotp
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from cryptography.fernet import Fernet
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, APIKeyHeader
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import ExpiredSignatureError, PyJWTError
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
 from src.database import get_async_db
-from src.database.models import User, OAuth2Client, APIKey
+from src.database.models import APIKey, OAuth2Client, User
 from src.shared.config import settings
 from src.shared.utils.cache import get_redis_client
 
@@ -43,31 +42,37 @@ logger = logging.getLogger(__name__)
 security_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+
 class TokenData(BaseModel):
     """Standardized Token Data (Pydantic V2)."""
+
     user_id: str
     email: str
     tier: str
     token_type: str
     exp: datetime
     iat: datetime
-    jti: Optional[str] = None
-    scopes: List[str] = []
+    jti: str | None = None
+    scopes: list[str] = []
 
     model_config = ConfigDict(frozen=True)
 
+
 class TokenPair(BaseModel):
     """Standardized Token Pair (Pydantic V2)."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     requires_mfa: bool = False
 
+
 class AuthService:
     """
     Unified Authentication Service.
     """
+
     def __init__(self):
         self.ph = PasswordHasher(
             time_cost=settings.ARGON2_TIME_COST,
@@ -146,25 +151,27 @@ class AuthService:
             return settings.rsa_private_key if is_private else settings.rsa_public_key
         elif algorithm.startswith("ES"):
             return settings.es256_private_key if is_private else settings.es256_public_key
-        
+
         if settings.is_production:
             raise ValueError(f"Symmetric algorithm {algorithm} forbidden in production.")
         return settings.JWT_SECRET
 
-    def create_token_pair(self, user_id: str, email: str, tier: str, scopes: List[str] = []) -> TokenPair:
+    def create_token_pair(
+        self, user_id: str, email: str, tier: str, scopes: list[str] = []
+    ) -> TokenPair:
         """Create a pair of access and refresh tokens."""
         access_token = self._create_token(
             {"sub": user_id, "email": email, "tier": tier, "type": "access", "scopes": scopes},
-            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         refresh_token = self._create_token(
             {"sub": user_id, "email": email, "tier": tier, "type": "refresh", "scopes": scopes},
-            timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+            timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
         )
         return TokenPair(
             access_token=access_token,
             refresh_token=refresh_token,
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
 
     def _create_token(self, data: dict, expires_delta: timedelta) -> str:
@@ -172,12 +179,14 @@ class AuthService:
         to_encode = data.copy()
         now = datetime.now(UTC)
         expire = now + expires_delta
-        to_encode.update({
-            "exp": expire,
-            "iat": now,
-            "jti": secrets.token_hex(16),
-            "iss": "equaflow-auth-v2",
-        })
+        to_encode.update(
+            {
+                "exp": expire,
+                "iat": now,
+                "jti": secrets.token_hex(16),
+                "iss": "equaflow-auth-v2",
+            }
+        )
         algorithm = settings.JWT_ALGORITHM
         key = self._get_key_for_algorithm(algorithm, is_private=True)
         return jwt.encode(to_encode, key, algorithm=algorithm)
@@ -189,7 +198,7 @@ class AuthService:
             algorithm = unverified_header.get("alg", settings.JWT_ALGORITHM)
             key = self._get_key_for_algorithm(algorithm, is_private=False)
             payload = jwt.decode(token, key, algorithms=[algorithm])
-            
+
             return TokenData(
                 user_id=payload.get("sub"),
                 email=payload.get("email", ""),
@@ -198,7 +207,7 @@ class AuthService:
                 exp=datetime.fromtimestamp(payload.get("exp", 0), tz=UTC),
                 iat=datetime.fromtimestamp(payload.get("iat", 0), tz=UTC),
                 jti=payload.get("jti"),
-                scopes=payload.get("scopes", [])
+                scopes=payload.get("scopes", []),
             )
         except ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
@@ -240,11 +249,13 @@ class AuthService:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         if not user.hashed_password:
-             # Handle users without passwords (e.g. OAuth only)
-             await run_in_threadpool(self.verify_password, password, self.DUMMY_HASH)
-             raise HTTPException(status_code=401, detail="Invalid credentials")
+            # Handle users without passwords (e.g. OAuth only)
+            await run_in_threadpool(self.verify_password, password, self.DUMMY_HASH)
+            raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        password_matches = await run_in_threadpool(self.verify_password, password, user.hashed_password)
+        password_matches = await run_in_threadpool(
+            self.verify_password, password, user.hashed_password
+        )
         if not password_matches:
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -259,7 +270,7 @@ class AuthService:
         """Verify MFA code if enabled for the user."""
         if not user.mfa_enabled:
             return True
-        
+
         if not code:
             return False
 
@@ -297,9 +308,9 @@ class AuthService:
             ttl = int((token_data.exp - datetime.now(UTC)).total_seconds())
             if ttl > 0:
                 await redis.setex(
-                    f"session_v2:{token}", 
-                    ttl, 
-                    msgspec.json.encode(token_data.model_dump(mode="json"))
+                    f"session_v2:{token}",
+                    ttl,
+                    msgspec.json.encode(token_data.model_dump(mode="json")),
                 )
         except Exception as e:
             logger.warning("session_cache_write_failed", error=str(e))
@@ -308,31 +319,33 @@ class AuthService:
 
     # --- OAuth2 Client Logic ---
 
-    async def authenticate_client(self, db: AsyncSession, client_id: str, client_secret: str) -> OAuth2Client:
+    async def authenticate_client(
+        self, db: AsyncSession, client_id: str, client_secret: str
+    ) -> OAuth2Client:
         """Authenticate a confidential OAuth2 client."""
         result = await db.execute(select(OAuth2Client).where(OAuth2Client.client_id == client_id))
         client = result.scalar_one_or_none()
 
         if not client or client.client_secret != client_secret:
             raise HTTPException(status_code=401, detail="Invalid client credentials")
-        
+
         return client
 
-    def create_client_credentials_token(self, client: OAuth2Client, scopes: List[str]) -> TokenPair:
+    def create_client_credentials_token(self, client: OAuth2Client, scopes: list[str]) -> TokenPair:
         """Create a token for Client Credentials flow."""
         allowed_scopes = set(client.scopes or [])
         requested_scopes = set(scopes)
         if not requested_scopes.issubset(allowed_scopes):
-             raise HTTPException(status_code=400, detail="Invalid scope requested")
+            raise HTTPException(status_code=400, detail="Invalid scope requested")
 
         access_token = self._create_token(
             {"sub": client.client_id, "type": "client_credentials", "scopes": scopes},
-            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         )
         return TokenPair(
             access_token=access_token,
             refresh_token="",
-            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         )
 
     # --- mTLS Support ---
@@ -346,27 +359,32 @@ class AuthService:
         if client_verify != "SUCCESS":
             logger.warning("mtls_verification_failed", status=client_verify)
             return False
-        
+
         return True
+
 
 # Global instance
 auth_service = AuthService()
 
+
 def get_auth_service() -> AuthService:
     return auth_service
 
+
 # --- FastAPI Dependencies ---
 
+
 async def get_token_from_header(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
-) -> Optional[str]:
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
+) -> str | None:
     if credentials:
         return credentials.credentials
     return None
 
+
 async def get_current_user(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
+    token: str | None = Depends(get_token_from_header),
     db: AsyncSession = Depends(get_async_db),
     service: AuthService = Depends(get_auth_service),
 ) -> User:
@@ -378,6 +396,7 @@ async def get_current_user(
 
     # Try cache first
     from src.shared.utils.cache import db_cache
+
     try:
         cached_user = await db_cache.get_user(user_id)
         if cached_user:
@@ -396,6 +415,7 @@ async def get_current_user(
     request.state.user = user
     return user
 
+
 async def get_current_active_user(
     user: User = Depends(get_current_user),
 ) -> User:
@@ -403,8 +423,9 @@ async def get_current_active_user(
         raise HTTPException(status_code=403, detail="Account is disabled")
     return user
 
+
 class RoleChecker:
-    def __init__(self, allowed_roles: List[str]):
+    def __init__(self, allowed_roles: list[str]):
         self.allowed_roles = allowed_roles
 
     async def __call__(self, user: User = Depends(get_current_active_user)):
@@ -416,18 +437,17 @@ class RoleChecker:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
 
+
 async def get_api_key(
     request: Request,
-    api_key: Optional[str] = Depends(api_key_header),
+    api_key: str | None = Depends(api_key_header),
     db: AsyncSession = Depends(get_async_db),
-) -> Optional[User]:
+) -> User | None:
     if not api_key:
         return None
 
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    result = await db.execute(
-        select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active)
-    )
+    result = await db.execute(select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active))
     key_record = result.scalar_one_or_none()
 
     if not key_record:
@@ -438,13 +458,14 @@ async def get_api_key(
 
     return key_record.user
 
+
 async def get_current_user_flexible(
     request: Request,
-    token: Optional[str] = Depends(get_token_from_header),
-    api_key_user: Optional[User] = Depends(get_api_key),
+    token: str | None = Depends(get_token_from_header),
+    api_key_user: User | None = Depends(get_api_key),
     db: AsyncSession = Depends(get_async_db),
     service: AuthService = Depends(get_auth_service),
-) -> Optional[User]:
+) -> User | None:
     if api_key_user:
         return api_key_user
 

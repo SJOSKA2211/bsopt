@@ -68,11 +68,14 @@ class ExperimentTracker:
                 with mlflow.start_run() as new_run:
                     # Injection of Galactic Governance Tags
                     import socket
-                    mlflow.set_tags({
-                        "bsopt.host": socket.gethostname(),
-                        "bsopt.environment": os.getenv("ENVIRONMENT", "production"),
-                        "bsopt.layer": "ML-Manifold"
-                    })
+
+                    mlflow.set_tags(
+                        {
+                            "bsopt.host": socket.gethostname(),
+                            "bsopt.environment": os.getenv("ENVIRONMENT", "production"),
+                            "bsopt.layer": "ML-Manifold",
+                        }
+                    )
                     yield new_run
 
         return run_context()
@@ -89,9 +92,7 @@ class ExperimentTracker:
 
     def log_metrics(self, accuracy: float, rmse: float, duration: float, framework: str) -> None:
         # OPTIMIZED: Batch MLflow metrics to reduce network overhead
-        mlflow.log_metrics(
-            {"accuracy": accuracy, "rmse": rmse, "duration": duration}
-        )
+        mlflow.log_metrics({"accuracy": accuracy, "rmse": rmse, "duration": duration})
 
         observe_latency(TRAINING_DURATION, duration, {"framework": framework})
         set_gauge(MODEL_ACCURACY, accuracy, {"framework": framework})
@@ -127,7 +128,14 @@ class ExperimentTracker:
         model_uri = f"runs:/{run_id}/{artifact_path}"
         return mlflow.register_model(model_uri, model_name)
 
-    def transition_model_stage(self, model_name: str, version: int, stage: str, model: Any = None, framework: str = "sklearn") -> None:
+    def transition_model_stage(
+        self,
+        model_name: str,
+        version: int,
+        stage: str,
+        model: Any = None,
+        framework: str = "sklearn",
+    ) -> None:
         """Promote or rollback a model version in the registry."""
         client = mlflow.tracking.MlflowClient()
         client.transition_model_version_stage(
@@ -143,26 +151,28 @@ class ExperimentTracker:
 
     def export_to_onnx(self, model: Any, framework: str, filename: str) -> str | None:
         """Export a model to ONNX format for production inference (Galactic Optimized)."""
-        import onnx
-        
+
         with tempfile.TemporaryDirectory() as temp_dir:
             onx_path = os.path.join(temp_dir, filename)
-            
+
             try:
                 if framework == "xgboost":
                     import onnxmltools
                     from onnxmltools.convert.common.data_types import FloatTensorType
-                    initial_type = [('float_input', FloatTensorType([None, 10]))]
+
+                    initial_type = [("float_input", FloatTensorType([None, 10]))]
                     onnx_model = onnxmltools.convert_xgboost(model, initial_types=initial_type)
                     onnxmltools.utils.save_model(onnx_model, onx_path)
                 elif framework in ["pytorch", "torch"]:
                     import torch
+
                     dummy_input = torch.randn(1, 10)
                     torch.onnx.export(model, dummy_input, onx_path)
                 elif framework == "sklearn":
                     from skl2onnx import convert_sklearn
                     from skl2onnx.common.data_types import FloatTensorType
-                    initial_type = [('float_input', FloatTensorType([None, 10]))]
+
+                    initial_type = [("float_input", FloatTensorType([None, 10]))]
                     onx = convert_sklearn(model, initial_types=initial_type)
                     with open(onx_path, "wb") as f:
                         f.write(onx.SerializeToString())
@@ -172,7 +182,7 @@ class ExperimentTracker:
 
                 self.log_artifact(onx_path)
                 logger.info("onnx_model_exported", path=onx_path)
-                # Note: The file will be deleted when the TemporaryDirectory context exits, 
+                # Note: The file will be deleted when the TemporaryDirectory context exits,
                 # but MLflow has already uploaded it.
                 return onx_path
             except Exception as e:
@@ -184,17 +194,17 @@ class ExperimentTracker:
         plt.figure(figsize=(12, 8))
         names = list(importance.keys())
         values = list(importance.values())
-        
+
         # Sort for better visual representation
         sorted_idx = [i for i, _ in sorted(enumerate(values), key=lambda x: x[1])]
-        plt.barh([names[i] for i in sorted_idx], [values[i] for i in sorted_idx], color='royalblue')
+        plt.barh([names[i] for i in sorted_idx], [values[i] for i in sorted_idx], color="royalblue")
         plt.title(f"Galactic Feature Importance ({framework})", fontsize=14)
         plt.xlabel("Importance Score")
-        plt.grid(axis='x', linestyle='--', alpha=0.7)
+        plt.grid(axis="x", linestyle="--", alpha=0.7)
 
         with tempfile.TemporaryDirectory() as temp_dir:
             plot_path = os.path.join(temp_dir, "feature_importance.png")
-            plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+            plt.savefig(plot_path, dpi=300, bbox_inches="tight")
             plt.close()
             self.log_artifact(plot_path)
 

@@ -142,9 +142,12 @@ class OnlineRLAgent:
                         forecast = np.sin(loop_count / 100.0) * 0.2 + (sentiment_proxy * 0.8)
 
                         from src.ml.pipelines.sentiment_ingest import SentimentExtractor
+
                         extractor = SentimentExtractor()
-                        real_sentiment = extractor.get_sentiment_score(f"Price is moving {momentum} with forecast {forecast}")
-                        
+                        real_sentiment = extractor.get_sentiment_score(
+                            f"Price is moving {momentum} with forecast {forecast}"
+                        )
+
                         multimodal_feats = np.zeros(20, dtype=np.float32)
                         multimodal_feats[0] = real_sentiment
                         multimodal_feats[1] = forecast

@@ -7,8 +7,8 @@ from typing import Protocol
 import grpc
 import httpx
 import msgspec
-import pandas as pd
 import numpy as np
+import pandas as pd
 import structlog
 from anyio.to_thread import run_sync
 from selectolax.lexbor import LexborHTMLParser
@@ -16,7 +16,6 @@ from selectolax.lexbor import LexborHTMLParser
 from src.config import settings
 from src.ingestion.mesh_publisher import get_market_publisher
 from src.ingestion.rust_parser import RustTickParser
-from src.shared.utils.binary_format import EquaRecord
 from src.shared.observability import (
     PROXY_FAILURES,
     PROXY_LATENCY,
@@ -24,6 +23,7 @@ from src.shared.observability import (
     start_system_metrics_loop,
 )
 from src.shared.protos import data_pb2, data_pb2_grpc
+from src.shared.utils.binary_format import EquaRecord
 from src.shared.utils.cache import get_redis
 from src.shared.utils.circuit_breaker import nse_circuit
 from src.shared.utils.http_client import HttpClientManager
@@ -459,7 +459,7 @@ class HighThroughputIngestor:
 
         prices = views.get("prices")
         volumes = views.get("volumes")
-        
+
         if prices is None or len(prices) == 0:
             logger.info("empty_binary_file_nothing_to_process")
             return

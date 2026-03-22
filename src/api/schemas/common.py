@@ -6,7 +6,7 @@ and Pydantic V2 for request validation and complex logic.
 """
 
 from datetime import datetime
-from typing import Any, TypeVar, Generic
+from typing import Any, TypeVar
 
 import msgspec
 from pydantic import BaseModel, ConfigDict, Field
@@ -97,7 +97,9 @@ class ErrorResponse(BaseModel):
             message=proto_msg.message,
             details=details,
             request_id=proto_msg.request_id,
-            timestamp=proto_msg.timestamp.to_datetime() if proto_msg.HasField("timestamp") else datetime.utcnow(),
+            timestamp=proto_msg.timestamp.to_datetime()
+            if proto_msg.HasField("timestamp")
+            else datetime.utcnow(),
         )
 
 
@@ -111,7 +113,7 @@ class SuccessResponse(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-class DataResponse(BaseModel, Generic[T]):
+class DataResponse[T](BaseModel):
     """Standard response wrapper with data field."""
 
     data: T
@@ -147,7 +149,7 @@ class PaginationMeta(BaseModel):
         )
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Paginated response wrapper."""
 
     items: list[T]

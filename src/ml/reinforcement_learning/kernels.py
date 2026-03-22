@@ -47,7 +47,10 @@ def _fused_state_kernel(
 
     # 4. 🌀 SPECTRAL FEATURES (50 dims: 51-100)
     # Prime-spaced frequencies to capture non-harmonic market cycles.
-    primes = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71], dtype=np.float32)
+    primes = np.array(
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71],
+        dtype=np.float32,
+    )
 
     for i in range(20):
         # OPTIMIZED: Vectorized-lite phase calculation

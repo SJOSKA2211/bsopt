@@ -1,7 +1,9 @@
 use memmap2::Mmap;
-use numpy::{PyArray, PyArray1, PyArray2, PyReadonlyArray1, Element, ndarray};
+use numpy::{PyArray, PyArray1, PyArray2, PyReadonlyArray1, Element, ndarray, PyArrayMethods, PyArrayDescrMethods};
 use pyo3::prelude::*;
 use pyo3::ffi::Py_XINCREF;
+use pyo3::types::PyModule;
+use pyo3::Bound;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 use rand_distr::{Distribution, StandardNormal};
@@ -29,6 +31,20 @@ fn norm_cdf(x: f64) -> f64 {
     let t = 1.0 / (1.0 + p * x);
     let poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))));
     1.0 - norm_pdf(x) * poly
+}
+
+fn erf(x: f64) -> f64 {
+    let sign = if x < 0.0 { -1.0 } else { 1.0 };
+    let x = x.abs();
+    let a1 = 0.254829592;
+    let a2 = -0.284496736;
+    let a3 = 1.421413741;
+    let a4 = -1.453152027;
+    let a5 = 1.061405429;
+    let p = 0.3275911;
+    let t = 1.0 / (1.0 + p * x);
+    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-x * x).exp();
+    sign * y
 }
 
 #[pyfunction]
@@ -66,7 +82,7 @@ fn batch_black_scholes(
     r: PyReadonlyArray1<f64>,
     q: PyReadonlyArray1<f64>,
     is_call: PyReadonlyArray1<bool>,
-) -> PyResult<Py<PyArray1<f64>>> {
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
     let s = s.as_array();
     let k = k.as_array();
     let t = t.as_array();
@@ -76,7 +92,7 @@ fn batch_black_scholes(
     let is_call = is_call.as_array();
 
     let n = s.len();
-    let res = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
     res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
@@ -103,7 +119,7 @@ fn batch_black_scholes(
         }
     });
 
-    Ok(res.to_owned())
+    Ok(res)
 }
 
 #[pyfunction]
@@ -155,7 +171,7 @@ fn batch_black_scholes_greeks(
     r_arr: PyReadonlyArray1<f64>,
     q_arr: PyReadonlyArray1<f64>,
     is_call_arr: PyReadonlyArray1<bool>,
-) -> PyResult<(Py<PyArray1<f64>>, Py<PyArray1<f64>>, Py<PyArray1<f64>>, Py<PyArray1<f64>>, Py<PyArray1<f64>>)> {
+) -> PyResult<(Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>, Bound<'py, PyArray1<f64>>)> {
     let s = s_arr.as_array();
     let k = k_arr.as_array();
     let t = t_arr.as_array();
@@ -165,11 +181,11 @@ fn batch_black_scholes_greeks(
     let is_call = is_call_arr.as_array();
 
     let n = s.len();
-    let delta = unsafe { PyArray1::<f64>::new(py, [n], false) };
-    let gamma = unsafe { PyArray1::<f64>::new(py, [n], false) };
-    let theta = unsafe { PyArray1::<f64>::new(py, [n], false) };
-    let vega = unsafe { PyArray1::<f64>::new(py, [n], false) };
-    let rho = unsafe { PyArray1::<f64>::new(py, [n], false) };
+    let delta = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let gamma = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let theta = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let vega = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let rho = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
 
     let d_s = unsafe { delta.as_slice_mut().unwrap() };
     let g_s = unsafe { gamma.as_slice_mut().unwrap() };
@@ -183,7 +199,7 @@ fn batch_black_scholes_greeks(
         .zip(v_s.par_iter_mut())
         .zip(r_s.par_iter_mut())
         .enumerate()
-        .for_each(|(i, ((((d, g), th), v), rh))| {
+        .for_each(|(i, ((((d_out, g_out), th_out), v_out), rh_out))| {
             let si = s[i];
             let ki = k[i];
             let ti = t[i];
@@ -195,11 +211,11 @@ fn batch_black_scholes_greeks(
             if ti <= 0.0 {
                 let cd = if si > ki { 1.0 } else { 0.0 };
                 let pd = if si < ki { -1.0 } else { 0.0 };
-                *d = if call { cd } else { pd };
-                *g = 0.0;
-                *th = 0.0;
-                *v = 0.0;
-                *rh = 0.0;
+                *d_out = if call { cd } else { pd };
+                *g_out = 0.0;
+                *th_out = 0.0;
+                *v_out = 0.0;
+                *rh_out = 0.0;
             } else {
                 let sqrt_t = ti.sqrt();
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
@@ -209,16 +225,16 @@ fn batch_black_scholes_greeks(
                 let exp_qt = (-qi * ti).exp();
                 let exp_rt = (-ri * ti).exp();
 
-                *d = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
-                *g = exp_qt * nd1 / (si * vi * sqrt_t);
-                *v = si * exp_qt * nd1 * sqrt_t * 0.01;
+                *d_out = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
+                *g_out = exp_qt * nd1 / (si * vi * sqrt_t);
+                *v_out = si * exp_qt * nd1 * sqrt_t * 0.01;
                 let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * norm_cdf(d2));
-                *th = if call { theta_call / 365.0 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) / 365.0 };
-                *rh = if call { ki * ti * exp_rt * norm_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm_cdf(-d2) * 0.01 };
+                *th_out = if call { theta_call / 365.0 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) / 365.0 };
+                *rh_out = if call { ki * ti * exp_rt * norm_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm_cdf(-d2) * 0.01 };
             }
         });
 
-    Ok((delta.to_owned(), gamma.to_owned(), theta.to_owned(), vega.to_owned(), rho.to_owned()))
+    Ok((delta, gamma, theta, vega, rho))
 }
 
 #[pyfunction]
@@ -230,7 +246,7 @@ fn exact_gbm_path(
     t: f64,
     steps: usize,
     seed: Option<u64>,
-) -> PyResult<Py<PyArray2<f64>>> {
+) -> PyResult<Bound<'py, PyArray2<f64>>> {
     let s0 = s0.as_array();
     let mu = mu.as_array();
     let sigma = sigma.as_array();
@@ -238,7 +254,7 @@ fn exact_gbm_path(
     let dt = t / steps as f64;
     let sqrt_dt = dt.sqrt();
 
-    let result = unsafe { PyArray2::<f64>::new(py, [n_paths, steps + 1], false) };
+    let result = unsafe { PyArray2::<f64>::new_bound(py, [n_paths, steps + 1], false) };
     let slice = unsafe { result.as_slice_mut().unwrap() };
 
     slice.par_chunks_mut(steps + 1).enumerate().for_each(|(i, path)| {
@@ -263,7 +279,7 @@ fn exact_gbm_path(
         }
     });
 
-    Ok(result.to_owned())
+    Ok(result)
 }
 
 #[pyfunction]
@@ -287,36 +303,36 @@ impl TickDataBuffer {
 
     pub fn size(&self) -> usize { self.mmap.len() }
 
-    pub fn get_symbols(slf: PyRef<'_, Self>) -> PyResult<Py<PyArray2<u8>>> {
+    pub fn get_symbols<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray2<u8>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(Python::with_gil(|py| PyArray2::zeros(py, [0, 12], false).to_owned())); }
+        if n_records == 0 { return Ok(PyArray2::zeros_bound(slf.py(), [0, 12], false)); }
         let ptr = unsafe { slf.mmap.as_ptr().add(8) };
         let dims = [n_records as isize, 12 as isize];
         let strides = [32 as isize, 1 as isize];
         unsafe { create_strided_array::<u8, ndarray::Ix2>(slf, ptr, &dims, &strides) }
     }
 
-    pub fn get_prices(slf: PyRef<'_, Self>) -> PyResult<Py<PyArray1<f64>>> {
+    pub fn get_prices<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(Python::with_gil(|py| PyArray1::zeros(py, [0], false).to_owned())); }
+        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
         let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12) };
         let dims = [n_records as isize];
         let strides = [32 as isize];
         unsafe { create_strided_array::<f64, ndarray::Ix1>(slf, ptr, &dims, &strides) }
     }
 
-    pub fn get_volumes(slf: PyRef<'_, Self>) -> PyResult<Py<PyArray1<i32>>> {
+    pub fn get_volumes<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<i32>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(Python::with_gil(|py| PyArray1::zeros(py, [0], false).to_owned())); }
+        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
         let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12 + 8) };
         let dims = [n_records as isize];
         let strides = [32 as isize];
         unsafe { create_strided_array::<i32, ndarray::Ix1>(slf, ptr, &dims, &strides) }
     }
 
-    pub fn get_timestamps(slf: PyRef<'_, Self>) -> PyResult<Py<PyArray1<i64>>> {
+    pub fn get_timestamps<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<i64>>> {
         let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(Python::with_gil(|py| PyArray1::zeros(py, [0], false).to_owned())); }
+        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
         let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12 + 8 + 4) };
         let dims = [n_records as isize];
         let strides = [32 as isize];
@@ -333,44 +349,78 @@ impl TickDataBuffer {
     }
 }
 
-unsafe fn create_strided_array<T, D>(
-    slf: PyRef<'_, TickDataBuffer>,
+unsafe fn create_strided_array<'py, T, D>(
+    slf: PyRef<'py, TickDataBuffer>,
     data_ptr: *const u8,
     dims: &[isize],
     strides: &[isize],
-) -> PyResult<Py<PyArray<T, D>>>
+) -> PyResult<Bound<'py, PyArray<T, D>>>
 where
     T: Element,
     D: ndarray::Dimension,
 {
     let py = slf.py();
-    let type_num = T::get_dtype(py).num();
+    let type_num = T::get_dtype_bound(py).num();
     
-    let array_ptr = numpy::ffi::PyArray_New(
-        &mut numpy::ffi::PyArray_Type,
+    // In pyo3 0.21+ / numpy 0.21+, we use Bound API.
+    // We still need to call PyArray_New via FFI to create a strided array from raw pointer with base.
+    // We will declare the necessary FFI signatures ourselves to avoid version-specific module mapping issues.
+    
+    extern "C" {
+        fn PyArray_New(
+            subtype: *mut std::ffi::c_void,
+            nd: i32,
+            dims: *mut isize,
+            type_num: i32,
+            strides: *mut isize,
+            data: *mut std::ffi::c_void,
+            itemsize: i32,
+            flags: i32,
+            obj: *mut std::ffi::c_void,
+        ) -> *mut pyo3::ffi::PyObject;
+        
+        static mut PyArray_Type: pyo3::ffi::PyTypeObject;
+    }
+
+    let array_ptr = PyArray_New(
+        &mut PyArray_Type as *mut _ as *mut std::ffi::c_void,
         dims.len() as i32,
-        dims.as_ptr() as *mut numpy::ffi::npy_intp,
+        dims.as_ptr() as *mut isize,
         type_num,
-        strides.as_ptr() as *mut numpy::ffi::npy_intp,
+        strides.as_ptr() as *mut isize,
         data_ptr as *mut std::ffi::c_void,
         0,
-        numpy::ffi::NPY_ARRAY_WRITEABLE,
+        0x0400, // NPY_ARRAY_WRITEABLE
         std::ptr::null_mut(),
     );
 
     if array_ptr.is_null() { return Err(PyErr::fetch(py)); }
 
-    let array_obj: Py<PyArray<T, D>> = Py::from_owned_ptr(py, array_ptr);
-    let array_ffi_ptr = array_obj.as_ptr() as *mut numpy::ffi::PyArrayObject;
+    let array_bound = Bound::from_owned_ptr(py, array_ptr).downcast_into_unchecked::<PyArray<T, D>>();
+    
+    // Set base to the TickDataBuffer to keep it alive
     let base_ptr = slf.as_ptr();
     Py_XINCREF(base_ptr);
+    
+    // Access the base field of the PyArrayObject
+    #[repr(C)]
+    struct PyArrayObject {
+        ob_base: pyo3::ffi::PyObject,
+        data: *mut std::ffi::c_void,
+        nd: i32,
+        dimensions: *mut isize,
+        strides: *mut isize,
+        base: *mut pyo3::ffi::PyObject,
+    }
+    
+    let array_ffi_ptr = array_ptr as *mut PyArrayObject;
     (*array_ffi_ptr).base = base_ptr;
 
-    Ok(array_obj)
+    Ok(array_bound)
 }
 
 #[pymodule]
-fn equaflow_core(_py: Python, m: &PyModule) -> PyResult<()> {
+fn equaflow_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TickDataBuffer>()?;
     m.add_function(wrap_pyfunction!(black_scholes_price, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;

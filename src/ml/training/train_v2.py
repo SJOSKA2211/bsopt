@@ -1,20 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import torch
+from torch.utils.data import DataLoader, Dataset
 
 from src.ml.trainer_v2 import Trainer
 
-
-from torch.utils.data import Dataset, DataLoader
 
 class SyntheticOptionsDataset(Dataset):
     """
     Structured synthetic dataset for RL feature pre-training.
     Produces vectors: [S, K, T, σ, r, q, is_call]
     """
+
     def __init__(self, n_samples: int = 1000):
         self.n = n_samples
         # Structured features instead of random noise
@@ -22,7 +21,7 @@ class SyntheticOptionsDataset(Dataset):
         self.k = torch.rand(self.n, 1) * 100 + 50
         self.t = torch.rand(self.n, 1) * 2
         self.sigma = torch.rand(self.n, 1) * 0.5 + 0.1
-        
+
         self.features = torch.cat([self.s, self.k, self.t, self.sigma], dim=1)
         # Mock label (e.g. Price or Greek)
         self.labels = self.features.mean(dim=1, keepdim=True)
@@ -40,10 +39,10 @@ def get_dataloaders(n_samples: int = 100) -> tuple[DataLoader, DataLoader]:
     """
     train_ds = SyntheticOptionsDataset(n_samples)
     val_ds = SyntheticOptionsDataset(n_samples // 5)
-    
+
     train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=32)
-    
+
     return train_loader, val_loader
 
 

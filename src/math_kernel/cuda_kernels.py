@@ -47,12 +47,12 @@ def _scipy_erf_approx(x: float) -> float:
     x_abs = abs(x)
     if x_abs > 4.0:
         return 1.0 if x > 0 else -1.0
-    
+
     sum_val = 1.0
     for i, coeff in enumerate(a):
         sum_val += coeff * (x_abs ** (i + 1))
-    
-    res = 1.0 - (sum_val ** -16)
+
+    res = 1.0 - (sum_val**-16)
     return res if x >= 0 else -res
 
 
@@ -92,7 +92,7 @@ def cnd_cuda(d: float) -> float:
     # 0.5 * (1 + erf(d / sqrt(2)))
     x = d / 1.4142135623730951
     x_abs = abs(x)
-    
+
     # Constants for A&S 7.1.26 (error < 1.5e-7)
     p = 0.3275911
     a1 = 0.254829592
@@ -100,10 +100,10 @@ def cnd_cuda(d: float) -> float:
     a3 = 1.421413741
     a4 = -1.453152027
     a5 = 1.061405429
-    
+
     t = 1.0 / (1.0 + p * x_abs)
     y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x_abs * x_abs)
-    
+
     erf_val = y if x >= 0 else -y
     return 0.5 * (1.0 + erf_val)
 

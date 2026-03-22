@@ -4,7 +4,6 @@ Consolidates all security layers into a single ASGI hop to minimize context-swit
 """
 
 import re
-from typing import Optional
 
 import structlog
 from fastapi import Request
@@ -99,8 +98,7 @@ class ZeroTrustMiddleware:
 
         # Initialize SecurityContext
         security_context = SecurityContext(
-            is_internal=is_internal,
-            service_id=ssl_dn if is_trusted else None
+            is_internal=is_internal, service_id=ssl_dn if is_trusted else None
         )
 
         if not is_public:
@@ -145,7 +143,7 @@ class ZeroTrustMiddleware:
                 # Attach to scope state
                 state = scope.setdefault("state", {})
                 state["security_context"] = security_context
-                
+
                 # Legacy support for existing code
                 state["user_id"] = token_data.user_id
                 state["user_email"] = token_data.email

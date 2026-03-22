@@ -93,6 +93,7 @@ class EngineArbiter:
         if engine_name == "rust":
             try:
                 import equaflow_core
+
                 q = np.zeros_like(S)
                 return equaflow_core.batch_black_scholes(S, K, T, sigma, r, q, is_call.astype(bool))
             except ImportError:

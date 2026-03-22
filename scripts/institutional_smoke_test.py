@@ -1,25 +1,25 @@
 import asyncio
 import os
-import time
-import numpy as np
+
 import structlog
-from typing import Dict, Any
 
 from src.math_kernel.factory import PricingEngineFactory
 from src.math_kernel.models import BSParameters
 
 logger = structlog.get_logger(__name__)
 
+
 async def test_pillar_1_ingestion():
     """Simulate actual high-performance ingestion."""
     print("📥 Pillar 1: High-Performance Ingestion Verification...")
     try:
         import equaflow_core
+
         # Create a mock 1MB tick file
         tick_file = "/tmp/smoke_ticks.bin"
         with open(tick_file, "wb") as f:
-            f.write(os.urandom(1024 * 32)) # 1024 ticks
-        
+            f.write(os.urandom(1024 * 32))  # 1024 ticks
+
         parser = equaflow_core.TickDataBuffer(tick_file)
         ticks = parser.parse_ticks_32b(0, 100)
         logger.info("ingestion_verified", count=len(ticks), first_symbol=ticks[0][0])
@@ -28,29 +28,32 @@ async def test_pillar_1_ingestion():
     except Exception as e:
         print(f"   ❌ Ingestion Pillar Failed: {e}")
 
+
 async def test_pillar_2_pricing():
     """Execute actual multi-engine pricing."""
     print("📈 Pillar 2: Multi-Engine Pricing Core...")
     try:
         params = BSParameters(S=100.0, K=100.0, T=1.0, sigma=0.2, r=0.05, q=0.0)
-        
+
         # Test Standard Engine
         bs_engine = PricingEngineFactory.get_engine("black_scholes")
         price_bs = bs_engine.price(params)
-        
+
         # Test Rust Engine
         rust_engine = PricingEngineFactory.get_engine("rust")
         price_rust = rust_engine.price(params)
-        
+
         logger.info("pricing_engines_verified", bs_price=price_bs, rust_price=price_rust)
         print(f"   ✅ Prices: BS={price_bs:.4f}, Rust={price_rust:.4f}")
     except Exception as e:
         print(f"   ❌ Pricing Pillar Failed: {e}")
 
+
 async def test_pillar_3_mlops():
     """Verify MLflow and Watchdog readiness."""
     print("🏗️  Pillar 3: MLOps & Self-Healing Registry...")
     import httpx
+
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             resp = await client.get("http://localhost:5000/")
@@ -61,6 +64,7 @@ async def test_pillar_3_mlops():
     except Exception as e:
         print(f"   ⚠️  MLOps Pillar Warning: MLflow not detected ({e})")
 
+
 async def test_pillar_4_security():
     """Verify Zero-Trust Auth infrastructure."""
     print("🛡️  Pillar 4: Zero-Trust Security Infrastructure...")
@@ -70,18 +74,20 @@ async def test_pillar_4_security():
     else:
         print("   ❌ Security Pillar Failed: Key pairs missing.")
 
+
 async def run_smoke_test():
     print("=" * 60)
     print("EquaFlow Institutional 'Day-0' Smoke Test")
     print("=" * 60)
-    
+
     await test_pillar_1_ingestion()
     await test_pillar_2_pricing()
     await test_pillar_3_mlops()
     await test_pillar_4_security()
-    
+
     print("\n✅ SMOKE TEST COMPLETE: Institutional Readiness Verified.")
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(run_smoke_test())

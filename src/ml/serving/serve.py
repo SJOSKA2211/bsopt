@@ -30,7 +30,6 @@ from src.ml.utils.inference import ONNXInferenceEngine
 from src.shared.observability import (
     increment_counter,
     observe_latency,
-    set_gauge,
 )
 from src.shared.utils.circuit_breaker import (  # Import both
     DistributedCircuitBreaker,
@@ -351,7 +350,9 @@ async def predict_batch(request: BatchInferenceRequest, model_type: str = "xgb")
 
         # Log metrics once for the batch to save overhead
         observe_latency(INFERENCE_LATENCY, total_latency_ms / 1000, {"model_type": model_type})
-        increment_counter(PREDICTION_COUNT, len(predictions), {"status": "success", "model_type": model_type})
+        increment_counter(
+            PREDICTION_COUNT, len(predictions), {"status": "success", "model_type": model_type}
+        )
 
         response_items = [
             InferenceResponse(

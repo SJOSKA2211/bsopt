@@ -4,21 +4,20 @@ Greek Engine — orchestrates real-time Greek calculations and mesh updates.
 
 from __future__ import annotations
 
-import time
-from typing import Any
-
 import numpy as np
 import structlog
 
 from src.math_kernel.cuda_kernels import black_scholes_greeks_cupy
-from src.shared.shm_mesh import GreeksMesh, GreeksBuffer
+from src.shared.shm_mesh import GreeksBuffer, GreeksMesh
 
 logger = structlog.get_logger(__name__)
+
 
 class GreekEngine:
     """
     High-performance engine for Greek aggregation and SHM synchronization.
     """
+
     def __init__(self):
         self.mesh = GreeksMesh(create=True)
         self.buffer = GreeksBuffer(create=True)
@@ -33,7 +32,7 @@ class GreekEngine:
         sigma: float,
         r: float,
         q: float,
-        is_call: bool
+        is_call: bool,
     ) -> dict[str, float]:
         """
         Calculate and broadcast Greeks for a single instrument.
@@ -47,9 +46,9 @@ class GreekEngine:
                 np.array([sigma]),
                 np.array([r]),
                 np.array([q]),
-                np.array([is_call])
+                np.array([is_call]),
             )
-            
+
             res = {
                 "delta": float(greeks["delta"][0]),
                 "gamma": float(greeks["gamma"][0]),
@@ -61,7 +60,7 @@ class GreekEngine:
             # Atomic broadcast to Shared Memory Mesh
             self.mesh.write(symbol, **res)
             self.buffer.write_greeks(symbol, **res)
-            
+
             return res
         except Exception as e:
             logger.error("greek_calculation_failed", symbol=symbol, error=str(e))

@@ -1,12 +1,12 @@
 import asyncio
 import os
 import sys
-import httpx
-import structlog
-import redis.asyncio as redis
-import asyncpg
+
 import aio_pika
-from typing import Dict, Any
+import asyncpg
+import httpx
+import redis.asyncio as redis
+import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -18,6 +18,7 @@ SERVICES = {
     "ML-Inference": "http://localhost:5001/health",
     "MLflow": "http://localhost:5000/",
 }
+
 
 async def check_http_service(name: str, url: str) -> bool:
     """Check a microservice's health endpoint."""
@@ -34,6 +35,7 @@ async def check_http_service(name: str, url: str) -> bool:
             print(f"🚨 {name:15} | DOWN ({str(e)})")
             return False
 
+
 async def check_postgres() -> bool:
     db_url = os.getenv("DATABASE_URL_LOCAL", "postgresql://admin:password@localhost:5434/bsopt")
     try:
@@ -46,6 +48,7 @@ async def check_postgres() -> bool:
         print(f"🚨 {'TimescaleDB':15} | CONNECTION FAILED ({str(e)})")
         return False
 
+
 async def check_redis() -> bool:
     try:
         r = redis.from_url("redis://localhost:6379/0")
@@ -56,6 +59,7 @@ async def check_redis() -> bool:
     except Exception as e:
         print(f"🚨 {'Redis':15} | CONNECTION FAILED ({str(e)})")
         return False
+
 
 async def check_rabbitmq() -> bool:
     try:
@@ -68,22 +72,21 @@ async def check_rabbitmq() -> bool:
         print(f"🚨 {'RabbitMQ':15} | CONNECTION FAILED ({str(e)})")
         return False
 
+
 async def verify_security() -> bool:
     """Check for presence of institutional key pairs."""
     pki_path = os.path.join(os.getcwd(), ".pki")
-    required_keys = [
-        "jwt_rs256.key", "jwt_rs256.pub",
-        "jwt_es256.key", "jwt_es256.pub"
-    ]
+    required_keys = ["jwt_rs256.key", "jwt_rs256.pub", "jwt_es256.key", "jwt_es256.pub"]
     all_present = True
     for key in required_keys:
         if not os.path.exists(os.path.join(pki_path, key)):
             print(f"❌ Security Key Missing: {key}")
             all_present = False
-    
+
     if all_present:
         print(f"✅ {'PKI Assets':15} | VALIDATED (RSA 4096 / ECC P-256)")
     return all_present
+
 
 async def verify_readiness():
     """Run full institutional readiness check."""
@@ -97,11 +100,7 @@ async def verify_readiness():
 
     # 2. Infra Checks
     print("\n--- [Infrastructure] ---")
-    infra_results = await asyncio.gather(
-        check_postgres(),
-        check_redis(),
-        check_rabbitmq()
-    )
+    infra_results = await asyncio.gather(check_postgres(), check_redis(), check_rabbitmq())
 
     # 3. Security Checks
     print("\n--- [Security] ---")
@@ -115,6 +114,7 @@ async def verify_readiness():
         print("⚠️  SYSTEM STATUS: DEGRADED - ACTION REQUIRED")
         sys.exit(1)
     print("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(verify_readiness())

@@ -1,6 +1,6 @@
-import os
 import ipaddress
-from typing import Any, Optional
+import os
+from typing import Any
 
 import structlog
 from fastapi import Depends, HTTPException, Request, status
@@ -16,17 +16,20 @@ logger = structlog.get_logger()
 # Uses DistributedCircuitBreaker to sync state across nodes
 _security_circuit = None
 
+
 class SecurityContext(Struct):
     """
     Consolidated security context for the request.
     Stored in request.state.security_context.
     """
-    user_id: Optional[str] = None
-    email: Optional[str] = None
-    tier: Optional[str] = None
-    service_id: Optional[str] = None
+
+    user_id: str | None = None
+    email: str | None = None
+    tier: str | None = None
+    service_id: str | None = None
     is_internal: bool = False
-    auth_type: Optional[str] = None
+    auth_type: str | None = None
+
 
 def is_trusted_proxy(ip: str, trusted_proxies: set[str]) -> bool:
     """
@@ -44,6 +47,7 @@ def is_trusted_proxy(ip: str, trusted_proxies: set[str]) -> bool:
     except ValueError:
         return False
     return False
+
 
 def get_security_circuit():
     global _security_circuit

@@ -76,8 +76,40 @@ detect_container_engine() {
     fi
 }
 
+# Decrypt ENC_ variables into current shell session
+load_decrypted_secrets() {
+    if [ ! -f "$ENV_FILE" ]; then
+        return
+    fi
+    
+    # We only log this once to avoid noise
+    if [ "${SECRETS_LOADED:-false}" = "false" ]; then
+        log_info "Loading vaulted secrets into current session..."
+        export SECRETS_LOADED=true
+    fi
+
+    # Extract ENC_ variables from .env and decrypt them
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [[ $line =~ ^ENC_([^=]+)=(.*) ]]; then
+            var_name="${BASH_REMATCH[1]}"
+            enc_val="${BASH_REMATCH[2]}"
+            # Strip quotes if present
+            enc_val=$(echo "$enc_val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+            
+            if [ -n "$enc_val" ]; then
+                # Decrypt using the vault key
+                dec_val=$(echo -n "$enc_val" | base64 -d | openssl pkeyutl -decrypt -inkey "${KEYS_DIR}/vault/vault.key" 2>/dev/null)
+                if [ $? -eq 0 ]; then
+                    export "$var_name"="$dec_val"
+                fi
+            fi
+        fi
+    done < "$ENV_FILE"
+}
+
 # Compose command wrapper
 compose_cmd() {
+    load_decrypted_secrets
     if [ -f "$ENV_FILE" ]; then
         $COMPOSE_ENGINE --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
     else
@@ -154,7 +186,9 @@ secure_env_file() {
             log_info "Encrypting $var..."
             ENC_VAL=$(encrypt_secret "$VAL")
             set_env_var "ENC_${var}" "$ENC_VAL"
-            # Remove plaintext version for security
+            # Ensure it's available in the current session before removal from file
+            export "$var"="$VAL"
+            # Remove plaintext version for security at rest
             sed -i "/^${var}=/d" "${ENV_FILE}"
         fi
     done

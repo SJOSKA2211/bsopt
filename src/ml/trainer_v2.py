@@ -25,7 +25,6 @@ class Trainer:
         """
         Production-grade training loop for PyTorch models.
         """
-        import torch
         from tqdm import tqdm
 
         self.model.train()
@@ -49,6 +48,7 @@ class Trainer:
     def _validate(self, val_loader: Any) -> float:
         """Internal validation logic."""
         import torch
+
         self.model.eval()
         total_loss = 0.0
         with torch.no_grad():
