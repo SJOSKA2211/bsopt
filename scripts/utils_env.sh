@@ -32,7 +32,7 @@ load_decrypted_secrets() {
             local decrypted_val=$(echo -n "$encrypted_val" | base64 -d | $OPENSSL_CMD pkeyutl -decrypt -inkey "$vault_key" 2>/dev/null)
             
             if [ -n "$decrypted_val" ]; then
-                export "$var_name=$decrypted_val"
+                export "$var_name"="$decrypted_val"
             else
                 echo "[WARN] Failed to decrypt $var_name"
             fi

@@ -72,9 +72,9 @@ def get_storage_manager() -> AsyncStorageManager:
         from src.shared.config import settings
 
         _manager = AsyncStorageManager(
-            endpoint_url=f"http://{settings.REDIS_HOST}:9000",  # MinIO endpoint
-            access_key="admin",
-            secret_key="password",
+            endpoint_url=settings.MINIO_ENDPOINT_URL,
+            access_key=settings.MINIO_ROOT_USER,
+            secret_key=settings.MINIO_ROOT_PASSWORD,
             bucket_name="models",
         )
     return _manager

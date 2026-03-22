@@ -15,15 +15,16 @@ class ObjectStorageManager:
     """
 
     def __init__(self):
-        self.endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
-        self.access_key = os.getenv("MINIO_ROOT_USER", "minio_admin")
-        self.secret_key = os.getenv("MINIO_ROOT_PASSWORD", "minio_secret_key")
-        self.use_ssl = os.getenv("MINIO_USE_SSL", "False").lower() == "true"
+        from src.shared.config import settings
 
-        protocol = "https" if self.use_ssl else "http"
+        self.endpoint = settings.MINIO_ENDPOINT
+        self.access_key = settings.MINIO_ROOT_USER
+        self.secret_key = settings.MINIO_ROOT_PASSWORD
+        self.use_ssl = settings.MINIO_USE_SSL
+
         self.s3 = boto3.client(
             "s3",
-            endpoint_url=f"{protocol}://{self.endpoint}",
+            endpoint_url=settings.MINIO_ENDPOINT_URL,
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
             config=Config(signature_version="s3v4"),

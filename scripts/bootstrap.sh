@@ -18,6 +18,11 @@ else
     exit 1
 fi
 
+# Logging utility
+log() {
+    echo -e "\033[0;34m[INFO]\033[0m $1"
+}
+
 echo "🚀 Starting EquaFlow Institutional Bootstrap [${TIMESTAMP}]"
 
 # 1. Asymmetric Security & PKI Orchestration
@@ -66,6 +71,8 @@ set_env_var "JWT_ALGORITHM" "RS256"
 [[ -z $(grep "^JWT_SECRET=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]] && set_env_var "JWT_SECRET" "$(openssl rand -hex 32)"
 [[ -z $(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]] && set_env_var "POSTGRES_PASSWORD" "$(openssl rand -hex 16)"
 [[ -z $(grep "^REDIS_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]] && set_env_var "REDIS_PASSWORD" "$(openssl rand -hex 16)"
+[[ -z $(grep "^MINIO_ROOT_USER=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]] && set_env_var "MINIO_ROOT_USER" "minio_admin"
+[[ -z $(grep "^MINIO_ROOT_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"') ]] && set_env_var "MINIO_ROOT_PASSWORD" "$(openssl rand -hex 16)"
 
 # Re-read passwords for URL construction
 PG_PASS=$(grep "^POSTGRES_PASSWORD=" "${ENV_FILE}" | cut -d'=' -f2 | tr -d '"')
@@ -88,7 +95,7 @@ encrypt_secret() {
 }
 
 log "🔐 Vaulting sensitive variables..."
-for s in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET; do
+for s in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET MINIO_ROOT_PASSWORD; do
     encrypt_secret "$s"
 done
 

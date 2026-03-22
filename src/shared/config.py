@@ -149,6 +149,18 @@ class Settings(BaseSettings):
         ),
     ] = ["http://localhost:3000", "http://localhost:5173"]
 
+    # MinIO Configuration
+    MINIO_ENDPOINT: str = Field(default="minio:9000", validation_alias="MINIO_ENDPOINT")
+    MINIO_ROOT_USER: str = Field(default="minio_admin", validation_alias="MINIO_ROOT_USER")
+    MINIO_ROOT_PASSWORD: str = Field(default="minio_secret_key", validation_alias="MINIO_ROOT_PASSWORD")
+    MINIO_USE_SSL: bool = Field(default=False, validation_alias="MINIO_USE_SSL")
+
+    @property
+    def MINIO_ENDPOINT_URL(self) -> str:
+        """Constructs the MinIO endpoint URL."""
+        protocol = "https" if self.MINIO_USE_SSL else "http"
+        return f"{protocol}://{self.MINIO_ENDPOINT}"
+
     # JWT Authentication
     JWT_SECRET: str = Field(default="", validation_alias="JWT_SECRET")
     JWT_ALGORITHM: str = "RS256"
