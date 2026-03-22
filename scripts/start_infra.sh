@@ -13,12 +13,19 @@ else
     exit 1
 fi
 
+# Load shared environment utilities
+UTILS_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/utils_env.sh"
+if [ -f "$UTILS_ENV" ]; then
+    source "$UTILS_ENV"
+fi
+
 # Project root
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # Start Infrastructure Services
 echo " Starting Infrastructure (Postgres, Redis, RabbitMQ)..."
+load_decrypted_secrets
 $COMPOSE -f docker-compose.dev.yml up -d postgres redis rabbitmq
 
 echo "⏳ Waiting for database to stabilize..."

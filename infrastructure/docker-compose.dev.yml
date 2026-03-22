@@ -8,10 +8,10 @@ services:
       dockerfile: docker/Dockerfile.api-dev
     network_mode: host
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql://admin:password@localhost:5434/bsopt}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
       - REDIS_HOST=127.0.0.1
       - REDIS_PORT=6381
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-bsopt_redis_secret}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     volumes:
       - ./src:/app/src
       - ./.env:/app/.env
@@ -39,8 +39,8 @@ services:
     networks:
       - bsopt-network
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql://admin:password@localhost:5434/bsopt}
-      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-local_dev_secret}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-REQUIRED_SET_BY_BOOTSTRAP}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:3001}
     volumes:
       - ./src/auth-service:/app
@@ -140,7 +140,7 @@ services:
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_DB=bsopt
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -159,13 +159,13 @@ services:
   redis:
     image: redis:7-alpine
     network_mode: host
-    command: redis-server --port 6381 --requirepass ${REDIS_PASSWORD:-bsopt_redis_secret}
+    command: redis-server --port 6381 --requirepass ${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}
     deploy:
       resources:
         limits:
           memory: 256M
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "6381", "-a", "${REDIS_PASSWORD:-bsopt_redis_secret}", "ping"]
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "-p", "6381", "-a", "${REDIS_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -193,9 +193,9 @@ services:
       dockerfile: docker/Dockerfile.ci
     environment:
       - ENVIRONMENT=dev
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=dev_secret_key
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
     volumes:
       - .:/app
     depends_on:
@@ -210,9 +210,9 @@ services:
       - "8265:8265" # Dashboard
       - "10001:10001" # Ray Client
     environment:
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=dev_secret_key
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
       - INSIDE_DOCKER=1
     volumes:
       - ./:/app
@@ -231,9 +231,9 @@ services:
       - ray-head
     environment:
       - RAY_ADDRESS=ray-head:6379
-      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-password}@localhost:5434/bsopt
+      - DATABASE_URL=postgresql://admin:${POSTGRES_PASSWORD:-REQUIRED_SET_BY_BOOTSTRAP}@localhost:5434/bsopt
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=dev_secret_key
+      - JWT_SECRET=REQUIRED_SET_BY_BOOTSTRAP
       - INSIDE_DOCKER=1
     volumes:
       - ./:/app

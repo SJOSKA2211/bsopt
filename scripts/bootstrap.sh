@@ -9,6 +9,15 @@ ENV_EXAMPLE=".env.example"
 README_FILE="README.md"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+# Load shared environment utilities
+UTILS_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/utils_env.sh"
+if [ -f "$UTILS_ENV" ]; then
+    source "$UTILS_ENV"
+else
+    echo "❌ ERROR: utils_env.sh not found."
+    exit 1
+fi
+
 echo "🚀 Starting EquaFlow Institutional Bootstrap [${TIMESTAMP}]"
 
 # 1. Asymmetric Security & PKI Orchestration
@@ -66,7 +75,24 @@ set_env_var "DATABASE_URL" "postgresql://admin:${PG_PASS}@pgbouncer:6432/bsopt"
 set_env_var "DATABASE_URL_TEST" "postgresql://admin:${PG_PASS}@postgres:5432/bsopt_test"
 set_env_var "REDIS_URL" "redis://:${REDIS_PASS}@redis:6379/0"
 
-echo "✅ Secrets and Keys injected into ${ENV_FILE}"
+# Hardened Secret Vaulting
+encrypt_secret() {
+    local key=$1
+    local plaintext=$(grep "^${key}=" "${ENV_FILE}" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+    if [ -n "$plaintext" ]; then
+        local encrypted=$(echo -n "$plaintext" | openssl pkeyutl -encrypt -pubin -inkey "${KEYS_DIR}/jwt_rs256.pub" | base64 -w0)
+        sed -i "s|^${key}=.*|ENC_${key}=\"${encrypted}\"|" "${ENV_FILE}"
+        # Remove plaintext
+        sed -i "/^${key}=/d" "${ENV_FILE}"
+    fi
+}
+
+log "🔐 Vaulting sensitive variables..."
+for s in POSTGRES_PASSWORD REDIS_PASSWORD BETTER_AUTH_SECRET JWT_SECRET; do
+    encrypt_secret "$s"
+done
+
+echo "✅ Secrets and Keys injected and vaulted in ${ENV_FILE}"
 
 # 3. Auto-update README.md
 echo "📝 Updating README.md status..."
@@ -82,6 +108,8 @@ fi
 
 # 4. Sequenced Startup
 echo "🐳 Starting Docker Manifold..."
+# Force session load before up
+load_decrypted_secrets
 docker-compose up --build -d
 
 # Wait for DB Health

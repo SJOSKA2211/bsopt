@@ -16,6 +16,13 @@ log() {
     echo "$message" >> "$LOG_FILE"
 }
 
+# Load shared environment utilities
+UTILS_ENV="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/utils_env.sh"
+if [ -f "$UTILS_ENV" ]; then
+    source "$UTILS_ENV"
+    load_decrypted_secrets
+fi
+
 error_handler() {
     log "❌ FATAL ERROR occurred on line $1. Check $LOG_FILE for details."
     exit 1

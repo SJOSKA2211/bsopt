@@ -73,8 +73,8 @@ fn black_scholes_price(
 }
 
 #[pyfunction]
-fn batch_black_scholes(
-    py: Python<'_>,
+fn batch_black_scholes<'py>(
+    py: Python<'py>,
     s: PyReadonlyArray1<f64>,
     k: PyReadonlyArray1<f64>,
     t: PyReadonlyArray1<f64>,
@@ -162,8 +162,8 @@ fn black_scholes_greeks(
 }
 
 #[pyfunction]
-fn batch_black_scholes_greeks(
-    py: Python<'_>,
+fn batch_black_scholes_greeks<'py>(
+    py: Python<'py>,
     s_arr: PyReadonlyArray1<f64>,
     k_arr: PyReadonlyArray1<f64>,
     t_arr: PyReadonlyArray1<f64>,
@@ -238,8 +238,8 @@ fn batch_black_scholes_greeks(
 }
 
 #[pyfunction]
-fn exact_gbm_path(
-    py: Python<'_>,
+fn exact_gbm_path<'py>(
+    py: Python<'py>,
     s0: PyReadonlyArray1<f64>,
     mu: PyReadonlyArray1<f64>,
     sigma: PyReadonlyArray1<f64>,

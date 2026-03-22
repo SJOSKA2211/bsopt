@@ -17,6 +17,15 @@ KEYS_DIR="$(pwd)/.pki"
 ENV_FILE=".env"
 ENV_EXAMPLE=".env.example"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+# Central Configuration
+# Load shared environment utilities
+if [ -f "scripts/utils_env.sh" ]; then
+    source scripts/utils_env.sh
+else
+    echo "[ERROR] scripts/utils_env.sh not found."
+    exit 1
+fi
+
 COMPOSE_FILE="infrastructure/orchestration/docker-compose.yml"
 
 # Colors for output
@@ -76,36 +85,6 @@ detect_container_engine() {
     fi
 }
 
-# Decrypt ENC_ variables into current shell session
-load_decrypted_secrets() {
-    if [ ! -f "$ENV_FILE" ]; then
-        return
-    fi
-    
-    # We only log this once to avoid noise
-    if [ "${SECRETS_LOADED:-false}" = "false" ]; then
-        log_info "Loading vaulted secrets into current session..."
-        export SECRETS_LOADED=true
-    fi
-
-    # Extract ENC_ variables from .env and decrypt them
-    while IFS= read -r line || [ -n "$line" ]; do
-        if [[ $line =~ ^ENC_([^=]+)=(.*) ]]; then
-            var_name="${BASH_REMATCH[1]}"
-            enc_val="${BASH_REMATCH[2]}"
-            # Strip quotes if present
-            enc_val=$(echo "$enc_val" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-            
-            if [ -n "$enc_val" ]; then
-                # Decrypt using the vault key
-                dec_val=$(echo -n "$enc_val" | base64 -d | openssl pkeyutl -decrypt -inkey "${KEYS_DIR}/vault/vault.key" 2>/dev/null)
-                if [ $? -eq 0 ]; then
-                    export "$var_name"="$dec_val"
-                fi
-            fi
-        fi
-    done < "$ENV_FILE"
-}
 
 # Compose command wrapper
 compose_cmd() {
