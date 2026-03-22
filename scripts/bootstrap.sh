@@ -3,7 +3,7 @@
 set -e
 
 # Configuration
-KEYS_DIR="${HOME}/.bsopt/pki"
+KEYS_DIR="$(pwd)/.pki"
 ENV_FILE=".env"
 ENV_EXAMPLE=".env.example"
 README_FILE="README.md"
