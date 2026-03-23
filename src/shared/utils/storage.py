@@ -1,4 +1,3 @@
-import os
 from typing import BinaryIO
 
 import boto3

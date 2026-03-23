@@ -11,7 +11,7 @@ from jwt.exceptions import PyJWTError
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.exceptions import AuthenticationException, ConflictException, ValidationException
+from src.api.exceptions import AuthenticationException, ConflictException
 from src.api.responses import MsgspecJSONResponse
 from src.api.schemas.auth import (
     LoginRequest,

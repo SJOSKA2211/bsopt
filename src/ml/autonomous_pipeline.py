@@ -7,9 +7,6 @@ import pandas as pd
 # Re-export or import expected symbols for `@patch`
 
 
-from src.database.models import Base
-
-
 class AutonomousMLPipeline:
     """
     Compatibility wrapper delegating to high-performance MLPipeline.

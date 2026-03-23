@@ -1,3 +1,4 @@
+import fastapi
 """
 Zero-Trust Security Middleware (Ultra-High Performance)
 Consolidates all security layers into a single ASGI hop to minimize context-switching overhead.
@@ -95,7 +96,7 @@ class ZeroTrustMiddleware:
             token = request.cookies.get("better-auth.session_token")
 
         if not token:
-            raise HTTPException(status_code=401, detail="Authentication token missing")
+            raise fastapi.HTTPException(status_code=401, detail="Authentication token missing")
 
         # 3. Dedicated Auth Service Hop
         token_data = await auth_service.validate_token(token)
@@ -103,7 +104,7 @@ class ZeroTrustMiddleware:
         # 4. Internal Path Cryptographic Certainty
         if is_internal and ssl_verify != "SUCCESS":
             logger.warning("internal_access_denied_no_mtls", path=path)
-            raise HTTPException(status_code=403, detail="Internal access requires valid client certificate.")
+            raise fastapi.HTTPException(status_code=403, detail="Internal access requires valid client certificate.")
 
         # 5. Populate SecurityContext
         security_context.user_id = token_data.user_id
@@ -119,7 +120,7 @@ class ZeroTrustMiddleware:
 
         if not await limiter.is_allowed(token_data.user_id, path, limit_tier):
             logger.warning("rate_limit_exceeded", user_id=token_data.user_id, path=path, tier=tier_str)
-            raise HTTPException(
+            raise fastapi.HTTPException(
                 status_code=429,
                 detail="Too many requests. Upgrade tier for higher limits.",
                 headers={"X-RateLimit-Limit": str(limit_tier.value)},
@@ -161,7 +162,7 @@ class ZeroTrustMiddleware:
                 state["user_tier"] = security_context.tier
                 state["auth_type"] = security_context.auth_type
 
-        except HTTPException as e:
+        except fastapi.HTTPException as e:
             resp = MsgspecJSONResponse(
                 status_code=e.status_code,
                 content={"detail": e.detail},
