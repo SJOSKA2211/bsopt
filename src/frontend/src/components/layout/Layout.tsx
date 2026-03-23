@@ -29,34 +29,37 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const drawerWidth = 264;
-
-// ---------------------------------------------------------------------------
-// Live market ticker data
-// ---------------------------------------------------------------------------
-const TICKERS = [
-  { symbol: 'AAPL', price: '189.42', change: '+2.18', pct: '+1.17%', up: true },
-  { symbol: 'SPY', price: '471.23', change: '-1.42', pct: '-0.30%', up: false },
-  { symbol: 'QQQ', price: '401.15', change: '+6.72', pct: '+1.70%', up: true },
-  { symbol: 'NVDA', price: '492.80', change: '+15.6', pct: '+3.25%', up: true },
-  { symbol: 'TSLA', price: '248.12', change: '-4.33', pct: '-1.72%', up: false },
-  { symbol: 'SPX', price: '5127.3', change: '+18.4', pct: '+0.36%', up: true },
-];
+import { useMarketTickers } from '../../api/hooks';
 
 // ---------------------------------------------------------------------------
 // Ticker strip component
 // ---------------------------------------------------------------------------
 const TickerStrip: React.FC = () => {
   const theme = useTheme();
-  const doubled = [...TICKERS, ...TICKERS]; // duplicate for seamless loop
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+  
+  const { data: tickers, isLoading } = useMarketTickers();
+
+  // Seamless institutional loop - duplicate for CSS animation
+  const displayTickers = tickers ? [...tickers, ...tickers] : [];
+
+  if (isLoading && !tickers) {
+    return (
+      <Box sx={{ width: '100%', height: 40, bgcolor: alpha(theme.palette.background.paper, 0.4), backdropFilter: 'blur(20px)', borderBottom: `1px solid ${alpha('#fff', 0.05)}`, display: 'flex', alignItems: 'center', px: 3 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.1em' }}>SYNCHRONIZING GLOBAL TAPE...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
         width: '100%',
         height: 40,
-        bgcolor: alpha(theme.palette.background.paper, 0.7),
-        backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${alpha('#94a3b8', 0.08)}`,
+        bgcolor: alpha(theme.palette.background.paper, 0.4),
+        backdropFilter: 'blur(30px)',
+        borderBottom: `1px solid ${alpha('#fff', 0.03)}`,
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
@@ -65,16 +68,16 @@ const TickerStrip: React.FC = () => {
     >
       <Box className="ticker-strip">
         <Box className="ticker-track">
-          {doubled.map((t, i) => (
-            <Box key={i} className="ticker-item">
+          {displayTickers.map((t: any, i: number) => (
+            <Box key={`${t.symbol}-${i}`} className="ticker-item">
               <Typography
                 variant="caption"
                 sx={{
-                  fontWeight: 700,
+                  fontWeight: 900,
                   color: 'text.primary',
-                  fontFamily: '"JetBrains Mono", monospace',
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.05em',
+                  fontFamily: 'Outfit',
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.02em',
                 }}
               >
                 {t.symbol}
@@ -82,23 +85,24 @@ const TickerStrip: React.FC = () => {
               <Typography
                 variant="caption"
                 sx={{
-                  fontFamily: '"JetBrains Mono", monospace',
+                  fontFamily: 'JetBrains Mono',
                   fontSize: '0.7rem',
                   color: 'text.secondary',
+                  fontWeight: 600,
                 }}
               >
-                {t.price}
+                ${parseFloat(t.price).toFixed(2)}
               </Typography>
               <Typography
                 variant="caption"
                 sx={{
-                  fontFamily: '"JetBrains Mono", monospace',
+                  fontFamily: 'JetBrains Mono',
                   fontSize: '0.65rem',
-                  color: t.up ? 'success.main' : 'error.main',
-                  fontWeight: 600,
+                  color: (t.up ?? parseFloat(t.change) >= 0) ? qfd?.emerald ?? '#10b981' : theme.palette.error.main,
+                  fontWeight: 900,
                 }}
               >
-                {t.pct}
+                {t.pct || `${t.change >= 0 ? '+' : ''}${t.change}`}
               </Typography>
             </Box>
           ))}
@@ -108,12 +112,71 @@ const TickerStrip: React.FC = () => {
   );
 };
 
+interface NavItemProps {
+  item: { text: string; icon: React.ReactNode; path: string };
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ item, isActive, onClick }) => {
+  const theme = useTheme();
+  return (
+    <ListItem disablePadding sx={{ mb: 0.25 }}>
+      <ListItemButton
+        selected={isActive}
+        onClick={onClick}
+        sx={{
+          borderRadius: 2,
+          py: 1.1,
+          position: 'relative',
+          overflow: 'hidden',
+          ...(isActive && {
+            bgcolor: alpha(theme.palette.primary.main, 0.08),
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              left: 0,
+              top: '20%',
+              bottom: '20%',
+              width: 3,
+              borderRadius: '0 3px 3px 0',
+              background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+              boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.6)}`,
+            },
+          }),
+        }}
+      >
+        <ListItemIcon
+          sx={{
+            minWidth: 36,
+            color: isActive ? 'primary.main' : 'text.disabled',
+            transition: 'color 0.18s ease',
+          }}
+        >
+          {item.icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={item.text}
+          primaryTypographyProps={{
+            fontSize: '0.875rem',
+            fontWeight: isActive ? 700 : 500,
+            color: isActive ? 'primary.main' : 'text.secondary',
+          }}
+        />
+      </ListItemButton>
+    </ListItem>
+  );
+};
+
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -294,54 +357,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {section.header}
               </Typography>
               <List disablePadding>
-                {section.items.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  return (
-                    <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
-                      <ListItemButton
-                        selected={isActive}
-                        onClick={() => navigate(item.path)}
-                        sx={{
-                          borderRadius: 2,
-                          py: 1.1,
-                          position: 'relative',
-                          overflow: 'hidden',
-                          ...(isActive && {
-                            '&::before': {
-                              content: '""',
-                              position: 'absolute',
-                              left: 0,
-                              top: '20%',
-                              bottom: '20%',
-                              width: 3,
-                              borderRadius: '0 3px 3px 0',
-                              background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                              boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.6)}`,
-                            },
-                          }),
-                        }}
-                      >
-                        <ListItemIcon
-                          sx={{
-                            minWidth: 36,
-                            color: isActive ? 'primary.main' : 'text.disabled',
-                            transition: 'color 0.18s ease',
-                          }}
-                        >
-                          {item.icon}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={item.text}
-                          primaryTypographyProps={{
-                            fontSize: '0.875rem',
-                            fontWeight: isActive ? 700 : 500,
-                            color: isActive ? 'primary.main' : 'text.secondary',
-                          }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
+                {section.items.map((item) => (
+                  <NavItem
+                    key={item.text}
+                    item={item}
+                    isActive={location.pathname === item.path}
+                    onClick={() => navigate(item.path)}
+                  />
+                ))}
               </List>
             </Box>
           ))}

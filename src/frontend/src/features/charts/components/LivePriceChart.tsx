@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Box, useTheme, alpha, IconButton, Tooltip, Stack, Typography, CircularProgress } from '@mui/material';
+import { Box, useTheme, alpha, IconButton, Tooltip, Stack, Typography, CircularProgress, Chip } from '@mui/material';
 import { 
   createChart, 
   ColorType, 
@@ -66,29 +66,37 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
         textColor: theme.palette.text.secondary,
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'Outfit, sans-serif',
       },
       grid: {
-        vertLines: { color: alpha(theme.palette.divider, 0.03) },
-        horzLines: { color: alpha(theme.palette.divider, 0.03) },
+        vertLines: { visible: false },
+        horzLines: { color: alpha(theme.palette.divider, 0.05) },
       },
       crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          labelBackgroundColor: theme.palette.primary.main,
+          labelBackgroundColor: qfd?.emerald ?? '#10b981',
+          width: 1,
+          style: 3, // Large dashed
+          color: alpha(theme.palette.text.primary, 0.2),
         },
         horzLine: {
-          labelBackgroundColor: theme.palette.primary.main,
+          labelBackgroundColor: qfd?.emerald ?? '#10b981',
+          width: 1,
+          style: 3,
+          color: alpha(theme.palette.text.primary, 0.2),
         },
       },
       rightPriceScale: {
-        borderColor: alpha(theme.palette.divider, 0.1),
+        borderColor: 'transparent',
         autoScale: true,
+        alignLabels: true,
       },
       timeScale: {
-        borderColor: alpha(theme.palette.divider, 0.1),
+        borderColor: 'transparent',
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: 10,
       },
       handleScale: {
         axisPressedMouseMove: true,
@@ -96,15 +104,15 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: theme.palette.success.main,
+      upColor: qfd?.emerald ?? '#10b981',
       downColor: theme.palette.error.main,
       borderVisible: false,
-      wickUpColor: theme.palette.success.main,
+      wickUpColor: qfd?.emerald ?? '#10b981',
       wickDownColor: theme.palette.error.main,
     });
 
     const volumeSeries = chart.addSeries(HistogramSeries, {
-      color: alpha(theme.palette.primary.main, 0.2),
+      color: alpha(qfd?.sky ?? '#38bdf8', 0.15),
       priceFormat: {
         type: 'volume',
       },
@@ -113,15 +121,26 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
     
     volumeSeries.priceScale().applyOptions({
       scaleMargins: {
-        top: 0.8,
+        top: 0.85,
         bottom: 0,
       },
     });
 
     const smaLine = chart.addSeries(LineSeries, {
-      color: theme.palette.primary.main,
+      color: qfd?.sky ?? '#38bdf8',
       lineWidth: 2,
       visible: showSMA,
+      lineType: 2, // Curved
+    });
+
+    // Subscribing to crosshair move for legend
+    chart.subscribeCrosshairMove((param: any) => {
+      if (param.time) {
+        const data = param.seriesData.get(candleSeries) as CandlestickData<Time>;
+        if (data) setLegendData(data);
+      } else {
+        setLegendData(null);
+      }
     });
 
     // Set historical data when loaded
@@ -138,7 +157,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       const vData = historicalData.historicalData.map((d: any) => ({
         time: d.time as Time,
         value: d.volume,
-        color: d.close >= d.open ? alpha(theme.palette.success.main, 0.3) : alpha(theme.palette.error.main, 0.3),
+        color: d.close >= d.open ? alpha(qfd?.emerald ?? '#10b981', 0.2) : alpha(theme.palette.error.main, 0.2),
       }));
       volumeSeries.setData(vData);
 
@@ -180,21 +199,21 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       seriesRef.current.update({
         time: timestamp,
         open: priceData.price,
-        high: priceData.price,
-        low: priceData.price,
+        high: Math.max(priceData.price, priceData.high || 0),
+        low: Math.min(priceData.price, priceData.low || 1000000),
         close: priceData.price,
       });
 
-      // Simple mock volume for live ticks
+      // High-precision volume data from institutional feed
       if (volumeRef.current) {
         volumeRef.current.update({
           time: timestamp,
-          value: Math.random() * 100 + 50,
-          color: alpha(theme.palette.primary.main, 0.3),
+          value: priceData.volume || 0,
+          color: alpha(qfd?.sky ?? '#38bdf8', 0.15),
         });
       }
     }
-  }, [priceData, theme]);
+  }, [priceData, qfd?.sky]);
 
   return (
     <Box
@@ -203,55 +222,84 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         height: '100%', 
         minHeight: 450, 
         position: 'relative',
-        bgcolor: alpha(theme.palette.background.paper, 0.2),
-        borderRadius: 4,
-        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        bgcolor: alpha(theme.palette.background.paper, 0.1),
+        borderRadius: 6,
+        border: `1px solid ${alpha('#fff', 0.05)}`,
         overflow: 'hidden',
-        backdropFilter: 'blur(10px)',
+        backdropFilter: 'blur(20px)',
       }}
     >
+      {/* Header & Legend Overlay */}
       <Stack 
         direction="row" 
-        spacing={2} 
-        alignItems="center" 
+        justifyContent="space-between"
+        alignItems="flex-start"
         sx={{ 
           position: 'absolute', 
-          top: 12, 
-          left: 12, 
+          top: 16, 
+          left: 16, 
+          right: 16,
           zIndex: 10,
-          bgcolor: alpha(theme.palette.background.default, 0.7),
-          px: 1.5,
-          py: 0.75,
-          borderRadius: 3,
-          backdropFilter: 'blur(12px)',
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-          boxShadow: `0 4px 20px ${alpha('#000', 0.4)}`
+          pointerEvents: 'none'
         }}
       >
-        <Typography variant="caption" sx={{ fontWeight: 900, letterSpacing: '0.1em', color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 6, height: 6, bgcolor: 'primary.main', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
-          LIVE: {symbol}
-        </Typography>
-        
-        {/* Greeks Overlay Sub-Component */}
-        <Stack direction="row" spacing={1.5} sx={{ borderLeft: `1px solid ${alpha(theme.palette.divider, 0.2)}`, pl: 1.5 }}>
-          {['Δ', 'Γ', 'Θ', 'V'].map((g, idx) => (
-             <Typography key={g} variant="caption" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 800, color: 'text.secondary' }}>
-               <span style={{ color: alpha(theme.palette.text.secondary, 0.5) }}>{g}:</span>
-               <span style={{ color: theme.palette.text.primary, marginLeft: 2 }}>
-                 {(Math.random() * (idx === 0 ? 0.5 : 0.05)).toFixed(3)}
-               </span>
-             </Typography>
-          ))}
+        <Stack spacing={0.5} sx={{ pointerEvents: 'auto' }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ width: 8, height: 8, bgcolor: qfd?.emerald ?? '#10b981', borderRadius: '50%', boxShadow: `0 0 10px ${qfd?.emerald ?? '#10b981'}` }} />
+            <Typography variant="h6" sx={{ fontWeight: 900, fontFamily: 'Outfit', letterSpacing: '-0.02em' }}>
+              {symbol}
+            </Typography>
+            <Chip 
+              icon={<LiveIcon sx={{ fontSize: '10px !important' }} />}
+              label="RDMA-LIVE" 
+              size="small" 
+              sx={{ 
+                height: 18, 
+                fontSize: '0.6rem', 
+                bgcolor: alpha(qfd?.emerald ?? '#10b981', 0.1),
+                color: qfd?.emerald,
+                border: `1px solid ${alpha(qfd?.emerald ?? '#10b981', 0.2)}`,
+                fontWeight: 800,
+                '& .MuiChip-icon': { color: qfd?.emerald }
+              }} 
+            />
+          </Stack>
+          
+          <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+            {legendData ? (
+              <>
+                <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.65rem' }}>
+                  O <span style={{ color: theme.palette.text.primary, fontWeight: 700 }}>{legendData.open.toFixed(2)}</span>
+                </Typography>
+                <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.65rem' }}>
+                  H <span style={{ color: theme.palette.text.primary, fontWeight: 700 }}>{legendData.high.toFixed(2)}</span>
+                </Typography>
+                <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.65rem' }}>
+                  L <span style={{ color: theme.palette.text.primary, fontWeight: 700 }}>{legendData.low.toFixed(2)}</span>
+                </Typography>
+                <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', color: 'text.secondary', fontSize: '0.65rem' }}>
+                  C <span style={{ color: legendData.close >= legendData.open ? qfd?.emerald : theme.palette.error.main, fontWeight: 900 }}>{legendData.close.toFixed(2)}</span>
+                </Typography>
+              </>
+            ) : priceData && (
+              <Typography variant="h5" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 900, color: qfd?.emerald }}>
+                ${priceData.price.toFixed(2)}
+              </Typography>
+            )}
+          </Stack>
         </Stack>
 
-        <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Toggle SMA (20)">
+        <Stack direction="row" spacing={1} sx={{ pointerEvents: 'auto' }}>
+          <Tooltip title="Toggle Institutional Trendline">
             <IconButton 
               size="small" 
               onClick={() => setShowSMA(!showSMA)}
-              color={showSMA ? 'primary' : 'default'}
-              sx={{ width: 28, height: 28, bgcolor: alpha(theme.palette.primary.main, showSMA ? 0.1 : 0) }}
+              sx={{ 
+                bgcolor: alpha(qfd?.sky ?? '#38bdf8', showSMA ? 0.15 : 0.05),
+                color: showSMA ? qfd?.sky : 'text.disabled',
+                border: `1px solid ${alpha(qfd?.sky ?? '#38bdf8', 0.2)}`,
+                '&:hover': { bgcolor: alpha(qfd?.sky ?? '#38bdf8', 0.2) }
+              }}
             >
               <Timeline sx={{ fontSize: 18 }} />
             </IconButton>
@@ -259,15 +307,23 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
         </Stack>
       </Stack>
 
+      {/* Chart Container */}
       <Box
         data-testid="live-price-chart-container"
         ref={chartContainerRef}
-        sx={{ width: '100%', height: '100%' }}
+        sx={{ 
+          width: '100%', 
+          height: '100%',
+          '& .tv-lightweight-charts': {
+            cursor: 'crosshair !important'
+          }
+        }}
       />
       
       {loading && (
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-          <CircularProgress size={30} thickness={4} aria-label="Loading price chart..." />
+        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+          <CircularProgress size={32} thickness={5} sx={{ color: qfd?.emerald }} />
+          <Typography variant="caption" sx={{ display: 'block', mt: 1, fontWeight: 800, color: 'text.secondary' }}>SYNCHRONIZING...</Typography>
         </Box>
       )}
     </Box>

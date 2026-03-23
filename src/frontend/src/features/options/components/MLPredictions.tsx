@@ -8,11 +8,14 @@ import {
   Divider,
   alpha,
   useTheme,
+  Paper,
 } from '@mui/material';
 import {
   Psychology,
   AutoGraph,
   Update,
+  TrendingUp,
+  TrendingDown,
 } from '@mui/icons-material';
 
 // Institutional API Hooks
@@ -32,83 +35,135 @@ export const MLPredictions: React.FC<MLPredictionsProps> = React.memo(({ symbol 
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 200 }}>
-        <CircularProgress size={30} aria-label="Loading predictions" />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 250 }}>
+        <CircularProgress size={32} thickness={5} sx={{ color: qfd?.emerald }} aria-label="Synchronizing Oracle..." />
       </Box>
     );
   }
 
   if (error || !data) {
     return (
-      <Box sx={{ p: 2, textAlign: 'center' }}>
-        <Typography color="error" variant="body2">ML Engine unavailable</Typography>
-      </Box>
+      <Paper sx={{ p: 4, textAlign: 'center', bgcolor: alpha(theme.palette.error.main, 0.05), borderRadius: 6, border: `1px solid ${alpha(theme.palette.error.main, 0.1)}` }}>
+        <Typography color="error" variant="body2" sx={{ fontWeight: 800 }}>ORACLE DISCOVERY FAILED</Typography>
+      </Paper>
     );
   }
 
-  const isPositive = data.drift >= 0;
+  const isPositive = (data.drift || 0) >= 0;
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <Psychology sx={{ color: qfd?.amber ?? 'secondary.main' }} />
-        <Typography variant="subtitle1" fontWeight="bold">
-          Neural Price Oracle
-        </Typography>
+    <Paper
+      className="qfd-glass"
+      sx={{
+        p: 3,
+        borderRadius: 8,
+        bgcolor: alpha(theme.palette.background.paper, 0.1),
+        border: `1px solid ${alpha('#fff', 0.05)}`,
+        backdropFilter: 'blur(40px)',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: `0 20px 40px ${alpha('#000', 0.4)}`,
+      }}
+    >
+      {/* Oracle Status Bar */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: 3,
+          background: `linear-gradient(90deg, transparent, ${qfd?.amber ?? '#f59e0b'}, transparent)`,
+        }}
+      />
+
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.15) }}>
+            <Psychology sx={{ color: qfd?.amber, fontSize: 24 }} />
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, fontFamily: 'Outfit', letterSpacing: '-0.01em' }}>
+              Price Oracle
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '0.05em' }}>NEURAL INFERENCE</Typography>
+          </Box>
+        </Stack>
+        <Chip
+          icon={isPositive ? <TrendingUp sx={{ fontSize: '14px !important' }} /> : <TrendingDown sx={{ fontSize: '14px !important' }} />}
+          label={`${isPositive ? '+' : ''}${((data.drift || 0) * 100).toFixed(2)}%`}
+          size="small"
+          sx={{ 
+            bgcolor: alpha(isPositive ? qfd?.emerald ?? '#10b981' : theme.palette.error.main, 0.1),
+            color: isPositive ? qfd?.emerald : theme.palette.error.main,
+            fontWeight: 900,
+            border: `1px solid ${alpha(isPositive ? qfd?.emerald ?? '#10b981' : theme.palette.error.main, 0.2)}`,
+            fontFamily: 'JetBrains Mono',
+            fontSize: '0.7rem'
+          }}
+        />
       </Stack>
 
-      <Stack spacing={2}>
+      <Stack spacing={3}>
         <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <AutoGraph sx={{ fontSize: 14 }} /> Target Price (24h)
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 1, fontWeight: 700, mb: 1 }}>
+            <AutoGraph sx={{ fontSize: 14 }} /> 24H TARGET ASYMPTOTE
           </Typography>
-          <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ color: qfd?.emerald ?? 'primary.main' }}>
-              ${data.predicted_price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Typography>
-          </Box>
+          <Typography variant="h3" sx={{ 
+            fontWeight: 900, 
+            fontFamily: 'JetBrains Mono', 
+            color: qfd?.emerald,
+            textShadow: `0 0 20px ${alpha(qfd?.emerald ?? '#10b981', 0.3)}`,
+            letterSpacing: '-0.05em'
+          }}>
+            ${(data.predicted_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </Typography>
         </Box>
 
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Chip
-            label={`${isPositive ? '+' : ''}${(data.drift * 100).toFixed(2)}% Predicted Drift`}
-            size="small"
-            color={isPositive ? 'success' : 'error'}
-            variant="outlined"
-            sx={{ fontWeight: 'bold' }}
-          />
-        </Stack>
-
-        <Box sx={{ bgcolor: alpha(theme.palette.background.paper, 0.5), p: 1.5, borderRadius: 1, border: `1px solid ${alpha(theme.palette.divider, 0.1)}` }}>
-          <Typography variant="caption" color="text.secondary" gutterBottom>
-            95% Confidence Interval
+        <Box sx={{ 
+          bgcolor: alpha('#fff', 0.02), 
+          p: 2, 
+          borderRadius: 4, 
+          border: `1px solid ${alpha('#fff', 0.03)}`,
+          position: 'relative'
+        }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: '0.1em', mb: 1, display: 'block' }}>
+            95% CONFIDENCE MANIFOLD
           </Typography>
-          <Typography variant="body2" fontWeight="medium">
-            ${data.confidence_interval[0].toFixed(2)} — ${data.confidence_interval[1].toFixed(2)}
-          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 900 }}>
+              ${(data.confidence_interval?.[0] || 0).toFixed(2)}
+            </Typography>
+            <Box sx={{ flex: 1, height: 2, bgcolor: alpha('#fff', 0.1), borderRadius: 1, position: 'relative' }}>
+              <Box sx={{ position: 'absolute', left: '20%', right: '20%', height: '100%', bgcolor: qfd?.emerald, boxShadow: `0 0 10px ${qfd?.emerald}` }} />
+            </Box>
+            <Typography variant="body2" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 900 }}>
+              ${(data.confidence_interval?.[1] || 0).toFixed(2)}
+            </Typography>
+          </Stack>
         </Box>
 
         <Divider sx={{ opacity: 0.1 }} />
 
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Box>
-            <Typography variant="caption" color="text.secondary" display="block">
-              Model
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 800, mb: 0.5 }}>
+              ENGINE
             </Typography>
-            <Typography variant="caption" fontWeight="bold">
-              {data.model_name}
+            <Typography variant="caption" sx={{ fontWeight: 900, color: 'text.primary', fontFamily: 'JetBrains Mono' }}>
+              {data.model_name || 'NEURAL-CORE-1'}
             </Typography>
           </Box>
           <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Update sx={{ fontSize: 12 }} /> Updated
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5, fontWeight: 800, mb: 0.5 }}>
+              <Update sx={{ fontSize: 12 }} /> SYNCED
             </Typography>
-            <Typography variant="caption">
-              {new Date(data.last_updated).toLocaleTimeString()}
+            <Typography variant="caption" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 600 }}>
+              {data.last_updated ? new Date(data.last_updated).toLocaleTimeString() : 'LIVE'}
             </Typography>
           </Box>
         </Stack>
       </Stack>
-    </Box>
+    </Paper>
   );
 });

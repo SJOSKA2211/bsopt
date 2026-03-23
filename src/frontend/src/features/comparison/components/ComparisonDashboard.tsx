@@ -1,24 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, Paper, Typography, Grid, Stack, alpha, useTheme, LinearProgress, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useMotion } from '../../../hooks/useMotion';
 import { useComparisonStore } from '../../../store/useComparisonStore';
+import { useComparisonData } from '../../../api/hooks';
 import { Bolt as MLIconMui } from '@mui/icons-material';
-
-// Simulate real-time metrics stream for prototype
-const simulateComparisonStream = (): ReturnType<typeof setInterval> => {
-    return setInterval(() => {
-        useComparisonStore.getState().setMetrics({
-            userPnl: 12500 + Math.random() * 500 - 250,
-            aiPnl: 15200 + Math.random() * 200 - 100, // AI is slightly more stable
-            userSharpe: 1.8 + Math.random() * 0.1 - 0.05,
-            aiSharpe: 2.4 + Math.random() * 0.05 - 0.02,
-            userWinRate: 62 + Math.random()
-                * 2 - 1,
-            aiWinRate: 78 + Math.random() * 1 - 0.5,
-        });
-    }, 2000);
-}
 
 interface MetricRowProps {
     label: string;
@@ -63,28 +49,30 @@ const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency
 export const ComparisonDashboard: React.FC = () => {
     const theme = useTheme();
     const { variants } = useMotion();
-    const metrics = useComparisonStore((state: any) => state.metrics);
     const modelsSelected = useComparisonStore((state: any) => state.modelsSelected);
     const financial = (theme.palette as any).financial;
     const qfd = financial?.qfd;
 
-    useEffect(() => {
-        // Simulate real-time metric streams
-        const intervalId = simulateComparisonStream();
-        return () => clearInterval(intervalId);
-    }, []);
+    // Zero-Mock Synchronization via Institutional Hook
+    const { data: serverMetrics, isLoading } = useComparisonData();
+    const storeMetrics = useComparisonStore((state: any) => state.metrics);
+    
+    // Effective metrics: hook data preferred over store (which might be legacy)
+    const metrics = serverMetrics || storeMetrics;
 
     return (
         <motion.div variants={variants.slideUp} initial="initial" animate="animate">
             <Paper
                 className="qfd-glass"
                 sx={{
-                    p: 3,
-                    borderRadius: 6,
+                    p: 4,
+                    borderRadius: 8,
                     border: `1px solid ${alpha('#fff', 0.05)}`,
                     position: 'relative',
                     overflow: 'hidden',
                     background: `linear-gradient(135deg, ${alpha('#0f172a', 0.6)}, ${alpha('#0f172a', 0.2)})`,
+                    backdropFilter: 'blur(30px)',
+                    minHeight: 400
                 }}
             >
                 <Box
@@ -93,68 +81,79 @@ export const ComparisonDashboard: React.FC = () => {
                         top: 0,
                         right: 0,
                         width: '100%',
-                        height: 3,
+                        height: 4,
                         background: `linear-gradient(90deg, transparent, ${qfd?.amber ?? '#f59e0b'}, ${qfd?.sky ?? '#38bdf8'})`,
-                        filter: 'blur(2px)',
+                        filter: 'blur(1px)',
                     }}
                 />
 
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1) }}>
-                            <MLIconMui sx={{ color: qfd?.amber, fontSize: 24 }} aria-label="Alpha Comparison Icon" />
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 6 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Box sx={{ p: 1.5, borderRadius: 3, bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1), border: `1px solid ${alpha(qfd?.amber ?? '#f59e0b', 0.2)}` }}>
+                            <MLIconMui sx={{ color: qfd?.amber, fontSize: 28 }} aria-label="Alpha Comparison Icon" />
                         </Box>
                         <Box>
-                            <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 0 }}>Human vs Machine</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Real-time Alpha Execution Comparison</Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Outfit', letterSpacing: '-0.02em', mb: 0.5 }}>Human vs Machine</Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: '0.05em' }}>QUANTUM ALPHA EXECUTION MANIFOLD</Typography>
                         </Box>
                     </Stack>
                     <Stack direction="row" spacing={1}>
                         {modelsSelected.map((m: string) => (
-                            <Chip key={m} label={m} size="small" sx={{ bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1), color: qfd?.amber, fontWeight: 900, border: `1px solid ${alpha(qfd?.amber ?? '#f59e0b', 0.3)}` }} />
+                            <Chip key={m} label={m} size="small" sx={{ bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1), color: qfd?.amber, fontWeight: 900, border: `1px solid ${alpha(qfd?.amber ?? '#f59e0b', 0.3)}`, fontFamily: 'JetBrains Mono', fontSize: '0.65rem' }} />
                         ))}
                     </Stack>
                 </Stack>
 
                 <Grid container spacing={4}>
-                    {/* Headers */}
                     <Grid size={{ xs: 12 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 1, borderBottom: `1px solid ${alpha('#fff', 0.1)}`, mb: 1 }}>
-                            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%' }}>METRIC</Typography>
-                            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%', textAlign: 'right' }}>YOUR STRATEGY</Typography>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ pb: 1.5, borderBottom: `1px solid ${alpha('#fff', 0.05)}`, mb: 2 }}>
+                            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%', letterSpacing: '0.1em' }}>METRIC</Typography>
+                            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%', textAlign: 'right', letterSpacing: '0.1em' }}>YOUR STRATEGY</Typography>
                             <Typography variant="overline" sx={{ width: '10%' }}></Typography>
-                            <Typography variant="overline" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900, width: '30%', textAlign: 'left' }}>AI ORACLE</Typography>
+                            <Typography variant="overline" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900, width: '30%', textAlign: 'left', letterSpacing: '0.1em' }}>AI ORACLE</Typography>
                         </Stack>
 
-                        {/* Metrics */}
-                        <MetricRow label="Cumulative PnL" userValue={metrics.userPnl} aiValue={metrics.aiPnl} isCurrency />
-                        <MetricRow label="Sharpe Ratio" userValue={metrics.userSharpe} aiValue={metrics.aiSharpe} />
-                        <MetricRow label="Win Rate" userValue={metrics.userWinRate} aiValue={metrics.aiWinRate} isPercentage />
+                        {isLoading && !metrics ? (
+                             <Box sx={{ py: 4, textAlign: 'center' }}>
+                                 <LinearProgress sx={{ borderRadius: 4, height: 2, bgcolor: alpha('#fff', 0.05) }} />
+                                 <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'text.secondary', fontWeight: 800 }}>SYNCHRONIZING ORACLE FEED...</Typography>
+                             </Box>
+                        ) : (
+                            <>
+                                <MetricRow label="Cumulative PnL" userValue={metrics.userPnl} aiValue={metrics.aiPnl} isCurrency />
+                                <MetricRow label="Sharpe Ratio" userValue={metrics.userSharpe} aiValue={metrics.aiSharpe} />
+                                <MetricRow label="Win Rate" userValue={metrics.userWinRate} aiValue={metrics.aiWinRate} isPercentage />
+                                
+                                <Box sx={{ mt: 6, pt: 4, borderTop: `1px solid ${alpha('#fff', 0.05)}` }}>
+                                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 900, letterSpacing: '0.15em' }}>ALPHA SPREAD (AI DOMINANCE)</Typography>
+                                        <Typography variant="caption" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900, fontFamily: 'JetBrains Mono' }}>
+                                            AI EDGE: +{((metrics.aiPnl - metrics.userPnl) / (metrics.userPnl || 1) * 100).toFixed(1)}%
+                                        </Typography>
+                                    </Stack>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={(metrics.aiPnl / ((metrics.userPnl + metrics.aiPnl) || 1)) * 100}
+                                        sx={{
+                                            height: 10,
+                                            borderRadius: 5,
+                                            bgcolor: alpha(theme.palette.success.main, 0.1),
+                                            '& .MuiLinearProgress-bar': {
+                                                bgcolor: qfd?.amber ?? '#f59e0b',
+                                                borderRadius: 5,
+                                                boxShadow: `0 0 15px ${alpha(qfd?.amber ?? '#f59e0b', 0.4)}`
+                                            }
+                                        }}
+                                    />
+                                    <Stack direction="row" justifyContent="space-between" sx={{ mt: 1.5 }}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 800 }}>HUMAN RETAIL</Typography>
+                                        <Typography variant="caption" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 800 }}>ORACLE CLUSTER</Typography>
+                                    </Stack>
+                                </Box>
+                            </>
+                        )}
                     </Grid>
                 </Grid>
-
-                {/* Execution Visualizer */}
-                <Box sx={{ mt: 4, pt: 3, borderTop: `1px solid ${alpha('#fff', 0.05)}` }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 900, mb: 1, display: 'block' }}>ALPHA SPREAD (AI DOMINANCE)</Typography>
-                    <LinearProgress
-                        variant="determinate"
-                        value={(metrics.aiPnl / (metrics.userPnl + metrics.aiPnl)) * 100 || 50}
-                        sx={{
-                            height: 8,
-                            borderRadius: 4,
-                            bgcolor: alpha(theme.palette.success.main, 0.2),
-                            '& .MuiLinearProgress-bar': {
-                                bgcolor: qfd?.amber ?? '#f59e0b',
-                                borderRadius: 4,
-                                boxShadow: `0 0 10px ${alpha(qfd?.amber ?? '#f59e0b', 0.4)}`
-                            }
-                        }}
-                    />
-                    <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Human Alpha</Typography>
-                        <Typography variant="caption" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900 }}>AI Edge: +{((metrics.aiPnl - metrics.userPnl) / metrics.userPnl * 100).toFixed(1)}%</Typography>
-                    </Stack>
-                </Box>
             </Paper>
         </motion.div>
     );

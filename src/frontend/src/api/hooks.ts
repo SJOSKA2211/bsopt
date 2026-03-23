@@ -143,3 +143,25 @@ export function usePortfolioSummary() {
     },
   });
 }
+
+export function useComparisonData() {
+  return useReactQuery({
+    queryKey: ['ml', 'comparison'],
+    queryFn: async () => {
+      const { data } = await api.get('/ml/comparison');
+      return data;
+    },
+    refetchInterval: 5000,
+  });
+}
+
+export function useMarketTickers() {
+  return useReactQuery({
+    queryKey: ['market', 'tickers'],
+    queryFn: async () => {
+      const { data } = await api.get('/market/tickers');
+      return data;
+    },
+    refetchInterval: 5000,
+  });
+}
