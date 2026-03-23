@@ -11,8 +11,16 @@ def mock_email_service():
         yield mock
 
 
+@pytest.fixture
+def mock_db():
+    with patch("src.workers.tasks.email_tasks.get_async_db_context") as mock:
+        mock_context = MagicMock()
+        mock.return_value.__aenter__.return_value = mock_context
+        yield mock_context
+
+
 @pytest.mark.asyncio
-async def test_send_transactional_email_success(mock_email_service):
+async def test_send_transactional_email_success(mock_email_service, mock_db):
     mock_email_service.send_single_email.return_value = True
 
     with patch("src.shared.cache.rate_limiter.check_rate_limit", return_value=True):

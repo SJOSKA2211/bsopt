@@ -19,7 +19,7 @@ except ImportError:
     pass
 
 
-from src.api.responses import MsgspecJSONResponse
+from services.api.responses import MsgspecJSONResponse
 
 
 @asynccontextmanager

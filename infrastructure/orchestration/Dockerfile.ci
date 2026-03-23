@@ -18,7 +18,8 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CARGO_BUILD_JOBS=1
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml README.md ./
+COPY infrastructure/requirements/ /app/infrastructure/requirements/
 COPY . .
 
 # Build Wheel for Rust Core
@@ -32,8 +33,15 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install -r requirements.txt && \
-    uv pip install .[api,auth,ml,quant,distributed,dev] && \
+    uv pip install -r infrastructure/requirements/requirements-core.txt && \
+    uv pip install -r infrastructure/requirements/requirements-api.txt && \
+    uv pip install -r infrastructure/requirements/requirements-db.txt && \
+    uv pip install -r infrastructure/requirements/requirements-ml.txt && \
+    uv pip install -r infrastructure/requirements/requirements-worker.txt && \
+    uv pip install -r infrastructure/requirements/requirements-scraper.txt && \
+    uv pip install -r infrastructure/requirements/requirements-auth.txt && \
+    uv pip install -r infrastructure/requirements/requirements-observability.txt && \
+    uv pip install .[dev] && \
     uv pip install /tmp/wheels/*.whl
 
 # --- RUNNER ---

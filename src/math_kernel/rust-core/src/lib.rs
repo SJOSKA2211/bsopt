@@ -1,50 +1,19 @@
-use memmap2::Mmap;
-use numpy::{PyArray, PyArray1, PyArray2, PyReadonlyArray1, Element, ndarray, PyArrayMethods, PyArrayDescrMethods};
+use numpy::{PyArray1, PyReadonlyArray1, Bound, PyArrayMethods, Element, PyArray};
 use pyo3::prelude::*;
-use pyo3::ffi::Py_XINCREF;
 use pyo3::types::PyModule;
-use pyo3::Bound;
-use rand::rngs::StdRng;
-use rand::SeedableRng;
-use rand_distr::{Distribution, StandardNormal};
+use pyo3::ffi::Py_XINCREF;
 use rayon::prelude::*;
-use std::fs::File;
+use statrs::distribution::{ContinuousCDF, Normal};
+use num_complex::Complex;
 use std::sync::Arc;
+use memmap2::Mmap;
+use std::fs::File;
 
-const INV_SQRT_2PI: f64 = 0.398942280401432677939946059934381868;
+const INV_365: f64 = 1.0 / 365.0;
 
-fn norm_pdf(x: f64) -> f64 {
-    (-0.5 * x * x).exp() * INV_SQRT_2PI
-}
-
-fn norm_cdf(x: f64) -> f64 {
-    if x < 0.0 {
-        return 1.0 - norm_cdf(-x);
-    }
-    let p = 0.2316419;
-    let a1 = 0.319381530;
-    let a2 = -0.356563782;
-    let a3 = 1.781477937;
-    let a4 = -1.821255978;
-    let a5 = 1.330274429;
-
-    let t = 1.0 / (1.0 + p * x);
-    let poly = t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5))));
-    1.0 - norm_pdf(x) * poly
-}
-
-fn erf(x: f64) -> f64 {
-    let sign = if x < 0.0 { -1.0 } else { 1.0 };
-    let x = x.abs();
-    let a1 = 0.254829592;
-    let a2 = -0.284496736;
-    let a3 = 1.421413741;
-    let a4 = -1.453152027;
-    let a5 = 1.061405429;
-    let p = 0.3275911;
-    let t = 1.0 / (1.0 + p * x);
-    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-x * x).exp();
-    sign * y
+/// High-Precision Normal Distribution Helper
+fn get_norm() -> Normal {
+    Normal::new(0.0, 1.0).unwrap()
 }
 
 #[pyfunction]
@@ -60,14 +29,15 @@ fn black_scholes_price(
     if t <= 0.0 {
         return Ok(if is_call { (s - k).max(0.0) } else { (k - s).max(0.0) });
     }
+    let norm = get_norm();
     let sqrt_t = t.sqrt();
     let d1 = ((s / k).ln() + (r - q + 0.5 * v * v) * t) / (v * sqrt_t);
     let d2 = d1 - v * sqrt_t;
 
     let price = if is_call {
-        s * (-q * t).exp() * norm_cdf(d1) - k * (-r * t).exp() * norm_cdf(d2)
+        s * (-q * t).exp() * norm.cdf(d1) - k * (-r * t).exp() * norm.cdf(d2)
     } else {
-        k * (-r * t).exp() * norm_cdf(-d2) - s * (-q * t).exp() * norm_cdf(-d1)
+        k * (-r * t).exp() * norm.cdf(-d2) - s * (-q * t).exp() * norm.cdf(-d1)
     };
     Ok(price)
 }
@@ -75,25 +45,27 @@ fn black_scholes_price(
 #[pyfunction]
 fn batch_black_scholes<'py>(
     py: Python<'py>,
-    s: PyReadonlyArray1<f64>,
-    k: PyReadonlyArray1<f64>,
-    t: PyReadonlyArray1<f64>,
-    v: PyReadonlyArray1<f64>,
-    r: PyReadonlyArray1<f64>,
-    q: PyReadonlyArray1<f64>,
-    is_call: PyReadonlyArray1<bool>,
+    s_arr: PyReadonlyArray1<f64>,
+    k_arr: PyReadonlyArray1<f64>,
+    t_arr: PyReadonlyArray1<f64>,
+    v_arr: PyReadonlyArray1<f64>,
+    r_arr: PyReadonlyArray1<f64>,
+    q_arr: PyReadonlyArray1<f64>,
+    is_call_arr: PyReadonlyArray1<bool>,
 ) -> PyResult<Bound<'py, PyArray1<f64>>> {
-    let s = s.as_array();
-    let k = k.as_array();
-    let t = t.as_array();
-    let v = v.as_array();
-    let r = r.as_array();
-    let q = q.as_array();
-    let is_call = is_call.as_array();
+    let s = s_arr.as_array();
+    let k = k_arr.as_array();
+    let t = t_arr.as_array();
+    let v = v_arr.as_array();
+    let r = r_arr.as_array();
+    let q = q_arr.as_array();
+    let is_call = is_call_arr.as_array();
 
     let n = s.len();
     let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
     let res_slice = unsafe { res.as_slice_mut().unwrap() };
+    
+    let norm = Arc::new(get_norm());
 
     res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
         let si = s[i];
@@ -112,9 +84,9 @@ fn batch_black_scholes<'py>(
             let d2 = d1 - vi * sqrt_t;
 
             *out = if call {
-                si * (-qi * ti).exp() * norm_cdf(d1) - ki * (-ri * ti).exp() * norm_cdf(d2)
+                si * (-qi * ti).exp() * norm.cdf(d1) - ki * (-ri * ti).exp() * norm.cdf(d2)
             } else {
-                ki * (-ri * ti).exp() * norm_cdf(-d2) - si * (-qi * ti).exp() * norm_cdf(-d1)
+                ki * (-ri * ti).exp() * norm.cdf(-d2) - si * (-qi * ti).exp() * norm.cdf(-d1)
             };
         }
     });
@@ -138,12 +110,13 @@ fn black_scholes_greeks(
         return Ok((if is_call { call_delta } else { put_delta }, 0.0, 0.0, 0.0, 0.0));
     }
 
+    let norm = get_norm();
     let sqrt_t = t.sqrt();
     let d1 = ((s / k).ln() + (r - q + 0.5 * v * v) * t) / (v * sqrt_t);
     let d2 = d1 - v * sqrt_t;
 
-    let nd1 = norm_pdf(d1);
-    let cdf_d1 = norm_cdf(d1);
+    let nd1 = ( -0.5 * d1 * d1 ).exp() * 0.3989422804014327;
+    let cdf_d1 = norm.cdf(d1);
 
     let exp_qt = (-q * t).exp();
     let exp_rt = (-r * t).exp();
@@ -153,10 +126,10 @@ fn black_scholes_greeks(
     let vega = s * exp_qt * nd1 * sqrt_t * 0.01;
 
     let theta_call = (-(s * v * exp_qt * nd1) / (2.0 * sqrt_t)) + (q * s * exp_qt * cdf_d1)
-        - (r * k * exp_rt * norm_cdf(d2));
+        - (r * k * exp_rt * norm.cdf(d2));
 
-    let theta = if is_call { theta_call / 365.0 } else { (theta_call + r * k * exp_rt - q * s * exp_qt) / 365.0 };
-    let rho = if is_call { k * t * exp_rt * norm_cdf(d2) * 0.01 } else { -k * t * exp_rt * norm_cdf(-d2) * 0.01 };
+    let theta = if is_call { theta_call * INV_365 } else { (theta_call + r * k * exp_rt - q * s * exp_qt) * INV_365 };
+    let rho = if is_call { k * t * exp_rt * norm.cdf(d2) * 0.01 } else { -k * t * exp_rt * norm.cdf(-d2) * 0.01 };
 
     Ok((delta, gamma, theta, vega, rho))
 }
@@ -189,13 +162,15 @@ fn batch_black_scholes_greeks<'py>(
 
     let d_s = unsafe { delta.as_slice_mut().unwrap() };
     let g_s = unsafe { gamma.as_slice_mut().unwrap() };
-    let t_s = unsafe { theta.as_slice_mut().unwrap() };
+    let th_s = unsafe { theta.as_slice_mut().unwrap() };
     let v_s = unsafe { vega.as_slice_mut().unwrap() };
     let r_s = unsafe { rho.as_slice_mut().unwrap() };
 
+    let norm = Arc::new(get_norm());
+
     d_s.par_iter_mut()
         .zip(g_s.par_iter_mut())
-        .zip(t_s.par_iter_mut())
+        .zip(th_s.par_iter_mut())
         .zip(v_s.par_iter_mut())
         .zip(r_s.par_iter_mut())
         .enumerate()
@@ -220,17 +195,17 @@ fn batch_black_scholes_greeks<'py>(
                 let sqrt_t = ti.sqrt();
                 let d1 = ((si / ki).ln() + (ri - qi + 0.5 * vi * vi) * ti) / (vi * sqrt_t);
                 let d2 = d1 - vi * sqrt_t;
-                let nd1 = norm_pdf(d1);
-                let cdf_d1 = norm_cdf(d1);
+                let nd1 = (-0.5 * d1 * d1).exp() * 0.3989422804014327;
+                let cdf_d1 = norm.cdf(d1);
                 let exp_qt = (-qi * ti).exp();
                 let exp_rt = (-ri * ti).exp();
 
                 *d_out = if call { exp_qt * cdf_d1 } else { exp_qt * (cdf_d1 - 1.0) };
                 *g_out = exp_qt * nd1 / (si * vi * sqrt_t);
                 *v_out = si * exp_qt * nd1 * sqrt_t * 0.01;
-                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * norm_cdf(d2));
-                *th_out = if call { theta_call / 365.0 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) / 365.0 };
-                *rh_out = if call { ki * ti * exp_rt * norm_cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm_cdf(-d2) * 0.01 };
+                let theta_call = (-(si * vi * exp_qt * nd1) / (2.0 * sqrt_t)) + (qi * si * exp_qt * cdf_d1) - (ri * ki * exp_rt * norm.cdf(d2));
+                *th_out = if call { theta_call * INV_365 } else { (theta_call + ri * ki * exp_rt - qi * si * exp_qt) * INV_365 };
+                *rh_out = if call { ki * ti * exp_rt * norm.cdf(d2) * 0.01 } else { -ki * ti * exp_rt * norm.cdf(-d2) * 0.01 };
             }
         });
 
@@ -238,53 +213,78 @@ fn batch_black_scholes_greeks<'py>(
 }
 
 #[pyfunction]
-fn exact_gbm_path<'py>(
+fn batch_heston_price<'py>(
     py: Python<'py>,
-    s0: PyReadonlyArray1<f64>,
-    mu: PyReadonlyArray1<f64>,
-    sigma: PyReadonlyArray1<f64>,
-    t: f64,
-    steps: usize,
-    seed: Option<u64>,
-) -> PyResult<Bound<'py, PyArray2<f64>>> {
-    let s0 = s0.as_array();
-    let mu = mu.as_array();
-    let sigma = sigma.as_array();
-    let n_paths = s0.len();
-    let dt = t / steps as f64;
-    let sqrt_dt = dt.sqrt();
+    s_arr: PyReadonlyArray1<f64>,
+    k_arr: PyReadonlyArray1<f64>,
+    t_arr: PyReadonlyArray1<f64>,
+    r_arr: PyReadonlyArray1<f64>,
+    kappa_arr: PyReadonlyArray1<f64>,
+    theta_arr: PyReadonlyArray1<f64>,
+    sigma_arr: PyReadonlyArray1<f64>,
+    rho_arr: PyReadonlyArray1<f64>,
+    v0_arr: PyReadonlyArray1<f64>,
+) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    let s = s_arr.as_array();
+    let k = k_arr.as_array();
+    let t = t_arr.as_array();
+    let r = r_arr.as_array();
+    let kappa = kappa_arr.as_array();
+    let theta = theta_arr.as_array();
+    let sigma = sigma_arr.as_array();
+    let rho = rho_arr.as_array();
+    let v0 = v0_arr.as_array();
 
-    let result = unsafe { PyArray2::<f64>::new_bound(py, [n_paths, steps + 1], false) };
-    let slice = unsafe { result.as_slice_mut().unwrap() };
+    let n = s.len();
+    let res = unsafe { PyArray1::<f64>::new_bound(py, [n], false) };
+    let res_slice = unsafe { res.as_slice_mut().unwrap() };
 
-    slice.par_chunks_mut(steps + 1).enumerate().for_each(|(i, path)| {
-        let mut local_rng = match seed {
-            Some(s) => StdRng::seed_from_u64(s + i as u64),
-            None => StdRng::from_entropy(),
-        };
-        let normal = StandardNormal;
-
-        let s0_i = s0[i];
-        let mu_i = mu[i];
-        let sigma_i = sigma[i];
-        let drift_const = mu_i - 0.5 * sigma_i * sigma_i;
-
-        path[0] = s0_i;
-        let mut current_w = 0.0;
-        for step in 1..=steps {
-            let dw: f64 = normal.sample(&mut local_rng);
-            current_w += dw * sqrt_dt;
-            let time = step as f64 * dt;
-            path[step] = s0_i * (drift_const * time + sigma_i * current_w).exp();
-        }
+    res_slice.par_iter_mut().enumerate().for_each(|(i, out)| {
+        *out = heston_engine::price_heston(s[i], k[i], t[i], r[i], kappa[i], theta[i], sigma[i], rho[i], v0[i]);
     });
 
-    Ok(result)
+    Ok(res)
 }
 
-#[pyfunction]
-fn validate_tick(timestamp: f64, price: f64, volume: f64) -> PyResult<bool> {
-    Ok(timestamp > 0.0 && price > 0.0 && volume >= 0.0)
+mod heston_engine {
+    use std::f64::consts::PI;
+    use num_complex::Complex;
+
+    pub fn price_heston(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64) -> f64 {
+        let p1 = 0.5 + (1.0 / PI) * integral(s, k, t, r, kappa, theta, sigma, rho, v0, 1);
+        let p2 = 0.5 + (1.0 / PI) * integral(s, k, t, r, kappa, theta, sigma, rho, v0, 2);
+        s * p1 - k * (-r * t).exp() * p2
+    }
+
+    fn integral(s: f64, k: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, j: i32) -> f64 {
+        let mut sum = 0.0;
+        let n = 100;
+        let upper_limit = 100.0;
+        let dw = upper_limit / n as f64;
+        
+        for i in 0..n {
+            let w = (i as f64 + 0.5) * dw;
+            let cf = char_func(s, t, r, kappa, theta, sigma, rho, v0, w, j);
+            let val = (Complex::new(0.0, -w * k.ln()).exp() * cf / Complex::new(0.0, w)).re;
+            sum += val * dw;
+        }
+        sum
+    }
+
+    fn char_func(s: f64, t: f64, r: f64, kappa: f64, theta: f64, sigma: f64, rho: f64, v0: f64, w: f64, j: i32) -> Complex<f64> {
+        let u = if j == 1 { 0.5 } else { -0.5 };
+        let b = if j == 1 { kappa - rho * sigma } else { kappa };
+        let a = kappa * theta;
+        let i_w = Complex::new(0.0, w);
+        
+        let d = ((rho * sigma * i_w - b).powi(2) - sigma.powi(2) * (2.0 * u * i_w - w.powi(2))).sqrt();
+        let g = (b - rho * sigma * i_w + d) / (b - rho * sigma * i_w - d);
+        
+        let c = r * i_w * t + (a / sigma.powi(2)) * ((b - rho * sigma * i_w + d) * t - 2.0 * ((1.0 - g * (d * t).exp()) / (1.0 - g)).ln());
+        let d_val = ((b - rho * sigma * i_w + d) / sigma.powi(2)) * ((1.0 - (d * t).exp()) / (1.0 - g * (d * t).exp()));
+        
+        (c + d_val * v0 + i_w * s.ln()).exp()
+    }
 }
 
 #[pyclass]
@@ -303,40 +303,11 @@ impl TickDataBuffer {
 
     pub fn size(&self) -> usize { self.mmap.len() }
 
-    pub fn get_symbols<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray2<u8>>> {
-        let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(PyArray2::zeros_bound(slf.py(), [0, 12], false)); }
-        let ptr = unsafe { slf.mmap.as_ptr().add(8) };
-        let dims = [n_records as isize, 12 as isize];
-        let strides = [32 as isize, 1 as isize];
-        unsafe { create_strided_array::<u8, ndarray::Ix2>(slf, ptr, &dims, &strides) }
-    }
-
     pub fn get_prices<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let n_records = slf.get_n_records()?;
         if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
         let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12) };
-        let dims = [n_records as isize];
-        let strides = [32 as isize];
-        unsafe { create_strided_array::<f64, ndarray::Ix1>(slf, ptr, &dims, &strides) }
-    }
-
-    pub fn get_volumes<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<i32>>> {
-        let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
-        let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12 + 8) };
-        let dims = [n_records as isize];
-        let strides = [32 as isize];
-        unsafe { create_strided_array::<i32, ndarray::Ix1>(slf, ptr, &dims, &strides) }
-    }
-
-    pub fn get_timestamps<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<i64>>> {
-        let n_records = slf.get_n_records()?;
-        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
-        let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12 + 8 + 4) };
-        let dims = [n_records as isize];
-        let strides = [32 as isize];
-        unsafe { create_strided_array::<i64, ndarray::Ix1>(slf, ptr, &dims, &strides) }
+        unsafe { create_strided_array::<f64, numpy::ndarray::Ix1>(slf, ptr, &[n_records as isize], &[32 as isize]) }
     }
 }
 
@@ -357,65 +328,23 @@ unsafe fn create_strided_array<'py, T, D>(
 ) -> PyResult<Bound<'py, PyArray<T, D>>>
 where
     T: Element,
-    D: ndarray::Dimension,
+    D: numpy::ndarray::Dimension,
 {
     let py = slf.py();
     let type_num = T::get_dtype_bound(py).num();
-    
-    // In pyo3 0.21+ / numpy 0.21+, we use Bound API.
-    // We still need to call PyArray_New via FFI to create a strided array from raw pointer with base.
-    // We will declare the necessary FFI signatures ourselves to avoid version-specific module mapping issues.
-    
     extern "C" {
-        fn PyArray_New(
-            subtype: *mut std::ffi::c_void,
-            nd: i32,
-            dims: *mut isize,
-            type_num: i32,
-            strides: *mut isize,
-            data: *mut std::ffi::c_void,
-            itemsize: i32,
-            flags: i32,
-            obj: *mut std::ffi::c_void,
-        ) -> *mut pyo3::ffi::PyObject;
-        
+        fn PyArray_New(subtype: *mut std::ffi::c_void, nd: i32, dims: *mut isize, type_num: i32, strides: *mut isize, data: *mut std::ffi::c_void, itemsize: i32, flags: i32, obj: *mut std::ffi::c_void) -> *mut pyo3::ffi::PyObject;
         static mut PyArray_Type: pyo3::ffi::PyTypeObject;
     }
-
-    let array_ptr = PyArray_New(
-        &mut PyArray_Type as *mut _ as *mut std::ffi::c_void,
-        dims.len() as i32,
-        dims.as_ptr() as *mut isize,
-        type_num,
-        strides.as_ptr() as *mut isize,
-        data_ptr as *mut std::ffi::c_void,
-        0,
-        0x0400, // NPY_ARRAY_WRITEABLE
-        std::ptr::null_mut(),
-    );
-
+    let array_ptr = PyArray_New(&mut PyArray_Type as *mut _ as *mut std::ffi::c_void, dims.len() as i32, dims.as_ptr() as *mut isize, type_num, strides.as_ptr() as *mut isize, data_ptr as *mut std::ffi::c_void, 0, 0x0400, std::ptr::null_mut());
     if array_ptr.is_null() { return Err(PyErr::fetch(py)); }
-
     let array_bound = Bound::from_owned_ptr(py, array_ptr).downcast_into_unchecked::<PyArray<T, D>>();
-    
-    // Set base to the TickDataBuffer to keep it alive
     let base_ptr = slf.as_ptr();
     Py_XINCREF(base_ptr);
-    
-    // Access the base field of the PyArrayObject
     #[repr(C)]
-    struct PyArrayObject {
-        ob_base: pyo3::ffi::PyObject,
-        data: *mut std::ffi::c_void,
-        nd: i32,
-        dimensions: *mut isize,
-        strides: *mut isize,
-        base: *mut pyo3::ffi::PyObject,
-    }
-    
+    struct PyArrayObject { ob_base: pyo3::ffi::PyObject, data: *mut std::ffi::c_void, nd: i32, dimensions: *mut isize, strides: *mut isize, base: *mut pyo3::ffi::PyObject }
     let array_ffi_ptr = array_ptr as *mut PyArrayObject;
     (*array_ffi_ptr).base = base_ptr;
-
     Ok(array_bound)
 }
 
@@ -426,7 +355,6 @@ fn equaflow_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(batch_black_scholes, m)?)?;
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
-    m.add_function(wrap_pyfunction!(exact_gbm_path, m)?)?;
-    m.add_function(wrap_pyfunction!(validate_tick, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
     Ok(())
 }

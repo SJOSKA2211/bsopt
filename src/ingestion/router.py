@@ -4,7 +4,7 @@ import time
 import structlog
 from prometheus_client import Counter, Histogram
 
-from src.api.providers import PolygonProvider, YahooProvider
+from services.api.providers import PolygonProvider, YahooProvider
 from src.ingestion.engine import NSEScraper
 
 logger = structlog.get_logger()

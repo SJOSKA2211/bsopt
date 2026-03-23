@@ -17,13 +17,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
 ENV PATH="/uv/bin:$PATH"
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml README.md ./
+COPY infrastructure/requirements/ /app/infrastructure/requirements/
 
 # Optimized Dependency Layer
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r requirements.txt && \
-    uv pip install --system .[ml,distributed]
+    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-ml.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-worker.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
+    uv pip install --system .
 
 # Copy Source
 COPY src ./src

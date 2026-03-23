@@ -230,6 +230,26 @@ class RequestLog(Base):
     )
 
 
+class EmailLog(Base):
+    __tablename__ = "email_logs"
+
+    id: Mapped[UUID_TYPE] = mapped_column(UUID, primary_key=True, default=uuid4)
+    recipient: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    subject: Mapped[str] = mapped_column(String(255), nullable=False)
+    template_name: Mapped[str | None] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending, sent, failed, rejected
+    error_message: Mapped[str | None] = mapped_column(Text)
+    provider_message_id: Mapped[str | None] = mapped_column(String(255), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    duration_ms: Mapped[float | None] = mapped_column(Double)
+
+    __table_args__ = (
+        Index("idx_email_logs_status_time", "status", created_at.desc()),
+        {"postgresql_fillfactor": 90},
+    )
+
+
 # PORTFOLIO & TRADING
 
 

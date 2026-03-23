@@ -30,6 +30,11 @@ __all__ = [
     "scalar_greeks_jit",
     "jit_cn_solver",
     "vectorized_newton_raphson_iv_jit",
+    # Rust Accelerators
+    "price_black_scholes",
+    "price_heston",
+    "calculate_greeks",
+    "is_rust_available",
 ]
 
 if TYPE_CHECKING:
@@ -47,6 +52,7 @@ if TYPE_CHECKING:
         vectorized_newton_raphson_iv_jit,
     )
     from .quantum_pricing import QuantumOptionPricer
+    from .rust_engine import price_black_scholes as rust_bs, price_heston as rust_heston, calculate_greeks as rust_greeks, is_available as is_rust_available
     from .vol_surface import SABRModel
 
 _import_map = {
@@ -67,7 +73,16 @@ _import_map = {
     "scalar_greeks_jit": ".quant_utils",
     "jit_cn_solver": ".quant_utils",
     "vectorized_newton_raphson_iv_jit": ".quant_utils",
+    # Rust Engine
+    "price_black_scholes": ".rust_engine",
+    "price_heston": ".rust_engine",
+    "calculate_greeks": ".rust_engine",
+    "is_rust_available": ".rust_engine",
 }
+
+# Alias is_rust_available to is_available in rust_engine.py if needed
+# Actually lazy_import will look for 'is_rust_available' in '.rust_engine'
+# I should add 'is_rust_available = is_available' to rust_engine.py
 
 
 def __getattr__(name: str):

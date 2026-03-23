@@ -18,9 +18,9 @@ from prometheus_client import (
     generate_latest,
 )
 
-from src.api.responses import MsgspecJSONResponse, Response
-from src.api.schemas.common import DataResponse
-from src.api.schemas.ml import (
+from services.api.responses import MsgspecJSONResponse, Response
+from services.api.schemas.common import DataResponse
+from services.api.schemas.ml import (
     BatchInferenceRequest,
     BatchInferenceResponse,
     InferenceRequest,

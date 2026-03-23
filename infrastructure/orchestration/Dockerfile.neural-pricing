@@ -18,32 +18,27 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 ENV CARGO_BUILD_JOBS=1
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml README.md ./
+COPY infrastructure/requirements/ /app/infrastructure/requirements/
 COPY src ./src
 
 # Build Wheel for Rust Core
 RUN uv pip install --system maturin
 RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 
-# Install App + Dependencies into venv
-RUN uv venv /opt/venv
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
+# Install App + Dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install -r requirements.txt && \
-    uv pip install granian && \
-    uv pip install .[quant,ml] && \
-    uv pip install /tmp/wheels/*.whl
+    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-db.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-ml.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
+    uv pip install --system . && \
+    uv pip install --system /tmp/wheels/*.whl
 
 # --- DEVELOPMENT ---
 FROM equaflow-base:latest AS development
 WORKDIR /app
-
-# Copy virtualenv from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy source
 COPY . .
@@ -60,10 +55,6 @@ CMD ["python", "-m", "src.quant.pricing.main"]
 # --- PRODUCTION ---
 FROM equaflow-base:latest AS production
 WORKDIR /app
-
-# Copy virtualenv from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy source + entrypoint
 COPY src ./src

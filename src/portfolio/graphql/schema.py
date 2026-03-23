@@ -3,22 +3,22 @@ from collections.abc import AsyncGenerator
 import strawberry
 from strawberry.federation import Schema
 
-from src.api.graphql.resolvers.portfolio_service import (
+from services.api.graphql.resolvers.portfolio_service import (
     Portfolio,
 )
-from src.api.graphql.resolvers.portfolio_service import (
+from services.api.graphql.resolvers.portfolio_service import (
     create_portfolio as service_create_portfolio,
 )
-from src.api.graphql.resolvers.portfolio_service import (
+from services.api.graphql.resolvers.portfolio_service import (
     get_portfolio as service_get_portfolio,
 )
-from src.api.graphql.resolvers.trading_service import (
+from services.api.graphql.resolvers.trading_service import (
     Order,
 )
-from src.api.graphql.resolvers.trading_service import (
+from services.api.graphql.resolvers.trading_service import (
     cancel_order as service_cancel_order,
 )
-from src.api.graphql.resolvers.trading_service import (
+from services.api.graphql.resolvers.trading_service import (
     create_order as service_create_order,
 )
 

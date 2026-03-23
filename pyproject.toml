@@ -8,40 +8,26 @@ license = { text = "MIT" }
 dependencies = [
     "numpy>=1.26.4,<2.3",
     "pandas>=2.3.3",
-    "scipy<1.15.0",
-    "numba>=0.58.0",
-    "structlog>=25.5.0",
-    "orjson>=3.9.0",
-    "msgspec>=0.18.0",
-    "pydantic>=2.4.0",
-    "pydantic-settings>=2.0.0",
-    "sqlalchemy[asyncio]>=2.0.45",
-    "asyncpg>=0.29.0",
-    "psycopg2-binary>=2.9.9",
-    "psycopg[binary]>=3.1.18",
-    "pgvector>=0.2.5",
-    "redis[hiredis]==5.2.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.1",
+    "structlog>=24.1.0",
     "python-dotenv>=1.0.0",
-    "httpx[http2]>=0.27.0",
-    "rich>=13.7.0",
-    "aiolimiter>=1.1.0",
     "tenacity>=8.3.0",
-    "selectolax>=0.3.21",
-    "yfinance>=0.2.40",
-    "prometheus-client>=0.20.0",
-    "prometheus_api_client>=0.5.0",
-    "eth_account",
-    "minio",
-    "alembic>=1.13.0",
-    "aio-pika>=9.4.0",
-    "evidently>=0.4.0",
-    "opentelemetry-api>=1.24.0",
-    "opentelemetry-sdk>=1.24.0",
-    "opentelemetry-instrumentation-fastapi>=0.45b0",
-    "opentelemetry-exporter-otlp>=1.24.0",
+    "rich>=13.7.1",
+    "msgspec>=0.18.6",
+    "orjson>=3.10.0",
 ]
 
 [project.optional-dependencies]
+shared = [
+    "sqlalchemy[asyncio]>=2.0.29",
+    "asyncpg>=0.29.0",
+    "psycopg[binary]>=3.1.18",
+    "pgvector>=0.2.5",
+    "redis[hiredis]>=5.0.3",
+    "minio>=7.2.5",
+    "alembic>=1.13.1",
+]
 api = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.30.0",
@@ -51,6 +37,7 @@ api = [
     "strawberry-graphql[fastapi,federation]~=0.200",
     "brotli-asgi>=1.4.0",
     "gunicorn==22.0.0",
+    "httpx[http2]>=0.27.0",
 ]
 auth = [
     "bcrypt==4.1.2",
@@ -62,6 +49,14 @@ auth = [
     "argon2-cffi",
     "email-validator==2.1.1",
     "authlib>=1.3.0",
+]
+observability = [
+    "prometheus-client>=0.20.0",
+    "prometheus_api_client>=0.5.0",
+    "opentelemetry-api>=1.24.0",
+    "opentelemetry-sdk>=1.24.0",
+    "opentelemetry-instrumentation-fastapi>=0.45b0",
+    "opentelemetry-exporter-otlp>=1.24.0",
 ]
 ml = [
     "torch>=2.2.0",

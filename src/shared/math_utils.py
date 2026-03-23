@@ -53,10 +53,15 @@ except ImportError:
 INV_SQRT2 = 0.7071067811865476
 INV_SQRT2PI = 0.3989422804014327
 
+njit_engine = njit
+loop_prange = prange
+
 __all__ = [
     "calculate_price",
     "calculate_greeks",
     "profile_memory",
+    "njit_engine",
+    "loop_prange",
 ]
 
 

@@ -9,25 +9,20 @@
 FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-COPY pyproject.toml requirements.txt README.md ./
+COPY pyproject.toml README.md ./
+COPY infrastructure/requirements/ /app/infrastructure/requirements/
 COPY src ./src
 
-# Install App + Dependencies into venv
-RUN uv venv /opt/venv
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
+# Install App + Dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install -r requirements.txt && \
-    uv pip install .
+    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-auth.txt && \
+    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
+    uv pip install --system .
 
 # --- DEVELOPMENT ---
 FROM equaflow-base:latest AS development
 WORKDIR /app
-
-# Copy virtualenv from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy source
 COPY . .
@@ -44,10 +39,6 @@ CMD ["python", "-m", "src.auth.auth_server"]
 # --- PRODUCTION ---
 FROM equaflow-base:latest AS production
 WORKDIR /app
-
-# Copy virtualenv from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy source + entrypoint
 COPY src ./src

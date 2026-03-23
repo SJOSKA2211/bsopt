@@ -5,7 +5,7 @@ import strawberry
 from fastapi import Request
 from strawberry.federation import Schema
 
-from src.api.graphql.types import Option
+from services.api.graphql.types import Option
 
 
 @strawberry.federation.type(keys=["id"], shareable=True)
@@ -77,7 +77,7 @@ class Query:
     @strawberry.field
     async def market_data(self, symbol: str) -> MarketData:
         """Fetch latest market data for a symbol using optimized router."""
-        from src.api.graphql.resolvers.option_service import router
+        from services.api.graphql.resolvers.option_service import router
 
         try:
             data = await router.get_live_quote(symbol)
@@ -119,10 +119,10 @@ class Query:
     @strawberry.field
     async def ml_prediction(self, symbol: str) -> MLPrediction:
         """Fetch latest ML-based price prediction for a symbol"""
-        from src.api.schemas.ml import InferenceRequest
+        from services.api.schemas.ml import InferenceRequest
         from src.ml.service import get_ml_service
 
-        from src.api.graphql.resolvers.option_service import router
+        from services.api.graphql.resolvers.option_service import router
         
         ml_service = get_ml_service()
 
@@ -169,7 +169,7 @@ class Query:
         self, symbol: str, expiry: date, strike: float, option_type: str
     ) -> Option | None:
         """Get single option by primary key components"""
-        from src.api.graphql.resolvers.option_service import get_option
+        from services.api.graphql.resolvers.option_service import get_option
 
         return await get_option(symbol, expiry, strike, option_type)
 
@@ -184,7 +184,7 @@ class Query:
         after: str | None = None,
     ) -> OptionConnection:
         """Search options with Relay-style pagination (Optimized Index Usage)"""
-        from src.api.graphql.resolvers.option_service import search_options_paginated
+        from services.api.graphql.resolvers.option_service import search_options_paginated
 
         results, has_next, next_cursor = await search_options_paginated(
             underlying=symbol or "AAPL",
