@@ -8,24 +8,12 @@ import {
   LineSeries,
   HistogramSeries
 } from 'lightweight-charts';
-import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
-import { useQuery } from '@apollo/client/react';
-import { gql } from '@apollo/client';
+import type { IChartApi, ISeriesApi, Time, CandlestickData } from 'lightweight-charts';
 import { usePricingStore } from '../../../store/usePricingStore';
-import { Timeline } from '@mui/icons-material';
+import { useHistoricalData } from '../../../api/hooks';
+import { Timeline, Flare as LiveIcon } from '@mui/icons-material';
 
-const GET_HISTORICAL_DATA = gql`
-  query GetHistoricalData($symbol: String!) {
-    historicalData(symbol: $symbol) {
-      time
-      open
-      high
-      low
-      close
-      volume
-    }
-  }
-`;
+
 
 interface LivePriceChartProps {
   symbol: string;
@@ -33,6 +21,9 @@ interface LivePriceChartProps {
 
 export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePriceChartProps) => {
   const theme = useTheme();
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -40,11 +31,10 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
   const volumeRef = useRef<ISeriesApi<"Histogram"> | null>(null);
 
   const [showSMA, setShowSMA] = useState(true);
+  const [legendData, setLegendData] = useState<CandlestickData<Time> | null>(null);
 
-  // Fetch historical data
-  const { data: historicalData, loading } = useQuery(GET_HISTORICAL_DATA, {
-    variables: { symbol },
-  });
+  // Fetch historical data via unified hook
+  const { data: historicalData, loading } = useHistoricalData(symbol);
 
   // Access the live price tick directly from store
   const priceData = usePricingStore((state: any) => state.prices[symbol]);

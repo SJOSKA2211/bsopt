@@ -1,7 +1,7 @@
 import { useQuery, useSubscription, gql } from '@apollo/client';
 import { useQuery as useReactQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { MarketData, MLPrediction, Option, OptionConnection } from './types';
+import type { MarketData, MLPrediction, Option, OptionConnection } from './types';
 
 // Institutional GraphQL Fragments
 const OPTION_FIELDS = gql`
@@ -86,7 +86,26 @@ export const GREEKS_SUBSCRIPTION = gql`
   }
 `;
 
+export const GET_HISTORICAL_DATA = gql`
+  query GetHistoricalData($symbol: String!) {
+    historicalData(symbol: $symbol) {
+      time
+      open
+      high
+      low
+      close
+      volume
+    }
+  }
+`;
+
 // Fused Hooks
+export function useHistoricalData(symbol: string) {
+  return useQuery<{ historicalData: any[] }>(GET_HISTORICAL_DATA, {
+    variables: { symbol },
+  });
+}
+
 export function useOptionsChain(symbol: string) {
   return useQuery<{ options: OptionConnection }>(GET_OPTIONS, {
     variables: { symbol },
