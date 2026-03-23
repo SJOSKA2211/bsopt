@@ -1,10 +1,5 @@
-"""
-Market Data Consumer Service
-
-Consumes real-time market ticks from Redis Streams and persists them to TimescaleDB.
-"""
-
 import asyncio
+import logging
 import os
 import signal
 from datetime import datetime
@@ -13,43 +8,39 @@ import structlog
 
 from src.database import get_async_db_context
 from src.database.crud import bulk_insert_market_ticks
-from src.shared.redis_streams import RedisStreamManager
+from src.shared.rabbitmq import get_rabbitmq
 
 logger = structlog.get_logger(__name__)
 
-
 class MarketDataConsumer:
     """
-    High-performance consumer for market ticks.
+    High-performance RabbitMQ consumer for market ticks.
     """
 
-    def __init__(self, stream_name: str = "market_ticks_stream"):
-        self.manager = RedisStreamManager(stream_name, "market_data_ingestors")
+    def __init__(self):
+        self.rmq = get_rabbitmq()
         self.consumer_name = f"consumer_{os.uname().nodename}_{os.getpid()}"
         self.batch: list[dict] = []
-        self.batch_size = 100
-        self.flush_interval = 2.0  # seconds
+        self.batch_size = 500  # Increased for RabbitMQ throughput
+        self.flush_interval = 1.0  # seconds
         self._last_flush = datetime.now()
+        self._lock = asyncio.Lock()
 
-    async def handle_tick(self, msg_id: str, data: dict) -> None:
-        """
-        Process a single market tick.
-        Batches ticks for high-throughput persistence to TimescaleDB.
-        """
-        # Ensure time is a datetime object
-        if "time" in data and isinstance(data["time"], str):
-            data["time"] = datetime.fromisoformat(data["time"])
+    async def handle_tick(self, data: dict) -> None:
+        """Process tick data from RabbitMQ."""
+        async with self._lock:
+            # Ensure time is a datetime object
+            if "time" in data and isinstance(data["time"], str):
+                data["time"] = datetime.fromisoformat(data["time"].replace("Z", "+00:00"))
+            
+            self.batch.append(data)
 
-        self.batch.append(data)
-
-        if (
-            len(self.batch) >= self.batch_size
-            or (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval
-        ):
-            await self.flush_batch()
+            if len(self.batch) >= self.batch_size or \
+               (datetime.now() - self._last_flush).total_seconds() >= self.flush_interval:
+                await self.flush_batch()
 
     async def flush_batch(self) -> None:
-        """Persist batched ticks to PostgreSQL/TimescaleDB."""
+        """Persist batched ticks to TimescaleDB via PgBouncer."""
         if not self.batch:
             return
 
@@ -59,37 +50,37 @@ class MarketDataConsumer:
 
         try:
             async with get_async_db_context() as db:
+                # bulk_insert_market_ticks handles the mapping to Model
                 count = await bulk_insert_market_ticks(db, current_batch)
-                logger.info("market_ticks_persisted", count=count)
+                logger.info("market_ticks_persisted", count=count, consumer=self.consumer_name)
         except Exception as e:
-            logger.error("market_ticks_persistence_failed", error=str(e))
-            # Put back in batch or move to retry buffer
+            logger.error("persistence_failed", error=str(e))
+            # Critical: In a real HFT system, we'd spill to local disk or a local cache here
             self.batch.extend(current_batch)
 
     async def run(self) -> None:
-        """Start the consumption loop."""
-        logger.info("starting_market_data_consumer", consumer=self.consumer_name)
-        await self.manager.consume(self.consumer_name, self.handle_tick)
+        """Start consumption loop."""
+        logger.info("starting_rabbitmq_consumer", consumer=self.consumer_name)
+        await self.rmq.connect()
+        await self.rmq.consume_ticks(self.handle_tick)
 
-
-if __name__ == "__main__":
-    # Standalone execution logic
+async def main():
     consumer = MarketDataConsumer()
-
-    loop = asyncio.get_event_loop()
-
-    def shutdown():
+    
+    def shutdown(sig, frame):
         logger.info("shutdown_signal_received")
-        for task in asyncio.all_tasks(loop):
-            task.cancel()
+        loop = asyncio.get_event_loop()
+        loop.stop()
 
-    for s in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(s, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGINT, shutdown)
 
     try:
-        loop.run_until_complete(consumer.run())
-    except asyncio.CancelledError:
-        pass
+        await consumer.run()
+    except Exception as e:
+        logger.error("consumer_runtime_error", error=str(e))
     finally:
-        loop.run_until_complete(consumer.flush_batch())
-        loop.close()
+        await consumer.flush_batch()
+
+if __name__ == "__main__":
+    asyncio.run(main())

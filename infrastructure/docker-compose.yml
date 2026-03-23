@@ -13,12 +13,88 @@ services:
       - "5433:5432"
     volumes:
       - equaflow_pgdata:/var/lib/postgresql/data
+      - ./init-scripts/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     shm_size: 1gb # Optimize for large analytical querying
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: pgbouncer
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@timescaledb:5432/${POSTGRES_DB}"
+      PGBOUNCER_MAX_CLIENT_CONN: 1000
+      PGBOUNCER_DEFAULT_POOL_SIZE: 50
+      PGBOUNCER_RESERVE_POOL_SIZE: 20
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_AUTH_TYPE: md5
+    ports:
+      - "6432:6432"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${POSTGRES_PASSWORD} # Reuse secure secret
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  auth_service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: auth_service
+    command: python src/auth/grpc_server.py
+    env_file: ../.env
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  api_service:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: api_service
+    command: uvicorn services.api.main:app --host 0.0.0.0 --port 8001
+    env_file: ../.env
+    depends_on:
+      - auth_service
+
+  ingestion_consumer:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: ingestion_consumer
+    command: python src/ingestion/consumer.py
+    env_file: ../.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  ml_orchestrator:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: ml_orchestrator
+    command: python src/ml/ml_pipeline_orchestrator.py
+    env_file: ../.env
+    depends_on:
+      - ingestion_consumer
 
   envoy:
     image: envoyproxy/envoy:v1.27-latest
