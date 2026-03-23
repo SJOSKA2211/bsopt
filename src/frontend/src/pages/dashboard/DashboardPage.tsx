@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import { useMotion } from '../../hooks/useMotion';
 import { usePricingStore } from '../../store/usePricingStore';
+import type { PricingState } from '../../store/usePricingStore';
 import {
   Zap,
   Globe,
@@ -248,20 +249,19 @@ import { usePortfolioSummary, useInstitutionalMarketData } from '../../api/hooks
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   // Midnight Emerald Theme Access
-  const financial = (theme.palette as any).financial;
+  const financial = theme.palette.financial;
   const qfd = financial?.qfd;
   
   const { variants } = useMotion();
   const [activeTime, setActiveTime] = React.useState('1M');
   
   // Real-time API Subscriptions (Direct Hooks)
-  const { data: marketData } = useInstitutionalMarketData('SPX');
   const { data: portfolio } = usePortfolioSummary();
   
   // Local fallback/sync (transitioning from store to direct hooks)
-  const systemGamma = usePricingStore((state: any) => state.systemGamma);
-  const mlAccuracy = usePricingStore((state: any) => state.mlAccuracy);
-  const portfolioTotal = portfolio?.totalValue ?? usePricingStore((state: any) => state.portfolioTotal);
+  const systemGamma = usePricingStore((state: PricingState) => state.systemGamma);
+  const mlAccuracy = usePricingStore((state: PricingState) => state.mlAccuracy);
+  const portfolioTotal = portfolio?.totalValue ?? usePricingStore((state: PricingState) => state.portfolioTotal);
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>

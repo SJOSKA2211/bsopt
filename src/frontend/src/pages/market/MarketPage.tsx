@@ -20,7 +20,15 @@ import {
   SwapVert as PCRIcon,
 } from '@mui/icons-material';
 import { usePricingStore } from '../../store/usePricingStore';
+import type { PricingState } from '../../store/usePricingStore';
 import { useDataIntegration } from '../../hooks/useDataIntegration';
+
+interface MarketPulseStat {
+  label: string;
+  value: string;
+  type: string;
+  icon: React.ReactNode;
+}
 
 // Lazy loaded trading components
 const LivePriceChart = lazy(() =>
@@ -57,7 +65,7 @@ export const MarketPage: React.FC = () => {
   const { isConnected } = useDataIntegration({ symbols: [currentSymbol] });
   
   // Get live price and stats from high perf store
-  const priceData = usePricingStore((state: any) => state.prices[currentSymbol]);
+  const priceData = usePricingStore((state: PricingState) => state.prices[currentSymbol]);
   const livePrice = priceData?.price ?? 0;
 
   // Compute reference price from real prev_close data
@@ -185,9 +193,9 @@ export const MarketPage: React.FC = () => {
               <Box sx={{ width: 1, bgcolor: alpha('#94a3b8', 0.1) }} />
             }
           >
-            {MARKET_PULSE.map((stat: any) => {
-              const qfd = theme.palette.financial.qfd as Record<string, string>;
-              const accentColor = qfd[stat.type] || theme.palette.text.primary;
+            {MARKET_PULSE.map((stat: MarketPulseStat) => {
+              const qfd = theme.palette.financial.qfd;
+              const accentColor = (qfd as any)[stat.type] || theme.palette.text.primary;
               return (
                 <Box
                   key={stat.label}

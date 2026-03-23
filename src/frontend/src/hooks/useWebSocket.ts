@@ -112,7 +112,7 @@ export function useWebSocket<T>(options: WebSocketHookOptions) {
     };
   }, [connect]);
 
-  const sendMessage = useCallback((msg: any) => {
+  const sendMessage = useCallback((msg: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify(msg));
     }

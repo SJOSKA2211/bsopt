@@ -20,13 +20,14 @@ import { motion } from 'framer-motion';
 import {
   PieChart as AllocationIcon,
 } from '@mui/icons-material';
+import type { Position } from '../../api/types';
 import { PortfolioSummary } from '../../features/portfolio/components/PortfolioSummary';
 import { usePortfolio } from '../../features/portfolio/hooks/usePortfolio';
 
 // KPI constants removed - now dynamic
 
 // Simple SVG donut chart
-const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.memo(({ positions, totalValue }) => {
+const DonutChart: React.FC<{ positions: Position[], totalValue: number }> = React.memo(({ positions, totalValue }) => {
   const theme = useTheme();
   
   const colors = useMemo(() => [
@@ -39,14 +40,14 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.mem
 
   const segments = useMemo(() => {
     const rawSegments = positions.length > 0 
-      ? positions.slice(0, 4).map((p, idx) => {
+      ? positions.slice(0, 4).map((p: Position, idx: number) => {
           const val = p.quantity * (p.current_price || p.entry_price || 0);
           const pct = totalValue > 0 ? Math.round((val / totalValue) * 100) : 0;
           return { label: p.symbol || p.contract_symbol, pct, color: colors[idx % colors.length] };
         })
       : [{ label: 'Cash', pct: 100, color: theme.palette.text.disabled }];
     
-    const allocatedPct = rawSegments.reduce((sum, s) => sum + s.pct, 0);
+    const allocatedPct = rawSegments.reduce((sum: number, s: { pct: number }) => sum + s.pct, 0);
     if (allocatedPct < 100 && positions.length > 0) {
         rawSegments.push({ label: 'Cash', pct: 100 - allocatedPct, color: theme.palette.text.disabled });
     }
@@ -56,7 +57,7 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.mem
   const r = 70, cx = 90, cy = 90;
   let cumulative = 0;
   
-  const paths = useMemo(() => segments.map((seg) => {
+  const paths = useMemo(() => segments.map((seg: { label?: string; pct: number; color: string }) => {
     const start = cumulative;
     cumulative += seg.pct;
     const startAngle = (start / 100) * 2 * Math.PI - Math.PI / 2;
@@ -73,7 +74,7 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.mem
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Box sx={{ position: 'relative', width: 220, height: 220 }}>
         <svg role="img" aria-label="Portfolio Allocation Donut Chart" viewBox="0 0 180 180" style={{ width: '100%', height: '100%' }}>
-          {paths.map((p, idx) => (
+          {paths.map((p: { label: string; pct: number; color: string; d: string }, idx: number) => (
             <motion.path
               key={p.label}
               d={p.d}
@@ -92,7 +93,7 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.mem
         </svg>
       </Box>
       <Stack spacing={1} sx={{ mt: 2, width: '100%', px: 2 }}>
-        {segments.map((s, idx) => (
+        {segments.map((s: { label: string; pct: number; color: string }, idx: number) => (
           <motion.div
             key={s.label}
             initial={{ opacity: 0, x: -10 }}
@@ -120,39 +121,38 @@ const DonutChart: React.FC<{ positions: any[], totalValue: number }> = React.mem
 export const PortfolioPage: React.FC = () => {
   const theme = useTheme();
   const { data: portfolioData } = usePortfolio();
-
-  const positions = portfolioData?.positions || [];
+  const { totalValue = 0, dailyPnL = 0, dailyPnLPercent = 0, balance = 0, frozen_capital = 0, positions = [] } = portfolioData || {};
   
-  const kpiCards = [
+  const kpiCards = useMemo(() => [
     { 
       label: 'Total Portfolio', 
-      value: `$${(portfolioData?.totalValue || 0).toLocaleString()}`, 
-      sub: `${portfolioData?.dailyPnLPercent || 0 >= 0 ? '+' : ''}${portfolioData?.dailyPnLPercent || 0}% today`, 
+      value: `$${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      sub: `${dailyPnLPercent >= 0 ? '+' : ''}${dailyPnLPercent.toFixed(2)}% today`, 
       type: 'quantum', 
-      positive: (portfolioData?.dailyPnLPercent || 0) >= 0 
+      positive: dailyPnLPercent >= 0 
     },
     { 
-      label: 'Total P&L', 
-      value: `$${(portfolioData?.dailyPnL || 0).toLocaleString()}`, 
-      sub: 'Real-time update', 
+      label: 'Daily P&L', 
+      value: `${dailyPnL >= 0 ? '+' : ''}$${Math.abs(dailyPnL).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      sub: 'Institutional Real-time', 
       type: 'quantum', 
-      positive: (portfolioData?.dailyPnL || 0) >= 0 
+      positive: dailyPnL >= 0 
     },
     { 
       label: 'Available Balance', 
-      value: `$${(portfolioData?.balance || 0).toLocaleString()}`, 
-      sub: 'Cash on hand', 
+      value: `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      sub: 'Settled Liquidity', 
       type: 'nebula', 
       positive: true 
     },
     { 
       label: 'Frozen Capital', 
-      value: `$${(portfolioData?.frozen_capital || 0).toLocaleString()}`, 
-      sub: 'Margin requirements', 
+      value: `$${frozen_capital.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      sub: 'Risk Requirement', 
       type: 'electrum', 
-      positive: null 
+      positive: null as boolean | null
     },
-  ];
+  ], [totalValue, dailyPnL, dailyPnLPercent, balance, frozen_capital]);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, pb: 6 }}>
@@ -164,7 +164,7 @@ export const PortfolioPage: React.FC = () => {
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          {kpiCards.map((kpi) => {
+          {kpiCards.map((kpi: { label: string; value: string; sub: string; type: string; positive: boolean | null }) => {
             const accentColor = (theme.palette.financial.qfd as Record<string, string>)[kpi.type] || theme.palette.primary.main;
             return (
               <Grid key={kpi.label} size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -269,13 +269,13 @@ export const PortfolioPage: React.FC = () => {
             <Table size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#fff', 0.02) }}>
-                  {['Symbol', 'Qty', 'Entry', 'Current', 'P&L', 'P&L%', 'Action'].map((h) => (
+                  {['Symbol', 'Qty', 'Entry', 'Current', 'P&L', 'P&L%', 'Action'].map((h: string) => (
                     <TableCell key={h} sx={{ color: 'text.secondary', fontWeight: 900, fontSize: '0.7rem', textTransform: 'uppercase' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {positions.map((p: any, idx: number) => {
+                {positions.map((p: Position, idx: number) => {
                   const currentPrice = p.current_price || p.entry_price || 0;
                   const pnl = (currentPrice - (p.entry_price || 0)) * p.quantity;
                   const pnlPct = p.entry_price > 0 ? ((currentPrice - p.entry_price) / p.entry_price) * 100 : 0;

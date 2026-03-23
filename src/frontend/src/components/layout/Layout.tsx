@@ -30,6 +30,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 const drawerWidth = 264;
 import { useMarketTickers } from '../../api/hooks';
+import type { Ticker } from '../../api/types';
 
 // ---------------------------------------------------------------------------
 // Ticker strip component
@@ -37,7 +38,7 @@ import { useMarketTickers } from '../../api/hooks';
 const TickerStrip: React.FC = () => {
   const theme = useTheme();
   const financial = (theme.palette as any).financial;
-  const qfd = financial?.qfd;
+  const qfd = financial?.qfd as any;
   
   const { data: tickers, isLoading } = useMarketTickers();
 
@@ -68,7 +69,7 @@ const TickerStrip: React.FC = () => {
     >
       <Box className="ticker-strip">
         <Box className="ticker-track">
-          {displayTickers.map((t: any, i: number) => (
+          {displayTickers.map((t: Ticker, i: number) => (
             <Box key={`${t.symbol}-${i}`} className="ticker-item">
               <Typography
                 variant="caption"
@@ -102,7 +103,7 @@ const TickerStrip: React.FC = () => {
                   fontWeight: 900,
                 }}
               >
-                {t.pct || `${t.change >= 0 ? '+' : ''}${t.change}`}
+                {t.pct || `${parseFloat(t.change) >= 0 ? '+' : ''}${t.change}`}
               </Typography>
             </Box>
           ))}
@@ -174,9 +175,6 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const theme = useTheme();
-  const financial = (theme.palette as any).financial;
-  const qfd = financial?.qfd;
-  
   const navigate = useNavigate();
   const location = useLocation();
 

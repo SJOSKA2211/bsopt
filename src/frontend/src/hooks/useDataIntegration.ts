@@ -35,7 +35,7 @@ export function useDataIntegration({ symbols, enabled = true }: UseDataIntegrati
   useEffect(() => {
     if (data && data.type === 'market_update' && data.payload) {
       if (Array.isArray(data.payload)) {
-        const updates: Record<string, any> = {};
+        const updates: Record<string, { price: number; timestamp: number }> = {};
         data.payload.forEach((tick) => {
           updates[tick.symbol] = { price: tick.price, timestamp: tick.timestamp };
         });

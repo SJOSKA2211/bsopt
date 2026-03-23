@@ -29,14 +29,15 @@ import { Zap } from '../../../components/common/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Unified API Hooks
+import type { Option, OptionChainRow, Greeks } from '../../../api/types';
+import { usePricingStore } from '../../../store/usePricingStore';
+import type { PricingState } from '../../../store/usePricingStore';
 import { useOptionsChain, useInstitutionalMarketData } from '../../../api/hooks';
-import type { OptionChainRow } from '../../../api/types';
 
 // Custom components
 import { QuickTradeButton } from './QuickTradeButton';
 import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
-import { usePricingStore } from '../../../store/usePricingStore';
 
 interface GqlData {
   marketData?: { last_price: number };
@@ -62,7 +63,7 @@ interface OptionsChainProps {
 export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChainProps) => {
   const theme = useTheme();
   // Midnight Emerald Theme Access
-  const financial = (theme.palette as any).financial;
+  const financial = theme.palette.financial;
   const qfd = financial?.qfd;
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -87,7 +88,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   const { data: marketData } = useInstitutionalMarketData(symbol);
 
   // Subscribe to real-time spot updates
-  const priceData = usePricingStore((state: any) => state.prices[symbol]);
+  const priceData = usePricingStore((state: PricingState) => state.prices[symbol]);
   const tick = priceData ? { last_price: priceData.price } : null;
 
   useEffect(() => {
@@ -101,11 +102,11 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   const optionsData = useMemo(() => {
     if (!gqlData?.options?.edges) return [];
 
-    const nodes: any[] = gqlData.options.edges.map((e: any) => e.node);
+    const nodes: Option[] = gqlData.options.edges.map((e: { node: Option }) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
-    nodes.forEach((node: any) => {
+    nodes.forEach((node: Option) => {
       const key = `${node.strike}-${node.expiry}`;
       if (!groups[key]) {
         groups[key] = {
@@ -121,7 +122,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       const isCall = node.type.toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      const item = groups[key] as any;
+      const item = groups[key] as unknown as Record<string, number | string>;
       item[`${prefix}bid`] = node.bid;
       item[`${prefix}ask`] = node.ask;
       item[`${prefix}last`] = node.last_price;
@@ -130,7 +131,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       item[`${prefix}iv`] = node.implied_volatility;
       item[`${prefix}delta`] = node.greeks?.delta || 0;
       item[`${prefix}gamma`] = node.greeks?.gamma || 0;
-      item[`${prefix}theor`] = node.price;
+      item[`${prefix}theor`] = node.last_price; // last_price as theor fallback
     });
 
     return Object.values(groups);
@@ -179,10 +180,10 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       try {
         if (pricingModel === 'black_scholes') {
           const raw = await batchCalculate(allParams);
-          results = raw.map((r: any) => ({
-            price: r.price as number,
-            delta: r.greeks.delta as number,
-            gamma: r.greeks.gamma as number,
+          results = (raw as Array<{ price: number; greeks: Greeks }>).map(r => ({
+            price: r.price,
+            delta: r.greeks.delta,
+            gamma: r.greeks.gamma,
             iv: 0, 
             greeks: r.greeks
           }));
@@ -212,7 +213,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
     };
 
     runWasmEnrichment();
-  }, [optionsData, isWasmLoaded, pricingModel, batchCalculate, priceMonteCarlo, priceAmerican, priceHeston]);
+  }, [optionsData, isWasmLoaded, pricingModel, batchCalculate, batchPriceMonteCarlo, batchPriceAmerican, batchPriceHeston]);
 
   // Filter, sort and enrich data
   const processedData = useMemo(() => {

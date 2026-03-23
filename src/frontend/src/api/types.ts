@@ -91,3 +91,38 @@ export interface OptionChainRow {
   put_gamma: number;
   put_theor?: number;
 }
+export interface Ticker {
+  symbol: string;
+  price: string;
+  change: string;
+  pct?: string;
+  up?: boolean;
+}
+
+export interface PortfolioSummary {
+  id: string;
+  balance: number;
+  frozen_capital: number;
+  risk_score: number;
+  totalValue: number;
+  dailyPnL: number;
+  dailyPnLPercent: number;
+  positionsCount: number;
+  positions: Position[];
+}
+
+export interface Position {
+  id: string;
+  symbol?: string;
+  contract_symbol: string;
+  quantity: number;
+  entry_price: number;
+  current_price?: number;
+  current_pnl?: number;
+  expiry?: string;
+  underlying_price?: number;
+  strike?: number;
+  implied_volatility?: number;
+  option_type?: 'call' | 'put';
+  theor_greeks?: Greeks;
+}

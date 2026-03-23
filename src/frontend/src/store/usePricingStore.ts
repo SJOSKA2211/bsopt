@@ -16,7 +16,7 @@ interface PriceData {
   open_interest?: number;
 }
 
-interface PricingState {
+export interface PricingState {
   prices: Record<string, PriceData>;
   systemGamma: number;
   mlAccuracy: number;
@@ -28,7 +28,7 @@ interface PricingState {
 
 // Zero-re-render transient state store
 export const usePricingStore = create<PricingState>()(
-  subscribeWithSelector((set) => ({
+  subscribeWithSelector((set: any) => ({
     prices: {},
     systemGamma: 0,
     mlAccuracy: 0,

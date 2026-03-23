@@ -1,7 +1,7 @@
-import { useQuery, useSubscription, gql } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 import { useQuery as useReactQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import type { MarketData, MLPrediction, Option, OptionConnection } from './types';
+import type { MarketData, MLPrediction, OptionConnection, Ticker, PortfolioSummary } from './types';
 
 // Institutional GraphQL Fragments
 const OPTION_FIELDS = gql`
@@ -135,7 +135,7 @@ const api = axios.create({
 });
 
 export function usePortfolioSummary() {
-  return useReactQuery({
+  return useReactQuery<PortfolioSummary>({
     queryKey: ['portfolio', 'summary'],
     queryFn: async () => {
       const { data } = await api.get('/portfolio/summary');
@@ -156,7 +156,7 @@ export function useComparisonData() {
 }
 
 export function useMarketTickers() {
-  return useReactQuery({
+  return useReactQuery<Ticker[]>({
     queryKey: ['market', 'tickers'],
     queryFn: async () => {
       const { data } = await api.get('/market/tickers');

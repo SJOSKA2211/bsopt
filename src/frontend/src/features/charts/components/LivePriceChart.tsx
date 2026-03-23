@@ -8,8 +8,9 @@ import {
   LineSeries,
   HistogramSeries
 } from 'lightweight-charts';
-import type { IChartApi, ISeriesApi, Time, CandlestickData } from 'lightweight-charts';
+import type { IChartApi, ISeriesApi, Time, CandlestickData, MouseEventParams } from 'lightweight-charts';
 import { usePricingStore } from '../../../store/usePricingStore';
+import type { PricingState } from '../../../store/usePricingStore';
 import { useHistoricalData } from '../../../api/hooks';
 import { Timeline, Flare as LiveIcon } from '@mui/icons-material';
 
@@ -37,7 +38,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
   const { data: historicalData, loading } = useHistoricalData(symbol);
 
   // Access the live price tick directly from store
-  const priceData = usePricingStore((state: any) => state.prices[symbol]);
+  const priceData = usePricingStore((state: PricingState) => state.prices[symbol]);
 
   const smaData = useMemo(() => {
     if (!historicalData?.historicalData) return [];
@@ -134,7 +135,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
     });
 
     // Subscribing to crosshair move for legend
-    chart.subscribeCrosshairMove((param: any) => {
+    chart.subscribeCrosshairMove((param: MouseEventParams) => {
       if (param.time) {
         const data = param.seriesData.get(candleSeries) as CandlestickData<Time>;
         if (data) setLegendData(data);
@@ -145,7 +146,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
 
     // Set historical data when loaded
     if (historicalData?.historicalData) {
-      const hData = historicalData.historicalData.map((d: any) => ({
+      const hData = historicalData.historicalData.map((d: { time: string | number; open: number; high: number; low: number; close: number }) => ({
         time: d.time as Time,
         open: d.open,
         high: d.high,
@@ -154,7 +155,7 @@ export const LivePriceChart: React.FC<LivePriceChartProps> = ({ symbol }: LivePr
       }));
       candleSeries.setData(hData);
 
-      const vData = historicalData.historicalData.map((d: any) => ({
+      const vData = historicalData.historicalData.map((d: { time: string | number; close: number; open: number; volume: number }) => ({
         time: d.time as Time,
         value: d.volume,
         color: d.close >= d.open ? alpha(qfd?.emerald ?? '#10b981', 0.2) : alpha(theme.palette.error.main, 0.2),
