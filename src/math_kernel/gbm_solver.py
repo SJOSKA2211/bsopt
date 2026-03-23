@@ -264,6 +264,7 @@ def simulate_gbm_rk4(
     Simulate Geometric Brownian Motion using RK4-Milstein method.
 
     Highest precision numerical solver for stochastic differential equations.
+    Uses RK4 for the deterministic part and Milstein for the stochastic part.
 
     Args:
         s0: Initial prices

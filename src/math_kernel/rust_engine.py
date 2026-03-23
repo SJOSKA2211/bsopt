@@ -116,7 +116,38 @@ class RustTickBuffer:
 
     def get_prices(self) -> np.ndarray:
         return self._buffer.get_prices()
+
+    def get_volumes(self) -> np.ndarray:
+        return self._buffer.get_volumes()
+
+    def parse_all(self):
+        """Bulk parse ticks into a list of TickData objects."""
+        return self._buffer.parse_all()
     
     @property
     def size(self) -> int:
         return self._buffer.size()
+
+def simulate_gbm_rk4(
+    s0: np.ndarray,
+    mu: np.ndarray,
+    sigma: np.ndarray,
+    t: float,
+    dt: float,
+    seed: Optional[int] = None
+) -> np.ndarray:
+    """
+    Highly optimized GBM simulation using 4th-order Runge-Kutta in Rust.
+    """
+    if not RUST_AVAILABLE:
+        from .gbm_solver import simulate_gbm_rk4 as gbm_rk4_py
+        return gbm_rk4_py(s0, mu, sigma, t, dt, seed=seed)
+
+    return equaflow_core.simulate_gbm_rk4(
+        s0.astype(np.float64),
+        mu.astype(np.float64),
+        sigma.astype(np.float64),
+        float(t),
+        float(dt),
+        seed
+    )
