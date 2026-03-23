@@ -202,6 +202,12 @@ main() {
     # Reload secrets in case initial load missed newly generated ones
     load_decrypted_secrets
 
+    # Ensure base image exists
+    if ! $CONTAINER_ENGINE image inspect equaflow-base:latest >/dev/null 2>&1; then
+        log_info "Base image equaflow-base:latest not found. Building..."
+        $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
+    fi
+
     log_info "Building core images..."
     compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
     
