@@ -1,0 +1,36 @@
+# infrastructure/docker-compose.yml
+version: '3.8'
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: timescaledb
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - equaflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    shm_size: 1gb # Optimize for large analytical querying
+
+  envoy:
+    image: envoyproxy/envoy:v1.27-latest
+    container_name: envoy
+    ports:
+      - "8081:8080" # Edge traffic
+      - "9901:9901" # Admin UI
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  equaflow_pgdata:

@@ -1,194 +1,24 @@
-# ==============================================================================
-# EQUAFLOW: THE INSTITUTIONAL-GRADE MANIFOLD (Makefile v11.0)
-# ==============================================================================
-# Unified Orchestration for Rust, Python, gRPC, and Envoy.
-# ==============================================================================
+# Makefile
+CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
+COMPOSE_CMD ?= $(shell if [ "$(CONTAINER_ENGINE)" = "podman" ]; then echo "podman-compose"; else if $(CONTAINER_ENGINE) compose version > /dev/null 2>&1; then echo "$(CONTAINER_ENGINE) compose"; else echo "docker-compose"; fi; fi)
 
-# Simplified Orchestration Detection (Prioritizes Podman)
-CONTAINER_ENGINE := $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
-COMPOSE_ENGINE := $(shell if [ "$(CONTAINER_ENGINE)" = "podman" ]; then \
-    (podman compose version >/dev/null 2>&1 && echo "podman compose") || echo "podman-compose"; \
-else \
-    (docker compose version >/dev/null 2>&1 && echo "docker compose") || echo "docker-compose"; \
-fi)
+.PHONY: all bootstrap up down clean logs
 
-# Export for use in sub-processes and scripts
-export CONTAINER_ENGINE
-export COMPOSE_ENGINE
-
-# Centralized Orchestration Manifest
-ENV_FILE := .env
-COMPOSE_FILE := infrastructure/orchestration/docker-compose.yml
-
-DOCKER_COMPOSE := $(COMPOSE_ENGINE)
-
-ifneq ($(wildcard $(ENV_FILE)),)
-  DOCKER_COMPOSE := $(DOCKER_COMPOSE) --env-file $(ENV_FILE) -f $(COMPOSE_FILE)
-else
-  DOCKER_COMPOSE := $(DOCKER_COMPOSE) -f $(COMPOSE_FILE)
-endif
-
-.PHONY: help bootstrap up down build logs test-all clean ps protos envoy-up security-scan
-
-help:
-	@echo "\n 🚀 EquaFlow Advanced Orchestrator (Makefile v11.0)"
-	@echo "======================================================="
-	@echo "Automation:"
-	@echo "  bootstrap    - Zero-Touch stack & security initialization"
-	@echo "  up           - Start the entire stack (Background)"
-	@echo "  down         - Stop and remove all containers"
-	@echo "  build        - Rebuild all core images"
-	@echo "  ps           - Show process status"
-	@echo ""
-	@echo "Development & Quality:"
-	@echo "  protos       - Generate gRPC/Protobuf bindings (Rust & Python)"
-	@echo "  lint         - Run high-fidelity linters (Ruff, Cargo Clippy)"
-	@echo "  format       - Auto-format codebase (Ruff, Cargo Fmt)"
-	@echo ""
-	@echo "Testing:"
-	@echo "  test-all     - Run THE GAUNTLET (Rust + Python + E2E)"
-	@echo "  test-rust    - Execute Rust unit & integration tests"
-	@echo "  test-python  - Execute Python test suite"
-	@echo "  test-e2e     - Run Playwright Frontend E2E tests"
-	@echo "  test-self-heal - Run tests with self-healing retry logic"
-	@echo ""
-	@echo "Infrastructure:"
-	@echo "  envoy-up     - Launch the Envoy API Gateway"
-	@echo "  db-shell     - Open psql for TimescaleDB"
-	@echo "=======================================================\n"
+all: bootstrap
 
 bootstrap:
-	@chmod +x bootstrap.sh
-	@./bootstrap.sh
-
-setup-dev:
-	@chmod +x scripts/setup_dev.sh
-	@./scripts/setup_dev.sh
+	@echo "Using container engine: $(CONTAINER_ENGINE)"
+	@bash scripts/bootstrap.sh
 
 up:
-	$(DOCKER_COMPOSE) up -d
+	$(COMPOSE_CMD) -f infrastructure/docker-compose.yml up -d
 
 down:
-	$(DOCKER_COMPOSE) down
+	$(COMPOSE_CMD) -f infrastructure/docker-compose.yml down
 
-build:
-	$(DOCKER_COMPOSE) build
-
-ps:
-	$(DOCKER_COMPOSE) ps
+clean: down
+	$(CONTAINER_ENGINE) volume rm equaflow_pgdata || true
+	rm -f .env
 
 logs:
-	$(DOCKER_COMPOSE) logs -f
-
-# --- Testing Hub ---
-
-# === [Security] Institutional Hardening ===
-# === [Security] Institutional Hardening ===
-security-scan:
-	@echo "🛡️ Running Trivy Filesystem Scan..."
-	@trivy fs --severity HIGH,CRITICAL .
-	@echo "🔍 Running Bandit Security Linter..."
-	@$(DOCKER_COMPOSE) run --rm api bandit -r core/ services/ -c pyproject.toml
-	@echo "🕵️ Running Pip-Audit..."
-	@$(DOCKER_COMPOSE) run --rm api pip-audit
-	@echo "🐳 Running Trivy Image Scans..."
-	@trivy image equaflow-api:latest
-	@trivy image equaflow-rust-core:latest
-
-blue-green-deploy:
-	@chmod +x scripts/blue_green_deploy.sh
-	@./scripts/blue_green_deploy.sh
-
-test-all:
-	@echo "🔥 Running The Gauntlet (Institutional Grade)..."
-	@echo "--- [Rust Core] ---"
-ifdef GITHUB_ACTIONS
-	if [ -d "src.shared" ]; then cd src.shared && cargo fmt -- --check && cargo clippy -- -D warnings && cargo test; fi
-else
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt -- --check
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
-endif
-	@echo "--- [Python API] ---"
-ifdef GITHUB_ACTIONS
-	pytest tests/unit
-else
-	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-endif
-	@echo "--- [E2E & Auth] ---"
-	@$(DOCKER_COMPOSE) --profile test up e2e-test --abort-on-container-exit
-	@echo "✅ Gauntlet Passed."
-
-test-rust:
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo test
-
-test-python:
-ifdef GITHUB_ACTIONS
-	pytest tests/unit
-else
-	$(DOCKER_COMPOSE) run --rm api pytest tests/unit
-endif
-
-test-e2e:
-	@echo "🌐 Running Frontend E2E Tests..."
-	@pytest tests/e2e/test_frontend.py
-
-test-self-heal:
-	@echo "🩹 Running Self-Healing Test Suite..."
-	@pytest -m self_heal
-
-# --- Advanced Builds ---
-
-protos:
-	@echo "🧬 Generating Cross-Language gRPC Bindings..."
-	@# Python Bindings
-	@$(DOCKER_COMPOSE) run --rm api python3 -m grpc_tools.protoc \
-		-I=core/protos --python_out=core/protos --grpc_python_out=core/protos core/protos/*.proto
-	@# Rust Bindings
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo build
-
-lint:
-ifdef GITHUB_ACTIONS
-	ruff check .
-	# cargo clippy if rust-src.shared exists locally
-	if [ -d "src.shared" ]; then cd src.shared && cargo clippy -- -D warnings; fi
-else
-	$(DOCKER_COMPOSE) run --rm api ruff check .
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo clippy -- -D warnings
-endif
-
-format:
-ifdef GITHUB_ACTIONS
-	ruff format .
-	if [ -d "src.shared" ]; then cd src.shared && cargo fmt; fi
-else
-	$(DOCKER_COMPOSE) run --rm api ruff format .
-	$(DOCKER_COMPOSE) run --rm rust-src.shared cargo fmt
-endif
-
-envoy-up:
-	@echo "🕸️  Launching Envoy Edge Proxy..."
-	$(DOCKER_COMPOSE) up -d envoy
-
-db-shell:
-	$(DOCKER_COMPOSE) exec postgres psql -U admin -d bsopt
-
-alembic:
-	$(DOCKER_COMPOSE) run --rm api alembic $(ARGS)
-
-institutional-ready:
-	@echo "🏢 Initializing Institutional Verification Flow..."
-	@$(MAKE) up
-	@echo "🩺 Running Containerized Readiness Checks..."
-	@$(DOCKER_COMPOSE) run --rm api python3 scripts/verify_readiness.py
-	@echo "🚀 Executing Institutional Smoke Test..."
-	@$(DOCKER_COMPOSE) run --rm api python3 scripts/institutional_smoke_test.py
-	@echo "📊 Benchmarking System Latency..."
-	@$(DOCKER_COMPOSE) run --rm api python3 scripts/benchmark_latency.py
-	@echo "✅ INSTITUTIONAL STATUS: GREEN"
-
-clean:
-	$(DOCKER_COMPOSE) down -v
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf venv/ .venv/ target/
-	rm -rf services/quant/rust-core/target/
+	$(COMPOSE_CMD) -f infrastructure/docker-compose.yml logs -f

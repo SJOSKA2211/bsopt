@@ -288,6 +288,20 @@ mod heston_engine {
 }
 
 #[pyclass]
+pub struct TickData {
+    #[pyo3(get)]
+    pub timestamp: u64,
+    #[pyo3(get)]
+    pub symbol_id: u32,
+    #[pyo3(get)]
+    pub price: f64,
+    #[pyo3(get)]
+    pub volume: f64,
+    #[pyo3(get)]
+    pub side: u8,
+}
+
+#[pyclass]
 pub struct TickDataBuffer {
     mmap: Arc<Mmap>,
 }
@@ -303,20 +317,50 @@ impl TickDataBuffer {
 
     pub fn size(&self) -> usize { self.mmap.len() }
 
+    pub fn get_n_records(&self) -> PyResult<usize> {
+        let header_size = 8;
+        let tick_size = 32;
+        if self.mmap.len() < header_size { return Ok(0); }
+        Ok((self.mmap.len() - header_size) / tick_size)
+    }
+
+    /// Extract prices as a zero-copy NumPy array
     pub fn get_prices<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let n_records = slf.get_n_records()?;
         if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
+        // Offset: Header(8) + Timestamp(8) + SymbolID(4) = 20
         let ptr = unsafe { slf.mmap.as_ptr().add(8 + 12) };
         unsafe { create_strided_array::<f64, numpy::ndarray::Ix1>(slf, ptr, &[n_records as isize], &[32 as isize]) }
     }
-}
 
-impl TickDataBuffer {
-    fn get_n_records(&self) -> PyResult<usize> {
-        let header_size = 8;
-        let tick_size = 32;
-        if self.mmap.len() < header_size { return Err(pyo3::exceptions::PyValueError::new_err("File too small")); }
-        Ok((self.mmap.len() - header_size) / tick_size)
+    /// Extract volumes as a zero-copy NumPy array
+    pub fn get_volumes<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyArray1<f64>>> {
+        let n_records = slf.get_n_records()?;
+        if n_records == 0 { return Ok(PyArray1::zeros_bound(slf.py(), [0], false)); }
+        // Offset: Header(8) + Timestamp(8) + SymbolID(4) + Price(8) = 28
+        let ptr = unsafe { slf.mmap.as_ptr().add(8 + 20) };
+        unsafe { create_strided_array::<f64, numpy::ndarray::Ix1>(slf, ptr, &[n_records as isize], &[32 as isize]) }
+    }
+
+    /// Bulk parse ticks into a vector of structs (heavier parsing)
+    pub fn parse_all(&self) -> PyResult<Vec<TickData>> {
+        let n = self.get_n_records()?;
+        let mut ticks = Vec::with_capacity(n);
+        let data = &self.mmap[8..];
+
+        for i in 0..n {
+            let offset = i * 32;
+            let tick_slice = &data[offset..offset + 32];
+            
+            ticks.push(TickData {
+                timestamp: u64::from_le_bytes(tick_slice[0..8].try_into().unwrap()),
+                symbol_id: u32::from_le_bytes(tick_slice[8..12].try_into().unwrap()),
+                price: f64::from_le_bytes(tick_slice[12..20].try_into().unwrap()),
+                volume: f64::from_le_bytes(tick_slice[20..28].try_into().unwrap()),
+                side: tick_slice[28],
+            });
+        }
+        Ok(ticks)
     }
 }
 
@@ -348,6 +392,82 @@ where
     Ok(array_bound)
 }
 
+#[pyfunction]
+fn simulate_gbm_rk4<'py>(
+    py: Python<'py>,
+    s0_arr: PyReadonlyArray1<f64>,
+    mu_arr: PyReadonlyArray1<f64>,
+    sigma_arr: PyReadonlyArray1<f64>,
+    t: f64,
+    dt: f64,
+    seed: Option<u64>,
+) -> PyResult<Bound<'py, PyArray2<f64>>> {
+    use rand::SeedableRng;
+    use rand_distr::{Distribution, Normal};
+
+    let s0 = s0_arr.as_array();
+    let mu = mu_arr.as_array();
+    let sigma = sigma_arr.as_array();
+
+    let n_paths = s0.len();
+    let n_steps = (t / dt) as usize;
+    let sqrt_dt = dt.sqrt();
+
+    let res = unsafe { PyArray2::<f64>::new_bound(py, [n_steps + 1, n_paths], false) };
+    let mut res_view = unsafe { res.as_array_mut() };
+
+    // Set initial values
+    for j in 0..n_paths {
+        res_view[[0, j]] = s0[j];
+    }
+
+    let norm = Normal::new(0.0, 1.0).unwrap();
+
+    // Parallelize across paths for simulation
+    // Note: To be strictly correct with RK4 for SDEs, we use Milstein for diffusion.
+    (0..n_paths).into_par_iter().for_each(|j| {
+        let mut rng = if let Some(s) = seed {
+            rand::rngs::StdRng::seed_from_u64(s + j as u64)
+        } else {
+            rand::rngs::StdRng::from_entropy()
+        };
+
+        let muj = mu[j];
+        let sigmaj = sigma[j];
+        let mut current_s = s0[j];
+
+        for i in 1..=n_steps {
+            let z = norm.sample(&mut rng);
+            let z_sq = z * z;
+
+            // RK4 for deterministic drift
+            let k1 = muj * current_s;
+            let k2 = muj * (current_s + 0.5 * dt * k1);
+            let k3 = muj * (current_s + 0.5 * dt * k2);
+            let k4 = muj * (current_s + dt * k3);
+            let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+
+            // Milstein for stochastic diffusion (Strong O(dt))
+            let diffusion = sigmaj * current_s * sqrt_dt * z;
+            let milstein_correction = 0.5 * sigmaj * sigmaj * current_s * (z_sq - dt);
+
+            current_s += drift + diffusion + milstein_correction;
+            if current_s < 0.0 {
+                current_s = 1e-10;
+            }
+
+            // We need a way to store this safely in the 2D array.
+            // Since we are par_iter on paths, we access res_view safely via raw pointers or pre-calculated slices.
+            unsafe {
+                let ptr = res.data().add(i * n_paths + j);
+                *ptr = current_s;
+            }
+        }
+    });
+
+    Ok(res)
+}
+
 #[pymodule]
 fn equaflow_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<TickDataBuffer>()?;
@@ -356,5 +476,6 @@ fn equaflow_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_black_scholes_greeks, m)?)?;
     m.add_function(wrap_pyfunction!(batch_heston_price, m)?)?;
+    m.add_function(wrap_pyfunction!(simulate_gbm_rk4, m)?)?;
     Ok(())
 }
