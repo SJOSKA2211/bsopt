@@ -1,5 +1,0 @@
-FROM docker.io/library/nginx:alpine
-RUN mkdir -p /etc/nginx/conf.d
-COPY infrastructure/configs/envoy.yaml /etc/nginx/nginx.conf 2>/dev/null || true
-EXPOSE 80 443
-CMD ["nginx", "-g", "daemon off;"]

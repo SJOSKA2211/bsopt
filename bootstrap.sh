@@ -126,6 +126,8 @@ secure_env_file() {
     for var in "${SENSITIVE_VARS[@]}"; do
         # Use grep to find the exact key, avoid partial matches
         local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
+        
+        # If the variable is empty and no ENC_ version exists, generate it
         if [ -z "$CURRENT_VAL" ] && ! grep -q "^ENC_${var}=" "${ENV_FILE}"; then
             log_info "Generating random $var..."
             local NEW_VAL=$(openssl rand -hex 32)
@@ -133,7 +135,7 @@ secure_env_file() {
             CURRENT_VAL="$NEW_VAL"
         fi
 
-        # Encrypt if not already encrypted
+        # Encrypt if not already encrypted and we have a value
         if [ -n "$CURRENT_VAL" ] && [[ ! "$CURRENT_VAL" =~ ^ENC_ ]]; then
             log_info "Encrypting $var..."
             local ENC_VAL=$(encrypt_secret "$CURRENT_VAL")
@@ -192,57 +194,61 @@ wait_for_service() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.1 (Zero-Touch Edition)${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.2 (Zero-Touch Edition)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
     detect_container_engine
     setup_env_file
     secure_env_file
     
-    # Reload secrets in case initial load missed newly generated ones
+    # Reload secrets into current shell session
     load_decrypted_secrets
 
-    # Ensure base image exists
-    if ! $CONTAINER_ENGINE image inspect equaflow-base:latest >/dev/null 2>&1; then
-        log_info "Base image equaflow-base:latest not found. Building..."
-        $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
+    # Ensure base image exists if Dockerfile.base is present
+    if [ -f "infrastructure/orchestration/Dockerfile.base" ]; then
+        if ! $CONTAINER_ENGINE image inspect equaflow-base:latest >/dev/null 2>&1; then
+            log_info "Base image equaflow-base:latest not found. Building..."
+            $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
+        fi
     fi
 
-    log_info "Building core images..."
+    log_info "Building core operational images..."
     compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase A: Persistent Database Layer${NC}"
+    echo -e "${BLUE}Phase A: Data Persistence Layer (PostgreSQL/TimescaleDB)${NC}"
     echo "------------------------------------------------------------------------------"
-    # Postgres uses the decrypted environment variables
     wait_for_service "postgres" "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"
     wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Performance Caching & Message Bus${NC}"
+    echo -e "${BLUE}Phase B: Performance Infrastructure (Redis/RabbitMQ/Kafka)${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
-    echo ""
-    echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase C: Distributed Application Microservices${NC}"
-    echo "------------------------------------------------------------------------------"
-    wait_for_service "auth-service" "curl -f http://localhost:3001/ || exit 1"
-    wait_for_service "api" "curl -f http://localhost:8000/health || exit 1"
-    wait_for_service "neural-pricing" "curl -f http://localhost:8000/health || exit 1"
+    # Optional services based on compose file content
+    if grep -q "kafka-1:" "$COMPOSE_FILE"; then
+        wait_for_service "kafka-1" "true" # Simple check, kafka is complex to probe simply
+    fi
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase D: Edge Orchestration (Envoy)${NC}"
+    echo -e "${BLUE}Phase C: Distributed Services Layer${NC}"
     echo "------------------------------------------------------------------------------"
-    wait_for_service "envoy" "curl -f http://localhost:9901/ready || exit 1"
+    wait_for_service "auth-service" "wget -qO- http://localhost:3001/ || exit 1"
+    wait_for_service "api" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
+    wait_for_service "neural-pricing" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
     
     echo ""
-    echo "=============================================================================="
-    echo -e "${GREEN}✅ EQUAFLOW INSTITUTIONAL STACK FULLY BOOTSTRAPPED${NC}"
+    echo "------------------------------------------------------------------------------"
+    echo -e "${BLUE}Phase D: Edge Networking (Envoy Gateway)${NC}"
+    echo "------------------------------------------------------------------------------"
+    wait_for_service "envoy" "wget -qO- http://localhost:9901/ready || exit 1"
+    
+    echo ""
     echo "=============================================================================="
 }
 

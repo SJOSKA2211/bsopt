@@ -47,14 +47,22 @@ if [[ ! -f "${KEY_DIR}/vault/vault.key" ]]; then
     chmod 600 "${KEY_DIR}/vault/vault.key"
 fi
 
-# 4. Generate TOTP Master Secret
+# 4. Generate Asymmetric DB Encryption Key (ECC)
+if [[ ! -f "${KEY_DIR}/db_encryption.key" ]]; then
+    echo "🔑 Generating ECC DB Encryption Key Pair (secp384r1)..."
+    openssl ecparam -name secp384r1 -genkey -noout -out "${KEY_DIR}/db_encryption.key"
+    openssl ec -in "${KEY_DIR}/db_encryption.key" -pubout -out "${KEY_DIR}/db_encryption.pub"
+    chmod 600 "${KEY_DIR}/db_encryption.key"
+fi
+
+# 5. Generate TOTP Master Secret
 if [[ ! -f "${KEY_DIR}/totp_master.secret" ]]; then
     echo "🛡️ Generating TOTP Master Secret..."
     openssl rand -hex 32 > "${KEY_DIR}/totp_master.secret"
     chmod 600 "${KEY_DIR}/totp_master.secret"
 fi
 
-# 5. Generate Argon2 Salt
+# 6. Generate Argon2 Salt
 if [[ ! -f "${KEY_DIR}/argon2_salt.secret" ]]; then
     echo "🛡️ Generating Argon2 Salt..."
     openssl rand -hex 32 > "${KEY_DIR}/argon2_salt.secret"

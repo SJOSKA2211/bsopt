@@ -11,12 +11,10 @@ load_decrypted_secrets() {
     fi
     
     if [ ! -f "$vault_key" ]; then
-        echo "[WARN] Vault key not found at $vault_key. Encrypted secrets will not be loaded."
         return 0
     fi
 
     # Detect openssl command
-    local OPENSSL_CMD="openssl"
     if ! command -v openssl >/dev/null 2>&1; then
         echo "[ERROR] OpenSSL not found. Cannot decrypt secrets."
         return 1
@@ -24,12 +22,16 @@ load_decrypted_secrets() {
 
     # Decrypt all ENC_ variables and export them
     while IFS= read -r line; do
+        # Ignore comments and empty lines
+        [[ "$line" =~ ^#.*$ ]] && continue
+        [[ -z "$line" ]] && continue
+
         if [[ $line =~ ^ENC_([A-Z0-9_]+)=\"(.+)\"$ ]]; then
             local var_name="${BASH_REMATCH[1]}"
             local encrypted_val="${BASH_REMATCH[2]}"
             
             # Decrypt using the vault key
-            local decrypted_val=$(echo -n "$encrypted_val" | base64 -d | $OPENSSL_CMD pkeyutl -decrypt -inkey "$vault_key" 2>/dev/null)
+            local decrypted_val=$(echo -n "$encrypted_val" | base64 -d | openssl pkeyutl -decrypt -inkey "$vault_key" 2>/dev/null)
             
             if [ -n "$decrypted_val" ]; then
                 export "$var_name"="$decrypted_val"
@@ -42,6 +44,10 @@ load_decrypted_secrets() {
 
 # Detect container engine (podman/docker)
 detect_container_engine() {
+    if [ -n "$CONTAINER_ENGINE" ]; then
+        return 0
+    fi
+
     if command -v podman >/dev/null 2>&1; then
         CONTAINER_ENGINE="podman"
         if podman compose version >/dev/null 2>&1; then
