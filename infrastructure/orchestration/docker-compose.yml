@@ -24,7 +24,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../../infrastructure/init-scripts/init-scripts:/docker-entrypoint-initdb.d:ro
-      - ../../src.shared/migrations:/migrations:ro
+      - ../../src/shared/migrations:/migrations:ro
       - ../configs/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ../configs/pg_hba.conf:/etc/postgresql/pg_hba.conf:rw
       - ../../.pki/postgres.crt:/etc/postgresql/postgres.crt:ro
@@ -204,7 +204,7 @@ services:
     volumes:
       - ../../src/auth:/app
       - /app/node_modules
-      - ../../src.shared/protos:/protos:ro
+      - ../../src/shared/protos:/protos:ro
       - ../../.pki/auth-service.crt:/etc/postgresql/auth-service.crt:ro
       - ../../.pki/auth-service.key:/etc/postgresql/auth-service.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
@@ -229,7 +229,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../src/api:/app/src/api
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
@@ -288,7 +288,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.api
       target: development
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../src/portfolio:/app/src/portfolio
       - ../../pyproject.toml:/app/pyproject.toml
       - ../../.pki/portfolio.crt:/etc/postgresql/portfolio.crt:ro
@@ -373,7 +373,7 @@ services:
     networks:
       - bsopt-network
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../src/ml:/app/src/ml
       - ../../models:/app/models
       - ../../.pki/ml-inference.crt:/etc/postgresql/ml-inference.crt:ro
@@ -389,7 +389,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../pyproject.toml:/app/pyproject.toml
       - shared_shm:/dev/shm
       - ../../.pki/worker.crt:/etc/postgresql/worker.crt:ro
@@ -448,7 +448,7 @@ services:
       dockerfile: infrastructure/orchestration/Dockerfile.worker
       target: development
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../.pki/persistence-worker.crt:/etc/postgresql/persistence-worker.crt:ro
       - ../../.pki/persistence-worker.key:/etc/postgresql/persistence-worker.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
@@ -476,12 +476,12 @@ services:
   nse-scraper:
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper-lite
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper
       target: production
     ports:
       - "8002:8000"
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - shared_shm:/dev/shm
       - ../../.pki/nse-scraper.crt:/etc/postgresql/nse-scraper.crt:ro
       - ../../.pki/nse-scraper.key:/etc/postgresql/nse-scraper.key:ro
@@ -507,12 +507,12 @@ services:
   yfinance-scraper:
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper-lite
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper
       target: production
     ports:
       - "8004:8000"
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - ../../.pki/yfinance-scraper.crt:/etc/postgresql/yfinance-scraper.crt:ro
       - ../../.pki/yfinance-scraper.key:/etc/postgresql/yfinance-scraper.key:ro
       - ../../.pki/root_ca.crt:/etc/postgresql/ca.crt:ro
@@ -537,9 +537,10 @@ services:
   scraper:
     build:
       context: ../..
-      dockerfile: infrastructure/orchestration/Dockerfile.scraper-prod
+      dockerfile: infrastructure/orchestration/Dockerfile.scraper
+      target: production
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - shared_shm:/dev/shm
       - ../../.pki/scraper.crt:/etc/postgresql/scraper.crt:ro
       - ../../.pki/scraper.key:/etc/postgresql/scraper.key:ro
@@ -570,7 +571,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
-      - ../../src.shared:/app/src.shared
+      - ../../src/shared:/app/src/shared
       - shared_shm:/dev/shm
       - ../../.pki/neural-pricing.crt:/etc/postgresql/neural-pricing.crt:ro
       - ../../.pki/neural-pricing.key:/etc/postgresql/neural-pricing.key:ro
@@ -1019,7 +1020,7 @@ services:
           memory: 512mb
 
   # === [Specialized] Rust Core (Institutional Compute) ===
-  rust-src.shared:
+  rust-core:
     env_file: ../../.env
     build:
       context: ../..

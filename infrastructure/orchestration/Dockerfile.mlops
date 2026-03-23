@@ -1,61 +1,51 @@
-# docker/Dockerfile.mlops
+# ==============================================================================
+# EQUAFLOW: MLOPS MANIFOLD (v11.1)
+# ==============================================================================
+# GPU-optimized ML orchestration powered by Ray and UV.
+# ==============================================================================
 
-# === Stage 1: Runtime ===
 FROM docker.io/library/rayproject/ray:latest-py312-cpu AS runtime
-
 WORKDIR /app
 
-# Switch to root to install dependencies
+# Switch to root for system-level hardening
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    gcc \
-    curl \
-    git \
+    build-essential libpq-dev gcc curl git tini \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for fast dependency resolution
-RUN pip install uv
+# Install Institutional UV
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uv/bin/uv
+ENV PATH="/uv/bin:$PATH"
 
-# Copy dependency files
-COPY pyproject.toml requirements.txt ./
+COPY pyproject.toml requirements.txt README.md ./
 
-# Install heavy dependencies with uv
-ENV UV_COMPILE_BYTECODE=0
-ENV UV_LINK_MODE=copy
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_RETRIES=10
-ENV UV_CONCURRENT_DOWNLOADS=1
-ENV UV_CONCURRENT_INSTALLS=1
-RUN uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple
+# Optimized Dependency Layer
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install --system -r requirements.txt && \
+    uv pip install --system .[ml,distributed]
 
-# Copy source code
-COPY . .
+# Copy Source
+COPY src ./src
 
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV MLFLOW_TRACKING_URI=${MLFLOW_TRACKING_URI:-postgresql://admin:password@postgres:5432/bsopt}
-ENV RAY_ADDRESS=auto
+# Institutional Environment Tuning
+ENV PYTHONPATH=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=2 \
+    RAY_ADDRESS=auto \
+    OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    VECLIB_MAXIMUM_THREADS=4 \
+    NUMEXPR_NUM_THREADS=4 \
+    NUMBA_CACHE_DIR=/tmp/numba_cache
 
-# Performance tuning — prevent oversubscription with Ray workers
-ENV OMP_NUM_THREADS=4
-ENV MKL_NUM_THREADS=1
-ENV OPENBLAS_NUM_THREADS=1
-ENV VECLIB_MAXIMUM_THREADS=4
-ENV NUMEXPR_NUM_THREADS=4
-
-# Numba and Python optimization
-ENV NUMBA_CACHE_DIR=/tmp/numba_cache
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Create Numba cache directory as root then switch user
 RUN mkdir -p /tmp/numba_cache && chmod 777 /tmp/numba_cache
 
-# Switch back to ray user
+# Switch back to ray user for runtime
 USER ray
 
-# Default command
+# Default to MLflow orchestration
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["mlflow", "run", ".", "--env-manager", "local"]

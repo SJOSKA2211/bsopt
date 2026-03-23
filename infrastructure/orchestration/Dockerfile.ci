@@ -1,66 +1,59 @@
-# Stage 1: Builder (Optimized for CI/Test speed)
-FROM docker.io/library/python:3.12-slim-bookworm AS builder
-RUN pip install uv
+# ==============================================================================
+# EQUAFLOW: CI/TEST RUNNER (v11.1)
+# ==============================================================================
+# High-fidelity testing environment for the BSOPT platform.
+# Rebased on Institutional Base.
+# ==============================================================================
 
+# --- BUILDER ---
+FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-# Enable bytecode compilation and extend network timeouts for large ML packages
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_HTTP_TIMEOUT=300
-ENV UV_RETRIES=10
-
-# Install system dependencies for building C extensions
-RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpq-dev git curl \
+# Install build-time specific dependencies (Rust for math kernels)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files for a complete install
-COPY pyproject.toml requirements.txt ./
-COPY . .
-
-# Install PyTorch first (CPU version for CI)
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --index-url https://download.pytorch.org/whl/cpu \
-    "torch>=2.5.0" \
-    "torchvision" \
-    "torchaudio"
-
-# Install everything else from requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r requirements.txt \
-    --extra-index-url https://pypi.org/simple \
-    && uv pip install --system ".[api,auth,ml,quant,distributed,dev]"
-
-#  Build bsopt_core Rust extensions
-RUN apt-get update && apt-get install -y --no-install-recommends curl
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN uv pip install --system maturin
-ENV RUSTFLAGS="-C target-cpu=native -C opt-level=3"
-RUN cd src/math_kernel/rust-core && maturin build --release --out /tmp/wheels
-RUN uv pip install --system /tmp/wheels/*.whl
+ENV CARGO_BUILD_JOBS=1
 
-# Stage 2: Final CI/Test Image
-FROM docker.io/library/python:3.12-slim-bookworm
+COPY pyproject.toml requirements.txt README.md ./
+COPY . .
 
+# Build Wheel for Rust Core
+RUN uv pip install maturin
+RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
+
+# Install App + All Extras (api, auth, ml, quant, distributed, dev)
+RUN uv venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+    uv pip install -r requirements.txt && \
+    uv pip install .[api,auth,ml,quant,distributed,dev] && \
+    uv pip install /tmp/wheels/*.whl
+
+# --- RUNNER ---
+FROM equaflow-base:latest
 WORKDIR /app
 
-# Install runtime library dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends libpq5 git curl \
-    && rm -rf /var/lib/apt/lists/*
+# Copy virtualenv from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copy the entire project for testing
+# Copy entire project for testing
 COPY . .
 
 # Set testing environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV BSOPT_TEST_MODE=1
-ENV PYTHONPATH=/app
-ENV NUMBA_DISABLE_JIT=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    BSOPT_TEST_MODE=1 \
+    PYTHONPATH=/app \
+    NUMBA_DISABLE_JIT=1
 
 # Default command for CI/Test runs
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["pytest", "tests/"]
