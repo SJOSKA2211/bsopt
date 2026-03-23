@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { usePricingStore } from '../store/usePricingStore';
+import type { PricingState } from '../store/usePricingStore';
 import { useWebSocket, getWebSocketUrl } from './useWebSocket';
 
 interface MarketDataPoint {
@@ -22,8 +23,8 @@ interface UseDataIntegrationOptions {
 }
 
 export function useDataIntegration({ symbols, enabled = true }: UseDataIntegrationOptions) {
-  const batchUpdate = usePricingStore((state) => state.batchUpdate);
-  const updatePrice = usePricingStore((state) => state.updatePrice);
+  const batchUpdate = usePricingStore((state: PricingState) => state.batchUpdate);
+  const updatePrice = usePricingStore((state: PricingState) => state.updatePrice);
 
   const { data, isConnected } = useWebSocket<MarketUpdate>({
     url: getWebSocketUrl('/api/v1/ws/market'),
