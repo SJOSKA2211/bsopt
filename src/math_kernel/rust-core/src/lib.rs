@@ -1,10 +1,10 @@
-use numpy::{PyArray1, PyReadonlyArray1, Bound, PyArrayMethods, Element, PyArray};
+use numpy::{PyArray1, PyArray2, PyReadonlyArray1, PyArrayMethods, Element, PyArray, PyArrayDescrMethods};
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
+use pyo3::Bound;
 use pyo3::ffi::Py_XINCREF;
 use rayon::prelude::*;
 use statrs::distribution::{ContinuousCDF, Normal};
-use num_complex::Complex;
 use std::sync::Arc;
 use memmap2::Mmap;
 use std::fs::File;
@@ -414,17 +414,22 @@ fn simulate_gbm_rk4<'py>(
     let sqrt_dt = dt.sqrt();
 
     let res = unsafe { PyArray2::<f64>::new_bound(py, [n_steps + 1, n_paths], false) };
-    let mut res_view = unsafe { res.as_array_mut() };
-
-    // Set initial values
-    for j in 0..n_paths {
-        res_view[[0, j]] = s0[j];
-    }
+    
+    // Safety: We get a raw pointer to the data to avoid sharing Bound across threads.
+    // We ensure the array is not reallocated during the loop.
+    let data_ptr = res.data() as usize; // Cast to usize for easier sharing
 
     let norm = Normal::new(0.0, 1.0).unwrap();
 
-    // Parallelize across paths for simulation
-    // Note: To be strictly correct with RK4 for SDEs, we use Milstein for diffusion.
+    // Set initial values
+    unsafe {
+        let ptr = data_ptr as *mut f64;
+        for j in 0..n_paths {
+            *ptr.add(j) = s0[j];
+        }
+    }
+
+    // Parallelize across paths
     (0..n_paths).into_par_iter().for_each(|j| {
         let mut rng = if let Some(s) = seed {
             rand::rngs::StdRng::seed_from_u64(s + j as u64)
@@ -435,19 +440,18 @@ fn simulate_gbm_rk4<'py>(
         let muj = mu[j];
         let sigmaj = sigma[j];
         let mut current_s = s0[j];
+        let base_ptr = data_ptr as *mut f64;
 
         for i in 1..=n_steps {
             let z = norm.sample(&mut rng);
             let z_sq = z * z;
 
-            // RK4 for deterministic drift
             let k1 = muj * current_s;
             let k2 = muj * (current_s + 0.5 * dt * k1);
             let k3 = muj * (current_s + 0.5 * dt * k2);
             let k4 = muj * (current_s + dt * k3);
             let drift = (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 
-            // Milstein for stochastic diffusion (Strong O(dt))
             let diffusion = sigmaj * current_s * sqrt_dt * z;
             let milstein_correction = 0.5 * sigmaj * sigmaj * current_s * (z_sq - dt);
 
@@ -456,11 +460,8 @@ fn simulate_gbm_rk4<'py>(
                 current_s = 1e-10;
             }
 
-            // We need a way to store this safely in the 2D array.
-            // Since we are par_iter on paths, we access res_view safely via raw pointers or pre-calculated slices.
             unsafe {
-                let ptr = res.data().add(i * n_paths + j);
-                *ptr = current_s;
+                *base_ptr.add(i * n_paths + j) = current_s;
             }
         }
     });
