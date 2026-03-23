@@ -18,6 +18,37 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY . .
 RUN uv pip install --system .
 
+# --- DEVELOPMENT ---
+FROM equaflow-base:latest AS development
+WORKDIR /app
+
+# Install Playwright system dependencies (needed for dev too)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+    libgbm1 libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source
+COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+
+# Install App + Playwright
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r infrastructure/requirements/requirements-scraper.txt && \
+    uv pip install --system playwright && \
+    uv pip install --system .
+
+# Install Playwright browsers
+RUN python -m playwright install --with-deps chromium
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
+CMD ["python", "src/ingestion/engine.py"]
+
 # --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app

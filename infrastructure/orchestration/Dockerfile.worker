@@ -18,6 +18,26 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY . .
 RUN uv pip install --system .
 
+# --- DEVELOPMENT ---
+FROM equaflow-base:latest AS development
+WORKDIR /app
+
+# Copy source
+COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+
+# Install App
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r infrastructure/requirements/requirements-worker.txt && \
+    uv pip install --system .
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
+CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info", "--concurrency", "2"]
+
 # --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app

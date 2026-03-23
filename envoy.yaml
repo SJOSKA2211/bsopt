@@ -29,14 +29,25 @@ static_resources:
                             prefix: "/auth"
                           route:
                             cluster: auth_service
+                            timeout: 15s
+                            retry_policy:
+                              retry_on: "5xx,gateway-error,connect-failure"
+                              num_retries: 3
                         - match:
                             prefix: "/data"
                           route:
-                            cluster: data_service
+                            cluster: api_service
+                            timeout: 30s
                         - match:
                             prefix: "/ml"
                           route:
                             cluster: ml_service
+                            timeout: 60s
+                        - match:
+                            prefix: "/pricing"
+                          route:
+                            cluster: pricing_service
+                            timeout: 10s
                 http_filters:
                   - name: envoy.filters.http.router
                     typed_config:
@@ -54,23 +65,39 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: auth
-                      port_value: 50051
-    - name: data_service
+                      address: auth-service
+                      port_value: 3001
+      health_checks:
+        - timeout: 1s
+          interval: 5s
+          unhealthy_threshold: 2
+          healthy_threshold: 2
+          http_health_check:
+            path: "/health"
+
+    - name: api_service
       connect_timeout: 0.25s
       type: LOGICAL_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
-        cluster_name: data_service
+        cluster_name: api_service
         endpoints:
           - lb_endpoints:
               - endpoint:
                   address:
                     socket_address:
-                      address: data
-                      port_value: 50052
+                      address: api
+                      port_value: 8000
+      health_checks:
+        - timeout: 1s
+          interval: 5s
+          unhealthy_threshold: 2
+          healthy_threshold: 2
+          http_health_check:
+            path: "/health"
+
     - name: ml_service
-      connect_timeout: 0.25s
+      connect_timeout: 0.5s
       type: LOGICAL_DNS
       lb_policy: ROUND_ROBIN
       load_assignment:
@@ -80,5 +107,34 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: ml
-                      port_value: 50053
+                      address: ml-inference
+                      port_value: 5001
+      health_checks:
+        - timeout: 2s
+          interval: 10s
+          unhealthy_threshold: 3
+          healthy_threshold: 1
+          http_health_check:
+            path: "/health"
+
+    - name: pricing_service
+      connect_timeout: 0.25s
+      type: LOGICAL_DNS
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: pricing_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: neural-pricing
+                      port_value: 8000
+      health_checks:
+        - timeout: 1s
+          interval: 5s
+          unhealthy_threshold: 2
+          healthy_threshold: 2
+          http_health_check:
+            path: "/health"
+

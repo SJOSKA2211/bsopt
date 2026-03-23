@@ -68,6 +68,12 @@ detect_container_engine() {
     fi
     export CONTAINER_ENGINE
     export COMPOSE_ENGINE
+    
+    # Alias commands for seamless interoperability
+    if [ "$CONTAINER_ENGINE" = "podman" ]; then
+        alias docker="podman"
+        alias docker-compose="podman compose"
+    fi
 }
 
 # Wrapper for container compose that ensures secrets are loaded
@@ -79,8 +85,10 @@ compose_cmd() {
     
     local ENV_FILE=".env"
     if [ -f "$ENV_FILE" ]; then
+        # Use --env-file if supported, otherwise rely on shell exports from load_decrypted_secrets
         $COMPOSE_ENGINE --env-file "$ENV_FILE" "$@"
     else
         $COMPOSE_ENGINE "$@"
     fi
 }
+

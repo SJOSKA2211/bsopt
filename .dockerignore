@@ -100,4 +100,5 @@ src/gateway/node_modules/
 # === Whitelists (Must be at the end) ===
 !infrastructure/configs/
 !infrastructure/orchestration/
+!infrastructure/requirements/
 !infrastructure/scripts/

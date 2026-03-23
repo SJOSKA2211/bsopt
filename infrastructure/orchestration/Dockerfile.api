@@ -19,6 +19,27 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY . .
 RUN uv pip install --system .
 
+# --- DEVELOPMENT ---
+FROM equaflow-base:latest AS development
+WORKDIR /app
+
+# Copy source + requirements
+COPY . .
+COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
+RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+
+# Install App in editable mode or just system-wide for dev
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r infrastructure/requirements/requirements-api.txt && \
+    uv pip install --system .
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
+CMD ["granian", "--interface", "asgi", "services.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--reload"]
+
 # --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app

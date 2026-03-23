@@ -115,19 +115,30 @@ encrypt_secret() {
 secure_env_file() {
     log_info "Securing sensitive environment variables..."
     
-    # Ensure PKI is initialized first (needed for vault.pub)
+    # Ensure PKI is initialized first (needed for vault.pub and JWT keys)
     if [ ! -f "${KEYS_DIR}/vault/vault.pub" ]; then
         initialize_pki
     fi
 
-    # Generate passwords if missing or empty
+    # 1. Generate core JWT/Encryption keys if missing from PKI
+    if [ ! -f "${KEYS_DIR}/jwt_rs256.key" ]; then
+        initialize_pki
+    fi
+
+    # 2. Map PKI keys to .env if not already present
+    log_info "Mapping PKI keys to .env..."
+    set_env_var "JWT_RS256_PRIVATE" "$(cat ${KEYS_DIR}/jwt_rs256.key | base64 | tr -d '\n')"
+    set_env_var "JWT_RS256_PUBLIC" "$(cat ${KEYS_DIR}/jwt_rs256.pub | base64 | tr -d '\n')"
+    set_env_var "JWT_ES256_PRIVATE" "$(cat ${KEYS_DIR}/jwt_es256.key | base64 | tr -d '\n')"
+    set_env_var "JWT_ES256_PUBLIC" "$(cat ${KEYS_DIR}/jwt_es256.pub | base64 | tr -d '\n')"
+    set_env_var "ARGON2_SALT" "$(cat ${KEYS_DIR}/argon2_salt.secret)"
+
+    # 3. Generate and Encrypt passwords
     local SENSITIVE_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "JWT_SECRET" "BETTER_AUTH_SECRET" "RABBITMQ_PASSWORD" "MINIO_ROOT_PASSWORD")
     
     for var in "${SENSITIVE_VARS[@]}"; do
-        # Use grep to find the exact key, avoid partial matches
         local CURRENT_VAL=$(grep "^${var}=" "${ENV_FILE}" | cut -d'=' -f2- | tr -d '"' | tr -d "'")
         
-        # If the variable is empty and no ENC_ version exists, generate it
         if [ -z "$CURRENT_VAL" ] && ! grep -q "^ENC_${var}=" "${ENV_FILE}"; then
             log_info "Generating random $var..."
             local NEW_VAL=$(openssl rand -hex 32)
@@ -135,12 +146,10 @@ secure_env_file() {
             CURRENT_VAL="$NEW_VAL"
         fi
 
-        # Encrypt if not already encrypted and we have a value
         if [ -n "$CURRENT_VAL" ] && [[ ! "$CURRENT_VAL" =~ ^ENC_ ]]; then
             log_info "Encrypting $var..."
             local ENC_VAL=$(encrypt_secret "$CURRENT_VAL")
             set_env_var "ENC_${var}" "$ENC_VAL"
-            # Remove plaintext version for security at rest
             sed -i "/^${var}=/d" "${ENV_FILE}"
         fi
     done
@@ -166,21 +175,26 @@ wait_for_service() {
     while [ $retry_count -lt $max_retries ]; do
         local container_id=$(compose_cmd -f "$COMPOSE_FILE" ps -q "$service_name" 2>/dev/null | head -n 1)
         if [ -n "$container_id" ]; then
-            # Use inspect to check health status if container engine supports it
+            # Priority 1: Container Engine Health Status
             local state=$($CONTAINER_ENGINE inspect -f '{{.State.Health.Status}}' "$container_id" 2>/dev/null)
             if [ "$state" == "healthy" ]; then
                 log_success "$service_name is healthy (reported by engine)"
                 return 0
             fi
             
-            # Fallback to manual health command
+            # Priority 2: Manual health command callback
             if container_exec "$container_id" sh -c "$health_command" > /dev/null 2>&1; then
                 log_success "$service_name is healthy (manual check)"
                 return 0
             fi
         fi
+        
+        # Exponential backoff (capped at 10s)
+        local sleep_time=$(( base_interval + (retry_count / 10) ))
+        [ $sleep_time -gt 10 ] && sleep_time=10
+        
         echo -n "."
-        sleep $base_interval
+        sleep $sleep_time
         retry_count=$((retry_count+1))
     done
     
@@ -194,7 +208,7 @@ wait_for_service() {
 # ==============================================================================
 main() {
     echo "=============================================================================="
-    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.2 (Zero-Touch Edition)${NC} [${TIMESTAMP}]"
+    echo -e "${BLUE}🚀 EquaFlow Institutional Bootstrap v4.5 (Hardened Edition)${NC} [${TIMESTAMP}]"
     echo "=============================================================================="
     
     detect_container_engine
@@ -204,39 +218,37 @@ main() {
     # Reload secrets into current shell session
     load_decrypted_secrets
 
-    # Ensure base image exists if Dockerfile.base is present
+    # Ensure base image is up to date
     if [ -f "infrastructure/orchestration/Dockerfile.base" ]; then
-        if ! $CONTAINER_ENGINE image inspect equaflow-base:latest >/dev/null 2>&1; then
-            log_info "Base image equaflow-base:latest not found. Building..."
-            $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
-        fi
+        log_info "Checking base image equaflow-base:latest..."
+        $CONTAINER_ENGINE build -t equaflow-base:latest -f infrastructure/orchestration/Dockerfile.base .
     fi
 
-    log_info "Building core operational images..."
-    compose_cmd -f "$COMPOSE_FILE" build api auth-service worker neural-pricing
+    log_info "Building core operational cluster..."
+    compose_cmd -f "$COMPOSE_FILE" build --parallel api auth-service worker neural-pricing
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase A: Data Persistence Layer (PostgreSQL/TimescaleDB)${NC}"
+    echo -e "${BLUE}Phase A: Zero-Trust Data Persistence (PostgreSQL/TimescaleDB)${NC}"
     echo "------------------------------------------------------------------------------"
+    # Strict pg_isready loop as requested
     wait_for_service "postgres" "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-bsopt}"
     wait_for_service "pgbouncer" "pg_isready -h localhost -p 5432 -U ${POSTGRES_USER:-admin}"
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase B: Performance Infrastructure (Redis/RabbitMQ/Kafka)${NC}"
+    echo -e "${BLUE}Phase B: Performance Backplane (Redis/RabbitMQ/Kafka)${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "redis" "redis-cli -a \"${REDIS_PASSWORD}\" ping"
     wait_for_service "rabbitmq" "rabbitmq-diagnostics -q check_running"
     
-    # Optional services based on compose file content
     if grep -q "kafka-1:" "$COMPOSE_FILE"; then
-        wait_for_service "kafka-1" "true" # Simple check, kafka is complex to probe simply
+        wait_for_service "kafka-1" "echo > /dev/tcp/localhost/9092"
     fi
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase C: Distributed Services Layer${NC}"
+    echo -e "${BLUE}Phase C: Application Mesh (Auth/API/ML)${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "auth-service" "wget -qO- http://localhost:3001/ || exit 1"
     wait_for_service "api" "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""
@@ -244,13 +256,17 @@ main() {
     
     echo ""
     echo "------------------------------------------------------------------------------"
-    echo -e "${BLUE}Phase D: Edge Networking (Envoy Gateway)${NC}"
+    echo -e "${BLUE}Phase D: Edge Ingress (Envoy Gateway)${NC}"
     echo "------------------------------------------------------------------------------"
     wait_for_service "envoy" "wget -qO- http://localhost:9901/ready || exit 1"
     
     echo ""
     echo "=============================================================================="
+    log_success "EQUAFLOW STACK IS ONLINE AND HARDENED"
+    echo "=============================================================================="
 }
 
+trap 'log_error "Bootstrap failed at step $BASH_COMMAND"; exit 1' ERR
 trap 'log_error "Bootstrap interrupted"; exit 1' INT TERM
 main "$@"
+
