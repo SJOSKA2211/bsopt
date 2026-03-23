@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import init, { BlackScholesWASM, MonteCarloWASM, CrankNicolsonWASM, HestonWASM } from '../wasm/bsopt_wasm';
-/* eslint-enable @typescript-eslint/no-unused-vars */
+
 
 interface OptionPayload {
   spot: number;
