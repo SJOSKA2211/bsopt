@@ -1,18 +1,19 @@
-from typing import Any, Dict, Optional
 import os
-import torch
+from typing import Any
+
 import structlog
+import torch
 
 logger = structlog.get_logger(__name__)
 
 class BaseCallback:
     """Institutional-grade base class for all ML training hooks."""
-    def on_train_begin(self, params: Dict[str, Any]) -> None: pass
+    def on_train_begin(self, params: dict[str, Any]) -> None: pass
     def on_train_end(self) -> None: pass
     def on_epoch_begin(self, epoch: int) -> None: pass
-    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None: pass
+    def on_epoch_end(self, epoch: int, metrics: dict[str, float]) -> None: pass
     def on_batch_begin(self, batch: int) -> None: pass
-    def on_batch_end(self, batch: int, logs: Dict[str, Any]) -> None: pass
+    def on_batch_end(self, batch: int, logs: dict[str, Any]) -> None: pass
 
 class EarlyStopping(BaseCallback):
     """Robust early stopping hook with patience and delta steering."""
@@ -23,9 +24,10 @@ class EarlyStopping(BaseCallback):
         self.best_loss = float("inf")
         self.early_stop = False
 
-    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None:
+    def on_epoch_end(self, epoch: int, metrics: dict[str, float]) -> None:
         val_loss = metrics.get("val_loss")
-        if val_loss is None: return
+        if val_loss is None:
+            return
 
         if val_loss < self.best_loss - self.min_delta:
             self.best_loss = val_loss
@@ -38,12 +40,12 @@ class EarlyStopping(BaseCallback):
 
 class MLflowCallback(BaseCallback):
     """Real-time MLflow telemetry hook."""
-    def __init__(self, run_name: Optional[str] = None) -> None:
+    def __init__(self, run_name: str | None = None) -> None:
         import mlflow
         self.mlflow = mlflow
         self.run_name = run_name
 
-    def on_epoch_end(self, epoch: int, metrics: Dict[str, float]) -> None:
+    def on_epoch_end(self, epoch: int, metrics: dict[str, float]) -> None:
         self.mlflow.log_metrics(metrics, step=epoch)
 
 class ModelCheckpoint(BaseCallback):
@@ -57,11 +59,13 @@ class ModelCheckpoint(BaseCallback):
         self.mode = mode
         self.best_score = float("inf") if mode == "min" else -float("inf")
 
-    def on_epoch_end(self, epoch: int, metrics: Dict[str, float], model: Any = None) -> None:
-        if model is None: return
+    def on_epoch_end(self, epoch: int, metrics: dict[str, float], model: Any = None) -> None:
+        if model is None:
+            return
         
         current_score = metrics.get(self.monitor)
-        if current_score is None: return
+        if current_score is None:
+            return
 
         is_best = (current_score < self.best_score) if self.mode == "min" else (current_score > self.best_score)
 

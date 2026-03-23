@@ -1,5 +1,6 @@
 import os
 
+import ray
 import structlog
 from sqlalchemy import text
 

@@ -1,3 +1,4 @@
+import msgspec
 import pandas as pd
 import structlog
 
