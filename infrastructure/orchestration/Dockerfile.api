@@ -22,7 +22,7 @@ COPY pyproject.toml requirements.txt README.md ./
 COPY src ./src
 
 # Build Wheel for Rust Core
-RUN uv pip install maturin
+RUN uv pip install --system maturin
 RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
 
 # Install App + Dependencies into venv

@@ -27,5 +27,7 @@
       "feature": null,
       "details": "Session ended"
     }
-  ]
+  ],
+  "_snapshotTimestamp": "2026-03-23T13:12:29.451Z",
+  "_reason": "pre-compress"
 }
