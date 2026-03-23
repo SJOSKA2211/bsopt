@@ -12,17 +12,17 @@ const palette = {
   mode: 'dark' as const,
 
   primary: {
-    main: '#00FFFF',      // Quantum Cyan
-    light: '#66FFFF',
-    dark: '#00CCCC',
+    main: '#10b981',      // Institutional Emerald
+    light: '#34d399',
+    dark: '#059669',
     contrastText: '#020617',
   },
 
   secondary: {
-    main: '#7B68EE',      // Nebula Violet
-    light: '#9370DB',
-    dark: '#6A5ACD',
-    contrastText: '#fff',
+    main: '#f59e0b',      // Strategic Amber
+    light: '#fbbf24',
+    dark: '#d97706',
+    contrastText: '#020617',
   },
 
   success: {
@@ -50,7 +50,7 @@ const palette = {
   },
 
   background: {
-    default: '#020617', // Slate 950
+    default: '#020617', // Slate 950 (Institutional Deep)
     paper: 'rgba(15, 23, 42, 0.4)',
     elevation1: '#0f172a',
     elevation2: '#1e293b',
@@ -72,24 +72,24 @@ const palette = {
     negative: '#f43f5e',
     neutral: '#94a3b8',
     accents: {
-      violet: '#7B68EE',
       amber: '#fbbf24',
       rose: '#f43f5e',
       sky: '#38bdf8',
       emerald: '#10b981',
+      indigo: '#6366f1',
     },
     greeks: {
-      delta: '#00FFFF',
-      gamma: '#7B68EE',
-      vega: '#D4AF37',   // Electrum Gold
+      delta: '#10b981',
+      gamma: '#38bdf8',
+      vega: '#f59e0b',   // Strategic Gold
       theta: '#f43f5e',
-      rho: '#10b981',
+      rho: '#6366f1',
     },
     qfd: {
-      nebula: '#7B68EE',
-      quantum: '#00FFFF',
-      electrum: '#D4AF37',
-      iridescent: 'linear-gradient(135deg, #7B68EE 0%, #00FFFF 100%)',
+      emerald: '#10b981',
+      amber: '#f59e0b',
+      sky: '#38bdf8',
+      iridescent: 'linear-gradient(135deg, #10b981 0%, #38bdf8 100%)',
     }
   },
 };
@@ -161,14 +161,14 @@ const components = {
       body: {
         backgroundColor: '#020617',
         backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(123, 104, 238, 0.15) 0%, transparent 80%),
-          radial-gradient(circle at 0% 100%, rgba(0, 255, 255, 0.08) 0%, transparent 50%),
-          radial-gradient(circle at 100% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 50%)
+          radial-gradient(circle at 50% -20%, rgba(16, 185, 129, 0.1) 0%, transparent 80%),
+          radial-gradient(circle at 0% 100%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
+          radial-gradient(circle at 100% 100%, rgba(245, 158, 11, 0.03) 0%, transparent 50%)
         `,
         backgroundAttachment: 'fixed',
         color: '#f8fafc',
         '&::-webkit-scrollbar': { width: '6px', height: '6px' },
-        '&::-webkit-scrollbar-thumb': { backgroundColor: alpha('#7B68EE', 0.2), borderRadius: '10px' },
+        '&::-webkit-scrollbar-thumb': { backgroundColor: alpha('#10b981', 0.2), borderRadius: '10px' },
         '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
       },
     },
@@ -186,8 +186,8 @@ const components = {
         boxShadow: `0 30px 60px -12px rgba(0, 0, 0, 0.6)`,
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          borderColor: alpha('#00FFFF', 0.4),
-          boxShadow: `0 40px 80px -15px rgba(0, 0, 0, 0.7), 0 0 30px ${alpha('#00FFFF', 0.15)}`,
+          borderColor: alpha('#10b981', 0.4),
+          boxShadow: `0 40px 80px -15px rgba(0, 0, 0, 0.7), 0 0 30px ${alpha('#10b981', 0.15)}`,
           transform: 'translateY(-4px)',
         },
       },
@@ -222,18 +222,19 @@ const components = {
         '&:active': { transform: 'translateY(0)' },
       },
       containedPrimary: {
-        background: 'linear-gradient(135deg, #00FFFF 0%, #00CCCC 100%)',
+        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
         color: '#020617',
         '&:hover': {
-          background: 'linear-gradient(135deg, #66FFFF 0%, #00FFFF 100%)',
-          boxShadow: `0 0 25px ${alpha('#00FFFF', 0.4)}`,
+          background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
+          boxShadow: `0 0 25px ${alpha('#10b981', 0.4)}`,
         },
       },
       containedSecondary: {
-        background: 'linear-gradient(135deg, #7B68EE 0%, #6A5ACD 100%)',
+        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+        color: '#020617',
         '&:hover': {
-          background: 'linear-gradient(135deg, #9370DB 0%, #7B68EE 100%)',
-          boxShadow: `0 0 25px ${alpha('#7B68EE', 0.4)}`,
+          background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+          boxShadow: `0 0 25px ${alpha('#f59e0b', 0.4)}`,
         },
       },
     },
@@ -257,9 +258,9 @@ const components = {
         fontFamily: '"JetBrains Mono", monospace',
       },
       filledPrimary: {
-        background: alpha('#00FFFF', 0.1),
-        color: '#00FFFF',
-        border: `1px solid ${alpha('#00FFFF', 0.2)}`,
+        background: alpha('#10b981', 0.1),
+        color: '#10b981',
+        border: `1px solid ${alpha('#10b981', 0.2)}`,
       },
     },
   },
@@ -270,11 +271,11 @@ const components = {
         borderRadius: 14,
         margin: '4px 12px',
         '&.Mui-selected': {
-          background: `linear-gradient(90deg, ${alpha('#00FFFF', 0.15)} 0%, transparent 100%)`,
-          color: '#00FFFF',
-          borderLeft: `3px solid #00FFFF`,
-          '& .MuiListItemIcon-root': { color: '#00FFFF' },
-          '&:hover': { background: `linear-gradient(90deg, ${alpha('#00FFFF', 0.2)} 0%, transparent 100%)` },
+          background: `linear-gradient(90deg, ${alpha('#10b981', 0.15)} 0%, transparent 100%)`,
+          color: '#10b981',
+          borderLeft: `3px solid #10b981`,
+          '& .MuiListItemIcon-root': { color: '#10b981' },
+          '&:hover': { background: `linear-gradient(90deg, ${alpha('#10b981', 0.2)} 0%, transparent 100%)` },
         },
       },
     },

@@ -9,38 +9,16 @@
 FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-COPY pyproject.toml README.md ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
-COPY src ./src
-
-# Install Playwright + App
+# Install scraper-specific dependencies
+COPY infrastructure/requirements/requirements-scraper.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-scraper.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system playwright && \
-    uv pip install --system .
+    uv pip install --system -r /tmp/requirements-scraper.txt && \
+    uv pip install --system playwright
 
-# --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
-WORKDIR /app
-
-# Install Playwright system dependencies (This stays in dev/production because it's runtime)
-
-# Install Playwright browsers
-RUN playwright install --with-deps chromium
-
-# Copy everything for dev (hot-reloading via volumes)
 COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+RUN uv pip install --system .
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-CMD ["python", "src/ingestion/scrapers/engine.py"]
-
-# --- PRODUCTION ---
+# --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app
 
@@ -51,16 +29,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgbm1 libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy source + entrypoint
-COPY src ./src
+# Install Playwright browsers (Note: these are large, so they stay in runtime)
+RUN /opt/venv/bin/python -m playwright install --with-deps chromium
+
+# Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Institutional Security & Performance
 USER equaflow
-
-HEALTHCHECK --interval=60s --timeout=10s --start-period=15s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]
 CMD ["python", "src/ingestion/scrapers/engine.py"]

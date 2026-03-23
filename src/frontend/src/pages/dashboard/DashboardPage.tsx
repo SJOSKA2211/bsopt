@@ -240,22 +240,29 @@ const KpiCard: React.FC<KpiCardProps> = ({
 };
 
 
+// Institutional API Hooks
+import { usePortfolioSummary, useInstitutionalMarketData } from '../../api/hooks';
+
 // ---------------------------------------------------------------------------
-// Dashboard Page – Quantum Financial Deity Evolution
+// Dashboard Page – Midnight Emerald Evolution
 // ---------------------------------------------------------------------------
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
+  // Midnight Emerald Theme Access
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+  
   const { variants } = useMotion();
   const [activeTime, setActiveTime] = React.useState('1M');
-  const qfd = theme.palette.financial.qfd;
   
-  // Connect to live data hook
-  useDataIntegration({ symbols: ['SPX', 'AAPL', 'NVDA'] });
+  // Real-time API Subscriptions (Direct Hooks)
+  const { data: marketData } = useInstitutionalMarketData('SPX');
+  const { data: portfolio } = usePortfolioSummary();
   
-  // Real-time stats from store
+  // Local fallback/sync (transitioning from store to direct hooks)
   const systemGamma = usePricingStore((state: any) => state.systemGamma);
   const mlAccuracy = usePricingStore((state: any) => state.mlAccuracy);
-  const portfolioTotal = usePricingStore((state: any) => state.portfolioTotal);
+  const portfolioTotal = portfolio?.totalValue ?? usePricingStore((state: any) => state.portfolioTotal);
 
   return (
     <Box sx={{ maxWidth: 1600, mx: 'auto', px: { xs: 2, md: 4 }, pb: 8, pt: 2 }}>
@@ -281,11 +288,11 @@ export const DashboardPage: React.FC = () => {
                 lineHeight: 1
               }}
             >
-              Salutations,{' '}
+              Institutional Alpha,{' '}
               <Box
                 component="span"
                 sx={{
-                  background: `linear-gradient(135deg, ${qfd?.quantum ?? '#00FFFF'}, ${qfd?.nebula ?? '#7B68EE'} 50%, ${qfd?.electrum ?? '#D4AF37'})`,
+                  background: qfd?.iridescent ?? 'linear-gradient(135deg, #10b981 0%, #38bdf8 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundSize: '200% auto',
@@ -296,29 +303,29 @@ export const DashboardPage: React.FC = () => {
                   }
                 }}
               >
-                Arch-Quant
+                Verified
               </Box>
             </Typography>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ opacity: 0.8 }}>
               <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.secondary' }}>
-                Quantum synchronization complete.
+                Midnight Emerald synchronization complete.
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Chip
-                  label="P-8 mTLS"
+                  label="TLS v1.3"
                   size="small"
                   variant="outlined"
-                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.quantum ?? '#00FFFF', 0.3), color: qfd?.quantum }}
+                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.emerald ?? '#10b981', 0.3), color: qfd?.emerald }}
                 />
                 <Chip
-                  label="SHM-LOW-LAT"
+                  label="RDMA-DIRECT"
                   size="small"
                   variant="outlined"
-                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.nebula ?? '#7B68EE', 0.3), color: qfd?.nebula }}
+                  sx={{ borderRadius: 1, fontSize: '10px', fontWeight: 900, borderColor: alpha(qfd?.sky ?? '#38bdf8', 0.3), color: qfd?.sky }}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#4ade80', mr: 1, boxShadow: '0 0 8px #4ade80' }} />
-                  <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#4ade80', letterSpacing: '0.1em' }}>0.42ms RTT</Typography>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981', mr: 1, boxShadow: '0 0 8px #10b981' }} />
+                  <Typography sx={{ fontSize: '10px', fontWeight: 900, color: '#10b981', letterSpacing: '0.1em' }}>0.42ms RTT</Typography>
                 </Box>
               </Stack>
             </Stack>
@@ -345,11 +352,11 @@ export const DashboardPage: React.FC = () => {
                 px: 4,
                 py: 1.5,
                 borderRadius: 3,
-                bgcolor: qfd?.quantum ?? '#00FFFF',
+                bgcolor: qfd?.emerald ?? '#10b981',
                 color: '#000',
                 '&:hover': {
-                  bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.8),
-                  boxShadow: `0 0 30px ${alpha(qfd?.quantum ?? '#00FFFF', 0.4)}`
+                  bgcolor: alpha(qfd?.emerald ?? '#10b981', 0.8),
+                  boxShadow: `0 0 30px ${alpha(qfd?.emerald ?? '#10b981', 0.4)}`
                 }
               }}
             >
@@ -359,20 +366,20 @@ export const DashboardPage: React.FC = () => {
         </Stack>
       </motion.div>
 
-      {/* ---- Quantum KPI Grid ---- */}
+      {/* ---- Institutional KPI Grid ---- */}
       <motion.div variants={variants.staggerContainer} initial="initial" animate="animate">
         <Grid container spacing={4} sx={{ mt: 4 }}>
-          {['Portfolio Oracle', 'Systemic Gamma', 'Predictive Accuracy'].map((item, idx) => (
+          {['Portfolio Summary', 'Systemic Gamma', 'Predictive Accuracy'].map((item, idx) => (
             <Grid key={item} size={{ xs: 12, md: 4 }}>
               <motion.div variants={variants.slideUp}>
                 {idx === 0 && (
                   <KpiCard
-                    label="Portfolio Oracle"
+                    label="Portfolio Summary"
                     value={`$${portfolioTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     subValue="+3.4% today"
                     positive
                     icon={<PortfolioIconMui />}
-                    accentColor={qfd?.quantum ?? '#00FFFF'}
+                    accentColor={qfd?.emerald ?? '#10b981'}
                     greek="Π"
                   />
                 )}
@@ -382,7 +389,7 @@ export const DashboardPage: React.FC = () => {
                     value={systemGamma.toFixed(2)}
                     subValue="Live aggregation"
                     icon={<GreeksIconMui />}
-                    accentColor={qfd?.nebula ?? '#7B68EE'}
+                    accentColor={qfd?.sky ?? '#38bdf8'}
                     greek="Γ"
                   />
                 )}
@@ -392,7 +399,7 @@ export const DashboardPage: React.FC = () => {
                     value={`${mlAccuracy.toFixed(1)}%`}
                     subValue="Model: Heston-XL"
                     icon={<MLIconMui />}
-                    accentColor={qfd?.electrum ?? '#D4AF37'}
+                    accentColor={qfd?.amber ?? '#f59e0b'}
                     progress={mlAccuracy}
                     greek="Φ"
                   />

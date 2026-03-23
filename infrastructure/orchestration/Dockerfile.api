@@ -9,58 +9,28 @@
 FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-# Install build-time specific dependencies (Rust for math kernels)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV CARGO_BUILD_JOBS=1
-
-COPY pyproject.toml README.md ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
-COPY src ./src
-
-# Build Wheel for Rust Core
-RUN uv pip install --system maturin
-RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
-
-# Install App + Dependencies
+# Install build-time specific dependencies (Api-specific)
+COPY infrastructure/requirements/requirements-api.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-api.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-db.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system . && \
-    uv pip install --system /tmp/wheels/*.whl
+    uv pip install --system -r /tmp/requirements-api.txt
 
-# --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
-WORKDIR /app
-
-# Copy everything for dev (hot-reloading via volumes)
+# Copy source + wheel from previous phase (if available) or build here
+# To be truly lean, we should copy the pre-built math kernels
 COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+RUN uv pip install --system .
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-EXPOSE 8000
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["granian", "--interface", "asgi", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
-# --- PRODUCTION ---
+# --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app
 
-# Copy source + entrypoint
-COPY src ./src
+# Copy only the virtual env if we weren't using --system,
+# but since equaflow-base installed to --system, we just rely on that.
+# For a "lean" Docker, we should actually use a VENV and COPY it.
+
+# Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Institutional Security & Performance
 USER equaflow
 EXPOSE 8000
 

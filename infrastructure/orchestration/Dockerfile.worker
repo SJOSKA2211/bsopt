@@ -9,58 +9,23 @@
 FROM equaflow-base:latest AS builder
 WORKDIR /app
 
-# Install build-time specific dependencies (Rust for math kernels)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV CARGO_BUILD_JOBS=1
-
-COPY pyproject.toml ./
-COPY infrastructure/requirements/ /app/infrastructure/requirements/
-COPY src ./src
-
-# Build Wheel for Rust Core
-RUN uv pip install --system maturin
-RUN cd src/math_kernel/rust-core && maturin build --release --strip --out /tmp/wheels
-
-# Install App + Dependencies
+# Install worker-specific dependencies
+COPY infrastructure/requirements/requirements-worker.txt /tmp/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
-    uv pip install --system -r infrastructure/requirements/requirements-core.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-db.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-worker.txt && \
-    uv pip install --system -r infrastructure/requirements/requirements-observability.txt && \
-    uv pip install --system . && \
-    uv pip install --system /tmp/wheels/*.whl
+    uv pip install --system -r /tmp/requirements-worker.txt
 
-# --- DEVELOPMENT ---
-FROM equaflow-base:latest AS development
-WORKDIR /app
-
-# Copy everything for dev (hot-reloading via volumes)
 COPY . .
-COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
-RUN chmod +x /usr/local/bin/entrypoint-shim.sh
+RUN uv pip install --system .
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-ENTRYPOINT ["/usr/local/bin/entrypoint-shim.sh"]
-CMD ["celery", "-A", "src.workers.tasks.celery_app", "worker", "-l", "info"]
-
-# --- PRODUCTION ---
+# --- FINAL RUNTIME ---
 FROM equaflow-base:latest AS production
 WORKDIR /app
 
-# Copy source + entrypoint
-COPY src ./src
+# Institutional Security & Performance
 COPY infrastructure/scripts/entrypoint-shim.sh /usr/local/bin/entrypoint-shim.sh
 RUN chmod +x /usr/local/bin/entrypoint-shim.sh
 
-# Institutional Security & Performance
 USER equaflow
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint-shim.sh"]

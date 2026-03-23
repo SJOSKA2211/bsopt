@@ -26,9 +26,11 @@ import {
   TrendingDown,
 } from '@mui/icons-material';
 import { Zap } from '../../../components/common/Icons';
-import { useQuery } from '@apollo/client/react';
-import { gql } from '@apollo/client';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Unified API Hooks
+import { useOptionsChain, useInstitutionalMarketData } from '../../../api/hooks';
+import type { OptionChainRow } from '../../../api/types';
 
 // Custom components
 import { QuickTradeButton } from './QuickTradeButton';
@@ -36,51 +38,9 @@ import { WasmGreeksCell } from './WasmGreeksCell';
 import { useWasmPricing } from '../../../hooks/useWasmPricing';
 import { usePricingStore } from '../../../store/usePricingStore';
 
-// Types
-export interface OptionChainRow {
-  id: string;
-  strike: number;
-  expiry: string;
-  call_bid: number;
-  call_ask: number;
-  call_last: number;
-  call_volume: number;
-  call_oi: number;
-  call_iv: number;
-  call_delta: number;
-  call_gamma: number;
-  put_bid: number;
-  put_ask: number;
-  put_last: number;
-  put_volume: number;
-  put_oi: number;
-  put_iv: number;
-  put_delta: number;
-  put_gamma: number;
-  underlying_price: number;
-  call_theor?: number;
-  put_theor?: number;
-}
-
-interface OptionNode {
-  id: string;
-  strike: number;
-  expiry: string;
-  optionType: string;
-  bid: number;
-  ask: number;
-  lastPrice: number;
-  volume: number;
-  openInterest: number;
-  iv: number;
-  price: number;
-  delta: number;
-  gamma: number;
-}
-
 interface GqlData {
-  marketData?: { lastPrice: number };
-  options?: { edges: { node: OptionNode }[] };
+  marketData?: { last_price: number };
+  options?: { edges: { node: any }[] };
 }
 
 interface WasmPricingResult {
@@ -94,33 +54,6 @@ interface WasmPricingResult {
   };
 }
 
-const GET_OPTIONS_CHAIN = gql`
-  query GetOptionsChain($symbol: String!, $expiryBucket: String) {
-    marketData(symbol: $symbol) {
-      lastPrice
-    }
-    options(underlying: $symbol, expiryBucket: $expiryBucket) {
-      edges {
-        node {
-          id
-          strike
-          expiry
-          optionType
-          bid
-          ask
-          lastPrice
-          volume
-          openInterest
-          iv
-          price
-          delta
-          gamma
-        }
-      }
-    }
-  }
-`;
-
 interface OptionsChainProps {
   symbol: string;
   onOptionSelect?: (option: OptionChainRow) => void;
@@ -128,50 +61,51 @@ interface OptionsChainProps {
 
 export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChainProps) => {
   const theme = useTheme();
-  const qfd = (theme.palette as unknown as { financial?: { qfd?: Record<string, string> } }).financial?.qfd;
+  // Midnight Emerald Theme Access
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [expiryFilter, setExpiryFilter] = useState<string>('all');
   const [pricingModel, setModel] = useState<string>('black_scholes');
+  
   const { 
     isLoaded: isWasmLoaded, 
     batchCalculate, 
-    priceMonteCarlo, 
-    priceAmerican, 
-    priceHeston,
     batchPriceMonteCarlo,
     batchPriceAmerican,
     batchPriceHeston 
   } = useWasmPricing();
+  
   const [enrichedResults, setEnrichedResults] = useState<WasmPricingResult[]>([]);
   const [lastSpot, setLastSpot] = useState<number>(0);
 
-  // Fetch options chain data via Federated GraphQL
-  const { data: gqlData, loading: isLoading } = useQuery(GET_OPTIONS_CHAIN, {
-    variables: { symbol, expiryBucket: expiryFilter },
-    pollInterval: 10000,
-  });
+  // Fetch options chain data via Unified Hook Layer
+  const { data: gqlData, loading: isLoading } = useOptionsChain(symbol);
+  
+  // Real-time Spot Mapping
+  const { data: marketData } = useInstitutionalMarketData(symbol);
 
   // Subscribe to real-time spot updates
   const priceData = usePricingStore((state: any) => state.prices[symbol]);
-  const tick = priceData ? { lastPrice: priceData.price } : null;
+  const tick = priceData ? { last_price: priceData.price } : null;
 
   useEffect(() => {
-    const newSpot = tick?.lastPrice || (gqlData as GqlData)?.marketData?.lastPrice;
+    const newSpot = tick?.last_price || marketData?.marketData?.last_price;
     if (newSpot && newSpot !== lastSpot) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastSpot(newSpot);
     }
-  }, [tick, gqlData, lastSpot]);
+  }, [tick, marketData, lastSpot]);
 
   // Transform flat GraphQL nodes into aggregated rows (grouped by strike and expiry)
   const optionsData = useMemo(() => {
-    if (!(gqlData as GqlData)?.options?.edges) return [];
+    if (!gqlData?.options?.edges) return [];
 
-    const nodes: OptionNode[] = ((gqlData as GqlData).options?.edges || []).map((e: { node: OptionNode }) => e.node);
+    const nodes: any[] = gqlData.options.edges.map((e: any) => e.node);
     const spot = lastSpot || 155.0;
     const groups: Record<string, OptionChainRow> = {};
 
-    nodes.forEach((node: OptionNode) => {
+    nodes.forEach((node: any) => {
       const key = `${node.strike}-${node.expiry}`;
       if (!groups[key]) {
         groups[key] = {
@@ -184,18 +118,18 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         };
       }
 
-      const isCall = node.optionType.toUpperCase() === 'CALL';
+      const isCall = node.type.toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
 
-      const item = groups[key] as unknown as Record<string, string | number | undefined>;
+      const item = groups[key] as any;
       item[`${prefix}bid`] = node.bid;
       item[`${prefix}ask`] = node.ask;
-      item[`${prefix}last`] = node.lastPrice;
+      item[`${prefix}last`] = node.last_price;
       item[`${prefix}volume`] = node.volume;
-      item[`${prefix}oi`] = node.openInterest;
-      item[`${prefix}iv`] = node.iv;
-      item[`${prefix}delta`] = node.delta;
-      item[`${prefix}gamma`] = node.gamma;
+      item[`${prefix}oi`] = node.open_interest;
+      item[`${prefix}iv`] = node.implied_volatility;
+      item[`${prefix}delta`] = node.greeks?.delta || 0;
+      item[`${prefix}gamma`] = node.greeks?.gamma || 0;
       item[`${prefix}theor`] = node.price;
     });
 
@@ -246,26 +180,26 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         if (pricingModel === 'black_scholes') {
           const raw = await batchCalculate(allParams);
           results = raw.map((r: any) => ({
-            price: r.price,
-            delta: r.greeks.delta,
-            gamma: r.greeks.gamma,
+            price: r.price as number,
+            delta: r.greeks.delta as number,
+            gamma: r.greeks.gamma as number,
             iv: 0, 
             greeks: r.greeks
           }));
         } else if (pricingModel === 'monte_carlo') {
           const flatParams = allParams.flatMap(p => [p.spot, p.strike, p.time, p.vol, p.rate, p.div, p.is_call ? 1 : 0]);
-          const prices = await (batchPriceMonteCarlo as (p: number[], n?: number) => Promise<Float64Array>)(flatParams, 10000);
-          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
+          const prices = await batchPriceMonteCarlo(flatParams, 10000) as Float64Array;
+          results = Array.from(prices).map(p => ({ price: p as number, delta: 0, gamma: 0, iv: 0 }));
         } else if (pricingModel === 'crank_nicolson') {
           const flatParams = allParams.flatMap(p => [p.spot, p.strike, p.time, p.vol, p.rate, p.div, p.is_call ? 1 : 0]);
-          const prices = await (batchPriceAmerican as (p: number[], m?: number, n?: number) => Promise<Float64Array>)(flatParams, 200, 200);
-          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
+          const prices = await batchPriceAmerican(flatParams, 200, 200) as Float64Array;
+          results = Array.from(prices).map(p => ({ price: p as number, delta: 0, gamma: 0, iv: 0 }));
         } else if (pricingModel === 'heston') {
           const flatParams = allParams.flatMap(p => [
             p.spot, p.strike, p.time, p.rate, 0.04, 2.0, 0.04, 0.3, -0.7 // spot, strike, time, r, v0, kappa, theta, sigma, rho
           ]);
-          const prices = await (batchPriceHeston as (p: number[]) => Promise<Float64Array>)(flatParams);
-          results = Array.from(prices).map(p => ({ price: p, delta: 0, gamma: 0, iv: 0 }));
+          const prices = await batchPriceHeston(flatParams) as Float64Array;
+          results = Array.from(prices).map(p => ({ price: p as number, delta: 0, gamma: 0, iv: 0 }));
         }
       } catch (e: unknown) {
         console.error('WASM Batch enrichment failed:', e);
@@ -747,24 +681,24 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.1),
+                bgcolor: alpha(qfd?.emerald ?? '#10b981', 0.1),
                 px: 1.5,
                 py: 0.5,
                 borderRadius: 2,
-                border: `1px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.2)}`
+                border: `1px solid ${alpha(qfd?.emerald ?? '#10b981', 0.2)}`
               }}
             >
               <Typography
                 variant="price"
                 sx={{
                   fontWeight: 900,
-                  color: qfd?.quantum,
+                  color: qfd?.emerald,
                   fontSize: '0.9rem'
                 }}
               >
                 ${lastSpot.toFixed(2)}
               </Typography>
-              {tick?.lastPrice && tick.lastPrice > ((gqlData as GqlData)?.marketData?.lastPrice || 0) ?
+              {tick?.last_price && tick.last_price > (marketData?.marketData?.last_price || 0) ?
                 <TrendingUp sx={{ fontSize: 14, color: 'success.main' }} /> :
                 <TrendingDown sx={{ fontSize: 14, color: 'error.main' }} />
               }
@@ -894,8 +828,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               '& .MuiDataGrid-columnHeaderTitle': { color: theme.palette.error.main, opacity: 0.8 }
             },
             '& .strike-header': {
-              borderBottom: `2px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.5)} !important`,
-              '& .MuiDataGrid-columnHeaderTitle': { color: qfd?.quantum, opacity: 0.8 }
+              borderBottom: `2px solid ${alpha(qfd?.emerald ?? '#10b981', 0.5)} !important`,
+              '& .MuiDataGrid-columnHeaderTitle': { color: qfd?.emerald, opacity: 0.8 }
             },
             '& .MuiDataGrid-row': {
               minHeight: '56px !important',
@@ -903,8 +837,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
               borderBottom: `1px solid ${alpha(theme.palette.divider, 0.05)}`
             },
             '& .MuiDataGrid-row:hover': {
-              backgroundColor: alpha(qfd?.quantum ?? '#00FFFF', 0.04),
-              boxShadow: `inset 0 0 20px ${alpha(qfd?.quantum ?? '#00FFFF', 0.08)}`,
+              backgroundColor: alpha(qfd?.emerald ?? '#10b981', 0.04),
+              boxShadow: `inset 0 0 20px ${alpha(qfd?.emerald ?? '#10b981', 0.08)}`,
               cursor: 'pointer',
             },
             '& .MuiDataGrid-cell': {
