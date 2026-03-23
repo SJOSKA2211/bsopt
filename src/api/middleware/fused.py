@@ -6,7 +6,7 @@ Consolidates all security layers into a single ASGI hop to minimize context-swit
 import re
 
 import structlog
-from fastapi import HTTPException, Request
+from fastapi import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.api.responses import MsgspecJSONResponse

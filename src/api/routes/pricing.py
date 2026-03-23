@@ -2,6 +2,7 @@
 Pricing Routes (Optimized)
 """
 
+import asyncio
 import datetime
 
 import msgspec

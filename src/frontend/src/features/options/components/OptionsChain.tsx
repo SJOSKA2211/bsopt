@@ -60,8 +60,6 @@ export interface OptionChainRow {
   underlying_price: number;
   call_theor?: number;
   put_theor?: number;
-  call_greeks_obj?: { delta?: number, gamma?: number, vega?: number, theta?: number, rho?: number };
-  put_greeks_obj?: { delta?: number, gamma?: number, vega?: number, theta?: number, rho?: number };
 }
 
 interface OptionNode {
@@ -286,25 +284,8 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
   const processedData = useMemo(() => {
     if (!optionsData) return [];
 
-    // 1. Enrich data first so indices match enrichedResults
-    let enriched = optionsData;
-    if (isWasmLoaded && enrichedResults.length > 0) {
-      const half = optionsData.length;
-      enriched = optionsData.map((row: OptionChainRow, i: number) => ({
-        ...row,
-        call_theor: enrichedResults[i]?.price,
-        call_delta: enrichedResults[i]?.greeks?.delta ?? row.call_delta,
-        call_gamma: enrichedResults[i]?.greeks?.gamma ?? row.call_gamma,
-        call_greeks_obj: enrichedResults[i]?.greeks,
-        put_theor: enrichedResults[i + half]?.price,
-        put_delta: enrichedResults[i + half]?.greeks?.delta ?? row.put_delta,
-        put_gamma: enrichedResults[i + half]?.greeks?.gamma ?? row.put_gamma,
-        put_greeks_obj: enrichedResults[i + half]?.greeks,
-      }));
-    }
+    let filtered = optionsData;
 
-    // 2. Filter data
-    let filtered = enriched;
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       filtered = filtered.filter((row: OptionChainRow) =>
@@ -312,7 +293,18 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       );
     }
 
-    return filtered;
+    if (!isWasmLoaded || enrichedResults.length === 0) return filtered;
+
+    const half = filtered.length;
+    return filtered.map((row: OptionChainRow, i: number) => ({
+      ...row,
+      call_theor: enrichedResults[i]?.price,
+      call_delta: enrichedResults[i]?.greeks?.delta ?? row.call_delta,
+      call_gamma: enrichedResults[i]?.greeks?.gamma ?? row.call_gamma,
+      put_theor: enrichedResults[i + half]?.price,
+      put_delta: enrichedResults[i + half]?.greeks?.delta ?? row.put_delta,
+      put_gamma: enrichedResults[i + half]?.greeks?.gamma ?? row.put_gamma,
+    }));
   }, [optionsData, searchTerm, isWasmLoaded, enrichedResults]);
 
   const handleModelChange = React.useCallback((_: React.MouseEvent<HTMLElement> | null, value: string | null) => {
@@ -464,12 +456,21 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'call-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
+        const now = new Date();
+        const expiryDate = new Date(row.expiry);
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        const rate = 0.045;
+        const div = 0.015;
 
         return (
           <WasmGreeksCell
-            price={row.call_theor}
-            greeks={row.call_greeks_obj}
-            isLoading={!isWasmLoaded}
+            spot={row.underlying_price}
+            strike={row.strike}
+            time={timeToExpiry}
+            vol={row.call_iv || 0.25}
+            rate={rate}
+            div={div}
+            isCall={true}
           />
         );
       },
@@ -682,12 +683,21 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
       headerClassName: 'put-header',
       renderCell: (params: GridRenderCellParams) => {
         const row = params.row as OptionChainRow;
+        const now = new Date();
+        const expiryDate = new Date(row.expiry);
+        const timeToExpiry = Math.max(0.001, (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365));
+        const rate = 0.045;
+        const div = 0.015;
 
         return (
           <WasmGreeksCell
-            price={row.put_theor}
-            greeks={row.put_greeks_obj}
-            isLoading={!isWasmLoaded}
+            spot={row.underlying_price}
+            strike={row.strike}
+            time={timeToExpiry}
+            vol={row.put_iv || 0.25}
+            rate={rate}
+            div={div}
+            isCall={false}
           />
         );
       },
@@ -705,7 +715,7 @@ export const OptionsChain = React.memo(({ symbol, onOptionSelect }: OptionsChain
         />
       ),
     },
-  ], [theme, qfd, isWasmLoaded]);
+  ], [theme, qfd]);
 
   return (
     <Box

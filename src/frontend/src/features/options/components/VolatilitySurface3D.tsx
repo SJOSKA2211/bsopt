@@ -43,7 +43,7 @@ const Surface: React.FC<{
     const colorHigh = new THREE.Color(theme.palette.secondary.main);
     
     let maxPrice = Math.max(...data);
-    const minPrice = Math.min(...data);
+    let minPrice = Math.min(...data);
     if (maxPrice === minPrice) maxPrice += 0.001;
 
     for (let i = 0; i < data.length; i++) {

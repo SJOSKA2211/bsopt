@@ -2,11 +2,12 @@
 Autonomous ML Pipeline - production-ready orchestration core.
 """
 
-from typing import Any
-
 import pandas as pd
 
 # Re-export or import expected symbols for `@patch`
+
+
+from src.database.models import Base
 
 
 class AutonomousMLPipeline:
@@ -14,13 +15,13 @@ class AutonomousMLPipeline:
     Compatibility wrapper delegating to high-performance MLPipeline.
     """
 
-    def __init__(self, config: dict[str, 'Any']) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self.config = config
         from src.ml.pipeline import MLPipeline
 
         self.pipeline = MLPipeline(config)
 
-    async def run_pipeline(self) -> dict[str, 'Any']:
+    async def run_pipeline(self) -> dict[str, Any]:
         """
         Executes the optimized unified pipeline.
         """

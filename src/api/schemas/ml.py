@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import msgspec
 from pydantic import BaseModel, ConfigDict, Field
 
