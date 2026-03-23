@@ -74,11 +74,11 @@ export const MarketPage: React.FC = () => {
   const oi = priceData?.open_interest != null ? `${(priceData.open_interest / 1_000_000_000).toFixed(2)}B` : '—';
 
   const MARKET_PULSE = useMemo(() => [
-    { label: 'IV Rank', value: ivRank, type: 'nebula', icon: <IVIcon sx={{ fontSize: 14 }} /> },
+    { label: 'IV Rank', value: ivRank, type: 'emerald', icon: <IVIcon sx={{ fontSize: 14 }} /> },
     { label: 'HV30', value: hv30, type: 'sky', icon: <HVIcon sx={{ fontSize: 14 }} /> },
-    { label: 'P/C Ratio', value: pcr, type: 'quantum', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
-    { label: 'Volume', value: vol, type: 'electrum', icon: null },
-    { label: 'Open Int.', value: oi, type: 'electrum', icon: null },
+    { label: 'P/C Ratio', value: pcr, type: 'sapphire', icon: <PCRIcon sx={{ fontSize: 14 }} /> },
+    { label: 'Volume', value: vol, type: 'amber', icon: null },
+    { label: 'Open Int.', value: oi, type: 'amber', icon: null },
   ], [ivRank, hv30, pcr, vol, oi]);
 
   return (
@@ -101,7 +101,7 @@ export const MarketPage: React.FC = () => {
                 background: theme.palette.financial.qfd.iridescent,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: `0 0 40px ${alpha(theme.palette.financial.qfd.quantum, 0.3)}`,
+                textShadow: `0 0 40px ${alpha(theme.palette.financial.qfd.emerald, 0.3)}`,
               }}
             >
               Market Data
@@ -149,10 +149,10 @@ export const MarketPage: React.FC = () => {
             },
             '& .Mui-selected': { color: 'primary.main !important' },
             '& .MuiTabs-indicator': {
-              background: `linear-gradient(90deg, ${theme.palette.financial.qfd.quantum}, ${theme.palette.financial.qfd.nebula})`,
+              background: `linear-gradient(90deg, ${theme.palette.financial.qfd.emerald}, ${theme.palette.financial.qfd.sky})`,
               borderRadius: 3,
               height: 4,
-              boxShadow: `0 0 15px ${alpha(theme.palette.financial.qfd.quantum, 0.5)}`,
+              boxShadow: `0 0 15px ${alpha(theme.palette.financial.qfd.emerald, 0.5)}`,
             },
           }}
         >

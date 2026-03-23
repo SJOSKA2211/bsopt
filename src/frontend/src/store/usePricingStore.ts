@@ -31,11 +31,11 @@ export const usePricingStore = create<PricingState>()(
   subscribeWithSelector((set) => ({
     prices: {},
     systemGamma: 0,
-    mlAccuracy: 98.2,
-    portfolioTotal: 1248392.42,
+    mlAccuracy: 0,
+    portfolioTotal: 0,
     
-    updatePrice: (symbol, data) => 
-      set((state) => ({
+    updatePrice: (symbol: string, data: Partial<PriceData>) => 
+      set((state: PricingState) => ({
         prices: {
           ...state.prices,
           [symbol]: {
@@ -46,8 +46,8 @@ export const usePricingStore = create<PricingState>()(
         },
       })),
 
-    batchUpdate: (updates) =>
-      set((state) => {
+    batchUpdate: (updates: Record<string, Partial<PriceData>>) =>
+      set((state: PricingState) => {
         const newPrices = { ...state.prices };
         for (const [symbol, data] of Object.entries(updates)) {
           newPrices[symbol] = {
@@ -59,8 +59,8 @@ export const usePricingStore = create<PricingState>()(
         return { prices: newPrices };
       }),
       
-    setGlobalMetrics: (metrics) =>
-      set((state) => ({
+    setGlobalMetrics: (metrics: { systemGamma?: number; mlAccuracy?: number; portfolioTotal?: number }) =>
+      set((state: PricingState) => ({
          ...state,
          ...metrics,
       })),

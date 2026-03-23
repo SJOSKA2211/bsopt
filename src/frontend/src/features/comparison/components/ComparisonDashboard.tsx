@@ -30,7 +30,8 @@ interface MetricRowProps {
 
 const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency = false }: MetricRowProps) => {
     const theme = useTheme();
-    const qfd = theme.palette.financial?.qfd;
+    const financial = (theme.palette as any).financial;
+    const qfd = financial?.qfd;
     const formatValue = (val: number) => {
         if (isCurrency) return `$${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
         if (isPercentage) return `${val.toFixed(1)}%`;
@@ -51,7 +52,7 @@ const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 900 }}>VS</Typography>
             </Box>
             <Box sx={{ width: '30%', textAlign: 'left' }}>
-                <Typography variant="h6" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 900, color: aiOutperforms ? qfd?.electrum ?? '#D4AF37' : 'text.primary' }}>
+                <Typography variant="h6" sx={{ fontFamily: 'JetBrains Mono', fontWeight: 900, color: aiOutperforms ? qfd?.amber ?? '#f59e0b' : 'text.primary' }}>
                     {formatValue(aiValue)}
                 </Typography>
             </Box>
@@ -62,9 +63,10 @@ const MetricRow = ({ label, userValue, aiValue, isPercentage = false, isCurrency
 export const ComparisonDashboard: React.FC = () => {
     const theme = useTheme();
     const { variants } = useMotion();
-    const metrics = useComparisonStore((state) => state.metrics);
-    const modelsSelected = useComparisonStore((state) => state.modelsSelected);
-    const qfd = theme.palette.financial?.qfd;
+    const metrics = useComparisonStore((state: any) => state.metrics);
+    const modelsSelected = useComparisonStore((state: any) => state.modelsSelected);
+    const financial = (theme.palette as any).financial;
+    const qfd = financial?.qfd;
 
     useEffect(() => {
         // Simulate real-time metric streams
@@ -92,15 +94,15 @@ export const ComparisonDashboard: React.FC = () => {
                         right: 0,
                         width: '100%',
                         height: 3,
-                        background: `linear-gradient(90deg, transparent, ${qfd?.electrum ?? '#D4AF37'}, ${qfd?.nebula ?? '#7B68EE'})`,
+                        background: `linear-gradient(90deg, transparent, ${qfd?.amber ?? '#f59e0b'}, ${qfd?.sky ?? '#38bdf8'})`,
                         filter: 'blur(2px)',
                     }}
                 />
 
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
                     <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1) }}>
-                            <MLIconMui sx={{ color: qfd?.electrum, fontSize: 24 }} />
+                        <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1) }}>
+                            <MLIconMui sx={{ color: qfd?.amber, fontSize: 24 }} aria-label="Alpha Comparison Icon" />
                         </Box>
                         <Box>
                             <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 0 }}>Human vs Machine</Typography>
@@ -108,8 +110,8 @@ export const ComparisonDashboard: React.FC = () => {
                         </Box>
                     </Stack>
                     <Stack direction="row" spacing={1}>
-                        {modelsSelected.map((m) => (
-                            <Chip key={m} label={m} size="small" sx={{ bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1), color: qfd?.electrum, fontWeight: 900, border: `1px solid ${alpha(qfd?.electrum ?? '#D4AF37', 0.3)}` }} />
+                        {modelsSelected.map((m: string) => (
+                            <Chip key={m} label={m} size="small" sx={{ bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1), color: qfd?.amber, fontWeight: 900, border: `1px solid ${alpha(qfd?.amber ?? '#f59e0b', 0.3)}` }} />
                         ))}
                     </Stack>
                 </Stack>
@@ -121,7 +123,7 @@ export const ComparisonDashboard: React.FC = () => {
                             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%' }}>METRIC</Typography>
                             <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 900, width: '30%', textAlign: 'right' }}>YOUR STRATEGY</Typography>
                             <Typography variant="overline" sx={{ width: '10%' }}></Typography>
-                            <Typography variant="overline" sx={{ color: qfd?.electrum ?? '#D4AF37', fontWeight: 900, width: '30%', textAlign: 'left' }}>AI ORACLE</Typography>
+                            <Typography variant="overline" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900, width: '30%', textAlign: 'left' }}>AI ORACLE</Typography>
                         </Stack>
 
                         {/* Metrics */}
@@ -142,15 +144,15 @@ export const ComparisonDashboard: React.FC = () => {
                             borderRadius: 4,
                             bgcolor: alpha(theme.palette.success.main, 0.2),
                             '& .MuiLinearProgress-bar': {
-                                bgcolor: qfd?.electrum ?? '#D4AF37',
+                                bgcolor: qfd?.amber ?? '#f59e0b',
                                 borderRadius: 4,
-                                boxShadow: `0 0 10px ${alpha(qfd?.electrum ?? '#D4AF37', 0.4)}`
+                                boxShadow: `0 0 10px ${alpha(qfd?.amber ?? '#f59e0b', 0.4)}`
                             }
                         }}
                     />
                     <Stack direction="row" justifyContent="space-between" sx={{ mt: 1 }}>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>Human Alpha</Typography>
-                        <Typography variant="caption" sx={{ color: qfd?.electrum ?? '#D4AF37', fontWeight: 900 }}>AI Edge: +{((metrics.aiPnl - metrics.userPnl) / metrics.userPnl * 100).toFixed(1)}%</Typography>
+                        <Typography variant="caption" sx={{ color: qfd?.amber ?? '#f59e0b', fontWeight: 900 }}>AI Edge: +{((metrics.aiPnl - metrics.userPnl) / metrics.userPnl * 100).toFixed(1)}%</Typography>
                     </Stack>
                 </Box>
             </Paper>

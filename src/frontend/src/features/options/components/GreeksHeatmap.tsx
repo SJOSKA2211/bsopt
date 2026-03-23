@@ -2,31 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Box, CircularProgress, Typography, useTheme, alpha } from '@mui/material';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
-import { useQuery } from '@apollo/client/react';
-import { gql } from '@apollo/client';
-import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
-const GET_OPTIONS_FOR_HEATMAP = gql`
-  query GetOptionsForHeatmap($symbol: String!) {
-    marketData(symbol: $symbol) {
-      lastPrice
-    }
-    options(underlying: $symbol) {
-      edges {
-        node {
-          id
-          strike
-          expiry
-          optionType
-          iv
-          delta
-          gamma
-          # Add other greeks if available in schema
-        }
-      }
-    }
-  }
-`;
+// Institutional API Hooks
+import { useOptionsChain } from '../../../api/hooks';
+import { useWasmPricing } from '../../../hooks/useWasmPricing';
 
 interface GreeksHeatmapProps {
   symbol: string;
@@ -47,23 +26,20 @@ interface OptionData {
   underlying_price: number;
 }
 
-interface GqlData {
-  marketData?: { lastPrice: number };
-  options?: { edges: { node: Record<string, unknown> }[] };
-}
-
 export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol, greek }: GreeksHeatmapProps) => {
   const theme = useTheme();
+  // Midnight Emerald Theme Access
+  const financial = (theme.palette as any).financial;
+  const qfd = financial?.qfd;
+
   const { batchCalculate, isLoaded: isWasmLoaded } = useWasmPricing();
 
-  const { data: gqlData, loading: isLoading, error } = useQuery(GET_OPTIONS_FOR_HEATMAP, {
-    variables: { symbol },
-  });
+  const { data: gqlData, loading: isLoading, error } = useOptionsChain(symbol);
 
   const optionsData = useMemo(() => {
-    if (!(gqlData as GqlData)?.options?.edges) return [];
-    const nodes = (gqlData as GqlData).options?.edges.map((e: any) => e.node) || [];
-    const spot = (gqlData as GqlData).marketData?.lastPrice || 155.0;
+    if (!gqlData?.options?.edges) return [];
+    const nodes = gqlData.options.edges.map((e: any) => e.node) || [];
+    const spot = gqlData.marketData?.lastPrice || 155.0;
     const groups: Record<string, OptionData> = {};
 
     nodes.forEach((node: any) => {
@@ -79,12 +55,12 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
           put_delta: 0, put_gamma: 0, put_iv: 0,
         };
       }
-      const isCall = String(node.optionType).toUpperCase() === 'CALL';
+      const isCall = String(node.type || node.optionType).toUpperCase() === 'CALL';
       const prefix = isCall ? 'call_' : 'put_';
       const target = groups[key] as any;
       target[`${prefix}iv`] = Number(node.iv);
-      target[`${prefix}delta`] = Number(node.delta);
-      target[`${prefix}gamma`] = Number(node.gamma);
+      target[`${prefix}delta`] = Number(node.delta || 0);
+      target[`${prefix}gamma`] = Number(node.gamma || 0);
     });
     return Object.values(groups);
   }, [gqlData]);
@@ -109,21 +85,35 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
         div: 0.015,
         is_call: true
       }));
-      const results = await batchCalculate(params);
-      if (!results) return;
-      setProcessedData(optionsData.map((d, i) => {
-        const r = results[i];
-        return r ? { ...d, call_delta: r.greeks.delta, call_gamma: r.greeks.gamma, call_vega: r.greeks.vega, call_theta: r.greeks.theta } : d;
-      }));
+      try {
+        const results = await batchCalculate(params);
+        if (!results) return;
+        setProcessedData(optionsData.map((d: OptionData, i: number) => {
+          const r = results[i];
+          return r ? { 
+            ...d, 
+            call_delta: r.greeks.delta, 
+            call_gamma: r.greeks.gamma, 
+            call_vega: r.greeks.vega, 
+            call_theta: r.greeks.theta 
+          } : d;
+        }));
+      } catch (e) {
+        console.error('Heatmap enrichment failed', e);
+      }
     };
     runEnrichment();
   }, [optionsData, isWasmLoaded, batchCalculate]);
 
   const { strikes, expiries, data } = useMemo(() => {
-    const s = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: number, b: number) => a - b);
+    const s = Array.from(new Set(processedData.map((d: OptionData) => d.strike))).sort((a: any, b: any) => (a as number) - (b as number));
     const e = Array.from(new Set(processedData.map((d: OptionData) => d.expiry))).sort();
     const d = processedData.map((opt: OptionData) => {
-      const val = greek === 'delta' ? opt.call_delta : greek === 'gamma' ? opt.call_gamma : greek === 'iv' ? opt.call_iv : greek === 'theta' ? opt.call_theta || 0 : opt.call_vega || 0;
+      const val = greek === 'delta' ? opt.call_delta : 
+                  greek === 'gamma' ? opt.call_gamma : 
+                  greek === 'iv' ? opt.call_iv : 
+                  greek === 'theta' ? opt.call_theta || 0 : 
+                  opt.call_vega || 0;
       return [s.indexOf(opt.strike), e.indexOf(opt.expiry), val];
     });
     return { strikes: s, expiries: e, data: d };
@@ -131,7 +121,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
 
   const chartOptions = useMemo(() => {
     if (data.length === 0) return null;
-    const greekColors = (theme.palette as any).financial?.greeks?.[greek] || theme.palette.primary.main;
+    const greekColors = financial?.greeks?.[greek] || qfd?.emerald || theme.palette.primary.main;
     return {
       tooltip: {
         position: 'top',
@@ -143,7 +133,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
           const val = params.data;
           return `
             <div style="padding: 4px;">
-              <div style="color: ${theme.palette.text.secondary}; font-size: 10px; font-weight: 800; margin-bottom: 4px;">OPTION DETECTORS</div>
+              <div style="color: ${theme.palette.text.secondary}; font-size: 10px; font-weight: 800; margin-bottom: 4px;">RISK MANIFOLD</div>
               <div style="margin-bottom: 2px;">STRIKE: <span style="color: ${theme.palette.text.primary}; font-weight: 700;">$${strikes[val[0]]}</span></div>
               <div style="margin-bottom: 4px;">EXPIRY: <span style="color: ${theme.palette.text.primary}; font-weight: 700;">${expiries[val[1]]}</span></div>
               <div style="border-top: 1px solid ${alpha(theme.palette.divider, 0.1)}; padding-top: 4px;">
@@ -186,7 +176,7 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
       }],
       backgroundColor: 'transparent'
     };
-  }, [data, greek, theme, strikes, expiries]);
+  }, [data, greek, theme, strikes, expiries, financial?.greeks, qfd?.emerald]);
 
   if (isLoading) {
     return (
@@ -196,10 +186,10 @@ export const GreeksHeatmap: React.FC<GreeksHeatmapProps> = React.memo(({ symbol,
     );
   }
 
-  if (error || !optionsData) {
+  if (error || !gqlData) {
     return (
       <Box sx={{ p: 4, textAlign: 'center', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography color="error" variant="caption" sx={{ fontWeight: 800 }}>ERROR SYNCHRONIZING MARKET MANIFOLD</Typography>
+        <Typography color="error" variant="caption" sx={{ fontWeight: 800 }}>ERROR SYNCHRONIZING RISK SURFACE</Typography>
       </Box>
     );
   }

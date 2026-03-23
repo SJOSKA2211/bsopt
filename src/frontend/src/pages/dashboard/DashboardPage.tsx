@@ -15,7 +15,6 @@ import {
 import { motion } from 'framer-motion';
 import { useMotion } from '../../hooks/useMotion';
 import { usePricingStore } from '../../store/usePricingStore';
-import { useDataIntegration } from '../../hooks/useDataIntegration';
 import {
   Zap,
   Globe,
@@ -447,9 +446,9 @@ export const DashboardPage: React.FC = () => {
                         fontSize: '0.7rem',
                         fontWeight: 900,
                         ...(t === activeTime ? {
-                          bgcolor: alpha(qfd?.quantum ?? '#00FFFF', 0.2),
-                          color: qfd?.quantum,
-                          border: `1px solid ${alpha(qfd?.quantum ?? '#00FFFF', 0.3)}`
+                          bgcolor: alpha(qfd?.emerald ?? '#10b981', 0.2),
+                          color: qfd?.emerald,
+                          border: `1px solid ${alpha(qfd?.emerald ?? '#10b981', 0.3)}`
                         } : {
                           color: 'text.secondary'
                         })
@@ -477,8 +476,8 @@ export const DashboardPage: React.FC = () => {
               <motion.div variants={variants.slideUp}>
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" data-testid="ml-predictions-paper" sx={{ mb: 2.5 }}>
-                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.electrum ?? '#D4AF37', 0.1) }}>
-                      <MLIconMui sx={{ color: qfd?.electrum, fontSize: 20 }} aria-label="Neural Inference Chart" />
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.amber ?? '#f59e0b', 0.1) }}>
+                      <MLIconMui sx={{ color: qfd?.amber, fontSize: 20 }} aria-label="Neural Inference Chart" />
                     </Box>
                     <Typography variant="h3" sx={{ fontWeight: 900, fontSize: '1.25rem' }}>Neural Inference</Typography>
                   </Stack>
@@ -490,8 +489,8 @@ export const DashboardPage: React.FC = () => {
               <motion.div variants={variants.slideUp}>
                 <Paper className="qfd-glass" sx={{ p: 3, height: 305, borderRadius: 5 }}>
                   <Stack direction="row" spacing={1.5} alignItems="center" data-testid="greeks-heatmap-paper" sx={{ mb: 2.5 }}>
-                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.nebula ?? '#7B68EE', 0.1) }}>
-                      <GreeksIconMui sx={{ color: qfd?.nebula, fontSize: 20 }} aria-label="Greeks Heatmap" />
+                    <Box sx={{ p: 1, borderRadius: 2, bgcolor: alpha(qfd?.sky ?? '#38bdf8', 0.1) }}>
+                      <GreeksIconMui sx={{ color: qfd?.sky, fontSize: 20 }} aria-label="Greeks Heatmap" />
                     </Box>
                     <Typography variant="h3" sx={{ fontWeight: 900, fontSize: '1.25rem' }}>Greeks Surface</Typography>
                   </Stack>
